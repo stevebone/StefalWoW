@@ -684,7 +684,7 @@ void bot_pet_ai::SetPetStats(bool force)
             if (pInfo->armor > 0)
                 myarmor = pInfo->armor;
 
-            for (uint8 i = STAT_STRENGTH; i != MAX_STATS; ++i)
+            for (uint16 i = STAT_STRENGTH; i != MAX_STATS; ++i)
                 me->SetCreateStat(Stats(i), pInfo->stats[i]);
         }
         else
