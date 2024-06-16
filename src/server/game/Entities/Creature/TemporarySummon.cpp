@@ -26,6 +26,10 @@
 #include "Pet.h"
 #include "Player.h"
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 TempSummon::TempSummon(SummonPropertiesEntry const* properties, WorldObject* owner, bool isWorldObject) :
 Creature(isWorldObject), m_Properties(properties), m_type(TEMPSUMMON_MANUAL_DESPAWN),
 m_timer(0), m_lifetime(0), m_canFollowOwner(true), m_visibleBySummonerOnly(false)
@@ -196,6 +200,12 @@ void TempSummon::InitStats(uint32 duration)
     if (!m_Properties)
         return;
 
+    //npcbot: skip deleting/reassigning player totems
+    //normally no creatorGUID is assigned at this point, perform full check anyway for compatibilty reasons
+    if (!(m_Properties->Slot && m_Properties->Slot >= SUMMON_SLOT_TOTEM_FIRE && m_Properties->Slot < MAX_TOTEM_SLOT &&
+        GetCreatorGUID() && GetCreatorGUID().IsCreature() && owner && owner->GetTypeId() == TYPEID_PLAYER &&
+        owner->ToPlayer()->HaveBot() && owner->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID())))
+    //end npcbot
     if (owner)
     {
         if (uint32 slot = m_Properties->Slot)
@@ -321,6 +331,15 @@ void Minion::InitStats(uint32 duration)
     TempSummon::InitStats(duration);
 
     SetReactState(REACT_PASSIVE);
+
+    //npcbot
+    //do not add bot totem to player's controlled list
+    //client indicator will be OwnerGUID
+    if (m_Properties && m_Properties->Slot && m_Properties->Slot >= SUMMON_SLOT_TOTEM_FIRE && m_Properties->Slot < MAX_TOTEM_SLOT &&
+        GetCreatorGUID() && GetCreatorGUID().IsCreature() && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER &&
+        GetOwner()->ToPlayer()->HaveBot() && GetOwner()->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID()))
+        return;
+    //end npcbot
 
     SetCreatorGUID(GetOwner()->GetGUID());
     SetFaction(GetOwner()->GetFaction());
