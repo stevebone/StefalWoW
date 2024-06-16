@@ -1617,6 +1617,16 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recvData)
         return;
     }
 
+    /* Prevent bug with missing models */
+    if (factionChangeInfo->Race == RACE_GOBLIN || factionChangeInfo->Race == RACE_WORGEN)
+    {
+        factionChangeInfo->Skin = urand(1, 3);
+        factionChangeInfo->HairColor = urand(1, 3);
+        factionChangeInfo->HairStyle = urand(1, 3);
+        factionChangeInfo->FacialHair = urand(1, 3);
+        factionChangeInfo->Face = urand(1, 3);
+    }
+
     recvData >> factionChangeInfo->Name
              >> factionChangeInfo->Gender
              >> factionChangeInfo->Skin
@@ -1808,7 +1818,7 @@ void WorldSession::HandleCharFactionOrRaceChangeCallback(std::shared_ptr<Charact
         trans->Append(stmt);
 
         // Race specific languages
-        if (factionChangeInfo->Race != RACE_ORC && factionChangeInfo->Race != RACE_HUMAN)
+        if (factionChangeInfo->Race != RACE_ORC && factionChangeInfo->Race != RACE_HUMAN && factionChangeInfo->Race != RACE_GOBLIN && factionChangeInfo->Race != RACE_WORGEN)
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHAR_SKILL_LANGUAGE);
             stmt->setUInt32(0, lowGuid);

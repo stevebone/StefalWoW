@@ -26912,6 +26912,9 @@ bool Player::ValidateAppearance(uint8 race, uint8 class_, uint8 gender, uint8 ha
         return true;
     };
 
+    if (race == RACE_WORGEN || race == RACE_GOBLIN)
+        return true;
+
     // For Skin type is always 0
     CharSectionsEntry const* skinEntry = GetCharSectionEntry(race, SECTION_TYPE_SKIN, gender, 0, skinColor);
     if (!validateCharSection(skinEntry))
