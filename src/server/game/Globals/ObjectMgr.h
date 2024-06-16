@@ -659,8 +659,8 @@ typedef std::vector<PlayerCreateInfoItem> PlayerCreateInfoItems;
 
 struct PlayerClassLevelInfo
 {
-    uint16 basehealth = 0;
-    uint16 basemana = 0;
+    uint32 basehealth = 0;
+    uint32 basemana = 0;
 };
 
 struct PlayerClassInfo
