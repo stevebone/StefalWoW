@@ -207,7 +207,7 @@ void Player::UpdateSpellDamageAndHealingBonus()
 
 bool Player::UpdateAllStats()
 {
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
     {
         float value = GetTotalStatValue(Stats(i));
         SetStat(Stats(i), int32(value));
@@ -1373,10 +1373,10 @@ bool Guardian::UpdateAllStats()
 {
     UpdateMaxHealth();
 
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         UpdateStats(Stats(i));
 
-    for (uint8 i = POWER_MANA; i < MAX_POWERS; ++i)
+    for (uint16 i = POWER_MANA; i < MAX_POWERS; ++i)
         UpdateMaxPower(Powers(i));
 
     UpdateAllResistances();

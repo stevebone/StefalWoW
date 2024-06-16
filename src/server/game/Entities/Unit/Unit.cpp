@@ -5153,9 +5153,9 @@ void Unit::UpdateResistanceBuffModsMod(SpellSchools school)
 
 void Unit::InitStatBuffMods()
 {
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         SetFloatValue(UNIT_FIELD_POSSTAT0+i, 0);
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         SetFloatValue(UNIT_FIELD_NEGSTAT0+i, 0);
 }
 

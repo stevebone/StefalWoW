@@ -2581,7 +2581,7 @@ void Player::GiveLevel(uint8 level)
     packet.PowerDelta[4] = 0;
     packet.PowerDelta[5] = 0;
 
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         packet.StatDelta[i] = int32(info.stats[i]) - GetCreateStat(Stats(i));
 
     SendDirectMessage(packet.Write());
@@ -2598,7 +2598,7 @@ void Player::GiveLevel(uint8 level)
     UpdateSkillsForLevel();
 
     // save base values (bonuses already included in stored stats
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         SetCreateStat(Stats(i), info.stats[i]);
 
     SetCreateHealth(classInfo.basehealth);
@@ -2729,10 +2729,10 @@ void Player::InitStatsForLevel(bool reapplyMods)
     SetObjectScale(1.0f);
 
     // save base values (bonuses already included in stored stats
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         SetCreateStat(Stats(i), info.stats[i]);
 
-    for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i < MAX_STATS; ++i)
         SetStat(Stats(i), info.stats[i]);
 
     SetCreateHealth(classInfo.basehealth);
