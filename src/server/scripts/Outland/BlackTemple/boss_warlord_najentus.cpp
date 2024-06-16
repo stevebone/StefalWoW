@@ -159,7 +159,25 @@ struct boss_najentus : public BossAI
                     target->SummonGameObject(GO_NAJENTUS_SPINE, *target, QuaternionData(), 30s);
                     Talk(SAY_NEEDLE);
                 }
+
+                //npcbot: try selecting npcbot
+                else if (Unit* bottarget = SelectTarget(SelectTargetMethod::Random, 1, [this](Unit const* target) -> bool {
+                    if (!target || !target->IsNPCBot() || target->ToCreature()->IsFreeBot() ||
+                        !me->IsWithinCombatRange(target, 200.0f))
+                        return false;
+
+                    return true;
+                    }))
+                {
+                    DoCast(bottarget, SPELL_IMPALING_SPINE, true);
+                    _spineTargetGUID = bottarget->GetGUID();
+                    //must let target summon, otherwise you cannot click the spine
+                    bottarget->SummonGameObject(GO_NAJENTUS_SPINE, *bottarget, QuaternionData(), 30s);
+                    Talk(SAY_NEEDLE);
+                }
+                //end npcbot
                 events.Repeat(20s, 25s);
+
                 break;
             case EVENT_NEEDLE:
                 DoCastSelf(SPELL_NEEDLE_SPINE_TARGETING, true);

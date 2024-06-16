@@ -39,6 +39,11 @@
 #include "Player.h"
 #include "World.h"
 
+//npcbot
+#include "botdatamgr.h"
+#include "botmgr.h"
+//end npcbot
+
 void WorldSession::HandleBattlemasterHelloOpcode(WorldPackets::NPC::Hello& hello)
 {
     Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(hello.Unit, UNIT_NPC_FLAG_BATTLEMASTER);
@@ -177,6 +182,22 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
         if (_player->HasAura(9454))
             return;
 
+        //npcbot: do not allow entering as group if there are bots in group
+        if (_player->GetGroup() && _player->HaveBot())
+        {
+            for (auto const& mslot : _player->GetGroup()->GetMemberSlots())
+            {
+                if (mslot.guid.IsCreature() && _player->GetBotMgr()->GetBot(mslot.guid))
+                {
+                    WorldPacket data;
+                    sBattlegroundMgr->BuildGroupJoinedBattlegroundPacket(&data, ERR_BATTLEGROUND_JOIN_FAILED);
+                    _player->SendDirectMessage(&data);
+                    return;
+                }
+            }
+        }
+        //end npcbot
+
         BattlegroundQueue& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
         GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, nullptr, bracketEntry, false, isPremade, 0, 0);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo);
@@ -229,6 +250,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
             // add to queue
             uint32 queueSlot = member->AddBattlegroundQueueId(bgQueueTypeId);
 
+            // send status packet (in queue)
             WorldPackets::Battleground::BattlefieldStatusQueued battlefieldStatus;
             BattlegroundMgr::BuildBattlegroundStatusQueued(&battlefieldStatus, bg, queueSlot, ginfo->JoinTime, bgQueueTypeId, avgTime);
             member->SendDirectMessage(battlefieldStatus.Write());
@@ -239,6 +261,23 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
             TC_LOG_DEBUG("bg.battleground", "Battleground: player joined queue for bg queue {{ BattlemasterListId: {}, BracketId: {}, TeamSize: {} }}, {}, NAME {}",
                 bgQueueTypeId.BattlemasterListId, uint32(bgQueueTypeId.BracketId), uint32(bgQueueTypeId.TeamSize),
                 member->GetGUID().ToString(), member->GetName());
+
+            //npcbot: list bots
+            if (!member->HaveBot())
+                continue;
+
+            BotMap const* map = member->GetBotMgr()->GetBotMap();
+            for (BotMap::const_iterator itr = map->begin(); itr != map->end(); ++itr)
+            {
+                Creature const* bot = itr->second;
+                if (!bot || !grp->IsMember(bot->GetGUID()))
+                    continue;
+
+                TC_LOG_DEBUG("bg.battleground", "Battleground: NPCBot joined queue for bg queue type {} bg type {}: GUID {}, NAME {} (owner: {})",
+                    bgQueueTypeId, bgTypeId, bot->GetGUID().ToString(), bot->GetName(), member->GetName());
+            }
+            //end npcbot
+
         }
         TC_LOG_DEBUG("bg.battleground", "Battleground: group end");
     }
@@ -251,16 +290,45 @@ void WorldSession::HandleBattlegroundPlayerPositionsOpcode(WorldPackets::Battleg
     if (!bg)                                                 // can't be received if player not in battleground
         return;
 
-    WorldPackets::Battleground::BattlegroundPlayerPositions playerPositions;
-    if (ObjectGuid guid = bg->GetFlagPickerGUID(TEAM_ALLIANCE))
-        if (Player* allianceFlagCarrier = ObjectAccessor::GetPlayer(*_player, guid))
-            playerPositions.FlagCarriers.emplace_back(guid, allianceFlagCarrier->GetPosition());
+     WorldPackets::Battleground::BattlegroundPlayerPositions playerPositions;
+    //npcbot
+    Creature const* afcbot = nullptr;
+    Creature const* hfcbot = nullptr;
+    //end npcbot
 
-    if (ObjectGuid guid = bg->GetFlagPickerGUID(TEAM_HORDE))
-        if (Player* hordeFlagCarrier = ObjectAccessor::GetPlayer(*_player, guid))
-            playerPositions.FlagCarriers.emplace_back(guid, hordeFlagCarrier->GetPosition());
-
-    SendPacket(playerPositions.Write());
+     if (ObjectGuid guid = bg->GetFlagPickerGUID(TEAM_ALLIANCE))
+    //npcbot
+    {
+    //end npcbot
+         if (Player* allianceFlagCarrier = ObjectAccessor::GetPlayer(*_player, guid))
+             playerPositions.FlagCarriers.emplace_back(guid, allianceFlagCarrier->GetPosition());
+        //npcbot
+        else if (guid.IsCreature())
+        {
+            afcbot = BotDataMgr::FindBot(guid.GetEntry());
+            if (afcbot)
+                playerPositions.FlagCarriers.emplace_back(guid, afcbot->GetPosition());
+        }
+    }
+        //end npcbot
+ 
+     if (ObjectGuid guid = bg->GetFlagPickerGUID(TEAM_HORDE))
+    //npcbot
+    {
+    //end npcbot
+         if (Player* hordeFlagCarrier = ObjectAccessor::GetPlayer(*_player, guid))
+             playerPositions.FlagCarriers.emplace_back(guid, hordeFlagCarrier->GetPosition());
+        //npcbot
+        else if (guid.IsCreature())
+        {
+            hfcbot = BotDataMgr::FindBot(guid.GetEntry());
+            if (hfcbot)
+                playerPositions.FlagCarriers.emplace_back(guid, hfcbot->GetPosition());
+        }
+    }
+        //end npcbot
+ 
+     SendPacket(playerPositions.Write());
 }
 
 void WorldSession::HandlePVPLogDataOpcode(WorldPackets::Battleground::PVPLogDataRequest& /*pvpLogDataRequest*/)

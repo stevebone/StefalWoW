@@ -82,7 +82,17 @@ struct boss_shirrak_the_dead_watcher : public BossAI
 
         while (uint32 eventId = events.ExecuteEvent())
         {
+            // Summon Focus Fire & Emote
+            Unit* target = SelectTarget(SelectTargetMethod::Random, 1);
+            //npcbot
+            /*
+            //end npcbot
+            if (target && target->GetTypeId() == TYPEID_PLAYER && target->IsAlive())
+            //npcbot
+            */
             switch (eventId)
+            //end npcbot
+
             {
                 case EVENT_ATTRACT_MAGIC:
                     DoCastSelf(SPELL_ATTRACT_MAGIC);

@@ -792,6 +792,10 @@ class spell_pri_penance : public SpellScript
 
     bool Load() override
     {
+        //npcbot
+        if (GetCaster() && GetCaster()->IsNPCBot())
+            return true;
+        //end npcbot
         return GetCaster()->GetTypeId() == TYPEID_PLAYER;
     }
 
@@ -834,6 +838,10 @@ class spell_pri_penance : public SpellScript
     SpellCastResult CheckCast()
     {
         Player* caster = GetCaster()->ToPlayer();
+        //npcbot: check for player makes no sense
+        if (!caster && GetCaster()->IsNPCBot())
+            caster = (Player*)GetCaster();
+        //end npcbot
         if (Unit* target = GetExplTargetUnit())
             if (!caster->IsFriendlyTo(target))
             {
@@ -1006,6 +1014,10 @@ class spell_pri_renew : public AuraScript
 
     bool Load() override
     {
+        //npcbot
+        if (GetCaster() && GetCaster()->IsNPCBot())
+            return true;
+        //end npcbot
         return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
     }
 
