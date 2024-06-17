@@ -2352,7 +2352,7 @@ void bot_ai::SetStats(bool force)
     else
         mylevel += BotDataMgr::GetLevelBonusForBotRank(me->GetCreatureTemplate()->rank);
 
-    mylevel = std::min<uint8>(mylevel, DEFAULT_MAX_LEVEL + 3);
+    mylevel = std::min<uint8>(mylevel, DEFAULT_MAX_LEVEL); // npcbots level issue
 
     //Do not remove this code
     mylevel = std::max<uint8>(mylevel, BotDataMgr::GetMinLevelForBotClass(_botclass));

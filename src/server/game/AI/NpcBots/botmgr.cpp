@@ -918,7 +918,7 @@ uint8 BotMgr::GetNpcBotMountLevel100()
 
 uint8 BotMgr::GetMaxNpcBots(uint8 level)
 {
-    return _max_npcbots[std::min<size_t>(BracketsCount - 1, level / 20)];
+    return _max_npcbots[std::min<size_t>(BracketsCount - 1, level / 10)];
 }
 
 int32 BotMgr::GetBotInfoPacketsLimit()
