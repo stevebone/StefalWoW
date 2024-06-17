@@ -898,6 +898,28 @@ void Battleground::EndBattleground(uint32 winner)
         // Reward winner team
         if (team == winner)
         {
+            switch (player->GetZoneId())
+            {
+            case 3277: // Warsong Gulch
+                player->AddItem(20558, 10);
+                break;
+            case 3358: // Arathi Basin
+                player->AddItem(20559, 10);
+                break;
+            case 3820: // Eye of the Storm
+                player->AddItem(29024, 10);
+                break;
+            case 4710: // Isle of Conquest
+                player->AddItem(47395, 10);
+                break;
+            case 4384: // Strand of the Ancients
+                player->AddItem(42425, 10);
+                break;
+            case 2597: // Alterac Valley
+                player->AddItem(20560, 10);
+                break;
+            }
+
             if (IsRandom() || BattlegroundMgr::IsBGWeekend(GetTypeID()))
             {
                 UpdatePlayerScore(player, SCORE_BONUS_HONOR, GetBonusHonorFromKill(winner_kills));
@@ -911,6 +933,28 @@ void Battleground::EndBattleground(uint32 winner)
         }
         else
         {
+            switch (player->GetZoneId())
+            {
+            case 3277: // Warsong Gulch
+                player->AddItem(20558, 5);
+                break;
+            case 3358: // Arathi Basin
+                player->AddItem(20559, 5);
+                break;
+            case 3820: // Eye of the Storm
+                player->AddItem(29024, 5);
+                break;
+            case 4710: // Isle of Conquest
+                player->AddItem(47395, 5);
+                break;
+            case 4384: // Strand of the Ancients
+                player->AddItem(42425, 5);
+                break;
+            case 2597: // Alterac Valley
+                player->AddItem(20560, 5);
+                break;
+            }
+
             if (IsRandom() || BattlegroundMgr::IsBGWeekend(GetTypeID()))
                 UpdatePlayerScore(player, SCORE_BONUS_HONOR, GetBonusHonorFromKill(loser_kills));
         }
