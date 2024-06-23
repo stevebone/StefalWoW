@@ -1185,7 +1185,7 @@ public:
             if (l_Player == nullptr || l_Target == nullptr)
                 return;
 
-            if (l_Target->IsImmunedToDamage(GetSpellInfo()))
+            if (l_Target->IsImmunedToDamage(l_Player, GetSpellInfo()))
             {
                 l_Player->CastSpell(l_Target, eSpells::ShatteringThrowDispel, true);
                 return;

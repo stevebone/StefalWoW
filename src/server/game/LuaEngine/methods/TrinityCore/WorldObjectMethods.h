@@ -1115,6 +1115,9 @@ namespace LuaWorldObject
         uint32 musicid = E->CHECKVAL<uint32>(2);
         Player* player = E->CHECKOBJ<Player>(3, false);
 
+        if (!sSoundKitStore.LookupEntry(musicid))
+            musicid = 0;
+
         WorldPackets::Misc::PlayMusic playMusic(musicid);
         const WorldPacket* data = playMusic.Write();
 
@@ -1141,6 +1144,8 @@ namespace LuaWorldObject
     {
         uint32 soundId = E->CHECKVAL<uint32>(2);
         Player* player = E->CHECKOBJ<Player>(3, false);
+        if (!sSoundKitStore.LookupEntry(soundId))
+            return 0;
 
         if (player)
             obj->PlayDirectSound(soundId, player);
@@ -1166,6 +1171,8 @@ namespace LuaWorldObject
     {
         uint32 soundId = E->CHECKVAL<uint32>(2);
         Player* player = E->CHECKOBJ<Player>(3, false);
+        if (!sSoundKitStore.LookupEntry(soundId))
+            return 0;
 
         if (player)
             obj->PlayDistanceSound(soundId, player);
