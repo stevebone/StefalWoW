@@ -297,6 +297,6 @@ namespace Movement
 
     void MoveSplineInitFacingVisitor::operator()(Position const& point) const
     {
-        init.SetFacing(point.GetPositionX(), point.GetPositionY(), point.GetPositionZ());
+        _init.SetFacing(point.GetPositionX(), point.GetPositionY(), point.GetPositionZ());
     }
 }
