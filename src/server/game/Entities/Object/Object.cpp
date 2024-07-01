@@ -57,6 +57,11 @@
 #include "VMapManager2.h"
 #include "World.h"
 #include <G3D/Vector3.h>
+#ifdef ELUNA
+#include "LuaEngine.h"
+#include "ElunaConfig.h"
+#include "ElunaEventMgr.h"
+#endif
 #include <sstream>
 
 constexpr float VisibilityDistances[AsUnderlyingType(VisibilityDistanceType::Max)] =
@@ -371,23 +376,23 @@ void Object::BuildMovementUpdate(ByteBuffer* data, CreateObjectBits flags, Playe
             *data << float(1.0f);                                       // MovementForcesModMagnitude
         }
 
-        *data << float(2.0f);                                           // advFlyingAirFriction
-        *data << float(65.0f);                                          // advFlyingMaxVel
-        *data << float(1.0f);                                           // advFlyingLiftCoefficient
-        *data << float(3.0f);                                           // advFlyingDoubleJumpVelMod
-        *data << float(10.0f);                                          // advFlyingGlideStartMinHeight
-        *data << float(100.0f);                                         // advFlyingAddImpulseMaxSpeed
-        *data << float(90.0f);                                          // advFlyingMinBankingRate
-        *data << float(140.0f);                                         // advFlyingMaxBankingRate
-        *data << float(180.0f);                                         // advFlyingMinPitchingRateDown
-        *data << float(360.0f);                                         // advFlyingMaxPitchingRateDown
-        *data << float(90.0f);                                          // advFlyingMinPitchingRateUp
-        *data << float(270.0f);                                         // advFlyingMaxPitchingRateUp
-        *data << float(30.0f);                                          // advFlyingMinTurnVelocityThreshold
-        *data << float(80.0f);                                          // advFlyingMaxTurnVelocityThreshold
-        *data << float(2.75f);                                          // advFlyingSurfaceFriction
-        *data << float(7.0f);                                           // advFlyingOverMaxDeceleration
-        *data << float(0.4f);                                           // advFlyingLaunchSpeedCoefficient
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_AIR_FRICTION));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MAX_VEL));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_LIFT_COEF));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_DOUBLE_JUMP_VEL_MOD));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_GLIDE_START_MIN_HEIGHT));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_ADD_IMPULSE_MAX_SPEED));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MIN_BANKING_RATE));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MAX_BANKING_RATE));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MIN_PITCHING_RATE_DOWN));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MAX_PITCHING_RATE_DOWN));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MIN_PITCHING_RATE_UP));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MAX_PITCHING_RATE_UP));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MIN_TURN_VELOCITY_THRESHOLD));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_MAX_TURN_VELOCITY_THRESHOLD));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_SURFACE_FRICTION));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_OVER_MAX_DECELERATION));
+        *data << float(unit->GetAdvFlyRate(ADV_FLY_LAUNCH_SPEED_COEFFICIENT));
 
         data->WriteBit(HasSpline);
         data->FlushBits();
@@ -878,6 +883,9 @@ void MovementInfo::OutDebug()
 }
 
 WorldObject::WorldObject(bool isWorldObject) : Object(), WorldLocation(), LastUsedScriptID(0),
+#ifdef ELUNA
+elunaEvents(NULL),
+#endif
 m_movementInfo(), m_name(), m_isActive(false), m_isFarVisible(false), m_isStoredInWorldObjectGridContainer(isWorldObject), m_zoneScript(nullptr),
 m_transport(nullptr), m_zoneId(0), m_areaId(0), m_staticFloorZ(VMAP_INVALID_HEIGHT), m_outdoors(false), m_liquidStatus(LIQUID_MAP_NO_WATER),
 m_currMap(nullptr), m_InstanceId(0), _dbPhase(0), m_notifyflags(0), _heartbeatTimer(HEARTBEAT_INTERVAL)
@@ -888,6 +896,11 @@ m_currMap(nullptr), m_InstanceId(0), _dbPhase(0), m_notifyflags(0), _heartbeatTi
 
 WorldObject::~WorldObject()
 {
+#ifdef ELUNA
+    delete elunaEvents;
+    elunaEvents = NULL;
+#endif
+
     // this may happen because there are many !create/delete
     if (IsStoredInWorldObjectGridContainer() && m_currMap)
     {
@@ -904,6 +917,11 @@ WorldObject::~WorldObject()
 void WorldObject::Update(uint32 diff)
 {
     m_Events.Update(diff);
+
+#ifdef ELUNA
+    if (elunaEvents) // can be null on maps without eluna
+        elunaEvents->Update(diff);
+#endif
 
     _heartbeatTimer -= Milliseconds(diff);
     while (_heartbeatTimer <= 0ms)
@@ -958,29 +976,15 @@ void WorldObject::setActive(bool on)
 void WorldObject::SetVisibilityDistanceOverride(VisibilityDistanceType type)
 {
     ASSERT(type < VisibilityDistanceType::Max);
+    return SetVisibilityDistanceOverride(VisibilityDistances[AsUnderlyingType(type)]);
+}
+
+void WorldObject::SetVisibilityDistanceOverride(float distance)
+{
     if (GetTypeId() == TYPEID_PLAYER)
         return;
 
-    if (Creature* creature = ToCreature())
-    {
-        creature->RemoveUnitFlag2(UNIT_FLAG2_LARGE_AOI | UNIT_FLAG2_GIGANTIC_AOI | UNIT_FLAG2_INFINITE_AOI);
-        switch (type)
-        {
-            case VisibilityDistanceType::Large:
-                creature->SetUnitFlag2(UNIT_FLAG2_LARGE_AOI);
-                break;
-            case VisibilityDistanceType::Gigantic:
-                creature->SetUnitFlag2(UNIT_FLAG2_GIGANTIC_AOI);
-                break;
-            case VisibilityDistanceType::Infinite:
-                creature->SetUnitFlag2(UNIT_FLAG2_INFINITE_AOI);
-                break;
-            default:
-                break;
-        }
-    }
-
-    m_visibilityDistanceOverride = VisibilityDistances[AsUnderlyingType(type)];
+    m_visibilityDistanceOverride = distance;
 }
 
 void WorldObject::SetFarVisible(bool on)
@@ -1545,6 +1549,15 @@ bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool implicitDetect, bo
     if (!obj->IsPrivateObject() && !sConditionMgr->IsObjectMeetingVisibilityByObjectIdConditions(obj->GetTypeId(), obj->GetEntry(), this))
         return false;
 
+    if (const GameObject* object = obj->ToGameObject()) {
+        const std::set<ObjectGuid> infinites = object->GetMap()->GetInfiniteGameObjects();
+        if (std::find(infinites.begin(), infinites.end(), object->GetGUID()) != infinites.end()) {
+            float distance = GetDistance(obj);
+            //TC_LOG_ERROR("misc", "[+) WorldObject::CanSeeOrDetect(Infinite) : %f ", distance);
+            return true && (distance <= object->GetVisibilityRange());
+        }
+    }
+
     bool corpseVisibility = false;
     if (distanceCheck)
     {
@@ -1818,6 +1831,23 @@ void WorldObject::SetMap(Map* map)
     m_currMap = map;
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
+
+#ifdef ELUNA
+    //@todo: possibly look into cleanly clearing all pending events from previous map's event mgr.
+
+    // if multistate, delete elunaEvents and set to nullptr. events shouldn't move across states.
+    // in single state, the timed events should move across maps
+    if (!sElunaConfig->IsElunaCompatibilityMode())
+    {
+        delete elunaEvents;
+        elunaEvents = nullptr; // set to null in case map doesn't use eluna
+    }
+
+    if (Eluna* e = map->GetEluna())
+        if (!elunaEvents)
+            elunaEvents = new ElunaEventProcessor(e, this);
+#endif
+
     if (IsStoredInWorldObjectGridContainer())
         m_currMap->AddWorldObject(this);
 }
@@ -3326,6 +3356,24 @@ void WorldObject::GetGameObjectListWithEntryInGrid(Container& gameObjectContaine
     Cell::VisitGridObjects(this, searcher, maxSearchRange);
 }
 
+void WorldObject::GetGameObjectListWithEntryInGridAppend(std::list<GameObject*>& gameobjectList, uint32 entry, float maxSearchRange) const
+{
+    std::list<GameObject*> tempList;
+    GetGameObjectListWithEntryInGrid(tempList, entry, maxSearchRange);
+    gameobjectList.sort();
+    tempList.sort();
+    gameobjectList.merge(tempList);
+}
+
+void WorldObject::GetCreatureListWithEntryInGridAppend(std::list<Creature*>& creatureList, uint32 entry, float maxSearchRange) const
+{
+    std::list<Creature*> tempList;
+    GetCreatureListWithEntryInGrid(tempList, entry, maxSearchRange);
+    creatureList.sort();
+    tempList.sort();
+    creatureList.merge(tempList);
+}
+
 template <typename Container>
 void WorldObject::GetGameObjectListWithOptionsInGrid(Container& gameObjectContainer, float maxSearchRange, FindGameObjectOptions const& options) const
 {
@@ -3820,6 +3868,142 @@ std::string WorldObject::GetDebugInfo() const
          << "Name: " << GetName();
     return sstr.str();
 }
+
+#ifdef ELUNA
+Eluna* WorldObject::GetEluna() const
+{
+    if (const Map* map = FindMap())
+        return map->GetEluna();
+
+    return nullptr;
+}
+#endif
+
+std::list<Creature*> WorldObject::FindAllCreaturesInRange(float range)
+{
+    std::list<Creature*> templist;
+    float x, y, z;
+    GetPosition(x, y, z);
+
+    CellCoord pair(Trinity::ComputeCellCoord(x, y));
+    Cell cell(pair);
+    cell.SetNoCreate();
+
+    Trinity::AllCreaturesInRange check(this, range);
+    Trinity::CreatureListSearcher<Trinity::AllCreaturesInRange> searcher(this, templist, check);
+    TypeContainerVisitor<Trinity::CreatureListSearcher<Trinity::AllCreaturesInRange>, GridTypeMapContainer> cSearcher(searcher);
+    cell.Visit(pair, cSearcher, *(GetMap()), *this, this->GetGridActivationRange());
+
+    return templist;
+}
+
+std::list<Creature*> WorldObject::FindAllUnfriendlyCreaturesInRange(float range)
+{
+    std::list<Creature*> templist;
+    if (Unit* unit = this->ToUnit())
+    {
+        float x, y, z;
+        unit->GetPosition(x, y, z);
+
+        CellCoord pair(Trinity::ComputeCellCoord(x, y));
+        Cell cell(pair);
+        cell.SetNoCreate();
+
+        Trinity::AttackableUnitInObjectRangeCheck check(unit, range);
+        Trinity::CreatureListSearcher<Trinity::AttackableUnitInObjectRangeCheck> searcher(unit, templist, check);
+        TypeContainerVisitor<Trinity::CreatureListSearcher<Trinity::AttackableUnitInObjectRangeCheck>, GridTypeMapContainer> cSearcher(searcher);
+        cell.Visit(pair, cSearcher, *(unit->GetMap()), *unit, unit->GetGridActivationRange());
+    }
+    return templist;
+}
+
+std::list<GameObject*> WorldObject::FindNearestGameObjects(uint32 entry, float range) const
+{
+    std::list<GameObject*> goList;
+    GetGameObjectListWithEntryInGrid(goList, entry, range);
+    return goList;
+}
+
+std::list<Creature*> WorldObject::FindNearestCreatures(uint32 entry, float range) const
+{
+    std::list<Creature*> creatureList;
+    GetCreatureListWithEntryInGrid(creatureList, entry, range);
+    return creatureList;
+}
+
+AreaTrigger* WorldObject::SelectNearestAreaTrigger(uint32 spellId, float distance) const
+{
+    AreaTrigger* target = nullptr;
+
+    Trinity::NearestAreaTriggerWithIdInObjectRangeCheck checker(this, spellId, distance);
+    Trinity::AreaTriggerSearcher<Trinity::NearestAreaTriggerWithIdInObjectRangeCheck> searcher(this, target, checker);
+    Cell::VisitAllObjects(this, searcher, distance);
+
+    return target;
+}
+
+std::list<AreaTrigger*> WorldObject::SelectNearestAreaTriggers(uint32 spellId, float range)
+{
+    std::list<AreaTrigger*> atList;
+    Trinity::AnyAreatriggerInObjectRangeCheck checker(this, range);
+    Trinity::AreaTriggerListSearcher<Trinity::AnyAreatriggerInObjectRangeCheck> searcher(this, atList, checker);
+    Cell::VisitGridObjects(this, searcher, range);
+
+    atList.remove_if([spellId](AreaTrigger* p_AreaTrigger)
+        {
+            if (p_AreaTrigger == nullptr || p_AreaTrigger->GetSpellId() != spellId)
+                return true;
+
+            return false;
+        });
+
+    return atList;
+}
+
+std::list<Player*> WorldObject::SelectNearestPlayers(float range, bool alive)
+{
+    std::list<Player*> PlayerList;
+    Trinity::AnyPlayerInObjectRangeCheck checker(this, range, alive);
+    Trinity::PlayerListSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, PlayerList, checker);
+    Cell::VisitGridObjects(this, searcher, range);
+    return PlayerList;
+}
+
+template <typename Container>
+void WorldObject::GetCreatureListInGrid(Container& creatureList, float maxSearchRange) const
+{
+    CellCoord pair(Trinity::ComputeCellCoord(this->GetPositionX(), this->GetPositionY()));
+    Cell cell(pair);
+    cell.SetNoCreate();
+
+    Trinity::AllCreaturesInRange check(this, maxSearchRange);
+    Trinity::CreatureListSearcher<Trinity::AllCreaturesInRange> searcher(this, creatureList, check);
+    TypeContainerVisitor<Trinity::CreatureListSearcher<Trinity::AllCreaturesInRange>, GridTypeMapContainer> visitor(searcher);
+
+    cell.Visit(pair, visitor, *(this->GetMap()), *this, maxSearchRange);
+}
+
+Player* WorldObject::FindNearestPlayer(float range, bool /*alive*/)
+{
+    Player* player = nullptr;
+    Trinity::AnyPlayerInObjectRangeCheck check(this, GetVisibilityRange());
+    Trinity::PlayerSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, player, check);
+    Cell::VisitGridObjects(this, searcher, range);
+    return player;
+}
+
+std::list<Creature*> WorldObject::FindNearestCreatures(std::list<uint32> entrys, float range) const
+{
+    std::list<Creature*> creatureList;
+
+    for (std::list<uint32>::iterator itr = entrys.begin(); itr != entrys.end(); ++itr)
+        GetCreatureListWithEntryInGrid(creatureList, (*itr), range);
+    return creatureList;
+}
+
+template TC_GAME_API void WorldObject::GetCreatureListInGrid(std::list<Creature*>&, float) const;
+template TC_GAME_API void WorldObject::GetCreatureListInGrid(std::deque<Creature*>&, float) const;
+template TC_GAME_API void WorldObject::GetCreatureListInGrid(std::vector<Creature*>&, float) const;
 
 template TC_GAME_API void WorldObject::GetGameObjectListWithEntryInGrid(std::list<GameObject*>&, uint32, float) const;
 template TC_GAME_API void WorldObject::GetGameObjectListWithEntryInGrid(std::deque<GameObject*>&, uint32, float) const;

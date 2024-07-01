@@ -340,6 +340,30 @@ class TC_GAME_API ObjectGuid
         bool IsConversation()      const { return GetHigh() == HighGuid::Conversation; }
         bool IsCast()              const { return GetHigh() == HighGuid::Cast; }
 
+// Need for ELUNA
+        static TypeID GetTypeId(HighGuid high)
+        {
+            switch (high)
+            {
+            case HighGuid::Item:         return TYPEID_ITEM;
+                //case HighGuid::Container:    return TYPEID_CONTAINER; HighGuid::Container == HighGuid::Item currently
+            case HighGuid::Creature:         return TYPEID_UNIT;
+            case HighGuid::Pet:          return TYPEID_UNIT;
+            case HighGuid::Player:       return TYPEID_PLAYER;
+            case HighGuid::GameObject:   return TYPEID_GAMEOBJECT;
+            case HighGuid::DynamicObject: return TYPEID_DYNAMICOBJECT;
+            case HighGuid::Corpse:       return TYPEID_CORPSE;
+            case HighGuid::Transport: return TYPEID_GAMEOBJECT;
+            case HighGuid::Vehicle:      return TYPEID_UNIT;
+                // unknown
+            case HighGuid::Party:
+            default:                    return TYPEID_OBJECT;
+            }
+        }
+
+        TypeID GetTypeId() const { return GetTypeId(GetHigh()); }
+// Need for ELUNA
+
         bool operator!() const { return IsEmpty(); }
         bool operator==(ObjectGuid const& right) const = default;
         std::strong_ordering operator<=>(ObjectGuid const& right) const

@@ -4622,6 +4622,34 @@ void SpellMgr::LoadSpellInfoCorrections()
     });
 
     //
+    // MONK SPELLS
+    //
+
+    // Transcendence (for Transcendence: Transfer)
+    ApplySpellFix({ 101643 }, [](SpellInfo* spellInfo)
+    {
+        ApplySpellEffectFix(spellInfo, EFFECT_1, [](SpellEffectInfo* spellEffectInfo)
+        {
+            spellEffectInfo->ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
+            spellEffectInfo->ApplyAuraPeriod = 500;
+        });
+    });
+
+    // Zen Pilgrimage
+    ApplySpellFix({ 126892 }, [](SpellInfo* spellInfo)
+    {
+        ApplySpellEffectFix(spellInfo, EFFECT_3, [](SpellEffectInfo* spellEffectInfo)
+        {
+            // Override spell trying to replace with unrelated version
+            spellEffectInfo->Effect = SPELL_EFFECT_NONE;
+            spellEffectInfo->BasePoints = 0;
+            spellEffectInfo->MiscValue = 0;
+        });
+    });
+
+    // END OF MONK SPELLS
+
+    //
     // FIRELANDS SPELLS
     //
     // Torment Searcher
@@ -4927,6 +4955,18 @@ void SpellMgr::LoadSpellInfoCorrections()
     ApplySpellFix({ 111400 }, [](SpellInfo* spellInfo)
     {
         spellInfo->AttributesEx4 |= SPELL_ATTR4_AURA_IS_BUFF;
+    });
+
+    // Dragonriding Thrill of the Skies visual
+    ApplySpellFix({ 373404 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(21); // Infinite
+    });
+
+    // Dragonrider Energy
+    ApplySpellFix({ 372773 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AuraInterruptFlags = SpellAuraInterruptFlags::None;
     });
 
     for (SpellInfo const& s : mSpellInfoMap)

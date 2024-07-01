@@ -93,6 +93,7 @@ LogsDir = ""
 #    WorldDatabaseInfo
 #    CharacterDatabaseInfo
 #    HotfixDatabaseInfo
+#    RoleplayDatabaseInfo
 #        Description: Database connection settings for the world server.
 #        Example:     "hostname;port;username;password;database;ssl"
 #                     ".;some_number;username;password;database" - (Use named pipes on Windows
@@ -104,6 +105,7 @@ LogsDir = ""
 #                     "127.0.0.1;3306;trinity;trinity;world"      - (WorldDatabaseInfo)
 #                     "127.0.0.1;3306;trinity;trinity;characters" - (CharacterDatabaseInfo)
 #                     "127.0.0.1;3306;trinity;trinity;hotfixes"   - (HotfixDatabaseInfo)
+#                     "127.0.0.1;3306;trinity;trinity;roleplay"   - (RoleplayDatabaseInfo)
 #
 #    Don't change hostname unless you are hosting MySQL on a different machine, if you need help
 #    with configuration allowing to connect from different machine than the one running server
@@ -117,12 +119,14 @@ LoginDatabaseInfo     = "127.0.0.1;3306;trinity;trinity;auth"
 WorldDatabaseInfo     = "127.0.0.1;3306;trinity;trinity;world"
 CharacterDatabaseInfo = "127.0.0.1;3306;trinity;trinity;characters"
 HotfixDatabaseInfo    = "127.0.0.1;3306;trinity;trinity;hotfixes"
+RoleplayDatabaseInfo  = "127.0.0.1;3306;trinity;trinity;roleplay"
 
 #
 #    LoginDatabase.WorkerThreads
 #    WorldDatabase.WorkerThreads
 #    CharacterDatabase.WorkerThreads
 #    HotfixDatabase.WorkerThreads
+#    RoleplayDatabase.WorkerThreads
 #        Description: The amount of worker threads spawned to handle asynchronous (delayed) MySQL
 #                     statements. Each worker thread is mirrored with its own connection to the
 #                     MySQL server and their own thread on the MySQL server.
@@ -135,22 +139,26 @@ LoginDatabase.WorkerThreads     = 1
 WorldDatabase.WorkerThreads     = 1
 CharacterDatabase.WorkerThreads = 1
 HotfixDatabase.WorkerThreads    = 1
+RoleplayDatabase.WorkerThreads  = 1
 
 #
 #    LoginDatabase.SynchThreads
 #    WorldDatabase.SynchThreads
 #    CharacterDatabase.SynchThreads
 #    HotfixDatabase.SynchThreads
+#    RoleplayDatabase.SynchThreads
 #        Description: The amount of MySQL connections spawned to handle.
 #        Default:     1 - (LoginDatabase.SynchThreads)
 #                     1 - (WorldDatabase.SynchThreads)
 #                     2 - (CharacterDatabase.SynchThreads)
 #                     1 - (HotfixDatabase.SynchThreads)
+#                     1 - (RoleplayDatabase.SynchThreads)
 
 LoginDatabase.SynchThreads     = 1
 WorldDatabase.SynchThreads     = 1
 CharacterDatabase.SynchThreads = 2
 HotfixDatabase.SynchThreads    = 1
+RoleplayDatabase.SynchThreads  = 1
 
 #
 #    MaxPingTime
@@ -984,6 +992,13 @@ RecruitAFriend.MaxDifference = 4
 
 DisableWaterBreath = 4
 
+#    Enable or Disable "Fatigue" timer
+#           default = 1 (enabled)
+#                   = 0 (disabled)
+
+fatigue.enabled = 0
+
+#
 #
 #    AllFlightPaths
 #        Description: Character knows all flight paths (of both factions) after creation.
@@ -1464,6 +1479,7 @@ TOTPMasterSecret =
 #           DATABASE_CHARACTER = 2, // Character database
 #           DATABASE_WORLD     = 4, // World database
 #           DATABASE_HOTFIX    = 8, // Hotfixes database
+#           DATABASE_ROLEPLAY  = 16, // Roleplay database (don't use)
 #
 #        Default:     15 - (All enabled)
 #                     4  - (Enable world only)
@@ -4436,6 +4452,88 @@ Pvp.FactionBalance.Pct20 = 0.8
 #                     1 - (Enabled)
 
 Load.Locales = 1
+
+#
+###################################################################################################
+#
+#   Eluna.ScriptPath
+#       Description: Sets the location of the script folder to load scripts from
+#                    The path can be relative or absolute.
+#       Default:     "lua_scripts"
+#
+#   Eluna.RequirePaths
+#       Description: Sets the location of additional require paths.
+#                    These paths are absolute and follows the standard Lua require path patterns.
+#                    Below are a set of "standard" paths used by most package managers.
+#                    "/usr/share/%s/?.lua;/usr/local/share/lua/%s/?.lua;/usr/local/share/lua/%s/?/init.lua;/usr/share/lua/%s/?.lua;/usr/share/lua/%s/?/init.lua;"
+#       Default:     ""
+#
+#   Eluna.RequireCPaths
+#       Description: Sets the location of additional require C paths.
+#                    These paths are absolute and follows the standard Lua require path patterns.
+#                    Below are a set of "standard" paths used by most package managers.
+#                    "/usr/local/lib/lua/%s/?.so;/usr/lib/x86_64-linux-gnu/lua/%s/?.so;/usr/local/lib/lua/%s/loadall.so;"
+#       Default:     ""
+#
+
+Eluna.Enabled = true
+Eluna.CompatibilityMode = true
+Eluna.OnlyOnMaps = ""
+Eluna.TraceBack = false
+Eluna.ScriptPath = "lua_scripts"
+Eluna.RequirePaths = ""
+Eluna.RequireCPaths = ""
+
+#
+###################################################################################################
+
+#           1.875 = 1 Game Day every 768  minutes or 12.8 Hours
+#           1.0   = 1 Game Day every 1440 minutes or 24.0 Hours (Realtime)
+# Default:  1.0 (Blizzlike)
+
+TimeIsTime.SpeedRate = 20.0
+
+# Start (client side) game clock at chosen Epoch (Unix) time at the same time each login
+# Default:  0  (Local Time)
+# Example:  https://i-leon.ru/tools/time 
+#           TimeIsTime.TimeStart = unix time
+#           TimeIsTime.HourOffset = your UTC
+#           Date on example   	  	 :: 06-01-2021
+#			Sunrise  	= 06:00:00   :: 1622516400
+#           Midday  	= 12:00:00   :: 1622538000
+#           Sunset	 	= 18:00:00   :: 1622559600
+#           Midnight	= 00:00:00   :: 1622581200
+
+TimeIsTime.TimeStart = 0
+TimeIsTime.HourOffset = 0.0
+
+#
+#####################################################################################################
+
+###################################################################################################
+# Advanced flying #
+#############
+#
+# Customize advanced flying rates
+#
+
+AdvFly.AirFriction = 1.5
+AdvFly.MaxVel = 65.0
+AdvFly.LiftCoef = 0.7
+AdvFly.DoubleJumpVelMod = 5.0
+AdvFly.GlideStartMinHeight = 7.5
+AdvFly.AddImpulseMaxSpeed = 100.0
+AdvFly.MinBankingRate = 140.0
+AdvFly.MaxBankingRate = 270.0
+AdvFly.MinPitchingRateDown = 180.0
+AdvFly.MaxPitchingRateDown = 360.0
+AdvFly.MinPitchingRateUp = 180.0
+AdvFly.MaxPitchingRateUp = 360.0
+AdvFly.MinTurnVelocityThreshold = 45.0
+AdvFly.MaxTurnVelocityThreshold = 65.0
+AdvFly.SurfaceFriction = 2.75
+AdvFly.OverMaxDeceleration = 7.0
+AdvFly.LaunchSpeedCoefficient = 0.4
 
 #
 ###################################################################################################

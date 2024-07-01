@@ -90,6 +90,10 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#include "ElunaEventMgr.h"
+#endif
 #include <queue>
 #include <sstream>
 #include <cmath>
@@ -382,6 +386,24 @@ Unit::Unit(bool isWorldObject) :
     _isCombatDisallowed = false;
 
     _lastExtraAttackSpell = 0;
+
+    SetAdvFlyRate(ADV_FLY_AIR_FRICTION, sWorld->getFloatConfig(CONFIG_ADV_FLY_AIR_FRICTION));
+    SetAdvFlyRate(ADV_FLY_MAX_VEL, sWorld->getFloatConfig(CONFIG_ADV_FLY_MAX_VEL));
+    SetAdvFlyRate(ADV_FLY_LIFT_COEF, sWorld->getFloatConfig(CONFIG_ADV_FLY_LIFT_COEF));
+    SetAdvFlyRate(ADV_FLY_DOUBLE_JUMP_VEL_MOD, sWorld->getFloatConfig(CONFIG_ADV_FLY_DOUBLE_JUMP_VEL_MOD));
+    SetAdvFlyRate(ADV_FLY_GLIDE_START_MIN_HEIGHT, sWorld->getFloatConfig(CONFIG_ADV_FLY_GLIDE_START_MIN_HEIGHT));
+    SetAdvFlyRate(ADV_FLY_ADD_IMPULSE_MAX_SPEED, sWorld->getFloatConfig(CONFIG_ADV_FLY_ADD_IMPULSE_MAX_SPEED));
+    SetAdvFlyRate(ADV_FLY_MIN_BANKING_RATE, sWorld->getFloatConfig(CONFIG_ADV_FLY_MIN_BANKING_RATE));
+    SetAdvFlyRate(ADV_FLY_MAX_BANKING_RATE, sWorld->getFloatConfig(CONFIG_ADV_FLY_MAX_BANKING_RATE));
+    SetAdvFlyRate(ADV_FLY_MIN_PITCHING_RATE_DOWN, sWorld->getFloatConfig(CONFIG_ADV_FLY_MIN_PITCHING_RATE_DOWN));
+    SetAdvFlyRate(ADV_FLY_MAX_PITCHING_RATE_DOWN, sWorld->getFloatConfig(CONFIG_ADV_FLY_MAX_PITCHING_RATE_DOWN));
+    SetAdvFlyRate(ADV_FLY_MIN_PITCHING_RATE_UP, sWorld->getFloatConfig(CONFIG_ADV_FLY_MIN_PITCHING_RATE_UP));
+    SetAdvFlyRate(ADV_FLY_MAX_PITCHING_RATE_UP, sWorld->getFloatConfig(CONFIG_ADV_FLY_MAX_PITCHING_RATE_UP));
+    SetAdvFlyRate(ADV_FLY_MIN_TURN_VELOCITY_THRESHOLD, sWorld->getFloatConfig(CONFIG_ADV_FLY_MIN_TURN_VELOCITY_THRESHOLD));
+    SetAdvFlyRate(ADV_FLY_MAX_TURN_VELOCITY_THRESHOLD, sWorld->getFloatConfig(CONFIG_ADV_FLY_MAX_TURN_VELOCITY_THRESHOLD));
+    SetAdvFlyRate(ADV_FLY_SURFACE_FRICTION, sWorld->getFloatConfig(CONFIG_ADV_FLY_SURFACE_FRICTION));
+    SetAdvFlyRate(ADV_FLY_OVER_MAX_DECELERATION, sWorld->getFloatConfig(CONFIG_ADV_FLY_OVER_MAX_DECELERATION));
+    SetAdvFlyRate(ADV_FLY_LAUNCH_SPEED_COEFFICIENT, sWorld->getFloatConfig(CONFIG_ADV_FLY_LAUNCH_SPEED_COEFFICIENT));
 }
 
 ////////////////////////////////////////////////////////////
@@ -419,6 +441,11 @@ Unit::~Unit()
 
 void Unit::Update(uint32 p_time)
 {
+#ifdef ELUNA
+    if (elunaEvents) // can be null on maps without eluna
+        elunaEvents->Update(p_time);
+#endif
+
     // WARNING! Order of execution here is important, do not change.
     // Spells must be processed with event system BEFORE they go to _UpdateSpells.
     // Or else we may have some SPELL_STATE_FINISHED spells stalled in pointers, that is bad.
@@ -3162,6 +3189,36 @@ bool Unit::IsMovementPreventedByCasting() const
 
     // prohibit movement for all other spell casts
     return true;
+}
+
+void Unit::AddSummonedCreature(ObjectGuid guid, uint32 entry)
+{
+    m_SummonedCreatures[guid] = entry;
+}
+
+void Unit::RemoveSummonedCreature(ObjectGuid guid)
+{
+    m_SummonedCreatures.erase(guid);
+}
+
+Creature* Unit::GetSummonedCreatureByEntry(uint32 entry)
+{
+    auto itr = std::find_if(m_SummonedCreatures.begin(), m_SummonedCreatures.end(), [entry](auto& p)
+    {
+        return p.second == entry;
+    });
+
+    if (itr == m_SummonedCreatures.end())
+        return nullptr;
+
+    return ObjectAccessor::GetCreature(*this, itr->first);
+}
+
+void Unit::UnsummonCreatureByEntry(uint32 entry, uint32 ms/* = 0*/)
+{
+    if (Creature* creature = GetSummonedCreatureByEntry(entry))
+        if (TempSummon* tempSummon = creature->ToTempSummon())
+            tempSummon->UnSummon(ms);
 }
 
 bool Unit::CanCastSpellWhileMoving(SpellInfo const* spellInfo) const
@@ -8199,8 +8256,12 @@ void Unit::UpdateMountCapability()
         if (!aurEff->GetAmount())
             aurEff->GetBase()->Remove();
         else if (MountCapabilityEntry const* capability = sMountCapabilityStore.LookupEntry(aurEff->GetAmount())) // aura may get removed by interrupt flag, reapply
+        {
             if (!HasAura(capability->ModSpellAuraID))
                 CastSpell(this, capability->ModSpellAuraID, aurEff);
+
+            SetFlightCapabilityID(capability->FlightCapabilityID);
+        }    
     }
 }
 
@@ -12071,7 +12132,7 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
                     if (ShapeshiftForm(artifactAppearance->OverrideShapeshiftFormID) == form)
                         return artifactAppearance->OverrideShapeshiftDisplayID;
 
-        if (ShapeshiftFormModelData const* formModelData = sDB2Manager.GetShapeshiftFormModelData(GetRace(), player->GetNativeGender(), form))
+        if (ShapeshiftFormModelData const* formModelData = sDB2Manager.GetShapeshiftFormModelData(GetRace(), form))
         {
             bool useRandom = false;
             switch (form)
@@ -13873,20 +13934,43 @@ float Unit::GetCollisionHeight() const
         {
             if (CreatureModelDataEntry const* mountModelData = sCreatureModelDataStore.LookupEntry(mountDisplayInfo->ModelID))
             {
-                CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.AssertEntry(GetNativeDisplayId());
+                if (CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStoreRaw.LookupEntry(GetNativeDisplayId()))
+                {
+                    if (CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelID))
+                    {
+                        float const collisionHeight = scaleMod * (mountModelData->MountHeight + modelData->CollisionHeight * modelData->ModelScale * displayInfo->CreatureModelScale * 0.5f);
+                        return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
+                    }
+                }
+            }
+        }
+    }
+
+                /*CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.AssertEntry(GetNativeDisplayId());
                 CreatureModelDataEntry const* modelData = sCreatureModelDataStore.AssertEntry(displayInfo->ModelID);
                 float const collisionHeight = scaleMod * ((mountModelData->MountHeight * mountDisplayInfo->CreatureModelScale) + (modelData->CollisionHeight * modelData->ModelScale * displayInfo->CreatureModelScale * 0.5f));
                 return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
             }
         }
-    }
+    }*/
 
     //! Dismounting case - use basic default model data
-    CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.AssertEntry(GetNativeDisplayId());
-    CreatureModelDataEntry const* modelData = sCreatureModelDataStore.AssertEntry(displayInfo->ModelID);
+    //CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.AssertEntry(GetNativeDisplayId());
+    //CreatureModelDataEntry const* modelData = sCreatureModelDataStore.AssertEntry(displayInfo->ModelID);
 
-    float const collisionHeight = scaleMod * modelData->CollisionHeight * modelData->ModelScale * displayInfo->CreatureModelScale;
-    return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
+    //float const collisionHeight = scaleMod * modelData->CollisionHeight * modelData->ModelScale * displayInfo->CreatureModelScale;
+    //return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
+
+    if (CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStoreRaw.LookupEntry(GetNativeDisplayId()))
+    {
+        if (CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelID))
+        {
+            float const collisionHeight = scaleMod * modelData->CollisionHeight * modelData->ModelScale * displayInfo->CreatureModelScale;
+            return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
+        }
+    }
+
+    return DEFAULT_COLLISION_HEIGHT;
 }
 
 void Unit::SetVignette(uint32 vignetteId)
@@ -13932,4 +14016,115 @@ DeclinedName::DeclinedName(UF::DeclinedNames const& uf)
 {
     for (std::size_t i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
         name[i] = uf.Name[i];
+}
+
+void Unit::GetFriendlyUnitListInRange(std::list<Unit*>& list, float fMaxSearchRange, bool exceptSelf /*= false*/) const
+{
+    CellCoord p(Trinity::ComputeCellCoord(GetPositionX(), GetPositionY()));
+    Cell cell(p);
+    cell.SetNoCreate();
+
+    Trinity::AnyFriendlyUnitInObjectRangeCheck u_check(this, this, fMaxSearchRange, false, exceptSelf);
+    Trinity::UnitListSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck> searcher(this, list, u_check);
+
+    TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
+    TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
+
+    cell.Visit(p, world_unit_searcher, *GetMap(), *this, fMaxSearchRange);
+    cell.Visit(p, grid_unit_searcher, *GetMap(), *this, fMaxSearchRange);
+}
+
+void Unit::GetAttackableUnitListInRange(std::list<Unit*>& list, float fMaxSearchRange) const
+{
+    CellCoord p(Trinity::ComputeCellCoord(GetPositionX(), GetPositionY()));
+    Cell cell(p);
+    cell.SetNoCreate();
+
+    Trinity::AttackableUnitInObjectRangeCheck u_check(this, fMaxSearchRange);
+    Trinity::UnitListSearcher<Trinity::AttackableUnitInObjectRangeCheck> searcher(this, list, u_check);
+
+    TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AttackableUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
+    TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AttackableUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
+
+    cell.Visit(p, world_unit_searcher, *GetMap(), *this, fMaxSearchRange);
+    cell.Visit(p, grid_unit_searcher, *GetMap(), *this, fMaxSearchRange);
+}
+
+int32 Unit::GetAuraEffectAmount(AuraType auraType, SpellFamilyNames spellFamilyName, uint32 /*IconFileDataId*/, uint8 /*effIndex*/) const
+{
+    if (AuraEffect* aurEff = GetAuraEffect(auraType, spellFamilyName))
+        return aurEff->GetAmount();
+
+    return 0;
+}
+
+int32 Unit::GetAuraEffectAmount(uint32 spellId, uint8 effIndex, ObjectGuid casterGuid) const
+{
+    if (AuraEffect* aurEff = GetAuraEffect(spellId, effIndex, casterGuid))
+        return aurEff->GetAmount();
+
+    return 0;
+}
+
+void Unit::RemoveAllAreaObjects()
+{
+    while (!m_AreaObj.empty())
+    {
+        m_AreaObj.front()->Remove();
+    }
+}
+
+Unit::AuraApplicationVector Unit::GetTargetAuraApplications(uint32 spellId) const
+{
+    AuraApplicationVector aurApps;
+
+    auto bounds = m_targetAuras.equal_range(spellId);
+    for (auto itr = bounds.first; itr != bounds.second; ++itr)
+    {
+        if (Unit* target = ObjectAccessor::GetUnit(*this, itr->second))
+            if (AuraApplication* aurApp = target->GetAuraApplication(itr->first, GetGUID()))
+                aurApps.push_back(aurApp);
+    }
+
+    return aurApps;
+}
+
+float Unit::GetAdvFlyingVelocity() const
+{
+    auto advFlying = m_movementInfo.advFlying;
+    if (!advFlying)
+        return .0f;
+
+    return std::max((*advFlying).forwardVelocity, std::abs((*advFlying).upVelocity));
+}
+
+bool Unit::SetCanAdvFly(bool enable)
+{
+    if (enable == HasExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_ADV_FLY))
+        return false;
+
+    if (enable)
+        AddExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_ADV_FLY);
+    else
+        RemoveExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_ADV_FLY);
+
+    static OpcodeServer const advFlyOpcodeTable[2] =
+    {
+        { SMSG_MOVE_UNSET_CAN_ADV_FLY },
+        { SMSG_MOVE_SET_CAN_ADV_FLY   }
+    };
+
+    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    {
+        WorldPackets::Movement::MoveSetFlag packet(advFlyOpcodeTable[enable]);
+        packet.MoverGUID = GetGUID();
+        packet.SequenceIndex = m_movementCounter++;
+        playerMover->SendDirectMessage(packet.Write());
+
+        WorldPackets::Movement::MoveUpdate moveUpdate;
+        moveUpdate.Status = &m_movementInfo;
+        SendMessageToSet(moveUpdate.Write(), playerMover);
+    }
+
+    return true;
 }

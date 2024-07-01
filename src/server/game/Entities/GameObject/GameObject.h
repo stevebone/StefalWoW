@@ -23,6 +23,7 @@
 #include "GameObjectData.h"
 #include "MapObject.h"
 #include "SharedDefines.h"
+#include "TaskScheduler.h"
 
 class GameObject;
 class GameObjectAI;
@@ -193,7 +194,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         void CleanupsBeforeDelete(bool finalCleanup = true) override;
 
     private:
-        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool dynamic, ObjectGuid::LowType spawnid);
+        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool dynamic, ObjectGuid::LowType spawnid, float size = -1.0f, float visibility = SIZE_OF_GRIDS);
     public:
         static GameObject* CreateGameObject(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit = 0);
         static GameObject* CreateGameObjectFromDB(ObjectGuid::LowType spawnId, Map* map, bool addToMap = true);
@@ -525,5 +526,10 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         std::unique_ptr<std::unordered_map<ObjectGuid, PerPlayerState>> m_perPlayerState;
 
         std::unordered_map<ObjectGuid, PerPlayerState>& GetOrCreatePerPlayerStates();
+
+        public:
+            TaskScheduler _scheduler;
+            TaskScheduler& GetScheduler() { return _scheduler; }
+            uint32 GetVignetteId() const;
 };
 #endif

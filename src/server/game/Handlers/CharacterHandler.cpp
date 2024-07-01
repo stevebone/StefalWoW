@@ -67,15 +67,15 @@
 
 class LoginQueryHolder : public CharacterDatabaseQueryHolder
 {
-    private:
-        uint32 m_accountId;
-        ObjectGuid m_guid;
-    public:
-        LoginQueryHolder(uint32 accountId, ObjectGuid guid)
-            : m_accountId(accountId), m_guid(guid) { }
-        ObjectGuid GetGuid() const { return m_guid; }
-        uint32 GetAccountId() const { return m_accountId; }
-        bool Initialize();
+private:
+    uint32 m_accountId;
+    ObjectGuid m_guid;
+public:
+    LoginQueryHolder(uint32 accountId, ObjectGuid guid)
+        : m_accountId(accountId), m_guid(guid) { }
+    ObjectGuid GetGuid() const { return m_guid; }
+    uint32 GetAccountId() const { return m_accountId; }
+    bool Initialize();
 };
 
 bool LoginQueryHolder::Initialize()
@@ -450,8 +450,7 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
                 sCharacterCache->AddCharacterCacheEntry(charInfo.Guid, GetAccountId(), charInfo.Name, charInfo.SexID, charInfo.RaceID, charInfo.ClassID, charInfo.ExperienceLevel, false);
 
             charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo.ExperienceLevel);
-        }
-        while (result->NextRow() && charEnum.Characters.size() < MAX_CHARACTERS_PER_REALM);
+        } while (result->NextRow() && charEnum.Characters.size() < MAX_CHARACTERS_PER_REALM);
     }
 
     for (std::pair<uint8 const, RaceUnlockRequirement> const& requirement : sObjectMgr->GetRaceUnlockRequirements())
@@ -563,50 +562,71 @@ bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req,
 
 bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender gender, Trinity::IteratorPair<UF::ChrCustomizationChoice const*> customizations)
 {
+    // don't validate options exists yet because if option is used by custom model then this doesn't get used.
     std::vector<ChrCustomizationOptionEntry const*> const* options = sDB2Manager.GetCustomiztionOptions(race, gender);
-    if (!options)
-        return false;
-
-    uint32 previousOption = 0;
 
     for (UF::ChrCustomizationChoice playerChoice : customizations)
     {
-        // check uniqueness of options
-        if (playerChoice.ChrCustomizationOptionID == previousOption)
-            return false;
-
-        previousOption = playerChoice.ChrCustomizationOptionID;
-
-        // check if we can use this option
-        auto customizationOptionDataItr = std::find_if(options->begin(), options->end(), [&](ChrCustomizationOptionEntry const* option)
+        // other model e.g. shapeshift checks
+        if (const uint8 chrModel = sDB2Manager.GetZeroIfOptionUsedForPlayerModel(playerChoice.ChrCustomizationOptionID))
         {
-            return option->ID == playerChoice.ChrCustomizationOptionID;
-        });
-
-        // option not found for race/gender combination
-        if (customizationOptionDataItr == options->end())
-            return false;
-
-        if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry((*customizationOptionDataItr)->ChrCustomizationReqID))
-            if (!MeetsChrCustomizationReq(req, race, playerClass, false, customizations))
+            ConditionalChrModelEntry const* conditionalChrModel = DB2Manager::GetConditionalChrModel(chrModel);
+            if (!conditionalChrModel)
                 return false;
 
-        std::vector<ChrCustomizationChoiceEntry const*> const* choicesForOption = sDB2Manager.GetCustomiztionChoices(playerChoice.ChrCustomizationOptionID);
-        if (!choicesForOption)
-            return false;
+            if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry(conditionalChrModel->ChrCustomizationReqID))
+                if (!MeetsChrCustomizationReq(req, race, playerClass, false, customizations))
+                    return false;
 
-        auto customizationChoiceDataItr = std::find_if(choicesForOption->begin(), choicesForOption->end(), [&](ChrCustomizationChoiceEntry const* choice)
-        {
-            return choice->ID == playerChoice.ChrCustomizationChoiceID;
-        });
-
-        // choice not found for option
-        if (customizationChoiceDataItr == choicesForOption->end())
-            return false;
-
-        if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry((*customizationChoiceDataItr)->ChrCustomizationReqID))
-            if (!MeetsChrCustomizationReq(req, race, playerClass, true, customizations))
+            // This check is not safe to run at character selection screen
+            if (_player && !ConditionMgr::IsPlayerMeetingCondition(_player, conditionalChrModel->PlayerConditionID))
                 return false;
+        }
+        // player model checks extracted from race and gender
+        else
+        {
+            if (!options)
+                return false;
+
+            uint32 previousOption = 0;
+
+            // check uniqueness of options
+            if (playerChoice.ChrCustomizationOptionID == previousOption)
+                return false;
+
+            previousOption = playerChoice.ChrCustomizationOptionID;
+
+            // check if we can use this option
+            auto customizationOptionDataItr = std::find_if(options->begin(), options->end(), [&](ChrCustomizationOptionEntry const* option)
+                {
+                    return option->ID == playerChoice.ChrCustomizationOptionID;
+                });
+
+            // option not found for race/gender combination
+            if (customizationOptionDataItr == options->end())
+                return false;
+
+            if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry((*customizationOptionDataItr)->ChrCustomizationReqID))
+                if (!MeetsChrCustomizationReq(req, race, playerClass, false, customizations))
+                    return false;
+
+            std::vector<ChrCustomizationChoiceEntry const*> const* choicesForOption = sDB2Manager.GetCustomiztionChoices(playerChoice.ChrCustomizationOptionID);
+            if (!choicesForOption)
+                return false;
+
+            auto customizationChoiceDataItr = std::find_if(choicesForOption->begin(), choicesForOption->end(), [&](ChrCustomizationChoiceEntry const* choice)
+                {
+                    return choice->ID == playerChoice.ChrCustomizationChoiceID;
+                });
+
+            // choice not found for option
+            if (customizationChoiceDataItr == choicesForOption->end())
+                return false;
+
+            if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry((*customizationChoiceDataItr)->ChrCustomizationReqID))
+                if (!MeetsChrCustomizationReq(req, race, playerClass, true, customizations))
+                    return false;
+        }
     }
 
     return true;
@@ -622,15 +642,15 @@ void WorldSession::HandleCharCreateOpcode(WorldPackets::Character::CreateCharact
 
             switch (Player::TeamIdForRace(charCreate.CreateInfo->Race))
             {
-                case TEAM_ALLIANCE:
-                    disabled = (mask & (1 << 0)) != 0;
-                    break;
-                case TEAM_HORDE:
-                    disabled = (mask & (1 << 1)) != 0;
-                    break;
-                case TEAM_NEUTRAL:
-                    disabled = (mask & (1 << 2)) != 0;
-                    break;
+            case TEAM_ALLIANCE:
+                disabled = (mask & (1 << 0)) != 0;
+                break;
+            case TEAM_HORDE:
+                disabled = (mask & (1 << 1)) != 0;
+                break;
+            case TEAM_NEUTRAL:
+                disabled = (mask & (1 << 2)) != 0;
+                break;
             }
 
             if (disabled)
@@ -831,7 +851,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPackets::Character::CreateCharact
             bool allowTwoSideAccounts = !sWorld->IsPvPRealm() || HasPermission(rbac::RBAC_PERM_TWO_SIDE_CHARACTER_CREATION);
             uint32 skipCinematics = sWorld->getIntConfig(CONFIG_SKIP_CINEMATICS);
             bool checkClassLevelReqs = (createInfo->Class == CLASS_DEMON_HUNTER || createInfo->Class == CLASS_EVOKER)
-                                        && !HasPermission(rbac::RBAC_PERM_SKIP_CHECK_CHARACTER_CREATION_DEMON_HUNTER);
+                && !HasPermission(rbac::RBAC_PERM_SKIP_CHECK_CHARACTER_CREATION_DEMON_HUNTER);
             int32 evokerLimit = sWorld->getIntConfig(CONFIG_CHARACTER_CREATING_EVOKERS_PER_REALM);
             bool hasEvokerLimit = evokerLimit != 0;
 
@@ -960,7 +980,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPackets::Character::CreateCharact
             CharacterDatabaseTransaction characterTransaction = CharacterDatabase.BeginTransaction();
             LoginDatabaseTransaction trans = LoginDatabase.BeginTransaction();
 
-                                                                  // Player created, save it now
+            // Player created, save it now
             newChar->SaveToDB(trans, characterTransaction, true);
             createInfo->CharCount += 1;
 
@@ -1133,7 +1153,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
     ObjectGuid playerGuid = holder.GetGuid();
 
     Player* pCurrChar = new Player(this);
-     // for send server info and strings (config)
+    // for send server info and strings (config)
     ChatHandler chH = ChatHandler(pCurrChar->GetSession());
 
     // "GetAccountId() == db stored account id" checked in LoadFromDB (prevent login not own character using cheating tools)
@@ -1219,22 +1239,22 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
         {
             switch (pCurrChar->GetCreateMode())
             {
-                case PlayerCreateMode::Normal:
-                    if (playerInfo->introMovieId)
-                        pCurrChar->SendMovieStart(*playerInfo->introMovieId);
-                    else if (playerInfo->introSceneId)
-                        pCurrChar->GetSceneMgr().PlayScene(*playerInfo->introSceneId);
-                    else if (sChrClassesStore.AssertEntry(pCurrChar->GetClass())->CinematicSequenceID)
-                        pCurrChar->SendCinematicStart(sChrClassesStore.AssertEntry(pCurrChar->GetClass())->CinematicSequenceID);
-                    else if (sChrRacesStore.AssertEntry(pCurrChar->GetRace())->CinematicSequenceID)
-                        pCurrChar->SendCinematicStart(sChrRacesStore.AssertEntry(pCurrChar->GetRace())->CinematicSequenceID);
-                    break;
-                case PlayerCreateMode::NPE:
-                    if (playerInfo->introSceneIdNPE)
-                        pCurrChar->GetSceneMgr().PlayScene(*playerInfo->introSceneIdNPE);
-                    break;
-                default:
-                    break;
+            case PlayerCreateMode::Normal:
+                if (playerInfo->introMovieId)
+                    pCurrChar->SendMovieStart(*playerInfo->introMovieId);
+                else if (playerInfo->introSceneId)
+                    pCurrChar->GetSceneMgr().PlayScene(*playerInfo->introSceneId);
+                else if (sChrClassesStore.AssertEntry(pCurrChar->GetClass())->CinematicSequenceID)
+                    pCurrChar->SendCinematicStart(sChrClassesStore.AssertEntry(pCurrChar->GetClass())->CinematicSequenceID);
+                else if (sChrRacesStore.AssertEntry(pCurrChar->GetRace())->CinematicSequenceID)
+                    pCurrChar->SendCinematicStart(sChrRacesStore.AssertEntry(pCurrChar->GetRace())->CinematicSequenceID);
+                break;
+            case PlayerCreateMode::NPE:
+                if (playerInfo->introSceneIdNPE)
+                    pCurrChar->GetSceneMgr().PlayScene(*playerInfo->introSceneIdNPE);
+                break;
+            default:
+                break;
             }
         }
 
@@ -1370,15 +1390,15 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
         if (sWorld->getBoolConfig(CONFIG_START_ALL_REP))
         {
             ReputationMgr& repMgr = pCurrChar->GetReputationMgr();
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 942), 42999, false); // Cenarion Expedition
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 935), 42999, false); // The Sha'tar
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 936), 42999, false); // Shattrath City
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(942), 42999, false); // Cenarion Expedition
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(935), 42999, false); // The Sha'tar
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(936), 42999, false); // Shattrath City
             repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1011), 42999, false); // Lower City
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 970), 42999, false); // Sporeggar
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 967), 42999, false); // The Violet Eye
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 989), 42999, false); // Keepers of Time
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 932), 42999, false); // The Aldor
-            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 934), 42999, false); // The Scryers
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(970), 42999, false); // Sporeggar
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(967), 42999, false); // The Violet Eye
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(989), 42999, false); // Keepers of Time
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(932), 42999, false); // The Aldor
+            repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(934), 42999, false); // The Scryers
             repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1038), 42999, false); // Ogri'la
             repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1077), 42999, false); // Shattered Sun Offensive
             repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1106), 42999, false); // Argent Crusade
@@ -1394,38 +1414,38 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
             // Factions depending on team, like cities and some more stuff
             switch (pCurrChar->GetTeam())
             {
-                case ALLIANCE:
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  72), 42999, false); // Stormwind
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  47), 42999, false); // Ironforge
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  69), 42999, false); // Darnassus
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 930), 42999, false); // Exodar
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 730), 42999, false); // Stormpike Guard
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 978), 42999, false); // Kurenai
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  54), 42999, false); // Gnomeregan Exiles
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 946), 42999, false); // Honor Hold
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1037), 42999, false); // Alliance Vanguard
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1068), 42999, false); // Explorers' League
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1126), 42999, false); // The Frostborn
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1094), 42999, false); // The Silver Covenant
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1050), 42999, false); // Valiance Expedition
-                    break;
-                case HORDE:
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  76), 42999, false); // Orgrimmar
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  68), 42999, false); // Undercity
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(  81), 42999, false); // Thunder Bluff
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 911), 42999, false); // Silvermoon City
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 729), 42999, false); // Frostwolf Clan
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 941), 42999, false); // The Mag'har
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 530), 42999, false); // Darkspear Trolls
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry( 947), 42999, false); // Thrallmar
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1052), 42999, false); // Horde Expedition
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1067), 42999, false); // The Hand of Vengeance
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1124), 42999, false); // The Sunreavers
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1064), 42999, false); // The Taunka
-                    repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1085), 42999, false); // Warsong Offensive
-                    break;
-                default:
-                    break;
+            case ALLIANCE:
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(72), 42999, false); // Stormwind
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(47), 42999, false); // Ironforge
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(69), 42999, false); // Darnassus
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(930), 42999, false); // Exodar
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(730), 42999, false); // Stormpike Guard
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(978), 42999, false); // Kurenai
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(54), 42999, false); // Gnomeregan Exiles
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(946), 42999, false); // Honor Hold
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1037), 42999, false); // Alliance Vanguard
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1068), 42999, false); // Explorers' League
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1126), 42999, false); // The Frostborn
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1094), 42999, false); // The Silver Covenant
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1050), 42999, false); // Valiance Expedition
+                break;
+            case HORDE:
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(76), 42999, false); // Orgrimmar
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(68), 42999, false); // Undercity
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(81), 42999, false); // Thunder Bluff
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(911), 42999, false); // Silvermoon City
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(729), 42999, false); // Frostwolf Clan
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(941), 42999, false); // The Mag'har
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(530), 42999, false); // Darkspear Trolls
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(947), 42999, false); // Thrallmar
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1052), 42999, false); // Horde Expedition
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1067), 42999, false); // The Hand of Vengeance
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1124), 42999, false); // The Sunreavers
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1064), 42999, false); // The Taunka
+                repMgr.SetOneFactionReputation(sFactionStore.LookupEntry(1085), 42999, false); // Warsong Offensive
+                break;
+            default:
+                break;
             }
             repMgr.SendState(nullptr);
         }
@@ -1521,30 +1541,30 @@ void WorldSession::HandleTutorialFlag(WorldPackets::Misc::TutorialSetFlag& packe
 {
     switch (packet.Action)
     {
-        case TUTORIAL_ACTION_UPDATE:
+    case TUTORIAL_ACTION_UPDATE:
+    {
+        uint8 index = uint8(packet.TutorialBit >> 5);
+        if (index >= MAX_ACCOUNT_TUTORIAL_VALUES)
         {
-            uint8 index = uint8(packet.TutorialBit >> 5);
-            if (index >= MAX_ACCOUNT_TUTORIAL_VALUES)
-            {
-                TC_LOG_ERROR("network", "CMSG_TUTORIAL_FLAG received bad TutorialBit {}.", packet.TutorialBit);
-                return;
-            }
-            uint32 flag = GetTutorialInt(index);
-            flag |= (1 << (packet.TutorialBit & 0x1F));
-            SetTutorialInt(index, flag);
-            break;
-        }
-        case TUTORIAL_ACTION_CLEAR:
-            for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
-                SetTutorialInt(i, 0xFFFFFFFF);
-            break;
-        case TUTORIAL_ACTION_RESET:
-            for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
-                SetTutorialInt(i, 0x00000000);
-            break;
-        default:
-            TC_LOG_ERROR("network", "CMSG_TUTORIAL_FLAG received unknown TutorialAction {}.", packet.Action);
+            TC_LOG_ERROR("network", "CMSG_TUTORIAL_FLAG received bad TutorialBit {}.", packet.TutorialBit);
             return;
+        }
+        uint32 flag = GetTutorialInt(index);
+        flag |= (1 << (packet.TutorialBit & 0x1F));
+        SetTutorialInt(index, flag);
+        break;
+    }
+    case TUTORIAL_ACTION_CLEAR:
+        for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
+            SetTutorialInt(i, 0xFFFFFFFF);
+        break;
+    case TUTORIAL_ACTION_RESET:
+        for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
+            SetTutorialInt(i, 0x00000000);
+        break;
+    default:
+        TC_LOG_ERROR("network", "CMSG_TUTORIAL_FLAG received unknown TutorialAction {}.", packet.Action);
+        return;
     }
 }
 
@@ -1635,9 +1655,9 @@ void WorldSession::HandleCharRenameOpcode(WorldPackets::Character::CharacterRena
 
     _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt)
         .WithPreparedCallback([this, renameInfo = std::move(request.RenameInfo)](PreparedQueryResult result) mutable
-        {
-            HandleCharRenameCallBack(std::move(renameInfo), std::move(result));
-        }));
+    {
+        HandleCharRenameCallBack(std::move(renameInfo), std::move(result));
+    }));
 }
 
 void WorldSession::HandleCharRenameCallBack(std::shared_ptr<WorldPackets::Character::CharacterRenameInfo> renameInfo, PreparedQueryResult result)
@@ -1751,66 +1771,54 @@ void WorldSession::HandleSetPlayerDeclinedNames(WorldPackets::Character::SetPlay
 void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance& packet)
 {
     Trinity::IteratorPair<UF::ChrCustomizationChoice const*> customizations = MakeChrCustomizationChoiceRange(packet.Customizations);
-    if (packet.CustomizedChrModelID)
-    {
-        ConditionalChrModelEntry const* conditionalChrModel = DB2Manager::GetConditionalChrModel(packet.CustomizedChrModelID);
-        if (!conditionalChrModel)
-            return;
-
-        if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry(conditionalChrModel->ChrCustomizationReqID))
-            if (!MeetsChrCustomizationReq(req, Races(packet.CustomizedRace), Classes(_player->GetClass()), false, customizations))
-                return;
-
-        if (!ConditionMgr::IsPlayerMeetingCondition(_player, conditionalChrModel->PlayerConditionID))
-            return;
-    }
 
     if (!ValidateAppearance(Races(_player->GetRace()), Classes(_player->GetClass()), Gender(packet.NewSex), customizations))
         return;
 
-    GameObject* go = _player->FindNearestGameObjectOfType(GAMEOBJECT_TYPE_BARBER_CHAIR, 5.0f);
-    if (!go)
+    if (!_player->_justPassedBarberChecks)
     {
-        SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NotOnChair).Write());
-        return;
+        /*GameObject* go = _player->FindNearestGameObjectOfType(GAMEOBJECT_TYPE_BARBER_CHAIR, 5.0f);
+        if (!go)
+        {
+            SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NotOnChair).Write());
+            return;
+        }
+
+        if (_player->GetStandState() != UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + go->GetGOInfo()->barberChair.chairheight))
+        {
+            SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NotOnChair).Write());
+            return;
+        }*/
+
+        SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::Success).Write());
+
+        _player->UpdateCriteria(CriteriaType::GotHaircut, 1);
+
+        _player->SetStandState(UNIT_STAND_STATE_STAND);
+
+        _player->_justPassedBarberChecks = true;
     }
 
-    if (_player->GetStandState() != UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + go->GetGOInfo()->barberChair.chairheight))
+    if (packet.CustomizedChrModelID)
     {
-        SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NotOnChair).Write());
-        return;
+        _player->ClearPreviousModelCustomizations(packet.CustomizedChrModelID);
+        _player->SetCustomizations(Trinity::Containers::MakeIteratorPair(packet.Customizations.begin(), packet.Customizations.end()));
     }
-
-    int64 cost = _player->GetBarberShopCost(customizations);
-
-    // 0 - ok
-    // 1, 3 - not enough money
-    // 2 - you have to sit on barber chair
-    if (!_player->HasEnoughMoney(cost))
+    else
     {
-        SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NoMoney).Write());
-        return;
+        _player->ClearPreviousRaceGenderCustomizations(_player->GetRace(), packet.NewSex);
+        if (_player->GetNativeGender() != packet.NewSex)
+        {
+            _player->ClearPreviousRaceGenderCustomizations(_player->GetRace(), _player->GetNativeGender());
+            _player->SetNativeGender(Gender(packet.NewSex));
+            _player->InitDisplayIds();
+            _player->RestoreDisplayId(false);
+        }
+
+        _player->SetCustomizations(Trinity::Containers::MakeIteratorPair(packet.Customizations.begin(), packet.Customizations.end()));
+
+        sCharacterCache->UpdateCharacterGender(_player->GetGUID(), packet.NewSex);
     }
-
-    SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::Success).Write());
-
-    _player->ModifyMoney(-cost);                     // it isn't free
-    _player->UpdateCriteria(CriteriaType::MoneySpentAtBarberShop, cost);
-
-    if (_player->GetNativeGender() != packet.NewSex)
-    {
-        _player->SetNativeGender(Gender(packet.NewSex));
-        _player->InitDisplayIds();
-        _player->RestoreDisplayId(false);
-    }
-
-    _player->SetCustomizations(Trinity::Containers::MakeIteratorPair(packet.Customizations.begin(), packet.Customizations.end()));
-
-    _player->UpdateCriteria(CriteriaType::GotHaircut, 1);
-
-    _player->SetStandState(UNIT_STAND_STATE_STAND);
-
-    sCharacterCache->UpdateCharacterGender(_player->GetGUID(), packet.NewSex);
 }
 
 void WorldSession::HandleCharCustomizeOpcode(WorldPackets::Character::CharCustomize& packet)
@@ -1828,9 +1836,9 @@ void WorldSession::HandleCharCustomizeOpcode(WorldPackets::Character::CharCustom
 
     _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt)
         .WithPreparedCallback([this, customizeInfo = std::move(packet.CustomizeInfo)](PreparedQueryResult result) mutable
-        {
-            HandleCharCustomizeCallback(std::move(customizeInfo), std::move(result));
-        }));
+    {
+        HandleCharCustomizeCallback(std::move(customizeInfo), std::move(result));
+    }));
 }
 
 void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Character::CharCustomizeInfo> customizeInfo, PreparedQueryResult result)
@@ -1846,10 +1854,11 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
     std::string oldName = fields[0].GetString();
     Races plrRace = Races(fields[1].GetUInt8());
     Classes plrClass = Classes(fields[2].GetUInt8());
-    Gender plrGender = Gender(fields[3].GetUInt8());
+    Gender oldGender = Gender(fields[3].GetUInt8());
+    Gender newGender = Gender(customizeInfo->SexID);
     uint16 atLoginFlags = fields[4].GetUInt16();
 
-    if (!ValidateAppearance(plrRace, plrClass, plrGender, MakeChrCustomizationChoiceRange(customizeInfo->Customizations)))
+    if (!ValidateAppearance(plrRace, plrClass, newGender, MakeChrCustomizationChoiceRange(customizeInfo->Customizations)))
     {
         SendCharCustomize(CHAR_CREATE_ERROR, customizeInfo.get());
         return;
@@ -1909,6 +1918,7 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
     ObjectGuid::LowType lowGuid = customizeInfo->CharGUID.GetCounter();
 
     /// Customize
+    Player::RemoveRaceGenderModelCustomizations(trans, lowGuid, plrRace, oldGender);
     Player::SaveCustomizations(trans, lowGuid, MakeChrCustomizationChoiceRange(customizeInfo->Customizations));
 
     /// Name Change and update atLogin flags
@@ -1922,6 +1932,12 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
 
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_DECLINED_NAME);
         stmt->setUInt64(0, lowGuid);
+
+        trans->Append(stmt);
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_GENDER);
+        stmt->setUInt8(0, customizeInfo->SexID);
+        stmt->setUInt64(1, lowGuid);
 
         trans->Append(stmt);
     }
@@ -2070,7 +2086,7 @@ void WorldSession::HandleUseEquipmentSet(WorldPackets::EquipmentSet::UseEquipmen
                 _player->StoreItem(itemPosCountVec, uItem, true);
             }
             else
-                _player->SendEquipError(inventoryResult, uItem,  nullptr);
+                _player->SendEquipError(inventoryResult, uItem, nullptr);
             continue;
         }
 
@@ -2104,9 +2120,9 @@ void WorldSession::HandleCharRaceOrFactionChangeOpcode(WorldPackets::Character::
 
     _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt)
         .WithPreparedCallback([this, factionChangeInfo = std::move(packet.RaceOrFactionChangeInfo)](PreparedQueryResult result) mutable
-        {
-            HandleCharRaceOrFactionChangeCallback(std::move(factionChangeInfo), std::move(result));
-        }));
+    {
+        HandleCharRaceOrFactionChangeCallback(std::move(factionChangeInfo), std::move(result));
+    }));
 }
 
 void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPackets::Character::CharRaceOrFactionChangeInfo> factionChangeInfo, PreparedQueryResult result)
@@ -2126,9 +2142,10 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
     }
 
     std::string oldName = characterInfo->Name;
-    uint8 oldRace     = characterInfo->Race;
+    uint8 oldRace = characterInfo->Race;
+    uint8 oldGender = characterInfo->Sex;
     uint8 playerClass = characterInfo->Class;
-    uint8 level       = characterInfo->Level;
+    uint8 level = characterInfo->Level;
 
     if (!sObjectMgr->GetPlayerInfo(factionChangeInfo->RaceID, playerClass))
     {
@@ -2136,10 +2153,10 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
         return;
     }
 
-    Field* fields              = result->Fetch();
-    uint16 atLoginFlags        = fields[0].GetUInt16();
+    Field* fields = result->Fetch();
+    uint16 atLoginFlags = fields[0].GetUInt16();
     std::string knownTitlesStr = fields[1].GetString();
-    uint32 groupId             = !fields[2].IsNull() ? fields[2].GetUInt32() : 0;
+    uint32 groupId = !fields[2].IsNull() ? fields[2].GetUInt32() : 0;
 
     uint16 usedLoginFlag = (factionChangeInfo->FactionChange ? AT_LOGIN_CHANGE_FACTION : AT_LOGIN_CHANGE_RACE);
     if (!(atLoginFlags & usedLoginFlag))
@@ -2243,6 +2260,8 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
     }
 
     // Customize
+    Player::RemoveRaceGenderModelCustomizations(trans, lowGuid, oldRace, oldGender);
+    Player::RemoveShapehiftRaceCustomizations(trans, lowGuid, oldRace, factionChangeInfo->RaceID);
     Player::SaveCustomizations(trans, lowGuid, MakeChrCustomizationChoiceRange(factionChangeInfo->Customizations));
 
     // Race Change
@@ -2251,6 +2270,12 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
         stmt->setUInt8(0, factionChangeInfo->RaceID);
         stmt->setUInt16(1, PLAYER_EXTRA_HAS_RACE_CHANGED);
         stmt->setUInt64(2, lowGuid);
+
+        trans->Append(stmt);
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_GENDER);
+        stmt->setUInt8(0, factionChangeInfo->SexID);
+        stmt->setUInt64(1, lowGuid);
 
         trans->Append(stmt);
     }
@@ -2286,60 +2311,60 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
 
             switch (factionChangeInfo->RaceID)
             {
-                case RACE_DWARF:
-                case RACE_DARK_IRON_DWARF:
-                    stmt->setUInt16(1, 111);
-                    break;
-                case RACE_DRAENEI:
-                case RACE_LIGHTFORGED_DRAENEI:
-                    stmt->setUInt16(1, 759);
-                    break;
-                case RACE_GNOME:
-                case RACE_MECHAGNOME:
-                    stmt->setUInt16(1, 313);
-                    break;
-                case RACE_NIGHTELF:
-                    stmt->setUInt16(1, 113);
-                    break;
-                case RACE_WORGEN:
-                    stmt->setUInt16(1, 791);
-                    break;
-                case RACE_UNDEAD_PLAYER:
-                    stmt->setUInt16(1, 673);
-                    break;
-                case RACE_TAUREN:
-                case RACE_HIGHMOUNTAIN_TAUREN:
-                    stmt->setUInt16(1, 115);
-                    break;
-                case RACE_TROLL:
-                case RACE_ZANDALARI_TROLL:
-                    stmt->setUInt16(1, 315);
-                    break;
-                case RACE_BLOODELF:
-                case RACE_VOID_ELF:
-                    stmt->setUInt16(1, 137);
-                    break;
-                case RACE_GOBLIN:
-                    stmt->setUInt16(1, 792);
-                    break;
-                case RACE_NIGHTBORNE:
-                    stmt->setUInt16(1, 2464);
-                    break;
-                case RACE_VULPERA:
-                    stmt->setUInt16(1, 2776);
-                    break;
-                case LANG_PANDAREN_ALLIANCE:
-                case LANG_PANDAREN_HORDE:
-                    stmt->setUInt16(1, 905);
-                    break;
-                case RACE_DRACTHYR_ALLIANCE:
-                case RACE_DRACTHYR_HORDE:
-                    stmt->setUInt16(1, 138);
-                    break;
-                default:
-                    TC_LOG_ERROR("entities.player", "Could not find language data for race ({}).", factionChangeInfo->RaceID);
-                    SendCharFactionChange(CHAR_CREATE_ERROR, factionChangeInfo.get());
-                    return;
+            case RACE_DWARF:
+            case RACE_DARK_IRON_DWARF:
+                stmt->setUInt16(1, 111);
+                break;
+            case RACE_DRAENEI:
+            case RACE_LIGHTFORGED_DRAENEI:
+                stmt->setUInt16(1, 759);
+                break;
+            case RACE_GNOME:
+            case RACE_MECHAGNOME:
+                stmt->setUInt16(1, 313);
+                break;
+            case RACE_NIGHTELF:
+                stmt->setUInt16(1, 113);
+                break;
+            case RACE_WORGEN:
+                stmt->setUInt16(1, 791);
+                break;
+            case RACE_UNDEAD_PLAYER:
+                stmt->setUInt16(1, 673);
+                break;
+            case RACE_TAUREN:
+            case RACE_HIGHMOUNTAIN_TAUREN:
+                stmt->setUInt16(1, 115);
+                break;
+            case RACE_TROLL:
+            case RACE_ZANDALARI_TROLL:
+                stmt->setUInt16(1, 315);
+                break;
+            case RACE_BLOODELF:
+            case RACE_VOID_ELF:
+                stmt->setUInt16(1, 137);
+                break;
+            case RACE_GOBLIN:
+                stmt->setUInt16(1, 792);
+                break;
+            case RACE_NIGHTBORNE:
+                stmt->setUInt16(1, 2464);
+                break;
+            case RACE_VULPERA:
+                stmt->setUInt16(1, 2776);
+                break;
+            case LANG_PANDAREN_ALLIANCE:
+            case LANG_PANDAREN_HORDE:
+                stmt->setUInt16(1, 905);
+                break;
+            case RACE_DRACTHYR_ALLIANCE:
+            case RACE_DRACTHYR_HORDE:
+                stmt->setUInt16(1, 138);
+                break;
+            default:
+                TC_LOG_ERROR("entities.player", "Could not find language data for race ({}).", factionChangeInfo->RaceID);
+                SendCharFactionChange(CHAR_CREATE_ERROR, factionChangeInfo.get());
+                return;
             }
 
             trans->Append(stmt);
@@ -2582,7 +2607,7 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
                     else
                     {
                         TC_LOG_WARN("entities.player", "{} has invalid title data '{}' - skipped, this may result in titles being lost",
-                           GetPlayerInfo(), token);
+                            GetPlayerInfo(), token);
                         knownTitles.push_back(0);
                     }
                 }

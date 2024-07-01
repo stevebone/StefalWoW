@@ -55,6 +55,9 @@
 #include "Transport.h"
 #include "Vignette.h"
 #include "World.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 #include <G3D/Box.h>
 #include <G3D/CoordinateFrame.h>
 #include <G3D/Quat.h>
@@ -930,6 +933,11 @@ void GameObject::AddToWorld()
 
         EnableCollision(toggledState);
         WorldObject::AddToWorld();
+
+#ifdef ELUNA
+        if (Eluna* e = GetEluna())
+            e->OnAddToWorld(this);
+#endif
     }
 }
 
@@ -938,6 +946,11 @@ void GameObject::RemoveFromWorld()
     ///- Remove the gameobject from the accessor
     if (IsInWorld())
     {
+#ifdef ELUNA
+        if (Eluna* e = GetEluna())
+            e->OnRemoveFromWorld(this);
+#endif
+
         if (m_zoneScript)
             m_zoneScript->OnGameObjectRemove(this);
 
@@ -954,11 +967,13 @@ void GameObject::RemoveFromWorld()
 
         if (m_spawnId)
             Trinity::Containers::MultimapErasePair(GetMap()->GetGameObjectBySpawnIdStore(), m_spawnId, this);
+
+        GetMap()->RemoveInfiniteGameObject(GetGUID());
         GetMap()->GetObjectsStore().Remove<GameObject>(GetGUID());
     }
 }
 
-bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool dynamic, ObjectGuid::LowType spawnid)
+bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool dynamic, ObjectGuid::LowType spawnid, float size /*= -1*/, float visibility)
 {
     ASSERT(map);
     SetMap(map);
@@ -1028,7 +1043,10 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
 
     SetParentRotation(parentRotation);
 
-    SetObjectScale(goInfo->size);
+    if (size > 0.0f)
+        SetObjectScale(size);
+    else
+        SetObjectScale(goInfo->size);
 
     if (GameObjectOverride const* goOverride = GetGameObjectOverride())
     {
@@ -1194,6 +1212,12 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
     if (goInfo->IsLargeGameObject())
         SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
+    SetVisibilityDistanceOverride(visibility);
+
+    if (GetVisibilityRange() > SIZE_OF_GRIDS) {
+        GetMap()->AddInfiniteGameObject(this->GetGUID());
+    }
+
     return true;
 }
 
@@ -1227,6 +1251,11 @@ GameObject* GameObject::CreateGameObjectFromDB(ObjectGuid::LowType spawnId, Map*
 
 void GameObject::Update(uint32 diff)
 {
+#ifdef ELUNA
+    if (Eluna* e = GetEluna())
+        e->UpdateAI(this, diff);
+#endif
+
     WorldObject::Update(diff);
 
     if (AI())
@@ -1315,6 +1344,7 @@ void GameObject::Update(uint32 diff)
                         // splash bobber (bobber ready now)
                         Unit* caster = GetOwner();
                         if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+                            SetGoAnimProgress(0);
                             SendCustomAnim(0);
 
                         m_lootState = GO_READY;                 // can be successfully open with some chance
@@ -1874,6 +1904,24 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     data.artKit = GetGoArtKit();
     if (!data.spawnGroupData)
         data.spawnGroupData = sObjectMgr->GetDefaultSpawnGroup();
+    if (data.size == 0.0f)
+    {
+        // first save, use default if scale matches template or use custom scale if not
+        if (goI && goI->size == GetObjectScale())
+            data.size = -1.0f;
+        else
+            data.size = GetObjectScale();
+    }
+    else if (data.size < 0.0f || (goI && goI->size == data.size))
+    {
+        // scale is negative or matches template, use default
+        data.size = -1.0f;
+    }
+    else
+    {
+        // scale is positive and does not match template
+        // using data.size or could do data.size = GetObjectScale()
+    }
 
     data.phaseId = GetDBPhase() > 0 ? GetDBPhase() : data.phaseId;
     data.phaseGroup = GetDBPhase() < 0 ? -GetDBPhase() : data.phaseGroup;
@@ -1918,6 +1966,8 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     stmt->setInt32(index++, int32(m_respawnDelayTime));
     stmt->setUInt8(index++, GetGoAnimProgress());
     stmt->setUInt8(index++, uint8(GetGoState()));
+    stmt->setFloat(index++, data.size);
+    stmt->setFloat(index++, GetVisibilityRange());
     trans->Append(stmt);
 
     WorldDatabase.CommitTransaction(trans);
@@ -1938,10 +1988,12 @@ bool GameObject::LoadFromDB(ObjectGuid::LowType spawnId, Map* map, bool addToMap
     uint32 animprogress = data->animprogress;
     GOState go_state = data->goState;
     uint32 artKit = data->artKit;
+    float size = data->size;
+    float visibility = data->visibility;
 
     m_spawnId = spawnId;
     m_respawnCompatibilityMode = ((data->spawnGroupData->flags & SPAWNGROUP_FLAG_COMPATIBILITY_MODE) != 0);
-    if (!Create(entry, map, data->spawnPoint, data->rotation, animprogress, go_state, artKit, !m_respawnCompatibilityMode, spawnId))
+    if (!Create(entry, map, data->spawnPoint, data->rotation, animprogress, go_state, artKit, !m_respawnCompatibilityMode, spawnId, size, visibility))
         return false;
 
     PhasingHandler::InitDbPhaseShift(GetPhaseShift(), data->phaseUseFlags, data->phaseId, data->phaseGroup);
@@ -2564,6 +2616,13 @@ void GameObject::Use(Unit* user)
             playerUser->RemoveAurasByType(SPELL_AURA_MOUNTED);
 
         playerUser->PlayerTalkClass->ClearMenus();
+
+#ifdef ELUNA
+        if (Eluna* e = GetEluna())
+            if (e->OnGossipHello(playerUser, this))
+                return;
+#endif
+
         if (AI()->OnGossipHello(playerUser))
             return;
     }
@@ -2729,7 +2788,8 @@ void GameObject::Use(Unit* user)
             for (auto& [slot, sittingUnit] : ChairListSlots)
             {
                 // the distance between this slot and the center of the go - imagine a 1D space
-                float relativeDistance = (info->size * slot) - (info->size * (info->chair.chairslots - 1) / 2.0f);
+                //float relativeDistance = (info->size * slot) - (info->size * (info->chair.chairslots - 1) / 2.0f);
+                float relativeDistance = (GetObjectScale() * slot) - (GetObjectScale() * (info->chair.chairslots - 1) / 2.0f);
 
                 float x_i = GetPositionX() + relativeDistance * std::cos(orthogonalOrientation);
                 float y_i = GetPositionY() + relativeDistance * std::sin(orthogonalOrientation);
@@ -3683,6 +3743,10 @@ void GameObject::SetDestructibleState(GameObjectDestructibleState state, WorldOb
             break;
         case GO_DESTRUCTIBLE_DAMAGED:
         {
+#ifdef ELUNA
+            if (Eluna* e = GetEluna())
+                e->OnDamaged(this, attackerOrHealer);
+#endif
             if (GetGOInfo()->destructibleBuilding.DamagedEvent && attackerOrHealer)
                 GameEvents::Trigger(GetGOInfo()->destructibleBuilding.DamagedEvent, attackerOrHealer, this);
             AI()->Damaged(attackerOrHealer, m_goInfo->destructibleBuilding.DamagedEvent);
@@ -3709,6 +3773,11 @@ void GameObject::SetDestructibleState(GameObjectDestructibleState state, WorldOb
         }
         case GO_DESTRUCTIBLE_DESTROYED:
         {
+#ifdef ELUNA
+            if (Eluna* e = GetEluna())
+                e->OnDestroyed(this, attackerOrHealer);
+#endif
+
             if (GetGOInfo()->destructibleBuilding.DestroyedEvent && attackerOrHealer)
                 GameEvents::Trigger(GetGOInfo()->destructibleBuilding.DestroyedEvent, attackerOrHealer, this);
             AI()->Destroyed(attackerOrHealer, m_goInfo->destructibleBuilding.DestroyedEvent);
@@ -3761,6 +3830,11 @@ void GameObject::SetLootState(LootState state, Unit* unit)
         m_lootStateUnitGUID = unit->GetGUID();
     else
         m_lootStateUnitGUID.Clear();
+
+#ifdef ELUNA
+    if (Eluna* e = GetEluna())
+        e->OnLootStateChanged(this, state);
+#endif
 
     AI()->OnLootStateChanged(state, unit);
 
@@ -3846,6 +3920,12 @@ void GameObject::SetGoState(GOState state)
 {
     GOState oldState = GetGoState();
     SetUpdateFieldValue(m_values.ModifyValue(&GameObject::m_gameObjectData).ModifyValue(&UF::GameObjectData::State), state);
+
+#ifdef ELUNA
+    if (Eluna* e = GetEluna())
+        e->OnGameObjectStateChanged(this, state);
+#endif
+
     if (AI())
         AI()->OnStateChanged(state);
 

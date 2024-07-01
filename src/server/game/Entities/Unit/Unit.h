@@ -26,6 +26,7 @@
 #include "Timer.h"
 #include "UnitDefines.h"
 #include "Util.h"
+#include "TaskScheduler.h"
 #include <array>
 #include <forward_list>
 #include <map>
@@ -1145,6 +1146,7 @@ class TC_GAME_API Unit : public WorldObject
         bool SetFall(bool enable);
         bool SetSwim(bool enable);
         bool SetCanFly(bool enable);
+        bool SetCanAdvFly(bool enable);
         bool SetWaterWalking(bool enable);
         bool SetFeatherFall(bool enable);
         bool SetHover(bool enable, bool updateAnimTier = true);
@@ -1461,11 +1463,34 @@ class TC_GAME_API Unit : public WorldObject
         void SetSilencedSchoolMask(SpellSchoolMask schoolMask) { SetUpdateFieldFlagValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::SilencedSchoolMask), schoolMask); }
         void ReplaceAllSilencedSchoolMask(SpellSchoolMask schoolMask) { SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::SilencedSchoolMask), schoolMask); }
 
+        void SetFlightCapabilityID(uint32 flightCapabilityID) { SetUpdateFieldFlagValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::FlightCapabilityID), flightCapabilityID); }
+
         SpellHistory* GetSpellHistory() { return _spellHistory.get(); }
         SpellHistory const* GetSpellHistory() const { return _spellHistory.get(); }
 
         std::array<ObjectGuid, MAX_SUMMON_SLOT> m_SummonSlot;
         std::array<ObjectGuid, MAX_GAMEOBJECT_SLOT> m_ObjectSlot;
+
+        void AddSummonedCreature(ObjectGuid guid, uint32 entry);
+        void RemoveSummonedCreature(ObjectGuid guid);
+        Creature* GetSummonedCreatureByEntry(uint32 entry);
+        void UnsummonCreatureByEntry(uint32 entry, uint32 ms = 0);
+
+
+        /// Add timed delayed operation
+        /// @p_Timeout  : Delay time
+        /// @p_Function : Callback function
+        void AddDelayedEvent(uint32 timeout, std::function<void()>&& function)
+        {
+            emptyWarned = false;
+            timedDelayedOperations.push_back(std::pair<uint32, std::function<void()>>(timeout, function));
+        }
+        std::vector<std::pair<int32, std::function<void()>>>timedDelayedOperations; ///< Delayed operations
+        bool emptyWarned; ///< Warning when there are no more delayed operations
+
+        void GetAttackableUnitListInRange(std::list<Unit*>& list, float fMaxSearchRange) const;
+        int32 GetAuraEffectAmount(AuraType auraType, SpellFamilyNames spellFamilyName, uint32 IconFileDataId, uint8 effIndex) const;
+        int32 GetAuraEffectAmount(uint32 spellId, uint8 effIndex, ObjectGuid casterGuid = ObjectGuid::Empty) const;
 
         ShapeshiftForm GetShapeshiftForm() const { return ShapeshiftForm(*m_unitData->ShapeshiftForm); }
         void SetShapeshiftForm(ShapeshiftForm form);
@@ -1571,7 +1596,7 @@ class TC_GAME_API Unit : public WorldObject
 
         virtual float GetNativeObjectScale() const { return 1.0f; }
         virtual void RecalculateObjectScale();
-        uint32 GetDisplayId() const { return m_unitData->DisplayID; }
+        virtual uint32 GetDisplayId() const { return m_unitData->DisplayID; }
         float GetDisplayScale() const { return m_unitData->DisplayScale; }
         virtual void SetDisplayId(uint32 displayId, bool setNative = false);
         uint32 GetNativeDisplayId() const { return m_unitData->NativeDisplayID; }
@@ -1593,6 +1618,7 @@ class TC_GAME_API Unit : public WorldObject
         void AddGameObject(GameObject* gameObj);
         void RemoveGameObject(GameObject* gameObj, bool del);
         void RemoveGameObject(uint32 spellid, bool del);
+        void RemoveAllAreaObjects();//new
         void RemoveAllGameObjects();
 
         // AreaTrigger management
@@ -1653,6 +1679,9 @@ class TC_GAME_API Unit : public WorldObject
         float GetSpeedRate(UnitMoveType mtype) const { return m_speed_rate[mtype]; }
         void SetSpeed(UnitMoveType mtype, float newValue);
         void SetSpeedRate(UnitMoveType mtype, float rate);
+
+        float GetAdvFlyRate(UnitAdvFlyRate mtype) const { return m_adv_fly_rate[mtype]; }
+        void SetAdvFlyRate(UnitAdvFlyRate mtype, float rate) { m_adv_fly_rate[mtype] = rate; }
 
         void FollowerAdded(AbstractFollower* f) { m_followingMe.insert(f); }
         void FollowerRemoved(AbstractFollower* f) { m_followingMe.erase(f); }
@@ -1743,6 +1772,7 @@ class TC_GAME_API Unit : public WorldObject
         virtual bool CanFly() const = 0;
         bool IsFlying() const   { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_FLYING | MOVEMENTFLAG_DISABLE_GRAVITY); }
         bool IsFalling() const;
+        float GetAdvFlyingVelocity() const;
         virtual bool CanEnterWater() const = 0;
         virtual bool CanSwim() const;
 
@@ -1800,6 +1830,8 @@ class TC_GAME_API Unit : public WorldObject
         uint32 GetVirtualItemId(uint32 slot) const;
         uint16 GetVirtualItemAppearanceMod(uint32 slot) const;
         void SetVirtualItem(uint32 slot, uint32 itemId, uint16 appearanceModId = 0, uint16 itemVisual = 0);
+
+        void GetFriendlyUnitListInRange(std::list<Unit*>& list, float fMaxSearchRange, bool exceptSelf = false) const;
 
         // returns if the unit can't enter combat
         bool IsCombatDisallowed() const { return _isCombatDisallowed; }
@@ -1903,6 +1935,7 @@ class TC_GAME_API Unit : public WorldObject
         Trinity::Containers::FlatSet<AuraApplication*, VisibleAuraSlotCompare> m_visibleAurasToUpdate;
 
         std::array<float, MAX_MOVE_TYPE> m_speed_rate;
+        std::array<float, MAX_ADV_FLY_RATE> m_adv_fly_rate;
 
         Unit* m_unitMovedByMe;    // only ever set for players, and only for direct client control
         Player* m_playerMovingMe; // only set for direct client control (possess effects, vehicles and similar)
@@ -1942,6 +1975,9 @@ class TC_GAME_API Unit : public WorldObject
     public:
         void AtStartOfEncounter(EncounterType type);
         void AtEndOfEncounter(EncounterType type);
+
+        typedef std::list<AreaTrigger*> AreaObjectList;//new
+        AreaObjectList m_AreaObj; //new
 
     private:
 
@@ -2007,7 +2043,19 @@ class TC_GAME_API Unit : public WorldObject
         std::unique_ptr<MovementForces> _movementForces;
         PositionUpdateInfo _positionUpdateInfo;
 
+        std::unordered_map<ObjectGuid, uint32/*entry*/> m_SummonedCreatures;
+
         bool _isCombatDisallowed;
+
+    public:
+        TaskScheduler _scheduler;
+        TaskScheduler& GetScheduler() { return _scheduler; }
+
+    public:
+        typedef std::unordered_multimap<uint32 /*spellId*/, ObjectGuid /*targetGuid*/> TargetAuraContainer;
+        TargetAuraContainer m_targetAuras;
+        typedef std::vector<AuraApplication*> AuraApplicationVector;
+        Unit::AuraApplicationVector GetTargetAuraApplications(uint32 spellId) const;
 };
 
 #endif

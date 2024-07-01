@@ -106,7 +106,10 @@ enum PaladinSpells
     SPELL_PALADIN_TEMPLAR_VERDICT_DAMAGE         = 224266,
     SPELL_PALADIN_T30_2P_HEARTFIRE_DAMAGE        = 408399,
     SPELL_PALADIN_T30_2P_HEARTFIRE_HEAL          = 408400,
-    SPELL_PALADIN_ZEAL_AURA                      = 269571
+    SPELL_PALADIN_ZEAL_AURA                      = 269571,
+    SPELL_PALADIN_ARCING_LIGHT_HEAL              = 119952,
+    SPELL_PALADIN_LIGHTS_HAMMER_TICK             = 114918,
+    SPELL_PALADIN_ARCING_LIGHT_DAMAGE            = 114919,
 };
 
 enum PaladinCovenantSpells
@@ -134,6 +137,12 @@ enum PaladinSpellLabel
 {
     SPELL_LABEL_PALADIN_T30_2P_HEARTFIRE         = 2598
 };
+
+enum PaladinNPCs
+{
+    NPC_PALADIN_LIGHTS_HAMMER = 59738
+};
+
 
 // 31850 - Ardent Defender
 class spell_pal_ardent_defender : public AuraScript
@@ -1556,6 +1565,101 @@ class spell_pal_zeal : public AuraScript
     }
 };
 
+// Light's Hammer - 122773
+class spell_pal_lights_hammer : public SpellScriptLoader
+{
+public:
+    spell_pal_lights_hammer() : SpellScriptLoader("spell_pal_lights_hammer") { }
+
+    class spell_pal_lights_hammer_SpellScript : public SpellScript
+    {
+        void HandleAfterCast()
+        {
+            if (Unit* caster = GetCaster())
+            {
+                std::list<Creature*> tempList;
+                std::list<Creature*> LightsHammerlist;
+
+                caster->GetCreatureListWithEntryInGrid(LightsHammerlist, NPC_PALADIN_LIGHTS_HAMMER, 200.0f);
+
+                tempList = LightsHammerlist;
+
+                for (std::list<Creature*>::iterator i = tempList.begin(); i != tempList.end(); ++i)
+                {
+                    Unit* owner = (*i)->GetOwner();
+                    if (owner != nullptr && owner->GetGUID() == caster->GetGUID() && (*i)->IsSummon())
+                        continue;
+
+                    LightsHammerlist.remove((*i));
+                }
+
+                for (std::list<Creature*>::iterator itr = LightsHammerlist.begin(); itr != LightsHammerlist.end(); ++itr)
+                    (*itr)->CastSpell((*itr), SPELL_PALADIN_LIGHTS_HAMMER_TICK, true);
+            }
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_pal_lights_hammer_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_pal_lights_hammer_SpellScript();
+    }
+};
+
+// Light's Hammer (Periodic Dummy) - 114918
+class spell_pal_lights_hammer_tick : public SpellScriptLoader
+{
+public:
+    spell_pal_lights_hammer_tick() : SpellScriptLoader("spell_pal_lights_hammer_tick") { }
+
+    class spell_pal_lights_hammer_tick_AuraScript : public AuraScript
+    {
+        void OnTick(AuraEffect const* /*aurEff*/)
+        {
+            if (Unit* caster = GetCaster())
+            {
+                if (caster->GetOwner())
+                {
+                    CastSpellExtraArgs args;
+                    args.SetTriggerFlags(TRIGGERED_FULL_MASK);
+                    args.SetOriginalCaster(caster->GetOwner()->GetGUID());
+                    caster->CastSpell(Position(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ()), SPELL_PALADIN_ARCING_LIGHT_HEAL, args);
+                    caster->CastSpell(Position(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ()), SPELL_PALADIN_ARCING_LIGHT_DAMAGE, args);
+                }
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_lights_hammer_tick_AuraScript::OnTick, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_pal_lights_hammer_tick_AuraScript();
+    }
+};
+
+// Light's Hammer
+// NPC Id - 59738
+class npc_pal_lights_hammer : public ScriptedAI
+{
+public:
+
+    npc_pal_lights_hammer(Creature* creature) : ScriptedAI(creature) {}
+
+    void Reset() override
+    {
+        me->CastSpell(me, SPELL_PALADIN_LIGHT_HAMMER_COSMETIC, true);
+        me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_UNINTERACTIBLE | UNIT_FLAG_REMOVE_CLIENT_CONTROL));
+    }
+};
+
 void AddSC_paladin_spell_scripts()
 {
     RegisterSpellScript(spell_pal_ardent_defender);
@@ -1603,4 +1707,9 @@ void AddSC_paladin_spell_scripts()
     RegisterSpellScript(spell_pal_t30_2p_protection_bonus);
     RegisterSpellScript(spell_pal_t30_2p_protection_bonus_heal);
     RegisterSpellScript(spell_pal_zeal);
+
+    //new
+    new spell_pal_lights_hammer();
+    new spell_pal_lights_hammer_tick();
+    RegisterCreatureAI(npc_pal_lights_hammer);
 }

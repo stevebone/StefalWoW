@@ -709,6 +709,125 @@ namespace WorldPackets
 
             uint32 Ticks = 0;
         };
+
+        class SetAdvFlyingSpeed final : public ServerPacket
+        {
+        public:
+            SetAdvFlyingSpeed(OpcodeServer opcode) : ServerPacket(opcode, 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 SequenceIndex = 1;
+            float speed = .0f;
+            Optional<float> maxSpeed;
+        };
+
+        class MoveAddImpulse final : public ServerPacket
+        {
+        public:
+            MoveAddImpulse() : ServerPacket(SMSG_MOVE_ADD_IMPULSE, 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 1;
+            TaggedPosition<Position::XYZ> Direction;
+        };
+
+        class MoveSetCanAdvFly final : public ServerPacket
+        {
+        public:
+            MoveSetCanAdvFly() : ServerPacket(SMSG_MOVE_SET_CAN_ADV_FLY) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex;
+        };
+
+        class MoveUnsetCanAdvFly final : public ServerPacket
+        {
+        public:
+            MoveUnsetCanAdvFly() : ServerPacket(SMSG_MOVE_UNSET_CAN_ADV_FLY) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex;
+        };
+
+        class MoveSetAdvFlyingAirFriction final : public ServerPacket
+        {
+        public:
+            MoveSetAdvFlyingAirFriction() : ServerPacket(SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 unk1;
+            uint32 unk2;
+        };
+
+        class MoveSetAdvFlyingMaxVel final : public ServerPacket
+        {
+        public:
+            MoveSetAdvFlyingMaxVel() : ServerPacket(SMSG_MOVE_SET_ADV_FLYING_MAX_VEL) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 unk1;
+            uint32 unk2;
+        };
+
+        class MoveSetAdvFlyingLiftCoefficient final : public ServerPacket
+        {
+        public:
+            MoveSetAdvFlyingLiftCoefficient() : ServerPacket(SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 unk1;
+            uint32 unk2;
+        };
+
+        class MoveSetAdvFlyingDoubleJumpVelMod final : public ServerPacket
+        {
+        public:
+            MoveSetAdvFlyingDoubleJumpVelMod() : ServerPacket(SMSG_MOVE_SET_ADV_FLYING_DOUBLE_JUMP_VEL_MOD) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 unk1;
+            uint32 unk2;
+        };
+
+        class MoveSetAdvFlyingBankingRate final : public ServerPacket
+        {
+        public:
+            MoveSetAdvFlyingBankingRate() : ServerPacket(SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 unk1;
+            uint32 unk2;
+            uint32 unk3;
+        };
+
+        class MoveSetAdvFlyingAddImpulseMaxSpeed final : public ServerPacket
+        {
+        public:
+            MoveSetAdvFlyingAddImpulseMaxSpeed() : ServerPacket(SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 unk1;
+            uint32 unk2;
+        };
     }
 
     ByteBuffer& operator<<(ByteBuffer& data, Movement::MonsterSplineFilterKey const& monsterSplineFilterKey);

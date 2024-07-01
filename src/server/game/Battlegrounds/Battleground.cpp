@@ -48,6 +48,9 @@
 #include "Util.h"
 #include "WorldStateMgr.h"
 #include <cstdarg>
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 
 template<class Do>
 void Battleground::BroadcastWorker(Do& _do)
@@ -115,6 +118,7 @@ Battleground::Battleground(Battleground const&) = default;
 
 Battleground::~Battleground()
 {
+
     // unload map
     if (m_Map)
     {
@@ -377,6 +381,11 @@ inline void Battleground::_ProcessJoin(uint32 diff)
     else if (GetStartDelayTime() <= 0 && !(m_Events & BG_STARTING_EVENT_4))
     {
         m_Events |= BG_STARTING_EVENT_4;
+
+#ifdef ELUNA
+        if (Eluna* e = GetBgMap()->GetEluna())
+            e->OnBGStart(this, GetTypeID(), GetInstanceID());
+#endif
 
         GetBgMap()->GetBattlegroundScript()->OnStart();
 
@@ -774,6 +783,11 @@ void Battleground::EndBattleground(Team winner)
 
         GetBgMap()->GetBattlegroundScript()->OnEnd(winner);
     }
+#ifdef ELUNA
+    //the type of the winner,change Team to BattlegroundTeamId,it could be better.
+    if (Eluna* e = GetBgMap()->GetEluna())
+        e->OnBGEnd(this, GetTypeID(), GetInstanceID(), Team(winner));
+#endif
 }
 
 uint32 Battleground::GetScriptId() const

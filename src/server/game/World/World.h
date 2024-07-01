@@ -38,6 +38,9 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef ELUNA
+class Eluna;
+#endif
 class Player;
 class WorldPacket;
 class WorldSession;
@@ -226,6 +229,23 @@ enum WorldFloatConfigs
     CONFIG_CALL_TO_ARMS_5_PCT,
     CONFIG_CALL_TO_ARMS_10_PCT,
     CONFIG_CALL_TO_ARMS_20_PCT,
+    CONFIG_ADV_FLY_AIR_FRICTION,
+    CONFIG_ADV_FLY_MAX_VEL,
+    CONFIG_ADV_FLY_LIFT_COEF,
+    CONFIG_ADV_FLY_DOUBLE_JUMP_VEL_MOD,
+    CONFIG_ADV_FLY_GLIDE_START_MIN_HEIGHT,
+    CONFIG_ADV_FLY_ADD_IMPULSE_MAX_SPEED,
+    CONFIG_ADV_FLY_MIN_BANKING_RATE,
+    CONFIG_ADV_FLY_MAX_BANKING_RATE,
+    CONFIG_ADV_FLY_MIN_PITCHING_RATE_DOWN,
+    CONFIG_ADV_FLY_MAX_PITCHING_RATE_DOWN,
+    CONFIG_ADV_FLY_MIN_PITCHING_RATE_UP,
+    CONFIG_ADV_FLY_MAX_PITCHING_RATE_UP,
+    CONFIG_ADV_FLY_MIN_TURN_VELOCITY_THRESHOLD,
+    CONFIG_ADV_FLY_MAX_TURN_VELOCITY_THRESHOLD,
+    CONFIG_ADV_FLY_SURFACE_FRICTION,
+    CONFIG_ADV_FLY_OVER_MAX_DECELERATION,
+    CONFIG_ADV_FLY_LAUNCH_SPEED_COEFFICIENT,
     FLOAT_CONFIG_VALUE_COUNT
 };
 
@@ -656,6 +676,8 @@ class TC_GAME_API World
         void SendGlobalText(char const* text, WorldSession* self);
         void SendGMText(uint32 string_id, ...);
         void SendServerMessage(ServerMessageType messageID, std::string_view stringParam = {}, Player const* player = nullptr);
+        void SendMapMessage(uint32 mapid, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
+        bool SendAreaIDMessage(uint32 areaID, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         void SendGlobalMessage(WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
         void SendGlobalGMMessage(WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
         bool SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
@@ -790,6 +812,11 @@ class TC_GAME_API World
         void TriggerGuidAlert();
         bool IsGuidWarning() { return _guidWarn; }
         bool IsGuidAlert() { return _guidAlert; }
+
+#ifdef ELUNA
+        Eluna* GetEluna() const { return eluna; }
+        Eluna* eluna;
+#endif
 
         // War mode balancing
         void SetForcedWarModeFactionBalanceState(TeamId team, int32 reward = 0);

@@ -43,11 +43,17 @@
 #include <memory>
 #include <set>
 #include <unordered_set>
+#ifdef ELUNA
+#include "LuaValue.h"
+#endif
 
 class Battleground;
 class BattlegroundMap;
 class BattlegroundScript;
 class CreatureGroup;
+#ifdef ELUNA
+class Eluna;
+#endif
 class GameObjectModel;
 class Group;
 class InstanceLock;
@@ -546,6 +552,11 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         }
 
         virtual std::string GetDebugInfo() const;
+		
+		std::set<ObjectGuid>& GetInfiniteGameObjects() { return m_infiniteGameObjects; };
+
+        void AddInfiniteGameObject(ObjectGuid object) { m_infiniteGameObjects.insert(object); };
+        void RemoveInfiniteGameObject(ObjectGuid object) { m_infiniteGameObjects.erase(object); };
 
     private:
 
@@ -619,6 +630,10 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         MapRefManager::iterator m_mapRefIter;
 
         int32 m_VisibilityNotifyPeriod;
+
+		typedef std::set<ObjectGuid> InfiniteGameObjects;
+        InfiniteGameObjects m_infiniteGameObjects;
+        InfiniteGameObjects::iterator m_infiniteGameObjectsIter;
 
         typedef std::set<WorldObject*> ActiveNonPlayers;
         ActiveNonPlayers m_activeNonPlayers;
@@ -722,6 +737,12 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void InitSpawnGroupState();
         void UpdateSpawnGroupConditions();
 
+#ifdef ELUNA
+        Eluna* GetEluna() const;
+
+        LuaVal lua_data = LuaVal({});
+#endif
+
     private:
         // Type specific code for add/remove to/from grid
         template<class T>
@@ -807,6 +828,10 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         std::unordered_set<Object*> _updateObjects;
 
         MPSCQueue<FarSpellCallback> _farSpellCallbacks;
+
+#ifdef ELUNA
+        Eluna* eluna;
+#endif
 
         /*********************************************************/
         /***                   Phasing                         ***/

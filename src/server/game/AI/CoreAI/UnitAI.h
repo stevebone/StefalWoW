@@ -177,6 +177,90 @@ class TC_GAME_API UnitAI
         Unit* FinalizeTargetSelection(std::list<Unit*>& targetList, SelectTargetMethod targetType);
         bool PrepareTargetListSelection(std::list<Unit*>& targetList, SelectTargetMethod targetType, uint32 offset);
         void FinalizeTargetListSelection(std::list<Unit*>& targetList, uint32 num, SelectTargetMethod targetType);
+
+    public:
+        /// Add timed delayed operation
+        /// @p_Timeout  : Delay time
+        /// @p_Function : Callback function
+        void AddTimedDelayedOperation(uint32 p_Timeout, std::function<void()>&& p_Function)
+        {
+            m_EmptyWarned = false;
+            m_TimedDelayedOperations.push_back(std::pair<uint32, std::function<void()>>(p_Timeout, p_Function));
+        }
+
+        /// Called after last delayed operation was deleted
+        /// Do whatever you want
+        virtual void LastOperationCalled() { }
+
+        void ClearDelayedOperations()
+        {
+            m_TimedDelayedOperations.clear();
+            m_EmptyWarned = false;
+        }
+
+        std::vector<std::pair<int32, std::function<void()>>>    m_TimedDelayedOperations;   ///< Delayed operations
+        bool                                                    m_EmptyWarned;              ///< Warning when there are no more delayed operations
+        void SetBaseAttackSpell(uint32 spellId) { _baseAttackSpell = spellId; }
+        uint32 GetBaseAttackSpell() { return _baseAttackSpell; }
+
+       private:
+           uint32 _baseAttackSpell = 0;
 };
+
+namespace Trinity
+{
+    // Binary predicate for sorting Units based on percent value of a power
+    class PowerPctOrderPred
+    {
+    public:
+        PowerPctOrderPred(Powers power, bool ascending = true) : _power(power), _ascending(ascending) { }
+
+        bool operator()(WorldObject const* objA, WorldObject const* objB) const
+        {
+            Unit const* a = objA->ToUnit();
+            Unit const* b = objB->ToUnit();
+            float rA = a ? a->GetPowerPct(_power) : 0.0f;
+            float rB = b ? b->GetPowerPct(_power) : 0.0f;
+            return _ascending ? rA < rB : rA > rB;
+        }
+
+        bool operator()(Unit const* a, Unit const* b) const
+        {
+            float rA = a->GetPowerPct(_power);
+            float rB = b->GetPowerPct(_power);
+            return _ascending ? rA < rB : rA > rB;
+        }
+
+    private:
+        Powers const _power;
+        bool const _ascending;
+    };
+
+    // Binary predicate for sorting Units based on percent value of health
+    class HealthPctOrderPred
+    {
+    public:
+        HealthPctOrderPred(bool ascending = true) : _ascending(ascending) { }
+
+        bool operator()(WorldObject const* objA, WorldObject const* objB) const
+        {
+            Unit const* a = objA->ToUnit();
+            Unit const* b = objB->ToUnit();
+            float rA = (a && a->GetMaxHealth()) ? float(a->GetHealth()) / float(a->GetMaxHealth()) : 0.0f;
+            float rB = (b && b->GetMaxHealth()) ? float(b->GetHealth()) / float(b->GetMaxHealth()) : 0.0f;
+            return _ascending ? rA < rB : rA > rB;
+        }
+
+        bool operator() (Unit const* a, Unit const* b) const
+        {
+            float rA = a->GetMaxHealth() ? float(a->GetHealth()) / float(a->GetMaxHealth()) : 0.0f;
+            float rB = b->GetMaxHealth() ? float(b->GetHealth()) / float(b->GetMaxHealth()) : 0.0f;
+            return _ascending ? rA < rB : rA > rB;
+        }
+
+    private:
+        bool const _ascending;
+    };
+}
 
 #endif
