@@ -12131,3 +12131,127 @@ INSERT INTO game_event_creature VALUES
 (1,@CGUID+500),
 (1,@CGUID+501),
 (1,@CGUID+502);
+
+
+
+
+-- change modelids for already spawned creatures
+-- models alliance zangar
+UPDATE creature set modelid=16413 where guid=170006;
+UPDATE creature set modelid=16448 where guid=170007;
+UPDATE creature set modelid=21084 where guid=170008;
+UPDATE creature set modelid=16412 where guid=170009;
+
+-- models alliance netherstorm
+UPDATE creature set modelid=16413 where guid=170198;
+UPDATE creature set modelid=16448 where guid=170199;
+UPDATE creature set modelid=21084 where guid=170200;
+UPDATE creature set modelid=16412 where guid=170201;
+
+-- models alliance blade
+UPDATE creature set modelid=16413 where guid=170204;
+UPDATE creature set modelid=16448 where guid=170205;
+UPDATE creature set modelid=21084 where guid=170206;
+UPDATE creature set modelid=16412 where guid=170207;
+
+-- models alliance nagrand
+UPDATE creature set modelid=16413 where guid=170208;
+UPDATE creature set modelid=16448 where guid=170209;
+UPDATE creature set modelid=21084 where guid=170210;
+UPDATE creature set modelid=16412 where guid=170211;
+
+-- models alliance shadowmoon
+UPDATE creature set modelid=16435 where guid=170213;
+UPDATE creature set modelid=16447 where guid=170214;
+UPDATE creature set modelid=16433 where guid=170215;
+UPDATE creature set modelid=21084 where guid=170216;
+
+-- models alliance terokkar
+UPDATE creature set modelid=16414 where guid=170003;
+UPDATE creature set modelid=21083 where guid=170004;
+UPDATE creature set modelid=16447 where guid=170005;
+
+UPDATE creature set modelid=21084 where guid=170126;
+UPDATE creature set modelid=21083 where guid=170127;
+UPDATE creature set modelid=21084 where guid=170140;
+UPDATE creature set modelid=21083 where guid=170141;
+
+UPDATE creature set modelid=21084 where guid=170187;
+UPDATE creature set modelid=21083 where guid=170188;
+UPDATE creature set modelid=21083 where guid=170189;
+UPDATE creature set modelid=21084 where guid=170190;
+UPDATE creature set modelid=21084 where guid=170192;
+UPDATE creature set modelid=21083 where guid=170193;
+UPDATE creature set modelid=21084 where guid=170194;
+UPDATE creature set modelid=21083 where guid=170195;
+UPDATE creature set modelid=21083 where guid=170196;
+
+
+ -- smart scripts for the alliance flames
+
+ -- GameObject 181334 smart ai
+SET @ENTRY := 181334;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 29099, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 29099 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 181334 AND `SourceId` = 1;
+
+ -- GameObject 181333 smart ai
+SET @ENTRY := 181333;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 29102, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 29102 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 181333 AND `SourceId` = 1;
+
+ -- GameObject 181332 smart ai
+SET @ENTRY := 181332;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 29101, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 29101 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 181332 AND `SourceId` = 1;
+
+ -- GameObject 188128 smart ai
+SET @ENTRY := 188128;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 46690, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 46690 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 188128 AND `SourceId` = 1;
+
+ -- smart scripts for the horde flames
+
+ -- GameObject 181335 smart ai
+SET @ENTRY := 181335;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 29133, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 29133 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 181335 AND `SourceId` = 1;
+
+ -- GameObject 181336 smart ai
+SET @ENTRY := 181336;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 29130, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 29130 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 181336 AND `SourceId` = 1;
+
+ -- GameObject 181337 smart ai
+SET @ENTRY := 181337;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 29132, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 29132 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 181337 AND `SourceId` = 1;
+
+ -- GameObject 188129 smart ai
+SET @ENTRY := 188129;
+UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 1 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
+(@ENTRY, 1, 0, 0, '', 64, 0, 100, 0, 0, 0, 0, 0, 134, 46689, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On player opened gossip - Gossip player: Cast spell 46689 on Gossip player');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 188129 AND `SourceId` = 1;
+

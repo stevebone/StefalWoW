@@ -1,65 +1,10 @@
-/way #14 44.4 46 Refuge Pointe
-/way #14 69.3 42.6 Hammerfall
-/way #15 18.9 56 Dragon's Mouth
-/way #15 23.5 37.3 New Kargath
-/way #17 46.2 13.8 Dreadmaul Hold
-/way #17 55.4 14.9 Nethergarde Keep
-/way #36 51.2 29.2 Flame Crest
-/way #36 68.3 60.4 Morgan's Vigil
-/way #27 53.7 45 Kharanos
-/way #47 73.5 54.7 Darkshire
-/way #37 43.3 62.7 Goldshire
-/way #94 46.4 50.5 North Sanctum
-/way #95 46.8 26.1 Tranquillien
-/way #25 54.6 50 Tarren Mill
-/way #48 32.4 40.6 Thelsamar
-/way #50 40.6 51.3 Grom'gol Base Camp
-/way #50 51.9 63.5 Fort Livingston
-/way #49 24.8 53.6 Lakeshire
-/way #21 49.5 38.3 The Sepulcher
-/way #51 76.5 13.7 Bogpaddle
-/way #51 70.1 15.1 Bogpaddle
-/way #210 50.4 70.4 Wild Shore
-/way #210 51.9 67.6 Wild Shore
-/way #26 14.4 49.9 Aerie Peak
-/way #26 76.6 74.8 Revantusk Village
-/way #18 57.1 51.8 Brill
-/way #241 47.2 28.6 Thundermar
-/way #241 53.1 46.2 Bloodgulch
-/way #22 29 56.9 The Bulwark
-/way #22 43.5 82.3 Chillwind Camp
-/way #52 44.8 62.2 Moonbrook
-/way #56 13.3 47.1 Menethil Harbor
-
-/way #84 49.5 72.7 Stormwind City
-/way #87 64.1 25.9 Ironforge
-/way #90 68.6 8.2 Undercity
-/way #110 69.6 43 Silvermoon City
-
 #Midsummer Festival
 # 
 ############################################################
 # Quests Alliance
-# 
-# The Master Of Summer Lore: 11970
-# Started by Commoners these are common to multiple events
 #
-# Torch Catching: 11657
-# Started by Master Fire Eater
-#
-# Torch Tossing: 11924
-# Started by Master Fire Eater
-#
-# More Torch Catching: 11657
-# Started by Master Fire Eater
-#
-# More Torch Tossing: 11921
-# Started by Master Fire Eater
-#
-# Playing with Fire: 11882
-# Started by Fire Eater
-#
-# Honor the Flame quests
+# Honor the Flame quests Eastern Kingdoms (11816,11583,11822,11814,28922,11832,11820,11828,28925,11813,
+11810,11827,11804,11826,28929,11808)
 # Elwyn: 11816
 # Westfall: 11583
 # Redridge: 11822
@@ -77,9 +22,77 @@
 # Swamp: 28929
 # Blasted: 11808
 #
+# Honor the Flame quests Kalimdor (11805,11806, 11809, 11811,11812, 11815, 11817, 11824, 11831, 11831,
+11833,11834, 28926, 28928, 28932)
+# Ashenvale: 11805
+# Bloodmyst: 11809
+# Desolace: 11812
+# Feralas: 11817
+# SouthB: 28926
+# Tanaris: 11833
+# Ungoro: 28932
+# Azuremyst: 11806
+# Darkshore: 11811
+# Dustwallow: 11815
+# Silithus: 11831
+# Stonetalon: 28928
+# Teldrassil: 11824
+# Winterspring: 11834 
+#
+# Honor the flame Outland
+# Blade: 11807
+# Hellfire: 11818
+# Nagrand: 11821
+# Shadowmoon: 11823
+# Terokkar: 11825
+# Zangarmarsh: 11829
+# Netherstorm: 11830
+#
+# Stealing the flame
+# Orgrimmar: 9324
+# ThunderB: 9325
+# Undercity: 9326
+# Silvermoon: 11935
+#
+# Other (11970,11657,11924,11657,11921,11882)
+#
+# The Master Of Summer Lore: 11970
+# Started by Commoners these are common to multiple events
+#
+# Torch Catching: 11657
+# Started by Master Fire Eater
+#
+# Torch Tossing: 11731
+# Started by Master Fire Eater
+#
+# More Torch Catching: 11657
+# Started by Master Fire Eater
+#
+# More Torch Tossing: 11921
+# Started by Master Fire Eater
+#
+# Playing with Fire: 11882
+# Started by Fire Eater
+#
+
+#
 # Quests Horde
 # The Spinner of Summer Tales: 11971
 # Started by Commoners these are common to multiple events
+#
+# Playing With Fire: 11915
+# Started by Flame Eater
+#
+# Torch Tossing: 11922
+#
+# Stealing the flame
+# Stormwind: 9330
+# Ironforge: 9331
+# Darnassus: 9332
+# Exodar: 9333
+#
+# Honor the flame Outland
+# Hellfire: 
 #
 ############################################################
 # Objects (181332, 181333, 181302, 181305, 181307, 181306, 181605, 188021, 188020, 181355, 187928,
@@ -88,6 +101,8 @@
 # Flames / Bonfire
 # Flame of Stormwind: 181332
 # Flame of Ironforge: 181333
+# Flame of Exodar: 188128
+# Flame of Darnassus: 181334
 #
 #
 # Alliance Bonfires (187564, 187914, 187916, 187917,187919,187920,187921,187922,187923,187924,
@@ -165,7 +180,17 @@
 # Midsummer Music Doodad: 188174
 # 
 # Horde
+#
+# Flames (181335,181336,181337,188129)
+# Undercity: 181335
+# Orgrimmar: 181336
+# ThunderB: 181337
+# Silvermoon: 188129
+#
 # Horde Bonfire: 187970
+#
+# Horde Bonfires Outland
+# Hellfire: 187963
 #
 # Building Dressing (187572,187573,181354,187566,181358,181390,187576,181392,386371,181401,207230,
 181389,367987,181393,187667,206319,181388,181391,181300,187653)
@@ -178,12 +203,14 @@
 # 16592 Bonfire //in the flame
 # 16606 Bonfire despawner (not sure what this is)
 #
+# Tossing Quest (222680, 25536, 25535)
+#
 # Creatures used for models: Midsummer Celebrant Costume XXXX
 # 
 # Other
 # 69566/midsummer-reveler -> Vale of Eternal Blossom
 #
-# Flame Wardens (25898,25910,25904,25896,51574,25915,25902,25911,
+# Flame Wardens Eastern Kingdoms (25898,25910,25904,25896,51574,25915,25902,25911,
 51585,25895,25892,25909,25887,25908,51602,25890)
 # Elwyn Forest Flame Warden: 25898
 # Westfall Flame Warden: 25910
@@ -202,6 +229,31 @@
 # Swamp: 51602
 # Blasted: 25890
 #
+# Flame Wardens Eastern Kalimdor (51588,25883, 25897, 51586, 25906, 25899, 25894, 25888, 25916, 25891,
+25893, 51606, 25914, 25917)
+# Ashenvale: 25883
+# Bloodmyst: 25891
+# Desolace: 25894
+# Feralas: 25899
+# SouthB: 51586
+# Tanaris: 25916
+# Ungoro: 51606
+# Azuremyst: 25888
+# Darkshore: 25893
+# Dustwallow: 25897
+# Silithus: 25914
+# Stonetalon: 51588
+# Teldrassil: 25906
+# Winterspring: 25917
+#
+# Flame Wardens Outland
+# Blade: 25889
+# Hellfire: 25900
+# Nagrand: 25903
+# Shadowmoon: 25905
+# Terokkar: 25907
+# Zangarmarsh: 25912
+# Netherstorm: 25913
 #
 # Misc (26123,16817,16781,25962,25975,18927,19148)
 # Midsummer Supplier: 26123
@@ -243,3 +295,50 @@
 # This NPC has different model ids
 # Male: 19174
 # Female: 19173
+#
+# Draenei Commoner: 19171
+# Male: 19171
+# Female: 19172
+#
+# Night Elf Commoner: 19173
+# Male: 19179
+# Female: 19180
+# Xmas? Male: 16435
+#
+# Gnome Commoner: 19172
+# Male: 19175
+# Female: 19176
+#
+# Earthen Ring Elder: 26221
+# This NPC can be found in Ironforge  (10), The Exodar  (5), Darnassus  (4), and Stormwind City  (4).
+# This NPC has different model ids
+# Broken: 23687
+# Orc Male: 23688
+# Tauren Female: 23130
+# ?? Female: 23129
+#
+#
+#
+#
+#
+# Horde NPCs
+# 
+# Flame Keepers Outland
+# Hellfire: 25934
+#
+#
+#
+#
+#
+# Other
+#
+# Master Flame Eater: 26113
+# Festival Talespinner: 16818
+# Midsummer Merchant: 26124
+# Earthen Ring Elder: 26221
+# Flame Eater: 25994
+#
+# Orc Commoner: 19175
+# This NPC has different model ids
+# Male: 19182
+# Female: 19181
