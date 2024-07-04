@@ -1461,12 +1461,12 @@ TC_API_EXPORT EnumText EnumUtils<SpellAttr9>::ToString(SpellAttr9 value)
         case SPELL_ATTR9_JUMPCHARGE__NO_FACING_CONTROL: return { "SPELL_ATTR9_JUMPCHARGE__NO_FACING_CONTROL", "JumpCharge - no facing control", "" };
         case SPELL_ATTR9_IGNORE_CASTER_HEALING_MODIFIERS: return { "SPELL_ATTR9_IGNORE_CASTER_HEALING_MODIFIERS", "Ignore Caster Healing Modifiers", "" };
         case SPELL_ATTR9_DONT_CONSUME_CHARGE_IF_ITEM_DELETED: return { "SPELL_ATTR9_DONT_CONSUME_CHARGE_IF_ITEM_DELETED", "(Programmer Only) Don't consume charge if item deleted", "" };
-        case SPELL_ATTR9_UNK26: return { "SPELL_ATTR9_UNK26", "Unknown attribute 26@Attr9", "" };
-        case SPELL_ATTR9_UNK27: return { "SPELL_ATTR9_UNK27", "Unknown attribute 27@Attr9", "" };
-        case SPELL_ATTR9_UNK28: return { "SPELL_ATTR9_UNK28", "Unknown attribute 28@Attr9", "" };
-        case SPELL_ATTR9_UNK29: return { "SPELL_ATTR9_UNK29", "Unknown attribute 29@Attr9", "" };
-        case SPELL_ATTR9_UNK30: return { "SPELL_ATTR9_UNK30", "Unknown attribute 30@Attr9", "" };
-        case SPELL_ATTR9_UNK31: return { "SPELL_ATTR9_UNK31", "Unknown attribute 31@Attr9", "" };
+        case SPELL_ATTR9_ITEM_PASSIVE_ON_CLIENT: return { "SPELL_ATTR9_ITEM_PASSIVE_ON_CLIENT", "Item Passive On Client", "" };
+        case SPELL_ATTR9_FORCE_CORPSE_TARGET: return { "SPELL_ATTR9_FORCE_CORPSE_TARGET", "Force Corpse Target", "Causes the spell to continue executing effects on the target even if one of them kills it" };
+        case SPELL_ATTR9_CANNOT_KILL_TARGET: return { "SPELL_ATTR9_CANNOT_KILL_TARGET", "Cannot Kill Target", "" };
+        case SPELL_ATTR9_LOG_PASSIVE: return { "SPELL_ATTR9_LOG_PASSIVE", "Log Passive (client only)", "Allows passive auras to trigger aura applied/refreshed/removed combat log events" };
+        case SPELL_ATTR9_NO_MOVEMENT_RADIUS_BONUS: return { "SPELL_ATTR9_NO_MOVEMENT_RADIUS_BONUS", "No Movement Radius Bonus", "" };
+        case SPELL_ATTR9_CHANNEL_PERSISTS_ON_PET_FOLLOW: return { "SPELL_ATTR9_CHANNEL_PERSISTS_ON_PET_FOLLOW", "Channel Persists on Pet Follow", "" };
         default: throw std::out_of_range("value");
     }
 }
@@ -1505,12 +1505,12 @@ TC_API_EXPORT SpellAttr9 EnumUtils<SpellAttr9>::FromIndex(size_t index)
         case 23: return SPELL_ATTR9_JUMPCHARGE__NO_FACING_CONTROL;
         case 24: return SPELL_ATTR9_IGNORE_CASTER_HEALING_MODIFIERS;
         case 25: return SPELL_ATTR9_DONT_CONSUME_CHARGE_IF_ITEM_DELETED;
-        case 26: return SPELL_ATTR9_UNK26;
-        case 27: return SPELL_ATTR9_UNK27;
-        case 28: return SPELL_ATTR9_UNK28;
-        case 29: return SPELL_ATTR9_UNK29;
-        case 30: return SPELL_ATTR9_UNK30;
-        case 31: return SPELL_ATTR9_UNK31;
+        case 26: return SPELL_ATTR9_ITEM_PASSIVE_ON_CLIENT;
+        case 27: return SPELL_ATTR9_FORCE_CORPSE_TARGET;
+        case 28: return SPELL_ATTR9_CANNOT_KILL_TARGET;
+        case 29: return SPELL_ATTR9_LOG_PASSIVE;
+        case 30: return SPELL_ATTR9_NO_MOVEMENT_RADIUS_BONUS;
+        case 31: return SPELL_ATTR9_CHANNEL_PERSISTS_ON_PET_FOLLOW;
         default: throw std::out_of_range("index");
     }
 }
@@ -1546,12 +1546,12 @@ TC_API_EXPORT size_t EnumUtils<SpellAttr9>::ToIndex(SpellAttr9 value)
         case SPELL_ATTR9_JUMPCHARGE__NO_FACING_CONTROL: return 23;
         case SPELL_ATTR9_IGNORE_CASTER_HEALING_MODIFIERS: return 24;
         case SPELL_ATTR9_DONT_CONSUME_CHARGE_IF_ITEM_DELETED: return 25;
-        case SPELL_ATTR9_UNK26: return 26;
-        case SPELL_ATTR9_UNK27: return 27;
-        case SPELL_ATTR9_UNK28: return 28;
-        case SPELL_ATTR9_UNK29: return 29;
-        case SPELL_ATTR9_UNK30: return 30;
-        case SPELL_ATTR9_UNK31: return 31;
+        case SPELL_ATTR9_ITEM_PASSIVE_ON_CLIENT: return 26;
+        case SPELL_ATTR9_FORCE_CORPSE_TARGET: return 27;
+        case SPELL_ATTR9_CANNOT_KILL_TARGET: return 28;
+        case SPELL_ATTR9_LOG_PASSIVE: return 29;
+        case SPELL_ATTR9_NO_MOVEMENT_RADIUS_BONUS: return 30;
+        case SPELL_ATTR9_CHANNEL_PERSISTS_ON_PET_FOLLOW: return 31;
         default: throw std::out_of_range("value");
     }
 }
