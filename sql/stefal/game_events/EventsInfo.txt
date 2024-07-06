@@ -1,0 +1,619 @@
+#Midsummer Festival
+# 
+############################################################
+# Quests Alliance
+#
+# Honor the Flame quests Eastern Kingdoms (11816,11583,11822,11814,28922,11832,11820,11828,28925,11813,
+11810,11827,11804,11826,28929,11808)
+# Elwyn: 11816
+# Westfall: 11583
+# Redridge: 11822
+# Duskwood: 11814
+# North STV: 28922
+# South STV: 11832
+# LochM: 11820
+# Wetlands: 11828
+# Badlands: 28925
+# DunMorogh: 11813
+# Burning: 11810
+# WesternP: 11827
+# Arathi: 11804
+# Hinterlands: 11826
+# Swamp: 28929
+# Blasted: 11808
+#
+# Honor the Flame quests Kalimdor (11805,11806, 11809, 11811,11812, 11815, 11817, 11824, 11831, 11831,
+11833,11834, 28926, 28928, 28932)
+# Ashenvale: 11805
+# Bloodmyst: 11809
+# Desolace: 11812
+# Feralas: 11817
+# SouthB: 28926
+# Tanaris: 11833
+# Ungoro: 28932
+# Azuremyst: 11806
+# Darkshore: 11811
+# Dustwallow: 11815
+# Silithus: 11831
+# Stonetalon: 28928
+# Teldrassil: 11824
+# Winterspring: 11834 
+#
+# Honor the flame Outland
+# Blade: 11807
+# Hellfire: 11818
+# Nagrand: 11821
+# Shadowmoon: 11823
+# Terokkar: 11825
+# Zangarmarsh: 11829
+# Netherstorm: 11830
+#
+# Stealing the flame
+# Orgrimmar: 9324
+# ThunderB: 9325
+# Undercity: 9326
+# Silvermoon: 11935
+#
+# Other (11970,11657,11924,11657,11921,11882)
+#
+# The Master Of Summer Lore: 11970
+# Started by Commoners these are common to multiple events
+#
+# Torch Catching: 11657
+# Started by Master Fire Eater
+#
+# Torch Tossing: 11731
+# Started by Master Fire Eater
+#
+# More Torch Catching: 11657
+# Started by Master Fire Eater
+#
+# More Torch Tossing: 11921
+# Started by Master Fire Eater
+#
+# Playing with Fire: 11882
+# Started by Fire Eater
+#
+
+#
+# Quests Horde
+# The Spinner of Summer Tales: 11971
+# Started by Commoners these are common to multiple events
+#
+# Playing With Fire: 11915
+# Started by Flame Eater
+#
+# Torch Tossing: 11922
+#
+# Stealing the flame
+# Stormwind: 9330
+# Ironforge: 9331
+# Darnassus: 9332
+# Exodar: 9333
+#
+# Honor the flame Outland
+# Hellfire: 
+#
+############################################################
+
+##########################################################
+# Gameobject
+##########################################################
+#################################
+# Debug (181288, 181371, 181290, 181308,187708)
+#################################
+#
+# Midsummer Bonfire: 181288 // the actual flame
+# 181371 (Midsummer Bonfire Spell Focus) -> required for casting the blossoms
+# 181290 Midsummer Bonfire spawn trap
+# 181308 Midsummer Bonfire despawner
+# Torch target brazier: 187708
+#
+#################################
+# Bonfires & Flames
+#################################
+#
+#####
+# Flames Horde (181335,181336,181337,188129)
+# Undercity: 181335
+# Orgrimmar: 181336
+# ThunderB: 181337
+# Silvermoon: 188129
+#
+#####
+# Flames Alliance (181332,181333,188128,181334)
+# Flame of Stormwind: 181332
+# Flame of Ironforge: 181333
+# Flame of Exodar: 188128
+# Flame of Darnassus: 181334
+#
+#####
+# Alliance Bonfires (187564, 187914, 187916, 187917,187919,187920,187921,187922,187923,187924,
+187925,187926,187927,187928,187929,187930,187931,187932,187933,187934,187935,187936,187937,187938,
+187939,187940,187941,187942,187943,187944,187945,187946,194032,194035,194036,194038,194040,194044,
+194045,194049,207982,207984,207985,207987,207988,207993,208089,208093,217851,316788,316791,316793)
+# ??? Westfall: 187564
+# Arathi Highlands: 187914
+# Ashenvale: 187916
+# Azuremyst: 187917
+# Blade's Edge: 187919
+# Blasted Lands: 187920
+# Bloodmyst: 187921
+# Burning Steppes: 187922
+# Darkshore: 187923
+# Desolace: 187924
+# Dun Morogh: 187925
+# Duskwood: 187926
+# Dustwallow: 187927
+# Elwynn: 187928
+# Feralas: 187929
+# Honorhold: 187930
+# ???: 187931
+# LochM: 187932
+# Nagrand: 187933
+# Redridge: 187934
+# Shadowmoon: 187935
+# Teldrassil: 187936
+# terrokar: 187937
+# The Hinterlands: 187938
+# W Plaguelands: 187939
+# Wetlands: 187940
+# zangarmarsh: 187941
+# Netherstorm: 187942
+# Silithus: 187943
+# South STV: 187944
+# Tanaris: 187945
+# Winterspring: 187946
+# Borean Tundra: 194032
+# Sholazar: 194035
+# Dragonblight: 194036
+# Howling: 194038
+# Grzzly: 194040
+# StormP: 194044
+# CystalS: 194045
+# ZulDrak: 194049
+# North STV: 207982
+# Badlands: 207984
+# Southern Barrens: 207985
+# Stonetalon: 207987
+# Swamp: 207988
+# Ungoro: 207993
+# TwilightH: 208089
+# Uldum: 208093
+# ValeofEternal: 217851
+# Tiragarde: 316788
+# Stormsong: 316791
+# Drustvar: 316793
+#
+#####
+# Horde Bonfires (194034,194048,194048,194037,194043,194039,208094,194046,194033,194042,316801,
+316795,316796,208090,259870,217852,259926,187559,187973,207991,187965,187968,207983,187959,187969,
+187947,207990,187972,207989,187956,187963,187949,187955,187974,187966,187953,187954,187958,207992,
+187961,187975,187964,207986,187957,187948,187970,187967,187960,187971,187962,187950,187952,187951)
+# Sholazar: 194034
+# ZulDrak: 194048
+# Dragonblight: 194037
+# StormP: 194043
+# Howling: 194039
+# Uldum: 208094
+# Crystalsong: 194046
+# Borean: 194033
+# Grizzly: 194042
+# Voldun: 316801
+# Zuldazar: 316795
+# Nazmir: 316796
+# TwilightH: 208090
+# Frostfire: 259870
+# ValeofEternal: 217852
+# Suramar: 259926
+# ???: 187559
+# ???: 187973
+# Azshara: 207991
+# Mulgore: 187965
+# Stonetalon: 187968
+# N STV: 207983
+# Dustwallow: 187959
+# Swamp: 187969
+# Arathi: 187947
+# PlaguelandsW: 207990
+# Hinterlands: 187972
+# Blasted: 207989
+# Steppes: 187956
+# Hellfire: 187963
+# Netherstorm: 187949
+# Blade: 187955
+# BarrensS: 207986
+# Desolace: 187957
+# Ashenvale: 187948
+# Terokkar: 187970
+# Shadowmoon: 187967
+# Eversong: 187960
+# BarrensN: 187971
+# Ghostlands: 187962
+# Silithus: 187950
+# Tanaris: 187952
+# S STV: 187951
+# Hillsbrad: 187964
+# Zangarmarsh: 187975
+# Feralas: 187961
+# Ungoro: 207992
+# Durotar: 187958
+# Badlands: 187954
+# Winterspring: 187953
+# Nagrand: 187966
+# Tirisfal: 187974
+#################################
+# Decorations (187572,187573,181354,187566,181358,181390,187576,181392,386371,181401,207230,
+181389,367987,181393,187667,206319,181388,181391,181300,187653,
+181302,181305,181307,181306,181605,188021,188020,181355,188174)
+# 
+# Camp Crate: 181302
+# Camp Table: 181305
+# Camp Mug: 181307
+# Camp Jug: 181306
+# Ribbon Pole: 181605 -> requires debug creature 17066
+# Camp Pavillion: 188021
+# Camp Banner: 188020
+# Midsummer Brazier: 181355
+# Midsummer Music Doodad: 188174
+#
+##########################################################
+# Creatures
+##########################################################
+#################################
+# Debug creatures (17066,16592, 16606,222680, 25536, 25535)
+#####
+# 17066 Ribbon Pole
+# 16592 Bonfire //in the flame
+# 16606 Bonfire despawner (not sure what this is)
+# Tossing Quest (222680, 25536, 25535)
+#
+#################################
+# Camp NPCs (26123,16817,25962,25975,26113,16818,26124,25994)
+#################################
+#####
+# Aliance
+# Midsummer Supplier: 26123
+# Festival Loremaster: 16817
+# Fire Eater: 25962
+# Master Fire Eater: 25975
+#
+#####
+#
+#####
+# Horde
+#####
+# Master Flame Eater: 26113
+# Festival Talespinner: 16818
+# Midsummer Merchant: 26124
+# Flame Eater: 25994
+#
+#################################
+# Honor the flame NPCs
+#################################
+#
+# Alliance 
+#
+#####
+# Flame Wardens Eastern Kingdoms (25898,25910,25904,25896,51574,25915,25902,25911,
+51585,25895,25892,25909,25887,25908,51602,25890)
+# Elwyn Forest Flame Warden: 25898
+# Westfall Flame Warden: 25910
+# Redridge: 25904
+# Duskwood: 25896
+# North STV: 51574
+# South STV: 25915
+# LochM: 25902
+# Wetlands: 25911
+# Badlands: 51585
+# DunMorogh: 25895
+# Burning: 25892
+# WesternP: 25909
+# Arathi: 25887
+# Hinterlands: 25908
+# Swamp: 51602
+# Blasted: 25890
+#
+#####
+# Flame Wardens Kalimdor (51588,25883, 25897, 51586, 25906, 25899, 25894, 25888, 25916, 25891,
+25893, 51606, 25914, 25917)
+# Ashenvale: 25883
+# Bloodmyst: 25891
+# Desolace: 25894
+# Feralas: 25899
+# SouthB: 51586
+# Tanaris: 25916
+# Ungoro: 51606
+# Azuremyst: 25888
+# Darkshore: 25893
+# Dustwallow: 25897
+# Silithus: 25914
+# Stonetalon: 51588
+# Teldrassil: 25906
+# Winterspring: 25917
+#
+#####
+# Flame Wardens Outland (25889, 25900, 25903, 25905, 25907, 25912, 25913)
+# Blade: 25889
+# Hellfire: 25900
+# Nagrand: 25903
+# Shadowmoon: 25905
+# Terokkar: 25907
+# Zangarmarsh: 25912
+# Netherstorm: 25913
+#
+#####
+#
+# Horde 
+#
+#####
+# Flame Keepers Eastern Kingdoms (25920,51582,25923,25925,25927,25931,25933,25935,25939,25941,25944,25946,
+51603,51604)
+# S STV: 25920
+# N STV: 51582
+# Arathi: 25923
+# Badlands: 25925
+# Steppes: 25927
+# Eversong: 25931
+# Ghostlands: 25933
+# Hillsbrad: 25935
+# Silverpine: 25939
+# Swamp: 25941
+# Hinterlands: 25944
+# Tirisfal: 25946
+# Blasted: 51603
+# PlaguelandsW: 51604
+#
+#####
+# Flame Keepers Kalimdor (25884,25919,25921,25922,25928,25929,25930,25932,25936,25940,25943,51587,
+25945,51575)
+# Ashenvale: 25884
+# Silithus: 25919
+# Tanaris: 25921
+# Winterspring: 25922
+# Desolace: 25928
+# Durotar: 25929
+# Dustwallow: 25930
+# Feralas: 25932
+# Mulgore: 25936
+# Stonetalon: 25940
+# BarrensN: 25943
+# BarrensS: 51587
+# Thousand: 25945
+# Azshara: 51575
+# 
+#
+#####
+# Flame Keepers Outland (25918,25926,25934,25937,25938,25942,25947)
+# Netherstorm: 25918
+# Blade: 25926
+# Hellfire: 25934
+# Nagrand: 25937
+# Shadowmoon: 25938
+# Terokkar: 25942
+# Zangarmarsh: 25947
+
+#################################
+# Common NPCs
+#################################
+#
+# Earthen Ring Elder: 26221
+# This NPC can be found in all major cities
+# This NPC has different model ids
+# Broken: 23687
+# Orc Male: 23688
+# Tauren Female: 23130
+# ?? Female: 23129
+#
+# Midsummer Celebrant: 16781
+# This NPC can be found in Ironforge  (41), Silvermoon City  (32), Stormwind City  (21), Thunder Bluff  (20), The Exodar  (16), Orgrimmar  (15), Ghostlands  (14), Darnassus  (9), Badlands  (8), Northern Stranglethorn  (7), The Cape of Stranglethorn  (7), Un'Goro Crater  (7), Ashenvale  (6), Suramar  (6), Swamp of Sorrows  (6), The Hinterlands  (6), Burning Steppes  (5), Crystalsong Forest  (5), Dragonblight  (5), Dustwallow Marsh  (5), Eversong Woods  (5), Stonetalon Mountains  (5), The Storm Peaks  (5), Western Plaguelands  (5), Borean Tundra  (4), Dun Morogh  (4), Duskwood  (4), Elwynn Forest  (4), Nagrand  (4), Netherstorm  (4), Shadowmoon Valley  (4), Sholazar Basin  (4), Terokkar Forest  (4), Tiragarde Sound  (4), Tirisfal Glades  (4), Twilight Highlands  (4), Uldum  (4), Valdrakken  (4), Westfall  (4), Winterspring  (4), Darkshore  (3), Feralas  (3), Grizzly Hills  (3), Hellfire Peninsula  (3), Mulgore  (3), Shadowmoon Valley  (3), Silithus  (3), Southern Barrens  (3), Tanaris  (3), Azuremyst Isle  (2), Durotar  (2), Frostfire Ridge  (2), and Northern Barrens .
+# This npc has different model ids
+# Dwarf Male: 16413
+# Dwarf Female: 16434
+# Human Female: 16412
+# Human Male: 16433
+# Gnome Female: 16447
+# Gnome Male: 16448
+# Elf Female: 16414
+# Elf Male: 16435
+# Draenei Male: 21083
+# Draenei Female: 21084
+#
+# BloodElf Female: 21085
+# BloodElf Male: 21086
+# Tauren Male: 16432
+# Tauren Female: 16442
+# Troll Female: 16445
+# Troll Male: 16446
+# Goblin Female: 16431
+#################################
+# Holiday Commoners
+#################################
+#
+# Alliance
+#
+# Human Commoner: 18927
+# This NPC has different model ids
+# Male: 19178
+# Male: 16433
+# Female: 19177
+# Female: 16412
+
+# Dwarf Commoner: 19148
+# This NPC has different model ids
+# Male: 19174
+# Female: 19173
+#
+# Draenei Commoner: 19171
+# Male: 19171
+# Female: 19172
+#
+# Night Elf Commoner: 19173
+# Male: 19179
+# Female: 19180
+# Xmas? Male: 16435
+#
+# Gnome Commoner: 19172
+# Male: 19175
+# Female: 19176
+#
+#####
+# Horde
+# Blood Elf: 19169
+# Female: 19169
+# Male: 19170
+#
+# Goblin Commoner: 20102
+# Female: 19340
+# Male: 19343
+#
+# Troll Commoner: 19177
+# Female: 19185
+# Male: 19186
+#
+# Tauren Commoner: 19176
+# Female: 19183
+# Male: 19184
+#
+# Forsaken Commoner: 19178
+# Female: 19187
+# Male: 19188
+#
+# Orc Commoner: 19175
+# Male: 19182
+# Female: 19181
+#################################
+# Lord Ahune Encounter
+#################################
+#
+##### Relevant Creatures 
+(25710,25740,25745,25746,25985,26239,26241,26337,26338,26346,40446,25754,25961, 25971,25972,25973,
+25697,25865,25755,26340,25756,26341,25757,26342)
+#
+# Numa Cloudsister: 25710
+# Luma Skymother: 25697
+# Skarthis the summoner: 40446
+# Earthen Ring Flamecaller: 25754
+# Earthen Ring Totem: 25961
+# Ahune: 25740
+# [PH] Ahune Summon Loc Bunny: 25745
+# [PH] Ahune Loot Loc Bunny: 25746
+# Ahune Ice Spear Bunny: 25985
+# Ghost of Ahune: 26239
+# [PH] Ghost of Ahune (Disguise): 26241
+# Ahune Ice Spear Bunny (1): 26337
+# Ahune (1): 26338
+# Ahune's Bottle Bunny: 26346
+# Totem bunnies: 25971,25972,25973
+# Frozen Core: 25865
+# 
+# Adds (not spawned)
+# Ahunite Hailstone: 25755,26340
+# Ahunite Coldwave: 25756,26341
+# Ahunite Frostwind: 25757,26342
+#
+##### Relevant Objects
+(188142,188073,188072,188067,187882, 187892, 188192)
+# Ice Block,Big: 188142
+# Ahune Bonfire: 188073
+# Ice Stone Mount: 188072
+# Ice Block: 188067
+# Ice Stone: 187882
+
+# Ores/Herbs that should appear also in here: (181270,181275,181276,181278,181556,181569)
+#
+# Ice Chest (not spawned): 187892, 188192
+#
+##### Relevant Quests
+(11886,11891,12012,11917,11947,11948,11952,11953,11954,11955,11696,11691)
+#
+# Unusual Activity: 11886
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Guide: 25324
+#
+# An Innocent disguise: 11891
+# Start - Earthen Ring Guide: 25324
+# End - Earthen Ring Guide: 25324
+#
+# Inform the elder: 12012
+# Start - Earthen Ring Guide: 25324
+# End - Earthen Ring Elder: 26221
+#
+# Striking Back (Ashenvale): 11917
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Elder: 26221
+#
+# Striking Back (Desolace): 11947
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Elder: 26221
+#
+# Striking Back (STV): 11948
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Elder: 26221
+#
+# Striking Back (SearingG): 11952
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Elder: 26221
+#
+# Striking Back (Silithus): 11953
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Elder: 26221
+#
+# Striking Back (Hellfire): 11954
+# Start - Earthen Ring Elder: 26221
+# End - Earthen Ring Elder: 26221
+#
+# Ahune the frost lord: 11955
+# Start - Earthen Ring Elder: 26221
+# End - Numa Cloudsister: 25710
+#
+# Ahune is here: 11696
+# Start - Numa Cloudsister: 25710
+# End - Luma Skymother: 25697
+#
+# Summon Ahune: 11691
+# Start - Luma Skymother: 25697
+# End - Ahune Ice Stone Object: 187882
+#
+##### Creatures
+(25866,25949,25863,26223,26222,26116,26178,26204,26214,26215,26216)
+# 
+# Ice Caller Briatha: 25949
+# Twilight Flameguard: 25866
+# Twilight Firesworn: 25863
+# Twilight Frostblade: 26223
+# Twilight Cryomancer: 26222
+#
+# Frostwave Lieutenant: 26116
+# Hailstone Lieutenant: 26178
+# Chillwind Lieutenant: 26204
+# Frigid Lieutenant: 26214
+# Glacial Lieutenant: 26215
+# Glacial Templar: 26216
+#
+##### Objects
+(187989,187918,188156,188157,188049,188134,188143,188145,188148,188152,188153,188154)
+#
+# Twilight torch: 187989
+# Twilight Bonfire: 187918
+# Twilight Crystal Base: 188156
+# Twilight Crystal Base: 188157
+#
+# Ice Stone: 188049 -- Frostwave Lieutenant
+# Ice Stone: 188134 -- Hailstone Lieutenant
+# Ice Stone: 188143 -- Chillwind Lieutenant
+# Ice Stone: 188145 -- Frigid Lieutenant
+# Ice Stone: 188148 -- Glacial Lieutenant
+# Ice Stone: 188152 -- Glacial Templar
+# Ice Stone: 188153 -- Glacial Templar
+# Ice Stone: 188154 -- Glacial Templar
+#
+#######################################
+# TO DO
+#######################################
+#
+# Creatures
+#
+# Holiday Enthusiast: 199261
+# Midsummer Reveler: 69566 -> Vale of Eternal Blossom
+# Midsummer Celebrant Costume XXXX
