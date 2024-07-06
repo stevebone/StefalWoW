@@ -52,6 +52,14 @@
 #define MIN_MARIADB_CLIENT_VERSION 30003u
 #define MIN_MARIADB_CLIENT_VERSION_STRING "3.0.3"
 
+namespace
+{
+#ifdef TRINITY_DEBUG
+template<typename Database>
+thread_local bool WarnSyncQueries = false;
+#endif
+}
+
 template<typename T>
 struct DatabaseWorkerPool<T>::QueueSizeTracker
 {
@@ -427,6 +435,14 @@ void DatabaseWorkerPool<T>::KeepAlive()
     }
 }
 
+#ifdef TRINITY_DEBUG
+template <class T>
+void DatabaseWorkerPool<T>::WarnAboutSyncQueries([[maybe_unused]] bool warn)
+{
+    WarnSyncQueries<T> = warn;
+}
+#endif
+
 template <class T>
 uint32 DatabaseWorkerPool<T>::OpenConnections(InternalIndex type, uint8 numConnections)
 {
@@ -486,7 +502,7 @@ template <class T>
 T* DatabaseWorkerPool<T>::GetFreeConnection()
 {
 #ifdef TRINITY_DEBUG
-    if (_warnSyncQueries)
+    if (WarnSyncQueries<T>)
     {
         std::ostringstream ss;
         ss << boost::stacktrace::stacktrace();

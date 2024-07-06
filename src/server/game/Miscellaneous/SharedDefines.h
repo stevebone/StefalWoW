@@ -791,9 +791,9 @@ enum SpellAttr9 : uint32
     SPELL_ATTR9_ITEM_PASSIVE_ON_CLIENT                              = 0x04000000, // TITLE Item Passive On Client
     SPELL_ATTR9_FORCE_CORPSE_TARGET                                 = 0x08000000, // TITLE Force Corpse Target DESCRIPTION Causes the spell to continue executing effects on the target even if one of them kills it
     SPELL_ATTR9_CANNOT_KILL_TARGET                                  = 0x10000000, // TITLE Cannot Kill Target
-    SPELL_ATTR9_UNK29                            = 0x20000000, // TITLE Unknown attribute 29@Attr9
-    SPELL_ATTR9_UNK30                            = 0x40000000, // TITLE Unknown attribute 30@Attr9
-    SPELL_ATTR9_UNK31                            = 0x80000000  // TITLE Unknown attribute 31@Attr9
+    SPELL_ATTR9_LOG_PASSIVE                                         = 0x20000000, // TITLE Log Passive (client only) DESCRIPTION Allows passive auras to trigger aura applied/refreshed/removed combat log events
+    SPELL_ATTR9_NO_MOVEMENT_RADIUS_BONUS                            = 0x40000000, // TITLE No Movement Radius Bonus
+    SPELL_ATTR9_CHANNEL_PERSISTS_ON_PET_FOLLOW                      = 0x80000000  // TITLE Channel Persists on Pet Follow
 };
 
 // EnumUtils: DESCRIBE THIS
