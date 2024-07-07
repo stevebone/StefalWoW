@@ -2,7 +2,6 @@
 -- Initial Fixes & spawns for Eastern Kingdoms and Kalimdor
 -- Outland and Northrend look fine from TrinityCore as it is
 -- 1240 object spawns & 665 creatures
-USE dev_tc_world;
 SET @CGUID = 170000; -- 665 Required
 SET @OGUID = 190000; -- 1240 Required
 

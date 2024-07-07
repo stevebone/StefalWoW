@@ -144,5 +144,5 @@ INSERT INTO `creature` (`guid`,`id`,`map`,`zoneId`,`areaId`,`spawnDifficulties`,
 INSERT INTO `creature` (`guid`,`id`,`map`,`zoneId`,`areaId`,`spawnDifficulties`,`phaseUseFlags`,`PhaseId`,`PhaseGroup`,`terrainSwapMap`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`wander_distance`,`currentwaypoint`,`curHealthPct`,`MovementType`,`npcflag`,`unit_flags`,`unit_flags2`,`unit_flags3`,`ScriptName`,`StringId`,`VerifiedBuild`,`size`) VALUES (@CGUID+4,25536,530,0,0,'0',0,0,0,-1,0,0,9810.29,-7226.94,27.8549,3.30594,300,0,0,100,0,NULL,NULL,NULL,NULL,'',NULL,0,-1);
 
 -- increase blossoms currency by 5 times. This is not blizzlike but who cares?
-UPDATE `quest_template` SET `RewardItem1` = RewardItem1 * 5 WHERE `RewardItem1` = 23247;
-UPDATE `quest_template` SET `RewardItem2` = RewardItem2 * 5 WHERE `RewardItem2` = 23247;
+UPDATE `quest_template` SET `RewardAmount1` = RewardAmount1 * 5 WHERE `RewardItem1` = 23247;
+UPDATE `quest_template` SET `RewardAmount2` = RewardAmount2 * 5 WHERE `RewardItem2` = 23247;
