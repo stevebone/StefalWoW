@@ -60,19 +60,19 @@
 # Started by Commoners these are common to multiple events
 #
 # Torch Catching: 11657
-# Started by Master Fire Eater
+# Started by Master Fire Eater: 25962
 #
 # Torch Tossing: 11731
-# Started by Master Fire Eater
+# Started by Master Fire Eater: 25975
 #
 # More Torch Catching: 11657
-# Started by Master Fire Eater
+# Started by Master Fire Eater: 25975
 #
 # More Torch Tossing: 11921
-# Started by Master Fire Eater
+# Started by Master Fire Eater: 25975
 #
 # Playing with Fire: 11882
-# Started by Fire Eater
+# Started by Master Fire Eater: 25975
 #
 
 #
@@ -427,7 +427,7 @@
 # Troll Male: 16446
 # Goblin Female: 16431
 #################################
-# Holiday Commoners
+# Holiday Commoners (18927,19148,19171,19173,19172,19169,20102,19177,19176,19178,19175)
 #################################
 #
 # Alliance

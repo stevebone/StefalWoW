@@ -5,10 +5,7 @@
 # Incorrect quest item drops
 UPDATE creature_loot_template SET QuestRequired=1 WHERE Item IN (772, 773, 780, 1019, 735, 6846, 6810);
 #
-# Goblin Assassin - Northshire
-UPDATE `creature_template_difficulty` SET `LootID` = '50039', `PickPocketLootID` = '50039' WHERE (`Entry` = '50039') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LootID` = '50039', `PickPocketLootID` = '50039' WHERE (`Entry` = '50039') and (`DifficultyID` = '1');
-
+#
 # Incorrect Loot
 UPDATE creature_template_difficulty SET LootID=0 where entry=721; -- rabbit with no loot.
 UPDATE creature_template_difficulty SET LootID=0 where entry=1412; -- squirrel with no loot.
