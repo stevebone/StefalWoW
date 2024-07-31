@@ -4761,6 +4761,18 @@ void SpellMgr::LoadSpellInfoCorrections()
     // ENDOF KINGS REST SPELLS
 
     //
+    // WAYCREST MANOR SPELLS
+    //
+
+    // Discordant Cadenza
+    ApplySpellFix({ 268308 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_IGNORE_LINE_OF_SIGHT;
+    });
+
+    // ENDOF WAYCREST MANOR SPELLS
+
+    //
     // SEPULCHER OF THE FIRST ONES
     //
 
@@ -4824,7 +4836,7 @@ void SpellMgr::LoadSpellInfoCorrections()
             spellEffectInfo->TargetB = SpellImplicitTargetInfo(TARGET_DEST_DEST);
         });
     });
-    // END OF SEPULCHER OF THE FIRST ONES
+    // ENDOF SEPULCHER OF THE FIRST ONES
 
     //
     // THE AZURE VAULT SPELLS
@@ -4857,6 +4869,26 @@ void SpellMgr::LoadSpellInfoCorrections()
     // ENDOF THE AZURE VAULT SPELLS
     //
 
+    //
+    // WAYCREST MANOR SPELLS
+    //
+
+    ApplySpellFix({
+        260566, // Wildfire Missile
+        260570  // Wildfire Missile Impact
+    }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_IGNORE_LINE_OF_SIGHT;
+        spellInfo->AttributesEx9 |= SPELL_ATTR9_FORCE_DEST_LOCATION;
+    });
+
+    // ENDOF WAYCREST MANOR SPELLS
+    //
+
+    //
+    // THE WANDERING ISLE SPELLS
+    //
+
     // Summon Master Li Fei
     ApplySpellFix({ 102445 }, [](SpellInfo* spellInfo)
     {
@@ -4869,12 +4901,23 @@ void SpellMgr::LoadSpellInfoCorrections()
     // Summon Amberleaf Troublemaker
     ApplySpellFix({ 114698 }, [](SpellInfo* spellInfo)
     {
-        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(4); // 2mins
         ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
         {
             spellEffectInfo->TargetA = SpellImplicitTargetInfo(TARGET_DEST_DEST);
         });
     });
+
+    // Summon Living Air
+    ApplySpellFix({ 102207 }, [](SpellInfo* spellInfo)
+    {
+        ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+        {
+            spellEffectInfo->TargetA = SpellImplicitTargetInfo(TARGET_DEST_TARGET_RANDOM);
+        });
+    });
+
+    // ENDOF THE WANDERING ISLE SPELLS
+    //
 
     // Earthquake
     ApplySpellFix({ 61882 }, [](SpellInfo* spellInfo)
