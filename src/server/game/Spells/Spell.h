@@ -438,6 +438,23 @@ class TC_GAME_API Spell
         void EffectChangeActiveCombatTraitConfig();
         void EffectTeleportGraveyard();
 
+        //NEW
+        void EffectApplyAreaAura();
+        void EffectSurvey();
+        void EffectCorpseLoot();
+        void EffectSpecCount();
+        void EffectDespawnAreatrigger();
+        void SendScene();
+        void EffectLootWithToast();
+        void EffectJoinOrLeavePlayerParty();
+        uint8 m_diffMode;
+        void EffectTeleportToDigsite();
+        void EffectModReputation();
+        void EffectRemovePhase();
+        void EffectIncreaseSkill();
+        void EffectForceEquipItem();
+        void EffectScrapItem();
+
         typedef std::unordered_set<Aura*> UsedSpellMods;
 
         Spell(WorldObject* caster, SpellInfo const* info, TriggerCastFlags triggerFlags, ObjectGuid originalCasterGUID = ObjectGuid::Empty, ObjectGuid originalCastId = ObjectGuid::Empty);
@@ -909,6 +926,7 @@ class TC_GAME_API Spell
     protected:
         void CallScriptObjectAreaTargetSelectHandlers(std::list<WorldObject*>& targets, SpellEffIndex effIndex, SpellImplicitTargetInfo const& targetType);
         void CallScriptObjectTargetSelectHandlers(WorldObject*& target, SpellEffIndex effIndex, SpellImplicitTargetInfo const& targetType);
+        void CallScriptOnSummonHandlers(Creature* creature);
         void CallScriptDestinationTargetSelectHandlers(SpellDestination& target, SpellEffIndex effIndex, SpellImplicitTargetInfo const& targetType);
         void CallScriptEmpowerStageCompletedHandlers(int32 completedStagesCount);
         void CallScriptEmpowerCompletedHandlers(int32 completedStagesCount);
@@ -932,7 +950,7 @@ class TC_GAME_API Spell
         HitTriggerSpellList m_hitTriggerSpells;
 
         // effect helpers
-        void SummonGuardian(SpellEffectInfo const* effect, uint32 entry, SummonPropertiesEntry const* properties, uint32 numSummons, ObjectGuid privateObjectOwner);
+        TempSummon* SummonGuardian(SpellEffectInfo const* effect, uint32 entry, SummonPropertiesEntry const* properties, uint32 numSummons, ObjectGuid privateObjectOwner);
         void CalculateJumpSpeeds(SpellEffectInfo const* effInfo, float dist, float& speedXY, float& speedZ);
 
         void UpdateSpellCastDataTargets(WorldPackets::Spells::SpellCastData& data);

@@ -879,10 +879,11 @@ namespace WorldPackets
             bool Enable = false;
         };
 
-        class OverrideLight final : public ServerPacket
+        class TC_GAME_API OverrideLight final : public ServerPacket
         {
         public:
             OverrideLight() : ServerPacket(SMSG_OVERRIDE_LIGHT, 4 + 4 + 4) { }
+			OverrideLight(int32 areaLightID, int32 milli, int32 overLightID) : ServerPacket(SMSG_OVERRIDE_LIGHT, 4 + 4 + 4), AreaLightID(areaLightID), TransitionMilliseconds(milli), OverrideLightID(overLightID) { }
 
             WorldPacket const* Write() override;
 
@@ -1007,6 +1008,46 @@ namespace WorldPackets
             int32 LootSpec = 0;
             ::Gender Gender = GENDER_NONE;
             uint32 CurrencyID = 0;
+        };
+		
+		class LegendaryCraftingOpenNpc  final : public ServerPacket
+        {
+        public:
+            LegendaryCraftingOpenNpc() : ServerPacket(SMSG_RUNEFORGE_LEGENDARY_CRAFTING_OPEN_NPC, 16) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid ObjGUID;
+            bool IsUpgrade = false;
+        };
+
+        class PerksProgramReqestPendingRewards final : public ClientPacket
+        {
+        public:
+            PerksProgramReqestPendingRewards(WorldPacket&& packet) : ClientPacket(CMSG_PERKS_PROGRAM_REQUEST_PENDING_REWARDS, std::move(packet)) { }
+
+            void Read() override {}
+        };
+
+        class OverrideScreenFlash final : public ClientPacket
+        {
+        public:
+            OverrideScreenFlash(WorldPacket&& packet) : ClientPacket(CMSG_OVERRIDE_SCREEN_FLASH, std::move(packet)) { }
+
+            void Read() override;
+
+            bool BlackScreenOrRedScreen;
+        };
+
+        class PlayerChoiceClear final : public ServerPacket
+        {
+        public:
+            PlayerChoiceClear() :ServerPacket(SMSG_PLAYER_CHOICE_CLEAR) { }
+
+            WorldPacket const* Write() override;
+
+            int32 ChoiceID;
+            bool Status;
         };
     }
 }

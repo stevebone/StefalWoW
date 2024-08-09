@@ -393,7 +393,11 @@ void Vehicle::InstallAccessory(uint32 entry, int8 seatId, bool minion, uint8 typ
         _me->GetGUID().ToString(), GetCreatureEntry(), entry, (int32)seatId);
 
     TempSummon* accessory = _me->SummonCreature(entry, *_me, TempSummonType(type), Milliseconds(summonTime));
-    ASSERT(accessory);
+    if (!accessory)
+    {
+        TC_LOG_ERROR("entities.vehicle", "Failed to summon accessory (Entry: {}) on seat: {}", entry, (int32)seatId);
+        return;
+    }
 
     if (minion)
         accessory->AddUnitTypeMask(UNIT_MASK_ACCESSORY);

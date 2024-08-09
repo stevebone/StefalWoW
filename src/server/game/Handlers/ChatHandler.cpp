@@ -39,6 +39,9 @@
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
 #include "Util.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 #include "Warden.h"
 #include "World.h"
 #include <algorithm>
@@ -452,6 +455,7 @@ ChatMessageResult WorldSession::HandleChatMessage(ChatMsg type, Language lang, s
                         return ChatMessageResult::ChannelIsReadOnly;
 
                 sScriptMgr->OnPlayerChat(sender, type, lang, msg, chn);
+
                 chn->Say(sender->GetGUID(), msg, lang);
             }
             break;
@@ -650,6 +654,12 @@ void WorldSession::HandleChatMessageAFKOpcode(WorldPackets::Chat::ChatMessageAFK
     if (Guild* guild = sender->GetGuild())
         guild->SendEventAwayChanged(sender->GetGUID(), sender->isAFK(), sender->isDND());
 
+#ifdef ELUNA
+    if (Eluna* e = sWorld->GetEluna())
+        if (!e->OnChat(sender, CHAT_MSG_AFK, LANG_UNIVERSAL, chatMessageAFK.Text))
+            return;
+#endif
+
     sScriptMgr->OnPlayerChat(sender, CHAT_MSG_AFK, LANG_UNIVERSAL, chatMessageAFK.Text);
 }
 
@@ -695,6 +705,12 @@ void WorldSession::HandleChatMessageDNDOpcode(WorldPackets::Chat::ChatMessageDND
 
     if (Guild* guild = sender->GetGuild())
         guild->SendEventAwayChanged(sender->GetGUID(), sender->isAFK(), sender->isDND());
+
+#ifdef ELUNA
+    if (Eluna* e = sWorld->GetEluna())
+        if (!e->OnChat(sender, CHAT_MSG_DND, LANG_UNIVERSAL, chatMessageDND.Text))
+            return;
+#endif
 
     sScriptMgr->OnPlayerChat(sender, CHAT_MSG_DND, LANG_UNIVERSAL, chatMessageDND.Text);
 }

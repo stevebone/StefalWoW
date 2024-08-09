@@ -2705,3 +2705,17 @@ void DynObjAura::FillTargetMap(std::unordered_map<Unit*, uint32>& targets, Unit*
             targets[unit] |= 1 << spellEffectInfo.EffectIndex;
     }
 }
+
+uint32 Aura::GetMaxStackAmount() const
+{
+    uint32 maxStackAmount = m_spellInfo->StackAmount;
+
+    if (GetCaster() && GetCaster()->IsPlayer())
+    {
+        Player* playerCaster = GetCaster()->ToPlayer();
+        playerCaster->ApplySpellMod(m_spellInfo, SpellModOp::Doses, maxStackAmount);
+        playerCaster->ApplySpellMod(m_spellInfo, SpellModOp::MaxAuraStacks, maxStackAmount);
+    }
+
+    return maxStackAmount;
+}

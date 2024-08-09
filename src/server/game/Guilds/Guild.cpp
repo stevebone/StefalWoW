@@ -2479,7 +2479,6 @@ void Guild::SendEventPresenceChanged(WorldSession* session, bool loggedOn, bool 
     eventPacket.Name = player->GetName();
     eventPacket.VirtualRealmAddress = GetVirtualRealmAddress();
     eventPacket.LoggedOn = loggedOn;
-    eventPacket.Mobile = false;
 
     if (broadcast)
         BroadcastPacket(eventPacket.Write());
@@ -2674,6 +2673,9 @@ bool Guild::Validate()
         for (uint8 rankId = 0; rankId < ranks; ++rankId)
         {
             RankInfo* rankInfo = GetRankInfo(GuildRankId(rankId));
+            if (!rankInfo) {
+                continue;
+            }
             if (rankInfo->GetId() != GuildRankId(rankId))
             {
                 TC_LOG_ERROR("guild", "Guild {} has broken rank id {}, creating default set of ranks...", m_id, rankId);

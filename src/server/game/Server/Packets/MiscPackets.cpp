@@ -819,3 +819,24 @@ WorldPacket const* WorldPackets::Misc::DisplayToast::Write()
 
     return &_worldPacket;
 }
+
+WorldPacket const* WorldPackets::Misc::LegendaryCraftingOpenNpc::Write()
+{
+    _worldPacket << ObjGUID;
+    _worldPacket << uint8(IsUpgrade);
+
+    return &_worldPacket;
+}
+
+void WorldPackets::Misc::OverrideScreenFlash::Read()
+{
+    _worldPacket >> BlackScreenOrRedScreen;
+}
+
+WorldPacket const* WorldPackets::Misc::PlayerChoiceClear::Write()
+{
+    _worldPacket << int32(ChoiceID);
+    _worldPacket << Status;
+
+    return &_worldPacket;
+}

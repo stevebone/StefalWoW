@@ -607,6 +607,7 @@ struct CreatureData : public SpawnData
     Optional<uint32> unit_flags;                                  // enum UnitFlags mask values
     Optional<uint32> unit_flags2;                                 // enum UnitFlags2 mask values
     Optional<uint32> unit_flags3;                                 // enum UnitFlags3 mask values
+	float size = 0.0f;
 };
 
 struct CreatureModelInfo
@@ -671,16 +672,20 @@ struct CreatureStaticFlagsOverride
 // Vendors
 struct VendorItem
 {
-    VendorItem() : item(0), maxcount(0), incrtime(0), ExtendedCost(0), Type(0), PlayerConditionId(0), IgnoreFiltering(false) { }
+    VendorItem() : item(0), maxcount(0), incrtime(0), ExtendedCost(0), OverrideGoldCost(-1), Type(0), PlayerConditionId(0), IgnoreFiltering(false) { }
 
     uint32 item;
     uint32 maxcount;                                        // 0 for infinity item amount
     uint32 incrtime;                                        // time for restore items amount if maxcount != 0
     uint32 ExtendedCost;
+	int64 OverrideGoldCost;
     uint8  Type;
     std::vector<int32> BonusListIDs;
     uint32 PlayerConditionId;
     bool IgnoreFiltering;
+	
+	//helpers
+    int64 GetBuyPrice(ItemTemplate const* pProto) const;
 };
 
 struct VendorItemData

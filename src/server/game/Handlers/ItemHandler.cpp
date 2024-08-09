@@ -191,6 +191,7 @@ void WorldSession::HandleAutoEquipItemOpcode(WorldPackets::Item::AutoEquipItem& 
     InventoryResult msg = _player->CanEquipItem(NULL_SLOT, dest, srcItem, !srcItem->IsBag());
     if (msg != EQUIP_ERR_OK)
     {
+        TC_LOG_DEBUG("network", "HandleAutoEquipItemOpcode: Player can't equip item: %u", msg);
         _player->SendEquipError(msg, srcItem);
         return;
     }
@@ -663,7 +664,7 @@ void WorldSession::SendListInventory(ObjectGuid vendorGuid)
                 continue;
             }
 
-            uint64 price = uint64(floor(itemTemplate->GetBuyPrice() * discountMod));
+            uint64 price = uint64(floor(vendorItem->GetBuyPrice(itemTemplate) * discountMod));
             price = itemTemplate->GetBuyPrice() > 0 ? std::max(uint64(1), price) : price;
 
             if (int32 priceMod = _player->GetTotalAuraModifier(SPELL_AURA_MOD_VENDOR_ITEMS_PRICES))
@@ -1218,6 +1219,13 @@ void WorldSession::HandleUseCritterItem(WorldPackets::Item::UseCritterItem& useC
     }
 
     _player->DestroyItem(item->GetBagSlot(), item->GetSlot(), true);
+}
+
+void WorldSession::HandleSortAccountBankBags(WorldPackets::Item::SortAccountBankBags& /*sortAccountBankBags*/)
+{
+    // TODO: Implement sorting
+    // Placeholder to prevent completely locking out bags clientside
+    SendPacket(WorldPackets::Item::BagCleanupFinished().Write());
 }
 
 void WorldSession::HandleSortBags(WorldPackets::Item::SortBags& /*sortBags*/)

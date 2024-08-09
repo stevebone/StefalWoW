@@ -49,6 +49,9 @@
 #include "RestMgr.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 #include "SpellPackets.h"
 #include "WhoListStorage.h"
 #include "WhoPackets.h"
@@ -75,6 +78,11 @@ void WorldSession::HandleRepopRequest(WorldPackets::Misc::RepopRequest& /*packet
             GetPlayer()->GetName(), GetPlayer()->GetGUID().ToString());
         GetPlayer()->KillPlayer();
     }
+
+#ifdef ELUNA
+    if (Eluna* e = GetPlayer()->GetEluna())
+        e->OnRepop(GetPlayer());
+#endif
 
     //this is spirit release confirm?
     GetPlayer()->RemovePet(nullptr, PET_SAVE_NOT_IN_SLOT, true);
@@ -706,19 +714,17 @@ void WorldSession::HandleUpdateAccountData(WorldPackets::ClientConfig::UserClien
         return;
     }
 
-    ByteBuffer dest(packet.Size, ByteBuffer::Resize{});
+    std::string dest;
+    dest.resize(packet.Size);
 
     uLongf realSize = packet.Size;
-    if (uncompress(dest.contents(), &realSize, packet.CompressedData.contents(), packet.CompressedData.size()) != Z_OK)
+    if (uncompress(reinterpret_cast<Bytef*>(dest.data()), &realSize, packet.CompressedData.contents(), packet.CompressedData.size()) != Z_OK)
     {
         TC_LOG_ERROR("network", "UAD: Failed to decompress account data");
         return;
     }
 
-    std::string adata;
-    dest >> adata;
-
-    SetAccountData(AccountDataType(packet.DataType), packet.Time, adata);
+    SetAccountData(AccountDataType(packet.DataType), packet.Time, dest);
 }
 
 void WorldSession::HandleRequestAccountData(WorldPackets::ClientConfig::RequestAccountData& request)

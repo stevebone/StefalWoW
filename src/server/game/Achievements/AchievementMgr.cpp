@@ -38,6 +38,9 @@
 #include "ScriptMgr.h"
 #include "World.h"
 #include "WorldSession.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 #include <sstream>
 
 struct VisibleAchievementCheck
@@ -499,6 +502,11 @@ void PlayerAchievementMgr::CompletedAchievement(AchievementEntry const* achievem
     referencePlayer->UpdateCriteria(CriteriaType::EarnAchievementPoints, achievement->Points, 0, 0, nullptr);
 
     sScriptMgr->OnAchievementCompleted(referencePlayer, achievement);
+
+#ifdef ELUNA
+    if (Eluna* e = _owner->GetEluna())
+        e->OnAchievementComplete(_owner, achievement->ID);
+#endif
 
     // reward items and titles if any
     AchievementReward const* reward = sAchievementMgr->GetAchievementReward(achievement);

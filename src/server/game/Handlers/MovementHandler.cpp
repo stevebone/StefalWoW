@@ -265,6 +265,7 @@ void WorldSession::HandleSuspendTokenResponse(WorldPackets::Movement::SuspendTok
     packet.MapID = loc.Location.GetMapId();
     packet.Loc.Pos = loc.Location;
     packet.Reason = !_player->IsBeingTeleportedSeamlessly() ? NEW_WORLD_NORMAL : NEW_WORLD_SEAMLESS;
+    packet.Counter = _player->GetNewWorldCounter();
     SendPacket(packet.Write());
 
     if (_player->IsBeingTeleportedSeamlessly())
@@ -450,6 +451,7 @@ void WorldSession::HandleMovementOpcode(OpcodeClient opcode, MovementInfo& movem
     }
 
     mover->UpdatePosition(movementInfo.pos);
+    mover->SetPitch(movementInfo.pitch);
 
     WorldPackets::Movement::MoveUpdate moveUpdate;
     moveUpdate.Status = &mover->m_movementInfo;

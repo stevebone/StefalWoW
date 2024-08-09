@@ -91,6 +91,9 @@ int32 Unit::GetCreatePowerValue(Powers power) const
     if (power == POWER_MANA)
         return GetCreateMana();
 
+    if (power == POWER_ALTERNATE_MOUNT)
+        return 3;
+
     if (PowerTypeEntry const* powerType = sDB2Manager.GetPowerTypeEntry(power))
         return powerType->MaxBasePower;
 

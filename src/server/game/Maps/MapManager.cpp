@@ -33,6 +33,10 @@
 #include "ScriptMgr.h"
 #include "World.h"
 #include "WorldStateMgr.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#include "ElunaConfig.h"
+#endif
 #include <boost/dynamic_bitset.hpp>
 #include <numeric>
 
@@ -50,6 +54,16 @@ void MapManager::Initialize()
     Map::InitStateMachine();
 
     int num_threads(sWorld->getIntConfig(CONFIG_NUMTHREADS));
+	
+#if ELUNA
+    if (sElunaConfig->IsElunaEnabled() && sElunaConfig->IsElunaCompatibilityMode() && num_threads > 4)
+    {
+        // Force 1 thread for Eluna if compatibility mode is enabled. Compatibility mode is single state and does not allow more update threads.
+        TC_LOG_ERROR("maps", "Map update threads set to {}, when Eluna in compatibility mode only allows 4, changing to 4", num_threads);
+        num_threads = 4;
+    }
+#endif
+	
     // Start mtmaps if needed.
     if (num_threads > 0)
         m_updater.activate(num_threads);
@@ -232,13 +246,13 @@ Map* MapManager::CreateMap(uint32 mapId, Player* player)
                 player->SetRecentInstance(mapId, newInstanceId);
         }
     }
-    else if (entry->IsGarrison())
+    /*else if (entry->IsGarrison())
     {
         newInstanceId = player->GetGUID().GetCounter();
         map = FindMap_i(mapId, newInstanceId);
         if (!map)
             map = CreateGarrison(mapId, newInstanceId, player);
-    }
+    }*/
     else
     {
         newInstanceId = 0;
@@ -468,6 +482,11 @@ void MapManager::FreeInstanceId(uint32 instanceId)
     // If freed instance id is lower than the next id available for new instances, use the freed one instead
     _nextInstanceId = std::min(instanceId, _nextInstanceId);
     _freeInstanceIds->set(instanceId, true);
+	
+#ifdef ELUNA
+    if (Eluna* e = sWorld->GetEluna())
+    e->FreeInstanceId(instanceId);
+#endif
 }
 
 // hack to allow conditions to access what faction owns the map (these worldstates should not be set on these maps)

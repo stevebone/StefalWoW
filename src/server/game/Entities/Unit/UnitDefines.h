@@ -137,6 +137,29 @@ enum DamageEffectType : uint8
     SELF_DAMAGE             = 5
 };
 
+enum UnitAdvFlyRate : uint8
+{
+    ADV_FLY_AIR_FRICTION                    = 0,
+    ADV_FLY_MAX_VEL                         = 1,
+    ADV_FLY_LIFT_COEF                       = 2,
+    ADV_FLY_DOUBLE_JUMP_VEL_MOD             = 3,
+    ADV_FLY_GLIDE_START_MIN_HEIGHT          = 4,
+    ADV_FLY_ADD_IMPULSE_MAX_SPEED           = 5,
+    ADV_FLY_MIN_BANKING_RATE                = 6,
+    ADV_FLY_MAX_BANKING_RATE                = 7,
+    ADV_FLY_MIN_PITCHING_RATE_DOWN          = 8,
+    ADV_FLY_MAX_PITCHING_RATE_DOWN          = 9,
+    ADV_FLY_MIN_PITCHING_RATE_UP            = 10,
+    ADV_FLY_MAX_PITCHING_RATE_UP            = 11,
+    ADV_FLY_MIN_TURN_VELOCITY_THRESHOLD     = 12,
+    ADV_FLY_MAX_TURN_VELOCITY_THRESHOLD     = 13,
+    ADV_FLY_SURFACE_FRICTION                = 14,
+    ADV_FLY_OVER_MAX_DECELERATION           = 15,
+    ADV_FLY_LAUNCH_SPEED_COEFFICIENT        = 16,
+};
+
+#define MAX_ADV_FLY_RATE                      17
+
 // Value masks for UNIT_FIELD_FLAGS
 // EnumUtils: DESCRIBE THIS
 enum UnitFlags : uint32
@@ -296,7 +319,7 @@ enum NPCFlags : uint32
     UNIT_NPC_FLAG_NONE                  = 0x00000000,
     UNIT_NPC_FLAG_GOSSIP                = 0x00000001,     // TITLE has gossip menu DESCRIPTION 100%
     UNIT_NPC_FLAG_QUESTGIVER            = 0x00000002,     // TITLE is quest giver DESCRIPTION 100%
-    UNIT_NPC_FLAG_UNK1                  = 0x00000004,
+    UNIT_NPC_FLAG_ACCOUNT_BANKER        = 0x00000004,     // TITLE is account banker
     UNIT_NPC_FLAG_UNK2                  = 0x00000008,
     UNIT_NPC_FLAG_TRAINER               = 0x00000010,     // TITLE is trainer DESCRIPTION 100%
     UNIT_NPC_FLAG_TRAINER_CLASS         = 0x00000020,     // TITLE is class trainer DESCRIPTION 100%

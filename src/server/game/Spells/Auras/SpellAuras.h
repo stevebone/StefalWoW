@@ -364,6 +364,10 @@ class TC_GAME_API Aura
 
         struct NoopAuraDeleter { void operator()(Aura*) const { /*noop - not managed*/ } };
         Trinity::unique_trackable_ptr<Aura> m_scriptRef;
+
+    public:
+        uint32 GetMaxStackAmount() const;
+        void ModDuration(int32 duration, bool withMods = false) { SetDuration(GetDuration() + duration, withMods); }
 };
 
 class TC_GAME_API UnitAura : public Aura

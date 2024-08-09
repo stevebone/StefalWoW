@@ -271,14 +271,46 @@ namespace WorldPackets
         class PetMode final : public ServerPacket
         {
         public:
-            PetMode() : ServerPacket(SMSG_PET_MODE, 16 + 2 + 1) { }
+            PetMode() : ServerPacket(SMSG_PET_MODE, 16 + 4) { }
 
             WorldPacket const* Write() override;
 
             ObjectGuid PetGUID;
-            ReactStates ReactState = REACT_PASSIVE;
-            CommandStates CommandState = COMMAND_STAY;
-            uint8 Flag = 0;
+            uint32 PetModeFlag = 0;
+
+            //! not in jam data
+            uint8 _reactState = 0;
+            uint8 _commandState = 0;
+            uint16 _flag = 0;
+        };
+
+        class Guids final : public ServerPacket
+        {
+        public:
+            Guids() : ServerPacket(SMSG_PET_GUIDS, 4) { }
+
+            WorldPacket const* Write() override;
+
+            GuidVector PetGUIDs;
+        };
+
+        class PetDismissSound final : public ServerPacket
+        {
+        public:
+            PetDismissSound() : ServerPacket(SMSG_PET_DISMISS_SOUND, 16) { }
+
+            WorldPacket const* Write() override;
+
+            int32 ModelID = 0;
+            TaggedPosition<Position::XYZ> ModelPosition;
+        };
+
+        class PetClearSpells final : public ServerPacket
+        {
+        public:
+            PetClearSpells() : ServerPacket(SMSG_PET_CLEAR_SPELLS, 0) { }
+
+            WorldPacket const* Write() override { return &_worldPacket; }
         };
     }
 }

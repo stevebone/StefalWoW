@@ -691,6 +691,7 @@ WorldPacket const* WorldPackets::Movement::NewWorld::Write()
     _worldPacket << Loc;
     _worldPacket << uint32(Reason);
     _worldPacket << MovementOffset;
+    _worldPacket << int32(Counter);
     return &_worldPacket;
 }
 
@@ -1086,4 +1087,95 @@ WorldPacket const* WorldPackets::Movement::MoveSetCompoundState::Write()
 void WorldPackets::Movement::MoveInitActiveMoverComplete::Read()
 {
     _worldPacket >> Ticks;
+}
+
+WorldPacket const* WorldPackets::Movement::SetAdvFlyingSpeed::Write()
+{
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << float(speed);
+    if (maxSpeed) {
+        _worldPacket << float(*maxSpeed);
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveAddImpulse::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << Direction;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetCanAdvFly::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(SequenceIndex);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveUnsetCanAdvFly::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(SequenceIndex);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetAdvFlyingAirFriction::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(unk1);
+    _worldPacket << uint32(unk2);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetAdvFlyingMaxVel::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(unk1);
+    _worldPacket << uint32(unk2);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetAdvFlyingLiftCoefficient::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(unk1);
+    _worldPacket << uint32(unk2);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetAdvFlyingDoubleJumpVelMod::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(unk1);
+    _worldPacket << uint32(unk2);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetAdvFlyingBankingRate::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(unk1);
+    _worldPacket << uint32(unk2);
+    _worldPacket << uint32(unk3);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::MoveSetAdvFlyingAddImpulseMaxSpeed::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(unk1);
+    _worldPacket << uint32(unk2);
+
+    return &_worldPacket;
 }

@@ -173,7 +173,9 @@ namespace WorldPackets
         public:
             AcceptGuildInvite(WorldPacket&& packet) : ClientPacket(CMSG_ACCEPT_GUILD_INVITE, std::move(packet)) { }
 
-            void Read() override { }
+            void Read() override;
+
+            ObjectGuid GuildGuid;
         };
 
         class GuildDeclineInvitation final : public ClientPacket
@@ -250,7 +252,6 @@ namespace WorldPackets
             ObjectGuid Guid;
             uint32 VirtualRealmAddress = 0;
             std::string Name;
-            bool Mobile = false;
             bool LoggedOn = false;
         };
 
@@ -1188,6 +1189,16 @@ namespace WorldPackets
 
             ObjectGuid GuildGUID;
             std::string GuildName;
+        };
+
+        class GuildChangeNameResult final : public ServerPacket
+        {
+        public:
+            GuildChangeNameResult() : ServerPacket(SMSG_GUILD_CHANGE_NAME_RESULT, 1) { }
+
+            WorldPacket const* Write() override;
+
+            bool Success = true;
         };
     }
 }
