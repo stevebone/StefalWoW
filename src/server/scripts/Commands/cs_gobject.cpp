@@ -75,6 +75,8 @@ public:
             { "add",            HandleGameObjectAddCommand,       rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,            Console::No },
             { "set phase",      HandleGameObjectSetPhaseCommand,  rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE,      Console::No },
             { "set state",      HandleGameObjectSetStateCommand,  rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE,      Console::No },
+			{ "set scale",          HandleGameObjectSetScaleCommand,  rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE,      Console::No },
+            { "visibility",     HandleGameVisibilityCommand,      rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,         Console::No },       
         };
         static ChatCommandTable commandTable =
         {
@@ -343,7 +345,11 @@ public:
 
         Map* map = object->GetMap();
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), *oz);
+		object->RelocateStationaryPosition(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         object->SetLocalRotationAngles(*oz, oy.value_or(0.0f), ox.value_or(0.0f));
+			object->DestroyForNearbyPlayers();
+        object->UpdateObjectVisibility();
+
         object->SaveToDB();
 
         // Generate a completely new spawn with new guid
@@ -504,7 +510,7 @@ public:
             spawnData = sObjectMgr->GetGameObjectData(spawnId);
             if (!spawnData)
             {
-                handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, spawnId);
+                handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(spawnId).c_str());
                 handler->SetSentErrorMessage(true);
                 return false;
             }
@@ -626,6 +632,133 @@ public:
                 break;
         }
         handler->PSendSysMessage("Set gobject type %d state %u", objectType, *objectState);
+        return true;
+    }
+	
+    static bool HandleGameVisibilityCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char* guidStr = strtok((char*)args, " ");
+        char* distanceStr = strtok(nullptr, " ");
+
+        if (!guidStr || !distanceStr)
+            return false;
+
+        std::string id(guidStr);
+        if (id.empty() || !std::all_of(id.begin(), id.end(), ::isdigit))
+        {
+            handler->PSendSysMessage("Invalid GUID.");
+            return false;
+        }
+
+        ObjectGuid::LowType guidLow = ObjectGuid::LowType(std::stoul(id));
+        if (!guidLow)
+        {
+            handler->PSendSysMessage("Invalid GUID.");
+            return false;
+        }
+
+        float distance;
+        try
+        {
+            distance = std::stof(distanceStr);
+        }
+        catch (const std::exception&)
+        {
+            handler->PSendSysMessage("Invalid distance value.");
+            return false;
+        }
+
+        if (distance >= 5000.0f || distance <= 0.0f)
+        {
+            handler->PSendSysMessage("Distance must be between 0 and 5000.");
+            return false;
+        }
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (distance > SIZE_OF_GRIDS)
+        {
+            object->GetMap()->AddInfiniteGameObject(object->GetGUID());
+        }
+        else
+        {
+            auto infinites = object->GetMap()->GetInfiniteGameObjects();
+            if (infinites.find(object->GetGUID()) != infinites.end())
+            {
+                object->GetMap()->RemoveInfiniteGameObject(object->GetGUID());
+            }
+        }
+
+        Map* map = object->GetMap();
+        const_cast<GameObjectData*>(object->GetGameObjectData())->visibility = distance;
+        object->SetVisibilityDistanceOverride(distance);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
+        object->Delete();
+
+        object = GameObject::CreateGameObjectFromDB(guidLow, object->GetMap());
+        if (!object)
+        {
+            handler->PSendSysMessage("Failed to reload the game object.");
+            return false;
+        }
+
+        for (auto& itr : object->GetMap()->GetPlayers())
+        {
+            itr.GetSource()->UpdateVisibilityOf(object);
+        }
+
+        handler->PSendSysMessage("Visibility set for object %s to %f", object->GetGUID().ToString(), distance);
+        return true;
+    }
+
+    static bool HandleGameObjectSetScaleCommand(ChatHandler* handler, GameObjectSpawnId guidLow, float scale)
+    {
+        if (!guidLow)
+            return false;
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(*guidLow).c_str());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (scale <= 0.0f)
+        {
+            scale = object->GetGOInfo()->size;
+            const_cast<GameObjectData*>(object->GetGameObjectData())->size = -1.0f;
+        }
+        else
+        {
+            const_cast<GameObjectData*>(object->GetGameObjectData())->size = scale;
+        }
+
+        Map* map = object->GetMap();
+        object->SetObjectScale(scale);
+        object->SaveToDB();
+
+        // Generate a completely new spawn with new guid
+        // 3.3.5a client caches recently deleted objects and brings them back to life
+        // when CreateObject block for this guid is received again
+        // however it entirely skips parsing that block and only uses already known location
+        object->Delete();
+
+        object = GameObject::CreateGameObjectFromDB(guidLow, map);
+        if (!object)
+            return false;
+
+        handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
     }
 };

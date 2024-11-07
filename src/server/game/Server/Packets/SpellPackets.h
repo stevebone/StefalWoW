@@ -162,21 +162,27 @@ namespace WorldPackets
             SpellCastVisual Visual;
             uint16 Flags = 0;
             uint32 ActiveFlags = 0;
-            uint16 CastLevel = 1;
-            uint8 Applications = 1;
+            uint16 CastLevel = 0;
+            uint8 Applications = 0;
             int32 ContentTuningID = 0;
+            bool HasCastUnit = false;
+            bool HasDuration = false;
+            bool HasRemaining = false;
+            bool HasTimeMod = false;
+            std::vector<float> Points;
+            std::vector<float> EstimatedPoints;
+            bool HasContentTuning = false;
             Optional<ContentTuningParams> ContentTuning;
             Optional<ObjectGuid> CastUnit;
             Optional<int32> Duration;
             Optional<int32> Remaining;
             Optional<float> TimeMod;
-            std::vector<float> Points;
-            std::vector<float> EstimatedPoints;
         };
 
         struct AuraInfo
         {
             uint8 Slot = 0;
+            bool HasAura = false;
             Optional<AuraDataInfo> AuraData;
         };
 
@@ -188,8 +194,9 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             bool UpdateAll = false;
-            ObjectGuid UnitGUID;
+            uint8 AurasCount = 0;
             std::vector<AuraInfo> Auras;
+            ObjectGuid UnitGUID;
         };
 
         struct TargetLocation
@@ -228,7 +235,7 @@ namespace WorldPackets
             int32 ItemID = 0;
             int32 DataSlotIndex = 0;
             int32 Quantity = 0;
-            Optional<uint8> Unknown_1000;
+            Optional<uint8> Source;
         };
 
         struct SpellExtraCurrencyCost
@@ -251,6 +258,7 @@ namespace WorldPackets
             Array<SpellCraftingReagent, 6> RemovedModifications;
             Array<SpellExtraCurrencyCost, 5 /*MAX_ITEM_EXT_COST_CURRENCIES*/> OptionalCurrencies;
             Optional<uint64> CraftingOrderID;
+            uint8 CraftingFlags = 0; // 1 = ApplyConcentration
             ObjectGuid CraftingNPC;
             int32 Misc[2] = { };
         };
@@ -713,6 +721,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             ObjectGuid Target; // Exclusive with TargetLocation
+            ObjectGuid TargetTransport;
             TaggedPosition<Position::XYZ> SourceLocation;
             int32 SpellVisualID = 0;
             bool SpeedAsTime = false;
@@ -998,7 +1007,7 @@ namespace WorldPackets
         class ResyncRunes final : public ServerPacket
         {
         public:
-            ResyncRunes(size_t size) : ServerPacket(SMSG_RESYNC_RUNES, 1 + 1 + 4 + size) { }
+            ResyncRunes(std::size_t size) : ServerPacket(SMSG_RESYNC_RUNES, 1 + 1 + 4 + size) { }
 
             WorldPacket const* Write() override;
 
@@ -1049,7 +1058,7 @@ namespace WorldPackets
 
             ObjectGuid Guid;
             ObjectGuid CastID;
-            uint16 MoveMsgID = 0;
+            uint32 MoveMsgID = 0;
             int32 SpellID = 0;
             float Pitch = 0.0f;
             float Speed = 0.0f;

@@ -42,6 +42,9 @@
 #include <map>
 #include <unordered_map>
 
+#include <memory>
+class CreatureOutfit;
+
 class Item;
 class Unit;
 class Vehicle;
@@ -530,6 +533,8 @@ typedef std::unordered_map<uint32, QuestObjectivesLocale> QuestObjectivesLocaleC
 typedef std::unordered_map<uint32, QuestOfferRewardLocale> QuestOfferRewardLocaleContainer;
 typedef std::unordered_map<uint32, QuestRequestItemsLocale> QuestRequestItemsLocaleContainer;
 typedef std::unordered_map<uint32, PageTextLocale> PageTextLocaleContainer;
+typedef std::unordered_map<uint32, std::vector<uint32>> UiMapQuestLinesMap;
+typedef std::unordered_map<uint32, std::vector<uint32>> UiMapQuestsMap;
 typedef std::unordered_map<uint32, VehicleSeatAddon> VehicleSeatAddonContainer;
 
 struct GossipMenuItemsLocale
@@ -779,6 +784,7 @@ struct GossipMenus
 struct GossipMenuAddon
 {
     int32 FriendshipFactionID;
+    int32 LfgDungeonsID;
 };
 
 typedef std::multimap<uint32, GossipMenus> GossipMenusContainer;
@@ -866,6 +872,18 @@ struct SceneTemplate
     uint32 ScenePackageId = 0;
     bool Encrypted = false;
     uint32 ScriptId = 0;
+};
+
+struct ItemScrappingLoot
+{
+    uint32 Id;
+    uint32 Class;
+    uint32 Subclass;
+    int32 InventoryType;
+    uint32 MinLevel;
+    uint32 MaxLevel;
+    int32 Quality;
+    int32 IsCrafted;
 };
 
 typedef std::unordered_map<uint32, SceneTemplate> SceneTemplateContainer;
@@ -1059,11 +1077,13 @@ enum QueryDataGroup
 };
 
 class PlayerDumpReader;
+class Roleplay;
 
 class TC_GAME_API ObjectMgr
 {
     friend class PlayerDumpReader;
     friend class UnitTestDataLoader;
+	friend class Roleplay;
 
     private:
         ObjectMgr();
@@ -1128,6 +1148,8 @@ class TC_GAME_API ObjectMgr
         };
 
         typedef std::map<uint32, uint32> CharacterConversionMap;
+		
+		typedef std::unordered_map<uint32, std::shared_ptr<CreatureOutfit>> CreatureOutfitContainer;
 
         DestructibleHitpoint const* GetDestructibleHitpoint(uint32 entry) const;
         GameObjectTemplate const* GetGameObjectTemplate(uint32 entry) const;
@@ -1282,6 +1304,9 @@ class TC_GAME_API ObjectMgr
 
         QuestPOIData const* GetQuestPOIData(int32 questId);
 
+        std::vector<uint32> const* GetUiMapQuestLinesList(uint32 uiMapId) const;
+        std::vector<uint32> const* GetUiMapQuestsList(uint32 uiMapId) const;
+
         VehicleTemplate const* GetVehicleTemplate(Vehicle* veh) const;
         VehicleAccessoryList const* GetVehicleAccessoryList(Vehicle* veh) const;
 
@@ -1291,6 +1316,11 @@ class TC_GAME_API ObjectMgr
         void LoadGameobjectQuestEnders();
         void LoadCreatureQuestStarters();
         void LoadCreatureQuestEnders();
+
+        std::vector<ItemScrappingLoot> _itemScrappingLootStore;
+
+        ItemScrappingLoot const* GetItemScrappingLoot(Item* item) const;
+        std::vector<ItemScrappingLoot> const* GetItemScrappingLootStore() const { return &_itemScrappingLootStore; }
 
         QuestRelations* GetGOQuestRelationMapHACK() { return &_goQuestRelations; }
         QuestRelationResult GetGOQuestRelations(uint32 entry) const { return GetQuestRelationsFrom(_goQuestRelations, entry, true); }
@@ -1418,6 +1448,9 @@ class TC_GAME_API ObjectMgr
 
         void LoadPlayerChoices();
         void LoadPlayerChoicesLocale();
+
+        void LoadUiMapQuestLines();
+        void LoadUiMapQuests();
 
         void LoadJumpChargeParams();
         void LoadPhaseNames();
@@ -1635,6 +1668,11 @@ class TC_GAME_API ObjectMgr
         bool AddGameTele(GameTele& data);
         bool DeleteGameTele(std::string_view name);
 
+		const CreatureOutfitContainer& GetCreatureOutfitMap() const { return _creatureOutfitStore; }
+        std::shared_ptr<CreatureOutfit> const& GetOutfit(uint32 modelid) const;
+        uint32 GetRealDisplayId(uint32 modelid) const;
+        void LoadCreatureOutfits();
+
         Trainer::Trainer const* GetTrainer(uint32 trainerId) const;
         uint32 GetCreatureDefaultTrainer(uint32 creatureId) const
         {
@@ -1851,6 +1889,8 @@ class TC_GAME_API ObjectMgr
         PageTextContainer _pageTextStore;
         InstanceTemplateContainer _instanceTemplateStore;
 
+		CreatureOutfitContainer _creatureOutfitStore;
+
     public:
         PhaseInfoStruct const* GetPhaseInfo(uint32 phaseId) const;
         std::vector<PhaseAreaInfo> const* GetPhasesForArea(uint32 areaId) const;
@@ -1955,6 +1995,9 @@ class TC_GAME_API ObjectMgr
         RealmNameContainer _realmNameStore;
 
         SceneTemplateContainer _sceneTemplateStore;
+
+        UiMapQuestLinesMap _uiMapQuestLinesStore;
+        UiMapQuestsMap _uiMapQuestsStore;
 
         std::unordered_map<int32, JumpChargeParams> _jumpChargeParams;
 

@@ -658,7 +658,7 @@ WorldPacket const* WorldPackets::Misc::AccountHeirloomUpdate::Write()
     _worldPacket.WriteBit(IsFullUpdate);
     _worldPacket.FlushBits();
 
-    _worldPacket << int32(Unk);
+    _worldPacket << int32(ItemCollectionType);
 
     // both lists have to have the same size
     _worldPacket << uint32(Heirlooms->size());
@@ -816,6 +816,27 @@ WorldPacket const* WorldPackets::Misc::DisplayToast::Write()
     }
 
     _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Misc::LegendaryCraftingOpenNpc::Write()
+{
+    _worldPacket << ObjGUID;
+    _worldPacket << uint8(IsUpgrade);
+
+    return &_worldPacket;
+}
+
+void WorldPackets::Misc::OverrideScreenFlash::Read()
+{
+    _worldPacket >> BlackScreenOrRedScreen;
+}
+
+WorldPacket const* WorldPackets::Misc::PlayerChoiceClear::Write()
+{
+    _worldPacket << int32(ChoiceID);
+    _worldPacket << Status;
 
     return &_worldPacket;
 }

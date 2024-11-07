@@ -37,6 +37,9 @@
 #include "Player.h"
 #include "SpellMgr.h"
 #include "World.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 
 class AELootCreatureCheck
 {
@@ -197,6 +200,11 @@ void WorldSession::HandleLootMoneyOpcode(WorldPackets::Loot::LootMoney& /*packet
             packet.SoleLooter = true; // "You loot..."
             SendPacket(packet.Write());
         }
+
+#ifdef ELUNA
+        if (Eluna* e = player->GetEluna())
+            e->OnLootMoney(player, loot->gold);
+#endif
 
         loot->LootMoney();
 
@@ -441,12 +449,18 @@ void WorldSession::HandleLootMasterGiveOpcode(WorldPackets::Loot::MasterLootItem
 
         if (req.LootListID >= loot->items.size())
         {
+            _player->SendLootError(req.Object, loot->GetOwnerGUID(), LOOT_ERROR_MASTER_OTHER);
             TC_LOG_DEBUG("loot", "MasterLootItem: Player {} might be using a hack! (slot {}, size {})",
                 GetPlayer()->GetName(), req.LootListID, loot->items.size());
             return;
         }
 
         LootItem& item = loot->items[req.LootListID];
+        if (item.type != LootItemType::Item)
+        {
+            _player->SendLootError(req.Object, loot->GetOwnerGUID(), LOOT_ERROR_MASTER_OTHER);
+            return;
+        }
 
         ItemPosCountVec dest;
         InventoryResult msg = target->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, item.itemid, item.count);
@@ -464,10 +478,16 @@ void WorldSession::HandleLootMasterGiveOpcode(WorldPackets::Loot::MasterLootItem
         }
 
         // now move item from loot to target inventory
-        if (Item* newitem = target->StoreNewItem(dest, item.itemid, true, item.randomBonusListId, item.GetAllowedLooters(), item.context, &item.BonusListIDs))
+        Item* newitem = target->StoreNewItem(dest, item.itemid, true, item.randomBonusListId, item.GetAllowedLooters(), item.context, &item.BonusListIDs);
+        if (newitem)
             aeResult.Add(newitem, item.count, loot->loot_type, loot->GetDungeonEncounterId());
         else
             target->ApplyItemLootedSpell(sObjectMgr->GetItemTemplate(item.itemid));
+
+#ifdef ELUNA
+        if (Eluna* e = target->GetEluna())
+            e->OnLootItem(target, newitem, item.count, loot->GetOwnerGUID());
+#endif
 
         // mark as looted
         item.count = 0;

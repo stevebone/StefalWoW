@@ -123,6 +123,31 @@ BaseLocation DBUpdater<WorldDatabaseConnection>::GetBaseLocationType()
     return LOCATION_DOWNLOAD;
 }
 
+// Roleplay Database
+template<>
+std::string DBUpdater<RoleplayDatabaseConnection>::GetConfigEntry()
+{
+    return "Updates.Roleplay";
+}
+
+template<>
+std::string DBUpdater<RoleplayDatabaseConnection>::GetTableName()
+{
+    return "Roleplay";
+}
+template<>
+std::string DBUpdater<RoleplayDatabaseConnection>::GetBaseFile()
+{
+    return BuiltInConfig::GetSourceDirectory() + "/sql/base/Roleplay_database.sql";
+}
+
+template<>
+bool DBUpdater<RoleplayDatabaseConnection>::IsEnabled(uint32 const updateMask)
+{
+    // This way silences warnings under msvc
+    return (updateMask & DatabaseLoader::DATABASE_Roleplay) ? true : false;
+}
+
 // Character Database
 template<>
 std::string DBUpdater<CharacterDatabaseConnection>::GetConfigEntry()
@@ -397,7 +422,7 @@ void DBUpdater<T>::ApplyFile(DatabaseWorkerPool<T>& pool, std::string const& hos
 #endif
 
     // Set the default charset to utf8
-    args.emplace_back("--default-character-set=utf8");
+    args.emplace_back("--default-character-set=utf8mb4");
 
     // Set max allowed packet to 1 GB
     args.emplace_back("--max-allowed-packet=1GB");
@@ -423,7 +448,7 @@ void DBUpdater<T>::ApplyFile(DatabaseWorkerPool<T>& pool, std::string const& hos
         args.emplace_back(database);
 
     // Invokes a mysql process which doesn't leak credentials to logs
-    int const ret = Trinity::StartProcess(DBUpdaterUtil::GetCorrectedMySQLExecutable(), args,
+    int32 const ret = Trinity::StartProcess(DBUpdaterUtil::GetCorrectedMySQLExecutable(), std::move(args),
                                  "sql.updates", "", true);
 
     if (ret != EXIT_SUCCESS)
@@ -443,3 +468,4 @@ template class TC_DATABASE_API DBUpdater<LoginDatabaseConnection>;
 template class TC_DATABASE_API DBUpdater<WorldDatabaseConnection>;
 template class TC_DATABASE_API DBUpdater<CharacterDatabaseConnection>;
 template class TC_DATABASE_API DBUpdater<HotfixDatabaseConnection>;
+template class TC_DATABASE_API DBUpdater<RoleplayDatabaseConnection>;

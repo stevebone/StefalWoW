@@ -46,10 +46,6 @@ target_include_directories(game
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR})
 
-set_target_properties(game
-  PROPERTIES
-    DEFINE_SYMBOL TRINITY_API_EXPORT_GAME)
-
 target_link_libraries(game
   PRIVATE
     trinity-core-interface
@@ -58,9 +54,10 @@ target_link_libraries(game
     game-interface)
 
 set_target_properties(game
-    PROPERTIES
-      FOLDER
-        "server")
+  PROPERTIES
+    COMPILE_WARNING_AS_ERROR ${WITH_WARNINGS_AS_ERRORS}
+    DEFINE_SYMBOL TRINITY_API_EXPORT_GAME
+    FOLDER "server")
 
 if(BUILD_SHARED_LIBS)
   if(UNIX)
@@ -77,4 +74,32 @@ endif()
 # Generate precompiled header
 if(USE_COREPCH)
   add_cxx_pch(game ${PRIVATE_PCH_HEADER})
+endif()
+
+if( ELUNA )
+  if( WIN32 )
+    if ( MSVC )
+      add_custom_command(TARGET game
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/extensions/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/extensions ${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/extensions/
+      )
+    elseif ( MINGW )
+      add_custom_command(TARGET game
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/lua_scripts/extensions/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/extensions ${CMAKE_BINARY_DIR}/bin/lua_scripts/extensions/
+      )
+    endif()
+  endif()
+
+  #target_link_libraries(game-interface
+  #  INTERFACE
+  #    lualib)
+
+  if( UNIX )
+    install(DIRECTORY LuaEngine/extensions DESTINATION bin/lua_scripts/)
+  elseif( WIN32 )
+    install(DIRECTORY LuaEngine/extensions DESTINATION "${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/")
+  endif()
 endif()

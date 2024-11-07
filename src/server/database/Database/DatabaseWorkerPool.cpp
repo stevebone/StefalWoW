@@ -24,6 +24,7 @@
 #include "Implementation/WorldDatabase.h"
 #include "Implementation/CharacterDatabase.h"
 #include "Implementation/HotfixDatabase.h"
+#include "Implementation/RoleplayDatabase.h"
 #include "Log.h"
 #include "MySQLPreparedStatement.h"
 #include "PreparedStatement.h"
@@ -37,7 +38,6 @@
 #include <mysqld_error.h>
 #include <utility>
 #ifdef TRINITY_DEBUG
-#include <sstream>
 #include <boost/stacktrace.hpp>
 #endif
 
@@ -503,9 +503,7 @@ T* DatabaseWorkerPool<T>::GetFreeConnection()
 #ifdef TRINITY_DEBUG
     if (WarnSyncQueries<T>)
     {
-        std::ostringstream ss;
-        ss << boost::stacktrace::stacktrace();
-        TC_LOG_WARN("sql.performances", "Sync query at:\n{}", ss.str());
+        TC_LOG_WARN("sql.performances", "Sync query at:\n{}", boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
 #endif
 
@@ -608,3 +606,4 @@ template class TC_DATABASE_API DatabaseWorkerPool<LoginDatabaseConnection>;
 template class TC_DATABASE_API DatabaseWorkerPool<WorldDatabaseConnection>;
 template class TC_DATABASE_API DatabaseWorkerPool<CharacterDatabaseConnection>;
 template class TC_DATABASE_API DatabaseWorkerPool<HotfixDatabaseConnection>;
+template class TC_DATABASE_API DatabaseWorkerPool<RoleplayDatabaseConnection>;

@@ -52,6 +52,11 @@
 #include "TerrainMgr.h"
 #include "Transport.h"
 #include "VMapFactory.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#include "ElunaConfig.h"
+#include "ElunaLoader.h"
+#endif
 #include "VMapManager2.h"
 #include "Vehicle.h"
 #include "Vignette.h"
@@ -90,6 +95,11 @@ struct RespawnInfoWithHandle : RespawnInfo
 
 Map::~Map()
 {
+#ifdef ELUNA
+    delete eluna;
+    eluna = nullptr;
+#endif
+
     // Delete all waiting spawns, else there will be a memory leak
     // This doesn't delete from database.
     UnloadAllRespawnInfos();
@@ -141,6 +151,14 @@ m_activeNonPlayersIter(m_activeNonPlayers.end()), _transportsUpdateIter(_transpo
 i_gridExpiry(expiry), m_terrain(sTerrainMgr.LoadTerrain(id)), m_forceEnabledNavMeshFilterFlags(0), m_forceDisabledNavMeshFilterFlags(0),
 i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _respawnCheckTimer(0), _vignetteUpdateTimer(5200, 5200)
 {
+#ifdef ELUNA
+    // lua state begins uninitialized
+    eluna = nullptr;
+
+    if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaLoader->ShouldMapLoadEluna(id))
+        if (!Instanceable())
+            eluna = new Eluna(this);
+#endif
     for (uint32 x = 0; x < MAX_NUMBER_OF_GRIDS; ++x)
     {
         for (uint32 y = 0; y < MAX_NUMBER_OF_GRIDS; ++y)
@@ -1898,6 +1916,9 @@ void Map::SendInitTransports(Player* player)
         }
     }
 
+    if (!transData.HasData())
+        return;
+
     WorldPacket packet;
     transData.BuildPacket(&packet);
     player->SendDirectMessage(&packet);
@@ -1915,6 +1936,9 @@ void Map::SendRemoveTransports(Player* player)
             player->m_visibleTransports.erase(transport->GetGUID());
         }
     }
+
+    if (!transData.HasData())
+        return;
 
     WorldPacket packet;
     transData.BuildPacket(&packet);
@@ -1945,6 +1969,9 @@ void Map::SendUpdateTransportVisibility(Player* player)
             player->m_visibleTransports.erase(transportItr);
         }
     }
+
+    if (!transData.HasData())
+        return;
 
     WorldPacket packet;
     transData.BuildPacket(&packet);
@@ -2325,7 +2352,17 @@ bool Map::ShouldBeSpawnedOnGridLoad(SpawnObjectType type, ObjectGuid::LowType sp
     if (GetRespawnTime(type, spawnId))
         return false;
 
-    SpawnMetadata const* spawnData = ASSERT_NOTNULL(sObjectMgr->GetSpawnMetadata(type, spawnId));
+    SpawnMetadata const* spawnData = sObjectMgr->GetSpawnMetadata(type, spawnId);
+    if (!spawnData) {
+        TC_LOG_ERROR("roleplay", "Half deleted spawn detected. Map: %s, Type: %s, SpawnID: " SZFMTD, GetMapName(), type, spawnId);
+        if (type == 0) {
+            sObjectMgr->DeleteCreatureData(spawnId);
+        }
+        else if (type == 1) {
+            sObjectMgr->DeleteGameObjectData(spawnId);
+        }
+        return false;
+    }
     // check if the object is part of a spawn group
     SpawnGroupTemplateData const* spawnGroup = ASSERT_NOTNULL(spawnData->spawnGroupData);
     if (!(spawnGroup->flags & SPAWNGROUP_FLAG_SYSTEM))
@@ -2583,6 +2620,16 @@ void Map::AddObjectToRemoveList(WorldObject* obj)
 {
     ASSERT(obj->GetMapId() == GetId() && obj->GetInstanceId() == GetInstanceId());
 
+#ifdef ELUNA
+    if (Eluna* e = GetEluna())
+    {
+        if (Creature* creature = obj->ToCreature())
+            e->OnRemove(creature);
+        else if (GameObject* gameobject = obj->ToGameObject())
+            e->OnRemove(gameobject);
+    }
+#endif
+
     obj->SetDestroyedObject(true);
     obj->CleanupsBeforeDelete(false);                            // remove or simplify at least cross referenced links
 
@@ -2828,9 +2875,10 @@ template TC_GAME_API void Map::RemoveFromMap(Conversation*, bool);
 
 /* ******* Dungeon Instance Maps ******* */
 
-InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, Difficulty SpawnMode, TeamId InstanceTeam, InstanceLock* instanceLock)
+InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, Difficulty SpawnMode, TeamId InstanceTeam, InstanceLock* instanceLock,
+    Optional<uint32> lfgDungeonsId)
   : Map(id, expiry, InstanceId, SpawnMode),
-    i_data(nullptr), i_script_id(0), i_scenario(nullptr), i_instanceLock(instanceLock)
+    i_data(nullptr), i_script_id(0), i_scenario(nullptr), i_instanceLock(instanceLock), i_lfgDungeonsId(lfgDungeonsId)
 {
     //lets initialize visibility distance for dungeons
     InstanceMap::InitVisibilityDistance();
@@ -2991,12 +3039,27 @@ void InstanceMap::CreateInstanceData()
     if (i_data != nullptr)
         return;
 
-    InstanceTemplate const* mInstance = sObjectMgr->GetInstanceTemplate(GetId());
-    if (mInstance)
+	bool isElunaAI = false;
+	
+#ifdef ELUNA
+    if (Eluna* e = GetEluna())
     {
-        i_script_id = mInstance->ScriptId;
-        i_data = sScriptMgr->CreateInstanceData(this);
+        i_data = e->GetInstanceData(this);
+        if (i_data)
+            isElunaAI = true;
     }
+#endif
+	
+	    // if Eluna AI was fetched succesfully we should not call CreateInstanceData nor set the unused scriptID
+	if (!isElunaAI)
+	{
+        InstanceTemplate const* mInstance = sObjectMgr->GetInstanceTemplate(GetId());
+        if (mInstance)
+		{
+			i_script_id = mInstance->ScriptId;
+			i_data = sScriptMgr->CreateInstanceData(this);
+		}
+	}
 
     if (!i_data)
         return;
@@ -3018,7 +3081,7 @@ void InstanceMap::CreateInstanceData()
     i_data->SetEntranceLocation(lockData->EntranceWorldSafeLocId);
     if (!lockData->Data.empty())
     {
-        TC_LOG_DEBUG("maps", "Loading instance data for `{}` with id {}", sObjectMgr->GetScriptName(i_script_id), i_InstanceId);
+        TC_LOG_DEBUG("maps", "Loading instance data for `{}` with id {}", isElunaAI ? "ElunaAI" : sObjectMgr->GetScriptName(i_script_id), i_InstanceId);
         i_data->Load(lockData->Data.c_str());
     }
     else
@@ -4083,5 +4146,15 @@ std::string InstanceMap::GetDebugInfo() const
         << "ScriptId: " << GetScriptId() << " ScriptName: " << GetScriptName();
     return sstr.str();
 }
+
+#ifdef ELUNA
+Eluna* Map::GetEluna() const
+{
+    if (sElunaConfig->IsElunaCompatibilityMode())
+        return sWorld->GetEluna();
+
+    return eluna;
+}
+#endif
 
 template class TC_GAME_API TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid>;

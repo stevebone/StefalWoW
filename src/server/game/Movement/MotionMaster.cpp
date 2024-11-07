@@ -609,7 +609,7 @@ void MotionMaster::MoveRandom(float wanderDistance /*= 0.0f*/, Optional<Millisec
         scriptResult->SetResult(MovementStopReason::Interrupted);
 }
 
-void MotionMaster::MoveFollow(Unit* target, float dist, ChaseAngle angle, Optional<Milliseconds> duration /*= {}*/, MovementSlot slot/* = MOTION_SLOT_ACTIVE*/,
+void MotionMaster::MoveFollow(Unit* target, float dist, Optional<ChaseAngle> angle /*= {}*/, Optional<Milliseconds> duration /*= {}*/, bool ignoreTargetWalk /*= false*/, MovementSlot slot/* = MOTION_SLOT_ACTIVE*/,
     Optional<Scripting::v2::ActionResultSetter<MovementStopReason>>&& scriptResult /*= {}*/)
 {
     // Ignore movement request if target not exist
@@ -621,7 +621,7 @@ void MotionMaster::MoveFollow(Unit* target, float dist, ChaseAngle angle, Option
     }
 
     TC_LOG_DEBUG("movement.motionmaster", "MotionMaster::MoveFollow: '{}', starts following '{}'", _owner->GetGUID(), target->GetGUID());
-    Add(new FollowMovementGenerator(target, dist, angle, duration, std::move(scriptResult)), slot);
+    Add(new FollowMovementGenerator(target, dist, angle, duration, ignoreTargetWalk, std::move(scriptResult)), slot);
 }
 
 void MotionMaster::MoveChase(Unit* target, Optional<ChaseRange> dist, Optional<ChaseAngle> angle)
@@ -802,23 +802,26 @@ void MotionMaster::MoveKnockbackFrom(Position const& origin, float speedXY, floa
     if (_owner->GetTypeId() == TYPEID_PLAYER)
         return;
 
-    if (speedXY < 0.01f)
+    bool hasHorizontalVelocity = std::abs(speedXY) >= 0.01f;
+    if (!hasHorizontalVelocity /* && std::abs(speedZ) < 0.01f */)
         return;
 
     Position dest = _owner->GetPosition();
-    float moveTimeHalf = speedZ / Movement::gravity;
+    float moveTimeHalf = std::abs(speedZ) / Movement::gravity;
     float dist = 2 * moveTimeHalf * speedXY;
     float max_height = -Movement::computeFallElevation(moveTimeHalf, false, -speedZ);
 
     // Use a mmap raycast to get a valid destination.
-    _owner->MovePositionToFirstCollision(dest, dist, _owner->GetRelativeAngle(origin) + float(M_PI));
+    float o = dest == origin ? 0.0f : _owner->GetRelativeAngle(origin);
+    _owner->MovePositionToFirstCollision(dest, dist, o + float(M_PI));
 
     std::function<void(Movement::MoveSplineInit&)> initializer = [=, effect = (spellEffectExtraData ? Optional<Movement::SpellEffectExtraData>(*spellEffectExtraData) : Optional<Movement::SpellEffectExtraData>())](Movement::MoveSplineInit& init)
     {
         init.MoveTo(dest.GetPositionX(), dest.GetPositionY(), dest.GetPositionZ(), false);
         init.SetParabolic(max_height, 0);
         init.SetOrientationFixed(true);
-        init.SetVelocity(speedXY);
+        if (hasHorizontalVelocity)
+            init.SetVelocity(speedXY);
         if (effect)
             init.SetSpellEffectExtraData(*effect);
     };

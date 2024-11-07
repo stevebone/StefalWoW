@@ -23,12 +23,13 @@ Category: commandscripts
 EndScriptData */
 
 #include "ScriptMgr.h"
+#include "CharacterCache.h"
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "CreatureAI.h"
 #include "CreatureGroups.h"
-#include "DatabaseEnv.h"
 #include "DB2Stores.h"
+#include "DatabaseEnv.h"
 #include "FollowMovementGenerator.h"
 #include "GameTime.h"
 #include "Language.h"
@@ -39,14 +40,19 @@ EndScriptData */
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Pet.h"
+#include "SpellAuras.h"
+#include "SpellMgr.h"
+#include "Spell.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "RBAC.h"
+#include "RolePlay.h"
 #include "SmartEnum.h"
 #include "SpellMgr.h"
 #include "Transport.h"
 #include "World.h"
 #include "WorldSession.h"
+#include "Position.h"
 
 using namespace Trinity::ChatCommands;
 
@@ -84,9 +90,14 @@ public:
             { "model",          HandleNpcSetModelCommand,          rbac::RBAC_PERM_COMMAND_NPC_SET_MODEL,      Console::No },
             { "movetype",       HandleNpcSetMoveTypeCommand,       rbac::RBAC_PERM_COMMAND_NPC_SET_MOVETYPE,   Console::No },
             { "phase",          HandleNpcSetPhaseCommand,          rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,      Console::No },
+			{ "scale",          HandleNpcSetScaleCommand,          rbac::RBAC_PERM_COMMAND_NPC_SET_SCALE,      Console::No },
             { "wanderdistance", HandleNpcSetWanderDistanceCommand, rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST,  Console::No },
             { "spawntime",      HandleNpcSetSpawnTimeCommand,      rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME,  Console::No },
             { "data",           HandleNpcSetDataCommand,           rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,       Console::No },
+			{ "aura",           HandleNpcSetAuraCommand,           rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,       Console::No },
+            { "mount",          HandleNpcSetMountCommand,          rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,       Console::No },
+            { "anim",           HandleNpcSetAnimCommand,           rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,       Console::No },
+            { "animkit",        HandleNpcSetAnimKitCommand,        rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,       Console::No },
         };
         static ChatCommandTable npcCommandTable =
         {
@@ -160,6 +171,7 @@ public:
         if (!creature)
             return false;
 
+		handler->PSendSysMessage("Creature name: %s [GUID: %s]", creature->GetName().c_str(), std::to_string(db_guid).c_str());
         sObjectMgr->AddCreatureToGrid(sObjectMgr->GetCreatureData(db_guid));
         return true;
     }
@@ -480,8 +492,7 @@ public:
         CreatureTemplate const* cInfo = target->GetCreatureTemplate();
 
         uint32 faction = target->GetFaction();
-        uint64 npcflags;
-        memcpy(&npcflags, target->m_unitData->NpcFlags.begin(), sizeof(npcflags));
+        uint64 npcflags = (uint64(target->GetNpcFlags2()) << 32) | target->GetNpcFlags();
         uint64 mechanicImmuneMask = 0;
         if (CreatureImmunities const* immunities = SpellMgr::GetCreatureImmunities(cInfo->CreatureImmunitiesId))
             mechanicImmuneMask = immunities->Mechanic.to_ullong();
@@ -550,7 +561,7 @@ public:
             if (cInfo->flags_extra & flag)
                 handler->PSendSysMessage("%s (0x%X)", EnumUtils::ToTitle(flag), flag);
 
-        handler->PSendSysMessage(LANG_NPCINFO_NPC_FLAGS, target->m_unitData->NpcFlags[0]);
+        handler->PSendSysMessage(LANG_NPCINFO_NPC_FLAGS, uint32(target->GetNpcFlags()));
         for (NPCFlags flag : EnumUtils::Iterate<NPCFlags>())
             if (target->HasNpcFlag(flag))
                 handler->PSendSysMessage("* %s (0x%X)", EnumUtils::ToTitle(flag), flag);
@@ -673,6 +684,8 @@ public:
             handler->SetSentErrorMessage(true);
             return false;
         }
+		
+		WorldDatabase.PQuery("INSERT INTO creature_addon(guid,emote) VALUES('{}',{});", target->GetSpawnId(), emote);
 
         target->SetEmoteState(Emote(emote));
 
@@ -698,9 +711,9 @@ public:
             return false;
         }
 
-        creature->SetDisplayId(displayId, true);
+        sRoleplay->CreatureSetModel(creature, displayId);
 
-        creature->SaveToDB();
+        sRoleplay->SaveCreature(creature);
 
         return true;
     }
@@ -1166,7 +1179,7 @@ public:
         return true;
     }
 
-    static void _ShowLootEntry(ChatHandler* handler, uint32 itemId, uint8 itemCount, bool alternateString = false)
+    static void _ShowLootEntry(ChatHandler* handler, uint32 itemId, uint32 itemCount, bool alternateString = false)
     {
         ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
         char const* name = nullptr;
@@ -1176,6 +1189,18 @@ public:
             name = "Unknown item";
         handler->PSendSysMessage(alternateString ? LANG_COMMAND_NPC_SHOWLOOT_ENTRY_2 : LANG_COMMAND_NPC_SHOWLOOT_ENTRY,
             itemCount, ItemQualityColors[itemTemplate ? static_cast<ItemQualities>(itemTemplate->GetQuality()) : ITEM_QUALITY_POOR], itemId, name, itemId);
+    }
+
+    static void _ShowLootCurrencyEntry(ChatHandler* handler, uint32 currencyId, uint32 count, bool alternateString = false)
+    {
+        CurrencyTypesEntry const* currency = sCurrencyTypesStore.LookupEntry(currencyId);
+        char const* name = nullptr;
+        if (currency)
+            name = currency->Name[handler->GetSessionDbcLocale()];
+        if (!name)
+            name = "Unknown currency";
+        handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_CURRENCY, alternateString ? 6 : 3 /*number of bytes from following string*/, "\xE2\x94\x80\xE2\x94\x80",
+            count, ItemQualityColors[currency ? static_cast<ItemQualities>(currency->Quality) : ITEM_QUALITY_POOR], currencyId, count, name, currencyId);
     }
 
     static void _IterateNotNormalLootMap(ChatHandler* handler, NotNormalLootItemMap const& map, std::vector<LootItem> const& items)
@@ -1190,11 +1215,72 @@ public:
             for (auto it = pair.second->cbegin(); it != pair.second->cend(); ++it)
             {
                 LootItem const& item = items[it->LootListId];
-                if (!(it->is_looted) && !item.is_looted)
-                    _ShowLootEntry(handler, item.itemid, item.count, true);
+                if (!it->is_looted && !item.is_looted)
+                {
+                    switch (item.type)
+                    {
+                        case LootItemType::Item:
+                            _ShowLootEntry(handler, item.itemid, item.count, true);
+                            break;
+                        case LootItemType::Currency:
+                            _ShowLootCurrencyEntry(handler, item.itemid, item.count, true);
+                            break;
+                    }
+                }
             }
         }
     }
+
+    static void _ShowLootContents(ChatHandler* handler, bool all, Loot const* loot)
+    {
+        handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_MONEY, loot->gold / GOLD, (loot->gold % GOLD) / SILVER, loot->gold % SILVER);
+
+        if (!all)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Standard items", loot->items.size());
+            for (LootItem const& item : loot->items)
+            {
+                if (!item.is_looted)
+                {
+                    switch (item.type)
+                    {
+                        case LootItemType::Item:
+                            _ShowLootEntry(handler, item.itemid, item.count);
+                            break;
+                        case LootItemType::Currency:
+                            _ShowLootCurrencyEntry(handler, item.itemid, item.count);
+                            break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Standard items", loot->items.size());
+            for (LootItem const& item : loot->items)
+            {
+                if (!item.is_looted && !item.freeforall && item.conditions.IsEmpty())
+                {
+                    switch (item.type)
+                    {
+                        case LootItemType::Item:
+                            _ShowLootEntry(handler, item.itemid, item.count);
+                            break;
+                        case LootItemType::Currency:
+                            _ShowLootCurrencyEntry(handler, item.itemid, item.count);
+                            break;
+                    }
+                }
+            }
+
+            if (!loot->GetPlayerFFAItems().empty())
+            {
+                handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL_2, "FFA items per allowed player");
+                _IterateNotNormalLootMap(handler, loot->GetPlayerFFAItems(), loot->items);
+            }
+        }
+    }
+
     static bool HandleNpcShowLootCommand(ChatHandler* handler, Optional<EXACT_SEQUENCE("all")> all)
     {
         Creature* creatureTarget = handler->getSelectedCreature();
@@ -1205,8 +1291,16 @@ public:
             return false;
         }
 
+        if (!creatureTarget->isDead())
+        {
+            handler->PSendSysMessage(LANG_COMMAND_NOT_DEAD_OR_NO_LOOT, creatureTarget->GetName().c_str());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
         Loot const* loot = creatureTarget->m_loot.get();
-        if (!creatureTarget->isDead() || !loot || loot->isLooted())
+        if ((!loot || loot->isLooted())
+            && !std::ranges::count_if(creatureTarget->m_personalLoot, std::not_fn(&Loot::isLooted), &std::unordered_map<ObjectGuid, std::unique_ptr<Loot>>::value_type::second))
         {
             handler->PSendSysMessage(LANG_COMMAND_NOT_DEAD_OR_NO_LOOT, creatureTarget->GetName().c_str());
             handler->SetSentErrorMessage(true);
@@ -1214,26 +1308,18 @@ public:
         }
 
         handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_HEADER, creatureTarget->GetName().c_str(), creatureTarget->GetEntry());
-        handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_MONEY, loot->gold / GOLD, (loot->gold % GOLD) / SILVER, loot->gold % SILVER);
 
-        if (!all)
-        {
-            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Standard items", loot->items.size());
-            for (LootItem const& item : loot->items)
-                if (!item.is_looted)
-                    _ShowLootEntry(handler, item.itemid, item.count);
-        }
+        if (loot)
+            _ShowLootContents(handler, all.has_value(), loot);
         else
         {
-            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Standard items", loot->items.size());
-            for (LootItem const& item : loot->items)
-                if (!item.is_looted && !item.freeforall && item.conditions.IsEmpty())
-                    _ShowLootEntry(handler, item.itemid, item.count);
+            using namespace std::string_view_literals;
 
-            if (!loot->GetPlayerFFAItems().empty())
+            for (auto const& [lootOwner, personalLoot] : creatureTarget->m_personalLoot)
             {
-                handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL_2, "FFA items per allowed player");
-                _IterateNotNormalLootMap(handler, loot->GetPlayerFFAItems(), loot->items);
+                CharacterCacheEntry const* character = sCharacterCache->GetCharacterCacheByGuid(lootOwner);
+                handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL_2, Trinity::StringFormat("Personal loot for {}", character ? character->Name : ""sv));
+                _ShowLootContents(handler, all.has_value(), personalLoot.get());
             }
         }
 
@@ -1357,6 +1443,213 @@ public:
         */
         return true;
     }
+	
+	static bool HandleNpcSetScaleCommand(ChatHandler* handler, float scale)
+    {
+
+        Creature* creature = handler->getSelectedCreature();
+        if (!creature)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (scale <= 0.0f)
+        {
+            scale = creature->GetCreatureTemplate()->scale;
+            const_cast<CreatureData*>(creature->GetCreatureData())->size = -1.0f;
+        }
+        else
+        {
+            const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
+        }
+
+        creature->SetObjectScale(scale);
+        if (!creature->IsPet())
+            creature->SaveToDB();
+        return true;
+    }
+
+    // npc set aura
+    static bool HandleNpcSetAuraCommand(ChatHandler* handler, SpellInfo const* spellInfo)
+    {
+
+        Creature* target = handler->getSelectedCreature();
+        ObjectGuid::LowType guidLow = UI64LIT(0);
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        uint32 spellId = spellInfo->Id;
+
+        if (spellId == 172036 || spellId == 142873 || spellId == 163465 ||
+            spellId == 187998 || spellId == 190430 || spellId == 190429 ||
+            spellId == 190426 || spellId == 188438 || spellId == 185298 ||
+            spellId == 184452 || spellId == 185297 || spellId == 182669 ||
+            spellId == 181864 || spellId == 181827 || spellId == 66141 ||
+            spellId == 9454 || spellId == 1852)
+        {
+
+            handler->PSendSysMessage("You just encountered an crash spell. Thankfully, it's off!");
+            return true;
+        }
+
+        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, target->GetMap()->GetDifficultyID()))
+        {
+            ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+            AuraCreateInfo createInfo2(castId, spellInfo, target->GetMap()->GetDifficultyID(), MAX_EFFECT_MASK, target);
+            Aura::TryRefreshStackOrCreate(createInfo2);
+        }
+
+        //.ToString().c_str()
+
+        //Cot? SQL
+        guidLow = target->GetSpawnId();
+        std::string auraString = std::to_string(uint32(spellId));
+        QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = '{}'", guidLow);
+        if (!guidSql && spellId != 0)
+        {
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_AURA);
+            stmt->setUInt64(0, guidLow);
+            stmt->setString(1, auraString);
+            WorldDatabase.Execute(stmt);
+        }
+        else
+        {
+            std::string auras = "";
+
+            if (spellId != 0)
+            {
+                Field* fsheat = guidSql->Fetch();
+                auras = fsheat[0].GetString() + ' ' + auraString;
+            }
+
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
+            stmt->setString(0, auras);
+            stmt->setUInt64(1, guidLow);
+            WorldDatabase.Execute(stmt);
+        }
+
+        return true;
+
+
+    }
+
+    static bool HandleNpcSetMountCommand(ChatHandler* handler, uint32 mount)
+    {
+
+        Creature* target = handler->getSelectedCreature();
+        ObjectGuid::LowType guidLow = UI64LIT(0);
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        target->Mount(mount);
+
+
+     //Cot? SQL
+     guidLow = target->GetSpawnId();
+     QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = '{}'", guidLow);
+     if (!guidSql)
+     {
+         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_MOUNT);
+         stmt->setUInt64(0, guidLow);
+         stmt->setUInt32(1, mount);
+         WorldDatabase.Execute(stmt);
+     }
+     else
+     {
+         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_MOUNT);
+         stmt->setUInt32(0, mount);
+         stmt->setUInt64(1, guidLow);
+         WorldDatabase.Execute(stmt);
+     }
+
+
+     return true;
+ }
+
+ // npc set animkit
+ static bool HandleNpcSetAnimKitCommand(ChatHandler* handler, uint16 animkit)
+ {
+
+     Creature* target = handler->getSelectedCreature();
+     ObjectGuid::LowType guidLow = UI64LIT(0);
+
+     if (!target)
+     {
+         handler->SendSysMessage(LANG_SELECT_CREATURE);
+         handler->SetSentErrorMessage(true);
+            return false;
+     }
+
+     target->SetAIAnimKitId(animkit);
+
+     //Cot? SQL
+     guidLow = target->GetSpawnId();
+     QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = '{}'", guidLow);
+     if (!guidSql)
+     {
+           WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
+            stmt->setUInt64(0, guidLow);
+            stmt->setUInt16(1, animkit);
+            WorldDatabase.Execute(stmt);
+        }
+        else
+      {
+          WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
+          stmt->setUInt16(0, animkit);
+          stmt->setUInt64(1, guidLow);
+          WorldDatabase.Execute(stmt);
+      }
+
+      return true;
+  }
+
+  // npc set anim
+  static bool HandleNpcSetAnimCommand(ChatHandler* handler, uint32 emote)
+  {
+
+      Creature* target = handler->getSelectedCreature();
+        ObjectGuid::LowType guidLow = UI64LIT(0);
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        target->SetEmoteState(Emote(emote));
+
+        //Cot? SQL
+        guidLow = target->GetSpawnId();
+        QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = '{}'", guidLow);
+        if (!guidSql)
+        {
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIM);
+            stmt->setUInt64(0, guidLow);
+            stmt->setUInt32(1, emote);
+            WorldDatabase.Execute(stmt);
+        }
+        else
+        {
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIM);
+            stmt->setUInt32(0, emote);
+            stmt->setUInt64(1, guidLow);
+            WorldDatabase.Execute(stmt);
+        }
+
+        return true;
+    }
 };
 
 void AddSC_npc_commandscript()
@@ -1401,6 +1694,8 @@ bool HandleNpcSpawnGroup(ChatHandler* handler, std::vector<Variant<uint32, EXACT
     }
 
     handler->PSendSysMessage(LANG_SPAWNGROUP_SPAWNCOUNT, creatureList.size());
+	for (WorldObject* obj : creatureList)
+        handler->PSendSysMessage("%s (%s)", obj->GetName(), obj->GetGUID().ToString().c_str());
 
     return true;
 }

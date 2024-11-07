@@ -56,7 +56,7 @@ namespace WorldPackets
             ByteBuffer Data;
         };
 
-        class AvailableHotfixes final : public ServerPacket
+        class TC_GAME_API AvailableHotfixes final : public ServerPacket
         {
         public:
             AvailableHotfixes() : ServerPacket(SMSG_AVAILABLE_HOTFIXES, 0) { }

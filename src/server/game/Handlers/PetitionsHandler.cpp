@@ -443,6 +443,11 @@ void WorldSession::HandleTurnInPetition(WorldPackets::Petition::TurnInPetition& 
 
 void WorldSession::HandlePetitionShowList(WorldPackets::Petition::PetitionShowList& packet)
 {
+#ifndef DISABLE_DRESSNPCS_CORESOUNDS
+    if (packet.PetitionUnit.IsAnyTypeCreature())
+        if (Creature* creature = _player->GetMap()->GetCreature(packet.PetitionUnit))
+            creature->SendMirrorSound(_player, 0);
+#endif
     SendPetitionShowList(packet.PetitionUnit);
 }
 

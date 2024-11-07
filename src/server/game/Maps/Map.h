@@ -43,11 +43,17 @@
 #include <memory>
 #include <set>
 #include <unordered_set>
+#ifdef ELUNA
+#include "LuaValue.h"
+#endif
 
 class Battleground;
 class BattlegroundMap;
 class BattlegroundScript;
 class CreatureGroup;
+#ifdef ELUNA
+class Eluna;
+#endif
 class GameObjectModel;
 class Group;
 class InstanceLock;
@@ -546,6 +552,11 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         }
 
         virtual std::string GetDebugInfo() const;
+		
+		std::set<ObjectGuid>& GetInfiniteGameObjects() { return m_infiniteGameObjects; };
+
+        void AddInfiniteGameObject(ObjectGuid object) { m_infiniteGameObjects.insert(object); };
+        void RemoveInfiniteGameObject(ObjectGuid object) { m_infiniteGameObjects.erase(object); };
 
     private:
 
@@ -619,6 +630,10 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         MapRefManager::iterator m_mapRefIter;
 
         int32 m_VisibilityNotifyPeriod;
+
+		typedef std::set<ObjectGuid> InfiniteGameObjects;
+        InfiniteGameObjects m_infiniteGameObjects;
+        InfiniteGameObjects::iterator m_infiniteGameObjectsIter;
 
         typedef std::set<WorldObject*> ActiveNonPlayers;
         ActiveNonPlayers m_activeNonPlayers;
@@ -722,6 +737,12 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void InitSpawnGroupState();
         void UpdateSpawnGroupConditions();
 
+#ifdef ELUNA
+        Eluna* GetEluna() const;
+
+        LuaVal lua_data = LuaVal({});
+#endif
+
     private:
         // Type specific code for add/remove to/from grid
         template<class T>
@@ -808,6 +829,10 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         MPSCQueue<FarSpellCallback> _farSpellCallbacks;
 
+#ifdef ELUNA
+        Eluna* eluna;
+#endif
+
         /*********************************************************/
         /***                   Phasing                         ***/
         /*********************************************************/
@@ -859,7 +884,8 @@ enum class InstanceResetResult : uint8
 class TC_GAME_API InstanceMap : public Map
 {
     public:
-        InstanceMap(uint32 id, time_t, uint32 InstanceId, Difficulty SpawnMode, TeamId InstanceTeam, InstanceLock* instanceLock);
+        InstanceMap(uint32 id, time_t, uint32 InstanceId, Difficulty SpawnMode, TeamId InstanceTeam, InstanceLock* instanceLock,
+            Optional<uint32> lfgDungeonsId);
         ~InstanceMap();
         bool AddPlayerToMap(Player* player, bool initPlayer = true) override;
         void RemovePlayerFromMap(Player*, bool) override;
@@ -882,6 +908,7 @@ class TC_GAME_API InstanceMap : public Map
         uint32 GetMaxPlayers() const;
         TeamId GetTeamIdInInstance() const;
         Team GetTeamInInstance() const { return GetTeamIdInInstance() == TEAM_ALLIANCE ? ALLIANCE : HORDE; }
+        Optional<uint32> GetLfgDungeonsId() const { return i_lfgDungeonsId; }
 
         virtual void InitVisibilityDistance() override;
 
@@ -896,6 +923,7 @@ class TC_GAME_API InstanceMap : public Map
         InstanceScenario* i_scenario;
         InstanceLock* i_instanceLock;
         GroupInstanceReference i_owningGroupRef;
+        Optional<uint32> i_lfgDungeonsId;
 };
 
 class TC_GAME_API BattlegroundMap : public Map

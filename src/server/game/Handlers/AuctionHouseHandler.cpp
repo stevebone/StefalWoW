@@ -35,6 +35,11 @@
 
 void WorldSession::HandleAuctionBrowseQuery(WorldPackets::AuctionHouse::AuctionBrowseQuery& browseQuery)
 {
+#ifndef DISABLE_DRESSNPCS_CORESOUNDS
+    if (browseQuery.Auctioneer.IsAnyTypeCreature())
+        if (Creature* creature = _player->GetMap()->GetCreature(browseQuery.Auctioneer))
+            creature->SendMirrorSound(_player, 0);
+#endif
     AuctionThrottleResult throttle = sAuctionMgr->CheckThrottle(_player, browseQuery.TaintedBy.has_value());
     if (throttle.Throttled)
         return;
@@ -438,10 +443,10 @@ void WorldSession::HandleAuctionPlaceBid(WorldPackets::AuctionHouse::AuctionPlac
     if (canBuyout && placeBid.BidAmount == auction->BuyoutOrUnitPrice)
     {
         // buyout
-        auctionHouse->SendAuctionSold(auction, nullptr, trans);
-        auctionHouse->SendAuctionWon(auction, player, trans);
+        std::map<uint32, AuctionPosting>::node_type removedAuctionNode = auctionHouse->RemoveAuction(trans, auction);
 
-        auctionHouse->RemoveAuction(trans, auction);
+        auctionHouse->SendAuctionSold(&removedAuctionNode.mapped(), nullptr, trans);
+        auctionHouse->SendAuctionWon(&removedAuctionNode.mapped(), player, trans);
     }
     else
     {
@@ -574,7 +579,7 @@ void WorldSession::HandleAuctionReplicateItems(WorldPackets::AuctionHouse::Aucti
     SendPacket(response.Write());
 }
 
-void WorldSession::HandleAuctionRequestFavoriteList(WorldPackets::AuctionHouse::AuctionRequestFavoriteList& /*requestFavoriteList*/)
+void WorldSession::SendAuctionFavoriteList()
 {
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_FAVORITE_AUCTIONS);
     stmt->setUInt64(0, _player->GetGUID().GetCounter());

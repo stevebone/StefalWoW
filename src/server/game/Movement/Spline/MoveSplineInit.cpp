@@ -126,7 +126,10 @@ namespace Movement
             return std::max(28.0f, unit->GetSpeed(MOVE_RUN) * 4.0f);
         }();
 
-        args.velocity = std::min(args.velocity, speedLimit);
+        if (args.velocity >= 0.0f)
+            args.velocity = std::min(args.velocity, speedLimit);
+        else
+            args.velocity = std::max(args.velocity, -speedLimit);
 
         if (!args.Validate(unit))
             return 0;
@@ -183,7 +186,7 @@ namespace Movement
         WorldPackets::Movement::MonsterMove packet;
         packet.MoverGUID = unit->GetGUID();
         packet.Pos = Position(loc.x, loc.y, loc.z, loc.orientation);
-        packet.SplineData.StopDistanceTolerance = 2;
+        packet.SplineData.StopSplineStyle = 2;
         packet.SplineData.ID = move_spline.GetId();
 
         if (transport)

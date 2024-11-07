@@ -48,6 +48,9 @@
 #include "Util.h"
 #include "WorldStateMgr.h"
 #include <cstdarg>
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 
 template<class Do>
 void Battleground::BroadcastWorker(Do& _do)
@@ -115,6 +118,7 @@ Battleground::Battleground(Battleground const&) = default;
 
 Battleground::~Battleground()
 {
+
     // unload map
     if (m_Map)
     {
@@ -377,6 +381,11 @@ inline void Battleground::_ProcessJoin(uint32 diff)
     else if (GetStartDelayTime() <= 0 && !(m_Events & BG_STARTING_EVENT_4))
     {
         m_Events |= BG_STARTING_EVENT_4;
+
+#ifdef ELUNA
+        if (Eluna* e = GetBgMap()->GetEluna())
+            e->OnBGStart(this, GetTypeID(), GetInstanceID());
+#endif
 
         GetBgMap()->GetBattlegroundScript()->OnStart();
 
@@ -774,6 +783,11 @@ void Battleground::EndBattleground(Team winner)
 
         GetBgMap()->GetBattlegroundScript()->OnEnd(winner);
     }
+#ifdef ELUNA
+    //the type of the winner,change Team to BattlegroundTeamId,it could be better.
+    if (Eluna* e = GetBgMap()->GetEluna())
+        e->OnBGEnd(this, GetTypeID(), GetInstanceID(), Team(winner));
+#endif
 }
 
 uint32 Battleground::GetScriptId() const
@@ -1304,7 +1318,7 @@ void Battleground::UpdatePvpStat(Player* player, uint32 pvpStatId, uint32 value)
 
 uint32 Battleground::GetMapId() const
 {
-    return _battlegroundTemplate->BattlemasterEntry->MapID[0];
+    return _battlegroundTemplate->MapIDs.front();
 }
 
 void Battleground::SetBgMap(BattlegroundMap* map)
@@ -1380,6 +1394,7 @@ void Battleground::HandleKillPlayer(Player* victim, Player* killer)
 
         UpdatePlayerScore(killer, SCORE_HONORABLE_KILLS, 1);
         UpdatePlayerScore(killer, SCORE_KILLING_BLOWS, 1);
+        killer->UpdateCriteria(CriteriaType::KillPlayer, 1, 0, 0, victim);
 
         for (BattlegroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
         {
@@ -1388,7 +1403,10 @@ void Battleground::HandleKillPlayer(Player* victim, Player* killer)
                 continue;
 
             if (itr->second.Team == killerTeam && creditedPlayer->IsAtGroupRewardDistance(victim))
+            {
                 UpdatePlayerScore(creditedPlayer, SCORE_HONORABLE_KILLS, 1);
+                creditedPlayer->UpdateCriteria(CriteriaType::KillPlayer, 1, 0, 0, victim);
+            }
         }
     }
 

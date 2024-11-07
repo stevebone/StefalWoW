@@ -239,6 +239,8 @@ class TC_GAME_API CreatureAI : public UnitAI
         static bool IsInBounds(CreatureBoundary const& boundary, Position const* who);
         bool IsInBoundary(Position const* who = nullptr) const;
 
+        virtual void OnSuccessfulSpellCast(SpellInfo const* /*spell*/) { }
+
     protected:
         void EngagementStart(Unit* who);
         void EngagementOver();
