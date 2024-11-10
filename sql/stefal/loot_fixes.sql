@@ -1,10 +1,26 @@
 # Fishing
-INSERT INTO tc_world.fishing_loot_template VALUES (61, 1, 11000, 100, 0, 1, 1, 1,1,'Fishing ThunderFalls - Elwynn');
-INSERT INTO tc_world.reference_loot_template VALUES (11000, 0, 58899, 100, 1, 1, 1, 1,1,'Violet Perch');
+INSERT INTO fishing_loot_template VALUES (61, 1, 11000, 100, 0, 1, 1, 1,1,'Fishing ThunderFalls - Elwynn');
+INSERT INTO reference_loot_template VALUES (11000, 0, 58899, 100, 1, 1, 1, 1,1,'Violet Perch');
+
+INSERT INTO fishing_loot_template VALUES (5314, 1, 11027, 100, 0, 1, 1, 1,1,'Fishing Stormwind Lake - Elwynn');
+INSERT INTO reference_loot_template VALUES
+('11027', '0', '118', '0.4', '0', '1', '1', '1', '1', NULL),
+('11027', '0', '2455', '0.4', '0', '1', '1', '1', '1', NULL),
+('11027', '0', '6289', '25', '0', '1', '1', '1', '1', ''),
+('11027', '0', '6291', '0', '0', '1', '1', '1', '1', NULL),
+('11027', '0', '6292', '0.1', '0', '1', '1', '1', '1', NULL),
+('11027', '0', '6294', '0.07', '0', '1', '1', '1', '1', NULL),
+('11027', '0', '6295', '0.03', '0', '1', '1', '1', '1', NULL),
+('11027', '0', '6303', '15', '0', '1', '1', '1', '1', ''),
+('11027', '0', '6308', '10', '0', '1', '1', '1', '1', ''),
+('11027', '0', '6643', '2', '0', '1', '1', '1', '1', ''),
+('11027', '0', '6645', '2', '0', '1', '1', '1', '1', ''),
+('11027', '0', '58503', '100', '1', '1', '1', '1', '1', 'Hardened Walleye');
+
 
 # Items
 # Bag of shiny things
-INSERT INTO tc_world.item_loot_template VALUES
+INSERT INTO item_loot_template VALUES
 (67414, 0, 6532, 40, 0, 1, 1, 1, 3, 'Bag of shiny things'),
 (67414, 0, 8827, 15, 0, 1, 1, 1, 2, 'Bag of shiny things'),
 (67414, 0, 3820, 15, 0, 1, 1, 2, 5, 'Bag of shiny things'),
