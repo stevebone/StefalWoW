@@ -137,6 +137,7 @@ bool IsFinishingMove(Spell const* spell)
     return GetFinishingMoveCPCost(spell).has_value();
 }
 
+
 // 455143 - Acrobatic Strikes
 class spell_rog_acrobatic_strikes : public AuraScript
 {
