@@ -299,6 +299,9 @@ void WorldSession::HandleBattlegroundPlayerPositionsOpcode(WorldPackets::Battleg
     //end npcbot
 
     if (ObjectGuid guid = bg->GetFlagPickerGUID(TEAM_ALLIANCE))
+    //npcbot
+    {
+    //end npcbot
         if (Player* allianceFlagCarrier = ObjectAccessor::GetPlayer(*_player, guid))
             playerPositions.FlagCarriers.emplace_back(guid, allianceFlagCarrier->GetPosition());
         //npcbot
@@ -308,9 +311,13 @@ void WorldSession::HandleBattlegroundPlayerPositionsOpcode(WorldPackets::Battleg
             if (afcbot)
                 playerPositions.FlagCarriers.emplace_back(guid, afcbot->GetPosition());
         }
+    }
         //end npcbot
 
     if (ObjectGuid guid = bg->GetFlagPickerGUID(TEAM_HORDE))
+    //npcbot
+    {
+    //end npcbot
         if (Player* hordeFlagCarrier = ObjectAccessor::GetPlayer(*_player, guid))
             playerPositions.FlagCarriers.emplace_back(guid, hordeFlagCarrier->GetPosition());
         //npcbot
@@ -320,6 +327,7 @@ void WorldSession::HandleBattlegroundPlayerPositionsOpcode(WorldPackets::Battleg
             if (hfcbot)
                 playerPositions.FlagCarriers.emplace_back(guid, hfcbot->GetPosition());
         }
+    }
         //end npcbot
 
     SendPacket(playerPositions.Write());
