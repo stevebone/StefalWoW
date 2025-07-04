@@ -559,11 +559,11 @@ void BattlegroundAB::EventBotClickedOnFlag(Creature* bot, GameObject* /*target_o
         return;
 
     uint8 node = BG_AB_NODE_STABLES;
-    GameObject* obj = GetBgMap()->GetGameObject(BgObjects[node*8+7]);
+    GameObject* obj = GetBgMap()->GetGameObject(BgObjects[node * 8 + 7]);
     while ((node < BG_AB_DYNAMIC_NODES_COUNT) && ((!obj) || (!bot->IsWithinDistInMap(obj, 10))))
     {
         ++node;
-        obj = GetBgMap()->GetGameObject(BgObjects[node*8+BG_AB_OBJECT_AURA_CONTESTED]);
+        obj = GetBgMap()->GetGameObject(BgObjects[node * 8 + BG_AB_OBJECT_AURA_CONTESTED]);
     }
 
     if (node == BG_AB_DYNAMIC_NODES_COUNT)
@@ -575,7 +575,7 @@ void BattlegroundAB::EventBotClickedOnFlag(Creature* bot, GameObject* /*target_o
     TeamId teamIndex = GetBotTeamId(bot->GetGUID());
 
     // Check if player really could use this banner, not cheated
-    if (!(m_Nodes[node] == 0 || teamIndex == m_Nodes[node]%2))
+    if (!(m_Nodes[node] == 0 || teamIndex == m_Nodes[node] % 2))
         return;
 
     bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
@@ -681,12 +681,12 @@ bool BattlegroundAB::IsNodeOccupied(uint8 node, TeamId teamId) const
     {
         switch (teamId)
         {
-            case TEAM_ALLIANCE:
-                return m_Nodes[node] == BG_AB_NODE_STATUS_ALLY_OCCUPIED;
-            case TEAM_HORDE:
-                return m_Nodes[node] == BG_AB_NODE_STATUS_HORDE_OCCUPIED;
-            default:
-                break;
+        case TEAM_ALLIANCE:
+            return m_Nodes[node] == BG_AB_NODE_STATUS_ALLY_OCCUPIED;
+        case TEAM_HORDE:
+            return m_Nodes[node] == BG_AB_NODE_STATUS_HORDE_OCCUPIED;
+        default:
+            break;
         }
     }
 
@@ -698,18 +698,19 @@ bool BattlegroundAB::IsNodeContested(uint8 node, TeamId teamId) const
     {
         switch (teamId)
         {
-            case TEAM_ALLIANCE:
-                return m_Nodes[node] == BG_AB_NODE_STATUS_ALLY_CONTESTED;
-            case TEAM_HORDE:
-                return m_Nodes[node] == BG_AB_NODE_STATUS_HORDE_CONTESTED;
-            default:
-                break;
+        case TEAM_ALLIANCE:
+            return m_Nodes[node] == BG_AB_NODE_STATUS_ALLY_CONTESTED;
+        case TEAM_HORDE:
+            return m_Nodes[node] == BG_AB_NODE_STATUS_HORDE_CONTESTED;
+        default:
+            break;
         }
     }
 
     return false;
 }
 //end npcbot
+
 
 uint32 BattlegroundAB::GetPrematureWinner()
 {

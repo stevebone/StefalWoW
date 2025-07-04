@@ -29,30 +29,30 @@ Complete - 100%
 enum SeaWitchBaseSpells
 {
     //AUTO_SHOT_1                         = 75,
-    SHOOT_BOW_1                         = SPELL_SHOOT_BOW,
-    FORKED_LIGHTNING_1                  = SPELL_FORKED_LIGHTNING,
-    FROST_ARROW_1                       = SPELL_FROST_ARROW,
-    MANA_SHIELD_1                       = SPELL_MANA_SHIELD,
-    TORNADO_1                           = SPELL_TORNADO
+    SHOOT_BOW_1 = SPELL_SHOOT_BOW,
+    FORKED_LIGHTNING_1 = SPELL_FORKED_LIGHTNING,
+    FROST_ARROW_1 = SPELL_FROST_ARROW,
+    MANA_SHIELD_1 = SPELL_MANA_SHIELD,
+    TORNADO_1 = SPELL_TORNADO
 };
 enum SeaWitchPassives
 {
 };
 enum SeaWitchSpecial
 {
-    MH_ATTACK_ANIM                      = SPELL_ATTACK_MELEE_1H,
+    MH_ATTACK_ANIM = SPELL_ATTACK_MELEE_1H,
 
-    FORKEDLIGHTNING_COST                = 110 * 5,
-    FROSTARROW_COST                     = 10 * 5,
-    TORNADO_COST                        = 250 * 5,
+    FORKEDLIGHTNING_COST = 110 * 5,
+    FROSTARROW_COST = 10 * 5,
+    TORNADO_COST = 250 * 5,
 
-    FORKED_LIGHTNING_EFFECT             = SPELL_FORKED_LIGHTNING_EFFECT,
-    FROST_ARROW_EFFECT                  = SPELL_FROST_ARROW_EFFECT,
+    FORKED_LIGHTNING_EFFECT = SPELL_FORKED_LIGHTNING_EFFECT,
+    FROST_ARROW_EFFECT = SPELL_FROST_ARROW_EFFECT,
 
-    NAGA_SWIM_PASSIVE                   = 40513,
-    SPELL_THREAT_MOD                    = 31745, //Salvation
+    NAGA_SWIM_PASSIVE = 40513,
+    SPELL_THREAT_MOD = 31745, //Salvation
 
-    SPELL_PARALYTIC_POISON              = 35201
+    SPELL_PARALYTIC_POISON = 35201
 };
 
 static constexpr size_t TORNADO_MIN_TARGETS = 4u;
@@ -125,7 +125,7 @@ public:
         void JustEnteredCombat(Unit* u) override { bot_ai::JustEnteredCombat(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { /*UnsummonAll();*/ bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { /*UnsummonAll(false);*/ bot_ai::JustDied(u); }
         void DoNonCombatActions(uint32 /*diff*/) { }
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
 
@@ -184,14 +184,14 @@ public:
                     _spell_preact = false;
                     switch (baseId)
                     {
-                        case TORNADO_1:
+                    case TORNADO_1:
                         //    BotSay("REAP THE STORM!");
                         //[[fallthrough]];
-                        case FORKED_LIGHTNING_1:
-                            me->CastSpell(me, MH_ATTACK_ANIM, true);
-                            break;
-                        default:
-                            break;
+                    case FORKED_LIGHTNING_1:
+                        me->CastSpell(me, MH_ATTACK_ANIM, true);
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
@@ -288,7 +288,7 @@ public:
             GetNearbyTargetsList(targets, 40.f, 0);
             targets.erase(std::remove_if(targets.begin(), targets.end(), [healthThreshold = uint32(me->GetMaxHealth() / 4 * 3)](Unit const* u) {
                 return u->GetHealth() < healthThreshold;
-            }), targets.end());
+                }), targets.end());
 
             size_t targets_count = (IAmFree() || !master->GetGroup()) ? TORNADO_MIN_TARGETS : std::max<size_t>(master->GetGroup()->GetMemberSlots().size() / 3, TORNADO_MIN_TARGETS);
             if (targets.size() >= targets_count)
@@ -323,7 +323,7 @@ public:
         {
             if (IsInContactWithWater())
             {
-                //TC_LOG_ERROR("scripts", "ApplyClassDamageMultiplierMelee: {} now in water", me->GetName());
+                //BOT_LOG_ERROR("scripts", "ApplyClassDamageMultiplierMelee: {} now in water", me->GetName());
                 damage *= 3;
             }
         }
@@ -332,7 +332,7 @@ public:
         {
             if (IsInContactWithWater())
             {
-                //TC_LOG_ERROR("scripts", "ApplyClassDamageMultiplierMelee: {} now in water", me->GetName());
+                //BOT_LOG_ERROR("scripts", "ApplyClassDamageMultiplierMelee: {} now in water", me->GetName());
                 damage *= 3;
             }
         }
@@ -346,7 +346,7 @@ public:
 
             if (IsInContactWithWater())
             {
-                //TC_LOG_ERROR("scripts", "ApplyClassDamageMultiplierSpell: {} now in water", me->GetName());
+                //BOT_LOG_ERROR("scripts", "ApplyClassDamageMultiplierSpell: {} now in water", me->GetName());
                 fdamage *= 3.f;
             }
 
@@ -405,15 +405,15 @@ public:
             {
                 switch (lvl / 10)
                 {
-                    case 8: targets = 666; break;
-                    case 7: targets =  10; break;
-                    case 6: targets =   7; break;
-                    case 5: targets =   6; break;
-                    case 4: targets =   5; break;
-                    case 3: targets =   4; break;
-                    case 2: targets =   3; break;
-                    case 1: targets =   3; break;
-                    default:               break;
+                case 8: targets = 666; break;
+                case 7: targets = 10; break;
+                case 6: targets = 7; break;
+                case 5: targets = 6; break;
+                case 4: targets = 5; break;
+                case 3: targets = 4; break;
+                case 2: targets = 3; break;
+                case 1: targets = 3; break;
+                default:               break;
                 }
             }
         }
@@ -428,9 +428,9 @@ public:
             {
                 switch (lvl / 10)
                 {
-                    case 8: case 7: case 6: value = -70; break;
-                    case 5: case 4:         value = -50; break;
-                    default:                             break;
+                case 8: case 7: case 6: value = -70; break;
+                case 5: case 4:         value = -50; break;
+                default:                             break;
                 }
             }
 
@@ -456,12 +456,12 @@ public:
             uint32 baseId = spellInfo->GetFirstRankSpell()->Id;
             switch (baseId)
             {
-                case FORKED_LIGHTNING_1:
-                case TORNADO_1:
-                    _spell_preact = true;
-                    break;
-                default:
-                    break;
+            case FORKED_LIGHTNING_1:
+            case TORNADO_1:
+                _spell_preact = true;
+                break;
+            default:
+                break;
             }
         }
 
@@ -471,26 +471,26 @@ public:
 
             switch (baseId)
             {
-                case FROST_ARROW_1:
-                case FORKED_LIGHTNING_1:
-                case TORNADO_1:
+            case FROST_ARROW_1:
+            case FORKED_LIGHTNING_1:
+            case TORNADO_1:
+            {
+                uint32 attackTime = uint32(me->GetAttackTime(RANGED_ATTACK) * me->m_modAttackSpeedPct[RANGED_ATTACK]);
+                if (baseId == FROST_ARROW_1)
                 {
-                    uint32 attackTime = uint32(me->GetAttackTime(RANGED_ATTACK) * me->m_modAttackSpeedPct[RANGED_ATTACK]);
-                    if (baseId == FROST_ARROW_1)
-                    {
-                        uint32 castTime = spellInfo->CalcCastTime();
-                        GC_Timer = castTime >= attackTime ? 0 : attackTime - castTime;
-                    }
-                    if (baseId == FORKED_LIGHTNING_1 || baseId == TORNADO_1)
-                    {
-                        me->resetAttackTimer();
-                        GC_Timer = attackTime;
-                        //me->CastSpell(me, MH_ATTACK_ANIM, true);
-                    }
-                    break;
+                    uint32 castTime = spellInfo->CalcCastTime();
+                    GC_Timer = castTime >= attackTime ? 0 : attackTime - castTime;
                 }
-                default:
-                    break;
+                if (baseId == FORKED_LIGHTNING_1 || baseId == TORNADO_1)
+                {
+                    me->resetAttackTimer();
+                    GC_Timer = attackTime;
+                    //me->CastSpell(me, MH_ATTACK_ANIM, true);
+                }
+                break;
+            }
+            default:
+                break;
             }
 
             if (baseId == TORNADO_1)
@@ -605,7 +605,7 @@ public:
         void SummonBotPet()
         {
             if (!_minions.empty())
-                UnsummonAll();
+                UnsummonAll(false);
 
             Position spos;
             if (Unit const* mytar = me->GetVictim())
@@ -630,22 +630,21 @@ public:
             _minions.insert(myPet);
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool savePets = true) override
         {
-            while (!_minions.empty())
-                (*_minions.begin())->ToTempSummon()->UnSummon();
+            UnsummonCreatures(_minions, savePets);
         }
 
         void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override
         {
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDies: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDies: {}'s {}", me->GetName(), summon->GetName());
             //if (summon == botPet)
             //    botPet = nullptr;
         }
 
         void SummonedCreatureDespawn(Creature* summon) override
         {
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
             if (_minions.find(summon) != _minions.end())
                 _minions.erase(summon);
         }
@@ -659,16 +658,16 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_PET_TYPE:
-                    return BOT_PET_TORNADO;
-                default:
-                    return 0;
+            case BOTAI_MISC_PET_TYPE:
+                return BOT_PET_TORNADO;
+            default:
+                return 0;
             }
         }
 
         void Reset() override
         {
-            UnsummonAll();
+            UnsummonAll(false);
 
             _spell_preact = false;
 
@@ -721,7 +720,7 @@ public:
         //}
 
         bool HasAbilitiesSpecifics() const override { return true; }
-        void FillAbilitiesSpecifics(Player const* player, std::list<std::string> &specList) override
+        void FillAbilitiesSpecifics(Player const* player, std::list<std::string>& specList) override
         {
             bool amount_is_mana = true;
             float amount = AssertBotSpellInfoOverride(MANA_SHIELD_1)->GetEffect(EFFECT_0).CalcValueMultiplier(me); //mana per damage
@@ -757,7 +756,7 @@ public:
             return &Seawitch_spells_support;
         }
     private:
-        typedef std::set<Unit*> Summons;
+        typedef std::set<Creature*> Summons;
         Summons _minions;
 
         bool _spell_preact;
@@ -766,15 +765,15 @@ public:
         {
             switch (me->GetLevel() / 10)
             {
-                case 8: return 1.f / 100.00f;
-                case 7: return 1.f /  50.00f;
-                case 6: return 1.f /  20.00f;
-                case 5: return 1.f /  10.00f;
-                case 4: return 1.f /   4.00f;
-                case 3: return 1.f /   2.50f;
-                case 2: return 1.f /   1.67f;
-                case 1: return 1.f /   1.25f;
-                default:return 1.f /   1.00f;
+            case 8: return 1.f / 100.00f;
+            case 7: return 1.f / 50.00f;
+            case 6: return 1.f / 20.00f;
+            case 5: return 1.f / 10.00f;
+            case 4: return 1.f / 4.00f;
+            case 3: return 1.f / 2.50f;
+            case 2: return 1.f / 1.67f;
+            case 1: return 1.f / 1.25f;
+            default:return 1.f / 1.00f;
             }
         }
     };

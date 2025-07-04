@@ -644,7 +644,7 @@ class spell_sha_flametongue_weapon : public AuraScript
         Creature* bot = eventInfo.GetActor()->ToCreature();
         if (bot && bot->IsNPCBot())
         {
-            Unit* target = eventInfo.GetProcTarget();
+            Unit* target = eventInfo.GetActionTarget();
             WeaponAttackType attType;
             if (eventInfo.GetTypeMask() & PROC_FLAG_DONE_MAINHAND_ATTACK)
                 attType = BASE_ATTACK;
@@ -1981,7 +1981,7 @@ class spell_sha_windfury_weapon : public AuraScript
             args.AddSpellBP0(amount);
             // Attack twice
             for (uint8 i = 0; i < 2; ++i)
-                bot->CastSpell(eventInfo.GetProcTarget(), spellId, args);
+                bot->CastSpell(eventInfo.GetActionTarget(), spellId, args);
 
             return;
         }

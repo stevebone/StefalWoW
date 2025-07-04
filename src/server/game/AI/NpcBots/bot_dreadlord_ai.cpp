@@ -24,26 +24,26 @@ TODO:
 
 enum DreadlordBaseSpells
 {
-    CARRION_SWARM_1         = SPELL_CARRION_SWARM,
-    SLEEP_1                 = SPELL_SLEEP,
-    INFERNO_1               = SPELL_INFERNO
+    CARRION_SWARM_1 = SPELL_CARRION_SWARM,
+    SLEEP_1 = SPELL_SLEEP,
+    INFERNO_1 = SPELL_INFERNO
 };
 enum DreadlordPassives
 {
-    VAMPIRIC_AURA           = SPELL_VAMPIRIC_AURA,
+    VAMPIRIC_AURA = SPELL_VAMPIRIC_AURA,
 };
 enum DreadlordSpecial
 {
-    MH_ATTACK_ANIM          = SPELL_ATTACK_MELEE_1H,
+    MH_ATTACK_ANIM = SPELL_ATTACK_MELEE_1H,
 
-    CARRION_COST            = 110 * 5,
-    SLEEP_COST              = 50 * 5,
-    INFERNAL_COST           = 175 * 5,
+    CARRION_COST = 110 * 5,
+    SLEEP_COST = 50 * 5,
+    INFERNAL_COST = 175 * 5,
 
-    DAMAGE_CD_REDUCTION     = 250,//ms
-    INFERNO_SPAWN_DELAY     = 650,//ms
+    DAMAGE_CD_REDUCTION = 250,//ms
+    INFERNO_SPAWN_DELAY = 650,//ms
 
-    IMMOLATION              = 39007
+    IMMOLATION = 39007
 };
 
 static const uint32 Dreadlord_spells_damage_arr[] =
@@ -68,26 +68,26 @@ public:
     {
         return new dreadlord_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct dreadlord_botAI : public bot_ai
     {
     private:
@@ -95,20 +95,20 @@ public:
         //Impact anim, spawn, linked effects
         class DelayedPetSpawnEvent : public BasicEvent
         {
-            public:
-                DelayedPetSpawnEvent(Creature const* bot, Position const* pos) : _bot(bot), _pos(pos) { }
+        public:
+            DelayedPetSpawnEvent(Creature const* bot, Position const* pos) : _bot(bot), _pos(pos) { }
 
-            protected:
-                bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
-                {
-                    ((dreadlord_botAI*)_bot->AI())->SummonBotPet(_pos);
-                    return true;
-                }
+        protected:
+            bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
+            {
+                ((dreadlord_botAI*)_bot->AI())->SummonBotPet(_pos);
+                return true;
+            }
 
-            private:
-                Creature const* _bot;
-                Position const* _pos;
-                DelayedPetSpawnEvent(DelayedPetSpawnEvent const&);
+        private:
+            Creature const* _bot;
+            Position const* _pos;
+            DelayedPetSpawnEvent(DelayedPetSpawnEvent const&);
         };
 
     public:
@@ -154,7 +154,7 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { UnsummonAll(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonAll(false); bot_ai::JustDied(u); }
         void DoNonCombatActions(uint32 /*diff*/) { }
 
         void CheckAura(uint32 diff)
@@ -240,9 +240,9 @@ public:
             if (IsSpellReady(CARRION_SWARM_1, diff) && me->GetPower(POWER_MANA) >= CARRION_COST && Rand() < 80)
             {
                 bool cast = false;
-                if (me->HasInArc(float(M_PI)/2, mytar) && me->GetDistance(mytar) < 25 &&
+                if (me->HasInArc(float(M_PI) / 2, mytar) && me->GetDistance(mytar) < 25 &&
                     (IsTank() || GetManaPCT(me) > 60 || me->getAttackers().empty() || GetHealthPCT(me) < 50 ||
-                    mytar->HasAura(SLEEP_1)))
+                        mytar->HasAura(SLEEP_1)))
                 {
                     cast = true;
                 }
@@ -270,7 +270,7 @@ public:
             //fleeing/casting/solo enemy
             Unit* u = me->GetVictim();
             if (u && IsSpellReady(CARRION_SWARM_1, diff, false) && !CCed(u) && me->GetDistance(u) < CalcSpellMaxRange(SLEEP_1) &&
-                (u->IsNonMeleeSpellCast(false,false, true) || (u->IsInCombat() && u->getAttackers().size() == 1)))
+                (u->IsNonMeleeSpellCast(false, false, true) || (u->IsInCombat() && u->getAttackers().size() == 1)))
             {
                 if (doCast(u, GetSpell(SLEEP_1)))
                     return;
@@ -363,7 +363,7 @@ public:
             if (damage && victim != me && spellInfo && spellInfo->GetFirstRankSpell()->Id == CARRION_SWARM_1)
             {
                 int32 basepoints0 = std::min<uint32>(damage, victim->GetHealth());
-                //TC_LOG_ERROR("entities.unit", "OnBotDamageDealt(drl): {} on {} base val {} ({}),",
+                //BOT_LOG_ERROR("entities.unit", "OnBotDamageDealt(drl): {} on {} base val {} ({}),",
                 //    me->GetName(), victim->GetName(), int32(damage), spellInfo->SpellName[0]);
                 CastSpellExtraArgs args(true);
                 args.AddSpellBP0(basepoints0);
@@ -412,7 +412,7 @@ public:
         void SummonBotPet(Position const* sPos)
         {
             if (botPet)
-                UnsummonAll();
+                UnsummonAll(false);
 
             uint32 entry = BOT_PET_INFERNAL;
 
@@ -452,10 +452,9 @@ public:
             botPet = myPet;
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool savePets = true) override
         {
-            if (botPet)
-                botPet->ToTempSummon()->UnSummon();
+            UnsummonPet(savePets);
         }
 
         void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override
@@ -464,7 +463,7 @@ public:
 
         void SummonedCreatureDespawn(Creature* summon) override
         {
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
             if (summon == botPet)
                 botPet = nullptr;
         }
@@ -473,10 +472,10 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_PET_TYPE:
-                    return BOT_PET_INFERNAL;
-                default:
-                    return 0;
+            case BOTAI_MISC_PET_TYPE:
+                return BOT_PET_INFERNAL;
+            default:
+                return 0;
             }
         }
 
@@ -512,10 +511,10 @@ public:
         {
             switch (basespell)
             {
-                case CARRION_SWARM_1:
-                    return true;
-                default:
-                    return false;
+            case CARRION_SWARM_1:
+                return true;
+            default:
+                return false;
             }
         }
 

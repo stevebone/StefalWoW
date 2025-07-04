@@ -189,9 +189,9 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
             {
                 if (mslot.guid.IsCreature() && _player->GetBotMgr()->GetBot(mslot.guid))
                 {
-                    WorldPacket data;
-                    sBattlegroundMgr->BuildGroupJoinedBattlegroundPacket(&data, ERR_BATTLEGROUND_JOIN_FAILED);
-                    _player->SendDirectMessage(&data);
+                    WorldPackets::Battleground::BattlefieldStatusFailed battlefieldStatus;
+                    BattlegroundMgr::BuildBattlegroundStatusFailed(&battlefieldStatus, ERR_BATTLEGROUND_JOIN_FAILED);
+                    SendPacket(battlefieldStatus.Write());
                     return;
                 }
             }
@@ -273,8 +273,8 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
                 if (!bot || !grp->IsMember(bot->GetGUID()))
                     continue;
 
-                TC_LOG_DEBUG("bg.battleground", "Battleground: NPCBot joined queue for bg queue type {} bg type {}: GUID {}, NAME {} (owner: {})",
-                    bgQueueTypeId, bgTypeId, bot->GetGUID().ToString(), bot->GetName(), member->GetName());
+                TC_LOG_DEBUG("bg.battleground", "Battleground: NPCBot joined queue for bg type {}: GUID {}, NAME {} (owner: {})",
+                    bgQueueTypeId.BattlemasterListId, bot->GetGUID().ToString(), bot->GetName(), member->GetName());
             }
             //end npcbot
 

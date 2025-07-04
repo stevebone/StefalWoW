@@ -21,150 +21,150 @@ TODO:
 
 enum RogueBaseSpells
 {
-    KICK_1                              = 1766,
-    EXPOSE_ARMOR_1                      = 8647, //NYI
-    FEINT_1                             = 1966,
-    DISMANTLE_1                         = 51722,
+    KICK_1 = 1766,
+    EXPOSE_ARMOR_1 = 8647, //NYI
+    FEINT_1 = 1966,
+    DISMANTLE_1 = 51722,
 
-    BACKSTAB_1                          = 53,
-    SINISTER_STRIKE_1                   = 1752,
-    EVISCERATE_1                        = 2098,
-    ENVENOM_1                           = 32645,
-    RUPTURE_1                           = 1943,
-    MUTILATE_1                          = 1329,
-    HEMORRHAGE_1                        = 16511,
-    GHOSTLY_STRIKE_1                    = 14278,
-    RIPOSTE_1                           = 14251,
-    DEADLY_THROW_1                      = 26679,
-    FAN_OF_KNIVES_1                     = 51723,
+    BACKSTAB_1 = 53,
+    SINISTER_STRIKE_1 = 1752,
+    EVISCERATE_1 = 2098,
+    ENVENOM_1 = 32645,
+    RUPTURE_1 = 1943,
+    MUTILATE_1 = 1329,
+    HEMORRHAGE_1 = 16511,
+    GHOSTLY_STRIKE_1 = 14278,
+    RIPOSTE_1 = 14251,
+    DEADLY_THROW_1 = 26679,
+    FAN_OF_KNIVES_1 = 51723,
 
-    SPRINT_1                            = 2983,
-    EVASION_1                           = 5277,
-    BLIND_1                             = 2094,
-    VANISH_1                            = 1856,
-    COLD_BLOOD_1                        = 14177,
-    HUNGER_FOR_BLOOD_1                  = 51662,
-    ADRENALINE_RUSH_1                   = 13750,
-    KILLING_SPREE_1                     = 51690,
-    PREPARATION_1                       = 14185,
-    PREMEDITATION_1                     = 14183,
+    SPRINT_1 = 2983,
+    EVASION_1 = 5277,
+    BLIND_1 = 2094,
+    VANISH_1 = 1856,
+    COLD_BLOOD_1 = 14177,
+    HUNGER_FOR_BLOOD_1 = 51662,
+    ADRENALINE_RUSH_1 = 13750,
+    KILLING_SPREE_1 = 51690,
+    PREPARATION_1 = 14185,
+    PREMEDITATION_1 = 14183,
 
-    GOUGE_1                             = 1776,
+    GOUGE_1 = 1776,
 
-    KIDNEY_SHOT_1                       = 408,
-    SLICE_DICE_1                        = 5171,
-    BLADE_FLURRY_1                      = 13877,
-    SHADOWSTEP_1                        = 36554,
-    CLOAK_OF_SHADOWS_1                  = 31224,
-    TRICKS_OF_THE_TRADE_1               = 57934,
-    SHADOW_DANCE_1                      = 51713,
+    KIDNEY_SHOT_1 = 408,
+    SLICE_DICE_1 = 5171,
+    BLADE_FLURRY_1 = 13877,
+    SHADOWSTEP_1 = 36554,
+    CLOAK_OF_SHADOWS_1 = 31224,
+    TRICKS_OF_THE_TRADE_1 = 57934,
+    SHADOW_DANCE_1 = 51713,
 
-    STEALTH_1                           = 1784,
-    SAP_1                               = 6770, //NYI
-    GARROTE_1                           = 703,
-    CHEAP_SHOT_1                        = 1833,
-    AMBUSH_1                            = 8676,
+    STEALTH_1 = 1784,
+    SAP_1 = 6770, //NYI
+    GARROTE_1 = 703,
+    CHEAP_SHOT_1 = 1833,
+    AMBUSH_1 = 8676,
 
-    DISTRACT_1                          = 1725, //NYI
-    DISARM_TRAP_1                       = 1842, //Unused, see bot_ai::ProcessImmediateNonAttackTarget()
+    DISTRACT_1 = 1725, //NYI
+    DISARM_TRAP_1 = 1842, //Unused, see bot_ai::ProcessImmediateNonAttackTarget()
 
     //Poisons
-    CRIPPLING_POISON_1                  = 3408,
-    INSTANT_POISON_1                    = 8679,
-    DEADLY_POISON_1                     = 2823,
-    WOUND_POISON_1                      = 13219,
-    MIND_NUMBING_POISON_1               = 5761, //manual use only
-    ANESTHETIC_POISON_1                 = 26785,
+    CRIPPLING_POISON_1 = 3408,
+    INSTANT_POISON_1 = 8679,
+    DEADLY_POISON_1 = 2823,
+    WOUND_POISON_1 = 13219,
+    MIND_NUMBING_POISON_1 = 5761, //manual use only
+    ANESTHETIC_POISON_1 = 26785,
 
-    PICK_LOCK_1                         = 1804
+    PICK_LOCK_1 = 1804
 };
 
 enum RoguePassives
 {
     //Talents
-    SEAL_FATE1                          = 14189,
-    SEAL_FATE2                          = 14190,
-    SEAL_FATE3                          = 14193,
-    SEAL_FATE4                          = 14194,
-    SEAL_FATE5                          = 14195,
-    COMBAT_POTENCY1                     = 35541,
-    COMBAT_POTENCY2                     = 35550,
-    COMBAT_POTENCY3                     = 35551,
-    COMBAT_POTENCY4                     = 35552,
-    COMBAT_POTENCY5                     = 35553,
-    QUICK_RECOVERY1                     = 31244,
-    QUICK_RECOVERY2                     = 31245,
+    SEAL_FATE1 = 14189,
+    SEAL_FATE2 = 14190,
+    SEAL_FATE3 = 14193,
+    SEAL_FATE4 = 14194,
+    SEAL_FATE5 = 14195,
+    COMBAT_POTENCY1 = 35541,
+    COMBAT_POTENCY2 = 35550,
+    COMBAT_POTENCY3 = 35551,
+    COMBAT_POTENCY4 = 35552,
+    COMBAT_POTENCY5 = 35553,
+    QUICK_RECOVERY1 = 31244,
+    QUICK_RECOVERY2 = 31245,
     //BLADE_TWISTING1                     = 31124,
     //BLADE_TWISTING2                     = 31126,
-    DEADLY_BREW                         = 51626,//rank 2
-    IMPROVED_KIDNEY_SHOT                = 14176,//rank 3
-    VIGOR                               = 14983,
-    REMORSELESS_ATTACKS                 = 14148,//rank 2
-    FLEET_FOOTED                        = 31209,//rank 2
-    MURDER                              = 14159,//rank 2
-    OVERKILL                            = 58426,
-    FOCUSED_ATTACKS                     = 51636,//rank 3
-    MASTER_POISONER                     = 58410,//rank 3
-    DUAL_WIELD_SPECIALIZATION           = 13852,//rank 5
-    IMPROVED_KICK                       = 13867,//rank 2
-    IMPROVED_SPRINT                     = 13875,//rank 2
-    HACK_AND_SLASH                      = 13964,//rank 5
-    VITALITY                            = 61329,//rank 3
-    NERVES_OF_STEEL                     = 31131,//rank 2
-    THROWING_SPECIALIZATION             = 51679,//rank 2
+    DEADLY_BREW = 51626,//rank 2
+    IMPROVED_KIDNEY_SHOT = 14176,//rank 3
+    VIGOR = 14983,
+    REMORSELESS_ATTACKS = 14148,//rank 2
+    FLEET_FOOTED = 31209,//rank 2
+    MURDER = 14159,//rank 2
+    OVERKILL = 58426,
+    FOCUSED_ATTACKS = 51636,//rank 3
+    MASTER_POISONER = 58410,//rank 3
+    DUAL_WIELD_SPECIALIZATION = 13852,//rank 5
+    IMPROVED_KICK = 13867,//rank 2
+    IMPROVED_SPRINT = 13875,//rank 2
+    HACK_AND_SLASH = 13964,//rank 5
+    VITALITY = 61329,//rank 3
+    NERVES_OF_STEEL = 31131,//rank 2
+    THROWING_SPECIALIZATION = 51679,//rank 2
     //SAVAGE_COMBAT                       = 58413,//rank 2
-    UNFAIR_ADVANTAGE                    = 51674,//rank 2
-    SURPRISE_ATTACKS                    = 32601,
-    PREY_ON_THE_WEAK                    = 51689,//rank 5
-    MASTER_OF_DECEPTION                 = 13971,//rank 3
-    SETUP                               = 14071,//rank 3
-    INITIATIVE                          = 13980,//rank 3
-    DIRTY_DEEDS                         = 14083,//rank 2
-    MASTER_OF_SUBTLETY                  = 31223,//rank 3
-    CHEAT_DEATH                         = 31230,//rank 3
-    ENVELOPING_SHADOWS                  = 31213,//rank 3
-    TURN_THE_TABLES                     = 51629,//rank 3
-    HONOR_AMONG_THIEVES                 = 51701,//rank 3
+    UNFAIR_ADVANTAGE = 51674,//rank 2
+    SURPRISE_ATTACKS = 32601,
+    PREY_ON_THE_WEAK = 51689,//rank 5
+    MASTER_OF_DECEPTION = 13971,//rank 3
+    SETUP = 14071,//rank 3
+    INITIATIVE = 13980,//rank 3
+    DIRTY_DEEDS = 14083,//rank 2
+    MASTER_OF_SUBTLETY = 31223,//rank 3
+    CHEAT_DEATH = 31230,//rank 3
+    ENVELOPING_SHADOWS = 31213,//rank 3
+    TURN_THE_TABLES = 51629,//rank 3
+    HONOR_AMONG_THIEVES = 51701,//rank 3
 
     //Other
-    VIGOR_GLADIATOR                     = 21975,
-    GLYPH_BACKSTAB                      = 56800,
+    VIGOR_GLADIATOR = 21975,
+    GLYPH_BACKSTAB = 56800,
 
-    ROGUE_PASSIVE_DND                   = 21184 //from playercreateinfo_spell
+    ROGUE_PASSIVE_DND = 21184 //from playercreateinfo_spell
 };
 
 enum RogueSpecial
 {
-    MUTILATE_DAMAGE_MAINHAND_1          = 5374,
-    MUTILATE_DAMAGE_OFFHAND_1           = 27576,
+    MUTILATE_DAMAGE_MAINHAND_1 = 5374,
+    MUTILATE_DAMAGE_OFFHAND_1 = 27576,
 
     //TURN_THE_TABLES_BUFF                = 52910,//'rank 3'
-    HUNGER_FOR_BLOOD_BUFF               = 63848,
-    WAYLAY_DEBUFF                       = 51693,
-    REMORSELESS_ATTACKS_BUFF            = 14149,
-    CHEATING_DEATH_BUFF                 = 45182, //hidden
-    TRICKS_OF_THE_TRADE_BUFF            = 57933,
+    HUNGER_FOR_BLOOD_BUFF = 63848,
+    WAYLAY_DEBUFF = 51693,
+    REMORSELESS_ATTACKS_BUFF = 14149,
+    CHEATING_DEATH_BUFF = 45182, //hidden
+    TRICKS_OF_THE_TRADE_BUFF = 57933,
 
-    RELENTLESS_STRIKES_EFFECT           = 14181,
-    RUTHLESSNESS_EFFECT                 = 14157,
-    SEAL_FATE_EFFECT                    = 14189,
-    SETUP_EFFECT                        = 15250,
-    INITIATIVE_EFFECT                   = 13977,
-    HONOR_AMONG_THIEVES_EFFECT          = 51699,
+    RELENTLESS_STRIKES_EFFECT = 14181,
+    RUTHLESSNESS_EFFECT = 14157,
+    SEAL_FATE_EFFECT = 14189,
+    SETUP_EFFECT = 15250,
+    INITIATIVE_EFFECT = 13977,
+    HONOR_AMONG_THIEVES_EFFECT = 51699,
 
-    VANISH_TRIGGERED_1                  = 11327,
-    VANISH_TRIGGERED_2                  = 11329,
-    VANISH_TRIGGERED_3                  = 26888,
+    VANISH_TRIGGERED_1 = 11327,
+    VANISH_TRIGGERED_2 = 11329,
+    VANISH_TRIGGERED_3 = 26888,
 
     //Poisons
-    CRIPPLING_POISON_PROC_1             = 3409,
+    CRIPPLING_POISON_PROC_1 = 3409,
     //INSTANT_POISON_PROC_1               = 8680,
-    DEADLY_POISON_PROC_1                = 2818,
-    WOUND_POISON_PROC_1                 = 13218,
-    MIND_NUMBING_POISON_PROC_1          = 5760,
+    DEADLY_POISON_PROC_1 = 2818,
+    WOUND_POISON_PROC_1 = 13218,
+    MIND_NUMBING_POISON_PROC_1 = 5760,
     //ANESTHETIC_POISON_PROC_1            = 26688,
 
-    THISTLE_TEA                         = 9512 //'Restore Energy' 1 min cd
+    THISTLE_TEA = 9512 //'Restore Energy' 1 min cd
 };
 
 static const uint32 Rogue_spells_damage_arr[] =
@@ -193,31 +193,38 @@ public:
     {
         return new rogue_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct rogue_botAI : public bot_ai
     {
         rogue_botAI(Creature* creature) : bot_ai(creature)
         {
             _botclass = BOT_CLASS_ROGUE;
+
+            mhEnchantExpireTimer = 1;
+            ohEnchantExpireTimer = 1;
+            mhEnchant = 0;
+            ohEnchant = 0;
+            needChooseMHEnchant = true;
+            needChooseOHEnchant = true;
 
             InitUnitFlags();
         }
@@ -331,7 +338,8 @@ public:
                 (me->GetLevel() >= 35 || (energy >= 40 && me->GetLevel() >= 30) || dist > 8) && !IsFlagCarrier(me))
             {
                 if (doCast(me, GetSpell(STEALTH_1)))
-                {}
+                {
+                }
             }
 
             if (!CanAffectVictimAny(mytar, SPELL_SCHOOL_NORMAL))
@@ -354,11 +362,12 @@ public:
                 (comboPoints == 0 || mytar->GetHealth() > me->GetMaxHealth() / 4))
             {
                 if (doCast(mytar, GetSpell(PREMEDITATION_1)))
-                {}
+                {
+                }
             }
             //Kick
             if (IsSpellReady(KICK_1, diff, false) && !stealthed && dist <= 5 && Rand() < 70 &&
-                energy >= ecost(KICK_1) && mytar->IsNonMeleeSpellCast(false,false,true))
+                energy >= ecost(KICK_1) && mytar->IsNonMeleeSpellCast(false, false, true))
             {
                 if (doCast(mytar, GetSpell(KICK_1)))
                     getenergy();
@@ -372,11 +381,11 @@ public:
                 if (doCast(mytar, GetSpell(KILLING_SPREE_1)))
                     return;
             }
-             //Gouge: if mytar is trying to attack/cast on us he will always try to face us
+            //Gouge: if mytar is trying to attack/cast on us he will always try to face us
             if (IsSpellReady(GOUGE_1, diff) && !stealthed && !shadowdance && HasRole(BOT_ROLE_DPS) && dist <= 5 &&
                 Rand() < 30 && !CCed(mytar) && energy >= ecost(GOUGE_1) &&
                 ((energy < 55 && mytar->getAttackers().size() <= 1 && !mytar->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE)) ||
-                mytar->IsNonMeleeSpellCast(false,false,true)) && mytar->HasInArc(float(M_PI), me))
+                    mytar->IsNonMeleeSpellCast(false, false, true)) && mytar->HasInArc(float(M_PI), me))
             {
                 if (doCast(mytar, GetSpell(GOUGE_1)))
                     return;
@@ -385,12 +394,12 @@ public:
             if (IsSpellReady(BLIND_1, diff) && !stealthed && !shadowdance && dist <= 15 && Rand() < 30 &&
                 !CCed(mytar) && !mytar->IsTotem() && energy >= ecost(BLIND_1) &&
                 ((energy <= 30 && mytar->GetTarget() == me->GetGUID() &&
-                mytar->getAttackers().size() <= 1 &&
-                !mytar->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE) &&
-                !me->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE)) ||
-                (mytar->GetTypeId() == TYPEID_UNIT &&
-                !IsSpellReady(KICK_1, diff) && !IsSpellReady(GOUGE_1, diff) &&
-                mytar->IsNonMeleeSpellCast(false,false,true))))
+                    mytar->getAttackers().size() <= 1 &&
+                    !mytar->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE) &&
+                    !me->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE)) ||
+                    (mytar->GetTypeId() == TYPEID_UNIT &&
+                        !IsSpellReady(KICK_1, diff) && !IsSpellReady(GOUGE_1, diff) &&
+                        mytar->IsNonMeleeSpellCast(false, false, true))))
             {
                 if (doCast(mytar, GetSpell(BLIND_1)))
                     return;
@@ -416,11 +425,11 @@ public:
             //Dismantle
             if (IsSpellReady(DISMANTLE_1, diff) && !stealthed && !shadowdance &&
                 mytar->GetHealth() >= me->GetHealth() / 2 && energy >= ecost(DISMANTLE_1) && dist <= 5 &&
-                !CCed(mytar) && Rand() < (30 + 90*mytar->HasAuraType(SPELL_AURA_ALLOW_ONLY_ABILITY)) &&
+                !CCed(mytar) && Rand() < (30 + 90 * mytar->HasAuraType(SPELL_AURA_ALLOW_ONLY_ABILITY)) &&
                 !mytar->HasAuraType(SPELL_AURA_MOD_DISARM) &&
                 (mytar->GetTypeId() == TYPEID_PLAYER ?
-                mytar->ToPlayer()->GetWeaponForAttack(BASE_ATTACK) && mytar->ToPlayer()->IsUseEquipedWeapon(true) :
-                mytar->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID) && mytar->CanUseAttackType(BASE_ATTACK)))
+                    mytar->ToPlayer()->GetWeaponForAttack(BASE_ATTACK) && mytar->ToPlayer()->IsUseEquipedWeapon(true) :
+                    mytar->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID) && mytar->CanUseAttackType(BASE_ATTACK)))
             {
                 if (doCast(mytar, GetSpell(DISMANTLE_1)))
                     return;
@@ -430,7 +439,7 @@ public:
                 Rand() < 50 && dist < 25 && energy >= ecost(SHADOWSTEP_1) &&
                 (mytar->GetTypeId() != TYPEID_PLAYER || dist > 12 || CCed(me, true)) &&
                 (mytar->GetTypeId() == TYPEID_PLAYER || mytar->GetVictim() != me) &&
-                ((!stealthed && !shadowdance) || me->HasAuraWithMechanic(1<<MECHANIC_SNARE)))
+                ((!stealthed && !shadowdance) || me->HasAuraWithMechanic(1 << MECHANIC_SNARE)))
             {
                 if (doCast(mytar, GetSpell(SHADOWSTEP_1)))
                     getenergy();
@@ -438,11 +447,12 @@ public:
             //Sprint (no GCD)
             if (IsSpellReady(SPRINT_1, diff, false) && !HasBotCommandState(BOT_COMMAND_STAY) &&
                 ((me->GetLevel() >= 20 && CCed(me, true) && Rand() < 35) ||
-                (Rand() < (25 + 10*stealthed + 40*shadowdance) && dist > (20 - (5*stealthed + 10*shadowdance)))) &&
+                    (Rand() < (25 + 10 * stealthed + 40 * shadowdance) && dist > (20 - (5 * stealthed + 10 * shadowdance)))) &&
                 !me->GetAuraEffect(SPELL_AURA_MOD_INCREASE_SPEED, SPELLFAMILY_ROGUE, 0x40, 0x0, 0x0))
             {
                 if (doCast(me, GetSpell(SPRINT_1)))
-                {}
+                {
+                }
             }
             //Evasion (no GCD)
             if (IsSpellReady(EVASION_1, diff, false) && !stealthed && Rand() < 65 && !me->getAttackers().empty() &&
@@ -455,7 +465,7 @@ public:
             //Deadly Throw
             if (IsSpellReady(DEADLY_THROW_1, diff) && !stealthed && !shadowdance && HasRole(BOT_ROLE_DPS) &&
                 comboPoints > 0 && Rand() < 55 && dist < 30 && dist > 5 && energy >= ecost(DEADLY_THROW_1) &&
-                ((_spec != BOT_SPEC_ROGUE_COMBAT) || mytar->IsNonMeleeSpellCast(false,false,true)))
+                ((_spec != BOT_SPEC_ROGUE_COMBAT) || mytar->IsNonMeleeSpellCast(false, false, true)))
             {
                 Item const* thrown = GetEquips(BOT_SLOT_RANGED);
                 if (thrown && thrown->GetTemplate()->Class == ITEM_CLASS_WEAPON &&
@@ -499,7 +509,7 @@ public:
             if (mytar->IsControlledByPlayer() || me->GetHealthPct() < 25.f)
             {
                 //Vanish (no GCD)
-                if (IsSpellReady(VANISH_1, diff, false) && !stealthed && !shadowdance && !IsTank() && Rand() < 45 && !me->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE))
+                if (IsSpellReady(VANISH_1, diff, false) && !stealthed && !shadowdance && !IsTank() && Rand() < 45 && !me->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE) && !IsFlagCarrier(me))
                 {
                     bool cast = false;
                     //case 1: restealth for opener
@@ -524,7 +534,7 @@ public:
             if (dist > 5)
             {
                 //if (mytar->IsPolymorphed())
-                //    TC_LOG_ERROR("entities.player", "rogue_bot: cannot attack target (dist)...");
+                //    BOT_LOG_ERROR("entities.player", "rogue_bot: cannot attack target (dist)...");
                 return;
             }
 
@@ -583,7 +593,7 @@ public:
 
             if (!hasnormalstun && duration > 300 && uint32(energy) < me->GetMaxPower(POWER_ENERGY))
             {
-                //TC_LOG_ERROR("entities.player", "bot_rogue: delaying attacks on gouged or blinded target...");
+                //BOT_LOG_ERROR("entities.player", "bot_rogue: delaying attacks on gouged or blinded target...");
                 return;
             }
 
@@ -592,11 +602,10 @@ public:
             {
                 //Kidney Shot
                 if (GetSpell(KIDNEY_SHOT_1) && !stealthed && stunDivider < DIMINISHING_LEVEL_4 &&
-                    Rand() < 80 && !CCed(mytar) &&
-                    !IsImmunedToMySpellEffect(mytar, sSpellMgr->GetSpellInfo(KIDNEY_SHOT_1), EFFECT_0) &&
+                    Rand() < 80 && !CCed(mytar) && !mytar->IsImmunedToSpell(sSpellMgr->GetSpellInfo(KIDNEY_SHOT_1), me) &&
                     ((comboPoints >= 4 && stunDivider < DIMINISHING_LEVEL_3 &&
-                    (mytar->GetHealth() > me->GetMaxHealth() / 2 || mytar->GetTypeId() == TYPEID_PLAYER)) ||
-                    mytar->IsNonMeleeSpellCast(false,false,true)) &&
+                        (mytar->GetHealth() > me->GetMaxHealth() / 2 || mytar->GetTypeId() == TYPEID_PLAYER)) ||
+                        mytar->IsNonMeleeSpellCast(false, false, true)) &&
                     energy >= ecost(KIDNEY_SHOT_1))
                 {
                     if (doCast(mytar, GetSpell(KIDNEY_SHOT_1)))
@@ -606,16 +615,17 @@ public:
                 uint32 envescerate = (GetSpec() == BOT_SPEC_ROGUE_ASSASINATION && GetSpell(ENVENOM_1) &&
                     (mytar->GetHealth() > me->GetMaxHealth() / 5 || !GetSpell(EVISCERATE_1))) ? ENVENOM_1 : GetSpell(EVISCERATE_1) ? EVISCERATE_1 : 0;
                 if (envescerate && IsSpellReady(envescerate, diff) && !stealthed && !shadowdance && HasRole(BOT_ROLE_DPS) &&
-                    (comboPoints >= 4  || (envescerate == EVISCERATE_1 && mytar->GetHealth() < me->GetMaxHealth() / 4)) &&
+                    (comboPoints >= 4 || (envescerate == EVISCERATE_1 && mytar->GetHealth() < me->GetMaxHealth() / 4)) &&
                     (envescerate != ENVENOM_1 ||
-                    (mytar->GetAuraEffect(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, SPELLFAMILY_ROGUE, 0x10000, 0x0, 0x0, me->GetGUID()) &&
-                    (energy >= 110 || !me->HasAuraTypeWithFamilyFlags(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_ROGUE, 0x800000)))) &&
+                        (mytar->GetAuraEffect(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, SPELLFAMILY_ROGUE, 0x10000, 0x0, 0x0, me->GetGUID()) &&
+                            (energy >= 110 || !me->HasAuraTypeWithFamilyFlags(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_ROGUE, 0x800000)))) &&
                     energy >= ecost(envescerate) && Rand() < (70 + comboPoints * 20))
                 {
                     //Cold Blood (no GCD)
-                    if (IsSpellReady(COLD_BLOOD_1, diff, false) && comboPoints > 3 && Rand() > 50 + 100*(comboPoints == 5))
+                    if (IsSpellReady(COLD_BLOOD_1, diff, false) && comboPoints > 3 && Rand() > 50 + 100 * (comboPoints == 5))
                         if (doCast(me, GetSpell(COLD_BLOOD_1)))
-                        {}
+                        {
+                        }
                     if (doCast(mytar, GetSpell(envescerate)))
                         return;
                 }
@@ -628,7 +638,8 @@ public:
                 (mytar->GetTypeId() == TYPEID_PLAYER || mytar->GetHealth() > (me->GetMaxHealth() / 4) * mytar->getAttackers().size()))
             {
                 if (doCast(me, GetSpell(SHADOW_DANCE_1)))
-                {}
+                {
+                }
             }
 
             //Openers
@@ -641,7 +652,7 @@ public:
                     GetSpell(GARROTE_1) && HasRole(BOT_ROLE_DPS) && mytar->GetHealth() > me->GetMaxHealth() / 4 &&
                     !IsImmunedToMySpellEffect(mytar, sSpellMgr->GetSpellInfo(GARROTE_1), EFFECT_0) &&
                     (!isdaggerMH || (mytar->GetTypeId() == TYPEID_PLAYER &&
-                    (mytar->GetClass() == CLASS_MAGE || mytar->GetClass() == CLASS_PRIEST || mytar->GetClass() == CLASS_WARLOCK))) &&
+                        (mytar->GetClass() == CLASS_MAGE || mytar->GetClass() == CLASS_PRIEST || mytar->GetClass() == CLASS_WARLOCK))) &&
                     !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_ROGUE, 0x100, 0x0, 0x0, me->GetGUID()) ? GARROTE_1 :
                     GetSpell(AMBUSH_1) && HasRole(BOT_ROLE_DPS) && isdaggerMH ? AMBUSH_1 :
                     GetSpell(BACKSTAB_1) && HasRole(BOT_ROLE_DPS) && isdaggerMH ? BACKSTAB_1 : 0;
@@ -676,8 +687,8 @@ public:
             //Fan of Knives
             if (GetSpell(FAN_OF_KNIVES_1) && energy >= ecost(FAN_OF_KNIVES_1) &&
                 Rand() < 35
-                + 40*(me->GetAuraEffect(SPELL_AURA_MOD_POWER_REGEN_PERCENT, SPELLFAMILY_ROGUE, 0x0, 0x80, 0x0) != nullptr)
-                + 50*(me->GetAuraEffect(SPELL_AURA_MOD_MELEE_HASTE, SPELLFAMILY_ROGUE, 0x40000000, 0x0, 0x0) != nullptr)
+                + 40 * (me->GetAuraEffect(SPELL_AURA_MOD_POWER_REGEN_PERCENT, SPELLFAMILY_ROGUE, 0x0, 0x80, 0x0) != nullptr)
+                + 50 * (me->GetAuraEffect(SPELL_AURA_MOD_MELEE_HASTE, SPELLFAMILY_ROGUE, 0x40000000, 0x0, 0x0) != nullptr)
                 /*Adrenaline Rush and Blade Flurry*/)
             {
                 std::list<Unit*> targets;
@@ -731,9 +742,9 @@ public:
         {
             if (me->IsInCombat() && Rand() < 25)
             {
-                bool canVanish = IsSpellReady(VANISH_1, diff, false);
+                bool canVanish = IsSpellReady(VANISH_1, diff, false) && !IsFlagCarrier(me);
                 bool canSprint = (GetSpec() == BOT_SPEC_ROGUE_COMBAT) && me->GetLevel() >= 25 && !HasBotCommandState(BOT_COMMAND_STAY) && IsSpellReady(SPRINT_1, diff, false);
-                if ((canVanish || canSprint) && me->HasAuraWithMechanic((1<<MECHANIC_SNARE)|(1<<MECHANIC_ROOT)))
+                if ((canVanish || canSprint) && me->HasAuraWithMechanic((1 << MECHANIC_SNARE) | (1 << MECHANIC_ROOT)))
                 {
                     uint32 Spanish = canSprint ? SPRINT_1 : VANISH_1;
                     if (doCast(me, GetSpell(Spanish)))
@@ -749,21 +760,9 @@ public:
                 return;
 
             if (mhEnchantExpireTimer > 0 && mhEnchantExpireTimer <= diff)
-            {
-                uint8 slot = TEMP_ENCHANTMENT_SLOT;
-                if (Item* mh = GetEquips(BOT_SLOT_MAINHAND))
-                    if (mh->GetEnchantmentId(EnchantmentSlot(slot)))
-                        for (uint8 i = 0; i != MAX_ITEM_ENCHANTMENT_EFFECTS; ++i)
-                            mh->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + i, 0);
-            }
+                RemoveItemClassEnchantment(BOT_SLOT_MAINHAND);
             if (ohEnchantExpireTimer > 0 && ohEnchantExpireTimer <= diff)
-            {
-                uint8 slot = TEMP_ENCHANTMENT_SLOT;
-                if (Item* oh = GetEquips(BOT_SLOT_OFFHAND))
-                    if (oh->GetEnchantmentId(EnchantmentSlot(slot)))
-                        for (uint8 i = 0; i != MAX_ITEM_ENCHANTMENT_EFFECTS; ++i)
-                            oh->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + i, 0);
-            }
+                RemoveItemClassEnchantment(BOT_SLOT_OFFHAND);
 
             // Weapon Enchants
             if (me->isMoving())
@@ -785,14 +784,14 @@ public:
             //OH 20+ Crippling, 40+ Instant (deadly brew inc), 68+ Anesthetic, envenom Deadly
             if (needChooseMHEnchant && mhReady)
                 mhEnchant = (GetSpec() == BOT_SPEC_ROGUE_ASSASINATION && GetSpell(ENVENOM_1)) ? INSTANT_POISON_1 :
-                    lvl >= 32 ? WOUND_POISON_1 :
-                    lvl >= 20 ? INSTANT_POISON_1 : 0;
+                lvl >= 32 ? WOUND_POISON_1 :
+                lvl >= 20 ? INSTANT_POISON_1 : 0;
 
             if (needChooseOHEnchant && ohReady)
                 ohEnchant = (GetSpec() == BOT_SPEC_ROGUE_ASSASINATION && GetSpell(ENVENOM_1)) ? DEADLY_POISON_1 :
-                    lvl >= 68 ? ANESTHETIC_POISON_1 :
-                    lvl >= 40 ? INSTANT_POISON_1 :
-                    lvl >= 20 ? CRIPPLING_POISON_1 : 0;
+                lvl >= 68 ? ANESTHETIC_POISON_1 :
+                lvl >= 40 ? INSTANT_POISON_1 :
+                lvl >= 20 ? CRIPPLING_POISON_1 : 0;
 
             uint32 MhPoison = !mhReady ? 0 : GetSpell(mhEnchant);
             uint32 OhPoison = !ohReady ? 0 : GetSpell(ohEnchant);
@@ -830,7 +829,7 @@ public:
                 me->HasAuraType(SPELL_AURA_ALLOW_ONLY_ABILITY) || me->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE))
                 return;
 
-            if (GetHealthPCT(me) < 30 + 20*me->getAttackers().size() ||
+            if (GetHealthPCT(me) < 30 + 20 * me->getAttackers().size() ||
                 (!IAmFree() && GetHealthPCT(me) < 70 && master->GetNpcBotsCount() > 1))
             {
                 //Unit* victim = me->GetVictim();
@@ -871,7 +870,7 @@ public:
                 if (Spell const* spell = target->GetCurrentSpell(CURRENT_GENERIC_SPELL))
                 {
                     if (spell->GetTimer() < 1000 && !spell->GetSpellInfo()->IsPassive() && !spell->GetSpellInfo()->IsPositive() &&
-                        !(spell->GetSpellInfo()->Attributes & (SPELL_ATTR0_ABILITY|SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY)))
+                        !(spell->GetSpellInfo()->Attributes & (SPELL_ATTR0_ABILITY | SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY)))
                     {
                         //direct spell
                         if (spell->m_targets.GetUnitTarget() == me &&
@@ -884,7 +883,7 @@ public:
                         if ((spell->GetSpellInfo()->_effects[0].IsEffect() &&
                             spell->GetSpellInfo()->_effects[0].TargetB.GetSelectionCategory() == TARGET_SELECT_CATEGORY_NEARBY) ||
                             (spell->GetSpellInfo()->_effects[1].IsEffect() &&
-                            spell->GetSpellInfo()->_effects[1].TargetB.GetSelectionCategory() == TARGET_SELECT_CATEGORY_NEARBY))
+                                spell->GetSpellInfo()->_effects[1].TargetB.GetSelectionCategory() == TARGET_SELECT_CATEGORY_NEARBY))
                         {
                             count += 2;
                         }
@@ -1020,7 +1019,7 @@ public:
 
             //Cold Blood
             if (AuraEffect const* bloo = me->GetAuraEffect(COLD_BLOOD_1, 0, me->GetGUID()))
-                if (bloo->IsAffectedOnSpell(spellInfo))
+                if (bloo->IsAffectingSpell(spellInfo))
                     crit_chance += 100.f;
 
             //Puncturing Wounds:
@@ -1047,7 +1046,7 @@ public:
                 crit_chance += 6.f;
             //Remorseless Attacks:
             if (AuraEffect const* remo = me->GetAuraEffect(REMORSELESS_ATTACKS_BUFF, 0, me->GetGUID()))
-                if (remo->IsAffectedOnSpell(spellInfo))
+                if (remo->IsAffectingSpell(spellInfo))
                     crit_chance += 40.f;
         }
 
@@ -1066,8 +1065,8 @@ public:
                 //Lethality: 30% crit damage bonus for non-stealth combo-generating abilities (on 25 lvl)
                 if (lvl >= 25 &&
                     (baseId == SINISTER_STRIKE_1 || baseId == BACKSTAB_1 || baseId == MUTILATE_1 || baseId == RIPOSTE_1 ||
-                    baseId == GOUGE_1 || baseId == HEMORRHAGE_1 || baseId == GHOSTLY_STRIKE_1
-                    /*|| baseId == SHIV_1*/ || baseId == MUTILATE_DAMAGE_MAINHAND_1 || baseId == MUTILATE_DAMAGE_OFFHAND_1))
+                        baseId == GOUGE_1 || baseId == HEMORRHAGE_1 || baseId == GHOSTLY_STRIKE_1
+                        /*|| baseId == SHIV_1*/ || baseId == MUTILATE_DAMAGE_MAINHAND_1 || baseId == MUTILATE_DAMAGE_OFFHAND_1))
                     pctbonus += 0.15f;
             }
 
@@ -1083,7 +1082,7 @@ public:
             //Opportunity: 20% damage bonus for Backstab, Mutilate, Garrote and Ambush
             if (lvl >= 10 &&
                 (baseId == BACKSTAB_1 || baseId == MUTILATE_1 || baseId == MUTILATE_DAMAGE_MAINHAND_1 ||
-                baseId == MUTILATE_DAMAGE_OFFHAND_1 || baseId == GARROTE_1 || baseId == AMBUSH_1))
+                    baseId == MUTILATE_DAMAGE_OFFHAND_1 || baseId == GARROTE_1 || baseId == AMBUSH_1))
                 pctbonus += 0.2f;
             //Aggression: 15% damage bonus for Sinister Strike, Backstab and Eviscerate
             if ((GetSpec() == BOT_SPEC_ROGUE_COMBAT) &&
@@ -1101,7 +1100,7 @@ public:
             //Surprise Attacks: 10% bonus damage for Sinister Strike, Backstab, Shiv, Hemmorhage and Gouge
             if ((GetSpec() == BOT_SPEC_ROGUE_COMBAT) &&
                 lvl >= 50 && (baseId == SINISTER_STRIKE_1 || baseId == BACKSTAB_1 ||
-                /*baseId == SHIV_1 || */baseId == HEMORRHAGE_1 || baseId == GOUGE_1))
+                    /*baseId == SHIV_1 || */baseId == HEMORRHAGE_1 || baseId == GOUGE_1))
                 pctbonus += 0.1f;
             //Blade Twisting: 10% bonus damage for Sinister Strike and Backstab
             if ((GetSpec() == BOT_SPEC_ROGUE_COMBAT) && lvl >= 35 && (baseId == SINISTER_STRIKE_1 || baseId == BACKSTAB_1))
@@ -1116,7 +1115,7 @@ public:
 
             //Glyph of Sinister Strike: 50% chance to add 1 cp on crit
             if (baseId == SINISTER_STRIKE_1)
-                glyphSSProc = iscrit && lvl >= 15 && urand(1,100) <= 50;
+                glyphSSProc = iscrit && lvl >= 15 && urand(1, 100) <= 50;
 
             damage = int32(fdamage * (1.0f + pctbonus));
         }
@@ -1347,7 +1346,7 @@ public:
 
             //Remorseless Attacks: proc consume buff
             if (AuraEffect const* remo = me->GetAuraEffect(REMORSELESS_ATTACKS_BUFF, 0, me->GetGUID()))
-                if (remo->IsAffectedOnSpell(spellInfo))
+                if (remo->IsAffectingSpell(spellInfo))
                     me->RemoveAurasDueToSpell(REMORSELESS_ATTACKS_BUFF);
 
             //Relentless Strikes
@@ -1355,10 +1354,10 @@ public:
             {
                 if (lvl >= 10)
                 {
-                    if (irand(1,100) <= 20 * comboPoints)
+                    if (irand(1, 100) <= 20 * comboPoints)
                     {
                         me->CastSpell(me, RELENTLESS_STRIKES_EFFECT, true);
-                        //TC_LOG_ERROR("entities.player", "rogue_bot CP SPEND1: RS proc!");
+                        //BOT_LOG_ERROR("entities.player", "rogue_bot CP SPEND1: RS proc!");
                     }
                 }
             }
@@ -1397,10 +1396,10 @@ public:
                 if (!IAmFree())
                     master->GetSession()->SendEnchantmentLog(me->GetGUID(), me->GetGUID(), item->GetEntry(), enchant_id);
 
-                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_ID_OFFSET, enchant_id);
-                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_DURATION_OFFSET, duration);
-                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_CHARGES_OFFSET, charges);
-                ApplyItemBonuses(itemSlot); //RemoveItemBonuses inside
+                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot * MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_ID_OFFSET, enchant_id);
+                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot * MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_DURATION_OFFSET, duration);
+                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot * MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_CHARGES_OFFSET, charges);
+                ApplyItemEnchantment(item, TEMP_ENCHANTMENT_SLOT, itemSlot);
                 if (itemSlot == BOT_SLOT_MAINHAND)
                     mhEnchantExpireTimer = ITEM_ENCHANTMENT_EXPIRE_TIMER;
                 else if (itemSlot == BOT_SLOT_OFFHAND)
@@ -1458,7 +1457,7 @@ public:
 
             //Cold Blood: handle proc
             if (AuraEffect const* bloo = me->GetAuraEffect(COLD_BLOOD_1, 0, me->GetGUID()))
-                if (bloo->IsAffectedOnSpell(spell))
+                if (bloo->IsAffectingSpell(spell))
                     me->RemoveAurasDueToSpell(COLD_BLOOD_1);
 
             //Combo point generating from effects
@@ -1466,11 +1465,11 @@ public:
                 baseId == SETUP_EFFECT || baseId == INITIATIVE_EFFECT || baseId == HONOR_AMONG_THIEVES_EFFECT)
             {
                 ++comboPoints;
-                //TC_LOG_ERROR("entities.player", "rogue_bot CP GEN2: {} adds 1, now {}", spell->SpellName[0], uint32(comboPoints));
+                //BOT_LOG_ERROR("entities.player", "rogue_bot CP GEN2: {} adds 1, now {}", spell->SpellName[0], uint32(comboPoints));
                 if (comboPoints > 5)
                 {
                     comboPoints = 5;
-                    //TC_LOG_ERROR("entities.player", "rogue_bot CP NOR2: now {}", uint32(comboPoints));
+                    //BOT_LOG_ERROR("entities.player", "rogue_bot CP NOR2: now {}", uint32(comboPoints));
                 }
             }
             //Combo point generating from spells
@@ -1482,7 +1481,7 @@ public:
                 (baseId == MUTILATE_1 || baseId == PREMEDITATION_1 || baseId == CHEAP_SHOT_1) ?
                     comboPoints += 2 : ++comboPoints;
 
-                //TC_LOG_ERROR("entities.player", "rogue_bot CP GEN1: {} adds {}, now {}",
+                //BOT_LOG_ERROR("entities.player", "rogue_bot CP GEN1: {} adds {}, now {}",
                 //    spell->SpellName[0], (baseId == MUTILATE_1 || baseId == PREMEDITATION_1 || baseId == CHEAP_SHOT_1) ?
                 //    2 : 1, uint32(comboPoints));
 
@@ -1490,13 +1489,13 @@ public:
                 if (baseId == SINISTER_STRIKE_1 && glyphSSProc)
                 {
                     ++comboPoints;
-                    //TC_LOG_ERROR("entities.player", "rogue_bot CP GEN1: glyphSS proc, now {}", uint32(comboPoints));
+                    //BOT_LOG_ERROR("entities.player", "rogue_bot CP GEN1: glyphSS proc, now {}", uint32(comboPoints));
                 }
 
                 if (comboPoints > 5)
                 {
                     comboPoints = 5;
-                    //TC_LOG_ERROR("entities.player", "rogue_bot CP NOR1: now {}", uint32(comboPoints));
+                    //BOT_LOG_ERROR("entities.player", "rogue_bot CP NOR1: now {}", uint32(comboPoints));
                 }
             }
             //if (spellId == EVISCERATE || spellId == KIDNEY_SHOT || spellId == SLICE_DICE || spellId == RUPTURE || spellId == EXPOSE_ARMOR || spellId == ENVENOM)
@@ -1507,17 +1506,17 @@ public:
                 //comboPoints = 0;
                 combopointsSpent = true; //envenom problem - cps spent before aura application
 
-                //TC_LOG_ERROR("entities.player", "rogue_bot CP SPEND1: {} to 0", tempCP);
+                //BOT_LOG_ERROR("entities.player", "rogue_bot CP SPEND1: {} to 0", tempCP);
 
                 //Relentless Strikes: moved to OnClassSpellGo (triggered even without hitting the target)
 
                 //Ruthlessness
                 if (lvl >= 15)
                 {
-                    if (urand(1,100) <= 60)
+                    if (urand(1, 100) <= 60)
                     {
                         me->CastSpell(target, RUTHLESSNESS_EFFECT, true);
-                        //TC_LOG_ERROR("entities.player", "rogue_bot CP SPEND1: RU proc!");
+                        //BOT_LOG_ERROR("entities.player", "rogue_bot CP SPEND1: RU proc!");
                     }
                 }
             }
@@ -1525,7 +1524,7 @@ public:
             //Preparation: handle effect
             if (baseId == PREPARATION_1)
             {
-                //TC_LOG_ERROR("entities.player", "rogue_bot Preparation hit!");
+                //BOT_LOG_ERROR("entities.player", "rogue_bot Preparation hit!");
                 if (GetSpell(EVASION_1))
                     SetSpellCooldown(EVASION_1, 0);
                 if (GetSpell(SPRINT_1))
@@ -1733,7 +1732,7 @@ public:
             if (me->GetVictim() && HasRole(BOT_ROLE_DPS) && !me->HasAuraType(SPELL_AURA_MOD_STEALTH) &&
                 (me->isAttackReady() || me->isAttackReady(OFF_ATTACK)) &&
                 (!me->GetVictim()->GetAuraEffect(SPELL_AURA_MOD_STUN, SPELLFAMILY_ROGUE, 0x8, 0x0, 0x0) &&
-                !me->GetVictim()->GetAuraEffect(SPELL_AURA_MOD_CONFUSE, SPELLFAMILY_ROGUE, 0x01000000, 0x0, 0x0)))
+                    !me->GetVictim()->GetAuraEffect(SPELL_AURA_MOD_CONFUSE, SPELLFAMILY_ROGUE, 0x01000000, 0x0, 0x0)))
                 DoMeleeAttackIfReady();
         }
 
@@ -1741,34 +1740,34 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_COMBO_POINTS:
-                    return comboPoints;
-                case BOTAI_MISC_ENCHANT_IS_AUTO_MH:
-                    return needChooseMHEnchant;
-                case BOTAI_MISC_ENCHANT_IS_AUTO_OH:
-                    return needChooseOHEnchant;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_MH:
-                    return mhEnchantExpireTimer;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_OH:
-                    return ohEnchantExpireTimer;
-                case BOTAI_MISC_ENCHANT_CURRENT_MH:
-                    return mhEnchant;
-                case BOTAI_MISC_ENCHANT_CURRENT_OH:
-                    return ohEnchant;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_1:
-                    return GetSpell(CRIPPLING_POISON_1) ? CRIPPLING_POISON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_2:
-                    return GetSpell(INSTANT_POISON_1) ? INSTANT_POISON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_3:
-                    return GetSpell(MIND_NUMBING_POISON_1) ? MIND_NUMBING_POISON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_4:
-                    return GetSpell(DEADLY_POISON_1) ? DEADLY_POISON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_5:
-                    return GetSpell(WOUND_POISON_1) ? WOUND_POISON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_6:
-                    return GetSpell(ANESTHETIC_POISON_1) ? ANESTHETIC_POISON_1 : 0;
-                default:
-                    return 0;
+            case BOTAI_MISC_COMBO_POINTS:
+                return comboPoints;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_MH:
+                return needChooseMHEnchant;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_OH:
+                return needChooseOHEnchant;
+            case BOTAI_MISC_ENCHANT_TIMER_MH:
+                return mhEnchantExpireTimer;
+            case BOTAI_MISC_ENCHANT_TIMER_OH:
+                return ohEnchantExpireTimer;
+            case BOTAI_MISC_ENCHANT_CURRENT_MH:
+                return mhEnchant;
+            case BOTAI_MISC_ENCHANT_CURRENT_OH:
+                return ohEnchant;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_1:
+                return GetSpell(CRIPPLING_POISON_1) ? CRIPPLING_POISON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_2:
+                return GetSpell(INSTANT_POISON_1) ? INSTANT_POISON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_3:
+                return GetSpell(MIND_NUMBING_POISON_1) ? MIND_NUMBING_POISON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_4:
+                return GetSpell(DEADLY_POISON_1) ? DEADLY_POISON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_5:
+                return GetSpell(WOUND_POISON_1) ? WOUND_POISON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_6:
+                return GetSpell(ANESTHETIC_POISON_1) ? ANESTHETIC_POISON_1 : 0;
+            default:
+                return 0;
             }
         }
 
@@ -1776,31 +1775,39 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_DAGGER_MAINHAND:
-                    isdaggerMH = bool(value);
-                    break;
-                case BOTAI_MISC_DAGGER_OFFHAND:
-                    isdaggerOH = bool(value);
-                    break;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_MH:
-                    if (value)
-                        mhEnchantExpireTimer = 0;
-                    break;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_OH:
-                    if (value)
-                        ohEnchantExpireTimer = 0;
-                    break;
-                case BOTAI_MISC_ENCHANT_CURRENT_MH:
-                    mhEnchant = value;
-                    needChooseMHEnchant = value ? false : true;
-                    break;
-                case BOTAI_MISC_ENCHANT_CURRENT_OH:
-                    ohEnchant = value;
-                    needChooseOHEnchant = value ? false : true;
-                    break;
-                default:
-                    break;
+            case BOTAI_MISC_DAGGER_MAINHAND:
+                isdaggerMH = bool(value);
+                break;
+            case BOTAI_MISC_DAGGER_OFFHAND:
+                isdaggerOH = bool(value);
+                break;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_MH:
+                needChooseMHEnchant = bool(value);
+                break;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_OH:
+                needChooseOHEnchant = bool(value);
+                break;
+            case BOTAI_MISC_ENCHANT_TIMER_MH:
+                if (value == 0)
+                    mhEnchantExpireTimer = value;
+                break;
+            case BOTAI_MISC_ENCHANT_TIMER_OH:
+                if (value == 0)
+                    ohEnchantExpireTimer = value;
+                break;
+            case BOTAI_MISC_ENCHANT_CURRENT_MH:
+                mhEnchant = value;
+                SetAIMiscValue(BOTAI_MISC_ENCHANT_IS_AUTO_MH, value ? false : true);
+                break;
+            case BOTAI_MISC_ENCHANT_CURRENT_OH:
+                ohEnchant = value;
+                SetAIMiscValue(BOTAI_MISC_ENCHANT_IS_AUTO_OH, value ? false : true);
+                break;
+            default:
+                break;
             }
+
+            bot_ai::SetAIMiscValue(data, value);
         }
 
         void Reset() override
@@ -1810,15 +1817,10 @@ public:
             combopointsSpent = false;
             glyphSSProc = false;
 
-            mhEnchantExpireTimer = 1;
-            ohEnchantExpireTimer = 1;
+            mhEnchantExpireTimer = std::min<uint32>(mhEnchantExpireTimer, 1);
+            ohEnchantExpireTimer = std::min<uint32>(ohEnchantExpireTimer, 1);
 
             DefaultInit();
-
-            mhEnchant = 0;
-            ohEnchant = 0;
-            needChooseMHEnchant = true;
-            needChooseOHEnchant = true;
 
             //after InitEquips
             Item const* mh = GetEquips(BOT_SLOT_MAINHAND);
@@ -1974,16 +1976,16 @@ public:
         {
             switch (basespell)
             {
-                case STEALTH_1:
-                case SPRINT_1:
-                case VANISH_1:
-                case BLADE_FLURRY_1:
-                case FAN_OF_KNIVES_1:
-                case TRICKS_OF_THE_TRADE_1:
-                case PREPARATION_1:
-                    return true;
-                default:
-                    return false;
+            case STEALTH_1:
+            case SPRINT_1:
+            case VANISH_1:
+            case BLADE_FLURRY_1:
+            case FAN_OF_KNIVES_1:
+            case TRICKS_OF_THE_TRADE_1:
+            case PREPARATION_1:
+                return true;
+            default:
+                return false;
             }
         }
 
@@ -2005,28 +2007,28 @@ public:
         }
 
         bool HasAbilitiesSpecifics() const override { return true; }
-        void FillAbilitiesSpecifics(Player const* player, std::list<std::string> &specList) override
+        void FillAbilitiesSpecifics(Player const* player, std::list<std::string>& specList) override
         {
             uint32 textId1, textId2;
             switch (mhEnchant)
             {
-                case CRIPPLING_POISON_1:    textId1 = BOT_TEXT_CRIPPLING;   break;
-                case INSTANT_POISON_1:      textId1 = BOT_TEXT_INSTANT;     break;
-                case DEADLY_POISON_1:       textId1 = BOT_TEXT_DEADLY;      break;
-                case WOUND_POISON_1:        textId1 = BOT_TEXT_WOUND;       break;
-                case MIND_NUMBING_POISON_1: textId1 = BOT_TEXT_MINDNUMBING; break;
-                case ANESTHETIC_POISON_1:   textId1 = BOT_TEXT_ANESTHETIC;  break;
-                default:                    textId1 = BOT_TEXT_NOTHING_C;   break;
+            case CRIPPLING_POISON_1:    textId1 = BOT_TEXT_CRIPPLING;   break;
+            case INSTANT_POISON_1:      textId1 = BOT_TEXT_INSTANT;     break;
+            case DEADLY_POISON_1:       textId1 = BOT_TEXT_DEADLY;      break;
+            case WOUND_POISON_1:        textId1 = BOT_TEXT_WOUND;       break;
+            case MIND_NUMBING_POISON_1: textId1 = BOT_TEXT_MINDNUMBING; break;
+            case ANESTHETIC_POISON_1:   textId1 = BOT_TEXT_ANESTHETIC;  break;
+            default:                    textId1 = BOT_TEXT_NOTHING_C;   break;
             }
             switch (ohEnchant)
             {
-                case CRIPPLING_POISON_1:    textId2 = BOT_TEXT_CRIPPLING;   break;
-                case INSTANT_POISON_1:      textId2 = BOT_TEXT_INSTANT;     break;
-                case DEADLY_POISON_1:       textId2 = BOT_TEXT_DEADLY;      break;
-                case WOUND_POISON_1:        textId2 = BOT_TEXT_WOUND;       break;
-                case MIND_NUMBING_POISON_1: textId2 = BOT_TEXT_MINDNUMBING; break;
-                case ANESTHETIC_POISON_1:   textId2 = BOT_TEXT_ANESTHETIC;  break;
-                default:                    textId2 = BOT_TEXT_NOTHING_C;   break;
+            case CRIPPLING_POISON_1:    textId2 = BOT_TEXT_CRIPPLING;   break;
+            case INSTANT_POISON_1:      textId2 = BOT_TEXT_INSTANT;     break;
+            case DEADLY_POISON_1:       textId2 = BOT_TEXT_DEADLY;      break;
+            case WOUND_POISON_1:        textId2 = BOT_TEXT_WOUND;       break;
+            case MIND_NUMBING_POISON_1: textId2 = BOT_TEXT_MINDNUMBING; break;
+            case ANESTHETIC_POISON_1:   textId2 = BOT_TEXT_ANESTHETIC;  break;
+            default:                    textId2 = BOT_TEXT_NOTHING_C;   break;
             }
             specList.push_back(LocalizedNpcText(player, BOT_TEXT_SLOT_MH) + ": " + LocalizedNpcText(player, textId1));
             specList.push_back(LocalizedNpcText(player, BOT_TEXT_SLOT_OH) + ": " + LocalizedNpcText(player, textId2));

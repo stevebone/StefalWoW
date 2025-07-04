@@ -46,41 +46,41 @@ static constexpr float IMPALE_DAMAGE_DELAY_MS_PER_YD = IMPALE_DAMAGE_TIME_MS_FUL
 
 enum CryptLordBaseSpells
 {
-//28786
-//54022
-    IMPALE_1                = SPELL_IMPALE,
-    CARRION_BEETLES_1       = SPELL_CARRION_BEETLES,
-    LOCUST_SWARM_1          = SPELL_LOCUST_SWARM
+    //28786
+    //54022
+    IMPALE_1 = SPELL_IMPALE,
+    CARRION_BEETLES_1 = SPELL_CARRION_BEETLES,
+    LOCUST_SWARM_1 = SPELL_LOCUST_SWARM
 };
 enum CryptLordPassives
 {
 };
 enum CryptLordSpecial
 {
-    MH_ATTACK_ANIM          = SPELL_ATTACK_MELEE_1H,
+    MH_ATTACK_ANIM = SPELL_ATTACK_MELEE_1H,
 
-    SPIKED_CARAPACE_DAMAGE  = SPELL_SPIKED_CARAPACE_DAMAGE,
-    IMPALE_DAMAGE           = SPELL_IMPALE_DAMAGE,
-    IMPALE_VISUAL           = SPELL_IMPALE_VISUAL,
-    STUN_VISUAL             = 18970, // "Self Stun - (Visual only)"
+    SPIKED_CARAPACE_DAMAGE = SPELL_SPIKED_CARAPACE_DAMAGE,
+    IMPALE_DAMAGE = SPELL_IMPALE_DAMAGE,
+    IMPALE_VISUAL = SPELL_IMPALE_VISUAL,
+    STUN_VISUAL = 18970, // "Self Stun - (Visual only)"
 
-    IMPALE_COST             = 100 * 5,
-    CARRION_BEETLES_COST    = 30 * 5,
-    LOCUST_SWARM_COST       = 150 * 5,
+    IMPALE_COST = 100 * 5,
+    CARRION_BEETLES_COST = 30 * 5,
+    LOCUST_SWARM_COST = 150 * 5,
 
-    MAX_MINIONS             = 6,
+    MAX_MINIONS = 6,
 
-    SPELL_BLOODY_EXPLOSION  = 36599,
+    SPELL_BLOODY_EXPLOSION = 36599,
 
-    MODEL_BLOODY_BONES      = 25538,
+    MODEL_BLOODY_BONES = 25538,
 
-    IMPALE_MIN_TARGETS      = 3,
+    IMPALE_MIN_TARGETS = 3,
 
-    LOCUST_SWARM_MIN_LEVEL  = 40,
+    LOCUST_SWARM_MIN_LEVEL = 40,
 
-    MAX_LOCUSTS_BASE        = 20,
-    MAX_LOCUSTS_70          = 30,
-    MAX_LOCUSTS_MAXLEVEL    = 40
+    MAX_LOCUSTS_BASE = 20,
+    MAX_LOCUSTS_70 = 30,
+    MAX_LOCUSTS_MAXLEVEL = 40
 };
 
 static const uint32 CryptLord_spells_damage_arr[] =
@@ -105,26 +105,26 @@ public:
     {
         return new crypt_lord_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature) override
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature) override
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code) override
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code) override
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct crypt_lord_botAI : public bot_ai
     {
         crypt_lord_botAI(Creature* creature) : bot_ai(creature)
@@ -180,7 +180,7 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { KillAllLocusts(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonLocusts(true); UnsummonAll(false); bot_ai::JustDied(u); }
 
         void DoNonCombatActions(uint32 diff)
         {
@@ -202,9 +202,9 @@ public:
                     return true;
                 }
                 return false;
-            };
+                };
             Creature* creature = nullptr;
-            Trinity::CreatureSearcher searcher(me, creature, corpse_pred);
+            Bcore::CreatureSearcher searcher(me, creature, corpse_pred);
             Cell::VisitAllObjects(me, searcher, 30.f);
 
             if (creature)
@@ -310,7 +310,7 @@ public:
                     (mytar->IsNonMeleeSpellCast(false) || GetManaPCT(me) > 90 || mytar->GetHealth() < me->GetMaxHealth() / 4 ||
                         (mytar->IsControlledByPlayer() && mytar->GetHealth() > me->GetHealth())) &&
                     !(mytar->IsImmunedToSpellEffect(impaleSpellInfo, impaleSpellInfo->GetEffect(EFFECT_1), me) &&
-                     mytar->IsImmunedToSpellEffect(impaleSpellInfo, impaleSpellInfo->GetEffect(EFFECT_2), me)))
+                        mytar->IsImmunedToSpellEffect(impaleSpellInfo, impaleSpellInfo->GetEffect(EFFECT_2), me)))
                 {
                     Spell const* tarSpell = mytar->GetCurrentSpell(CURRENT_GENERIC_SPELL);
                     tarSpell = tarSpell ? tarSpell : mytar->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
@@ -355,15 +355,15 @@ public:
 
                 if (chosen_targets)
                 {
-                    Unit* target = Trinity::Containers::SelectRandomContainerElement(*chosen_targets);
+                    Unit* target = Bcore::Containers::SelectRandomContainerElement(*chosen_targets);
                     if (target && doCast(target, GetSpell(IMPALE_1)))
                         return;
                 }
             }
 
             CheckAttackState();
-            if (!me->IsAlive() || !mytar->IsAlive())
-                return;
+            //if (!me->IsAlive() || !mytar->IsAlive())
+            //    return;
         }
 
         void ApplyClassDamageMultiplierMeleeSpell(int32& damage, SpellNonMeleeDamage& /*damageinfo*/, SpellInfo const* spellInfo, WeaponAttackType /*attackType*/, bool /*iscrit*/) const override
@@ -408,15 +408,15 @@ public:
             uint32 baseId = spellInfo->GetFirstRankSpell()->Id;
             switch (baseId)
             {
-                case IMPALE_1:
-                case CARRION_BEETLES_1:
-                    me->CastSpell(me, MH_ATTACK_ANIM, true);
-                    break;
-                case LOCUST_SWARM_1:
-                    _handleLocustSwarm();
-                    break;
-                default:
-                    break;
+            case IMPALE_1:
+            case CARRION_BEETLES_1:
+                me->CastSpell(me, MH_ATTACK_ANIM, true);
+                break;
+            case LOCUST_SWARM_1:
+                _handleLocustSwarm();
+                break;
+            default:
+                break;
             }
         }
 
@@ -471,7 +471,7 @@ public:
                             if (u->GetDistance(me) < IMPALE_DAMAGE_DIST_MAX + 5.0f)
                                 me->CastSpell(u, IMPALE_DAMAGE, true);
                         }
-                    }, std::chrono::milliseconds(ms_delay));
+                        }, std::chrono::milliseconds(ms_delay));
                 }
             }
             else if (baseId == IMPALE_DAMAGE)
@@ -628,28 +628,25 @@ public:
             _locusts[offset] = locust->GetGUID();
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool savePets = true) override
         {
-            while (!_minions.empty())
-                (*_minions.begin())->ToTempSummon()->UnSummon();
-            for (ObjectGuid locust_guid : _locusts)
-            {
-                if (!locust_guid.IsEmpty())
-                {
-                    if (Creature* locust = ObjectAccessor::GetCreature(*me, locust_guid))
-                        locust->ToTempSummon()->UnSummon();
-                }
-            }
+            UnsummonCreatures(_minions, savePets);
+            UnsummonLocusts(false);
         }
 
-        void KillAllLocusts()
+        void UnsummonLocusts(bool kill)
         {
             for (ObjectGuid locust_guid : _locusts)
             {
                 if (!locust_guid.IsEmpty())
                 {
                     if (Creature* locust = ObjectAccessor::GetCreature(*me, locust_guid))
-                        locust->KillSelf(false);
+                    {
+                        if (kill)
+                            locust->KillSelf(false);
+                        else
+                            locust->ToTempSummon()->UnSummon();
+                    }
                 }
             }
         }
@@ -674,10 +671,10 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_PET_TYPE:
-                    return _getCarrionBeetleEntry();
-                default:
-                    return 0;
+            case BOTAI_MISC_PET_TYPE:
+                return _getCarrionBeetleEntry();
+            default:
+                return 0;
             }
         }
 
@@ -687,7 +684,7 @@ public:
             _carrionBeetlesCheckTimer = 0;
             _locustSwarmCheckTimer = 0;
 
-            UnsummonAll();
+            UnsummonAll(false);
 
             DefaultInit();
         }
@@ -721,17 +718,17 @@ public:
         {
             switch (basespell)
             {
-                case IMPALE_1:
+            case IMPALE_1:
                 //case CARRION_BEETLES_1:
-                case LOCUST_SWARM_1:
-                    return true;
-                default:
-                    return false;
+            case LOCUST_SWARM_1:
+                return true;
+            default:
+                return false;
             }
         }
 
         bool HasAbilitiesSpecifics() const override { return true; }
-        void FillAbilitiesSpecifics(Player const* player, std::list<std::string> &specList) override
+        void FillAbilitiesSpecifics(Player const* player, std::list<std::string>& specList) override
         {
             specList.push_back(LocalizedNpcText(player, BOT_TEXT_REFLECT) + ": " + std::to_string(_getSpikesDamageReflectPct()) + '%');
             if (me->GetLevel() >= LOCUST_SWARM_MIN_LEVEL)
@@ -765,7 +762,7 @@ public:
                 uint32 offset = LOCUSTS_RELEASE_TIME / max_locusts * (i + 1);
                 Events.AddEventAtOffset([this, num = i]() {
                     SummonLocust(num);
-                }, std::chrono::milliseconds(offset));
+                    }, std::chrono::milliseconds(offset));
             }
         }
 
@@ -816,11 +813,11 @@ public:
         bool _isUsableCorpse(Creature const* c) const
         {
             static const uint32 ViableCreatureTypesMask =
-                (1 << (CREATURE_TYPE_BEAST-1)) | (1 << (CREATURE_TYPE_DRAGONKIN-1)) | (1 << (CREATURE_TYPE_HUMANOID-1));
+                (1 << (CREATURE_TYPE_BEAST - 1)) | (1 << (CREATURE_TYPE_DRAGONKIN - 1)) | (1 << (CREATURE_TYPE_HUMANOID - 1));
 
-            return !c->IsAlive() && c->GetDisplayId() == c->GetNativeDisplayId() &&
+            return c->getDeathState() == DeathState::CORPSE && c->GetDisplayId() == c->GetNativeDisplayId() &&
                 !c->IsVehicle() && !c->isWorldBoss() && !c->IsDungeonBoss() &&
-                ((1 << (c->GetCreatureType()-1)) & ViableCreatureTypesMask) &&
+                ((1 << (c->GetCreatureType() - 1)) & ViableCreatureTypesMask) &&
                 !c->IsControlledByPlayer() && !c->IsNPCBot();
         }
 
@@ -828,7 +825,7 @@ public:
         uint32 _carrionBeetlesCheckTimer;
         uint32 _locustSwarmCheckTimer;
 
-        typedef std::set<Unit*> Summons;
+        typedef std::set<Creature*> Summons;
         Summons _minions;
         typedef std::vector<ObjectGuid> Swarm;
         Swarm _locusts;

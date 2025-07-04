@@ -10,11 +10,11 @@ DPS trackers may collect data from different bot owners if in party but this ove
 
 enum DPSTrackerConstants : uint32
 {
-    DPS_UPDATE_TIMER        =  500, //recalculate dps every x ms
-    MAX_DPS_TRACK_TIME      = 5000, //track damage taken for last x ms
-    DPS_INACTIVE_TIMER      = 5000, //reset if combat not active for botparty for x ms
+    DPS_UPDATE_TIMER = 500, //recalculate dps every x ms
+    MAX_DPS_TRACK_TIME = 5000, //track damage taken for last x ms
+    DPS_INACTIVE_TIMER = 5000, //reset if combat not active for botparty for x ms
     //maximum tracked damage taken periods of DPS_UPDATE_TIMER during MAX_DPS_TRACK_TIME
-    MAX_DAMAGES             = MAX_DPS_TRACK_TIME/DPS_UPDATE_TIMER
+    MAX_DAMAGES = MAX_DPS_TRACK_TIME / DPS_UPDATE_TIMER
 };
 
 DPSTracker::DPSTracker()
@@ -82,12 +82,12 @@ void DPSTracker::_Release()
             total_damage += dmgs[i];
 
         _DPSes[itr->first] = uint32(total_damage / (0.001f * std::max<uint32>(1 * IN_MILLISECONDS, std::min<uint32>(_trackTimer, MAX_DPS_TRACK_TIME))));
-        //TC_LOG_ERROR("entities.player", "DPSTracker::Release(): guidlow = {}, time = {}, tick damage {}, total {}, dps = {}",
+        //BOT_LOG_ERROR("entities.player", "DPSTracker::Release(): guidlow = {}, time = {}, tick damage {}, total {}, dps = {}",
         //    itr->first, _trackTimer, dmgs[0], total_damage, _DPSes[itr->first]);
 
         //shift
-        for (int8 i = MAX_DAMAGES-1; i > 0; --i)
-            dmgs[i] = dmgs[i-1];
+        for (int8 i = MAX_DAMAGES - 1; i > 0; --i)
+            dmgs[i] = dmgs[i - 1];
         dmgs[0] = 0;
     }
 }
@@ -99,7 +99,7 @@ void DPSTracker::_AccumulateDamage(uint64 guid, uint32 damage)
     if (itr == _damages.end())
     {
         uint32* dmgarray = new uint32[MAX_DAMAGES];
-        memset(dmgarray, 0, sizeof(uint32)*MAX_DAMAGES);
+        memset(dmgarray, 0, sizeof(uint32) * MAX_DAMAGES);
 
         dmgarray[0] = damage;
 
@@ -112,7 +112,7 @@ void DPSTracker::_AccumulateDamage(uint64 guid, uint32 damage)
 //victim is bot owner, bot, party player or party bot; checked in Unit::DealDamage()
 void DPSTracker::TrackDamage(Unit const* victim, uint32 damage)
 {
-    //TC_LOG_ERROR("entities.player", "DPSTracker::OnDamage(): on {}, damage {}", victim->GetName(), damage);
+    //BOT_LOG_ERROR("entities.player", "DPSTracker::OnDamage(): on {}, damage {}", victim->GetName(), damage);
 
     _SetActive();
     _AccumulateDamage(victim->GetGUID().GetRawValue(), damage);
@@ -128,6 +128,6 @@ void DPSTracker::_SetActive()
 uint32 DPSTracker::GetDPSTaken(uint64 guid) const
 {
     DPSTakenMap::const_iterator itr = _DPSes.find(guid);
-    //TC_LOG_ERROR("entities.player", "DPSTracker::GetDPSTaken(): from {}, damage {}", guid, itr != _DPSes.end() ? itr->second : 0);
+    //BOT_LOG_ERROR("entities.player", "DPSTracker::GetDPSTaken(): from {}, damage {}", guid, itr != _DPSes.end() ? itr->second : 0);
     return itr != _DPSes.end() ? itr->second : 0;
 }

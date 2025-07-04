@@ -22,131 +22,131 @@ TODO: rituals (not directly feasable), demonic circle, demonic empowerment, demo
 
 enum WarlockBaseSpells
 {
-    CURSE_OF_WEAKNESS_1                 = 702,
-    CURSE_OF_AGONY_1                    = 980,
-    CURSE_OF_TONGUES_1                  = 1714,
-    CURSE_OF_EXHAUSTION_1               = 18223,
-    CURSE_OF_THE_ELEMENTS_1             = 1490,
-    CURSE_OF_DOOM_1                     = 603,//NI
-    SHADOW_BOLT_1                       = 686,
-    IMMOLATE_1                          = 348,
-    CORRUPTION_1                        = 172,
-    SEED_OF_CORRUPTION_1                = 27243,
-    INCINERATE_1                        = 29722,
-    SEARING_PAIN_1                      = 5676,
-    SHADOWBURN_1                        = 17877,
-    CONFLAGRATE_1                       = 17962,
-    SOUL_FIRE_1                         = 6353,
-    CHAOS_BOLT_1                        = 50796,
-    RAIN_OF_FIRE_1                      = 5740,
-    HELLFIRE_1                          = 1949,
-    SHADOWFLAME_1                       = 47897,
-    SHADOWFURY_1                        = 30283,
-    HAUNT_1                             = 48181,
-    UNSTABLE_AFFLICTION_1               = 30108,
-    FEAR_1                              = 5782,
-    HOWL_OF_TERROR_1                    = 5484,
-    DEATH_COIL_1                        = 6789,
-    SOULSHATTER_1                       = 29858,
+    CURSE_OF_WEAKNESS_1 = 702,
+    CURSE_OF_AGONY_1 = 980,
+    CURSE_OF_TONGUES_1 = 1714,
+    CURSE_OF_EXHAUSTION_1 = 18223,
+    CURSE_OF_THE_ELEMENTS_1 = 1490,
+    CURSE_OF_DOOM_1 = 603,//NI
+    SHADOW_BOLT_1 = 686,
+    IMMOLATE_1 = 348,
+    CORRUPTION_1 = 172,
+    SEED_OF_CORRUPTION_1 = 27243,
+    INCINERATE_1 = 29722,
+    SEARING_PAIN_1 = 5676,
+    SHADOWBURN_1 = 17877,
+    CONFLAGRATE_1 = 17962,
+    SOUL_FIRE_1 = 6353,
+    CHAOS_BOLT_1 = 50796,
+    RAIN_OF_FIRE_1 = 5740,
+    HELLFIRE_1 = 1949,
+    SHADOWFLAME_1 = 47897,
+    SHADOWFURY_1 = 30283,
+    HAUNT_1 = 48181,
+    UNSTABLE_AFFLICTION_1 = 30108,
+    FEAR_1 = 5782,
+    HOWL_OF_TERROR_1 = 5484,
+    DEATH_COIL_1 = 6789,
+    SOULSHATTER_1 = 29858,
 
-    DRAIN_SOUL_1                        = 1120,
-    DRAIN_MANA_1                        = 5138,
-    BANISH_1                            = 710,
+    DRAIN_SOUL_1 = 1120,
+    DRAIN_MANA_1 = 5138,
+    BANISH_1 = 710,
 
-    DEMON_SKIN_1                        = 687,
-    DEMON_ARMOR_1                       = 706,
-    FEL_ARMOR_1                         = 28176,
-    DETECT_INVISIBILITY_1               = 132,
-    UNENDING_BREATH_1                   = 5697,
-    SHADOW_WARD_1                       = 6229,
-    LIFE_TAP_1                          = 1454,
-    DARK_PACT_1                         = 18220,
+    DEMON_SKIN_1 = 687,
+    DEMON_ARMOR_1 = 706,
+    FEL_ARMOR_1 = 28176,
+    DETECT_INVISIBILITY_1 = 132,
+    UNENDING_BREATH_1 = 5697,
+    SHADOW_WARD_1 = 6229,
+    LIFE_TAP_1 = 1454,
+    DARK_PACT_1 = 18220,
 
-    CREATE_HEALTHSTONE_1                = 6201,
-    CREATE_SOULSTONE_1                  = 693,
+    CREATE_HEALTHSTONE_1 = 6201,
+    CREATE_SOULSTONE_1 = 693,
 
-    CHAOTIC_MIND                        = 61188, //8 sec duration, no cd
+    CHAOTIC_MIND = 61188, //8 sec duration, no cd
 
-    RITUAL_OF_SUMMONING_1               = 698,
-    RITUAL_OF_SOULS_1                   = 29893
+    RITUAL_OF_SUMMONING_1 = 698,
+    RITUAL_OF_SOULS_1 = 29893
 };
 enum WarlockPassives
 {
-    IMPROVED_SHADOW_BOLT                = 17803,//rank 5
-    IMPROVED_DRAIN_SOUL                 = 18372,//rank 2
-    SOUL_SIPHON                         = 17805,//rank 2
-    AFTERMATH                           = 18120,//rank 2
-    IMPROVED_FEAR                       = 53759,//rank 2
-    NIGHTFALL                           = 18095,//rank 2
-    SHADOW_EMBRACE                      = 32394,//rank 5
-    SIPHON_LIFE                         = 63108,
-    BACKLASH                            = 34939,//rank 3
-    MOLTEN_CORE                         = 47247,//rank 3
-    NETHER_PROTECTION                   = 30302,//rank 3
-    ERADICATION                         = 47197,//rank 3
-    DEMONIC_RESILIENCE                  = 30321,//rank 3
-    SOUL_LEECH                          = 30296,//rank 3
-    PYROCLASM                           = 63245,//rank 3
-    DECIMATION                          = 63158,//rank 2
-    IMPROVED_SOUL_LEECH                 = 54118,//rank 2
-    PANDEMIC                            = 58435,
-    BACKDRAFT                           = 47260,//rank 3
-    EVERLASTING_AFFLICTION              = 47205,//rank 5
+    IMPROVED_SHADOW_BOLT = 17803,//rank 5
+    IMPROVED_DRAIN_SOUL = 18372,//rank 2
+    SOUL_SIPHON = 17805,//rank 2
+    AFTERMATH = 18120,//rank 2
+    IMPROVED_FEAR = 53759,//rank 2
+    NIGHTFALL = 18095,//rank 2
+    SHADOW_EMBRACE = 32394,//rank 5
+    SIPHON_LIFE = 63108,
+    BACKLASH = 34939,//rank 3
+    MOLTEN_CORE = 47247,//rank 3
+    NETHER_PROTECTION = 30302,//rank 3
+    ERADICATION = 47197,//rank 3
+    DEMONIC_RESILIENCE = 30321,//rank 3
+    SOUL_LEECH = 30296,//rank 3
+    PYROCLASM = 63245,//rank 3
+    DECIMATION = 63158,//rank 2
+    IMPROVED_SOUL_LEECH = 54118,//rank 2
+    PANDEMIC = 58435,
+    BACKDRAFT = 47260,//rank 3
+    EVERLASTING_AFFLICTION = 47205,//rank 5
 
     //Special
-    GLYPH_CORRUPTION                    = 56218,
-    GLYPH_LIFE_TAP                      = 63320,
-    GLYPH_FEAR                          = 56244,
-    GLYPH_QUICK_DECAY                   = 70947,
-    GLYPH_CONFLAGRATE                   = 56235,
-    GLYPH_SHADOWFLAME                   = 63310
+    GLYPH_CORRUPTION = 56218,
+    GLYPH_LIFE_TAP = 63320,
+    GLYPH_FEAR = 56244,
+    GLYPH_QUICK_DECAY = 70947,
+    GLYPH_CONFLAGRATE = 56235,
+    GLYPH_SHADOWFLAME = 63310
 };
 
 enum WarlockSpecial
 {
-    CHAOS_BOLT_PASSIVE                  = 58284,
-    DEMONIC_IMMOLATE_PASSIVE            = 75445,
+    CHAOS_BOLT_PASSIVE = 58284,
+    DEMONIC_IMMOLATE_PASSIVE = 75445,
 
-    BACKLASH_BUFF                       = 34936,
-    BACKDRAFT_BUFF                      = 54277,//rank 3
-    SHADOW_TRANCE_BUFF                  = 17941,
-    MOLTEN_CORE_BUFF                    = 71165,//rank 3
-    DECIMATION_BUFF                     = 63167,//rank 2
-    CHAOTIC_MIND_BUFF                   = 61189,// "Soul Fire!" 6 sec duration Soul Fire instant cast
-    GLYPH_LIFE_TAP_BUFF                 = 63321,//"Life Tap"
+    BACKLASH_BUFF = 34936,
+    BACKDRAFT_BUFF = 54277,//rank 3
+    SHADOW_TRANCE_BUFF = 17941,
+    MOLTEN_CORE_BUFF = 71165,//rank 3
+    DECIMATION_BUFF = 63167,//rank 2
+    CHAOTIC_MIND_BUFF = 61189,// "Soul Fire!" 6 sec duration Soul Fire instant cast
+    GLYPH_LIFE_TAP_BUFF = 63321,//"Life Tap"
 
-    SHADOW_MASTERY_DEBUFF               = 17800,// Improved Shadow Bolt talent debuff
+    SHADOW_MASTERY_DEBUFF = 17800,// Improved Shadow Bolt talent debuff
 
-    SIPHON_LIFE_HEAL                    = 63106,
-    LIFE_TAP_ENERGIZE                   = 31818,
+    SIPHON_LIFE_HEAL = 63106,
+    LIFE_TAP_ENERGIZE = 31818,
 
-    SEED_OF_CORRUPTION_FINAL_DAMAGE_1   = 27285,
+    SEED_OF_CORRUPTION_FINAL_DAMAGE_1 = 27285,
 
-    SOULSTONE_RESURRECTION_1            = 20707,
-    SOULSTONE_RESURRECTION_2            = 20762,
-    SOULSTONE_RESURRECTION_3            = 20763,
-    SOULSTONE_RESURRECTION_4            = 20764,
-    SOULSTONE_RESURRECTION_5            = 20765,
-    SOULSTONE_RESURRECTION_6            = 27239,
-    SOULSTONE_RESURRECTION_7            = 47883,
+    SOULSTONE_RESURRECTION_1 = 20707,
+    SOULSTONE_RESURRECTION_2 = 20762,
+    SOULSTONE_RESURRECTION_3 = 20763,
+    SOULSTONE_RESURRECTION_4 = 20764,
+    SOULSTONE_RESURRECTION_5 = 20765,
+    SOULSTONE_RESURRECTION_6 = 27239,
+    SOULSTONE_RESURRECTION_7 = 47883,
 
-    BLOOD_PACT_1                        = 6307,
-    FEL_INTELLIGENCE_1                  = 54424,
+    BLOOD_PACT_1 = 6307,
+    FEL_INTELLIGENCE_1 = 54424,
 
-    SOUL_LINK_PET                       = 25228,//split effect lvl 20 req
-    FEL_SYNERGY_HEAL                    = 54181,
-    LIFE_TAP_ENERGIZE_PET               = 32553
+    SOUL_LINK_PET = 25228,//split effect lvl 20 req
+    FEL_SYNERGY_HEAL = 54181,
+    LIFE_TAP_ENERGIZE_PET = 32553
 };
 
 enum CurseType : uint32
 {
-    CURSE_NONE                  = 0,
-    CURSE_WEAKNESS              = 1,
-    CURSE_AGONY                 = 2,
-    CURSE_DOOM                  = 3,
-    CURSE_ELEMENTS              = 4,
-    CURSE_TONGUES               = 5,
-    CURSE_EXHAUSTION            = 6,
+    CURSE_NONE = 0,
+    CURSE_WEAKNESS = 1,
+    CURSE_AGONY = 2,
+    CURSE_DOOM = 3,
+    CURSE_ELEMENTS = 4,
+    CURSE_TONGUES = 5,
+    CURSE_EXHAUSTION = 6,
 
     CURSE_FLAG_MY_WEAKNESS,
     CURSE_FLAG_MY_AGONY,
@@ -155,22 +155,22 @@ enum CurseType : uint32
     CURSE_FLAG_MY_TONGUES,
     CURSE_FLAG_MY_EXHAUSTION,
 
-    CURSE_MASK_WEAKNESS         = (1 << CURSE_WEAKNESS),
-    CURSE_MASK_AGONY            = (1 << CURSE_AGONY),
-    CURSE_MASK_DOOM             = (1 << CURSE_DOOM),
-    CURSE_MASK_ELEMENTS         = (1 << CURSE_ELEMENTS),
-    CURSE_MASK_TONGUES          = (1 << CURSE_TONGUES),
-    CURSE_MASK_EXHAUSTION       = (1 << CURSE_EXHAUSTION),
+    CURSE_MASK_WEAKNESS = (1 << CURSE_WEAKNESS),
+    CURSE_MASK_AGONY = (1 << CURSE_AGONY),
+    CURSE_MASK_DOOM = (1 << CURSE_DOOM),
+    CURSE_MASK_ELEMENTS = (1 << CURSE_ELEMENTS),
+    CURSE_MASK_TONGUES = (1 << CURSE_TONGUES),
+    CURSE_MASK_EXHAUSTION = (1 << CURSE_EXHAUSTION),
 
-    CURSE_MASK_MY_WEAKNESS      = (1 << CURSE_FLAG_MY_WEAKNESS),
-    CURSE_MASK_MY_AGONY         = (1 << CURSE_FLAG_MY_AGONY),
-    CURSE_MASK_MY_DOOM          = (1 << CURSE_FLAG_MY_DOOM),
-    CURSE_MASK_MY_ELEMENTS      = (1 << CURSE_FLAG_MY_ELEMENTS),
-    CURSE_MASK_MY_TONGUES       = (1 << CURSE_FLAG_MY_TONGUES),
-    CURSE_MASK_MY_EXHAUSTION    = (1 << CURSE_FLAG_MY_EXHAUSTION),
+    CURSE_MASK_MY_WEAKNESS = (1 << CURSE_FLAG_MY_WEAKNESS),
+    CURSE_MASK_MY_AGONY = (1 << CURSE_FLAG_MY_AGONY),
+    CURSE_MASK_MY_DOOM = (1 << CURSE_FLAG_MY_DOOM),
+    CURSE_MASK_MY_ELEMENTS = (1 << CURSE_FLAG_MY_ELEMENTS),
+    CURSE_MASK_MY_TONGUES = (1 << CURSE_FLAG_MY_TONGUES),
+    CURSE_MASK_MY_EXHAUSTION = (1 << CURSE_FLAG_MY_EXHAUSTION),
 
-    CURSE_MASK_MY_CURSE_ANY     = (CURSE_MASK_MY_WEAKNESS | CURSE_MASK_MY_AGONY | CURSE_MASK_MY_DOOM | \
-                                CURSE_MASK_MY_ELEMENTS | CURSE_MASK_MY_TONGUES | CURSE_MASK_MY_EXHAUSTION)
+    CURSE_MASK_MY_CURSE_ANY = (CURSE_MASK_MY_WEAKNESS | CURSE_MASK_MY_AGONY | CURSE_MASK_MY_DOOM | \
+        CURSE_MASK_MY_ELEMENTS | CURSE_MASK_MY_TONGUES | CURSE_MASK_MY_EXHAUSTION)
 };
 
 static const uint32 Warlock_spells_damage_arr[] =
@@ -199,26 +199,26 @@ public:
     {
         return new warlock_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct warlock_botAI : public bot_ai
     {
         static uint32 const _healthStoneSpells[8/*createHealthstoneRank*/];
@@ -226,6 +226,8 @@ public:
         warlock_botAI(Creature* creature) : bot_ai(creature)
         {
             _botclass = BOT_CLASS_WARLOCK;
+
+            myPetType = 0;
 
             InitUnitFlags();
         }
@@ -241,7 +243,7 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { UnsummonAll(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonAll(false); bot_ai::JustDied(u); }
         void DoNonCombatActions(uint32 diff)
         {
             if (GC_Timer > diff || me->IsMounted() || IsCasting() || Feasting() || Rand() > 20)
@@ -291,7 +293,6 @@ public:
                     return;
             }
 
-            //TODO: soulstone on self/bots
             //BUG: players cannot accept this buff if they are below lvl 20 (should be 8)
             if (hasSoulstone && soulstoneTimer <= diff && GetSpell(CREATE_SOULSTONE_1))
             {
@@ -306,7 +307,7 @@ public:
                             break;
                         for (Unit* member : all_members)
                         {
-                            if ((i >= 2 || (i == 0 ? member->IsPlayer() : member->IsNPCBot())) && me->GetMap() == member->FindMap() &&
+                            if ((i >= 2 || (i == 0 ? member->IsPlayer() : (member->IsNPCBot() && !GetBG()))) && me->GetMap() == member->FindMap() &&
                                 member->IsAlive() && !member->isPossessed() && !member->IsCharmed() &&
                                 !(member->IsNPCBot() && member->ToCreature()->IsTempBot()) &&
                                 me->GetDistance(member) < 30 && !member->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 92, 0))
@@ -321,13 +322,13 @@ public:
                     }
                 }
 
-                if (targets.empty() && master->IsAlive() && !master->isPossessed() && !master->IsCharmed() &&
+                if (targets.empty() && master->IsAlive() && !master->isPossessed() && !master->IsCharmed() && !(GetBG() && IsWanderer()) &&
                     me->GetDistance(master) < 30 && !master->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 92, 0))
                     targets.push_back(master);
 
                 if (!targets.empty())
                 {
-                    Unit* target = targets.size() == 1 ? targets.front() : Trinity::Containers::SelectRandomContainerElement(targets);
+                    Unit* target = targets.size() == 1 ? targets.front() : Bcore::Containers::SelectRandomContainerElement(targets);
                     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(CREATE_SOULSTONE_1);
                     uint32 rank = spellInfo->GetRank();
 
@@ -340,17 +341,17 @@ public:
                     uint32 spellId;
                     switch (spellInfo->Id)
                     {
-                        case   693: spellId = SOULSTONE_RESURRECTION_1; break; //rank 1
-                        case 20752: spellId = SOULSTONE_RESURRECTION_2; break; //rank 2
-                        case 20755: spellId = SOULSTONE_RESURRECTION_3; break; //rank 3
-                        case 20756: spellId = SOULSTONE_RESURRECTION_4; break; //rank 4
-                        case 20757: spellId = SOULSTONE_RESURRECTION_5; break; //rank 5
-                        case 27238: spellId = SOULSTONE_RESURRECTION_6; break; //rank 6
-                        case 47884: spellId = SOULSTONE_RESURRECTION_7; break; //rank 7
-                        default:
-                            TC_LOG_ERROR("entities.player", "bot_warlockAI: unknown soulstone Id {}", spellInfo->Id);
-                            spellId = SOULSTONE_RESURRECTION_1;
-                            break;
+                    case   693: spellId = SOULSTONE_RESURRECTION_1; break; //rank 1
+                    case 20752: spellId = SOULSTONE_RESURRECTION_2; break; //rank 2
+                    case 20755: spellId = SOULSTONE_RESURRECTION_3; break; //rank 3
+                    case 20756: spellId = SOULSTONE_RESURRECTION_4; break; //rank 4
+                    case 20757: spellId = SOULSTONE_RESURRECTION_5; break; //rank 5
+                    case 27238: spellId = SOULSTONE_RESURRECTION_6; break; //rank 6
+                    case 47884: spellId = SOULSTONE_RESURRECTION_7; break; //rank 7
+                    default:
+                        BOT_LOG_ERROR("entities.player", "bot_warlockAI: unknown soulstone Id {}", spellInfo->Id);
+                        spellId = SOULSTONE_RESURRECTION_1;
+                        break;
                     }
                     me->CastSpell(target, spellId, false);
                 }
@@ -472,7 +473,7 @@ public:
             if (GC_Timer > diff || IsCasting() || Rand() > 25)
                 return;
 
-            bool busyCasting = me->IsNonMeleeSpellCast(true,true,true);
+            bool busyCasting = me->IsNonMeleeSpellCast(true, true, true);
 
             //Fear
             if (!busyCasting && IsSpellReady(FEAR_1, diff))
@@ -500,7 +501,7 @@ public:
                         return;
                 }
             }
-             //Death Coil
+            //Death Coil
             if (HasRole(BOT_ROLE_DPS) && IsSpellReady(DEATH_COIL_1, diff))
             {
                 if (Unit* u = FindCastingTarget(CalcSpellMaxRange(DEATH_COIL_1), 0, DEATH_COIL_1))
@@ -609,7 +610,7 @@ public:
             //Hellfire interrupt
             Spell const* spell = me->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
             if (spell && spell->GetSpellInfo()->GetFirstRankSpell()->Id == HELLFIRE_1 &&
-                ((!IAmFree() && !master->GetBotMgr()->IsPartyInCombat()) || GetHealthPCT(me) < 25))
+                ((!IAmFree() && !master->GetBotMgr()->IsPartyInCombat(false)) || GetHealthPCT(me) < 25))
                 me->InterruptSpell(CURRENT_CHANNELED_SPELL);
             else
             {
@@ -800,7 +801,7 @@ public:
                     bool erase = false;
                     if (u->isMoving())
                     {
-                        if (me->GetDistance(u) > 10.f && !u->HasInArc(float(M_PI)/2, me))
+                        if (me->GetDistance(u) > 10.f && !u->HasInArc(float(M_PI) / 2, me))
                             erase = true;
                     }
                     else if (me->GetDistance(u) > 9.5f)
@@ -870,7 +871,7 @@ public:
                             return;
                     }
                     if (!(curses & CURSE_MASK_EXHAUSTION) && GetSpell(CURSE_OF_EXHAUSTION_1) && !CCed(mytar, true) &&
-                        mytar->IsControlledByPlayer() && !mytar->HasAuraWithMechanic(1<<MECHANIC_SNARE))
+                        mytar->IsControlledByPlayer() && !mytar->HasAuraWithMechanic(1 << MECHANIC_SNARE))
                     {
                         if (doCast(mytar, GetSpell(CURSE_OF_EXHAUSTION_1)))
                             return;
@@ -918,7 +919,7 @@ public:
             //Immolate
             if (IsSpellReady(IMMOLATE_1, diff) && can_do_fire && Rand() < 85 && dist < CalcSpellMaxRange(IMMOLATE_1) &&
                 (GetSpec() != BOT_SPEC_WARLOCK_AFFLICTION || !GetSpell(UNSTABLE_AFFLICTION_1)) &&
-                (GetSpell(CONFLAGRATE_1) || mytar->GetHealth() > me->GetMaxHealth()/4 * (1 + mytar->getAttackers().size())) &&
+                (GetSpell(CONFLAGRATE_1) || mytar->GetHealth() > me->GetMaxHealth() / 4 * (1 + mytar->getAttackers().size())) &&
                 !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x4, 0x0, 0x0, me->GetGUID()))
             {
                 if (doCast(mytar, GetSpell(IMMOLATE_1)))
@@ -926,7 +927,7 @@ public:
             }
             //Haunt
             if (IsSpellReady(HAUNT_1, diff) && can_do_shadow && Rand() < 125 && dist < CalcSpellMaxRange(HAUNT_1) &&
-                mytar->GetHealth() > me->GetMaxHealth()/4 * (1 + mytar->getAttackers().size()) &&
+                mytar->GetHealth() > me->GetMaxHealth() / 4 * (1 + mytar->getAttackers().size()) &&
                 !mytar->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_FROM_CASTER, SPELLFAMILY_WARLOCK, 0x0, 0x40000, 0x0, me->GetGUID()))
             {
                 if (doCast(mytar, GetSpell(HAUNT_1)))
@@ -934,7 +935,7 @@ public:
             }
             //Unstable Affliction
             if (IsSpellReady(UNSTABLE_AFFLICTION_1, diff) && can_do_shadow && Rand() < 115 && dist < CalcSpellMaxRange(UNSTABLE_AFFLICTION_1) &&
-                mytar->GetHealth() > me->GetMaxHealth()/4 * (1 + mytar->getAttackers().size()) &&
+                mytar->GetHealth() > me->GetMaxHealth() / 4 * (1 + mytar->getAttackers().size()) &&
                 !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x0, 0x100, 0x0, me->GetGUID()))
             {
                 if (doCast(mytar, GetSpell(UNSTABLE_AFFLICTION_1)))
@@ -954,7 +955,7 @@ public:
             }
             //Corruption
             if (IsSpellReady(CORRUPTION_1, diff) && can_do_shadow && Rand() < 90 && dist < CalcSpellMaxRange(CORRUPTION_1) &&
-                mytar->GetHealth() > me->GetMaxHealth()/4 * (1 + mytar->getAttackers().size()) &&
+                mytar->GetHealth() > me->GetMaxHealth() / 4 * (1 + mytar->getAttackers().size()) &&
                 !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x2, 0x0, 0x0, me->GetGUID()) &&//corruption
                 !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x0, 0x10, 0x0, me->GetGUID()))//seed of corruption
             {
@@ -971,7 +972,7 @@ public:
             }
             //Soul Fire (conditional)
             if (IsSpellReady(SOUL_FIRE_1, diff) && can_do_fire && Rand() < 90 && dist < CalcSpellMaxRange(SOUL_FIRE_1) &&
-                mytar->GetHealth() > me->GetMaxHealth()/8 * (1 + mytar->getAttackers().size()) && me->HasAura(BACKDRAFT_BUFF))
+                mytar->GetHealth() > me->GetMaxHealth() / 8 * (1 + mytar->getAttackers().size()) && me->HasAura(BACKDRAFT_BUFF))
             {
                 if (doCast(mytar, GetSpell(SOUL_FIRE_1)))
                     return;
@@ -986,20 +987,20 @@ public:
                     //mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x4, 0x0, 0x0) &&
                     //mytar->GetAuraEffect(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE, SPELLFAMILY_WARLOCK, 213, 0) &&
                     //(me->GetMap()->IsRaid() || !me->HasAura(SHADOW_TRANCE_BUFF)) ?
-                    INCINERATE_1 : SHADOW_BOLT_1;
+                INCINERATE_1: SHADOW_BOLT_1;
 
                 bool can_cast_boltinerate;
                 switch (boltinerate)
                 {
-                    case SEARING_PAIN_1: case INCINERATE_1:
-                        can_cast_boltinerate = can_do_fire;
-                        break;
-                    case SHADOW_BOLT_1:
-                        can_cast_boltinerate = can_do_shadow;
-                        break;
-                    default:
-                        can_cast_boltinerate = true;
-                        break;
+                case SEARING_PAIN_1: case INCINERATE_1:
+                    can_cast_boltinerate = can_do_fire;
+                    break;
+                case SHADOW_BOLT_1:
+                    can_cast_boltinerate = can_do_shadow;
+                    break;
+                default:
+                    can_cast_boltinerate = true;
+                    break;
                 }
 
                 if (boltinerate && can_cast_boltinerate && doCast(mytar, GetSpell(boltinerate)))
@@ -1011,7 +1012,7 @@ public:
                 if (shot->GetSpellInfo()->Id == SHOOT_WAND && shot->m_targets.GetUnitTarget() != mytar)
                     me->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             }
-            else if (IsSpellReady(SHOOT_WAND, diff) && me->GetDistance(mytar) < 30 && GetEquips(BOT_SLOT_RANGED) &&
+            else if (IsSpellReady(SHOOT_WAND, diff) && !me->isMoving() && me->GetDistance(mytar) < 30 && GetEquips(BOT_SLOT_RANGED) &&
                 doCast(mytar, SHOOT_WAND))
                 return;
         }
@@ -1164,7 +1165,7 @@ public:
             //Contagion: 5% bonus damage for Curse of Agony, Corruption and Seed of Corruption
             if ((GetSpec() == BOT_SPEC_WARLOCK_AFFLICTION) &&
                 lvl >= 40 && (baseId == CORRUPTION_1 || baseId == SEED_OF_CORRUPTION_1 ||
-                baseId == SEED_OF_CORRUPTION_FINAL_DAMAGE_1 || baseId == CURSE_OF_AGONY_1))
+                    baseId == SEED_OF_CORRUPTION_FINAL_DAMAGE_1 || baseId == CURSE_OF_AGONY_1))
                 pctbonus += 0.05f;
 
             //Warlock T82P Bonus (64931): 20/10% bonus damage for Unstable Affliction and Immolate
@@ -1313,6 +1314,32 @@ public:
             instaCast = (casttime <= 500); //triggered GCD is too long
         }
 
+        void ApplyClassSpellNotLoseCastTimeMods(SpellInfo const* spellInfo, int32& delayReduce) const override
+        {
+            uint32 baseId = spellInfo->GetFirstRankSpell()->Id;
+            //SpellSchoolMask schools = spellInfo->GetSchoolMask();
+            uint8 lvl = me->GetLevel();
+            int32 reduceBonus = 0;
+
+            if (lvl >= 20 && (/*baseId == DRAIN_LIFE_1 || */baseId == DRAIN_MANA_1 || baseId == DRAIN_SOUL_1 || baseId == UNSTABLE_AFFLICTION_1 || baseId == HAUNT_1))
+                reduceBonus += 70;
+
+            if (GetSpec() == BOT_SPEC_WARLOCK_DESTRUCTION && lvl >= 25)
+            {
+                switch (baseId)
+                {
+                case CHAOS_BOLT_1: case HELLFIRE_1: case IMMOLATE_1: case INCINERATE_1: case RAIN_OF_FIRE_1:
+                case SEARING_PAIN_1: case SHADOW_BOLT_1: case SOUL_FIRE_1: case SHADOWBURN_1: case SHADOWFURY_1:
+                    reduceBonus += 70;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            delayReduce += reduceBonus;
+        }
+
         void ApplyClassSpellCooldownMods(SpellInfo const* /*spellInfo*/, uint32& cooldown) const override
         {
             //cooldown is in milliseconds
@@ -1375,7 +1402,7 @@ public:
             //Amplify Curse: -0.5 sec global cooldown for Curses
             if (lvl >= 20 && spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK &&
                 ((spellInfo->SpellFamilyFlags[0] & 0x408400) || (spellInfo->SpellFamilyFlags[1] & 0x200202) ||
-                (spellInfo->SpellFamilyFlags[2] & 0x800)))
+                    (spellInfo->SpellFamilyFlags[2] & 0x800)))
                 timebonus += 500.f;
 
             //Fear Cast Time Reduction (23047): -0.2 sec global cooldown for Fear
@@ -1470,7 +1497,7 @@ public:
             //}
             longCasted = !instaCast &&
                 (baseId == SHADOW_BOLT_1 || baseId == INCINERATE_1 || baseId == CHAOS_BOLT_1 ||
-                baseId == SOUL_FIRE_1 || baseId == HAUNT_1 || baseId == SEARING_PAIN_1); //damaging spells
+                    baseId == SOUL_FIRE_1 || baseId == HAUNT_1 || baseId == SEARING_PAIN_1); //damaging spells
         }
 
         void SpellHit(WorldObject* wcaster, SpellInfo const* spell) override
@@ -1622,7 +1649,7 @@ public:
             if (lvl >= 60 && target != me && GetSpec() != BOT_SPEC_WARLOCK_AFFLICTION &&
                 spell->SpellFamilyName == SPELLFAMILY_WARLOCK && !spell->IsPositive())
             {
-                if (urand(1,100) <= 5)
+                if (urand(1, 100) <= 5)
                     me->CastSpell(me, CHAOTIC_MIND, true);
             }
             if (baseId == IMMOLATE_1 || baseId == CORRUPTION_1)
@@ -1704,7 +1731,7 @@ public:
         void SummonBotPet()
         {
             if (botPet)
-                UnsummonAll();
+                UnsummonAll(false);
 
             if (myPetType == BOT_PET_INVALID) //disabled
                 return;
@@ -1746,7 +1773,7 @@ public:
                 (entry == BOT_PET_FELHUNTER && me->GetLevel() < 30) ||
                 (entry == BOT_PET_FELGUARD && (me->GetLevel() < 50 || _spec != BOT_SPEC_WARLOCK_DEMONOLOGY)) ||
                 (entry != BOT_PET_IMP && entry != BOT_PET_VOIDWALKER && entry != BOT_PET_SUCCUBUS &&
-                entry != BOT_PET_FELHUNTER && entry != BOT_PET_FELGUARD))
+                    entry != BOT_PET_FELHUNTER && entry != BOT_PET_FELGUARD))
                 entry = 0;
 
             myPetType = entry;
@@ -1774,22 +1801,21 @@ public:
             //fix scale and equips
             switch (myPetType)
             {
-                case BOT_PET_FELHUNTER:
-                    myPet->SetObjectScale(1.1f);
-                    break;
-                case BOT_PET_FELGUARD:
-                    myPet->SetObjectScale(0.75f);
-                    myPet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, 22199);
-                    break;
+            case BOT_PET_FELHUNTER:
+                myPet->SetObjectScale(1.1f);
+                break;
+            case BOT_PET_FELGUARD:
+                myPet->SetObjectScale(0.75f);
+                myPet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, 22199);
+                break;
             }
 
             botPet = myPet;
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool savePets = true) override
         {
-            if (botPet)
-                botPet->ToTempSummon()->UnSummon();
+            UnsummonPet(savePets);
         }
 
         void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override
@@ -1799,7 +1825,7 @@ public:
         void SummonedCreatureDespawn(Creature* summon) override
         {
             //all warlock bot pets despawn at death or manually (gossip, teleport, etc.)
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
             if (summon == botPet)
             {
                 petSummonTimer = 10000;
@@ -1808,12 +1834,12 @@ public:
                 //party aura hack removal helper
                 switch (summon->GetEntry())
                 {
-                    case BOT_PET_IMP:
-                        me->RemoveAurasDueToSpell(InitSpell(me, BLOOD_PACT_1));
-                        break;
-                    case BOT_PET_FELHUNTER:
-                        me->RemoveAurasDueToSpell(InitSpell(me, FEL_INTELLIGENCE_1));
-                        break;
+                case BOT_PET_IMP:
+                    me->RemoveAurasDueToSpell(InitSpell(me, BLOOD_PACT_1));
+                    break;
+                case BOT_PET_FELHUNTER:
+                    me->RemoveAurasDueToSpell(InitSpell(me, FEL_INTELLIGENCE_1));
+                    break;
                 }
             }
         }
@@ -1827,22 +1853,22 @@ public:
         {
             switch (data)
             {
-                case CREATE_HEALTHSTONE_1:
-                    return uint32(hasHealthstone);
-                case BOTAI_MISC_PET_TYPE:
-                    return myPetType;
-                case BOTAI_MISC_PET_AVAILABLE_1:
-                    return BOT_PET_IMP;
-                case BOTAI_MISC_PET_AVAILABLE_2:
-                    return me->GetLevel() >= 10 ? BOT_PET_VOIDWALKER : 0;
-                case BOTAI_MISC_PET_AVAILABLE_3:
-                    return me->GetLevel() >= 20 ? BOT_PET_SUCCUBUS : 0;
-                case BOTAI_MISC_PET_AVAILABLE_4:
-                    return me->GetLevel() >= 30 ? BOT_PET_FELHUNTER : 0;
-                case BOTAI_MISC_PET_AVAILABLE_5:
-                    return me->GetLevel() >= 50 && GetSpec() == BOT_SPEC_WARLOCK_DEMONOLOGY ? BOT_PET_FELGUARD : 0;
-                default:
-                    return 0;
+            case CREATE_HEALTHSTONE_1:
+                return uint32(hasHealthstone);
+            case BOTAI_MISC_PET_TYPE:
+                return myPetType;
+            case BOTAI_MISC_PET_AVAILABLE_1:
+                return BOT_PET_IMP;
+            case BOTAI_MISC_PET_AVAILABLE_2:
+                return me->GetLevel() >= 10 ? BOT_PET_VOIDWALKER : 0;
+            case BOTAI_MISC_PET_AVAILABLE_3:
+                return me->GetLevel() >= 20 ? BOT_PET_SUCCUBUS : 0;
+            case BOTAI_MISC_PET_AVAILABLE_4:
+                return me->GetLevel() >= 30 ? BOT_PET_FELHUNTER : 0;
+            case BOTAI_MISC_PET_AVAILABLE_5:
+                return me->GetLevel() >= 50 && GetSpec() == BOT_SPEC_WARLOCK_DEMONOLOGY ? BOT_PET_FELGUARD : 0;
+            default:
+                return 0;
             }
         }
 
@@ -1850,23 +1876,23 @@ public:
         {
             switch (data)
             {
-                case CREATE_HEALTHSTONE_1:
-                    hasHealthstone = bool(value);
-                    break;
-                case BOTAI_MISC_PET_TYPE:
-                    myPetType = value;
-                    UnsummonAll();
-                    break;
-                default:
-                    break;
+            case CREATE_HEALTHSTONE_1:
+                hasHealthstone = bool(value);
+                break;
+            case BOTAI_MISC_PET_TYPE:
+                myPetType = value;
+                UnsummonAll(false);
+                break;
+            default:
+                break;
             }
+
+            bot_ai::SetAIMiscValue(data, value);
         }
 
         void Reset() override
         {
-            UnsummonAll();
-
-            myPetType = 0;
+            UnsummonAll(false);
 
             fearTimer = 0;
             banishTimer = 0;
@@ -1951,14 +1977,14 @@ public:
             InitSpellMap(RITUAL_OF_SUMMONING_1); //manual only
             InitSpellMap(RITUAL_OF_SOULS_1); //not casted
 
-  /*Talent*/lvl >= 30 && isAffl ? InitSpellMap(CURSE_OF_EXHAUSTION_1) : RemoveSpell(CURSE_OF_EXHAUSTION_1);
-  /*Talent*/lvl >= 50 && isAffl ? InitSpellMap(UNSTABLE_AFFLICTION_1) : RemoveSpell(UNSTABLE_AFFLICTION_1);
-  /*Talent*/lvl >= 60 && isAffl ? InitSpellMap(HAUNT_1) : RemoveSpell(HAUNT_1);
+            /*Talent*/lvl >= 30 && isAffl ? InitSpellMap(CURSE_OF_EXHAUSTION_1) : RemoveSpell(CURSE_OF_EXHAUSTION_1);
+            /*Talent*/lvl >= 50 && isAffl ? InitSpellMap(UNSTABLE_AFFLICTION_1) : RemoveSpell(UNSTABLE_AFFLICTION_1);
+            /*Talent*/lvl >= 60 && isAffl ? InitSpellMap(HAUNT_1) : RemoveSpell(HAUNT_1);
 
-  /*Talent*/lvl >= 20 && isDest ? InitSpellMap(SHADOWBURN_1) : RemoveSpell(SHADOWBURN_1);
-  /*Talent*/lvl >= 40 && isDest ? InitSpellMap(CONFLAGRATE_1) : RemoveSpell(CONFLAGRATE_1);
-  /*Talent*/lvl >= 50 && isDest ? InitSpellMap(SHADOWFURY_1) : RemoveSpell(SHADOWFURY_1);
-  /*Talent*/lvl >= 60 && isDest ? InitSpellMap(CHAOS_BOLT_1) : RemoveSpell(CHAOS_BOLT_1);
+            /*Talent*/lvl >= 20 && isDest ? InitSpellMap(SHADOWBURN_1) : RemoveSpell(SHADOWBURN_1);
+            /*Talent*/lvl >= 40 && isDest ? InitSpellMap(CONFLAGRATE_1) : RemoveSpell(CONFLAGRATE_1);
+            /*Talent*/lvl >= 50 && isDest ? InitSpellMap(SHADOWFURY_1) : RemoveSpell(SHADOWFURY_1);
+            /*Talent*/lvl >= 60 && isDest ? InitSpellMap(CHAOS_BOLT_1) : RemoveSpell(CHAOS_BOLT_1);
         }
 
         void ApplyClassPassives() const override
@@ -2006,24 +2032,24 @@ public:
         {
             switch (basespell)
             {
-                case RAIN_OF_FIRE_1:
-                case SHADOWFLAME_1:
-                case HOWL_OF_TERROR_1:
-                case DETECT_INVISIBILITY_1:
-                case UNENDING_BREATH_1:
+            case RAIN_OF_FIRE_1:
+            case SHADOWFLAME_1:
+            case HOWL_OF_TERROR_1:
+            case DETECT_INVISIBILITY_1:
+            case UNENDING_BREATH_1:
                 //case RITUAL_OF_SUMMONING_1:
-                case SHADOW_WARD_1:
-                case LIFE_TAP_1:
-                case DARK_PACT_1:
-                    return true;
+            case SHADOW_WARD_1:
+            case LIFE_TAP_1:
+            case DARK_PACT_1:
+                return true;
                 //case FEL_ARMOR_1:
                 //    return true;
                 //case DEMON_ARMOR_1:
                 //    return !GetSpell(FEL_ARMOR_1);
                 //case DEMON_SKIN_1:
                 //    return !GetSpell(FEL_ARMOR_1) && !GetSpell(DEMON_ARMOR_1);
-                default:
-                    return false;
+            default:
+                return false;
             }
         }
 
@@ -2067,13 +2093,13 @@ public:
                 bool my_cast = itr->second->GetBase()->GetCasterGUID() == me->GetGUID();
                 switch (itr->second->GetBase()->GetSpellInfo()->GetFirstRankSpell()->Id)
                 {
-                    case CURSE_OF_WEAKNESS_1:       mask |= CURSE_MASK_WEAKNESS | (my_cast ? CURSE_MASK_MY_WEAKNESS : CurseType(0));       break;
-                    case CURSE_OF_AGONY_1:          mask |= CURSE_MASK_AGONY | (my_cast ? CURSE_MASK_MY_AGONY : CurseType(0));             break;
-                    case CURSE_OF_DOOM_1:           mask |= CURSE_MASK_DOOM | (my_cast ? CURSE_MASK_MY_DOOM : CurseType(0));               break;
-                    case CURSE_OF_THE_ELEMENTS_1:   mask |= CURSE_MASK_ELEMENTS | (my_cast ? CURSE_MASK_MY_ELEMENTS : CurseType(0));       break;
-                    case CURSE_OF_TONGUES_1:        mask |= CURSE_MASK_TONGUES | (my_cast ? CURSE_MASK_MY_TONGUES : CurseType(0));         break;
-                    case CURSE_OF_EXHAUSTION_1:     mask |= CURSE_MASK_EXHAUSTION | (my_cast ? CURSE_MASK_MY_EXHAUSTION : CurseType(0));   break;
-                    default:                                                                                                    break;
+                case CURSE_OF_WEAKNESS_1:       mask |= CURSE_MASK_WEAKNESS | (my_cast ? CURSE_MASK_MY_WEAKNESS : CurseType(0));       break;
+                case CURSE_OF_AGONY_1:          mask |= CURSE_MASK_AGONY | (my_cast ? CURSE_MASK_MY_AGONY : CurseType(0));             break;
+                case CURSE_OF_DOOM_1:           mask |= CURSE_MASK_DOOM | (my_cast ? CURSE_MASK_MY_DOOM : CurseType(0));               break;
+                case CURSE_OF_THE_ELEMENTS_1:   mask |= CURSE_MASK_ELEMENTS | (my_cast ? CURSE_MASK_MY_ELEMENTS : CurseType(0));       break;
+                case CURSE_OF_TONGUES_1:        mask |= CURSE_MASK_TONGUES | (my_cast ? CURSE_MASK_MY_TONGUES : CurseType(0));         break;
+                case CURSE_OF_EXHAUSTION_1:     mask |= CURSE_MASK_EXHAUSTION | (my_cast ? CURSE_MASK_MY_EXHAUSTION : CurseType(0));   break;
+                default:                                                                                                    break;
                 }
             }
 

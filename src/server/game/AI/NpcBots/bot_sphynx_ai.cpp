@@ -28,24 +28,24 @@ TODO:
 
 enum SphynxBaseSpells
 {
-    MAIN_ATTACK_1           = SPELL_SHADOW_BOLT1,
-    SPLASH_ATTACK_1         = SPELL_SHADOW_BLAST,
-    DEVOUR_MAGIC_1          = SPELL_DEVOUR_MAGIC,
-    DRAIN_MANA_1            = SPELL_DRAIN_MANA,
+    MAIN_ATTACK_1 = SPELL_SHADOW_BOLT1,
+    SPLASH_ATTACK_1 = SPELL_SHADOW_BLAST,
+    DEVOUR_MAGIC_1 = SPELL_DEVOUR_MAGIC,
+    DRAIN_MANA_1 = SPELL_DRAIN_MANA,
 
-    REPLENISH_MANA_1        = SPELL_REPLENISH_MANA,
-    REPLENISH_HEALTH_1      = SPELL_REPLENISH_HEALTH
+    REPLENISH_MANA_1 = SPELL_REPLENISH_MANA,
+    REPLENISH_HEALTH_1 = SPELL_REPLENISH_HEALTH
 };
 enum SphynxPassives
 {
 };
 enum SphynxSpecial
 {
-    MH_ATTACK_ANIM          = SPELL_ATTACK_MELEE_1H,
-    MH_OH_ATTACK_ANIM       = SPELL_ATTACK_MELEE_RANDOM,
-    SPELL_ENERGIZE          = 34424,//"Shadow Armor"
+    MH_ATTACK_ANIM = SPELL_ATTACK_MELEE_1H,
+    MH_OH_ATTACK_ANIM = SPELL_ATTACK_MELEE_RANDOM,
+    SPELL_ENERGIZE = 34424,//"Shadow Armor"
 
-    SPLASH_ATTACK_COST      = BASE_MANA_SPHYNX/16//6.25%
+    SPLASH_ATTACK_COST = BASE_MANA_SPHYNX / 16//6.25%
 };
 
 static const uint32 Sphynx_spells_damage_arr[] =
@@ -70,26 +70,26 @@ public:
     {
         return new sphynx_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct sphynx_botAI : public bot_ai
     {
         sphynx_botAI(Creature* creature) : bot_ai(creature)
@@ -203,7 +203,7 @@ public:
             if (me->GetDistance(mytar) > 30)
                 return;
 
-            if (me->isMoving() && !me->HasInArc(float(M_PI)/2, mytar))
+            if (me->isMoving() && !me->HasInArc(float(M_PI) / 2, mytar))
                 return;
 
             if (!CanAffectVictimAny(mytar, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_ARCANE))
@@ -225,7 +225,7 @@ public:
         {
             if (DevourcheckTimer > diff || !IsSpellReady(DEVOUR_MAGIC_1, diff, false) || IsCasting() ||
                 (GetHealthPCT(me) > 75 && Rand() > 15 &&
-                (!HasRole(BOT_ROLE_DPS) || me->GetPower(POWER_MANA) >= SPLASH_ATTACK_COST * 6)))
+                    (!HasRole(BOT_ROLE_DPS) || me->GetPower(POWER_MANA) >= SPLASH_ATTACK_COST * 6)))
                 return;
 
             DevourcheckTimer = urand(350, 700);
@@ -250,7 +250,7 @@ public:
             if (targets.empty())
                 return;
 
-            Unit* target = Trinity::Containers::SelectRandomContainerElement(targets);
+            Unit* target = Bcore::Containers::SelectRandomContainerElement(targets);
             if (doCast(target, GetSpell(DRAIN_MANA_1)))
                 return;
         }
@@ -375,9 +375,9 @@ public:
                 me->CastSpell(me, MH_OH_ATTACK_ANIM, true);
 
             if (baseId == REPLENISH_MANA_1)
-                me->SendPlaySpellVisual(425); //arcane cast omni
+                me->SendPlaySpellVisualKit(1, 425); //arcane cast omni
             if (baseId == REPLENISH_HEALTH_1)
-                me->SendPlaySpellVisual(21); //empty cast finish anim
+                me->SendPlaySpellVisualKit(1, 21); //empty cast finish anim
 
             if (baseId == REPLENISH_MANA_1 || baseId == REPLENISH_HEALTH_1)
                 me->SetPower(POWER_MANA, 0);
@@ -408,11 +408,11 @@ public:
             if (spellId == DRAIN_MANA_1)
             {
                 me->CastSpell(target, SPELL_DEVOUR_MAGIC_BEAM, true);
-                target->SendPlaySpellVisual(419); //drain impact visual
+                target->SendPlaySpellVisualKit(1, 419); //drain impact visual
             }
             if (spellId == REPLENISH_MANA_1)
                 if (target != me)
-                    target->SendPlaySpellVisual(524/*436*/); //mana gain visual//heal bigger crimson ish
+                    target->SendPlaySpellVisualKit(1, 524/*436*/); //mana gain visual//heal bigger crimson ish
 
             OnSpellHitTarget(target, spell);
         }
@@ -432,7 +432,7 @@ public:
             if (me != dispelled)
             {
                 me->CastSpell(dispelled, SPELL_DEVOUR_MAGIC_BEAM, true);
-                dispelled->SendPlaySpellVisual(357/*317*/); //purge visual
+                dispelled->SendPlaySpellVisualKit(1, 357/*317*/); //purge visual
             }
 
             dispelsDealt += num;
@@ -527,13 +527,13 @@ public:
         {
             switch (basespell)
             {
-                case DEVOUR_MAGIC_1:
-                case DRAIN_MANA_1:
-                case REPLENISH_MANA_1:
-                case REPLENISH_HEALTH_1:
-                    return true;
-                default:
-                    return false;
+            case DEVOUR_MAGIC_1:
+            case DRAIN_MANA_1:
+            case REPLENISH_MANA_1:
+            case REPLENISH_HEALTH_1:
+                return true;
+            default:
+                return false;
             }
         }
 

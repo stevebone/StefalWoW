@@ -13,56 +13,56 @@
 namespace NPCBots
 {
 
-template<typename T, std::size_t... Is>
-constexpr auto fixed_tuple_helper(std::index_sequence<Is...> const&) -> decltype(std::make_tuple(((void)Is, std::declval<T>())...));
+    template<typename T, std::size_t... Is>
+    constexpr auto fixed_tuple_helper(std::index_sequence<Is...> const&) -> decltype(std::make_tuple(((void)Is, std::declval<T>())...));
 
-template<typename T, size_t N>
-struct fixed_tuple {
-    using tuple_type = decltype(fixed_tuple_helper<T>(std::make_index_sequence<N>{}));
-};
+    template<typename T, size_t N>
+    struct fixed_tuple {
+        using tuple_type = decltype(fixed_tuple_helper<T>(std::make_index_sequence<N>{}));
+    };
 
-template<typename T, std::size_t N, std::size_t... Is>
-typename fixed_tuple<T,N>::tuple_type to_tuple_helper(std::array<T, N>&& arr, std::index_sequence<Is...>&&)
-{
-    return std::make_tuple(arr[Is]...);
-}
+    template<typename T, std::size_t N, std::size_t... Is>
+    typename fixed_tuple<T, N>::tuple_type to_tuple_helper(std::array<T, N>&& arr, std::index_sequence<Is...>&&)
+    {
+        return std::make_tuple(arr[Is]...);
+    }
 
-template<typename T, size_t N>
-typename fixed_tuple<T,N>::tuple_type to_tuple(std::array<T, N>&& arr)
-{
-    return to_tuple_helper(std::forward<std::array<T, N>>(arr), std::make_index_sequence<N>{});
-}
+    template<typename T, size_t N>
+    typename fixed_tuple<T, N>::tuple_type to_tuple(std::array<T, N>&& arr)
+    {
+        return to_tuple_helper(std::forward<std::array<T, N>>(arr), std::make_index_sequence<N>{});
+    }
 
-template<typename T, std::size_t N, std::size_t... Is>
-typename fixed_tuple<typename T::second_type, N>::tuple_type to_spell_school_affect_bool_tuple_helper(std::array<T, N>&& arr, std::index_sequence<Is...>&&)
-{
-    return std::make_tuple(arr[Is].second...);
-}
+    template<typename T, std::size_t N, std::size_t... Is>
+    typename fixed_tuple<typename T::second_type, N>::tuple_type to_spell_school_affect_bool_tuple_helper(std::array<T, N>&& arr, std::index_sequence<Is...>&&)
+    {
+        return std::make_tuple(arr[Is].second...);
+    }
 
-template<typename T, size_t N>
-typename fixed_tuple<typename T::second_type, N>::tuple_type to_spell_school_affect_bool_tuple(std::array<T, N>&& arr)
-{
-    return to_spell_school_affect_bool_tuple_helper(std::forward<std::array<T, N>>(arr), std::make_index_sequence<N>{});
-}
+    template<typename T, size_t N>
+    typename fixed_tuple<typename T::second_type, N>::tuple_type to_spell_school_affect_bool_tuple(std::array<T, N>&& arr)
+    {
+        return to_spell_school_affect_bool_tuple_helper(std::forward<std::array<T, N>>(arr), std::make_index_sequence<N>{});
+    }
 
-template<typename T, std::size_t N, std::size_t... Is>
-std::array<typename T::second_type,N> to_spell_school_affect_bool_arr_helper(std::array<T, N>&& arr, std::index_sequence<Is...>&&)
-{
-    return std::array{ arr[Is].second... };
-}
+    template<typename T, std::size_t N, std::size_t... Is>
+    std::array<typename T::second_type, N> to_spell_school_affect_bool_arr_helper(std::array<T, N>&& arr, std::index_sequence<Is...>&&)
+    {
+        return std::array{ arr[Is].second... };
+    }
 
-template<typename T, size_t N>
-std::array<typename T::second_type,N> to_spell_school_affect_bool_arr(std::array<T, N>&& arr)
-{
-    return to_spell_school_affect_bool_arr_helper(std::forward<std::array<T, N>>(arr), std::make_index_sequence<N>{});
-}
+    template<typename T, size_t N>
+    std::array<typename T::second_type, N> to_spell_school_affect_bool_arr(std::array<T, N>&& arr)
+    {
+        return to_spell_school_affect_bool_arr_helper(std::forward<std::array<T, N>>(arr), std::make_index_sequence<N>{});
+    }
 
 }
 
 template<typename School, typename... Schools>
 std::enable_if_t<std::conjunction_v<std::is_same<School, SpellSchools>, std::is_same<Schools, SpellSchools>...>,
     bool>
-all_schools_valid(School school, Schools... schools)
+    all_schools_valid(School school, Schools... schools)
 {
     if (school < SPELL_SCHOOL_NORMAL || school >= MAX_SPELL_SCHOOL)
         return false;
@@ -84,7 +84,7 @@ CanAffectVictimSchools(Unit const* target, Schools... schools)
 
     if (!all_schools_valid(schools...))
     {
-        TC_LOG_ERROR("entities.player", "bot_ai::CanAffectVictimSchools(): trying to check invalid spell school, first: {}", uint32(results.at(0).first));
+        BOT_LOG_ERROR("entities.player", "bot_ai::CanAffectVictimSchools(): trying to check invalid spell school, first: {}", uint32(results.at(0).first));
         return results;
     }
 

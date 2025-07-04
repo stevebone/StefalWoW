@@ -21,21 +21,21 @@ TODO:
 
 enum SpellbreakerBaseSpells
 {
-    SPELLSTEAL_1            = SPELL_STEAL_MAGIC
+    SPELLSTEAL_1 = SPELL_STEAL_MAGIC
 };
 enum SpellbreakerPassives
 {
 };
 enum SpellbreakerSpecial
 {
-    SPELLSTEAL_COST         = 75 * 5,
+    SPELLSTEAL_COST = 75 * 5,
 
-    FEEDBACK_EFFECT         = SPELL_FEEDBACK,
+    FEEDBACK_EFFECT = SPELL_FEEDBACK,
 
-    MH_ATTACK_VISUAL        = SPELL_ATTACK_MELEE_1H,
-    SPELLSTEAL_VISUAL_1     = 34396,// Zap selfcast
-    SPELLSTEAL_VISUAL_2     = SPELL_STEAL_MAGIC_VISUAL,
-    ENERGY_SYPHON_ENERGIZE  = 27287 // Only for combat log spell message
+    MH_ATTACK_VISUAL = SPELL_ATTACK_MELEE_1H,
+    SPELLSTEAL_VISUAL_1 = 34396,// Zap selfcast
+    SPELLSTEAL_VISUAL_2 = SPELL_STEAL_MAGIC_VISUAL,
+    ENERGY_SYPHON_ENERGIZE = 27287 // Only for combat log spell message
 };
 
 static const uint32 Spellbreaker_spells_support_arr[] =
@@ -52,26 +52,26 @@ public:
     {
         return new spellbreaker_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct spellbreaker_botAI : public bot_ai
     {
         spellbreaker_botAI(Creature* creature) : bot_ai(creature)
@@ -116,7 +116,7 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { /*UnsummonAll();*/ bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { /*UnsummonAll(false);*/ bot_ai::JustDied(u); }
         void DoNonCombatActions(uint32 /*diff*/) { }
 
         void UpdateAI(uint32 diff) override
@@ -191,7 +191,7 @@ public:
                 damageinfo.Target->GetPower(POWER_MANA) < me->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE))
             {
                 pctbonus *= 3.f;
-                if (_doCrit == false && urand(1,100) < 2 * GetBotCritChance())
+                if (_doCrit == false && urand(1, 100) < 2 * GetBotCritChance())
                     _doCrit = true;
             }
             else if (_doCrit == true)
@@ -270,7 +270,7 @@ public:
                 else
                 {
                     me->EnergizeBySpell(me, ENERGY_SYPHON_ENERGIZE, int32(damage / 4), POWER_MANA);
-                    me->SendPlaySpellVisual(524); //mana gain visual
+                    me->SendPlaySpellVisualKit(1, 524); //mana gain visual
                 }
             }
 
@@ -322,10 +322,10 @@ public:
         {
             switch (basespell)
             {
-                case SPELLSTEAL_1:
-                    return true;
-                default:
-                    return false;
+            case SPELLSTEAL_1:
+                return true;
+            default:
+                return false;
             }
         }
 
@@ -355,10 +355,10 @@ public:
             DispelChargesList steal_list;
 
             bool const isFriend = IsInBotParty(target) || target->IsFriendlyTo(me);
-            static const uint32 sbDispelMask  = (1<<DISPEL_MAGIC) | (1<<DISPEL_CURSE);
+            static const uint32 sbDispelMask = (1 << DISPEL_MAGIC) | (1 << DISPEL_CURSE);
             static const uint8 max_dispelled = 1;
 
-            //TC_LOG_ERROR("entities.unit", "ProcessSpellsteal: on {}, fr={}", target->GetName(), uint32(isFriend));
+            //BOT_LOG_ERROR("entities.unit", "ProcessSpellsteal: on {}, fr={}", target->GetName(), uint32(isFriend));
 
             Unit::AuraMap const& auras = target->GetOwnedAuras();
             for (Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
@@ -380,7 +380,7 @@ public:
                 int32 chance = aura->CalcDispelChance(target, !isFriend);
                 if (!chance)
                     continue;
-                //TC_LOG_ERROR("entities.unit", "{}", aura->GetSpellInfo()->SpellName[0]);
+                //BOT_LOG_ERROR("entities.unit", "{}", aura->GetSpellInfo()->SpellName[0]);
 
                 // The charges / stack amounts don't count towards the total number of auras that can be dispelled.
                 // Ie: A dispel on a target with 5 stacks of Winters Chill and a Polymorph has 1 / (1 + 1) -> 50% chance to dispell
@@ -394,13 +394,13 @@ public:
             if (steal_list.empty())
                 return;
 
-            //TC_LOG_ERROR("entities.unit", "failcount...");
+            //BOT_LOG_ERROR("entities.unit", "failcount...");
 
             size_t remaining = steal_list.size();
             uint32 failCount = 0;
             DispelChargesList success_list;
             success_list.reserve(max_dispelled);
-            WorldPacket dataFail(SMSG_DISPEL_FAILED, 8+8+4+4+max_dispelled*4);
+            WorldPacket dataFail(SMSG_DISPEL_FAILED, 8 + 8 + 4 + 4 + max_dispelled * 4);
             // dispel N = damage buffs (or while exist buffs for dispel)
             for (uint8 count = 0; count < max_dispelled && remaining > 0;)
             {
@@ -421,11 +421,11 @@ public:
                     if (chance/*roll_chance_i(chance)*/)
                     {
                         auto successItr = std::find_if(success_list.begin(), success_list.end(), [&itr](DispelableAura& dispelAura) -> bool
-                        {
-                            if (dispelAura.GetAura()->GetId() == itr->GetAura()->GetId() && dispelAura.GetAura()->GetCaster() == itr->GetAura()->GetCaster())
-                                return true;
-                            return false;
-                        });
+                            {
+                                if (dispelAura.GetAura()->GetId() == itr->GetAura()->GetId() && dispelAura.GetAura()->GetCaster() == itr->GetAura()->GetCaster())
+                                    return true;
+                                return false;
+                            });
 
                         if (successItr == success_list.end())
                             success_list.emplace_back(itr->GetAura(), 0, 1);
@@ -464,9 +464,9 @@ public:
             if (success_list.empty())
                 return;
 
-            //TC_LOG_ERROR("entities.unit", "logs and auras");
+            //BOT_LOG_ERROR("entities.unit", "logs and auras");
 
-            WorldPacket dataSuccess(SMSG_SPELLSTEALLOG, 8+8+4+1+4+max_dispelled*5);
+            WorldPacket dataSuccess(SMSG_SPELLSTEALLOG, 8 + 8 + 4 + 1 + 4 + max_dispelled * 5);
             dataSuccess << target->GetPackGUID();           // Victim GUID
             dataSuccess << me->GetPackGUID();               // Caster GUID
             dataSuccess << uint32(SPELLSTEAL_1);            // dispel spell id
@@ -487,8 +487,8 @@ public:
                         me->CanSeeOrDetect(u))
                         targets.push_back(u);
                 }
-                //Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck check(me, 50.f);
-                //Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck> searcher(me, targets, check);
+                //Bcore::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck check(me, 50.f);
+                //Bcore::UnitListSearcher<Bcore::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck> searcher(me, targets, check);
                 //me->VisitNearbyObject(50.f, searcher);
             }
             else
@@ -503,7 +503,7 @@ public:
                 std::list<Unit*> targetsCopy = targets;
                 targets.remove_if(BOTAI_PRED::AuraedTargetExclude(success_list.front().GetAura()->GetId()));
 
-                randomTarget = Trinity::Containers::SelectRandomContainerElement(!targets.empty() ? targets : targetsCopy);
+                randomTarget = Bcore::Containers::SelectRandomContainerElement(!targets.empty() ? targets : targetsCopy);
             }
 
             for (DispelChargesList::iterator itr = success_list.begin(); itr != success_list.end(); ++itr)
@@ -545,9 +545,9 @@ public:
                         {
                             baseDamage[i] = aura->GetEffect(i)->GetBaseAmount();
                             damage[i] = aura->GetEffect(i)->GetAmount();
-                            effMask |= (1<<i);
+                            effMask |= (1 << i);
                             if (aura->GetEffect(i)->CanBeRecalculated())
-                                recalculateMask |= (1<<i);
+                                recalculateMask |= (1 << i);
                         }
                         else
                         {

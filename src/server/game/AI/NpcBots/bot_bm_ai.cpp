@@ -20,23 +20,23 @@ TODO: BLADESTORM, Convert illusions to bot_pet_ai
 
 enum BlademasterBaseSpells
 {
-    WINDWALK_1                              = SPELL_NETHERWALK,
-    MIRROR_IMAGE_1                          = SPELL_MIRROR_IMAGE_BM,
-    CRITICAL_STRIKE_1                       = SPELL_CRITICAL_STRIKE
+    WINDWALK_1 = SPELL_NETHERWALK,
+    MIRROR_IMAGE_1 = SPELL_MIRROR_IMAGE_BM,
+    CRITICAL_STRIKE_1 = SPELL_CRITICAL_STRIKE
 };
 enum BlademasterPassives
 {
-//Talents
-//other
+    //Talents
+    //other
 };
 enum BlademasterSpecial
 {
-    NPC_MIRROR_IMAGE_BM                     = 70552,
-    TRANSPARENCY                            = SPELL_TRANSPARENCY_50,
-    BLACK_COLOR                             = SPELL_VERTEX_COLOR_BLACK,
-    STUN_FREEZE                             = SPELL_STUN_FREEZE_ANIM,
+    NPC_MIRROR_IMAGE_BM = 70552,
+    TRANSPARENCY = SPELL_TRANSPARENCY_50,
+    BLACK_COLOR = SPELL_VERTEX_COLOR_BLACK,
+    STUN_FREEZE = SPELL_STUN_FREEZE_ANIM,
 
-    MIRROR_COST                             = 125 * 5
+    MIRROR_COST = 125 * 5
 };
 
 static const uint32 Blademaster_spells_support_arr[] =
@@ -61,102 +61,102 @@ public:
         //deals critical damage, resets attack timer and sends fake log
         class DelayedMeleeDamageEvent : public BasicEvent
         {
-            public:
-                DelayedMeleeDamageEvent(Creature* bot, ObjectGuid targetGuid, bool windwalk) :
-                  _bot(bot), _targetGuid(targetGuid), _windwalk(windwalk), _dinfo(nullptr) { }
+        public:
+            DelayedMeleeDamageEvent(Creature* bot, ObjectGuid targetGuid, bool windwalk) :
+                _bot(bot), _targetGuid(targetGuid), _windwalk(windwalk), _dinfo(nullptr) { }
 
-                void SetDamageInfo(CalcDamageInfo* dinfo)
-                {
-                    _dinfo = dinfo;
-                }
+            void SetDamageInfo(CalcDamageInfo* dinfo)
+            {
+                _dinfo = dinfo;
+            }
 
-            protected:
-                bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
-                {
-                    (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->CriticalStrikeFinish(_targetGuid, _dinfo, _windwalk);
+        protected:
+            bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
+            {
+                (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->CriticalStrikeFinish(_targetGuid, _dinfo, _windwalk);
 
-                    if (_dinfo)
-                        delete _dinfo;
-                    return true;
-                }
+                if (_dinfo)
+                    delete _dinfo;
+                return true;
+            }
 
-            private:
-                Creature* _bot;
-                ObjectGuid _targetGuid;
-                bool _windwalk;
-                CalcDamageInfo* _dinfo;
-                DelayedMeleeDamageEvent(DelayedMeleeDamageEvent const&);
+        private:
+            Creature* _bot;
+            ObjectGuid _targetGuid;
+            bool _windwalk;
+            CalcDamageInfo* _dinfo;
+            DelayedMeleeDamageEvent(DelayedMeleeDamageEvent const&);
         };
 
         class EventTerminateEvent : public BasicEvent
         {
-            public:
-                EventTerminateEvent(Creature* bot) : _bot(bot) { }
+        public:
+            EventTerminateEvent(Creature* bot) : _bot(bot) { }
 
-            protected:
-                bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
-                {
-                    (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->TerminateEvent();
-                    return true;
-                }
+        protected:
+            bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
+            {
+                (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->TerminateEvent();
+                return true;
+            }
 
-            private:
-                Creature* _bot;
-                EventTerminateEvent(EventTerminateEvent const&);
+        private:
+            Creature* _bot;
+            EventTerminateEvent(EventTerminateEvent const&);
         };
 
         class IllusionUnsummonEvent : public BasicEvent
         {
-            public:
-                IllusionUnsummonEvent(Creature const* bot) : _bot(bot) { }
+        public:
+            IllusionUnsummonEvent(Creature const* bot) : _bot(bot) { }
 
-            protected:
-                bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
-                {
-                    (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->UnsummonAll();
+        protected:
+            bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
+            {
+                (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->UnsummonAll(false);
 
-                    return true;
-                }
+                return true;
+            }
 
-            private:
-                Creature const* _bot;
-                IllusionUnsummonEvent(IllusionUnsummonEvent const&);
+        private:
+            Creature const* _bot;
+            IllusionUnsummonEvent(IllusionUnsummonEvent const&);
         };
 
         class DelayedIllusionSummonEvent : public BasicEvent
         {
-            public:
-                DelayedIllusionSummonEvent(Creature const* bot) : _bot(bot) { }
+        public:
+            DelayedIllusionSummonEvent(Creature const* bot) : _bot(bot) { }
 
-            protected:
-                bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
-                {
-                    (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->MirrorImageFinish();
+        protected:
+            bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
+            {
+                (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->MirrorImageFinish();
 
-                    return true;
-                }
+                return true;
+            }
 
-            private:
-                Creature const* _bot;
-                DelayedIllusionSummonEvent(DelayedIllusionSummonEvent const&);
+        private:
+            Creature const* _bot;
+            DelayedIllusionSummonEvent(DelayedIllusionSummonEvent const&);
         };
 
         class DisappearEvent : public BasicEvent
         {
-            public:
-                DisappearEvent(Creature* bot) : _bot(bot) { }
+        public:
+            DisappearEvent(Creature* bot) : _bot(bot) { }
 
-            protected:
-                bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
-                {
-                    (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->MirrorImageMid();
+        protected:
+            bool Execute(uint64 /*e_time*/, uint32 /*p_time*/)
+            {
+                (dynamic_cast<blademaster_botAI*>(_bot->GetAI()))->MirrorImageMid();
 
-                    return true;
-                }
+                return true;
+            }
 
-            private:
-                Creature* _bot;
-                DisappearEvent(DisappearEvent const&);
+        private:
+            Creature* _bot;
+            DisappearEvent(DisappearEvent const&);
         };
 
         void _calcIllusionPositions()
@@ -204,15 +204,14 @@ public:
 
             Illusions_Check_Timer = 250;
 
-            if (_illusionGuids.empty())
+            if (_minions.empty())
                 return;
 
-            for (std::list<ObjectGuid>::const_iterator itr = _illusionGuids.begin(); itr != _illusionGuids.end(); ++itr)
+            for (Creature* ill : _minions)
             {
-                Creature* ill = ObjectAccessor::GetCreature(*me, *itr);
                 if (!ill)
                 {
-                    TC_LOG_ERROR("entities.player", "bm_bot::IllusionsCheck(): unit {} is not found in world!", (*itr).ToString());
+                    BOT_LOG_ERROR("entities.player", "bm_bot::IllusionsCheck(): illusion is not found in world!");
                     continue;
                 }
 
@@ -305,7 +304,7 @@ public:
 
         void BreakCC(uint32 diff) override
         {
-            if (me->HasAuraWithMechanic((1<<MECHANIC_SNARE)|(1<<MECHANIC_ROOT)))
+            if (me->HasAuraWithMechanic((1 << MECHANIC_SNARE) | (1 << MECHANIC_ROOT)))
             {
                 if (IsSpellReady(WINDWALK_1, diff) && !IsTank(me) && Rand() < 30 &&
                     doCast(me, GetSpell(WINDWALK_1)))
@@ -430,7 +429,7 @@ public:
             //OKAY
 
             //destroy existing illusions if any
-            UnsummonAll();
+            UnsummonAll(false);
             //mirror image renders BM invulnerable for a short period of time,
             //removing all but passive auras
             Unit::AuraMap const auras = me->GetOwnedAuras(); //copy
@@ -492,7 +491,7 @@ public:
 
             for (uint8 i = 0; i != illusionsCount; ++i)
             {
-                Creature* illusion = me->SummonCreature(NPC_MIRROR_IMAGE_BM, *me, TEMPSUMMON_MANUAL_DESPAWN);
+                Creature* illusion = me->SummonCreature(NPC_MIRROR_IMAGE_BM, *me, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 50ms);
                 if (!illusion)
                     continue;
 
@@ -500,7 +499,7 @@ public:
                     ASSERT(master->GetBotMgr()->AddBot(illusion));
 
                 illusion->SetCreator(master); //TempSummon* Map::SummonCreature()
-                illusion->SetOwnerGUID(me->GetGUID());
+                (dynamic_cast<blademaster_botAI*>(illusion->GetAI()))->SetGUID(me->GetGUID());
 
                 //copy visuals
                 //illusion->SetEntry(me->GetEntry());
@@ -537,7 +536,7 @@ public:
 
                 illusion->GetBotAI()->SetBotCommandState(BOT_COMMAND_COMBATRESET);
 
-                _illusionGuids.push_back(illusion->GetGUID());
+                _minions.insert(illusion);
             }
 
             SetBotCommandState(BOT_COMMAND_COMBATRESET);
@@ -555,13 +554,12 @@ public:
             }
 
             uint8 counter = 0;
-            uint8 r = urand(0, uint8(_illusionGuids.size() - 1));
+            uint8 r = urand(0, uint8(_minions.size() - 1));
             uint32 phaseMask = IAmFree() ? PHASEMASK_NORMAL : master->GetPhaseMask();
 
-            for (std::list<ObjectGuid>::const_iterator itr = _illusionGuids.begin(); itr != _illusionGuids.end(); ++itr)
+            for (Creature* illusion : _minions)
             {
-                if (Creature* illusion = ObjectAccessor::GetCreature(*me, *itr))
-                    illusion->SetPhaseMask(phaseMask, true);
+                illusion->SetPhaseMask(phaseMask, true);
 
                 if (counter == r)
                     me->SetPhaseMask(phaseMask, true);
@@ -672,7 +670,9 @@ public:
         }
 
         void TerminateEvent()
-        { _dmdevent = nullptr; }
+        {
+            _dmdevent = nullptr;
+        }
 
         MeleeHitOutcome GetNextAttackMeleeOutCome() const override
         {
@@ -790,16 +790,15 @@ public:
         {
             TerminateEvent();
 
-            if (IsTempBot())
-                if (me->GetCreatorGUID().IsCreature())
-                    if (Unit* bot = ObjectAccessor::GetUnit(*me, me->GetCreatorGUID()))
-                        if (bot->IsNPCBot())
-                            bot->ToCreature()->OnBotDespawn(me);
+            if (IsTempBot() && _summonerGUID)
+                if (Unit* bot = ObjectAccessor::GetUnit(*me, _summonerGUID))
+                    if (bot->IsNPCBot())
+                        bot->ToCreature()->OnBotDespawn(me);
 
             bot_ai::JustDied(u);
 
             if (!IsTempBot())
-                UnsummonAll();
+                UnsummonAll(false);
         }
 
         void OnBotDespawn(Creature* summon) override
@@ -807,25 +806,25 @@ public:
             if (!summon)
                 return;
 
-            for (std::list<ObjectGuid>::iterator itr = _illusionGuids.begin(); itr != _illusionGuids.end(); ++itr)
+            for (auto citr = _minions.cbegin(); citr != _minions.cend(); ++citr)
             {
-                if (*itr == summon->GetGUID())
+                if (*citr == summon)
                 {
-                    _illusionGuids.erase(itr);
+                    _minions.erase(citr);
                     return;
                 }
             }
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool /*savePets*/ = true) override
         {
-            while (!_illusionGuids.empty())
+            while (!_minions.empty())
             {
-                std::list<ObjectGuid>::iterator itr = _illusionGuids.begin();
-                if (Creature* illusion = ObjectAccessor::GetCreature(*me, *itr))
+                auto cit = _minions.cbegin();
+                if (Creature* illusion = *cit)
                     illusion->AI()->JustDied(nullptr);
                 else
-                    _illusionGuids.erase(itr);
+                    _minions.erase(cit);
             }
         }
 
@@ -833,20 +832,26 @@ public:
         {
             switch (data)
             {
-                case CRITICAL_STRIKE_1:
-                    return criticalStikeMult;
-                case MIRROR_IMAGE_1:
-                    return illusionsCount;
-                default:
-                    return 0;
+            case CRITICAL_STRIKE_1:
+                return criticalStikeMult;
+            case MIRROR_IMAGE_1:
+                return illusionsCount;
+            default:
+                return 0;
             }
+        }
+
+        void SetGUID(ObjectGuid const& guid, int32 /*id*/ = 0) override
+        {
+            _summonerGUID = guid;
         }
 
         void Reset() override
         {
-            UnsummonAll();
+            UnsummonAll(false);
 
             _dmdevent = nullptr;
+            _summonerGUID = ObjectGuid::Empty;
             Windwalk_Timer = 0;
             criticalStikeMult = 1;
             illusionsCount = 0;
@@ -871,14 +876,17 @@ public:
         {
             uint8 lvl = me->GetLevel();
 
- /*Special*/lvl >= 10 ? InitSpellMap(WINDWALK_1) : RemoveSpell(WINDWALK_1);
- /*Special*/lvl >= 20 ? InitSpellMap(MIRROR_IMAGE_1) : RemoveSpell(MIRROR_IMAGE_1);
-
             criticalStikeMult =
                 lvl < 10 ? 1 :
                 lvl < 30 ? 2 :
                 lvl < 50 ? 3 :
                 lvl < 82 ? 4 : 5;
+
+            if (IsTempBot())
+                return;
+
+            /*Special*/lvl >= 10 ? InitSpellMap(WINDWALK_1) : RemoveSpell(WINDWALK_1);
+            /*Special*/lvl >= 20 ? InitSpellMap(MIRROR_IMAGE_1) : RemoveSpell(MIRROR_IMAGE_1);
 
             illusionsCount =
                 lvl < 20 ? 0 :
@@ -895,11 +903,11 @@ public:
         {
             switch (basespell)
             {
-                case WINDWALK_1:
-                case MIRROR_IMAGE_1:
-                    return true;
-                default:
-                    break;
+            case WINDWALK_1:
+            case MIRROR_IMAGE_1:
+                return true;
+            default:
+                break;
             }
 
             return false;
@@ -924,8 +932,10 @@ public:
 
     private:
         DelayedMeleeDamageEvent* _dmdevent;
-        std::list<ObjectGuid> _illusionGuids;
+        typedef std::set<Creature*> Summons;
+        Summons _minions;
         Position _illusPos[MAX_ILLUSION_POSITIONS];
+        ObjectGuid _summonerGUID;
 
         uint32 Windwalk_Timer;
         uint32 Illusions_Check_Timer;

@@ -20,109 +20,109 @@ TODO: Mana Burn, Binding Heal, Lightwell
 
 enum PriestBaseSpells
 {
-    DISPEL_MAGIC_1                      = 527,
-    MASS_DISPEL_1                       = 32375,
-    CURE_DISEASE_1                      = 528,
-    ABOLISH_DISEASE_1                   = 552,
-    FEAR_WARD_1                         = 6346,
-    PAIN_SUPPRESSION_1                  = 33206,
-    PSYCHIC_SCREAM_1                    = 8122,
-    FADE_1                              = 586,
-    PSYCHIC_HORROR_1                    = 64044,
-    SILENCE_1                           = 15487,
-    PENANCE_1                           = 47540,
-    VAMPIRIC_EMBRACE_1                  = 15286,
-    DISPERSION_1                        = 47585,
-    MIND_SEAR_1                         = 48045,
-    GUARDIAN_SPIRIT_1                   = 47788,
-    SHACKLE_UNDEAD_1                    = 9484,
-    LESSER_HEAL_1                       = 2050,
-    NORMAL_HEAL_1                       = 2054,
-    GREATER_HEAL_1                      = 2060,
-    RENEW_1                             = 139,
-    FLASH_HEAL_1                        = 2061,
-    PRAYER_OF_HEALING_1                 = 596,
-    CIRCLE_OF_HEALING_1                 = 34861,
-    DIVINE_HYMN_1                       = 64843,
-    PRAYER_OF_MENDING_1                 = 33076,
-    RESURRECTION_1                      = 2006,
-    PW_SHIELD_1                         = 17,
-    INNER_FIRE_1                        = 588,
-    PW_FORTITUDE_1                      = 1243,
-    SHADOW_PROTECTION_1                 = 976,
-    DIVINE_SPIRIT_1                     = 14752,
-    HOLY_FIRE_1                         = 14914,
-    SMITE_1                             = 585,
-    SW_PAIN_1                           = 589,
-    MIND_BLAST_1                        = 8092,
-    SW_DEATH_1                          = 32379,
-    DEVOURING_PLAGUE_1                  = 2944,
-    MIND_FLAY_1                         = 15407,
-    VAMPIRIC_TOUCH_1                    = 34914,
-    SHADOWFORM_1                        = 15473,
-    INNER_FOCUS_1                       = 14751,
-    DESPERATE_PRAYER_1                  = 19236,
-    POWER_INFUSION_1                    = 10060,
-    HYMN_OF_HOPE_1                      = 64901,
+    DISPEL_MAGIC_1 = 527,
+    MASS_DISPEL_1 = 32375,
+    CURE_DISEASE_1 = 528,
+    ABOLISH_DISEASE_1 = 552,
+    FEAR_WARD_1 = 6346,
+    PAIN_SUPPRESSION_1 = 33206,
+    PSYCHIC_SCREAM_1 = 8122,
+    FADE_1 = 586,
+    PSYCHIC_HORROR_1 = 64044,
+    SILENCE_1 = 15487,
+    PENANCE_1 = 47540,
+    VAMPIRIC_EMBRACE_1 = 15286,
+    DISPERSION_1 = 47585,
+    MIND_SEAR_1 = 48045,
+    GUARDIAN_SPIRIT_1 = 47788,
+    SHACKLE_UNDEAD_1 = 9484,
+    LESSER_HEAL_1 = 2050,
+    NORMAL_HEAL_1 = 2054,
+    GREATER_HEAL_1 = 2060,
+    RENEW_1 = 139,
+    FLASH_HEAL_1 = 2061,
+    PRAYER_OF_HEALING_1 = 596,
+    CIRCLE_OF_HEALING_1 = 34861,
+    DIVINE_HYMN_1 = 64843,
+    PRAYER_OF_MENDING_1 = 33076,
+    RESURRECTION_1 = 2006,
+    PW_SHIELD_1 = 17,
+    INNER_FIRE_1 = 588,
+    PW_FORTITUDE_1 = 1243,
+    SHADOW_PROTECTION_1 = 976,
+    DIVINE_SPIRIT_1 = 14752,
+    HOLY_FIRE_1 = 14914,
+    SMITE_1 = 585,
+    SW_PAIN_1 = 589,
+    MIND_BLAST_1 = 8092,
+    SW_DEATH_1 = 32379,
+    DEVOURING_PLAGUE_1 = 2944,
+    MIND_FLAY_1 = 15407,
+    VAMPIRIC_TOUCH_1 = 34914,
+    SHADOWFORM_1 = 15473,
+    INNER_FOCUS_1 = 14751,
+    DESPERATE_PRAYER_1 = 19236,
+    POWER_INFUSION_1 = 10060,
+    HYMN_OF_HOPE_1 = 64901,
 
-    LEVITATE_1                          = 1706
+    LEVITATE_1 = 1706
 };
 enum PriestPassives
 {
-//Talents
-    UNBREAKABLE_WILL                = 14791,//rank 5
-    SPIRIT_TAP                      = 15336,//rank 3
-    IMPROVED_SPIRIT_TAP             = 15338,//rank 2
-    MEDITATION                      = 14777,//rank 3
-    INSPIRATION1                    = 14892,
-    INSPIRATION2                    = 15362,
-    INSPIRATION3                    = 15363,
-    SHADOW_WEAVING1                 = 15257,
-    SHADOW_WEAVING2                 = 15331,
-    SHADOW_WEAVING3                 = 15332,
-    SURGE_OF_LIGHT                  = 33154,//rank 2
-    IMPROVED_DEVOURING_PLAGUE       = 63627,//rank 3
-    HOLY_CONCENTRATION              = 34860,//rank 3
-    RENEWED_HOPE                    = 57472,//rank 3
-    RAPTURE                         = 47537,//rank 3
-    BODY_AND_SOUL1                  = 64127,
-    SERENDIPITY                     = 63737,//rank 3
-    IMPROVED_SHADOWFORM             = 47570,//rank 2
-    MISERY1                         = 33191,
-    MISERY2                         = 33192,
-    MISERY3                         = 33193,
-    DIVINE_AEGIS                    = 47515,//rank 3
-    GRACE                           = 47517,//rank 2
-    EMPOWERED_RENEW1                = 63534,
-    EMPOWERED_RENEW2                = 63542,
-    EMPOWERED_RENEW3                = 63543,
-    BORROWED_TIME                   = 52800,//rank 5
-//Glyphs
-    //GLYPH_SW_PAIN                   = 55681,
-    GLYPH_PW_SHIELD                 = 55672,
-    GLYPH_DISPEL_MAGIC              = 55677,
-    GLYPH_PRAYER_OF_HEALING         = 55680,
-    GLYPH_SHADOW                    = 55689,
-//other
-    PRIEST_T10_2P_BONUS             = 70770 //33% renew
+    //Talents
+    UNBREAKABLE_WILL = 14791,//rank 5
+    SPIRIT_TAP = 15336,//rank 3
+    IMPROVED_SPIRIT_TAP = 15338,//rank 2
+    MEDITATION = 14777,//rank 3
+    INSPIRATION1 = 14892,
+    INSPIRATION2 = 15362,
+    INSPIRATION3 = 15363,
+    SHADOW_WEAVING1 = 15257,
+    SHADOW_WEAVING2 = 15331,
+    SHADOW_WEAVING3 = 15332,
+    SURGE_OF_LIGHT = 33154,//rank 2
+    IMPROVED_DEVOURING_PLAGUE = 63627,//rank 3
+    HOLY_CONCENTRATION = 34860,//rank 3
+    RENEWED_HOPE = 57472,//rank 3
+    RAPTURE = 47537,//rank 3
+    BODY_AND_SOUL1 = 64127,
+    SERENDIPITY = 63737,//rank 3
+    IMPROVED_SHADOWFORM = 47570,//rank 2
+    MISERY1 = 33191,
+    MISERY2 = 33192,
+    MISERY3 = 33193,
+    DIVINE_AEGIS = 47515,//rank 3
+    GRACE = 47517,//rank 2
+    EMPOWERED_RENEW1 = 63534,
+    EMPOWERED_RENEW2 = 63542,
+    EMPOWERED_RENEW3 = 63543,
+    BORROWED_TIME = 52800,//rank 5
+    //Glyphs
+        //GLYPH_SW_PAIN                   = 55681,
+    GLYPH_PW_SHIELD = 55672,
+    GLYPH_DISPEL_MAGIC = 55677,
+    GLYPH_PRAYER_OF_HEALING = 55680,
+    GLYPH_SHADOW = 55689,
+    //other
+    PRIEST_T10_2P_BONUS = 70770 //33% renew
 };
 enum PriestSpecial
 {
-    SHADOW_WEAVING_BUFF             = 15258,
-    MIND_FLAY_DAMAGE                = 58381,
-    MIND_SEAR_DAMAGE_1              = 49821,
-    SW_DEATH_BACKLASH               = 32409,
-    WEAKENED_SOUL_DEBUFF            = 6788,
-    SURGE_OF_LIGHT_BUFF             = 33151,
-    SERENDIPITY_BUFF                = 63734,
-    DIVINE_HYMN_HEAL                = 64844,
-    PRAYER_OF_MENDING_AURA_1        = 41635,
-    PRAYER_OF_MENDING_HEAL          = 33110,
-    PENANCE_HEAL_1                  = 47750,
-    IMPROVED_MIND_BLAST_DEBUFF      = 48301,//Mind Trauma
-    HYMN_OF_HOPE_BUFF               = 64904,
+    SHADOW_WEAVING_BUFF = 15258,
+    MIND_FLAY_DAMAGE = 58381,
+    MIND_SEAR_DAMAGE_1 = 49821,
+    SW_DEATH_BACKLASH = 32409,
+    WEAKENED_SOUL_DEBUFF = 6788,
+    SURGE_OF_LIGHT_BUFF = 33151,
+    SERENDIPITY_BUFF = 63734,
+    DIVINE_HYMN_HEAL = 64844,
+    PRAYER_OF_MENDING_AURA_1 = 41635,
+    PRAYER_OF_MENDING_HEAL = 33110,
+    PENANCE_HEAL_1 = 47750,
+    IMPROVED_MIND_BLAST_DEBUFF = 48301,//Mind Trauma
+    HYMN_OF_HOPE_BUFF = 64904,
 
-    SHADOWFIEND_1                   = 34433
+    SHADOWFIEND_1 = 34433
 };
 
 static const uint32 Priest_spells_damage_arr[] =
@@ -155,26 +155,26 @@ public:
     {
         return new priest_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct priest_botAI : public bot_ai
     {
         priest_botAI(Creature* creature) : bot_ai(creature)
@@ -243,7 +243,7 @@ public:
 
                 float dist = me->GetDistance(member);
                 uint8 pct = GetHealthPCT(member);
-                if (canHymn && pct < std::min<uint32>(80, 50 + member->getAttackers().size()*10) && GetLostHP(member) > 4000 && dist < 40)
+                if (canHymn && pct < std::min<uint32>(80, 50 + member->getAttackers().size() * 10) && GetLostHP(member) > 4000 && dist < 40)
                 {
                     if (++LHPcount1 > 2)
                         break;
@@ -271,7 +271,8 @@ public:
             {
                 if (me->IsInCombat() && IsSpellReady(INNER_FOCUS_1, diff) && GetManaPCT(me) < 70 &&
                     doCast(me, GetSpell(INNER_FOCUS_1)))
-                {}
+                {
+                }
                 if (doCast(me, GetSpell(PRAYER_OF_HEALING_1)))
                     return true;
             }
@@ -326,8 +327,8 @@ public:
                     for (Unit* member : members)
                     {
                         if (!(i == 0 ? member->IsPlayer() : member->IsNPCBot()) || me->GetMap() != member->FindMap() ||
-                            !member->IsAlive() || me->GetDistance(member) > 40 || member->isPossessed() || member->IsCharmed() || 
-                            member->getAttackers().empty() || (!IsTank(member) && GetHealthPCT(member) > 75) ||
+                            !member->IsAlive() || me->GetDistance(member) > 40 || member->isPossessed() || member->IsCharmed() ||
+                            member->getAttackers().empty() || (!IsTank(member) && !IsFlagCarrier(member) && GetHealthPCT(member) > 75) ||
                             (member->IsNPCBot() && member->ToCreature()->IsTempBot()) ||
                             member->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_PALADIN, 0x0, 0x80000, 0x0))
                             continue;
@@ -364,7 +365,7 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { UnsummonAll(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonAll(false); bot_ai::JustDied(u); }
 
         bool removeShapeshiftForm() override
         {
@@ -373,11 +374,11 @@ public:
             {
                 switch (form)
                 {
-                    case FORM_SHADOW:
-                        me->RemoveAurasDueToSpell(SHADOWFORM_1);
-                        break;
-                    default:
-                        break;
+                case FORM_SHADOW:
+                    me->RemoveAurasDueToSpell(SHADOWFORM_1);
+                    break;
+                default:
+                    break;
                 }
             }
 
@@ -388,7 +389,7 @@ public:
         {
             //Improved Shadowform: Fade
             if (IsSpellReady(FADE_1, diff) && me->GetShapeshiftForm() == FORM_SHADOW && me->GetLevel() >= 45 &&
-                Rand() < 35 && me->HasAuraWithMechanic((1<<MECHANIC_SNARE)|(1<<MECHANIC_ROOT)))
+                Rand() < 35 && me->HasAuraWithMechanic((1 << MECHANIC_SNARE) | (1 << MECHANIC_ROOT)))
             {
                 if (doCast(me, GetSpell(FADE_1)))
                     return;
@@ -502,11 +503,11 @@ public:
             auto [can_do_shadow, can_do_holy] = CanAffectVictimBools(mytar, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_HOLY);
 
             if (IsSpellReady(PSYCHIC_HORROR_1, diff) && can_do_shadow && Rand() < 20 &&
-                mytar->GetHealth() > me->GetMaxHealth()/8 && !CCed(mytar) &&
+                mytar->GetHealth() > me->GetMaxHealth() / 8 && !CCed(mytar) &&
                 !mytar->HasAuraType(SPELL_AURA_MOD_DISARM) &&
                 (mytar->GetTypeId() == TYPEID_PLAYER ?
-                mytar->ToPlayer()->GetWeaponForAttack(BASE_ATTACK) && mytar->ToPlayer()->IsUseEquipedWeapon(true) :
-                mytar->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID) && mytar->CanUseAttackType(BASE_ATTACK)))
+                    mytar->ToPlayer()->GetWeaponForAttack(BASE_ATTACK) && mytar->ToPlayer()->IsUseEquipedWeapon(true) :
+                    mytar->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID) && mytar->CanUseAttackType(BASE_ATTACK)))
             {
                 if (doCast(mytar, GetSpell(PSYCHIC_HORROR_1)))
                     return;
@@ -524,22 +525,21 @@ public:
             {
                 SummonBotPet(mytar);
                 SetSpellCooldown(SHADOWFIEND_1, 180000); // (5 - 2) min with Veiled Shadows
-                return;
             }
 
             if (!HasRole(BOT_ROLE_HEAL) || GetManaPCT(me) > 35 || botPet)
             {
                 if (IsSpellReady(SW_DEATH_1, diff) && can_do_shadow && Rand() < 90 && GetHealthPCT(me) > 50 &&
-                    (me->GetMap()->IsRaid() || GetHealthPCT(mytar) < 15 || mytar->GetHealth() < me->GetMaxHealth()/8) &&
+                    (me->GetMap()->IsRaid() || GetHealthPCT(mytar) < 15 || mytar->GetHealth() < me->GetMaxHealth() / 8) &&
                     doCast(mytar, GetSpell(SW_DEATH_1)))
                     return;
                 if (IsSpellReady(VAMPIRIC_TOUCH_1, diff) && can_do_shadow && Rand() < 80 &&
-                    mytar->GetHealth() > me->GetMaxHealth()/4 * (1 + mytar->getAttackers().size()) &&
+                    mytar->GetHealth() > me->GetMaxHealth() / 4 * (1 + mytar->getAttackers().size()) &&
                     !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x0, 0x400, 0x0, me->GetGUID()) &&
                     doCast(mytar, GetSpell(VAMPIRIC_TOUCH_1)))
                     return;
-                if (IsSpellReady(SW_PAIN_1, diff) && can_do_shadow && Rand() < 60 &&
-                    mytar->GetHealth() > me->GetMaxHealth()/2 * (1 + mytar->getAttackers().size()) &&
+                if (IsSpellReady(SW_PAIN_1, diff) && can_do_shadow && Rand() < 100 &&
+                    mytar->GetHealth() > me->GetMaxHealth() / 2 * (1 + mytar->getAttackers().size()) &&
                     !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x8000, 0x0, 0x0, me->GetGUID()))
                 {
                     AuraEffect const* weav = me->GetAuraEffect(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, SPELLFAMILY_PRIEST, 0x0, 0x8, 0x0);
@@ -547,10 +547,10 @@ public:
                         if (doCast(mytar, GetSpell(SW_PAIN_1)))
                             return;
                 }
-                if (IsSpellReady(DEVOURING_PLAGUE_1, diff) && can_do_shadow && !Devcheck && Rand() < 80 &&
+                if (IsSpellReady(DEVOURING_PLAGUE_1, diff) && can_do_shadow && !Devcheck && Rand() < 100 &&
                     (GetSpec() == BOT_SPEC_PRIEST_SHADOW || mytar->IsControlledByPlayer()) &&
-                    mytar->GetHealth() > me->GetMaxHealth()/2 * (1 + mytar->getAttackers().size()) &&
-                    !(mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->GetCreatureTemplate()->MechanicImmuneMask & (1<<(MECHANIC_INFECTED-1)))) &&
+                    mytar->GetHealth() > me->GetMaxHealth() / 2 * (1 + mytar->getAttackers().size()) &&
+                    !(mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->GetCreatureTemplate()->MechanicImmuneMask & (1 << (MECHANIC_INFECTED - 1)))) &&
                     !mytar->GetAuraEffect(SPELL_AURA_PERIODIC_LEECH, SPELLFAMILY_PRIEST, 0x02000000, 0x0, 0x0, me->GetGUID()) &&
                     doCast(mytar, GetSpell(DEVOURING_PLAGUE_1)))
                     return;
@@ -569,7 +569,7 @@ public:
                     doCast(mytar, GetSpell(HOLY_FIRE_1)))
                     return;
                 if (IsSpellReady(MIND_FLAY_1, diff) && can_do_shadow &&
-                    (!HasRole(BOT_ROLE_HEAL) || mytar->GetHealth() < me->GetMaxHealth()/2) &&
+                    (!HasRole(BOT_ROLE_HEAL) || mytar->GetHealth() < me->GetMaxHealth() / 2) &&
                     doCast(mytar, GetSpell(MIND_FLAY_1)))
                     return;
                 if (IsSpellReady(SMITE_1, diff) && can_do_holy && me->GetLevel() < 20 &&//MF is lvl 20, MB is lvl 10
@@ -582,7 +582,7 @@ public:
                 if (shot->GetSpellInfo()->Id == SHOOT_WAND && shot->m_targets.GetUnitTarget() != mytar)
                     me->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             }
-            else if (IsSpellReady(SHOOT_WAND, diff) && me->GetDistance(mytar) < 30 && GetEquips(BOT_SLOT_RANGED) &&
+            else if (IsSpellReady(SHOOT_WAND, diff) && !me->isMoving() && me->GetDistance(mytar) < 30 && GetEquips(BOT_SLOT_RANGED) &&
                 doCast(mytar, SHOOT_WAND))
                 return;
         }
@@ -605,7 +605,7 @@ public:
             int32 hppctps = int32(hps * 100.f / float(target->GetMaxHealth()));
             int32 xphploss = xphp > int32(target->GetMaxHealth()) ? 0 : abs(int32(xphp - target->GetMaxHealth()));
             int32 xppct = hp + hppctps * (me->GetLevel() < 60 ? 2.5f : 2.0f);
-            //TC_LOG_ERROR("entities.player", "priest_bot:HealTarget(): {}'s pct {}, hppctps {}, epct {}",
+            //BOT_LOG_ERROR("entities.player", "priest_bot:HealTarget(): {}'s pct {}, hppctps {}, epct {}",
             //    target->GetName(), uint32(hp), int32(hppctps), int32(xppct));
             if (xppct >= 95 && hp >= 25 && !pointed)
                 return false;
@@ -613,7 +613,7 @@ public:
             //GUARDIAN SPIRIT no GCD
             if (IsSpellReady(GUARDIAN_SPIRIT_1, diff, false) && !IAmFree() && target->IsInCombat() && !target->getAttackers().empty() &&
                 (xppct <= 0 || (hp <= 50 && hppctps <= -15) ||
-                (me->GetMap()->Instanceable() && target->GetMaxHealth() > me->GetMaxHealth() << 5)) &&
+                    (me->GetMap()->Instanceable() && target->GetMaxHealth() > me->GetMaxHealth() << 5)) &&
                 !target->HasAuraTypeWithFamilyFlags(SPELL_AURA_MOD_HEALING_PCT, SPELLFAMILY_PRIEST, 0x40000000))
             {
                 me->InterruptNonMeleeSpells(false);
@@ -678,7 +678,8 @@ public:
             {
                 if (me->IsInCombat() && IsSpellReady(INNER_FOCUS_1, diff) && GetManaPCT(me) < 70 &&
                     doCast(me, GetSpell(INNER_FOCUS_1)))
-                {}
+                {
+                }
                 if (doCast(target, GetSpell(HEAL)))
                     return true;
             }
@@ -811,7 +812,7 @@ public:
 
             if (Unit* target = FindHostileDispelTarget(CalcSpellMaxRange(DISPEL_MAGIC_1)))
             {
-                uint32 dm = DM && !target->HasAuraWithMechanic(1<<MECHANIC_IMMUNE_SHIELD) ? DM : MD;
+                uint32 dm = DM && !target->HasAuraWithMechanic(1 << MECHANIC_IMMUNE_SHIELD) ? DM : MD;
                 if (dm && doCast(target, dm))
                     return;
             }
@@ -855,7 +856,8 @@ public:
                 return;
             Unit* target = FindUndeadCCTarget(CalcSpellMaxRange(SHACKLE_UNDEAD_1), SHACKLE_UNDEAD_1);
             if (target && doCast(target, GetSpell(SHACKLE_UNDEAD_1)))
-            {}
+            {
+            }
         }
 
         void CheckSilence(uint32 diff)
@@ -1071,7 +1073,7 @@ public:
             if ((me->getAttackers().size() > 3 && !IsSpellReady(FADE_1, diff, false) && GetHealthPCT(me) < 90) ||
                 (GetHealthPCT(me) < 20 && (me->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE) || !me->getAttackers().empty())) ||
                 (GetManaPCT(me) < 35 && !IsPotionReady()) ||
-                (me->getAttackers().size() > 1 && (CCed(me, true) || me->HasAuraWithMechanic(1<<MECHANIC_SNARE))))
+                (me->getAttackers().size() > 1 && (CCed(me, true) || me->HasAuraWithMechanic(1 << MECHANIC_SNARE))))
             {
                 if (doCast(me, GetSpell(DISPERSION_1)))
                     return;
@@ -1087,7 +1089,7 @@ public:
 
             //Inner Focus
             if (AuraEffect const* focu = me->GetAuraEffect(INNER_FOCUS_1, 0))
-                if (focu->IsAffectedOnSpell(spellInfo))
+                if (focu->IsAffectingSpell(spellInfo))
                     crit_chance += 25.f;
 
             //Benediction (23236)
@@ -1253,8 +1255,8 @@ public:
             //Divine Providence: 10% bonus healing for Circle of Healing, Binding Heal, Holy Nova, Prayer of Healing, Divine Hymn and Prayer of Mending
             if ((GetSpec() == BOT_SPEC_PRIEST_HOLY) && lvl >= 55 &&
                 ((spellInfo->SpellFamilyFlags[0] & 0x18000200) ||
-                (spellInfo->SpellFamilyFlags[1] & 0x4) ||
-                (spellInfo->SpellFamilyFlags[2] & 0x4)))
+                    (spellInfo->SpellFamilyFlags[1] & 0x4) ||
+                    (spellInfo->SpellFamilyFlags[2] & 0x4)))
                 pctbonus += 0.1f;
 
             //flat mods
@@ -1277,11 +1279,11 @@ public:
             //percent mods
             //Inner Focus
             if (AuraEffect const* focu = me->GetAuraEffect(INNER_FOCUS_1, 0))
-                if (focu->IsAffectedOnSpell(spellInfo))
+                if (focu->IsAffectingSpell(spellInfo))
                     pctbonus += 1.f;
             //Surge of Light
             if (AuraEffect const* surg = me->GetAuraEffect(SURGE_OF_LIGHT_BUFF, 1))
-                if (surg->IsAffectedOnSpell(spellInfo))
+                if (surg->IsAffectingSpell(spellInfo))
                     pctbonus += 1.f;
 
             //Reduced Prayer of Healing Cost (38410):
@@ -1314,7 +1316,7 @@ public:
             //Focused Mind
             if ((GetSpec() == BOT_SPEC_PRIEST_SHADOW) &&
                 lvl >= 30 && (baseId == MIND_BLAST_1 || baseId == MIND_FLAY_1 ||
-                baseId == MIND_SEAR_1/* || baseId == MIND_CONTROL_1*/))
+                    baseId == MIND_SEAR_1/* || baseId == MIND_CONTROL_1*/))
                 pctbonus += 0.15f;
             //Improved Flash Heal part 1
             if ((GetSpec() == BOT_SPEC_PRIEST_HOLY) && lvl >= 40 && baseId == FLASH_HEAL_1)
@@ -1354,7 +1356,7 @@ public:
             //100% mods
             //Surge of Light
             if (AuraEffect const* surg = me->GetAuraEffect(SURGE_OF_LIGHT_BUFF, 1))
-                if (surg->IsAffectedOnSpell(spellInfo))
+                if (surg->IsAffectingSpell(spellInfo))
                     pctbonus += 1.f;
 
             //pct mods
@@ -1362,7 +1364,7 @@ public:
             if (baseId == GREATER_HEAL_1 || baseId == PRAYER_OF_HEALING_1)
             {
                 if (AuraEffect const* sere = me->GetAuraEffect(SERENDIPITY_BUFF, 0))
-                    if (sere->IsAffectedOnSpell(spellInfo))
+                    if (sere->IsAffectingSpell(spellInfo))
                         pctbonus += 0.12f * sere->GetBase()->GetStackAmount();
             }
 
@@ -1392,6 +1394,28 @@ public:
                 timebonus += 1000;
 
             casttime = std::max<int32>((float(casttime) * (1.0f - pctbonus)) - timebonus, 0);
+        }
+
+        void ApplyClassSpellNotLoseCastTimeMods(SpellInfo const* spellInfo, int32& delayReduce) const override
+        {
+            uint32 baseId = spellInfo->GetFirstRankSpell()->Id;
+            //SpellSchoolMask schools = spellInfo->GetSchoolMask();
+            uint8 lvl = me->GetLevel();
+            int32 reduceBonus = 0;
+
+            if (lvl >= 10)
+            {
+                switch (baseId)
+                {
+                case FLASH_HEAL_1: case LESSER_HEAL_1: case NORMAL_HEAL_1: case GREATER_HEAL_1: case PRAYER_OF_HEALING_1: case PENANCE_1: case DIVINE_HYMN_1:
+                    reduceBonus += 70;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            delayReduce += reduceBonus;
         }
 
         void ApplyClassSpellCooldownMods(SpellInfo const* spellInfo, uint32& cooldown) const override
@@ -1515,8 +1539,8 @@ public:
             //Shadow Reach: +20% range for Shadow Spells
             if ((GetSpec() == BOT_SPEC_PRIEST_SHADOW) && lvl >= 25 &&
                 ((spellInfo->SpellFamilyFlags[0] & 0x682A004) ||
-                (spellInfo->SpellFamilyFlags[1] & 0x300502) ||
-                (spellInfo->SpellFamilyFlags[2] & 0x2040)))
+                    (spellInfo->SpellFamilyFlags[1] & 0x300502) ||
+                    (spellInfo->SpellFamilyFlags[2] & 0x2040)))
                 pctbonus += 0.2f;
             //Holy Reach: +20% range for Holy Spells
             if ((GetSpec() == BOT_SPEC_PRIEST_HOLY) && lvl >= 25 && (spellInfo->SpellFamilyFlags[0] & 0x100080))
@@ -1568,14 +1592,14 @@ public:
             //Inner Focus
             AuraEffect const* surg = me->GetAuraEffect(SURGE_OF_LIGHT_BUFF, 1);
             AuraEffect const* focu = me->GetAuraEffect(INNER_FOCUS_1, 0);
-            if (surg && surg->IsAffectedOnSpell(spellInfo))
+            if (surg && surg->IsAffectingSpell(spellInfo))
                 me->RemoveAurasDueToSpell(SURGE_OF_LIGHT_BUFF);
-            else if (focu && focu->IsAffectedOnSpell(spellInfo))
+            else if (focu && focu->IsAffectingSpell(spellInfo))
                 me->RemoveAurasDueToSpell(INNER_FOCUS_1);
 
             //Serendipity
             if (AuraEffect const* sere = me->GetAuraEffect(SERENDIPITY_BUFF, 0))
-                if (sere->IsAffectedOnSpell(spellInfo))
+                if (sere->IsAffectingSpell(spellInfo))
                     me->RemoveAurasDueToSpell(SERENDIPITY_BUFF);
         }
 
@@ -1671,7 +1695,7 @@ public:
                     fire->SetCharges(fire->GetCharges() + 12);
                     for (uint8 i = 0; i != MAX_SPELL_EFFECTS; ++i)
                         if (AuraEffect* eff = fire->GetEffect(i))
-                            eff->ChangeAmount(int32(eff->GetAmount() * (i == 0 ? 1.45f*1.5f : 1.45f)));
+                            eff->ChangeAmount(int32(eff->GetAmount() * (i == 0 ? 1.45f * 1.5f : 1.45f)));
                 }
             }
             //Improved Vampiric Embrace
@@ -1713,7 +1737,7 @@ public:
         void SummonBotPet(Unit* target)
         {
             if (botPet)
-                UnsummonAll();
+                UnsummonAll(false);
 
             uint32 entry = BOT_PET_SHADOWFIEND;
 
@@ -1738,10 +1762,9 @@ public:
                 myPet->GetMotionMaster()->MoveChase(target);
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool savePets = true) override
         {
-            if (botPet)
-                botPet->ToTempSummon()->UnSummon();
+            UnsummonPet(savePets);
         }
 
         void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override
@@ -1750,7 +1773,7 @@ public:
 
         void SummonedCreatureDespawn(Creature* summon) override
         {
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
             if (summon == botPet)
                 botPet = nullptr;
         }
@@ -1759,16 +1782,16 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_PET_TYPE:
-                    return BOT_PET_SHADOWFIEND;
-                default:
-                    return 0;
+            case BOTAI_MISC_PET_TYPE:
+                return BOT_PET_SHADOWFIEND;
+            default:
+                return 0;
             }
         }
 
         void Reset() override
         {
-            UnsummonAll();
+            UnsummonAll(false);
 
             Shackle_Timer = 0;
             Mend_Timer = 0;
@@ -1838,22 +1861,22 @@ public:
             InitSpellMap(LEVITATE_1);
             InitSpellMap(SHADOWFIEND_1); //not casted
 
-  /*Talent*/lvl >= 20 && isDisc ? InitSpellMap(INNER_FOCUS_1) : RemoveSpell(INNER_FOCUS_1);
-  /*Talent*/lvl >= 40 && isDisc ? InitSpellMap(POWER_INFUSION_1) : RemoveSpell(POWER_INFUSION_1);
-  /*Talent*/lvl >= 50 && isDisc ? InitSpellMap(PAIN_SUPPRESSION_1) : RemoveSpell(PAIN_SUPPRESSION_1);
-  /*Talent*/lvl >= 60 && isDisc ? InitSpellMap(PENANCE_1) : RemoveSpell(PENANCE_1);
+            /*Talent*/lvl >= 20 && isDisc ? InitSpellMap(INNER_FOCUS_1) : RemoveSpell(INNER_FOCUS_1);
+            /*Talent*/lvl >= 40 && isDisc ? InitSpellMap(POWER_INFUSION_1) : RemoveSpell(POWER_INFUSION_1);
+            /*Talent*/lvl >= 50 && isDisc ? InitSpellMap(PAIN_SUPPRESSION_1) : RemoveSpell(PAIN_SUPPRESSION_1);
+            /*Talent*/lvl >= 60 && isDisc ? InitSpellMap(PENANCE_1) : RemoveSpell(PENANCE_1);
 
-  /*Talent*/lvl >= 20 && isHoly ? InitSpellMap(DESPERATE_PRAYER_1) : RemoveSpell(DESPERATE_PRAYER_1);
-  /*Talent*/lvl >= 50 && isHoly ? InitSpellMap(CIRCLE_OF_HEALING_1) : RemoveSpell(CIRCLE_OF_HEALING_1);
-  /*Talent*/lvl >= 60 && isHoly ? InitSpellMap(GUARDIAN_SPIRIT_1) : RemoveSpell(GUARDIAN_SPIRIT_1);
+            /*Talent*/lvl >= 20 && isHoly ? InitSpellMap(DESPERATE_PRAYER_1) : RemoveSpell(DESPERATE_PRAYER_1);
+            /*Talent*/lvl >= 50 && isHoly ? InitSpellMap(CIRCLE_OF_HEALING_1) : RemoveSpell(CIRCLE_OF_HEALING_1);
+            /*Talent*/lvl >= 60 && isHoly ? InitSpellMap(GUARDIAN_SPIRIT_1) : RemoveSpell(GUARDIAN_SPIRIT_1);
 
-  /*Talent*/lvl >= 20 && isShad ? InitSpellMap(MIND_FLAY_1) : RemoveSpell(MIND_FLAY_1);
-  /*Talent*/lvl >= 30 && isShad ? InitSpellMap(SILENCE_1) : RemoveSpell(SILENCE_1);
-  /*Talent*/lvl >= 30 && isShad ? InitSpellMap(VAMPIRIC_EMBRACE_1) : RemoveSpell(VAMPIRIC_EMBRACE_1);
-  /*Talent*/lvl >= 40 && isShad ? InitSpellMap(SHADOWFORM_1) : RemoveSpell(SHADOWFORM_1);
-  /*Talent*/lvl >= 50 && isShad ? InitSpellMap(VAMPIRIC_TOUCH_1) : RemoveSpell(VAMPIRIC_TOUCH_1);
-  /*Talent*/lvl >= 50 && isShad ? InitSpellMap(PSYCHIC_HORROR_1) : RemoveSpell(PSYCHIC_HORROR_1);
-  /*Talent*/lvl >= 60 && isShad ? InitSpellMap(DISPERSION_1) : RemoveSpell(DISPERSION_1);
+            /*Talent*/lvl >= 20 && isShad ? InitSpellMap(MIND_FLAY_1) : RemoveSpell(MIND_FLAY_1);
+            /*Talent*/lvl >= 30 && isShad ? InitSpellMap(SILENCE_1) : RemoveSpell(SILENCE_1);
+            /*Talent*/lvl >= 30 && isShad ? InitSpellMap(VAMPIRIC_EMBRACE_1) : RemoveSpell(VAMPIRIC_EMBRACE_1);
+            /*Talent*/lvl >= 40 && isShad ? InitSpellMap(SHADOWFORM_1) : RemoveSpell(SHADOWFORM_1);
+            /*Talent*/lvl >= 50 && isShad ? InitSpellMap(VAMPIRIC_TOUCH_1) : RemoveSpell(VAMPIRIC_TOUCH_1);
+            /*Talent*/lvl >= 50 && isShad ? InitSpellMap(PSYCHIC_HORROR_1) : RemoveSpell(PSYCHIC_HORROR_1);
+            /*Talent*/lvl >= 60 && isShad ? InitSpellMap(DISPERSION_1) : RemoveSpell(DISPERSION_1);
 
             HEAL = GetSpell(GREATER_HEAL_1) ? GREATER_HEAL_1 :
                 GetSpell(NORMAL_HEAL_1) ? NORMAL_HEAL_1 :
@@ -1909,37 +1932,37 @@ public:
         {
             switch (basespell)
             {
-                case MASS_DISPEL_1:
-                case ABOLISH_DISEASE_1:
-                case PAIN_SUPPRESSION_1:
-                case FADE_1:
-                case PENANCE_1:
-                case VAMPIRIC_EMBRACE_1:
-                case DISPERSION_1:
-                case GUARDIAN_SPIRIT_1:
-                case RENEW_1:
-                case PRAYER_OF_HEALING_1:
-                case CIRCLE_OF_HEALING_1:
-                case DIVINE_HYMN_1:
-                case PRAYER_OF_MENDING_1:
-                case PW_SHIELD_1:
-                case INNER_FIRE_1:
-                case PW_FORTITUDE_1:
-                case SHADOW_PROTECTION_1:
-                case DIVINE_SPIRIT_1:
-                case FEAR_WARD_1:
-                case FLASH_HEAL_1:
-                case GREATER_HEAL_1:
-                case LEVITATE_1:
-                    return true;
-                case NORMAL_HEAL_1:
-                    return !GetSpell(GREATER_HEAL_1);
-                case LESSER_HEAL_1:
-                    return !GetSpell(NORMAL_HEAL_1) && !GetSpell(GREATER_HEAL_1);
-                case SHADOWFORM_1:
-                    return me->GetShapeshiftForm() != FORM_SHADOW;
-                default:
-                    return false;
+            case MASS_DISPEL_1:
+            case ABOLISH_DISEASE_1:
+            case PAIN_SUPPRESSION_1:
+            case FADE_1:
+            case PENANCE_1:
+            case VAMPIRIC_EMBRACE_1:
+            case DISPERSION_1:
+            case GUARDIAN_SPIRIT_1:
+            case RENEW_1:
+            case PRAYER_OF_HEALING_1:
+            case CIRCLE_OF_HEALING_1:
+            case DIVINE_HYMN_1:
+            case PRAYER_OF_MENDING_1:
+            case PW_SHIELD_1:
+            case INNER_FIRE_1:
+            case PW_FORTITUDE_1:
+            case SHADOW_PROTECTION_1:
+            case DIVINE_SPIRIT_1:
+            case FEAR_WARD_1:
+            case FLASH_HEAL_1:
+            case GREATER_HEAL_1:
+            case LEVITATE_1:
+                return true;
+            case NORMAL_HEAL_1:
+                return !GetSpell(GREATER_HEAL_1);
+            case LESSER_HEAL_1:
+                return !GetSpell(NORMAL_HEAL_1) && !GetSpell(GREATER_HEAL_1);
+            case SHADOWFORM_1:
+                return me->GetShapeshiftForm() != FORM_SHADOW;
+            default:
+                return false;
             }
         }
 
@@ -1999,7 +2022,7 @@ public:
     private:
         uint32 HEAL;
         uint32 Shackle_Timer, Mend_Timer, DispelcheckTimer, DevcheckTimer, ShackcheckTimer;
-/*Misc*/bool Devcheck, Shackcheck;
+        /*Misc*/bool Devcheck, Shackcheck;
 
         typedef std::unordered_map<uint32 /*baseId*/, int32 /*amount*/> HealMap;
         HealMap _heals;

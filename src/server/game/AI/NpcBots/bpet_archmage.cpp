@@ -11,12 +11,12 @@ TODO:
 
 enum ArchmagePetBaseSpells
 {
-    WATERBOLT_1             = SPELL_WATERBOLT
+    WATERBOLT_1 = SPELL_WATERBOLT
 };
 
 enum ArchmagePetSpecial
 {
-    ELEMENTAL_DURATION      = 60000 //1 min
+    ELEMENTAL_DURATION = 60000 //1 min
 };
 
 class archmage_pet_bot : public CreatureScript
@@ -49,7 +49,7 @@ public:
 
         void UpdateAI(uint32 diff) override
         {
-            if ((liveTimer += diff) >= uint32(IAmFree() ? (1 * HOUR * IN_MILLISECONDS) : ELEMENTAL_DURATION))
+            if ((liveTimer += diff) >= ELEMENTAL_DURATION * (IAmFree() ? 60u : 1u))
             {
                 canUpdate = false;
                 me->setDeathState(JUST_DIED);

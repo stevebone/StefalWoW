@@ -31,136 +31,136 @@ Aura application bug for bot in other subgroup, maybe caused by creatorGUID mism
 
 enum ShamanBaseSpells
 {
-    HEALING_WAVE_1                      = 331,
-    CHAIN_HEAL_1                        = 1064,
-    LESSER_HEALING_WAVE_1               = 8004,
-    RIPTIDE_1                           = 61295,
-    ANCESTRAL_SPIRIT_1                  = 2008,
-    CURE_TOXINS_1                       = 526,
-    CLEANSE_SPIRIT_1                    = 51886,
-    FLAME_SHOCK_1                       = 8050,
-    EARTH_SHOCK_1                       = 8042,
-    FROST_SHOCK_1                       = 8056,
-    STORMSTRIKE_1                       = 17364,
-    LIGHTNING_BOLT_1                    = 403,
-    CHAIN_LIGHTNING_1                   = 421,
-    LAVA_BURST_1                        = 51505,
-    THUNDERSTORM_1                      = 51490,
-    LIGHTNING_SHIELD_1                  = 324,
-    EARTH_SHIELD_1                      = 974,
-    WATER_SHIELD_1                      = 52127,
-    WATER_BREATHING_1                   = 131,
-    WATER_WALKING_1                     = 546,
-    PURGE_1                             = 370,
-    WIND_SHEAR_1                        = 57994,
-    HEX_1                               = 51514,
-    BLOODLUST_1                         = 2825,
-    HEROISM_1                           = 32182,
-    SHAMANISTIC_RAGE_1                  = 30823,
-    NATURES_SWIFTNESS_1                 = 16188,//castegory = 1202
+    HEALING_WAVE_1 = 331,
+    CHAIN_HEAL_1 = 1064,
+    LESSER_HEALING_WAVE_1 = 8004,
+    RIPTIDE_1 = 61295,
+    ANCESTRAL_SPIRIT_1 = 2008,
+    CURE_TOXINS_1 = 526,
+    CLEANSE_SPIRIT_1 = 51886,
+    FLAME_SHOCK_1 = 8050,
+    EARTH_SHOCK_1 = 8042,
+    FROST_SHOCK_1 = 8056,
+    STORMSTRIKE_1 = 17364,
+    LIGHTNING_BOLT_1 = 403,
+    CHAIN_LIGHTNING_1 = 421,
+    LAVA_BURST_1 = 51505,
+    THUNDERSTORM_1 = 51490,
+    LIGHTNING_SHIELD_1 = 324,
+    EARTH_SHIELD_1 = 974,
+    WATER_SHIELD_1 = 52127,
+    WATER_BREATHING_1 = 131,
+    WATER_WALKING_1 = 546,
+    PURGE_1 = 370,
+    WIND_SHEAR_1 = 57994,
+    HEX_1 = 51514,
+    BLOODLUST_1 = 2825,
+    HEROISM_1 = 32182,
+    SHAMANISTIC_RAGE_1 = 30823,
+    NATURES_SWIFTNESS_1 = 16188,//castegory = 1202
     //ELEMENTAL_MASTERY_1                 = 16166,//castegory = 1202 NYI
-    TIDAL_FORCE_1                       = 55198,
+    TIDAL_FORCE_1 = 55198,
 
-    GHOST_WOLF_1                        = 2645,
+    GHOST_WOLF_1 = 2645,
 
-    FIRE_NOVA_1                         = 1535,//shaman spell
-    EARTHBIND_TOTEM_1                   = 2484,
-    MAGMA_TOTEM_1                       = 8190,
-    SEARING_TOTEM_1                     = 3599,
-    STONECLAW_TOTEM_1                   = 5730,
-    FIRE_ELEMENTAL_TOTEM_1              = 2894,
-    EARTH_ELEMENTAL_TOTEM_1             = 2062,
-    FIRE_RESISTANCE_TOTEM_1             = 8184,
-    FROST_RESISTANCE_TOTEM_1            = 8181,
-    NATURE_RESISTANCE_TOTEM_1           = 10595,
-    FLAMETONGUE_TOTEM_1                 = 8227,
-    GROUNDING_TOTEM_1                   = 8177,
-    SENTRY_TOTEM_1                      = 6495,
-    STONESKIN_TOTEM_1                   = 8071,
-    STRENGTH_OF_EARTH_TOTEM_1           = 8075,
-    WINDFURY_TOTEM_1                    = 8512,
-    WRATH_OF_AIR_TOTEM_1                = 3738,
-    CLEANSING_TOTEM_1                   = 8170,
-    HEALING_STREAM_TOTEM_1              = 5394,
-    MANA_SPRING_TOTEM_1                 = 5675,
-    TOTEM_OF_WRATH_1                    = 30706,
-    MANA_TIDE_TOTEM_1                   = 16190,
-    TREMOR_TOTEM_1                      = 8143,
+    FIRE_NOVA_1 = 1535,//shaman spell
+    EARTHBIND_TOTEM_1 = 2484,
+    MAGMA_TOTEM_1 = 8190,
+    SEARING_TOTEM_1 = 3599,
+    STONECLAW_TOTEM_1 = 5730,
+    FIRE_ELEMENTAL_TOTEM_1 = 2894,
+    EARTH_ELEMENTAL_TOTEM_1 = 2062,
+    FIRE_RESISTANCE_TOTEM_1 = 8184,
+    FROST_RESISTANCE_TOTEM_1 = 8181,
+    NATURE_RESISTANCE_TOTEM_1 = 10595,
+    FLAMETONGUE_TOTEM_1 = 8227,
+    GROUNDING_TOTEM_1 = 8177,
+    SENTRY_TOTEM_1 = 6495,
+    STONESKIN_TOTEM_1 = 8071,
+    STRENGTH_OF_EARTH_TOTEM_1 = 8075,
+    WINDFURY_TOTEM_1 = 8512,
+    WRATH_OF_AIR_TOTEM_1 = 3738,
+    CLEANSING_TOTEM_1 = 8170,
+    HEALING_STREAM_TOTEM_1 = 5394,
+    MANA_SPRING_TOTEM_1 = 5675,
+    TOTEM_OF_WRATH_1 = 30706,
+    MANA_TIDE_TOTEM_1 = 16190,
+    TREMOR_TOTEM_1 = 8143,
 
-    TOTEMIC_RECALL_1                    = 36936,
+    TOTEMIC_RECALL_1 = 36936,
 
-    REINCARNATION_1                     = 21169,
+    REINCARNATION_1 = 21169,
 
-    FERAL_SPIRIT_1                      = 51533, //not casted
+    FERAL_SPIRIT_1 = 51533, //not casted
 
     //ROCKBITER_WEAPON_1                  = 8017, //disabled due to bonus handling method
-    FLAMETONGUE_WEAPON_1                = 8024,
-    FROSTBRAND_WEAPON_1                 = 8033,
-    WINDFURY_WEAPON_1                   = 8232,
-    EARTHLIVING_WEAPON_1                = 51730
+    FLAMETONGUE_WEAPON_1 = 8024,
+    FROSTBRAND_WEAPON_1 = 8033,
+    WINDFURY_WEAPON_1 = 8232,
+    EARTHLIVING_WEAPON_1 = 51730
 };
 
 enum ShamanPassives
 {
     //Elemental
-    ELEMENTAL_FOCUS                     = 16164,//clearcast
-    ELEMENTAL_DEVASTATION1              = 30160,
-    ELEMENTAL_DEVASTATION2              = 29179,
-    ELEMENTAL_DEVASTATION3              = 29180,
-    ELEMENTAL_OATH                      = 51470,//rank 2
+    ELEMENTAL_FOCUS = 16164,//clearcast
+    ELEMENTAL_DEVASTATION1 = 30160,
+    ELEMENTAL_DEVASTATION2 = 29179,
+    ELEMENTAL_DEVASTATION3 = 29180,
+    ELEMENTAL_OATH = 51470,//rank 2
     //STORM_EARTH_AND_FIRE                = 51486,//rank 3
     //Enchancement
-    TOUGHNESS                           = 16309,//rank 5
-    FLURRY1                             = 16256,
-    FLURRY2                             = 16281,
-    FLURRY3                             = 16282,
-    FLURRY4                             = 16283,
-    FLURRY5                             = 16284,
-    WEAPON_MASTERY                      = 29086,//rank 3
-    UNLEASHED_RAGE                      = 30809,//rank 3
-    STATIC_SHOCK                        = 51527,//rank 3
-    IMPROVED_STORMSTRIKE                = 51522,//rank 2
-    MAELSTROM_WEAPON1                   = 51528,
-    MAELSTROM_WEAPON2                   = 51529,
-    MAELSTROM_WEAPON3                   = 51530,
-    MAELSTROM_WEAPON4                   = 51531,
-    MAELSTROM_WEAPON5                   = 51532,
-    EARTHEN_POWER                       = 51524,//rank 2
+    TOUGHNESS = 16309,//rank 5
+    FLURRY1 = 16256,
+    FLURRY2 = 16281,
+    FLURRY3 = 16282,
+    FLURRY4 = 16283,
+    FLURRY5 = 16284,
+    WEAPON_MASTERY = 29086,//rank 3
+    UNLEASHED_RAGE = 30809,//rank 3
+    STATIC_SHOCK = 51527,//rank 3
+    IMPROVED_STORMSTRIKE = 51522,//rank 2
+    MAELSTROM_WEAPON1 = 51528,
+    MAELSTROM_WEAPON2 = 51529,
+    MAELSTROM_WEAPON3 = 51530,
+    MAELSTROM_WEAPON4 = 51531,
+    MAELSTROM_WEAPON5 = 51532,
+    EARTHEN_POWER = 51524,//rank 2
     //Restoration
-    ANCESTRAL_HEALING                   = 16240,//rank 3
-    ANCESTRAL_AWAKENING                 = 51558,//rank 3
-    IMPROVED_WATER_SHIELD               = 16198,//rank 3
-    TIDAL_WAVES                         = 51566,//rank 5
+    ANCESTRAL_HEALING = 16240,//rank 3
+    ANCESTRAL_AWAKENING = 51558,//rank 3
+    IMPROVED_WATER_SHIELD = 16198,//rank 3
+    TIDAL_WAVES = 51566,//rank 5
     //Special
-    GLYPH_THUNDERSTORM                  = 62132,
-    GLYPH_TOTEM_OF_WRATH                = 63280,
-    SHAMAN_T10_RESTO_4P                 = 70808 //Chain Heal HoT
+    GLYPH_THUNDERSTORM = 62132,
+    GLYPH_TOTEM_OF_WRATH = 63280,
+    SHAMAN_T10_RESTO_4P = 70808 //Chain Heal HoT
 };
 
 enum ShamanSpecial
 {
-    SHAMAN_FLAME_SHOCK_PASSIVE          = 75461,//flame shock damage can be critical in 3.3.5, innate
+    SHAMAN_FLAME_SHOCK_PASSIVE = 75461,//flame shock damage can be critical in 3.3.5, innate
 
-    ELEMENTAL_FOCUS_BUFF                = 16246,
-    TIDAL_FORCE_BUFF                    = 55166,//Unit::HandleAuraDummy(): case 55198:
+    ELEMENTAL_FOCUS_BUFF = 16246,
+    TIDAL_FORCE_BUFF = 55166,//Unit::HandleAuraDummy(): case 55198:
 
-    MAELSTROM_WEAPON_BUFF               = 53817,
-    TIDAL_WAVES_BUFF                    = 53390,
-    STORMSTRIKE_DAMAGE                  = 32175,
-    STORMSTRIKE_DAMAGE_OFFHAND          = 32176,
+    MAELSTROM_WEAPON_BUFF = 53817,
+    TIDAL_WAVES_BUFF = 53390,
+    STORMSTRIKE_DAMAGE = 32175,
+    STORMSTRIKE_DAMAGE_OFFHAND = 32176,
 
-    LIGHTNING_SHIELD_DAMAGE_1           = 26364,
-    EARTH_SHIELD_HEAL                   = 379,
+    LIGHTNING_SHIELD_DAMAGE_1 = 26364,
+    EARTH_SHIELD_HEAL = 379,
 
-    RESURRECTION_VISUAL_SPELL           = 21074, //Test NPC Resurrection
+    RESURRECTION_VISUAL_SPELL = 21074, //Test NPC Resurrection
 
-    EXHAUSTION_AURA                     = 57723,
-    SATED_AURA                          = 57724,
+    EXHAUSTION_AURA = 57723,
+    SATED_AURA = 57724,
 
-    WINDFURY_ATTACK_MAINHAND            = 25504,
-    WINDFURY_ATTACK_OFFHAND             = 33750,
+    WINDFURY_ATTACK_MAINHAND = 25504,
+    WINDFURY_ATTACK_OFFHAND = 33750,
 
-    STORMEARTHANDFIRE_EARTHGRAB         = 64695,
+    STORMEARTHANDFIRE_EARTHGRAB = 64695,
 
     //TOTEM_AURA_WRATH_AURA1              = 57658,//100
     //TOTEM_AURA_WRATH_AURA2              = 57660,//120
@@ -180,36 +180,36 @@ enum ShamanSpecial
 
 enum TotemSlot
 {
-    T_FIRE  = 0,//m_SummonSlot[1]
+    T_FIRE = 0,//m_SummonSlot[1]
     T_EARTH = 1,//m_SummonSlot[2]
     T_WATER = 2,//m_SummonSlot[3]
-    T_AIR   = 3,//m_SummonSlot[4]
+    T_AIR = 3,//m_SummonSlot[4]
 };
 enum BotTotemType : uint32
 {
-    BOT_TOTEM_NONE                  = 0,
-    BOT_TOTEM_STRENGTH_OF_EARTH     = 1, //main earth totem
-    BOT_TOTEM_FLAMETONGUE           = 2, //main fire totem
-    BOT_TOTEM_WRATH                 = 3, //main fire totem
-    BOT_TOTEM_MANA_SPRING           = 4, //main water totem
-    BOT_TOTEM_WINDFURY              = 5, //main air totem
-    BOT_TOTEM_WRATH_OF_AIR          = 6, //main air totem
-    BOT_TOTEM_STONESKIN             = 7, //secondary earth totem UNUSED
-    BOT_TOTEM_HEALING_STREAM        = 8, //secondary water totem UNUSED
-    BOT_TOTEM_TREMOR                = 9, //situative earth 1
-    BOT_TOTEM_EARTHBIND             = 10, //situative earth 2
-    BOT_TOTEM_MAGMA                 = 11, //situative fire 1
-    BOT_TOTEM_MANA_TIDE             = 12, //situative water 1
-    BOT_TOTEM_CLEANSING             = 13, //situative water 2 non-raid
-    BOT_TOTEM_GROUNDING             = 14, //situative air 1
-    BOT_TOTEM_RESISTANCE_FROST      = 15, //manual fire 1
-    BOT_TOTEM_RESISTANCE_FIRE       = 16, //manual water 1
-    BOT_TOTEM_RESISTANCE_NATURE     = 17, //manual air 1
-    BOT_TOTEM_ELEMENTAL_EARTH       = 18, //manual earth 1
-    BOT_TOTEM_ELEMENTAL_FIRE        = 19, //manual fire 2
-    BOT_TOTEM_SENTRY                = 20, //UNUSED
-    BOT_TOTEM_STONECLAW             = 21, //UNUSED
-    BOT_TOTEM_SEARING               = 22, //UNUSED, annoying as hell too
+    BOT_TOTEM_NONE = 0,
+    BOT_TOTEM_STRENGTH_OF_EARTH = 1, //main earth totem
+    BOT_TOTEM_FLAMETONGUE = 2, //main fire totem
+    BOT_TOTEM_WRATH = 3, //main fire totem
+    BOT_TOTEM_MANA_SPRING = 4, //main water totem
+    BOT_TOTEM_WINDFURY = 5, //main air totem
+    BOT_TOTEM_WRATH_OF_AIR = 6, //main air totem
+    BOT_TOTEM_STONESKIN = 7, //secondary earth totem UNUSED
+    BOT_TOTEM_HEALING_STREAM = 8, //secondary water totem UNUSED
+    BOT_TOTEM_TREMOR = 9, //situative earth 1
+    BOT_TOTEM_EARTHBIND = 10, //situative earth 2
+    BOT_TOTEM_MAGMA = 11, //situative fire 1
+    BOT_TOTEM_MANA_TIDE = 12, //situative water 1
+    BOT_TOTEM_CLEANSING = 13, //situative water 2 non-raid
+    BOT_TOTEM_GROUNDING = 14, //situative air 1
+    BOT_TOTEM_RESISTANCE_FROST = 15, //manual fire 1
+    BOT_TOTEM_RESISTANCE_FIRE = 16, //manual water 1
+    BOT_TOTEM_RESISTANCE_NATURE = 17, //manual air 1
+    BOT_TOTEM_ELEMENTAL_EARTH = 18, //manual earth 1
+    BOT_TOTEM_ELEMENTAL_FIRE = 19, //manual fire 2
+    BOT_TOTEM_SENTRY = 20, //UNUSED
+    BOT_TOTEM_STONECLAW = 21, //UNUSED
+    BOT_TOTEM_SEARING = 22, //UNUSED, annoying as hell too
     BOT_TOTEM_END,
 
     BOT_TOTEM_FLAG_MY_TOTEM_FIRE,
@@ -217,36 +217,36 @@ enum BotTotemType : uint32
     BOT_TOTEM_FLAG_MY_TOTEM_WATER,
     BOT_TOTEM_FLAG_MY_TOTEM_AIR,
 
-    BOT_TOTEM_MASK_SUMMONS          = ((1<<BOT_TOTEM_ELEMENTAL_EARTH)|(1<<BOT_TOTEM_ELEMENTAL_FIRE)),
+    BOT_TOTEM_MASK_SUMMONS = ((1 << BOT_TOTEM_ELEMENTAL_EARTH) | (1 << BOT_TOTEM_ELEMENTAL_FIRE)),
 
     //BOT_TOTEM_MASK_MY_TOTEM         = (1<<BOT_TOTEM_NONE),
 
-    BOT_TOTEM_MASK_STRENGTH_OF_EARTH= (1<<BOT_TOTEM_STRENGTH_OF_EARTH),
-    BOT_TOTEM_MASK_FLAMETONGUE      = (1<<BOT_TOTEM_FLAMETONGUE),
-    BOT_TOTEM_MASK_WRATH            = (1<<BOT_TOTEM_WRATH),
-    BOT_TOTEM_MASK_MANA_SPRING      = (1<<BOT_TOTEM_MANA_SPRING),
-    BOT_TOTEM_MASK_WINDFURY         = (1<<BOT_TOTEM_WINDFURY),
-    BOT_TOTEM_MASK_WRATH_OF_AIR     = (1<<BOT_TOTEM_WRATH_OF_AIR),
+    BOT_TOTEM_MASK_STRENGTH_OF_EARTH = (1 << BOT_TOTEM_STRENGTH_OF_EARTH),
+    BOT_TOTEM_MASK_FLAMETONGUE = (1 << BOT_TOTEM_FLAMETONGUE),
+    BOT_TOTEM_MASK_WRATH = (1 << BOT_TOTEM_WRATH),
+    BOT_TOTEM_MASK_MANA_SPRING = (1 << BOT_TOTEM_MANA_SPRING),
+    BOT_TOTEM_MASK_WINDFURY = (1 << BOT_TOTEM_WINDFURY),
+    BOT_TOTEM_MASK_WRATH_OF_AIR = (1 << BOT_TOTEM_WRATH_OF_AIR),
     //BOT_TOTEM_MASK_STONESKIN        = (1<<BOT_TOTEM_STONESKIN),
-    BOT_TOTEM_MASK_MANA_TIDE        = (1<<BOT_TOTEM_MANA_TIDE),
-    BOT_TOTEM_MASK_GROUNDING        = (1<<BOT_TOTEM_GROUNDING),
-    BOT_TOTEM_MASK_RESISTANCE_FROST = (1<<BOT_TOTEM_RESISTANCE_FROST),
-    BOT_TOTEM_MASK_RESISTANCE_FIRE  = (1<<BOT_TOTEM_RESISTANCE_FIRE),
-    BOT_TOTEM_MASK_RESISTANCE_NATURE= (1<<BOT_TOTEM_RESISTANCE_NATURE),
+    BOT_TOTEM_MASK_MANA_TIDE = (1 << BOT_TOTEM_MANA_TIDE),
+    BOT_TOTEM_MASK_GROUNDING = (1 << BOT_TOTEM_GROUNDING),
+    BOT_TOTEM_MASK_RESISTANCE_FROST = (1 << BOT_TOTEM_RESISTANCE_FROST),
+    BOT_TOTEM_MASK_RESISTANCE_FIRE = (1 << BOT_TOTEM_RESISTANCE_FIRE),
+    BOT_TOTEM_MASK_RESISTANCE_NATURE = (1 << BOT_TOTEM_RESISTANCE_NATURE),
 
-    BOT_TOTEM_MASK_PRIMARY_FIRE     = (BOT_TOTEM_MASK_FLAMETONGUE | BOT_TOTEM_MASK_WRATH),
+    BOT_TOTEM_MASK_PRIMARY_FIRE = (BOT_TOTEM_MASK_FLAMETONGUE | BOT_TOTEM_MASK_WRATH),
 
-    BOT_TOTEM_MASK_MY_TOTEM_FIRE    = (1<<BOT_TOTEM_FLAG_MY_TOTEM_FIRE),
-    BOT_TOTEM_MASK_MY_TOTEM_EARTH   = (1<<BOT_TOTEM_FLAG_MY_TOTEM_EARTH),
-    BOT_TOTEM_MASK_MY_TOTEM_WATER   = (1<<BOT_TOTEM_FLAG_MY_TOTEM_WATER),
-    BOT_TOTEM_MASK_MY_TOTEM_AIR     = (1<<BOT_TOTEM_FLAG_MY_TOTEM_AIR),
+    BOT_TOTEM_MASK_MY_TOTEM_FIRE = (1 << BOT_TOTEM_FLAG_MY_TOTEM_FIRE),
+    BOT_TOTEM_MASK_MY_TOTEM_EARTH = (1 << BOT_TOTEM_FLAG_MY_TOTEM_EARTH),
+    BOT_TOTEM_MASK_MY_TOTEM_WATER = (1 << BOT_TOTEM_FLAG_MY_TOTEM_WATER),
+    BOT_TOTEM_MASK_MY_TOTEM_AIR = (1 << BOT_TOTEM_FLAG_MY_TOTEM_AIR),
 
-    BOT_TOTEM_MASK_PRIMARY_USE      = (BOT_TOTEM_MASK_STRENGTH_OF_EARTH | BOT_TOTEM_MASK_FLAMETONGUE | \
-                                    BOT_TOTEM_MASK_WRATH | BOT_TOTEM_MASK_MANA_SPRING | \
-                                    BOT_TOTEM_WINDFURY | BOT_TOTEM_MASK_WRATH_OF_AIR),
+    BOT_TOTEM_MASK_PRIMARY_USE = (BOT_TOTEM_MASK_STRENGTH_OF_EARTH | BOT_TOTEM_MASK_FLAMETONGUE | \
+        BOT_TOTEM_MASK_WRATH | BOT_TOTEM_MASK_MANA_SPRING | \
+        BOT_TOTEM_WINDFURY | BOT_TOTEM_MASK_WRATH_OF_AIR),
 
-    BOT_TOTEM_MASK_MY_TOTEM_ALL     = (BOT_TOTEM_MASK_MY_TOTEM_FIRE | BOT_TOTEM_MASK_MY_TOTEM_EARTH | \
-                                    BOT_TOTEM_MASK_MY_TOTEM_WATER | BOT_TOTEM_MASK_MY_TOTEM_AIR)
+    BOT_TOTEM_MASK_MY_TOTEM_ALL = (BOT_TOTEM_MASK_MY_TOTEM_FIRE | BOT_TOTEM_MASK_MY_TOTEM_EARTH | \
+        BOT_TOTEM_MASK_MY_TOTEM_WATER | BOT_TOTEM_MASK_MY_TOTEM_AIR)
 };
 
 static const uint32 Shaman_spells_damage_arr[] =
@@ -282,31 +282,38 @@ public:
     {
         return new shaman_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct shaman_botAI : public bot_ai
     {
         shaman_botAI(Creature* creature) : bot_ai(creature)
         {
             _botclass = BOT_CLASS_SHAMAN;
+
+            mhEnchantExpireTimer = 1;
+            ohEnchantExpireTimer = 1;
+            mhEnchant = 0;
+            ohEnchant = 0;
+            needChooseMHEnchant = true;
+            needChooseOHEnchant = true;
 
             InitUnitFlags();
         }
@@ -344,7 +351,7 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { UnsummonAll(); removeShapeshiftForm(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonAll(false); removeShapeshiftForm(); bot_ai::JustDied(u); }
 
         bool removeShapeshiftForm() override
         {
@@ -353,11 +360,11 @@ public:
             {
                 switch (form)
                 {
-                    case FORM_GHOSTWOLF:
-                        me->RemoveAurasDueToSpell(GHOST_WOLF_1);
-                        break;
-                    default:
-                        break;
+                case FORM_GHOSTWOLF:
+                    me->RemoveAurasDueToSpell(GHOST_WOLF_1);
+                    break;
+                default:
+                    break;
                 }
             }
 
@@ -440,7 +447,7 @@ public:
                     Unit* to = ObjectAccessor::GetUnit(*me, _totems[i].first);
                     if (!to)
                     {
-                        TC_LOG_ERROR("entities.player", "{} has unexpectingly lost totem in slot {}!", me->GetName(), i);
+                        BOT_LOG_ERROR("entities.player", "{} has unexpectingly lost totem in slot {}!", me->GetName(), i);
                         _totems[i].first = ObjectGuid::Empty;
                         continue;
                     }
@@ -494,11 +501,11 @@ public:
                             !member->IsAlive() || me->GetDistance(member) > 20 ||
                             (member->IsPlayer() ? member->ToPlayer()->GetSubGroup() : member->ToCreature()->GetSubGroup()) != subgr ||
                             (member->IsNPCBot() && member->ToCreature()->IsTempBot()) ||
-                            !member->HasAuraWithMechanic((1<<MECHANIC_CHARM)|(1<<MECHANIC_FEAR)|(1<<MECHANIC_SLEEP)))
+                            !member->HasAuraWithMechanic((1 << MECHANIC_CHARM) | (1 << MECHANIC_FEAR) | (1 << MECHANIC_SLEEP)))
                             continue;
                         ++count;
                     }
-                    canTremor = count >= (1 + 1*(!!(mask & BOT_TOTEM_MASK_MY_TOTEM_EARTH)));
+                    canTremor = count >= (1 + 1 * (!!(mask & BOT_TOTEM_MASK_MY_TOTEM_EARTH)));
                 }
                 if (canTremor)
                 {
@@ -527,7 +534,7 @@ public:
                             erase = true;
                         else if (u->isMoving())
                         {
-                            if (me->GetDistance(u) > 10.f && !u->HasInArc(float(M_PI)/2, me))
+                            if (me->GetDistance(u) > 10.f && !u->HasInArc(float(M_PI) / 2, me))
                                 erase = true;
                         }
                         else if (me->GetDistance(u) > 9.f)
@@ -541,7 +548,7 @@ public:
                         ++itr;
                     }
 
-                    if (uint8(targets.size()) >= (1 + 2*((mask & BOT_TOTEM_MASK_MY_TOTEM_EARTH) != 0)))
+                    if (uint8(targets.size()) >= (1 + 2 * ((mask & BOT_TOTEM_MASK_MY_TOTEM_EARTH) != 0)))
                     {
                         if (doCast(me, GetSpell(EARTHBIND_TOTEM_1), CotE ? TRIGGERED_CAST_DIRECTLY : TRIGGERED_NONE))
                             if (!CotE)
@@ -589,7 +596,7 @@ public:
                     bool erase = false;
                     if (u->isMoving())
                     {
-                        if (me->GetDistance(u) > 10.f && !u->HasInArc(float(M_PI)/2, me))
+                        if (me->GetDistance(u) > 10.f && !u->HasInArc(float(M_PI) / 2, me))
                             erase = true;
                     }
                     else if (me->GetDistance(u) > 7.f)
@@ -603,7 +610,7 @@ public:
                     ++itr;
                 }
 
-                if (uint8(targets.size()) >= (3 + 3*((mask & BOT_TOTEM_MASK_MY_TOTEM_FIRE) != 0)))
+                if (uint8(targets.size()) >= (3 + 3 * ((mask & BOT_TOTEM_MASK_MY_TOTEM_FIRE) != 0)))
                 {
                     if (doCast(me, GetSpell(MAGMA_TOTEM_1), CotE ? TRIGGERED_CAST_DIRECTLY : TRIGGERED_NONE))
                         if (!CotE)
@@ -626,7 +633,7 @@ public:
                 }
                 if (wrathTotem &&
                     ((mask & BOT_TOTEM_MASK_PRIMARY_FIRE) < fMask ||
-                    ((mask & BOT_TOTEM_MASK_PRIMARY_FIRE) == fMask && idMap[base] < wrathTotem)))
+                        ((mask & BOT_TOTEM_MASK_PRIMARY_FIRE) == fMask && idMap[base] < wrathTotem)))
                 {
                     if (doCast(me, wrathTotem, CotE ? TRIGGERED_CAST_DIRECTLY : TRIGGERED_NONE))
                         if (!CotE)
@@ -681,7 +688,7 @@ public:
                             continue;
                         ++count;
                     }
-                    cast = (count >= (3 + 1*(!!(mask & BOT_TOTEM_MASK_MY_TOTEM_WATER))));
+                    cast = (count >= (3 + 1 * (!!(mask & BOT_TOTEM_MASK_MY_TOTEM_WATER))));
                 }
                 if (cast)
                 {
@@ -780,7 +787,7 @@ public:
                 {
                     bool cast = false;
 
-                    if (!IsMelee() && HasRole(BOT_ROLE_DPS|BOT_ROLE_HEAL) && !IsMeleeClass(master->GetClass()))
+                    if (!IsMelee() && HasRole(BOT_ROLE_DPS | BOT_ROLE_HEAL) && !IsMeleeClass(master->GetClass()))
                         cast = true;
                     else if (!GetSpell(WINDFURY_TOTEM_1)) //disabled
                         cast = true;
@@ -792,7 +799,7 @@ public:
                     {
                         if (doCast(me, GetSpell(WRATH_OF_AIR_TOTEM_1), CotE ? TRIGGERED_CAST_DIRECTLY : TRIGGERED_NONE))
                             //if (!CotE)
-                                return;
+                            return;
                     }
                 }
             }
@@ -816,7 +823,7 @@ public:
                     {
                         if (doCast(me, GetSpell(WINDFURY_TOTEM_1), CotE ? TRIGGERED_CAST_DIRECTLY : TRIGGERED_NONE))
                             //if (!CotE)
-                                return;
+                            return;
                     }
                 }
             }
@@ -830,7 +837,7 @@ public:
                 {
                     if (doCast(me, natureRes, CotE ? TRIGGERED_CAST_DIRECTLY : TRIGGERED_NONE))
                         //if (!CotE)
-                            return;
+                        return;
                 }
             }
         }
@@ -911,9 +918,9 @@ public:
 
             //Aura const* shield = nullptr;
             uint32 SHIELD =
-                HasRole(BOT_ROLE_TANK)   ? GetSpell(EARTH_SHIELD_1) :
-                HasRole(BOT_ROLE_HEAL)   ? GetSpell(WATER_SHIELD_1) :
-                HasRole(BOT_ROLE_DPS)    ? GetSpell(LIGHTNING_SHIELD_1) :
+                HasRole(BOT_ROLE_TANK) ? GetSpell(EARTH_SHIELD_1) :
+                HasRole(BOT_ROLE_HEAL) ? GetSpell(WATER_SHIELD_1) :
+                HasRole(BOT_ROLE_DPS) ? GetSpell(LIGHTNING_SHIELD_1) :
                 0;
             SHIELD =
                 SHIELD ? SHIELD :
@@ -1168,21 +1175,9 @@ public:
             ResurrectGroup(GetSpell(ANCESTRAL_SPIRIT_1));
 
             if (mhEnchantExpireTimer > 0 && mhEnchantExpireTimer <= diff)
-            {
-                uint8 slot = TEMP_ENCHANTMENT_SLOT;
-                if (Item* mh = GetEquips(BOT_SLOT_MAINHAND))
-                    if (mh->GetEnchantmentId(EnchantmentSlot(slot)))
-                        for (uint8 i = 0; i != MAX_ITEM_ENCHANTMENT_EFFECTS; ++i)
-                            mh->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + i, 0);
-            }
+                RemoveItemClassEnchantment(BOT_SLOT_MAINHAND);
             if (ohEnchantExpireTimer > 0 && ohEnchantExpireTimer <= diff)
-            {
-                uint8 slot = TEMP_ENCHANTMENT_SLOT;
-                if (Item* oh = GetEquips(BOT_SLOT_OFFHAND))
-                    if (oh->GetEnchantmentId(EnchantmentSlot(slot)))
-                        for (uint8 i = 0; i != MAX_ITEM_ENCHANTMENT_EFFECTS; ++i)
-                            oh->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + i, 0);
-            }
+                RemoveItemClassEnchantment(BOT_SLOT_OFFHAND);
 
             // Weapon Enchants
             if (me->isMoving())
@@ -1204,9 +1199,9 @@ public:
                 mhEnchant = HasRole(BOT_ROLE_HEAL) ? (me->GetLevel() >= 30 ? EARTHLIVING_WEAPON_1 :
                     me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
                     0/*ROCKBITER_WEAPON_1*/) :
-                    HasRole(BOT_ROLE_RANGED) ? (me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
+                HasRole(BOT_ROLE_RANGED) ? (me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
                     0/*ROCKBITER_WEAPON_1*/) :
-                    (me->GetLevel() >= 30 ? WINDFURY_WEAPON_1 :
+                (me->GetLevel() >= 30 ? WINDFURY_WEAPON_1 :
                     //me->GetLevel() >= 20 ? FROSTBRAND_WEAPON_1 :
                     me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
                     0/*ROCKBITER_WEAPON_1*/);
@@ -1215,9 +1210,9 @@ public:
                 ohEnchant = HasRole(BOT_ROLE_HEAL) ? (me->GetLevel() >= 30 ? EARTHLIVING_WEAPON_1 :
                     me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
                     0/*ROCKBITER_WEAPON_1*/) :
-                    HasRole(BOT_ROLE_RANGED) ? (me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
+                HasRole(BOT_ROLE_RANGED) ? (me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
                     0/*ROCKBITER_WEAPON_1*/) :
-                    (me->GetLevel() >= 30 ? WINDFURY_WEAPON_1 :
+                (me->GetLevel() >= 30 ? WINDFURY_WEAPON_1 :
                     me->GetLevel() >= 20 ? FROSTBRAND_WEAPON_1 :
                     me->GetLevel() >= 10 ? FLAMETONGUE_WEAPON_1 :
                     0/*ROCKBITER_WEAPON_1*/);
@@ -1284,12 +1279,12 @@ public:
                 return;
 
             static const auto can_affect = [](WorldObject const* o, Unit const* unit)
-            {
-                if (!unit->IsAlive())
-                    return false;
-                AuraEffect const* eShield = unit->GetAuraEffect(SPELL_AURA_REDUCE_PUSHBACK, SPELLFAMILY_SHAMAN, 0x0, 0x400, 0x0);
-                return (!eShield || eShield->GetBase()->GetCharges() < 5 || eShield->GetBase()->GetDuration() < 30000) && o->GetDistance(unit) < 40 && (unit->IsInCombat() || !unit->isMoving());
-            };
+                {
+                    if (!unit->IsAlive())
+                        return false;
+                    AuraEffect const* eShield = unit->GetAuraEffect(SPELL_AURA_REDUCE_PUSHBACK, SPELLFAMILY_SHAMAN, 0x0, 0x400, 0x0);
+                    return (!eShield || eShield->GetBase()->GetCharges() < 5 || eShield->GetBase()->GetDuration() < 30000) && o->GetDistance(unit) < 40 && (unit->IsInCombat() || !unit->isMoving());
+                };
 
             Group const* gr = !IAmFree() ? master->GetGroup() : GetGroup();
             if (!gr)
@@ -1321,7 +1316,7 @@ public:
 
                 if (!tanks.empty())
                 {
-                    Unit* target = tanks.size() == 1 ? *tanks.begin() : Trinity::Containers::SelectRandomContainerElement(tanks);
+                    Unit* target = tanks.size() == 1 ? *tanks.begin() : Bcore::Containers::SelectRandomContainerElement(tanks);
                     if (doCast(target, GetSpell(EARTH_SHIELD_1)))
                         return;
                 }
@@ -1437,8 +1432,8 @@ public:
             //Call of Thunder: 5% additional critical chance for Lightning Bolt, Chain Lightning and Thunderstorm
             if ((GetSpec() == BOT_SPEC_SHAMAN_ELEMENTAL) && lvl >= 30 &&
                 (spellId == GetSpell(LIGHTNING_BOLT_1) ||
-                spellId == GetSpell(CHAIN_LIGHTNING_1) ||
-                spellId == GetSpell(THUNDERSTORM_1)))
+                    spellId == GetSpell(CHAIN_LIGHTNING_1) ||
+                    spellId == GetSpell(THUNDERSTORM_1)))
                 crit_chance += 5.f;
             //Tidal Mastery: 5% additional critical chance for lightning spells
             if (lvl >= 25 && (SPELL_SCHOOL_MASK_NATURE & schoolMask))
@@ -1449,12 +1444,12 @@ public:
             //Tidal Waves (Lesser Healing Wave crit)
             if (spellInfo->SpellFamilyFlags[0] & 0x80)
                 if (AuraEffect const* eff = me->GetAuraEffect(TIDAL_WAVES_BUFF, 1, me->GetGUID()))
-                    if (eff->IsAffectedOnSpell(spellInfo))
+                    if (eff->IsAffectingSpell(spellInfo))
                         crit_chance += 25.f;
             //Tidal Force
             if (spellInfo->SpellFamilyFlags[0] & 0x1C0)
                 if (AuraEffect const* eff = me->GetAuraEffect(TIDAL_FORCE_BUFF, 0, me->GetGUID()))
-                    if (eff->IsAffectedOnSpell(spellInfo))
+                    if (eff->IsAffectingSpell(spellInfo))
                         crit_chance += 20.f * eff->GetBase()->GetStackAmount();
         }
 
@@ -1501,7 +1496,7 @@ public:
                 //so we should put here bonus damage mult /1.5
                 //Elemental Fury (part 2): 50% additional crit damage bonus for Nature, Fire and Frost spells
                 if (lvl >= 21 &&
-                    (spellInfo->GetSchoolMask() & (SPELL_SCHOOL_MASK_NATURE|SPELL_SCHOOL_MASK_FIRE|SPELL_SCHOOL_MASK_FROST)))
+                    (spellInfo->GetSchoolMask() & (SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_FROST)))
                     pctbonus += 0.333f;
                 //Lava Flows (part 1): 24% additional crit damage bonus for Lava Burst
                 if ((GetSpec() == BOT_SPEC_SHAMAN_ELEMENTAL) && lvl >= 50 && spellId == GetSpell(LAVA_BURST_1))
@@ -1510,12 +1505,12 @@ public:
             //Concussion: 5% bonus damage for Lightning Bolt, Chain Lightning, Thunderstorm, Lava Burst and Shocks
             if (lvl >= 10 &&
                 (spellId == GetSpell(LIGHTNING_BOLT_1) ||
-                spellId == GetSpell(CHAIN_LIGHTNING_1) ||
-                spellId == GetSpell(THUNDERSTORM_1) ||
-                spellId == GetSpell(LAVA_BURST_1) ||
-                spellId == GetSpell(EARTH_SHOCK_1) ||
-                spellId == GetSpell(FROST_SHOCK_1) ||
-                spellId == GetSpell(FLAME_SHOCK_1)))
+                    spellId == GetSpell(CHAIN_LIGHTNING_1) ||
+                    spellId == GetSpell(THUNDERSTORM_1) ||
+                    spellId == GetSpell(LAVA_BURST_1) ||
+                    spellId == GetSpell(EARTH_SHOCK_1) ||
+                    spellId == GetSpell(FROST_SHOCK_1) ||
+                    spellId == GetSpell(FLAME_SHOCK_1)))
                 pctbonus += 0.05f;
             //Call of Flame (part 2): 6% bonus damage for Lava burst
             if (lvl >= 15 && spellId == GetSpell(LAVA_BURST_1))
@@ -1526,7 +1521,7 @@ public:
             //Booming Echoes (part 2): 20% bonus damage for Flame Shock and Frost Shock (direct damage)
             if ((GetSpec() == BOT_SPEC_SHAMAN_ELEMENTAL) && lvl >= 45 &&
                 (spellId == GetSpell(FLAME_SHOCK_1) ||
-                spellId == GetSpell(FROST_SHOCK_1)))
+                    spellId == GetSpell(FROST_SHOCK_1)))
                 pctbonus += 0.2f;
             //Improved Shields (part 1): 15% bonus damage for Lightning Shield orbs
             if (lvl >= 15 && spellInfo->IsRankOf(sSpellMgr->GetSpellInfo(LIGHTNING_SHIELD_DAMAGE_1)))
@@ -1604,7 +1599,7 @@ public:
             //percent mods
             //Clearcasting: -40% mana cost
             if (AuraEffect const* eff = me->GetAuraEffect(ELEMENTAL_FOCUS_BUFF, 0, me->GetGUID()))
-                if (eff->IsAffectedOnSpell(spellInfo))
+                if (eff->IsAffectingSpell(spellInfo))
                     pctbonus += 0.4f;
             //Convection
             if (lvl >= 10 && ((spellInfo->SpellFamilyFlags[0] & 0x90100003) || (spellInfo->SpellFamilyFlags[1] & 0x8001000)))
@@ -1621,8 +1616,8 @@ public:
             //Tidal Focus:
             if (lvl >= 15 &&
                 ((spellInfo->SpellFamilyFlags[0] & 0x1C0) ||
-                (spellInfo->SpellFamilyFlags[1] & 0x400) ||
-                (spellInfo->SpellFamilyFlags[2] & 0x10)))
+                    (spellInfo->SpellFamilyFlags[1] & 0x400) ||
+                    (spellInfo->SpellFamilyFlags[2] & 0x10)))
                 pctbonus += 0.05f;
 
             //flat mods
@@ -1647,7 +1642,7 @@ public:
             //100% mods
             //Nature's Swiftness: -100% cast time
             if (AuraEffect const* eff = me->GetAuraEffect(NATURES_SWIFTNESS_1, 0, me->GetGUID()))
-                if (eff->IsAffectedOnSpell(spellInfo))
+                if (eff->IsAffectingSpell(spellInfo))
                     pctbonus += 1.0f;
 
             //pct mods
@@ -1665,7 +1660,7 @@ public:
             //Tidal Waves (Healing Wave cast time)
             if (spellInfo->SpellFamilyFlags[0] & 0x40)
                 if (AuraEffect const* eff = me->GetAuraEffect(TIDAL_WAVES_BUFF, 0, me->GetGUID()))
-                    if (eff->IsAffectedOnSpell(spellInfo))
+                    if (eff->IsAffectingSpell(spellInfo))
                         pctbonus += 0.3f;
 
             //flat mods
@@ -1684,6 +1679,31 @@ public:
                 timebonus += 400;
 
             casttime = std::max<int32>((float(casttime) * (1.0f - pctbonus)) - timebonus, 0);
+        }
+
+        void ApplyClassSpellNotLoseCastTimeMods(SpellInfo const* spellInfo, int32& delayReduce) const override
+        {
+            uint32 baseId = spellInfo->GetFirstRankSpell()->Id;
+            //SpellSchoolMask schools = spellInfo->GetSchoolMask();
+            uint8 lvl = me->GetLevel();
+            int32 reduceBonus = 0;
+
+            if (lvl >= 20 && (baseId == HEALING_WAVE_1 || baseId == LESSER_HEALING_WAVE_1 || baseId == CHAIN_HEAL_1))
+                reduceBonus += 70;
+
+            if (GetSpec() == BOT_SPEC_SHAMAN_ELEMENTAL && lvl >= 25)
+            {
+                switch (baseId)
+                {
+                case LIGHTNING_BOLT_1: case CHAIN_LIGHTNING_1: case LAVA_BURST_1: case HEX_1:
+                    reduceBonus += 70;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            delayReduce += reduceBonus;
         }
 
         void ApplyClassSpellCooldownMods(SpellInfo const* spellInfo, uint32& cooldown) const override
@@ -1819,31 +1839,31 @@ public:
 
             //Handle Clearcasting
             if (AuraEffect* eff = me->GetAuraEffect(ELEMENTAL_FOCUS_BUFF, 0, me->GetGUID()))
-                if (eff->IsAffectedOnSpell(spellInfo))
+                if (eff->IsAffectingSpell(spellInfo))
                     eff->GetBase()->DropCharge();
             //Handle Tidal Focus
             //Healing Wave (cast time): if full Maelstrom than don't use up charge
             if (MaelstromCount < 5 && (spellInfo->SpellFamilyFlags[0] & 0x40))
                 if (AuraEffect* eff = me->GetAuraEffect(TIDAL_WAVES_BUFF, 0, me->GetGUID()))
-                    if (eff->IsAffectedOnSpell(spellInfo))
+                    if (eff->IsAffectingSpell(spellInfo))
                         eff->GetBase()->DropCharge();
             //Lesser Healing Wave (crit)
             if (spellInfo->SpellFamilyFlags[0] & 0x80)
                 if (AuraEffect* eff = me->GetAuraEffect(TIDAL_WAVES_BUFF, 1, me->GetGUID()))
-                    if (eff->IsAffectedOnSpell(spellInfo))
+                    if (eff->IsAffectingSpell(spellInfo))
                         eff->GetBase()->DropCharge();
 
             //Nature's Swiftness
             if (AuraEffect const* eff = me->GetAuraEffect(NATURES_SWIFTNESS_1, 0, me->GetGUID()))
             {
-                if (eff->IsAffectedOnSpell(spellInfo))
+                if (eff->IsAffectingSpell(spellInfo))
                     me->RemoveAurasDueToSpell(NATURES_SWIFTNESS_1);
             }
 
             //Tidal Force: Handled in Unit::HandleDummyAuraProc(): case 55166:
             //if (spellInfo->SpellFamilyFlags[0] & 0x1C0)
             //    if (AuraEffect const* eff = me->GetAuraEffect(TIDAL_FORCE_BUFF, 0, me->GetGUID()))
-            //        if (eff->IsAffectedOnSpell(spellInfo))
+            //        if (eff->IsAffectingSpell(spellInfo))
             //            me->RemoveAuraFromStack(TIDAL_FORCE_BUFF);
 
             //Shield cd
@@ -1941,10 +1961,10 @@ public:
                 if (!IAmFree())
                     master->GetSession()->SendEnchantmentLog(me->GetGUID(), me->GetGUID(), item->GetEntry(), enchant_id);
 
-                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_ID_OFFSET, enchant_id);
-                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_DURATION_OFFSET, duration);
-                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot*MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_CHARGES_OFFSET, charges);
-                ApplyItemBonuses(itemSlot); //RemoveItemBonuses inside
+                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot * MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_ID_OFFSET, enchant_id);
+                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot * MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_DURATION_OFFSET, duration);
+                item->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1 + slot * MAX_ENCHANTMENT_OFFSET + ENCHANTMENT_CHARGES_OFFSET, charges);
+                ApplyItemEnchantment(item, TEMP_ENCHANTMENT_SLOT, itemSlot);
                 if (itemSlot == BOT_SLOT_MAINHAND)
                     mhEnchantExpireTimer = ITEM_ENCHANTMENT_EXPIRE_TIMER;
                 else if (itemSlot == BOT_SLOT_OFFHAND)
@@ -2001,36 +2021,36 @@ public:
             //Lightning Overload
             if ((GetSpec() == BOT_SPEC_SHAMAN_ELEMENTAL) &&
                 me->GetLevel() >= 45 && (baseId == LIGHTNING_BOLT_1 || baseId == CHAIN_LIGHTNING_1) &&
-                urand(1,100) <= 33)
+                urand(1, 100) <= 33)
             {
                 uint32 procId = 0;
                 switch (spellId)
                 {
                     // Lightning Bolt
-                    case   403: procId = 45284; break; // Rank  1
-                    case   529: procId = 45286; break; // Rank  2
-                    case   548: procId = 45287; break; // Rank  3
-                    case   915: procId = 45288; break; // Rank  4
-                    case   943: procId = 45289; break; // Rank  5
-                    case  6041: procId = 45290; break; // Rank  6
-                    case 10391: procId = 45291; break; // Rank  7
-                    case 10392: procId = 45292; break; // Rank  8
-                    case 15207: procId = 45293; break; // Rank  9
-                    case 15208: procId = 45294; break; // Rank 10
-                    case 25448: procId = 45295; break; // Rank 11
-                    case 25449: procId = 45296; break; // Rank 12
-                    case 49237: procId = 49239; break; // Rank 13
-                    case 49238: procId = 49240; break; // Rank 14
+                case   403: procId = 45284; break; // Rank  1
+                case   529: procId = 45286; break; // Rank  2
+                case   548: procId = 45287; break; // Rank  3
+                case   915: procId = 45288; break; // Rank  4
+                case   943: procId = 45289; break; // Rank  5
+                case  6041: procId = 45290; break; // Rank  6
+                case 10391: procId = 45291; break; // Rank  7
+                case 10392: procId = 45292; break; // Rank  8
+                case 15207: procId = 45293; break; // Rank  9
+                case 15208: procId = 45294; break; // Rank 10
+                case 25448: procId = 45295; break; // Rank 11
+                case 25449: procId = 45296; break; // Rank 12
+                case 49237: procId = 49239; break; // Rank 13
+                case 49238: procId = 49240; break; // Rank 14
                     // Chain Lightning
-                    case   421: procId = 45297; break; // Rank  1
-                    case   930: procId = 45298; break; // Rank  2
-                    case  2860: procId = 45299; break; // Rank  3
-                    case 10605: procId = 45300; break; // Rank  4
-                    case 25439: procId = 45301; break; // Rank  5
-                    case 25442: procId = 45302; break; // Rank  6
-                    case 49270: procId = 49268; break; // Rank  7
-                    case 49271: procId = 49269; break; // Rank  8
-                    default:                    break;
+                case   421: procId = 45297; break; // Rank  1
+                case   930: procId = 45298; break; // Rank  2
+                case  2860: procId = 45299; break; // Rank  3
+                case 10605: procId = 45300; break; // Rank  4
+                case 25439: procId = 45301; break; // Rank  5
+                case 25442: procId = 45302; break; // Rank  6
+                case 49270: procId = 49268; break; // Rank  7
+                case 49271: procId = 49269; break; // Rank  8
+                default:                    break;
                 }
 
                 if (procId)
@@ -2040,7 +2060,7 @@ public:
                     if (baseId == CHAIN_LIGHTNING_1)
                     {
                         //Normalize chance
-                        if (urand(1,100) <= (100.f / spell->_effects[0].ChainTarget))
+                        if (urand(1, 100) <= (100.f / spell->_effects[0].ChainTarget))
                             me->CastSpell(target, procId, true);
                     }
                 }
@@ -2134,7 +2154,7 @@ public:
                 }
                 if (!found)
                 {
-                    TC_LOG_ERROR("entities.unit", "Shaman_bot:JustSummoned() wolves array is full");
+                    BOT_LOG_ERROR("entities.unit", "Shaman_bot:JustSummoned() wolves array is full");
                     ASSERT(false);
                 }
             }
@@ -2142,7 +2162,7 @@ public:
 
         void SummonedCreatureDespawn(Creature* summon) override
         {
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
             //if (summon == botPet)
             //    botPet = nullptr;
             if (summon->GetEntry() == BOT_PET_SPIRIT_WOLF)
@@ -2159,7 +2179,7 @@ public:
                 }
                 //if (!found)
                 //{
-                //    TC_LOG_ERROR("entities.unit", "Shaman_bot:SummonedCreatureDespawn() wolf is not found in array");
+                //    BOT_LOG_ERROR("entities.unit", "Shaman_bot:SummonedCreatureDespawn() wolf is not found in array");
                 //    ASSERT(false);
                 //}
             }
@@ -2179,7 +2199,7 @@ public:
             }
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool /*savePets*/ = true) override
         {
             UnsummonWolves();
 
@@ -2190,7 +2210,7 @@ public:
                     Unit* to = ObjectAccessor::GetUnit(*me, _totems[i].first);
                     if (!to)
                     {
-                        //TC_LOG_ERROR("entities.player", "{} has no totem in slot {} during remove!", me->GetName(), i);
+                        //BOT_LOG_ERROR("entities.player", "{} has no totem in slot {} during remove!", me->GetName(), i);
                         continue;
                     }
                     to->ToTotem()->UnSummon();
@@ -2202,44 +2222,44 @@ public:
         {
             if (!summon)
             {
-                TC_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} received NULL", me->GetName());
+                BOT_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} received NULL", me->GetName());
                 ASSERT(false);
-                //UnsummonAll();
+                //UnsummonAll(false);
                 return;
             }
 
             TempSummon const* totem = summon->ToTempSummon();
             if (!totem || !totem->IsTotem())
             {
-                //TC_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned summon {} which is not a temp summon or not a totem...", me->GetName(), summon->GetName());
+                //BOT_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned summon {} which is not a temp summon or not a totem...", me->GetName(), summon->GetName());
                 return;
             }
 
             int8 slot = -1;
             switch (totem->m_Properties->Slot)
             {
-                case SUMMON_SLOT_TOTEM_FIRE:    slot = T_FIRE;  break;
-                case SUMMON_SLOT_TOTEM_EARTH:   slot = T_EARTH; break;
-                case SUMMON_SLOT_TOTEM_WATER:   slot = T_WATER; break;
-                case SUMMON_SLOT_TOTEM_AIR:     slot = T_AIR;   break;
-                default:
-                    TC_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned totem {} in unknown slot {}", me->GetName(), summon->GetName(), totem->m_Properties->ID);
-                    return;
+            case SUMMON_SLOT_TOTEM_FIRE:    slot = T_FIRE;  break;
+            case SUMMON_SLOT_TOTEM_EARTH:   slot = T_EARTH; break;
+            case SUMMON_SLOT_TOTEM_WATER:   slot = T_WATER; break;
+            case SUMMON_SLOT_TOTEM_AIR:     slot = T_AIR;   break;
+            default:
+                BOT_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned totem {} in unknown slot {}", me->GetName(), summon->GetName(), totem->m_Properties->ID);
+                return;
             }
 
             if (_totems[slot].first == ObjectGuid::Empty)
-                TC_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned totem {} while not having it registered!", me->GetName(), summon->GetName());
+                BOT_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned totem {} while not having it registered!", me->GetName(), summon->GetName());
             else if (_totems[slot].second._type == BOT_TOTEM_NONE || _totems[slot].second._type >= BOT_TOTEM_END)
-                TC_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned totem {} with no type assigned!", me->GetName(), summon->GetName());
+                BOT_LOG_ERROR("entities.player", "OnBotDespawn(): Shaman bot {} has despawned totem {} with no type assigned!", me->GetName(), summon->GetName());
 
             //here we reset totem category cd (not totem spell cd) if totem is destroyed
-            //TC_LOG_ERROR("entities.player", "OnBotDespawn(): {} despawned ({} : {})", summon->GetName(), summon->IsAlive() ? "alive" : summon->isDying() ? "justdied" : "unk", (uint32)summon->getDeathState());
+            //BOT_LOG_ERROR("entities.player", "OnBotDespawn(): {} despawned ({} : {})", summon->GetName(), summon->IsAlive() ? "alive" : summon->isDying() ? "justdied" : "unk", (uint32)summon->getDeathState());
             if (!summon->IsAlive()) // alive here means totem is being replaced or unsummoned through other means
                 TotemTimer[slot] = 0;
 
             _totems[slot].first = ObjectGuid::Empty;
             _totems[slot].second._type = BOT_TOTEM_NONE;
-            me->m_SummonSlot[slot+1] = ObjectGuid::Empty;
+            me->m_SummonSlot[slot + 1] = ObjectGuid::Empty;
         }
 
         void OnBotSummon(Creature* summon) override
@@ -2247,20 +2267,20 @@ public:
             TempSummon const* totem = summon->ToTempSummon();
             if (!totem || !totem->IsTotem())
             {
-                //TC_LOG_ERROR("entities.player", "OnBotSummon(): Shaman bot {} has summoned creature {} which is not a temp summon or not a totem...", me->GetName(), summon->GetName());
+                //BOT_LOG_ERROR("entities.player", "OnBotSummon(): Shaman bot {} has summoned creature {} which is not a temp summon or not a totem...", me->GetName(), summon->GetName());
                 return;
             }
 
             int8 slot = -1;
             switch (totem->m_Properties->Slot)
             {
-                case SUMMON_SLOT_TOTEM_FIRE:    slot = T_FIRE;  break;
-                case SUMMON_SLOT_TOTEM_EARTH:   slot = T_EARTH; break;
-                case SUMMON_SLOT_TOTEM_WATER:   slot = T_WATER; break;
-                case SUMMON_SLOT_TOTEM_AIR:     slot = T_AIR;   break;
-                default:
-                    TC_LOG_ERROR("entities.player", "OnBotSummon(): Shaman bot {} has summoned totem {} with unknown type {}", me->GetName(), summon->GetName(), totem->m_Properties->ID);
-                    return;
+            case SUMMON_SLOT_TOTEM_FIRE:    slot = T_FIRE;  break;
+            case SUMMON_SLOT_TOTEM_EARTH:   slot = T_EARTH; break;
+            case SUMMON_SLOT_TOTEM_WATER:   slot = T_WATER; break;
+            case SUMMON_SLOT_TOTEM_AIR:     slot = T_AIR;   break;
+            default:
+                BOT_LOG_ERROR("entities.player", "OnBotSummon(): Shaman bot {} has summoned totem {} with unknown type {}", me->GetName(), summon->GetName(), totem->m_Properties->ID);
+                return;
             }
 
             //Unsummon current totem
@@ -2290,53 +2310,53 @@ public:
             uint32 btype;
             switch (createSpell)
             {
-                case SEARING_TOTEM_1:           btype = BOT_TOTEM_SEARING;              break;
-                case STONECLAW_TOTEM_1:         btype = BOT_TOTEM_STONECLAW;            break;
-                case SENTRY_TOTEM_1:            btype = BOT_TOTEM_SENTRY;               break;
-                case STONESKIN_TOTEM_1:         btype = BOT_TOTEM_STONESKIN;            break;
-                case HEALING_STREAM_TOTEM_1:    btype = BOT_TOTEM_HEALING_STREAM;       break;
-                case EARTHBIND_TOTEM_1:         btype = BOT_TOTEM_EARTHBIND;            break;
-                case EARTH_ELEMENTAL_TOTEM_1:   btype = BOT_TOTEM_ELEMENTAL_EARTH;      break;
-                case FIRE_ELEMENTAL_TOTEM_1:    btype = BOT_TOTEM_ELEMENTAL_FIRE;       break;
-                case MAGMA_TOTEM_1:             btype = BOT_TOTEM_MAGMA;                break;
-                case FLAMETONGUE_TOTEM_1:       btype = BOT_TOTEM_FLAMETONGUE;          break;
-                case FROST_RESISTANCE_TOTEM_1:  btype = BOT_TOTEM_RESISTANCE_FROST;     break;
-                case FIRE_RESISTANCE_TOTEM_1:   btype = BOT_TOTEM_RESISTANCE_FIRE;      break;
-                case NATURE_RESISTANCE_TOTEM_1: btype = BOT_TOTEM_RESISTANCE_NATURE;    break;
-                case GROUNDING_TOTEM_1:         btype = BOT_TOTEM_GROUNDING;            break;
-                case STRENGTH_OF_EARTH_TOTEM_1: btype = BOT_TOTEM_STRENGTH_OF_EARTH;    break;
-                case WINDFURY_TOTEM_1:          btype = BOT_TOTEM_WINDFURY;             break;
-                case WRATH_OF_AIR_TOTEM_1:      btype = BOT_TOTEM_WRATH_OF_AIR;         break;
-                case CLEANSING_TOTEM_1:         btype = BOT_TOTEM_CLEANSING;            break;
-                case MANA_SPRING_TOTEM_1:       btype = BOT_TOTEM_MANA_SPRING;          break;
-                case MANA_TIDE_TOTEM_1:         btype = BOT_TOTEM_MANA_TIDE;            break;
-                case TREMOR_TOTEM_1:            btype = BOT_TOTEM_TREMOR;               break;
-                case TOTEM_OF_WRATH_1:          btype = BOT_TOTEM_WRATH;                break;
-                default:
-                {
-                    TC_LOG_ERROR("scripts", "Unknown totem create spell {}!", createSpell);
-                    btype = BOT_TOTEM_NONE;
-                    break;
-                }
+            case SEARING_TOTEM_1:           btype = BOT_TOTEM_SEARING;              break;
+            case STONECLAW_TOTEM_1:         btype = BOT_TOTEM_STONECLAW;            break;
+            case SENTRY_TOTEM_1:            btype = BOT_TOTEM_SENTRY;               break;
+            case STONESKIN_TOTEM_1:         btype = BOT_TOTEM_STONESKIN;            break;
+            case HEALING_STREAM_TOTEM_1:    btype = BOT_TOTEM_HEALING_STREAM;       break;
+            case EARTHBIND_TOTEM_1:         btype = BOT_TOTEM_EARTHBIND;            break;
+            case EARTH_ELEMENTAL_TOTEM_1:   btype = BOT_TOTEM_ELEMENTAL_EARTH;      break;
+            case FIRE_ELEMENTAL_TOTEM_1:    btype = BOT_TOTEM_ELEMENTAL_FIRE;       break;
+            case MAGMA_TOTEM_1:             btype = BOT_TOTEM_MAGMA;                break;
+            case FLAMETONGUE_TOTEM_1:       btype = BOT_TOTEM_FLAMETONGUE;          break;
+            case FROST_RESISTANCE_TOTEM_1:  btype = BOT_TOTEM_RESISTANCE_FROST;     break;
+            case FIRE_RESISTANCE_TOTEM_1:   btype = BOT_TOTEM_RESISTANCE_FIRE;      break;
+            case NATURE_RESISTANCE_TOTEM_1: btype = BOT_TOTEM_RESISTANCE_NATURE;    break;
+            case GROUNDING_TOTEM_1:         btype = BOT_TOTEM_GROUNDING;            break;
+            case STRENGTH_OF_EARTH_TOTEM_1: btype = BOT_TOTEM_STRENGTH_OF_EARTH;    break;
+            case WINDFURY_TOTEM_1:          btype = BOT_TOTEM_WINDFURY;             break;
+            case WRATH_OF_AIR_TOTEM_1:      btype = BOT_TOTEM_WRATH_OF_AIR;         break;
+            case CLEANSING_TOTEM_1:         btype = BOT_TOTEM_CLEANSING;            break;
+            case MANA_SPRING_TOTEM_1:       btype = BOT_TOTEM_MANA_SPRING;          break;
+            case MANA_TIDE_TOTEM_1:         btype = BOT_TOTEM_MANA_TIDE;            break;
+            case TREMOR_TOTEM_1:            btype = BOT_TOTEM_TREMOR;               break;
+            case TOTEM_OF_WRATH_1:          btype = BOT_TOTEM_WRATH;                break;
+            default:
+            {
+                BOT_LOG_ERROR("scripts", "Unknown totem create spell {}!", createSpell);
+                btype = BOT_TOTEM_NONE;
+                break;
+            }
             }
             _totems[slot].first = summon->GetGUID();
             _totems[slot].second._pos.Relocate(*summon);
-            _totems[slot].second._effradius = !((1<<btype) & BOT_TOTEM_MASK_SUMMONS) ? radius : SIZE_OF_GRIDS;
+            _totems[slot].second._effradius = !((1 << btype) & BOT_TOTEM_MASK_SUMMONS) ? radius : SIZE_OF_GRIDS;
             _totems[slot].second._type = btype;
-            me->m_SummonSlot[slot+1] = _totems[slot].first; //needed for scripts handlers
+            me->m_SummonSlot[slot + 1] = _totems[slot].first; //needed for scripts handlers
 
-            //TC_LOG_ERROR("entities.player", "shaman bot: summoned {} (type {}) at x={}, y={}, z={}",
+            //BOT_LOG_ERROR("entities.player", "shaman bot: summoned {} (type {}) at x={}, y={}, z={}",
             //    summon->GetName(), slot + 1, _totems[slot].second.pos.GetPositionX(), _totems[slot].second.pos.GetPositionY(), _totems[slot].second.pos.GetPositionZ());
 
             //TODO: gets overriden in Spell::EffectSummonType (end)
             //Without setting creator correctly it will be impossible to use summon X elemental totems
             summon->SetCreator(me);
-            summon->SetDisplayId(sObjectMgr->GetModelForTotem(SummonSlot(slot+1), Races(me->GetRace())));
+            summon->SetDisplayId(sObjectMgr->GetModelForTotem(SummonSlot(slot + 1), Races(me->GetRace())));
             summon->SetFaction(me->GetFaction());
             summon->SetPvP(me->IsPvP());
             summon->SetOwnerGUID(master->GetGUID());
             summon->SetControlledByPlayer(!IAmFree());
-            summon->SetUnitFlag(UNIT_FLAG_PLAYER_CONTROLLED);
+            //summon->SetUnitFlag(UNIT_FLAG_PLAYER_CONTROLLED);
             // totem will claim master's summon slot
             // free it to avoid conflicts with other shaman bots and master
             // if master is a shaman his totem will despawn
@@ -2365,32 +2385,32 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_ENCHANT_IS_AUTO_MH:
-                    return needChooseMHEnchant;
-                case BOTAI_MISC_ENCHANT_IS_AUTO_OH:
-                    return needChooseOHEnchant;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_MH:
-                    return mhEnchantExpireTimer;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_OH:
-                    return ohEnchantExpireTimer;
-                case BOTAI_MISC_ENCHANT_CURRENT_MH:
-                    return mhEnchant;
-                case BOTAI_MISC_ENCHANT_CURRENT_OH:
-                    return ohEnchant;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_1:
-                    return /*GetSpell(ROCKBITER_WEAPON_1) ? ROCKBITER_WEAPON_1 : */0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_2:
-                    return GetSpell(FLAMETONGUE_WEAPON_1) ? FLAMETONGUE_WEAPON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_3:
-                    return GetSpell(FROSTBRAND_WEAPON_1) ? FROSTBRAND_WEAPON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_4:
-                    return GetSpell(WINDFURY_WEAPON_1) ? WINDFURY_WEAPON_1 : 0;
-                case BOTAI_MISC_ENCHANT_AVAILABLE_5:
-                    return GetSpell(EARTHLIVING_WEAPON_1) ? EARTHLIVING_WEAPON_1 : 0;
-                case BOTAI_MISC_PET_TYPE:
-                    return BOT_PET_SPIRIT_WOLF;
-                default:
-                    return 0;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_MH:
+                return needChooseMHEnchant;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_OH:
+                return needChooseOHEnchant;
+            case BOTAI_MISC_ENCHANT_TIMER_MH:
+                return mhEnchantExpireTimer;
+            case BOTAI_MISC_ENCHANT_TIMER_OH:
+                return ohEnchantExpireTimer;
+            case BOTAI_MISC_ENCHANT_CURRENT_MH:
+                return mhEnchant;
+            case BOTAI_MISC_ENCHANT_CURRENT_OH:
+                return ohEnchant;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_1:
+                return /*GetSpell(ROCKBITER_WEAPON_1) ? ROCKBITER_WEAPON_1 : */0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_2:
+                return GetSpell(FLAMETONGUE_WEAPON_1) ? FLAMETONGUE_WEAPON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_3:
+                return GetSpell(FROSTBRAND_WEAPON_1) ? FROSTBRAND_WEAPON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_4:
+                return GetSpell(WINDFURY_WEAPON_1) ? WINDFURY_WEAPON_1 : 0;
+            case BOTAI_MISC_ENCHANT_AVAILABLE_5:
+                return GetSpell(EARTHLIVING_WEAPON_1) ? EARTHLIVING_WEAPON_1 : 0;
+            case BOTAI_MISC_PET_TYPE:
+                return BOT_PET_SPIRIT_WOLF;
+            default:
+                return 0;
             }
         }
 
@@ -2398,30 +2418,38 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_MH:
-                    if (value)
-                        mhEnchantExpireTimer = 0;
-                    break;
-                case BOTAI_MISC_ENCHANT_CAN_EXPIRE_OH:
-                    if (value)
-                        ohEnchantExpireTimer = 0;
-                    break;
-                case BOTAI_MISC_ENCHANT_CURRENT_MH:
-                    mhEnchant = value;
-                    needChooseMHEnchant = value ? false : true;
-                    break;
-                case BOTAI_MISC_ENCHANT_CURRENT_OH:
-                    ohEnchant = value;
-                    needChooseOHEnchant = value ? false : true;
-                    break;
-                default:
-                    break;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_MH:
+                needChooseMHEnchant = bool(value);
+                break;
+            case BOTAI_MISC_ENCHANT_IS_AUTO_OH:
+                needChooseOHEnchant = bool(value);
+                break;
+            case BOTAI_MISC_ENCHANT_TIMER_MH:
+                if (value == 0)
+                    mhEnchantExpireTimer = value;
+                break;
+            case BOTAI_MISC_ENCHANT_TIMER_OH:
+                if (value == 0)
+                    ohEnchantExpireTimer = value;
+                break;
+            case BOTAI_MISC_ENCHANT_CURRENT_MH:
+                mhEnchant = value;
+                SetAIMiscValue(BOTAI_MISC_ENCHANT_IS_AUTO_MH, value ? false : true);
+                break;
+            case BOTAI_MISC_ENCHANT_CURRENT_OH:
+                ohEnchant = value;
+                SetAIMiscValue(BOTAI_MISC_ENCHANT_IS_AUTO_OH, value ? false : true);
+                break;
+            default:
+                break;
             }
+
+            bot_ai::SetAIMiscValue(data, value);
         }
 
         void Reset() override
         {
-            UnsummonAll();
+            UnsummonAll(false);
             for (uint8 i = 0; i != MAX_WOLVES; ++i)
                 _wolves[i] = ObjectGuid::Empty;
             for (uint8 i = 0; i != MAX_TOTEMS; ++i)
@@ -2443,15 +2471,10 @@ public:
             Earthy = false;
             maelUseUp = false;
 
-            mhEnchantExpireTimer = 1;
-            ohEnchantExpireTimer = 1;
+            mhEnchantExpireTimer = std::min<uint32>(mhEnchantExpireTimer, 1);
+            ohEnchantExpireTimer = std::min<uint32>(ohEnchantExpireTimer, 1);
 
             DefaultInit();
-
-            mhEnchant = 0;
-            ohEnchant = 0;
-            needChooseMHEnchant = true;
-            needChooseOHEnchant = true;
         }
 
         void ReduceCD(uint32 diff) override
@@ -2535,21 +2558,21 @@ public:
 
             InitSpellMap(REINCARNATION_1); //base lvl 30, 30 min cd
 
-  /*Talent*///lvl >= 40 && isElem ? InitSpellMap(ELEMENTAL_MASTERY_1) : RemoveSpell(ELEMENTAL_MASTERY_1);
-  /*Talent*/lvl >= 60 && isElem ? InitSpellMap(THUNDERSTORM_1) : RemoveSpell(THUNDERSTORM_1);
+            /*Talent*///lvl >= 40 && isElem ? InitSpellMap(ELEMENTAL_MASTERY_1) : RemoveSpell(ELEMENTAL_MASTERY_1);
+            /*Talent*/lvl >= 60 && isElem ? InitSpellMap(THUNDERSTORM_1) : RemoveSpell(THUNDERSTORM_1);
 
-  /*Talent*/lvl >= 40 && isEnha ? InitSpellMap(STORMSTRIKE_1) : RemoveSpell(STORMSTRIKE_1);
-  /*Talent*/lvl >= 50 && isEnha ? InitSpellMap(SHAMANISTIC_RAGE_1) : RemoveSpell(SHAMANISTIC_RAGE_1);
-  /*Talent*/lvl >= 60 && isEnha ? InitSpellMap(FERAL_SPIRIT_1) : RemoveSpell(FERAL_SPIRIT_1); //not casted
+            /*Talent*/lvl >= 40 && isEnha ? InitSpellMap(STORMSTRIKE_1) : RemoveSpell(STORMSTRIKE_1);
+            /*Talent*/lvl >= 50 && isEnha ? InitSpellMap(SHAMANISTIC_RAGE_1) : RemoveSpell(SHAMANISTIC_RAGE_1);
+            /*Talent*/lvl >= 60 && isEnha ? InitSpellMap(FERAL_SPIRIT_1) : RemoveSpell(FERAL_SPIRIT_1); //not casted
 
-  /*Talent*/lvl >= 20 && isRest ? InitSpellMap(TIDAL_FORCE_1) : RemoveSpell(TIDAL_FORCE_1);
-  /*Talent*/lvl >= 30 && isRest ? InitSpellMap(NATURES_SWIFTNESS_1) : RemoveSpell(NATURES_SWIFTNESS_1);
-  /*Talent*/lvl >= 50 && isRest ? InitSpellMap(EARTH_SHIELD_1) : RemoveSpell(EARTH_SHIELD_1);
-  /*Talent*/lvl >= 60 && isRest ? InitSpellMap(RIPTIDE_1) : RemoveSpell(RIPTIDE_1);
+            /*Talent*/lvl >= 20 && isRest ? InitSpellMap(TIDAL_FORCE_1) : RemoveSpell(TIDAL_FORCE_1);
+            /*Talent*/lvl >= 30 && isRest ? InitSpellMap(NATURES_SWIFTNESS_1) : RemoveSpell(NATURES_SWIFTNESS_1);
+            /*Talent*/lvl >= 50 && isRest ? InitSpellMap(EARTH_SHIELD_1) : RemoveSpell(EARTH_SHIELD_1);
+            /*Talent*/lvl >= 60 && isRest ? InitSpellMap(RIPTIDE_1) : RemoveSpell(RIPTIDE_1);
 
-  /*Talent*/lvl >= 50 && isElem ? InitSpellMap(TOTEM_OF_WRATH_1) : RemoveSpell(TOTEM_OF_WRATH_1);
+            /*Talent*/lvl >= 50 && isElem ? InitSpellMap(TOTEM_OF_WRATH_1) : RemoveSpell(TOTEM_OF_WRATH_1);
 
-  /*Talent*/lvl >= 40 && isRest ? InitSpellMap(MANA_TIDE_TOTEM_1) : RemoveSpell(MANA_TIDE_TOTEM_1);
+            /*Talent*/lvl >= 40 && isRest ? InitSpellMap(MANA_TIDE_TOTEM_1) : RemoveSpell(MANA_TIDE_TOTEM_1);
 
             CURE_TOXINS = InitSpell(me, CLEANSE_SPIRIT_1) ? CLEANSE_SPIRIT_1 : CURE_TOXINS_1;
             RemoveSpell(CLEANSE_SPIRIT_1);
@@ -2611,18 +2634,18 @@ public:
         {
             switch (basespell)
             {
-                case HEALING_WAVE_1:
-                case CHAIN_HEAL_1:
-                case LESSER_HEALING_WAVE_1:
-                case RIPTIDE_1:
-                case CLEANSE_SPIRIT_1:
-                case WATER_WALKING_1:
-                case WATER_BREATHING_1:
-                case BLOODLUST_1:
-                case HEROISM_1:
-                case SHAMANISTIC_RAGE_1:
+            case HEALING_WAVE_1:
+            case CHAIN_HEAL_1:
+            case LESSER_HEALING_WAVE_1:
+            case RIPTIDE_1:
+            case CLEANSE_SPIRIT_1:
+            case WATER_WALKING_1:
+            case WATER_BREATHING_1:
+            case BLOODLUST_1:
+            case HEROISM_1:
+            case SHAMANISTIC_RAGE_1:
                 //case ELEMENTAL_MASTERY_1:
-                case TIDAL_FORCE_1:
+            case TIDAL_FORCE_1:
                 //Totems
                 //case EARTHBIND_TOTEM_1:
                 //case MAGMA_TOTEM_1:
@@ -2634,50 +2657,50 @@ public:
                 //case FROST_RESISTANCE_TOTEM_1:
                 //case NATURE_RESISTANCE_TOTEM_1:
                 //case FLAMETONGUE_TOTEM_1:
-                case GROUNDING_TOTEM_1:
+            case GROUNDING_TOTEM_1:
                 //case SENTRY_TOTEM_1:
                 //case STONESKIN_TOTEM_1:
                 //case STRENGTH_OF_EARTH_TOTEM_1:
                 //case WINDFURY_TOTEM_1:
                 //case WRATH_OF_AIR_TOTEM_1:
-                case CLEANSING_TOTEM_1:
+            case CLEANSING_TOTEM_1:
                 //case HEALING_STREAM_TOTEM_1:
                 //case MANA_SPRING_TOTEM_1:
                 //case TOTEM_OF_WRATH_1:
-                case MANA_TIDE_TOTEM_1:
-                case TREMOR_TOTEM_1:
-                case TOTEMIC_RECALL_1:
-                    return true;
-                case CURE_TOXINS_1:
-                    return !GetSpell(CLEANSE_SPIRIT_1);
-                case FIRE_NOVA_1:
-                    return _totems[T_FIRE].second._type != BOT_TOTEM_NONE;
-                default:
-                    return false;
+            case MANA_TIDE_TOTEM_1:
+            case TREMOR_TOTEM_1:
+            case TOTEMIC_RECALL_1:
+                return true;
+            case CURE_TOXINS_1:
+                return !GetSpell(CLEANSE_SPIRIT_1);
+            case FIRE_NOVA_1:
+                return _totems[T_FIRE].second._type != BOT_TOTEM_NONE;
+            default:
+                return false;
             }
         }
 
         bool HasAbilitiesSpecifics() const override { return true; }
-        void FillAbilitiesSpecifics(Player const* player, std::list<std::string> &specList) override
+        void FillAbilitiesSpecifics(Player const* player, std::list<std::string>& specList) override
         {
             uint32 textId1, textId2;
             switch (mhEnchant)
             {
                 //case ROCKBITER_WEAPON_1:   textId1 = BOT_TEXT_"Rockbiter";  break;
-                case FLAMETONGUE_WEAPON_1: textId1 = BOT_TEXT_FLAMETONGUE;  break;
-                case FROSTBRAND_WEAPON_1:  textId1 = BOT_TEXT_FROSTBRAND;   break;
-                case WINDFURY_WEAPON_1:    textId1 = BOT_TEXT_WINDFURY;     break;
-                case EARTHLIVING_WEAPON_1: textId1 = BOT_TEXT_EARTHLIVING;  break;
-                default:                   textId1 = BOT_TEXT_NOTHING_C;    break;
+            case FLAMETONGUE_WEAPON_1: textId1 = BOT_TEXT_FLAMETONGUE;  break;
+            case FROSTBRAND_WEAPON_1:  textId1 = BOT_TEXT_FROSTBRAND;   break;
+            case WINDFURY_WEAPON_1:    textId1 = BOT_TEXT_WINDFURY;     break;
+            case EARTHLIVING_WEAPON_1: textId1 = BOT_TEXT_EARTHLIVING;  break;
+            default:                   textId1 = BOT_TEXT_NOTHING_C;    break;
             }
             switch (ohEnchant)
             {
                 //case ROCKBITER_WEAPON_1:   textId2 = BOT_TEXT_"Rockbiter";  break;
-                case FLAMETONGUE_WEAPON_1: textId2 = BOT_TEXT_FLAMETONGUE;  break;
-                case FROSTBRAND_WEAPON_1:  textId2 = BOT_TEXT_FROSTBRAND;   break;
-                case WINDFURY_WEAPON_1:    textId2 = BOT_TEXT_WINDFURY;     break;
-                case EARTHLIVING_WEAPON_1: textId2 = BOT_TEXT_EARTHLIVING;  break;
-                default:                   textId2 = BOT_TEXT_NOTHING_C;    break;
+            case FLAMETONGUE_WEAPON_1: textId2 = BOT_TEXT_FLAMETONGUE;  break;
+            case FROSTBRAND_WEAPON_1:  textId2 = BOT_TEXT_FROSTBRAND;   break;
+            case WINDFURY_WEAPON_1:    textId2 = BOT_TEXT_WINDFURY;     break;
+            case EARTHLIVING_WEAPON_1: textId2 = BOT_TEXT_EARTHLIVING;  break;
+            default:                   textId2 = BOT_TEXT_NOTHING_C;    break;
             }
             specList.push_back(LocalizedNpcText(player, BOT_TEXT_SLOT_MH) + ": " + LocalizedNpcText(player, textId1));
             specList.push_back(LocalizedNpcText(player, BOT_TEXT_SLOT_OH) + ": " + LocalizedNpcText(player, textId2));
@@ -2789,7 +2812,7 @@ public:
                 //    baseId = sSpellMgr->GetSpellInfo(base)->GetFirstRankSpell()->Id;
                 //if (target->GetEntry() == 70025 && cre->GetGUID() != me->GetGUID())
                 //{
-                //    TC_LOG_ERROR("spells","totemMask: unit {}, {} ({}), owner {} (crSp {}, base {}), istotem {}", target->GetName(),
+                //    BOT_LOG_ERROR("spells","totemMask: unit {}, {} ({}), owner {} (crSp {}, base {}), istotem {}", target->GetName(),
                 //        itr->second->GetBase()->GetSpellInfo()->SpellName[0], itr->second->GetBase()->GetId(),
                 //        cre ? cre->GetName() : "unk", base, baseId, uint32(cre->IsTotem()));
                 //}
@@ -2801,31 +2824,31 @@ public:
                 baseId = sSpellMgr->GetSpellInfo(sumonSpell)->GetFirstRankSpell()->Id;
                 switch (baseId)
                 {
-                    case FIRE_RESISTANCE_TOTEM_1:
-                        mask |= BOT_TOTEM_MASK_RESISTANCE_FIRE;     mytype = T_WATER;   break;
-                    case FROST_RESISTANCE_TOTEM_1:
-                        mask |= BOT_TOTEM_MASK_RESISTANCE_FROST;    mytype = T_FIRE;    break;
-                    case NATURE_RESISTANCE_TOTEM_1:
-                        mask |= BOT_TOTEM_MASK_RESISTANCE_NATURE;   mytype = T_AIR;     break;
-                    case FLAMETONGUE_TOTEM_1:
-                        mask |= BOT_TOTEM_MASK_FLAMETONGUE;         mytype = T_FIRE;    break;
-                    case GROUNDING_TOTEM_1: //no ranking
-                        mask |= BOT_TOTEM_MASK_GROUNDING;           mytype = T_AIR;     break;
+                case FIRE_RESISTANCE_TOTEM_1:
+                    mask |= BOT_TOTEM_MASK_RESISTANCE_FIRE;     mytype = T_WATER;   break;
+                case FROST_RESISTANCE_TOTEM_1:
+                    mask |= BOT_TOTEM_MASK_RESISTANCE_FROST;    mytype = T_FIRE;    break;
+                case NATURE_RESISTANCE_TOTEM_1:
+                    mask |= BOT_TOTEM_MASK_RESISTANCE_NATURE;   mytype = T_AIR;     break;
+                case FLAMETONGUE_TOTEM_1:
+                    mask |= BOT_TOTEM_MASK_FLAMETONGUE;         mytype = T_FIRE;    break;
+                case GROUNDING_TOTEM_1: //no ranking
+                    mask |= BOT_TOTEM_MASK_GROUNDING;           mytype = T_AIR;     break;
                     //case STONESKIN_TOTEM_1:
                     //    mask |= BOT_TOTEM_MASK_STONESKIN;           mytype = T_EARTH;   break;
-                    case STRENGTH_OF_EARTH_TOTEM_1:
-                        mask |= BOT_TOTEM_MASK_STRENGTH_OF_EARTH;   mytype = T_EARTH;   break;
-                    case WINDFURY_TOTEM_1: //no ranking
-                        mask |= BOT_TOTEM_MASK_WINDFURY;            mytype = T_AIR;     break;
-                    case WRATH_OF_AIR_TOTEM_1: //no ranking
-                        mask |= BOT_TOTEM_MASK_WRATH_OF_AIR;        mytype = T_AIR;     break;
-                    case MANA_SPRING_TOTEM_1:
-                        mask |= BOT_TOTEM_MASK_MANA_SPRING;         mytype = T_WATER;   break;
-                    case TOTEM_OF_WRATH_1:
-                        mask |= BOT_TOTEM_MASK_WRATH;               mytype = T_FIRE;    break;
-                    default:
-                        isTotem = false; //next aura
-                        break;
+                case STRENGTH_OF_EARTH_TOTEM_1:
+                    mask |= BOT_TOTEM_MASK_STRENGTH_OF_EARTH;   mytype = T_EARTH;   break;
+                case WINDFURY_TOTEM_1: //no ranking
+                    mask |= BOT_TOTEM_MASK_WINDFURY;            mytype = T_AIR;     break;
+                case WRATH_OF_AIR_TOTEM_1: //no ranking
+                    mask |= BOT_TOTEM_MASK_WRATH_OF_AIR;        mytype = T_AIR;     break;
+                case MANA_SPRING_TOTEM_1:
+                    mask |= BOT_TOTEM_MASK_MANA_SPRING;         mytype = T_WATER;   break;
+                case TOTEM_OF_WRATH_1:
+                    mask |= BOT_TOTEM_MASK_WRATH;               mytype = T_FIRE;    break;
+                default:
+                    isTotem = false; //next aura
+                    break;
                 }
 
                 if (isTotem)
@@ -2833,16 +2856,16 @@ public:
                     idMap[baseId] = sumonSpell;
                     for (uint8 i = 0; i != MAX_TOTEMS; ++i)
                     {
-                        if (itr->second->GetBase()->GetCasterGUID() == me->m_SummonSlot[i+1])
+                        if (itr->second->GetBase()->GetCasterGUID() == me->m_SummonSlot[i + 1])
                         {
                             //mask |= BOT_TOTEM_MASK_MY_TOTEM;
                             switch (mytype)
                             {
-                                case T_FIRE:    mask |= BOT_TOTEM_MASK_MY_TOTEM_FIRE;   break;
-                                case T_EARTH:   mask |= BOT_TOTEM_MASK_MY_TOTEM_EARTH;  break;
-                                case T_WATER:   mask |= BOT_TOTEM_MASK_MY_TOTEM_WATER;  break;
-                                case T_AIR:     mask |= BOT_TOTEM_MASK_MY_TOTEM_AIR;    break;
-                                default:                                                break;
+                            case T_FIRE:    mask |= BOT_TOTEM_MASK_MY_TOTEM_FIRE;   break;
+                            case T_EARTH:   mask |= BOT_TOTEM_MASK_MY_TOTEM_EARTH;  break;
+                            case T_WATER:   mask |= BOT_TOTEM_MASK_MY_TOTEM_WATER;  break;
+                            case T_AIR:     mask |= BOT_TOTEM_MASK_MY_TOTEM_AIR;    break;
+                            default:                                                break;
                             }
                             break;
                         }

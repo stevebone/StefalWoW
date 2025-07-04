@@ -20,188 +20,179 @@ TODO:
 
 enum PaladinBaseSpells// all orignals
 {
-    FLASH_OF_LIGHT_1                    = 19750,
-    HOLY_LIGHT_1                        = 635,
-    LAY_ON_HANDS_1                      = 633,
-    REDEMPTION_1                        = 7328,
-    HAND_OF_FREEDOM_1                   = 1044,
-    SACRED_SHIELD_1                     = 53601,
-    HOLY_SHOCK_1                        = 20473,
-    CLEANSE_1                           = 4987,
-    HAND_OF_PROTECTION_1                = 1022,
-    HAND_OF_SALVATION_1                 = 1038,
-    HAND_OF_SACRIFICE_1                 = 6940,
-    SEAL_OF_VENGEANCE_1                 = 31801,
-    SEAL_OF_CORRUPTION_1                = 53736,
-    SEAL_OF_COMMAND_1                   = 20375,
-    SEAL_OF_LIGHT_1                     = 20165,
-    SEAL_OF_RIGHTEOUSNESS_1             = 21084,
-    SEAL_OF_WISDOM_1                    = 20166,
-    SEAL_OF_JUSTICE_1                   = 20164,
-    DIVINE_SACRIFICE_1                  = 64205,
-    HAND_OF_RECKONING_1                 = 62124,
-    RIGHTEOUS_DEFENSE_1                 = 31789,
-    DIVINE_PLEA_1                       = 54428,
-    REPENTANCE_1                        = 20066,
-    TURN_EVIL_1                         = 10326,
-    CRUSADER_STRIKE_1                   = 35395,
-    JUDGEMENT_OF_LIGHT_1                = 20271,
-    JUDGEMENT_OF_WISDOM_1               = 53408,
-    JUDGEMENT_OF_JUSTICE_1              = 53407,
-    CONSECRATION_1                      = 26573,
-    HAMMER_OF_JUSTICE_1                 = 853,
-    DIVINE_STORM_1                      = 53385,
-    HAMMER_OF_WRATH_1                   = 24275,
-    EXORCISM_1                          = 879,
-    HOLY_WRATH_1                        = 2812,
-    AVENGING_WRATH_1                    = 31884,
-    RIGHTEOUS_FURY_1                    = 25780,
-    HOLY_SHIELD_1                       = 20925,
-    AVENGERS_SHIELD_1                   = 31935,
-    HAMMER_OF_THE_RIGHTEOUS_1           = 53595,
-    SHIELD_OF_RIGHTEOUSNESS_1           = 53600,
-    BLESSING_OF_MIGHT_1                 = 19740,
-    BLESSING_OF_WISDOM_1                = 19742,
-    BLESSING_OF_KINGS_1                 = 20217,
-    BLESSING_OF_SANCTUARY_1             = 20911,
-    DEVOTION_AURA_1                     = 465,
-    CONCENTRATION_AURA_1                = 19746,
-    FIRE_RESISTANCE_AURA_1              = 19891,
-    FROST_RESISTANCE_AURA_1             = 19888,
-    SHADOW_RESISTANCE_AURA_1            = 19876,
-    RETRIBUTION_AURA_1                  = 7294,
-    CRUSADER_AURA_1                     = 32223,
+    FLASH_OF_LIGHT_1 = 19750,
+    HOLY_LIGHT_1 = 635,
+    LAY_ON_HANDS_1 = 633,
+    REDEMPTION_1 = 7328,
+    HAND_OF_FREEDOM_1 = 1044,
+    SACRED_SHIELD_1 = 53601,
+    HOLY_SHOCK_1 = 20473,
+    CLEANSE_1 = 4987,
+    HAND_OF_PROTECTION_1 = 1022,
+    HAND_OF_SALVATION_1 = 1038,
+    HAND_OF_SACRIFICE_1 = 6940,
+    SEAL_OF_VENGEANCE_1 = 31801,
+    SEAL_OF_CORRUPTION_1 = 53736,
+    SEAL_OF_COMMAND_1 = 20375,
+    SEAL_OF_LIGHT_1 = 20165,
+    SEAL_OF_RIGHTEOUSNESS_1 = 21084,
+    SEAL_OF_WISDOM_1 = 20166,
+    SEAL_OF_JUSTICE_1 = 20164,
+    DIVINE_SACRIFICE_1 = 64205,
+    HAND_OF_RECKONING_1 = 62124,
+    RIGHTEOUS_DEFENSE_1 = 31789,
+    DIVINE_PLEA_1 = 54428,
+    REPENTANCE_1 = 20066,
+    TURN_EVIL_1 = 10326,
+    CRUSADER_STRIKE_1 = 35395,
+    JUDGEMENT_OF_LIGHT_1 = 20271,
+    JUDGEMENT_OF_WISDOM_1 = 53408,
+    JUDGEMENT_OF_JUSTICE_1 = 53407,
+    CONSECRATION_1 = 26573,
+    HAMMER_OF_JUSTICE_1 = 853,
+    DIVINE_STORM_1 = 53385,
+    HAMMER_OF_WRATH_1 = 24275,
+    EXORCISM_1 = 879,
+    HOLY_WRATH_1 = 2812,
+    AVENGING_WRATH_1 = 31884,
+    RIGHTEOUS_FURY_1 = 25780,
+    HOLY_SHIELD_1 = 20925,
+    AVENGERS_SHIELD_1 = 31935,
+    HAMMER_OF_THE_RIGHTEOUS_1 = 53595,
+    SHIELD_OF_RIGHTEOUSNESS_1 = 53600,
+    BLESSING_OF_MIGHT_1 = 19740,
+    BLESSING_OF_WISDOM_1 = 19742,
+    BLESSING_OF_KINGS_1 = 20217,
+    BLESSING_OF_SANCTUARY_1 = 20911,
+    DEVOTION_AURA_1 = 465,
+    CONCENTRATION_AURA_1 = 19746,
+    FIRE_RESISTANCE_AURA_1 = 19891,
+    FROST_RESISTANCE_AURA_1 = 19888,
+    SHADOW_RESISTANCE_AURA_1 = 19876,
+    RETRIBUTION_AURA_1 = 7294,
+    CRUSADER_AURA_1 = 32223,
 
-    DIVINE_INTERVENTION_1               = 19752,
-    AURA_MASTERY_1                      = 31821,
-    DIVINE_FAVOR_1                      = 20216,
-    DIVINE_ILLUMINATION_1               = 31842,
-    BEACON_OF_LIGHT_1                   = 53563,
+    DIVINE_INTERVENTION_1 = 19752,
+    AURA_MASTERY_1 = 31821,
+    DIVINE_FAVOR_1 = 20216,
+    DIVINE_ILLUMINATION_1 = 31842,
+    BEACON_OF_LIGHT_1 = 53563,
 
-    DIVINE_PROTECTION_1                 = 498,
-    DIVINE_SHIELD_1                     = 642,
+    DIVINE_PROTECTION_1 = 498,
+    DIVINE_SHIELD_1 = 642,
 
-    PURIFY_1                            = 1152
+    PURIFY_1 = 1152
 };
 enum PaladinPassives
 {
-//Talents
-    DIVINE_PURPOSE                      = 31872,
-    JUDGEMENTS_OF_THE_PURE              = 54155,
-    JUDGEMENTS_OF_THE_WISE              = 31878,
-    SACRED_CLEANSING                    = 53553,//rank 3
-    RECKONING1                          = 20177,
-    RECKONING2                          = 20179,
-    RECKONING3                          = 20181,
-    RECKONING4                          = 20180,
-    RECKONING5                          = 20182,
-    VINDICATION1                        = 9452,
-    VINDICATION2                        = 26016,
-    PURSUIT_OF_JUSTICE                  = 26023,//rank 2
-    ART_OF_WAR                          = 53488,//rank 2
-    IMPROVED_LAY_ON_HANDS               = 20235,//rank 2
-    FANATICISM                          = 31881,//rank 3
-    RIGHTEOUS_VENGEANCE1                = 53380,//rank 1
-    RIGHTEOUS_VENGEANCE2                = 53381,//rank 2
-    RIGHTEOUS_VENGEANCE3                = 53382,//rank 3
-    VENGEANCE1                          = 20049,//rank 1
-    VENGEANCE2                          = 20056,//rank 2
-    VENGEANCE3                          = 20057,//rank 3
-    SHEATH_OF_LIGHT1                    = 53501,//rank 1
-    SHEATH_OF_LIGHT2                    = 53502,//rank 2
-    SHEATH_OF_LIGHT3                    = 53503,//rank 3
-    ARDENT_DEFENDER                     = 31852,//rank 3
-    ILLUMINATION                        = 20215,//rank 5
-    INFUSION_OF_LIGHT                   = 53576,//rank 2
-    REDOUBT1                            = 20127,//rank 3
-    REDOUBT2                            = 20130,//rank 3
-    REDOUBT3                            = 20135,//rank 3
-    IMPROVED_RIGHTEOUS_FURY             = 20470,//rank 3
-    SHIELD_OF_THE_TEMPLAR               = 53711,//rank 3
-    IMPROVED_DEVOTION_AURA              = 20140,//rank 3
-    IMPROVED_CONCENTRATION_AURA         = 20256,//rank 3
-    SANCTIFIED_RETRIBUTION              = 31869,
-    SWIFT_RETRIBUTION                   = 53648,//rank 3
-    LIGHTS_GRACE                        = 31836,//rank 3
-    DIVINE_GUARDIAN                     = 53530,//rank 3
+    //Talents
+    DIVINE_PURPOSE = 31872,
+    JUDGEMENTS_OF_THE_PURE = 54155,
+    JUDGEMENTS_OF_THE_WISE = 31878,
+    SACRED_CLEANSING = 53553,//rank 3
+    RECKONING1 = 20177,
+    RECKONING2 = 20179,
+    RECKONING3 = 20181,
+    RECKONING4 = 20180,
+    RECKONING5 = 20182,
+    VINDICATION1 = 9452,
+    VINDICATION2 = 26016,
+    PURSUIT_OF_JUSTICE = 26023,//rank 2
+    ART_OF_WAR = 53488,//rank 2
+    IMPROVED_LAY_ON_HANDS = 20235,//rank 2
+    FANATICISM = 31881,//rank 3
+    RIGHTEOUS_VENGEANCE1 = 53380,//rank 1
+    RIGHTEOUS_VENGEANCE2 = 53381,//rank 2
+    RIGHTEOUS_VENGEANCE3 = 53382,//rank 3
+    VENGEANCE1 = 20049,//rank 1
+    VENGEANCE2 = 20056,//rank 2
+    VENGEANCE3 = 20057,//rank 3
+    SHEATH_OF_LIGHT1 = 53501,//rank 1
+    SHEATH_OF_LIGHT2 = 53502,//rank 2
+    SHEATH_OF_LIGHT3 = 53503,//rank 3
+    ARDENT_DEFENDER = 31852,//rank 3
+    ILLUMINATION = 20215,//rank 5
+    INFUSION_OF_LIGHT = 53576,//rank 2
+    REDOUBT1 = 20127,//rank 3
+    REDOUBT2 = 20130,//rank 3
+    REDOUBT3 = 20135,//rank 3
+    IMPROVED_RIGHTEOUS_FURY = 20470,//rank 3
+    SHIELD_OF_THE_TEMPLAR = 53711,//rank 3
+    IMPROVED_DEVOTION_AURA = 20140,//rank 3
+    IMPROVED_CONCENTRATION_AURA = 20256,//rank 3
+    SANCTIFIED_RETRIBUTION = 31869,
+    SWIFT_RETRIBUTION = 53648,//rank 3
+    LIGHTS_GRACE = 31836,//rank 3
+    DIVINE_GUARDIAN = 53530,//rank 3
     //COMBAT_EXPERTISE                    = 31860,//rank 3
-    CRUSADE                             = 31868,//rank 3
-    ONE_HANDED_WEAPON_SPECIALIZATION    = 20198,//rank 3
-    TWO_HANDED_WEAPON_SPECIALIZATION    = 20113,//rank 3
+    CRUSADE = 31868,//rank 3
+    ONE_HANDED_WEAPON_SPECIALIZATION = 20198,//rank 3
+    TWO_HANDED_WEAPON_SPECIALIZATION = 20113,//rank 3
     //JUDGEMENTS_OF_THE_JUST              = 53696,//rank 2
-    GUARDED_BY_THE_LIGHT                = 53585,//rank 2
-    TOUCHED_BY_THE_LIGHT                = 53592,//rank 3
-    HEART_OF_THE_CRUSADER               = 20337,//rank 3
-//Glyphs
-    GLYPH_HOLY_LIGHT                    = 54937,
-    GLYPH_SALVATION                     = 63225,
-//Innate
-    JUDGEMENT_ANTI_PARRY_DODGE_PASSIVE  = 60091,
-//other
-    RECUCED_HOLY_LIGHT_CAST_TIME        = 37189,//not a typo
+    GUARDED_BY_THE_LIGHT = 53585,//rank 2
+    TOUCHED_BY_THE_LIGHT = 53592,//rank 3
+    HEART_OF_THE_CRUSADER = 20337,//rank 3
+    //Glyphs
+    GLYPH_HOLY_LIGHT = 54937,
+    GLYPH_SALVATION = 63225,
+    //Innate
+    JUDGEMENT_ANTI_PARRY_DODGE_PASSIVE = 60091,
+    //other
+    RECUCED_HOLY_LIGHT_CAST_TIME = 37189,//not a typo
     //CLEANSE_HEAL_PASSIVE                = 28787
 };
 
 enum PaladinSpecial
 {
-    NOAURA                              = 0,
-    DEVOTIONAURA                        = 1,
-    CONCENTRATIONAURA                   = 2,
-    FIRERESAURA                         = 3,
-    FROSTRESAURA                        = 4,
-    SHADOWRESAURA                       = 5,
-    RETRIBUTIONAURA                     = 6,
-    CRUSADERAURA                        = 7,
+    SPECIFIC_BLESSING_WISDOM = 0x01,
+    SPECIFIC_BLESSING_KINGS = 0x02,
+    SPECIFIC_BLESSING_SANCTUARY = 0x04,
+    SPECIFIC_BLESSING_MIGHT = 0x08,
+    SPECIFIC_BLESSING_MY_BLESSING = 0x10,
 
-    SPECIFIC_BLESSING_WISDOM            = 0x01,
-    SPECIFIC_BLESSING_KINGS             = 0x02,
-    SPECIFIC_BLESSING_SANCTUARY         = 0x04,
-    SPECIFIC_BLESSING_MIGHT             = 0x08,
-    SPECIFIC_BLESSING_MY_BLESSING       = 0x10,
+    SPECIFIC_AURA_DEVOTION = 0x01,
+    SPECIFIC_AURA_CONCENTRATION = 0x02,
+    SPECIFIC_AURA_FIRE_RES = 0x04,
+    SPECIFIC_AURA_FROST_RES = 0x08,
+    SPECIFIC_AURA_SHADOW_RES = 0x10,
+    SPECIFIC_AURA_RETRIBUTION = 0x20,
+    SPECIFIC_AURA_CRUSADER = 0x40,
+    SPECIFIC_AURA_MY_AURA = 0x80,
+    SPECIFIC_AURA_ALL_AUTOUSE = (SPECIFIC_AURA_DEVOTION | SPECIFIC_AURA_CONCENTRATION | SPECIFIC_AURA_RETRIBUTION | \
+        SPECIFIC_AURA_FIRE_RES | SPECIFIC_AURA_FROST_RES | SPECIFIC_AURA_SHADOW_RES),
 
-    SPECIFIC_AURA_DEVOTION              = 0x01,
-    SPECIFIC_AURA_CONCENTRATION         = 0x02,
-    SPECIFIC_AURA_FIRE_RES              = 0x04,
-    SPECIFIC_AURA_FROST_RES             = 0x08,
-    SPECIFIC_AURA_SHADOW_RES            = 0x10,
-    SPECIFIC_AURA_RETRIBUTION           = 0x20,
-    SPECIFIC_AURA_CRUSADER              = 0x40,
-    SPECIFIC_AURA_MY_AURA               = 0x80,
-    SPECIFIC_AURA_ALL_AUTOUSE           = (SPECIFIC_AURA_DEVOTION | SPECIFIC_AURA_CONCENTRATION | SPECIFIC_AURA_RETRIBUTION | \
-                                            SPECIFIC_AURA_FIRE_RES | SPECIFIC_AURA_FROST_RES | SPECIFIC_AURA_SHADOW_RES),
+    FLASH_OF_LIGHT_HEAL_PERIODIC = 66922,
 
-    FLASH_OF_LIGHT_HEAL_PERIODIC        = 66922,
-
-    ENLIGHTENMENT_BUFF                  = 43837,
-    INFUSION_OF_LIGHT_BUFF              = 54149,//rank 2
-    THE_ART_OF_WAR_BUFF                 = 59578,//rank 2
+    ENLIGHTENMENT_BUFF = 43837,
+    INFUSION_OF_LIGHT_BUFF = 54149,//rank 2
+    THE_ART_OF_WAR_BUFF = 59578,//rank 2
     //FORBEARANCE_AURA                    = 25771,
 
-    LIGHTS_GRACE_BUFF                   = 31834,
+    LIGHTS_GRACE_BUFF = 31834,
 
-    SEAL_OF_JUSTICE_STUN_AURA           = 20170,
-    JUDGEMENTS_OF_THE_JUST_AURA         = 68055, //melee attack speed reduce
+    SEAL_OF_JUSTICE_STUN_AURA = 20170,
+    JUDGEMENTS_OF_THE_JUST_AURA = 68055, //melee attack speed reduce
 
     //JUDGEMENT_OF_LIGHT_AURA             = 20185,
-    JUDGEMENT_OF_WISDOM_AURA            = 20186,
+    JUDGEMENT_OF_WISDOM_AURA = 20186,
     //JUDGEMENT_OF_JUSTICE_AURA           = 20184,
 
-    GREATER_BLESSING_OF_MIGHT_1         = 25782,
-    GREATER_BLESSING_OF_WISDOM_1        = 25894,
-    GREATER_BLESSING_OF_KINGS_1         = 25898,
-    GREATER_BLESSING_OF_SANCTUARY_1     = 25899,
-    BATTLESHOUT_1                       = 6673,
+    GREATER_BLESSING_OF_MIGHT_1 = 25782,
+    GREATER_BLESSING_OF_WISDOM_1 = 25894,
+    GREATER_BLESSING_OF_KINGS_1 = 25898,
+    GREATER_BLESSING_OF_SANCTUARY_1 = 25899,
+    BATTLESHOUT_1 = 6673,
 
-    HOLY_SHOCK_HEAL_1                   = 25914,
-    ARDENT_DEFENDER_HEAL                = 66235,
-    JUDGEMENT_OF_COMMAND_DAMAGE         = 20467,
-    SPIRITUAL_ATTUNEMENT_ENERGIZE       = 31786,
-    SACRED_SHIELD_AURA_TRIGGERED        = 58597,
+    HOLY_SHOCK_HEAL_1 = 25914,
+    ARDENT_DEFENDER_HEAL = 66235,
+    JUDGEMENT_OF_COMMAND_DAMAGE = 20467,
+    SPIRITUAL_ATTUNEMENT_ENERGIZE = 31786,
+    SACRED_SHIELD_AURA_TRIGGERED = 58597,
 
-    AVENGING_WRATH_MARKER_SPELL         = 61987,
-    IMMUNITY_SHIELD_MARKER_SPELL        = 61988,
+    AVENGING_WRATH_MARKER_SPELL = 61987,
+    IMMUNITY_SHIELD_MARKER_SPELL = 61988,
 
-    IMPROVED_DEVOTION_AURA_SPELL        = 63514
+    IMPROVED_DEVOTION_AURA_SPELL = 63514
 };
 
 static const uint32 Paladin_spells_damage_arr[] =
@@ -238,31 +229,33 @@ public:
     {
         return new paladin_botAI(creature);
     }
-/*
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        return creature->GetBotAI()->OnGossipHello(player, 0);
-    }
+    /*
+        bool OnGossipHello(Player* player, Creature* creature)
+        {
+            return creature->GetBotAI()->OnGossipHello(player, 0);
+        }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelect(player, creature, sender, action);
-        return true;
-    }
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelect(player, creature, sender, action);
+            return true;
+        }
 
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
-    {
-        if (bot_ai* ai = creature->GetBotAI())
-            return ai->OnGossipSelectCode(player, creature, sender, action, code);
-        return true;
-    }
-*/
+        bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, char const* code)
+        {
+            if (bot_ai* ai = creature->GetBotAI())
+                return ai->OnGossipSelectCode(player, creature, sender, action, code);
+            return true;
+        }
+    */
     struct paladin_botAI : public bot_ai
     {
         paladin_botAI(Creature* creature) : bot_ai(creature)
         {
             _botclass = BOT_CLASS_PALADIN;
+
+            _myaura = 0;
 
             InitUnitFlags();
         }
@@ -277,7 +270,7 @@ public:
         void CheckBeacon(uint32 diff)
         {
             if (checkBeaconTimer > diff || !IsSpellReady(BEACON_OF_LIGHT_1, diff) ||
-                !HasRole(BOT_ROLE_HEAL|BOT_ROLE_RANGED) || IsCasting() || Rand() > 15)
+                !HasRole(BOT_ROLE_HEAL | BOT_ROLE_RANGED) || IsCasting() || Rand() > 15)
                 return;
 
             checkBeaconTimer = urand(2000, 5000);
@@ -301,7 +294,7 @@ public:
                 if (tanks.empty())
                     return;
 
-                Unit* target = tanks.size() == 1 ? *tanks.begin() : Trinity::Containers::SelectRandomContainerElement(tanks);
+                Unit* target = tanks.size() == 1 ? *tanks.begin() : Bcore::Containers::SelectRandomContainerElement(tanks);
                 if (doCast(target, GetSpell(BEACON_OF_LIGHT_1)))
                     return;
             }
@@ -447,7 +440,7 @@ public:
                     }
                 }
                 if (!targets.empty())
-                    target = targets.size() == 1u ? *targets.begin() : Trinity::Containers::SelectRandomContainerElement(targets);
+                    target = targets.size() == 1u ? *targets.begin() : Bcore::Containers::SelectRandomContainerElement(targets);
             }
 
             if (target && doCast(target, GetSpell(SACRED_SHIELD_1)))
@@ -465,9 +458,11 @@ public:
                 if (me->GetMap() == master->FindMap())
                 {
                     if (HOPTarget(master))
-                    {}
+                    {
+                    }
                     if (!IAmFree() && HOPTarget(me))
-                    {}
+                    {
+                    }
                 }
             }
             else
@@ -500,7 +495,7 @@ public:
             if (target->getAttackers().empty())
                 return false; //HOP only saves from physical, these aoe are rare and on bosses they are ultimate anyway
 
-            if (GetHealthPCT(target) < 15 + 5*(uint32)target->getAttackers().size())
+            if (GetHealthPCT(target) < 15 + 5 * (uint32)target->getAttackers().size())
             {
                 me->InterruptNonMeleeSpells(false);
                 if (doCast(target, GetSpell(HAND_OF_PROTECTION_1)))
@@ -528,9 +523,11 @@ public:
                 if (me->GetMap() == master->FindMap())
                 {
                     if (HOFTarget(master))
-                    {}
+                    {
+                    }
                     if (!IAmFree() && HOFTarget(me))
-                    {}
+                    {
+                    }
                 }
             }
             else
@@ -574,7 +571,7 @@ public:
                 if (spellInfo->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE) continue;
                 //if (spellInfo->AttributesEx & SPELL_ATTR1_DONT_DISPLAY_IN_AURA_BAR) continue;
                 if (spellInfo->GetSpellMechanicMaskByEffectMask(app->GetEffectMask()) &
-                    ((1<<MECHANIC_SNARE) | (1<<MECHANIC_ROOT) | (!canUnstun ? 0 : (1<<MECHANIC_STUN))))
+                    ((1 << MECHANIC_SNARE) | (1 << MECHANIC_ROOT) | (!canUnstun ? 0 : (1 << MECHANIC_STUN))))
                 {
                     uint32 dispel = spellInfo->Dispel;
                     uint32 spell;
@@ -599,14 +596,11 @@ public:
                 return;
 
             //Glyph of Salvation
-            if (me->GetLevel() >= 26 && (IAmFree() || IsTank()))
+            if (me->GetLevel() >= 26 && me->GetVictim() && (!me->GetVictim()->CanHaveThreatList() || me->GetVictim()->IsControlledByPlayer()))
             {
                 if (!me->getAttackers().empty() && GetHealthPCT(me) < std::max<int32>(80 - 5 * me->getAttackers().size(), 25))
-                {
                     if (doCast(me, GetSpell(HAND_OF_SALVATION_1)))
-                    {}
-                }
-                return;
+                        return;
             }
 
             if (IAmFree())
@@ -614,7 +608,7 @@ public:
 
             Group const* gr = master->GetGroup();
             if (!gr)
-                 return;
+                return;
 
             std::vector<Unit*> members = BotMgr::GetAllGroupMembers(gr);
             for (uint8 i = 0; i < 2; ++i)
@@ -637,7 +631,8 @@ public:
         {
             for (Unit* attacker : target->getAttackers())
             {
-                if (attacker->CanHaveThreatList() && attacker->getAttackers().size() >= 3 && target->GetDistance(attacker) < 15)
+                if (attacker->CanHaveThreatList() && attacker->GetThreatManager().GetThreatListSize() >= 3 &&
+                    attacker->GetThreatManager().GetThreat(target) > target->GetMaxHealth() / 4.f && target->GetDistance(attacker) < 15)
                 {
                     if (doCast(target, GetSpell(HAND_OF_SALVATION_1)))
                         return true;
@@ -672,7 +667,7 @@ public:
 
             //Lay on Hands
             if (IsSpellReady(LAY_ON_HANDS_1, diff, false) && (target != me || shieldDelayTimer <= diff) &&
-                (target->IsInCombat() || !target->getAttackers().empty()) && Rand() < 80 && hp <= 20 && xppct <=0 &&
+                (target->IsInCombat() || !target->getAttackers().empty()) && Rand() < 80 && hp <= 20 && xppct <= 0 &&
                 !target->HasAuraTypeWithMiscvalue(SPELL_AURA_SCHOOL_IMMUNITY, 127))
             {
                 me->InterruptNonMeleeSpells(false);
@@ -697,7 +692,8 @@ public:
                 me->InterruptNonMeleeSpells(false);
                 if (hp < 30 && IsSpellReady(DIVINE_FAVOR_1, diff, false) && !target->getAttackers().empty())
                     if (doCast(me, GetSpell(DIVINE_FAVOR_1)))
-                    {}
+                    {
+                    }
                 if (doCast(target, GetSpell(HOLY_SHOCK_1)))
                     return true;
             }
@@ -707,20 +703,22 @@ public:
             Unit const* u = target->GetVictim();
             bool tanking = u && IsTank(target) && u->ToCreature() && u->ToCreature()->isWorldBoss();
 
-            if (IsSpellReady(DIVINE_ILLUMINATION_1, diff, false) && GetManaPCT(me) <= 50 && Rand() < 50 + 50*tanking)
+            if (IsSpellReady(DIVINE_ILLUMINATION_1, diff, false) && GetManaPCT(me) <= 50 && Rand() < 50 + 50 * tanking)
                 if (doCast(me, GetSpell(DIVINE_ILLUMINATION_1)))
-                {}
+                {
+                }
 
             //Holy Light
             if (IsSpellReady(HOLY_LIGHT_1, diff) && (xppct > 15 || !GetSpell(FLASH_OF_LIGHT_1)) &&
                 xphploss > _heals[HOLY_LIGHT_1])
             {
                 //Aura Mastery
-                if (hp < 60 && _aura == CONCENTRATIONAURA && IsSpellReady(AURA_MASTERY_1, diff, false) && Rand() < 90 &&
+                if (hp < 60 && _myaura == CONCENTRATION_AURA_1 && IsSpellReady(AURA_MASTERY_1, diff, false) && Rand() < 90 &&
                     ((!me->getAttackers().empty() && (*me->getAttackers().begin())->GetTypeId() == TYPEID_PLAYER) ||
-                    me->GetMap()->Instanceable() || tanking))
+                        me->GetMap()->Instanceable() || tanking))
                     if (doCast(me, GetSpell(AURA_MASTERY_1)))
-                    {}
+                    {
+                    }
                 if (doCast(target, GetSpell(HOLY_LIGHT_1)))
                     return true;
             }
@@ -749,7 +747,7 @@ public:
 
         void BreakCC(uint32 diff) override
         {
-            if (me->GetLevel() >= 35 && GetSpec() == BOT_SPEC_PALADIN_RETRIBUTION && IsSpellReady(HAND_OF_FREEDOM_1, diff) && Rand() < 30 && me->HasAuraWithMechanic(1<<MECHANIC_STUN))
+            if (me->GetLevel() >= 35 && GetSpec() == BOT_SPEC_PALADIN_RETRIBUTION && IsSpellReady(HAND_OF_FREEDOM_1, diff) && Rand() < 30 && me->HasAuraWithMechanic(1 << MECHANIC_STUN))
             {
                 if (me->IsMounted())
                     me->RemoveAurasByType(SPELL_AURA_MOUNTED);
@@ -861,7 +859,7 @@ public:
 
             if (VENGEANCE && victim &&
                 (victim->GetMaxHealth() > me->GetMaxHealth() * (2 + victim->getAttackers().size() / 2) ||
-                victim->GetClass() == CLASS_ROGUE))
+                    victim->GetClass() == CLASS_ROGUE))
                 COMMAND = VENGEANCE;
 
             uint32 SEAL = 0;
@@ -876,7 +874,7 @@ public:
                 {
                     Creature const* cre = victim->ToCreature();
                     if (cre && cre->GetCreatureTemplate()->rank != CREATURE_ELITE_NORMAL &&
-                        (cre->GetCreatureTemplate()->MechanicImmuneMask & (1<<(MECHANIC_STUN-1))))
+                        (cre->GetCreatureTemplate()->MechanicImmuneMask & (1 << (MECHANIC_STUN - 1))))
                         JUSTICE = 0;
                 }
                 SEAL = COMMAND ? COMMAND : JUSTICE ? JUSTICE : RIGHT;
@@ -895,7 +893,7 @@ public:
 
         void CheckAura(uint32 diff)
         {
-            if (checkAuraTimer > diff || GC_Timer > diff || IAmFree() || IsCasting() ||
+            if (checkAuraTimer > diff || GC_Timer > diff || (IAmFree() && !GetBG()) || IsCasting() ||
                 /*me->GetExactDist(master) > 40 || me->IsMounted() || Feasting() || */Rand() > 20)
                 return;
 
@@ -935,6 +933,11 @@ public:
                 return;
 
             //TODO: priority?
+            if (_myaura && GetSpell(_myaura) && (!idMap.contains(_myaura) || idMap[_myaura] < GetSpell(_myaura)))
+            {
+                if (doCast(me, GetSpell(_myaura)))
+                    return;
+            }
             if (DEVOTION_AURA &&
                 (!(mask & SPECIFIC_AURA_DEVOTION) || idMap[DEVOTION_AURA_1] < DEVOTION_AURA) &&
                 (!RETRIBUTION_AURA || IsTank(master) || isProt))
@@ -944,8 +947,8 @@ public:
             }
             if (CONCENTRATION_AURA && !(mask & SPECIFIC_AURA_CONCENTRATION) &&
                 (master->GetClass() == BOT_CLASS_MAGE || master->GetClass() == BOT_CLASS_PRIEST ||
-                master->GetClass() == BOT_CLASS_WARLOCK || master->GetClass() == BOT_CLASS_DRUID ||
-                (!IAmFree() && master->GetClass() == BOT_CLASS_PALADIN) || pureHealer))
+                    master->GetClass() == BOT_CLASS_WARLOCK || master->GetClass() == BOT_CLASS_DRUID ||
+                    (!IAmFree() && master->GetClass() == BOT_CLASS_PALADIN) || pureHealer))
             {
                 if (doCast(me, CONCENTRATION_AURA))
                     return;
@@ -961,6 +964,12 @@ public:
                 (!(mask & SPECIFIC_AURA_FIRE_RES) || idMap[FIRE_RESISTANCE_AURA_1] < FIRE_RESISTANCE_AURA))
             {
                 if (doCast(me, FIRE_RESISTANCE_AURA))
+                    return;
+            }
+            if (SHADOW_RESISTANCE_AURA && GetBG() &&
+                (!(mask & SPECIFIC_AURA_SHADOW_RES) || idMap[SHADOW_RESISTANCE_AURA_1] < SHADOW_RESISTANCE_AURA))
+            {
+                if (doCast(me, SHADOW_RESISTANCE_AURA))
                     return;
             }
             if (FROST_RESISTANCE_AURA &&
@@ -1033,56 +1042,56 @@ public:
 
             switch (Class)
             {
-                case BOT_CLASS_BM:
-                case BOT_CLASS_SPHYNX:
-                case BOT_CLASS_DREADLORD:
-                case BOT_CLASS_SPELLBREAKER:
-                case BOT_CLASS_DARK_RANGER:
-                case BOT_CLASS_NECROMANCER:
-                case BOT_CLASS_SEA_WITCH:
-                case BOT_CLASS_CRYPT_LORD:
-                    if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
-                        return true;
-                    else if (BLESSING_OF_MIGHT && !might && doCast(target, BLESSING_OF_MIGHT))
-                        return true;
-                    else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
-                        return true;
-                    break;
-                case CLASS_PRIEST:
-                case CLASS_MAGE:
-                case CLASS_WARLOCK:
-                    if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
-                        return true;
-                    else if (BLESSING_OF_WISDOM && !wisdom && doCast(target, BLESSING_OF_WISDOM))
-                        return true;
-                    else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
-                        return true;
-                    break;
-                case CLASS_DEATH_KNIGHT:
-                case CLASS_WARRIOR:
-                case CLASS_PALADIN:
-                case CLASS_ROGUE:
-                case CLASS_HUNTER:
-                case CLASS_SHAMAN:
-                    if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
-                        return true;
-                    else if (BLESSING_OF_MIGHT && !might && doCast(target, BLESSING_OF_MIGHT))
-                        return true;
-                    else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
-                        return true;
-                    else if (BLESSING_OF_WISDOM && !wisdom && target->GetPowerType() == POWER_MANA && doCast(target, BLESSING_OF_WISDOM))
-                        return true;
-                    break;
-                default:
-                    if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
-                        return true;
-                    else if (BLESSING_OF_WISDOM && !wisdom && target->GetMaxPower(POWER_MANA) > 1 && doCast(target, BLESSING_OF_WISDOM))
-                        return true;
-                    else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
-                        return true;
-                    else if (BLESSING_OF_MIGHT && !might && doCast(target, BLESSING_OF_MIGHT))
-                        return true;
-                    break;
+            case BOT_CLASS_BM:
+            case BOT_CLASS_SPHYNX:
+            case BOT_CLASS_DREADLORD:
+            case BOT_CLASS_SPELLBREAKER:
+            case BOT_CLASS_DARK_RANGER:
+            case BOT_CLASS_NECROMANCER:
+            case BOT_CLASS_SEA_WITCH:
+            case BOT_CLASS_CRYPT_LORD:
+                if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
+                    return true;
+                else if (BLESSING_OF_MIGHT && !might && doCast(target, BLESSING_OF_MIGHT))
+                    return true;
+                else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
+                    return true;
+                break;
+            case CLASS_PRIEST:
+            case CLASS_MAGE:
+            case CLASS_WARLOCK:
+                if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
+                    return true;
+                else if (BLESSING_OF_WISDOM && !wisdom && doCast(target, BLESSING_OF_WISDOM))
+                    return true;
+                else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
+                    return true;
+                break;
+            case CLASS_DEATH_KNIGHT:
+            case CLASS_WARRIOR:
+            case CLASS_PALADIN:
+            case CLASS_ROGUE:
+            case CLASS_HUNTER:
+            case CLASS_SHAMAN:
+                if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
+                    return true;
+                else if (BLESSING_OF_MIGHT && !might && doCast(target, BLESSING_OF_MIGHT))
+                    return true;
+                else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
+                    return true;
+                else if (BLESSING_OF_WISDOM && !wisdom && target->GetPowerType() == POWER_MANA && doCast(target, BLESSING_OF_WISDOM))
+                    return true;
+                break;
+            default:
+                if (BLESSING_OF_KINGS && !kings && doCast(target, BLESSING_OF_KINGS))
+                    return true;
+                else if (BLESSING_OF_WISDOM && !wisdom && target->GetMaxPower(POWER_MANA) > 1 && doCast(target, BLESSING_OF_WISDOM))
+                    return true;
+                else if (BLESSING_OF_SANCTUARY && !sanctuary && doCast(target, BLESSING_OF_SANCTUARY))
+                    return true;
+                else if (BLESSING_OF_MIGHT && !might && doCast(target, BLESSING_OF_MIGHT))
+                    return true;
+                break;
             }
             return false;
         }
@@ -1128,7 +1137,8 @@ public:
             {
                 target = FindCastingTarget(10, 0, HAMMER_OF_JUSTICE_1);
                 if (target && doCast(target, GetSpell(HAMMER_OF_JUSTICE_1)))
-                {}
+                {
+                }
             }
         }
 
@@ -1183,7 +1193,7 @@ public:
             if (players.empty())
                 return;
 
-            Unit* target = players.size() == 1 ? players.front() : Trinity::Containers::SelectRandomContainerElement(players);
+            Unit* target = players.size() == 1 ? players.front() : Bcore::Containers::SelectRandomContainerElement(players);
             if (doCast(target, GetSpell(DIVINE_INTERVENTION_1)))
                 return;
         }
@@ -1211,7 +1221,8 @@ public:
             }
 
             //Holy shield
-            if (IsSpellReady(HOLY_SHIELD_1, diff) && HasRole(BOT_ROLE_DPS) && CanBlock() && !me->getAttackers().empty() &&
+            if (IsSpellReady(HOLY_SHIELD_1, diff) && HasRole(BOT_ROLE_DPS) && CanBlock() && !me->getAttackers().empty() && GetManaPCT(me) > 25 &&
+                (GetManaPCT(me) > 80 || me->getAttackers().size() > 3 || ((*me->getAttackers().cbegin())->IsCreature() && (*me->getAttackers().cbegin())->ToCreature()->isWorldBoss())) &&
                 !me->HasAuraTypeWithMiscvalue(SPELL_AURA_SCHOOL_IMMUNITY, 127))
             {
                 if (doCast(me, GetSpell(HOLY_SHIELD_1)))
@@ -1235,8 +1246,8 @@ public:
                 mytar->GetTypeId() == TYPEID_UNIT && !mytar->IsControlledByPlayer() &&
                 !CCed(mytar) && HasRole(BOT_ROLE_DPS) && !mytar->HasAuraType(SPELL_AURA_MOD_TAUNT) &&
                 (!IsTank(u) || (IsTank() && GetHealthPCT(me) > 67 &&
-                (GetHealthPCT(u) < 30 || (IsOffTank() && !IsOffTank(u) && IsPointedOffTankingTarget(mytar)) ||
-                (!IsOffTank() && IsOffTank(u) && IsPointedTankingTarget(mytar))))) &&
+                    (GetHealthPCT(u) < 30 || (IsOffTank() && !IsOffTank(u) && IsPointedOffTankingTarget(mytar)) ||
+                        (!IsOffTank() && IsOffTank(u) && IsPointedTankingTarget(mytar))))) &&
                 ((!IsTankingClass(u->GetClass()) && GetHealthPCT(u) < 80) || IsTank()) &&
                 IsInBotParty(u))
             {
@@ -1247,7 +1258,7 @@ public:
             if (IsSpellReady(HAND_OF_RECKONING_1, diff, false) && !IAmFree() && u == me && Rand() < 30 && IsTank() && HasRole(BOT_ROLE_DPS) &&
                 (IsOffTank() || master->GetBotMgr()->GetNpcBotsCountByRole(BOT_ROLE_TANK_OFF) == 0) &&
                 !(me->GetLevel() >= 40 && mytar->GetTypeId() == TYPEID_UNIT &&
-                (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())))
+                    (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())))
             {
                 Unit* tUnit = FindDistantTauntTarget();
                 if (tUnit)
@@ -1270,7 +1281,7 @@ public:
             //RIGHTEOUS DEFENSE 2 (distant)
             if (IsSpellReady(RIGHTEOUS_DEFENSE_1, diff, false) && !IAmFree() && u == me && IsTank() && Rand() < 30 &&
                 !(me->GetLevel() >= 40 && mytar->GetTypeId() == TYPEID_UNIT &&
-                (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())))
+                    (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())))
             {
                 Unit* tUnit = FindDistantTauntTarget(40, true);
                 if (tUnit)
@@ -1288,13 +1299,14 @@ public:
             }
             //Avenging Wrath (tank - big threat, dps - big hp, heal - divine plea counter)
             if (IsSpellReady(AVENGING_WRATH_1, diff, false) && can_do_holy && avDelayTimer <= diff &&
-                HasRole(BOT_ROLE_HEAL|BOT_ROLE_DPS) && Rand() < 35 && dist < 30 &&
+                HasRole(BOT_ROLE_HEAL | BOT_ROLE_DPS) && Rand() < 35 && dist < 30 &&
                 IsTank() ? (mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())) :
-                (!HasRole(BOT_ROLE_HEAL) || !HasRole(BOT_ROLE_RANGED)) ? (mytar->GetHealth() > me->GetMaxHealth()/4 * (1 + mytar->getAttackers().size())) :
+                (!HasRole(BOT_ROLE_HEAL) || !HasRole(BOT_ROLE_RANGED)) ? (mytar->GetHealth() > me->GetMaxHealth() / 4 * (1 + mytar->getAttackers().size())) :
                 (me->GetAuraEffect(SPELL_AURA_OBS_MOD_POWER, SPELLFAMILY_PALADIN, 0x0, 0x80004000, 0x1) != nullptr))
             {
                 if (doCast(me, GetSpell(AVENGING_WRATH_1)))
-                {}
+                {
+                }
             }
             //Avenger's shield
             if (IsSpellReady(AVENGERS_SHIELD_1, diff) && can_do_holy && CanBlock() &&
@@ -1305,7 +1317,7 @@ public:
             }
             //Divine Protection tanks only
             if (IsSpellReady(DIVINE_PROTECTION_1, diff, false) && shieldDelayTimer <= diff && IsTank() && Rand() < 80 &&
-                !me->getAttackers().empty() && GetHealthPCT(me) < 67 - 20*me->HasAuraType(SPELL_AURA_PERIODIC_HEAL))
+                !me->getAttackers().empty() && GetHealthPCT(me) < 67 - 20 * me->HasAuraType(SPELL_AURA_PERIODIC_HEAL))
             {
                 if (doCast(me, GetSpell(DIVINE_PROTECTION_1)))
                     return;
@@ -1313,7 +1325,7 @@ public:
             //Exorcism (have cast window or instant)
             if (IsSpellReady(EXORCISM_1, diff) && can_do_holy && HasRole(BOT_ROLE_DPS) && dist < 30 && Rand() < 70 &&
                 ((IsTank() && dist > 12) || (HasRole(BOT_ROLE_RANGED) && !HasRole(BOT_ROLE_HEAL)) ||
-                me->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 0x0, 0x0, 0x2)))
+                    me->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PALADIN, 0x0, 0x0, 0x2)))
             {
                 if (doCast(mytar, GetSpell(EXORCISM_1)))
                     return;
@@ -1390,11 +1402,15 @@ public:
                     return;
             }
             //Consecration
-            if (IsSpellReady(CONSECRATION_1, diff) && can_do_holy && HasRole(BOT_ROLE_DPS) && dist < 5 &&
-                !mytar->isMoving() && Rand() < 50)
+            if (IsSpellReady(CONSECRATION_1, diff) && can_do_holy && HasRole(BOT_ROLE_DPS) && dist < 5 && !mytar->isMoving() && Rand() < 20)
             {
-                if (doCast(me, GetSpell(CONSECRATION_1)))
-                    return;
+                std::list<Unit*> targets;
+                GetNearbyTargetsList(targets, 8.f, 0);
+                if (targets.size() >= 2)
+                {
+                    if (doCast(me, GetSpell(CONSECRATION_1)))
+                        return;
+                }
             }
             //Hammer of the Righteous (1h only)
             if (IsSpellReady(HAMMER_OF_THE_RIGHTEOUS_1, diff) && can_do_holy && HasRole(BOT_ROLE_DPS) &&
@@ -1403,7 +1419,7 @@ public:
                 Item const* weapMH = GetEquips(BOT_SLOT_MAINHAND);
                 if (weapMH &&
                     (weapMH->GetTemplate()->InventoryType == INVTYPE_WEAPON ||
-                    weapMH->GetTemplate()->InventoryType == INVTYPE_WEAPONMAINHAND) &&
+                        weapMH->GetTemplate()->InventoryType == INVTYPE_WEAPONMAINHAND) &&
                     doCast(mytar, GetSpell(HAMMER_OF_THE_RIGHTEOUS_1)))
                     return;
             }
@@ -1468,13 +1484,13 @@ public:
             if (baseId == HOLY_LIGHT_1)
             {
                 if (AuraEffect const* infu = me->GetAuraEffect(INFUSION_OF_LIGHT_BUFF, 0))
-                    if (infu->IsAffectedOnSpell(spellInfo))
+                    if (infu->IsAffectingSpell(spellInfo))
                         crit_chance += 20.f;
             }
             if (baseId == HOLY_LIGHT_1 || baseId == FLASH_OF_LIGHT_1 || baseId == HOLY_SHOCK_1)
             {
                 if (AuraEffect const* favo = me->GetAuraEffect(DIVINE_FAVOR_1, 0))
-                    if (favo->IsAffectedOnSpell(spellInfo))
+                    if (favo->IsAffectingSpell(spellInfo))
                         crit_chance += 100.f;
             }
         }
@@ -1500,8 +1516,8 @@ public:
             //Judgements of the Pure (damage part): 25% bonus damage for Judgements and Seals
             if ((GetSpec() == BOT_SPEC_PALADIN_HOLY) && lvl >= 50 &&
                 (spellInfo->GetCategory() == SPELLCATEGORY_JUDGEMENT ||
-                spellInfo->GetSpellSpecific() == SPELL_SPECIFIC_SEAL ||
-                baseId == JUDGEMENT_OF_COMMAND_DAMAGE))
+                    spellInfo->GetSpellSpecific() == SPELL_SPECIFIC_SEAL ||
+                    baseId == JUDGEMENT_OF_COMMAND_DAMAGE))
                 pctbonus += 0.25f;
             //Glyph of Exorcism: 20% bonus damage for Exorcism
             if (lvl >= 50 && baseId == EXORCISM_1)
@@ -1525,8 +1541,8 @@ public:
             //Judgements of the Pure (damage part): 25% bonus damage for Judgements and Seals
             if ((GetSpec() == BOT_SPEC_PALADIN_HOLY) && lvl >= 50 &&
                 (spellInfo->GetCategory() == SPELLCATEGORY_JUDGEMENT ||
-                spellInfo->GetSpellSpecific() == SPELL_SPECIFIC_SEAL ||
-                spellId == JUDGEMENT_OF_COMMAND_DAMAGE))
+                    spellInfo->GetSpellSpecific() == SPELL_SPECIFIC_SEAL ||
+                    spellId == JUDGEMENT_OF_COMMAND_DAMAGE))
                 pctbonus += 0.25f;
             //Improved Consecration (id: 38422): 10% bonus damage for Consecration
             if (lvl >= 20 && spellId == GetSpell(CONSECRATION_1))
@@ -1616,9 +1632,9 @@ public:
                 AuraEffect const* arto = me->GetAuraEffect(THE_ART_OF_WAR_BUFF, 0);
                 //Infusion of Light
                 AuraEffect const* infu = me->GetAuraEffect(INFUSION_OF_LIGHT_BUFF, 1);
-                if (arto && arto->IsAffectedOnSpell(spellInfo))
+                if (arto && arto->IsAffectingSpell(spellInfo))
                     timebonus += casttime;
-                else if (infu && infu->IsAffectedOnSpell(spellInfo))
+                else if (infu && infu->IsAffectingSpell(spellInfo))
                     timebonus += casttime;
             }
 
@@ -1631,14 +1647,27 @@ public:
             if (baseId == HOLY_LIGHT_1)
             {
                 if (AuraEffect const* enli = me->GetAuraEffect(ENLIGHTENMENT_BUFF, 0))
-                    if (enli->IsAffectedOnSpell(spellInfo))
+                    if (enli->IsAffectingSpell(spellInfo))
                         timebonus += 500;
                 if (AuraEffect const* grac = me->GetAuraEffect(LIGHTS_GRACE_BUFF, 0))
-                    if (grac->IsAffectedOnSpell(spellInfo))
+                    if (grac->IsAffectingSpell(spellInfo))
                         timebonus += 500;
             }
 
             casttime = std::max<int32>(casttime - timebonus, 0);
+        }
+
+        void ApplyClassSpellNotLoseCastTimeMods(SpellInfo const* spellInfo, int32& delayReduce) const override
+        {
+            uint32 baseId = spellInfo->GetFirstRankSpell()->Id;
+            //SpellSchoolMask schools = spellInfo->GetSchoolMask();
+            uint8 lvl = me->GetLevel();
+            int32 reduceBonus = 0;
+
+            if (lvl >= 10 && (baseId == HOLY_LIGHT_1 || baseId == FLASH_OF_LIGHT_1))
+                reduceBonus += 70;
+
+            delayReduce += reduceBonus;
         }
 
         void ApplyClassSpellCooldownMods(SpellInfo const* spellInfo, uint32& cooldown) const override
@@ -1837,20 +1866,20 @@ public:
             if (baseId == HOLY_LIGHT_1 || baseId == FLASH_OF_LIGHT_1 || baseId == HOLY_SHOCK_1)
             {
                 if (AuraEffect const* favo = me->GetAuraEffect(DIVINE_FAVOR_1, 0))
-                    if (favo->IsAffectedOnSpell(spellInfo))
+                    if (favo->IsAffectingSpell(spellInfo))
                         me->RemoveAurasDueToSpell(DIVINE_FAVOR_1);
             }
 
             if (baseId == HOLY_LIGHT_1)
             {
                 if (AuraEffect const* enli = me->GetAuraEffect(ENLIGHTENMENT_BUFF, 0))
-                    if (enli->IsAffectedOnSpell(spellInfo))
+                    if (enli->IsAffectingSpell(spellInfo))
                         me->RemoveAurasDueToSpell(ENLIGHTENMENT_BUFF);
                 if (AuraEffect const* grac = me->GetAuraEffect(LIGHTS_GRACE_BUFF, 0))
-                    if (grac->IsAffectedOnSpell(spellInfo))
+                    if (grac->IsAffectingSpell(spellInfo))
                         me->RemoveAurasDueToSpell(LIGHTS_GRACE_BUFF);
                 if (AuraEffect const* infu = me->GetAuraEffect(INFUSION_OF_LIGHT_BUFF, 0))
-                    if (infu->IsAffectedOnSpell(spellInfo))
+                    if (infu->IsAffectingSpell(spellInfo))
                         me->RemoveAurasDueToSpell(INFUSION_OF_LIGHT_BUFF);
             }
 
@@ -1860,9 +1889,9 @@ public:
                 AuraEffect const* infu = me->GetAuraEffect(INFUSION_OF_LIGHT_BUFF, 1);
                 //The Art of War
                 AuraEffect const* arto = me->GetAuraEffect(THE_ART_OF_WAR_BUFF, 0);
-                if (arto && arto->IsAffectedOnSpell(spellInfo))
+                if (arto && arto->IsAffectingSpell(spellInfo))
                     me->RemoveAurasDueToSpell(THE_ART_OF_WAR_BUFF);
-                else if (infu && infu->IsAffectedOnSpell(spellInfo))
+                else if (infu && infu->IsAffectingSpell(spellInfo))
                     me->RemoveAurasDueToSpell(INFUSION_OF_LIGHT_BUFF);
             }
 
@@ -2061,20 +2090,20 @@ public:
             //Aura Helper
             if (caster == me)
             {
-                if (baseId == DEVOTION_AURA_1)
-                    _aura = DEVOTIONAURA;
-                if (baseId == CONCENTRATION_AURA_1)
-                    _aura = CONCENTRATIONAURA;
-                if (baseId == FIRE_RESISTANCE_AURA_1)
-                    _aura = FIRERESAURA;
-                if (baseId == FROST_RESISTANCE_AURA_1)
-                    _aura = FROSTRESAURA;
-                if (baseId == SHADOW_RESISTANCE_AURA_1)
-                    _aura = SHADOWRESAURA;
-                if (baseId == RETRIBUTION_AURA_1)
-                    _aura = RETRIBUTIONAURA;
-                if (baseId == CRUSADER_AURA_1)
-                    _aura = CRUSADERAURA;
+                switch (baseId)
+                {
+                case DEVOTION_AURA_1:
+                case CONCENTRATION_AURA_1:
+                case FIRE_RESISTANCE_AURA_1:
+                case FROST_RESISTANCE_AURA_1:
+                case SHADOW_RESISTANCE_AURA_1:
+                case RETRIBUTION_AURA_1:
+                case CRUSADER_AURA_1:
+                    SetAIMiscValue(BOTAI_MISC_AURA_TYPE, baseId);
+                    break;
+                default:
+                    break;
+                }
             }
 
             //immunity markers
@@ -2150,6 +2179,31 @@ public:
             return longRange ? CalcSpellMaxRange(GetSpell(EXORCISM_1) ? EXORCISM_1 : JUDGEMENT_OF_LIGHT_1) : 10.f;
         }
 
+        uint32 GetAIMiscValue(uint32 data) const override
+        {
+            switch (data)
+            {
+            case BOTAI_MISC_AURA_TYPE:
+                return _myaura;
+            default:
+                return 0;
+            }
+        }
+
+        void SetAIMiscValue(uint32 data, uint32 value) override
+        {
+            switch (data)
+            {
+            case BOTAI_MISC_AURA_TYPE:
+                _myaura = value;
+                break;
+            default:
+                break;
+            }
+
+            bot_ai::SetAIMiscValue(data, value);
+        }
+
         void Reset() override
         {
             checkAuraTimer = 0;
@@ -2158,7 +2212,6 @@ public:
             checkBeaconTimer = 0;
             avDelayTimer = 0;
             shieldDelayTimer = 0;
-            _aura = NOAURA;
             _sacDamage = 0;
 
             CLEANSE = 0;
@@ -2233,22 +2286,22 @@ public:
             InitSpellMap(DIVINE_PROTECTION_1);
             InitSpellMap(DIVINE_SHIELD_1);
 
-  /*Talent*/lvl >= (isHoly ? 20 : 70) ? InitSpellMap(AURA_MASTERY_1) : RemoveSpell(AURA_MASTERY_1);
-  /*Talent*/lvl >= 30 && isHoly ? InitSpellMap(DIVINE_FAVOR_1) : RemoveSpell(DIVINE_FAVOR_1);
-  /*Talent*/lvl >= 40 && isHoly ? InitSpellMap(HOLY_SHOCK_1) : RemoveSpell(HOLY_SHOCK_1);
-  /*Talent*/lvl >= 50 && isHoly ? InitSpellMap(DIVINE_ILLUMINATION_1) : RemoveSpell(DIVINE_ILLUMINATION_1);
-  /*Talent*/lvl >= 60 && isHoly ? InitSpellMap(BEACON_OF_LIGHT_1) : RemoveSpell(BEACON_OF_LIGHT_1);
+            /*Talent*/lvl >= (isHoly ? 20 : 70) ? InitSpellMap(AURA_MASTERY_1) : RemoveSpell(AURA_MASTERY_1);
+            /*Talent*/lvl >= 30 && isHoly ? InitSpellMap(DIVINE_FAVOR_1) : RemoveSpell(DIVINE_FAVOR_1);
+            /*Talent*/lvl >= 40 && isHoly ? InitSpellMap(HOLY_SHOCK_1) : RemoveSpell(HOLY_SHOCK_1);
+            /*Talent*/lvl >= 50 && isHoly ? InitSpellMap(DIVINE_ILLUMINATION_1) : RemoveSpell(DIVINE_ILLUMINATION_1);
+            /*Talent*/lvl >= 60 && isHoly ? InitSpellMap(BEACON_OF_LIGHT_1) : RemoveSpell(BEACON_OF_LIGHT_1);
 
-  /*Talent*/lvl >= (isProt ? 20 : isHoly ? 70 : 99) ? InitSpellMap(DIVINE_SACRIFICE_1) : RemoveSpell(DIVINE_SACRIFICE_1);
-  /*Talent*/lvl >= 30 && isProt ? InitSpellMap(BLESSING_OF_SANCTUARY_1) : RemoveSpell(BLESSING_OF_SANCTUARY_1);
-  /*Talent*/lvl >= 40 && isProt ? InitSpellMap(HOLY_SHIELD_1) : RemoveSpell(HOLY_SHIELD_1);
-  /*Talent*/lvl >= 50 && isProt ? InitSpellMap(AVENGERS_SHIELD_1) : RemoveSpell(AVENGERS_SHIELD_1);
-  /*Talent*/lvl >= 60 && isProt ? InitSpellMap(HAMMER_OF_THE_RIGHTEOUS_1) : RemoveSpell(HAMMER_OF_THE_RIGHTEOUS_1);
+            /*Talent*/lvl >= (isProt ? 20 : isHoly ? 70 : 99) ? InitSpellMap(DIVINE_SACRIFICE_1) : RemoveSpell(DIVINE_SACRIFICE_1);
+            /*Talent*/lvl >= 30 && isProt ? InitSpellMap(BLESSING_OF_SANCTUARY_1) : RemoveSpell(BLESSING_OF_SANCTUARY_1);
+            /*Talent*/lvl >= 40 && isProt ? InitSpellMap(HOLY_SHIELD_1) : RemoveSpell(HOLY_SHIELD_1);
+            /*Talent*/lvl >= 50 && isProt ? InitSpellMap(AVENGERS_SHIELD_1) : RemoveSpell(AVENGERS_SHIELD_1);
+            /*Talent*/lvl >= 60 && isProt ? InitSpellMap(HAMMER_OF_THE_RIGHTEOUS_1) : RemoveSpell(HAMMER_OF_THE_RIGHTEOUS_1);
 
-  /*Talent*/lvl >= 20 && isRetr ? InitSpellMap(SEAL_OF_COMMAND_1) : RemoveSpell(SEAL_OF_COMMAND_1);
-  /*Talent*/lvl >= 40 && isRetr ? InitSpellMap(REPENTANCE_1) : RemoveSpell(REPENTANCE_1);
-  /*Talent*/lvl >= 50 && isRetr ? InitSpellMap(CRUSADER_STRIKE_1) : RemoveSpell(CRUSADER_STRIKE_1);
-  /*Talent*/lvl >= 60 && isRetr ? InitSpellMap(DIVINE_STORM_1) : RemoveSpell(DIVINE_STORM_1);
+            /*Talent*/lvl >= 20 && isRetr ? InitSpellMap(SEAL_OF_COMMAND_1) : RemoveSpell(SEAL_OF_COMMAND_1);
+            /*Talent*/lvl >= 40 && isRetr ? InitSpellMap(REPENTANCE_1) : RemoveSpell(REPENTANCE_1);
+            /*Talent*/lvl >= 50 && isRetr ? InitSpellMap(CRUSADER_STRIKE_1) : RemoveSpell(CRUSADER_STRIKE_1);
+            /*Talent*/lvl >= 60 && isRetr ? InitSpellMap(DIVINE_STORM_1) : RemoveSpell(DIVINE_STORM_1);
 
             CLEANSE = InitSpell(me, CLEANSE_1) ? CLEANSE_1 : PURIFY_1;
             RemoveSpell(CLEANSE_1);
@@ -2325,64 +2378,58 @@ public:
         {
             switch (basespell)
             {
-                case FLASH_OF_LIGHT_1:
-                case HOLY_LIGHT_1:
-                case LAY_ON_HANDS_1:
-                case HAND_OF_FREEDOM_1:
-                case SACRED_SHIELD_1:
-                case CLEANSE_1:
-                case HAND_OF_PROTECTION_1:
-                case HAND_OF_SALVATION_1:
-                case HAND_OF_SACRIFICE_1:
+            case FLASH_OF_LIGHT_1:
+            case HOLY_LIGHT_1:
+            case LAY_ON_HANDS_1:
+            case HAND_OF_FREEDOM_1:
+            case SACRED_SHIELD_1:
+            case CLEANSE_1:
+            case HAND_OF_PROTECTION_1:
+            case HAND_OF_SALVATION_1:
+            case HAND_OF_SACRIFICE_1:
                 //case SEAL_OF_COMMAND_1:
                 //case SEAL_OF_LIGHT_1:
                 //case SEAL_OF_RIGHTEOUSNESS_1:
                 //case SEAL_OF_WISDOM_1:
                 //case SEAL_OF_JUSTICE_1:
-                case DIVINE_PLEA_1:
-                case AVENGING_WRATH_1:
-                case BLESSING_OF_MIGHT_1:
-                case BLESSING_OF_WISDOM_1:
-                case BLESSING_OF_KINGS_1:
-                case BLESSING_OF_SANCTUARY_1:
-                    return true;
-                case HOLY_SHOCK_1:
-                    return HasRole(BOT_ROLE_HEAL);
-                case DEVOTION_AURA_1:
-                    return _aura != DEVOTIONAURA;
-                case CONCENTRATION_AURA_1:
-                    return _aura != CONCENTRATIONAURA;
-                case FIRE_RESISTANCE_AURA_1:
-                    return _aura != FIRERESAURA;
-                case FROST_RESISTANCE_AURA_1:
-                    return _aura != FROSTRESAURA;
-                case SHADOW_RESISTANCE_AURA_1:
-                    return _aura != SHADOWRESAURA;
-                case RETRIBUTION_AURA_1:
-                    return _aura != RETRIBUTIONAURA;
-                case CRUSADER_AURA_1:
-                    return _aura != CRUSADERAURA;
-                case PURIFY_1:
-                    return !GetSpell(CLEANSE_1);
-                default:
-                    return false;
+            case DIVINE_PLEA_1:
+            case AVENGING_WRATH_1:
+            case BLESSING_OF_MIGHT_1:
+            case BLESSING_OF_WISDOM_1:
+            case BLESSING_OF_KINGS_1:
+            case BLESSING_OF_SANCTUARY_1:
+                return true;
+            case HOLY_SHOCK_1:
+                return HasRole(BOT_ROLE_HEAL);
+            case DEVOTION_AURA_1:
+            case CONCENTRATION_AURA_1:
+            case FIRE_RESISTANCE_AURA_1:
+            case FROST_RESISTANCE_AURA_1:
+            case SHADOW_RESISTANCE_AURA_1:
+            case RETRIBUTION_AURA_1:
+            case CRUSADER_AURA_1:
+                return _myaura != basespell;
+            case PURIFY_1:
+                return !GetSpell(CLEANSE_1);
+            default:
+                return false;
             }
         }
 
         bool HasAbilitiesSpecifics() const override { return true; }
-        void FillAbilitiesSpecifics(Player const* player, std::list<std::string> &specList) override
+        void FillAbilitiesSpecifics(Player const* player, std::list<std::string>& specList) override
         {
             uint32 textId;
-            switch (_aura)
+            switch (_myaura)
             {
-                case DEVOTIONAURA:      textId = BOT_TEXT_DEVOTION;         break;
-                case CONCENTRATIONAURA: textId = BOT_TEXT_CONCENTRATION;    break;
-                case FIRERESAURA:       textId = BOT_TEXT_FIRERESISTANCE;   break;
-                case FROSTRESAURA:      textId = BOT_TEXT_FROSTRESISTANCE;  break;
-                case SHADOWRESAURA:     textId = BOT_TEXT_SHADOWRESISTANCE; break;
-                case RETRIBUTIONAURA:   textId = BOT_TEXT_RETRIBUTION;      break;
-                case CRUSADERAURA:      textId = BOT_TEXT_CRUSADER;         break;
-                case NOAURA: default:   textId = BOT_TEXT_NOAURA;           break;
+            case DEVOTION_AURA_1:          textId = BOT_TEXT_DEVOTION;         break;
+            case CONCENTRATION_AURA_1:     textId = BOT_TEXT_CONCENTRATION;    break;
+            case FIRE_RESISTANCE_AURA_1:   textId = BOT_TEXT_FIRERESISTANCE;   break;
+            case FROST_RESISTANCE_AURA_1:  textId = BOT_TEXT_FROSTRESISTANCE;  break;
+            case SHADOW_RESISTANCE_AURA_1: textId = BOT_TEXT_SHADOWRESISTANCE; break;
+            case RETRIBUTION_AURA_1:       textId = BOT_TEXT_RETRIBUTION;      break;
+            case CRUSADER_AURA_1:          textId = BOT_TEXT_CRUSADER;         break;
+            default:                       textId = BOT_TEXT_NOAURA;           break;
             }
             specList.push_back(LocalizedNpcText(player, BOT_TEXT_AURA) + ": " + LocalizedNpcText(player, textId));
         }
@@ -2436,10 +2483,10 @@ public:
         //Spells
         uint32 CLEANSE;
         //Timers
-/*misc*/uint32 checkAuraTimer, checkSealTimer, checkShieldTimer, checkBeaconTimer, avDelayTimer, shieldDelayTimer;
+        /*misc*/uint32 checkAuraTimer, checkSealTimer, checkShieldTimer, checkBeaconTimer, avDelayTimer, shieldDelayTimer;
         //Special
-/*misc*/uint8 _aura;
-/*misc*/int32 _sacDamage;
+        /*misc*/uint32 _myaura;
+        /*misc*/int32 _sacDamage;
 
         typedef std::unordered_map<uint32 /*baseId*/, int32 /*amount*/> HealMap;
         HealMap _heals;
@@ -2460,26 +2507,26 @@ public:
                 blessing = true;
                 switch (itr->second->GetBase()->GetSpellInfo()->GetFirstRankSpell()->Id)
                 {
-                    case BLESSING_OF_WISDOM_1:
-                    case GREATER_BLESSING_OF_WISDOM_1:
-                        mask |= SPECIFIC_BLESSING_WISDOM;
-                        break;
-                    case BLESSING_OF_KINGS_1:
-                    case GREATER_BLESSING_OF_KINGS_1:
-                        mask |= SPECIFIC_BLESSING_KINGS;
-                        break;
-                    case BLESSING_OF_SANCTUARY_1:
-                    case GREATER_BLESSING_OF_SANCTUARY_1:
-                        mask |= SPECIFIC_BLESSING_SANCTUARY;
-                        break;
-                    case BLESSING_OF_MIGHT_1:
-                    case GREATER_BLESSING_OF_MIGHT_1:
-                    case BATTLESHOUT_1:
-                        mask |= SPECIFIC_BLESSING_MIGHT;
-                        break;
-                    default:
-                        blessing = false; //next aura
-                        break;
+                case BLESSING_OF_WISDOM_1:
+                case GREATER_BLESSING_OF_WISDOM_1:
+                    mask |= SPECIFIC_BLESSING_WISDOM;
+                    break;
+                case BLESSING_OF_KINGS_1:
+                case GREATER_BLESSING_OF_KINGS_1:
+                    mask |= SPECIFIC_BLESSING_KINGS;
+                    break;
+                case BLESSING_OF_SANCTUARY_1:
+                case GREATER_BLESSING_OF_SANCTUARY_1:
+                    mask |= SPECIFIC_BLESSING_SANCTUARY;
+                    break;
+                case BLESSING_OF_MIGHT_1:
+                case GREATER_BLESSING_OF_MIGHT_1:
+                case BATTLESHOUT_1:
+                    mask |= SPECIFIC_BLESSING_MIGHT;
+                    break;
+                default:
+                    blessing = false; //next aura
+                    break;
                 }
 
                 if (blessing && itr->second->GetBase()->GetCasterGUID() == me->GetGUID())
@@ -2505,30 +2552,30 @@ public:
                 baseId = itr->second->GetBase()->GetSpellInfo()->GetFirstRankSpell()->Id;
                 switch (baseId)
                 {
-                    case DEVOTION_AURA_1:
-                        mask |= SPECIFIC_AURA_DEVOTION;
-                        break;
-                    case CONCENTRATION_AURA_1:
-                        mask |= SPECIFIC_AURA_CONCENTRATION;
-                        break;
-                    case FIRE_RESISTANCE_AURA_1:
-                        mask |= SPECIFIC_AURA_FIRE_RES;
-                        break;
-                    case FROST_RESISTANCE_AURA_1:
-                        mask |= SPECIFIC_AURA_FROST_RES;
-                        break;
-                    case SHADOW_RESISTANCE_AURA_1:
-                        mask |= SPECIFIC_AURA_SHADOW_RES;
-                        break;
-                    case RETRIBUTION_AURA_1:
-                        mask |= SPECIFIC_AURA_RETRIBUTION;
-                        break;
-                    case CRUSADER_AURA_1:
-                        mask |= SPECIFIC_AURA_CRUSADER;
-                        break;
-                    default:
-                        isAura = false; //next aura
-                        break;
+                case DEVOTION_AURA_1:
+                    mask |= SPECIFIC_AURA_DEVOTION;
+                    break;
+                case CONCENTRATION_AURA_1:
+                    mask |= SPECIFIC_AURA_CONCENTRATION;
+                    break;
+                case FIRE_RESISTANCE_AURA_1:
+                    mask |= SPECIFIC_AURA_FIRE_RES;
+                    break;
+                case FROST_RESISTANCE_AURA_1:
+                    mask |= SPECIFIC_AURA_FROST_RES;
+                    break;
+                case SHADOW_RESISTANCE_AURA_1:
+                    mask |= SPECIFIC_AURA_SHADOW_RES;
+                    break;
+                case RETRIBUTION_AURA_1:
+                    mask |= SPECIFIC_AURA_RETRIBUTION;
+                    break;
+                case CRUSADER_AURA_1:
+                    mask |= SPECIFIC_AURA_CRUSADER;
+                    break;
+                default:
+                    isAura = false; //next aura
+                    break;
                 }
 
                 if (isAura)

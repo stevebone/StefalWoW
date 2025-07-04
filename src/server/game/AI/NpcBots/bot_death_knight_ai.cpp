@@ -18,145 +18,150 @@
 #include "World.h"
 /*
 Death Knight NpcBot by Trickerer onlysuffering@gmail.com
-Complete - around 85%
+Complete - around 92%
 Note: Rune system adapted from TC
 TODO: pet related
-Notes: raise dead / army of the dead not working off the bat, summon garg crash, dancing rune weapon crash, need ai workarounds
+Notes: army of the dead is not working off the bat, need ai workaround
 */
 
 enum DeathKnightBaseSpells
 {
-    BLOOD_STRIKE_1                      = 45902,
-    ICY_TOUCH_1                         = 45477,
-    PLAGUE_STRIKE_1                     = 45462,
-    DEATH_STRIKE_1                      = 49998,
-    OBLITERATE_1                        = 49020,
-    RUNE_STRIKE_1                       = 56815,
-    HEART_STRIKE_1                      = 55050,
-    FROST_STRIKE_1                      = 49143,
-    SCOURGE_STRIKE_1                    = 55090,
+    BLOOD_STRIKE_1 = 45902,
+    ICY_TOUCH_1 = 45477,
+    PLAGUE_STRIKE_1 = 45462,
+    DEATH_STRIKE_1 = 49998,
+    OBLITERATE_1 = 49020,
+    RUNE_STRIKE_1 = 56815,
+    HEART_STRIKE_1 = 55050,
+    FROST_STRIKE_1 = 49143,
+    SCOURGE_STRIKE_1 = 55090,
 
-    BLOOD_BOIL_1                        = 48721,
-    DEATH_AND_DECAY_1                   = 43265,
-    HOWLING_BLAST_1                     = 49184,
+    BLOOD_BOIL_1 = 48721,
+    DEATH_AND_DECAY_1 = 43265,
+    HOWLING_BLAST_1 = 49184,
 
-    DEATH_COIL_1                        = 47541,
-    DEATH_GRIP_1                        = 49576,
-    PESTILENCE_1                        = 50842,
-    MIND_FREEZE_1                       = 47528,
-    STRANGULATE_1                       = 47476,
-    CHAINS_OF_ICE_1                     = 45524,
-    ICEBOUND_FORTITUDE_1                = 48792,
-    DARK_COMMAND_1                      = 56222,
-    ANTI_MAGIC_SHELL_1                  = 48707,
-    ARMY_OF_THE_DEAD_1                  = 42650,
+    DEATH_COIL_1 = 47541,
+    DEATH_GRIP_1 = 49576,
+    PESTILENCE_1 = 50842,
+    MIND_FREEZE_1 = 47528,
+    STRANGULATE_1 = 47476,
+    CHAINS_OF_ICE_1 = 45524,
+    ICEBOUND_FORTITUDE_1 = 48792,
+    DARK_COMMAND_1 = 56222,
+    ANTI_MAGIC_SHELL_1 = 48707,
+    ARMY_OF_THE_DEAD_1 = 42650,
 
-    PATH_OF_FROST_1                     = 3714,
-    HORN_OF_WINTER_1                    = 57330,
-    EMPOWER_RUNE_WEAPON_1               = 47568,
-    BLOOD_TAP_1                         = 45529,
+    PATH_OF_FROST_1 = 3714,
+    HORN_OF_WINTER_1 = 57330,
+    EMPOWER_RUNE_WEAPON_1 = 47568,
+    BLOOD_TAP_1 = 45529,
 
-    RUNE_TAP_1                          = 48982,
-    LICHBORNE_1                         = 49039,
+    RUNE_TAP_1 = 48982,
+    LICHBORNE_1 = 49039,
     //CE
-    MARK_OF_BLOOD_1                     = 49005,
-    DEATHCHILL_1                        = 49796,
-    HYSTERIA_1                          = 49016,
-    HUNGERING_COLD_1                    = 49203,
-    ANTI_MAGIC_ZONE_1                   = 48707,
-    VAMPIRIC_BLOOD_1                    = 55233,
-    UNBREAKABLE_ARMOR_1                 = 51271,
-    BONE_SHIELD_1                       = 49222,
+    MARK_OF_BLOOD_1 = 49005,
+    DEATHCHILL_1 = 49796,
+    HYSTERIA_1 = 49016,
+    HUNGERING_COLD_1 = 49203,
+    ANTI_MAGIC_ZONE_1 = 48707,
+    VAMPIRIC_BLOOD_1 = 55233,
+    UNBREAKABLE_ARMOR_1 = 51271,
+    BONE_SHIELD_1 = 49222,
 
-    BLOOD_PRESENCE_1                    = 48266,
-    FROST_PRESENCE_1                    = 48263,
-    UNHOLY_PRESENCE_1                   = 48265//unused
+    DANCING_RUNE_DEAPON_1 = 49028,
+    SUMMON_GARGOYLE_1 = 49206,
+
+    BLOOD_PRESENCE_1 = 48266,
+    FROST_PRESENCE_1 = 48263,
+    UNHOLY_PRESENCE_1 = 48265//unused
 };
 enum DeathKnightPassives
 {
-//Talents
-    BUTCHERY                            = 49483,//rank 2
-    TOUGHNESS                           = 49789,//rank 5
-    BLADED_ARMOR                        = 49393,//rank 5
-    SCENT_OF_BLOOD                      = 49509,//rank 3
-    TWO_HANDED_WEAPON_SPECIALIZATION    = 55108,//rank 2
-    ICY_TALONS                          = 50887,//rank 5
-    ANNIHILATION                        = 51473,//rank 3
-    NECROSIS1                           = 51459,
-    NECROSIS2                           = 51462,
-    NECROSIS3                           = 51463,
-    NECROSIS4                           = 51464,
-    NECROSIS5                           = 51465,
-    SPELL_DEFLECTION                    = 49497,//rank 3
-    VENDETTA                            = 55136,//rank 3
-    KILLING_MACHINE                     = 51130,//rank 5
-    CHILL_OF_THE_GRAVE                  = 50115,//rank 2
-    ON_A_PALE_HORSE_A                   = 51970,//rank 2
-    ON_A_PALE_HORSE_B                   = 51986,//rank 2
-    BLOOD_CAKED_BLADE1                  = 49219,
-    BLOOD_CAKED_BLADE2                  = 49627,
-    BLOOD_CAKED_BLADE3                  = 49628,
-    FRIGID_DREADPLATE                   = 51109,//rank 3
-    UNHOLY_BLIGHT                       = 49194,
-    DIRGE                               = 51206,//rank 2
-    BLOODY_VENGEANCE1                   = 48988,
-    BLOODY_VENGEANCE2                   = 49503,
-    BLOODY_VENGEANCE3                   = 49504,
-    ABOMINATIONS_MIGHT                  = 53138,//rank 2
-    IMPROVED_ICY_TALONS                 = 55610,
-    DESECRATION                         = 55667,//rank 2
+    //Talents
+    BUTCHERY = 49483,//rank 2
+    TOUGHNESS = 49789,//rank 5
+    BLADED_ARMOR = 49393,//rank 5
+    SCENT_OF_BLOOD = 49509,//rank 3
+    TWO_HANDED_WEAPON_SPECIALIZATION = 55108,//rank 2
+    ICY_TALONS = 50887,//rank 5
+    ANNIHILATION = 51473,//rank 3
+    NECROSIS1 = 51459,
+    NECROSIS2 = 51462,
+    NECROSIS3 = 51463,
+    NECROSIS4 = 51464,
+    NECROSIS5 = 51465,
+    SPELL_DEFLECTION = 49497,//rank 3
+    VENDETTA = 55136,//rank 3
+    KILLING_MACHINE = 51130,//rank 5
+    CHILL_OF_THE_GRAVE = 50115,//rank 2
+    ON_A_PALE_HORSE_A = 51970,//rank 2
+    ON_A_PALE_HORSE_B = 51986,//rank 2
+    BLOOD_CAKED_BLADE1 = 49219,
+    BLOOD_CAKED_BLADE2 = 49627,
+    BLOOD_CAKED_BLADE3 = 49628,
+    FRIGID_DREADPLATE = 51109,//rank 3
+    UNHOLY_BLIGHT = 49194,
+    DIRGE = 51206,//rank 2
+    BLOODY_VENGEANCE1 = 48988,
+    BLOODY_VENGEANCE2 = 49503,
+    BLOODY_VENGEANCE3 = 49504,
+    ABOMINATIONS_MIGHT = 53138,//rank 2
+    IMPROVED_ICY_TALONS = 55610,
+    DESECRATION = 55667,//rank 2
     //BLOODWORMS                          = 49543,//rank 3
-    IMPROVED_BLOOD_PRESENCE             = 50371,//rank 2
-    DESOLATION                          = 66817,//rank 5
-    IMPROVED_UNHOLY_PRESENCE            = 50392,//rank 2
-    THREAT_OF_THASSARIAN                = 66192,//rank 3
-    CRYPT_FEVER                         = 49632,//rank 3
-    WILL_OF_THE_NECROPOLIS              = 52286,//rank 3
-    ACCLIMATION                         = 50152,//rank 3
-    WANDERING_PLAGUE                    = 49655,//rank 3
-    EBON_PLAGUEBRINGER                  = 51161,//rank 3
+    IMPROVED_BLOOD_PRESENCE = 50371,//rank 2
+    DESOLATION = 66817,//rank 5
+    IMPROVED_UNHOLY_PRESENCE = 50392,//rank 2
+    THREAT_OF_THASSARIAN = 66192,//rank 3
+    CRYPT_FEVER = 49632,//rank 3
+    WILL_OF_THE_NECROPOLIS = 52286,//rank 3
+    ACCLIMATION = 50152,//rank 3
+    WANDERING_PLAGUE = 49655,//rank 3
+    EBON_PLAGUEBRINGER = 51161,//rank 3
 
-//Other
-    //GLYPH_DANCING_RUNE_WEAPON           = 63330,
-    GLYPH_DISEASE                       = 63334,
-    GLYPH_CHAINS_OF_ICE                 = 58620,
-    GLYPH_UNHOLY_BLIGHT                 = 63332,
-    CHAINS_OF_ICE_FROST_RUNE_REFRESH    = 62459,//5 runic power gain
+    //Other
+    GLYPH_DISEASE = 63334,
+    GLYPH_CHAINS_OF_ICE = 58620,
+    GLYPH_UNHOLY_BLIGHT = 63332,
+    CHAINS_OF_ICE_FROST_RUNE_REFRESH = 62459,//5 runic power gain
 
-    ITEM_DEATH_KNIGHT_T8_MELEE_4P       = 64736,
-    ITEM_DEATH_KNIGHT_T9_MELEE_4P       = 67118,
+    ITEM_DEATH_KNIGHT_T8_MELEE_4P = 64736,
+    ITEM_DEATH_KNIGHT_T9_MELEE_4P = 67118,
 
-//Special
-    FROST_FEVER                         = 59921,
-    BLOOD_PLAGUE                        = 59879,
-    RUNE_STRIKE_PASSIVE                 = 56816,//rune strike activation req aura
-    RUNIC_POWER_MASTERY                 = 49455//rank 1
+    //Special
+    FROST_FEVER = 59921,
+    BLOOD_PLAGUE = 59879,
+    RUNE_STRIKE_PASSIVE = 56816,//rune strike activation req aura
+    RUNIC_POWER_MASTERY = 49455//rank 1
 };
 enum DeathKnightSpecial
 {
-    FROST_FEVER_AURA                    = 55095,
-    BLOOD_PLAGUE_AURA                   = 55078,
-    CRYPT_FEVER_AURA                    = 50510,//rank 3
-    EBON_PLAGUE_AURA                    = 51735,//rank 3
+    FROST_FEVER_AURA = 55095,
+    BLOOD_PLAGUE_AURA = 55078,
+    CRYPT_FEVER_AURA = 50510,//rank 3
+    EBON_PLAGUE_AURA = 51735,//rank 3
 
-    BLADE_BARRIER_BUFF                  = 64859,//rank 5
-    KILLING_MACHINE_BUFF                = 51124,
-    RIME_BUFF                           = 59052,//Freezing Fog
-    ITEM_DEATH_KNIGHT_T10_TANK_4P_BUFF  = 70654,//Blood Armor
+    BLADE_BARRIER_BUFF = 64859,//rank 5
+    KILLING_MACHINE_BUFF = 51124,
+    RIME_BUFF = 59052,//Freezing Fog
+    ITEM_DEATH_KNIGHT_T10_TANK_4P_BUFF = 70654,//Blood Armor
     ITEM_DEATH_KNIGHT_T10_MELEE_4P_BUFF = 70657,//Advantage
 
-    CHILBLAINS_DEBUFF                   = 50436,//Icy Clutch rank 3
+    CHILBLAINS_DEBUFF = 50436,//Icy Clutch rank 3
 
-    BLOOD_PRESENCE_HEAL_EFFECT          = 50475,
+    BLOOD_PRESENCE_HEAL_EFFECT = 50475,
     //UNHOLY_BLIGHT_AURA                  = 50536,
 
-    DEATH_STRIKE_HEAL                   = 45470,
-    DEATH_COIL_HEAL                     = 47633,
-    DEATH_COIL_DAMAGE                   = 47632,
+    DEATH_STRIKE_HEAL = 45470,
+    DEATH_COIL_HEAL = 47633,
+    DEATH_COIL_DAMAGE = 47632,
 
-    GLYPH_HEART_STRIKE_DEBUFF           = 58617, //50% move slow
-    GLYPH_RUNE_TAP_HEAL                 = 59754,
-    GLYPH_SCOURGE_STRIKE_EFFECT         = 69961
+    GLYPH_HEART_STRIKE_DEBUFF = 58617, //50% move slow
+    GLYPH_RUNE_TAP_HEAL = 59754,
+    GLYPH_SCOURGE_STRIKE_EFFECT = 69961,
+
+    NPC_EBON_GARGOYLE = 27829,
+    NPC_DANCING_RUNE_WEAPON = 27893
 };
 
 static const uint32 Deathknight_spells_damage_arr[] =
@@ -203,22 +208,22 @@ public:
 
     struct death_knight_botAI : public bot_ai
     {
-/*
-        bool OnGossipHello(Player* player) override
-        {
-            return OnGossipHello(player, 0);
-        }
+        /*
+                bool OnGossipHello(Player* player) override
+                {
+                    return OnGossipHello(player, 0);
+                }
 
-        bool OnGossipSelect(Player* player, uint32 sender, uint32 action) override
-        {
-            return OnGossipSelect(player, me, sender, action);
-        }
+                bool OnGossipSelect(Player* player, uint32 sender, uint32 action) override
+                {
+                    return OnGossipSelect(player, me, sender, action);
+                }
 
-        bool OnGossipSelectCode(Player* player, uint32 sender, uint32 action, char const* code) override
-        {
-            return OnGossipSelectCode(player, me, sender, action, code);
-        }
-*/
+                bool OnGossipSelectCode(Player* player, uint32 sender, uint32 action, char const* code) override
+                {
+                    return OnGossipSelectCode(player, me, sender, action, code);
+                }
+        */
         death_knight_botAI(Creature* creature) : bot_ai(creature)
         {
             _botclass = BOT_CLASS_DEATH_KNIGHT;
@@ -328,7 +333,7 @@ public:
         void JustEnteredCombat(Unit* u) override { bot_ai::JustEnteredCombat(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { UnsummonAll(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonAll(false); bot_ai::JustDied(u); }
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
 
         void DoNonCombatActions(uint32 diff)
@@ -468,7 +473,7 @@ public:
             if (presencetimer > diff || IAmFree() || IsCasting() || Rand() > 30)
                 return;
 
-            uint8 newpresence = IsTank() ? DEATH_KNIGHT_FROST_PRESENCE : DEATH_KNIGHT_BLOOD_PRESENCE;
+            uint8 newpresence = IsTank() ? DEATH_KNIGHT_FROST_PRESENCE : GetSpec() == BOT_SPEC_DK_UNHOLY ? DEATH_KNIGHT_UNHOLY_PRESENCE : DEATH_KNIGHT_BLOOD_PRESENCE;
             if (_presence == newpresence)
             {
                 presencetimer = 5000;
@@ -485,6 +490,11 @@ public:
                 if (doCast(me, BLOOD_PRESENCE_1))
                     return;
             }
+            else if (newpresence == DEATH_KNIGHT_UNHOLY_PRESENCE && HaveRunes(UNHOLY_PRESENCE_1))
+            {
+                if (doCast(me, UNHOLY_PRESENCE_1))
+                    return;
+            }
 
             presencetimer = 1000; //fail
         }
@@ -492,7 +502,7 @@ public:
         void BreakCC(uint32 diff) override
         {
             if (IsSpellReady(LICHBORNE_1, diff, false) && Rand() < 45 &&
-                me->HasAuraWithMechanic((1<<MECHANIC_CHARM)|(1<<MECHANIC_FEAR)|(1<<MECHANIC_SLEEP)))
+                me->HasAuraWithMechanic((1 << MECHANIC_CHARM) | (1 << MECHANIC_FEAR) | (1 << MECHANIC_SLEEP)))
             {
                 if (doCast(me, GetSpell(LICHBORNE_1)))
                     return;
@@ -515,7 +525,7 @@ public:
 
             Unit* target = me->GetVictim();
             if (IsSpellReady(MIND_FREEZE_1, diff, false) && target && me->GetDistance(target) < 5 &&
-                runicpower >= rcost(MIND_FREEZE_1) && target->IsNonMeleeSpellCast(false,false,true))
+                runicpower >= rcost(MIND_FREEZE_1) && target->IsNonMeleeSpellCast(false, false, true))
             {
                 if (doCast(me->GetVictim(), GetSpell(MIND_FREEZE_1)))
                     getpower();
@@ -583,7 +593,7 @@ public:
             //HORN OF WINTER
             if (IsSpellReady(HORN_OF_WINTER_1, diff) && !IAmFree() && Rand() < 25 &&
                 ((me->IsInCombat() && runicpower <= 900) ||
-                !me->GetAuraEffect(SPELL_AURA_MOD_STAT, SPELLFAMILY_DEATHKNIGHT, 0x0, 0x40000000, 0x0)))
+                    !me->GetAuraEffect(SPELL_AURA_MOD_STAT, SPELLFAMILY_DEATHKNIGHT, 0x0, 0x40000000, 0x0)))
             {
                 if (doCast(me, GetSpell(HORN_OF_WINTER_1)))
                     return;
@@ -668,6 +678,7 @@ public:
             }
             //LICHBORNE + DEATH COIL
             if ((me->GetCreatureType() == CREATURE_TYPE_UNDEAD || IsSpellReady(LICHBORNE_1, diff, false)) &&
+                (IAmFree() || IsTank() || master->GetBotMgr()->GetNpcBotsCountByRole(BOT_ROLE_HEAL) == 0) &&
                 IsSpellReady(DEATH_COIL_1, diff) && Rand() < 45 && GetHealthPCT(me) < 80 && runicpower >= rcost(DEATH_COIL_1))
             {
                 if (me->GetCreatureType() == CREATURE_TYPE_UNDEAD || doCast(me, GetSpell(LICHBORNE_1)))
@@ -713,8 +724,8 @@ public:
                 mytar->GetTypeId() == TYPEID_UNIT && !mytar->IsControlledByPlayer() && Rand() < 50 &&
                 !CCed(mytar) && !mytar->HasAuraType(SPELL_AURA_MOD_TAUNT) &&
                 (!IsTank(u) || (IsTank() && GetHealthPCT(me) > 67 &&
-                (GetHealthPCT(u) < 30 || (IsOffTank() && !IsOffTank(u) && IsPointedOffTankingTarget(mytar)) ||
-                (!IsOffTank() && IsOffTank(u) && IsPointedTankingTarget(mytar))))) &&
+                    (GetHealthPCT(u) < 30 || (IsOffTank() && !IsOffTank(u) && IsPointedOffTankingTarget(mytar)) ||
+                        (!IsOffTank() && IsOffTank(u) && IsPointedTankingTarget(mytar))))) &&
                 ((!IsTankingClass(u->GetClass()) && GetHealthPCT(u) < 80) || IsTank()) &&
                 IsInBotParty(u))
             {
@@ -725,7 +736,7 @@ public:
             if (IsSpellReady(DARK_COMMAND_1, diff, false) && !IAmFree() && u == me && Rand() < 30 && IsTank() &&
                 (IsOffTank() || master->GetBotMgr()->GetNpcBotsCountByRole(BOT_ROLE_TANK_OFF) == 0) &&
                 !(me->GetLevel() >= 40 && mytar->GetTypeId() == TYPEID_UNIT &&
-                (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())))
+                    (mytar->ToCreature()->IsDungeonBoss() || mytar->ToCreature()->isWorldBoss())))
             {
                 if (Unit* tUnit = FindDistantTauntTarget())
                 {
@@ -754,7 +765,8 @@ public:
                 (IsTank() || !me->getAttackers().empty() || mytar->GetMaxHealth() > me->GetMaxHealth() || Rand() < 35))
             {
                 if (doCast(me, GetSpell(UNBREAKABLE_ARMOR_1)))
-                {}
+                {
+                }
             }
 
             if (!HasRole(BOT_ROLE_DPS))
@@ -762,9 +774,9 @@ public:
 
             //CHAINS OF ICE
             if (IsSpellReady(CHAINS_OF_ICE_1, diff) && Rand() < 65 && dist < CalcSpellMaxRange(CHAINS_OF_ICE_1) && mytar->isMoving() &&
-                !(mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->GetCreatureTemplate()->MechanicImmuneMask & (1<<(MECHANIC_SNARE-1)))) &&
+                !(mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->GetCreatureTemplate()->MechanicImmuneMask & (1 << (MECHANIC_SNARE - 1)))) &&
                 HaveRunes(CHAINS_OF_ICE_1) && !CCed(mytar, true) && (!u || (!IsTank(u) && IsInBotParty(u))) &&
-                !mytar->HasAuraWithMechanic(1<<MECHANIC_SNARE))
+                !mytar->HasAuraWithMechanic(1 << MECHANIC_SNARE))
             {
                 if (doCast(mytar, GetSpell(CHAINS_OF_ICE_1)))
                     return;
@@ -783,11 +795,12 @@ public:
             }
 
             //Diseases in general
-            bool noDiseases = (mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->GetCreatureTemplate()->MechanicImmuneMask & (1<<(MECHANIC_INFECTED-1))));
+            bool noDiseases = (mytar->GetTypeId() == TYPEID_UNIT && (mytar->ToCreature()->GetCreatureTemplate()->MechanicImmuneMask & (1 << (MECHANIC_INFECTED - 1))));
             AuraEffect const* blop = noDiseases ? nullptr : mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, 0x0, 0x2000000, 0x0, me->GetGUID());
             AuraEffect const* frof = noDiseases ? nullptr : mytar->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, 0x0, 0x4000000, 0x0, me->GetGUID());
+            AuraEffect const* ebop = (noDiseases || GetSpec() != BOT_SPEC_DK_UNHOLY) ? nullptr : mytar->GetAuraEffect(SPELL_AURA_LINKED, SPELLFAMILY_DEATHKNIGHT, 0x0, 0x800, 0x0, me->GetGUID());
 
-            auto [can_do_frost, can_do_shadow, can_do_physical] = CanAffectVictimBools(mytar, SPELL_SCHOOL_FROST, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_NORMAL);
+            auto [can_do_nature, can_do_frost, can_do_shadow, can_do_physical] = CanAffectVictimBools(mytar, SPELL_SCHOOL_NATURE, SPELL_SCHOOL_FROST, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_NORMAL);
 
             //DISEASE SECTION
 
@@ -827,17 +840,35 @@ public:
             //HOWLING BLAST
             if (IsSpellReady(HOWLING_BLAST_1, diff) && can_do_frost && (rimeProcTimer > diff || Rand() < 70) &&
                 (!u || mytar->IsControlledByPlayer() || rimeProcTimer > diff ||
-                (u && u != me && IsTank(u) && u->getAttackers().size() > 2)) &&
+                    (u && u != me && IsTank(u) && u->getAttackers().size() > 2)) &&
                 dist < CalcSpellMaxRange(HOWLING_BLAST_1) && HaveRunes(HOWLING_BLAST_1))
             {
                 if (u && u->getAttackers().size() > 4 &&
                     IsSpellReady(DEATHCHILL_1, diff, false) && doCast(me, GetSpell(DEATHCHILL_1)))
-                {/* BotWhisper("Deathchill used!"); */}
+                {/* BotWhisper("Deathchill used!"); */
+                }
                 if (doCast(mytar, GetSpell(HOWLING_BLAST_1)))
                     return;
             }
 
             //END DISEASE SECTION
+
+            //COMBAT SUMMONS SECTION
+
+            //SUMMON GARGOYLE
+            if (IsSpellReady(SUMMON_GARGOYLE_1, diff) && can_do_nature && Rand() < 60 && dist < 30 &&
+                (IAmFree() || mytar->GetHealth() > me->GetMaxHealth() / 4) && runicpower >= rcost(SUMMON_GARGOYLE_1))
+            {
+                if (doCast(mytar, GetSpell(SUMMON_GARGOYLE_1)))
+                    return;
+            }
+            //DANCING RUNE WEAPON
+            if (IsSpellReady(DANCING_RUNE_DEAPON_1, diff) && can_do_physical && (noDiseases || (blop && frof)) && Rand() < 60 && dist < 15 &&
+                (IAmFree() || mytar->GetHealth() > me->GetHealth() / 4) && runicpower >= rcost(DANCING_RUNE_DEAPON_1))
+            {
+                if (doCast(mytar, GetSpell(DANCING_RUNE_DEAPON_1)))
+                    return;
+            }
 
             //MELEE SECTION
 
@@ -893,18 +924,19 @@ public:
 
             //DEATH STRIKE
             if (IsSpellReady(DEATH_STRIKE_1, diff) && blop && frof && Rand() < 60 &&
-                GetHealthPCT(me) < (80 - (10*(blop != nullptr) + 10*(frof != nullptr))) &&
+                GetHealthPCT(me) < (80 - (10 * (blop != nullptr) + 10 * (frof != nullptr))) &&
                 (!me->GetMap()->IsDungeon() || mytar->IsControlledByPlayer()) && HaveRunes(DEATH_STRIKE_1))
             {
                 if (doCast(mytar, GetSpell(DEATH_STRIKE_1)))
                     return;
             }
             //OBLITERATE
-            if (IsSpellReady(OBLITERATE_1, diff) && (noDiseases || (blop && frof)) && HaveRunes(OBLITERATE_1))
+            if (IsSpellReady(OBLITERATE_1, diff) && GetSpec() == BOT_SPEC_DK_FROST && blop && frof && HaveRunes(OBLITERATE_1))
             {
                 //DEATHCHILL
                 if (IsSpellReady(DEATHCHILL_1, diff, false) && doCast(me, GetSpell(DEATHCHILL_1)))
-                {/* BotWhisper("Deathchill used!"); */}
+                {/* BotWhisper("Deathchill used!"); */
+                }
                 if (doCast(mytar, GetSpell(OBLITERATE_1)))
                     return;
             }
@@ -915,18 +947,18 @@ public:
                 if (doCast(mytar, GetSpell(HEART_STRIKE_1)))
                     return;
             }
+            //SCOURGE STRIKE unused
+            if (IsSpellReady(SCOURGE_STRIKE_1, diff) && blop && frof && ebop && HaveRunes(SCOURGE_STRIKE_1))
+            {
+                if (doCast(mytar, GetSpell(SCOURGE_STRIKE_1)))
+                    return;
+            }
             //BLOOD STRIKE
             if (IsSpellReady(BLOOD_STRIKE_1, diff) && (noDiseases || (blop && frof)) && HaveRunes(BLOOD_STRIKE_1))
             {
                 if (doCast(mytar, GetSpell(BLOOD_STRIKE_1)))
                     return;
             }
-            //SCOURGE STRIKE unused
-            //if (IsSpellReady(SCOURGE_STRIKE_1, diff) && (noDiseases || (blop && frof)) && HaveRunes(SCOURGE_STRIKE_1))
-            //{
-            //    if (doCast(mytar, GetSpell(SCOURGE_STRIKE_1)))
-            //        return;
-            //}
 
             //END DISEASE SECTION
 
@@ -967,11 +999,11 @@ public:
 
             //Killing Machine
             if (AuraEffect const* mach = me->GetAuraEffect(KILLING_MACHINE_BUFF, 0))
-                if (mach->IsAffectedOnSpell(spellInfo))
+                if (mach->IsAffectingSpell(spellInfo))
                     crit_chance += 100.f;
             //Deathchill
             if (AuraEffect const* chil = me->GetAuraEffect(DEATHCHILL_1, 0))
-                if (chil->IsAffectedOnSpell(spellInfo))
+                if (chil->IsAffectingSpell(spellInfo))
                     crit_chance += 100.f;
 
             //Subversion: 9% additional critical chance for Blood Strike, Scourge Strike, Heart Strike and Obliterate
@@ -994,7 +1026,7 @@ public:
             //Item - Death Knight T8 Melee 2P Bonus: 8% additional critical chance for Death Coil and Frost Strike
             if (lvl >= 80 &&
                 (baseId == DEATH_COIL_1 || baseId == DEATH_COIL_DAMAGE ||
-                baseId == DEATH_COIL_HEAL || baseId == FROST_STRIKE_1))
+                    baseId == DEATH_COIL_HEAL || baseId == FROST_STRIKE_1))
                 crit_chance += 8.f;
         }
 
@@ -1017,7 +1049,7 @@ public:
                 //Guile of Gorefiend (part 1 melee): 45% crit damage bonus for Blood Strike, Frost Strike, Howling Blast and Obliterate
                 if ((GetSpec() == BOT_SPEC_DK_FROST) && lvl >= 63 &&
                     (baseId == BLOOD_STRIKE_1 || baseId == FROST_STRIKE_1 ||
-                    baseId == HOWLING_BLAST_1 || baseId == OBLITERATE_1))
+                        baseId == HOWLING_BLAST_1 || baseId == OBLITERATE_1))
                     pctbonus += 0.45f / 2.f;
                 //Vicious Strikes (part 2): 30% crit damage bonus for Plague Strike and Scourge Strike
                 if (baseId == PLAGUE_STRIKE_1 || baseId == SCOURGE_STRIKE_1)
@@ -1076,7 +1108,7 @@ public:
                 pctbonus += 0.1f;
 
             //Glyph of Blood Strike: 20% bonus damage for Blood Strike on snared targets
-            if (baseId == BLOOD_STRIKE_1 && damageinfo.target->HasAuraWithMechanic(1<<MECHANIC_SNARE))
+            if (baseId == BLOOD_STRIKE_1 && damageinfo.target->HasAuraWithMechanic(1 << MECHANIC_SNARE))
                 pctbonus += 0.2f;
             //Glyph of Death Strike: 1% bonus damage for every runic power point (max 25) for Death Strike
             if (baseId == DEATH_STRIKE_1 && runicpower >= 10)
@@ -1129,7 +1161,7 @@ public:
                 //Guile of Gorefiend (part 1 spell): 45% crit damage bonus for Blood Strike, Frost Strike, Howling Blast and Obliterate
                 if ((GetSpec() == BOT_SPEC_DK_FROST) && lvl >= 63 &&
                     (baseId == BLOOD_STRIKE_1 || baseId == FROST_STRIKE_1 ||
-                    baseId == HOWLING_BLAST_1 || baseId == OBLITERATE_1))
+                        baseId == HOWLING_BLAST_1 || baseId == OBLITERATE_1))
                     pctbonus += 0.45f / 1.5f;
             }
 
@@ -1137,7 +1169,7 @@ public:
             if (baseId == ICY_TOUCH_1)
                 pctbonus += 0.15f;
             //Black Ice: 10% bonus damage for Shadow and Frost spells
-            if (spellInfo->GetSchoolMask() & (SPELL_SCHOOL_MASK_FROST|SPELL_SCHOOL_MASK_SHADOW))
+            if (spellInfo->GetSchoolMask() & (SPELL_SCHOOL_MASK_FROST | SPELL_SCHOOL_MASK_SHADOW))
                 pctbonus += 0.1f;
             //Morbidity part 1: 15% damage bonus for Death Coil
             if (baseId == DEATH_COIL_1 || baseId == DEATH_COIL_DAMAGE)
@@ -1330,8 +1362,8 @@ public:
             //Unholy Presence
             if (_presence == DEATH_KNIGHT_UNHOLY_PRESENCE &&
                 ((spellInfo->SpellFamilyFlags[0] & 0xFFDFFE7F) ||
-                (spellInfo->SpellFamilyFlags[0] & 0x480B11F7) ||
-                (spellInfo->SpellFamilyFlags[0] & 0x20)))
+                    (spellInfo->SpellFamilyFlags[0] & 0x480B11F7) ||
+                    (spellInfo->SpellFamilyFlags[0] & 0x20)))
                 timebonus += 500.f;
 
             cooldown = (cooldown * (1.0f - pctbonus)) - timebonus;
@@ -1456,9 +1488,9 @@ public:
             //Deathchill
             AuraEffect const* mach = me->GetAuraEffect(KILLING_MACHINE_BUFF, 0);
             AuraEffect const* chil = me->GetAuraEffect(DEATHCHILL_1, 0);
-            if (mach && mach->IsAffectedOnSpell(spell))
+            if (mach && mach->IsAffectingSpell(spell))
                 me->RemoveAurasDueToSpell(KILLING_MACHINE_BUFF);
-            else if (chil && chil->IsAffectedOnSpell(spell))
+            else if (chil && chil->IsAffectingSpell(spell))
                 me->RemoveAurasDueToSpell(DEATHCHILL_1);
 
             //Icy Touch tanking helper (TODO: remove this hack after threat mods implementation)
@@ -1489,7 +1521,7 @@ public:
                 }
             }
             //Rime (part 2): Obliterate has 15% chance to reset Howling Blast cooldown
-            if ((GetSpec() == BOT_SPEC_DK_FROST) && baseId == OBLITERATE_1 && urand(1,100) <= 15)
+            if ((GetSpec() == BOT_SPEC_DK_FROST) && baseId == OBLITERATE_1 && urand(1, 100) <= 15)
             {
                 ResetSpellCooldown(HOWLING_BLAST_1);
                 me->CastSpell(me, RIME_BUFF, true);
@@ -1525,7 +1557,7 @@ public:
                 me->CastSpell(target, CHILBLAINS_DEBUFF, true);
             //Sudden Doom: 15% ctc Death Coil on Blood Strike or Heart Strike
             if ((GetSpec() == BOT_SPEC_DK_BLOOD) &&
-                (baseId == BLOOD_STRIKE_1 || baseId == HEART_STRIKE_1) && GetSpell(DEATH_COIL_1) && urand(1,100) <= 15)
+                (baseId == BLOOD_STRIKE_1 || baseId == HEART_STRIKE_1) && GetSpell(DEATH_COIL_1) && urand(1, 100) <= 15)
                 me->CastSpell(target, GetSpell(DEATH_COIL_1), true);
             //Glyph of Heart Strike
             if (baseId == HEART_STRIKE_1)
@@ -1608,7 +1640,7 @@ public:
                     if (AuraEffect* eff2 = fort->GetEffect(EFFECT_2))
                     {
                         //calc correct amount
-                        int32 amount = eff2->GetAmount() - int32(0.15f * (std::max<int32>(0, GetBotDefense() - lvl*5)));
+                        int32 amount = eff2->GetAmount() - int32(0.15f * (std::max<int32>(0, GetBotDefense() - lvl * 5)));
                         //Glyph of Icebound Fortitude
                         amount = std::min<int32>(amount, -40);
                         //Increased Icebound Fortitude Mitigation (54803)
@@ -1674,7 +1706,7 @@ public:
         void SummonBotPet()
         {
             if (botPet)
-                UnsummonAll();
+                UnsummonAll(false);
 
             uint32 entry = BOT_PET_GHOUL;
 
@@ -1693,23 +1725,23 @@ public:
             botPet = myPet;
         }
 
-        void UnsummonAll() override
+        void JustSummoned(Creature* summon) override
         {
-            if (botPet)
-                botPet->ToTempSummon()->UnSummon();
-        }
-
-        void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override
-        {
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDies: {}'s {}", me->GetName(), summon->GetName());
-            //if (summon == botPet)
-            //    botPet = nullptr;
+            switch (summon->GetEntry())
+            {
+            case NPC_DANCING_RUNE_WEAPON:
+            case NPC_EBON_GARGOYLE:
+                summon->SetCreator(me);
+                break;
+            default:
+                break;
+            }
         }
 
         void SummonedCreatureDespawn(Creature* summon) override
         {
             //all hunter bot pets despawn at death or manually (gossip, teleport, etc.)
-            //TC_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
+            //BOT_LOG_ERROR("entities.unit", "SummonedCreatureDespawn: {}'s {}", me->GetName(), summon->GetName());
             if (summon == botPet)
             {
                 petSummonTimer = 30000;
@@ -1717,20 +1749,25 @@ public:
             }
         }
 
+        void UnsummonAll(bool savePets = true) override
+        {
+            UnsummonPet(savePets);
+        }
+
         uint32 GetAIMiscValue(uint32 data) const override
         {
             switch (data)
             {
-                case BOTAI_MISC_PET_TYPE:
-                    return BOT_PET_GHOUL;
-                default:
-                    return 0;
+            case BOTAI_MISC_PET_TYPE:
+                return BOT_PET_GHOUL;
+            default:
+                return 0;
             }
         }
 
         void Reset() override
         {
-            UnsummonAll();
+            UnsummonAll(false);
 
             petSummonTimer = 5000;
 
@@ -1807,22 +1844,24 @@ public:
             InitSpellMap(EMPOWER_RUNE_WEAPON_1);
             InitSpellMap(BLOOD_TAP_1);
 
-  /*Talent*/lvl >= 57 ? InitSpellMap(RUNE_TAP_1) : RemoveSpell(RUNE_TAP_1);
-  /*Talent*/lvl >= 59 && isBloo ? InitSpellMap(MARK_OF_BLOOD_1) : RemoveSpell(MARK_OF_BLOOD_1);
-  /*Talent*/lvl >= 61 && isBloo ? InitSpellMap(HYSTERIA_1) : RemoveSpell(HYSTERIA_1);
-  /*Talent*/lvl >= 62 && isBloo ? InitSpellMap(VAMPIRIC_BLOOD_1) : RemoveSpell(VAMPIRIC_BLOOD_1);
-  /*Talent*/lvl >= 63 && isBloo ? InitSpellMap(HEART_STRIKE_1) : RemoveSpell(HEART_STRIKE_1);
+            /*Talent*/lvl >= 57 ? InitSpellMap(RUNE_TAP_1) : RemoveSpell(RUNE_TAP_1);
+            /*Talent*/lvl >= 59 && isBloo ? InitSpellMap(MARK_OF_BLOOD_1) : RemoveSpell(MARK_OF_BLOOD_1);
+            /*Talent*/lvl >= 61 && isBloo ? InitSpellMap(HYSTERIA_1) : RemoveSpell(HYSTERIA_1);
+            /*Talent*/lvl >= 62 && isBloo ? InitSpellMap(VAMPIRIC_BLOOD_1) : RemoveSpell(VAMPIRIC_BLOOD_1);
+            /*Talent*/lvl >= 63 && isBloo ? InitSpellMap(HEART_STRIKE_1) : RemoveSpell(HEART_STRIKE_1);
+            /*Talent*/lvl >= 65 && isBloo ? InitSpellMap(DANCING_RUNE_DEAPON_1) : RemoveSpell(DANCING_RUNE_DEAPON_1);
 
-  /*Talent*/lvl >= 57 ? InitSpellMap(LICHBORNE_1) : RemoveSpell(LICHBORNE_1);
-  /*Talent*/lvl >= 59 && isFros ? InitSpellMap(DEATHCHILL_1) : RemoveSpell(DEATHCHILL_1);
-  /*Talent*/lvl >= 61 && isFros ? InitSpellMap(HUNGERING_COLD_1) : RemoveSpell(HUNGERING_COLD_1);
-  /*Talent*/lvl >= 62 && isFros ? InitSpellMap(UNBREAKABLE_ARMOR_1) : RemoveSpell(UNBREAKABLE_ARMOR_1);
-  /*Talent*/lvl >= 63 && isFros ? InitSpellMap(FROST_STRIKE_1) : RemoveSpell(FROST_STRIKE_1);
-  /*Talent*/lvl >= 65 && isFros ? InitSpellMap(HOWLING_BLAST_1) : RemoveSpell(HOWLING_BLAST_1);
+            /*Talent*/lvl >= 57 ? InitSpellMap(LICHBORNE_1) : RemoveSpell(LICHBORNE_1);
+            /*Talent*/lvl >= 59 && isFros ? InitSpellMap(DEATHCHILL_1) : RemoveSpell(DEATHCHILL_1);
+            /*Talent*/lvl >= 61 && isFros ? InitSpellMap(HUNGERING_COLD_1) : RemoveSpell(HUNGERING_COLD_1);
+            /*Talent*/lvl >= 62 && isFros ? InitSpellMap(UNBREAKABLE_ARMOR_1) : RemoveSpell(UNBREAKABLE_ARMOR_1);
+            /*Talent*/lvl >= 63 && isFros ? InitSpellMap(FROST_STRIKE_1) : RemoveSpell(FROST_STRIKE_1);
+            /*Talent*/lvl >= 65 && isFros ? InitSpellMap(HOWLING_BLAST_1) : RemoveSpell(HOWLING_BLAST_1);
 
-  /*Talent*/lvl >= 61 && isUnho ? InitSpellMap(ANTI_MAGIC_ZONE_1) : RemoveSpell(ANTI_MAGIC_ZONE_1);
-  /*Talent*/lvl >= 62 && isUnho ? InitSpellMap(BONE_SHIELD_1) : RemoveSpell(BONE_SHIELD_1);
-  /*Talent*/lvl >= 63 && isUnho ? InitSpellMap(SCOURGE_STRIKE_1) : RemoveSpell(SCOURGE_STRIKE_1);
+            /*Talent*/lvl >= 61 && isUnho ? InitSpellMap(ANTI_MAGIC_ZONE_1) : RemoveSpell(ANTI_MAGIC_ZONE_1);
+            /*Talent*/lvl >= 62 && isUnho ? InitSpellMap(BONE_SHIELD_1) : RemoveSpell(BONE_SHIELD_1);
+            /*Talent*/lvl >= 63 && isUnho ? InitSpellMap(SCOURGE_STRIKE_1) : RemoveSpell(SCOURGE_STRIKE_1);
+            /*Talent*/lvl >= 65 && isUnho ? InitSpellMap(SUMMON_GARGOYLE_1) : RemoveSpell(SUMMON_GARGOYLE_1);
 
             InitSpellMap(BLOOD_PRESENCE_1, true);
             InitSpellMap(FROST_PRESENCE_1, true);
@@ -1879,7 +1918,6 @@ public:
             RefreshAura(WANDERING_PLAGUE, isUnho && level >= 63 ? 1 : 0);
             RefreshAura(EBON_PLAGUEBRINGER, isUnho && level >= 63 ? 1 : 0);
 
-            //RefreshAura(GLYPH_DANCING_RUNE_WEAPON, level >= 60 ? 1 : 0);
             RefreshAura(GLYPH_DISEASE);
             RefreshAura(GLYPH_CHAINS_OF_ICE);
             RefreshAura(GLYPH_UNHOLY_BLIGHT, level >= 60 ? 1 : 0);
@@ -1897,17 +1935,19 @@ public:
         {
             switch (basespell)
             {
-                case LICHBORNE_1:
-                case PATH_OF_FROST_1:
-                case HORN_OF_WINTER_1:
-                case BONE_SHIELD_1:
-                case RUNE_TAP_1:
-                case EMPOWER_RUNE_WEAPON_1:
-                case VAMPIRIC_BLOOD_1:
-                case HYSTERIA_1:
-                    return true;
-                default:
-                    return false;
+            case LICHBORNE_1:
+            case PATH_OF_FROST_1:
+            case HORN_OF_WINTER_1:
+            case BONE_SHIELD_1:
+            case RUNE_TAP_1:
+            case EMPOWER_RUNE_WEAPON_1:
+            case VAMPIRIC_BLOOD_1:
+            case HYSTERIA_1:
+                return true;
+            case DEATH_COIL_1:
+                return master->GetCreatureType() == CREATURE_TYPE_UNDEAD;
+            default:
+                return false;
             }
         }
 
@@ -1931,12 +1971,12 @@ public:
     private:
         BotRuneInfo _runes[MAX_RUNES];
 
-/*tmrs*/uint32 presencetimer, runicpowertimer, runicpowertimer2;
+        /*tmrs*/uint32 presencetimer, runicpowertimer, runicpowertimer2;
         uint32 rimeProcTimer;
-/*misc*/int32 runicpower;
-/*misc*/int32 runeCost[NUM_RUNE_TYPES];
-/*misc*/float runicpowerIncomeMult, runicpowerLossMult;
-/*Chck*/uint8 _presence;
+        /*misc*/int32 runicpower;
+        /*misc*/int32 runeCost[NUM_RUNE_TYPES];
+        /*misc*/float runicpowerIncomeMult, runicpowerLossMult;
+        /*Chck*/uint8 _presence;
         //Pet
         uint32 petSummonTimer;
 
@@ -2063,7 +2103,7 @@ public:
         {
             for (uint8 i = 0; i != MAX_RUNES; ++i)
             {
-                int32 &cd = _runes[i].Cooldown;
+                int32& cd = _runes[i].Cooldown;
                 if (me->IsInCombat())
                 {
                     //RGP

@@ -31,40 +31,40 @@ fine-tune corpse explosion conditions
 
 enum NecromancerBaseSpells
 {
-    MAIN_ATTACK_1           = SPELL_SHADOW_BOLT2,
-    RAISE_DEAD_1            = SPELL_RAISE_DEAD,
-    UNHOLY_FRENZY_1         = SPELL_UNHOLY_FRENZY,
-    CRIPPLE_1               = SPELL_CRIPPLE,
+    MAIN_ATTACK_1 = SPELL_SHADOW_BOLT2,
+    RAISE_DEAD_1 = SPELL_RAISE_DEAD,
+    UNHOLY_FRENZY_1 = SPELL_UNHOLY_FRENZY,
+    CRIPPLE_1 = SPELL_CRIPPLE,
 
-    CORPSE_EXPLOSION_1      = SPELL_CORPSE_EXPLOSION,
+    CORPSE_EXPLOSION_1 = SPELL_CORPSE_EXPLOSION,
     //ATTRACT_1               = SPELL_BLOOD_CURSE
 };
 enum NecromancerSpecial
 {
-    MH_ATTACK_ANIM          = SPELL_ATTACK_MELEE_1H,
+    MH_ATTACK_ANIM = SPELL_ATTACK_MELEE_1H,
 
-    RAISE_DEAD_COST         = 50 * 5, // 75 * 5, Reduced to match playstyle (1-2,3?) necromancers
-    UNHOLY_FRENZY_COST      = 50 * 5,
-    CRIPPLE_COST            = 175 * 5,
-    CORPSE_EXPLOSION_COST   = 100 * 5,
+    RAISE_DEAD_COST = 50 * 5, // 75 * 5, Reduced to match playstyle (1-2,3?) necromancers
+    UNHOLY_FRENZY_COST = 50 * 5,
+    CRIPPLE_COST = 175 * 5,
+    CORPSE_EXPLOSION_COST = 100 * 5,
     //ATTRACT_COST            = 200 * 5,
 
     //get 80% mana back if casting on a skeleton
-    UNHOLY_FRENZY_REFUND    = UNHOLY_FRENZY_COST / 10 * 8,
+    UNHOLY_FRENZY_REFUND = UNHOLY_FRENZY_COST / 10 * 8,
 
-    MAX_MINIONS             = 6,
+    MAX_MINIONS = 12,
 
-    SPELL_SPAWN_ANIM        = 25035,
-    SPELL_BLOODY_EXPLOSION  = 36599,
+    SPELL_SPAWN_ANIM = 25035,
+    SPELL_BLOODY_EXPLOSION = 36599,
 
-    MODEL_BLOODY_BONES      = 25538,
+    MODEL_BLOODY_BONES = 25538,
 
     CORPSE_EXPLOSION_DAMAGE = 50444, //DK spell
 
-    CE_DAMAGE_PCT_BASE      = 35,
+    CE_DAMAGE_PCT_BASE = 35,
     CE_DAMAGE_PCT_PER_LEVEL = 1,
 
-    CE_MIN_TARGETS          = 3
+    CE_MIN_TARGETS = 3
 };
 
 static const uint32 Necromancer_spells_damage_arr[] =
@@ -125,13 +125,13 @@ public:
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
         void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
-        void JustDied(Unit* u) override { UnsummonAll(); bot_ai::JustDied(u); }
+        void JustDied(Unit* u) override { UnsummonAll(false); bot_ai::JustDied(u); }
         void DoNonCombatActions(uint32 /*diff*/) { }
 
         void CheckCorpseExplosion(uint32 diff)
         {
             if (!IsSpellReady(CORPSE_EXPLOSION_1, diff) || _corpseExplosionCheckTimer > diff ||
-                me->GetLevel() < 40 || me->GetPower(POWER_MANA) < CORPSE_EXPLOSION_COST ||  Rand() > 80)
+                me->GetLevel() < 40 || me->GetPower(POWER_MANA) < CORPSE_EXPLOSION_COST || Rand() > 80)
                 return;
 
             _corpseExplosionCheckTimer = 500;
@@ -151,9 +151,9 @@ public:
                         return true;
                     }
                     return false;
-                };
+                    };
                 Creature* creature = nullptr;
-                Trinity::CreatureLastSearcher searcher(me, creature, corpse_pred);
+                Bcore::CreatureLastSearcher searcher(me, creature, corpse_pred);
                 Cell::VisitAllObjects(me, searcher, ceinfo->RangeEntry->RangeMax[0]);
 
                 if (creature)
@@ -168,12 +168,12 @@ public:
 
             //2. Find a corpse with enough idiots around it (this one in n^2 so open for reviews)
             {
-                auto corpse_pred = [this, ceradius = ceradius, maxmob = std::size_t(CE_MIN_TARGETS-1)](Creature const* c) mutable {
+                auto corpse_pred = [this, ceradius = ceradius, maxmob = std::size_t(CE_MIN_TARGETS - 1)](Creature const* c) mutable {
                     if (_isUsableCorpse(c))
                     {
                         std::list<Unit*> units;
                         NearbyHostileUnitCheck check(me, ceradius, this, 0, c);
-                        Trinity::UnitListSearcher searcher(c, units, check);
+                        Bcore::UnitListSearcher searcher(c, units, check);
                         Cell::VisitAllObjects(c, searcher, ceradius);
                         if (units.size() > maxmob)
                         {
@@ -183,13 +183,13 @@ public:
                         return false;
                     }
                     return false;
-                };
+                    };
                 std::list<Creature*> corpses;
-                Trinity::CreatureListSearcher searcher(me, corpses, corpse_pred);
+                Bcore::CreatureListSearcher searcher(me, corpses, corpse_pred);
                 Cell::VisitAllObjects(me, searcher, ceinfo->RangeEntry->RangeMax[0]);
 
                 if (Creature* corpse = corpses.empty() ? nullptr : corpses.size() == 1 ? corpses.front() :
-                    Trinity::Containers::SelectRandomContainerElement(corpses))
+                    Bcore::Containers::SelectRandomContainerElement(corpses))
                 {
                     if (doCast(corpse, GetSpell(CORPSE_EXPLOSION_1)))
                     {
@@ -215,9 +215,9 @@ public:
                     return true;
                 }
                 return false;
-            };
+                };
             Creature* creature = nullptr;
-            Trinity::CreatureLastSearcher searcher(me, creature, corpse_pred);
+            Bcore::CreatureLastSearcher searcher(me, creature, corpse_pred);
             Cell::VisitAllObjects(me, searcher, 25.f);
 
             if (creature)
@@ -236,7 +236,7 @@ public:
                 return (pl->GetVictim() && pl->IsInCombat() && IsMeleeClass(pl->GetClass()) && nec->GetDistance(pl) < 30 &&
                     pl->GetDistance(pl->GetVictim()) < 15 && pl->getAttackers().empty() && !CCed(pl, true) &&
                     !pl->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE) && pl->GetHealth() >= nec->GetMaxHealth());
-            };
+                };
 
             static const auto frenzy_pred_bot = [](Creature const* bot, Unit const* nec) -> bool {
                 return (IsMeleeClass(bot->GetBotClass()) && bot->GetVictim() && !bot->GetBotAI()->IsTank(bot) &&
@@ -244,7 +244,7 @@ public:
                     nec->GetDistance(bot) < 30 && bot->GetDistance(bot->GetVictim()) < 15 &&
                     bot->getAttackers().empty() && !CCed(bot, true) &&
                     !bot->HasAuraType(SPELL_AURA_PERIODIC_DAMAGE) && bot->GetHealth() >= nec->GetMaxHealth());
-            };
+                };
 
             Unit* target = nullptr;
 
@@ -286,7 +286,7 @@ public:
                     }
                 }
                 if (!targets.empty())
-                    target = targets.size() == 1u ? *targets.begin() : Trinity::Containers::SelectRandomContainerElement(targets);
+                    target = targets.size() == 1u ? *targets.begin() : Bcore::Containers::SelectRandomContainerElement(targets);
             }
 
             if (target && doCast(target, GetSpell(UNHOLY_FRENZY_1)))
@@ -496,7 +496,7 @@ public:
 
                 if (baseId == UNHOLY_FRENZY_1)
                 {
-                    if (target->GetEntry() == BOT_PET_NECROSKELETON && _minions.find(target) != _minions.end())
+                    if (target->GetEntry() == BOT_PET_NECROSKELETON && _minions.find(target->ToCreature()) != _minions.end())
                     {
                         //get 80% mana back if casting on a skeleton
                         me->EnergizeBySpell(me, UNHOLY_FRENZY_1, UNHOLY_FRENZY_REFUND, POWER_MANA);
@@ -577,10 +577,10 @@ public:
                         u = *itr;
                     }
                 }
-                //try 2: by minimal duration
+                //try 2: by minimal duration (if expiring already)
                 if (!u)
                 {
-                    uint32 minduration = 0;
+                    uint32 minduration = static_cast<uint32>((*_minions.begin())->GetAI()->GetData(BOTPETAI_MISC_DURATION_MAX) * 3 / 4);
                     for (Summons::const_iterator itr = _minions.begin(); itr != _minions.end(); ++itr)
                     {
                         if ((*itr)->GetAI()->GetData(BOTPETAI_MISC_DURATION) > minduration)
@@ -590,9 +590,9 @@ public:
                         }
                     }
                 }
-                //try 3: last resort
+
                 if (!u)
-                    u = *(_minions.begin());
+                    return;
 
                 u->ToTempSummon()->UnSummon();
             }
@@ -632,10 +632,9 @@ public:
             _minions.insert(myPet);
         }
 
-        void UnsummonAll() override
+        void UnsummonAll(bool savePets = true) override
         {
-            while (!_minions.empty())
-                (*_minions.begin())->ToTempSummon()->UnSummon();
+            UnsummonCreatures(_minions, savePets);
         }
 
         void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override
@@ -652,10 +651,10 @@ public:
         {
             switch (data)
             {
-                case BOTAI_MISC_PET_TYPE:
-                    return BOT_PET_NECROSKELETON;
-                default:
-                    return 0;
+            case BOTAI_MISC_PET_TYPE:
+                return BOT_PET_NECROSKELETON;
+            default:
+                return 0;
             }
         }
 
@@ -674,7 +673,7 @@ public:
             _corpseExplosionCheckTimer = 0;
             _raiseDeadCheckTimer = 0;
 
-            UnsummonAll();
+            UnsummonAll(false);
 
             DefaultInit();
         }
@@ -708,10 +707,10 @@ public:
         {
             switch (basespell)
             {
-                case UNHOLY_FRENZY_1:
-                    return me->GetLevel() >= 30;
-                default:
-                    return false;
+            case UNHOLY_FRENZY_1:
+                return me->GetLevel() >= 30;
+            default:
+                return false;
             }
         }
 
@@ -736,18 +735,18 @@ public:
         bool _isUsableCorpse(Creature const* c) const
         {
             static const uint32 ViableCreatureTypesMask =
-                (1 << (CREATURE_TYPE_BEAST-1)) | (1 << (CREATURE_TYPE_DRAGONKIN-1)) | (1 << (CREATURE_TYPE_HUMANOID-1));
+                (1 << (CREATURE_TYPE_BEAST - 1)) | (1 << (CREATURE_TYPE_DRAGONKIN - 1)) | (1 << (CREATURE_TYPE_HUMANOID - 1));
 
-            return !c->IsAlive() && c->GetDisplayId() == c->GetNativeDisplayId() &&
+            return c->getDeathState() == DeathState::CORPSE && c->GetDisplayId() == c->GetNativeDisplayId() &&
                 !c->IsVehicle() && !c->isWorldBoss() && !c->IsDungeonBoss() &&
-                ((1 << (c->GetCreatureType()-1)) & ViableCreatureTypesMask) &&
+                ((1 << (c->GetCreatureType() - 1)) & ViableCreatureTypesMask) &&
                 !c->IsControlledByPlayer() && !c->IsNPCBot() && c->GetMaxHealth() >= me->GetMaxHealth() / 4;
         }
 
         uint32 _corpseExplosionCheckTimer;
         uint32 _raiseDeadCheckTimer;
 
-        typedef std::set<Unit*> Summons;
+        typedef std::set<Creature*> Summons;
         Summons _minions;
     };
 };
