@@ -19,9 +19,16 @@
 #include "Errors.h"
 #include <limits>
 
-Trinity::Crypto::AES::AES(bool encrypting) : _ctx(EVP_CIPHER_CTX_new()), _encrypting(encrypting)
+//Trinity::Crypto::AES::AES(bool encrypting) : _ctx(EVP_CIPHER_CTX_new()), _encrypting(encrypting)
+//{
+//    EVP_CIPHER_CTX_init(_ctx);
+//    int status = EVP_CipherInit_ex(_ctx, EVP_aes_128_gcm(), nullptr, nullptr, nullptr, _encrypting ? 1 : 0);
+//    ASSERT(status);
+//}
+
+Trinity::Crypto::AES::AES(bool encrypting)
+    : _ctx(EVP_CIPHER_CTX_new()), _encrypting(encrypting)
 {
-    EVP_CIPHER_CTX_init(_ctx);
     int status = EVP_CipherInit_ex(_ctx, EVP_aes_128_gcm(), nullptr, nullptr, nullptr, _encrypting ? 1 : 0);
     ASSERT(status);
 }
