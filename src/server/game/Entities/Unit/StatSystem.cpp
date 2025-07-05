@@ -27,6 +27,10 @@
 #include "World.h"
 #include <numeric>
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 inline bool _ModifyUInt32(bool apply, uint32& baseValue, int32& amount)
 {
     // If amount is negative, change sign and value of apply.
@@ -1247,8 +1251,8 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, 
 
     float attackPower      = GetTotalAttackPowerValue(attType);
     float attackSpeedMulti = GetAPMultiplier(attType, normalized);
-    float baseValue        = GetFlatModifierValue(unitMod, BASE_VALUE) + (attackPower / 14.0f) * variance * attackSpeedMulti;
-    float basePct          = GetPctModifierValue(unitMod, BASE_PCT);
+    float baseValue        = GetFlatModifierValue(unitMod, BASE_VALUE) + (attackPower / 14.0f) * variance * (IsNPCBot() ? attackSpeedMulti : 1.0f);
+    float basePct          = GetPctModifierValue(unitMod, BASE_PCT) * (!IsNPCBot() ? attackSpeedMulti : 1.0f);
     float totalValue       = GetFlatModifierValue(unitMod, TOTAL_VALUE);
     float totalPct         = addTotalPct ? GetPctModifierValue(unitMod, TOTAL_PCT) : 1.0f;
     float dmgMultiplier    = GetCreatureTemplate()->ModDamage; // = ModDamage * _GetDamageMod(rank);
@@ -1331,6 +1335,10 @@ bool Guardian::UpdateStats(Stats stat)
                 }
             }
             ownersBonus = float(owner->GetStat(stat)) * mod;
+            //npcbot
+            if (owner->IsNPCBot())
+                ownersBonus = BotMgr::GetBotStat(owner->ToCreature(), stat) * mod;
+            //end npcbot
             value += ownersBonus;
         }
     }

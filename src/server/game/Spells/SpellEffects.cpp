@@ -3807,6 +3807,10 @@ void Spell::EffectSanctuary()
         // stop all pve combat for players outside dungeons, suppress pvp combat
         unitTarget->CombatStop(false, false);
     }
+    //npcbot
+    else if (unitTarget->IsNPCBotOrPet() && !unitTarget->GetMap()->IsDungeon())
+        unitTarget->CombatStop(false, false);
+    //end npcbot
     else
     {
         // in dungeons (or for nonplayers), reset this unit on all enemies' threat lists
@@ -5457,6 +5461,21 @@ void Spell::SummonGuardian(SpellEffectInfo const& spellEffectInfo, uint32 entry,
     if (Player* modOwner = unitCaster->GetSpellModOwner())
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
 
+    //npcbot: most bot summons are botpets, we have no place to put summon duration mods, keep them here for now
+    if (unitCaster->IsNPCBot())
+    {
+        switch (m_spellInfo->Id)
+        {
+            case 49028: // Dancing Rune Weapon
+                //Glyph of Dancing Rune Weapon: +5 sec duration
+                duration += 5000;
+                break;
+            default:
+                break;
+        }
+    }
+    //end npcbot
+
     //TempSummonType summonType = (duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_DESPAWN;
     Map* map = unitCaster->GetMap();
     for (uint32 count = 0; count < numGuardians; ++count)
@@ -5483,6 +5502,19 @@ void Spell::SummonGuardian(SpellEffectInfo const& spellEffectInfo, uint32 entry,
 
         if (summon->GetEntry() == 27893)
         {
+            //npcbot
+            if (unitCaster->IsCreature())
+            {
+                if (uint32 weapon = unitCaster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID))
+                {
+                    summon->SetDisplayId(11686); // modelid2
+                    summon->SetVirtualItem(0, weapon);
+                }
+                else
+                    summon->SetDisplayId(1126); // modelid1
+            }
+            else
+            //end npcbot
             if (uint32 weapon = unitCaster->GetUInt32Value(PLAYER_VISIBLE_ITEM_16_ENTRYID))
             {
                 summon->SetDisplayId(11686); // modelid2

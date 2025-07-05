@@ -32,7 +32,7 @@ WanderNode* WanderNode::FindInAllWPs(uint32 wpId)
 
     auto ci = std::find_if(ALL_WPS.cbegin(), ALL_WPS.cend(), [wpId = wpId](WanderNode const* wp) {
         return wp->GetWPId() == wpId;
-        });
+    });
 
     return ci == ALL_WPS.cend() ? nullptr : *ci;
 }
@@ -46,7 +46,7 @@ WanderNode* WanderNode::FindInAllWPs(Creature const* creature)
 
     auto ci = std::find_if(ALL_WPS.cbegin(), ALL_WPS.cend(), [=](WanderNode const* wp) {
         return wp->GetCreature() == creature;
-        });
+    });
 
     return ci == ALL_WPS.cend() ? nullptr : *ci;
 }
@@ -63,7 +63,7 @@ WanderNode* WanderNode::FindInMapWPs(uint32 mapId, Creature const* creature)
         return nullptr;
     auto ci = std::find_if(ALL_WPS_PER_MAP.at(mapId).cbegin(), ALL_WPS_PER_MAP.at(mapId).cend(), [=](WanderNode const* wp) {
         return wp->GetCreature() == creature;
-        });
+    });
 
     return ci == ALL_WPS_PER_MAP.at(mapId).cend() ? nullptr : *ci;
 }
@@ -77,7 +77,7 @@ WanderNode* WanderNode::FindInMapWPs(uint32 mapId, uint32 wpId)
         return nullptr;
     auto ci = std::find_if(ALL_WPS_PER_MAP.at(mapId).cbegin(), ALL_WPS_PER_MAP.at(mapId).cend(), [=](WanderNode const* wp) {
         return wp->GetWPId() == wpId;
-        });
+    });
 
     return ci == ALL_WPS_PER_MAP.at(mapId).cend() ? nullptr : *ci;
 }
@@ -182,7 +182,7 @@ WanderNode::WanderNode(uint32 wpId, uint32 mapId, float x, float y, float z, flo
     ASSERT(!!sMapStore.LookupEntry(_mapId), "WanderNode::Ctr(): Invalid value for _mapId");
     ASSERT(!!sAreaTableStore.LookupEntry(_zoneId), "WanderNode::Ctr(): Invalid value for _zoneId");
     ASSERT(!!sAreaTableStore.LookupEntry(_areaId), "WanderNode::Ctr(): Invalid value for _areaId");
-
+    
     lock_type lock(*GetLock());
 
     ALL_WPS.push_back(this);
@@ -269,7 +269,7 @@ WanderNode::node_lltype WanderNode::GetShortestPathLinks(WanderNode const* targe
                     checked_links.insert(wpl.Id()); // cut off all ways back (2-ways, circular)
                     std::copy_if(wpl.wp->GetLinks().cbegin(), wpl.wp->GetLinks().cend(), std::back_inserter(clinks_new), [&checked_links](WanderNodeLink const& wpl) {
                         return !checked_links.contains(wpl.Id());
-                        });
+                    });
                 }
                 clinks = std::move(clinks_new);
             }
@@ -286,7 +286,7 @@ WanderNode::node_lltype WanderNode::GetShortestPathLinks(WanderNode const* targe
                 decltype(minlevel) inclevel = minlevel + AsUnderlyingType(max_level_diff);
                 validLinks.remove_if([=, this](decltype(validLinks)::value_type const& p) {
                     return p.first > inclevel || (p.first > minlevel && p.second->wp->GetExactDist2d(target) > GetExactDist2d(target));
-                    });
+                });
             }
             for (decltype(validLinks)::value_type const& vt : validLinks)
                 retlist.push_back(*vt.second);
@@ -333,7 +333,7 @@ uint32 WanderNode::GetAverageLinkWeight(bool exclude_0/* = false*/) const
 std::string WanderNode::FormatLinks() const
 {
     std::ostringstream lss;
-    for (WanderNodeLink const& wpl : _links)
+    for (WanderNodeLink const& wpl: _links)
         lss << uint32(wpl.Id()) << ':' << uint32(wpl.weight) << ' ';
 
     return lss.str();

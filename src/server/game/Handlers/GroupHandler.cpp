@@ -947,7 +947,6 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPacket &recvData)
     }
     //end npcbot
 
-
     Player* player = ObjectAccessor::FindConnectedPlayer(guid);
     if (!player || !GetPlayer()->IsInSameRaidWith(player))
 

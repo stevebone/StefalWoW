@@ -795,6 +795,17 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
             }
         }
 
+        //npcbot
+        if (!damage && damagetype != DOT && cleanDamage && cleanDamage->absorbed_damage && victim->IsNPCBotOrPet() && attacker && victim != attacker &&
+            (attacker->IsNPCBotOrPet() || attacker->IsControlledByPlayer()))
+        {
+            if (Spell* spell = victim->m_currentSpells[CURRENT_GENERIC_SPELL])
+                if (spell->getState() == SPELL_STATE_PREPARING)
+                    if ((spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG) != 0)
+                        victim->InterruptNonMeleeSpells(false);
+        }
+        //end npcbot
+
         // We're going to call functions which can modify content of the list during iteration over it's elements
         // Let's copy the list so we can prevent iterator invalidation
         AuraEffectList vCopyDamageCopy(victim->GetAuraEffectsByType(SPELL_AURA_SHARE_DAMAGE_PCT));
@@ -918,6 +929,16 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
 
     if (victim->GetTypeId() == TYPEID_PLAYER)
         victim->ToPlayer()->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_HIT_RECEIVED, damage);
+    //npcbot
+    else if (victim->IsNPCBotOrPet())
+    {
+        if (attacker && !victim->ToCreature()->hasLootRecipient())
+            victim->ToCreature()->SetLootRecipient(attacker);
+        if (!attacker || attacker->IsControlledByPlayer() || (attacker->ToTempSummon() && attacker->ToTempSummon()->GetSummonerUnit() && attacker->ToTempSummon()->GetSummonerUnit()->IsPlayer()) ||
+            (attacker->IsNPCBotOrPet() && !attacker->ToCreature()->IsFreeBot()) || (attacker->GetCreator() && attacker->GetCreator()->IsPlayer()))
+            victim->ToCreature()->LowerPlayerDamageReq(health < damage ?  health : damage);
+    }
+    //end npcbot
     else if (!victim->IsControlledByPlayer() || victim->IsVehicle())
     {
         if (!victim->ToCreature()->hasLootRecipient())
@@ -1001,6 +1022,28 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
                         spell->DelayedChannel();
             }
         }
+
+        //npcbot
+        if (victim->IsNPCBot() && attacker && victim != attacker && damagetype != NODAMAGE && damagetype != DOT && damage &&
+            (attacker->IsNPCBotOrPet() || attacker->IsControlledByPlayer()) &&
+            (!spellProto || !(spellProto->HasAttribute(SPELL_ATTR7_NO_PUSHBACK_ON_DAMAGE) || spellProto->HasAttribute(SPELL_ATTR3_TREAT_AS_PERIODIC))))
+        {
+            if (Spell* spell = victim->m_currentSpells[CURRENT_GENERIC_SPELL])
+            {
+                if (spell->getState() == SPELL_STATE_PREPARING)
+                {
+                    if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
+                        victim->InterruptNonMeleeSpells(false);
+                    else
+                        spell->Delayed();
+                }
+            }
+
+            if (Spell* spell = victim->m_currentSpells[CURRENT_CHANNELED_SPELL])
+                if (spell->getState() == SPELL_STATE_CASTING)
+                    spell->DelayedChannel();
+        }
+        //end npcbot
 
         // last damage from duel opponent
         if (duel_hasEnded)
@@ -2773,6 +2816,13 @@ float Unit::GetUnitDodgeChance(WeaponAttackType attType, Unit const* victim) con
     // Reduce dodge chance by attacker expertise rating
     if (GetTypeId() == TYPEID_PLAYER)
         chance -= ToPlayer()->GetExpertiseDodgeOrParryReduction(attType);
+    //npcbot - manual expertise instead of auras
+    else if (IsNPCBot())
+    {
+        chance -= ToCreature()->GetCreatureExpertise() / 4.0f;
+        chance -= GetTotalAuraModifier(SPELL_AURA_MOD_EXPERTISE) / 4.0f;
+    }
+    //end npcbot
     else
         chance -= GetTotalAuraModifier(SPELL_AURA_MOD_EXPERTISE) / 4.0f;
     return std::max(chance, 0.0f);
@@ -2827,6 +2877,13 @@ float Unit::GetUnitParryChance(WeaponAttackType attType, Unit const* victim) con
     // Reduce parry chance by attacker expertise rating
     if (GetTypeId() == TYPEID_PLAYER)
         chance -= ToPlayer()->GetExpertiseDodgeOrParryReduction(attType);
+    //npcbot - manual expertise instead of auras
+    else if (IsNPCBot())
+    {
+        chance -= ToCreature()->GetCreatureExpertise() / 4.0f;
+        chance -= GetTotalAuraModifier(SPELL_AURA_MOD_EXPERTISE) / 4.0f;
+    }
+    //end npcbot
     else
         chance -= GetTotalAuraModifier(SPELL_AURA_MOD_EXPERTISE) / 4.0f;
     return std::max(chance, 0.0f);
@@ -5980,6 +6037,10 @@ void Unit::RemoveAllAttackers()
     while (!m_attackers.empty())
     {
         AttackerSet::iterator iter = m_attackers.begin();
+        //npcbot
+        if ((*iter)->IsNPCBotOrPet())
+            BotMgr::OnBotAttackStop((*iter)->ToCreature(), this);
+        //end npcbot
         if (!(*iter)->AttackStop())
         {
             TC_LOG_ERROR("entities.unit", "WORLD: Unit has an attacker that isn't attacking it!");
@@ -8854,7 +8915,7 @@ bool Unit::IsAlwaysVisibleFor(WorldObject const* seer) const
                     return true;
 
     //npcbot - bots are always visible for owner
-    if (GetCreator() && seer->GetGUID() == GetCreator()->GetGUID())
+    if (GetCreator() && (seer->GetGUID() == GetCreator()->GetGUID() || (seer->IsCreature() && seer->ToCreature()->GetCreator() == GetCreator())))
         return true;
     //end npcbot
 
@@ -9011,6 +9072,20 @@ void Unit::UpdateSpeed(UnitMoveType mtype)
                 }
             }
         }
+
+        //npcbot
+        if (creature->IsNPCBotPet() && !creature->IsInCombat() && GetMotionMaster()->GetCurrentMovementGeneratorType() == FOLLOW_MOTION_TYPE)
+        {
+            Unit* followed = ASSERT_NOTNULL(dynamic_cast<AbstractFollower*>(GetMotionMaster()->GetCurrentMovementGenerator()))->GetTarget();
+            if (followed && (followed->GetGUID() == GetOwnerGUID() || followed->GetGUID() == GetCreatorGUID()) && !followed->IsInCombat())
+            {
+                float ownerSpeed = followed->GetSpeedRate(mtype);
+                if (speed < ownerSpeed)
+                    speed = ownerSpeed;
+                speed *= std::min(std::max(1.0f, 0.75f + (GetDistance(followed) - PET_FOLLOW_DIST) * 0.05f), 1.5f);
+            }
+        }
+        //end npcbot
     }
 
     // Apply strongest slow aura mod to speed

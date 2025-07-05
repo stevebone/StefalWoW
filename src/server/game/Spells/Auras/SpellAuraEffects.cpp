@@ -44,6 +44,10 @@
 #include "WorldPacket.h"
 #include <numeric>
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 //
 // EFFECT HANDLER NOTES
 //
@@ -5185,6 +5189,20 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
     bool crit = roll_chance_f(GetCritChanceFor(caster, target));
     if (crit)
         damage = Unit::SpellCriticalDamageBonus(caster, m_spellInfo, damage, target);
+
+    //NpcBot mod: apply bot damage mods
+    if (caster && caster->IsNPCBotOrPet())
+    {
+        SpellNonMeleeDamage damageInfo(caster, target, m_spellInfo->Id, m_spellInfo->GetSchoolMask());
+        int32 idamage = damage;
+        caster->ToCreature()->ApplyBotDamageMultiplierSpell(idamage, damageInfo, m_spellInfo, BASE_ATTACK, crit);
+        damage = std::max<int32>(idamage, 0);
+        if (GetSpellInfo()->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL)
+            damage *= BotMgr::IsWanderingWorldBot(caster->ToCreature()) ? BotMgr::GetBotWandererDamageMod() : BotMgr::GetBotDamageModPhysical();
+        else if (GetSpellInfo()->GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC)
+            damage *= BotMgr::IsWanderingWorldBot(caster->ToCreature()) ? BotMgr::GetBotWandererDamageMod() : BotMgr::GetBotDamageModSpell();
+    }
+    //End NpcBot
 
     // Calculate armor mitigation
     if (Unit::IsDamageReducedByArmor(GetSpellInfo()->GetSchoolMask(), GetSpellInfo()))

@@ -290,8 +290,7 @@ void TempSummon::UnSummon(uint32 msTime)
             petowner->AI()->SummonedCreatureDespawn(this);
     }
     else
-        //end npcbot
-
+    //end npcbot
     if (WorldObject * owner = GetSummoner())
     {
         if (owner->GetTypeId() == TYPEID_UNIT && owner->ToCreature()->IsAIEnabled())

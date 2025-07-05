@@ -11,12 +11,12 @@ TODO:
 
 enum ArchmagePetBaseSpells
 {
-    WATERBOLT_1 = SPELL_WATERBOLT
+    WATERBOLT_1             = SPELL_WATERBOLT
 };
 
 enum ArchmagePetSpecial
 {
-    ELEMENTAL_DURATION = 60000 //1 min
+    ELEMENTAL_DURATION      = 60000 //1 min
 };
 
 class archmage_pet_bot : public CreatureScript

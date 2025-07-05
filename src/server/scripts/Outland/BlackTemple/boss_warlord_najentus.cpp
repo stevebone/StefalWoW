@@ -159,7 +159,6 @@ struct boss_najentus : public BossAI
                     target->SummonGameObject(GO_NAJENTUS_SPINE, *target, QuaternionData(), 30s);
                     Talk(SAY_NEEDLE);
                 }
-
                 //npcbot: try selecting npcbot
                 else if (Unit* bottarget = SelectTarget(SelectTargetMethod::Random, 1, [this](Unit const* target) -> bool {
                     if (!target || !target->IsNPCBot() || target->ToCreature()->IsFreeBot() ||

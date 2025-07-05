@@ -62,7 +62,7 @@ public:
                 std::list<Unit*> targets;
                 petOwner->GetBotAI()->HelpGetNearbyTargetsList(targets, 10.f, 1, me);
                 if (targets.size() > 2)
-                    Trinity::Containers::RandomResize(targets, 2);
+                    Bcore::Containers::RandomResize(targets, 2);
                 for (Unit* u : targets)
                     me->CastSpell(u, GetSpell(ENVELOP_1), true);
                 SetSpellCooldown(ENVELOP_1, 3000);

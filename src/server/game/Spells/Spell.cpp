@@ -7444,6 +7444,37 @@ SpellCastResult Spell::CheckItems(uint32* param1 /*= nullptr*/, uint32* param2 /
 
 void Spell::Delayed() // only called in DealDamage()
 {
+    //npcbot
+    if (m_caster->IsNPCBot() && (m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_PUSH_BACK) && !IsDelayableNoMore())
+    {
+        Creature* creature = m_caster->ToCreature();
+        int32 delaytime = 500;
+
+        int32 delayReduce = 100;
+        creature->ApplyCreatureSpellNotLoseCastTimeMods(m_spellInfo, delayReduce);
+        delayReduce += creature->GetTotalAuraModifier(SPELL_AURA_REDUCE_PUSHBACK) - 100;
+        if (delayReduce >= 100)
+            return;
+
+        AddPct(delaytime, -delayReduce);
+
+        if (m_timer + delaytime > m_casttime)
+        {
+            delaytime = m_casttime - m_timer;
+            m_timer = m_casttime;
+        }
+        else
+            m_timer += delaytime;
+
+        WorldPacket data(SMSG_SPELL_DELAYED, 8+4);
+        data << creature->GetPackGUID();
+        data << uint32(delaytime);
+
+        creature->SendMessageToSet(&data, true);
+        return;
+    }
+    //end npcbot
+
     Player* playerCaster = m_caster->ToPlayer();
     if (!playerCaster)
         return;
@@ -7483,6 +7514,43 @@ void Spell::Delayed() // only called in DealDamage()
 
 void Spell::DelayedChannel()
 {
+    //npcbot
+    if (m_caster->IsNPCBot() && m_spellState == SPELL_STATE_CASTING && (m_spellInfo->ChannelInterruptFlags & CHANNEL_FLAG_DELAY) && !IsDelayableNoMore())
+    {
+        Creature* creature = m_caster->ToCreature();
+        int32 duration = ((m_channeledDuration > 0) ? m_channeledDuration : m_spellInfo->GetDuration());
+
+        int32 delaytime = CalculatePct(duration, 25);
+
+        int32 delayReduce = 100;
+        creature->ApplyCreatureSpellNotLoseCastTimeMods(m_spellInfo, delayReduce);
+        delayReduce += creature->GetTotalAuraModifier(SPELL_AURA_REDUCE_PUSHBACK) - 100;
+        if (delayReduce >= 100)
+            return;
+
+        AddPct(delaytime, -delayReduce);
+
+        if (m_timer <= delaytime)
+        {
+            delaytime = m_timer;
+            m_timer = 0;
+        }
+        else
+            m_timer -= delaytime;
+
+        for (TargetInfo const& targetInfo : m_UniqueTargetInfo)
+            if (targetInfo.MissCondition == SPELL_MISS_NONE)
+                if (Unit* unit = (creature->GetGUID() == targetInfo.TargetGUID) ? creature : ObjectAccessor::GetUnit(*creature, targetInfo.TargetGUID))
+                    unit->DelayOwnedAuras(m_spellInfo->Id, m_originalCasterGUID, delaytime);
+
+        if (DynamicObject* dynObj = creature->GetDynObject(m_spellInfo->Id))
+            dynObj->Delay(delaytime);
+
+        SendChannelUpdate(m_timer);
+        return;
+    }
+    //end npcbot
+
     Player* playerCaster = m_caster->ToPlayer();
     if (!playerCaster)
         return;

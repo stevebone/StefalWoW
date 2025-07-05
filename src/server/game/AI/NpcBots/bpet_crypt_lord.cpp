@@ -24,8 +24,8 @@ enum CryptLordPetPassives
 };
 enum CryptLordPetSpecial
 {
-    LOCUST_SWARM_EFFECTIVE_RADIUS = 60,
-    LOCUST_SWARM_SPELL_DURATION = 30000,
+    LOCUST_SWARM_EFFECTIVE_RADIUS       = 60,
+    LOCUST_SWARM_SPELL_DURATION         = 30000,
 };
 
 class crypt_lord_pet_bot : public CreatureScript
@@ -37,10 +37,10 @@ public:
     {
         switch (creature->GetEntry())
         {
-        case BOT_PET_LOCUST_SWARM:
-            return new locust_swarm_botpetAI(creature);
-        default:
-            return new carrion_beetle_botpetAI(creature);
+            case BOT_PET_LOCUST_SWARM:
+                return new locust_swarm_botpetAI(creature);
+            default:
+                return new carrion_beetle_botpetAI(creature);
         }
     }
 
@@ -126,10 +126,10 @@ public:
         {
             switch (data)
             {
-            case BOTPETAI_MISC_MAXLEVEL:
-                return maxlevel;
-            default:
-                return bot_pet_ai::GetData(data);
+                case BOTPETAI_MISC_MAXLEVEL:
+                    return maxlevel;
+                default:
+                    return bot_pet_ai::GetData(data);
             }
         }
 
@@ -137,12 +137,12 @@ public:
         {
             switch (data)
             {
-            case BOTPETAI_MISC_MAXLEVEL:
-                maxlevel = uint8(value);
-                SetPetStats(true);
-                break;
-            default:
-                break;
+                case BOTPETAI_MISC_MAXLEVEL:
+                    maxlevel = uint8(value);
+                    SetPetStats(true);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -262,8 +262,8 @@ public:
                             return true;
                         return max_attackers <= std::count_if(std::cbegin(attackers), std::cend(attackers), [oguid = poguid](Unit const* attacker) {
                             return attacker->GetEntry() == BOT_PET_LOCUST_SWARM && attacker->GetOwnerGUID() == oguid;
-                            });
                         });
+                    });
                 }
 
                 if (!targets.empty())
@@ -309,12 +309,12 @@ public:
         {
             switch (data)
             {
-            case BOTPETAI_MISC_FIXEDLEVEL:
-                return me->GetCreatureTemplate()->maxlevel;
-            case BOTPETAI_MISC_CARRY:
-                return _gathered;
-            default:
-                return bot_pet_ai::GetData(data);
+                case BOTPETAI_MISC_FIXEDLEVEL:
+                    return me->GetCreatureTemplate()->maxlevel;
+                case BOTPETAI_MISC_CARRY:
+                    return _gathered;
+                default:
+                    return bot_pet_ai::GetData(data);
             }
         }
 
@@ -322,14 +322,14 @@ public:
         {
             switch (data)
             {
-            case BOTPETAI_MISC_CAPACITY:
-                _capacity = value;
-                break;
-            case BOTPETAI_MISC_MAX_ATTACKERS:
-                _attackers = value;
-                break;
-            default:
-                break;
+                case BOTPETAI_MISC_CAPACITY:
+                    _capacity = value;
+                    break;
+                case BOTPETAI_MISC_MAX_ATTACKERS:
+                    _attackers = value;
+                    break;
+                default:
+                    break;
             }
         }
 
