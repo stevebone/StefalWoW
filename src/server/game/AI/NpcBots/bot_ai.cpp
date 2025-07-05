@@ -2113,7 +2113,7 @@ void bot_ai::_listAuras(Player const* player, Unit const* unit) const
             botstring << " [" << LocalizedNpcText(player, BOT_TEXT_ABILITY) << "]";
     }
     botstring.precision(1);
-    for (uint8 i = STAT_STRENGTH; i != MAX_STATS; ++i)
+    for (uint16 i = STAT_STRENGTH; i != MAX_STATS; ++i)
     {
         std::string mystat;
         switch (i)
@@ -2377,7 +2377,7 @@ void bot_ai::SetStats(bool force)
 
         PlayerLevelInfo info;
         sObjectMgr->GetPlayerLevelInfo(GetPlayerRace(), GetPlayerClass(), std::min<uint8>(mylevel, DEFAULT_MAX_LEVEL), &info);
-        for (uint8 i = STAT_STRENGTH; i != MAX_STATS; ++i)
+        for (uint16 i = STAT_STRENGTH; i != MAX_STATS; ++i)
             me->SetCreateStat(Stats(i), info.stats[i]);
     }
 
