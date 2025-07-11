@@ -18,7 +18,6 @@
 #include "WorldSession.h"
 #include "CellImpl.h"
 #include "Common.h"
-#include "Containers.h"
 #include "Corpse.h"
 #include "Creature.h"
 #include "DB2Stores.h"
@@ -31,6 +30,7 @@
 #include "Loot.h"
 #include "LootItemStorage.h"
 #include "LootPackets.h"
+#include "MapUtils.h"
 #include "Object.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
@@ -155,12 +155,9 @@ void WorldSession::HandleLootMoneyOpcode(WorldPackets::Loot::LootMoney& /*packet
             Group* group = player->GetGroup();
 
             std::vector<Player*> playersNear;
-            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            for (GroupReference const& itr : group->GetMembers())
             {
-                Player* member = itr->GetSource();
-                if (!member)
-                    continue;
-
+                Player* member = itr.GetSource();
                 if (!loot->HasAllowedLooter(member->GetGUID()))
                     continue;
 

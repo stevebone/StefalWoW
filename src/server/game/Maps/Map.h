@@ -31,6 +31,7 @@
 #include "MapRefManager.h"
 #include "MPSCQueue.h"
 #include "ObjectGuid.h"
+#include "ObjectGuidSequenceGenerator.h"
 #include "PersonalPhaseTracker.h"
 #include "SharedDefines.h"
 #include "SpawnData.h"
@@ -183,8 +184,40 @@ inline bool CompareRespawnInfo::operator()(RespawnInfo const* a, RespawnInfo con
     return a->type < b->type;
 }
 
-extern template class TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid>;
-typedef TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid> MapStoredObjectTypesContainer;
+template <typename ObjectType>
+struct MapStoredObjectsUnorderedMap
+{
+    using Container = std::unordered_map<ObjectGuid, ObjectType*>;
+    using KeyType = ObjectGuid;
+    using ValueType = ObjectType*;
+
+    static bool Insert(Container& container, ValueType object)
+    {
+        auto [itr, isNew] = container.try_emplace(object->GetGUID(), object);
+        ASSERT(isNew || itr->second == object, "Object with certain key already in but objects are different!");
+        return true;
+    }
+
+    static bool Remove(Container& container, ValueType object)
+    {
+        container.erase(object->GetGUID());
+        return true;
+    }
+
+    static std::size_t Size(Container const& container)
+    {
+        return container.size();
+    }
+
+    static ValueType Find(Container const& container, KeyType const& key)
+    {
+        auto itr = container.find(key);
+        return itr != container.end() ? itr->second : nullptr;
+    }
+};
+
+extern template struct TypeListContainer<MapStoredObjectsUnorderedMap, Creature, GameObject, DynamicObject, Pet, Corpse, AreaTrigger, SceneObject, Conversation>;
+typedef TypeListContainer<MapStoredObjectsUnorderedMap, Creature, GameObject, DynamicObject, Pet, Corpse, AreaTrigger, SceneObject, Conversation> MapStoredObjectTypesContainer;
 
 class TC_GAME_API Map : public GridRefManager<NGridType>
 {
@@ -355,7 +388,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         bool isCellMarked(uint32 pCellId) { return marked_cells.test(pCellId); }
         void markCell(uint32 pCellId) { marked_cells.set(pCellId); }
 
-        bool HavePlayers() const { return !m_mapRefManager.isEmpty(); }
+        bool HavePlayers() const { return !m_mapRefManager.empty(); }
         uint32 GetPlayersCountExceptGMs() const;
         bool ActiveObjectsNearGrid(NGridType const& ngrid) const;
 
@@ -794,7 +827,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         ObjectGuidGenerator& GetGuidSequenceGenerator(HighGuid high);
 
-        std::map<HighGuid, std::unique_ptr<ObjectGuidGenerator>> _guidGenerators;
+        std::map<HighGuid, ObjectGuidGenerator> _guidGenerators;
         std::unique_ptr<SpawnedPoolData> _poolData;
         MapStoredObjectTypesContainer _objectsStore;
         CreatureBySpawnIdContainer _creatureBySpawnIdStore;
@@ -871,9 +904,9 @@ class TC_GAME_API InstanceMap : public Map
         std::string const& GetScriptName() const;
         InstanceScript* GetInstanceScript() { return i_data; }
         InstanceScript const* GetInstanceScript() const { return i_data; }
-        InstanceScenario* GetInstanceScenario() { return i_scenario; }
-        InstanceScenario const* GetInstanceScenario() const { return i_scenario; }
-        void SetInstanceScenario(InstanceScenario* scenario) { i_scenario = scenario; }
+        InstanceScenario* GetInstanceScenario() { return i_scenario.get(); }
+        InstanceScenario const* GetInstanceScenario() const { return i_scenario.get(); }
+        void SetInstanceScenario(InstanceScenario* scenario);
         InstanceLock const* GetInstanceLock() const { return i_instanceLock; }
         void UpdateInstanceLock(UpdateBossStateSaveDataEvent const& updateSaveDataEvent);
         void UpdateInstanceLock(UpdateAdditionalSaveDataEvent const& updateSaveDataEvent);
@@ -895,7 +928,7 @@ class TC_GAME_API InstanceMap : public Map
         Optional<SystemTimePoint> i_instanceExpireEvent;
         InstanceScript* i_data;
         uint32 i_script_id;
-        InstanceScenario* i_scenario;
+        std::unique_ptr<InstanceScenario> i_scenario;
         InstanceLock* i_instanceLock;
         GroupInstanceReference i_owningGroupRef;
         Optional<uint32> i_lfgDungeonsId;
