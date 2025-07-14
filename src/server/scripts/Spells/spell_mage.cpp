@@ -32,6 +32,7 @@
 #include "SpellHistory.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
+#include "TaskScheduler.h"
 #include "TemporarySummon.h"
 
 enum MageSpells
@@ -62,8 +63,11 @@ enum MageSpells
     SPELL_MAGE_FEEL_THE_BURN                     = 383391,
     SPELL_MAGE_FINGERS_OF_FROST                  = 44544,
     SPELL_MAGE_FIRE_BLAST                        = 108853,
-    SPELL_MAGE_FLURRY_DAMAGE                     = 228596,
     SPELL_MAGE_FIRESTARTER                       = 205026,
+    SPELL_MAGE_FLAME_PATCH_AREATRIGGER           = 205470,
+    SPELL_MAGE_FLAME_PATCH_DAMAGE                = 205472,
+    SPELL_MAGE_FLAME_PATCH_TALENT                = 205037,
+    SPELL_MAGE_FLURRY_DAMAGE                     = 228596,
     SPELL_MAGE_FROST_NOVA                        = 122,
     SPELL_MAGE_GIRAFFE_FORM                      = 32816,
     SPELL_MAGE_ICE_BARRIER                       = 11426,
@@ -77,6 +81,7 @@ enum MageSpells
     SPELL_MAGE_METEOR_AREATRIGGER                = 177345,
     SPELL_MAGE_METEOR_BURN_DAMAGE                = 155158,
     SPELL_MAGE_METEOR_MISSILE                    = 153564,
+    SPELL_MAGE_MOLTEN_FURY                       = 458910,
     SPELL_MAGE_RADIANT_SPARK_PROC_BLOCKER        = 376105,
     SPELL_MAGE_RAY_OF_FROST_BONUS                = 208141,
     SPELL_MAGE_RAY_OF_FROST_FINGERS_OF_FROST     = 269748,
@@ -778,6 +783,58 @@ class spell_mage_flame_on : public AuraScript
    }
 };
 
+// 205037 - Flame Patch (attached to 2120 - Flamestrike)
+class spell_mage_flame_patch : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_MAGE_FLAME_PATCH_TALENT, SPELL_MAGE_FLAME_PATCH_AREATRIGGER });
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAura(SPELL_MAGE_FLAME_PATCH_TALENT);
+    }
+
+    void HandleFlamePatch() const
+    {
+        GetCaster()->CastSpell(GetExplTargetDest()->GetPosition(), SPELL_MAGE_FLAME_PATCH_AREATRIGGER, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_mage_flame_patch::HandleFlamePatch);
+    }
+};
+
+// 205470 - Flame Patch
+// Id - 6122
+struct at_mage_flame_patch : public AreaTriggerAI
+{
+    using AreaTriggerAI::AreaTriggerAI;
+
+    void OnCreate(Spell const* /*creatingSpell*/) override
+    {
+        _scheduler.Schedule(1s, [this](TaskContext task)
+        {
+            if (Unit* caster = at->GetCaster())
+                caster->CastSpell(at->GetPosition(), SPELL_MAGE_FLAME_PATCH_DAMAGE, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            task.Repeat(1s);
+        });
+    }
+
+    void OnUpdate(uint32 diff) override
+    {
+        _scheduler.Update(diff);
+    }
+
+private:
+    TaskScheduler _scheduler;
+};
+
 // 44614 - Flurry
 class spell_mage_flurry : public SpellScript
 {
@@ -1245,6 +1302,31 @@ struct at_mage_meteor_burn : public AreaTriggerAI
     }
 };
 
+// 457803 - Molten Fury
+class spell_mage_molten_fury : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_MAGE_MOLTEN_FURY });
+    }
+
+    static void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
+    {
+        if (!eventInfo.GetActionTarget()->HealthAbovePct(aurEff->GetAmount()))
+            eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget(), SPELL_MAGE_MOLTEN_FURY, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringAura = aurEff
+            });
+        else
+            eventInfo.GetActionTarget()->RemoveAurasDueToSpell(SPELL_MAGE_MOLTEN_FURY, eventInfo.GetActor()->GetGUID());
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(spell_mage_molten_fury::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
 enum SilvermoonPolymorph
 {
     NPC_AUROSALIA       = 18744
@@ -1621,6 +1703,8 @@ void AddSC_mage_spell_scripts()
     RegisterSpellScript(spell_mage_firestarter);
     RegisterSpellScript(spell_mage_firestarter_dots);
     RegisterSpellScript(spell_mage_flame_on);
+    RegisterSpellScript(spell_mage_flame_patch);
+    RegisterAreaTriggerAI(at_mage_flame_patch);
     RegisterSpellScript(spell_mage_flurry);
     RegisterSpellScript(spell_mage_flurry_damage);
     RegisterSpellScript(spell_mage_frostbolt);
@@ -1638,6 +1722,7 @@ void AddSC_mage_spell_scripts()
     RegisterSpellScript(spell_mage_meteor);
     RegisterAreaTriggerAI(at_mage_meteor);
     RegisterAreaTriggerAI(at_mage_meteor_burn);
+    RegisterSpellScript(spell_mage_molten_fury);
     RegisterSpellScript(spell_mage_polymorph_visual);
     RegisterSpellScript(spell_mage_prismatic_barrier);
     RegisterSpellScript(spell_mage_radiant_spark);
