@@ -120,8 +120,8 @@ public:
 
         if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
         {
-            // report to DB errors log as in loading case
-            TC_LOG_ERROR("sql.sql", "Gameobject (Entry {} GoType: {}) have invalid displayId ({}), not spawned.", *objectId, objectInfo->type, objectInfo->displayId);
+            TC_LOG_ERROR("sql.sql", "Gameobject (Entry {} GoType: {}) has invalid displayId ({}), not spawned.",
+                *objectId, objectInfo->type, objectInfo->displayId);
             handler->PSendSysMessage(LANG_GAMEOBJECT_HAVE_INVALID_DATA, *objectId);
             handler->SetSentErrorMessage(true);
             return false;
@@ -130,7 +130,14 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         Map* map = player->GetMap();
 
-        GameObject* object = GameObject::CreateGameObject(objectInfo->entry, map, *player, QuaternionData::fromEulerAnglesZYX(player->GetOrientation(), 0.0f, 0.0f), 255, GO_STATE_READY);
+        GameObject* object = GameObject::CreateGameObject(
+            objectInfo->entry,
+            map,
+            *player,
+            QuaternionData::fromEulerAnglesZYX(player->GetOrientation(), 0.0f, 0.0f),
+            255,
+            GO_STATE_READY);
+
         if (!object)
             return false;
 
@@ -139,23 +146,24 @@ public:
         if (spawnTimeSecs)
             object->SetRespawnTime(*spawnTimeSecs);
 
-        // fill the gameobject data and save to the db
+        // ?? Save to DB - SaveToDB() will pick up zone/area from object's position now
         object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
         ObjectGuid::LowType spawnId = object->GetSpawnId();
 
-        // delete the old object and do a clean load from DB with a fresh new GameObject instance.
-        // this is required to avoid weird behavior and memory leaks
         delete object;
 
-        // this will generate a new guid if the object is in an instance
         object = GameObject::CreateGameObjectFromDB(spawnId, map);
         if (!object)
             return false;
 
-        /// @todo is it really necessary to add both the real and DB table guid here ?
         sObjectMgr->AddGameobjectToGrid(ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
 
-        handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, *objectId, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+        handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, *objectId, objectInfo->name.c_str(), std::to_string(spawnId).c_str(),
+            player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+
+        TC_LOG_INFO("commands", "Spawned GameObject {} in Zone {}, Area {}",
+            *objectId, player->GetZoneId(), player->GetAreaId());
+
         return true;
     }
 
