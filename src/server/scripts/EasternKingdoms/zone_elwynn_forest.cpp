@@ -710,12 +710,60 @@ class spell_stealth_vanessa_human_heritage : public AuraScript
     }
 };
 
+enum Marshal_Dughan
+{
+    GOSSIP_MENU_MD = 11611,
+    GOSSIP_OPTION_MD = 0,
+
+    SPELL_STORMWIND_CHARGER = 78852
+};
+
+// 240 - Marshal Dughan
+struct npc_marshal_dughan : public ScriptedAI
+{
+    npc_marshal_dughan(Creature* creature) : ScriptedAI(creature) { }
+
+    bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+    {
+        if (menuId == GOSSIP_MENU_MD && gossipListId == GOSSIP_OPTION_MD)
+        {
+            CloseGossipMenuFor(player);
+            player->CastSpell(nullptr, SPELL_STORMWIND_CHARGER, true);
+            return true;
+        }
+        return false;
+    }
+    
+};
+
+enum Stormwind_Charger
+{
+    PATH_GUARD_THOMAS = 1,
+
+    QUEST_FURTHER_CONCERNS = 35
+};
+
+struct npc_stormwind_charger : public ScriptedAI
+{
+    npc_stormwind_charger(Creature* creature) : ScriptedAI(creature) { }
+
+    void JustAppeared() override
+    {
+        me->SetSpeed(MOVE_RUN, 14.0f);
+        //me->SetControlled(true, UNIT_STATE_ROOT); // Optional: reapply root after movement starts
+        me->GetMotionMaster()->MovePath(PATH_GUARD_THOMAS, false);
+        me->DespawnOrUnsummon(90s);
+    }
+};
+
 void AddSC_elwynn_forest()
 {
     // Creature
     RegisterCreatureAI(npc_cameron);
     RegisterCreatureAI(npc_master_mathias_shaw_human_heritage_lions_pride_inn_basement);
     RegisterCreatureAI(npc_vanessa_vancleef_human_heritage_lions_pride_inn_basement);
+    RegisterCreatureAI(npc_marshal_dughan);
+    RegisterCreatureAI(npc_stormwind_charger);
 
     // Spells
     RegisterSpellScript(spell_stealth_vanessa_human_heritage);
