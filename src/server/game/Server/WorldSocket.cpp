@@ -38,6 +38,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include <zlib.h>
+#include "Config.h"
 
 #pragma pack(push, 1)
 
@@ -493,8 +494,11 @@ WorldSocket::ReadDataHandlerResult WorldSocket::ReadDataHandler()
             ClientOpcodeHandler const* handler = opcodeTable[opcode];
             if (!handler)
             {
-                TC_LOG_ERROR("network.opcode", "No defined handler for opcode {} sent by {}", GetOpcodeNameForLogging(static_cast<OpcodeClient>(packet.GetOpcode())), _worldSession->GetPlayerInfo());
-                break;
+                if (sConfigMgr->GetIntDefault("LogUnhandledOpcodes", true))
+                {
+                    TC_LOG_ERROR("network.opcode", "No defined handler for opcode {} sent by {}", GetOpcodeNameForLogging(static_cast<OpcodeClient>(packet.GetOpcode())), _worldSession->GetPlayerInfo());
+                    break;
+                }
             }
 
             // Our Idle timer will reset on any non PING opcodes on login screen, allowing us to catch people idling.
