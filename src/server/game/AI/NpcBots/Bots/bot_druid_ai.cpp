@@ -258,7 +258,7 @@ public:
 
         void JustEnteredCombat(Unit* u) override { bot_ai::JustEnteredCombat(u); }
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
-        void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
+        void EnterEvadeMode(EvadeReason why = EvadeReason::Other) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
         void JustDied(Unit* u) override { removeShapeshiftForm(); UnsummonAll(false); bot_ai::JustDied(u); }
 

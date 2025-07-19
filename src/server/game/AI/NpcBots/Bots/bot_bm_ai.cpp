@@ -295,7 +295,7 @@ public:
         void JustEnteredCombat(Unit* u) override { bot_ai::JustEnteredCombat(u); }
         void AttackStart(Unit*) override { }
         void KilledUnit(Unit* u) override { bot_ai::KilledUnit(u); }
-        void EnterEvadeMode(EvadeReason why = EVADE_REASON_OTHER) override { bot_ai::EnterEvadeMode(why); }
+        void EnterEvadeMode(EvadeReason why = EvadeReason::Other) override { bot_ai::EnterEvadeMode(why); }
         void MoveInLineOfSight(Unit* u) override { bot_ai::MoveInLineOfSight(u); }
         void DoNonCombatActions(uint32 /*diff*/) { }
 
