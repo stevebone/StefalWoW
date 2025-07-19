@@ -260,8 +260,8 @@ class TC_GAME_API Group
         void UpdateBotOutOfRange(Creature* creature);
         void LinkBotMember(GroupBotReference* bRef);
         void DelinkBotMember(ObjectGuid guid);
-        GroupBotReference* GetFirstBotMember() { return m_botMemberMgr.getFirst(); }
-        GroupBotReference const* GetFirstBotMember() const { return m_botMemberMgr.getFirst(); }
+        GroupBotReference* GetFirstBotMember() { return m_botMemberMgr.front(); }
+        GroupBotReference const* GetFirstBotMember() const { return m_botMemberMgr.front(); }
         //end npcbot
 
         bool AddInvite(Player* player);

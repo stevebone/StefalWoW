@@ -28,11 +28,11 @@ class GroupRefManager : public RefManager<GroupReference>
 //npcbot
 class Creature;
 
-class GroupBotRefManager : public RefManager<Group, Creature>
+class GroupBotRefManager : public RefManager<GroupBotReference>
 {
 public:
-    GroupBotReference* getFirst() { return ((GroupBotReference*)RefManager<Group, Creature>::getFirst()); }
-    GroupBotReference const* getFirst() const { return ((GroupBotReference const*)RefManager<Group, Creature>::getFirst()); }
+    GroupBotReference* getFirst() { return ((GroupBotReference*)RefManager<GroupBotReference>::front()); }
+    GroupBotReference const* getFirst() const { return ((GroupBotReference const*)RefManager<GroupBotReference>::front()); }
 };
 //end npcbot
 #endif

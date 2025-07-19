@@ -42,18 +42,20 @@ class TC_GAME_API GroupReference : public Reference<Group, Player, GroupReferenc
 //npcbot
 class Creature;
 
-class TC_GAME_API GroupBotReference : public Reference<Group, Creature>
+class TC_GAME_API GroupBotReference : public Reference<Group, Creature, GroupBotReference>
 {
 protected:
     uint8 iSubGroup;
-    void targetObjectBuildLink() override;
-    void targetObjectDestroyLink() override;
-    void sourceObjectDestroyLink() override;
+
+    friend Reference<Group, Creature, GroupBotReference>;
+    void targetObjectBuildLink();
+    void targetObjectDestroyLink();
+    void sourceObjectDestroyLink();
 public:
-    GroupBotReference() : Reference<Group, Creature>(), iSubGroup(0) { }
+    GroupBotReference() : Reference<Group, Creature, GroupBotReference>(), iSubGroup(0) { }
     ~GroupBotReference() { unlink(); }
-    GroupBotReference* next() { return (GroupBotReference*)Reference<Group, Creature>::next(); }
-    GroupBotReference const* next() const { return (GroupBotReference const*)Reference<Group, Creature>::next(); }
+    GroupBotReference* next() { return (GroupBotReference*)Reference<Group, Creature, GroupBotReference>::next(); }
+    GroupBotReference const* next() const { return (GroupBotReference const*)Reference<Group, Creature, GroupBotReference>::next(); }
     uint8 getSubGroup() const { return iSubGroup; }
     void setSubGroup(uint8 pSubGroup) { iSubGroup = pSubGroup; }
 };
