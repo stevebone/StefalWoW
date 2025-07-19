@@ -473,21 +473,6 @@ struct CreatureDifficulty
         return HealthScalingExpansion == EXPANSION_LEVEL_CURRENT ? CURRENT_EXPANSION : HealthScalingExpansion;
     }
 
-    //npcbot
-    inline bool IsNPCBot() const
-    {
-        return (flags_extra & CREATURE_FLAG_EXTRA_NPCBOT) == CREATURE_FLAG_EXTRA_NPCBOT;
-    }
-    inline bool IsNPCBotPet() const
-    {
-        return (flags_extra & CREATURE_FLAG_EXTRA_NPCBOT) == CREATURE_FLAG_EXTRA_NPCBOT_PET;
-    }
-    inline bool IsNPCBotOrPet() const
-    {
-        return IsNPCBot() || IsNPCBotPet();
-    }
-    //end npcbot
-
     SkillType GetRequiredLootSkill() const
     {
         if (TypeFlags & CREATURE_TYPE_FLAG_SKIN_WITH_HERBALISM)
@@ -560,6 +545,22 @@ struct TC_GAME_API CreatureTemplate
     CreatureDifficulty const* GetDifficulty(Difficulty difficulty) const;
 
     // Helpers
+
+    //npcbot
+    inline bool IsNPCBot() const
+    {
+        return (flags_extra & CREATURE_FLAG_EXTRA_NPCBOT) == CREATURE_FLAG_EXTRA_NPCBOT;
+    }
+    inline bool IsNPCBotPet() const
+    {
+        return (flags_extra & CREATURE_FLAG_EXTRA_NPCBOT) == CREATURE_FLAG_EXTRA_NPCBOT_PET;
+    }
+    inline bool IsNPCBotOrPet() const
+    {
+        return IsNPCBot() || IsNPCBotPet();
+    }
+    //end npcbot
+
     bool IsExotic(CreatureDifficulty const* creatureDifficulty) const
     {
         return (creatureDifficulty->TypeFlags & CREATURE_TYPE_FLAG_TAMEABLE_EXOTIC) != 0;
