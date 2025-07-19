@@ -30,6 +30,10 @@
 #include "Player.h"
 #include "World.h"
 
+// npcbot
+#include "botmgr.h"
+//end npcbot
+
 void WorldSession::HandleSplitItemOpcode(WorldPackets::Item::SplitItem& splitItem)
 {
     if (!splitItem.Inv.Items.empty())
@@ -643,6 +647,16 @@ void WorldSession::SendListInventory(ObjectGuid vendorGuid)
             int32 leftInStock = !vendorItem->maxcount ? -1 : vendor->GetVendorItemCurrentCount(vendorItem);
             if (!_player->IsGameMaster()) // ignore conditions if GM on
             {
+                // npcbot
+                if (_player->HaveBot())
+                {
+                    if (!(itemTemplate->AllowableClass & (_player->GetClassMask() | _player->GetBotMgr()->GetAllNpcBotsClassMask())) &&
+                        itemTemplate->Bonding == BIND_WHEN_PICKED_UP && !_player->IsGameMaster())
+                        continue;
+                }
+                else
+                    // end npcbot
+
                 // Respect allowed class
                 if (!(itemTemplate->GetAllowableClass() & _player->GetClassMask()) && itemTemplate->GetBonding() == BIND_ON_ACQUIRE)
                     continue;

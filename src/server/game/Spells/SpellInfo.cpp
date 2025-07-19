@@ -40,6 +40,11 @@
 #include <G3D/g3dmath.h>
 #include <bit>
 
+//npcbot
+#include "botmgr.h"
+#include "botspell.h"
+//end npcbot
+
 uint32 GetTargetFlagMask(SpellTargetObjectTypes objType)
 {
     switch (objType)
@@ -680,6 +685,12 @@ float SpellEffectInfo::CalcValueMultiplier(WorldObject* caster, Spell* spell /*=
     float multiplier = Amplitude;
     if (Player* modOwner = (caster ? caster->GetSpellModOwner() : nullptr))
         modOwner->ApplySpellMod(_spellInfo, SpellModOp::Amplitude, multiplier, spell);
+
+    //npcbot - apply bot spell effect value mult mods
+    if (caster && caster->IsNPCBot())
+        BotMgr::ApplyBotEffectValueMultiplierMods(caster->ToCreature(), _spellInfo, EffectIndex, multiplier);
+    //end npcbot
+
     return multiplier;
 }
 
@@ -740,6 +751,11 @@ float SpellEffectInfo::CalcRadius(WorldObject* caster /*= nullptr*/, SpellTarget
 
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(_spellInfo, SpellModOp::Radius, radius, spell);
+
+        //npcbot - apply bot spell radius mods
+        if (caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->IsNPCBotOrPet())
+            caster->ToCreature()->ApplyCreatureSpellRadiusMods(_spellInfo, radius);
+        //end npcbot
 
         if (!_spellInfo->HasAttribute(SPELL_ATTR9_NO_MOVEMENT_RADIUS_BONUS))
             if (Unit const* casterUnit = caster->ToUnit(); casterUnit && Spell::CanIncreaseRangeByMovement(casterUnit))
@@ -1484,6 +1500,14 @@ SpellInfo::~SpellInfo()
 {
     _UnloadImplicitTargetConditionLists();
 }
+
+//npcbot
+SpellInfo const* SpellInfo::TryGetSpellInfoOverride(WorldObject const* caster) const
+{
+    SpellInfo const* spellInfoOverride = (caster && caster->IsNPCBotOrPet()) ? GetBotSpellInfoOverride(Id) : nullptr;
+    return spellInfoOverride ? spellInfoOverride : this;
+}
+//end npcbot
 
 uint32 SpellInfo::GetCategory() const
 {
@@ -2378,6 +2402,9 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
     if (!unitTarget->IsPlayer())
     {
         if (HasAttribute(SPELL_ATTR3_ONLY_ON_PLAYER))
+            //npcbot: allow to target bots
+            if (!unitTarget->IsNPCBot())
+            //end npcbot
             return SPELL_FAILED_TARGET_NOT_PLAYER;
 
         if (HasAttribute(SPELL_ATTR5_NOT_ON_PLAYER_CONTROLLED_NPC) && unitTarget->IsControlledByPlayer())
@@ -2496,6 +2523,14 @@ SpellCastResult SpellInfo::CheckExplicitTarget(WorldObject const* caster, WorldO
                     return SPELL_CAST_OK;
             return SPELL_FAILED_BAD_TARGETS;
         }
+
+        //npcbot
+        else if ((neededTargets & TARGET_FLAG_CORPSE_ALLY) && unitTarget->IsNPCBot())
+        {
+            if (!caster->IsValidAssistTarget(unitTarget, this))
+                return SPELL_FAILED_BAD_TARGETS;
+        }
+        //end npcbot
     }
     return SPELL_CAST_OK;
 }
@@ -4184,6 +4219,11 @@ Optional<SpellPowerCost> SpellInfo::CalcPowerCost(SpellPowerEntry const* power, 
             }
         }
     }
+
+    //npcbot - apply bot spell cost mods
+    if (powerCost > 0 && caster->IsNPCBot())
+        caster->ToCreature()->ApplyCreatureSpellCostMods(this, powerCost);
+    //end npcbot
 
     if (!unitCaster->IsControlledByPlayer() && G3D::fuzzyEq(power->PowerCostPct, 0.0f) && SpellLevel && power->PowerType == POWER_MANA)
     {

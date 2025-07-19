@@ -44,6 +44,10 @@
 #include "WorldStateMgr.h"
 #include <cstdarg>
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 #ifdef TRINITY_API_USE_DYNAMIC_LINKING
 #include "ScriptMgr.h"
 #endif
@@ -695,6 +699,15 @@ void InstanceScript::DoRemoveAurasDueToSpellOnPlayer(Player* player, uint32 spel
 
     player->RemoveAurasDueToSpell(spell);
 
+    //npcbot: include bots
+    if (player->HaveBot())
+    {
+        for (auto const& bitr : *player->GetBotMgr()->GetBotMap())
+            if (bitr.second && bitr.second->IsInWorld())
+                DoRemoveAurasDueToSpellOnNPCBot(bitr.second, spell);
+    }
+    //end npcbot
+
     if (!includePets)
         return;
 
@@ -717,6 +730,24 @@ void InstanceScript::DoRemoveAurasDueToSpellOnPlayer(Player* player, uint32 spel
     }
 }
 
+//npcbot: hooks
+void InstanceScript::DoRemoveAurasDueToSpellOnNPCBot(Creature* bot, uint32 spell)
+{
+    ASSERT(bot && bot->IsNPCBot() && bot->IsInWorld() && !bot->IsFreeBot());
+    bot->RemoveAurasDueToSpell(spell);
+    if (Unit* botpet = bot->GetBotsPet())
+        botpet->RemoveAurasDueToSpell(spell);
+}
+
+void InstanceScript::DoCastSpellOnNPCBot(Creature* bot, uint32 spell)
+{
+    ASSERT(bot && bot->IsNPCBot() && bot->IsInWorld() && !bot->IsFreeBot());
+    bot->CastSpell(bot, spell, true);
+    if (Unit* botpet = bot->GetBotsPet())
+        botpet->CastSpell(botpet, spell, true);
+}
+//end npcbot
+
 void InstanceScript::DoCastSpellOnPlayers(uint32 spell, bool includePets /*= false*/, bool includeControlled /*= false*/)
 {
     instance->DoOnPlayers([this, spell, includePets, includeControlled](Player* player)
@@ -731,6 +762,15 @@ void InstanceScript::DoCastSpellOnPlayer(Player* player, uint32 spell, bool incl
         return;
 
     player->CastSpell(player, spell, true);
+
+    //npcbot: include bots
+    if (player->HaveBot())
+    {
+        for (auto const& bitr : *player->GetBotMgr()->GetBotMap())
+            if (bitr.second && bitr.second->IsInWorld())
+                DoCastSpellOnNPCBot(bitr.second, spell);
+    }
+    //end npcbot
 
     if (!includePets)
         return;

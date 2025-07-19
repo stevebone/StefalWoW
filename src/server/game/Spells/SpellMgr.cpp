@@ -3385,6 +3385,19 @@ void SpellMgr::LoadSpellInfoCorrections()
 {
     uint32 oldMSTime = getMSTime();
 
+    //npcbot: corrections for Gunship Battle Shoot: should be able to target creatures (Hurl Axe can)
+    ApplySpellFix({
+        70162,  // Shoot 10N
+        72566,  // Shoot 25N
+        72567,  // Shoot 10H
+        72568   // Shoot 25H
+        }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->AttributesEx3 &= ~SPELL_ATTR3_ONLY_TARGET_PLAYERS;
+            spellInfo->TargetAuraSpell = 0;
+        });
+    //end npcbot
+
     // Some spells have no amplitude set
     {
         ApplySpellFix({

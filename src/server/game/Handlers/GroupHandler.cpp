@@ -30,6 +30,12 @@
 #include "SocialMgr.h"
 #include "World.h"
 
+//npcbot: try query bot name
+#include "CreatureData.h"
+#include "botdatamgr.h"
+#include "botmgr.h"
+//end npcbot
+
 class Aura;
 
 /* differeces from off:
@@ -496,6 +502,14 @@ void WorldSession::HandleChangeSubGroupOpcode(WorldPackets::Party::ChangeSubGrou
     if (!group->HasFreeSlotSubGroup(packet.NewSubGroup))
         return;
 
+    //npcbot
+    if (senderGuid.IsEmpty())
+    {
+        if (Creature const* bot = BotDataMgr::FindBot(name, GetSessionDbcLocale()))
+            senderGuid = bot->GetGUID();
+    }
+    //end npcbot
+
     group->ChangeMembersGroup(packet.TargetGUID, packet.NewSubGroup);
 }
 
@@ -579,6 +593,35 @@ void WorldSession::HandleReadyCheckResponseOpcode(WorldPackets::Party::ReadyChec
 void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPackets::Party::RequestPartyMemberStats& packet)
 {
     WorldPackets::Party::PartyMemberFullState partyMemberStats;
+
+    ObjectGuid guid;
+    recvData >> guid;
+
+    //npcbot: try send bot group member info
+    if (guid.IsCreature())
+    {
+        if (!GetPlayer()->GetGroup() || !GetPlayer()->GetGroup()->IsMember(guid))
+        {
+            WorldPacket data(SMSG_PARTY_MEMBER_STATS_FULL, 3 + 4 + 2);
+            data << uint8(0);
+            data << guid.WriteAsPacked();
+            data << uint32(GROUP_UPDATE_FLAG_STATUS);
+            data << uint16(MEMBER_STATUS_OFFLINE);
+            SendPacket(&data);
+            return;
+        }
+
+        uint32 creatureId = guid.GetEntry();
+        CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(creatureId);
+        if (creatureTemplate && creatureTemplate->IsNPCBot())
+        {
+            WorldPacket bpdata(SMSG_PARTY_MEMBER_STATS_FULL, 4 + 2 + 2 + 2 + 1 + 2 * 6 + 8 + 1 + 8);
+            BotMgr::BuildBotPartyMemberStatsPacket(guid, &bpdata);
+            SendPacket(&bpdata);
+            return;
+        }
+    }
+    //end npcbot
 
     Player* player = ObjectAccessor::FindConnectedPlayer(packet.TargetGUID);
     if (!player)

@@ -165,6 +165,23 @@ struct GameTele
 
 typedef std::unordered_map<uint32, GameTele> GameTeleContainer;
 
+//npcbot
+#define MAX_CREATURE_OUTFIT_DISPLAYS 11
+struct CreatureOutfit
+{
+    uint8 race;
+    uint8 gender;
+    uint8 face;
+    uint8 skin;
+    uint8 hair;
+    uint8 facialhair;
+    uint8 haircolor;
+    uint32 outfit[MAX_CREATURE_OUTFIT_DISPLAYS];
+};
+
+typedef std::unordered_map<uint32, CreatureOutfit > CreatureOutfitContainer;
+//end npcbot
+
 enum ScriptsType
 {
     SCRIPTS_FIRST = 1,
@@ -1305,6 +1322,10 @@ class TC_GAME_API ObjectMgr
 
         void LoadNPCSpellClickSpells();
 
+        //npcbot
+        void LoadCreatureOutfits();
+        //end npcbot
+
         void LoadGameTele();
 
         void LoadGossipMenu();
@@ -1556,6 +1577,10 @@ class TC_GAME_API ObjectMgr
         bool AddGameTele(GameTele& data);
         bool DeleteGameTele(std::string_view name);
 
+        //npcbot
+        CreatureOutfitContainer const& GetCreatureOutfitMap() const { return _creatureOutfitStore; }
+        //end npcbot
+
         Trainer::Trainer const* GetTrainer(uint32 trainerId) const;
         uint32 GetCreatureDefaultTrainer(uint32 creatureId) const
         {
@@ -1771,6 +1796,10 @@ class TC_GAME_API ObjectMgr
 
         PageTextContainer _pageTextStore;
         InstanceTemplateContainer _instanceTemplateStore;
+
+        //npcbot
+        CreatureOutfitContainer _creatureOutfitStore;
+        //end npcbot
 
     public:
         PhaseInfoStruct const* GetPhaseInfo(uint32 phaseId) const;

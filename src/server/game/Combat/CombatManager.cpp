@@ -20,6 +20,9 @@
 #include "CreatureAI.h"
 #include "MapUtils.h"
 #include "Player.h"
+ //npcbot
+#include "botmgr.h"
+//end npcbot
 
 /*static*/ bool CombatManager::CanBeginCombat(Unit const* a, Unit const* b)
 {
@@ -211,6 +214,13 @@ bool CombatManager::SetInCombatWith(Unit* who, bool addSecondUnitSuppressed)
     CombatReference* ref;
     if (_owner->IsControlledByPlayer() && who->IsControlledByPlayer())
         ref = new PvPCombatReference(_owner, who);
+    //npcbot: follow pvp rules
+    else if ((_owner->ToCreature() && _owner->ToCreature()->IsNPCBotOrPet() && who->IsControlledByPlayer()) ||
+          (who->ToCreature() && who->ToCreature()->IsNPCBotOrPet() && _owner->IsControlledByPlayer()) ||
+          (_owner->ToCreature() && _owner->ToCreature()->IsNPCBotOrPet() &&
+          who->ToCreature() && who->ToCreature()->IsNPCBotOrPet()))
+          ref = new PvPCombatReference(_owner, who);
+    //end npcbot
     else
         ref = new CombatReference(_owner, who);
 
@@ -265,6 +275,27 @@ void CombatManager::InheritCombatStatesFrom(Unit const* who)
             continue;
         SetInCombatWith(target);
     }
+    //npcbot
+    for (auto& ref : mgr._pveRefs)
+    {
+        if (!IsInCombatWith(ref.first))
+        {
+            Unit* target = ref.second->GetOther(who);
+            if ((_owner->IsImmuneToPC() && target->IsNPCBotOrPet()) ||
+                (_owner->IsImmuneToNPC() && !target->IsNPCBotOrPet()))
+                continue;
+            SetInCombatWith(target);
+        }
+    }
+    for (auto& ref : mgr._pvpRefs)
+    {
+        Unit* target = ref.second->GetOther(who);
+        if ((_owner->IsImmuneToPC() && target->IsNPCBotOrPet()) ||
+            (_owner->IsImmuneToNPC() && !target->IsNPCBotOrPet()))
+            continue;
+        SetInCombatWith(target);
+    }
+    //end npcbot
 }
 
 void CombatManager::EndCombatBeyondRange(float range, bool includingPvP)
@@ -405,6 +436,17 @@ bool CombatManager::UpdateOwnerCombatState() const
 
     if (combatState)
     {
+        //npcbot: party combat hook
+        Player* playerOwner = nullptr;
+        if (_owner->GetTypeId() == TYPEID_PLAYER && _owner->ToPlayer()->HaveBot())
+            playerOwner = _owner->ToPlayer();
+        else if (_owner->GetTypeId() == TYPEID_UNIT && _owner->ToCreature()->IsNPCBotOrPet() &&
+            !_owner->ToCreature()->IsFreeBot())
+            playerOwner = _owner->ToCreature()->GetBotOwner();
+
+        if (playerOwner)
+            BotMgr::OnBotPartyEngage(playerOwner);
+        //end npcbot
         _owner->SetUnitFlag(UNIT_FLAG_IN_COMBAT);
         _owner->AtEnterCombat();
         if (_owner->GetTypeId() != TYPEID_UNIT)

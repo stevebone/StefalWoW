@@ -641,6 +641,10 @@ void Spell::EffectTriggerSpell()
         return;
     }
 
+    //npcbot: override spellInfo
+    spellInfo = spellInfo->TryGetSpellInfoOverride(GetCaster());
+    //end npcbot
+
     SpellCastTargets targets;
     Optional<int32> targetCount;
     Optional<int32> targetIndex;
@@ -725,6 +729,10 @@ void Spell::EffectTriggerMissileSpell()
         TC_LOG_ERROR("spells.effect.nospell", "Spell::EffectTriggerMissileSpell spell {} tried to trigger unknown spell {}.", m_spellInfo->Id, triggered_spell_id);
         return;
     }
+
+    //npcbot: override spellInfo
+    spellInfo = spellInfo->TryGetSpellInfoOverride(GetCaster());
+    //end npcbot
 
     SpellCastTargets targets;
     Optional<int32> targetCount;
@@ -1141,6 +1149,11 @@ void Spell::EffectPowerDrain()
         damage = bonus + uint32(bonus * variance);
         damage = unitTarget->SpellDamageBonusTaken(unitCaster, m_spellInfo, uint32(damage), SPELL_DIRECT_DAMAGE);
     }
+
+    //npcbot: handle Obsidian Destroyer's Drain Mana (target is friendly, amount is only limited by caster's max mana)
+    if (unitCaster->GetTypeId() == TYPEID_UNIT && unitCaster->ToCreature()->GetBotClass() == 13 && powerType == POWER_MANA)
+        power = unitCaster->GetMaxPower(powerType);
+    //end npcbot
 
     int32 newDamage = -(unitTarget->ModifyPower(powerType, -damage));
 
@@ -1625,6 +1638,48 @@ void Spell::EffectOpenLock()
 {
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
         return;
+
+    //npcbot
+    if (m_caster->IsNPCBot() && gameObjTarget)
+    {
+        GameObjectTemplate const* botGoInfo = gameObjTarget->GetGOInfo();
+        Creature* bot = m_caster->ToCreature();
+
+        if (botGoInfo->CannotBeUsedUnderImmunity() && bot->HasUnitFlag(UNIT_FLAG_IMMUNE))
+            return;
+
+        // Arathi Basin banner opening. /// @todo Verify correctness of this check
+        if ((botGoInfo->type == GAMEOBJECT_TYPE_BUTTON && botGoInfo->button.noDamageImmune) ||
+            (botGoInfo->type == GAMEOBJECT_TYPE_GOOBER && botGoInfo->goober.losOK))
+        {
+            //CanUseBattlegroundObject() already called in CheckCast()
+            // in battleground check
+            if (Battleground* bg = bot->GetBotBG())
+            {
+                bg->EventBotClickedOnFlag(bot, gameObjTarget);
+                return;
+            }
+        }
+        else if (botGoInfo->type == GAMEOBJECT_TYPE_FLAGSTAND)
+        {
+            //CanUseBattlegroundObject() already called in CheckCast()
+            // in battleground check
+            if (Battleground* bg = bot->GetBotBG())
+            {
+                if (bg->GetTypeID(true) == BATTLEGROUND_EY)
+                    bg->EventBotClickedOnFlag(bot, gameObjTarget);
+                return;
+            }
+        }
+        else if (botGoInfo->type == GAMEOBJECT_TYPE_TRAP)
+        {
+            gameObjTarget->SetLootState(GO_ACTIVATED);
+            return;
+        }
+
+        return;
+    }
+    //end npcbot
 
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
@@ -3025,6 +3080,14 @@ void Spell::EffectSummonObjectWild()
     // Wild object not have owner and check clickable by players
     map->AddToMap(go);
 
+    //npcbot
+    if (m_caster->IsNPCBot() && pGameObj->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP)
+    {
+        if (Battleground* bg = m_caster->ToCreature()->GetBotBG())
+            bg->SetDroppedFlagGUID(pGameObj->GetGUID(), bg->GetOtherTeamId(bg->GetBotTeamId(m_caster->GetGUID())));
+    }
+    //end npcbot
+
     if (GameObject* linkedTrap = go->GetLinkedTrap())
     {
         PhasingHandler::InheritPhaseShift(linkedTrap , m_caster);
@@ -3205,6 +3268,10 @@ void Spell::EffectSanctuary()
         // stop all pve combat for players outside dungeons, suppress pvp combat
         unitTarget->CombatStop(false, false, isAffectedBySanctuary);
     }
+    //npcbot
+    else if (unitTarget->IsNPCBotOrPet() && !unitTarget->GetMap()->IsDungeon())
+        unitTarget->CombatStop(false, false, isAffectedBySanctuary);
+    //end npcbot
     else
     {
         // in dungeons (or for nonplayers), reset this unit on all enemies' threat lists
@@ -4979,6 +5046,21 @@ void Spell::SummonGuardian(SpellEffectInfo const* effect, uint32 entry, SummonPr
     float radius = 5.0f;
     Milliseconds duration = Milliseconds(m_spellInfo->CalcDuration(m_originalCaster));
 
+    //npcbot: most bot summons are botpets, we have no place to put summon duration mods, keep them here for now
+    if (unitCaster->IsNPCBot())
+    {
+        switch (m_spellInfo->Id)
+        {
+        case 49028: // Dancing Rune Weapon
+            //Glyph of Dancing Rune Weapon: +5 sec duration
+            duration += 5s;
+            break;
+        default:
+            break;
+        }
+    }
+    //end npcbot
+
     //TempSummonType summonType = (duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_DESPAWN;
     Map* map = unitCaster->GetMap();
     for (uint32 count = 0; count < numGuardians; ++count)
@@ -5010,6 +5092,21 @@ void Spell::SummonGuardian(SpellEffectInfo const* effect, uint32 entry, SummonPr
         if (summon->GetEntry() == 27893)
         {
             UF::VisibleItem const& weapon = m_caster->ToPlayer()->m_playerData->VisibleItems[EQUIPMENT_SLOT_MAINHAND];
+
+            //npcbot
+            if (unitCaster->IsCreature())
+            {
+                if (weapon.ItemID)
+                {
+                    summon->SetDisplayId(11686); // modelid2
+                    summon->SetVirtualItem(0, weapon.ItemID, weapon.ItemAppearanceModID, weapon.ItemVisual);
+                }
+                else
+                    summon->SetDisplayId(1126); // modelid1
+            }
+            else
+                //end npcbot
+
             if (weapon.ItemID)
             {
                 summon->SetDisplayId(11686); // modelid2

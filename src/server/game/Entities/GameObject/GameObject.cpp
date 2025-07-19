@@ -1476,6 +1476,17 @@ void GameObject::Update(uint32 diff)
                         Trinity::PlayerSearcher searcher(this, player, checker);
                         Cell::VisitWorldObjects(this, searcher, radius);
                         target = player;
+
+                        //npcbot
+                        if (!target)
+                        {
+                            Creature* bot = nullptr;
+                            std::function bot_checker = [=, this](Creature const* c) { return c->IsNPCBot() && c->IsAlive() && IsWithinDistInMap(c, radius); };
+                            Trinity::CreatureSearcher searcher(this, bot, bot_checker);
+                            Cell::VisitAllObjects(this, searcher, radius);
+                            target = bot;
+                        }
+                        //end npcbot
                     }
 
                     if (target)
@@ -1597,6 +1608,7 @@ void GameObject::Update(uint32 diff)
                             SetLootState(GO_JUST_DEACTIVATED);
                         else if (!goInfo->trap.charges)
                             SetLootState(GO_READY);
+
                     }
                     break;
                 }
@@ -2999,6 +3011,39 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
 
         case GAMEOBJECT_TYPE_RITUAL:              //18
         {
+            //npcbot
+            if (user->IsNPCBot())
+            {
+                GameObjectTemplate const* info = GetGOInfo();
+                Player* botOwner = user->ToCreature()->GetBotOwner();
+                spellCaster = botOwner;
+
+                if (info->summoningRitual.animSpell)
+                {
+                    user->CastSpell(user, info->summoningRitual.animSpell, true);
+                    triggered = true;
+                }
+
+                spellId = info->summoningRitual.spellId;
+                if (spellId == 62330)
+                {
+                    spellId = 61993;
+                    triggered = true;
+                }
+                if (!info->summoningRitual.ritualPersistent)
+                    SetLootState(GO_JUST_DEACTIVATED);
+                else
+                {
+                    // reset ritual for this GO
+                    m_ritualOwnerGUID.Clear();
+                    m_unique_users.clear();
+                    m_usetimes = 0;
+                }
+
+                break;
+            }
+            //end npcbot
+
             if (user->GetTypeId() != TYPEID_PLAYER)
                 return;
 
@@ -3155,6 +3200,20 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
 
         case GAMEOBJECT_TYPE_FLAGSTAND:                     // 24
         {
+            //npcbot
+            if (user->IsNPCBot())
+            {
+                Creature* bot = user->ToCreature();
+                if (Battleground* botbg = bot->GetBotBG())
+                {
+                    bot->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+                    bot->RemoveAurasByType(SPELL_AURA_MOD_INVISIBILITY);
+                    botbg->EventBotClickedOnFlag(bot, this);
+                    return;
+                }
+            }
+            //end npcbot
+
             if (user->GetTypeId() != TYPEID_PLAYER)
                 return;
 
@@ -3197,6 +3256,38 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
 
         case GAMEOBJECT_TYPE_FLAGDROP:                      // 26
         {
+            //npcbot
+            if (user->IsNPCBot())
+            {
+                Creature* bot = user->ToCreature();
+                if (Battleground* botbg = bot->GetBotBG())
+                {
+                    bot->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+                    bot->RemoveAurasByType(SPELL_AURA_MOD_INVISIBILITY);
+
+                    if (GameObjectTemplate const* bgoinfo = GetGOInfo())
+                    {
+                        switch (bgoinfo->entry)
+                        {
+                        case 179785:                        // Silverwing Flag
+                        case 179786:                        // Warsong Flag
+                            if (botbg->GetTypeID(true) == BATTLEGROUND_WS)
+                                botbg->EventBotClickedOnFlag(bot, this);
+                            break;
+                        case 184142:                        // Netherstorm Flag
+                            if (botbg->GetTypeID(true) == BATTLEGROUND_EY)
+                                botbg->EventBotClickedOnFlag(bot, this);
+                            break;
+                        }
+                    }
+                    //this cause to call return, all flags must be deleted here!!
+                    spellId = 0;
+                    Delete();
+                    break;
+                }
+            }
+            //end npcbot
+
             if (user->GetTypeId() != TYPEID_PLAYER)
                 return;
 

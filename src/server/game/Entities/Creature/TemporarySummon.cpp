@@ -34,6 +34,11 @@
 #include <boost/container/small_vector.hpp>
 #include <sstream>
 
+//npcbot
+#include "botmgr.h"
+#include "bpet_ai.h"
+//end npcbot
+
 TempSummon::TempSummon(SummonPropertiesEntry const* properties, WorldObject* owner, bool isWorldObject) :
 Creature(isWorldObject), m_Properties(properties), m_type(TEMPSUMMON_MANUAL_DESPAWN),
 m_timer(0ms), m_lifetime(0ms), m_canFollowOwner(true)
@@ -221,6 +226,13 @@ void TempSummon::InitStats(WorldObject* summoner, Milliseconds duration)
     if (!m_Properties)
         return;
 
+    //npcbot: skip deleting/reassigning player totems
+    //normally no creatorGUID is assigned at this point, perform full check anyway for compatibilty reasons
+    if (!(m_Properties->Slot && m_Properties->Slot >= SUMMON_SLOT_TOTEM_FIRE && m_Properties->Slot < MAX_TOTEM_SLOT &&
+        GetCreatorGUID() && GetCreatorGUID().IsCreature() && owner && owner->GetTypeId() == TYPEID_PLAYER &&
+        owner->ToPlayer()->HaveBot() && owner->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID())))
+        //end npcbot
+
     if (Unit* unitSummoner = ToUnit(summoner))
     {
         std::ptrdiff_t slot = m_Properties->Slot;
@@ -274,6 +286,14 @@ void TempSummon::InitSummon(WorldObject* summoner)
         }
         if (IsAIEnabled())
             AI()->IsSummonedBy(summoner);
+
+        //npcbot
+        if (IsTempBot())
+        {
+            m_summonerGUID = ObjectGuid::Empty;
+            SetCreatorGUID(m_summonerGUID);
+        }
+        //end npcbot
     }
 }
 
@@ -344,6 +364,15 @@ void TempSummon::UnSummon(uint32 msTime)
         ASSERT(!IsInWorld());
         return;
     }
+
+    //npcbot
+    if (IsNPCBotPet())
+    {
+        if (Creature* petowner = GetBotPetAI()->GetPetsOwner())
+            petowner->AI()->SummonedCreatureDespawn(this);
+    }
+    else
+        //end npcbot
 
     if (WorldObject * owner = GetSummoner())
     {
@@ -458,6 +487,15 @@ void Minion::InitStats(WorldObject* summoner, Milliseconds duration)
     TempSummon::InitStats(summoner, duration);
 
     SetReactState(REACT_PASSIVE);
+
+    //npcbot
+    //do not add bot totem to player's controlled list
+    //client indicator will be OwnerGUID
+    if (m_Properties && m_Properties->Slot && m_Properties->Slot >= SUMMON_SLOT_TOTEM_FIRE && m_Properties->Slot < MAX_TOTEM_SLOT &&
+        GetCreatorGUID() && GetCreatorGUID().IsCreature() && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER &&
+        GetOwner()->ToPlayer()->HaveBot() && GetOwner()->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID()))
+        return;
+    //end npcbot
 
     SetCreatorGUID(GetOwner()->GetGUID());
     SetFaction(GetOwner()->GetFaction()); // TODO: Is this correct? Overwrite the use of SummonPropertiesFlags::UseSummonerFaction

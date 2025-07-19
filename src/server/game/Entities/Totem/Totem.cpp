@@ -26,6 +26,11 @@
 #include "SpellMgr.h"
 #include "TotemPackets.h"
 
+//npcbot
+#include "botmgr.h"
+#include "ObjectAccessor.h"
+//end npcbot
+
 Totem::Totem(SummonPropertiesEntry const* properties, Unit* owner) : Minion(properties, owner, false), m_type(TOTEM_PASSIVE), m_duration(0ms)
 {
     m_unitTypeMask |= UNIT_MASK_TOTEM;
@@ -33,6 +38,21 @@ Totem::Totem(SummonPropertiesEntry const* properties, Unit* owner) : Minion(prop
 
 void Totem::Update(uint32 diff)
 {
+    //npcbot: do not despawn bot totem if master is dead
+    Creature const* botOwner = (GetOwner()->GetTypeId() == TYPEID_PLAYER && GetOwner()->ToPlayer()->HaveBot()) ?
+        GetOwner()->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID()) : nullptr;
+
+    if (botOwner)
+    {
+        if (!botOwner->IsAlive() || !IsAlive())
+        {
+            UnSummon();
+            return;
+        }
+    }
+    else
+    //end npcbot
+
     if (!GetOwner()->IsAlive() || !IsAlive())
     {
         UnSummon();                                         // remove self
@@ -138,6 +158,12 @@ void Totem::UnSummon(uint32 msTime)
             }
         }
     }
+
+    //npcbot: send SummonedCreatureDespawn()
+    if (Unit* creator = GetCreator())
+        if (creator->IsNPCBot())
+            creator->ToCreature()->OnBotDespawn(this);
+    //end npcbot
 
     AddObjectToRemoveList();
 }

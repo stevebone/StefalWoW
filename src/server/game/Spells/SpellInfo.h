@@ -247,11 +247,29 @@ public:
 
     explicit SpellEffectInfo();
     explicit SpellEffectInfo(SpellInfo const* spellInfo, SpellEffectEntry const& effect);
+    //npcbot
+    /*
+    //end npcbot
     SpellEffectInfo(SpellEffectInfo const&) = delete;
+    //npcbot
+    */
+    SpellEffectInfo(SpellEffectInfo const&) = default;
+    //end npcbot
     SpellEffectInfo(SpellEffectInfo&&) noexcept;
+    //npcbot
+    /*
+    //end npcbot
     SpellEffectInfo& operator=(SpellEffectInfo const&) = delete;
+    //npcbot
+    */
+    SpellEffectInfo& operator=(SpellEffectInfo const&) = default;
+    //end npcbot
     SpellEffectInfo& operator=(SpellEffectInfo&&) noexcept;
     ~SpellEffectInfo();
+
+    //npcbot
+    void OverrideSpellInfo(SpellInfo const* spellInfo) { ASSERT_NOTNULL(spellInfo); _spellInfo = spellInfo; }
+    //end npcbot
 
     bool IsEffect() const;
     bool IsEffect(SpellEffectName effectName) const;
@@ -291,7 +309,14 @@ private:
     };
     static std::array<StaticData, TOTAL_SPELL_EFFECTS> _data;
 
+    //npcbot
+    /*
+    //end npcbot
     std::unique_ptr<ImmunityInfo> _immunityInfo;
+    //npcbot
+    */
+    std::shared_ptr<ImmunityInfo> _immunityInfo;
+    //end npcbot
 };
 
 typedef std::vector<SpellXSpellVisualEntry const*> SpellVisualVector;
@@ -602,6 +627,10 @@ class TC_GAME_API SpellInfo
         bool MeetsFutureSpellPlayerCondition(Player const* player) const;
 
         bool HasLabel(uint32 labelId) const;
+
+        //npcbot
+        SpellInfo const* TryGetSpellInfoOverride(WorldObject const* caster) const;
+        //end npcbot
 
     private:
         // loading helpers

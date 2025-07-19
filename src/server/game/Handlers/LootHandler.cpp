@@ -38,6 +38,10 @@
 #include "SpellMgr.h"
 #include "World.h"
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 class AELootCreatureCheck
 {
 public:
@@ -150,6 +154,52 @@ void WorldSession::HandleLootMoneyOpcode(WorldPackets::Loot::LootMoney& /*packet
         bool shareMoney = loot->loot_type == LOOT_CORPSE;
 
         loot->NotifyMoneyRemoved(player->GetMap());
+
+        //npcbot
+        if (shareMoney && player->GetGroup() && BotMgr::GetNpcBotMoneyShareEnabled())
+        {
+            Group* group = player->GetGroup();
+            std::vector<Player*> playersNear;
+            uint32 bots_count = 0;
+            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            {
+                Player* member = itr->GetSource();
+                if (!member)
+                    continue;
+
+                if (player->IsAtGroupRewardDistance(member))
+                    playersNear.push_back(member);
+
+                if (!member->HaveBot())
+                    continue;
+
+                BotMap const* botMap = member->GetBotMgr()->GetBotMap();
+                for (auto const& kv : *botMap)
+                {
+                    Creature const* bot = kv.second;
+                    if (bot && bot->IsAlive() && bot->IsInMap(player) && (group->IsMember(kv.first) || !BotMgr::GetNpcBotMoneyShareGroupOnly()) &&
+                        (member->GetMap()->IsDungeon() || player->GetDistance(bot) <= sWorld->getFloatConfig(CONFIG_GROUP_XP_DISTANCE)))
+                        ++bots_count;
+                }
+            }
+
+            uint32 sharers_count = uint32(playersNear.size()) + bots_count;
+            uint32 goldPerPlayer = uint32(loot->gold / sharers_count);
+
+            for (std::vector<Player*>::const_iterator i = playersNear.begin(); i != playersNear.end(); ++i)
+            {
+                (*i)->ModifyMoney(goldPerPlayer);
+                (*i)->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LOOT_MONEY, goldPerPlayer);
+
+                WorldPacket data(SMSG_LOOT_MONEY_NOTIFY, 4 + 1);
+                data << uint32(goldPerPlayer);
+                data << uint8(sharers_count <= 1); // Controls the text displayed in chat. 0 is "Your share is..." and 1 is "You loot..."
+                (*i)->SendDirectMessage(&data);
+            }
+        }
+        else
+            //end npcbot
+
         if (shareMoney && player->GetGroup())      //item, pickpocket and players can be looted only single player
         {
             Group* group = player->GetGroup();

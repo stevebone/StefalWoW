@@ -38,6 +38,11 @@
 #include <boost/dynamic_bitset.hpp>
 #include <numeric>
 
+//npcbot
+#include "botdatamgr.h"
+#include "botmgr.h"
+//end npcbot
+
 MapManager::MapManager()
     : _freeInstanceIds(std::make_unique<InstanceIds>()), _nextInstanceId(0), _scheduledScripts(0)
 {
@@ -55,6 +60,10 @@ void MapManager::Initialize()
     // Start mtmaps if needed.
     if (num_threads > 0)
         m_updater.activate(num_threads);
+
+    //npcbot: load bots
+    BotMgr::Initialize();
+    //end npcbot
 }
 
 void MapManager::InitializeVisibilityDistanceInfo()
@@ -323,6 +332,10 @@ uint32 MapManager::FindInstanceIdForPlayer(uint32 mapId, Player const* player) c
 
 void MapManager::Update(uint32 diff)
 {
+    //npcbot
+    BotDataMgr::Update(diff);
+    //end npcbot
+
     i_timer.Update(diff);
     if (!i_timer.Passed())
         return;
@@ -349,6 +362,10 @@ void MapManager::Update(uint32 diff)
     }
     if (m_updater.activated())
         m_updater.wait();
+
+    //npcbot
+    BotMgr::HandleDelayedTeleports();
+    //end npcbot
 
     for (iter = i_maps.begin(); iter != i_maps.end(); ++iter)
         iter->second->DelayedUpdate(uint32(i_timer.GetCurrent()));

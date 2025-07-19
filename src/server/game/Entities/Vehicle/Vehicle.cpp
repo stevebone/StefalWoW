@@ -34,6 +34,10 @@
 #include "Unit.h"
 #include <sstream>
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 Vehicle::Vehicle(Unit* unit, VehicleEntry const* vehInfo, uint32 creatureEntry) :
 UsableSeatNum(0), _me(unit), _vehicleInfo(vehInfo), _creatureEntry(creatureEntry), _status(STATUS_NONE)
 {
@@ -518,11 +522,21 @@ Vehicle* Vehicle::RemovePassenger(WorldObject* passenger)
     if (seat->second.SeatInfo->Flags & VEHICLE_SEAT_FLAG_PASSENGER_NOT_SELECTABLE && !seat->second.Passenger.IsUninteractible)
         unit->SetUninteractible(false);
 
+    //npcbot
+    if (unit->GetTypeId() == TYPEID_UNIT && unit->ToCreature()->GetBotAI())
+        BotMgr::OnBotExitVehicle(unit->ToCreature(), this);
+    //end npcbot
+
     seat->second.Passenger.Reset();
 
     if (_me->GetTypeId() == TYPEID_UNIT && unit->GetTypeId() == TYPEID_PLAYER && seat->second.SeatInfo->Flags & VEHICLE_SEAT_FLAG_CAN_CONTROL)
+    //npcbot
+    {
+        if (unit->ToPlayer()->HaveBot())
+            BotMgr::OnBotOwnerExitVehicle(unit->ToPlayer(), this);
+        
         _me->RemoveCharmedBy(unit);
-
+    } //end npcbot
     if (_me->IsInWorld())
     {
         if (!_me->GetTransport())
@@ -838,6 +852,17 @@ bool VehicleJoinEvent::Execute(uint64, uint32)
             else
                 Target->GetBase()->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
         }
+
+        //npcbot: do not allow other passengers on bot vehicles
+        if (Passenger->IsNPCBot()/* &&
+            (Seat->second.SeatInfo->m_flags & VEHICLE_SEAT_FLAG_CAN_CONTROL)*/)
+        {
+            if (Target->GetBase()->GetTypeId() == TYPEID_PLAYER)
+                Target->GetBase()->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE);
+            else
+                Target->GetBase()->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+        }
+        //end npcbot
     }
 
     Passenger->InterruptSpell(CURRENT_GENERIC_SPELL);
@@ -858,6 +883,14 @@ bool VehicleJoinEvent::Execute(uint64, uint32)
             player->UnsummonPetTemporaryIfAny();
     }
 
+    //npcbot
+    if (Creature* bot = Passenger->ToCreature())
+    {
+        if (Battleground* bg = bot->GetBotBG())
+            bg->EventBotDroppedFlag(bot);
+    }
+    //end npcbot
+
     if (veSeat->HasFlag(VEHICLE_SEAT_FLAG_DISABLE_GRAVITY))
         Passenger->SetDisableGravity(true);
 
@@ -872,6 +905,11 @@ bool VehicleJoinEvent::Execute(uint64, uint32)
     Passenger->m_movementInfo.transport.guid = Target->GetBase()->GetGUID();
     Passenger->m_movementInfo.transport.vehicleId = Target->GetVehicleInfo()->ID;
 
+    //npcbot
+    if (Passenger->GetTypeId() == TYPEID_UNIT && Passenger->ToCreature()->GetBotAI())
+        BotMgr::OnBotEnterVehicle(Passenger->ToCreature(), Target);
+    //end npcbot
+
     if (Target->GetBase()->GetTypeId() == TYPEID_UNIT && Passenger->GetTypeId() == TYPEID_PLAYER &&
         Seat->second.SeatInfo->HasFlag(VEHICLE_SEAT_FLAG_CAN_CONTROL))
     {
@@ -882,6 +920,11 @@ bool VehicleJoinEvent::Execute(uint64, uint32)
             Abort(0);
             return true;
         }
+
+        //npcbot
+        if (Passenger->ToPlayer()->HaveBot())
+            BotMgr::OnBotOwnerEnterVehicle(Passenger->ToPlayer(), Target);
+        //end npcbot
     }
 
     Passenger->SendClearTarget();                            // SMSG_BREAK_TARGET

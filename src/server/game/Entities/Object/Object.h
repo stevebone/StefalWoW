@@ -233,6 +233,12 @@ class TC_GAME_API Object
         virtual void BuildUpdate(UpdateDataMapType&) { }
         void BuildFieldsUpdate(Player*, UpdateDataMapType &) const;
 
+        //npcbot
+        virtual bool IsNPCBot() const { return false; }
+        virtual bool IsNPCBotPet() const { return false; }
+        virtual bool IsNPCBotOrPet() const { return false; }
+        //end npcbot
+
         inline bool IsWorldObject() const { return isType(TYPEMASK_WORLDOBJECT); }
         static WorldObject* ToWorldObject(Object* o) { return o ? o->ToWorldObject() : nullptr; }
         static WorldObject const* ToWorldObject(Object const* o) { return o ? o->ToWorldObject() : nullptr; }
@@ -656,7 +662,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         void MovePosition(Position &pos, float dist, float angle, float maxHeightChange = 6.0f) const;
         Position GetNearPosition(float dist, float angle);
         void MovePositionToFirstCollision(Position &pos, float dist, float angle) const;
-        Position GetFirstCollisionPosition(float dist, float angle);
+        Position GetFirstCollisionPosition(float dist, float angle) const;
         Position GetRandomNearPosition(float radius);
         void GetContactPoint(WorldObject const* obj, float& x, float& y, float& z, float distance2d = CONTACT_DISTANCE) const;
 

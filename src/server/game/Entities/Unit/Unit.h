@@ -310,7 +310,7 @@ enum UnitState : uint32
 TC_GAME_API extern float baseMoveSpeed[MAX_MOVE_TYPE];
 TC_GAME_API extern float playerBaseMoveSpeed[MAX_MOVE_TYPE];
 
-enum CombatRating
+enum CombatRating : uint16
 {
     CR_AMPLIFY                          = 0,
     CR_DEFENSE_SKILL                    = 1,
@@ -1203,6 +1203,14 @@ class TC_GAME_API Unit : public WorldObject
         ObjectGuid GetCharmedGUID() const { return m_unitData->Charm; }
         Unit* GetCharmed() const { return m_charmed; }
 
+        //npcbot
+        void SetControlledByPlayer(bool set) { m_ControlledByPlayer = set; }
+        GameObject* GetFirstGameObjectById(uint32 id) const;
+        void SetCreator(Unit* creator);
+        Unit* GetCreator() const { return m_creator; }
+        Unit* m_creator = nullptr;
+        //end npcbot
+
         bool IsControlledByPlayer() const { return m_ControlledByPlayer; }
         Player* GetControllingPlayer() const;
         ObjectGuid GetCharmerOrOwnerGUID() const override { return IsCharmed() ? GetCharmerGUID() : GetOwnerGUID(); }
@@ -1854,6 +1862,11 @@ class TC_GAME_API Unit : public WorldObject
         std::string GetDebugInfo() const override;
 
         UF::UpdateField<UF::UnitData, int32(WowCS::EntityFragment::CGObject), TYPEID_UNIT> m_unitData;
+
+        //npcbot
+        bool HasReactive(ReactiveType reactive) const { return m_reactiveTimer[reactive] > 0; }
+        void ClearReactive(ReactiveType reactive);
+        //end npcbot
 
     protected:
         explicit Unit (bool isWorldObject);
