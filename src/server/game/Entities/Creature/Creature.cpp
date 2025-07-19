@@ -4190,10 +4190,7 @@ bool Creature::LoadBotCreatureFromDB(ObjectGuid::LowType spawnId, Map* map, bool
     m_creatureData = data;
     m_wanderDistance = data ? data->wander_distance : 0.f;
 
-    if (!Create(map->GenerateLowGuid<HighGuid::Unit>(), map,
-        data ? data->phaseMask : PHASEMASK_NORMAL,
-        data ? data->id : entry, data ? data->spawnPoint : *pos,
-        data, 0U, !m_respawnCompatibilityMode))
+    if (!Create(map->GenerateLowGuid<HighGuid::Creature>(), map, data->id, data->spawnPoint, data, 0U, !m_respawnCompatibilityMode))
         return false;
 
     //We should set first home position, because then AI calls home movement
@@ -4505,28 +4502,28 @@ void Creature::CastCreatureItemCombatSpell(DamageInfo const& damageInfo)
         bot_AI->CastBotItemCombatSpell(damageInfo);
 }
 
-bool Creature::HasSpellCooldown(uint32 spell_id) const
+bool Creature::HasSpellCooldown(uint32 spellId) const
 {
     if (bot_AI)
-        return !bot_AI->IsSpellReady(sSpellMgr->GetSpellInfo(spell_id)->GetFirstRankSpell()->Id, bot_AI->GetLastDiff(), false);
+        return !bot_AI->IsSpellReady(sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE)->GetFirstRankSpell()->Id, bot_AI->GetLastDiff(), false);
     else if (bot_pet_AI)
-        return !bot_pet_AI->IsSpellReady(sSpellMgr->GetSpellInfo(spell_id)->GetFirstRankSpell()->Id, bot_pet_AI->GetLastDiff(), false);
+        return !bot_pet_AI->IsSpellReady(sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE)->GetFirstRankSpell()->Id, bot_pet_AI->GetLastDiff(), false);
 
     return false;
 }
 void Creature::AddBotSpellCooldown(uint32 spellId, uint32 cooldown)
 {
     if (bot_AI)
-        bot_AI->SetSpellCooldown(sSpellMgr->GetSpellInfo(spellId)->GetFirstRankSpell()->Id, cooldown);
+        bot_AI->SetSpellCooldown(sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE)->GetFirstRankSpell()->Id, cooldown);
     else if (bot_pet_AI)
-        bot_pet_AI->SetSpellCooldown(sSpellMgr->GetSpellInfo(spellId)->GetFirstRankSpell()->Id, cooldown);
+        bot_pet_AI->SetSpellCooldown(sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE)->GetFirstRankSpell()->Id, cooldown);
 }
 void Creature::ReleaseBotSpellCooldown(uint32 spellId)
 {
     if (bot_AI)
-        bot_AI->ReleaseSpellCooldown(sSpellMgr->GetSpellInfo(spellId)->GetFirstRankSpell()->Id);
+        bot_AI->ReleaseSpellCooldown(sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE)->GetFirstRankSpell()->Id);
     else if (bot_pet_AI)
-        bot_pet_AI->ReleaseSpellCooldown(sSpellMgr->GetSpellInfo(spellId)->GetFirstRankSpell()->Id);
+        bot_pet_AI->ReleaseSpellCooldown(sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE)->GetFirstRankSpell()->Id);
 }
 
 void Creature::SpendBotRunes(SpellInfo const* spellInfo, bool didHit)
