@@ -2262,9 +2262,9 @@ void Player::RemoveFromGroup(Group* group, ObjectGuid guid, RemoveMethod method 
     //npcbot - bot is being removed from group - find master and remove bot through botmap
     else if (guid.IsCreature())
     {
-        for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+        for (Group::MemberSlot const& slot : group->GetMemberSlots())
         {
-            if (Player* member = itr->GetSource())
+            if (Player* member = ObjectAccessor::FindPlayer(slot.guid))
             {
                 if (!member->HaveBot())
                     continue;
@@ -6971,7 +6971,7 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
             Creature const* bot = victim->ToCreature();
 
             uint32 victimTeam = !bot->IsFreeBot() ? bot->GetBotOwner()->GetTeam() : BotDataMgr::GetTeamForFaction(bot->GetFaction());
-            if (GetTeam() == victimTeam && !sWorld->IsFFAPvPRealm())
+            if (static_cast<uint32>(GetTeam()) == victimTeam && !sWorld->IsFFAPvPRealm())
                 return false;
 
             uint8 k_level = GetLevel();
