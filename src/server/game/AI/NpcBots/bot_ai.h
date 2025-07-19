@@ -20,7 +20,7 @@ class TeleportHomeEvent;
 class TeleportFinishEvent;
 class AwaitStateRemovalEvent;
 
-enum CombatRating : uint8;
+enum CombatRating : uint16;
 enum EnchantmentSlot : uint16;
 enum GossipOptionIcon : uint8;
 enum MeleeHitOutcome : uint8;
@@ -66,7 +66,7 @@ class bot_ai : public CreatureAI
         void DamageDealt(Unit* victim, uint32& damage, DamageEffectType damageType) override;
         //void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override { }
         void ReceiveEmote(Player* player, uint32 emote) override;
-        void EnterEvadeMode(EvadeReason/* why*/ = EVADE_REASON_OTHER) override { }
+        void EnterEvadeMode(EvadeReason/* why*/ = EvadeReason::Other) override { }
         //void LeavingWorld() override { }
         void OnSpellStart(SpellInfo const* spellInfo) override { OnBotSpellStart(spellInfo); }
         void OnDeath(Unit* attacker = nullptr);

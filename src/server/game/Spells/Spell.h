@@ -630,10 +630,6 @@ class TC_GAME_API Spell
         Optional<Scripting::v2::ActionResultSetter<SpellCastResult>> m_scriptResult;
         bool m_scriptWaitsForSpellHit = false;
 
-        //npcbot
-        int32 GetTimer() const { return m_timer; }
-        //end npcbot
-
         int32 GetCastTime() const { return m_casttime; }
         int32 GetRemainingCastTime() const { return m_timer; }
         int32 GetChannelDuration() const { return m_channelDuration; }
