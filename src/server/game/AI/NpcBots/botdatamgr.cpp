@@ -3216,7 +3216,7 @@ uint32 BotDataMgr::GetDefaultFactionForBotRaceClass(uint8 bot_class, uint8 bot_r
     return rentry ? rentry->FactionID : uint32(FACTION_TEMPLATE_NEUTRAL_HOSTILE);
 }
 
-TeamId BotDataMgr::GetTeamIdForFaction(uint32 factionTemplateId)
+uint32 BotDataMgr::GetTeamIdForFaction(uint32 factionTemplateId)
 {
     if (FactionTemplateEntry const* fte = sFactionTemplateStore.LookupEntry(factionTemplateId))
     {
@@ -3229,17 +3229,17 @@ TeamId BotDataMgr::GetTeamIdForFaction(uint32 factionTemplateId)
     return TEAM_NEUTRAL;
 }
 
-uint32 BotDataMgr::GetTeamForFaction(uint32 factionTemplateId)
+Team BotDataMgr::GetTeamForFaction(uint32 factionTemplateId)
 {
-    switch (GetTeamIdForFaction(factionTemplateId))
+    if (FactionTemplateEntry const* fte = sFactionTemplateStore.LookupEntry(factionTemplateId))
     {
-        case TEAM_ALLIANCE:
-            return ALLIANCE;
-        case TEAM_HORDE:
-            return HORDE;
-        default:
-            return TEAM_OTHER;
+        if (fte->FactionGroup & FACTION_MASK_ALLIANCE)
+            return Team::ALLIANCE;
+        else if (fte->FactionGroup & FACTION_MASK_HORDE)
+            return Team::HORDE;
     }
+
+    return Team::TEAM_OTHER;
 }
 
 bool BotDataMgr::CanDepositBotBankItemsCount(ObjectGuid playerGuid, uint32 items_count)

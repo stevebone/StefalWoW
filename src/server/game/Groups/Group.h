@@ -262,6 +262,7 @@ class TC_GAME_API Group
         void DelinkBotMember(ObjectGuid guid);
         GroupBotReference* GetFirstBotMember() { return m_botMemberMgr.front(); }
         GroupBotReference const* GetFirstBotMember() const { return m_botMemberMgr.front(); }
+        uint8 GetMemberSlot(ObjectGuid guid) const;
         //end npcbot
 
         bool AddInvite(Player* player);

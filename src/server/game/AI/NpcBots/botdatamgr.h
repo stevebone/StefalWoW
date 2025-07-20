@@ -261,8 +261,8 @@ class BotDataMgr
         static uint8 GetMinLevelForBotClass(uint8 m_class);
         static int32 GetBotBaseReputation(Creature const* bot, FactionEntry const* factionEntry);
         static uint32 GetDefaultFactionForBotRaceClass(uint8 bot_class, uint8 bot_race);
-        static TeamId GetTeamIdForFaction(uint32 factionTemplateId);
-        static uint32 GetTeamForFaction(uint32 factionTemplateId);
+        static Team GetTeamForFaction(uint32 factionTemplateId);
+        static uint32 GetTeamIdForFaction(uint32 factionTemplateId);
 
         static bool CanDepositBotBankItemsCount(ObjectGuid playerGuid, uint32 items_count);
         static BotBankItemContainer const* GetBotBankItems(ObjectGuid playerGuid);

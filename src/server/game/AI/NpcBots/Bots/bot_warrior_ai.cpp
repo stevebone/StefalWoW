@@ -1725,18 +1725,6 @@ public:
                 if (AuraEffect* disa = target->GetAuraEffect(spellId, 1, me->GetGUID()))
                     disa->ChangeAmount(disa->GetAmount() + 10);
             }
-            if (baseId == OVERPOWER_1)
-            {
-                me->ClearReactive(REACTIVE_OVERPOWER);
-                //Unrelenting Assault (part 3): reduce spells efficiency on players
-                if (lvl >= 45 && (GetSpec() == BOT_SPEC_WARRIOR_ARMS) &&
-                    target->GetTypeId() == TYPEID_PLAYER && target->IsNonMeleeSpellCast(false, false, true))
-                {
-                    CastSpellExtraArgs args(true);
-                    args.SetOriginalCaster(me->GetGUID());
-                    target->CastSpell(target, UNRELENTING_ASSAULT_SPELL, args);
-                }
-            }
             if (baseId == REND_1 && lvl >= 15)
             {
                 //Glyph of Rending + 6 sec duration

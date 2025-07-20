@@ -910,7 +910,7 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
         {
             if (Spell* spell = victim->m_currentSpells[CURRENT_GENERIC_SPELL])
                 if (spell->getState() == SPELL_STATE_PREPARING)
-                    if ((spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG) != 0)
+                    if ((spell->m_spellInfo->InterruptFlags.HasFlag(SpellInterruptFlags::DamageCancels)) != 0)
                         victim->InterruptNonMeleeSpells(false);
         }
         //end npcbot
@@ -1028,7 +1028,7 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
     else if (victim->IsNPCBotOrPet())
     {
         if (attacker && !victim->ToCreature()->hasLootRecipient())
-            victim->ToCreature()->SetLootRecipient(attacker);
+            victim->ToCreature()->hasLootRecipient();
         if (!attacker || attacker->IsControlledByPlayer() || (attacker->ToTempSummon() && attacker->ToTempSummon()->GetSummonerUnit() && attacker->ToTempSummon()->GetSummonerUnit()->IsPlayer()) ||
             (attacker->IsNPCBotOrPet() && !attacker->ToCreature()->IsFreeBot()) || (attacker->GetCreator() && attacker->GetCreator()->IsPlayer()))
             victim->ToCreature()->LowerPlayerDamageReq(health < damage ? health : damage);
@@ -1211,22 +1211,24 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
         //npcbot
         if (victim->IsNPCBot() && attacker && victim != attacker && damagetype != NODAMAGE && damagetype != DOT && damage &&
             (attacker->IsNPCBotOrPet() || attacker->IsControlledByPlayer()) &&
-            (!spellProto || !(spellProto->HasAttribute(SPELL_ATTR7_NO_PUSHBACK_ON_DAMAGE) || spellProto->HasAttribute(SPELL_ATTR3_TREAT_AS_PERIODIC))))
+            (!spellProto || !(spellProto->HasAttribute(SPELL_ATTR7_DONT_CAUSE_SPELL_PUSHBACK) || spellProto->HasAttribute(SPELL_ATTR3_TREAT_AS_PERIODIC))))
         {
             if (Spell* spell = victim->m_currentSpells[CURRENT_GENERIC_SPELL])
             {
                 if (spell->getState() == SPELL_STATE_PREPARING)
                 {
-                    if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
+                    if (spell->m_spellInfo->InterruptFlags.HasFlag(SpellInterruptFlags::DamageCancels))
                         victim->InterruptNonMeleeSpells(false);
                     else
                         spell->Delayed();
                 }
             }
 
-            if (Spell* spell = victim->m_currentSpells[CURRENT_CHANNELED_SPELL])
-                if (spell->getState() == SPELL_STATE_CASTING)
+            if (victim->HasUnitState(UNIT_STATE_CASTING))
+            {
+                if (Spell* spell = victim->m_currentSpells[CURRENT_CHANNELED_SPELL])
                     spell->DelayedChannel();
+            }
         }
         //end npcbot
 
@@ -1416,7 +1418,10 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage const* damageInfo, bool durabilit
     }
 
     //npcbot: override spellInfo
-    spellProto = spellProto->TryGetSpellInfoOverride(damageInfo->attacker);
+    SpellInfo const* spellInfo = damageInfo->Spell;
+
+    if (spellInfo)
+        spellInfo = spellInfo->TryGetSpellInfoOverride(damageInfo->attacker);
     //end npcbot
 
     // Call default DealDamage
@@ -1492,11 +1497,9 @@ void Unit::CalculateMeleeDamage(Unit* victim, CalcDamageInfo* damageInfo, Weapon
     //NpcBot mod: apply bot damage mods
     if (GetTypeId() == TYPEID_UNIT && ToCreature()->IsNPCBotOrPet())
     {
-        damageInfo->Damages[i].Damage = damage;
-        //damage is unused. TODO: remove this redundant argument
-        ToCreature()->ApplyBotDamageMultiplierMelee(damageInfo->Damages[i].Damage, *damageInfo);
-        damage = damageInfo->Damages[i].Damage;
-        damage *= (BotMgr::IsWanderingWorldBot(ToCreature()) ? BotMgr::GetBotWandererDamageMod() : BotMgr::GetBotDamageModPhysical());
+        ToCreature()->ApplyBotDamageMultiplierMelee(damage, *damageInfo);
+        damage *= BotMgr::IsWanderingWorldBot(ToCreature()) ? BotMgr::GetBotWandererDamageMod() : BotMgr::GetBotDamageModPhysical();
+        damageInfo->Damage = damage;
     }
     //End NpcBot
 
@@ -5940,12 +5943,16 @@ void Unit::SetPowerType(Powers power, bool sendUpdate/* = true*/, bool onInit /*
             if (ToCreature()->GetBotGroup())
                 BotMgr::SetBotGroupUpdateFlag(ToCreature(), GROUP_UPDATE_FLAG_POWER_TYPE);
         }
+
+        //NPCBOT TODO: reimplement the pet flags when TC gets support
+        /*
         else
         {
             Unit const* owner = GetOwner();
             if (owner && owner->IsNPCBot() && owner->ToCreature()->GetBotsPet() == this && owner->ToCreature()->GetBotGroup())
                 BotMgr::SetBotGroupUpdateFlag(owner->ToCreature(), GROUP_UPDATE_FLAG_PET_POWER_TYPE);
         }
+        */
     }
     //end npcbot
 
@@ -7491,7 +7498,7 @@ float Unit::SpellCritChanceDone(Spell* spell, AuraEffect const* aurEff, SpellSch
     return std::max(crit_chance, 0.0f);
 }
 
-float Unit::SpellCritChanceTaken(Unit const* caster, Spell* spell, AuraEffect const* aurEff, SpellSchoolMask /*schoolMask*/, float doneChance, WeaponAttackType attackType /*= BASE_ATTACK*/) const
+float Unit::SpellCritChanceTaken(Unit const* caster, Spell* spell, AuraEffect const* aurEff, SpellSchoolMask schoolMask, float doneChance, WeaponAttackType attackType /*= BASE_ATTACK*/) const
 {
     SpellInfo const* spellInfo = spell ? spell->GetSpellInfo() : aurEff->GetSpellInfo();
     // not critting spell
@@ -8520,10 +8527,10 @@ void Unit::Mount(uint32 mount, uint32 VehicleId, uint32 creatureEntry)
             if (CreateVehicleKit(VehicleId, creatureEntry))
             {
                 // Send others that we now have a vehicle
-                WorldPacket data(SMSG_PLAYER_VEHICLE_DATA, GetPackGUID().size() + 4);
-                data << GetPackGUID();
-                data << uint32(VehicleId);
-                SendMessageToSet(&data, true);
+                WorldPackets::Vehicle::SetVehicleRecID packet;
+                packet.VehicleGUID = GetGUID();
+                packet.VehicleRecID = VehicleId;
+                SendMessageToSet(packet.Write(), true);
                 GetVehicleKit()->InstallAllAccessories(false);
             }
         }
@@ -8571,12 +8578,10 @@ void Unit::Dismount()
     //npcbot
     if (IsNPCBot() && GetVehicleKit())
     {
-        //TC_LOG_ERROR("scripts", "NPCBot::Dismount dismounting vehicle {} (base {}, cre {})",
-        //    GetVehicleKit()->GetVehicleInfo()->m_ID, GetVehicleKit()->GetBase()->GetEntry(), GetVehicleKit()->GetCreatureEntry());
-        data.Initialize(SMSG_PLAYER_VEHICLE_DATA, 8 + 4);
-        data << GetPackGUID();
-        data << uint32(0);
-        SendMessageToSetInRange(&data, GetVisibilityRange(), /*not used*/true);
+        WorldPackets::Vehicle::SetVehicleRecID packet;
+        packet.VehicleGUID = GetGUID();
+        packet.VehicleRecID = 0; // or appropriate value
+        SendMessageToSetInRange(packet.Write(), GetVisibilityRange(), true);
         RemoveVehicleKit();
     }
     else
@@ -9557,7 +9562,7 @@ void Unit::AtTargetAttacked(Unit* target, bool canInitialAggro)
             if (Unit* bot = IsNPCBotPet() ? static_cast<Unit*>(myPlayerOwner->GetBotMgr()->GetBot(GetOwnerGUID())) : this)
             {
                 BotMgr::SetBotContestedPvP(bot->ToCreature());
-                bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+                bot->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::EnteringCombat);
             }
         }
         //end npcbot
@@ -9569,7 +9574,7 @@ void Unit::AtTargetAttacked(Unit* target, bool canInitialAggro)
         if (Unit* bot = IsNPCBotPet() ? GetCreator() : this)
         {
             BotMgr::SetBotContestedPvP(bot->ToCreature());
-            bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+            bot->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::EnteringCombat);
         }
     }
     else if (myPlayerOwner && !targetPlayerOwner && target->IsNPCBotOrPet() && (IsPlayer() || IsNPCBotOrPet()))
@@ -9578,14 +9583,14 @@ void Unit::AtTargetAttacked(Unit* target, bool canInitialAggro)
         {
             myPlayerOwner->UpdatePvP(true);
             myPlayerOwner->SetContestedPvP();
-            myPlayerOwner->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+            myPlayerOwner->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::EnteringCombat);
         }
         else // if (IsNPCBotOrPet())
         {
             if (Unit* bot = IsNPCBotPet() ? static_cast<Unit*>(myPlayerOwner->GetBotMgr()->GetBot(GetOwnerGUID())) : this)
             {
                 BotMgr::SetBotContestedPvP(bot->ToCreature());
-                bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+                bot->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::EnteringCombat);
             }
         }
     }
@@ -10449,12 +10454,16 @@ void Unit::SetPower(Powers power, int32 val, bool withPowerUpdate /*= true*/)
             if (ToCreature()->GetBotGroup())
                 BotMgr::SetBotGroupUpdateFlag(ToCreature(), GROUP_UPDATE_FLAG_CUR_POWER);
         }
+
+        //NPCBOT TODO: reimplement the pet flags when TC gets support
+        /*
         else
         {
             Unit const* owner = GetOwner();
             if (owner && owner->IsNPCBot() && owner->ToCreature()->GetBotsPet() == this && owner->ToCreature()->GetBotGroup())
                 BotMgr::SetBotGroupUpdateFlag(owner->ToCreature(), GROUP_UPDATE_FLAG_PET_CUR_POWER);
         }
+        */
     }
     //end npcbot
 }
@@ -10488,12 +10497,16 @@ void Unit::SetMaxPower(Powers power, int32 val)
             if (ToCreature()->GetBotGroup())
                 BotMgr::SetBotGroupUpdateFlag(ToCreature(), GROUP_UPDATE_FLAG_MAX_POWER);
         }
+
+        //NPCBOT TODO: reimplement the pet flags when TC gets support
+        /*
         else
         {
             Unit const* owner = GetOwner();
             if (owner && owner->IsNPCBot() && owner->ToCreature()->GetBotsPet() == this && owner->ToCreature()->GetBotGroup())
                 BotMgr::SetBotGroupUpdateFlag(owner->ToCreature(), GROUP_UPDATE_FLAG_PET_MAX_POWER);
         }
+        */
     }
     //end npcbot
 
@@ -11257,32 +11270,6 @@ void Unit::RestoreDisplayId(bool ignorePositiveAurasPreventingMounting /*= false
     SetDisplayId(GetNativeDisplayId());
 }
 
-//npcbot
-void Unit::ClearReactive(ReactiveType reactive)
-{
-    m_reactiveTimer[reactive] = 0;
-
-    switch (reactive)
-    {
-    case REACTIVE_DEFENSE:
-        if (HasAuraState(AURA_STATE_DEFENSE))
-            ModifyAuraState(AURA_STATE_DEFENSE, false);
-        break;
-    case REACTIVE_HUNTER_PARRY:
-        if (GetClass() == CLASS_HUNTER && HasAuraState(AURA_STATE_HUNTER_PARRY))
-            ModifyAuraState(AURA_STATE_HUNTER_PARRY, false);
-        break;
-    case REACTIVE_OVERPOWER:
-        if (GetClass() == CLASS_WARRIOR)
-            ClearComboPoints();
-        break;
-    default:
-        break;
-        //TODO WOLVERINE_BITE clear
-    }
-}
-//end npcbot
-
 void Unit::ClearAllReactives()
 {
     for (uint8 i = 0; i < MAX_REACTIVE; ++i)
@@ -11451,19 +11438,24 @@ void Unit::UpdateAuraForGroup()
     {
         if (IsNPCBot())
         {
-            if (ToCreature()->GetBotGroup())
+            if (Group* group = ToCreature()->GetBotGroup())
             {
                 BotMgr::SetBotGroupUpdateFlag(ToCreature(), GROUP_UPDATE_FLAG_AURAS);
+                uint8 slot = group->GetMemberSlot(ToCreature()->GetGUID());
                 BotMgr::SetBotAuraUpdateMaskForRaid(ToCreature(), slot);
             }
         }
         else
         {
             Unit const* owner = GetOwner();
-            if (owner && owner->IsNPCBot() && owner->ToCreature()->GetBotsPet() == this && owner->ToCreature()->GetBotGroup())
+            if (owner && owner->IsNPCBot() && owner->ToCreature()->GetBotsPet() == this)
             {
-                BotMgr::SetBotGroupUpdateFlag(owner->ToCreature(), GROUP_UPDATE_FLAG_PET_AURAS);
-                BotMgr::SetBotPetAuraUpdateMaskForRaid(ToCreature(), slot);
+                if (Group* group = owner->ToCreature()->GetBotGroup())
+                {
+                    BotMgr::SetBotGroupUpdateFlag(owner->ToCreature(), GROUP_UPDATE_FLAG_PET_AURAS);
+                    uint8 slot = group->GetMemberSlot(owner->GetGUID());
+                    BotMgr::SetBotPetAuraUpdateMaskForRaid(ToCreature(), slot);
+                }
             }
         }
     }
@@ -13108,6 +13100,7 @@ uint32 Unit::GetCombatRatingDamageReduction(CombatRating cr, float rate, float c
 
 uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
 {
+
     // Hardcoded cases
     switch (spellId)
     {
@@ -13170,181 +13163,49 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
             }
 
             //Npcbot
-            else if (ToCreature() && ToCreature()->GetBotOwner() && ToCreature()->GetBotOwner()->ToPlayer())
+            else if (ToCreature() && ToCreature()->GetBotOwner())
             {
-                //this has to be modified after implementation of bots' appearances which will include player bytes emulation
-                Player const* player = ToCreature()->GetBotOwner();
-                //let's make druids look according to player but base model must be selected based on our race
+                Player const* owner = ToCreature()->GetBotOwner()->ToPlayer();
+                if (!owner)
+                    return 0;
+
+                // Retail glyphs trigger random form selection
+                bool useRandom = false;
                 switch (form)
                 {
-                case FORM_CAT:
-                    // Based on master's Hair color
-                    if (GetRace() == RACE_NIGHTELF)
+                case FORM_CAT_FORM:         useRandom = HasAura(210333); break; // Glyph of the Feral Chameleon
+                case FORM_TRAVEL_FORM:      useRandom = HasAura(344336); break; // Glyph of the Swift Chameleon
+                case FORM_AQUATIC_FORM:     useRandom = HasAura(344338); break; // Glyph of the Aquatic Chameleon
+                case FORM_DIRE_BEAR_FORM:
+                case FORM_BEAR_FORM:        useRandom = HasAura(107059); break; // Glyph of the Ursol Chameleon
+                case FORM_FLIGHT_FORM_EPIC:
+                case FORM_FLIGHT_FORM:      useRandom = HasAura(344342); break; // Glyph of the Aerial Chameleon
+                default: break;
+                }
+
+                if (useRandom && formModelData)
+                {
+                    std::vector<uint32> displayIds;
+                    displayIds.reserve(formModelData->Choices->size());
+
+                    for (std::size_t i = 0; i < formModelData->Choices->size(); ++i)
                     {
-                        uint8 hairColor = player->GetByteValue(PLAYER_BYTES, 3);
-                        switch (hairColor)
+                        if (ChrCustomizationDisplayInfoEntry const* displayInfo = formModelData->Displays[i])
                         {
-                        case 7: // Violet
-                        case 8:
-                            return 29405;
-                        case 3: // Light Blue
-                            return 29406;
-                        case 0: // Green
-                        case 1: // Light Green
-                        case 2: // Dark Green
-                            return 29407;
-                        case 4: // White
-                            return 29408;
-                        default: // original - Dark Blue
-                            return 892;
-                        }
-                    }
-                    // Based on master's Skin color
-                    else if (GetRace() == RACE_TAUREN)
-                    {
-                        uint8 skinColor = player->GetByteValue(PLAYER_BYTES, 0);
-                        // Male master
-                        if (GetGender() == GENDER_MALE)
-                        {
-                            switch (skinColor)
+                            ChrCustomizationReqEntry const* choiceReq =
+                                sChrCustomizationReqStore.LookupEntry((*formModelData->Choices)[i]->ChrCustomizationReqID);
+
+                            if (!choiceReq || owner->GetSession()->MeetsChrCustomizationReq(
+                                choiceReq, Races(GetRace()), Classes(GetClass()), false,
+                                MakeChrCustomizationChoiceRange(owner->m_playerData->Customizations)))
                             {
-                            case 12: // White
-                            case 13:
-                            case 14:
-                            case 18: // Completly White
-                                return 29409;
-                            case 9: // Light Brown
-                            case 10:
-                            case 11:
-                                return 29410;
-                            case 6: // Brown
-                            case 7:
-                            case 8:
-                                return 29411;
-                            case 0: // Dark
-                            case 1:
-                            case 2:
-                            case 3: // Dark Grey
-                            case 4:
-                            case 5:
-                                return 29412;
-                            default: // original - Grey
-                                return 8571;
+                                displayIds.push_back(displayInfo->DisplayID);
                             }
                         }
-                        // Female master
-                        else switch (skinColor)
-                        {
-                        case 10: // White
-                            return 29409;
-                        case 6: // Light Brown
-                        case 7:
-                            return 29410;
-                        case 4: // Brown
-                        case 5:
-                            return 29411;
-                        case 0: // Dark
-                        case 1:
-                        case 2:
-                        case 3:
-                            return 29412;
-                        default: // original - Grey
-                            return 8571;
-                        }
                     }
-                    else if (Player::TeamForRace(GetRace()) == ALLIANCE)
-                        return 892;
-                    else
-                        return 8571;
-                case FORM_DIREBEAR:
-                case FORM_BEAR:
-                    // Based on Hair color
-                    if (GetRace() == RACE_NIGHTELF)
-                    {
-                        uint8 hairColor = player->GetByteValue(PLAYER_BYTES, 3);
-                        switch (hairColor)
-                        {
-                        case 0: // Green
-                        case 1: // Light Green
-                        case 2: // Dark Green
-                            return 29413; // 29415?
-                        case 6: // Dark Blue
-                            return 29414;
-                        case 4: // White
-                            return 29416;
-                        case 3: // Light Blue
-                            return 29417;
-                        default: // original - Violet
-                            return 2281;
-                        }
-                    }
-                    // Based on Skin color
-                    else if (GetRace() == RACE_TAUREN)
-                    {
-                        uint8 skinColor = player->GetByteValue(PLAYER_BYTES, 0);
-                        // Male
-                        if (GetGender() == GENDER_MALE)
-                        {
-                            switch (skinColor)
-                            {
-                            case 0: // Dark (Black)
-                            case 1:
-                            case 2:
-                                return 29418;
-                            case 3: // White
-                            case 4:
-                            case 5:
-                            case 12:
-                            case 13:
-                            case 14:
-                                return 29419;
-                            case 9: // Light Brown/Grey
-                            case 10:
-                            case 11:
-                            case 15:
-                            case 16:
-                            case 17:
-                                return 29420;
-                            case 18: // Completly White
-                                return 29421;
-                            default: // original - Brown
-                                return 2289;
-                            }
-                        }
-                        // Female
-                        else switch (skinColor)
-                        {
-                        case 0: // Dark (Black)
-                        case 1:
-                            return 29418;
-                        case 2: // White
-                        case 3:
-                            return 29419;
-                        case 6: // Light Brown/Grey
-                        case 7:
-                        case 8:
-                        case 9:
-                            return 29420;
-                        case 10: // Completly White
-                            return 29421;
-                        default: // original - Brown
-                            return 2289;
-                        }
-                    }
-                    else if (Player::TeamForRace(GetRace()) == ALLIANCE)
-                        return 2281;
-                    else
-                        return 2289;
-                case FORM_FLIGHT:
-                    if (Player::TeamForRace(GetRace()) == ALLIANCE)
-                        return 20857;
-                    return 20872;
-                case FORM_FLIGHT_EPIC:
-                    if (Player::TeamForRace(GetRace()) == ALLIANCE)
-                        return 21243;
-                    return 21244;
-                default:
-                    break;
+
+                    if (!displayIds.empty())
+                        return Trinity::Containers::SelectRandomContainerElement(displayIds);
                 }
             }
             //End Npcbot

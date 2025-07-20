@@ -173,6 +173,18 @@ bool Group::Create(Creature* leader)
 
     return true;
 }
+
+uint8 Group::GetMemberSlot(ObjectGuid guid) const
+{
+    uint8 index = 0;
+    for (Group::MemberSlot const& slot : m_memberSlots)
+    {
+        if (slot.guid == guid)
+            return index;
+        ++index;
+    }
+    return 255; // Invalid slot
+}
 //end npcbot
 
 bool Group::Create(Player* leader)
@@ -2148,7 +2160,7 @@ void Group::DelinkMember(ObjectGuid guid)
 //npcbot
 void Group::LinkBotMember(GroupBotReference* bRef)
 {
-    m_botMemberMgr.insertFirst(bRef);
+    m_botMemberMgr.push_front(bRef);
 }
 
 void Group::DelinkBotMember(ObjectGuid guid)

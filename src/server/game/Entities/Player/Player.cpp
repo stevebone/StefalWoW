@@ -4920,7 +4920,20 @@ void Player::RepopAtGraveyard()
         SpawnCorpseBones();
     }
 
+    //npcbot
+    WorldSafeLocsEntry const* closestBotGrave = nullptr;
+
+    if (Battlefield* bf = sBattlefieldMgr->GetBattlefieldToZoneId(GetMap(), GetZoneId()))
+        closestBotGrave = bf->GetClosestGraveyard(this);
+    else if (InstanceScript* instance = GetInstanceScript())
+        closestBotGrave = sObjectMgr->GetWorldSafeLoc(instance->GetEntranceLocation());
+
+    if (!closestBotGrave)
+        closestBotGrave = sObjectMgr->GetClosestGraveyard(*this, GetTeam(), this);
+    //end npcbot
+
     WorldSafeLocsEntry const* closestGrave = nullptr;
+
     if (Battlefield* bf = sBattlefieldMgr->GetBattlefieldToZoneId(GetMap(), GetZoneId()))
         closestGrave = bf->GetClosestGraveyard(this);
     else if (InstanceScript* instance = GetInstanceScript())

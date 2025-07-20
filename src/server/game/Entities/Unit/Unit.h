@@ -1865,7 +1865,6 @@ class TC_GAME_API Unit : public WorldObject
 
         //npcbot
         bool HasReactive(ReactiveType reactive) const { return m_reactiveTimer[reactive] > 0; }
-        void ClearReactive(ReactiveType reactive);
         //end npcbot
 
     protected:
