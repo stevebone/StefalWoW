@@ -361,7 +361,8 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
         {
             //npcbot
             if (object->IsNPCBot() && object->ToCreature()->GetBotAI() && !object->ToCreature()->IsFreeBot())
-                condMeets = object->ToCreature()->GetBotOwner()->GetTeam() == ConditionValue1;
+                //condMeets = object->ToCreature()->GetBotOwner()->GetTeam() == ConditionValue1;
+                condMeets = object->ToCreature()->GetBotOwner()->GetTeam() == Team(ConditionValue1);
             else
             //end npcbot
             if (Player const* player = object->ToPlayer())
@@ -442,7 +443,8 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
         {
             //npcbot
             if (object->GetTypeId() == TYPEID_UNIT && object->ToCreature()->GetBotAI())
-                condMeets = object->ToCreature()->GetBotAI()->HasSpell(sSpellMgr->GetSpellInfo(ConditionValue1)->GetFirstRankSpell()->Id);
+                //condMeets = object->ToCreature()->GetBotAI()->HasSpell(sSpellMgr->GetSpellInfo(ConditionValue1)->GetFirstRankSpell()->Id);
+                condMeets = object->ToCreature()->GetBotAI()->HasSpell(ConditionValue1);
             else
             //end npcbot
             if (Player const* player = object->ToPlayer())
