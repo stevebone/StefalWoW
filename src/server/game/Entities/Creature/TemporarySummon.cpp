@@ -228,9 +228,21 @@ void TempSummon::InitStats(WorldObject* summoner, Milliseconds duration)
 
     //npcbot: skip deleting/reassigning player totems
     //normally no creatorGUID is assigned at this point, perform full check anyway for compatibilty reasons
-    if (!(m_Properties->Slot && m_Properties->Slot >= SUMMON_SLOT_TOTEM_FIRE && m_Properties->Slot < MAX_TOTEM_SLOT &&
-        GetCreatorGUID() && GetCreatorGUID().IsCreature() && owner && owner->GetTypeId() == TYPEID_PLAYER &&
-        owner->ToPlayer()->HaveBot() && owner->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID())))
+    bool isTotemSlot = m_Properties->Slot >= SUMMON_SLOT_TOTEM &&
+        m_Properties->Slot < SUMMON_SLOT_TOTEM + MAX_TOTEM_SLOT;
+
+    bool isPlayerSummoner = summoner &&
+        summoner->GetTypeId() == TYPEID_PLAYER;
+
+    bool isBotOwned = GetCreatorGUID().IsCreature() &&
+        summoner->ToPlayer()->HaveBot() &&
+        summoner->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID());
+
+    if (!(isTotemSlot && isPlayerSummoner && isBotOwned))
+    {
+        // safe to reassign or manage totem slot
+    }
+
         //end npcbot
 
     if (Unit* unitSummoner = ToUnit(summoner))
@@ -491,10 +503,20 @@ void Minion::InitStats(WorldObject* summoner, Milliseconds duration)
     //npcbot
     //do not add bot totem to player's controlled list
     //client indicator will be OwnerGUID
-    if (m_Properties && m_Properties->Slot && m_Properties->Slot >= SUMMON_SLOT_TOTEM_FIRE && m_Properties->Slot < MAX_TOTEM_SLOT &&
-        GetCreatorGUID() && GetCreatorGUID().IsCreature() && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER &&
-        GetOwner()->ToPlayer()->HaveBot() && GetOwner()->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID()))
+    Unit* owner = GetOwner();
+    bool isTotemSlot = m_Properties &&
+        m_Properties->Slot >= SUMMON_SLOT_TOTEM &&
+        m_Properties->Slot < SUMMON_SLOT_TOTEM + MAX_TOTEM_SLOT;
+
+    bool isValidBotOwner = GetCreatorGUID().IsCreature() &&
+        owner &&
+        owner->GetTypeId() == TYPEID_PLAYER &&
+        owner->ToPlayer()->HaveBot() &&
+        owner->ToPlayer()->GetBotMgr()->GetBot(GetCreatorGUID());
+
+    if (isTotemSlot && isValidBotOwner)
         return;
+
     //end npcbot
 
     SetCreatorGUID(GetOwner()->GetGUID());
