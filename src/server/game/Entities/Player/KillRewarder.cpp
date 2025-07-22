@@ -123,9 +123,10 @@ inline void KillRewarder::_InitGroupData(Player const* killer)
         //npcbot
         if (BotMgr::GetNpcBotXpReductionBlizzlikeEnabled())
         {
-            for (GroupReference* itr = _group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            //for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            for (GroupReference const& itr : group->GetMembers())
             {
-                Player* member = itr->GetSource();
+                Player* member = itr.GetSource();
                 if (!member || !member->IsInMap(_victim) || !member->HaveBot())
                     continue;
 
@@ -133,7 +134,7 @@ inline void KillRewarder::_InitGroupData(Player const* killer)
                 for (auto const& kv : *botMap)
                 {
                     Creature const* bot = kv.second;
-                    if (bot && bot->IsAlive() && bot->IsInMap(_victim) && (_group->IsMember(kv.first) || !BotMgr::GetNpcBotXpReductionBlizzlikeGroupOnly()) &&
+                    if (bot && bot->IsAlive() && bot->IsInMap(_victim) && (group->IsMember(kv.first) || !BotMgr::GetNpcBotXpReductionBlizzlikeGroupOnly()) &&
                         (member->GetMap()->IsDungeon() || _victim->GetDistance(bot) <= sWorld->getFloatConfig(CONFIG_GROUP_XP_DISTANCE)))
                     {
                         const uint8 lvl = bot->GetLevel();
@@ -176,6 +177,8 @@ inline void KillRewarder::_RewardHonor(Player* player)
 inline void KillRewarder::_RewardXP(Player* player, float rate)
 {
     uint32 xp(_xp);
+    Group const* group = player->GetGroup();
+
     if (player->GetGroup())
     {
         // 4.2.1. If player is in group, adjust XP:
@@ -197,11 +200,12 @@ inline void KillRewarder::_RewardXP(Player* player, float rate)
 
         //npcbot 4.2.2.1. Apply NpcBot XP reduction
         uint8 bots_count = 0;
-        if (_group)
+        if (group)
         {
-            for (GroupReference const* itr = _group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            //for (GroupReference const* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            for (GroupReference const& itr : group->GetMembers())
             {
-                if (Player const* gPlayer = itr->GetSource())
+                if (Player const* gPlayer = itr.GetSource())
                     bots_count = std::max<uint8>(bots_count, gPlayer->GetNpcBotsCount());
             }
         }
