@@ -7835,7 +7835,7 @@ void bot_ai::ApplyBotSpellChanceOfSuccessMods(SpellInfo const* spellInfo, float&
     //ALL CLASS PROC_TRIGGER_SPELL SPELLS chance of success bonus
     ApplyClassSpellChanceOfSuccessMods(spellInfo, chance);
 }
-void bot_ai::ApplyBotEffectMods(SpellInfo const* spellInfo, uint8 effIndex, float& value) const
+void bot_ai::ApplyBotEffectMods(SpellInfo const* spellInfo, uint8 effIndex, double& value) const
 {
     //ALL SPELLS SPELLMOD_EFFECT_X bonus
     ApplyClassEffectMods(spellInfo, effIndex, value);

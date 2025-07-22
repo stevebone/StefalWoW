@@ -4379,7 +4379,7 @@ void Creature::ApplyCreatureSpellChanceOfSuccessMods(SpellInfo const* spellInfo,
         bot_AI->ApplyBotSpellChanceOfSuccessMods(spellInfo, chance);
 }
 
-void Creature::ApplyCreatureEffectMods(SpellInfo const* spellInfo, uint8 effIndex, float& value) const
+void Creature::ApplyCreatureEffectMods(SpellInfo const* spellInfo, uint8 effIndex, double& value) const
 {
     if (bot_AI)
         bot_AI->ApplyBotEffectMods(spellInfo, effIndex, value);

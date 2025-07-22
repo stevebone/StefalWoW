@@ -162,7 +162,7 @@ class bot_ai : public CreatureAI
         void ApplyBotSpellRangeMods(SpellInfo const* spellInfo, float& maxrange) const;
         void ApplyBotSpellMaxTargetsMods(SpellInfo const* spellInfo, uint32& targets) const;
         void ApplyBotSpellChanceOfSuccessMods(SpellInfo const* spellInfo, float& chance) const;
-        void ApplyBotEffectMods(SpellInfo const* spellInfo, uint8 effIndex, float& value) const;
+        void ApplyBotEffectMods(SpellInfo const* spellInfo, uint8 effIndex, double& value) const;
         void ApplyBotThreatMods(SpellInfo const* spellInfo, float& threat) const;
         void ApplyBotEffectValueMultiplierMods(SpellInfo const* spellInfo, SpellEffIndex effIndex, float& multiplier) const;
         virtual uint8 GetBotStance() const;
@@ -505,7 +505,7 @@ class bot_ai : public CreatureAI
         virtual void ApplyClassSpellRangeMods(SpellInfo const* /*spellInfo*/, float& /*maxrange*/) const {}
         virtual void ApplyClassSpellMaxTargetsMods(SpellInfo const* /*spellInfo*/, uint32& /*targets*/) const {}
         virtual void ApplyClassSpellChanceOfSuccessMods(SpellInfo const* /*spellInfo*/, float& /*chance*/) const {}
-        virtual void ApplyClassEffectMods(SpellInfo const* /*spellInfo*/, uint8 /*effIndex*/, float& /*value*/) const {}
+        virtual void ApplyClassEffectMods(SpellInfo const* /*spellInfo*/, uint8 /*effIndex*/, double& /*value*/) const {}
         virtual void ApplyClassThreatMods(SpellInfo const* /*spellInfo*/, float& /*threat*/) const {}
         virtual void ApplyClassEffectValueMultiplierMods(SpellInfo const* /*spellInfo*/, SpellEffIndex /*effIndex*/, float& /*multiplier*/) const {}
 
