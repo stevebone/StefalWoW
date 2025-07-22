@@ -3018,19 +3018,21 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
                 Player* botOwner = user->ToCreature()->GetBotOwner();
                 spellCaster = botOwner;
 
-                if (info->summoningRitual.animSpell)
+                if (info->ritual.animSpell)
                 {
-                    user->CastSpell(user, info->summoningRitual.animSpell, true);
-                    triggered = true;
+                    user->CastSpell(user, info->ritual.animSpell, true);
+                    //triggered = true;
+                    spellArgs.TriggerFlags = TRIGGERED_FULL_MASK;
                 }
 
-                spellId = info->summoningRitual.spellId;
+                spellId = info->ritual.spell;
                 if (spellId == 62330)
                 {
                     spellId = 61993;
-                    triggered = true;
+                    //triggered = true;
+                    spellArgs.TriggerFlags = TRIGGERED_FULL_MASK;
                 }
-                if (!info->summoningRitual.ritualPersistent)
+                if (!info->ritual.ritualPersistent)
                     SetLootState(GO_JUST_DEACTIVATED);
                 else
                 {
@@ -3271,11 +3273,11 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
                         {
                         case 179785:                        // Silverwing Flag
                         case 179786:                        // Warsong Flag
-                            if (botbg->GetTypeID(true) == BATTLEGROUND_WS)
+                            if (botbg->GetTypeID() == BATTLEGROUND_WS)
                                 botbg->EventBotClickedOnFlag(bot, this);
                             break;
                         case 184142:                        // Netherstorm Flag
-                            if (botbg->GetTypeID(true) == BATTLEGROUND_EY)
+                            if (botbg->GetTypeID() == BATTLEGROUND_EY)
                                 botbg->EventBotClickedOnFlag(bot, this);
                             break;
                         }
