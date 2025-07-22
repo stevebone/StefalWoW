@@ -9211,21 +9211,25 @@ void ObjectMgr::LoadCreatureOutfits()
         }
         co.gender = fields[i++].GetUInt8();
         // Set correct displayId
+        //NPCBOT TODO: check if it is not better to use ChrRaceXChrModelEntry or ChrModelEntry
+        CreatureDisplayInfoEntry const* displayInfo = nullptr;
         switch (co.gender)
         {
         case GENDER_FEMALE:
-            _creatureTemplateStore[entry].Modelid1 = rEntry->FemaleDisplayID;
+            //_creatureTemplateStore[entry].Modelid1 = rEntry->FemaleDisplayID;
+            displayInfo = sCreatureDisplayInfoStore.LookupEntry(rEntry->FemaleModelFallbackRaceID);
             break;
         case GENDER_MALE:
-            _creatureTemplateStore[entry].Modelid1 = rEntry->MaleDisplayID;
+            //_creatureTemplateStore[entry].Modelid1 = rEntry->MaleDisplayID;
+            displayInfo = sCreatureDisplayInfoStore.LookupEntry(rEntry->MaleModelFallbackRaceID);
             break;
         default:
             TC_LOG_ERROR("server.loading", ">> Creature entry {} in `creature_template_outfits` has invalid gender {}", entry, uint32(co.gender));
             continue;
         }
-        _creatureTemplateStore[entry].Modelid2 = 0;
-        _creatureTemplateStore[entry].Modelid3 = 0;
-        _creatureTemplateStore[entry].Modelid4 = 0;
+        //_creatureTemplateStore[entry].Modelid2 = 0;
+        //_creatureTemplateStore[entry].Modelid3 = 0;
+        //_creatureTemplateStore[entry].Modelid4 = 0;
         _creatureTemplateStore[entry].unit_flags2 |= UNIT_FLAG2_MIRROR_IMAGE; // Needed so client requests mirror packet
 
         co.skin = fields[i++].GetUInt8();
