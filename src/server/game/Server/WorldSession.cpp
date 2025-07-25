@@ -56,6 +56,7 @@
 #include "World.h"
 #include "WorldSocket.h"
 #include <boost/circular_buffer.hpp>
+#include "Config.h"
 
 namespace {
 
@@ -444,12 +445,18 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
                         processedPackets = MAX_PROCESSED_PACKETS_IN_SAME_WORLDSESSION_UPDATE;   // break out of packet processing loop
                     break;
                 case STATUS_NEVER:
-                    TC_LOG_ERROR("network.opcode", "Received not allowed opcode {} from {}", GetOpcodeNameForLogging(static_cast<OpcodeClient>(packet->GetOpcode()))
-                        , GetPlayerInfo());
+                    if (sWorld->getBoolConfig(CONFIG_LOG_UNHANDLED_OPCODES))
+                    {
+                        TC_LOG_ERROR("network.opcode", "Received not allowed opcode {} from {}", GetOpcodeNameForLogging(static_cast<OpcodeClient>(packet->GetOpcode()))
+                            , GetPlayerInfo());
+                    }
                     break;
                 case STATUS_UNHANDLED:
-                    TC_LOG_ERROR("network.opcode", "Received not handled opcode {} from {}", GetOpcodeNameForLogging(static_cast<OpcodeClient>(packet->GetOpcode()))
-                        , GetPlayerInfo());
+                    if (sWorld->getBoolConfig(CONFIG_LOG_UNHANDLED_OPCODES))
+                    {
+                        TC_LOG_ERROR("network.opcode", "Received not handled opcode {} from {}", GetOpcodeNameForLogging(static_cast<OpcodeClient>(packet->GetOpcode()))
+                            , GetPlayerInfo());
+                    }
                     break;
             }
         }

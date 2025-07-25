@@ -6923,6 +6923,196 @@ CreatureAI* WansaRuinsSelector(Creature* creature)
         return new NullCreatureAI(creature);
 };
 
+enum q55639
+{
+    SAY_ALARIA_ACCEPT_55639_QUEST = 0, // Corresponds to your `creature_text` line
+    SAY_BJORN_ACCEPT_55639_QUEST = 2,
+    QUEST_WHO_LURKS_IN_THE_PIT = 55639,
+    QUEST_55639_FIRST_OBJECTIVE = 391939,
+    TRAPPED_MEMBERS_REQUIRED = 4,
+
+    ACTION_RALIA_SAY_PRISONER = 1,
+    ACTION_HRUN_SAY_TO_PRISONER = 2,
+
+    RALIA_SAY_PRISONER = 0,
+    HRUN_SAY_TO_PRISONER = 2
+
+};
+
+// 55639 - Who Lurks in the Pit
+class q55639_who_lurks_in_the_pit : public QuestScript
+{
+public:
+    q55639_who_lurks_in_the_pit() : QuestScript("q55639_who_lurks_in_the_pit") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus)
+    {
+        if (newStatus != QUEST_STATUS_INCOMPLETE)
+            return;
+
+        // Alaria (entry: 156803)
+        if (Creature* alaria = FindCreatureIgnorePhase(player, "alaria_pit_pre_quest", 40.0f))
+            alaria->AI()->Talk(SAY_ALARIA_ACCEPT_55639_QUEST, player);
+
+        // Bjorn (entry: 156891), using groupid 2
+        if (Creature* bjorn = FindCreatureIgnorePhase(player, "bjorn_stouthands_pit_pre_quest", 40.0f))
+            bjorn->AI()->Talk(SAY_BJORN_ACCEPT_55639_QUEST, player);
+    }
+
+    //void OnQuestObjectiveComplete(Player* player, Quest const* quest, uint32 objectiveId)
+    void OnQuestObjectiveChange(Player* player, Quest const* quest, QuestObjective const& objective, int32 oldAmount, int32 newAmount)
+    {
+        if (quest->GetQuestId() != 55639)
+            return;
+
+        if (!player->IsQuestObjectiveComplete(QUEST_WHO_LURKS_IN_THE_PIT, QUEST_55639_FIRST_OBJECTIVE))
+            return;
+        if (player->IsQuestObjectiveComplete(QUEST_WHO_LURKS_IN_THE_PIT, QUEST_55639_FIRST_OBJECTIVE))
+        {
+            if (Creature* ralia = FindCreatureIgnorePhase(player, "ralia_dreamchaser_prisoner", 140.0f))
+                //ralia->AI()->DoAction(ACTION_RALIA_SAY_PRISONER);
+                ralia->AI()->Talk(RALIA_SAY_PRISONER, player);          // "Help! Elune guide them to me!"
+
+            if (Creature* hrun = FindCreatureIgnorePhase(player, "hrun_the_exile", 140.0f))
+                //hrun->AI()->DoAction(ACTION_HRUN_SAY_TO_PRISONER);
+                hrun->AI()->Talk(HRUN_SAY_TO_PRISONER, player);
+        }
+    }
+
+};
+
+enum HrunData
+{
+    NPC_RALIA_DREAMCHASER = 156902,
+
+    ACTION_RALIA_FREE_PRISONER = 1,
+
+    EVENT_HRUN_CAST_DRAIN_SPIRIT = 1,
+    EVENT_HRUN_CAST_SPIRIT_BOLT = 2,
+    EVENT_HRUN_SAY_TO_PRISONER = 3,
+
+    SPELL_HRUN_DRAIN_SPIRIT = 319310,
+    SPELL_HRUN_SPIRIT_BOLT = 319294,
+
+    HRUN_SAY_AGRO = 0,
+    HRUN_SAY_DEATH = 1
+};
+
+// 156900 - Hrun The Exiled
+struct npc_hrun_q55639 : public ScriptedAI
+{
+    npc_hrun_q55639(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+    }
+
+    void JustEngagedWith(Unit* who) override
+    {
+        Talk(HRUN_SAY_AGRO, who);
+
+        _events.ScheduleEvent(EVENT_HRUN_CAST_DRAIN_SPIRIT, 4s);
+        _events.ScheduleEvent(EVENT_HRUN_CAST_SPIRIT_BOLT, 14s);
+    }
+
+    void JustDied(Unit* killer) override
+    {
+        Talk(HRUN_SAY_DEATH, killer);
+
+        if (Creature* raliaPrisoner = FindCreatureIgnorePhase(me, "ralia_dreamchaser_prisoner", 40.0f))
+        {
+            raliaPrisoner->AI()->DoAction(ACTION_RALIA_FREE_PRISONER);
+        }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (!UpdateVictim())
+            return;
+
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_HRUN_CAST_DRAIN_SPIRIT:
+                DoCastVictim(SPELL_HRUN_SPIRIT_BOLT);
+                _events.ScheduleEvent(EVENT_HRUN_CAST_SPIRIT_BOLT, 6s);
+                break;
+            case EVENT_HRUN_CAST_SPIRIT_BOLT:
+                DoCastAOE(SPELL_HRUN_DRAIN_SPIRIT);
+                _events.ScheduleEvent(EVENT_HRUN_CAST_DRAIN_SPIRIT, 14s);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+private:
+    EventMap _events;
+};
+
+enum ralia_prisoner
+{
+    SPELL_RALIA_NECROTIC_RITUAL_DNT = 305513,
+
+    RALIA_SAY_THANK_YOU = 1,
+
+    RALIA_EVENT_SHAPESHIFT = 1,
+    EVENT_RALIA_SAY_PRISONER = 2,
+
+    NPC_RALIA_DREAMCHASER_MOUNT = 156929
+};
+
+// 156902 - Ralia Dreamchaser
+struct npc_ralia_prisoner : public ScriptedAI
+{
+    npc_ralia_prisoner(Creature* creature) : ScriptedAI(creature) { }
+
+    void JustAppeared() override
+    {
+        me->SetDisableGravity(true);
+        me->SetControlled(true, UNIT_STATE_ROOT);
+        me->CastSpell(me, SPELL_RALIA_NECROTIC_RITUAL_DNT);
+    }
+
+    void DoAction(int32 param) override
+    {
+        if (param == ACTION_RALIA_FREE_PRISONER)
+        {
+            me->RemoveAllAuras();
+            me->SetDisableGravity(false);
+            me->SetControlled(false, UNIT_STATE_ROOT);
+            //me->GetMotionMaster()->MoveJump(BriarpatchPrisonerJumpToPosition, 69.982597f, 2122.060059f);
+            Talk(RALIA_SAY_THANK_YOU);
+            _events.ScheduleEvent(RALIA_EVENT_SHAPESHIFT, 4s);
+        }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case RALIA_EVENT_SHAPESHIFT:
+                //me->GetMotionMaster()->MovePoint(0, PrisonerBriarpatchDespawnPosition);
+                me->SummonCreature(NPC_RALIA_DREAMCHASER_MOUNT, me->GetPosition(), TEMPSUMMON_TIMED_DESPAWN, 240s);
+                me->DespawnOrUnsummon(2s);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+private:
+    EventMap _events;
+};
+
 void AddSC_zone_exiles_reach()
 {
     // Ship
@@ -7052,4 +7242,7 @@ void AddSC_zone_exiles_reach()
     new FactoryCreatureScript<CreatureAI, &LanaRuinsSelector>("npc_lana_jordan_q59948");
     new FactoryCreatureScript<CreatureAI, &AlariaRuinsSelector>("npc_alaria_q55965");
     new FactoryCreatureScript<CreatureAI, &WansaRuinsSelector>("npc_wonsa_q59948");
+    new q55639_who_lurks_in_the_pit();
+    RegisterCreatureAI(npc_hrun_q55639);
+    RegisterCreatureAI(npc_ralia_prisoner);
 };

@@ -1883,6 +1883,9 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     ASSERT(data.spawnId == m_spawnId);
     data.id = GetEntry();
     data.mapId = GetMapId();
+    // ?? Get Zone and Area from current map position
+    data.zoneId = GetZoneId();
+    data.areaId = GetAreaId();
     data.spawnPoint.Relocate(this);
     data.rotation = m_localRotation;
     data.spawntimesecs = m_spawnedByDefault ? m_respawnDelayTime : -(int32)m_respawnDelayTime;
@@ -1909,6 +1912,9 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     stmt->setUInt64(index++, m_spawnId);
     stmt->setUInt32(index++, GetEntry());
     stmt->setUInt16(index++, uint16(mapid));
+    // ? Add zoneId and areaId here
+    stmt->setUInt32(index++, data.zoneId);
+    stmt->setUInt32(index++, data.areaId);
     stmt->setString(index++, [&data]() -> std::string
     {
         if (data.spawnDifficulties.empty())

@@ -1522,6 +1522,9 @@ void Creature::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiffic
         data.mapId = mapid;
         data.spawnPoint.Relocate(GetTransOffsetX(), GetTransOffsetY(), GetTransOffsetZ(), GetTransOffsetO());
     }
+    // ?? Get Zone and Area from current map position
+    data.zoneId = GetZoneId();
+    data.areaId = GetAreaId();
     data.spawntimesecs = m_respawnDelay;
     // prevent add data integrity problems
     data.wander_distance = GetDefaultMovementType() == IDLE_MOTION_TYPE ? 0.0f : m_wanderDistance;
@@ -1554,6 +1557,9 @@ void Creature::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiffic
     stmt->setUInt64(index++, m_spawnId);
     stmt->setUInt32(index++, GetEntry());
     stmt->setUInt16(index++, uint16(mapid));
+    // ? Add zoneId and areaId here
+    stmt->setUInt32(index++, data.zoneId);
+    stmt->setUInt32(index++, data.areaId);
     stmt->setString(index++, [&data]() -> std::string
     {
         if (data.spawnDifficulties.empty())

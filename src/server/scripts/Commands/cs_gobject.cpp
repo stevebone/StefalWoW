@@ -120,8 +120,7 @@ public:
 
         if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
         {
-            // report to DB errors log as in loading case
-            TC_LOG_ERROR("sql.sql", "Gameobject (Entry {} GoType: {}) have invalid displayId ({}), not spawned.", *objectId, objectInfo->type, objectInfo->displayId);
+            TC_LOG_ERROR("sql.sql", "Gameobject (Entry {} GoType: {}) has invalid displayId ({}), not spawned.", *objectId, objectInfo->type, objectInfo->displayId);
             handler->PSendSysMessage(LANG_GAMEOBJECT_HAVE_INVALID_DATA, *objectId);
             handler->SetSentErrorMessage(true);
             return false;
@@ -139,7 +138,7 @@ public:
         if (spawnTimeSecs)
             object->SetRespawnTime(*spawnTimeSecs);
 
-        // fill the gameobject data and save to the db
+        // ?? Save to DB - SaveToDB() will pick up zone/area from object's position now
         object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
         ObjectGuid::LowType spawnId = object->GetSpawnId();
 
@@ -156,6 +155,10 @@ public:
         sObjectMgr->AddGameobjectToGrid(ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
 
         handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, *objectId, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+
+        TC_LOG_INFO("commands", "Spawned GameObject {} in Zone {}, Area {}",
+            *objectId, player->GetZoneId(), player->GetAreaId());
+
         return true;
     }
 

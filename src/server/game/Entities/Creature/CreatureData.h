@@ -608,6 +608,8 @@ struct CreatureData : public SpawnData
     uint32 currentwaypoint = 0;
     uint32 curHealthPct = 0;
     uint8 movementType = 0;
+    uint32 zoneId = 0;
+    uint32 areaId = 0;
     Optional<uint64> npcflag;
     Optional<uint32> unit_flags;                                  // enum UnitFlags mask values
     Optional<uint32> unit_flags2;                                 // enum UnitFlags2 mask values
