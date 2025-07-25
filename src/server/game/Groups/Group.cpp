@@ -151,13 +151,19 @@ bool Group::Create(Creature* leader)
     ObjectGuid leaderGuid = leader->GetGUID();
     ObjectGuid::LowType lowguid = sGroupMgr->GenerateGroupId();
 
-    m_guid = ObjectGuid(HighGuid::Group, lowguid);
+    //m_guid = ObjectGuid(HighGuid::Group, lowguid);
+    m_guid = ObjectGuid::Create<HighGuid::Party>(lowguid);
     m_leaderGuid = leaderGuid;
     m_leaderName = leader->GetName();
 
-    m_groupType = GROUPTYPE_BGRAID;
+    if (isBGGroup() || isBFGroup())
+    {
+        m_groupFlags = GROUP_MASK_BGRAID;
+        m_groupCategory = GROUP_CATEGORY_INSTANCE;
+    }
 
-    _initRaidSubGroupsCounter();
+    if (m_groupFlags & GROUP_FLAG_RAID)
+        _initRaidSubGroupsCounter();
 
     m_lootMethod = FREE_FOR_ALL;
 
@@ -165,8 +171,10 @@ bool Group::Create(Creature* leader)
     m_looterGuid = leaderGuid;
     m_masterLooterGuid.Clear();
 
-    m_dungeonDifficulty = DUNGEON_DIFFICULTY_NORMAL;
-    m_raidDifficulty = RAID_DIFFICULTY_10MAN_NORMAL;
+    m_dungeonDifficulty = DIFFICULTY_NORMAL;
+    m_raidDifficulty = DIFFICULTY_NORMAL_RAID;
+    m_legacyRaidDifficulty = DIFFICULTY_10_N;
+
 
     if (!AddMember(leader))
         return false;
@@ -769,7 +777,7 @@ bool Group::RemoveMember(ObjectGuid guid, RemoveMethod method /*= GROUP_REMOVEME
 
             // do not disband raid group if bot owner logging out within dungeon
             // 1-player raid groups will not happen unless player is gm - bots will rejoin at login
-            if (GetMembersCount() < 2 && isRaidGroup() && !(isBGGroup() || isBFGroup()) && GetLeaderGUID())
+            if (GetMembersCount() < 2 && isRaidGroup() && !(isBGGroup() || isBFGroup()) && !GetLeaderGUID().IsEmpty())
             {
                 Player const* player = ObjectAccessor::FindPlayer(GetLeaderGUID());
                 Map const* map = player ? player->FindMap() : nullptr;
@@ -1059,28 +1067,32 @@ void Group::SetTargetIcon(uint8 symbol, ObjectGuid target, ObjectGuid changedBy)
     //npcbot: name cache
     bool need_cache_name = false;
     Player const* setter = nullptr;
-    for (GroupReference const* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+    for (Group::MemberSlot const& slot : m_memberSlots)
     {
-        if (itr->GetSource())
-        {
-            if (!need_cache_name && itr->GetSource()->GetBotMgr())
-                need_cache_name = true;
-            if (!setter && itr->GetSource()->GetGUID() == whoGuid)
-                setter = itr->GetSource();
-        }
+        Player* member = ObjectAccessor::FindConnectedPlayer(slot.guid);
+        if (!member)
+            continue;
+
+        if (!need_cache_name && member->GetBotMgr())
+            need_cache_name = true;
+        if (!setter && member->GetGUID() == changedBy)
+            setter = member;
     }
+
 
     if (need_cache_name && setter)
     {
-        Unit const* newtarget = targetGuid ? ObjectAccessor::GetUnit(*setter, targetGuid) : nullptr;
+        Unit const* newtarget = !target.IsEmpty() ? ObjectAccessor::GetUnit(*setter, target) : nullptr;
         std::string const& newname = newtarget ? newtarget->GetName() : "";
-        for (GroupReference const* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+
+        for (Group::MemberSlot const& slot : m_memberSlots)
         {
-            Player const* member = itr->GetSource();
+            Player* member = ObjectAccessor::FindConnectedPlayer(slot.guid);
             if (member && member->GetBotMgr())
-                member->GetBotMgr()->UpdateTargetIconName(id, newname);
+                member->GetBotMgr()->UpdateTargetIconName(symbol , newname);
         }
     }
+
     //end npcbot
 
     WorldPackets::Party::SendRaidTargetUpdateSingle updateSingle;
@@ -1235,18 +1247,22 @@ void Group::SendUpdateDestroyGroupToPlayer(Player* player) const
 //npcbot
 void Group::UpdateBotOutOfRange(Creature* creature)
 {
-    if (!creature || !creature->IsInWorld() || m_memberMgr.isEmpty())
+    if (!creature || !creature->IsInWorld() || m_memberSlots.empty())
         return;
 
     WorldPacket data;
     BotMgr::BuildBotPartyMemberStatsChangedPacket(creature, &data);
 
-    Player* member;
-    for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+    for (Group::MemberSlot const& slot : m_memberSlots)
     {
-        member = itr->GetSource();
-        if (member/* && (!member->IsInMap(creature) || !member->IsWithinDist(creature, member->GetSightRange(), false))*/)
-            member->SendDirectMessage(&data);
+        Player* member = ObjectAccessor::FindConnectedPlayer(slot.guid);
+        if (!member)
+            continue;
+
+        // Optional: uncomment this if you want to check range
+        // if (!member->IsInMap(creature) || !member->IsWithinDist(creature, member->GetSightRange(), false))
+        member->SendDirectMessage(&data);
+
     }
 }
 //end npcbot

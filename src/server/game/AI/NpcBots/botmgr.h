@@ -325,7 +325,7 @@ class TC_GAME_API BotMgr
         void UpdatePhaseForBots();
         void UpdatePvPForBots();
 
-        static void BuildBotPartyMemberStatsPacket(ObjectGuid bot_guid, WorldPacket* data);
+        static void BuildBotPartyMemberStatsPacket(ObjectGuid bot_guid, WorldPackets::Party::PartyMemberFullState& packet);
         static void BuildBotPartyMemberStatsChangedPacket(Creature const* bot, WorldPacket* data);
         //static uint32 GetBotGroupUpdateFlag(Creature const* bot);
         static void SetBotGroupUpdateFlag(Creature const* bot, uint32 flag);

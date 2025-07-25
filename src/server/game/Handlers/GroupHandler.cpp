@@ -34,6 +34,7 @@
 #include "CreatureData.h"
 #include "botdatamgr.h"
 #include "botmgr.h"
+#include "Creature.h"
 //end npcbot
 
 class Aura;
@@ -505,9 +506,13 @@ void WorldSession::HandleChangeSubGroupOpcode(WorldPackets::Party::ChangeSubGrou
     //npcbot
     if (senderGuid.IsEmpty())
     {
-        if (Creature const* bot = BotDataMgr::FindBot(name, GetSessionDbcLocale()))
+        if (Creature* bot = ObjectAccessor::GetCreature(*GetPlayer(), packet.TargetGUID))
+        {
+            std::string name = bot->GetName();
             senderGuid = bot->GetGUID();
+        }
     }
+
     //end npcbot
 
     group->ChangeMembersGroup(packet.TargetGUID, packet.NewSubGroup);
@@ -595,30 +600,32 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPackets::Party::Requ
     WorldPackets::Party::PartyMemberFullState partyMemberStats;
 
     ObjectGuid guid;
-    recvData >> guid;
+    //recvData >> guid;
 
     //npcbot: try send bot group member info
     if (guid.IsCreature())
     {
         if (!GetPlayer()->GetGroup() || !GetPlayer()->GetGroup()->IsMember(guid))
         {
-            WorldPacket data(SMSG_PARTY_MEMBER_STATS_FULL, 3 + 4 + 2);
-            data << uint8(0);
-            data << guid.WriteAsPacked();
-            data << uint32(GROUP_UPDATE_FLAG_STATUS);
-            data << uint16(MEMBER_STATUS_OFFLINE);
-            SendPacket(&data);
-            return;
+        WorldPackets::Party::PartyMemberFullState partyMemberStats;
+        partyMemberStats.MemberGuid = packet.TargetGUID;
+        //partyMemberStats.MemberStats.UpdateFlags = GROUP_UPDATE_FLAG_STATUS;
+        //GroupUpdateFlags(GROUP_UPDATE_FLAG_STATUS);
+        partyMemberStats.MemberStats.Status = MEMBER_STATUS_OFFLINE;
+        SendPacket(partyMemberStats.Write());
+        return;
+
         }
 
         uint32 creatureId = guid.GetEntry();
         CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(creatureId);
         if (creatureTemplate && creatureTemplate->IsNPCBot())
         {
-            WorldPacket bpdata(SMSG_PARTY_MEMBER_STATS_FULL, 4 + 2 + 2 + 2 + 1 + 2 * 6 + 8 + 1 + 8);
-            BotMgr::BuildBotPartyMemberStatsPacket(guid, &bpdata);
-            SendPacket(&bpdata);
+            WorldPackets::Party::PartyMemberFullState partyMemberStats;
+            BotMgr::BuildBotPartyMemberStatsPacket(guid, partyMemberStats);
+            SendPacket(partyMemberStats.Write());
             return;
+
         }
     }
     //end npcbot

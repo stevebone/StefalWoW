@@ -35,6 +35,8 @@ Npc Bot Manager by Trickerer (onlysuffering@gmail.com)
 Player NpcBots management
 TODO: Move creature hooks here
 */
+#include "PartyPackets.h"
+
 
 #ifdef _MSC_VER
 # pragma warning(push, 4)
@@ -2456,17 +2458,33 @@ void BotMgr::UpdatePvPForBots()
     }
 }
 
-void BotMgr::BuildBotPartyMemberStatsPacket(ObjectGuid bot_guid, WorldPacket* data)
+void BotMgr::BuildBotPartyMemberStatsPacket(ObjectGuid bot_guid, WorldPackets::Party::PartyMemberFullState& packet)
 {
     Creature const* bot = BotDataMgr::FindBot(bot_guid.GetEntry());
+    packet.MemberGuid = bot_guid;
+
     if (!bot)
     {
-        *data << uint8(0);
-        *data << bot_guid.WriteAsPacked();
-        *data << uint32(GROUP_UPDATE_FLAG_STATUS);
-        *data << uint16(MEMBER_STATUS_OFFLINE);
+        packet.MemberStats.Status = MEMBER_STATUS_OFFLINE;
+        //packet.MemberStats.UpdateFlags = GROUP_UPDATE_FLAG_STATUS;
         return;
     }
+
+    // Populate stats for online bot
+    packet.MemberStats.Status = MEMBER_STATUS_ONLINE;
+    //packet.MemberStats.UpdateFlags = GROUP_UPDATE_FLAG_ALL;
+
+    packet.MemberStats.CurrentHealth = bot->GetHealth();
+    packet.MemberStats.MaxHealth = bot->GetMaxHealth();
+    packet.MemberStats.CurrentPower = bot->GetPower(bot->GetPowerType());
+    packet.MemberStats.MaxPower = bot->GetMaxPower(bot->GetPowerType());
+    packet.MemberStats.Level = bot->GetLevel();
+    //packet.MemberStats.ClassID = bot->getClass();
+    //packet.MemberStats.RaceID = bot->getRace();
+    //packet.MemberStats.Gender = bot->getGender();
+    packet.MemberStats.PowerType = bot->GetPowerType();
+
+
 
     Creature const* pet = nullptr; //bot->GetBotAI()->GetBotsPet();
     Powers powerType = bot->GetPowerType();
