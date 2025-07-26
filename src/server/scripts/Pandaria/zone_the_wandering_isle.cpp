@@ -1231,6 +1231,136 @@ class spell_flame_spout : public AuraScript
     }
 };
 
+/*
+Stefal TODO:
+- Kickback spell or jumping to center is missing
+- No phase change - not sure if this is needed
+- The fire walls are removed on quest completion - not sure if that is expected behavior
+- Fei clone is killed and despawns - not sure if that is expected behavior
+*/
+
+enum OnlyTheWorthyShallPass
+{
+    NPC_MASTER_LI_FEI = 54135,
+    NPC_MASTER_LI_FEI_CHALLENGE = 54734,
+
+    OBJECT_GUID_WALL_FIRE = 209367,
+    OBJECT_GUID_WALL_FIRE2 = 209375,
+
+    QUEST_ONLY_THE_WORTHY_SHALL_PASS = 29421,
+
+    SPELL_FEET_OF_FURY = 108958,
+    SPELL_FLYING_SHADOW_KICK = 108936,
+
+    EVENT_FEI_RANDOM_SPELL = 1,
+
+    SAY_FEI_TEXT_0 = 0
+};
+
+struct npc_master_li_fei : public ScriptedAI
+{
+    npc_master_li_fei(Creature* creature) : ScriptedAI(creature) { }
+
+    void OnQuestAccept(Player* player, Quest const* quest) override
+    {
+        if (quest->GetQuestId() == QUEST_ONLY_THE_WORTHY_SHALL_PASS)
+        {
+            if (Creature* summon = me->SummonCreature(NPC_MASTER_LI_FEI_CHALLENGE,
+                1351.666f, 3940.699f, 109.318f, 2.781f,
+                TEMPSUMMON_MANUAL_DESPAWN))
+            {
+                summon->AI()->AttackStart(player);
+            }
+
+            me->DespawnOrUnsummon();
+        }
+    }
+};
+
+struct npc_master_li_fei_challenge : public ScriptedAI
+{
+    npc_master_li_fei_challenge(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+    }
+
+    void JustAppeared() override
+    {
+        me->SetReactState(REACT_AGGRESSIVE); 
+        me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+        me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
+        me->SetImmuneToPC(false);
+    }
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        _events.ScheduleEvent(EVENT_FEI_RANDOM_SPELL, 4s, 6s);
+    }
+
+    void OnHealthDepleted(Unit* /*attacker*/, bool /*isKill*/) override
+    {
+        me->SetReactState(REACT_PASSIVE);
+        me->AttackStop();
+        me->RemoveAllAuras();
+        me->InterruptNonMeleeSpells(true);
+        _events.Reset();
+        me->SetUninteractible(true);
+        me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
+
+        Creature* liFei = me->SummonCreature(NPC_MASTER_LI_FEI, 1331.78f, 3942.8f, 110.606f, 6.00393f, TEMPSUMMON_TIMED_DESPAWN, 120s);
+        if (liFei && liFei->IsAlive())
+                liFei->AI()->Talk(SAY_FEI_TEXT_0);
+
+        std::list<GameObject*> goList;
+        GetGameObjectListWithEntryInGrid(goList, me, OBJECT_GUID_WALL_FIRE, 50.0f);
+
+        for (GameObject* go : goList)
+        {
+            if (go)  // optional, depending on your use-case
+                go->DespawnOrUnsummon(1s, 720s);
+        }
+
+        std::list<GameObject*> goList2;
+        GetGameObjectListWithEntryInGrid(goList2, me, OBJECT_GUID_WALL_FIRE2, 50.0f);
+
+        for (GameObject* go2 : goList2)
+        {
+            if (go2)  // optional, depending on your use-case
+                go2->DespawnOrUnsummon(1s, 720s);
+        }
+
+        me->DespawnOrUnsummon(2s);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (!UpdateVictim())
+            return;
+
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case EVENT_RANDOM_SPELL:
+                {
+                    uint32 spellId = RAND(SPELL_FEET_OF_FURY, SPELL_FLYING_SHADOW_KICK);
+                    DoCastVictim(spellId);
+                    _events.ScheduleEvent(EVENT_FEI_RANDOM_SPELL, 4s, 6s);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
+private:
+    EventMap _events;
+};
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -1245,6 +1375,8 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_summon);
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
+    RegisterCreatureAI(npc_master_li_fei);
+    RegisterCreatureAI(npc_master_li_fei_challenge);
 
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
