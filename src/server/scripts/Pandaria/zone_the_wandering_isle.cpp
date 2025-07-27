@@ -1361,6 +1361,107 @@ private:
     EventMap _events;
 };
 
+enum FanTheFlames
+{
+    spell_fan_the_flames = 102522,
+    spell_ftf_throw_wood = 109090,
+    spell_ftf_throw_air = 109095,
+    spell_ftf_throw_bigair = 109105,
+    spell_ftf_throw_bigger = 109109,
+    spell_ftf_credit = 109107,
+
+    npc_huo_despawn = 57779,
+    npc_huo_spawn = 54787 //54958
+};
+
+class spell_fan_the_flames_script : public SpellScript
+{
+    //PrepareSpellScript(spell_fan_the_flames_script);
+
+    void HandleAfterCast()
+    {
+        Player* player = GetCaster()->ToPlayer();
+        if (!player)
+            return;
+
+        Creature* target = GetClosestCreatureWithEntry(player, npc_huo_despawn, 5.0f, true);
+            if (!target)
+                return;
+
+        // Step 1: Cast throw wood
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_wood),
+            player->m_Events.CalculateTime(1s));
+
+        // Step 2: Throw air
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_air),
+            player->m_Events.CalculateTime(2s));
+
+        // Step 3: Throw big air
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_bigair),
+            player->m_Events.CalculateTime(3ms));
+
+        // Step 4: Throw bigger
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_bigger),
+            player->m_Events.CalculateTime(4s));
+
+        // Step 5: Credit spell + NPC changes
+        player->m_Events.AddEvent(new PlayerFinalFTFStep(player),
+            player->m_Events.CalculateTime(7s));
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_fan_the_flames_script::HandleAfterCast);
+    }
+
+private:
+    // Helper class for delayed casts
+    class PlayerDelayedCast : public BasicEvent
+    {
+    public:
+        PlayerDelayedCast(Player* player, uint32 spellId) : _player(player), _spellId(spellId) {}
+
+        bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+        {
+            if (_player && _player->IsInWorld())
+                _player->CastSpell(_player, _spellId, true);
+            return true;
+        }
+
+    private:
+        Player* _player;
+        uint32 _spellId;
+    };
+
+    // Final step: credit + NPC swap
+    class PlayerFinalFTFStep : public BasicEvent
+    {
+    public:
+        PlayerFinalFTFStep(Player* player) : _player(player) {}
+
+        bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+        {
+            if (!_player || !_player->IsInWorld())
+                return true;
+
+            // Credit spell
+            _player->CastSpell(_player, spell_ftf_credit, true);
+
+            Creature* target = GetClosestCreatureWithEntry(_player, npc_huo_despawn, 5.0f, true);
+            if (target)
+                target->DespawnOrUnsummon(1s); // 1s
+
+            // Spawn new Huo
+            _player->SummonCreature(npc_huo_spawn, 1257.89f, 3925.59f, 127.856f, 0.506145f, TEMPSUMMON_TIMED_DESPAWN, 120s);
+
+            return true;
+        }
+
+    private:
+        Player* _player;
+    };
+};
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -1382,6 +1483,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_ride_drake);
     RegisterSpellScript(spell_meditation_timer_bar);
     RegisterSpellScript(spell_flame_spout);
+    RegisterSpellScript(spell_fan_the_flames_script);
 
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
