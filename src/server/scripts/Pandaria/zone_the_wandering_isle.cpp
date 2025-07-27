@@ -1389,19 +1389,19 @@ class spell_fan_the_flames_script : public SpellScript
                 return;
 
         // Step 1: Cast throw wood
-        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_wood),
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_wood, target),
             player->m_Events.CalculateTime(1s));
 
         // Step 2: Throw air
-        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_air),
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_air, target),
             player->m_Events.CalculateTime(2s));
 
         // Step 3: Throw big air
-        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_bigair),
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_bigair, target),
             player->m_Events.CalculateTime(3ms));
 
         // Step 4: Throw bigger
-        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_bigger),
+        player->m_Events.AddEvent(new PlayerDelayedCast(player, spell_ftf_throw_bigger, target),
             player->m_Events.CalculateTime(4s));
 
         // Step 5: Credit spell + NPC changes
@@ -1419,18 +1419,22 @@ private:
     class PlayerDelayedCast : public BasicEvent
     {
     public:
-        PlayerDelayedCast(Player* player, uint32 spellId) : _player(player), _spellId(spellId) {}
+        PlayerDelayedCast(Player* player, uint32 spellId, Creature* target)
+            : _player(player), _spellId(spellId), _target(target) {}
 
         bool Execute(uint64 /*time*/, uint32 /*diff*/) override
         {
-            if (_player && _player->IsInWorld())
-                _player->CastSpell(_player, _spellId, true);
+            if (!_player || !_player->IsInWorld() || !_target || !_target->IsInWorld())
+                return true;
+
+            _player->CastSpell(_target, _spellId, true); // cast on target
             return true;
         }
 
     private:
         Player* _player;
         uint32 _spellId;
+        Creature* _target;
     };
 
     // Final step: credit + NPC swap
