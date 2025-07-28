@@ -1479,6 +1479,8 @@ enum ThePassionOfShenZinSu
     NPC_FIRE_SPIRIT_CREDIT = 61128,
     NPC_JI_FIREPAW = 57720,
     NPC_AYSA_CLOUDSINGER = 57721,
+    NPC_CHIA_HUI = 60248,
+    NPC_BREWER_LIN = 60253,
 
     SPELL_BLESSING_OF_HUO = 102630,
 
@@ -1491,6 +1493,7 @@ enum ThePassionOfShenZinSu
     SAY_MASTER_SHANG_06 = 6,
     SAY_JI_FIREPAW_00 = 0,
     SAY_AYSA_CLOUDSINGER_00 = 0,
+    SAY_NPC_HUO_NEARBY_00 = 0,
 
     EVENT_MASTER_SHANG_00 = 1,
     EVENT_MASTER_SHANG_01 = 2,
@@ -1542,7 +1545,7 @@ struct npc_huo_follower : public FollowerAI
     npc_huo_follower(Creature* creature) : FollowerAI(creature) { }
 
     EventMap events;
-    bool speechStarted = false;
+    std::set<uint32> interactedEntries;
 
     void IsSummonedBy(WorldObject* summoner) override
     {
@@ -1579,6 +1582,33 @@ struct npc_huo_follower : public FollowerAI
             }
         }
 
+        CheckForNearbyCreature(NPC_CHIA_HUI, 30.0f);
+        CheckForNearbyCreature(NPC_BREWER_LIN, 10.0f);
+
+    }
+
+
+    void CheckForNearbyCreature(uint32 entry, float range)
+    {
+        // Only do it once per entry
+        if (interactedEntries.contains(entry))
+            return;
+
+        std::list<Creature*> nearbyCreatures;
+        GetCreatureListWithEntryInGrid(nearbyCreatures, me, entry, range);
+
+        if (!nearbyCreatures.empty())
+        {
+            if (Player* player = GetLeaderForFollower())
+            {
+                Creature* talker = GetClosestCreatureWithEntry(me, entry, range);
+                if(talker)
+                {
+                    talker->AI()->Talk(SAY_NPC_HUO_NEARBY_00, player);
+                    interactedEntries.insert(entry); // Mark as done
+                }
+            }
+        }
     }
 
     void MovementInform(uint32 type, uint32 id) override
@@ -1699,6 +1729,35 @@ struct npc_master_shang : public ScriptedAI
     }
 };
 
+class OnLoginSpawnHuo : public PlayerScript
+{
+public:
+    OnLoginSpawnHuo() : PlayerScript("OnLoginSpawnHuo") { }
+
+    void OnLogin(Player* player, bool /*firstLogin*/) override
+    {
+        const uint32 questId = QUEST_THE_PASSION_OF_SHENZIN_SU;
+        const uint32 npcEntry = NPC_HUO_FOLLOWER;
+
+        // Check if player has the quest active
+        if (player->IsInWorld() && player->IsActiveQuest(questId))
+        {
+            // Spawn the NPC near the player
+            float x = player->GetPositionX() + 2.0f;
+            float y = player->GetPositionY() + 2.0f;
+            float z = player->GetPositionZ();
+            float o = player->GetOrientation();
+
+            if (Creature* summon = player->SummonCreature(npcEntry, x, y, z, o, TEMPSUMMON_MANUAL_DESPAWN, 0s, player->GetGUID()))
+            {
+                // Make follower non - attackable and passive
+                summon->SetReactState(REACT_PASSIVE);
+                summon->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
+            }
+        }
+    }
+};
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -1728,4 +1787,6 @@ void AddSC_zone_the_wandering_isle()
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
+
+    new OnLoginSpawnHuo();
 }
