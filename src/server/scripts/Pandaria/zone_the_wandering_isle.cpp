@@ -28,6 +28,7 @@
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "ScriptedFollowerAI.h"
 #include "SpellScript.h"
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
@@ -1371,7 +1372,7 @@ enum FanTheFlames
     spell_ftf_credit = 109107,
 
     npc_huo_despawn = 57779,
-    npc_huo_spawn = 54787 //54958
+    npc_huo_spawn = 54787
 };
 
 class spell_fan_the_flames_script : public SpellScript
@@ -1453,7 +1454,7 @@ private:
 
             Creature* target = GetClosestCreatureWithEntry(_player, npc_huo_despawn, 5.0f, true);
             if (target)
-                target->DespawnOrUnsummon(1s); // 1s
+                target->DespawnOrUnsummon(100ms); // 1s
 
             // Spawn new Huo
             _player->SummonCreature(npc_huo_spawn, 1257.89f, 3925.59f, 127.856f, 0.506145f, TEMPSUMMON_TIMED_DESPAWN, 120s);
@@ -1464,6 +1465,238 @@ private:
     private:
         Player* _player;
     };
+};
+
+// Quest: 29423 The Passion of Shen-zin Su
+// OnQuestAccept the Huo entry 54787 spawns 54958
+
+enum ThePassionOfShenZinSu
+{
+    QUEST_THE_PASSION_OF_SHENZIN_SU = 29423,
+
+    NPC_HUO_FOLLOWER = 54958,
+    NPC_MASTER_SHANG_XI = 54786,
+    NPC_FIRE_SPIRIT_CREDIT = 61128,
+    NPC_JI_FIREPAW = 57720,
+    NPC_AYSA_CLOUDSINGER = 57721,
+
+    SPELL_BLESSING_OF_HUO = 102630,
+
+    SAY_MASTER_SHANG_00 = 0,
+    SAY_MASTER_SHANG_01 = 1,
+    SAY_MASTER_SHANG_02 = 2,
+    SAY_MASTER_SHANG_03 = 3,
+    SAY_MASTER_SHANG_04 = 4,
+    SAY_MASTER_SHANG_05 = 5,
+    SAY_MASTER_SHANG_06 = 6,
+    SAY_JI_FIREPAW_00 = 0,
+    SAY_AYSA_CLOUDSINGER_00 = 0,
+
+    EVENT_MASTER_SHANG_00 = 1,
+    EVENT_MASTER_SHANG_01 = 2,
+    EVENT_MASTER_SHANG_02 = 3,
+    EVENT_MASTER_SHANG_03 = 4,
+    EVENT_MASTER_SHANG_04 = 5,
+    EVENT_MASTER_SHANG_05 = 6,
+    EVENT_MASTER_SHANG_06 = 7,
+    EVENT_JI_FIREPAW_00 = 8,
+    EVENT_AYSA_CLOUDSINGER_00 = 9
+};
+
+#define FOLLOW_DIST 1.5f
+#define FOLLOW_ANGLE 0.0f
+
+struct npc_huo_spawn_follower : public ScriptedAI
+{
+    npc_huo_spawn_follower(Creature* creature) : ScriptedAI(creature) { }
+
+    void OnQuestAccept(Player* player, Quest const* quest) override
+    {
+        if (quest->GetQuestId() == QUEST_THE_PASSION_OF_SHENZIN_SU)
+        {
+            // Cast the Blessing of Huo spell on the player
+            player->CastSpell(player, SPELL_BLESSING_OF_HUO, true);
+
+            if (Creature* summon = me->SummonCreature(NPC_HUO_FOLLOWER, 1257.89f, 3925.59f, 127.856f, 0.506145f, TEMPSUMMON_MANUAL_DESPAWN, 0s, player->GetGUID()))
+            {
+                // Make follower non - attackable and passive
+                summon->SetReactState(REACT_PASSIVE);
+                //summon->SetUninteractible(true);
+                summon->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
+
+                if (summon->AI())
+                {
+                    // Set the summoned creature to follow the player via FollowerAI
+                    if (FollowerAI* followerAI = dynamic_cast<FollowerAI*>(summon->AI()))
+                    {
+                        followerAI->StartFollow(player, QUEST_THE_PASSION_OF_SHENZIN_SU);
+                    }
+                }
+            }
+        }
+    }
+};
+
+struct npc_huo_follower : public FollowerAI
+{
+    npc_huo_follower(Creature* creature) : FollowerAI(creature) { }
+
+    EventMap events;
+    bool speechStarted = false;
+
+    void IsSummonedBy(WorldObject* summoner) override
+    {
+        if (Player* player = summoner->ToPlayer())
+            StartFollow(player, FOLLOW_DIST, FOLLOW_ANGLE);
+    }
+
+    // Add quest completion logic or movement change later
+    void UpdateAI(uint32 diff) override
+    {
+        // Optional: call base class first
+        FollowerAI::UpdateAI(diff);
+
+        if (Player* player = GetLeaderForFollower())
+        {
+            // Define range check
+            float checkRange = 20.0f; // Adjust as needed
+
+            // Attempt to find the quest completion NPC by entry ID
+            Creature* completionNPC = me->FindNearestCreature(NPC_MASTER_SHANG_XI, checkRange, true);
+            if (completionNPC)
+            {
+                if (player->GetQuestStatus(QUEST_THE_PASSION_OF_SHENZIN_SU) == QUEST_STATUS_INCOMPLETE)
+                {
+                    player->KilledMonsterCredit(NPC_FIRE_SPIRIT_CREDIT);
+                    if (player->HasAura(SPELL_BLESSING_OF_HUO))
+                        player->RemoveAurasDueToSpell(SPELL_BLESSING_OF_HUO);
+
+                    // Follower moves
+                    me->GetMotionMaster()->Clear();
+                    me->GetMotionMaster()->MovePoint(0, 957.5355f, 3603.9404f, 197.1533f);
+                }
+
+            }
+        }
+
+    }
+
+    void MovementInform(uint32 type, uint32 id) override
+    {
+        FollowerAI::MovementInform(type, id); // Base call
+
+        if (type == POINT_MOTION_TYPE && id == 0)
+        {
+            me->StopMoving(); // Kill leftover motion flags
+            me->GetMotionMaster()->Clear();
+
+            float x = 957.5355f;
+            float y = 3603.9404f;
+            float z = 197.1533f;
+            float o = 6.2444f;
+
+            me->NearTeleportTo(x, y, z, o);
+
+            me->SetEmoteState(EMOTE_STATE_STAND); // Idle stance
+            //me->SetOrientation(6.2444f);
+            me->DespawnOrUnsummon(120s); // Despawn after 120 sec
+        }
+    }
+
+};
+
+struct npc_master_shang : public ScriptedAI
+{
+    npc_master_shang(Creature* creature) : ScriptedAI(creature) { }
+
+    EventMap events;
+    std::set<ObjectGuid> triggeredPlayers;
+    ObjectGuid _playerGUID;
+
+    void Reset() override
+    {
+        events.Reset();
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        events.Update(diff);
+
+            std::list<Player*> players;
+            Trinity::PlayerAtMinimumRangeAway predicate(me, 5.0f);
+            Trinity::PlayerListSearcher<Trinity::PlayerAtMinimumRangeAway> searcher(me, players, predicate);
+            Cell::VisitAllObjects(me, searcher, 30.0f);
+
+            for (Player* player : players)
+            {
+                if (triggeredPlayers.contains(player->GetGUID()))
+                    continue;
+                _playerGUID = player->GetGUID();
+                Creature* shang = player->FindNearestCreatureWithOptions(30.0f, { .StringId = "master_shang_trigger" });
+                if (!shang || shang != me)
+                    continue;
+                if (player->GetQuestStatus(QUEST_THE_PASSION_OF_SHENZIN_SU) == QUEST_STATUS_COMPLETE)
+                {
+                    triggeredPlayers.insert(player->GetGUID());
+                    me->SummonCreature(NPC_JI_FIREPAW, 963.893372f, 3607.619873f, 196.557587f, 3.430162f, TEMPSUMMON_TIMED_DESPAWN, 120s);
+                    me->SummonCreature(NPC_AYSA_CLOUDSINGER, 964.222107f, 3603.798340f, 196.516296f, 2.761167f, TEMPSUMMON_TIMED_DESPAWN, 120s);
+                    events.ScheduleEvent(EVENT_MASTER_SHANG_00, 1s);
+                    break;
+                }
+            }
+        
+        while (uint32 eventId = events.ExecuteEvent())
+        {
+            Player* talkPlayer = ObjectAccessor::GetPlayer(*me, _playerGUID);
+            switch (eventId)
+            {
+            case EVENT_MASTER_SHANG_00:
+                Talk(SAY_MASTER_SHANG_00, talkPlayer);
+                events.ScheduleEvent(EVENT_MASTER_SHANG_01, 4s);
+                break;
+            case EVENT_MASTER_SHANG_01:
+                Talk(SAY_MASTER_SHANG_01, talkPlayer);
+                events.ScheduleEvent(EVENT_MASTER_SHANG_02, 4s);
+                break;
+            case EVENT_MASTER_SHANG_02:
+                Talk(SAY_MASTER_SHANG_02, talkPlayer);
+                events.ScheduleEvent(EVENT_MASTER_SHANG_03, 4s);
+                break;
+            case EVENT_MASTER_SHANG_03:
+                Talk(SAY_MASTER_SHANG_03, talkPlayer);
+                events.ScheduleEvent(EVENT_MASTER_SHANG_04, 4s);
+                break;
+            case EVENT_MASTER_SHANG_04:
+                Talk(SAY_MASTER_SHANG_04, talkPlayer);
+                SignalNearbyCreature(NPC_JI_FIREPAW, SAY_JI_FIREPAW_00);
+                events.ScheduleEvent(EVENT_MASTER_SHANG_05, 4s);
+                break;
+            case EVENT_MASTER_SHANG_05:
+                Talk(SAY_MASTER_SHANG_05, talkPlayer);
+                SignalNearbyCreature(NPC_AYSA_CLOUDSINGER, SAY_AYSA_CLOUDSINGER_00);
+                events.ScheduleEvent(EVENT_MASTER_SHANG_06, 4s);
+                break;
+            case EVENT_MASTER_SHANG_06:
+                Talk(SAY_MASTER_SHANG_06, talkPlayer);
+                break;
+            }
+        }
+    }
+
+    void SignalNearbyCreature(uint32 entry, uint32 sayLine)
+    {
+        if (Creature* npc = me->FindNearestCreature(entry, 10.0f, true))
+        {
+            if (npc->AI())
+                npc->AI()->Talk(sayLine);
+            else
+                TC_LOG_INFO("scripts.ai", "AI is null for creature {}", entry);
+        }
+        else
+        {
+            TC_LOG_INFO("scripts.ai", "Could not find creature {} nearby", entry);
+        }
+    }
 };
 
 void AddSC_zone_the_wandering_isle()
@@ -1482,6 +1715,9 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_master_li_fei_summon);
     RegisterCreatureAI(npc_master_li_fei);
     RegisterCreatureAI(npc_master_li_fei_challenge);
+    RegisterCreatureAI(npc_huo_spawn_follower);
+    RegisterCreatureAI(npc_huo_follower);
+    RegisterCreatureAI(npc_master_shang);
 
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
