@@ -1758,6 +1758,105 @@ public:
     }
 };
 
+//The Singing Pools
+enum SingingPoolsATSpells
+{
+    SPELL_CURSE_OF_THE_FROG = 102938,
+    SPELL_CURSE_OF_THE_SKUNK = 102939,
+    SPELL_CURSE_OF_THE_TURTLE = 102940,
+    SPELL_CURSE_OF_THE_CRANE = 102941,
+    SPELL_CURSE_OF_THE_CROCODILE = 102942,
+    SPELL_RIDE_VEHICLE_POLE = 102717,
+    SPELL_RIDE_VEHICLE_BELL_POLE = 107049,
+    SPELL_TRAINING_BELL_EXCLUSION_AURA = 133381
+};
+
+class at_singing_pools_transform : public AreaTriggerScript
+{
+public:
+    at_singing_pools_transform() : AreaTriggerScript("at_singing_pools_transform") { }
+
+    bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+    {
+        if (player->IsAlive() && !player->HasAura(SPELL_RIDE_VEHICLE_POLE))
+        {
+            switch (areaTrigger->ID)
+            {
+            case 6986:
+
+            case 6987:
+                if (!player->HasAura(SPELL_CURSE_OF_THE_FROG))
+                    player->CastSpell(player, SPELL_CURSE_OF_THE_FROG, true);
+                if (player->HasAura(SPELL_TRAINING_BELL_EXCLUSION_AURA))
+                    player->RemoveAura(SPELL_TRAINING_BELL_EXCLUSION_AURA);
+                break;
+            case 6988:
+            case 6989:
+                if (!player->HasAura(SPELL_CURSE_OF_THE_SKUNK))
+                    player->CastSpell(player, SPELL_CURSE_OF_THE_SKUNK, true);
+                break;
+            case 6990:
+                if (!player->HasAura(SPELL_CURSE_OF_THE_CROCODILE))
+                    player->CastSpell(player, SPELL_CURSE_OF_THE_CROCODILE, true);
+                break;
+            case 6991:
+            case 6992:
+                if (!player->HasAura(SPELL_CURSE_OF_THE_CRANE))
+                    player->CastSpell(player, SPELL_CURSE_OF_THE_CRANE, true);
+                break;
+            case 7011:
+            case 7012:
+                if (!player->HasAura(SPELL_CURSE_OF_THE_TURTLE))
+                    player->CastSpell(player, SPELL_CURSE_OF_THE_TURTLE, true);
+                break;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    bool OnExit(Player* player, AreaTriggerEntry const* areaTrigger) override
+    {
+        if (player->IsAlive() && !player->HasAura(SPELL_RIDE_VEHICLE_POLE))
+        {
+            switch (areaTrigger->ID)
+            {
+            case 6986:
+            case 6987:
+                if (!player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(6986)) && !player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(6987)))
+                    if (player->HasAura(SPELL_CURSE_OF_THE_FROG))
+                        player->RemoveAura(SPELL_CURSE_OF_THE_FROG);
+                break;
+            case 6988:
+            case 6989:
+                if (!player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(6988)) && !player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(6989)))
+                    if (player->HasAura(SPELL_CURSE_OF_THE_SKUNK))
+                        player->RemoveAura(SPELL_CURSE_OF_THE_SKUNK);
+                break;
+            case 6990:
+                if (player->HasAura(SPELL_CURSE_OF_THE_CROCODILE))
+                    player->RemoveAura(SPELL_CURSE_OF_THE_CROCODILE);
+                break;
+            case 6991:
+            case 6992:
+                if (!player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(6991)) && !player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(6992)))
+                    if (player->HasAura(SPELL_CURSE_OF_THE_CRANE))
+                        player->RemoveAura(SPELL_CURSE_OF_THE_CRANE);
+                break;
+            case 7011:
+            case 7012:
+                if (!player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(7011)) && !player->IsInAreaTrigger(sAreaTriggerStore.LookupEntry(7012)))
+                    if (player->HasAura(SPELL_CURSE_OF_THE_TURTLE))
+                        player->RemoveAura(SPELL_CURSE_OF_THE_TURTLE);
+                break;
+            }
+            return true;
+        }
+        return false;
+    }
+};
+
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -1787,6 +1886,7 @@ void AddSC_zone_the_wandering_isle()
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
+    new at_singing_pools_transform();
 
     new OnLoginSpawnHuo();
 }
