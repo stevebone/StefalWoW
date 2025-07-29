@@ -1919,6 +1919,10 @@ struct npc_balance_pole : ScriptedAI
                 {
                     DoCast(passenger, SPELL_TRAINING_BELL_FORCECAST_RIDE_VEHICLE, true);
                 }
+                else
+                {
+                    passenger->RemoveAura(SPELL_CURSE_OF_THE_FROG);
+                }
             }
         }
     }
@@ -1934,7 +1938,7 @@ struct npc_balance_pole : ScriptedAI
             case EVENT_CAST_TRANSFORM:
                 // Transform is casted only when in frog pool
                 Unit* passenger = ObjectAccessor::GetUnit(*me, _passengerGuid);
-                if (passenger->GetPositionZ() > 116.0f && !passenger->HasAura(SPELL_TRAINING_BELL_RIDE_VEHICLE) && !passenger->HasAura(SPELL_RIDE_VEHICLE_POLE))
+                if (passenger->GetPositionZ() < 118.0f && !passenger->HasAura(SPELL_TRAINING_BELL_RIDE_VEHICLE) && !passenger->HasAura(SPELL_RIDE_VEHICLE_POLE))
                 {
                     passenger->CastSpell(passenger, SPELL_CURSE_OF_THE_FROG, true);
 
