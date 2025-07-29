@@ -1856,6 +1856,107 @@ public:
     }
 };
 
+class at_singing_pools_training_bell : public AreaTriggerScript
+{
+public:
+    at_singing_pools_training_bell() : AreaTriggerScript("at_singing_pools_training_bell") { }
+
+    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    {
+        if (player->IsAlive())
+        {
+            player->AddAura(SPELL_TRAINING_BELL_EXCLUSION_AURA, player);
+            return true;
+        }
+        return false;
+    }
+
+    bool OnExit(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    {
+        if (player->IsAlive())
+        {
+            player->RemoveAura(SPELL_TRAINING_BELL_EXCLUSION_AURA);
+            return true;
+        }
+        return false;
+    }
+};
+
+enum BalancePoleEvents
+{
+    EVENT_CAST_TRANSFORM = 1
+};
+
+enum BalancePoleNPCs
+{
+    NPC_BALANCE_POLE_1 = 54993,
+    NPC_BALANCE_POLE_2 = 57431,
+    NPC_TRAINING_BELL_BALANCE_POLE = 55083,
+    NPC_CURSED_POOL_CONTROLLER = 55123
+};
+
+enum BalancePoleSpells
+{
+    SPELL_MONK_RIDE_POLE = 103030,
+    SPELL_TRAINING_BELL_FORCECAST_RIDE_VEHICLE = 107050, //102856
+    SPELL_TRAINING_BELL_RIDE_VEHICLE = 107049
+};
+
+struct npc_balance_pole : ScriptedAI
+{
+    npc_balance_pole(Creature* creature) : ScriptedAI(creature) { }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+    {
+        TC_LOG_DEBUG("scripts.ai", "we are in Passenger void");
+        if (passenger->GetTypeId() == TYPEID_PLAYER)
+        {
+            _passengerGuid = passenger->GetGUID();
+            TC_LOG_DEBUG("scripts.ai", "we are in Passenger void with passenger {}", _passengerGuid);
+            if (!apply)
+                _events.ScheduleEvent(EVENT_CAST_TRANSFORM, 1s);
+            else
+            {
+                if (me->GetEntry() == NPC_TRAINING_BELL_BALANCE_POLE)
+                {
+                    DoCast(passenger, SPELL_TRAINING_BELL_FORCECAST_RIDE_VEHICLE, true);
+
+                    TC_LOG_DEBUG("scripts.ai", "we are in Passenger cast spell {}", _passengerGuid);
+                }
+            }
+        }
+    }
+
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_CAST_TRANSFORM:
+                // Transform is casted only when in frog pool
+                TC_LOG_DEBUG("scripts.ai", "we are in Transform event");
+                Unit* passenger = ObjectAccessor::GetUnit(*me, _passengerGuid);
+                if (passenger->GetPositionZ() > 116.0f && !passenger->HasAura(SPELL_TRAINING_BELL_RIDE_VEHICLE) && !passenger->HasAura(SPELL_RIDE_VEHICLE_POLE))
+                {
+                    passenger->CastSpell(passenger, SPELL_CURSE_OF_THE_FROG, true);
+
+                    if (passenger->HasAura(SPELL_TRAINING_BELL_EXCLUSION_AURA))
+                        passenger->RemoveAura(SPELL_TRAINING_BELL_EXCLUSION_AURA);
+                }
+                _passengerGuid.Clear(); // ? Clear after you've finished handling the passenger
+                break;
+            }
+        }
+    }
+
+private:
+    EventMap _events;
+    ObjectGuid _passengerGuid;
+};
 
 void AddSC_zone_the_wandering_isle()
 {
@@ -1876,6 +1977,8 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_huo_spawn_follower);
     RegisterCreatureAI(npc_huo_follower);
     RegisterCreatureAI(npc_master_shang);
+    RegisterCreatureAI(npc_balance_pole);
+    
 
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
@@ -1887,6 +1990,9 @@ void AddSC_zone_the_wandering_isle()
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
     new at_singing_pools_transform();
+    new at_singing_pools_training_bell();
+
+    //new npc_balance_pole();
 
     new OnLoginSpawnHuo();
 }
