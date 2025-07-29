@@ -1898,7 +1898,7 @@ enum BalancePoleNPCs
 enum BalancePoleSpells
 {
     SPELL_MONK_RIDE_POLE = 103030,
-    SPELL_TRAINING_BELL_FORCECAST_RIDE_VEHICLE = 107050, //102856
+    SPELL_TRAINING_BELL_FORCECAST_RIDE_VEHICLE = 107050,
     SPELL_TRAINING_BELL_RIDE_VEHICLE = 107049
 };
 
@@ -1908,11 +1908,9 @@ struct npc_balance_pole : ScriptedAI
 
     void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
     {
-        TC_LOG_DEBUG("scripts.ai", "we are in Passenger void");
         if (passenger->GetTypeId() == TYPEID_PLAYER)
         {
             _passengerGuid = passenger->GetGUID();
-            TC_LOG_DEBUG("scripts.ai", "we are in Passenger void with passenger {}", _passengerGuid);
             if (!apply)
                 _events.ScheduleEvent(EVENT_CAST_TRANSFORM, 1s);
             else
@@ -1920,13 +1918,10 @@ struct npc_balance_pole : ScriptedAI
                 if (me->GetEntry() == NPC_TRAINING_BELL_BALANCE_POLE)
                 {
                     DoCast(passenger, SPELL_TRAINING_BELL_FORCECAST_RIDE_VEHICLE, true);
-
-                    TC_LOG_DEBUG("scripts.ai", "we are in Passenger cast spell {}", _passengerGuid);
                 }
             }
         }
     }
-
 
     void UpdateAI(uint32 diff) override
     {
@@ -1938,7 +1933,6 @@ struct npc_balance_pole : ScriptedAI
             {
             case EVENT_CAST_TRANSFORM:
                 // Transform is casted only when in frog pool
-                TC_LOG_DEBUG("scripts.ai", "we are in Transform event");
                 Unit* passenger = ObjectAccessor::GetUnit(*me, _passengerGuid);
                 if (passenger->GetPositionZ() > 116.0f && !passenger->HasAura(SPELL_TRAINING_BELL_RIDE_VEHICLE) && !passenger->HasAura(SPELL_RIDE_VEHICLE_POLE))
                 {
@@ -1991,8 +1985,6 @@ void AddSC_zone_the_wandering_isle()
     new at_inside_of_cave_of_meditation();
     new at_singing_pools_transform();
     new at_singing_pools_training_bell();
-
-    //new npc_balance_pole();
 
     new OnLoginSpawnHuo();
 }
