@@ -32,6 +32,7 @@
 #include "SpellScript.h"
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
+#include "ThreatManager.h"
 
 enum TraineeMisc
 {
@@ -1956,6 +1957,193 @@ private:
     ObjectGuid _passengerGuid;
 };
 
+enum TushuiMonkOnPoleEvents
+{
+    EVENT_THROW_ROCK = 1,
+    EVENT_SWITCH_POLE = 2,
+    EVENT_DESPAWN = 3
+};
+
+enum TushuiMonkOnPoleNPCs
+{
+    NPC_MONK_ON_POLE_1 = 55019,
+    NPC_MONK_ON_POLE_2 = 65468,
+};
+
+enum TushuiMonkOnPoleSpells
+{
+    SPELL_FORCECAST_RIDE_POLE = 103031,
+    SPELL_THROW_ROCK = 109308
+};
+
+enum TushuiMonkOnPoleMisc
+{
+    QUEST_LESSON_OF_BALANCED_ROCK = 29663
+};
+
+struct npc_tushui_monk_on_pole : ScriptedAI
+{
+    npc_tushui_monk_on_pole(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+        _events.ScheduleEvent(EVENT_SWITCH_POLE, 0s);
+        me->RestoreFaction();
+        me->SetReactState(REACT_DEFENSIVE);
+    }
+
+    void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+    {
+        if (spellInfo->Id == SPELL_FORCECAST_RIDE_POLE)
+        {
+            if (Unit* unitCaster = caster->ToUnit())
+                DoCast(unitCaster, SPELL_MONK_RIDE_POLE, true);
+        }
+    }
+
+    void JustEnteredCombat(Unit* who) override
+    {
+        me->SetReactState(REACT_AGGRESSIVE);
+        //me->Attack(who, true);           // Actively set who to attack
+        AttackStart(who);    
+
+        _events.ScheduleEvent(EVENT_THROW_ROCK, 0s);
+    }
+
+    void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+    {
+        if (damage >= me->GetHealth())
+        {
+            damage = 0; // Prevent lethal damage
+            me->SetHealth(10);
+            _events.Reset();
+            me->RemoveAllAuras();
+            me->SetFaction(35);
+            me->SetUnitFlag(UnitFlags(UNIT_FLAG_CAN_SWIM | UNIT_FLAG_IMMUNE_TO_PC));
+            me->AttackStop();
+            attacker->AttackStop();
+            me->_ExitVehicle();
+            attacker->ToPlayer()->KilledMonsterCredit(NPC_MONK_ON_POLE_1);
+            me->DespawnOrUnsummon(1s); // tempfix.
+        }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        Unit* victim = nullptr;
+        if (Unit* rawVictim = me->GetVictim())
+        {
+            if (rawVictim->IsVehicle() && rawVictim->GetVehicleKit()->GetPassenger(0))
+                victim = rawVictim->GetVehicleKit()->GetPassenger(0);
+            else
+                victim = rawVictim;
+        }
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_THROW_ROCK:
+                {
+                    if (victim && !me->IsWithinMeleeRange(victim))
+                            DoCast(victim, SPELL_THROW_ROCK);
+                }
+                _events.ScheduleEvent(EVENT_THROW_ROCK, 2500ms);
+                break;
+            case EVENT_SWITCH_POLE:
+                if (!me->IsInCombat())
+                {
+                    SwitchPole();
+                    _events.ScheduleEvent(EVENT_SWITCH_POLE, 15s, 30s);
+                }
+                break;
+            }
+        }
+        AttackStart(victim);
+    }
+
+    private:
+        EventMap _events;
+
+        void SwitchPole()
+        {
+            std::list<Creature*> polesList;
+            std::list<Creature*> polesList2;
+            // This stores objects that are too far away due to big combat reach
+            me->GetCreatureListWithEntryInGrid(polesList, NPC_BALANCE_POLE_1, 1.0f);
+            me->GetCreatureListWithEntryInGrid(polesList2, NPC_BALANCE_POLE_2, 1.0f);
+            // Join both lists with possible different NPC entries
+            polesList.splice(polesList.end(), polesList2);
+            // Convert list to vector, so we can access iterator to be able to shuffle the list
+            std::vector<Creature*> balancePolesList{ std::make_move_iterator(std::begin(polesList)), std::make_move_iterator(std::end(polesList)) };
+            // Shuffle the list so NPCs won't jump always on the same poles
+            Trinity::Containers::RandomShuffle(balancePolesList);
+
+            for (std::vector<Creature*>::const_iterator itr = balancePolesList.begin(); itr != balancePolesList.end(); ++itr)
+            {
+                Position offset;
+                offset.m_positionX = fabsf((*itr)->GetPositionX() - me->GetPositionX());
+                offset.m_positionY = fabsf((*itr)->GetPositionY() - me->GetPositionY());
+
+                // Object is too far
+                if (offset.m_positionX > 5.0f || offset.m_positionY > 5.0f)
+                    continue;
+
+                if (!(*itr)->HasAura(SPELL_MONK_RIDE_POLE) && !(*itr)->HasAura(SPELL_RIDE_VEHICLE_POLE))
+                {
+                    (*itr)->CastSpell(me, SPELL_FORCECAST_RIDE_POLE, true);
+                    break;
+                }
+            }
+        }
+
+        void DeleteAllFromThreatList(Unit* target, ObjectGuid except)
+        {
+            for (ThreatReference* ref : target->GetThreatManager().GetModifiableThreatList())
+            {
+                Unit* victim = ref->GetVictim();
+                if (victim && victim->GetGUID() != except)
+                {
+                    ref->ClearThreat();
+                    victim->ClearInCombat();
+                }
+            }
+        }
+
+        void MoveForward(float distance)
+        {
+            Position movePos;
+            float ori = me->GetOrientation();
+            float x = me->GetPositionX() + distance * cos(ori);
+            float y = me->GetPositionY() + distance * sin(ori);
+            float z = me->GetPositionZ();
+            me->UpdateGroundPositionZ(x, y, z);
+            movePos = { x, y, z };
+            me->GetMotionMaster()->MovePoint(1, movePos);
+        }
+
+        void AttackStart(Unit* who) override
+        {
+            if (!who)
+                return;
+
+            // If the attacker is riding a pole, target the rider
+            if (who->IsVehicle() && who->GetVehicleKit())
+            {
+                if (Unit* rider = who->GetVehicleKit()->GetPassenger(0))
+                {
+                    me->Attack(rider, true);
+                    return;
+                }
+            }
+
+            me->Attack(who, true);
+        }
+};
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -1976,6 +2164,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_huo_follower);
     RegisterCreatureAI(npc_master_shang);
     RegisterCreatureAI(npc_balance_pole);
+    RegisterCreatureAI(npc_tushui_monk_on_pole);
     
 
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
