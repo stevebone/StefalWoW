@@ -2144,7 +2144,6 @@ struct npc_tushui_monk_on_pole : ScriptedAI
         }
 };
 
-
 enum TheSunPearl
 {
     QUEST_THE_SUN_PEARL = 29677,
@@ -2210,6 +2209,121 @@ private:
     uint32 _checkTimer;
 };
 
+// Quest: 29678 Shu, the Spirit of Water
+// Spell: 103071 Forcecast Rock Jump A
+// Spell: 103069 Rock Jump A -- this gets the scriptname
+// Spell: 103070 Rock Jump B -- this gets the scriptname
+// Spell: 103072 Forcecast Rock Jump B
+// Spell: 103077 Rock Jump C -- this gets the scriptname
+// Spell: 103078 Forcecast Rock Jump C
+
+enum SHUTHESPIRITOFWATER
+{
+    QUEST_SHU_THE_SPIRIT_OF_WATER = 29678,
+
+    NPC_ROCKS_CROSSING_CREDIT = 57476,
+
+    OBJECT_ROCK_JUMP_A = 209575,
+    OBJECT_ROCK_JUMP_B = 209576,
+    OBJECT_ROCK_JUMP_C = 209577
+};
+
+class spell_rock_jump_a : public SpellScript
+{
+        void HandleJumpDest(SpellEffIndex effIndex)
+        {
+            PreventHitDefaultEffect(effIndex);
+
+            if (Unit* caster = GetCaster())
+            {
+                if (caster->GetPositionZ() > 92.0f)
+                {
+                    Position const jumpPos = { 1077.019f, 2844.103f, 95.27103f };
+                    caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                }
+                else
+                {
+                    if (GameObject* go = caster->FindNearestGameObject(OBJECT_ROCK_JUMP_B, 8.0f))
+                        caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                }
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_rock_jump_a::HandleJumpDest, EFFECT_0, SPELL_EFFECT_JUMP_DEST);
+        }
+};
+
+class spell_rock_jump_b : public SpellScript
+{
+    void HandleJumpDest(SpellEffIndex effIndex)
+    {
+        PreventHitDefaultEffect(effIndex);
+
+        if (Unit* caster = GetCaster())
+        {
+            if (caster->GetPositionZ() > 92.0f)
+            {
+                Position const jumpPos = { 1052.054199f, 2850.593018f, 92.703720f };
+                caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+            }
+            else
+            {
+                if (GameObject* go = caster->FindNearestGameObject(OBJECT_ROCK_JUMP_C, 20.0f))
+                    caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+            }
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_rock_jump_b::HandleJumpDest, EFFECT_0, SPELL_EFFECT_JUMP_DEST);
+    }
+};
+
+class spell_rock_jump_c : public SpellScript
+{
+    void HandleJumpDest(SpellEffIndex effIndex)
+    {
+        PreventHitDefaultEffect(effIndex);
+
+        if (Unit* caster = GetCaster())
+        {
+            if (caster->GetPositionZ() > 92.0f)
+            {
+                Position const jumpPos = { 1062.230591f, 2846.330322f, 94.494873f };
+                caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+            }
+            else
+            {
+                if (GameObject* go = caster->FindNearestGameObject(OBJECT_ROCK_JUMP_A, 10.0f))
+                    caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+            }
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_rock_jump_c::HandleJumpDest, EFFECT_0, SPELL_EFFECT_JUMP_DEST);
+    }
+};
+
+class at_pools_of_reflection : public AreaTriggerScript
+{
+public:
+    at_pools_of_reflection() : AreaTriggerScript("at_pools_of_reflection") { }
+
+    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    {
+        if (player->IsInWorld() && player->GetQuestStatus(QUEST_SHU_THE_SPIRIT_OF_WATER) == QUEST_STATUS_INCOMPLETE)
+        {
+            player->KilledMonsterCredit(NPC_ROCKS_CROSSING_CREDIT);
+            return true;
+        }
+        return false;
+    }
+};
 
 void AddSC_zone_the_wandering_isle()
 {
@@ -2233,18 +2347,21 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_balance_pole);
     RegisterCreatureAI(npc_tushui_monk_on_pole);
     
-
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
     RegisterSpellScript(spell_meditation_timer_bar);
     RegisterSpellScript(spell_flame_spout);
     RegisterSpellScript(spell_fan_the_flames_script);
+    RegisterSpellScript(spell_rock_jump_a);
+    RegisterSpellScript(spell_rock_jump_b);
+    RegisterSpellScript(spell_rock_jump_c);
 
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
     new at_singing_pools_transform();
     new at_singing_pools_training_bell();
+    new at_pools_of_reflection();
 
     RegisterGameObjectAI(go_ancient_clam);
 
