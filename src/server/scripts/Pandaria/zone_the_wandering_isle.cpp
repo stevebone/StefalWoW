@@ -1654,8 +1654,8 @@ struct npc_master_shang : public ScriptedAI
         events.Update(diff);
 
             std::list<Player*> players;
-            Trinity::PlayerAtMinimumRangeAway predicate(me, 5.0f);
-            Trinity::PlayerListSearcher<Trinity::PlayerAtMinimumRangeAway> searcher(me, players, predicate);
+            Trinity::AnyPlayerInPositionRangeCheck check(me, 30.0f);
+            Trinity::PlayerListSearcher<Trinity::AnyPlayerInPositionRangeCheck> searcher(me, players, check);
             Cell::VisitAllObjects(me, searcher, 30.0f);
 
             for (Player* player : players)
@@ -2144,6 +2144,73 @@ struct npc_tushui_monk_on_pole : ScriptedAI
         }
 };
 
+
+enum TheSunPearl
+{
+    QUEST_THE_SUN_PEARL = 29677,
+
+    NPC_FANG_SHE = 55292
+};
+
+// NPC: 55292 Fang-she
+// Quest: 29677 The Sun Pearl 
+// GO: 209584 Ancient Clam
+struct go_ancient_clam : public GameObjectAI
+{
+    using GameObjectAI::GameObjectAI;
+
+    void Reset() override
+    {
+        _checkTimer = 1000; // Check every second
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (_checkTimer <= diff)
+        {
+            _checkTimer = 1000;
+
+            Creature* fangshe = me->FindNearestCreature(NPC_FANG_SHE, 30.0f, false);
+            if (fangshe)
+            {
+                std::list<Player*> players;
+                Trinity::AnyPlayerInPositionRangeCheck check(fangshe, 30.0f);
+                Trinity::PlayerListSearcher<Trinity::AnyPlayerInPositionRangeCheck> searcher(fangshe, players, check);
+                Cell::VisitAllObjects(fangshe, searcher, 30.0f); // Search within 30 yards
+
+                bool questActiveNearby = false;
+
+                for (Player* player : players)
+                {
+                    if (player->IsInWorld() && player->GetQuestStatus(QUEST_THE_SUN_PEARL) == QUEST_STATUS_INCOMPLETE)
+                    {
+                        questActiveNearby = true;
+                        break;
+                    }
+                }
+
+                // Final check: both conditions must be true
+                if (fangshe && questActiveNearby)
+                {
+                    me->RemoveFlag(GO_FLAG_INTERACT_COND);
+                    me->SetDynamicFlag(GO_DYNFLAG_LO_ACTIVATE);
+                }
+                else
+                {
+                    me->SetFlag(GO_FLAG_INTERACT_COND);
+                    me->RemoveDynamicFlag(GO_DYNFLAG_LO_ACTIVATE);
+                }
+            }
+        }
+        else
+            _checkTimer -= diff;
+    }
+
+private:
+    uint32 _checkTimer;
+};
+
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -2178,6 +2245,8 @@ void AddSC_zone_the_wandering_isle()
     new at_inside_of_cave_of_meditation();
     new at_singing_pools_transform();
     new at_singing_pools_training_bell();
+
+    RegisterGameObjectAI(go_ancient_clam);
 
     new OnLoginSpawnHuo();
 }
