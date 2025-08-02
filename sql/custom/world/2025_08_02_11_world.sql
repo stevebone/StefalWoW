@@ -6,6 +6,7 @@
 -- Quest: 29680 The Source of Our Livelihood
 
 -- temp fix until quest accept works from auto completed quests and new offered quests
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29679,29680);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29679', '0');
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29680', '0');
 
