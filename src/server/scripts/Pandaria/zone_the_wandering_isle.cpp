@@ -2222,11 +2222,55 @@ enum SHUTHESPIRITOFWATER
     QUEST_SHU_THE_SPIRIT_OF_WATER = 29678,
 
     NPC_ROCKS_CROSSING_CREDIT = 57476,
+    NPC_BUNNY_WATER_SPOUT = 60488,
 
     OBJECT_ROCK_JUMP_A = 209575,
     OBJECT_ROCK_JUMP_B = 209576,
     OBJECT_ROCK_JUMP_C = 209577
 };
+
+enum ShuSpells
+{
+    SPELL_JUMP_FRONT_RIGHT = 117033,
+    SPELL_JUMP_FRONT_LEFT = 117034,
+    SPELL_JUMP_BACK_RIGHT = 117035,
+    SPELL_JUMP_BACK_LEFT = 117036,
+    SPELL_SUMMON_WATER_SPOUT = 116810,
+    SPELL_WATER_SPOUT = 117063
+};
+
+enum ShuJumpPositions
+{
+    JUMP_POSITION_1 = 0,
+    JUMP_POSITION_2 = 1,
+    JUMP_POSITION_3 = 2,
+    JUMP_POSITION_4 = 3
+};
+
+enum ShuEvents
+{
+    EVENT_JUMP_SPELL = 1,
+    EVENT_SET_ORIENTATION = 2,
+    EVENT_SUMMON = 3
+};
+
+enum ShuData
+{
+    DATA_JUMP_POSITION = 1
+};
+
+enum BunnySpawnSlot : uint8
+{
+    BUNNY_SPAWN_SLOT_1 = 0,
+    BUNNY_SPAWN_SLOT_2 = 1,
+    BUNNY_SPAWN_SLOT_3 = 2,
+    BUNNY_SPAWN_SLOT_4 = 3,
+    BUNNY_SPAWN_SLOT_5 = 4,
+    BUNNY_SPAWN_SLOT_6 = 5,
+    BUNNY_SPAWN_SLOT_7 = 6,
+    MAX_SPAWN_SLOTS
+};
+
 
 class spell_rock_jump_a : public SpellScript
 {
@@ -2309,6 +2353,137 @@ class spell_rock_jump_c : public SpellScript
     }
 };
 
+class spell_jump_to_front_right : public SpellScript
+{
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+            {
+                Position const jumpPos = { 1111.13f, 2850.21f, 94.6873f };
+                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_front_right::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+};
+
+class spell_jump_to_front_left : public SpellScript
+{
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+            {
+                Position const jumpPos = { 1100.83f, 2881.36f, 94.0386f };
+                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_front_left::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+};
+
+class spell_jump_to_back_right : public SpellScript
+{
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+            {
+                Position const jumpPos = { 1127.26f, 2859.8f, 97.2817f };
+                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_back_right::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+};
+
+class spell_jump_to_back_left : public SpellScript
+{
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+            {
+                Position const jumpPos = { 1120.16f, 2882.66f, 96.345f };
+                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_back_left::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+};
+
+/*
+class spell_summon_water_spout : public SpellScript
+{
+    void HandleSummon(SpellEffIndex effIndex)
+    {
+        PreventHitDefaultEffect(effIndex);
+
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        // Get the destination passed by the caster
+        //Position dest = GetHitDest()->GetPosition();
+        //Position const* dest = GetExplTargetDest();
+        //Position dest = caster->GetPosition();
+
+        if (!GetExplTargetDest())
+        {
+            TC_LOG_DEBUG("scripts.ai", "We have no target destination");
+            return;
+        }
+
+        WorldLocation dest = *GetExplTargetDest();
+
+        SpellInfo const* spellInfo = GetSpellInfo();
+        uint32 entry = spellInfo->GetEffect(effIndex).MiscValue;
+        SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(uint32(GetEffectInfo().MiscValueB));
+        if (!entry || !properties)
+            return;
+
+        TC_LOG_DEBUG("scripts.ai", "We have entry {} for water spout summon.", entry);
+        return;
+        Milliseconds duration = Milliseconds(GetSpellInfo()->CalcDuration(caster));
+        //auto chronoDuration = std::chrono::milliseconds(duration);
+
+        
+        
+        if (!dest.IsPositionValid())
+        {
+            TC_LOG_ERROR("scripts.ai", "No destination provided for water spout summon.");
+            return;
+        }
+        else
+        {
+            TC_LOG_DEBUG("scripts.ai", "Destination provided for water spout summon. {} ", dest.ToString());
+            return;
+        }
+
+        // Summon the creature at the provided location
+        if (TempSummon* summon = caster->GetMap()->SummonCreature(entry, dest, properties, duration, caster))
+        {
+            summon->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
+            TC_LOG_DEBUG("scripts.ai", "Summoned water spout at destination with GUID {}", summon->GetGUID());
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_summon_water_spout::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
+    }
+};
+*/
+
 class at_pools_of_reflection : public AreaTriggerScript
 {
 public:
@@ -2323,6 +2498,160 @@ public:
         }
         return false;
     }
+};
+
+struct npc_shu_playing : public ScriptedAI
+{
+    npc_shu_playing(Creature* creature) : ScriptedAI(creature),
+        jumpPosition(1),
+        spawnPosition(0),
+        positionBefore(1),
+        startAI(false) { }
+
+    void Initialize()
+    {
+        jumpPosition = 1;
+        positionBefore = 1;
+        startAI = true;
+    }
+
+    void Reset() override
+    {
+        events.Reset();
+        Initialize();
+    }
+
+    void MovementInform(uint32 type, uint32 id) override
+    {
+        if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP)
+            events.ScheduleEvent(EVENT_SET_ORIENTATION, 500ms);
+    }
+
+    uint32 GetData(uint32 id) const override
+    {
+        if (id == DATA_JUMP_POSITION)
+            return jumpPosition;
+
+        return false;
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (startAI)
+        {
+            events.ScheduleEvent(EVENT_JUMP_SPELL, 1s);
+            startAI = false;
+        }
+
+        events.Update(diff);
+
+        while (uint32 eventId = events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_JUMP_SPELL:
+                if (urand(0, 2) != 0)
+                    jumpPosition = urand(JUMP_POSITION_1, JUMP_POSITION_4);
+                else
+                    jumpPosition = positionBefore;
+
+                if (jumpPosition == positionBefore)
+                {
+                    events.CancelEvent(EVENT_SET_ORIENTATION);
+                    events.ScheduleEvent(EVENT_SUMMON, 1500ms);
+                }
+                else
+                {
+                    DoCast(jumpSpells[jumpPosition]);
+                    positionBefore = jumpPosition;
+                }
+                break;
+            case EVENT_SET_ORIENTATION:
+                switch (jumpPosition)
+                {
+                case JUMP_POSITION_1:
+                    me->SetFacingTo(1.32645f);
+                    break;
+                case JUMP_POSITION_2:
+                    me->SetFacingTo(5.654867f);
+                    break;
+                case JUMP_POSITION_3:
+                    me->SetFacingTo(2.338741f);
+                    break;
+                case JUMP_POSITION_4:
+                    me->SetFacingTo(4.34587f);
+                    break;
+                }
+                events.ScheduleEvent(EVENT_SUMMON, 1500ms);
+                break;
+            case EVENT_SUMMON:
+                {
+                // Pick a random spawn slot within the current zone
+                uint8 randomSlot = urand(0, MAX_SPAWN_SLOTS - 1);
+
+                // Access the spawn position using zone and slot
+                Position targetPos = SpawnPosition[jumpPosition][randomSlot];
+
+                // Cast the summoning spell at the chosen location
+                //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
+                // Dynamic position spell casting summon not supported. we summon creature directly instead
+
+                if(Creature* bunny = me->SummonCreature(NPC_BUNNY_WATER_SPOUT, targetPos, TEMPSUMMON_MANUAL_DESPAWN))
+                   DoCast(SPELL_WATER_SPOUT);
+                events.ScheduleEvent(EVENT_JUMP_SPELL, 6s);
+                break;
+                }
+            }
+        }
+    }
+
+    static constexpr Position SpawnPosition[4][MAX_SPAWN_SLOTS] =
+    {
+        {
+            { 1117.516f, 2848.437f, 92.14017f },
+            { 1105.92f, 2853.432f, 92.14017f },
+            { 1105.231f, 2847.766f, 92.14017f },
+            { 1114.819f, 2844.094f, 92.14017f },
+            { 1110.618f, 2856.7f, 92.14017f },
+            { 1109.559f, 2843.255f, 92.14017f },
+            { 1116.04f, 2854.104f, 92.14017f }
+        },
+        {
+            { 1106.743f, 2879.544f, 92.14017f },
+            { 1105.793f, 2885.37f, 92.14017f },
+            { 1098.16f, 2874.628f, 92.14017f },
+            { 1104.28f, 2875.759f, 92.14017f },
+            { 1095.38f, 2885.097f, 92.14017f },
+            { 1100.078f, 2888.365f, 92.14017f },
+            { 1094.693f, 2879.431f, 92.14017f }
+        },
+        {
+            { 1132.911f, 2864.381f, 92.14017f },
+            { 1125.672f, 2851.84f, 92.14017f },
+            { 1121.057f, 2856.08f, 92.14017f },
+            { 1134.373f, 2858.654f, 92.14017f },
+            { 1126.556f, 2867.097f, 92.14017f },
+            { 1120.064f, 2863.003f, 92.14017f },
+            { 1131.856f, 2852.781f, 92.14017f }
+        },
+        {
+            { 1118.22f, 2875.427f, 92.14017f },
+            { 1113.274f, 2879.232f, 92.14017f },
+            { 1125.439f, 2887.632f, 92.14017f },
+            { 1118.766f, 2890.419f, 92.14017f },
+            { 1113.783f, 2886.404f, 92.14017f },
+            { 1123.7f, 2876.575f, 92.14017f },
+            { 1126.358f, 2881.005f, 92.14017f }
+        }
+    };
+
+private:
+    EventMap events;
+    uint32 jumpSpells[4] = { SPELL_JUMP_FRONT_RIGHT, SPELL_JUMP_FRONT_LEFT, SPELL_JUMP_BACK_RIGHT, SPELL_JUMP_BACK_LEFT };
+    uint8 jumpPosition;
+    uint8 spawnPosition;
+    uint8 positionBefore;
+    bool startAI;
 };
 
 void AddSC_zone_the_wandering_isle()
@@ -2346,6 +2675,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_master_shang);
     RegisterCreatureAI(npc_balance_pole);
     RegisterCreatureAI(npc_tushui_monk_on_pole);
+    RegisterCreatureAI(npc_shu_playing);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
@@ -2355,6 +2685,11 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_rock_jump_a);
     RegisterSpellScript(spell_rock_jump_b);
     RegisterSpellScript(spell_rock_jump_c);
+    RegisterSpellScript(spell_jump_to_front_right);
+    RegisterSpellScript(spell_jump_to_front_left);
+    RegisterSpellScript(spell_jump_to_back_right);
+    RegisterSpellScript(spell_jump_to_back_left);
+    //RegisterSpellScript(spell_summon_water_spout);
 
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
