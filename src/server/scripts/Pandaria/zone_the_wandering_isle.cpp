@@ -1484,6 +1484,7 @@ enum ThePassionOfShenZinSu
     NPC_BREWER_LIN = 60253,
 
     SPELL_BLESSING_OF_HUO = 102630,
+    SPELL_SPAWN_SPIRIT_OF_FIRE = 128700,
 
     SAY_MASTER_SHANG_00 = 0,
     SAY_MASTER_SHANG_01 = 1,
@@ -1726,35 +1727,6 @@ struct npc_master_shang : public ScriptedAI
         else
         {
             TC_LOG_INFO("scripts.ai", "Could not find creature {} nearby", entry);
-        }
-    }
-};
-
-class OnLoginSpawnHuo : public PlayerScript
-{
-public:
-    OnLoginSpawnHuo() : PlayerScript("OnLoginSpawnHuo") { }
-
-    void OnLogin(Player* player, bool /*firstLogin*/) override
-    {
-        const uint32 questId = QUEST_THE_PASSION_OF_SHENZIN_SU;
-        const uint32 npcEntry = NPC_HUO_FOLLOWER;
-
-        // Check if player has the quest active
-        if (player->IsInWorld() && player->IsActiveQuest(questId))
-        {
-            // Spawn the NPC near the player
-            float x = player->GetPositionX() + 2.0f;
-            float y = player->GetPositionY() + 2.0f;
-            float z = player->GetPositionZ();
-            float o = player->GetOrientation();
-
-            if (Creature* summon = player->SummonCreature(npcEntry, x, y, z, o, TEMPSUMMON_MANUAL_DESPAWN, 0s, player->GetGUID()))
-            {
-                // Make follower non - attackable and passive
-                summon->SetReactState(REACT_PASSIVE);
-                summon->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
-            }
         }
     }
 };
@@ -2421,69 +2393,6 @@ class spell_jump_to_back_left : public SpellScript
         }
 };
 
-/*
-class spell_summon_water_spout : public SpellScript
-{
-    void HandleSummon(SpellEffIndex effIndex)
-    {
-        PreventHitDefaultEffect(effIndex);
-
-        Unit* caster = GetCaster();
-        if (!caster)
-            return;
-
-        // Get the destination passed by the caster
-        //Position dest = GetHitDest()->GetPosition();
-        //Position const* dest = GetExplTargetDest();
-        //Position dest = caster->GetPosition();
-
-        if (!GetExplTargetDest())
-        {
-            TC_LOG_DEBUG("scripts.ai", "We have no target destination");
-            return;
-        }
-
-        WorldLocation dest = *GetExplTargetDest();
-
-        SpellInfo const* spellInfo = GetSpellInfo();
-        uint32 entry = spellInfo->GetEffect(effIndex).MiscValue;
-        SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(uint32(GetEffectInfo().MiscValueB));
-        if (!entry || !properties)
-            return;
-
-        TC_LOG_DEBUG("scripts.ai", "We have entry {} for water spout summon.", entry);
-        return;
-        Milliseconds duration = Milliseconds(GetSpellInfo()->CalcDuration(caster));
-        //auto chronoDuration = std::chrono::milliseconds(duration);
-
-        
-        
-        if (!dest.IsPositionValid())
-        {
-            TC_LOG_ERROR("scripts.ai", "No destination provided for water spout summon.");
-            return;
-        }
-        else
-        {
-            TC_LOG_DEBUG("scripts.ai", "Destination provided for water spout summon. {} ", dest.ToString());
-            return;
-        }
-
-        // Summon the creature at the provided location
-        if (TempSummon* summon = caster->GetMap()->SummonCreature(entry, dest, properties, duration, caster))
-        {
-            summon->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
-            TC_LOG_DEBUG("scripts.ai", "Summoned water spout at destination with GUID {}", summon->GetGUID());
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectHit += SpellEffectFn(spell_summon_water_spout::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
-    }
-};
-*/
-
 class at_pools_of_reflection : public AreaTriggerScript
 {
 public:
@@ -2654,6 +2563,89 @@ private:
     bool startAI;
 };
 
+enum ANEWFRIEND
+{
+    QUEST_A_NEW_FRIEND = 29678,
+
+    NPC_AYSA_CLOUDSINGER_SHU = 54975,
+
+    SPELL_AYSA_CONGRATS_TIMER = 128589,
+    SPELL_AYSA_CONGRATS_TRIGGER_AURA = 128588,
+    SPELL_SUMMON_SPIRIT_OF_WATER = 103538,
+    SPELL_WATER_SPOUT_QUEST_CREDIT = 117054 // this already works as expected
+
+};
+
+class spell_aysa_congrats_trigger_aura : public AuraScript
+{
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (Creature* creature = target->FindNearestCreature(NPC_AYSA_CLOUDSINGER_SHU, 70.0f, true))
+                    creature->AI()->Talk(1, target);
+        }
+
+        void Register() override
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_trigger_aura::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+};
+
+class spell_aysa_congrats_timer : public AuraScript
+{
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (Creature* creature = target->FindNearestCreature(NPC_AYSA_CLOUDSINGER_SHU, 70.0f, true))
+                    creature->AI()->Talk(0, target);
+        }
+
+        void Register() override
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_timer::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+};
+
+class quest_a_new_friend : public QuestScript
+{
+public:
+    quest_a_new_friend() : QuestScript("quest_a_new_friend") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_COMPLETE)
+        {
+            player->CastSpell(player, SPELL_AYSA_CONGRATS_TIMER);
+            player->CastSpell(player, SPELL_AYSA_CONGRATS_TRIGGER_AURA);
+            player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER);
+        }
+    }
+};
+
+enum TheSourceofOurLivelihood
+{
+    QUEST_THE_SOURCE_OF_LIVELIHOOD = 29680
+};
+
+class OnLoginSpawnFollowers : public PlayerScript
+{
+public:
+    OnLoginSpawnFollowers() : PlayerScript("OnLoginSpawnFollowers") { }
+
+    void OnLogin(Player* player, bool /*firstLogin*/) override
+    {
+        // Check if player has the quest active
+        if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_PASSION_OF_SHENZIN_SU))
+        {
+            player->CastSpell(player, SPELL_SPAWN_SPIRIT_OF_FIRE);
+        }
+        else if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SOURCE_OF_LIVELIHOOD))
+        {
+            player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER);
+        }
+    }
+};
+
 void AddSC_zone_the_wandering_isle()
 {
     RegisterCreatureAI(npc_tushui_huojin_trainee);
@@ -2689,7 +2681,8 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_jump_to_front_left);
     RegisterSpellScript(spell_jump_to_back_right);
     RegisterSpellScript(spell_jump_to_back_left);
-    //RegisterSpellScript(spell_summon_water_spout);
+    RegisterSpellScript(spell_aysa_congrats_trigger_aura);
+    RegisterSpellScript(spell_aysa_congrats_timer);
 
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
@@ -2700,5 +2693,9 @@ void AddSC_zone_the_wandering_isle()
 
     RegisterGameObjectAI(go_ancient_clam);
 
-    new OnLoginSpawnHuo();
+    // Quest Scripts
+    new quest_a_new_friend();
+
+    // Player Scripts
+    new OnLoginSpawnFollowers();
 }
