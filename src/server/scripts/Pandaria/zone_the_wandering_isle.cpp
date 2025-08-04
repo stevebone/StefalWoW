@@ -2622,9 +2622,142 @@ public:
     }
 };
 
+//STEFAL TODO: add correct usage of the ropes spells
 enum TheSourceofOurLivelihood
 {
-    QUEST_THE_SOURCE_OF_LIVELIHOOD = 29680
+    QUEST_THE_SOURCE_OF_LIVELIHOOD = 29680,
+
+    NPC_CART = 57710,
+    NPC_OX = 57712,
+    NPC_VEHICLE_CART = 57208,
+    NPC_VEHICLE_OX = 57207,
+    NPC_CART_TENDER = 57712,
+
+    SPELL_FORCE_VEHICLE_RIDE = 46598, //cast on the player
+    SPELL_EJECT_PASSENGERS = 50630,
+    SPELL_ROPE_LEFT = 108627, //cast on the cart
+    SPELL_ROPE_RIGHT = 108691, //cast on the cart?
+    SPELL_REMOVE_OX_CART_INVIS = 108888, // not needed as they are handled by spawn spell(?)
+    SPELL_ADD_OX_CART_INVIS = 108887, // not needed as they are handled by spawn spell(?)
+
+    PATH_CART_VEHICLE = 3,
+    PATH_OX_VEHICLE = 2,
+
+    NODE_DESPAWN = 33,
+    NODE_REMOVE_PASSENGER = 27,
+
+    EVENT_START_PATH = 1,
+    EVENT_CAST_ROPE_LEFT = 2,
+    EVENT_CAST_ROPE_RIGHT = 3,
+
+    AREA_CART_LOCATION = 7258,
+
+    SAY_CART_TENDER_00 = 0
+
+};
+
+struct npc_ox_cart : public ScriptedAI
+{
+    npc_ox_cart(Creature* creature) : ScriptedAI(creature), _passengerGuid() { }
+
+    void Reset() override
+    {
+        _events.Reset();
+
+        if (me->GetEntry() == NPC_VEHICLE_OX)
+        {
+            me->SetReactState(REACT_PASSIVE);
+            _events.ScheduleEvent(EVENT_START_PATH, 1400ms); // Delay of 0.5 seconds
+        }
+    }
+
+    void IsSummonedBy(WorldObject* /*summoner*/) override
+    {
+        me->ToTempSummon()->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
+    }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+    {
+        if (apply && passenger->GetTypeId() == TYPEID_PLAYER)
+        {
+            
+
+            if (me->GetEntry() == NPC_VEHICLE_CART)
+            {
+                _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
+                me->CastSpell(passenger, SPELL_FORCE_VEHICLE_RIDE);
+                _events.ScheduleEvent(EVENT_START_PATH, 1800ms); // Delay
+            }
+        }
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+    {
+            switch (nodeId)
+            {
+                case NODE_REMOVE_PASSENGER:
+                {
+                    if (me->GetEntry() == NPC_VEHICLE_CART)
+                        me->CastSpell(me, SPELL_EJECT_PASSENGERS);
+                    break;
+                }
+                case NODE_DESPAWN:
+                {
+                    me->DespawnOrUnsummon(1s);
+                    break;
+                }
+                default:
+                    break;
+            }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_START_PATH:
+                if (me->GetEntry() == NPC_VEHICLE_CART)
+                {
+                    me->LoadPath(PATH_CART_VEHICLE);
+                    me->GetMotionMaster()->MovePath(PATH_CART_VEHICLE, false);
+                }
+                else if (me->GetEntry() == NPC_VEHICLE_OX)
+                {
+                    me->LoadPath(PATH_OX_VEHICLE);
+                    me->GetMotionMaster()->MovePath(PATH_OX_VEHICLE, false);
+                }
+                break;
+            default:
+                break;
+            }
+
+        }
+    }
+
+private:
+    EventMap _events;
+    ObjectGuid _passengerGuid;
+};
+
+class at_singing_pools_cart_location : public AreaTriggerScript
+{
+public:
+    at_singing_pools_cart_location() : AreaTriggerScript("at_singing_pools_cart_location") { }
+
+    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    {
+        if (player->IsAlive())
+        {
+            if (Creature* cartTender = GetClosestCreatureWithEntry(player, NPC_CART_TENDER, 30.0f))
+                cartTender->AI()->Talk(SAY_CART_TENDER_00);
+            return true;
+        }
+        return false;
+    }
 };
 
 class OnLoginSpawnFollowers : public PlayerScript
@@ -2668,6 +2801,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_balance_pole);
     RegisterCreatureAI(npc_tushui_monk_on_pole);
     RegisterCreatureAI(npc_shu_playing);
+    RegisterCreatureAI(npc_ox_cart);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
@@ -2690,6 +2824,7 @@ void AddSC_zone_the_wandering_isle()
     new at_singing_pools_transform();
     new at_singing_pools_training_bell();
     new at_pools_of_reflection();
+    new at_singing_pools_cart_location();
 
     RegisterGameObjectAI(go_ancient_clam);
 
