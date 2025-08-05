@@ -2680,8 +2680,6 @@ struct npc_ox_cart : public ScriptedAI
     {
         if (apply && passenger->GetTypeId() == TYPEID_PLAYER)
         {
-            
-
             if (me->GetEntry() == NPC_VEHICLE_CART)
             {
                 _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
@@ -2760,6 +2758,107 @@ public:
     }
 };
 
+enum ShuAtTheFarm
+{
+    SPELL_SHU_SPLASH = 107030,
+
+    PATH_SHU_AT_THE_FARM = 4,
+
+    NODE_SHU_RUN_DISABLE = 4,
+    NODE_SHU_DESPAWN = 5,
+
+    EVENT_SHU_START_PATH = 1,
+    EVENT_SHU_CHECK_QUEST_REWARDED = 2
+};
+
+struct npc_shu_follower : public ScriptedAI
+{
+    npc_shu_follower(Creature* creature) : ScriptedAI(creature), _playerGuid(), _pathStarted(false) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+        _pathStarted = false;
+
+        me->SetWalk(false);
+        if (me->CastSpell(me, SPELL_SHU_SPLASH, true))
+            TC_LOG_DEBUG("scripts.ai", "Shu cast splash");
+
+        if (Unit* player = me->SelectNearestPlayer(10.0f))
+            _playerGuid = player->GetGUID();
+
+        _events.ScheduleEvent(EVENT_SHU_CHECK_QUEST_REWARDED, 1s);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_SHU_START_PATH:
+            {
+                me->GetMotionMaster()->Clear();
+                me->StopMoving();
+                me->LoadPath(PATH_SHU_AT_THE_FARM);
+                me->GetMotionMaster()->MovePath(PATH_SHU_AT_THE_FARM, false);
+                _pathStarted = true;
+            }
+            break;
+            case EVENT_SHU_CHECK_QUEST_REWARDED:
+            {
+                if (!_pathStarted)
+                {
+                    if (player && player->GetQuestStatus(QUEST_THE_SOURCE_OF_LIVELIHOOD) == QUEST_STATUS_REWARDED)
+                    {
+                        _events.ScheduleEvent(EVENT_SHU_START_PATH, 0s);
+                    }
+                    else
+                        _events.ScheduleEvent(EVENT_SHU_CHECK_QUEST_REWARDED, 1s);
+                }
+            }
+            break;
+            default:
+                break;
+            }
+
+        }
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+    {
+        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+
+        switch (nodeId)
+        {
+        case NODE_SHU_RUN_DISABLE:
+        {
+           me->SetWalk(true);
+           player->RemoveAurasDueToSpell(SPELL_SUMMON_SPIRIT_OF_WATER);
+           player->CastSpell(player, 104018, true);
+           break;
+        }
+        case NODE_SHU_DESPAWN:
+        {
+            me->DespawnOrUnsummon(30s);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+ 
+private:
+    EventMap _events;
+    ObjectGuid _playerGuid;
+    bool _pathStarted;
+};
+
+
 class OnLoginSpawnFollowers : public PlayerScript
 {
 public:
@@ -2802,6 +2901,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_tushui_monk_on_pole);
     RegisterCreatureAI(npc_shu_playing);
     RegisterCreatureAI(npc_ox_cart);
+    RegisterCreatureAI(npc_shu_follower);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);

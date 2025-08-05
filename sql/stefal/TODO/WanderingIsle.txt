@@ -3,3 +3,4 @@ Things still that can be done
 - After quest complete QUEST_THE_PASSION_OF_SHENZIN_SU = 29423 
 	the children panda have some talk text and follow the player until the school/bridge
 	AT 7784?
+	spell to summon child 116190
