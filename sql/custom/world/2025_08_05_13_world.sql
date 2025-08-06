@@ -93,13 +93,13 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('5763800', '9', '5', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '45', '1', '1', '0', '0', '0', '0', '11', '0', '10', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Set Data'),
 ('5763800', '9', '6', '0', '0', '0', '100', '0', '8000', '8000', '1000', '1000', '0', '', '53', '0', '7', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Start WP');
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (5,6);
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5,6,7);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
 (5,0,0,'Lamplighter Sunny'),
 (6,0,0,'Jojo Ironbrow (spell spawn farmstead)'),
 (7,0,0,'Jojo Ironbrow (spell spawn first house)');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5,6);
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5,6,7);
 INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
 ('5', '0', '612.982', '3096.65', '86.6167', '0', '0'),
 ('5', '1', '612.482', '3088.15', '85.3667', '0', '0'),
