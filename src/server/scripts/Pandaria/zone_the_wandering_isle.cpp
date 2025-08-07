@@ -2858,6 +2858,270 @@ private:
     bool _pathStarted;
 };
 
+enum ShuAtTheFarmsteadPool
+{
+    QUEST_NOT_IN_THE_FACE = 29774,
+    QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU = 29775,
+
+    NPC_SHU_AT_THE_POOL = 55556, //This script is applied to this creature entry
+    NPC_WUGOU_NEAR_GONG = 55539,
+    NPC_QUEST_29774_CREDIT_1 = 55548,
+    NPC_QUEST_29774_CREDIT_2 = 55547,
+    NPC_WATER_SPOUT_AT_FARM_POOL = 66941,
+
+    GOSSIP_MENU_SHU_AT_THE_POOL = 13140,
+    GOSSIP_ITEM_SHU_AT_THE_POOL = 18503,
+
+    PATH_SHU_QUEST_29774_1 = 8,
+    PATH_SHU_QUEST_29774_2 = 9,
+    PATH_SHU_QUEST_29774_3 = 10,
+
+    NODE_SHU_PATH1_END = 5,
+    NODE_SHU_PATH2_END = 7,
+    NODE_SHU_PATH3_END = 7,
+
+    EVENT_SHU_AT_THE_POOL_FIRST_WP = 1,
+    EVENT_SHU_AT_THE_POOL_SECOND_WP = 2,
+    EVENT_WUGOU_WAKEUP = 3,
+    EVENT_SHU_QUEST_CHECK = 4,
+    EVENT_SHU_AT_THE_POOL_THIRD_WP = 5,
+    EVENT_SHU_AT_FARMSTEAD_PLAY = 6,
+
+    SPELL_SHU_WATERSPLASH_ON_WUGOU = 118034,
+    SPELL_SHU_WATERSPLASH_CREDIT = 104023,
+    SPELL_WATER_SPIRIT_LAUGH = 118035,
+    SPELL_SHU_WATERSPLASH = 118027,
+    SPELL_AURA_SLEEP = 42386,
+    SPELL_AURA_INVIS = 80797 //105889
+};
+
+struct npc_shu_at_farmstead : public ScriptedAI
+{
+    npc_shu_at_farmstead(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _path3Started(false), _npcFlagSet(false) {}
+
+    void Reset() override
+    {
+        _events.Reset();
+        _npcFlagSet = false;
+
+        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+        TC_LOG_DEBUG("scripts.ai", "Shu RESET stage");
+
+        if (!_path1Started && !_path2Started && !_path3Started)
+        {
+            _events.ScheduleEvent(EVENT_SHU_AT_FARMSTEAD_PLAY, 0s);
+            TC_LOG_DEBUG("scripts.ai", "Shu PLAY stage");
+        }
+    }
+
+    bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+    {
+        _playerGuid = player->GetGUID();
+        TC_LOG_DEBUG("scripts.ai", "Shu ONGOSSIPSELECT stage");
+
+        if (menuId == GOSSIP_MENU_SHU_AT_THE_POOL && gossipListId == 0)
+        {
+            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+            if (!player)
+                return false;
+
+            CloseGossipMenuFor(player);
+            player->KilledMonsterCredit(NPC_QUEST_29774_CREDIT_1);
+            me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+            _events.Reset();
+            _events.ScheduleEvent(EVENT_SHU_AT_THE_POOL_FIRST_WP, 2s);
+            return true;
+        }
+        return false;
+    }
+
+    static constexpr Position ShuFarmsteadPlayPosition[5] =
+    {
+        
+            { 670.978882f, 3131.201904f, 88.328094f },
+            { 679.594482f, 3131.564697f, 88.328094f },
+            { 678.705139f, 3140.990234f, 88.328094f },
+            { 673.825623f, 3143.905273f, 88.327415f },
+            { 670.607544f, 3137.363525f, 88.327415f }
+        
+    };
+
+    uint32 CheckQuestTimer = 1000; // 1 second
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (CheckQuestTimer <= diff)
+        {
+            if (Player* player = me->SelectNearestPlayer(50.0f))
+            {
+                if (!_npcFlagSet && player->GetQuestStatus(QUEST_NOT_IN_THE_FACE) == QUEST_STATUS_INCOMPLETE)
+                {
+                    if (me->GetNpcFlags() == 0)
+                    {
+                        me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                        _npcFlagSet = true;
+                    }
+                }
+            }
+
+            CheckQuestTimer = 1000; // reset
+        }
+        else
+            CheckQuestTimer -= diff;
+
+
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case EVENT_SHU_AT_THE_POOL_FIRST_WP:
+                {
+                    if (!_path1Started)
+                    {
+                        me->GetMotionMaster()->Clear();
+                        me->StopMoving();
+                        me->LoadPath(PATH_SHU_QUEST_29774_1);
+                        me->GetMotionMaster()->MovePath(PATH_SHU_QUEST_29774_1, false);
+                        _path1Started = true;
+                    }
+                    break;
+                }
+                case EVENT_SHU_AT_THE_POOL_SECOND_WP:
+                {
+                    if (!_path2Started)
+                    {
+                        me->StopMoving();
+                        me->GetMotionMaster()->Clear();
+                        me->LoadPath(PATH_SHU_QUEST_29774_2);
+                        me->GetMotionMaster()->MovePath(PATH_SHU_QUEST_29774_2, false);
+                        _path2Started = true;
+                    }
+                    break;
+                }
+                case EVENT_SHU_AT_THE_POOL_THIRD_WP:
+                {
+                    if (!_path3Started)
+                    {
+                        me->StopMoving();
+                        me->GetMotionMaster()->Clear();
+                        me->LoadPath(PATH_SHU_QUEST_29774_3);
+                        me->GetMotionMaster()->MovePath(PATH_SHU_QUEST_29774_3, false);
+                        _path3Started = true;
+                    }
+                    break;
+                }
+                case EVENT_WUGOU_WAKEUP:
+                {
+                    if (Creature* wugou = GetClosestCreatureWithEntry(me, NPC_WUGOU_NEAR_GONG, 30.0f))
+                    {
+                        wugou->CastSpell(wugou, SPELL_SHU_WATERSPLASH);
+                        wugou->RemoveAura(SPELL_AURA_INVIS);
+                        wugou->RemoveAura(SPELL_AURA_SLEEP);
+                        wugou->SetStandState(UNIT_STAND_STATE_STAND);
+                        me->CastSpell(me, SPELL_WATER_SPIRIT_LAUGH);
+
+                        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                        if (!player)
+                            return;
+
+                        //me->CastSpell(player, SPELL_SHU_WATERSPLASH_CREDIT);
+                        player->KilledMonsterCredit(NPC_QUEST_29774_CREDIT_2);
+                        wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
+                        wugou->DespawnOrUnsummon(30s);
+                        _events.ScheduleEvent(EVENT_SHU_AT_THE_POOL_SECOND_WP, 3s);
+                    }
+                    break;
+                }
+                case EVENT_SHU_AT_FARMSTEAD_PLAY:
+                {
+                    // Pick a random spawn slot within the current zone
+                    uint8 randomSlot = urand(0, 4);
+
+                    // Access the spawn position using zone and slot
+                    Position targetPos = ShuFarmsteadPlayPosition[randomSlot];
+
+                    // Cast the summoning spell at the chosen location
+                    //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
+                    // Dynamic position spell casting summon not supported. we summon creature directly instead
+
+                    if (Creature* bunny = me->SummonCreature(NPC_WATER_SPOUT_AT_FARM_POOL, targetPos, TEMPSUMMON_MANUAL_DESPAWN))
+                        DoCast(SPELL_WATER_SPOUT);
+                    _events.ScheduleEvent(EVENT_SHU_AT_FARMSTEAD_PLAY, 6s);
+                    break;
+                }
+                default:
+                    break;
+            }
+
+        }
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 pathId) override
+    {
+        //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+
+        if (pathId == PATH_SHU_QUEST_29774_1)
+        {
+            switch (nodeId)
+            {
+                case NODE_SHU_PATH1_END:
+                {
+                    me->StopMoving();
+                    me->GetMotionMaster()->Clear();
+
+                    if (Creature* wugou = GetClosestCreatureWithEntry(me, NPC_WUGOU_NEAR_GONG, 30.0f))
+                    {
+                        me->CastSpell(wugou, SPELL_SHU_WATERSPLASH_ON_WUGOU);
+                        me->CastSpell(me, SPELL_WATER_SPIRIT_LAUGH);
+                        _events.ScheduleEvent(EVENT_WUGOU_WAKEUP, 3s);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        if (pathId == PATH_SHU_QUEST_29774_2)
+        {
+            switch (nodeId)
+            {
+            case NODE_SHU_PATH2_END:
+            {
+                me->CastSpell(me, SPELL_WATER_SPIRIT_LAUGH);
+                _events.ScheduleEvent(EVENT_SHU_AT_THE_POOL_THIRD_WP, 3s);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        if (pathId == PATH_SHU_QUEST_29774_3)
+        {
+            switch (nodeId)
+            {
+                case NODE_SHU_PATH3_END:
+                {
+                    me->StopMoving();
+                    me->GetMotionMaster()->Clear();
+                    me->DespawnOrUnsummon(1s);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
+
+private:
+    EventMap _events;
+    ObjectGuid _playerGuid;
+    bool _path1Started;
+    bool _path2Started;
+    bool _path3Started;
+    bool _npcFlagSet;
+};
 
 class OnLoginSpawnFollowers : public PlayerScript
 {
@@ -2902,6 +3166,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_shu_playing);
     RegisterCreatureAI(npc_ox_cart);
     RegisterCreatureAI(npc_shu_follower);
+    RegisterCreatureAI(npc_shu_at_farmstead);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
