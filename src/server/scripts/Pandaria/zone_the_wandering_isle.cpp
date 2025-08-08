@@ -2631,6 +2631,8 @@ enum TheSourceofOurLivelihood
     NPC_OX = 57712,
     NPC_VEHICLE_CART = 57208,
     NPC_VEHICLE_OX = 57207,
+    NPC_VEHICLE_CART_FARMSTEAD = 59496,
+    NPC_VEHICLE_OX_FARMSTEAD = 59498,
     NPC_CART_TENDER = 57712,
 
     SPELL_FORCE_VEHICLE_RIDE = 46598, //cast on the player
@@ -2642,6 +2644,8 @@ enum TheSourceofOurLivelihood
 
     PATH_CART_VEHICLE = 3,
     PATH_OX_VEHICLE = 2,
+    PATH_CART_VEHICLE_FARMSTEAD = 11,
+    PATH_OX_VEHICLE_FARMSTEAD = 12,
 
     NODE_DESPAWN = 33,
     NODE_REMOVE_PASSENGER = 27,
@@ -2650,9 +2654,11 @@ enum TheSourceofOurLivelihood
     EVENT_CAST_ROPE_LEFT = 2,
     EVENT_CAST_ROPE_RIGHT = 3,
 
-    AREA_CART_LOCATION = 7258,
+    AREA_CART_LOCATION_1 = 7258,
+    AREA_CART_LOCATION_2 = 7822,
 
-    SAY_CART_TENDER_00 = 0
+    SAY_CART_TENDER_00 = 0,
+    SAY_CART_TENDER_01 = 1
 
 };
 
@@ -2664,7 +2670,7 @@ struct npc_ox_cart : public ScriptedAI
     {
         _events.Reset();
 
-        if (me->GetEntry() == NPC_VEHICLE_OX)
+        if (me->GetEntry() == NPC_VEHICLE_OX || me->GetEntry() == NPC_VEHICLE_OX_FARMSTEAD)
         {
             me->SetReactState(REACT_PASSIVE);
             _events.ScheduleEvent(EVENT_START_PATH, 1400ms); // Delay of 0.5 seconds
@@ -2680,7 +2686,7 @@ struct npc_ox_cart : public ScriptedAI
     {
         if (apply && passenger->GetTypeId() == TYPEID_PLAYER)
         {
-            if (me->GetEntry() == NPC_VEHICLE_CART)
+            if (me->GetEntry() == NPC_VEHICLE_CART || me->GetEntry() == NPC_VEHICLE_CART_FARMSTEAD)
             {
                 _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
                 me->CastSpell(passenger, SPELL_FORCE_VEHICLE_RIDE);
@@ -2695,7 +2701,7 @@ struct npc_ox_cart : public ScriptedAI
             {
                 case NODE_REMOVE_PASSENGER:
                 {
-                    if (me->GetEntry() == NPC_VEHICLE_CART)
+                    if (me->GetEntry() == NPC_VEHICLE_CART || me->GetEntry() == NPC_VEHICLE_CART_FARMSTEAD)
                         me->CastSpell(me, SPELL_EJECT_PASSENGERS);
                     break;
                 }
@@ -2728,6 +2734,16 @@ struct npc_ox_cart : public ScriptedAI
                     me->LoadPath(PATH_OX_VEHICLE);
                     me->GetMotionMaster()->MovePath(PATH_OX_VEHICLE, false);
                 }
+                else if (me->GetEntry() == NPC_VEHICLE_CART_FARMSTEAD)
+                {
+                    me->LoadPath(PATH_CART_VEHICLE_FARMSTEAD);
+                    me->GetMotionMaster()->MovePath(PATH_CART_VEHICLE_FARMSTEAD, false);
+                }
+                else if (me->GetEntry() == NPC_VEHICLE_OX_FARMSTEAD)
+                {
+                    me->LoadPath(PATH_OX_VEHICLE_FARMSTEAD);
+                    me->GetMotionMaster()->MovePath(PATH_OX_VEHICLE_FARMSTEAD, false);
+                }
                 break;
             default:
                 break;
@@ -2746,12 +2762,18 @@ class at_singing_pools_cart_location : public AreaTriggerScript
 public:
     at_singing_pools_cart_location() : AreaTriggerScript("at_singing_pools_cart_location") { }
 
-    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
     {
-        if (player->IsAlive())
+        if (player->IsAlive() && areaTrigger->ID == AREA_CART_LOCATION_1)
         {
             if (Creature* cartTender = GetClosestCreatureWithEntry(player, NPC_CART_TENDER, 30.0f))
                 cartTender->AI()->Talk(SAY_CART_TENDER_00);
+            return true;
+        }
+        else if (player->IsAlive() && areaTrigger->ID == AREA_CART_LOCATION_2)
+        {
+            if (Creature* cartTender = GetClosestCreatureWithEntry(player, NPC_CART_TENDER, 30.0f))
+                cartTender->AI()->Talk(SAY_CART_TENDER_01);
             return true;
         }
         return false;
@@ -3093,9 +3115,90 @@ enum ShuWugouToTheTempleFollow
 {
     QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU = 29775,
 
+    NPC_SHU_SPAWNED_FOR_TEMPLE = 55558,
+    NPC_WUGOU_SPAWNED_FOR_TEMPLE = 60916,
+
     NODE_SHU_PATH3_END = 7,
     PATH_SHU_QUEST_29775_1 = 10,
-    EVENT_SHU_AT_THE_POOL_THIRD_WP = 5
+    EVENT_SHU_AT_THE_POOL_THIRD_WP = 5,
+
+    SPELL_SUMMON_SPIRIT_OF_WATER_EARTH = 104017, //summons both spirits
+    SPELL_SUMMON_SPIRIT_OF_EARTH = 118036,
+    SPELL_WUGOU_SLEEP = 42386,
+
+    AREA_TEMPLE_STAIRS_FROM_FARMSTEAD = 7116
+};
+
+struct npc_shu_wugou_follower : public ScriptedAI
+{
+    npc_shu_wugou_follower(Creature* creature) : ScriptedAI(creature), _playerGuid() { }
+
+    void Reset() override
+    {
+        //_events.Reset();
+
+        if (me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE)
+        {
+            Player* player = me->SelectNearestPlayer(5.0f);
+            _playerGuid = player->GetGUID();
+
+            me->GetMotionMaster()->Clear();
+            me->GetMotionMaster()->MoveFollow(player, 5.0f, 45.0f);
+        }
+
+        if (me->GetEntry() == NPC_WUGOU_SPAWNED_FOR_TEMPLE)
+        {
+            me->SetReactState(REACT_PASSIVE);
+            me->RemoveAura(SPELL_WUGOU_SLEEP);
+            //_events.ScheduleEvent(EVENT_START_PATH, 1400ms); // Delay of 0.5 seconds
+        }
+    }
+
+    uint32 checkTimer = 1000;
+    bool triggerActivated = false;
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (triggerActivated)
+            return;
+
+        if (checkTimer <= diff && me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE)
+        {
+            if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+            {
+                if (AreaTriggerEntry const* triggerEntry = sAreaTriggerStore.LookupEntry(AREA_TEMPLE_STAIRS_FROM_FARMSTEAD))
+                {
+                    if (player->IsInAreaTrigger(triggerEntry))
+                    {
+                        triggerActivated = true;
+
+                        Creature* shu = GetClosestCreatureWithEntry(me, NPC_SHU_SPAWNED_FOR_TEMPLE, 10.0f);
+                        Creature* wugou = GetClosestCreatureWithEntry(me, NPC_WUGOU_SPAWNED_FOR_TEMPLE, 10.0f);
+
+                        if (me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE && wugou)
+                        {
+                            wugou->DespawnOrUnsummon(30s);
+                            wugou->StopMoving();
+                            wugou->GetMotionMaster()->Clear();
+                            wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
+
+                            me->DespawnOrUnsummon(30s);
+                            me->StopMoving();
+                            me->GetMotionMaster()->Clear();
+                            me->GetMotionMaster()->MovePath(PATH_SHU_QUEST_29775_1, false);
+                        }
+                    }
+                }
+            }
+            checkTimer = 1000;
+        }
+        else
+            checkTimer -= diff;
+
+    }
+
+private:
+    ObjectGuid _playerGuid;
 };
 
 class OnLoginSpawnFollowers : public PlayerScript
@@ -3113,6 +3216,10 @@ public:
         else if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SOURCE_OF_LIVELIHOOD))
         {
             player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER);
+        }
+        else if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU))
+        {
+            player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER_EARTH);
         }
     }
 };
@@ -3142,6 +3249,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_ox_cart);
     RegisterCreatureAI(npc_shu_follower);
     RegisterCreatureAI(npc_shu_at_farmstead);
+    RegisterCreatureAI(npc_shu_wugou_follower);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
