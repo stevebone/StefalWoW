@@ -2861,7 +2861,6 @@ private:
 enum ShuAtTheFarmsteadPool
 {
     QUEST_NOT_IN_THE_FACE = 29774,
-    QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU = 29775,
 
     NPC_SHU_AT_THE_POOL = 55556, //This script is applied to this creature entry
     NPC_WUGOU_NEAR_GONG = 55539,
@@ -2870,21 +2869,19 @@ enum ShuAtTheFarmsteadPool
     NPC_WATER_SPOUT_AT_FARM_POOL = 66941,
 
     GOSSIP_MENU_SHU_AT_THE_POOL = 13140,
-    GOSSIP_ITEM_SHU_AT_THE_POOL = 18503,
+    GOSSIP_ITEM_SHU_AT_THE_POOL = 0,
 
     PATH_SHU_QUEST_29774_1 = 8,
     PATH_SHU_QUEST_29774_2 = 9,
-    PATH_SHU_QUEST_29774_3 = 10,
 
     NODE_SHU_PATH1_END = 5,
     NODE_SHU_PATH2_END = 7,
-    NODE_SHU_PATH3_END = 7,
+
 
     EVENT_SHU_AT_THE_POOL_FIRST_WP = 1,
     EVENT_SHU_AT_THE_POOL_SECOND_WP = 2,
     EVENT_WUGOU_WAKEUP = 3,
     EVENT_SHU_QUEST_CHECK = 4,
-    EVENT_SHU_AT_THE_POOL_THIRD_WP = 5,
     EVENT_SHU_AT_FARMSTEAD_PLAY = 6,
 
     SPELL_SHU_WATERSPLASH_ON_WUGOU = 118034,
@@ -2892,12 +2889,12 @@ enum ShuAtTheFarmsteadPool
     SPELL_WATER_SPIRIT_LAUGH = 118035,
     SPELL_SHU_WATERSPLASH = 118027,
     SPELL_AURA_SLEEP = 42386,
-    SPELL_AURA_INVIS = 80797 //105889
+    SPELL_AURA_INVIS = 80797
 };
 
 struct npc_shu_at_farmstead : public ScriptedAI
 {
-    npc_shu_at_farmstead(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _path3Started(false), _npcFlagSet(false) {}
+    npc_shu_at_farmstead(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _npcFlagSet(false) {}
 
     void Reset() override
     {
@@ -2905,21 +2902,16 @@ struct npc_shu_at_farmstead : public ScriptedAI
         _npcFlagSet = false;
 
         me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-        TC_LOG_DEBUG("scripts.ai", "Shu RESET stage");
 
-        if (!_path1Started && !_path2Started && !_path3Started)
-        {
+        if (!_path1Started && !_path2Started)
             _events.ScheduleEvent(EVENT_SHU_AT_FARMSTEAD_PLAY, 0s);
-            TC_LOG_DEBUG("scripts.ai", "Shu PLAY stage");
-        }
     }
 
     bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
     {
         _playerGuid = player->GetGUID();
-        TC_LOG_DEBUG("scripts.ai", "Shu ONGOSSIPSELECT stage");
 
-        if (menuId == GOSSIP_MENU_SHU_AT_THE_POOL && gossipListId == 0)
+        if (menuId == GOSSIP_MENU_SHU_AT_THE_POOL && gossipListId == GOSSIP_ITEM_SHU_AT_THE_POOL)
         {
             Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
             if (!player)
@@ -3000,18 +2992,6 @@ struct npc_shu_at_farmstead : public ScriptedAI
                     }
                     break;
                 }
-                case EVENT_SHU_AT_THE_POOL_THIRD_WP:
-                {
-                    if (!_path3Started)
-                    {
-                        me->StopMoving();
-                        me->GetMotionMaster()->Clear();
-                        me->LoadPath(PATH_SHU_QUEST_29774_3);
-                        me->GetMotionMaster()->MovePath(PATH_SHU_QUEST_29774_3, false);
-                        _path3Started = true;
-                    }
-                    break;
-                }
                 case EVENT_WUGOU_WAKEUP:
                 {
                     if (Creature* wugou = GetClosestCreatureWithEntry(me, NPC_WUGOU_NEAR_GONG, 30.0f))
@@ -3029,7 +3009,7 @@ struct npc_shu_at_farmstead : public ScriptedAI
                         //me->CastSpell(player, SPELL_SHU_WATERSPLASH_CREDIT);
                         player->KilledMonsterCredit(NPC_QUEST_29774_CREDIT_2);
                         wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
-                        wugou->DespawnOrUnsummon(30s);
+                        wugou->DespawnOrUnsummon(10s);
                         _events.ScheduleEvent(EVENT_SHU_AT_THE_POOL_SECOND_WP, 3s);
                     }
                     break;
@@ -3075,7 +3055,7 @@ struct npc_shu_at_farmstead : public ScriptedAI
                     {
                         me->CastSpell(wugou, SPELL_SHU_WATERSPLASH_ON_WUGOU);
                         me->CastSpell(me, SPELL_WATER_SPIRIT_LAUGH);
-                        _events.ScheduleEvent(EVENT_WUGOU_WAKEUP, 3s);
+                        _events.ScheduleEvent(EVENT_WUGOU_WAKEUP, 5s);
                     }
                     break;
                 }
@@ -3089,27 +3069,14 @@ struct npc_shu_at_farmstead : public ScriptedAI
             {
             case NODE_SHU_PATH2_END:
             {
+                me->StopMoving();
+                me->GetMotionMaster()->Clear();
                 me->CastSpell(me, SPELL_WATER_SPIRIT_LAUGH);
-                _events.ScheduleEvent(EVENT_SHU_AT_THE_POOL_THIRD_WP, 3s);
+                me->DespawnOrUnsummon(5s);
                 break;
             }
             default:
                 break;
-            }
-        }
-        if (pathId == PATH_SHU_QUEST_29774_3)
-        {
-            switch (nodeId)
-            {
-                case NODE_SHU_PATH3_END:
-                {
-                    me->StopMoving();
-                    me->GetMotionMaster()->Clear();
-                    me->DespawnOrUnsummon(1s);
-                    break;
-                }
-                default:
-                    break;
             }
         }
     }
@@ -3119,8 +3086,16 @@ private:
     ObjectGuid _playerGuid;
     bool _path1Started;
     bool _path2Started;
-    bool _path3Started;
     bool _npcFlagSet;
+};
+
+enum ShuWugouToTheTempleFollow
+{
+    QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU = 29775,
+
+    NODE_SHU_PATH3_END = 7,
+    PATH_SHU_QUEST_29775_1 = 10,
+    EVENT_SHU_AT_THE_POOL_THIRD_WP = 5
 };
 
 class OnLoginSpawnFollowers : public PlayerScript
