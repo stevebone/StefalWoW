@@ -1637,6 +1637,8 @@ struct npc_huo_follower : public FollowerAI
 
 };
 
+// Quest: 29776 morning-breeze-village
+// OnQuestAccept Master Shang casts 104396 on player
 struct npc_master_shang : public ScriptedAI
 {
     npc_master_shang(Creature* creature) : ScriptedAI(creature) { }
@@ -1648,6 +1650,17 @@ struct npc_master_shang : public ScriptedAI
     void Reset() override
     {
         events.Reset();
+    }
+
+    void OnQuestAccept(Player* player, Quest const* quest) override
+    {
+        if (quest->GetQuestId() == 29776)
+        {
+            if (!player)
+                return;
+            else
+                player->CastSpell(player, 104396);
+        }
     }
 
     void UpdateAI(uint32 diff) override
@@ -3172,7 +3185,7 @@ struct npc_shu_wugou_follower : public ScriptedAI
                     {
                         triggerActivated = true;
 
-                        Creature* shu = GetClosestCreatureWithEntry(me, NPC_SHU_SPAWNED_FOR_TEMPLE, 10.0f);
+                        //Creature* shu = GetClosestCreatureWithEntry(me, NPC_SHU_SPAWNED_FOR_TEMPLE, 10.0f);
                         Creature* wugou = GetClosestCreatureWithEntry(me, NPC_WUGOU_SPAWNED_FOR_TEMPLE, 10.0f);
 
                         if (me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE && wugou)
@@ -3200,6 +3213,41 @@ struct npc_shu_wugou_follower : public ScriptedAI
 private:
     ObjectGuid _playerGuid;
 };
+
+//104450/summon-ji-yuan
+enum SpellSummonJiAtTemple
+{
+    SPELL_SUMMON_JI_AT_TEMPLE = 104450, // this script spell
+
+    NPC_JI_FIREPAW_AT_TEMPLE_SPIRE = 55694
+};
+
+
+class spell_summon_ji_firepaw_temple : public SpellScript
+{
+    void HandleLaunch(SpellEffIndex effIndex)
+    {
+        PreventHitDefaultEffect(effIndex);
+    }
+
+    void HandleSummon(SpellEffIndex /*effIndex*/)
+    {
+        PreventHitDefaultEffect(EFFECT_0);
+
+        if (Unit* caster = GetCaster())
+        {
+            // Use caster's current position after delay
+            caster->SummonCreature(NPC_JI_FIREPAW_AT_TEMPLE_SPIRE, 909.137f, 3610.38f, 252.092f, TEMPSUMMON_MANUAL_DESPAWN);
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectLaunch += SpellEffectFn(spell_summon_ji_firepaw_temple::HandleLaunch, EFFECT_0, SPELL_EFFECT_SUMMON);
+        OnEffectHit += SpellEffectFn(spell_summon_ji_firepaw_temple::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
+    }
+};
+
 
 class OnLoginSpawnFollowers : public PlayerScript
 {
@@ -3265,6 +3313,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_jump_to_back_left);
     RegisterSpellScript(spell_aysa_congrats_trigger_aura);
     RegisterSpellScript(spell_aysa_congrats_timer);
+    RegisterSpellScript(spell_summon_ji_firepaw_temple);
 
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
