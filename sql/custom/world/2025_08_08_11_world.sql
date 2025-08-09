@@ -16,7 +16,7 @@ UPDATE `creature_template` SET `VehicleId` = '1944' WHERE (`entry` = '59496');
 UPDATE `creature_template` SET `movementId` = 132 WHERE `Entry` = 59498;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ox_cart' WHERE `Entry` IN (59498,59496);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (57208,57207,57710,57709);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (59498,59496);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('59498', '12', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- 
 ('59496', '11', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '108692');
