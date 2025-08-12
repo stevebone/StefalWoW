@@ -3706,6 +3706,324 @@ private:
     }
 };
 
+enum ChamberOfWhispers
+{
+    QUEST_DAFENG_THE_SPIRIT_OF_AIR = 29785,
+    QUEST_BATTLE_FOR_THE_SKIES = 29786,
+
+    QUEST_29785_KILLCREDIT = 55666,
+
+    NPC_DAFENG_CHAMBER_WHISPERS = 55592,
+    NPC_AYSA_CHAMBER_WHISPERS = 55595,
+    NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS = 64505,
+    NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS = 64506,
+    NPC_ZHAOREN = 55786,
+
+    AREA_CHAMBER_OF_WHISPERS = 7037, // This area script
+
+    PHASE_CHAMBER_OF_ASPECTS = 524
+};
+
+class at_chamber_of_whispers : public AreaTriggerScript
+{
+public:
+    at_chamber_of_whispers() : AreaTriggerScript("at_chamber_of_whispers") { }
+
+    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    {
+        if (player->IsAlive() && player->IsActiveQuest(QUEST_DAFENG_THE_SPIRIT_OF_AIR))
+        {
+            Creature* dafeng = GetClosestCreatureWithEntry(player, NPC_DAFENG_CHAMBER_WHISPERS, 20.0f);
+            Creature* aysha = GetClosestCreatureWithEntry(player, NPC_AYSA_CHAMBER_WHISPERS, 20.0f);
+
+            PhasingHandler::AddPhase(player, PHASE_CHAMBER_OF_ASPECTS, true);
+
+            if(dafeng)
+                PhasingHandler::AddPhase(dafeng, PHASE_CHAMBER_OF_ASPECTS, true);
+
+            if (aysha)
+            {
+                PhasingHandler::AddPhase(aysha, PHASE_CHAMBER_OF_ASPECTS, true);
+                aysha->AI()->Talk(0);
+            }
+
+            player->KilledMonsterCredit(QUEST_29785_KILLCREDIT);
+
+
+
+            return true;
+        }
+        return false;
+    }
+
+    bool OnExit(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+    {
+        if (player->IsAlive() && player->IsActiveQuest(QUEST_BATTLE_FOR_THE_SKIES))
+        {
+            Creature* ji = player->SummonCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, { 691.354f,	4152.99f,	197.629f, 0.59088f }, TEMPSUMMON_MANUAL_DESPAWN);
+            Creature* aysa = player->SummonCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, { 715.858f, 4165.51f, 196.064f, 5.85696f }, TEMPSUMMON_MANUAL_DESPAWN);
+
+            if(ji && aysa)
+                player->SummonCreature(NPC_ZHAOREN, { 713.917f,	4168.13f,	213.846f,	2.70526f }, TEMPSUMMON_MANUAL_DESPAWN);
+            return true;
+        }
+        return false;
+    }
+};
+
+enum ZhaorenEvents
+{
+    EVENT_LIGHTNING = 1,
+    EVENT_MOVE_CENTER = 2,
+    EVENT_STUN = 3,
+    EVENT_SWEEP = 4,
+    EVENT_RESUME_WP = 5
+};
+
+enum ZhaorenSpells
+{
+    SPELL_LIGHTNING_POOL = 126006,
+    SPELL_STUNNED_BY_FIREWORKS = 125992,
+    SPELL_SERPENT_SWEEP = 125990,
+    SPELL_FORCECAST_SUMMON_SHANG = 128808,
+    SPELL_OVERPACKED_FIREWORK = 104855,
+    SPELL_FIREWORK_INACTIVE = 125964
+};
+
+enum ZhaorenPhases
+{
+    PHASE_FLYING = 1,
+    PHASE_GROUNDED = 2,
+    PHASE_STAY_IN_CENTER = 3
+};
+
+enum ZhaorenMisc
+{
+    ZHAOREN_PATH = 16,
+    NPC_DAFENG = 64532,
+    NPC_FIREWORK = 64507,
+    NPC_DEAD_ZHAOREN = 55874,
+    NPC_MASTER_SHANG_CHAMBER_OF_WHISPERS = 55586,
+    DATA_1 = 1,
+    DATA_COMBAT = 2,
+    DATA_AYSA_TALK_3 = 3,
+    DATA_PHASE_OOC = 4,
+    DATA_ZHAOREN_DEATH = 5,
+    DATA_EVADE = 6
+};
+
+Position ZhaoPos[] =
+{
+    {699.134f, 4170.06f, 216.06f}, // Center
+};
+
+//55786
+struct npc_zhaoren : public ScriptedAI
+{
+    npc_zhaoren(Creature* creature) : ScriptedAI(creature), phase(0), _sweepScheduled(false) { }
+
+    Position const pos = { 723.163f, 4163.8f, 204.999f };
+
+private:
+    uint8 phase;
+    bool _sweepScheduled;
+    EventMap events;
+
+    void Reset() override
+    {
+        events.Reset();
+        //me->SetReactState(REACT_PASSIVE);
+        me->setActive(true);
+        me->SetReactState(REACT_AGGRESSIVE);
+        phase = 0;
+        _sweepScheduled = false;
+
+        if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+        {
+            //creature->AI()->SetData(DATA_EVADE, DATA_EVADE);
+            ji->SetReactState(REACT_AGGRESSIVE);
+            ji->AI()->AttackStart(me);
+        }
+
+        if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+        {
+            //creature->AI()->SetData(DATA_EVADE, DATA_EVADE);
+            aysa->SetReactState(REACT_AGGRESSIVE);
+            aysa->AI()->AttackStart(me);
+        }
+
+        std::list<Creature*> fireworks;
+        me->GetCreatureListWithEntryInGrid(fireworks, NPC_FIREWORK, me->GetVisibilityRange());
+        for (std::list<Creature*>::iterator itr = fireworks.begin(); itr != fireworks.end(); ++itr)
+        {
+            (*itr)->RemoveAura(SPELL_FIREWORK_INACTIVE);
+            (*itr)->AI()->SetData(DATA_1, DATA_1);
+        }
+        me->GetMotionMaster()->Clear();
+        me->GetMotionMaster()->MovePoint(0, ZhaoPos[0].GetPositionX(), ZhaoPos[0].GetPositionY(), ZhaoPos[0].GetPositionZ());
+    }
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        me->GetMotionMaster()->MovePath(ZHAOREN_PATH, true);
+        events.SetPhase(PHASE_FLYING);
+        events.ScheduleEvent(EVENT_LIGHTNING, 5s);
+    }
+
+    void SpellHit(WorldObject* caster, SpellInfo const* spell) override
+    {
+        if (spell->Id == SPELL_OVERPACKED_FIREWORK)
+        {
+            if (!me->IsInCombat())
+            {
+                if (Unit* target = caster->ToUnit())
+                {
+                    me->Attack(target, true);
+                }
+            }
+        }
+    }
+
+    void MovementInform(uint32 type, uint32 id) override
+    {
+        if (type == POINT_MOTION_TYPE && id == EVENT_MOVE_CENTER)
+            events.ScheduleEvent(EVENT_STUN, 0s);
+    }
+
+    void KilledUnit(Unit* who) override
+    {
+        if (who->IsPlayer())
+        {
+            if (me->GetThreatManager().IsThreatListEmpty(true))
+            {
+                if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                    ji->DespawnOrUnsummon(5s);
+                if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                    aysa->DespawnOrUnsummon(5s);
+                me->DespawnOrUnsummon(10s);
+
+            }
+        }
+    }
+
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        //DoCastAOE(SPELL_FORCECAST_SUMMON_SHANG, true);
+
+        Position const shangPos = { 711.335f, 4178.049f, 197.845f };
+        Position const deadPos = { 723.163f, 4163.799f, 196.341f };
+
+        if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+            ji->DespawnOrUnsummon(1s);
+        if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+            aysa->DespawnOrUnsummon(1s);
+        if (Creature* creature = me->FindNearestCreature(NPC_DAFENG, me->GetVisibilityRange(), true))
+            creature->AI()->SetData(DATA_ZHAOREN_DEATH, DATA_ZHAOREN_DEATH);
+
+        me->SummonCreature(NPC_MASTER_SHANG_CHAMBER_OF_WHISPERS, shangPos, TEMPSUMMON_TIMED_DESPAWN, 5min);
+        me->SummonCreature(NPC_DEAD_ZHAOREN, deadPos, TEMPSUMMON_TIMED_DESPAWN, 5min);
+        me->DespawnOrUnsummon(1s);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        events.Update(diff);
+        if (phase == 0 && HealthBelowPct(85))
+        {
+            phase++;
+            if (Creature* creature = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                creature->AI()->SetData(DATA_1, DATA_1);
+        }
+        if (phase == 1 && HealthBelowPct(75))
+        {
+            phase++;
+            events.SetPhase(PHASE_GROUNDED);
+            events.CancelEvent(EVENT_LIGHTNING);
+            events.ScheduleEvent(EVENT_MOVE_CENTER, 0s);
+        }
+        if (phase == 2 && HealthBelowPct(25))
+        {
+            phase++;
+            events.SetPhase(PHASE_STAY_IN_CENTER);
+            events.CancelEvent(EVENT_LIGHTNING);
+            events.ScheduleEvent(EVENT_MOVE_CENTER, 0s);
+        }
+        while (uint32 eventId = events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_LIGHTNING:
+            {
+                auto const& threatList = me->GetThreatManager().GetUnsortedThreatList();
+                if (threatList.begin() != threatList.end())
+                {
+                    for (ThreatReference const* ref : threatList)
+                    {
+                        if (Unit* target = ref->GetVictim())
+                        {
+                            if (target->IsPlayer())
+                                DoCast(target, SPELL_LIGHTNING_POOL);
+                        }
+                    }
+
+                    events.ScheduleEvent(EVENT_LIGHTNING, events.IsInPhase(PHASE_FLYING) ? 5s : 3500ms);
+
+                    if (!_sweepScheduled && events.IsInPhase(PHASE_STAY_IN_CENTER))
+                    {
+                        events.ScheduleEvent(EVENT_SWEEP, 15s, 0, PHASE_STAY_IN_CENTER);
+                        _sweepScheduled = true;
+                    }
+                }
+                else
+                {
+                    if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                        ji->DespawnOrUnsummon(5s);
+                    if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                        aysa->DespawnOrUnsummon(5s);
+                    me->DespawnOrUnsummon(10s);
+                }
+                break;
+            }
+            case EVENT_MOVE_CENTER:
+                me->GetMotionMaster()->MovePoint(EVENT_MOVE_CENTER, pos);
+                break;
+
+            case EVENT_STUN:
+                DoCast(SPELL_STUNNED_BY_FIREWORKS);
+                events.ScheduleEvent(EVENT_SWEEP, 12s);
+                if (Creature* creature = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                {
+                    if (phase == 2)
+                        creature->AI()->SetData(DATA_COMBAT, DATA_COMBAT);
+                    else if (phase == 3)
+                        creature->AI()->SetData(DATA_AYSA_TALK_3, DATA_AYSA_TALK_3);
+                }
+                if (Creature* creature = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                    creature->AI()->SetData(DATA_COMBAT, DATA_COMBAT);
+                break;
+
+            case EVENT_SWEEP:
+                events.CancelEvent(EVENT_LIGHTNING);
+                DoCast(SPELL_SERPENT_SWEEP);
+                _sweepScheduled = false;
+                events.ScheduleEvent(EVENT_LIGHTNING, 3500ms, 0, PHASE_STAY_IN_CENTER);
+                events.ScheduleEvent(EVENT_RESUME_WP, 5s, 0, PHASE_GROUNDED);
+                if (events.IsInPhase(PHASE_GROUNDED))
+                    if (Creature* creature = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
+                        creature->AI()->SetData(DATA_PHASE_OOC, DATA_PHASE_OOC);
+                break;
+            case EVENT_RESUME_WP:
+                me->GetMotionMaster()->MovePath(ZHAOREN_PATH, true);
+                events.SetPhase(PHASE_FLYING);
+                events.ScheduleEvent(EVENT_LIGHTNING, 5s);
+                break;
+            }
+        }
+    }
+};
+
+
 class OnLoginSpawnFollowers : public PlayerScript
 {
 public:
@@ -3758,6 +4076,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_lorewalker_ruolin);
     RegisterCreatureAI(npc_ruk_ruk);
     RegisterCreatureAI(npc_ruk_ruk_rocket);
+    RegisterCreatureAI(npc_zhaoren);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
@@ -3786,6 +4105,7 @@ void AddSC_zone_the_wandering_isle()
     new at_singing_pools_cart_location();
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_lorewalker_zan();
+    new at_chamber_of_whispers();
 
     RegisterGameObjectAI(go_ancient_clam);
 

@@ -4,3 +4,7 @@ Things still that can be done
 	the children panda have some talk text and follow the player until the school/bridge
 	AT 7784?
 	spell to summon child 116190
+
+- Fe-Feng village mobs need some special SAI/scripts for pathing, placement/vehicles on trees
+
+- Jojo 57692 needs SAI scripts for after quest complete Stronger than bone

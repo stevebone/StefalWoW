@@ -3,7 +3,7 @@
 -- Quest: 29781 Monkey Advisory warning
 -- NPC: 55632 Fe-Feng Ruffian
 -- NPC: 57465 Fe-Feng Ruffian
--- NPC: 55466 Fe-Feng Firethief
+-- NPC: 57466 Fe-Feng Firethief
 -- NPC: 55634 Ruk-Ruk
 -- NPC: 64322 Ruk-Ruk's rocket
 -- NPC: 65558 Ji Firepaw (with player)
