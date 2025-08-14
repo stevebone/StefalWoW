@@ -4023,6 +4023,39 @@ private:
     }
 };
 
+enum SpellSummonShangWorthyOfPassing
+{
+    SPELL_SUMMON_SHANG_WORTHY_OF_PASSING = 105333, // this script spell
+
+    NPC_SHANG_WORTHY_OF_PASSING = 56159
+};
+
+
+class spell_summon_worthy_of_passing : public SpellScript
+{
+    void HandleLaunch(SpellEffIndex effIndex)
+    {
+        PreventHitDefaultEffect(effIndex);
+    }
+
+    void HandleSummon(SpellEffIndex /*effIndex*/)
+    {
+        PreventHitDefaultEffect(EFFECT_0);
+
+        if (Unit* caster = GetCaster())
+        {
+
+            Position const shangPos = { 711.335f, 4178.049f, 197.845f };
+            caster->SummonCreature(NPC_SHANG_WORTHY_OF_PASSING, shangPos, TEMPSUMMON_MANUAL_DESPAWN);
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectLaunch += SpellEffectFn(spell_summon_worthy_of_passing::HandleLaunch, EFFECT_0, SPELL_EFFECT_SUMMON);
+        OnEffectHit += SpellEffectFn(spell_summon_worthy_of_passing::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
+    }
+};
 
 class OnLoginSpawnFollowers : public PlayerScript
 {
@@ -4095,6 +4128,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_summon_ji_firepaw_temple);
     RegisterSpellScript(spell_monkey_wisdom_text);
     RegisterSpellScript(spell_ruk_ruk_ooksplosions);
+    RegisterSpellScript(spell_summon_worthy_of_passing);
 
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
