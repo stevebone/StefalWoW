@@ -291,12 +291,187 @@ class spell_westfall_despawn_jangolode_actor : public SpellScript
 };
 }
 
+/*######
+## npc_westplains_drifter
+######*/
+
+enum edrifter
+{
+    CREDIT_SAY1 = 42414,
+    CREDIT_SAY2 = 42415,
+    CREDIT_SAY3 = 42416,
+    CREDIT_SAY4 = 42417,
+
+    QUEST_MURDER_WAS_THE_CASE_THAT_THEY_GAVE_ME = 26209
+};
+
+#define GOSSIP_COST 2
+#define GOSSIP_HELLO_DRIFTER1 "Did you see who killed the Furlbrows?"
+#define GOSSIP_HELLO_DRIFTER2 "Maybe a couple copper will loosen your tongue. Now tell me, did you see who killed the Furlbrows?"
+
+class npc_westplains_drifter : public CreatureScript
+{
+public:
+    npc_westplains_drifter() : CreatureScript("npc_westplains_drifter") { }
+
+    struct npc_westplains_drifterAI : public ScriptedAI
+    {
+        npc_westplains_drifterAI(Creature* creature) : ScriptedAI(creature) { }
+
+        bool OnGossipHello(Player* player) override
+        {
+            if (player->GetQuestStatus(QUEST_MURDER_WAS_THE_CASE_THAT_THEY_GAVE_ME) == QUEST_STATUS_INCOMPLETE)
+            {
+                AddGossipItemFor(player, GossipOptionNpc::None,
+                    GOSSIP_HELLO_DRIFTER1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+
+                AddGossipItemFor(player, GossipOptionNpc::None,
+                    GOSSIP_HELLO_DRIFTER2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+            }
+
+            SendGossipMenuFor(player, player->GetGossipTextId(me), me->GetGUID());
+            return true;
+        }
+
+        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+        {
+            uint32 const action = player->PlayerTalkClass->GetGossipOptionAction(gossipListId);
+            player->PlayerTalkClass->ClearMenus();
+
+            if (action == GOSSIP_ACTION_INFO_DEF + 1)
+            {
+                switch (rand() % 4)
+                {
+                case 0:
+                    CloseGossipMenuFor(player);
+                    me->Say("Listen, pal. I don't want any trouble, ok? I didn't see who murdered 'em, but I sure heard it! Lots of yelling. Human voices... you dig? Now get out of here before I change my mind about beating you up and takin' your shoes.", LANG_UNIVERSAL);
+                    player->KilledMonsterCredit(CREDIT_SAY1);
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    me->DespawnOrUnsummon(5s);
+                    break;
+
+                case 1:
+                    CloseGossipMenuFor(player);
+                    me->Say("I didn't see who killed 'm, bub/sis, but I got a whiff. Smelled rich, kinda like you. Damn shame too. Furlbrows were a fixture around here. Nice people, always willin' to share a meal or a patch of dirt.", LANG_UNIVERSAL);
+                    player->KilledMonsterCredit(CREDIT_SAY2);
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    me->DespawnOrUnsummon(5s);
+                    break;
+
+                case 2:
+                    CloseGossipMenuFor(player);
+                    me->Say("Who killed the Furlbrows? I'll tell you who killed the Furlbrows: KING VARIAN WRYNN. THAT'S WHO! And he's killin' the rest of us too. One bum at a time. The only thing I can tell you is that I saw some gnolls leavin' the place a few hours before the law arrived.", LANG_UNIVERSAL);
+                    player->KilledMonsterCredit(CREDIT_SAY3);
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    me->DespawnOrUnsummon(5s);
+                    break;
+
+                case 3:
+                    CloseGossipMenuFor(player);
+                    me->Say("Between you, me, and the tree, murlocs killed the Furlbrows. Yep, saw 'em with my own two eyes. Think they'd been casin' the joint for days, maybe months. They left in a hurry once they got wind of 'Johnny Law' and the idiot brigade over there...", LANG_UNIVERSAL);
+                    player->KilledMonsterCredit(CREDIT_SAY4);
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    me->DespawnOrUnsummon(5s);
+                    break;
+                }
+            }
+
+
+            if (action == GOSSIP_ACTION_INFO_DEF + 2)
+            {
+                if (!player->HasEnoughMoney(uint64(GOSSIP_COST)))
+                {
+                    player->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, 0, 0, 0);
+                    CloseGossipMenuFor(player);
+                }
+                else
+                {
+                    player->ModifyMoney(-(GOSSIP_COST));
+
+                    switch (rand() % 8)
+                    {
+                    case 0:
+                        CloseGossipMenuFor(player);
+                        me->Say("Listen, pal. I don't want any trouble, ok? I didn't see who murdered 'em, but I sure heard it! Lots of yelling. Human voices... you dig? Now get out of here before I change my mind about beating you up and takin' your shoes.", LANG_UNIVERSAL);
+                        player->KilledMonsterCredit(CREDIT_SAY1);
+                        me->DespawnOrUnsummon(5s);
+                        break;
+
+                    case 1:
+                        CloseGossipMenuFor(player);
+                        me->Say("I didn't see who killed 'm, bub/sis, but I got a whiff. Smelled rich, kinda like you. Damn shame too. Furlbrows were a fixture around here. Nice people, always willin' to share a meal or a patch of dirt.", LANG_UNIVERSAL);
+                        player->KilledMonsterCredit(CREDIT_SAY2);
+                        me->DespawnOrUnsummon(5s);
+                        break;
+
+                    case 2:
+                        CloseGossipMenuFor(player);
+                        me->Say("Who killed the Furlbrows? I'll tell you who killed the Furlbrows: KING VARIAN WRYNN. THAT'S WHO! And he's killin' the rest of us too. One bum at a time. The only thing I can tell you is that I saw some gnolls leavin' the place a few hours before the law arrived.", LANG_UNIVERSAL);
+                        player->KilledMonsterCredit(CREDIT_SAY3);
+                        me->DespawnOrUnsummon(5s);
+                        break;
+
+                    case 3:
+                        CloseGossipMenuFor(player);
+                        me->Say("Between you, me, and the tree, murlocs killed the Furlbrows. Yep, saw 'em with my own two eyes. Think they'd been casin' the joint for days, maybe months. They left in a hurry once they got wind of 'Johnny Law' and the idiot brigade over there...", LANG_UNIVERSAL);
+                        player->KilledMonsterCredit(CREDIT_SAY4);
+                        me->DespawnOrUnsummon(5s);
+                        break;
+                    case 4:
+                        CloseGossipMenuFor(player);
+                        me->Say("I wonder if it's possible to eat rocks? Got plenty of rocks around here. Just imagine it! I'd be the richest person in the world for making that discovery!", LANG_UNIVERSAL);
+                        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                        me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        me->AI()->AttackStart(player);
+                        break;
+                    case 5:
+                        CloseGossipMenuFor(player);
+                        me->Say("Looks like I found us a savory and clean piece of dirt! Tonight we eat like kings, Mr. Penguin! Of course I'll share it with you! You're my best friend!", LANG_UNIVERSAL);
+                        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                        me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        me->AI()->AttackStart(player);
+                        break;
+                    case 6:
+                        CloseGossipMenuFor(player);
+                        me->Say("HAHAHAH! Good one, Mr. Penguin! GOOD ONE!", LANG_UNIVERSAL);
+                        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                        me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        me->AI()->AttackStart(player);
+                        break;
+                    case 7:
+                        CloseGossipMenuFor(player);
+                        me->Say("What happened to me? I used to be the king of Stormwind!", LANG_UNIVERSAL);
+                        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                        me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        me->AI()->AttackStart(player);
+                        break;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_westplains_drifterAI(creature);
+    }
+};
+
 void AddSC_westfall()
 {
     using namespace Scripts::EasternKingdoms::Westfall;
 
     // Creature
     RegisterCreatureAI(npc_westfall_overloaded_harvest_golem);
+    //RegisterCreatureAI(npc_westplains_drifter);
+    new npc_westplains_drifter();
 
     // Spells
     RegisterSpellScript(spell_westfall_unbound_energy);
