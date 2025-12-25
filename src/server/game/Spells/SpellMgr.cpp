@@ -3385,6 +3385,12 @@ void SpellMgr::LoadSpellInfoCorrections()
 {
     uint32 oldMSTime = getMSTime();
 
+    // Range fixes for summon spells
+    ApplySpellFix({ 105002 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(5); // 40 yards
+        });
+
     // Some spells have no amplitude set
     {
         ApplySpellFix({
