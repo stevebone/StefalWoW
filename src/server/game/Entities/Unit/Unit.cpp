@@ -315,7 +315,6 @@ Unit::Unit(bool isWorldObject) :
     m_threatManager(this), m_aiLocked(false), _playHoverAnim(false), _aiAnimKitId(0), _movementAnimKitId(0), _meleeAnimKitId(0),
     _spellHistory(std::make_unique<SpellHistory>(this))
 {
-    m_objectType |= TYPEMASK_UNIT;
     m_objectTypeId = TYPEID_UNIT;
 
     m_updateFlag.MovementUpdate = true;
@@ -581,8 +580,14 @@ void Unit::AtEndOfEncounter(EncounterType type)
     GetSpellHistory()->ResetCooldowns([](SpellHistory::CooldownEntry const& cooldown)
     {
         SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(cooldown.SpellId, DIFFICULTY_NONE);
+        if (spellInfo->HasAttribute(SPELL_ATTR10_RESET_COOLDOWN_ON_ENCOUNTER_END))
+            return true;
 
-        return spellInfo->HasAttribute(SPELL_ATTR10_RESET_COOLDOWN_ON_ENCOUNTER_END);
+        if (SpellCategoryEntry const* category = sSpellCategoryStore.LookupEntry(spellInfo->CategoryId))
+            if (category->GetFlags().HasFlag(SpellCategoryFlags::ResetCooldownUponEndingEncounter))
+                return true;
+
+        return false;
     }, true);
 }
 
@@ -618,7 +623,7 @@ void Unit::UpdateSplinePosition()
         pos.SetOrientation(loc.orientation);
 
         if (TransportBase* transport = GetDirectTransport())
-            transport->CalculatePassengerPosition(loc.x, loc.y, loc.z, &loc.orientation);
+            transport->GetPositionWithOffset(pos).GetPosition(loc.x, loc.y, loc.z, loc.orientation);
         else
             return;
     }
@@ -5499,6 +5504,23 @@ void Unit::RemoveAllAreaTriggers(AreaTriggerRemoveReason reason /*= AreaTriggerR
     }
 }
 
+void Unit::EnterAreaTrigger(AreaTrigger* areaTrigger)
+{
+    m_insideAreaTriggers.push_back(areaTrigger);
+}
+
+void Unit::ExitAreaTrigger(AreaTrigger* areaTrigger)
+{
+    std::erase(m_insideAreaTriggers, areaTrigger);
+}
+
+void Unit::ExitAllAreaTriggers()
+{
+    AreaTriggerList atList = std::move(m_insideAreaTriggers);
+    for (AreaTrigger* at : atList)
+        at->HandleUnitExit(this);
+}
+
 void Unit::SendSpellNonMeleeDamageLog(SpellNonMeleeDamage const* log)
 {
     WorldPackets::CombatLog::SpellNonMeleeDamageLog packet;
@@ -6810,12 +6832,12 @@ int32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, int3
     // Check for table values
     if (spellEffectInfo.BonusCoefficientFromAP > 0.0f)
     {
-        float ApCoeffMod = spellEffectInfo.BonusCoefficientFromAP;
+        float attackPowerCoeff = spellEffectInfo.BonusCoefficientFromAP;
         if (Player* modOwner = GetSpellModOwner())
         {
-            ApCoeffMod *= 100.0f;
-            modOwner->ApplySpellMod(spellProto, SpellModOp::BonusCoefficient, ApCoeffMod);
-            ApCoeffMod /= 100.0f;
+            attackPowerCoeff *= 100.0f;
+            modOwner->ApplySpellMod(spellProto, SpellModOp::BonusCoefficient, attackPowerCoeff);
+            attackPowerCoeff /= 100.0f;
         }
 
         WeaponAttackType const attType = [&]()
@@ -6828,9 +6850,9 @@ int32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, int3
 
             return BASE_ATTACK;
         }();
-        float APbonus = float(victim->GetTotalAuraModifier(attType != RANGED_ATTACK ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS));
-        APbonus += GetTotalAttackPowerValue(attType);
-        DoneTotal += int32(stack * ApCoeffMod * APbonus);
+        float attackPowerBonus = float(victim->GetTotalAuraModifier(attType != RANGED_ATTACK ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS));
+        attackPowerBonus += GetTotalAttackPowerValue(attType);
+        DoneTotal += int32(stack * attackPowerCoeff * attackPowerBonus);
     }
 
     // Default calculation
@@ -7329,11 +7351,27 @@ int32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, int
     // Check for table values
     if (spellEffectInfo.BonusCoefficientFromAP > 0.0f)
     {
-        WeaponAttackType const attType = (spellProto->IsRangedWeaponSpell() && spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE) ? RANGED_ATTACK : BASE_ATTACK;
-        float APbonus = float(victim->GetTotalAuraModifier(attType == BASE_ATTACK ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS));
-        APbonus += GetTotalAttackPowerValue(attType);
+        float attackPowerCoeff = spellEffectInfo.BonusCoefficientFromAP;
+        if (Player* modOwner = GetSpellModOwner())
+        {
+            attackPowerCoeff *= 100.0f;
+            modOwner->ApplySpellMod(spellProto, SpellModOp::BonusCoefficient, attackPowerCoeff);
+            attackPowerCoeff /= 100.0f;
+        }
 
-        DoneTotal += int32(spellEffectInfo.BonusCoefficientFromAP * stack * APbonus);
+        WeaponAttackType const attType = [&]()
+        {
+            if ((spellProto->IsRangedWeaponSpell() && spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE))
+                return RANGED_ATTACK;
+
+            if (spellProto->HasAttribute(SPELL_ATTR3_REQUIRES_OFF_HAND_WEAPON) && !spellProto->HasAttribute(SPELL_ATTR3_REQUIRES_MAIN_HAND_WEAPON))
+                return OFF_ATTACK;
+
+            return BASE_ATTACK;
+        }();
+        float attackPowerBonus = float(victim->GetTotalAuraModifier(attType != RANGED_ATTACK ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS));
+        attackPowerBonus += GetTotalAttackPowerValue(attType);
+        DoneTotal += int32(stack * attackPowerCoeff * attackPowerBonus);
     }
 
     // Default calculation
@@ -7559,6 +7597,150 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask) const
         }
     }
     return advertisedBenefit;
+}
+
+int32 Unit::SpellBaseAbsorbBonusDone(SpellSchoolMask schoolMask) const
+{
+    return SpellBaseHealingBonusDone(schoolMask);
+}
+
+int32 Unit::SpellAbsorbBonusDone(Unit* victim, SpellInfo const* spellProto, int32 absorbamount, SpellEffectInfo const& spellEffectInfo, uint32 stack /*= 1*/, AuraEffect const* aurEff /*= nullptr*/) const
+{
+    if (GetTypeId() == TYPEID_UNIT && IsTotem())
+        if (Unit* owner = GetOwner())
+            return owner->SpellAbsorbBonusDone(victim, spellProto, absorbamount, spellEffectInfo, stack, aurEff);
+
+    if (spellProto->HasAttribute(SPELL_ATTR3_IGNORE_CASTER_MODIFIERS)
+        || spellProto->HasAttribute(SPELL_ATTR6_IGNORE_HEALING_MODIFIERS)
+        || spellProto->HasAttribute(SPELL_ATTR9_IGNORE_CASTER_HEALING_MODIFIERS))
+        return absorbamount;
+
+    int32 doneTotal = 0;
+    float doneTotalMod = SpellAbsorbPctDone(victim, spellProto);
+
+    int32 doneAdvertisedBenefit = SpellBaseAbsorbBonusDone(spellProto->GetSchoolMask());
+    doneAdvertisedBenefit += victim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_HEALING, spellProto->GetSchoolMask());
+
+    if (HasUnitTypeMask(UNIT_MASK_GUARDIAN))
+        doneAdvertisedBenefit += static_cast<Guardian const*>(this)->GetBonusDamage();
+
+    if (spellEffectInfo.BonusCoefficientFromAP > 0.0f)
+    {
+        float attackPowerCoeff = spellEffectInfo.BonusCoefficientFromAP;
+        if (Player* modOwner = GetSpellModOwner())
+        {
+            attackPowerCoeff *= 100.0f;
+            modOwner->ApplySpellMod(spellProto, SpellModOp::BonusCoefficient, attackPowerCoeff);
+            attackPowerCoeff /= 100.0f;
+        }
+
+        WeaponAttackType const attType = [&]()
+        {
+            if ((spellProto->IsRangedWeaponSpell() && spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE))
+                return RANGED_ATTACK;
+
+            if (spellProto->HasAttribute(SPELL_ATTR3_REQUIRES_OFF_HAND_WEAPON) && !spellProto->HasAttribute(SPELL_ATTR3_REQUIRES_MAIN_HAND_WEAPON))
+                return OFF_ATTACK;
+
+            return BASE_ATTACK;
+        }();
+        float attackPowerBonus = float(victim->GetTotalAuraModifier(attType != RANGED_ATTACK ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS));
+        attackPowerBonus += GetTotalAttackPowerValue(attType);
+        doneTotal += int32(stack * attackPowerCoeff * attackPowerBonus);
+    }
+
+    if (doneAdvertisedBenefit)
+    {
+        float coeff = spellEffectInfo.BonusCoefficient;
+
+        if (Player* modOwner = GetSpellModOwner())
+        {
+            coeff *= 100.f;
+            modOwner->ApplySpellMod(spellProto, SpellModOp::BonusCoefficient, coeff);
+            coeff /= 100.f;
+        }
+
+        doneTotal += int32(doneAdvertisedBenefit * coeff * stack);
+    }
+
+    if (aurEff)
+        aurEff->GetBase()->CallScriptCalcDamageAndHealingHandlers(aurEff, aurEff->GetBase()->GetApplicationOfTarget(victim->GetGUID()), victim, absorbamount, doneTotal, doneTotalMod);
+
+    float absorbAmount = float(absorbamount + doneTotal) * doneTotalMod;
+
+    return static_cast<int32>(std::round(absorbAmount));
+}
+
+float Unit::SpellAbsorbPctDone(Unit* victim, SpellInfo const* spellProto) const
+{
+    if (GetTypeId() == TYPEID_UNIT && IsTotem())
+        if (Unit* owner = GetOwner())
+            return owner->SpellAbsorbPctDone(victim, spellProto);
+
+    float doneTotalMod = 1.f;
+
+    if (Player* modOwner = GetSpellModOwner())
+        AddPct(doneTotalMod, modOwner->GetRatingBonusValue(CR_VERSATILITY_DAMAGE_DONE) + modOwner->GetTotalAuraModifier(SPELL_AURA_MOD_VERSATILITY));
+
+    if (Player const* thisPlayer = ToPlayer())
+    {
+        float maxModHealingPercentSchool = 0.f;
+        for (uint32 i = 0; i < MAX_SPELL_SCHOOL; ++i)
+            if (spellProto->GetSchoolMask() & (1 << i))
+                maxModHealingPercentSchool = std::max(maxModHealingPercentSchool, thisPlayer->m_activePlayerData->ModHealingDonePercent[i]);
+
+        doneTotalMod *= maxModHealingPercentSchool;
+    }
+    else
+        doneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
+
+    return doneTotalMod;
+}
+
+int32 Unit::SpellAbsorbBonusTaken(Unit* caster, SpellInfo const* spellProto, int32 absorbamount) const
+{
+    bool allowPositive = !spellProto->HasAttribute(SPELL_ATTR6_IGNORE_HEALING_MODIFIERS);
+    bool allowNegative = !spellProto->HasAttribute(SPELL_ATTR6_IGNORE_HEALING_MODIFIERS) || spellProto->HasAttribute(SPELL_ATTR13_ALWAYS_ALLOW_NEGATIVE_HEALING_PERCENT_MODIFIERS);
+    if (!allowPositive && !allowNegative)
+        return absorbamount;
+
+    float takenTotalMod = 1.f;
+
+    if (allowNegative)
+    {
+        float minval = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+        if (minval)
+            AddPct(takenTotalMod, minval);
+    }
+
+    if (allowPositive)
+    {
+        float maxval = float(GetMaxPositiveAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+        if (maxval)
+            AddPct(takenTotalMod, maxval);
+    }
+
+    if (caster)
+    {
+        takenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_RECEIVED, [caster, spellProto, allowPositive, allowNegative](AuraEffect const* aurEff)
+        {
+            if (caster->GetGUID() != aurEff->GetCasterGUID() || !aurEff->IsAffectingSpell(spellProto))
+                return false;
+
+            if (aurEff->GetAmount() > 0)
+            {
+                if (!allowPositive)
+                    return false;
+            }
+            else if (!allowNegative)
+                return false;
+
+            return true;
+        });
+    }
+
+    float absorb = absorbamount * takenTotalMod;
+    return static_cast<int32>(std::round(absorb));
 }
 
 bool Unit::IsImmunedToSpell(SpellInfo const* spellInfo, WorldObject const* caster, bool requireImmunityPurgesEffectAttribute /*= false*/) const
@@ -9311,9 +9493,29 @@ uint32 Unit::GetCreatureTypeMask() const
     return (creatureType >= 1) ? (1 << (creatureType - 1)) : 0;
 }
 
+void Unit::UpdateCreatureType()
+{
+    uint8 creatureType = [&]() -> uint8
+    {
+        if (Creature const* creature = ToCreature())
+            return creature->GetCreatureTemplate()->type;
+
+        ShapeshiftForm form = GetShapeshiftForm();
+        SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(form);
+        if (ssEntry && ssEntry->CreatureType > 0)
+            return ssEntry->CreatureType;
+
+        ChrRacesEntry const* raceEntry = sChrRacesStore.AssertEntry(GetRace());
+        return raceEntry->CreatureType;
+    }();
+
+    SetUpdateFieldFlagValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::CreatureType), creatureType);
+}
+
 void Unit::SetShapeshiftForm(ShapeshiftForm form)
 {
     SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ShapeshiftForm), form);
+    UpdateCreatureType();
 }
 
 void Unit::CancelShapeshiftForm(bool onlyTravelShapeshiftForm /*= false*/, AuraRemoveMode removeMode /*= AURA_REMOVE_BY_DEFAULT*/, bool force /*= false*/)
@@ -10083,6 +10285,7 @@ void Unit::RemoveFromWorld()
         RemoveAllGameObjects();
         RemoveAllDynObjects();
         RemoveAllAreaTriggers(AreaTriggerRemoveReason::UnitDespawn);
+        ExitAllAreaTriggers(); // exit all areatriggers the unit is in
 
         ExitVehicle();  // Remove applied auras with SPELL_AURA_CONTROL_VEHICLE
         UnsummonAllTotems();
@@ -10588,7 +10791,7 @@ void Unit::RecalculateObjectScale()
 {
     int32 scaleAuras = GetTotalAuraModifier(SPELL_AURA_MOD_SCALE) + GetTotalAuraModifier(SPELL_AURA_MOD_SCALE_2);
     float scale = GetNativeObjectScale() + CalculatePct(1.0f, scaleAuras);
-    float scaleMin = GetTypeId() == TYPEID_PLAYER ? 0.1 : 0.01;
+    float scaleMin = GetTypeId() == TYPEID_PLAYER ? 0.1f : 0.01f;
     SetObjectScale(std::max(scale, scaleMin));
 }
 
@@ -11483,22 +11686,19 @@ void Unit::SetStunned(bool apply)
     }
 }
 
-void Unit::SetRooted(bool apply, bool packetOnly /*= false*/)
+void Unit::SetRooted(bool apply)
 {
-    if (!packetOnly)
+    if (apply)
     {
-        if (apply)
-        {
-            // MOVEMENTFLAG_ROOT cannot be used in conjunction with MOVEMENTFLAG_MASK_MOVING (tested 3.3.5a)
-            // this will freeze clients. That's why we remove MOVEMENTFLAG_MASK_MOVING before
-            // setting MOVEMENTFLAG_ROOT
-            RemoveUnitMovementFlag(MOVEMENTFLAG_MASK_MOVING);
-            AddUnitMovementFlag(MOVEMENTFLAG_ROOT);
-            StopMoving();
-        }
-        else
-            RemoveUnitMovementFlag(MOVEMENTFLAG_ROOT);
+        // MOVEMENTFLAG_ROOT cannot be used in conjunction with MOVEMENTFLAG_MASK_MOVING (tested 3.3.5a)
+        // this will freeze clients. That's why we remove MOVEMENTFLAG_MASK_MOVING before
+        // setting MOVEMENTFLAG_ROOT
+        RemoveUnitMovementFlag(MOVEMENTFLAG_MASK_MOVING);
+        AddUnitMovementFlag(MOVEMENTFLAG_ROOT);
+        StopMoving();
     }
+    else
+        RemoveUnitMovementFlag(MOVEMENTFLAG_ROOT);
 
     static OpcodeServer const rootOpcodeTable[2][2] =
     {
@@ -11506,7 +11706,7 @@ void Unit::SetRooted(bool apply, bool packetOnly /*= false*/)
         { SMSG_MOVE_SPLINE_ROOT, SMSG_MOVE_ROOT }
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved())) // unit controlled by a player.
+    if (Player* playerMover = GetPlayerMovingMe()) // unit controlled by a player.
     {
         WorldPackets::Movement::MoveSetFlag packet(rootOpcodeTable[apply][1]);
         packet.MoverGUID = GetGUID();
@@ -12118,7 +12318,7 @@ void Unit::SetAuraStack(uint32 spellId, Unit* target, uint32 stack)
         aura->SetStackAmount(stack);
 }
 
-void Unit::SendPlaySpellVisual(Unit* target, uint32 spellVisualId, uint16 missReason, uint16 reflectStatus, float travelSpeed, bool speedAsTime /*= false*/, float launchDelay /*= 0.0f*/)
+void Unit::SendPlaySpellVisual(Unit* target, uint32 spellVisualId, uint8 missReason, uint8 reflectStatus, float travelSpeed, bool speedAsTime /*= false*/, float launchDelay /*= 0.0f*/)
 {
     WorldPackets::Spells::PlaySpellVisual playSpellVisual;
     playSpellVisual.Source = GetGUID();
@@ -12133,7 +12333,7 @@ void Unit::SendPlaySpellVisual(Unit* target, uint32 spellVisualId, uint16 missRe
     SendMessageToSet(playSpellVisual.Write(), true);
 }
 
-void Unit::SendPlaySpellVisual(Position const& targetPosition, uint32 spellVisualId, uint16 missReason, uint16 reflectStatus, float travelSpeed, bool speedAsTime /*= false*/, float launchDelay /*= 0.0f*/)
+void Unit::SendPlaySpellVisual(Position const& targetPosition, uint32 spellVisualId, uint8 missReason, uint8 reflectStatus, float travelSpeed, bool speedAsTime /*= false*/, float launchDelay /*= 0.0f*/)
 {
     WorldPackets::Spells::PlaySpellVisual playSpellVisual;
     playSpellVisual.Source = GetGUID();
@@ -12304,7 +12504,7 @@ void Unit::SendMoveKnockBack(Player* player, float speedXY, float speedZ, float 
     player->GetSession()->SendPacket(moveKnockBack.Write());
 }
 
-void Unit::KnockbackFrom(Position const& origin, float speedXY, float speedZ, Movement::SpellEffectExtraData const* spellEffectExtraData /*= nullptr*/)
+void Unit::KnockbackFrom(Position const& origin, float speedXY, float speedZ, float angle /*= M_PI*/, Movement::SpellEffectExtraData const* spellEffectExtraData /*= nullptr*/)
 {
     Player* player = ToPlayer();
     if (!player)
@@ -12318,14 +12518,14 @@ void Unit::KnockbackFrom(Position const& origin, float speedXY, float speedZ, Mo
     }
 
     if (!player)
-        GetMotionMaster()->MoveKnockbackFrom(origin, speedXY, speedZ, spellEffectExtraData);
+        GetMotionMaster()->MoveKnockbackFrom(origin, speedXY, speedZ, angle, spellEffectExtraData);
     else
     {
-        float o = GetPosition() == origin ? GetOrientation() + M_PI : origin.GetAbsoluteAngle(this);
+        float o = (GetPosition() == origin ? GetOrientation() : GetAbsoluteAngle(origin)) + angle;
         if (speedXY < 0)
         {
             speedXY = -speedXY;
-            o = o - M_PI;
+            o = o - float(M_PI);
         }
 
         float vcos = std::cos(o);
@@ -12447,21 +12647,6 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
         return formEntry->CreatureDisplayID;
 
     return 0;
-}
-
-void Unit::JumpTo(float speedXY, float speedZ, float angle, Optional<Position> dest)
-{
-    if (dest)
-        angle += GetRelativeAngle(*dest);
-
-    if (GetTypeId() == TYPEID_UNIT)
-        GetMotionMaster()->MoveJumpTo(angle, speedXY, speedZ);
-    else
-    {
-        float vcos = std::cos(angle+GetOrientation());
-        float vsin = std::sin(angle+GetOrientation());
-        SendMoveKnockBack(ToPlayer(), speedXY, -speedZ, vcos, vsin);
-    }
 }
 
 void Unit::HandleSpellClick(Unit* clicker, int8 seatId /*= -1*/)
@@ -12786,18 +12971,22 @@ bool Unit::CanSwim() const
     return HasUnitFlag(UNIT_FLAG_RENAME | UNIT_FLAG_CAN_SWIM);
 }
 
-void Unit::NearTeleportTo(Position const& pos, bool casting /*= false*/)
+void Unit::NearTeleportTo(TeleportLocation const& target, bool casting)
 {
     DisableSpline();
-    TeleportLocation target{ .Location = { GetMapId(), pos } };
     if (GetTypeId() == TYPEID_PLAYER)
         ToPlayer()->TeleportTo(target, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (casting ? TELE_TO_SPELL : TELE_TO_NONE));
     else
     {
         SendTeleportPacket(target);
-        UpdatePosition(pos, true);
+        UpdatePosition(target.Location, true);
         UpdateObjectVisibility();
     }
+}
+
+void Unit::NearTeleportTo(Position const& pos, bool casting /*= false*/)
+{
+    NearTeleportTo(TeleportLocation{ .Location = { GetMapId(), pos } }, casting);
 }
 
 void Unit::SendTeleportPacket(TeleportLocation const& teleportLocation)
@@ -12837,14 +13026,14 @@ void Unit::SendTeleportPacket(TeleportLocation const& teleportLocation)
             if (!transport)
                 return;
 
-            float x, y, z, o;
-            teleportLocation.Location.GetPosition(x, y, z, o);
-            transport->CalculatePassengerPosition(x, y, z, &o);
-            moveUpdateTeleport.Status->pos.Relocate(x, y, z, o);
+            moveUpdateTeleport.Status->pos.Relocate(transport->GetPositionWithOffset(teleportLocation.Location));
             moveUpdateTeleport.Status->transport.pos.Relocate(teleportLocation.Location);
         }
         else
+        {
             moveUpdateTeleport.Status->pos.Relocate(teleportLocation.Location);
+            moveUpdateTeleport.Status->transport.Reset();
+        }
     }
 
     // Broadcast the packet to everyone except self.
@@ -13063,7 +13252,7 @@ void CharmInfo::SaveStayPosition()
 
     if (_unit->movespline->onTransport)
         if (TransportBase* transport = _unit->GetDirectTransport())
-            transport->CalculatePassengerPosition(stayPos.x, stayPos.y, stayPos.z);
+            transport->GetPositionWithOffset({ stayPos.x, stayPos.y, stayPos.z }).GetPosition(stayPos.x, stayPos.y, stayPos.z);
 
     _stayX = stayPos.x;
     _stayY = stayPos.y;
@@ -13204,7 +13393,7 @@ bool Unit::SetDisableGravity(bool disable, bool updateAnimTier /*= true*/)
         { SMSG_MOVE_SPLINE_DISABLE_GRAVITY, SMSG_MOVE_DISABLE_GRAVITY }
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(gravityOpcodeTable[disable][1]);
         packet.MoverGUID = GetGUID();
@@ -13235,7 +13424,7 @@ bool Unit::SetDisableGravity(bool disable, bool updateAnimTier /*= true*/)
             SetPlayHoverAnim(false, false);
     }
 
-    if (IsCreature() && updateAnimTier && IsAlive() && !HasUnitState(UNIT_STATE_ROOT))
+    if (IsCreature() && updateAnimTier && !HasUnitState(UNIT_STATE_ROOT))
     {
         if (IsGravityDisabled())
             SetAnimTier(AnimTier::Fly);
@@ -13305,7 +13494,7 @@ bool Unit::SetCanFly(bool enable)
     if (!enable && GetTypeId() == TYPEID_PLAYER)
         ToPlayer()->SetFallInformation(0, GetPositionZ());
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(flyOpcodeTable[enable][1]);
         packet.MoverGUID = GetGUID();
@@ -13342,7 +13531,7 @@ bool Unit::SetWaterWalking(bool enable)
         { SMSG_MOVE_SPLINE_SET_WATER_WALK, SMSG_MOVE_SET_WATER_WALK }
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(waterWalkingOpcodeTable[enable][1]);
         packet.MoverGUID = GetGUID();
@@ -13380,7 +13569,7 @@ bool Unit::SetFeatherFall(bool enable)
         { SMSG_MOVE_SPLINE_SET_FEATHER_FALL, SMSG_MOVE_SET_FEATHER_FALL }
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(featherFallOpcodeTable[enable][1]);
         packet.MoverGUID = GetGUID();
@@ -13433,7 +13622,7 @@ bool Unit::SetHover(bool enable, bool updateAnimTier /*= true*/)
         { SMSG_MOVE_SPLINE_SET_HOVER,   SMSG_MOVE_SET_HOVERING   }
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(hoverOpcodeTable[enable][1]);
         packet.MoverGUID = GetGUID();
@@ -13461,7 +13650,7 @@ bool Unit::SetHover(bool enable, bool updateAnimTier /*= true*/)
     else if (IsPlayer()) // To update player who dies while flying/hovering
         SetPlayHoverAnim(false, false);
 
-    if (IsCreature() && updateAnimTier && IsAlive() && !HasUnitState(UNIT_STATE_ROOT))
+    if (IsCreature() && updateAnimTier && !HasUnitState(UNIT_STATE_ROOT))
     {
         if (IsGravityDisabled())
             SetAnimTier(AnimTier::Fly);
@@ -13490,7 +13679,7 @@ bool Unit::SetCollision(bool disable)
         { SMSG_MOVE_SPLINE_DISABLE_COLLISION, SMSG_MOVE_DISABLE_COLLISION }
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(collisionOpcodeTable[disable][1]);
         packet.MoverGUID = GetGUID();
@@ -13530,7 +13719,7 @@ bool Unit::SetEnableFullSpeedTurning(bool enable)
         SMSG_MOVE_ENABLE_FULL_SPEED_TURNING
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(fullSpeedTurningOpcodeTable[enable]);
         packet.MoverGUID = GetGUID();
@@ -13564,7 +13753,7 @@ bool Unit::SetCanTransitionBetweenSwimAndFly(bool enable)
         SMSG_MOVE_ENABLE_TRANSITION_BETWEEN_SWIM_AND_FLY
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(swimToFlyTransOpcodeTable[enable]);
         packet.MoverGUID = GetGUID();
@@ -13596,7 +13785,7 @@ bool Unit::SetCanTurnWhileFalling(bool enable)
         SMSG_MOVE_SET_CAN_TURN_WHILE_FALLING
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(canTurnWhileFallingOpcodeTable[enable]);
         packet.MoverGUID = GetGUID();
@@ -13627,7 +13816,7 @@ bool Unit::SetCanDoubleJump(bool enable)
         SMSG_MOVE_ENABLE_DOUBLE_JUMP
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(doubleJumpOpcodeTable[enable]);
         packet.MoverGUID = GetGUID();
@@ -13658,7 +13847,7 @@ bool Unit::SetDisableInertia(bool disable)
         SMSG_MOVE_DISABLE_INERTIA
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(disableInertiaOpcodeTable[disable]);
         packet.MoverGUID = GetGUID();
@@ -13689,7 +13878,7 @@ bool Unit::SetCanAdvFly(bool enable)
         SMSG_MOVE_SET_CAN_ADV_FLY
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(advFlyOpcodeTable[enable]);
         packet.MoverGUID = GetGUID();
@@ -13720,7 +13909,7 @@ bool Unit::SetMoveCantSwim(bool cantSwim)
         SMSG_MOVE_SET_CANT_SWIM,
     };
 
-    if (Player* playerMover = Unit::ToPlayer(GetUnitBeingMoved()))
+    if (Player* playerMover = GetPlayerMovingMe())
     {
         WorldPackets::Movement::MoveSetFlag packet(cantSwimOpcodeTable[cantSwim]);
         packet.MoverGUID = GetGUID();

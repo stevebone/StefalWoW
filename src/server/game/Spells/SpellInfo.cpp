@@ -1256,6 +1256,17 @@ std::array<SpellEffectInfo::StaticData, TOTAL_SPELL_EFFECTS> SpellEffectInfo::_d
     {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 339 SPELL_EFFECT_UI_ACTION
     {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 340 SPELL_EFFECT_340
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_UNIT}, // 341 SPELL_EFFECT_LEARN_WARBAND_SCENE
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 342 SPELL_EFFECT_342
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 343 SPELL_EFFECT_343
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 344 SPELL_EFFECT_344
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 345 SPELL_EFFECT_ASSIST_ACTION
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 346 SPELL_EFFECT_346
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 347 SPELL_EFFECT_EQUIP_TRANSMOG_OUTFIT
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 348 SPELL_EFFECT_GIVE_HOUSE_LEVEL
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 349 SPELL_EFFECT_LEARN_HOUSE_ROOM
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 350 SPELL_EFFECT_LEARN_HOUSE_EXTERIOR_COMPONENT
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 351 SPELL_EFFECT_LEARN_HOUSE_THEME
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 352 SPELL_EFFECT_LEARN_HOUSE_ROOM_COMPONENT_TEXTURE
 } };
 
 SpellInfo::SpellInfo(SpellNameEntry const* spellName, ::Difficulty difficulty, SpellInfoLoadHelper const& data)
@@ -1759,7 +1770,7 @@ bool SpellInfo::IsCooldownStartedOnEvent() const
         return true;
 
     SpellCategoryEntry const* category = sSpellCategoryStore.LookupEntry(CategoryId);
-    return category && category->Flags & SPELL_CATEGORY_FLAG_COOLDOWN_STARTS_ON_EVENT;
+    return category && category->GetFlags().HasFlag(SpellCategoryFlags::CooldownEventOnLeaveCombat);
 }
 
 bool SpellInfo::IsDeathPersistent() const
@@ -4359,6 +4370,12 @@ float SpellInfo::CalcProcPPM(Unit* caster, int32 itemLevel) const
             case SPELL_PPM_MOD_BATTLEGROUND:
             {
                 if (caster->GetMap()->IsBattlegroundOrArena())
+                    ppm *= 1.0f + mod->Coeff;
+                break;
+            }
+            case SPELL_PPM_MOD_AURA:
+            {
+                if (caster->HasAura(mod->Param))
                     ppm *= 1.0f + mod->Coeff;
                 break;
             }

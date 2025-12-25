@@ -56,7 +56,7 @@ TC_GAME_API extern DB2Storage<AzeriteItemMilestonePowerEntry>       sAzeriteItem
 TC_GAME_API extern DB2Storage<AzeriteLevelInfoEntry>                sAzeriteLevelInfoStore;
 TC_GAME_API extern DB2Storage<AzeritePowerEntry>                    sAzeritePowerStore;
 TC_GAME_API extern DB2Storage<AzeriteUnlockMappingEntry>            sAzeriteUnlockMappingStore;
-TC_GAME_API extern DB2Storage<BankBagSlotPricesEntry>               sBankBagSlotPricesStore;
+TC_GAME_API extern DB2Storage<BankTabEntry>                         sBankTabStore;
 TC_GAME_API extern DB2Storage<BannedAddonsEntry>                    sBannedAddonsStore;
 TC_GAME_API extern DB2Storage<BarberShopStyleEntry>                 sBarberShopStyleStore;
 TC_GAME_API extern DB2Storage<BattlePetAbilityEntry>                sBattlePetAbilityStore;
@@ -146,6 +146,7 @@ TC_GAME_API extern DB2Storage<ItemBonusListLevelDeltaEntry>         sItemBonusLi
 TC_GAME_API extern DB2Storage<ItemBonusTreeEntry>                   sItemBonusTreeStore;
 TC_GAME_API extern DB2Storage<ItemBonusTreeNodeEntry>               sItemBonusTreeNodeStore;
 TC_GAME_API extern DB2Storage<ItemContextPickerEntryEntry>          sItemContextPickerEntryStore;
+TC_GAME_API extern DB2Storage<ItemCreationContextEntry>             sItemCreationContextStore;
 TC_GAME_API extern DB2Storage<ItemDamageAmmoEntry>                  sItemDamageAmmoStore;
 TC_GAME_API extern DB2Storage<ItemDamageOneHandEntry>               sItemDamageOneHandStore;
 TC_GAME_API extern DB2Storage<ItemDamageOneHandCasterEntry>         sItemDamageOneHandCasterStore;
@@ -153,7 +154,6 @@ TC_GAME_API extern DB2Storage<ItemDamageTwoHandEntry>               sItemDamageT
 TC_GAME_API extern DB2Storage<ItemDamageTwoHandCasterEntry>         sItemDamageTwoHandCasterStore;
 TC_GAME_API extern DB2Storage<ItemDisenchantLootEntry>              sItemDisenchantLootStore;
 TC_GAME_API extern DB2Storage<ItemEffectEntry>                      sItemEffectStore;
-TC_GAME_API extern DB2Storage<ItemNameDescriptionEntry>             sItemNameDescriptionStore;
 TC_GAME_API extern DB2Storage<ItemEntry>                            sItemStore;
 TC_GAME_API extern DB2Storage<ItemExtendedCostEntry>                sItemExtendedCostStore;
 TC_GAME_API extern DB2Storage<ItemLevelSelectorEntry>               sItemLevelSelectorStore;
@@ -162,7 +162,10 @@ TC_GAME_API extern DB2Storage<ItemLevelSelectorQualitySetEntry>     sItemLevelSe
 TC_GAME_API extern DB2Storage<ItemLimitCategoryEntry>               sItemLimitCategoryStore;
 TC_GAME_API extern DB2Storage<ItemModifiedAppearanceEntry>          sItemModifiedAppearanceStore;
 TC_GAME_API extern DB2Storage<ItemModifiedAppearanceExtraEntry>     sItemModifiedAppearanceExtraStore;
+TC_GAME_API extern DB2Storage<ItemNameDescriptionEntry>             sItemNameDescriptionStore;
+TC_GAME_API extern DB2Storage<ItemOffsetCurveEntry>                 sItemOffsetCurveStore;
 TC_GAME_API extern DB2Storage<ItemPriceBaseEntry>                   sItemPriceBaseStore;
+TC_GAME_API extern DB2Storage<ItemScalingConfigEntry>               sItemScalingConfigStore;
 TC_GAME_API extern DB2Storage<ItemSearchNameEntry>                  sItemSearchNameStore;
 TC_GAME_API extern DB2Storage<ItemSetEntry>                         sItemSetStore;
 TC_GAME_API extern DB2Storage<ItemSetSpellEntry>                    sItemSetSpellStore;
@@ -290,6 +293,7 @@ TC_GAME_API extern DB2Storage<TraitNodeXTraitCondEntry>             sTraitNodeXT
 TC_GAME_API extern DB2Storage<TraitNodeXTraitCostEntry>             sTraitNodeXTraitCostStore;
 TC_GAME_API extern DB2Storage<TraitNodeXTraitNodeEntryEntry>        sTraitNodeXTraitNodeEntryStore;
 TC_GAME_API extern DB2Storage<TraitSubTreeEntry>                    sTraitSubTreeStore;
+TC_GAME_API extern DB2Storage<TraitSystemEntry>                     sTraitSystemStore;
 TC_GAME_API extern DB2Storage<TraitTreeEntry>                       sTraitTreeStore;
 TC_GAME_API extern DB2Storage<TraitTreeLoadoutEntry>                sTraitTreeLoadoutStore;
 TC_GAME_API extern DB2Storage<TraitTreeLoadoutEntryEntry>           sTraitTreeLoadoutEntryStore;
@@ -468,8 +472,8 @@ public:
     static char const* GetChrRaceName(uint8 race, LocaleConstant locale = DEFAULT_LOCALE);
     ChrSpecializationEntry const* GetChrSpecializationByIndex(uint32 class_, uint32 index) const;
     ChrSpecializationEntry const* GetDefaultChrSpecializationForClass(uint32 class_) const;
-    uint32 GetRedirectedContentTuningId(uint32 contentTuningId, uint32 redirectFlag) const;
-    Optional<ContentTuningLevels> GetContentTuningData(uint32 contentTuningId, uint32 redirectFlag, bool forItem = false) const;
+    uint32 GetRedirectedContentTuningId(uint32 contentTuningId, std::span<uint32 const> redirectFlag) const;
+    Optional<ContentTuningLevels> GetContentTuningData(uint32 contentTuningId, std::span<uint32 const> redirectFlag, bool forItem = false) const;
     bool HasContentTuningLabel(uint32 contentTuningId, int32 label) const;
     static char const* GetCreatureFamilyPetName(uint32 petfamily, LocaleConstant locale);
     std::span<int32 const> GetCreatureLabels(uint32 creatureDifficultyId) const;

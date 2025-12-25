@@ -892,6 +892,7 @@ class TC_GAME_API Unit : public WorldObject
 
         uint32 GetCreatureType() const;
         uint32 GetCreatureTypeMask() const;
+        void UpdateCreatureType();
 
         UnitStandStateType GetStandState() const { return UnitStandStateType(*m_unitData->StandState); }
         bool IsSitState() const;
@@ -1104,8 +1105,8 @@ class TC_GAME_API Unit : public WorldObject
         Aura* AddAura(SpellInfo const* spellInfo, uint32 effMask, Unit* target);
         void SetAuraStack(uint32 spellId, Unit* target, uint32 stack);
 
-        void SendPlaySpellVisual(Unit* target, uint32 spellVisualId, uint16 missReason, uint16 reflectStatus, float travelSpeed, bool speedAsTime = false, float launchDelay = 0.0f);
-        void SendPlaySpellVisual(Position const& targetPosition, uint32 spellVisualId, uint16 missReason, uint16 reflectStatus, float travelSpeed, bool speedAsTime = false, float launchDelay = 0.0f);
+        void SendPlaySpellVisual(Unit* target, uint32 spellVisualId, uint8 missReason, uint8 reflectStatus, float travelSpeed, bool speedAsTime = false, float launchDelay = 0.0f);
+        void SendPlaySpellVisual(Position const& targetPosition, uint32 spellVisualId, uint8 missReason, uint8 reflectStatus, float travelSpeed, bool speedAsTime = false, float launchDelay = 0.0f);
         void SendCancelSpellVisual(uint32 id);
 
         void SendPlaySpellVisualKit(uint32 id, uint32 type, uint32 duration) const;
@@ -1122,6 +1123,7 @@ class TC_GAME_API Unit : public WorldObject
         void SendSpellDamageResist(Unit* target, uint32 spellId);
         void SendSpellDamageImmune(Unit* target, uint32 spellId, bool isPeriodic);
 
+        void NearTeleportTo(TeleportLocation const& target, bool casting = false);
         void NearTeleportTo(Position const& pos, bool casting = false);
         void NearTeleportTo(float x, float y, float z, float orientation, bool casting = false) { NearTeleportTo(Position(x, y, z, orientation), casting); }
         void SendTeleportPacket(TeleportLocation const& teleportLocation);
@@ -1132,8 +1134,7 @@ class TC_GAME_API Unit : public WorldObject
         void UpdateHeight(float newZ);
 
         void SendMoveKnockBack(Player* player, float speedXY, float speedZ, float vcos, float vsin);
-        void KnockbackFrom(Position const& origin, float speedXY, float speedZ, Movement::SpellEffectExtraData const* spellEffectExtraData = nullptr);
-        void JumpTo(float speedXY, float speedZ, float angle, Optional<Position> dest = {});
+        void KnockbackFrom(Position const& origin, float speedXY, float speedZ, float angle = M_PI, Movement::SpellEffectExtraData const* spellEffectExtraData = nullptr);
 
         void MonsterMoveWithSpeed(float x, float y, float z, float speed, bool generatePath = false, bool forceDestination = false);
 
@@ -1433,6 +1434,12 @@ class TC_GAME_API Unit : public WorldObject
         void SetChannelObject(uint32 slot, ObjectGuid guid);
         void RemoveChannelObject(ObjectGuid guid);
         void ClearChannelObjects();
+        void SetChannelSpellData(uint32 startTimeMs, uint32 durationMs)
+        {
+            auto channelData = m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ChannelData);
+            SetUpdateFieldValue(channelData.ModifyValue(&UF::UnitChannel::StartTimeMs), startTimeMs);
+            SetUpdateFieldValue(channelData.ModifyValue(&UF::UnitChannel::Duration), durationMs);
+        }
         int8 GetSpellEmpowerStage() const { return m_unitData->SpellEmpowerStage; }
         void SetSpellEmpowerStage(int8 stage) { SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::SpellEmpowerStage), stage); }
 
@@ -1633,6 +1640,12 @@ class TC_GAME_API Unit : public WorldObject
         void RemoveAreaTrigger(AuraEffect const* aurEff);
         void RemoveAllAreaTriggers(AreaTriggerRemoveReason reason = AreaTriggerRemoveReason::Default);
 
+        void EnterAreaTrigger(AreaTrigger* areaTrigger);
+        void ExitAreaTrigger(AreaTrigger* areaTrigger);
+
+        std::vector<AreaTrigger*> const& GetInsideAreaTriggers() const { return m_insideAreaTriggers; }
+        void ExitAllAreaTriggers();
+
         void ModifyAuraState(AuraStateType flag, bool apply);
         uint32 BuildAuraStateUpdateForTarget(Unit const* target) const;
         bool HasAuraState(AuraStateType flag, SpellInfo const* spellProto = nullptr, Unit const* Caster = nullptr) const;
@@ -1648,6 +1661,11 @@ class TC_GAME_API Unit : public WorldObject
         int32 SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, int32 healamount, DamageEffectType damagetype, SpellEffectInfo const& spellEffectInfo, uint32 stack = 1, Spell* spell = nullptr, AuraEffect const* aurEff = nullptr) const;
         float SpellHealingPctDone(Unit* victim, SpellInfo const* spellProto) const;
         int32 SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, int32 healamount, DamageEffectType damagetype) const;
+
+        int32 SpellBaseAbsorbBonusDone(SpellSchoolMask schoolMask) const;
+        int32 SpellAbsorbBonusDone(Unit* victim, SpellInfo const* spellProto, int32 absorbamount, SpellEffectInfo const& spellEffectInfo, uint32 stack = 1, AuraEffect const* aurEff = nullptr) const;
+        float SpellAbsorbPctDone(Unit* victim, SpellInfo const* spellProto) const;
+        int32 SpellAbsorbBonusTaken(Unit* caster, SpellInfo const* spellProto, int32 absorbamount) const;
 
         int32 MeleeDamageBonusDone(Unit* pVictim, int32 damage, WeaponAttackType attType, DamageEffectType damagetype, SpellInfo const* spellProto = nullptr, SpellEffectInfo const* spellEffectInfo = nullptr, Mechanics mechanic = MECHANIC_NONE, SpellSchoolMask damageSchoolMask = SPELL_SCHOOL_MASK_NORMAL, Spell* spell = nullptr, AuraEffect const* aurEff = nullptr);
         int32 MeleeDamageBonusTaken(Unit* attacker, int32 pdamage, WeaponAttackType attType, DamageEffectType damagetype, SpellInfo const* spellProto = nullptr, SpellSchoolMask damageSchoolMask = SPELL_SCHOOL_MASK_NORMAL);
@@ -1890,6 +1908,7 @@ class TC_GAME_API Unit : public WorldObject
 
         typedef std::vector<AreaTrigger*> AreaTriggerList;
         AreaTriggerList m_areaTrigger;
+        AreaTriggerList m_insideAreaTriggers;
 
         uint32 m_transformSpell;
 
@@ -1975,7 +1994,7 @@ class TC_GAME_API Unit : public WorldObject
         void SetFeared(bool apply);
         void SetConfused(bool apply);
         void SetStunned(bool apply);
-        void SetRooted(bool apply, bool packetOnly = false);
+        void SetRooted(bool apply);
 
         uint32 m_movementCounter;       ///< Incrementing counter used in movement packets
 

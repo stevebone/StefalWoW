@@ -121,6 +121,7 @@ WorldPacket const* SetupCurrency::Write()
     {
         _worldPacket << int32(data.Type);
         _worldPacket << int32(data.Quantity);
+        _worldPacket << uint8(data.Flags);
 
         _worldPacket << OptionalInit(data.WeeklyQuantity);
         _worldPacket << OptionalInit(data.MaxWeeklyQuantity);
@@ -129,7 +130,6 @@ WorldPacket const* SetupCurrency::Write()
         _worldPacket << OptionalInit(data.TotalEarned);
         _worldPacket << OptionalInit(data.NextRechargeTime);
         _worldPacket << OptionalInit(data.RechargeCycleStartTime);
-        _worldPacket << Bits<5>(data.Flags);
         _worldPacket.FlushBits();
 
         if (data.WeeklyQuantity)
@@ -182,6 +182,7 @@ WorldPacket const* TriggerMovie::Write()
 
     return &_worldPacket;
 }
+
 WorldPacket const* TriggerCinematic::Write()
 {
     _worldPacket << uint32(CinematicID);
@@ -208,6 +209,10 @@ void TutorialSetFlag::Read()
 WorldPacket const* WorldServerInfo::Write()
 {
     _worldPacket << uint32(DifficultyID);
+    _worldPacket << HouseGuid;
+    _worldPacket << HouseOwnerBnetAccount;
+    _worldPacket << HouseOwnerPlayer;
+    _worldPacket << NeighborhoodGuid;
     _worldPacket << Bits<1>(IsTournamentRealm);
     _worldPacket << Bits<1>(XRealmPvpAlert);
     _worldPacket << Bits<1>(BlockExitingLoadingScreen);
@@ -330,7 +335,7 @@ WorldPacket const* StandStateUpdate::Write()
 WorldPacket const* SetAnimTier::Write()
 {
     _worldPacket << Unit;
-    _worldPacket << Bits<3>(Tier);
+    _worldPacket << uint8(Tier);
     _worldPacket.FlushBits();
 
     return &_worldPacket;
@@ -655,7 +660,7 @@ WorldPacket const* AccountHeirloomUpdate::Write()
     _worldPacket << Bits<1>(IsFullUpdate);
     _worldPacket.FlushBits();
 
-    _worldPacket << int32(ItemCollectionType);
+    _worldPacket << int8(ItemCollectionType);
 
     // both lists have to have the same size
     _worldPacket << Size<uint32>(*Heirlooms);

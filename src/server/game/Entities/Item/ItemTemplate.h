@@ -96,7 +96,15 @@ enum ItemModType
     ITEM_MOD_AGI_STR_INT              = 71,
     ITEM_MOD_AGI_STR                  = 72,
     ITEM_MOD_AGI_INT                  = 73,
-    ITEM_MOD_STR_INT                  = 74
+    ITEM_MOD_STR_INT                  = 74,
+    ITEM_MOD_PROFESSION_INSPIRATION   = 75,
+    ITEM_MOD_PROFESSION_RESOURCEFULNESS = 76,
+    ITEM_MOD_PROFESSION_FINESSE       = 77,
+    ITEM_MOD_PROFESSION_DEFTNESS      = 78,
+    ITEM_MOD_PROFESSION_PERCEPTION    = 79,
+    ITEM_MOD_PROFESSION_CRAFTING_SPEED = 80,
+    ITEM_MOD_PROFESSION_MULTICRAFT    = 81,
+    ITEM_MOD_PROFESSION_INGENUITY     = 82,
 };
 
 enum ItemSpelltriggerType
@@ -379,9 +387,10 @@ enum SocketColor
     SOCKET_COLOR_SINGING_THUNDER                = 0x08000000,
     SOCKET_COLOR_SINGING_SEA                    = 0x10000000,
     SOCKET_COLOR_SINGING_WIND                   = 0x20000000,
+    SOCKET_COLOR_FIBER                          = 0x40000000,
 };
 
-extern int32 const SocketColorToGemTypeMask[30];
+extern int32 const SocketColorToGemTypeMask[31];
 
 #define SOCKET_COLOR_STANDARD (SOCKET_COLOR_RED | SOCKET_COLOR_YELLOW | SOCKET_COLOR_BLUE)
 
@@ -461,10 +470,11 @@ enum ItemClass : uint8
     ITEM_CLASS_GLYPH                            = 16,
     ITEM_CLASS_BATTLE_PETS                      = 17,
     ITEM_CLASS_WOW_TOKEN                        = 18,
-    ITEM_CLASS_PROFESSION                       = 19
+    ITEM_CLASS_PROFESSION                       = 19,
+    ITEM_CLASS_HOUSING                          = 20
 };
 
-#define MAX_ITEM_CLASS                            20
+#define MAX_ITEM_CLASS                            21
 
 enum ItemSubclassConsumable
 {
@@ -760,6 +770,18 @@ enum ItemSubclassProfession
 
 #define MAX_ITEM_SUBCLASS_PROFESSION              14
 
+enum ItemSubclassHousing
+{
+    ITEM_SUBCLASS_HOUSING_DECOR                     = 0,
+    ITEM_SUBCLASS_HOUSING_DYE                       = 1,
+    ITEM_SUBCLASS_HOUSING_ROOM                      = 2,
+    ITEM_SUBCLASS_HOUSING_ROOM_CUSTOMIZATION        = 3,
+    ITEM_SUBCLASS_HOUSING_EXTERIOR_CUSTOMIZATION    = 4,
+    ITEM_SUBCLASS_HOUSING_SERVICE_ITEM              = 5
+};
+
+#define MAX_ITEM_SUBCLASS_HOUSING                     6
+
 const uint32 MaxItemSubclassValues[MAX_ITEM_CLASS] =
 {
     MAX_ITEM_SUBCLASS_CONSUMABLE,
@@ -781,7 +803,8 @@ const uint32 MaxItemSubclassValues[MAX_ITEM_CLASS] =
     MAX_ITEM_SUBCLASS_GLYPH,
     MAX_ITEM_SUBCLASS_BATTLE_PET,
     MAX_ITEM_SUBCLASS_WOW_TOKEN,
-    MAX_ITEM_SUBCLASS_PROFESSION
+    MAX_ITEM_SUBCLASS_PROFESSION,
+    MAX_ITEM_SUBCLASS_HOUSING
 };
 
 #define MAX_ITEM_SUBCLASS_TOTAL 21
@@ -811,6 +834,9 @@ enum ItemIdConstants
     ITEM_PURPLE_RIBBONED_HOLIDAY_GIFT            = 17308,   // Purple Ribboned Holiday Gift
     ITEM_EMPTY_WRAPPER                           = 21830,   // Empty Wrapper
     ITEM_WRAPPED_GIFT                            = 21831,   // Wrappered Gift
+
+    ITEM_ACCOUNT_BANK_TAB_BAG                    = 208392,  // Account Bank Tab Bag (DNT)
+    ITEM_CHARACTER_BANK_TAB_BAG                  = 242709,  // Character Bank Tab Bag (DNT)
 };
 
 class Player;
@@ -848,6 +874,8 @@ struct TC_GAME_API ItemTemplate
     float GetStatPercentageOfSocket(uint32 index) const { ASSERT(index < MAX_ITEM_PROTO_STATS); return ExtendedData->StatPercentageOfSocket[index]; }
     uint32 GetScalingStatContentTuning() const { return ExtendedData->ContentTuningID; }
     uint32 GetPlayerLevelToItemLevelCurveId() const { return ExtendedData->PlayerLevelToItemLevelCurveID; }
+    uint32 GetItemLevelOffsetCurveId() const { return ExtendedData->ItemLevelOffsetCurveID; }
+    uint32 GetItemLevelOffsetItemLevel() const { return ExtendedData->ItemLevelOffsetItemLevel; }
     uint32 GetDamageType() const { return ExtendedData->DamageDamageType; }
     uint32 GetDelay() const { return ExtendedData->ItemDelay; }
     float GetRangedModRange() const { return ExtendedData->ItemRange; }

@@ -120,6 +120,7 @@ namespace WorldPackets
         {
             uint32 WarbandScenePlacementID = 0;
             int32 Type = 0;
+            int32 ContentSetID = 0;
             ObjectGuid Guid;
         };
 
@@ -129,6 +130,7 @@ namespace WorldPackets
             uint8 OrderIndex = 0;
             uint32 WarbandSceneID = 0;
             uint32 Flags = 0;    ///< enum WarbandGroupFlags { Collapsed = 1 }
+            int32 ContentSetID = 0;
             std::vector<WarbandGroupMember> Members;
             std::string_view Name;
         };
@@ -167,6 +169,7 @@ namespace WorldPackets
                 uint32 Flags4            = 0; ///< Character flags 4 @todo research
                 bool FirstLogin      = false;
                 uint8 CantLoginReason    = 0;
+                Timestamp<> CreateTime;
                 Timestamp<> LastActiveTime;
                 uint16 SpecID            = 0;
                 uint32 SaveVersion       = 0;
@@ -204,8 +207,7 @@ namespace WorldPackets
                 uint32 RestrictionFlags  = 0;
                 std::vector<std::string> MailSenders;
                 std::vector<uint32> MailSenderTypes;
-                bool RpeResetAvailable = false;
-                bool RpeResetQuestClearAvailable = false;
+                bool RpeAvailable = false;
             };
 
             struct CharacterInfo
@@ -254,7 +256,7 @@ namespace WorldPackets
                 };
 
                 int8 RaceID = 0;
-                int32 Reason = 0;
+                int8 Reason = 0;
             };
 
             explicit EnumCharactersResult() : ServerPacket(SMSG_ENUM_CHARACTERS_RESULT) { }
@@ -268,6 +270,7 @@ namespace WorldPackets
             bool IsRestrictedNewPlayer            = false; ///< forbids using level boost and class trials
             bool IsNewcomerChatCompleted          = false; ///< forbids hero classes and allied races
             bool IsRestrictedTrial                = false;
+            bool Unused1127                       = false;
             bool DontCreateCharacterDisplays      = false;
 
             int32 MaxCharacterLevel     = 1;
@@ -336,7 +339,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint8 Code = 0; ///< Result code @see enum ResponseCodes
+            uint32 Code = 0; ///< Result code @see enum ResponseCodes
             ObjectGuid Guid;
         };
 
@@ -357,7 +360,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint8 Code = 0; ///< Result code @see enum ResponseCodes
+            uint32 Code = 0; ///< Result code @see enum ResponseCodes
         };
 
         class CharacterRenameRequest final : public ClientPacket
@@ -382,7 +385,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             std::string Name;
-            uint8 Result = 0;
+            uint32 Result = 0;
             Optional<ObjectGuid> Guid;
         };
 
@@ -445,7 +448,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint8 Result = 0; ///< @see enum ResponseCodes
+            uint32 Result = 0; ///< @see enum ResponseCodes
             ObjectGuid Guid;
             Optional<CharFactionChangeDisplayInfo> Display;
         };
@@ -546,6 +549,7 @@ namespace WorldPackets
 
             ObjectGuid Guid;      ///< Guid of the player that is logging in
             float FarClip = 0.0f; ///< Visibility distance (for terrain)
+            bool RPE = false;
         };
 
         class LoginVerifyWorld final : public ServerPacket
@@ -847,7 +851,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint8 Result = 0;
+            uint32 Result = 0;
             ObjectGuid CharGUID;
         };
 

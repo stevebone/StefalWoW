@@ -39,6 +39,7 @@ EndScriptData */
 #include "GridNotifiersImpl.h"
 #include "InstanceScript.h"
 #include "Language.h"
+#include "LFG.h"
 #include "Log.h"
 #include "M2Stores.h"
 #include "MapManager.h"
@@ -51,7 +52,6 @@ EndScriptData */
 #include "SpellMgr.h"
 #include "SpellPackets.h"
 #include "Transport.h"
-#include "Warden.h"
 #include "World.h"
 #include "WorldSession.h"
 #include <fstream>
@@ -129,7 +129,6 @@ public:
             { "guidlimits",         HandleDebugGuidLimitsCommand,          rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "objectcount",        HandleDebugObjectCountCommand,         rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "questreset",         HandleDebugQuestResetCommand,          rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
-            { "warden force",       HandleDebugWardenForce,                rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "personalclone",      HandleDebugBecomePersonalClone,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No }
         };
         static ChatCommandTable commandTable =
@@ -856,9 +855,20 @@ public:
         return true;
     }
 
-    static bool HandleDebugArenaCommand(ChatHandler* /*handler*/)
+    static bool HandleDebugArenaCommand(ChatHandler* handler, uint32 battlemasterListId)
     {
-        sBattlegroundMgr->ToggleArenaTesting();
+        bool successful = sBattlegroundMgr->ToggleArenaTesting(battlemasterListId);
+        if (!successful)
+        {
+            handler->PSendSysMessage("BattlemasterListId %u does not exist or is not an arena.", battlemasterListId);
+            handler->SetSentErrorMessage(true);
+            return true;
+        }
+
+        if (!battlemasterListId || !handler || !handler->GetSession())
+            return true;
+
+        BattlegroundMgr::QueuePlayerForArena(handler->GetSession()->GetPlayer(), 0, lfg::PLAYER_ROLE_DAMAGE);
         return true;
     }
 
@@ -1638,23 +1648,6 @@ public:
         uint8* leak = new uint8();
         handler->PSendSysMessage("Leaked 1 uint8 object at address %p", static_cast<void*>(leak));
 #endif
-        return true;
-    }
-
-    static bool HandleDebugWardenForce(ChatHandler* handler, std::vector<uint16> checkIds)
-    {
-        if (checkIds.empty())
-            return false;
-
-        Warden* const warden = handler->GetSession()->GetWarden();
-        if (!warden)
-        {
-            handler->SendSysMessage("Warden system is not enabled");
-            return true;
-        }
-
-        size_t const nQueued = warden->DEBUG_ForceSpecificChecks(checkIds);
-        handler->PSendSysMessage("%zu/%zu checks queued for your Warden, they should be sent over the next few minutes (depending on settings)", nQueued, checkIds.size());
         return true;
     }
 

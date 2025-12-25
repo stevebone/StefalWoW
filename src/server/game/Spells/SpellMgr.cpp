@@ -4786,6 +4786,20 @@ void SpellMgr::LoadSpellInfoCorrections()
     // ENDOF ANTORUS THE BURNING THRONE SPELLS
 
     //
+    // DRUSTVAR SPELLS
+    //
+
+    // Shoot Wickerman
+    ApplySpellFix({ 255416 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_IGNORE_LINE_OF_SIGHT;
+    });
+
+    //
+    // ENDOF DRUSTVAR SPELLS
+    //
+
+    //
     // STORMSONG VALLEY SPELLS
     //
 
@@ -4960,7 +4974,7 @@ void SpellMgr::LoadSpellInfoCorrections()
     });
 
     // Conversation
-    ApplySpellFix({ 274668, 274669 }, [](SpellInfo* spellInfo)
+    ApplySpellFix({ 274668, 274669, 274622, 274640, 274641, 274674, 274675 }, [](SpellInfo* spellInfo)
     {
         ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
         {
@@ -5070,6 +5084,12 @@ void SpellMgr::LoadSpellInfoCorrections()
     {
         spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(12); // Interact Range
         spellInfo->AttributesEx4 &= ~SPELL_ATTR4_USE_FACING_FROM_SPELL;
+    });
+
+    // Rappelling Rope
+    ApplySpellFix({ 130960 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AuraInterruptFlags |= SpellAuraInterruptFlags::LeaveWorld;
     });
 
     // ENDOF JADE FOREST SPELLS
@@ -5442,6 +5462,18 @@ void SpellMgr::LoadSpellInfoTargetCaps()
     ApplySpellFix({ 199667, 44949, 199852, 199851 }, [](SpellInfo* spellInfo)
     {
         spellInfo->_LoadSqrtTargetLimit(5, 0, 190411, EFFECT_2, {}, {});
+    });
+
+    // Elysian Decree (Kyrian)
+    ApplySpellFix({ 307046 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_LoadSqrtTargetLimit(5, 0, 306830, EFFECT_0, {}, {});
+    });
+
+    // Sigil of Spite
+    ApplySpellFix({ 389860 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_LoadSqrtTargetLimit(5, 0, 390163, EFFECT_0, {}, {});
     });
 
     TC_LOG_INFO("server.loading", ">> Loaded SpellInfo target caps in {} ms", GetMSTimeDiffToNow(oldMSTime));

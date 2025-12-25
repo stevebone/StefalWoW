@@ -36,12 +36,14 @@
 #include <map>
 #include <memory>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 class Player;
 class WorldPacket;
 class WorldSession;
 class WorldSocket;
+enum class GameRule : int32;
 
 // ServerMessages.dbc
 enum ServerMessageType
@@ -163,7 +165,6 @@ enum WorldBoolConfigs : uint32
     CONFIG_QUEST_IGNORE_AUTO_ACCEPT,
     CONFIG_QUEST_IGNORE_AUTO_COMPLETE,
     CONFIG_QUEST_ENABLE_QUEST_TRACKER,
-    CONFIG_WARDEN_ENABLED,
     CONFIG_ENABLE_MMAPS,
     CONFIG_WINTERGRASP_ENABLE,
     CONFIG_TOLBARAD_ENABLE,
@@ -377,13 +378,6 @@ enum WorldIntConfigs : uint32
     CONFIG_LFG_OPTIONSMASK,
     CONFIG_MAX_INSTANCES_PER_HOUR,
     CONFIG_XP_BOOST_DAYMASK,
-    CONFIG_WARDEN_CLIENT_RESPONSE_DELAY,
-    CONFIG_WARDEN_CLIENT_CHECK_HOLDOFF,
-    CONFIG_WARDEN_CLIENT_FAIL_ACTION,
-    CONFIG_WARDEN_CLIENT_BAN_DURATION,
-    CONFIG_WARDEN_NUM_INJECT_CHECKS,
-    CONFIG_WARDEN_NUM_LUA_CHECKS,
-    CONFIG_WARDEN_NUM_CLIENT_MOD_CHECKS,
     CONFIG_WINTERGRASP_PLR_MAX,
     CONFIG_WINTERGRASP_PLR_MIN,
     CONFIG_WINTERGRASP_PLR_MIN_LVL,
@@ -787,6 +781,17 @@ class TC_GAME_API World
         void SetForcedWarModeFactionBalanceState(TeamId team, int32 reward = 0);
         void DisableForcedWarModeFactionBalanceState();
 
+        struct GameRule
+        {
+            ::GameRule Rule;
+            std::variant<int32, float, bool> Value;
+        };
+
+        std::vector<GameRule> const& GetGameRules() const
+        {
+            return _gameRules;
+        }
+
     protected:
         void _UpdateGameTime();
 
@@ -898,6 +903,8 @@ class TC_GAME_API World
         bool _guidAlert;
         uint32 _warnDiff;
         time_t _warnShutdownTime;
+
+        std::vector<GameRule> _gameRules;
 
         // War mode balancing
         void UpdateWarModeRewardValues();
