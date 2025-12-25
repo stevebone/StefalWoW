@@ -2267,12 +2267,14 @@ class spell_rock_jump_a : public SpellScript
                 if (caster->GetPositionZ() > 92.0f)
                 {
                     Position const jumpPos = { 1077.019f, 2844.103f, 95.27103f };
-                    caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                    //caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                    caster->CastSpell(jumpPos, 103071);
                 }
                 else
                 {
                     if (GameObject* go = caster->FindNearestGameObject(OBJECT_ROCK_JUMP_B, 8.0f))
-                        caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                        //caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                        caster->CastSpell(go->GetPosition(), 103072);
                 }
             }
         }
@@ -2294,12 +2296,14 @@ class spell_rock_jump_b : public SpellScript
             if (caster->GetPositionZ() > 92.0f)
             {
                 Position const jumpPos = { 1052.054199f, 2850.593018f, 92.703720f };
-                caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                //caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                caster->CastSpell(jumpPos, 103072);
             }
             else
             {
                 if (GameObject* go = caster->FindNearestGameObject(OBJECT_ROCK_JUMP_C, 20.0f))
-                    caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                    //caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                    caster->CastSpell(go->GetPosition(), 103078);
             }
         }
     }
@@ -2321,12 +2325,14 @@ class spell_rock_jump_c : public SpellScript
             if (caster->GetPositionZ() > 92.0f)
             {
                 Position const jumpPos = { 1062.230591f, 2846.330322f, 94.494873f };
-                caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                //caster->GetMotionMaster()->MoveJump(jumpPos, GetSpellInfo()->GetEffect(effIndex).MiscValue, 10);
+                caster->CastSpell(jumpPos, 103078);
             }
             else
             {
                 if (GameObject* go = caster->FindNearestGameObject(OBJECT_ROCK_JUMP_A, 10.0f))
-                    caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                    //caster->GetMotionMaster()->MoveJump(go->GetPosition(), GetSpellInfo()->GetEffect(effIndex).MiscValue, 5);
+                    caster->CastSpell(go->GetPosition(), 103071);
             }
         }
     }
@@ -2344,7 +2350,8 @@ class spell_jump_to_front_right : public SpellScript
             if (Unit* caster = GetCaster())
             {
                 Position const jumpPos = { 1111.13f, 2850.21f, 94.6873f };
-                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                //caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                caster->CastSpell(jumpPos, SPELL_JUMP_FRONT_RIGHT);
             }
         }
 
@@ -2361,7 +2368,8 @@ class spell_jump_to_front_left : public SpellScript
             if (Unit* caster = GetCaster())
             {
                 Position const jumpPos = { 1100.83f, 2881.36f, 94.0386f };
-                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                //caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                caster->CastSpell(jumpPos, SPELL_JUMP_FRONT_LEFT);
             }
         }
 
@@ -2378,7 +2386,8 @@ class spell_jump_to_back_right : public SpellScript
             if (Unit* caster = GetCaster())
             {
                 Position const jumpPos = { 1127.26f, 2859.8f, 97.2817f };
-                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                //caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                caster->CastSpell(jumpPos, SPELL_JUMP_BACK_RIGHT);
             }
         }
 
@@ -2395,7 +2404,8 @@ class spell_jump_to_back_left : public SpellScript
             if (Unit* caster = GetCaster())
             {
                 Position const jumpPos = { 1120.16f, 2882.66f, 96.345f };
-                caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                //caster->GetMotionMaster()->MoveJump(jumpPos, 12, 15);
+                caster->CastSpell(jumpPos, SPELL_JUMP_BACK_LEFT);
             }
         }
 
