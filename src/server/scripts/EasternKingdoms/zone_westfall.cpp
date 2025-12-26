@@ -809,6 +809,352 @@ public:
     };
 };
 
+enum eTower
+{
+    SPELL_POTION_SHROUDING = 79528,
+    QUEST_SECRETS_OF_THE_TOWER = 26290,
+
+    NPC_ELITE_TARGET = 42656,
+    NPC_KEARNEN = 7024,
+    SPELL_KILL_SHOT = 79526,
+
+    EVENT_KILL_SHOT = 1,
+    DATA_ASSIST_REQUEST = 1
+};
+
+class npc_shadowy_tower : public CreatureScript
+{
+public:
+    npc_shadowy_tower() : CreatureScript("npc_shadowy_tower") {}
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_shadowy_towerAI(creature);
+    }
+
+    struct npc_shadowy_towerAI : public ScriptedAI
+    {
+        npc_shadowy_towerAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint8 Phase;
+        uint32 SummonTimer;
+        ObjectGuid PlayerGUID;
+        ObjectGuid Glubtok3GUID;
+        ObjectGuid Shadowy3GUID;
+
+        bool bSumm;
+        bool bSumm1;
+        bool bSumm2;
+        bool bExit;
+
+        void Reset() override
+        {
+            Phase = 0;
+            SummonTimer = 2000;
+            bSumm = false;
+            bSumm1 = false;
+            bSumm2 = false;
+            bExit = false;
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            ScriptedAI::MoveInLineOfSight(who);
+
+            if (who->GetTypeId() != TYPEID_PLAYER)
+                return;
+            //if (who->HasAura(79528))
+            // return true;
+
+            if (who->ToPlayer()->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) == QUEST_STATUS_INCOMPLETE)
+            {
+                if (who->IsWithinDistInMap(me, 10.0f) && !bSumm)
+                {
+                    PlayerGUID = who->GetGUID();
+                    StartEvent();
+                }
+            }
+        }
+
+        void StartEvent()
+        {
+            if (!bSumm)
+            {
+                if (!bSumm1)
+                {
+                    if (Creature* Shadowy3 = me->SummonCreature(42662, -11138.659f, 545.20f, 70.30f, 0.19f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                    {
+                        Shadowy3GUID = Shadowy3->GetGUID();
+                        Shadowy3->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                        Shadowy3->SetWalk(true);
+                        Shadowy3->GetMotionMaster()->MovePoint(0, -11131.710f, 546.810f, 70.380f);
+                        bSumm1 = true;
+                    }
+                }
+
+                if (!bSumm2)
+                {
+                    if (Creature* Glubtok3 = me->SummonCreature(42492, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                    {
+                        Glubtok3GUID = Glubtok3->GetGUID();
+                        Glubtok3->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                        bSumm2 = true;
+                    }
+                }
+
+                if (bSumm1 && bSumm2)
+                {
+                    bSumm = true;
+                    SummonTimer = 2000;
+                }
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (SummonTimer < diff)
+            {
+                if (bSumm)
+                {
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                        if (Creature* Glubtok3 = ObjectAccessor::GetCreature(*me, Glubtok3GUID))
+                            if (Creature* Shadowy3 = ObjectAccessor::GetCreature(*me, Shadowy3GUID))
+                            {
+                                switch (Phase)
+                                {
+                                case 0:
+                                {
+                                    Glubtok3->SetInFront(me);
+                                    SummonTimer = 1000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 1:
+                                {
+                                    Glubtok3->Say("The gnolls have failed, mistress.", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 2:
+                                {
+                                    Shadowy3->Say("They provided the distraction I required. We continue as planned.", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 3:
+                                {
+                                    Glubtok3->Say("But mistress, the admiral is sti...", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 4:
+                                {
+                                    Shadowy3->Say("We will free the admiral during the dawning.", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 5:
+                                {
+                                    Glubtok3->Say("Yes, mistress.", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 6:
+                                {
+                                    Shadowy3->Say("Judgment day is soon upon us, Helix.", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 7:
+                                {
+                                    Shadowy3->Say("Call for the people. I wish to speak to them one last time before the dawning.", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 8:
+                                {
+                                    Glubtok3->Say("Moonbrook, mistress?", LANG_UNIVERSAL);
+                                    SummonTimer = 6000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 9:
+                                {
+                                    Shadowy3->Say("Aye. Tonight.", LANG_UNIVERSAL);
+                                    SummonTimer = 2000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 10:
+                                {
+                                    player->CastSpell(player, 79534, true);
+                                    SummonTimer = 1000;
+                                    Phase++;
+                                    break;
+                                }
+                                case 11:
+                                {
+                                    if (!bExit)
+                                    {
+                                        Shadowy3->CastSpell(Shadowy3, 64446, true);
+                                        Shadowy3->DespawnOrUnsummon(1s);
+                                        Glubtok3->CastSpell(Shadowy3, 64446, true);
+                                        Glubtok3->DespawnOrUnsummon(1s);
+                                        bExit = true;
+                                    }
+                                }
+                                break;
+                                default:
+                                    break;
+                                }
+                            }
+                }
+            }
+            else SummonTimer -= diff;
+        }
+    };
+};
+
+class npc_agent_kearnen : public CreatureScript
+{
+public:
+    npc_agent_kearnen() : CreatureScript("npc_agent_kearnen") { }
+
+    struct npc_agent_kearnenAI : public ScriptedAI
+    {
+        npc_agent_kearnenAI(Creature* creature) : ScriptedAI(creature) { }
+
+        EventMap events;
+        ObjectGuid PlayerGUID;
+        ObjectGuid TargetGUID;
+
+        void Reset() override
+        {
+            events.Reset();
+            PlayerGUID.Clear();
+            TargetGUID.Clear();
+        }
+
+        void Assist(Player* player, Creature* target)
+        {
+            if (!player || !target)
+                return;
+
+            // Allow multiple elites - overwrite previous safely
+            PlayerGUID = player->GetGUID();
+            TargetGUID = target->GetGUID();
+
+            events.Reset();
+            events.ScheduleEvent(EVENT_KILL_SHOT, 1s,3s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            events.Update(diff);
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case EVENT_KILL_SHOT:
+                {
+                    Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+
+                    if (target && target->IsAlive() && player)
+                    {
+                        me->SetFacingToObject(target);
+                        me->CastSpell(target, SPELL_KILL_SHOT, true);
+                        Talk(0, player);
+                    }
+
+                    TargetGUID.Clear();
+                    break;
+                }
+                }
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_agent_kearnenAI(creature);
+    }
+};
+
+class npc_mortwake_tower_elite : public CreatureScript
+{
+public:
+    npc_mortwake_tower_elite() : CreatureScript("npc_mortwake_tower_elite") { }
+
+    struct npc_mortwake_tower_eliteAI : public ScriptedAI
+    {
+        npc_mortwake_tower_eliteAI(Creature* creature) : ScriptedAI(creature) { }
+
+        bool AssistTriggered = false;
+
+        void Reset() override
+        {
+            AssistTriggered = false;
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            if (AssistTriggered)
+                return;
+
+            if (!who)
+            {
+                TC_LOG_DEBUG("entities.unit", "We have no target");
+                return;
+            }
+
+            Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself();
+            if (!player)
+            {
+                TC_LOG_DEBUG("entities.unit", "We have no player");
+                return;
+            }
+
+            if (player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) != QUEST_STATUS_INCOMPLETE)
+            {
+                TC_LOG_DEBUG("entities.unit", "We have no quest");
+                return;
+            }
+
+            Creature* agent = me->FindNearestCreature(NPC_KEARNEN, 150.0f, true);
+            if (!agent)
+            {
+                TC_LOG_DEBUG("entities.unit", "We have no agent");
+                return;
+            }
+
+            TC_LOG_DEBUG("entities.unit", "We passed all checks");
+
+            if (auto* ai = CAST_AI(npc_agent_kearnen::npc_agent_kearnenAI, agent->AI()))
+            {
+                ai->Assist(player, me);
+                TC_LOG_DEBUG("entities.unit", "We passed the signal");
+            }
+
+            AssistTriggered = true;
+            TC_LOG_DEBUG("entities.unit", "ASSIST TRIGGERED");
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_mortwake_tower_eliteAI(creature);
+    }
+};
+
 void AddSC_westfall()
 {
     using namespace Scripts::EasternKingdoms::Westfall;
@@ -820,6 +1166,9 @@ void AddSC_westfall()
     new npc_lous_parting_thoughts_trigger();
     new npc_lous_parting_thoughts_thug();
     new npc_hungry_hobo();
+    new npc_shadowy_tower();
+    new npc_agent_kearnen();
+    new npc_mortwake_tower_elite();
 
     // Spells
     RegisterSpellScript(spell_westfall_unbound_energy);
