@@ -464,6 +464,351 @@ public:
     }
 };
 
+/*######
+## npc_lous_parting_thoughts_trigger
+######*/
+
+enum eThug
+{
+    QUEST_LOUS_PARTING_THOUGHTS = 26232,
+    NPC_THUG = 42387,
+    NPC_TRIGGER = 42562
+};
+
+static Position const ThugPositions[4] =
+{
+    { -9859.36f, 1332.42f, 41.985f, 2.49f },
+    { -9862.51f, 1332.08f, 41.985f, 0.85f },
+    { -9863.49f, 1335.49f, 41.985f, 5.63f },
+    { -9860.42f, 1335.46f, 41.985f, 4.11f },
+};
+
+class npc_lous_parting_thoughts_trigger : public CreatureScript
+{
+public:
+    npc_lous_parting_thoughts_trigger() : CreatureScript("npc_lous_parting_thoughts_trigger") { }
+
+    struct npc_lous_parting_thoughts_triggerAI : public ScriptedAI
+    {
+        npc_lous_parting_thoughts_triggerAI(Creature* creature) : ScriptedAI(creature) { }
+
+        ObjectGuid PlayerGUID;
+        std::array<ObjectGuid, 4> ThugGUIDs;
+
+        uint32 PhaseTimer = 0;
+        uint8  Phase = 0;
+        uint8  DeadThugs = 0;
+        bool   EventStarted = false;
+        bool   EventLocked = false;
+
+        void Reset() override
+        {
+            Phase = 0;
+            DeadThugs = 0;
+            EventStarted = false;
+            EventLocked = false;
+            PhaseTimer = 1000;
+
+            for (auto& guid : ThugGUIDs)
+                guid.Clear();
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (EventStarted)
+                return;
+
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (player->GetQuestStatus(QUEST_LOUS_PARTING_THOUGHTS) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            if (!who->IsWithinDistInMap(me, 20.0f))
+                return;
+
+            PlayerGUID = player->GetGUID();
+            StartEvent();
+        }
+
+        void StartEvent()
+        {
+            EventStarted = true;
+
+            for (uint8 i = 0; i < 4; ++i)
+            {
+                if (Creature* thug = me->SummonCreature(
+                    NPC_THUG,
+                    ThugPositions[i],
+                    TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,
+                    90s))
+                {
+                    thug->SetReactState(REACT_PASSIVE);
+                    thug->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
+
+                    ThugGUIDs[i] = thug->GetGUID();
+                }
+
+            }
+
+            PhaseTimer = 2000;
+        }
+
+        Creature* GetThug(uint8 index)
+        {
+            return ObjectAccessor::GetCreature(*me, ThugGUIDs[index]);
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id != 1)
+                return;
+
+            ++DeadThugs;
+
+            if (DeadThugs >= 4)
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                {
+                    me->TextEmote("Hurry back to the Furlbrow's Cottage.", player, true);
+                    player->KilledMonsterCredit(42417, PlayerGUID);
+                    player->RemoveAurasDueToSpell(79229);
+                    player->CastSpell(player, 79341);
+                }
+
+
+                Reset();
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!EventStarted || EventLocked)
+                return;
+
+            if (PhaseTimer <= diff)
+            {
+                switch (Phase)
+                {
+                case 0:
+                    if (Creature* thug = GetThug(1))
+                        thug->Say("Did you... did you meet her?", LANG_UNIVERSAL);
+                    PhaseTimer = 3500;
+                    break;
+
+                case 1:
+                    if (Creature* thug = GetThug(0))
+                        thug->Say("Yep. She's for real?", LANG_UNIVERSAL);
+                    PhaseTimer = 4000;
+                    break;
+
+                case 2:
+                    if (Creature* thug = GetThug(0))
+                        thug->Say("She wanted me to tell you that she appreciates the job that we did for her on the Furlbrows.", LANG_UNIVERSAL);
+                    PhaseTimer = 7000;
+                    break;
+
+                case 3:
+                    if (Creature* thug = GetThug(3))
+                        thug->Say("See her face. It is really...", LANG_UNIVERSAL);
+                    PhaseTimer = 4000;
+                    break;
+
+                case 4:
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                        for (auto guid : ThugGUIDs)
+                            if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
+                                thug->SetFacingToObject(player);
+                    PhaseTimer = 1000;
+                    break;
+
+                case 5:
+                    if (Creature* thug = GetThug(2))
+                        thug->Say("Whoa, what do we have here? Looks like we have ourselves an eavesdropper.", LANG_UNIVERSAL);
+                    PhaseTimer = 4500;
+                    break;
+
+                case 6:
+                    if (Creature* thug = GetThug(1))
+                        thug->Say("Only one thing to do with an eavesdropper.", LANG_UNIVERSAL);
+                    PhaseTimer = 4500;
+                    break;
+
+                case 7:
+                    if (Creature* thug = GetThug(0))
+                        thug->Say("DIE!!!", LANG_UNIVERSAL);
+                    PhaseTimer = 2000;
+                    break;
+
+                case 8:
+                    EventLocked = true;
+
+                    for (auto guid : ThugGUIDs)
+                    {
+                        if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
+                        {
+                            thug->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                            thug->SetFaction(14);
+                            thug->SetReactState(REACT_AGGRESSIVE);
+                        }
+                    }
+                    PhaseTimer = 1000;
+                    break;
+
+                case 9:
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                        for (auto guid : ThugGUIDs)
+                            if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
+                                thug->AI()->AttackStart(player);
+                    PhaseTimer = 0;
+                    break;
+                }
+
+                ++Phase;
+            }
+            else
+                PhaseTimer -= diff;
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_lous_parting_thoughts_triggerAI(creature);
+    }
+};
+
+/*######
+## npc_lous_parting_thoughts_thug
+######*/
+
+class npc_lous_parting_thoughts_thug : public CreatureScript
+{
+public:
+    npc_lous_parting_thoughts_thug() : CreatureScript("npc_lous_parting_thoughts_thug") { }
+
+    struct npc_lous_parting_thoughts_thugAI : public ScriptedAI
+    {
+        npc_lous_parting_thoughts_thugAI(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            if (TempSummon* summon = me->ToTempSummon())
+            {
+                if (Creature* trigger = ObjectAccessor::GetCreature(*me, summon->GetSummonerGUID()))
+                {
+                    if (trigger->AI())
+                        trigger->AI()->SetData(1, 1); // notify kill
+                }
+            }
+        }
+
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_lous_parting_thoughts_thugAI(creature);
+    }
+};
+
+enum eHobo
+{
+    QUEST_FEEDING_THE_HUNGRY = 26271,
+    STEW = 42617,
+    SPELL_FULL_BELLY = 79451,
+    HOMELESS_STORMWIND_CITIZEN = 42384,
+    HOMELESS_STORMWIND_CITIZEN_FEMALE = 42386
+    
+};
+
+class npc_hungry_hobo : public CreatureScript
+{
+public:
+    npc_hungry_hobo() : CreatureScript("npc_hungry_hobo") {}
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_hungry_hoboAI(creature);
+    }
+
+    struct npc_hungry_hoboAI : public ScriptedAI
+    {
+        npc_hungry_hoboAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint8 count;
+        uint32 Miam;
+
+        void Reset() override
+        {
+            count = 0;
+            Miam = 2000;
+        }
+
+        void Eat()
+        {
+            me->CastSpell(me, SPELL_FULL_BELLY, true);
+            me->SetStandState(UNIT_STAND_STATE_SIT);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (Miam < diff)
+            {
+                if (Creature* stew = me->FindNearestCreature(STEW, 10.0f, true))
+                {
+                    if (me->HasAura(SPELL_FULL_BELLY) && count == 0)
+                        return;
+
+                    switch (count)
+                    {
+                    case 0:
+                    {
+                        static constexpr uint32 SPELL_SLEEP = 78677; // replace with real spell ID
+
+                        if (me->HasAura(SPELL_SLEEP))
+                        {
+                            // Creature is sleeping so we remove the aura
+                            me->RemoveAurasDueToSpell(SPELL_SLEEP);
+                        }
+                        me->SetStandState(UNIT_STAND_STATE_STAND);
+                        Miam = 1000;
+                        count++;
+                        break;
+                    }
+                    case 1:
+                    {
+                        Eat();
+                        Miam = 2000;
+                        me->SetStandState(UNIT_STAND_STATE_SIT);
+                        count++;
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (stew->ToTempSummon())
+                            if (WorldObject* player = stew->ToTempSummon()->GetSummoner())
+                                player->ToPlayer()->KilledMonsterCredit(42617);
+                        Miam = 25000;
+                        count++;
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+                else Miam = 3000;
+
+                if (!me->HasAura(SPELL_FULL_BELLY))
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+
+                if (count == 3)
+                    Reset();
+            }
+            else Miam -= diff;
+        }
+    };
+};
+
 void AddSC_westfall()
 {
     using namespace Scripts::EasternKingdoms::Westfall;
@@ -472,6 +817,9 @@ void AddSC_westfall()
     RegisterCreatureAI(npc_westfall_overloaded_harvest_golem);
     //RegisterCreatureAI(npc_westplains_drifter);
     new npc_westplains_drifter();
+    new npc_lous_parting_thoughts_trigger();
+    new npc_lous_parting_thoughts_thug();
+    new npc_hungry_hobo();
 
     // Spells
     RegisterSpellScript(spell_westfall_unbound_energy);
