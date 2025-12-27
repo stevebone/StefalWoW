@@ -1052,7 +1052,7 @@ public:
             TargetGUID = target->GetGUID();
 
             events.Reset();
-            events.ScheduleEvent(EVENT_KILL_SHOT, 1s,3s);
+            events.ScheduleEvent(EVENT_KILL_SHOT, 1s,2s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -1112,40 +1112,40 @@ public:
 
             if (!who)
             {
-                TC_LOG_DEBUG("entities.unit", "We have no target");
+                //TC_LOG_DEBUG("entities.unit", "We have no target");
                 return;
             }
 
             Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself();
             if (!player)
             {
-                TC_LOG_DEBUG("entities.unit", "We have no player");
+                //TC_LOG_DEBUG("entities.unit", "We have no player");
                 return;
             }
 
             if (player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) != QUEST_STATUS_INCOMPLETE)
             {
-                TC_LOG_DEBUG("entities.unit", "We have no quest");
+                //TC_LOG_DEBUG("entities.unit", "We have no quest");
                 return;
             }
 
             Creature* agent = me->FindNearestCreature(NPC_KEARNEN, 150.0f, true);
             if (!agent)
             {
-                TC_LOG_DEBUG("entities.unit", "We have no agent");
+                //TC_LOG_DEBUG("entities.unit", "We have no agent");
                 return;
             }
 
-            TC_LOG_DEBUG("entities.unit", "We passed all checks");
+            //TC_LOG_DEBUG("entities.unit", "We passed all checks");
 
             if (auto* ai = CAST_AI(npc_agent_kearnen::npc_agent_kearnenAI, agent->AI()))
             {
                 ai->Assist(player, me);
-                TC_LOG_DEBUG("entities.unit", "We passed the signal");
+                //TC_LOG_DEBUG("entities.unit", "We passed the signal");
             }
 
             AssistTriggered = true;
-            TC_LOG_DEBUG("entities.unit", "ASSIST TRIGGERED");
+            //TC_LOG_DEBUG("entities.unit", "ASSIST TRIGGERED");
         }
     };
 
@@ -1161,7 +1161,7 @@ void AddSC_westfall()
 
     // Creature
     RegisterCreatureAI(npc_westfall_overloaded_harvest_golem);
-    //RegisterCreatureAI(npc_westplains_drifter);
+
     new npc_westplains_drifter();
     new npc_lous_parting_thoughts_trigger();
     new npc_lous_parting_thoughts_thug();
