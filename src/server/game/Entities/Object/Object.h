@@ -228,8 +228,8 @@ class TC_GAME_API Object
         void BuildOutOfRangeUpdateBlock(UpdateData* data) const;
         ByteBuffer& PrepareValuesUpdateBuffer(UpdateData* data) const;
 
-        virtual void DestroyForPlayer(Player* target) const;
-        void SendOutOfRangeForPlayer(Player* target) const;
+        virtual void DestroyForPlayer(Player const* target) const;
+        void SendOutOfRangeForPlayer(Player const* target) const;
 
         virtual void ClearUpdateMask(bool remove);
 
@@ -837,7 +837,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         virtual float MeleeSpellMissChance(Unit const* victim, WeaponAttackType attType, SpellInfo const* spellInfo) const;
         virtual SpellMissInfo MeleeSpellHitResult(Unit* victim, SpellInfo const* spellInfo) const;
         SpellMissInfo MagicSpellHitResult(Unit* victim, SpellInfo const* spellInfo) const;
-        SpellMissInfo SpellHitResult(Unit* victim, SpellInfo const* spellInfo, bool canReflect = false) const;
+        SpellMissInfo SpellHitResult(Unit* victim, SpellInfo const* spellInfo, bool canReflect, bool canImmune) const;
         void SendSpellMiss(Unit* target, uint32 spellID, SpellMissInfo missInfo);
 
         virtual uint32 GetFaction() const = 0;
@@ -921,7 +921,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         uint32 GetTransTime()   const { return m_movementInfo.transport.time; }
         int8 GetTransSeat()     const { return m_movementInfo.transport.seat; }
         virtual ObjectGuid GetTransGUID() const;
-        void SetTransport(TransportBase* t) { m_transport = t; }
+        void SetTransport(TransportBase* t);
 
         MovementInfo m_movementInfo;
 
