@@ -58,6 +58,15 @@ enum DMGameObjectIds
     GO_FOUNDRY_DOOR     = 16399
 };
 
+enum DMCannonState
+{
+    CANNON_NOT_USED,
+    CANNON_GUNPOWDER_USED,
+    CANNON_BLAST_INITIATED,
+    PIRATES_ATTACK,
+    EVENT_DONE
+};
+
 enum DMData
 {
     EVENT_STATE,
