@@ -129,52 +129,20 @@ class boss_helix_gearbreaker : public CreatureScript
 
             void Reset() override
             {
-                TC_LOG_DEBUG("scripts.ai.core", "HELIX before reset");
+                //TC_LOG_DEBUG("scripts.ai.core", "HELIX before reset");
                 _Reset();
                 events.Reset();
 
                 //me->SummonCreature(NPC_LUMBERING_OAF, oafPos[0]);
                 me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-                TC_LOG_DEBUG("scripts.ai.core", "HELIX after reset");
-            }
-
-/*            void InitializeAI()
-            {
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != sObjectMgr->GetScriptId(DMScriptName))
-                    me->IsAIEnabled();
-                else if (!me->isDead())
-                    Reset();
-            } */
-
-            void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override
-            {
-                if (summon->GetEntry() == NPC_LUMBERING_OAF)
-                {
-                    Talk(SAY_OAF_DEAD);
-                    me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-                    TC_LOG_DEBUG("scripts.ai.core", "HELIX oaf dead");
-                }
-            }
-
-            void PassengerBoarded(Unit* passenger, int8 /*seatId*/, bool apply) override
-            {
-                TC_LOG_DEBUG("scripts.ai.core", "HELIX oaf dead");
-                if (!apply) // passenger left
-                {
-                    if (passenger)
-                    {
-                        // your logic here
-                        Talk(SAY_OAF_DEAD);
-                        me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-                    }
-                }
+                //TC_LOG_DEBUG("scripts.ai.core", "HELIX after reset");
             }
 
             void SetData(uint32 id, uint32 /*value*/) override
             {
                 if (id == DATA_START_EVENT)
                 {
-                    TC_LOG_DEBUG("scripts.ai", "HELIX BR: DATA_START_EVENT received");
+                    //TC_LOG_DEBUG("scripts.ai", "HELIX BR: DATA_START_EVENT received");
                     Talk(SAY_OAF_DEAD);
                     me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                 }
@@ -182,7 +150,7 @@ class boss_helix_gearbreaker : public CreatureScript
 
             void JustEngagedWith(Unit* /*who*/) override
             {
-                TC_LOG_DEBUG("scripts.ai.core", "HELIX aggro");
+                //TC_LOG_DEBUG("scripts.ai.core", "HELIX aggro");
                 events.RescheduleEvent(EVENT_STICKY_BOMB, 8s);
                 if (IsHeroic())
                 {
@@ -192,7 +160,7 @@ class boss_helix_gearbreaker : public CreatureScript
                 Talk(SAY_AGGRO);
                 DoZoneInCombat();
                 instance->SetBossState(DATA_HELIX, IN_PROGRESS);
-                TC_LOG_DEBUG("scripts.ai.core", "HELIX in progress");
+                //TC_LOG_DEBUG("scripts.ai.core", "HELIX in progress");
             }
 
             void KilledUnit(Unit* /*victim*/) override
@@ -233,7 +201,7 @@ class boss_helix_gearbreaker : public CreatureScript
                             {
                                 Creature* oaf = me->FindNearestCreature(NPC_LUMBERING_OAF, 10.0f, true);
 
-                                if (oaf)
+                                if (oaf && oaf->IsAlive())
                                 {
                                     Talk(SAY_SPELL2);
                                 }
@@ -337,12 +305,12 @@ class npc_lumbering_oaf : public CreatureScript
             {
                 if (Creature* helix = me->FindNearestCreature(NPC_HELIX_GEARBREAKER, 5.0f, true))
                 {
-                    TC_LOG_DEBUG("scripts.ai.core", "HELIX BR We found helix");
+                    //TC_LOG_DEBUG("scripts.ai.core", "HELIX BR We found helix");
                     if (CreatureAI* ai = helix->AI())
                     {
                         //ai->SetGUID(player->GetGUID(), DATA_PLAYER_GUID);
                         ai->SetData(DATA_START_EVENT, 0);
-                        TC_LOG_DEBUG("scripts.ai.core", "HELIX BR We sent signal that oaf died");
+                        //TC_LOG_DEBUG("scripts.ai.core", "HELIX BR We sent signal that oaf died");
                     }
                 }
             }
