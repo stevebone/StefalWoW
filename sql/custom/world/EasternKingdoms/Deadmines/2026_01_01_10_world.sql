@@ -19,12 +19,12 @@ UPDATE `creature_template_difficulty` SET `ContentTuningID` = '202' WHERE (`Entr
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '202' WHERE (`Entry` = '47314') and (`DifficultyID` = '1');
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '1199' WHERE (`Entry` = '47314') and (`DifficultyID` = '2');
 
-UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '0', `LevelScalingDeltaMax` = '0' WHERE (`Entry` = '48229') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '0', `LevelScalingDeltaMax` = '0' WHERE (`Entry` = '48284') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '0', `LevelScalingDeltaMax` = '0' WHERE (`Entry` = '48441') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '1', `LevelScalingDeltaMax` = '1' WHERE (`Entry` = '47162') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '1', `LevelScalingDeltaMax` = '1' WHERE (`Entry` = '47296') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '1', `LevelScalingDeltaMax` = '1' WHERE (`Entry` = '47297') and (`DifficultyID` = '0');
+UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '0', `LevelScalingDeltaMax` = '0' WHERE (`Entry` = '48229') and (`DifficultyID` = '1');
+UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '0', `LevelScalingDeltaMax` = '0' WHERE (`Entry` = '48284') and (`DifficultyID` = '1');
+UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '0', `LevelScalingDeltaMax` = '0' WHERE (`Entry` = '48441') and (`DifficultyID` = '1');
+UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '1', `LevelScalingDeltaMax` = '1' WHERE (`Entry` = '47162') and (`DifficultyID` = '1');
+UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '1', `LevelScalingDeltaMax` = '1' WHERE (`Entry` = '47296') and (`DifficultyID` = '1');
+UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin` = '1', `LevelScalingDeltaMax` = '1' WHERE (`Entry` = '47297') and (`DifficultyID` = '1');
 
 -- Glubtok encounter
 UPDATE `creature_template` SET `ScriptName` = 'boss_glubtok' WHERE (`entry` = '47162');
