@@ -1576,7 +1576,7 @@ public:
         {
             if (id == DATA_START_EVENT && !EventStarted)
             {
-                TC_LOG_DEBUG("scripts.ai", "RISE BR: DATA_START_EVENT received");
+                //TC_LOG_DEBUG("scripts.ai", "RISE BR: DATA_START_EVENT received");
                 EventStarted = true;
                 Phase = 0;
                 EventTimer = 2000;
@@ -2041,7 +2041,7 @@ public:
     {
         // Check if player has completed the quest but not yet rewarded or did not advance further than
         // 26761 Threat to the kingdom
-        if (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_COMPLETE || player->GetQuestStatus(26761) != QUEST_STATUS_REWARDED)
+        if (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_COMPLETE || (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_REWARDED && player->GetQuestStatus(26761) != QUEST_STATUS_REWARDED))
         {
             // Apply the phase
             PhasingHandler::AddPhase(player, 226, true);
@@ -2051,7 +2051,7 @@ public:
 
     void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea) override
     {
-        if (newZone == 40 && newArea == 108 && (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_COMPLETE) || player->GetQuestStatus(26761) != QUEST_STATUS_REWARDED)
+        if (newZone == 40 && newArea == 108 && (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_COMPLETE) || (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_REWARDED && player->GetQuestStatus(26761) != QUEST_STATUS_REWARDED))
         {
             PhasingHandler::AddPhase(player, 226, true);
         }
