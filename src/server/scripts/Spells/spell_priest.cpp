@@ -134,6 +134,7 @@ enum PriestSpells
     SPELL_PRIEST_HOLY_10_1_CLASS_SET_4P_EFFECT      = 409479,
     SPELL_PRIEST_INDEMNITY                          = 373049,
     SPELL_PRIEST_ITEM_EFFICIENCY                    = 37595,
+    SPELL_PRIEST_LASTING_WORDS                      = 471504,
     SPELL_PRIEST_LEAP_OF_FAITH_EFFECT               = 92832,
     SPELL_PRIEST_LEVITATE_EFFECT                    = 111759,
     SPELL_PRIEST_LIGHT_ERUPTION                     = 196812,
@@ -174,6 +175,7 @@ enum PriestSpells
     SPELL_PRIEST_PRAYER_OF_MENDING_AURA             = 41635,
     SPELL_PRIEST_PRAYER_OF_MENDING_HEAL             = 33110,
     SPELL_PRIEST_PRAYER_OF_MENDING_JUMP             = 155793,
+    SPELL_PRIEST_PRAYERFUL_LITANY                   = 391209,
     SPELL_PRIEST_PROTECTIVE_LIGHT_AURA              = 193065,
     SPELL_PRIEST_PROTECTOR_OF_THE_FRAIL             = 373035,
     SPELL_PRIEST_PURGE_THE_WICKED                   = 204197,
@@ -2074,6 +2076,47 @@ class spell_pri_item_t6_trinket : public AuraScript
     }
 };
 
+// 471504 - Lasting Words
+// Triggered by 2050 - Holy Word: Serenity and 34861 - Holy Word: Sanctify
+class spell_pri_lasting_words : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_PRIEST_RENEW })
+            && ValidateSpellEffect({ { SPELL_PRIEST_LASTING_WORDS, _spellEff } });
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAuraEffect(SPELL_PRIEST_LASTING_WORDS, _spellEff);
+    }
+
+    void HandleEffectHit(SpellEffIndex /*effIndex*/) const
+    {
+        Unit* caster = GetCaster();
+
+        AuraEffect const* lastingWordsEff = caster->GetAuraEffect(SPELL_PRIEST_LASTING_WORDS, _spellEff);
+        if (!lastingWordsEff)
+            return;
+
+        caster->CastSpell(GetHitUnit(), SPELL_PRIEST_RENEW, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD | TRIGGERED_IGNORE_POWER_COST | TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell(),
+            .SpellValueOverrides = { { SPELLVALUE_DURATION, lastingWordsEff->GetAmount() } }
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_pri_lasting_words::HandleEffectHit, EFFECT_0, SPELL_EFFECT_HEAL);
+    }
+
+    SpellEffIndex _spellEff;
+
+public:
+    explicit spell_pri_lasting_words(SpellEffIndex spellEff) : _spellEff(spellEff) { }
+};
+
 // 92833 - Leap of Faith
 class spell_pri_leap_of_faith_effect_trigger : public SpellScript
 {
@@ -2978,6 +3021,32 @@ class spell_pri_prayer_of_mending_jump : public spell_pri_prayer_of_mending_Spel
     {
         OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pri_prayer_of_mending_jump::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ALLY);
         OnEffectHitTarget += SpellEffectFn(spell_pri_prayer_of_mending_jump::HandleJump, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
+// 391209 - Prayerful Litany (attached to 596 - Prayer of Healing)
+class spell_pri_prayerful_litany : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellEffect({ { SPELL_PRIEST_PRAYERFUL_LITANY, EFFECT_0 } });
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAuraEffect(SPELL_PRIEST_PRAYERFUL_LITANY, EFFECT_0);
+    }
+
+    void CalcPrimaryTargetHealing(SpellEffectInfo const& /*effectInfo*/, Unit const* victim, int32& /*healing*/, int32& /*flatMod*/, float& pctMod) const
+    {
+        if (victim == GetExplTargetUnit())
+            if (AuraEffect const* prayerfulLitanyEff = GetCaster()->GetAuraEffect(SPELL_PRIEST_PRAYERFUL_LITANY, EFFECT_0))
+                AddPct(pctMod, prayerfulLitanyEff->GetAmount());
+    }
+
+    void Register() override
+    {
+        CalcHealing += SpellCalcHealingFn(spell_pri_prayerful_litany::CalcPrimaryTargetHealing);
     }
 };
 
@@ -4414,6 +4483,8 @@ void AddSC_priest_spell_scripts()
     RegisterSpellScript(spell_pri_holy_word_salvation);
     RegisterSpellScript(spell_pri_holy_word_salvation_cooldown_reduction);
     RegisterSpellScript(spell_pri_item_t6_trinket);
+    RegisterSpellScriptWithArgs(spell_pri_lasting_words, "spell_pri_lasting_words_serenity", EFFECT_0);
+    RegisterSpellScriptWithArgs(spell_pri_lasting_words, "spell_pri_lasting_words_sanctify", EFFECT_1);
     RegisterSpellScript(spell_pri_leap_of_faith_effect_trigger);
     RegisterSpellScript(spell_pri_levitate);
     RegisterSpellScript(spell_pri_lights_wrath);
@@ -4436,6 +4507,7 @@ void AddSC_priest_spell_scripts()
     RegisterSpellScript(spell_pri_prayer_of_mending_dummy);
     RegisterSpellAndAuraScriptPair(spell_pri_prayer_of_mending, spell_pri_prayer_of_mending_aura);
     RegisterSpellScript(spell_pri_prayer_of_mending_jump);
+    RegisterSpellScript(spell_pri_prayerful_litany);
     RegisterSpellScript(spell_pri_protective_light);
     RegisterSpellScript(spell_pri_protector_of_the_frail);
     RegisterSpellScript(spell_pri_holy_10_1_class_set_2pc);
