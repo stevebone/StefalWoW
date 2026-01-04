@@ -76,7 +76,7 @@ class boss_foereaper5000 : public CreatureScript
 
         struct boss_foereaper5000AI : public BossAI
         {
-            boss_foereaper5000AI(Creature* pCreature) : BossAI(pCreature, DATA_FOEREAPER)
+            boss_foereaper5000AI(Creature* pCreature) : BossAI(pCreature, BOSS_FOE_REAPER_5000 /*DATA_FOEREAPER*/)
             {
                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
                 me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
@@ -164,16 +164,18 @@ class boss_foereaper5000 : public CreatureScript
                 }
             }
 
-            void JustEngagedWith(Unit* /*who*/) override
+            void JustEngagedWith(Unit* who) override
             {
+                BossAI::JustEngagedWith(who);
                 Talk(SAY_AGGRO);
+                instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me, 1);
                 me->RemoveUnitFlag(UNIT_FLAG_STUNNED);
                 me->RemoveAurasDueToSpell(SPELL_OFF_LINE);
                 events.RescheduleEvent(EVENT_REAPER_STRIKE, 7s);
                 events.RescheduleEvent(EVENT_OVERDRIVE, 12s);
                 events.RescheduleEvent(EVENT_HARVEST, 27s);
                 DoZoneInCombat();
-                instance->SetBossState(DATA_FOEREAPER, IN_PROGRESS);
+                //instance->SetBossState(BOSS_FOE_REAPER_5000 /*DATA_FOEREAPER*/, IN_PROGRESS);
             }
 
             void KilledUnit(Unit* /*victim*/) override
@@ -192,10 +194,18 @@ class boss_foereaper5000 : public CreatureScript
                 }
             }
 
-            void JustDied(Unit* /*killer*/)
+            void JustDied(Unit* /*killer*/) override
             {
+                instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
                 _JustDied();
                 Talk(SAY_DEATH);
+                instance->SetBossState(BOSS_FOE_REAPER_5000, DONE);
+                GameObject* foundryDoor = me->FindNearestGameObject(GO_FOUNDRY_DOOR, 30.0f);
+                if (foundryDoor)
+                {
+                    //factoryDoor->DespawnOrUnsummon();
+                    foundryDoor->SetGoState(GO_STATE_ACTIVE);
+                }
             }
         };
 };

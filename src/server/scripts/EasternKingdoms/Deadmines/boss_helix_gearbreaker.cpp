@@ -107,7 +107,7 @@ class boss_helix_gearbreaker : public CreatureScript
         struct boss_helix_gearbreakerAI : public BossAI
         {
             //boss_helix_gearbreakerAI(Creature* creature) : ScriptedAI(creature, DATA_HELIX)
-            boss_helix_gearbreakerAI(Creature* pCreature) : BossAI(pCreature, DATA_HELIX)
+            boss_helix_gearbreakerAI(Creature* pCreature) : BossAI(pCreature, BOSS_HELIX_GEARBREAKER /*DATA_HELIX*/)
             {
                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
                 me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
@@ -124,7 +124,7 @@ class boss_helix_gearbreaker : public CreatureScript
                 me->setActive(true);
                 me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
 
-                TC_LOG_DEBUG("scripts.ai.core", "HELIX apply immunities");
+                //TC_LOG_DEBUG("scripts.ai.core", "HELIX apply immunities");
             }
 
             void Reset() override
@@ -148,18 +148,21 @@ class boss_helix_gearbreaker : public CreatureScript
                 }
             }
 
-            void JustEngagedWith(Unit* /*who*/) override
+            void JustEngagedWith(Unit* who) override
             {
+                BossAI::JustEngagedWith(who);
+                instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me, 1);
                 //TC_LOG_DEBUG("scripts.ai.core", "HELIX aggro");
+
+                Talk(SAY_AGGRO);
                 events.RescheduleEvent(EVENT_STICKY_BOMB, 8s);
                 if (IsHeroic())
                 {
                     events.RescheduleEvent(EVENT_CHEST_BOMB, 10s);
                     events.RescheduleEvent(EVENT_HELIX_CREW, 5s);
                 }
-                Talk(SAY_AGGRO);
                 DoZoneInCombat();
-                instance->SetBossState(DATA_HELIX, IN_PROGRESS);
+                //instance->SetBossState(BOSS_HELIX_GEARBREAKER /*DATA_HELIX*/, IN_PROGRESS);
                 //TC_LOG_DEBUG("scripts.ai.core", "HELIX in progress");
             }
 
@@ -170,8 +173,19 @@ class boss_helix_gearbreaker : public CreatureScript
 
             void JustDied(Unit* /*killer*/) override
             {
+                instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
                 _JustDied();
                 Talk(SAY_DEATH);
+                instance->SetBossState(BOSS_HELIX_GEARBREAKER, DONE);
+
+                // This should be done by instance script
+                // But is not working for some reason
+                GameObject* mastDoor = me->FindNearestGameObject(GO_MAST_ROOM_DOOR, 30.0f);
+                if (mastDoor)
+                {
+                    //factoryDoor->DespawnOrUnsummon();
+                    mastDoor->SetGoState(GO_STATE_ACTIVE);
+                }
             }
 
             void UpdateAI(uint32 diff) override

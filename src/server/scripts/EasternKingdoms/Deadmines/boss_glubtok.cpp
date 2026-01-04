@@ -58,7 +58,7 @@ class boss_glubtok : public CreatureScript
 
         struct boss_glubtokAI : public BossAI
         {
-            boss_glubtokAI(Creature* pCreature) : BossAI(pCreature, DATA_GLUBTOK)
+            boss_glubtokAI(Creature* pCreature) : BossAI(pCreature, BOSS_GLUBTOK /*DATA_GLUBTOK*/)
             {
                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
                 me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
@@ -83,24 +83,17 @@ class boss_glubtok : public CreatureScript
 
                 stage = 0;
                 me->SetReactState(REACT_AGGRESSIVE);
-                SetData(EVENT_RHAHKZOR, DONE);
+                //SetData(EVENT_RHAHKZOR, DONE);
             }
 
-            void InitializeAI()
+            void JustEngagedWith(Unit* who) override
             {
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != sObjectMgr->GetScriptId(DMScriptName))
-                    me->IsAIEnabled();
-                else if (!me->isDead())
-                    Reset();
-            }
-
-            void JustEngagedWith(Unit* /*who*/) override
-            {
-                stage = 0;
+                BossAI::JustEngagedWith(who);
                 Talk(SAY_AGGRO);
+                instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me, 1);
                 events.RescheduleEvent(EVENT_FIST_OF_FLAME, 10s);
                 DoZoneInCombat();
-                instance->SetBossState(DATA_GLUBTOK, IN_PROGRESS);
+                //instance->SetBossState(/*DATA_GLUBTOK*/ BOSS_GLUBTOK, IN_PROGRESS);
             }
 
             void KilledUnit(Unit* /*victim*/) override
@@ -110,15 +103,20 @@ class boss_glubtok : public CreatureScript
 
             void JustDied(Unit* /*killer*/) override
             {
+                instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
                 _JustDied();
                 Talk(SAY_DEATH);
-                //me->RemoveGameObjectByEntry(13965);
-                GameObject* factoryDoor = me->FindNearestGameObject(GO_FACTORY_DOOR, 20.0f);
+                instance->SetBossState(/*DATA_GLUBTOK*/ BOSS_GLUBTOK, DONE);
+
+                // This should be handled by instance script
+                // But it is NOT working for some reason
+                GameObject* factoryDoor = me->FindNearestGameObject(GO_FACTORY_DOOR, 30.0f);
                 if (factoryDoor)
                 {
                     //factoryDoor->DespawnOrUnsummon();
                     factoryDoor->SetGoState(GO_STATE_ACTIVE);
                 }
+                
             }
 
             void UpdateAI(uint32 diff)
@@ -148,7 +146,7 @@ class boss_glubtok : public CreatureScript
                     case EVENT_ARCANE_POWER1:
                         Talk(SAY_HEAD2);
                         events.RescheduleEvent(EVENT_ARCANE_POWER2, 3s);
-                        SetData(EVENT_RHAHKZOR, DONE);
+                        //SetData(EVENT_RHAHKZOR, DONE);
                         break;
                     case EVENT_ARCANE_POWER2:
                         me->NearTeleportTo(-193.43f,-437.86f,54.38f,4.88f,true);

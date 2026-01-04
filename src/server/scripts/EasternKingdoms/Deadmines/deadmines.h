@@ -77,11 +77,11 @@ enum DMData
 enum DMData64
 {
     DATA_SMITE_CHEST,
-    DATA_GLUBTOK = 0,
-    DATA_HELIX = 1,
-    DATA_FOEREAPER = 2,
-    DATA_ADMIRAL = 3,
-    DATA_CAPTAIN = 4,
+    //DATA_GLUBTOK = 0,
+    //DATA_HELIX = 1,
+    //DATA_FOEREAPER = 2,
+    //DATA_ADMIRAL = 3,
+    //DATA_CAPTAIN = 4,
     DATA_VANESSA = 5,
     DATA_CANNON_EVENT = 6,
     DATA_OAF = 7,

@@ -86,7 +86,7 @@ public:
             PiratesDelay_Timer = 0;
         }
 
-        ObjectGuid FactoryDoorGUID;
+        //ObjectGuid FactoryDoorGUID;
         ObjectGuid IronCladDoorGUID;
         ObjectGuid DefiasCannonGUID;
         ObjectGuid DoorLeverGUID;
@@ -219,7 +219,7 @@ public:
         {
             switch (go->GetEntry())
             {
-            case GO_FACTORY_DOOR:   FactoryDoorGUID = go->GetGUID(); break;
+            //case GO_FACTORY_DOOR:   FactoryDoorGUID = go->GetGUID(); break;
             case GO_IRON_CLAD_DOOR:  IronCladDoorGUID = go->GetGUID();  break;
             case GO_DEFIAS_CANNON:  DefiasCannonGUID = go->GetGUID();  break;
             case GO_DOOR_LEVER:     DoorLeverGUID = go->GetGUID();     break;
@@ -235,10 +235,10 @@ public:
                 if (!DefiasCannonGUID.IsEmpty() && !IronCladDoorGUID.IsEmpty())
                     State = data;
                 break;
-            case EVENT_RHAHKZOR:
-                if (GameObject* go = instance->GetGameObject(FactoryDoorGUID))
-                    go->SetGoState(GO_STATE_ACTIVE);
-                break;
+            //case EVENT_RHAHKZOR:
+            //    if (GameObject* go = instance->GetGameObject(FactoryDoorGUID))
+            //        go->SetGoState(GO_STATE_ACTIVE);
+            //    break;
             }
         }
 
@@ -251,17 +251,6 @@ public:
             }
 
             return 0;
-        }
-
-        ObjectGuid GetGuidData(uint32 data) const override
-        {
-            switch (data)
-            {
-            case DATA_SMITE_CHEST:
-                return uiSmiteChestGUID;
-            }
-
-            return ObjectGuid::Empty;
         }
     };
 
