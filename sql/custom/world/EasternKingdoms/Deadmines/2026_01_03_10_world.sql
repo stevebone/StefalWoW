@@ -88,8 +88,8 @@ INSERT INTO `gameobject_loot_template` VALUES
 -- Rare parrots spawns
 DELETE FROM `creature` WHERE `map` = 36 AND `id` IN (48448, 48449);
 INSERT INTO `creature` VALUES
-('900264', '48448', '36', '1581', '1582', '1', '0', '0', '0', '-1', '0', '0', '-46.8184', '-691.455', '3.82295', '4.42742', '300', '30', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
-('900265', '48449', '36', '1581', '1582', '1', '0', '0', '0', '-1', '0', '0', '-39.5969', '-695.628', '3.97999', '6.19238', '300', '30', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0');
+('900264', '48448', '36', '1581', '1582', '1,2', '0', '0', '0', '-1', '0', '0', '-46.8184', '-691.455', '3.82295', '4.42742', '300', '5', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+('900265', '48449', '36', '1581', '1582', '1,2', '0', '0', '0', '-1', '0', '0', '-39.5969', '-695.628', '3.97999', '6.19238', '300', '5', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0');
 
 -- Albino Eyegouger fixes
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE (`entry` = '48448');
@@ -134,6 +134,10 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 ('48521', '0', '1', '0', '2', '14', '100', '200000', '40', '20000', '30000', '11', '90914', '0', '7', 'Defias Squallshaper Cast Riptide'),
 ('48521', '0', '2', '3', '1,2', '2', '100', '0', '15', '1000', '1000', '25', '0', '0', '1', 'Defias Squallshaper Flee 15% HP'),
 ('48521', '0', '3', '0', '1,2', '61', '100', '0', '15', '0', '0', '1', '0', '0', '1', 'Defias Squallshaper Say Text at 15% HP');
+
+DELETE FROM `creature_text` WHERE `CreatureID` = 48521;
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `comment`) VALUES 
+('48521', '0', '1', '%s attempts to run away in fear!', '16', '100', 'Defias Squallshaper Flee');
 
 -- Defias Pirate fixes
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE (`entry` = '48522');
