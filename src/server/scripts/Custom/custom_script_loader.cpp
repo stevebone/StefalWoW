@@ -16,9 +16,11 @@
  */
 
 // This is where scripts' loading functions should be declared:
+void AddSC_followship_bots_priest();                //NPCBots Priest
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
+    AddSC_followship_bots_priest();
 }

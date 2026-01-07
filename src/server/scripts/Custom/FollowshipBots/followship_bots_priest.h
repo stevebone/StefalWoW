@@ -1,0 +1,40 @@
+#pragma once
+
+#include <vector>
+#include <cstdint>
+
+// Spell Related Cooldowns
+static constexpr uint32 DESPERATE_PRAYER_CD_MS = 90000;
+
+enum FSB_PRIEST_BUFF_SPELLS
+{
+    SPELL_PRIEST_POWER_WORD_FORTITUDE = 13864, // 21562
+    SPELL_PRIEST_POWER_WORD_SHIELD = 22187, // cooldown: 8s
+    SPELL_PRIEST_RECUPERATE = 1231418 // self heal, out of combat, cooldown: 120s
+};
+
+enum FSB_PRIEST_SPECIAL_SPELLS
+{
+    SPELL_PRIEST_RESURRECTION = 2006,
+    SPELL_PRIEST_SHADOWFORM = 16592,
+    SPELL_PRIEST_PURIFY = 527 // cooldown 8s
+};
+
+enum FSB_PRIEST_HEAL_SPELLS
+{
+    SPELL_PRIEST_FLASH_HEAL = 27608, //152894
+    PRIEST_PRAYER_OF_MENDING = 33076, // heal targets, cooldown: 12s
+    SPELL_PRIEST_RENEW = 34423, //22168
+    SPELL_PRIEST_HEAL = 2060,
+    SPELL_PRIEST_DESPERATE_PRAYER = 19236, // 290109 self heal, < 10% hp, cooldown: 90s
+};
+
+enum FSB_PRIEST_COMBAT_SPELLS
+{
+    SPELL_PRIEST_SMITE = 220120,
+    SPELL_PRIEST_MIND_BLAST = 314801, //8092, cooldown: 9s
+    SPELL_PRIEST_SHADOW_WORD_PAIN = 222074,
+    SPELL_PRIEST_PSYCHIC_SCREAM = 8122 // self, cooldown: 45s
+};
+
+
