@@ -162,6 +162,7 @@ class TC_GAME_API BaseEntity
         inline bool IsUnit() const { return isType(TYPEMASK_UNIT); }
         inline bool IsCreature() const { return GetTypeId() == TYPEID_UNIT; }
         inline bool IsPlayer() const { return GetTypeId() == TYPEID_PLAYER; }
+        inline bool IsBot() const { return GetTypeId() == TYPEID_PLAYER; }
         inline bool IsGameObject() const { return GetTypeId() == TYPEID_GAMEOBJECT; }
         inline bool IsDynObject() const { return GetTypeId() == TYPEID_DYNAMICOBJECT; }
         inline bool IsCorpse() const { return GetTypeId() == TYPEID_CORPSE; }

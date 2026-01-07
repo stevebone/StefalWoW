@@ -491,6 +491,9 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
 
         UF::OptionalUpdateField<UF::VendorData, int32(WowCS::EntityFragment::FVendor_C), 0> m_vendorData;
 
+        void SetBot(bool isBot) { m_isFSBot = isBot; }
+        bool IsBot() const { return m_isFSBot; }
+
     protected:
         void BuildValuesCreate(ByteBuffer* data, UF::UpdateFieldFlag flags, Player const* target) const override;
         void BuildValuesUpdate(ByteBuffer* data, UF::UpdateFieldFlag flags, Player const* target) const override;
@@ -610,6 +613,8 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         uint32 _gossipMenuId;
         Optional<uint32> _trainerId;
         float _sparringHealthPct;
+
+        bool m_isFSBot;
 };
 
 class TC_GAME_API AssistDelayEvent : public BasicEvent

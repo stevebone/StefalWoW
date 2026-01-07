@@ -1873,6 +1873,8 @@ class TC_GAME_API Unit : public WorldObject
 
         UF::UpdateField<UF::UnitData, int32(WowCS::EntityFragment::CGObject), TYPEID_UNIT> m_unitData;
 
+        bool IsPlayerOrBot() const;
+
     protected:
         explicit Unit (bool isWorldObject);
 
