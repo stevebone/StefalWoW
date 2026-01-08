@@ -43,6 +43,10 @@ constexpr uint32 REACT_BUFFED_CHANCE_PERCENT = 10;
 // Spell Related
 static constexpr uint32 NPC_GCD_MS = 1500;
 
+// MoveChase range for spell casters
+constexpr float SPELL_MAX_RANGE = 30.0f;
+constexpr float SPELL_MIN_RANGE = 18.0f;
+
 enum FSB_GossipMenus
 {
     FSB_GOSSIP_DEFAULT_MENU = 900000,

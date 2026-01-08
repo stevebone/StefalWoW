@@ -81,7 +81,8 @@ public:
         uint32 _desperatePrayerReadyMs = 0;
         uint32 _recuperateReadyMs = 0;
         bool _pendingResurrection = false;
-        bool castedThisTick = false;
+        bool _playerDead = false;
+        //bool castedThisTick = false;
 
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
@@ -539,12 +540,13 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-
+                //if (victim->GetTypeId() == TYPEID_PLAYER)
+                //    Talk(SAY_KILL);
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
         {
-            TC_LOG_DEBUG("scripts.core.ai", "FSB Casting spell id {}", spell->Id);
+            TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {}", spell->Id);
         }
 
         void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
@@ -644,7 +646,14 @@ public:
                 // =============================
                 // HEALING: Player or Bot based on Role
                 // =============================
+                bool castedHealThisTick = false; // reset each tick
+
                 std::vector<Unit*> healCandidates;
+
+                // Define HP thresholds per role
+                float lowHpThreshold = 30.f;
+                float midHpThreshold = 55.f;
+                float highHpThreshold = 70.f;
 
                 switch (roleState)
                 {
@@ -653,22 +662,22 @@ public:
                     if (player && player->IsAlive() && player->GetHealthPct() < 90)
                         healCandidates.push_back(player);
 
-                    if (me->GetHealthPct() < 90)
+                    if (me->GetHealthPct() < 40)
                         healCandidates.push_back(me);
                     break;
 
                 case FSB_ROLE_STATE_DAMAGE:
                     // Only heal self
-                    if (me->GetHealthPct() < 90)
+                    if (me->GetHealthPct() < 60)
                         healCandidates.push_back(me);
                     break;
 
                 case FSB_ROLE_STATE_BALANCED:
                     // Heal bot first, then player
-                    if (me->GetHealthPct() < 90)
+                    if (me->GetHealthPct() < 70)
                         healCandidates.push_back(me);
 
-                    if (player && player->IsAlive() && player->GetHealthPct() < 90)
+                    if (player && player->IsAlive() && player->GetHealthPct() < 70)
                         healCandidates.push_back(player);
                     break;
                 }
@@ -715,27 +724,47 @@ public:
                             continue;
 
                         float hpPct = healTarget->GetHealthPct();
-                        if ((spell.spellId == SPELL_PRIEST_HEAL && hpPct > 60.f) ||
-                            (spell.spellId == SPELL_PRIEST_FLASH_HEAL && hpPct > 75.f) ||
-                            (spell.spellId == SPELL_PRIEST_RENEW && hpPct > 90.f))
+
+                        // Role-based thresholds
+                        bool skip = false;
+
+                        switch (spell.spellId)
+                        {
+                        case SPELL_PRIEST_HEAL:
+                            skip = hpPct > lowHpThreshold;
+                            break;
+                        case SPELL_PRIEST_FLASH_HEAL:
+                            skip = hpPct > midHpThreshold;
+                            break;
+                        case SPELL_PRIEST_RENEW:
+                            skip = hpPct > highHpThreshold;
+                            break;
+                        default:
+                            break;
+                        }
+
+                        if (skip)
                             continue;
 
                         if (spell.chance < frand(0.f, 100.f))
                             continue;
 
                         if (!healTarget->HasAura(spell.spellId))
+                        {
                             me->CastSpell(healTarget, spell.spellId, false);
+                            castedHealThisTick = true;
+                            spell.nextReadyMs = now + spell.cooldownMs;
+                            _globalCooldownUntil = now + NPC_GCD_MS;
 
-                        spell.nextReadyMs = now + spell.cooldownMs;
-                        _globalCooldownUntil = now + NPC_GCD_MS;
 
-                        //if (healTarget == player)
-                        //    me->Say("Healing player", LANG_UNIVERSAL);
-                        //else
-                        //    me->Say("Healing myself", LANG_UNIVERSAL);
+                            //if (healTarget == player)
+                            //    me->Say("Healing player", LANG_UNIVERSAL);
+                            //else
+                            //    me->Say("Healing myself", LANG_UNIVERSAL);
 
-                        // Only one heal per tick
-                        return;
+                            // Only one heal per tick
+                        }
+                        break;
                     }
                 }
 
@@ -743,16 +772,29 @@ public:
                 // 2?? Combat logic
                 // -------------------------
 
+                if (castedHealThisTick)
+                    return;
+
                 std::vector<Unit*> combatTargets;
 
                 if (roleState == FSB_ROLE_STATE_ASSIST)
                 {
-                    if (!player || !player->IsAlive())
-                        return;
+                    if (player && player->IsAlive())
+                    {
 
-                    // Attack player's target(s)
-                    if (Unit* playerTarget = player->GetSelectedUnit())
-                        combatTargets.push_back(playerTarget);
+                        // Attack player's target(s)
+                        if (Unit* playerTarget = player->GetSelectedUnit())
+                            combatTargets.push_back(playerTarget);
+                    }
+                    else
+                    {
+                        auto const& threatRefs = me->GetThreatManager().GetSortedThreatList();
+                        for (ThreatReference const* ref : threatRefs)
+                        {
+                            if (Unit* u = ref->GetVictim())
+                                combatTargets.push_back(u);
+                        }
+                    }
                 }
                 else if (roleState == FSB_ROLE_STATE_DAMAGE)
                 {
@@ -764,10 +806,17 @@ public:
                             combatTargets.push_back(u);
                     }
 
+                    auto const& threatRefs2 = player->GetThreatManager().GetSortedThreatList();
                     if (player && player->IsAlive())
                     {
                         if (Unit* playerTarget = player->GetSelectedUnit())
                             combatTargets.push_back(playerTarget);
+
+                        for (ThreatReference const* ref2 : threatRefs2)
+                        {
+                            if (Unit* u = ref2->GetVictim())
+                                combatTargets.push_back(u);
+                        }
                     }
                 }
                 else if (roleState == FSB_ROLE_STATE_BALANCED)
@@ -783,55 +832,72 @@ public:
 
                 for (Unit* target : combatTargets)
                 {
-                    if (!target || !target->IsAlive() || !me->IsHostileTo(target))
-                        continue;
-
-                    // Sync combat state with target
-                    if (!me->GetThreatManager().IsThreatenedBy(target))
+                    //if (!target || !target->IsAlive() || !me->IsHostileTo(target))
+                    //    continue;
+                    if (target && target->IsAlive())
                     {
-                        me->GetThreatManager().AddThreat(target, 100.0f);
-                        //me->SetInCombatWith(target);
-                        //target->SetInCombatWith(me);
-                        me->Attack(target, true);
-                    }
 
-                    for (auto& spell : CombatSpells)
-                    {
-                        if (spell.nextReadyMs > now)
-                            continue;
-
-                        if (spell.spellId == SPELL_PRIEST_PSYCHIC_SCREAM)
+                        // Sync combat state with target
+                        if (!me->GetThreatManager().IsThreatenedBy(target))
                         {
-                            //if (CountActiveAttackers() < 2)
-                            //    continue;
-
-                            if (CountAttackersOn(me) + CountAttackersOn(player) < 3)
-                                continue;
-
-                            if (!me->IsWithinDistInMap(me, 8.0f))
-                                continue; // fear radius
-
-                            if (me->HasAura(SPELL_PRIEST_PSYCHIC_SCREAM) || (player && player->HasAura(SPELL_PRIEST_PSYCHIC_SCREAM)))
-                                continue; // already feared recently (optional)
-
-                            target = me;
+                            me->GetThreatManager().AddThreat(target, 100.0f);
+                            //me->SetInCombatWith(target);
+                            //target->SetInCombatWith(me);
+                            me->Attack(target, true);
                         }
 
-                        if (spell.spellId != SPELL_PRIEST_PSYCHIC_SCREAM)
+                        for (auto& spell : CombatSpells)
                         {
-                            if (!me->IsWithinDistInMap(target, 30.0f))
+                            if (spell.nextReadyMs > now)
                                 continue;
+
+                            // ---------- Psychic Scream special case ----------
+                            if (spell.spellId == SPELL_PRIEST_PSYCHIC_SCREAM)
+                            {
+                                if (CountAttackersOn(me) + (player ? CountAttackersOn(player) : 0) < 3)
+                                    continue;
+
+                                if (!me->IsWithinDistInMap(target, 8.0f))
+                                    continue;
+
+                                StopFollowing();
+
+                                me->CastSpell(me, spell.spellId, false);
+                                spell.nextReadyMs = now + spell.cooldownMs;
+                                _globalCooldownUntil = now + NPC_GCD_MS;
+
+                                ResumeFollow(player);
+                                return;
+                            }
+
+                            // ---------- Ranged spell movement ----------
+                            float dist = me->GetDistance(target);
+                            float desiredRange = frand(SPELL_MIN_RANGE, SPELL_MAX_RANGE);
+
+                            if (dist > desiredRange)
+                            {
+                                StopFollowing();
+
+                                me->GetMotionMaster()->MoveChase(target, desiredRange);
+                                return; // movement is the action this tick
+                            }
+
+                            // ---------- Chance roll ----------
+                            if (spell.chance < frand(0.f, 100.f))
+                                continue;
+
+                            // ---------- Cast ----------
+                            StopFollowing();
+
+                            me->CastSpell(target, spell.spellId, false);
+                            spell.nextReadyMs = now + spell.cooldownMs;
+                            _globalCooldownUntil = now + NPC_GCD_MS;
+
+                            ResumeFollow(player);
+
+                            // Only cast one combat spell per tick
+                            break;
                         }
-
-                        if (spell.chance < frand(0.f, 100.f))
-                            continue;
-
-                        me->CastSpell(target, spell.spellId, false);
-                        spell.nextReadyMs = now + spell.cooldownMs;
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-
-                        // Only cast one combat spell per tick
-                        break;
                     }
                 }
 
@@ -870,12 +936,6 @@ public:
 
                 me->StopMoving(); // optional but immersive
                 me->CastSpell(player, SPELL_PRIEST_RESURRECTION, false);
-
-                // TO-DO add say lines
-                //std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect);
-                //me->Say(msg, LANG_UNIVERSAL);
-
-                me->Say("Player Resurrected", LANG_UNIVERSAL);
 
                 break;
             }
@@ -920,7 +980,7 @@ public:
                     // ?? ALWAYS reschedule while combat exists
                     if (IsCombatActive())
                     {
-                        //events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS, 0ms);
+                        events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS, 0ms);
                         events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 1s);
                     }
                     break;
@@ -1014,6 +1074,8 @@ public:
                 {
                     uint32 now = getMSTime();
 
+                    bool castedThisTick = false;
+
                     //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
 
                     Unit* owner = me->GetOwner();
@@ -1022,16 +1084,29 @@ public:
                     // BOT check if player dead
                     if (player && !player->IsAlive() && !_pendingResurrection)
                     {
-                        _pendingResurrection = true;
-                        me->Yell("Oh shit, noooo!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                        if (!_playerDead)
+                        {
+                            me->Yell("Oh shit, noooo!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player found dead in Periodic Check");
+                        }
 
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player found dead in Periodic Check");
+                        _playerDead = true;                        
 
-                        DoAction(FSB_ACTION_RESURRECT_PLAYER);
+                        if (!me->IsInCombat())
+                        {
+                            _pendingResurrection = true;
+                            DoAction(FSB_ACTION_RESURRECT_PLAYER);
+                        }
                     }
-                    else if (player && player->IsAlive())
+                    else if (player && player->IsAlive() && _pendingResurrection && _playerDead)
                     {
                         _pendingResurrection = false;
+                        _playerDead = false;
+                        // TO-DO add say lines
+                        //std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect);
+                        //me->Say(msg, LANG_UNIVERSAL);
+
+                        me->Say("Player Resurrected", LANG_UNIVERSAL);
                     }
 
                     // BOT LEVEL Update
@@ -1096,33 +1171,30 @@ public:
                         }
                     }
 
-                    // BOT SELF Buff Cast
-                    if (!me->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE) && !me->HasUnitState(UNIT_STATE_CASTING))
+                    // Fortitude Buff check
+                    if (!me->IsInCombat() && me->IsAlive())
                     {
-                        if (!castedThisTick && CanCastNow(now))
+                        Unit* fortTarget = nullptr;
+
+                        if (player && player->IsAlive() && !player->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE))
+                            fortTarget = player;
+                        else if (!me->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE))
+                            fortTarget = me;
+
+                        if (fortTarget && !castedThisTick && CanCastNow(now))
                         {
-
-                            TC_LOG_DEBUG("scripts.ai.core", "FSB: UpdateAI Event Maintenance Self buff check");
-
-                            me->CastSpell(me, SPELL_PRIEST_POWER_WORD_FORTITUDE);
-                            _globalCooldownUntil = now + NPC_GCD_MS;
+                            me->CastSpell(fortTarget, SPELL_PRIEST_POWER_WORD_FORTITUDE);
                             castedThisTick = true;
-                            me->Say("Am gonna need this buff!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                        }
-                    }
-
-                    // BOT PLAYER Buff Cast
-                    if (player && !player->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE) && !me->HasUnitState(UNIT_STATE_CASTING))
-                    {
-                        if (!castedThisTick && CanCastNow(now))
-                        {
-
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Check player buff");
-
-                            me->CastSpell(player, SPELL_PRIEST_POWER_WORD_FORTITUDE);
                             _globalCooldownUntil = now + NPC_GCD_MS;
-                            castedThisTick = true;
-                            me->Say("Here's something for ya!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+
+                            TC_LOG_DEBUG("scripts.ai.core", "FSB: UpdateAI Event Maintenance Fortitude buff check");
+
+                            if(fortTarget == me)
+                            {
+                                me->Say("Am gonna need this buff!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                            }
+                            else
+                                me->Say("Here's something for ya!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
                         }
                     }
 
@@ -1148,7 +1220,7 @@ public:
                             }
                             else if (!castedThisTick && player->GetHealthPct() <= 70)
                             {
-                                me->CastSpell(me, SPELL_PRIEST_FLASH_HEAL, false);
+                                me->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
                                 _globalCooldownUntil = now + NPC_GCD_MS;
                                 castedThisTick = true;
 
@@ -1158,6 +1230,21 @@ public:
                                 if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
                                     me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget), LANG_UNIVERSAL);
                             }
+                        }
+
+                    }
+
+                    // BOT Check move states
+                    if (hired && me->IsAlive())
+                    {
+                        MotionMaster* mm = me->GetMotionMaster();            
+
+                        MovementGeneratorType type = mm->GetCurrentMovementGeneratorType();
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Movement check: type {} and move state {}", type, moveState);
+                        if (hired && moveState == FSB_MOVE_STATE_FOLLOWING && type == IDLE_MOTION_TYPE)
+                        {
+                            ResumeFollow(player);
+                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance we are following");
                         }
 
                     }
@@ -1251,6 +1338,25 @@ public:
                     ++count;
             }
             return count;
+        }
+
+        // Stop Follow
+        void StopFollowing()
+        {
+            //if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == FOLLOW_MOTION_TYPE)
+            me->StopMoving();
+            me->GetMotionMaster()->Clear();
+            moveState = FSB_MOVE_STATE_IDLE;
+        }
+
+        // Resume Follow
+        void ResumeFollow(Player* player)
+        {
+            if (!player)
+                return;
+
+            me->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
+            moveState = FSB_MOVE_STATE_FOLLOWING;
         }
 
     };
