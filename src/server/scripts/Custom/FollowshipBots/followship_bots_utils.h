@@ -5,6 +5,7 @@
 #include <vector>
 #include <random>
 
+#include "MotionMaster.h"
 #include "Player.h"
 
 // Converts an int64 price in copper to a string like "10 silver"
@@ -38,7 +39,10 @@ enum class FSBSayType
     HealSelf,       // NPC Heals self
     Resurrect,      // NPC Resurrects the player
     PlayerDead,     // NPC reacts to dead player
-    SpellOnTarget   // NPC reacts when casting combat spell on target
+    SpellOnTarget,  // NPC reacts when casting combat spell on target
+    CombatMana,     // NPC IC OOM and uses mana potion
+    BotDeath,       // NPC Dies
+    TargetDeath     // NPC Kills Target
 };
 
 // Helper to pick a random element from a vector
@@ -329,6 +333,80 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
         return chosen;
     }
 
+    case FSBSayType::CombatMana:
+    {
+        static const std::vector<std::string> combatManaTexts =
+        {
+            "Ugh. my brain's running on empty!",
+            "Time for a little <spell> snack!",
+            "<name>, If I run out now, it's over. gulp!",
+            "Someone toss me a <spell> potion, stat!",
+            "I can almost feel my powers fading.",
+            "Nothing a sip of magic can't fix!",
+            "Mana low. desperation high!",
+            "This <spell> better work. or I'm toast!",
+            "<name> have a <spell> for me? No...?! Ok, I'll use mine..."
+        };
+
+        std::string chosen = RandomChoice(combatManaTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        while ((pos = chosen.find("<spell>")) != std::string::npos)
+            chosen.replace(pos, 7, string2);
+        return chosen;
+    }
+
+    case FSBSayType::BotDeath:
+    {
+        static const std::vector<std::string> botDeathTexts =
+        {
+            "Well. this seems suboptimal. <name> , I blame you.",
+            "I was promised healing.This feels like betrayal, <name>.",
+            "Tell my spellbook. I loved it. <name>, you're still paying for repairs.",
+            "Next time, maybe don't pull half the place, <name>.",
+            "Ah yes. the sweet embrace of the spirit healer.",
+            "<name>. I hope that was worth it.",
+            "I'm not saying this is your fault, <name>. but it's definitely your fault."
+            "Good news, <name>: I found the floor.With my face."
+            "This is fine.Everything is fine.I am absolutely- dead."
+            "Remember me as I was. alive. and judging your decisions, <name>."
+        };
+
+        std::string chosen = RandomChoice(botDeathTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        while ((pos = chosen.find("<spell>")) != std::string::npos)
+            chosen.replace(pos, 7, string2);
+        return chosen;
+    }
+
+    case FSBSayType::TargetDeath:
+    {
+        static const std::vector<std::string> targetDeathTexts =
+        {
+            "Another one down. You're welcome, <name>.",
+            "Rest in pieces, <target>.",
+            "<target>? Yeah. that didn't end well for them.",
+            "See, <name>? Perfectly under control.",
+            "I warned you, <target>. Well. internally.",
+            "That went about as expected. For me.",
+            "<name>, please tell me you saw that.",
+            "And that's why I read my spellbook.",
+            "One less <target>. Try to keep up, <name>.",
+            "I call that a successful application of violence."
+        };
+
+        std::string chosen = RandomChoice(targetDeathTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        while ((pos = chosen.find("<target>")) != std::string::npos)
+            chosen.replace(pos, 8, string2);
+        return chosen;
+    }
+
     default:
         return "Hello " + playerName + ", duration: " + std::to_string(duration) + " hour(s).";
     }
@@ -360,3 +438,19 @@ struct FSBotSpells
     float  chance;            // 0-100
     uint32 nextReadyMs = 0;   // runtime state
 };
+
+namespace FSBUtils
+{
+    // Checks if either bot or player is in combat
+    bool IsCombatActive(Unit* me);
+
+    // Counts active attackers
+    uint8 CountActiveAttackers(Unit* me);
+
+    // Counts active attackers on bot
+    uint8 CountAttackersOn(Unit* who);
+
+    void StopFollow(Unit* me);
+
+    MovementGeneratorType GetMovementType(Unit* me);
+}

@@ -12,6 +12,7 @@
 #include "followship_bots_config.h"
 #include "followship_bots_priest.h"
 #include "followship_bots_utils.h"
+#include "followship_bots_utils_spells.h"
 
 std::vector<FSBotSpells> AssistHealSpells =
 // SPELL ID, Cooldown, Chance
@@ -78,7 +79,6 @@ public:
 
         bool hired = false;
 
-        int moveState = FSB_MOVE_STATE_IDLE;
         int roleState = FSB_ROLE_STATE_BALANCED;
 
         bool updateFollowInfo = false;
@@ -92,8 +92,13 @@ public:
         bool _playerDead = false;
         uint32 _nextCombatSayMs = 0;
 
+        bool _botOutCombat = false;
+        bool _botInCombat = false;
+
         bool _playerCombatStarted = false;
         bool _playerCombatEnded = false;
+
+        bool _botManaPotionUsed = false;
 
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
@@ -213,7 +218,8 @@ public:
                 // Bot Info - to do make it as SAY
             case GOSSIP_ACTION_INFO_DEF + 2:
             {
-                player->GetSession()->SendNotification("I am a priest from Stormwind. I charge gold for my services");
+                //player->GetSession()->SendNotification("I am a priest from Stormwind. I charge gold for my services");
+                me->Say("Hey, I am a priest from Stormwind in search for work and adventure. I charge gold for my services...", LANG_UNIVERSAL);
                 player->PlayerTalkClass->SendCloseGossip();
                 break;
             }
@@ -247,14 +253,14 @@ public:
                 // Bot Instructions Menu
             case GOSSIP_ACTION_INFO_DEF + 6:
             {
-                if(moveState == FSB_MOVE_STATE_FOLLOWING)
+                if(FSBUtils::GetMovementType(me) == FOLLOW_MOTION_TYPE)
                 {
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_STAY_HERE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 20);
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
                     AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
                 }
-                else if(moveState == FSB_MOVE_STATE_STAY)
+                else if(FSBUtils::GetMovementType(me) == IDLE_MOTION_TYPE)
                 {
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 21);
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
@@ -305,9 +311,6 @@ public:
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration1 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
-                    //me->SetReactState(REACT_ASSIST);
-                    //me->SetReactState(REACT_AGGRESSIVE);
-                    events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
                     std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration1, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
@@ -333,12 +336,6 @@ public:
 
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration2 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_BUFFS, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_HP, 100ms);
-
-                    //me->SetReactState(REACT_ASSIST);
-                    //me->SetReactState(REACT_AGGRESSIVE);
-                    events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
                     std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration2, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
@@ -364,12 +361,6 @@ public:
 
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration3 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_BUFFS, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_HP, 100ms);
-
-                    //me->SetReactState(REACT_ASSIST);
-                    //me->SetReactState(REACT_AGGRESSIVE);
-                    events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
                     std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration3, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
@@ -394,12 +385,6 @@ public:
                     hired = true;
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_BUFFS, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_HP, 100ms);
-
-                    //me->SetReactState(REACT_ASSIST);
-                    //me->SetReactState(REACT_AGGRESSIVE);
-                    events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
                     std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
                     me->Say(msg, LANG_UNIVERSAL);
@@ -550,8 +535,11 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-                //if (victim->GetTypeId() == TYPEID_PLAYER)
-                //    Talk(SAY_KILL);
+            Unit* owner = me->GetOwner();
+            Player* player = owner ? owner->ToPlayer() : nullptr;
+
+            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::TargetDeath, victim->GetName());
+            me->Say(msg, LANG_UNIVERSAL);
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
@@ -601,7 +589,11 @@ public:
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
+            Unit* owner = me->GetOwner();
+            Player* player = owner ? owner->ToPlayer() : nullptr;
 
+            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
+            me->Yell(msg, LANG_UNIVERSAL);
         }
 
         uint32 GetData(uint32 type) const override // Runs once to check what data exists on the creature
@@ -891,13 +883,13 @@ public:
                             // ---------- Psychic Scream special case ----------
                             if (spell.spellId == SPELL_PRIEST_PSYCHIC_SCREAM)
                             {
-                                if (CountAttackersOn(me) + (player ? CountAttackersOn(player) : 0) < 3)
+                                if (FSBUtils::CountAttackersOn(me) + (player ? FSBUtils::CountAttackersOn(player) : 0) < 3)
                                     continue;
 
                                 if (!me->IsWithinDistInMap(target, 8.0f))
                                     continue;
 
-                                StopFollowing();
+                                FSBUtils::StopFollow(me);
 
                                 me->CastSpell(me, spell.spellId, false);
                                 spell.nextReadyMs = now + spell.cooldownMs;
@@ -926,7 +918,7 @@ public:
 
                             if (dist > desiredRange)
                             {
-                                StopFollowing();
+                                FSBUtils::StopFollow(me);
 
                                 me->GetMotionMaster()->MoveChase(target, desiredRange);
                                 return; // movement is the action this tick
@@ -937,10 +929,11 @@ public:
                                 continue;
 
                             // ---------- Cast ----------
-                            StopFollowing();
-
                             if (!target->HasAura(spell.spellId))
+                            {
+                                FSBUtils::StopFollow(me);
                                 me->CastSpell(target, spell.spellId, false);
+                            }
                             else continue;
 
                             spell.nextReadyMs = now + spell.cooldownMs;
@@ -950,16 +943,7 @@ public:
 
                             if (now >= _nextCombatSayMs)
                             {
-                                SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell.spellId, DIFFICULTY_NONE);
-                                std::string spellName = "unknown spell";
-
-                                if (spellInfo && spellInfo->SpellName)
-                                {
-                                    spellName = spellInfo->SpellName->Str[LOCALE_enUS];
-
-                                    if (spellName.empty())
-                                        spellName = "unknown spell";
-                                }
+                                std::string spellName = FSBUtilsSpells::GetSpellName(spell.spellId);
 
                                 std::string msg = BuildNPCSayText(target->GetName(), NULL, FSBSayType::SpellOnTarget, spellName);
                                 me->Say(msg, LANG_UNIVERSAL);
@@ -981,6 +965,8 @@ public:
             {
                 if (!_pendingResurrection)
                     return;
+
+                uint32 now = getMSTime();
 
                 //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
                 Unit* owner = me->GetOwner();
@@ -1008,8 +994,12 @@ public:
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION Resurrect Player");
 
-                me->StopMoving(); // optional but immersive
+                FSBUtils::StopFollow(me);
+
                 me->CastSpell(player, SPELL_PRIEST_RESURRECTION, false);
+                _globalCooldownUntil = now + NPC_GCD_MS;
+
+                ResumeFollow(player);
 
                 break;
             }
@@ -1071,6 +1061,169 @@ public:
                 break;
             }
 
+            case FSB_ACTION_OOC_MANA:
+            {
+                if (me->GetPowerPct(POWER_MANA) > 30)
+                    break;
+
+                uint32 now = getMSTime();
+
+                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                {
+                    if (!me->HasAura(22734))
+                    {
+                        Unit* owner = me->GetOwner();
+                        Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                        FSBUtils::StopFollow(me);
+                        me->CastSpell(me, 22734); // Conjured Crystal Water
+                        _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                        me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION OOC Mana");
+
+                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 30s);
+                    }
+                }
+                else
+                    events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_MANA, 1500ms);
+
+                break;
+            }
+
+            case FSB_ACTION_OOC_RECUPERATE:
+            {
+                if (me->GetHealthPct() > 50)
+                    break;
+
+                uint32 now = getMSTime();
+
+                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                {
+
+                    
+                        if (!me->HasAura(SPELL_PRIEST_RECUPERATE) && now >= _recuperateReadyMs)
+                        {
+                            FSBUtils::StopFollow(me);
+
+                            me->CastSpell(me, SPELL_PRIEST_RECUPERATE, false);
+                            _recuperateReadyMs = now + 60000; // 1 minute
+                            _globalCooldownUntil = now + 10000; // use 10s cooldown to not interrup duration of channel spell
+
+                            me->Say("I need a breather!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+
+                            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Recuperate");
+                            events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 10s);
+                            break;
+                        }
+                   
+                }
+                else events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_RECUPERATE, 1500ms);
+
+                break;
+            }
+
+            case FSB_ACTION_OOC_HEAL_SELF:
+            {
+                if (me->GetHealthPct() > 80)
+                    break;
+
+                uint32 now = getMSTime();
+
+                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                {
+                    FSBUtils::StopFollow(me);
+                    me->CastSpell(me, SPELL_PRIEST_HEAL, false);
+
+                    _globalCooldownUntil = now + NPC_GCD_MS;
+
+                    std::string msg = BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
+                    me->Say(msg, LANG_UNIVERSAL);
+
+                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 2s);
+                }
+                else events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_SELF, 1500ms);
+
+                break;
+            }
+
+            case FSB_ACTION_OOC_HEAL_PLAYER:
+            {
+                uint32 now = getMSTime();
+
+                Unit* owner = me->GetOwner();
+                Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                if (!player || !player->IsAlive())
+                    break;
+
+                if (player->GetHealthPct() > 70)
+                    break;
+
+                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                {
+                    
+
+                    if (player->GetHealthPct() <= 50)
+                    {
+                        TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 50");
+
+                        FSBUtils::StopFollow(me);
+                        me->CastSpell(player, SPELL_PRIEST_HEAL, false);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+
+                        if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
+                            me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
+
+                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
+                    }
+                    else if (player->GetHealthPct() <= 70)
+                    {
+                        TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 70");
+
+                        FSBUtils::StopFollow(me);
+                        me->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+
+                        if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
+                            me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
+
+                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
+                    }
+                    else break;
+
+                }
+                else events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_PLAYER, 1500ms);
+
+                break;
+            }
+
+            case FSB_ACTION_IC_MANA:
+            {
+                if (me->GetPowerPct(POWER_MANA) > 20)
+                    break;
+
+                //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                Unit* owner = me->GetOwner();
+                Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                uint32 now = getMSTime();
+
+                if (ManaPotionSpellId)
+                {
+                    me->CastSpell(me, ManaPotionSpellId, false);
+                    _botManaPotionUsed = true;
+
+                    std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
+                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::CombatMana, spellName);
+                    me->Say(msg, LANG_UNIVERSAL);
+
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat mana potion used with spell id: {}", ManaPotionSpellId);
+                }
+
+                break;
+            }
+
             default:
                 break;
             }
@@ -1082,31 +1235,33 @@ public:
         {
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
-
-            //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-            Unit* owner = me->GetOwner();
-            Player* player = owner ? owner->ToPlayer() : nullptr;
-
-            if (!player)
-                return;
-
             while (uint32 eventId = events.ExecuteEvent())
             {
                 switch (eventId)
                 {
+                    // BOT Follows player again
+                    // For timed events
+                case FSB_EVENT_RESUME_FOLLOW:
+                {
+                    Unit* owner = me->GetOwner();
+                    Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                    ResumeFollow(player);
+
+                    break;
+                }
                 case FSB_EVENT_PRIEST_COMBAT_SPELLS:
                 {
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Priest Combat Spells triggered with role = {}", roleState);
 
                     DoAction(FSB_ACTION_COMBAT_SPELLS);
 
-                    // ?? ALWAYS reschedule while combat exists
-                    if (IsCombatActive())
+                    // ?? ALWAYS reschedule while combat exists for player OR bot
+                    if (FSBUtils::IsCombatActive(me))
                     {
                         events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 1s);
                     }
+
                     break;
                 }
 
@@ -1115,7 +1270,7 @@ public:
                     // Triggered from: JustEngagedWith()
                 case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF:
                 {
-                    if (me->IsInCombat() && me->IsAlive())
+                    if (_botInCombat)
                     {
                         DoAction(FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF);
                     }
@@ -1135,6 +1290,9 @@ public:
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
                 {
+                    Unit* owner = me->GetOwner();
+                    Player* player = owner ? owner->ToPlayer() : nullptr;
+
                     hired = false;
                     me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     events.Reset();
@@ -1160,9 +1318,11 @@ public:
 
                 case FSB_EVENT_MOVE_STAY:
                 {
-                    moveState = FSB_MOVE_STATE_STAY;
-                    me->GetMotionMaster()->Clear();
-                    me->StopMoving();
+                    Unit* owner = me->GetOwner();
+                    Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                    FSBUtils::StopFollow(me);
+
                     if (hired)
                     {
                         std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
@@ -1173,8 +1333,10 @@ public:
 
                 case FSB_EVENT_MOVE_FOLLOW:
                 {
-                    moveState = FSB_MOVE_STATE_FOLLOWING;
-                    me->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
+                    Unit* owner = me->GetOwner();
+                    Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                    ResumeFollow(player);
 
                     if (updateFollowInfo)
                     {
@@ -1205,11 +1367,11 @@ public:
                     {
                         if (!_playerDead)
                         {
-                            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect, "");
-                            me->Say(msg, LANG_UNIVERSAL);
+                            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PlayerDead, "");
+                            me->Yell(msg, LANG_UNIVERSAL);
                         }
 
-                        _playerDead = true;
+                        _playerDead = true; // This will stop the bot spamming the SAY
                         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player found dead in Periodic Check");
 
                         if (!me->IsInCombat())
@@ -1243,55 +1405,29 @@ public:
                         }
                     }
 
-                    // BOT CAST Recuperate & OOC Heal / Mana
-                    if(!me->IsInCombat() && me->IsAlive() && !me->HasUnitState(UNIT_STATE_CASTING))
+                    // BOT Check OOC Actions
+                    if(!me->IsInCombat() && me->IsAlive())
                     {
-                        if (CanCastNow(now) && !castedThisTick && me->GetPowerPct(POWER_MANA) < 20)
+                        _botOutCombat = true;
+                        _botInCombat = false;
+                        _botManaPotionUsed = false;
+
+                        if (!me->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            if (!me->HasAura(22734))
-                            {
-                                me->CastSpell(me, 22734); // Conjured Crystal Water
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-                                castedThisTick = true;
-                                me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                            }
-                            // TO-DO find some mana refil spells and move after global cooldown check
-                        }
-
-                        if (CanCastNow(now))
-                        {
-
-                            if (!castedThisTick && me->GetHealthPct() <= 50 && now >= _recuperateReadyMs)
-                            {
-                                TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Recuperate");
-
-                                me->Say("I need a breather!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-
-                                me->CastSpell(me, SPELL_PRIEST_RECUPERATE, false);
-
-                                castedThisTick = true;
-                                _recuperateReadyMs = now + 60000; // 1 minute
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-                            }
-                            else if (!castedThisTick && me->GetHealthPct() <= 70)
-                            {
-                                me->CastSpell(me, SPELL_PRIEST_HEAL, false);
-
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-                                castedThisTick = true;
-                            }
+                            events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_MANA, 100ms);
+                            events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_RECUPERATE, 100ms);
+                            events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_SELF, 100ms);
                         }
                     }
 
-                    // BOT OOM In Combat
+                    // BOT Check In Combat Actions
                     if (me->IsInCombat() && me->IsAlive())
                     {
-                        if (me->GetPowerPct(POWER_MANA) < 10)
-                        {
-                            me->Say("Please wrap this up, I'm out of mana", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                        _botInCombat = true;
+                        _botOutCombat = false;
 
-                            // TO-DO find some combat/instant mana refil spells
-                        }
+                        if(!me->HasUnitState(UNIT_STATE_CASTING))
+                            events.ScheduleEvent(FSB_EVENT_PRIEST_IC_MANA, 100ms);
                     }
 
                     // Fortitude Buff check
@@ -1304,7 +1440,7 @@ public:
                         else if (!me->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE))
                             fortTarget = me;
 
-                        if (fortTarget && !castedThisTick && CanCastNow(now))
+                        if (fortTarget && !castedThisTick && FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
                         {
                             me->CastSpell(fortTarget, SPELL_PRIEST_POWER_WORD_FORTITUDE);
                             castedThisTick = true;
@@ -1322,54 +1458,9 @@ public:
                     }
 
                     // BOT PLAYER OOC Heal
-                    if (!me->IsInCombat() && me->IsAlive() && !me->HasUnitState(UNIT_STATE_CASTING))
+                    if (_botOutCombat && _playerCombatEnded)
                     {
-                        if (CanCastNow(now) && player && !player->IsInCombat())
-                        {
-
-                            if (!castedThisTick && player->GetHealthPct() <= 50)
-                            {
-                                TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal");
-
-                                me->CastSpell(player, SPELL_PRIEST_HEAL, false);
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-                                castedThisTick = true;
-
-                                // Only react some of the time
-                                // 10% chance to say something
-
-                                if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                                    me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
-                            }
-                            else if (!castedThisTick && player->GetHealthPct() <= 70)
-                            {
-                                me->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-                                castedThisTick = true;
-
-                                // Only react some of the time
-                                // 10% chance to say something
-
-                                if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                                    me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
-                            }
-                        }
-
-                    }
-
-                    // BOT Check move states
-                    if (hired && me->IsAlive())
-                    {
-                        MotionMaster* mm = me->GetMotionMaster();            
-
-                        MovementGeneratorType type = mm->GetCurrentMovementGeneratorType();
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Movement check: type {} and move state {}", type, moveState);
-                        if (hired && moveState == FSB_MOVE_STATE_FOLLOWING && type == IDLE_MOTION_TYPE)
-                        {
-                            ResumeFollow(player);
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance we are following");
-                        }
-
+                        events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_PLAYER, 100ms);
                     }
 
                     // PLAYER check on combat for buffs and combat spells
@@ -1377,6 +1468,7 @@ public:
                     if (player && player->IsAlive() && player->IsInCombat() && !_playerCombatStarted)
                     {
                         _playerCombatStarted = true;
+                        _playerCombatEnded = false;
 
                         if(roleState == FSB_ROLE_STATE_ASSIST)
                             events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
@@ -1387,12 +1479,50 @@ public:
                     if (player && player->IsAlive() && !player->IsInCombat() && _playerCombatStarted)
                     {
                         _playerCombatStarted = false;
+                        _playerCombatEnded = true;
                     }
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end");
 
+                    break;
+                }
+
+                case FSB_EVENT_PRIEST_IC_MANA:
+                {
+                    if (_botInCombat && me->GetPowerPct(POWER_MANA) <= 20 && !_botManaPotionUsed)
+                        DoAction(FSB_ACTION_IC_MANA);
+
+                    break;
+                }
+
+                case FSB_EVENT_PRIEST_OOC_MANA:
+                {
+                    if (_botOutCombat && me->GetPowerPct(POWER_MANA) < 30)
+                        DoAction(FSB_ACTION_OOC_MANA);
+                    
+                    break;
+                }
+                case FSB_EVENT_PRIEST_OOC_RECUPERATE:
+                {
+                    if (_botOutCombat && me->GetHealthPct() <= 50)
+                        DoAction(FSB_ACTION_OOC_RECUPERATE);
+
+                    break;
+                }
+
+                case FSB_EVENT_PRIEST_OOC_HEAL_SELF:
+                {
+                    if (_botOutCombat && me->GetHealthPct() <= 80)
+                        DoAction(FSB_ACTION_OOC_HEAL_SELF);
+
+                    break;
+                }
+
+                case FSB_EVENT_PRIEST_OOC_HEAL_PLAYER:
+                {
+                    DoAction(FSB_ACTION_OOC_HEAL_PLAYER);
                     break;
                 }
 
@@ -1404,72 +1534,6 @@ public:
 
         // Helper methods
 
-        // Check if BOT can cast spell due to GCD
-        bool CanCastNow(uint32 now) const
-        {
-            return now >= _globalCooldownUntil && !me->HasUnitState(UNIT_STATE_CASTING);
-        }
-
-        // Check if BOT or PLAYER in combat
-        bool IsCombatActive() const
-        {
-            Unit* owner = me->GetOwner();
-            Player* player = owner ? owner->ToPlayer() : nullptr;
-            //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-            return me->IsInCombat() || (player && player->IsInCombat());
-        }
-
-        /// Count Attackers
-        /// 
-        /// Checks how many active mobs are having Threat on BOT
-        /// Returns a count
-        uint8 CountActiveAttackers()
-        {
-            uint8 count = 0;
-
-            for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
-            {
-                Unit* u = ref->GetVictim();
-                if (!u || !u->IsAlive())
-                    continue;
-
-                if (!me->IsInMap(u))
-                    continue;
-
-                // Optional: only count if actually targeting us
-                //if (u->GetVictim() == me)
-                    ++count;
-            }
-
-            return count;
-        }
-
-        /// Count Attackers on
-        ///
-        /// Checks how many active mobs are having Threat on specified UNIT
-        /// Requires Unit type parameter
-        uint8 CountAttackersOn(Unit* who)
-        {
-            uint8 count = 0;
-
-            for (ThreatReference const* ref : who->GetThreatManager().GetUnsortedThreatList())
-            {
-                Unit* u = ref->GetVictim();
-                if (u && u->IsAlive() && u->GetVictim() == who)
-                    ++count;
-            }
-            return count;
-        }
-
-        // Stop Follow
-        void StopFollowing()
-        {
-            //if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == FOLLOW_MOTION_TYPE)
-            me->StopMoving();
-            me->GetMotionMaster()->Clear();
-            moveState = FSB_MOVE_STATE_IDLE;
-        }
-
         // Resume Follow
         void ResumeFollow(Player* player)
         {
@@ -1477,9 +1541,10 @@ public:
                 return;
 
             me->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
-            moveState = FSB_MOVE_STATE_FOLLOWING;
         }
 
+        uint8 attackers = FSBUtils::CountActiveAttackers(me); // count active attackers on bot
+        uint32 ManaPotionSpellId = GetManaPotionSpellForLevel(me->GetLevel());
     };
 
     CreatureAI* GetAI(Creature* creature) const override
