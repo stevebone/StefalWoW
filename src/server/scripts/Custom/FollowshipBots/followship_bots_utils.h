@@ -28,13 +28,17 @@ inline std::string BuildHireText(int64 price, uint32 hours)
 
 enum class FSBSayType
 {
-    Hire,       // NPC hired by player
-    PHire,      // NPC permanent hired by player
-    Fire,       // NPC Dismissed or Duration Expired
-    Stay,       // NPC asked to stay
-    Follow,     // NPC asked to follow or after hire
-    Buffed,     // NPC received a positive spell buff
-    HealTarget  // NPC Heals target (not self)
+    Hire,           // NPC hired by player
+    PHire,          // NPC permanent hired by player
+    Fire,           // NPC Dismissed or Duration Expired
+    Stay,           // NPC asked to stay
+    Follow,         // NPC asked to follow or after hire
+    Buffed,         // NPC received a positive spell buff
+    HealTarget,     // NPC Heals target (not self)
+    HealSelf,       // NPC Heals self
+    Resurrect,      // NPC Resurrects the player
+    PlayerDead,     // NPC reacts to dead player
+    SpellOnTarget   // NPC reacts when casting combat spell on target
 };
 
 // Helper to pick a random element from a vector
@@ -48,7 +52,7 @@ inline const std::string& RandomChoice(const std::vector<std::string>& options)
 }
 
 // Builds NPC say text dynamically, inserts player name and duration
-inline std::string BuildNPCSayText(const std::string& playerName, uint32 duration, FSBSayType type)
+inline std::string BuildNPCSayText(const std::string& playerName, uint32 duration, FSBSayType type, const std::string& string2)
 {
     switch (type)
     {
@@ -231,6 +235,97 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             chosen.replace(pos, 6, playerName);
         //while ((pos = chosen.find("<duration>")) != std::string::npos)
         //    chosen.replace(pos, 10, std::to_string(duration));
+        return chosen;
+    }
+
+    case FSBSayType::HealSelf:
+    {
+        static const std::vector<std::string> healSelfTexts =
+        {
+            "Still standing.",
+            "That one actually hurt.",
+            "Not today.",
+            "I've had worse.",
+            "Just a scratch.",
+            "Focus. Breathe.",
+            "Pain is temporary.",
+            "Not done yet.",
+            "That'll keep me going.",
+            "Staying alive."
+        };
+
+        std::string chosen = RandomChoice(healSelfTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        //while ((pos = chosen.find("<duration>")) != std::string::npos)
+        //    chosen.replace(pos, 10, std::to_string(duration));
+        return chosen;
+    }
+
+    case FSBSayType::Resurrect:
+    {
+        static const std::vector<std::string> resurrectTexts =
+        {
+            "Hey, <name>, Don't you die on me again, ok?",
+            "Ah, you're good as new, <name>!",
+            "Aren't you glad you brought me along?",
+            "Hope I don't have to revive you again, <name>!",
+            "One resurrect for you and another for... oh nevermind!",
+            "This resurrect is for free, next one...",
+            "Hope you appreciate the revival, <name>!"
+        };
+
+        std::string chosen = RandomChoice(resurrectTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        //while ((pos = chosen.find("<duration>")) != std::string::npos)
+        //    chosen.replace(pos, 10, std::to_string(duration));
+        return chosen;
+    }
+
+    case FSBSayType::PlayerDead:
+    {
+        static const std::vector<std::string> playerDeadTexts =
+        {
+            "Hey <name>, what are you doing?",
+            "Ah, shiiiiiit, nooooo <name>!",
+            "How did I let this happen?",
+            "Hope you won't blame me for this, <name>!",
+            "Why? Why now?",
+            "We were so close... yet so far away",
+            "Death is just a number, <name>!"
+        };
+
+        std::string chosen = RandomChoice(playerDeadTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        //while ((pos = chosen.find("<duration>")) != std::string::npos)
+        //    chosen.replace(pos, 10, std::to_string(duration));
+        return chosen;
+    }
+
+    case FSBSayType::SpellOnTarget:
+    {
+        static const std::vector<std::string> combatTargetTexts =
+        {
+            "Hey, <name>, do you like my <spell>",
+            "Take that, you <name>!",
+            "Feel the power of my <spell>!",
+            "You're gonna feel this one, <name>!",
+            "One <spell> for you and another for you <name>.",
+            "I've got more <spell> from where this came from!",
+            "Hope you like my <spell>, you <name>!"
+        };
+
+        std::string chosen = RandomChoice(combatTargetTexts);
+        size_t pos;
+        while ((pos = chosen.find("<name>")) != std::string::npos)
+            chosen.replace(pos, 6, playerName);
+        while ((pos = chosen.find("<spell>")) != std::string::npos)
+            chosen.replace(pos, 7, string2);
         return chosen;
     }
 

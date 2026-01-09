@@ -1,4 +1,9 @@
-//#include <Config.h>
+// =========================================
+// TO-DO
+// =========================================
+// Check Unit.h for Unit States related to movement and use those instead of custom ones see enum UnitState : uint32
+
+
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
@@ -8,39 +13,42 @@
 #include "followship_bots_priest.h"
 #include "followship_bots_utils.h"
 
-static std::vector<FSBotSpells> AssistHealSpells =
+std::vector<FSBotSpells> AssistHealSpells =
 // SPELL ID, Cooldown, Chance
 {
-    { PRIEST_PRAYER_OF_MENDING, 9000, 50.0f},
-    { SPELL_PRIEST_RENEW,       15000, 60.0f},
-    { SPELL_PRIEST_FLASH_HEAL,  500, 70.0f },   
-    { SPELL_PRIEST_HEAL,        500,  70.0f }
+    { SPELL_PRIEST_PRAYER_OF_MENDING,   9000, 80.0f},
+    { SPELL_PRIEST_HEAL,                500,  70.0f },
+    { SPELL_PRIEST_RENEW,               15000, 60.0f},
+    { SPELL_PRIEST_FLASH_HEAL,          500, 50.0f }
 };
 
 static std::vector<FSBotSpells> BalancedHealSpells =
 // SPELL ID, Cooldown, Chance
 {
     //{ PRIEST_PRAYER_OF_MENDING, 9000, 50.0f},
-    { SPELL_PRIEST_RENEW,       15000, 60.0f},
-    { SPELL_PRIEST_FLASH_HEAL,  500, 70.0f }
+    { SPELL_PRIEST_RENEW,       15000, 70.0f},
+    { SPELL_PRIEST_FLASH_HEAL,  500, 60.0f }
     //{ SPELL_PRIEST_HEAL,        0,  100.0f }
 };
 
 static std::vector<FSBotSpells> SelfHealSpells =
 // SPELL ID, Cooldown, Chance
 {
-    { PRIEST_PRAYER_OF_MENDING, 9000, 50.0f},
-    { SPELL_PRIEST_RENEW,       15000, 60.0f},
-    { SPELL_PRIEST_FLASH_HEAL,  500, 70.0f }
+    { SPELL_PRIEST_PRAYER_OF_MENDING,   9000, 80.0f},
+    { SPELL_PRIEST_RENEW,               15000, 70.0f},
+    { SPELL_PRIEST_FLASH_HEAL,          500, 60.0f }
     //{ SPELL_PRIEST_HEAL,        0,  100.0f }
 };
 
 static std::vector<FSBotSpells> CombatSpells =
 {
-    { SPELL_PRIEST_PSYCHIC_SCREAM,          45000, 50.0f},
-    { SPELL_PRIEST_SHADOW_WORD_PAIN,        15000, 70.0f },
-    { SPELL_PRIEST_SMITE,                   1000, 70.0f },
-    { SPELL_PRIEST_MIND_BLAST,              9000, 70.0f}
+    { SPELL_PRIEST_PSYCHIC_SCREAM,          45000, 100.0f},
+    { SPELL_PRIEST_SHADOW_WORD_PAIN,        15000, 90.0f},
+    { SPELL_PRIEST_VAMPIRIC_TOUCH,          1000, 90.0f}, 
+    { SPELL_PRIEST_MIND_BLAST,              9000, 80.0f},
+    { SPELL_PRIEST_HOLY_FIRE,               10000, 70.0f},
+    { SPELL_PRIEST_SMITE,                   1000, 60.0f},   
+    {SPELL_PRIEST_MIND_FLAY,                1000, 50.0f}
     
 };
 
@@ -82,7 +90,10 @@ public:
         uint32 _recuperateReadyMs = 0;
         bool _pendingResurrection = false;
         bool _playerDead = false;
-        //bool castedThisTick = false;
+        uint32 _nextCombatSayMs = 0;
+
+        bool _playerCombatStarted = false;
+        bool _playerCombatEnded = false;
 
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
@@ -108,21 +119,22 @@ public:
                 return;
             }
 
-            me->SetBot(true);
+            
 
             // Initial Flags and States
             me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
             me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
 
             me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-            me->SetReactState(REACT_PASSIVE);
+            me->SetReactState(REACT_DEFENSIVE);
             me->SetFaction(1);
         }
 
         void Reset() override // Runs at creature respawn, evade or when triggered
         {
             events.Reset();
-
+            me->SetBot(true);
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered Reset. Is bot: {}", me->IsBot());
             // Schedule Generic Events
             // These can take place even when BOT is NOT hired or no player is around
             events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 10s);
@@ -292,14 +304,12 @@ public:
 
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration1 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_BUFFS, 100ms);
-                    //events.ScheduleEvent(FSB_EVENT_PRIEST_CHECK_HP, 100ms);
 
                     //me->SetReactState(REACT_ASSIST);
                     //me->SetReactState(REACT_AGGRESSIVE);
                     events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration1, FSBSayType::Hire);
+                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration1, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED60, LANG_UNIVERSAL);
                 }
@@ -330,7 +340,7 @@ public:
                     //me->SetReactState(REACT_AGGRESSIVE);
                     events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration2, FSBSayType::Hire);
+                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration2, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -361,7 +371,7 @@ public:
                     //me->SetReactState(REACT_AGGRESSIVE);
                     events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration3, FSBSayType::Hire);
+                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration3, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -391,7 +401,7 @@ public:
                     //me->SetReactState(REACT_AGGRESSIVE);
                     events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire);
+                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -483,7 +493,7 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 23:
             {
                 roleState = FSB_ROLE_STATE_ASSIST;
-                me->SetReactState(REACT_ASSIST);
+                me->SetReactState(REACT_DEFENSIVE);
                 if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
                     me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
@@ -504,7 +514,7 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 25:
             {
                 roleState = FSB_ROLE_STATE_BALANCED;
-                me->SetReactState(REACT_DEFENSIVE);
+                me->SetReactState(REACT_ASSIST);
                 if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
                     me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
@@ -522,15 +532,15 @@ public:
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered JustEngagedWith: {}", who->GetName());
 
-            events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS, 100ms);
+            if(roleState == FSB_ROLE_STATE_BALANCED || roleState == FSB_ROLE_STATE_DAMAGE)
+                events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 100ms);
             //me->DoMeleeAttackIfReady();
-            DoZoneInCombat();
+            //DoZoneInCombat();
         }
 
         // Runs every time creature takes damage
         void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
-
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades
@@ -756,11 +766,37 @@ public:
                             spell.nextReadyMs = now + spell.cooldownMs;
                             _globalCooldownUntil = now + NPC_GCD_MS;
 
-
-                            //if (healTarget == player)
-                            //    me->Say("Healing player", LANG_UNIVERSAL);
-                            //else
-                            //    me->Say("Healing myself", LANG_UNIVERSAL);
+                            if (now >= _nextCombatSayMs)
+                            {
+                                if (healTarget == me)
+                                {
+                                    std::string msg = BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                    // Random cooldown between 3-5 minutes
+                                    _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
+                                        5 * MINUTE * IN_MILLISECONDS);
+                                }
+                                else if (healTarget == player && player)
+                                {
+                                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, "");
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                    // Random cooldown between 3-5 minutes
+                                    _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
+                                        5 * MINUTE * IN_MILLISECONDS);
+                                }
+                                else
+                                {
+                                    if (healTarget)
+                                    {
+                                        // We may need this one if we have more bots at the same time
+                                        std::string msg = BuildNPCSayText(healTarget->GetName(), NULL, FSBSayType::HealTarget, "");
+                                        me->Say(msg, LANG_UNIVERSAL);
+                                        // Random cooldown between 3-5 minutes
+                                        _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
+                                            5 * MINUTE * IN_MILLISECONDS);
+                                    }
+                                }
+                            }
 
                             // Only one heal per tick
                         }
@@ -777,7 +813,7 @@ public:
 
                 std::vector<Unit*> combatTargets;
 
-                if (roleState == FSB_ROLE_STATE_ASSIST)
+                if (roleState == FSB_ROLE_STATE_BALANCED)
                 {
                     if (player && player->IsAlive())
                     {
@@ -798,7 +834,7 @@ public:
                 }
                 else if (roleState == FSB_ROLE_STATE_DAMAGE)
                 {
-                    // Aggroed mobs from NPC AND player's target
+                    // Aggroed mobs from NPC & Player AND player's target
                     auto const& threatRefs = me->GetThreatManager().GetSortedThreatList();
                     for (ThreatReference const* ref : threatRefs)
                     {
@@ -819,9 +855,10 @@ public:
                         }
                     }
                 }
-                else if (roleState == FSB_ROLE_STATE_BALANCED)
+                else if (roleState == FSB_ROLE_STATE_ASSIST)
                 {
                     // Only mobs aggroed by the bot
+                    // We are a healer after all
                     auto const& threatRefs = me->GetThreatManager().GetSortedThreatList();
                     for (ThreatReference const* ref : threatRefs)
                     {
@@ -870,6 +907,19 @@ public:
                                 return;
                             }
 
+                            // --------------- Role Based Handling -------
+                            if (roleState == FSB_ROLE_STATE_DAMAGE)
+                            {
+                                if (spell.spellId == SPELL_PRIEST_SMITE || spell.spellId == SPELL_PRIEST_HOLY_FIRE)
+                                    continue;
+                            }
+
+                            if (roleState == FSB_ROLE_STATE_ASSIST || roleState == FSB_ROLE_STATE_BALANCED)
+                            {
+                                if (spell.spellId == SPELL_PRIEST_MIND_FLAY || spell.spellId == SPELL_PRIEST_VAMPIRIC_TOUCH)
+                                    continue;
+                            }
+
                             // ---------- Ranged spell movement ----------
                             float dist = me->GetDistance(target);
                             float desiredRange = frand(SPELL_MIN_RANGE, SPELL_MAX_RANGE);
@@ -889,11 +939,35 @@ public:
                             // ---------- Cast ----------
                             StopFollowing();
 
-                            me->CastSpell(target, spell.spellId, false);
+                            if (!target->HasAura(spell.spellId))
+                                me->CastSpell(target, spell.spellId, false);
+                            else continue;
+
                             spell.nextReadyMs = now + spell.cooldownMs;
                             _globalCooldownUntil = now + NPC_GCD_MS;
 
                             ResumeFollow(player);
+
+                            if (now >= _nextCombatSayMs)
+                            {
+                                SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell.spellId, DIFFICULTY_NONE);
+                                std::string spellName = "unknown spell";
+
+                                if (spellInfo && spellInfo->SpellName)
+                                {
+                                    spellName = spellInfo->SpellName->Str[LOCALE_enUS];
+
+                                    if (spellName.empty())
+                                        spellName = "unknown spell";
+                                }
+
+                                std::string msg = BuildNPCSayText(target->GetName(), NULL, FSBSayType::SpellOnTarget, spellName);
+                                me->Say(msg, LANG_UNIVERSAL);
+                                // Random cooldown between 3-5 minutes
+                                _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
+                                    5 * MINUTE * IN_MILLISECONDS);
+                            }
+
 
                             // Only cast one combat spell per tick
                             break;
@@ -939,6 +1013,63 @@ public:
 
                 break;
             }
+            case FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF:
+            {
+                uint32 now = getMSTime();
+
+                if (_globalCooldownUntil < now && !me->HasUnitState(UNIT_STATE_CASTING))
+                {
+
+                    if (!me->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
+                    {
+                        me->CastSpell(me, SPELL_PRIEST_POWER_WORD_SHIELD);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat SELF Spell Cast: PWS");
+                        events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 1500ms);
+                    }
+                    else if (!me->HasAura(SPELL_PRIEST_RENEW))
+                    {
+                        me->CastSpell(me, SPELL_PRIEST_RENEW);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat SELF Spell Cast: Renew");
+                    }
+                }
+                else {
+                    events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 1500ms);
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat SELF Spell Cast: GCD");
+                }
+                break;
+            }
+
+            case FSB_ACTION_INITIAL_COMBAT_SPELLS_PLAYER:
+            {
+                uint32 now = getMSTime();
+
+                if (_globalCooldownUntil < now)
+                {
+                    Unit* owner = me->GetOwner();
+                    Player* player = owner ? owner->ToPlayer() : nullptr;
+
+                    if (!player->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
+                    {
+                        me->CastSpell(player, SPELL_PRIEST_POWER_WORD_SHIELD);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: PWS");
+                        events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 1500ms);
+                    }
+                    else if (!player->HasAura(SPELL_PRIEST_RENEW))
+                    {
+                        me->CastSpell(player, SPELL_PRIEST_RENEW);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: Renew");
+                    }
+                }
+                else {
+                    events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 1500ms);
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: GCD");
+                }
+                break;
+            }
 
             default:
                 break;
@@ -965,12 +1096,6 @@ public:
             {
                 switch (eventId)
                 {
-                case FSB_EVENT_CHECK_COMBAT:
-                {
-                    UpdateCombatChecker();
-                    break;
-                }
-
                 case FSB_EVENT_PRIEST_COMBAT_SPELLS:
                 {
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Priest Combat Spells triggered with role = {}", roleState);
@@ -980,36 +1105,30 @@ public:
                     // ?? ALWAYS reschedule while combat exists
                     if (IsCombatActive())
                     {
-                        events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS, 0ms);
                         events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 1s);
                     }
                     break;
                 }
 
-                case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS:
+                    // Priest casts Renew and PWS on Engagement
+                    // Only in Balanced and Damage roles
+                    // Triggered from: JustEngagedWith()
+                case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF:
                 {
-                    
-                    if( me->IsInCombat() || (player && player->IsInCombat()))
+                    if (me->IsInCombat() && me->IsAlive())
                     {
-                        uint32 now = getMSTime();
-
-                        if (_globalCooldownUntil > now)
-                            return;
-
-                        if (!player->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
-                        {
-                            me->CastSpell(player, SPELL_PRIEST_POWER_WORD_SHIELD);
-                            _globalCooldownUntil = now + NPC_GCD_MS;
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: PWS");
-                        }
-
-                        if (!player->HasAura(SPELL_PRIEST_RENEW))
-                        {
-                            me->CastSpell(player, SPELL_PRIEST_RENEW);
-                            _globalCooldownUntil = now + NPC_GCD_MS;
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Renew");
-                        }
+                        DoAction(FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF);
                     }
+
+                    break;
+                }
+
+                    // Priest casts Renew and PWS on Player
+                    // Only in Assist role
+                    // Triggered from Periodic Maintenance check and flag
+                case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER:
+                {
+                    DoAction(FSB_ACTION_INITIAL_COMBAT_SPELLS_PLAYER);
                     break;
                 }
 
@@ -1021,7 +1140,7 @@ public:
                     events.Reset();
                     events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 100ms);
                     //me->Say("Hey pal, my time on the job is up. I am out of here.", LANG_UNIVERSAL);
-                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire);
+                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
                     break;
@@ -1046,7 +1165,7 @@ public:
                     me->StopMoving();
                     if (hired)
                     {
-                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay);
+                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
                     break;
@@ -1064,7 +1183,7 @@ public:
                     }
                     else
                     {
-                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Follow);
+                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Follow, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
                     break;
@@ -1086,11 +1205,12 @@ public:
                     {
                         if (!_playerDead)
                         {
-                            me->Yell("Oh shit, noooo!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player found dead in Periodic Check");
+                            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect, "");
+                            me->Say(msg, LANG_UNIVERSAL);
                         }
 
-                        _playerDead = true;                        
+                        _playerDead = true;
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player found dead in Periodic Check");
 
                         if (!me->IsInCombat())
                         {
@@ -1102,11 +1222,9 @@ public:
                     {
                         _pendingResurrection = false;
                         _playerDead = false;
-                        // TO-DO add say lines
-                        //std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect);
-                        //me->Say(msg, LANG_UNIVERSAL);
-
-                        me->Say("Player Resurrected", LANG_UNIVERSAL);
+                        
+                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect, "");
+                        me->Say(msg, LANG_UNIVERSAL);
                     }
 
                     // BOT LEVEL Update
@@ -1128,10 +1246,15 @@ public:
                     // BOT CAST Recuperate & OOC Heal / Mana
                     if(!me->IsInCombat() && me->IsAlive() && !me->HasUnitState(UNIT_STATE_CASTING))
                     {
-                        if (me->GetPowerPct(POWER_MANA) < 10)
+                        if (CanCastNow(now) && !castedThisTick && me->GetPowerPct(POWER_MANA) < 20)
                         {
-                            me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-
+                            if (!me->HasAura(22734))
+                            {
+                                me->CastSpell(me, 22734); // Conjured Crystal Water
+                                _globalCooldownUntil = now + NPC_GCD_MS;
+                                castedThisTick = true;
+                                me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                            }
                             // TO-DO find some mana refil spells and move after global cooldown check
                         }
 
@@ -1216,7 +1339,7 @@ public:
                                 // 10% chance to say something
 
                                 if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                                    me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget), LANG_UNIVERSAL);
+                                    me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
                             }
                             else if (!castedThisTick && player->GetHealthPct() <= 70)
                             {
@@ -1228,7 +1351,7 @@ public:
                                 // 10% chance to say something
 
                                 if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                                    me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget), LANG_UNIVERSAL);
+                                    me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
                             }
                         }
 
@@ -1249,7 +1372,24 @@ public:
 
                     }
 
-                    events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 3s);
+                    // PLAYER check on combat for buffs and combat spells
+                    // Different Triggers per role
+                    if (player && player->IsAlive() && player->IsInCombat() && !_playerCombatStarted)
+                    {
+                        _playerCombatStarted = true;
+
+                        if(roleState == FSB_ROLE_STATE_ASSIST)
+                            events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
+                        
+                        events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 2s);
+                    }
+
+                    if (player && player->IsAlive() && !player->IsInCombat() && _playerCombatStarted)
+                    {
+                        _playerCombatStarted = false;
+                    }
+
+                    events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end");
 
@@ -1273,29 +1413,10 @@ public:
         // Check if BOT or PLAYER in combat
         bool IsCombatActive() const
         {
-            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+            Unit* owner = me->GetOwner();
+            Player* player = owner ? owner->ToPlayer() : nullptr;
+            //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
             return me->IsInCombat() || (player && player->IsInCombat());
-        }
-
-        // Combat checker event handler
-        void UpdateCombatChecker()
-        {
-            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-
-            bool combat =
-                me->IsInCombat() ||
-                (player && player->IsInCombat()) ||
-                (player && player->GetSelectedUnit() &&
-                    player->GetSelectedUnit()->IsHostileTo(me));
-
-            if (combat)
-            {
-                // Kickstart combat loop
-                events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 100ms);
-            }
-
-            // Always recheck
-            events.ScheduleEvent(FSB_EVENT_CHECK_COMBAT, 2s);
         }
 
         /// Count Attackers
@@ -1366,6 +1487,7 @@ public:
         return new npc_followship_bots_priestAI(creature);
     }
 };
+
 
 void AddSC_followship_bots_priest()
 {
