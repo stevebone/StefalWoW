@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <cstdint>
-
 // Spell Related Cooldowns
 static constexpr uint32 DESPERATE_PRAYER_CD_MS = 90000;
 

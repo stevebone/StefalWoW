@@ -1,4 +1,5 @@
 #include "followship_bots_utils_spells.h"
+#include "followship_bots_priest.h"
 
 #include "ThreatManager.h"
 

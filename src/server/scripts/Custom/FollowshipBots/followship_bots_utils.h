@@ -430,15 +430,6 @@ inline float GetRandomRightAngle()
     return (-M_PI / 2.0f) + frand(-SIDE_OFFSET_MAX, SIDE_OFFSET_MAX);
 }
 
-struct FSBotSpells
-{
-    uint32 spellId;
-    uint32 cooldownMs;
-    //uint32 priority;          // higher = more important
-    float  chance;            // 0-100
-    uint32 nextReadyMs = 0;   // runtime state
-};
-
 namespace FSBUtils
 {
     // Checks if either bot or player is in combat
