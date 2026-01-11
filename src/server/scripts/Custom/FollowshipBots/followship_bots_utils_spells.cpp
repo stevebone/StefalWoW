@@ -2,6 +2,7 @@
 #include "followship_bots_priest.h"
 
 #include "ThreatManager.h"
+#include "Unit.h"
 
 // Mana Potion Spells
 struct ManaPotionSpell
@@ -13,14 +14,12 @@ struct ManaPotionSpell
 
 static constexpr ManaPotionSpell ManaPotionTable[] =
 {
-    {  1,  10,  437 },   // Minor Mana Potion 120
-    { 11,  22,  438 },   // Lesser Mana Potion 159
-    { 23,  37,  2023 },  // Mana Potion 100
-    { 38,  45,  11448 }, // Greater Mana Potion 245
-    { 46,  50,  17530 }, // Superior Mana Potion 494
-    { 51,  59,  17531 }, // Major Mana Potion 512
-    { 60,  69,  28499 }, // Super Mana Potion 682
-    { 70,  80,  43186 } // Runic Mana Potion 956
+    {  1,  15,  437 },   // Minor Mana Potion 120
+    { 16,  29,  438 },   // Lesser Mana Potion 159
+    { 30,  40,  17530 }, // Superior Mana Potion 494
+    { 41,  50,  17531 }, // Major Mana Potion 512
+    { 51,  60,  28499 }, // Super Mana Potion 682
+    { 61,  80,  43186 } // Runic Mana Potion 956
 };
 
 // Gets the Mana Potion spell id on a provided level
@@ -53,4 +52,50 @@ namespace FSBUtilsSpells
             && now >= globalCooldownUntil
             && !me->HasUnitState(UNIT_STATE_CASTING);
     }
+
+    bool HasDispellableDebuff(Unit* unit)
+    {
+        if (!unit)
+            return false;
+
+        for (auto const& pair : unit->GetAppliedAuras())
+        {
+            AuraApplication const* aurApp = pair.second;
+            if (!aurApp)
+                continue;
+
+            Aura const* aura = aurApp->GetBase();
+            if (!aura)
+                continue;
+
+            // Skip positive auras
+            if (aurApp->IsPositive())
+                continue;
+
+            SpellInfo const* info = aura->GetSpellInfo();
+            if (!info)
+                continue;
+
+            // Check dispel type
+            switch (info->Dispel)
+            {
+            case DISPEL_MAGIC:
+            case DISPEL_DISEASE:
+            case DISPEL_POISON:
+            case DISPEL_CURSE:
+                break;
+            default:
+                continue;
+            }
+
+            // Skip undispellable spells
+            //if (info->HasAttribute(SPELL_ATTR0_CANT_BE_DISPELLED))
+            //    continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
 }

@@ -13,6 +13,7 @@
 #include "followship_bots_priest.h"
 #include "followship_bots_utils.h"
 #include "followship_bots_utils_spells.h"
+#include "followship_bots_utils_stats.h"
 
 #include "followship_bots_utils_priest.h"
 
@@ -33,15 +34,7 @@ public:
         EventMap events;
         ObjectGuid _playerGuid;
 
-        bool configFSBEnabled = false;
-
-        int64 configFSBPricePerLevel = 0;
-        int64 configFSBPermanentPricePerLevel = 0;
-
-        int32 configFSBHireDuration1 = 0;
-        int32 configFSBHireDuration2 = 0;
-        int32 configFSBHireDuration3 = 0;
-
+        // Bot Operations
         bool hired = false;
 
         int roleState = FSB_ROLE_STATE_BALANCED;
@@ -64,50 +57,66 @@ public:
         bool _playerCombatEnded = false;
 
         bool _botManaPotionUsed = false;
+        bool _botIsDrinking = false;
+
+        // Bot Stats
+        uint32 _nextRegenMs = 0;
 
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
         {
-            ScriptedAI::InitializeAI(); // always call base first
-
-            // Load the config once
-            FollowshipBotsConfig::Load();
-
-            configFSBEnabled = FollowshipBotsConfig::configFSBEnabled;
-
-            configFSBPricePerLevel = FollowshipBotsConfig::configFSBPricePerLevel;
-            configFSBPermanentPricePerLevel = FollowshipBotsConfig::configFSBPermanentPricePerLevel;
-
-            configFSBHireDuration1 = FollowshipBotsConfig::configFSBHireDuration1;
-            configFSBHireDuration2 = FollowshipBotsConfig::configFSBHireDuration2;
-            configFSBHireDuration3 = FollowshipBotsConfig::configFSBHireDuration3;
-
-            if (!configFSBEnabled)
-            {
-                // Completely disable gossip
-                me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-                return;
-            }
-
-            
-
-            // Initial Flags and States
-            me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-            me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-
-            me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-            me->SetReactState(REACT_DEFENSIVE);
-            me->SetFaction(1);
+            ScriptedAI::InitializeAI(); // always call base first            
         }
 
         void Reset() override // Runs at creature respawn, evade or when triggered
         {
-            events.Reset();
-            me->SetBot(true);
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered Reset. Is bot: {}", me->IsBot());
-            // Schedule Generic Events
-            // These can take place even when BOT is NOT hired or no player is around
-            events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 10s);
+            if (FollowshipBotsConfig::configFSBEnabled)
+            {
+                events.Reset();
+
+                me->SetBot(true);
+
+                // Initial Flags and States
+                me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+
+                me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                me->SetReactState(REACT_DEFENSIVE);
+                me->SetFaction(1);
+
+                _regenMods = FSBUtilsStatsMods(); // zero everything
+                FSBUtilsStats::RecalculateStats(me, _regenMods);
+
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered Reset. Is bot: {}", me->IsBot());
+                // Schedule Generic Events
+                // These can take place even when BOT is NOT hired or no player is around
+                events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
+
+                if (FollowshipBotsConfig::configFSBUseCustomRegen)
+                {
+                    me->RemoveUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
+                    me->SetRegenerateHealth(false); // no health regen
+
+                    events.ScheduleEvent(FSB_EVENT_USE_CUSTOM_REGEN, 2s);
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset. Custom Regen active for bots");
+                }
+                else
+                {
+                    me->SetUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
+                    me->SetRegenerateHealth(true);  // restore normal regen
+                }
+
+            }
+
+            else
+            {
+                // Completely disable gossip
+                me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+            }
+
+            
+
+            
         }
 
         // Runs once when creature is summoned by another unit
@@ -161,14 +170,14 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 1:
             {
                 // we first calculate hire price based configs base price and hire duration options and actual player level
-                int64 hirePrice1 = (configFSBPricePerLevel * pLevel * configFSBHireDuration1);
-                std::string hireText1 = BuildHireText(hirePrice1, configFSBHireDuration1);
+                int64 hirePrice1 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1);
+                std::string hireText1 = BuildHireText(hirePrice1, FollowshipBotsConfig::configFSBHireDuration1);
 
-                int64 hirePrice2 = (configFSBPricePerLevel * pLevel * configFSBHireDuration2);
-                std::string hireText2 = BuildHireText(hirePrice2, configFSBHireDuration2);
+                int64 hirePrice2 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2);
+                std::string hireText2 = BuildHireText(hirePrice2, FollowshipBotsConfig::configFSBHireDuration2);
 
-                int64 hirePrice3 = (configFSBPricePerLevel * pLevel * configFSBHireDuration3);
-                std::string hireText3 = BuildHireText(hirePrice3, configFSBHireDuration3);
+                int64 hirePrice3 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3);
+                std::string hireText3 = BuildHireText(hirePrice3, FollowshipBotsConfig::configFSBHireDuration3);
 
                 AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 10);
                 AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 11);
@@ -266,18 +275,18 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 10:
             {
                 // End price is base cost per level times player level times duration of contract
-                if (player->HasEnoughMoney(int64(configFSBPricePerLevel * pLevel * configFSBHireDuration1)))
+                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1)))
                 {
-                    player->ModifyMoney(-int64(configFSBPricePerLevel * pLevel * configFSBHireDuration1));
+                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1));
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
                     hired = true;
 
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration1 * 60));
+                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
 
-                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration1, FSBSayType::Hire, "");
+                    std::string msg = BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED60, LANG_UNIVERSAL);
                 }
@@ -292,17 +301,17 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 11:
             {
                 // End price is base cost per level times player level times duration of contract
-                if (player->HasEnoughMoney(int64(configFSBPricePerLevel * pLevel * configFSBHireDuration2)))
+                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2)))
                 {
-                    player->ModifyMoney(-int64(configFSBPricePerLevel * pLevel * configFSBHireDuration2));
+                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2));
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
                     hired = true;
 
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration2 * 60));
+                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration2, FSBSayType::Hire, "");
+                    std::string msg = BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -317,17 +326,17 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 12:
             {
                 // End price is base cost per level times player level times duration of contract
-                if (player->HasEnoughMoney(int64(configFSBPricePerLevel * pLevel * configFSBHireDuration3)))
+                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3)))
                 {
-                    player->ModifyMoney(-int64(configFSBPricePerLevel * pLevel * configFSBHireDuration3));
+                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3));
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
                     hired = true;
 
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(configFSBHireDuration3 * 60));
+                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), configFSBHireDuration3, FSBSayType::Hire, "");
+                    std::string msg = BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -342,9 +351,9 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 13:
             {
                 // End price is base cost per level times player level
-                if (player->HasEnoughMoney(int64(configFSBPermanentPricePerLevel * pLevel)))
+                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel)))
                 {
-                    player->ModifyMoney(-int64(configFSBPermanentPricePerLevel * pLevel));
+                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel));
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
                     hired = true;
@@ -510,6 +519,12 @@ public:
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
         {
             TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {}", spell->Id);
+
+            if (spell->Id == SPELL_PRIEST_DEVOURING_PLAGUE)
+            {
+                _regenMods.manaPctBonus -= 2.0f;
+                TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting Devouring Plage id {} we need to subtract 2% mana", spell->Id);
+            }
         }
 
         void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
@@ -540,6 +555,60 @@ public:
         void SpellHitTarget(WorldObject* target, SpellInfo const* spellInfo) override
         {
 
+        }
+
+        void OnAuraApplied(AuraApplication const* aurApp) override
+        {
+            if (!aurApp)
+                return;
+
+            switch (aurApp->GetBase()->GetId())
+            {
+            case SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER:
+                _regenMods.flatManaPerTick += 90 * 2;
+                break;
+
+            case SPELL_PRIEST_POWER_WORD_FORTITUDE:
+                _regenMods.flatMaxHealth += 10 * me->GetLevel();      // flat
+                FSBUtilsStats::RecalculateStats(me, _regenMods);
+                //FSBUtilsStats::ApplyMaxHealth(me, _regenMods);
+                //_regenMods.pctMaxHealthBonus += 0.10f; // +10%
+                //me->SetMaxHealth(me->GetMaxHealth() + _regenMods.flatMaxHealth);
+                break;
+            }
+
+        }
+
+        void OnAuraRemoved(AuraApplication const* aurApp) override
+        {
+            if (!aurApp)
+                return;
+
+            uint32 spellId = aurApp->GetBase()->GetId();
+
+            // Example: generic drink spells
+            switch (spellId)
+            {
+            case SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER: // Conjured Crystal water
+                if (me->GetStandState() == UNIT_STAND_STATE_SIT)
+                {
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    _regenMods.flatManaPerTick -= 90 * 2;
+                }
+                break;
+
+            case SPELL_PRIEST_POWER_WORD_FORTITUDE:
+                _regenMods.flatMaxHealth -= 10 * me->GetLevel();      // flat
+                FSBUtilsStats::RecalculateStats(me, _regenMods);
+                //FSBUtilsStats::ApplyMaxHealth(me, _regenMods);
+                //_regenMods.pctMaxHealthBonus += 0.10f; // +10%
+                //me->SetMaxHealth(me->GetMaxHealth() - _regenMods.flatMaxHealth);
+
+                if (me->GetHealth() > me->GetMaxHealth())
+                    me->SetHealth(me->GetMaxHealth());
+
+                break;
+            }
         }
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
@@ -603,6 +672,7 @@ public:
                         return; // NOTHING overrides this
                     }
                 }
+
                 // =============================
 
                 //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
@@ -659,7 +729,8 @@ public:
 
                     float risk = 100.f - u->GetHealthPct(); // low HP = higher risk
                     if (me->IsInCombat())
-                        risk += me->GetThreatManager().GetThreat(u) * 0.01f;
+                        //risk += me->GetThreatManager().GetThreat(u) * 0.01f;
+                        risk += 10.f;
 
                     if (risk > highestRisk)
                     {
@@ -687,7 +758,10 @@ public:
 
                     for (auto& spell : *healTable)
                     {
-                        if (spell.nextReadyMs > now)
+                        //if (spell.nextReadyMs > now)
+                        //    continue;
+
+                        if (!IsSpellReady(spell, now))
                             continue;
 
                         float hpPct = healTarget->GetHealthPct();
@@ -716,11 +790,18 @@ public:
                         if (spell.chance < frand(0.f, 100.f))
                             continue;
 
+                        if (spell.spellId == SPELL_PRIEST_PURIFY)
+                        {
+                            if (!FSBUtilsSpells::HasDispellableDebuff(healTarget))
+                                continue;
+                        }
+
                         if (!healTarget->HasAura(spell.spellId))
                         {
                             me->CastSpell(healTarget, spell.spellId, false);
                             castedHealThisTick = true;
-                            spell.nextReadyMs = now + spell.cooldownMs;
+                            //spell.nextReadyMs = now + spell.cooldownMs;
+                            TriggerCooldown(spell, now);
                             _globalCooldownUntil = now + NPC_GCD_MS;
 
                             if (now >= _nextCombatSayMs)
@@ -756,8 +837,9 @@ public:
                             }
 
                             // Only one heal per tick
+
+                            break;
                         }
-                        break;
                     }
                 }
 
@@ -824,6 +906,9 @@ public:
                     }
                 }
 
+                std::sort(combatTargets.begin(), combatTargets.end());
+                combatTargets.erase(std::unique(combatTargets.begin(), combatTargets.end()), combatTargets.end());
+
                 for (Unit* target : combatTargets)
                 {
                     //if (!target || !target->IsAlive() || !me->IsHostileTo(target))
@@ -834,15 +919,16 @@ public:
                         // Sync combat state with target
                         if (!me->GetThreatManager().IsThreatenedBy(target))
                         {
-                            me->GetThreatManager().AddThreat(target, 100.0f);
-                            //me->SetInCombatWith(target);
-                            //target->SetInCombatWith(me);
+                            me->GetThreatManager().AddThreat(target, 10.0f);
                             me->Attack(target, true);
                         }
 
                         for (auto& spell : CombatSpells)
                         {
-                            if (spell.nextReadyMs > now)
+                            //if (spell.nextReadyMs > now)
+                            //    continue;
+
+                            if (!IsSpellReady(spell, now))
                                 continue;
 
                             // ---------- Psychic Scream special case ----------
@@ -857,7 +943,8 @@ public:
                                 FSBUtils::StopFollow(me);
 
                                 me->CastSpell(me, spell.spellId, false);
-                                spell.nextReadyMs = now + spell.cooldownMs;
+                                //spell.nextReadyMs = now + spell.cooldownMs;
+                                TriggerCooldown(spell, now);
                                 _globalCooldownUntil = now + NPC_GCD_MS;
 
                                 ResumeFollow(player);
@@ -873,7 +960,7 @@ public:
 
                             if (roleState == FSB_ROLE_STATE_ASSIST || roleState == FSB_ROLE_STATE_BALANCED)
                             {
-                                if (spell.spellId == SPELL_PRIEST_MIND_FLAY || spell.spellId == SPELL_PRIEST_VAMPIRIC_TOUCH)
+                                if (spell.spellId == SPELL_PRIEST_MIND_FLAY || spell.spellId == SPELL_PRIEST_VAMPIRIC_TOUCH || spell.spellId == SPELL_PRIEST_DEVOURING_PLAGUE)
                                     continue;
                             }
 
@@ -898,11 +985,14 @@ public:
                             {
                                 FSBUtils::StopFollow(me);
                                 me->CastSpell(target, spell.spellId, false);
+
+                                //spell.nextReadyMs = now + spell.cooldownMs;
+                                TriggerCooldown(spell, now);
+                                _globalCooldownUntil = now + NPC_GCD_MS;
                             }
                             else continue;
 
-                            spell.nextReadyMs = now + spell.cooldownMs;
-                            _globalCooldownUntil = now + NPC_GCD_MS;
+                            
 
                             ResumeFollow(player);
 
@@ -1041,9 +1131,9 @@ public:
                         Player* player = owner ? owner->ToPlayer() : nullptr;
 
                         FSBUtils::StopFollow(me);
-                        me->CastSpell(me, 22734); // Conjured Crystal Water
-                        _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                         me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                        me->CastSpell(me, SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER); // Conjured Crystal Water
+                        _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
 
                         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION OOC Mana");
 
@@ -1194,8 +1284,6 @@ public:
             }
         }
 
-
-
         void UpdateAI(uint32 diff) override
         {
             events.Update(diff);
@@ -1204,6 +1292,19 @@ public:
             {
                 switch (eventId)
                 {
+                case FSB_EVENT_USE_CUSTOM_REGEN:
+                {
+                    if (!me->IsBot() || !me->IsAlive())
+                        break;
+
+                    //FSBUtilsStats::ApplyRegen(me); // picks default/class + combat state automatically
+                    FSBUtilsStats::ApplyRegen(me, _regenMods);
+
+                    events.ScheduleEvent(FSB_EVENT_USE_CUSTOM_REGEN, 2s); // tick interval
+
+                    break;
+                }
+
                     // BOT Follows player again
                     // For timed events
                 case FSB_EVENT_RESUME_FOLLOW:
@@ -1330,7 +1431,7 @@ public:
                     // BOT check if player dead
                     if (player && !player->IsAlive() && !_pendingResurrection)
                     {
-                        if (!_playerDead)
+                        if (me->IsAlive() && !_playerDead)
                         {
                             std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PlayerDead, "");
                             me->Yell(msg, LANG_UNIVERSAL);
@@ -1367,6 +1468,8 @@ public:
                             // Reset health & power cleanly
                             me->SetHealth(me->GetMaxHealth());
                             me->SetPower(me->GetPowerType(), me->GetMaxPower(me->GetPowerType()));
+
+                            FSBUtilsStats::RecalculateStats(me, _regenMods);
                         }
                     }
 
@@ -1377,7 +1480,7 @@ public:
                         _botInCombat = false;
                         _botManaPotionUsed = false;
 
-                        if (!me->HasUnitState(UNIT_STATE_CASTING))
+                        if (!me->HasUnitState(UNIT_STATE_CASTING) && _playerCombatEnded)
                         {
                             events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_MANA, 100ms);
                             events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_RECUPERATE, 100ms);
@@ -1508,8 +1611,23 @@ public:
             me->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
         }
 
+        bool IsSpellReady(const FSBotSpells& spell, uint32 now) const
+        {
+            auto itr = _spellCooldowns.find(spell.spellId);
+            return itr == _spellCooldowns.end() || itr->second <= now;
+        }
+
+        void TriggerCooldown(const FSBotSpells& spell, uint32 now)
+        {
+            _spellCooldowns[spell.spellId] = now + spell.cooldownMs;
+        }
+
         uint8 attackers = FSBUtils::CountActiveAttackers(me); // count active attackers on bot
         uint32 ManaPotionSpellId = GetManaPotionSpellForLevel(me->GetLevel());
+        std::unordered_map<uint32 /*spellId*/, uint32 /*nextReadyMs*/> _spellCooldowns;
+
+        private:
+            FSBUtilsStatsMods _regenMods;
     };
 
     CreatureAI* GetAI(Creature* creature) const override
@@ -1521,5 +1639,7 @@ public:
 
 void AddSC_followship_bots_priest()
 {
+    FollowshipBotsConfig::Load();
+
     new npc_followship_bots_priest();
 }
