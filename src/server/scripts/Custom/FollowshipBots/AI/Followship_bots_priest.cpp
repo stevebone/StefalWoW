@@ -167,13 +167,13 @@ public:
             {
                 // we first calculate hire price based configs base price and hire duration options and actual player level
                 int64 hirePrice1 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1);
-                std::string hireText1 = BuildHireText(hirePrice1, FollowshipBotsConfig::configFSBHireDuration1);
+                std::string hireText1 = FSBUtilsTexts::BuildHireText(hirePrice1, FollowshipBotsConfig::configFSBHireDuration1);
 
                 int64 hirePrice2 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2);
-                std::string hireText2 = BuildHireText(hirePrice2, FollowshipBotsConfig::configFSBHireDuration2);
+                std::string hireText2 = FSBUtilsTexts::BuildHireText(hirePrice2, FollowshipBotsConfig::configFSBHireDuration2);
 
                 int64 hirePrice3 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3);
-                std::string hireText3 = BuildHireText(hirePrice3, FollowshipBotsConfig::configFSBHireDuration3);
+                std::string hireText3 = FSBUtilsTexts::BuildHireText(hirePrice3, FollowshipBotsConfig::configFSBHireDuration3);
 
                 AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 10);
                 AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 11);
@@ -282,7 +282,7 @@ public:
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
 
-                    std::string msg = BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED60, LANG_UNIVERSAL);
                 }
@@ -307,7 +307,7 @@ public:
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -332,7 +332,7 @@ public:
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -356,7 +356,7 @@ public:
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
-                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
                     me->Say(msg, LANG_UNIVERSAL);
                     //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
@@ -511,7 +511,7 @@ public:
             Unit* owner = me->GetOwner();
             Player* player = owner ? owner->ToPlayer() : nullptr;
 
-            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::TargetDeath, victim->GetName());
+            std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::TargetDeath, victim->GetName());
             me->Say(msg, LANG_UNIVERSAL);
         }
 
@@ -627,7 +627,7 @@ public:
 
             if (player)
             {
-                std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
+                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
                 me->Yell(msg, LANG_UNIVERSAL);
             }
         }
@@ -1105,7 +1105,7 @@ public:
 
                     _globalCooldownUntil = now + NPC_GCD_MS;
 
-                    std::string msg = BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
                     me->Say(msg, LANG_UNIVERSAL);
 
                     events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 2s);
@@ -1141,7 +1141,7 @@ public:
                         _globalCooldownUntil = now + NPC_GCD_MS;
 
                         if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                            me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
+                            me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
 
                         events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
                     }
@@ -1154,7 +1154,7 @@ public:
                         _globalCooldownUntil = now + NPC_GCD_MS;
 
                         if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                            me->Say(BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
+                            me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
 
                         events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
                     }
@@ -1183,7 +1183,7 @@ public:
                     _botManaPotionUsed = true;
 
                     std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
-                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::CombatMana, spellName);
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::CombatMana, spellName);
                     me->Say(msg, LANG_UNIVERSAL);
 
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat mana potion used with spell id: {}", ManaPotionSpellId);
@@ -1280,7 +1280,7 @@ public:
                     //me->Say("Hey pal, my time on the job is up. I am out of here.", LANG_UNIVERSAL);
                     if (player)
                     {
-                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
 
@@ -1309,7 +1309,7 @@ public:
 
                     if (hired && player)
                     {
-                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
                     break;
@@ -1329,7 +1329,7 @@ public:
                     }
                     else
                     {
-                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Follow, "");
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Follow, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
                     break;
@@ -1351,7 +1351,7 @@ public:
                     {
                         if (me->IsAlive() && !_playerDead)
                         {
-                            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::PlayerDead, "");
+                            std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PlayerDead, "");
                             me->Yell(msg, LANG_UNIVERSAL);
                         }
 
@@ -1369,7 +1369,7 @@ public:
                         _pendingResurrection = false;
                         _playerDead = false;
                         
-                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect, "");
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
 

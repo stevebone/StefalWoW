@@ -82,7 +82,7 @@ namespace FSBUtilsCombat
             targetName = target->GetName();
 
         // Build the message
-        std::string msg = BuildNPCSayText(targetName, integer, sayType, spellName);
+        std::string msg = FSBUtilsTexts::BuildNPCSayText(targetName, integer, sayType, spellName);
         me->Say(msg, LANG_UNIVERSAL);
 
         // Set next say cooldown: random between 3-5 minutes
