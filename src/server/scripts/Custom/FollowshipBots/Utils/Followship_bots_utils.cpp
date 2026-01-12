@@ -10,6 +10,20 @@
 
 namespace FSBUtils
 {
+    float GetRandomLeftAngle()
+    {
+        // Base left is +90 degrees (M_PI/2)
+        // Add a random small offset for natural variation
+        return (M_PI / 2.0f) + frand(-SIDE_OFFSET_MAX, SIDE_OFFSET_MAX);
+    }
+
+    float GetRandomRightAngle()
+    {
+        // Base right is -90 degrees (-M_PI/2)
+        // Add a random small offset for natural variation
+        return (-M_PI / 2.0f) + frand(-SIDE_OFFSET_MAX, SIDE_OFFSET_MAX);
+    }
+
     FSB_Roles GetRole(Creature* unit)
     {
         if (!unit || !unit->IsBot())

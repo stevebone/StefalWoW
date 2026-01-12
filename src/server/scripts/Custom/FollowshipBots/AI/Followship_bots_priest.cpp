@@ -415,7 +415,7 @@ public:
                 // Bot Follow Angle Option 3
             case GOSSIP_ACTION_INFO_DEF + 19:
             {
-                followAngle = GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
+                followAngle = FSBUtils::GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
                 break;
@@ -438,7 +438,7 @@ public:
                 // Bot Follow Angle Option 4
             case GOSSIP_ACTION_INFO_DEF + 22:
             {
-                followAngle = GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
+                followAngle = FSBUtils::GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
                 break;
@@ -449,7 +449,8 @@ public:
             {
                 FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
 
-                me->SetReactState(REACT_DEFENSIVE);
+                //me->SetReactState(REACT_DEFENSIVE);
+                me->SetReactState(REACT_AGGRESSIVE);
                 if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
                     me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
@@ -470,7 +471,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 25:
             {
                 FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
-                me->SetReactState(REACT_ASSIST);
+                //me->SetReactState(REACT_ASSIST);
+                me->SetReactState(REACT_AGGRESSIVE);
                 if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
                     me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
@@ -650,6 +652,12 @@ public:
                 bool isSelfTarget = false;
 
                 Unit* healTarget = FSBUtilsCombat::SelectHealTarget(me, botGroup_);
+                //Unit* healTarget = nullptr;
+
+                if (healTarget)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Heal target is: {}", healTarget->GetName());
+                }
 
                 if (!healTarget)
                 {
@@ -684,6 +692,16 @@ public:
                 {
                     if (FSBUtilsMovement::EnsureLOS(me, healTarget))
                         return;
+                }
+
+                // Purify check for Debuff
+                if (spell->spellId == SPELL_PRIEST_PURIFY)
+                {
+                    if (!FSBUtilsSpells::HasDispellableDebuff(healTarget))
+                    {
+                        TC_LOG_DEBUG("scripts.ai.fsb", "{} Selected Purify spell cast on target: {} but no Debuff found", me->GetName(), healTarget->GetName());
+                        break;
+                    }
                 }
 
                 if (FSBUtilsSpells::TryCast(me, healTarget, spell, _globalCooldownUntil))
@@ -756,6 +774,16 @@ public:
                         return;
                 }
 
+                // Purify check for Debuff
+                if (spell->spellId == SPELL_PRIEST_PURIFY)
+                {
+                    if (!FSBUtilsSpells::HasDispellableDebuff(emergencyTarget))
+                    {
+                        TC_LOG_DEBUG("scripts.ai.fsb", "{} Selected Purify spell cast on target: {} but no Debuff found", me->GetName(), emergencyTarget->GetName());
+                        break;
+                    }
+                }
+
                 if (FSBUtilsSpells::TryCast(me, emergencyTarget, spell, _globalCooldownUntil))
                 {
                     TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), emergencyTarget->GetName());
@@ -773,9 +801,11 @@ public:
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Damage Spells triggered");
 
                 Unit* playerTarget = nullptr;
-                if (Player* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr)
+                Player* player = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
+
+                if (player)
                 {
-                    playerTarget = owner->GetSelectedUnit(); // The player's target
+                    playerTarget = player->GetSelectedUnit(); // The player's target
                 }
 
 
@@ -819,6 +849,26 @@ public:
                         return;
                 }
 
+                // Sync combat state with target
+                if (!me->GetThreatManager().IsThreatenedBy(dmgTarget))
+                {
+                    me->GetThreatManager().AddThreat(dmgTarget, 10.0f);
+                    me->Attack(dmgTarget, true);
+                }
+
+                // =============================
+                // Class Related Handling
+                // =============================
+                // 
+                // ---------- Psychic Scream special case ----------
+                if (spell->spellId == SPELL_PRIEST_PSYCHIC_SCREAM)
+                {
+                    if (FSBUtilsCombat::CountAttackersOn(me) + (player ? FSBUtilsCombat::CountAttackersOn(player) : 0) < 3)
+                        return;
+                }
+
+                // =============================
+
                 if (FSBUtilsSpells::TryCast(me, dmgTarget, spell, _globalCooldownUntil))
                 {
                     TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), dmgTarget->GetName());
@@ -830,7 +880,7 @@ public:
                 break;
             }
 
-            case FSB_ACTION_COMBAT_SPELLS:
+            case FSB_ACTION_INITIATE_COMBAT:
             {
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spells triggered");
                 combatEmergency = false;
@@ -839,6 +889,10 @@ public:
                 if (!me->IsAlive())
                     return;
 
+
+                // =============================
+                // HEALING EMERGENCY: Player or Bots based on Role
+                // =============================
                 // Check for emergencies - targets < 30% hP
                 std::vector<Unit*> emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_);
                 if (!emergencyTargets.empty())
@@ -850,370 +904,30 @@ public:
                     return;
                 }
 
+                // This needs to be here so that we do not interrupt emergency chase motion
                 if (FSBUtilsMovement::GetMovementType(me) == CHASE_MOTION_TYPE)
                     return;
-
-                // Check for heal targets based on role
-                //if (!me->HasUnitState(UNIT_STATE_CASTING) && !combatEmergency)
-                //{
-                //    DoAction(FSB_ACTION_COMBAT_HEAL);
-                //    break;
-                //}
-
-                if (!me->HasUnitState(UNIT_STATE_CASTING) /* && groupHealthy*/)
-                {
-                    DoAction(FSB_ACTION_COMBAT_DAMAGE);
-                    break;
-                }
-                break;
-            }
-            /*
-            
-
-                // =============================
-
-                //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-
-                Unit* owner = me->GetOwner();
-                Player* player = owner ? owner->ToPlayer() : nullptr;
 
                 // =============================
                 // HEALING: Player or Bot based on Role
                 // =============================
-                bool castedHealThisTick = false; // reset each tick
-
-                std::vector<Unit*> healCandidates;
-
-                // Define HP thresholds per role
-                float lowHpThreshold = 30.f;
-                float midHpThreshold = 55.f;
-                float highHpThreshold = 70.f;
-
-                switch (roleState)
+                if (!me->HasUnitState(UNIT_STATE_CASTING) && !groupHealthy)
                 {
-                case FSB_ROLE_STATE_ASSIST:
-                    // Heal player first, then self if needed
-                    if (player && player->IsAlive() && player->GetHealthPct() < 90)
-                        healCandidates.push_back(player);
-
-                    if (me->GetHealthPct() < 40)
-                        healCandidates.push_back(me);
-                    break;
-
-                case FSB_ROLE_STATE_DAMAGE:
-                    // Only heal self
-                    if (me->GetHealthPct() < 60)
-                        healCandidates.push_back(me);
-                    break;
-
-                case FSB_ROLE_STATE_BALANCED:
-                    // Heal bot first, then player
-                    if (me->GetHealthPct() < 70)
-                        healCandidates.push_back(me);
-
-                    if (player && player->IsAlive() && player->GetHealthPct() < 70)
-                        healCandidates.push_back(player);
+                    DoAction(FSB_ACTION_COMBAT_HEAL);
                     break;
                 }
 
-                Unit* healTarget = nullptr;
-                float highestRisk = 0.f;
-
-                for (Unit* u : healCandidates)
+                // =============================
+                // DAMAGE: Bot based on Role
+                // =============================
+                else
                 {
-                    if (!u || !u->IsAlive())
-                        continue;
-
-                    float risk = 100.f - u->GetHealthPct(); // low HP = higher risk
-                    if (me->IsInCombat())
-                        //risk += me->GetThreatManager().GetThreat(u) * 0.01f;
-                        risk += 10.f;
-
-                    if (risk > highestRisk)
-                    {
-                        highestRisk = risk;
-                        healTarget = u;
-                    }
-                }
-
-                if (healTarget)
-                {
-                    std::vector<FSBotSpells>* healTable = nullptr;
-
-                    switch (roleState)
-                    {
-                    case FSB_ROLE_STATE_ASSIST:
-                        healTable = &AssistHealSpells;
-                        break;
-                    case FSB_ROLE_STATE_BALANCED:
-                        healTable = &BalancedHealSpells;
-                        break;
-                    case FSB_ROLE_STATE_DAMAGE:
-                        healTable = &SelfHealSpells;
-                        break;
-                    }
-
-                    for (auto& spell : *healTable)
-                    {
-                        //if (spell.nextReadyMs > now)
-                        //    continue;
-
-                        if (!IsSpellReady(spell, now))
-                            continue;
-
-                        float hpPct = healTarget->GetHealthPct();
-
-                        // Role-based thresholds
-                        bool skip = false;
-
-                        switch (spell.spellId)
-                        {
-                        case SPELL_PRIEST_HEAL:
-                            skip = hpPct > lowHpThreshold;
-                            break;
-                        case SPELL_PRIEST_FLASH_HEAL:
-                            skip = hpPct > midHpThreshold;
-                            break;
-                        case SPELL_PRIEST_RENEW:
-                            skip = hpPct > highHpThreshold;
-                            break;
-                        default:
-                            break;
-                        }
-
-                        if (skip)
-                            continue;
-
-                        if (spell.chance < frand(0.f, 100.f))
-                            continue;
-
-                        if (spell.spellId == SPELL_PRIEST_PURIFY)
-                        {
-                            if (!FSBUtilsSpells::HasDispellableDebuff(healTarget))
-                                continue;
-                        }
-
-                        if (!healTarget->HasAura(spell.spellId))
-                        {
-                            me->CastSpell(healTarget, spell.spellId, false);
-                            castedHealThisTick = true;
-                            //spell.nextReadyMs = now + spell.cooldownMs;
-                            TriggerCooldown(spell, now);
-                            _globalCooldownUntil = now + NPC_GCD_MS;
-
-                            if (now >= _nextCombatSayMs)
-                            {
-                                if (healTarget == me)
-                                {
-                                    std::string msg = BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                    // Random cooldown between 3-5 minutes
-                                    _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
-                                        5 * MINUTE * IN_MILLISECONDS);
-                                }
-                                else if (healTarget == player && player)
-                                {
-                                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, "");
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                    // Random cooldown between 3-5 minutes
-                                    _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
-                                        5 * MINUTE * IN_MILLISECONDS);
-                                }
-                                else
-                                {
-                                    if (healTarget)
-                                    {
-                                        // We may need this one if we have more bots at the same time
-                                        std::string msg = BuildNPCSayText(healTarget->GetName(), NULL, FSBSayType::HealTarget, "");
-                                        me->Say(msg, LANG_UNIVERSAL);
-                                        // Random cooldown between 3-5 minutes
-                                        _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
-                                            5 * MINUTE * IN_MILLISECONDS);
-                                    }
-                                }
-                            }
-
-                            // Only one heal per tick
-
-                            break;
-                        }
-                    }
-                }
-
-                // -------------------------
-                // 2?? Combat logic
-                // -------------------------
-
-                if (castedHealThisTick)
-                    return;
-
-                std::vector<Unit*> combatTargets;
-
-                if (roleState == FSB_ROLE_STATE_BALANCED)
-                {
-                    if (player && player->IsAlive())
-                    {
-
-                        // Attack player's target(s)
-                        if (Unit* playerTarget = player->GetSelectedUnit())
-                            combatTargets.push_back(playerTarget);
-                    }
-                    else
-                    {
-                        auto const& threatRefs = me->GetThreatManager().GetSortedThreatList();
-                        for (ThreatReference const* ref : threatRefs)
-                        {
-                            if (Unit* u = ref->GetVictim())
-                                combatTargets.push_back(u);
-                        }
-                    }
-                }
-                else if (roleState == FSB_ROLE_STATE_DAMAGE)
-                {
-                    // Aggroed mobs from NPC & Player AND player's target
-                    auto const& threatRefs = me->GetThreatManager().GetSortedThreatList();
-                    for (ThreatReference const* ref : threatRefs)
-                    {
-                        if (Unit* u = ref->GetVictim())
-                            combatTargets.push_back(u);
-                    }
-
-                    auto const& threatRefs2 = player->GetThreatManager().GetSortedThreatList();
-                    if (player && player->IsAlive())
-                    {
-                        if (Unit* playerTarget = player->GetSelectedUnit())
-                            combatTargets.push_back(playerTarget);
-
-                        for (ThreatReference const* ref2 : threatRefs2)
-                        {
-                            if (Unit* u = ref2->GetVictim())
-                                combatTargets.push_back(u);
-                        }
-                    }
-                }
-                else if (roleState == FSB_ROLE_STATE_ASSIST)
-                {
-                    // Only mobs aggroed by the bot
-                    // We are a healer after all
-                    auto const& threatRefs = me->GetThreatManager().GetSortedThreatList();
-                    for (ThreatReference const* ref : threatRefs)
-                    {
-                        if (Unit* u = ref->GetVictim())
-                            combatTargets.push_back(u);
-                    }
-                }
-
-                std::sort(combatTargets.begin(), combatTargets.end());
-                combatTargets.erase(std::unique(combatTargets.begin(), combatTargets.end()), combatTargets.end());
-
-                for (Unit* target : combatTargets)
-                {
-                    //if (!target || !target->IsAlive() || !me->IsHostileTo(target))
-                    //    continue;
-                    if (target && target->IsAlive())
-                    {
-
-                        // Sync combat state with target
-                        if (!me->GetThreatManager().IsThreatenedBy(target))
-                        {
-                            me->GetThreatManager().AddThreat(target, 10.0f);
-                            me->Attack(target, true);
-                        }
-
-                        for (auto& spell : CombatSpells)
-                        {
-                            //if (spell.nextReadyMs > now)
-                            //    continue;
-
-                            if (!IsSpellReady(spell, now))
-                                continue;
-
-                            // ---------- Psychic Scream special case ----------
-                            if (spell.spellId == SPELL_PRIEST_PSYCHIC_SCREAM)
-                            {
-                                if (FSBUtils::CountAttackersOn(me) + (player ? FSBUtils::CountAttackersOn(player) : 0) < 3)
-                                    continue;
-
-                                if (!me->IsWithinDistInMap(target, 8.0f))
-                                    continue;
-
-                                FSBUtils::StopFollow(me);
-
-                                me->CastSpell(me, spell.spellId, false);
-                                //spell.nextReadyMs = now + spell.cooldownMs;
-                                TriggerCooldown(spell, now);
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-
-                                ResumeFollow(player);
-                                return;
-                            }
-
-                            // --------------- Role Based Handling -------
-                            if (roleState == FSB_ROLE_STATE_DAMAGE)
-                            {
-                                if (spell.spellId == SPELL_PRIEST_SMITE || spell.spellId == SPELL_PRIEST_HOLY_FIRE || spell.spellId == SPELL_PRIEST_PENANCE)
-                                    continue;
-                            }
-
-                            if (roleState == FSB_ROLE_STATE_ASSIST || roleState == FSB_ROLE_STATE_BALANCED)
-                            {
-                                if (spell.spellId == SPELL_PRIEST_MIND_FLAY || spell.spellId == SPELL_PRIEST_VAMPIRIC_TOUCH || spell.spellId == SPELL_PRIEST_DEVOURING_PLAGUE)
-                                    continue;
-                            }
-
-                            // ---------- Ranged spell movement ----------
-                            float dist = me->GetDistance(target);
-                            float desiredRange = frand(SPELL_MIN_RANGE, SPELL_MAX_RANGE);
-
-                            if (dist > desiredRange)
-                            {
-                                FSBUtils::StopFollow(me);
-
-                                me->GetMotionMaster()->MoveChase(target, desiredRange);
-                                return; // movement is the action this tick
-                            }
-
-                            // ---------- Chance roll ----------
-                            if (spell.chance < frand(0.f, 100.f))
-                                continue;
-
-                            // ---------- Cast ----------
-                            if (!target->HasAura(spell.spellId))
-                            {
-                                FSBUtils::StopFollow(me);
-                                me->CastSpell(target, spell.spellId, false);
-
-                                //spell.nextReadyMs = now + spell.cooldownMs;
-                                TriggerCooldown(spell, now);
-                                _globalCooldownUntil = now + NPC_GCD_MS;
-                            }
-                            else continue;
-
-                            
-
-                            ResumeFollow(player);
-
-                            if (now >= _nextCombatSayMs)
-                            {
-                                std::string spellName = FSBUtilsSpells::GetSpellName(spell.spellId);
-
-                                std::string msg = BuildNPCSayText(target->GetName(), NULL, FSBSayType::SpellOnTarget, spellName);
-                                me->Say(msg, LANG_UNIVERSAL);
-                                // Random cooldown between 3-5 minutes
-                                _nextCombatSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS,
-                                    5 * MINUTE * IN_MILLISECONDS);
-                            }
-
-
-                            // Only cast one combat spell per tick
-                            break;
-                        }
-                    }
+                    DoAction(FSB_ACTION_COMBAT_DAMAGE);
+                    break;
                 }
 
                 break;
             }
-            */
 
             case FSB_ACTION_RESURRECT_PLAYER:
             {
@@ -1516,16 +1230,16 @@ public:
 
                     break;
                 }
-                case FSB_EVENT_PRIEST_COMBAT_SPELLS:
+                case FSB_EVENT_INITIATE_COMBAT:
                 {
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Priest Combat Spells triggered with role = {}", roleState);
 
-                    DoAction(FSB_ACTION_COMBAT_SPELLS);
+                    DoAction(FSB_ACTION_INITIATE_COMBAT);
 
                     // ?? ALWAYS reschedule while combat exists for player OR bot
                     if (FSBUtilsCombat::IsCombatActive(me))
                     {
-                        events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 1s);
+                        events.ScheduleEvent(FSB_EVENT_INITIATE_COMBAT, 1s);
                     }
 
                     break;
@@ -1745,7 +1459,7 @@ public:
                         if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                             events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
                         
-                        events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 2s);
+                        events.ScheduleEvent(FSB_EVENT_INITIATE_COMBAT, 2s);
                     }
 
                     if (player && player->IsAlive() && !player->IsInCombat() && _playerCombatStarted)
@@ -1828,8 +1542,8 @@ public:
             FSBUtilsStatsMods _regenMods;
             std::vector<Unit*> botGroup_;
 
-            bool combatEmergency;
-            bool groupHealthy;
+            bool combatEmergency = false;
+            bool groupHealthy = false;
     };
 
     CreatureAI* GetAI(Creature* creature) const override

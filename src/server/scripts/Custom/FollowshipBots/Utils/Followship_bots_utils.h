@@ -33,6 +33,7 @@ inline std::string BuildHireText(int64 price, uint32 hours)
     return std::to_string(hours) + " hour service: " + MoneyToString(price);
 }
 
+
 enum class FSBSayType
 {
     Hire,           // NPC hired by player
@@ -50,16 +51,6 @@ enum class FSBSayType
     BotDeath,       // NPC Dies
     TargetDeath     // NPC Kills Target
 };
-
-// Helper to pick a random element from a vector
-inline const std::string& RandomChoice(const std::vector<std::string>& options)
-{
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-
-    std::uniform_int_distribution<> dis(0, options.size() - 1);
-    return options[dis(gen)];
-}
 
 // Builds NPC say text dynamically, inserts player name and duration
 inline std::string BuildNPCSayText(const std::string& playerName, uint32 duration, FSBSayType type, const std::string& string2)
@@ -88,7 +79,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Let's do this, <name>. <duration> hours in, we pretend we planned it."
         };
 
-        std::string chosen = RandomChoice(hireTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(hireTexts);
         // Replace placeholders
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
@@ -114,7 +105,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Well, this is where I leave you. Try not to pull anything too big next time."
         };
 
-        std::string chosen = RandomChoice(fireTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(fireTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -142,7 +133,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Holding position. Someone's got to be the responsible one."
         };
 
-        std::string chosen = RandomChoice(stayTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(stayTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -170,7 +161,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Alright, <name>. I'll keep up. probably."
         };
 
-        std::string chosen = RandomChoice(followTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(followTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -198,7 +189,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "No clock ticking anymore. I'm with you."
         };
 
-        std::string chosen = RandomChoice(phireTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(phireTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -217,7 +208,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "I appreciate the buff, <name>!"
         };
 
-        std::string chosen = RandomChoice(buffedTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(buffedTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -239,7 +230,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Hope you appreciate the heal, <name>!"
         };
 
-        std::string chosen = RandomChoice(healTargetTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(healTargetTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -264,7 +255,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Staying alive."
         };
 
-        std::string chosen = RandomChoice(healSelfTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(healSelfTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -286,7 +277,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Hope you appreciate the revival, <name>!"
         };
 
-        std::string chosen = RandomChoice(resurrectTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(resurrectTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -308,7 +299,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Death is just a number, <name>!"
         };
 
-        std::string chosen = RandomChoice(playerDeadTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(playerDeadTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -330,7 +321,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Hope you like my <spell>, you <name>!"
         };
 
-        std::string chosen = RandomChoice(combatTargetTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(combatTargetTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -354,7 +345,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "<name> have a <spell> for me? No...?! Ok, I'll use mine..."
         };
 
-        std::string chosen = RandomChoice(combatManaTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(combatManaTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -379,7 +370,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "Remember me as I was. alive. and judging your decisions, <name>."
         };
 
-        std::string chosen = RandomChoice(botDeathTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(botDeathTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -404,7 +395,7 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
             "I call that a successful application of violence."
         };
 
-        std::string chosen = RandomChoice(targetDeathTexts);
+        std::string chosen = Trinity::Containers::SelectRandomContainerElement(targetDeathTexts);
         size_t pos;
         while ((pos = chosen.find("<name>")) != std::string::npos)
             chosen.replace(pos, 6, playerName);
@@ -418,26 +409,18 @@ inline std::string BuildNPCSayText(const std::string& playerName, uint32 duratio
     }
 }
 
-constexpr float SIDE_OFFSET_MAX = M_PI / 6.0f; // ±30 degrees from pure left/right
 
-// Returns a random angle slightly to the left of the player
-inline float GetRandomLeftAngle()
-{
-    // Base left is +90 degrees (M_PI/2)
-    // Add a random small offset for natural variation
-    return (M_PI / 2.0f) + frand(-SIDE_OFFSET_MAX, SIDE_OFFSET_MAX);
-}
-
-// Returns a random angle slightly to the right of the player
-inline float GetRandomRightAngle()
-{
-    // Base right is -90 degrees (-M_PI/2)
-    // Add a random small offset for natural variation
-    return (-M_PI / 2.0f) + frand(-SIDE_OFFSET_MAX, SIDE_OFFSET_MAX);
-}
 
 namespace FSBUtils
 {
+    constexpr float SIDE_OFFSET_MAX = M_PI / 6.0f; // ±30 degrees from pure left/right
+
+    // Returns a random angle slightly to the left of the player
+    float GetRandomLeftAngle();
+
+    // Returns a random angle slightly to the right of the player
+    float GetRandomRightAngle();
+
     // Get the role of a bot (returns FSB_ROLE_NONE if not a bot or AI not present)
     FSB_Roles GetRole(Creature* unit);
 
@@ -456,4 +439,5 @@ namespace FSBUtilsMovement
 
     MovementGeneratorType GetMovementType(Unit* me);
 }
+
 

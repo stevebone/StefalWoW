@@ -231,92 +231,111 @@ namespace FSBUtilsCombat
     }
     Unit* SelectHealTarget(Unit* me, const std::vector<Unit*>& group)
     {
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Triggered");
+        TC_LOG_DEBUG("scripts.ai.fsb", "SelectHealTarget called: me={}, role={}, hp={}", me->GetName(), FSBUtils::GetRole(me->ToCreature()), me->GetHealthPct());
+
         if (!me)
             return nullptr;
 
-        FSB_Roles role = FSBUtils::GetRole(me->ToCreature());
+        FSB_Roles myRole = FSBUtils::GetRole(me->ToCreature());
+        Player* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
 
-        Unit* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Bot Role: {}", myRole);
 
-        Unit* target = nullptr;
-
-        switch (role)
+        // -------------------------------
+        // ROLE: HEALER
+        // -------------------------------
+        if (myRole == FSB_ROLE_HEALER)
         {
-        case FSB_Roles::FSB_ROLE_HEALER:
-        {
-            // Healer: prioritize tank first, then player, then self, then lowest HP other bot
+            // 1. Tank @ 80%
             for (Unit* u : group)
             {
                 if (!u || !u->IsAlive())
                     continue;
 
-                FSB_Roles r = FSBUtils::GetRole(u->ToCreature());
-
-                if (r == FSB_Roles::FSB_ROLE_TANK) // tank is damage? maybe tag separately, adjust as needed
+                if (FSBUtils::GetRole(u->ToCreature()) == FSB_ROLE_TANK &&
+                    u->GetHealthPct() < 80.0f)
                 {
-                    target = u;
-                    break;
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Found Tank to heal");
+                    return u;
                 }
             }
 
-            if (!target && owner && owner->IsAlive())
-                target = owner;
-
-            if (!target)
-                target = me;
-
-            // fallback to lowest HP bot
-            if (!target)
+            // 2. Owner player @ 80%
+            if (owner && owner->IsAlive() && owner->GetHealthPct() < 80.0f)
             {
-                float lowestHp = 101.f;
-                for (Unit* u : group)
-                {
-                    if (!u || !u->IsAlive())
-                        continue;
-
-                    float hp = u->GetHealthPct();
-                    if (hp < lowestHp)
-                    {
-                        lowestHp = hp;
-                        target = u;
-                    }
-                }
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Found Owner to heal");
+                return owner;
             }
-            break;
-        }
 
-        case FSB_Roles::FSB_ROLE_DAMAGE:
-        {
-            // Damage dealer: prioritize self
-            target = me;
-            break;
-        }
+            // 3. Any other group member @ 50%
+            Unit* lowest = nullptr;
+            float lowestPct = 50.0f;
 
-        case FSB_Roles::FSB_ROLE_ASSIST:
-        {
-            // Balanced: lowest HP among group
-            float lowestHp = 101.f;
             for (Unit* u : group)
             {
                 if (!u || !u->IsAlive())
                     continue;
 
-                float hp = u->GetHealthPct();
-                if (hp < lowestHp)
+                if (u->GetHealthPct() < lowestPct)
                 {
-                    lowestHp = hp;
-                    target = u;
+                    lowestPct = u->GetHealthPct();
+                    lowest = u;
                 }
             }
-            break;
+
+            return lowest; // nullptr if nobody qualifies
         }
 
-        default:
-            target = me;
-            break;
+        // -------------------------------
+        // ROLE: ASSIST
+        // -------------------------------
+        if (myRole == FSB_ROLE_ASSIST)
+        {
+            Unit* lowest = nullptr;
+            float lowestPct = 50.0f;
+
+            for (Unit* u : group)
+            {
+                if (!u || !u->IsAlive())
+                    continue;
+
+                if (u->GetHealthPct() < lowestPct)
+                {
+                    lowestPct = u->GetHealthPct();
+                    lowest = u;
+                }
+            }
+
+            return lowest;
         }
 
-        return target;
+        // -------------------------------
+        // ROLE: TANK
+        // -------------------------------
+        if (myRole == FSB_ROLE_TANK)
+        {
+            if (me->GetHealthPct() < 80.0f)
+                return me;
+
+            return nullptr;
+        }
+
+        // -------------------------------
+        // ROLE: DAMAGE
+        // -------------------------------
+        if (myRole == FSB_ROLE_DAMAGE)
+        {
+            if (me->GetHealthPct() < 50.0f)
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat Damage : Bot Role Damage HP < 50. ");
+                return me;
+            }
+
+            return nullptr;
+        }
+
+        return nullptr;
     }
 
     std::vector<Unit*> GetEmergencyCandidates(const std::vector<Unit*>& group, float lowHpThreshold)

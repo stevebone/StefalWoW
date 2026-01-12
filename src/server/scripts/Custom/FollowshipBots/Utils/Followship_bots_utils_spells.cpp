@@ -113,6 +113,7 @@ namespace FSBUtilsSpells
 
         uint32 now = getMSTime();
         FSB_Roles botRole = FSBUtils::GetRole(caster->ToCreature());
+        uint32 botRoleMask = RoleToMask(botRole);
 
         // ----- First pass: self-cast preferred -----
         if (preferSelfCast)
@@ -123,7 +124,8 @@ namespace FSBUtilsSpells
                     continue;
 
                 // Role check
-                if (spell.allowedRoles != FSB_ROLEMASK_ANY && spell.allowedRoles != botRole)
+                if (spell.allowedRoles != FSB_ROLEMASK_ANY &&
+                    (spell.allowedRoles & botRoleMask) == 0)
                     continue;
 
                 if (!spell.isSelfCast)
@@ -148,7 +150,8 @@ namespace FSBUtilsSpells
             if (spell.type != type)
                 continue;
 
-            if (spell.allowedRoles != FSB_ROLEMASK_ANY && spell.allowedRoles != botRole)
+            if (spell.allowedRoles != FSB_ROLEMASK_ANY &&
+                (spell.allowedRoles & botRoleMask) == 0)
                 continue;
 
             if (!FSBUtilsSpells::IsSpellReady(spell, now))

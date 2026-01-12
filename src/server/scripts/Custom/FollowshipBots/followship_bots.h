@@ -28,9 +28,9 @@ constexpr auto FSB_GOSSIP_ITEM_FOLLOW_ANGLE_BACK = "Get behind me!";
 constexpr auto FSB_GOSSIP_ITEM_FOLLOW_ANGLE_LEFT = "Move on my left!";
 constexpr auto FSB_GOSSIP_ITEM_FOLLOW_ANGLE_RIGHT = "Move on my right!";
 
-constexpr auto FSB_GOSSIP_ITEM_ROLE_ASSIST = "Assist Role: mostly heals and light combat assist";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_ASSIST = "Healer Role: mostly heals and light combat assist";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_DAMAGE = "Damage Dealer: only damage on all targets";
-constexpr auto FSB_GOSSIP_ITEM_ROLE_BALANCED = "Balanced Role: a mix of heals and damage spells";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_BALANCED = "Assist Role: a mix of heals and damage spells";
 
 
 constexpr auto FSB_GOSSIP_ITEM_INFO = "Tell me more about yourself";
@@ -67,14 +67,15 @@ enum FSB_GenericEvents
     FSB_EVENT_RESUME_FOLLOW = 5,
     FSB_EVENT_USE_CUSTOM_REGEN = 6,
     FSB_EVENT_MOVE_STAY = 10,
-    FSB_EVENT_MOVE_FOLLOW = 11
+    FSB_EVENT_MOVE_FOLLOW = 11,
+    FSB_EVENT_INITIATE_COMBAT = 12
 };
 
 enum FSB_PriestSpellEvents
 {
     FSB_EVENT_PRIEST_OOC_MANA = 20,
     FSB_EVENT_PRIEST_OOC_HEAL_SELF = 21,
-    FSB_EVENT_PRIEST_COMBAT_SPELLS = 22,
+    //FSB_EVENT_PRIEST_COMBAT_SPELLS = 22,
     FSB_EVENT_PRIEST_OOC_HEAL_PLAYER = 23,
     FSB_EVENT_CHECK_COMBAT = 24,
     FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER = 25,
@@ -92,7 +93,7 @@ enum FSB_MovementStates
 
 enum FSB_Actions
 {
-    FSB_ACTION_COMBAT_SPELLS = 1,
+    FSB_ACTION_INITIATE_COMBAT = 1,
     FSB_ACTION_RESURRECT_PLAYER = 2,
     FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF = 3,
     FSB_ACTION_INITIAL_COMBAT_SPELLS_PLAYER = 4,

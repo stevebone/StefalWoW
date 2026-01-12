@@ -18,3 +18,15 @@ enum FSB_RoleMask : uint32
     FSB_ROLEMASK_DAMAGE = 1 << 2,
     FSB_ROLEMASK_ASSIST = 1 << 3,
 };
+
+static uint32 RoleToMask(FSB_Roles role)
+{
+    switch (role)
+    {
+    case FSB_ROLE_TANK:   return FSB_ROLEMASK_TANK;
+    case FSB_ROLE_HEALER: return FSB_ROLEMASK_HEALER;
+    case FSB_ROLE_DAMAGE: return FSB_ROLEMASK_DAMAGE;
+    case FSB_ROLE_ASSIST: return FSB_ROLEMASK_ASSIST;
+    default:              return 0;
+    }
+}
