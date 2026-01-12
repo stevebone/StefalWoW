@@ -1,7 +1,6 @@
 // =========================================
 // TO-DO
 // =========================================
-// Check Unit.h for Unit States related to movement and use those instead of custom ones see enum UnitState : uint32
 
 
 #include "Player.h"
@@ -9,13 +8,13 @@
 #include "ScriptedGossip.h"
 
 #include "followship_bots.h"
+#include "followship_bots_ai_base.h"
 #include "followship_bots_config.h"
 #include "followship_bots_priest.h"
 #include "followship_bots_utils.h"
-#include "followship_bots_utils_spells.h"
 #include "followship_bots_utils_stats.h"
-
 #include "followship_bots_utils_priest.h"
+#include "Followship_bots_utils_combat.h"
 
 
 
@@ -24,20 +23,17 @@ class npc_followship_bots_priest : public CreatureScript
 public:
     npc_followship_bots_priest() : CreatureScript("npc_followship_bots_priest") { }
 
-    struct npc_followship_bots_priestAI : public ScriptedAI
+    struct npc_followship_bots_priestAI : public FSB_BaseAI
     {
-        npc_followship_bots_priestAI(Creature* creature) : ScriptedAI(creature)
+        npc_followship_bots_priestAI(Creature* creature) : FSB_BaseAI(creature)
         {
             // Runs once when creature is spawned
         }
 
-        EventMap events;
-        ObjectGuid _playerGuid;
+        
 
         // Bot Operations
         bool hired = false;
-
-        int roleState = FSB_ROLE_STATE_BALANCED;
 
         bool updateFollowInfo = false;
         float followDistance = FOLLOW_DISTANCE_NORMAL;
@@ -227,14 +223,14 @@ public:
                 // Bot Instructions Menu
             case GOSSIP_ACTION_INFO_DEF + 6:
             {
-                if(FSBUtils::GetMovementType(me) == FOLLOW_MOTION_TYPE)
+                if(FSBUtilsMovement::GetMovementType(me) == FOLLOW_MOTION_TYPE)
                 {
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_STAY_HERE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 20);
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
                     AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
                 }
-                else if(FSBUtils::GetMovementType(me) == IDLE_MOTION_TYPE)
+                else if(FSBUtilsMovement::GetMovementType(me) == IDLE_MOTION_TYPE)
                 {
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 21);
                     AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
@@ -448,10 +444,11 @@ public:
                 break;
             }
 
-                // Bot Role Option Assist
+                // Bot Role Option Healer
             case GOSSIP_ACTION_INFO_DEF + 23:
             {
-                roleState = FSB_ROLE_STATE_ASSIST;
+                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
+
                 me->SetReactState(REACT_DEFENSIVE);
                 if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
                     me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
@@ -462,7 +459,7 @@ public:
                 // Bot Role Option Damage Deal
             case GOSSIP_ACTION_INFO_DEF + 24:
             {
-                roleState = FSB_ROLE_STATE_DAMAGE;
+                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_DAMAGE);
                 me->SetReactState(REACT_AGGRESSIVE);
                 me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
@@ -472,7 +469,7 @@ public:
             // Bot Role Option Balanced
             case GOSSIP_ACTION_INFO_DEF + 25:
             {
-                roleState = FSB_ROLE_STATE_BALANCED;
+                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
                 me->SetReactState(REACT_ASSIST);
                 if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
                     me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
@@ -491,7 +488,7 @@ public:
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered JustEngagedWith: {}", who->GetName());
 
-            if(roleState == FSB_ROLE_STATE_BALANCED || roleState == FSB_ROLE_STATE_DAMAGE)
+            if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST || FSBUtils::GetRole(me) == FSB_Roles:: FSB_ROLE_DAMAGE)
                 events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 100ms);
             //me->DoMeleeAttackIfReady();
             //DoZoneInCombat();
@@ -520,10 +517,10 @@ public:
         {
             TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {}", spell->Id);
 
-            if (spell->Id == SPELL_PRIEST_DEVOURING_PLAGUE)
+            if (spell->Id == SPELL_PRIEST_DEVOURING_PLAGUE || spell->Id == SPELL_PRIEST_PENANCE)
             {
                 _regenMods.manaPctBonus -= 2.0f;
-                TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting Devouring Plage id {} we need to subtract 2% mana", spell->Id);
+                TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {} we need to subtract 2% mana", spell->Id);
             }
         }
 
@@ -626,8 +623,11 @@ public:
             Unit* owner = me->GetOwner();
             Player* player = owner ? owner->ToPlayer() : nullptr;
 
-            std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
-            me->Yell(msg, LANG_UNIVERSAL);
+            if (player)
+            {
+                std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
+                me->Yell(msg, LANG_UNIVERSAL);
+            }
         }
 
         uint32 GetData(uint32 type) const override // Runs once to check what data exists on the creature
@@ -644,34 +644,231 @@ public:
         {
             switch (action)
             {
-            case FSB_ACTION_COMBAT_SPELLS:
+            case FSB_ACTION_COMBAT_HEAL:
             {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction triggered: Combat Spells");
+                groupHealthy = false;
+                bool isSelfTarget = false;
 
-                uint32 now = getMSTime();
+                Unit* healTarget = FSBUtilsCombat::SelectHealTarget(me, botGroup_);
 
-                if (_globalCooldownUntil > now)
+                if (!healTarget)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Heal targets empty");
+                    groupHealthy = true;
+                    return; // nothing to do
+                }
+
+                FSBSpellCandidate* spell = FSBUtilsSpells::SelectSpell(
+                    me,
+                    healTarget,
+                    PriestSpellsTable,      // or bot-specific table
+                    FSBSpellType::Heal,
+                    false
+                );
+
+                if (!spell)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "{} no valid heal spell selected", me->GetName());
+                    return;
+                }
+
+                // If not self-cast, ensure we are in range first
+                if (!spell->isSelfCast)
+                {
+                    if (FSBUtilsMovement::EnsureInRange(me, healTarget, spell->dist))
+                        return; // movement started, casting deferred
+                }
+
+                // LOS check
+                if (!spell->isSelfCast)
+                {
+                    if (FSBUtilsMovement::EnsureLOS(me, healTarget))
+                        return;
+                }
+
+                if (FSBUtilsSpells::TryCast(me, healTarget, spell, _globalCooldownUntil))
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), healTarget->GetName());
+
+                    if (healTarget == me)
+                        FSBUtilsCombat::SayCombatMessage(me, healTarget, 0, FSBSayType::HealSelf, spell->spellId);
+                    else FSBUtilsCombat::SayCombatMessage(me, healTarget, 0, FSBSayType::HealTarget, spell->spellId);
+
+                }
+
+                break;
+            }
+            case FSB_ACTION_COMBAT_EMERGENCY:
+            {
+                bool isSelfTarget = false;
+
+                std::vector<Unit*> emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_);
+                if (emergencyTargets.empty())
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Emergency targets empty");
+                    return; // nothing to do
+                }
+
+                if (FSBUtilsMovement::GetMovementType(me) == CHASE_MOTION_TYPE)
                     return;
 
-                // =============================
-                // EMERGENCY: Desperate Prayer
-                // =============================
-                if (me->IsAlive())
+                // Sort by priority
+                FSBUtilsCombat::SortEmergencyTargets(emergencyTargets);
+
+                // Pick the highest priority target
+                Unit* emergencyTarget = emergencyTargets.front();
+                if (!emergencyTarget)
+                    return;
+
+                // Check if the emergency target is the bot itself
+                isSelfTarget = (emergencyTarget == me);
+
+                // Now you can pass this info to your spell-casting logic
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat Emergency target: {} | isSelfTarget: {}",
+                    emergencyTarget->GetName(), isSelfTarget);
+
+                // Example: trying to select a heal spell for a target
+                FSBSpellCandidate* spell = FSBUtilsSpells::SelectSpell(
+                    me,                      // caster
+                    emergencyTarget,                  // target
+                    PriestSpellsTable,         // vector<FSBSpellCandidate> for heals
+                    FSBSpellType::Heal,      // type of spell
+                    false                     // preferSelfCast first
+                );
+
+                if (!spell)
                 {
-                    if (me->GetHealthPct() <= 15.f && now >= _desperatePrayerReadyMs && !me->HasUnitState(UNIT_STATE_CASTING))
-                    {
-                        TC_LOG_DEBUG("scripts.ai.core", "FSB Emergency: Desperate Prayer");
-
-                        me->CastSpell(me, SPELL_PRIEST_DESPERATE_PRAYER, false);
-
-                        _desperatePrayerReadyMs = now + DESPERATE_PRAYER_CD_MS; // 90 sec cooldown (adjust if needed)
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-
-                        me->Say("I'm getting desperate here!!!", LANG_UNIVERSAL);
-
-                        return; // NOTHING overrides this
-                    }
+                    TC_LOG_DEBUG("scripts.ai.fsb", "{} no valid spell selected", me->GetName());
+                    return;
                 }
+
+                // If not self-cast, ensure we are in range first
+                if (!spell->isSelfCast)
+                {
+                    if (FSBUtilsMovement::EnsureInRange(me, emergencyTarget, spell->dist))
+                        return; // movement started, casting deferred
+                }
+
+                // LOS check
+                if (!spell->isSelfCast)
+                {
+                    if (FSBUtilsMovement::EnsureLOS(me, emergencyTarget))
+                        return;
+                }
+
+                if (FSBUtilsSpells::TryCast(me, emergencyTarget, spell, _globalCooldownUntil))
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), emergencyTarget->GetName());
+
+                    if (spell->spellId == SPELL_PRIEST_DESPERATE_PRAYER)
+                        FSBUtilsCombat::SayCombatMessage(me, emergencyTarget, 0, FSBSayType::HealSelf, spell->spellId);
+
+                }
+
+                break;
+            }
+
+            case FSB_ACTION_COMBAT_DAMAGE:
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Damage Spells triggered");
+
+                Unit* playerTarget = nullptr;
+                if (Player* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr)
+                {
+                    playerTarget = owner->GetSelectedUnit(); // The player's target
+                }
+
+
+                Unit* dmgTarget = FSBUtilsCombat::SelectDamageTarget(me, botGroup_, playerTarget);
+
+                if (!dmgTarget)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spell targets empty");
+                    break; // nothing to do
+                }
+
+                FSBSpellCandidate* spell = FSBUtilsSpells::SelectSpell(
+                    me,
+                    dmgTarget,
+                    PriestSpellsTable,      // or bot-specific table
+                    FSBSpellType::Damage,
+                    false
+                );
+
+                if (!spell)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "{} no valid damage spell selected", me->GetName());
+                    break;
+                }
+                else if (!spell && dmgTarget)
+                {
+                    me->Attack(dmgTarget, true); // melee attack
+                }
+
+                // If not self-cast, ensure we are in range first
+                if (!spell->isSelfCast)
+                {
+                    if (FSBUtilsMovement::EnsureInRange(me, dmgTarget, spell->dist))
+                        return; // movement started, casting deferred
+                }
+
+                // LOS check
+                if (!spell->isSelfCast)
+                {
+                    if (FSBUtilsMovement::EnsureLOS(me, dmgTarget))
+                        return;
+                }
+
+                if (FSBUtilsSpells::TryCast(me, dmgTarget, spell, _globalCooldownUntil))
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), dmgTarget->GetName());
+
+                    FSBUtilsCombat::SayCombatMessage(me, dmgTarget, 0, FSBSayType::SpellOnTarget, spell->spellId);
+
+                }
+
+                break;
+            }
+
+            case FSB_ACTION_COMBAT_SPELLS:
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spells triggered");
+                combatEmergency = false;
+
+                // Check Hard Requirements
+                if (!me->IsAlive())
+                    return;
+
+                // Check for emergencies - targets < 30% hP
+                std::vector<Unit*> emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_);
+                if (!emergencyTargets.empty())
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spells emergency targets NOT empty");
+
+                    combatEmergency = true;
+                    DoAction(FSB_ACTION_COMBAT_EMERGENCY);
+                    return;
+                }
+
+                if (FSBUtilsMovement::GetMovementType(me) == CHASE_MOTION_TYPE)
+                    return;
+
+                // Check for heal targets based on role
+                //if (!me->HasUnitState(UNIT_STATE_CASTING) && !combatEmergency)
+                //{
+                //    DoAction(FSB_ACTION_COMBAT_HEAL);
+                //    break;
+                //}
+
+                if (!me->HasUnitState(UNIT_STATE_CASTING) /* && groupHealthy*/)
+                {
+                    DoAction(FSB_ACTION_COMBAT_DAMAGE);
+                    break;
+                }
+                break;
+            }
+            /*
+            
 
                 // =============================
 
@@ -954,7 +1151,7 @@ public:
                             // --------------- Role Based Handling -------
                             if (roleState == FSB_ROLE_STATE_DAMAGE)
                             {
-                                if (spell.spellId == SPELL_PRIEST_SMITE || spell.spellId == SPELL_PRIEST_HOLY_FIRE)
+                                if (spell.spellId == SPELL_PRIEST_SMITE || spell.spellId == SPELL_PRIEST_HOLY_FIRE || spell.spellId == SPELL_PRIEST_PENANCE)
                                     continue;
                             }
 
@@ -1016,6 +1213,8 @@ public:
 
                 break;
             }
+            */
+
             case FSB_ACTION_RESURRECT_PLAYER:
             {
                 if (!_pendingResurrection)
@@ -1049,7 +1248,7 @@ public:
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION Resurrect Player");
 
-                FSBUtils::StopFollow(me);
+                FSBUtilsMovement::StopFollow(me);
 
                 me->CastSpell(player, SPELL_PRIEST_RESURRECTION, false);
                 _globalCooldownUntil = now + NPC_GCD_MS;
@@ -1130,7 +1329,7 @@ public:
                         Unit* owner = me->GetOwner();
                         Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                        FSBUtils::StopFollow(me);
+                        FSBUtilsMovement::StopFollow(me);
                         me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
                         me->CastSpell(me, SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER); // Conjured Crystal Water
                         _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
@@ -1159,7 +1358,7 @@ public:
                     
                         if (!me->HasAura(SPELL_PRIEST_RECUPERATE) && now >= _recuperateReadyMs)
                         {
-                            FSBUtils::StopFollow(me);
+                            FSBUtilsMovement::StopFollow(me);
 
                             me->CastSpell(me, SPELL_PRIEST_RECUPERATE, false);
                             _recuperateReadyMs = now + 60000; // 1 minute
@@ -1187,7 +1386,7 @@ public:
 
                 if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
                 {
-                    FSBUtils::StopFollow(me);
+                    FSBUtilsMovement::StopFollow(me);
                     me->CastSpell(me, SPELL_PRIEST_HEAL, false);
 
                     _globalCooldownUntil = now + NPC_GCD_MS;
@@ -1223,7 +1422,7 @@ public:
                     {
                         TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 50");
 
-                        FSBUtils::StopFollow(me);
+                        FSBUtilsMovement::StopFollow(me);
                         me->CastSpell(player, SPELL_PRIEST_HEAL, false);
                         _globalCooldownUntil = now + NPC_GCD_MS;
 
@@ -1236,7 +1435,7 @@ public:
                     {
                         TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 70");
 
-                        FSBUtils::StopFollow(me);
+                        FSBUtilsMovement::StopFollow(me);
                         me->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
                         _globalCooldownUntil = now + NPC_GCD_MS;
 
@@ -1292,6 +1491,7 @@ public:
             {
                 switch (eventId)
                 {
+                    // Applies custom regeneration
                 case FSB_EVENT_USE_CUSTOM_REGEN:
                 {
                     if (!me->IsBot() || !me->IsAlive())
@@ -1323,7 +1523,7 @@ public:
                     DoAction(FSB_ACTION_COMBAT_SPELLS);
 
                     // ?? ALWAYS reschedule while combat exists for player OR bot
-                    if (FSBUtils::IsCombatActive(me))
+                    if (FSBUtilsCombat::IsCombatActive(me))
                     {
                         events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 1s);
                     }
@@ -1364,8 +1564,12 @@ public:
                     events.Reset();
                     events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 100ms);
                     //me->Say("Hey pal, my time on the job is up. I am out of here.", LANG_UNIVERSAL);
-                    std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
-                    me->Say(msg, LANG_UNIVERSAL);
+                    if (player)
+                    {
+                        std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
+                        me->Say(msg, LANG_UNIVERSAL);
+                    }
+
                     events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
                     break;
                 }
@@ -1387,9 +1591,9 @@ public:
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                    FSBUtils::StopFollow(me);
+                    FSBUtilsMovement::StopFollow(me);
 
-                    if (hired)
+                    if (hired && player)
                     {
                         std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
                         me->Say(msg, LANG_UNIVERSAL);
@@ -1538,7 +1742,7 @@ public:
                         _playerCombatStarted = true;
                         _playerCombatEnded = false;
 
-                        if(roleState == FSB_ROLE_STATE_ASSIST)
+                        if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                             events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
                         
                         events.ScheduleEvent(FSB_EVENT_PRIEST_COMBAT_SPELLS, 2s);
@@ -1549,6 +1753,8 @@ public:
                         _playerCombatStarted = false;
                         _playerCombatEnded = true;
                     }
+
+                    FSBUtilsCombat::BuildBotGroup(me->ToCreature(), botGroup_, 100.0f);
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
@@ -1611,23 +1817,19 @@ public:
             me->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
         }
 
-        bool IsSpellReady(const FSBotSpells& spell, uint32 now) const
-        {
-            auto itr = _spellCooldowns.find(spell.spellId);
-            return itr == _spellCooldowns.end() || itr->second <= now;
-        }
-
-        void TriggerCooldown(const FSBotSpells& spell, uint32 now)
-        {
-            _spellCooldowns[spell.spellId] = now + spell.cooldownMs;
-        }
-
-        uint8 attackers = FSBUtils::CountActiveAttackers(me); // count active attackers on bot
-        uint32 ManaPotionSpellId = GetManaPotionSpellForLevel(me->GetLevel());
+        uint8 attackers = FSBUtilsCombat::CountActiveAttackers(me); // count active attackers on bot
+        uint32 ManaPotionSpellId = FSBUtilsSpells::GetManaPotionSpellForLevel(me->GetLevel());
         std::unordered_map<uint32 /*spellId*/, uint32 /*nextReadyMs*/> _spellCooldowns;
 
         private:
+            EventMap events;
+            ObjectGuid _playerGuid;
+
             FSBUtilsStatsMods _regenMods;
+            std::vector<Unit*> botGroup_;
+
+            bool combatEmergency;
+            bool groupHealthy;
     };
 
     CreatureAI* GetAI(Creature* creature) const override

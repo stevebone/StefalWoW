@@ -4,9 +4,15 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <cstdint>
 
+#include "Creature.h"
 #include "MotionMaster.h"
 #include "Player.h"
+#include "Unit.h"
+
+//#include "followship_bots_utils_spells.h"
+#include "followship_bots_ai_base.h"
 
 // Converts an int64 price in copper to a string like "10 silver"
 inline std::string MoneyToString(int64 price)
@@ -432,16 +438,22 @@ inline float GetRandomRightAngle()
 
 namespace FSBUtils
 {
-    // Checks if either bot or player is in combat
-    bool IsCombatActive(Unit* me);
+    // Get the role of a bot (returns FSB_ROLE_NONE if not a bot or AI not present)
+    FSB_Roles GetRole(Creature* unit);
 
-    // Counts active attackers
-    uint8 CountActiveAttackers(Unit* me);
+    // Set the role of a bot (does nothing if not a bot or AI not present)
+    void SetRole(Creature* unit, FSB_Roles role);
 
-    // Counts active attackers on bot
-    uint8 CountAttackersOn(Unit* who);
+}
+
+namespace FSBUtilsMovement
+{
+    // Returns true if chase was started or is ongoing
+    bool EnsureInRange(Creature* me, Unit* target, float requiredRange);
+    bool EnsureLOS(Unit* me, Unit* target);
 
     void StopFollow(Unit* me);
 
     MovementGeneratorType GetMovementType(Unit* me);
 }
+
