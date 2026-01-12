@@ -113,4 +113,26 @@ namespace FSBUtilsStats
         // ApplyArmor(...)
         // ApplySpellPower(...)
     }
+
+    void UpdateBotLevelToPlayer(Creature* bot, Player* player, const FSBUtilsStatsMods& regenMods)
+    {
+        if (!bot || !player)
+            return;
+
+        uint8 pLevel = player->GetLevel();
+        if (bot->GetLevel() == pLevel)
+            return; // nothing to do
+
+        bot->SetLevel(pLevel);
+
+        // Update stats for new level
+        bot->UpdateLevelDependantStats();
+
+        // Reset health & power
+        bot->SetHealth(bot->GetMaxHealth());
+        bot->SetPower(bot->GetPowerType(), bot->GetMaxPower(bot->GetPowerType()));
+
+        // Recalculate any additional stats/modifiers
+        RecalculateStats(bot, regenMods);
+    }
 }

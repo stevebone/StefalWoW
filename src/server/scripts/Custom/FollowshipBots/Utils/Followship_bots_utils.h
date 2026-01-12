@@ -29,6 +29,7 @@ namespace FSBUtils
     // Set the role of a bot (does nothing if not a bot or AI not present)
     void SetRole(Creature* unit, FSB_Roles role);
 
+    bool TryChargeHire(Player* player, uint32 duration);
 }
 
 namespace FSBUtilsMovement

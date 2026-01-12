@@ -8,9 +8,10 @@
 #include "GridNotifiersImpl.h"
 #include "ThreatManager.h"
 
-#include "followship_bots.h"
-#include "followship_bots_utils.h"
-#include "followship_bots_ai_base.h"
+#include "Followship_bots.h"
+#include "Followship_bots_config.h"
+#include "Followship_bots_utils.h"
+#include "Followship_bots_ai_base.h"
 
 namespace FSBUtils
 {
@@ -51,7 +52,24 @@ namespace FSBUtils
                 ai->roleState = role;
         
     }
-  
+
+    bool TryChargeHire(Player* player, uint32 duration)
+    {
+        uint32 pLevel = player->GetLevel();
+
+        int64 price = int64(FollowshipBotsConfig::configFSBPricePerLevel) * pLevel * duration;
+
+        if (!player->HasEnoughMoney(price))
+        {
+            player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
+            return false;
+        }
+
+        player->ModifyMoney(-price);
+        player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
+        return true;
+    }
+
 }
 
 namespace FSBUtilsMovement

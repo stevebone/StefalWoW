@@ -48,5 +48,14 @@ namespace FSBUtilsStats
     void ApplyMaxHealth(Unit* unit, const FSBUtilsStatsMods& mods);
 
     void RecalculateStats(Unit* unit, const FSBUtilsStatsMods& mods);
+
+    /**
+     * @brief Updates the bot's level to match the player's level and recalculates stats.
+     *
+     * @param bot The creature/bot whose level to update.
+     * @param player The owner player to match level with.
+     * @param regenMods Optional pointer to regeneration modifiers, if used for stat recalculation.
+     */
+    void UpdateBotLevelToPlayer(Creature* bot, Player* player, const FSBUtilsStatsMods& regenMods);
 }
 

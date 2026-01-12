@@ -15,6 +15,7 @@
 #include "followship_bots_utils_stats.h"
 #include "followship_bots_utils_priest.h"
 #include "Followship_bots_utils_combat.h"
+#include "Followship_bots_utils_gossip.h"
 
 
 
@@ -129,28 +130,7 @@ public:
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
         {
-            me->SetOwnerGUID(player->GetGUID());
-            _playerGuid = player->GetGUID();
-
-                InitGossipMenuFor(player, FSB_GOSSIP_DEFAULT_MENU);
-
-                if (hired)
-                {
-                    AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_FIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 5);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_INFO, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_ROLES, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
-                    AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_MENU_INSTRUCTIONS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 6);
-                }
-                else
-                {
-                    AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_MENU_HIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_INFO, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
-                }
-
-                //player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_DEFAULT_MENU, me->GetGUID());
-                SendGossipMenuFor(player, player->GetGossipTextId(me), me->GetGUID());
-                //TC_LOG_DEBUG("scripts.ai.core", "NPCBOTS OnGossipHello2");
-                return true;
+            return FSBUtilsGossip::HandleDefaultGossipHello(me, player, hired, _playerGuid);
         }
 
         bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override // Runs once when gossip item selected
@@ -164,47 +144,18 @@ public:
             {
                 // Hire Menu
             case GOSSIP_ACTION_INFO_DEF + 1:
-            {
-                // we first calculate hire price based configs base price and hire duration options and actual player level
-                int64 hirePrice1 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1);
-                std::string hireText1 = FSBUtilsTexts::BuildHireText(hirePrice1, FollowshipBotsConfig::configFSBHireDuration1);
+                return FSBUtilsGossip::HandleHireGossipSelect(me, player);
 
-                int64 hirePrice2 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2);
-                std::string hireText2 = FSBUtilsTexts::BuildHireText(hirePrice2, FollowshipBotsConfig::configFSBHireDuration2);
-
-                int64 hirePrice3 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3);
-                std::string hireText3 = FSBUtilsTexts::BuildHireText(hirePrice3, FollowshipBotsConfig::configFSBHireDuration3);
-
-                AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 10);
-                AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 11);
-                AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 12);
-                AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_PHIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 13);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-
-                player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_HIRE_MENU, me->GetGUID());
-                return true;
-            }
-
-                // Bot Info - to do make it as SAY
+                // Bot Info
             case GOSSIP_ACTION_INFO_DEF + 2:
             {
-                //player->GetSession()->SendNotification("I am a priest from Stormwind. I charge gold for my services");
-                me->Say("Hey, I am a priest from Stormwind in search for work and adventure. I charge gold for my services...", LANG_UNIVERSAL);
-                player->PlayerTalkClass->SendCloseGossip();
-                break;
+                FSBUtilsGossip::HandleInfoGossipSelect(me, player);
+                return true;
             }
 
                 // Roles Menu
             case GOSSIP_ACTION_INFO_DEF + 3:
-            {
-                AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ASSIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
-                AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DAMAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
-                AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_BALANCED, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-
-                player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_ROLES_MENU, me->GetGUID());
-                return true;
-            }
+                return FSBUtilsGossip::HandleRolesGossipSelect(me, player);
 
                 // Bot Gossip Back to main
             case GOSSIP_ACTION_INFO_DEF + 4:
@@ -222,72 +173,35 @@ public:
 
                 // Bot Instructions Menu
             case GOSSIP_ACTION_INFO_DEF + 6:
-            {
-                if(FSBUtilsMovement::GetMovementType(me) == FOLLOW_MOTION_TYPE)
-                {
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_STAY_HERE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 20);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
-                    AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-                }
-                else if(FSBUtilsMovement::GetMovementType(me) == IDLE_MOTION_TYPE)
-                {
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 21);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
-                    AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
-                    AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-                }
-
-                player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_INSTRUCTIONS_MENU, me->GetGUID());
-                return true;
-            }
+                return FSBUtilsGossip::HandleInstructionsGossipSelect(me, player);
 
                 // Bot Follow Distance Menu
             case GOSSIP_ACTION_INFO_DEF + 7:
             {
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_DIST1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 14);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_DIST2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 15);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_DIST3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 16);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-
-                player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_FOLLOW_DIST_MENU, me->GetGUID());
-                return true;
+                return FSBUtilsGossip::HandleFollowDistanceGossipSelect(me, player);
             }
 
                 // Bot Follow Angle Menu
             case GOSSIP_ACTION_INFO_DEF + 8:
-            {
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_ANGLE_FRONT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 17);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_ANGLE_BACK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 18);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_ANGLE_RIGHT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 19);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_ANGLE_LEFT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 22);
-                AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-
-                player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_FOLLOW_ANGLE_MENU, me->GetGUID());
-                return true;
-            }
+                return FSBUtilsGossip::HandleFollowAngleGossipSelect(me, player);
 
                 // Bot Hire Option 1
             case GOSSIP_ACTION_INFO_DEF + 10:
             {
                 // End price is base cost per level times player level times duration of contract
-                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1)))
+                if (!FSBUtils::TryChargeHire(player, FollowshipBotsConfig::configFSBHireDuration1))
                 {
-                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1));
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
-
-                    hired = true;
-
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
-                    events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
-                    me->Say(msg, LANG_UNIVERSAL);
-                    //me->Say(FSB_SAY_HIRED60, LANG_UNIVERSAL);
+                    player->PlayerTalkClass->SendCloseGossip();
+                    return true;
                 }
-                else
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
+
+                hired = true;
+
+                events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
+                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+
+                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
+                me->Say(msg, LANG_UNIVERSAL);
 
                 player->PlayerTalkClass->SendCloseGossip();
                 return true;
@@ -297,22 +211,19 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 11:
             {
                 // End price is base cost per level times player level times duration of contract
-                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2)))
+                if (!FSBUtils::TryChargeHire(player, FollowshipBotsConfig::configFSBHireDuration2))
                 {
-                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2));
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
-
-                    hired = true;
-
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
-                    events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
-                    me->Say(msg, LANG_UNIVERSAL);
-                    //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
+                    player->PlayerTalkClass->SendCloseGossip();
+                    return true;
                 }
-                else
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
+
+                hired = true;
+
+                events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
+                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+
+                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
+                me->Say(msg, LANG_UNIVERSAL);
 
                 player->PlayerTalkClass->SendCloseGossip();
                 return true;
@@ -322,22 +233,19 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 12:
             {
                 // End price is base cost per level times player level times duration of contract
-                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3)))
+                if (!FSBUtils::TryChargeHire(player, FollowshipBotsConfig::configFSBHireDuration3))
                 {
-                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3));
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
-
-                    hired = true;
-
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
-                    events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
-                    me->Say(msg, LANG_UNIVERSAL);
-                    //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
+                    player->PlayerTalkClass->SendCloseGossip();
+                    return true;
                 }
-                else
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
+
+                hired = true;
+
+                events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
+                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+
+                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
+                me->Say(msg, LANG_UNIVERSAL);
 
                 player->PlayerTalkClass->SendCloseGossip();
                 return true;
@@ -492,8 +400,6 @@ public:
 
             if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST || FSBUtils::GetRole(me) == FSB_Roles:: FSB_ROLE_DAMAGE)
                 events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 100ms);
-            //me->DoMeleeAttackIfReady();
-            //DoZoneInCombat();
         }
 
         // Runs every time creature takes damage
@@ -511,7 +417,9 @@ public:
             Unit* owner = me->GetOwner();
             Player* player = owner ? owner->ToPlayer() : nullptr;
 
-            std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::TargetDeath, victim->GetName());
+            std::string pName = player ? player->GetName() : "";
+
+            std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::TargetDeath, victim->GetName());
             me->Say(msg, LANG_UNIVERSAL);
         }
 
@@ -528,27 +436,7 @@ public:
 
         void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
         {
-            /*
-            // Only react some of the time
-             // 10% chance to say something
 
-            if (urand(0, 99) >= REACT_BUFFED_CHANCE_PERCENT)
-                return; // Skip reaction this time
-
-            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-            if (!player)
-                return;
-
-            if (caster == me)
-                return;
-
-            // Positive spell detection
-            if (spellInfo->IsPositive()) // TrinityCore helper
-            {
-                std::string msg = BuildNPCSayText(player->GetName(), NULL, FSBSayType::Buffed);
-                me->Say(msg, LANG_UNIVERSAL);
-            }
-            */
         }
 
         void SpellHitTarget(WorldObject* target, SpellInfo const* spellInfo) override
@@ -570,9 +458,6 @@ public:
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
                 _regenMods.flatMaxHealth += 10 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateStats(me, _regenMods);
-                //FSBUtilsStats::ApplyMaxHealth(me, _regenMods);
-                //_regenMods.pctMaxHealthBonus += 0.10f; // +10%
-                //me->SetMaxHealth(me->GetMaxHealth() + _regenMods.flatMaxHealth);
                 break;
             }
 
@@ -599,9 +484,6 @@ public:
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
                 _regenMods.flatMaxHealth -= 10 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateStats(me, _regenMods);
-                //FSBUtilsStats::ApplyMaxHealth(me, _regenMods);
-                //_regenMods.pctMaxHealthBonus += 0.10f; // +10%
-                //me->SetMaxHealth(me->GetMaxHealth() - _regenMods.flatMaxHealth);
 
                 if (me->GetHealth() > me->GetMaxHealth())
                     me->SetHealth(me->GetMaxHealth());
@@ -1214,6 +1096,8 @@ public:
                     //FSBUtilsStats::ApplyRegen(me); // picks default/class + combat state automatically
                     FSBUtilsStats::ApplyRegen(me, _regenMods);
 
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Custom Regen tick");
+
                     events.ScheduleEvent(FSB_EVENT_USE_CUSTOM_REGEN, 2s); // tick interval
 
                     break;
@@ -1232,7 +1116,7 @@ public:
                 }
                 case FSB_EVENT_INITIATE_COMBAT:
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Priest Combat Spells triggered with role = {}", roleState);
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Priest Combat triggered with role = {}", roleState);
 
                     DoAction(FSB_ACTION_INITIATE_COMBAT);
 
@@ -1246,7 +1130,7 @@ public:
                 }
 
                     // Priest casts Renew and PWS on Engagement
-                    // Only in Balanced and Damage roles
+                    // Only in Assist and Damage roles
                     // Triggered from: JustEngagedWith()
                 case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF:
                 {
@@ -1259,7 +1143,7 @@ public:
                 }
 
                     // Priest casts Renew and PWS on Player
-                    // Only in Assist role
+                    // Only in Healer role
                     // Triggered from Periodic Maintenance check and flag
                 case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER:
                 {
@@ -1277,7 +1161,6 @@ public:
                     me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     events.Reset();
                     events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 100ms);
-                    //me->Say("Hey pal, my time on the job is up. I am out of here.", LANG_UNIVERSAL);
                     if (player)
                     {
                         std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
@@ -1329,7 +1212,8 @@ public:
                     }
                     else
                     {
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Follow, "");
+                        std::string pName = player ? player->GetName() : "";
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::Follow, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
                     break;
@@ -1340,8 +1224,6 @@ public:
                     uint32 now = getMSTime();
 
                     bool castedThisTick = false;
-
-                    //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
 
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
@@ -1376,19 +1258,7 @@ public:
                     // BOT LEVEL Update
                     if (player && hired)
                     {
-                        uint8 pLevel = player->GetLevel();
-                        if (me->GetLevel() != pLevel)
-                        {
-                            me->SetLevel(pLevel);
-                            // Recalculate stats properly
-                            me->UpdateLevelDependantStats();
-
-                            // Reset health & power cleanly
-                            me->SetHealth(me->GetMaxHealth());
-                            me->SetPower(me->GetPowerType(), me->GetMaxPower(me->GetPowerType()));
-
-                            FSBUtilsStats::RecalculateStats(me, _regenMods);
-                        }
+                        FSBUtilsStats::UpdateBotLevelToPlayer(me, player, _regenMods);
                     }
 
                     // BOT Check OOC Actions
@@ -1458,7 +1328,12 @@ public:
 
                         if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                             events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
-                        
+
+                        if (!me->HasUnitFlag(UNIT_FLAG_IN_COMBAT))
+                        {
+                            me->SetUnitFlag(UNIT_FLAG_IN_COMBAT);
+                        }
+
                         events.ScheduleEvent(FSB_EVENT_INITIATE_COMBAT, 2s);
                     }
 
