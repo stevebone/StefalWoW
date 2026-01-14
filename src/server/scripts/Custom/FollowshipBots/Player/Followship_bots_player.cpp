@@ -6,12 +6,10 @@ class followship_bots_player : public PlayerScript
 {
 public:
     followship_bots_player() : PlayerScript("followship_bots_player") { }
-
-    
     
     void OnLogout(Player* player) override
     {
-        FSBMgr::DespawnTempBots(player);
+        FSBMgr::RemoveTempBots(player);
     }
 
     void OnMapChanged(Player* player) override
@@ -19,7 +17,7 @@ public:
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnMapChanged - Triggered");
 
         FSBMgr::RemoveExpiredBots(player);
-        FSBMgr::DespawnTempBots(player);
+        FSBMgr::RemoveTempBots(player);
 
         auto* bots = FSBMgr::GetBotsForPlayer(player);
         if (!bots || bots->empty())
@@ -34,18 +32,6 @@ public:
         for (auto it = bots->begin(); it != bots->end(); )
         {
             PlayerBotData& botData = *it;
-
-            // Expired bot ? remove from memory + DB
-            if (botData.hireExpiry > 0 && botData.hireExpiry <= now)
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb",
-                    "FSB: OnMapChanged - Removing expired bot {} for player {}",
-                    botData.botId, player->GetName());
-
-                FSBMgr::RemovePlayerBot(player, botData.entry, false);
-                it = bots->begin(); // restart loop safely
-                continue;
-            }
 
             uint32 hireTimeLeft = botData.hireExpiry > 0
                 ? uint32(botData.hireExpiry - now)

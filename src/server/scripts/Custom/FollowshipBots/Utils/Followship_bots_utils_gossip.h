@@ -37,6 +37,7 @@ constexpr auto FSB_GOSSIP_ITEM_INFO = "Tell me more about yourself";
 
 // NPC Say
 constexpr auto FSB_SAY_FOLLOW_INFO_CHANGED = "Ok, understood that!";
+constexpr auto FSB_SAY_DUPLICATE_FOLLOWER = "I'm sorry but I cannot come with you... one of us is already with you!";
 
 
 

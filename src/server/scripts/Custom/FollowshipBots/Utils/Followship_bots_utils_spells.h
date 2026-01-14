@@ -79,6 +79,36 @@ namespace FSBUtilsSpells
     /// Trigger spell cooldown
     void TriggerCooldown(FSBSpellCandidate& spell, uint32 now);
 
+    // Mount Spells
+    using MountSpellList = std::vector<uint32>;
+    using MountLevelSpellMap = std::map<uint8, MountSpellList>;
+    // Data access
+    MountSpellList const* GetMountSpellsForLevel(uint8 level);
+
+    uint32 GetRandomMountSpellForBot(Creature* me);
+    void CastRandomMountLevelSpell(Creature* me);
 }
 
+enum FSB_StandardGroundMounts
+{
+    SPELL_MOUNT_PINTO = 472,
+    SPELL_MOUNT_STALLION = 470,
+    SPELL_MOUNT_CHESTNUT = 6648,
+    SPELL_MOUNT_BROWN_HORSE = 458,
 
+    SPELL_MOUNT_PALOMINO = 23227,
+    SPELL_MOUNT_WHITE_STEED = 23228,
+    SPELL_MOUNT_BROWN_STEED = 23229
+};
+
+using MountSpellList = std::vector<uint32>;
+using MountLevelSpellMap = std::map<uint8, MountSpellList>;
+
+// Example data
+static MountLevelSpellMap MountSpellsByLevel =
+{
+    { 10, { SPELL_MOUNT_STALLION, SPELL_MOUNT_PINTO,SPELL_MOUNT_CHESTNUT,SPELL_MOUNT_BROWN_HORSE } },              // Standard ground mounts
+    { 20, { SPELL_MOUNT_PALOMINO, SPELL_MOUNT_WHITE_STEED, SPELL_MOUNT_BROWN_STEED } },            // Epic ground mounts
+    //{ 30, { 2120, 120 } },             // 30-39
+    //{ 40, { 11426, 10 } },             // 40-49
+};

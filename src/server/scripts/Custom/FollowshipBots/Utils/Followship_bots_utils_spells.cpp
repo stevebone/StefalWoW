@@ -248,4 +248,40 @@ namespace FSBUtilsSpells
     {
         spell.nextReadyMs = now + spell.cooldownMs;
     }
+
+    MountSpellList const* GetMountSpellsForLevel(uint8 level)
+    {
+        MountSpellList const* result = nullptr;
+
+        for (auto const& [minLevel, spells] : MountSpellsByLevel)
+        {
+            if (level < minLevel)
+                break;
+
+            result = &spells;
+        }
+
+        return result;
+    }
+
+    uint32 GetRandomMountSpellForBot(Creature* me)
+    {
+        if (!me)
+            return 0;
+
+        MountSpellList const* spells = GetMountSpellsForLevel(me->GetLevel());
+        if (!spells || spells->empty())
+            return 0;
+
+        return (*spells)[urand(0, spells->size() - 1)];
+    }
+
+    void CastRandomMountLevelSpell(Creature* me)
+    {
+        uint32 spellId = GetRandomMountSpellForBot(me);
+        if (!spellId)
+            return;
+
+        me->CastSpell(me, spellId, true);
+    }
 }

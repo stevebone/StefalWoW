@@ -173,9 +173,6 @@ namespace FSBMgr
         // Calculate expiry
         uint64 hireExpiry = FSBMgr::GetBotExpireTime(hireDurationHours);
 
-        // 1?? Save to DB
-        //FSBUtilsDB::SaveBotToDB(bot, player, hireExpiry);
-
         // 2?? Update memory
         PlayerBotData botData;
         botData.botId = 0; // or actual DB primary key if known
@@ -189,13 +186,11 @@ namespace FSBMgr
         // 3?? Restore ownership + AI state
         uint32 hireTimeLeft = hireDurationHours * 3600;
         RestoreBotOwnership(player, bot, hireTimeLeft);
-        //FSBMgr::RegisterActiveBot(bot);
 
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player {} hired bot {} (entry {}) until {}",
             player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
     }
 
-    // Dismiss a bot from a player
     void DismissBot(Player* player, Creature* bot)
     {
         if (!player || !bot)
@@ -206,31 +201,31 @@ namespace FSBMgr
         if (!bots)
             return;
 
-        // Match using botId stored in memory
-        auto it = std::find_if(bots->begin(), bots->end(),
-            [bot](PlayerBotData const& b)
-            {
-                // Use entry to match bots since it is common to db and temp bots
-                return (b.entry != 0 && (b.entry == bot->GetEntry()));
-            });
+        uint32 botEntry = bot->GetEntry();
 
-        if (it != bots->end())
-        {
-            uint32 botEntry = it->entry;
-            bots->erase(it);
+        // Remove ALL matching bots from memory
+        bots->erase(
+            std::remove_if(
+                bots->begin(),
+                bots->end(),
+                [botEntry](PlayerBotData const& b)
+                {
+                    return b.entry == botEntry;
+                }
+            ),
+            bots->end()
+        );
 
-            if (botEntry != 0)
-                FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);  // delete DB record regardless of temp/DB
+        // Remove ALL matching bots from DB
+        FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
 
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB: Dismissed bot {} (entry {}) for player {}", bot->GetName(), botEntry, player->GetName());
-        }
-
-        // Always despawn
-        //bot->DespawnOrUnsummon();
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB: Dismissed all bots with entry {} for player {}",
+            botEntry, player->GetName());
     }
 
-    void DespawnTempBots(Player* player)
+    // Removes temporary spawned bots - upon relog / map change
+    void RemoveTempBots(Player* player)
     {
         ASSERT(player);
 
@@ -240,7 +235,7 @@ namespace FSBMgr
         if (!bots || bots->empty())
             return;
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnLogout - Found {} bots for player {}",
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Remove Temp Bots Mgr - Found {} bots for player {}",
             bots->size(), player->GetName());
 
         for (PlayerBotData& botData : *bots)
@@ -265,4 +260,22 @@ namespace FSBMgr
         }
     }
 
+    bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry)
+    {
+        ASSERT(player);
+        ASSERT(entry != 0);
+
+        uint64 playerGuidLow = player->GetGUID().GetCounter();
+        auto it = _playerBots.find(playerGuidLow);
+        if (it == _playerBots.end())
+            return false;
+
+        auto const& vec = it->second;
+
+        return std::any_of(vec.begin(), vec.end(),
+            [entry](PlayerBotData const& b)
+            {
+                return b.entry == entry;
+            });
+    }
 }

@@ -74,6 +74,8 @@ public:
                 events.Reset();
 
                 me->SetBot(true);
+                hired = false;
+                me->setActive(true);
 
                 // Initial Flags and States
                 me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
@@ -544,7 +546,6 @@ public:
 
                 if (hireTimeLeft > 0)
                 {
-                    Reset();
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::seconds(hireTimeLeft));
                     events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
 
@@ -552,7 +553,6 @@ public:
                 }
                 else
                 {
-                    Reset();
                     events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
 
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received permanent hired", me->GetName());
@@ -1197,7 +1197,6 @@ public:
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                    hired = false;
                     me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     events.Reset();
                     events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 100ms);
@@ -1399,9 +1398,16 @@ public:
 
                     }
 
-                    if (player && player->HasAuraType(SPELL_AURA_MOUNTED))
+                    if (player && player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
                     {
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Maintenance check: Player has mounted aura");
+                        FSBUtilsSpells::CastRandomMountLevelSpell(me);
+                        botMounted = true;
+                    }
+                    else if (player && !player->HasAuraType(SPELL_AURA_MOUNTED) && botMounted)
+                    {
+                        botMounted = false;
+                        me->Dismount();
+                        me->RemoveAurasByType(SPELL_AURA_MOUNTED);
                     }
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -1480,6 +1486,8 @@ public:
             bool groupHealthy = false;
 
             uint32 hireTimeLeft = 0;
+
+            bool botMounted = false;
     };
 
     CreatureAI* GetAI(Creature* creature) const override

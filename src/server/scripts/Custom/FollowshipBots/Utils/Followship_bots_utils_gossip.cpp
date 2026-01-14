@@ -4,6 +4,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_utils_gossip.h"
 #include "Followship_bots_config.h"
+#include "Followship_bots_mgr.h"
 
 #include "Followship_bots_priest.h"
 
@@ -13,6 +14,14 @@ namespace FSBUtilsGossip
     {
         if (!me || !player)
             return false;
+
+        if (FSBMgr::CheckPlayerHasBotWithEntry(player, me->GetEntry()) && !hired)
+        {
+            me->Say(FSB_SAY_DUPLICATE_FOLLOWER, LANG_UNIVERSAL);
+            ClearGossipMenuFor(player);
+            CloseGossipMenuFor(player);
+            return true;
+        }
 
         me->SetOwnerGUID(player->GetGUID());
         outPlayerGuid = player->GetGUID();

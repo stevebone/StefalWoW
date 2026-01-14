@@ -16,5 +16,7 @@ namespace FSBMgr
     bool IsBotExpired(PlayerBotData const& bot);
     void RemoveExpiredBots(Player* player);
 
-    void DespawnTempBots(Player* player);
+    void RemoveTempBots(Player* player);
+
+    bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry);
 }
