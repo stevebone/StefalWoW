@@ -12,6 +12,7 @@
 #include "Followship_bots_config.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_ai_base.h"
+#include "Followship_bots_db.h"
 
 namespace FSBUtils
 {
@@ -68,8 +69,7 @@ namespace FSBUtils
         player->ModifyMoney(-price);
         player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
         return true;
-    }
-
+    }   
 }
 
 namespace FSBUtilsMovement

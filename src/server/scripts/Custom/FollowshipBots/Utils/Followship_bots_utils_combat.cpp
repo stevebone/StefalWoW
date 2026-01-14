@@ -402,7 +402,7 @@ namespace FSBUtilsCombat
 
     void BuildBotGroup(Unit* me, std::vector<Unit*>& outGroup, float searchRange)
     {
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup triggered");
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup triggered"); // TEMP-LOG
 
         outGroup.clear();
 
@@ -439,7 +439,7 @@ namespace FSBUtilsCombat
             outGroup.push_back(unit);
         }
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got allies of {}", nearbyAllies.size());
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got group of {}", outGroup.size());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got allies of {}", nearbyAllies.size());  // TEMP-LOG
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got group of {}", outGroup.size());  // TEMP-LOG
     }
 }

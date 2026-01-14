@@ -16,7 +16,12 @@ static constexpr uint32 NPC_GCD_MS = 1500;
 constexpr float SPELL_MAX_RANGE = 30.0f;
 constexpr float SPELL_MIN_RANGE = 18.0f;
 
-
+enum FSB_Data
+{
+    FSB_DATA_HIRED = 1,
+    FSB_DATA_HIRE_TIME_LEFT = 2,
+    FSB_DATA_TEMP_SPAWN = 3 // used for dungeons or map change
+};
 
 enum FSB_GenericEvents
 {
@@ -26,9 +31,10 @@ enum FSB_GenericEvents
     FSB_EVENT_PERIODIC_MAINTENANCE = 4,
     FSB_EVENT_RESUME_FOLLOW = 5,
     FSB_EVENT_USE_CUSTOM_REGEN = 6,
+    FSB_EVENT_CHECK_DESPAWN = 7,
     FSB_EVENT_MOVE_STAY = 10,
     FSB_EVENT_MOVE_FOLLOW = 11,
-    FSB_EVENT_INITIATE_COMBAT = 12
+    FSB_EVENT_INITIATE_COMBAT = 12,
 };
 
 enum FSB_PriestSpellEvents

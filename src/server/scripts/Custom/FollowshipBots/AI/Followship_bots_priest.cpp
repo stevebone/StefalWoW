@@ -16,6 +16,8 @@
 #include "followship_bots_utils_priest.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"
+//#include "Followship_bots_db.h"
+#include "Followship_bots_mgr.h"
 
 
 
@@ -196,6 +198,7 @@ public:
                 }
 
                 hired = true;
+                FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -218,6 +221,7 @@ public:
                 }
 
                 hired = true;
+                FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -240,6 +244,7 @@ public:
                 }
 
                 hired = true;
+                FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -261,6 +266,7 @@ public:
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
                     hired = true;
+                    FSBMgr::HandleBotHire(player, me, 0);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -521,7 +527,41 @@ public:
 
         void SetData(uint32 type, uint32 value) override // Runs once to check set data is SET on the creature
         {
+            switch (type)
+            {
+            case FSB_DATA_HIRED:
+            {
+                hired = value;
 
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired value: {}", me->GetName(), hired);
+
+                break;
+            }
+
+            case FSB_DATA_HIRE_TIME_LEFT:
+            {
+                hireTimeLeft = value;
+
+                if (hireTimeLeft > 0)
+                {
+                    Reset();
+                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::seconds(hireTimeLeft));
+                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
+
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired left time value: {}", me->GetName(), hireTimeLeft);
+                }
+                else
+                {
+                    Reset();
+                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
+
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received permanent hired", me->GetName());
+                }
+
+                break;
+            }
+
+            }
         }
 
         void DoAction(int32 action) override
@@ -1096,7 +1136,7 @@ public:
                     //FSBUtilsStats::ApplyRegen(me); // picks default/class + combat state automatically
                     FSBUtilsStats::ApplyRegen(me, _regenMods);
 
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Custom Regen tick");
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Custom Regen tick");  // TEMP-LOG
 
                     events.ScheduleEvent(FSB_EVENT_USE_CUSTOM_REGEN, 2s); // tick interval
 
@@ -1166,7 +1206,7 @@ public:
                         std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
                         me->Say(msg, LANG_UNIVERSAL);
                     }
-
+                    FSBMgr::DismissBot(player, me);
                     events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
                     break;
                 }
@@ -1180,6 +1220,7 @@ public:
                     me->GetRandomPoint(me->GetPosition(), 30.0f, x, y, z);
                     me->GetMotionMaster()->MovePoint(1, x, y, z);
                     me->DespawnOrUnsummon(10s);
+                    
                     break;
                 }
 
@@ -1302,7 +1343,7 @@ public:
                             castedThisTick = true;
                             _globalCooldownUntil = now + NPC_GCD_MS;
 
-                            TC_LOG_DEBUG("scripts.ai.core", "FSB: UpdateAI Event Maintenance Fortitude buff check");
+                            //TC_LOG_DEBUG("scripts.ai.core", "FSB: UpdateAI Event Maintenance Fortitude buff check"); // TEMP LOG
 
                             if(fortTarget == me)
                             {
@@ -1345,9 +1386,27 @@ public:
 
                     FSBUtilsCombat::BuildBotGroup(me->ToCreature(), botGroup_, 100.0f);
 
+                    // Teleport if too far away
+                    if (player && me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
+                    {
+                        me->NearTeleportTo(
+                            player->GetPositionX() + urand(3.f, 10.f),
+                            player->GetPositionY(),
+                            player->GetPositionZ(),
+                            player->GetOrientation());
+
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", me->GetName(), player->GetName());
+
+                    }
+
+                    if (player && player->HasAuraType(SPELL_AURA_MOUNTED))
+                    {
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Maintenance check: Player has mounted aura");
+                    }
+
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end");
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end"); // TEMP LOG
 
                     break;
                 }
@@ -1419,6 +1478,8 @@ public:
 
             bool combatEmergency = false;
             bool groupHealthy = false;
+
+            uint32 hireTimeLeft = 0;
     };
 
     CreatureAI* GetAI(Creature* creature) const override
