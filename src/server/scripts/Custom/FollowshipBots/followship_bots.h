@@ -1,4 +1,6 @@
 
+#include "EventMap.h"
+
 // Player Notifications
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
@@ -21,6 +23,11 @@ enum FSB_Data
     FSB_DATA_HIRED = 1,
     FSB_DATA_HIRE_TIME_LEFT = 2,
     FSB_DATA_TEMP_SPAWN = 3 // used for dungeons or map change
+};
+
+enum FSB_Factions
+{
+    FSB_FACTION_ALLIANCE = 1
 };
 
 enum FSB_GenericEvents

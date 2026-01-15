@@ -12,9 +12,12 @@
 #include "Unit.h"
 
 #include "Followship_bots_roles.h"
+#include "Followship_bots_utils_stats.h"
 
 namespace FSBUtils
 {
+    void SetInitialState(Creature* creature, bool& hired, FSBUtilsStatsMods& mods);
+
     constexpr float SIDE_OFFSET_MAX = M_PI / 6.0f; // ±30 degrees from pure left/right
 
     // Returns a random angle slightly to the left of the player

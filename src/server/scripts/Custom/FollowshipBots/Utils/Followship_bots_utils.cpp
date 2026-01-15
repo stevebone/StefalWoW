@@ -14,8 +14,31 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_db.h"
 
+
 namespace FSBUtils
 {
+    void SetInitialState(Creature* creature, bool& hired, FSBUtilsStatsMods& mods)
+    {
+        ASSERT(creature);
+
+        creature->SetBot(true);
+        creature->setActive(true);
+
+        hired = false;                  // now persists
+        mods = FSBUtilsStatsMods();     // now resets caller state
+
+        // Initial Flags and States
+        creature->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+        creature->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+
+        creature->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+        creature->SetReactState(REACT_DEFENSIVE);
+        creature->SetFaction(FSB_FACTION_ALLIANCE);
+
+        FSBUtilsStats::RecalculateStats(creature, mods);
+    }
+
+
     float GetRandomLeftAngle()
     {
         // Base left is +90 degrees (M_PI/2)

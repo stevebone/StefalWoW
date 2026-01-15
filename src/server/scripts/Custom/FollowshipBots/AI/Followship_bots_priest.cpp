@@ -43,7 +43,7 @@ public:
         float followAngle = FOLLOW_ANGLE_BEHIND;
 
         uint32 _globalCooldownUntil = 0;
-        uint32 _desperatePrayerReadyMs = 0;
+        //uint32 _desperatePrayerReadyMs = 0;
         uint32 _recuperateReadyMs = 0;
         bool _pendingResurrection = false;
         bool _playerDead = false;
@@ -73,22 +73,9 @@ public:
             {
                 events.Reset();
 
-                me->SetBot(true);
-                hired = false;
-                me->setActive(true);
+                FSBUtils::SetInitialState(me, hired, _regenMods);
 
-                // Initial Flags and States
-                me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-                me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-
-                me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-                me->SetReactState(REACT_DEFENSIVE);
-                me->SetFaction(1);
-
-                _regenMods = FSBUtilsStatsMods(); // zero everything
-                FSBUtilsStats::RecalculateStats(me, _regenMods);
-
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered Reset. Is bot: {}", me->IsBot());
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
                 // Schedule Generic Events
                 // These can take place even when BOT is NOT hired or no player is around
                 events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -1475,6 +1462,7 @@ public:
         uint32 ManaPotionSpellId = FSBUtilsSpells::GetManaPotionSpellForLevel(me->GetLevel());
         std::unordered_map<uint32 /*spellId*/, uint32 /*nextReadyMs*/> _spellCooldowns;
 
+        
         private:
             EventMap events;
             ObjectGuid _playerGuid;
@@ -1488,6 +1476,7 @@ public:
             uint32 hireTimeLeft = 0;
 
             bool botMounted = false;
+        
     };
 
     CreatureAI* GetAI(Creature* creature) const override
