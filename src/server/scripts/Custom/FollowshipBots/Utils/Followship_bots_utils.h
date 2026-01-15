@@ -82,4 +82,5 @@ namespace FSBUtilsTexts
     // Builds the hire option text dynamically
     std::string BuildHireText(int64 price, uint32 hours);
 
+    void OnKilledTargetSay(Creature* creature, Unit* victim);
 }

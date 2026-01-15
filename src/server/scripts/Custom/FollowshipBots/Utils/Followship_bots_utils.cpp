@@ -198,11 +198,7 @@ namespace FSBUtilsTexts
         }
     }
 
-    std::string BuildNPCSayText(
-        const std::string& playerName,
-        uint32 duration,
-        FSBSayType type,
-        const std::string& string2)
+    std::string BuildNPCSayText(const std::string& playerName, uint32 duration, FSBSayType type, const std::string& string2)
     {
         switch (type)
         {
@@ -336,6 +332,17 @@ namespace FSBUtilsTexts
         default:
             return "Hello " + playerName + ".";
         }
+    }
+
+    void OnKilledTargetSay(Creature* creature, Unit* victim)
+    {
+        Unit* owner = creature->GetOwner();
+        Player* player = owner ? owner->ToPlayer() : nullptr;
+
+        std::string pName = player ? player->GetName() : "";
+
+        std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::TargetDeath, victim->GetName());
+        creature->Say(msg, LANG_UNIVERSAL);
     }
 }
 

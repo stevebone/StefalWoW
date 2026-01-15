@@ -409,13 +409,7 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-            Unit* owner = me->GetOwner();
-            Player* player = owner ? owner->ToPlayer() : nullptr;
-
-            std::string pName = player ? player->GetName() : "";
-
-            std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::TargetDeath, victim->GetName());
-            me->Say(msg, LANG_UNIVERSAL);
+            FSBUtilsTexts::OnKilledTargetSay(me, victim);
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
