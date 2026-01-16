@@ -9,29 +9,34 @@
 #include "followship_bots_utils.h"
 #include "followship_bots_utils_spells.h"
 
-// Mana Potion Spells
-struct ManaPotionSpell
-{
-    uint8 minLevel;
-    uint8 maxLevel;
-    uint32 spellId;
-};
-
-static constexpr ManaPotionSpell ManaPotionTable[] =
-{
-    {  1,  15,  437 },   // Minor Mana Potion 120
-    { 16,  29,  438 },   // Lesser Mana Potion 159
-    { 30,  40,  17530 }, // Superior Mana Potion 494
-    { 41,  50,  17531 }, // Major Mana Potion 512
-    { 51,  60,  28499 }, // Super Mana Potion 682
-    { 61,  80,  43186 } // Runic Mana Potion 956
-};
 
 
 
-// Gets The Spell name based on a provided spell id
+
+
 namespace FSBUtilsSpells
 {
+    int32 GetDrinkManaRegenPerLevel(uint8 level, DrinkManaPerLevel const* table, size_t tableSize)
+    {
+        for (size_t i = 0; i < tableSize; ++i)
+        {
+            if (level >= table[i].minLevel && level <= table[i].maxLevel)
+                return table[i].mana;
+        }
+
+        return 0;
+    }
+
+    // Wrapper for GetDrinkManaRegenPerLevel
+    int32 GetDrinkManaRegen(uint16 level)
+    {
+        return GetDrinkManaRegenPerLevel(
+            level,
+            DrinkManaRegenTable,
+            std::size(DrinkManaRegenTable)
+        );
+    }
+
     // Gets the Mana Potion spell id on a provided level
     uint32 GetManaPotionSpellForLevel(uint8 level)
     {

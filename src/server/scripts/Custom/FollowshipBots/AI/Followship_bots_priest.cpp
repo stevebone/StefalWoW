@@ -73,7 +73,11 @@ public:
             {
                 events.Reset();
 
-                FSBUtils::SetInitialState(me, hired, _regenMods);
+                _statsMods = FSBUtilsStatsMods();     // now resets caller state
+
+                FSBUtils::SetInitialState(me, hired);
+                FSBUtils::SetBotClass(me, botClass);
+                FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
                 // Schedule Generic Events
@@ -82,6 +86,11 @@ public:
 
                 if (FollowshipBotsConfig::configFSBUseCustomRegen)
                 {
+                    _baseStatsMods = FSBUtilsStatsMods(); // zero
+                    FSBUtilsStats::ApplyBotBaseRegen(me, _baseStatsMods, botClass);
+
+                    //FSBUtilsStats::RecalculateMods(me, _statsMods);
+
                     me->RemoveUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
                     me->SetRegenerateHealth(false); // no health regen
 
@@ -100,11 +109,7 @@ public:
             {
                 // Completely disable gossip
                 me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-            }
-
-            
-
-            
+            }            
         }
 
         // Runs once when creature is summoned by another unit
@@ -418,7 +423,7 @@ public:
 
             if (spell->Id == SPELL_PRIEST_DEVOURING_PLAGUE || spell->Id == SPELL_PRIEST_PENANCE)
             {
-                _regenMods.manaPctBonus -= 2.0f;
+                //_regenMods.manaPctBonus -= 2.0f;
                 TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {} we need to subtract 2% mana", spell->Id);
             }
         }
@@ -441,12 +446,15 @@ public:
             switch (aurApp->GetBase()->GetId())
             {
             case SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER:
-                _regenMods.flatManaPerTick += 90 * 2;
+            {
+                int32 amount = FSBUtilsSpells::GetDrinkManaRegen(me->GetLevel());
+                _statsMods.flatManaPerTick += amount;
                 break;
+            }
 
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
-                _regenMods.flatMaxHealth += 10 * me->GetLevel();      // flat
-                FSBUtilsStats::RecalculateStats(me, _regenMods);
+                _statsMods.flatMaxHealth += 10 * me->GetLevel();      // flat
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
                 break;
             }
 
@@ -463,16 +471,19 @@ public:
             switch (spellId)
             {
             case SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER: // Conjured Crystal water
+            {
                 if (me->GetStandState() == UNIT_STAND_STATE_SIT)
                 {
                     me->SetStandState(UNIT_STAND_STATE_STAND);
-                    _regenMods.flatManaPerTick -= 90 * 2;
+                    int32 amount = FSBUtilsSpells::GetDrinkManaRegen(me->GetLevel());
+                    _statsMods.flatManaPerTick -= amount;
                 }
                 break;
+            }
 
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
-                _regenMods.flatMaxHealth -= 10 * me->GetLevel();      // flat
-                FSBUtilsStats::RecalculateStats(me, _regenMods);
+                _statsMods.flatMaxHealth -= 10 * me->GetLevel();      // flat
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 if (me->GetHealth() > me->GetMaxHealth())
                     me->SetHealth(me->GetMaxHealth());
@@ -1108,16 +1119,10 @@ public:
             {
                 switch (eventId)
                 {
-                    // Applies custom regeneration
+                    // Applies custom regeneration & mods
                 case FSB_EVENT_USE_CUSTOM_REGEN:
                 {
-                    if (!me->IsBot() || !me->IsAlive())
-                        break;
-
-                    //FSBUtilsStats::ApplyRegen(me); // picks default/class + combat state automatically
-                    FSBUtilsStats::ApplyRegen(me, _regenMods);
-
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Custom Regen tick");  // TEMP-LOG
+                    FSBUtilsStats::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
 
                     events.ScheduleEvent(FSB_EVENT_USE_CUSTOM_REGEN, 2s); // tick interval
 
@@ -1279,7 +1284,7 @@ public:
                     // BOT LEVEL Update
                     if (player && hired)
                     {
-                        FSBUtilsStats::UpdateBotLevelToPlayer(me, player, _regenMods);
+                        FSBUtilsStats::UpdateBotLevelToPlayer(me, player, _statsMods);
                     }
 
                     // BOT Check OOC Actions
@@ -1350,10 +1355,10 @@ public:
                         if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                             events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
 
-                        if (!me->HasUnitFlag(UNIT_FLAG_IN_COMBAT))
-                        {
-                            me->SetUnitFlag(UNIT_FLAG_IN_COMBAT);
-                        }
+                        //if (!me->HasUnitFlag(UNIT_FLAG_IN_COMBAT))
+                        //{
+                        //    me->SetUnitFlag(UNIT_FLAG_IN_COMBAT);
+                        //}
 
                         events.ScheduleEvent(FSB_EVENT_INITIATE_COMBAT, 2s);
                     }
@@ -1362,6 +1367,9 @@ public:
                     {
                         _playerCombatStarted = false;
                         _playerCombatEnded = true;
+
+                        //if (me->HasUnitFlag(UNIT_FLAG_IN_COMBAT))
+                        //    me->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT);
                     }
 
                     FSBUtilsCombat::BuildBotGroup(me->ToCreature(), botGroup_, 100.0f);
@@ -1461,7 +1469,9 @@ public:
             EventMap events;
             ObjectGuid _playerGuid;
 
-            FSBUtilsStatsMods _regenMods;
+            FSBUtilsStatsMods _statsMods;
+            FSBUtilsStatsMods _baseStatsMods;
+
             std::vector<Unit*> botGroup_;
 
             bool combatEmergency = false;

@@ -1,6 +1,4 @@
 
-#include "EventMap.h"
-
 // Player Notifications
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
@@ -18,11 +16,12 @@ static constexpr uint32 NPC_GCD_MS = 1500;
 constexpr float SPELL_MAX_RANGE = 30.0f;
 constexpr float SPELL_MIN_RANGE = 18.0f;
 
+
+
 enum FSB_Data
 {
     FSB_DATA_HIRED = 1,
     FSB_DATA_HIRE_TIME_LEFT = 2,
-    FSB_DATA_TEMP_SPAWN = 3 // used for dungeons or map change
 };
 
 enum FSB_Factions
@@ -48,7 +47,7 @@ enum FSB_PriestSpellEvents
 {
     FSB_EVENT_PRIEST_OOC_MANA = 20,
     FSB_EVENT_PRIEST_OOC_HEAL_SELF = 21,
-    //FSB_EVENT_PRIEST_COMBAT_SPELLS = 22,
+
     FSB_EVENT_PRIEST_OOC_HEAL_PLAYER = 23,
     FSB_EVENT_CHECK_COMBAT = 24,
     FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER = 25,
@@ -78,7 +77,6 @@ enum FSB_Actions
     FSB_ACTION_COMBAT_EMERGENCY = 10,
     FSB_ACTION_COMBAT_HEAL = 11,
     FSB_ACTION_COMBAT_DAMAGE = 12,
-    //FSB_ACTION_MOUNT_UP = 13
 };
 
 constexpr float FOLLOW_DISTANCE_CLOSE = 3.0f;

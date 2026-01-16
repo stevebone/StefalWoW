@@ -17,6 +17,43 @@
 // Spell Related
 static constexpr uint32 BOT_GCD_MS = 1500;
 
+struct DrinkManaPerLevel
+{
+    uint8 minLevel;
+    uint8 maxLevel;
+    int32 mana;
+};
+
+// min level, max level, value
+static constexpr DrinkManaPerLevel DrinkManaRegenTable[] =
+{
+    { 1, 10,  10 }, // level 1-10
+    { 11, 20, 25 }, // level 11-20
+    { 21, 30, 45 },
+    { 31, 40, 90 },
+    { 41, 50, 120 },
+    { 51, 60, 220 },
+};
+
+// Mana Potion Spells
+struct ManaPotionSpell
+{
+    uint8 minLevel;
+    uint8 maxLevel;
+    uint32 spellId;
+};
+
+static constexpr ManaPotionSpell ManaPotionTable[] =
+{
+    {  1,  15,  437 },   // Minor Mana Potion 120
+    { 16,  29,  438 },   // Lesser Mana Potion 159
+    { 30,  40,  17530 }, // Superior Mana Potion 494
+    { 41,  50,  17531 }, // Major Mana Potion 512
+    { 51,  60,  28499 }, // Super Mana Potion 682
+    { 61,  80,  43186 } // Runic Mana Potion 956
+};
+
+
 enum class FSBSpellType
 {
     Emergency,
@@ -42,6 +79,13 @@ struct FSBSpellCandidate
 
 namespace FSBUtilsSpells
 {
+    // Gets drink amount of mana regen per level
+    int32 GetDrinkManaRegenPerLevel(uint8 level, DrinkManaPerLevel const* table, size_t tableSize);
+
+    // Wrapper for GetDrinkManaRegenPerLevel
+    int32 GetDrinkManaRegen(uint16 level);
+
+    // Gets mana potion spell per level
     uint32 GetManaPotionSpellForLevel(uint8 level);
 
     /// Returns the English name of a spell by its ID, or "unknown spell" if not found.

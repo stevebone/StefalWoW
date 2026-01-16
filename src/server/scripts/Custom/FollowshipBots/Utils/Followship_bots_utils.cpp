@@ -14,10 +14,32 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_db.h"
 
+struct FSBEntryClassMap
+{
+    uint32 entry;
+    FSB_Class botClass;
+};
+
+static constexpr FSBEntryClassMap BotEntryClassTable[] =
+{
+    // PRIESTS
+    { 141508,   FSB_Class::Priest },  // Stormwind Priest
+    { 375,      FSB_Class::Priest },     // Priestess Anetta
+
+    // WARRIORS
+    //{ 90010, FSB_Class::Warrior },
+    //{ 90011, FSB_Class::Warrior },
+
+    // MAGES
+    //{ 90020, FSB_Class::Mage },
+
+    // ROGUES
+    //{ 90030, FSB_Class::Rogue },
+};
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired, FSBUtilsStatsMods& mods)
+    void SetInitialState(Creature* creature, bool& hired)
     {
         ASSERT(creature);
 
@@ -25,7 +47,6 @@ namespace FSBUtils
         creature->setActive(true);
 
         hired = false;                  // now persists
-        mods = FSBUtilsStatsMods();     // now resets caller state
 
         // Initial Flags and States
         creature->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
@@ -35,7 +56,38 @@ namespace FSBUtils
         creature->SetReactState(REACT_DEFENSIVE);
         creature->SetFaction(FSB_FACTION_ALLIANCE);
 
-        FSBUtilsStats::RecalculateStats(creature, mods);
+        creature->UpdateLevelDependantStats();
+        creature->SetHealth(creature->GetMaxHealth());
+        creature->SetPower(creature->GetPowerType(), creature->GetMaxPower(creature->GetPowerType()));
+    }
+
+
+    FSB_Class GetBotClassForEntry(uint32 entry)
+    {
+        for (auto const& map : BotEntryClassTable)
+        {
+            if (map.entry == entry)
+                return map.botClass;
+        }
+
+        return FSB_Class::None;
+    }
+
+    void SetBotClass(Creature* creature, FSB_Class& outClass)
+    {
+        if (!creature)
+            return;
+
+        FSB_Class cls = GetBotClassForEntry(creature->GetEntry());
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Class set: {} for bot with entry {}", cls, creature->GetEntry());
+
+        if (cls == FSB_Class::None)
+        {
+            TC_LOG_WARN("scripts.ai.fsb", "FSB: No class mapping found for creature entry {}", creature->GetEntry());
+        }
+
+        outClass = cls;
     }
 
 

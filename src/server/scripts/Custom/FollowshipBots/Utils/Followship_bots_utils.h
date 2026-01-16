@@ -16,7 +16,10 @@
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired, FSBUtilsStatsMods& mods);
+    void SetInitialState(Creature* creature, bool& hired);
+
+    FSB_Class GetBotClassForEntry(uint32 entry);
+    void SetBotClass(Creature* creature, FSB_Class& outClass);
 
     constexpr float SIDE_OFFSET_MAX = M_PI / 6.0f; // ±30 degrees from pure left/right
 

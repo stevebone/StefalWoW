@@ -3,51 +3,90 @@
 #include "Define.h"
 #include "Unit.h"
 
-struct FSBUtilsStatsRegen
+enum class FSB_Class : uint8
 {
-    float healthPctPerTickCombat = 0.0f;    // % max HP per tick while in combat
-    float healthPctPerTickOutOfCombat = 0.0f;
+    None = 0,
+    Warrior = 1,
+    Priest = 2,
+    Mage = 3,
+    Rogue = 4,
+    Druid = 5,
+    Paladin = 6,
+    Hunter = 7,
+    Warlock = 8,
+};
 
-    float manaPctPerTickCombat = 0.0f;      // % max mana per tick while in combat
-    float manaPctPerTickOutOfCombat = 0.0f;
+struct FSB_ClassStats
+{
+    FSB_Class classId;
 
-    bool hasClassSpecific = false;          // true if this regen is class-specific
+    Powers powerType;
+
+    // Base stats at level 1 (important)
+    uint32 baseHealth;
+    uint32 basePower;
+
+    // Per-level scaling (pre-mods)
+    uint32 healthPerLevel;
+    uint32 powerPerLevel;
+
+    // Regen (flat, before auras/mods)
+    int32 baseHpRegenOOC;
+    int32 basePowerRegenOOC;
+
+    // Regen (flat, before auras/mods)
+    int32 baseHpRegenIC;
+    int32 basePowerRegenIC;
 };
 
 struct FSBUtilsStatsMods
 {
-    // Fixed points regen
+    // REGEN
     int32 flatHealthPerTick = 0;
     int32 flatManaPerTick = 0;
 
-    // % points 
-    float healthPctBonus = 0.0f; // future use
-    float manaPctBonus = 0.0f;
+    // MAX STATS
+    int32 flatMaxHealth = 0;
+    int32 flatMaxMana = 0;
 
-    // Fixed max hp points increase
-    int32 flatMaxHealth = 0;      // e.g., +2000 HP
-    float pctMaxHealthBonus = 0.0f; // e.g., +10%
+    float pctMaxHealthBonus = 0.0f;
+    float pctMaxManaBonus = 0.0f;
 
-    // Fixed mana points
+    // Merge another mods struct into this one
+    FSBUtilsStatsMods& operator+=(FSBUtilsStatsMods const& rhs)
+    {
+        flatHealthPerTick += rhs.flatHealthPerTick;
+        flatManaPerTick += rhs.flatManaPerTick;
+
+        pctMaxHealthBonus += rhs.pctMaxHealthBonus;
+        pctMaxManaBonus += rhs.pctMaxManaBonus;
+
+        flatMaxHealth += rhs.flatMaxHealth;
+        pctMaxHealthBonus += rhs.pctMaxHealthBonus;
+
+        return *this;
+    }
 };
 
+inline FSBUtilsStatsMods operator+(FSBUtilsStatsMods lhs, FSBUtilsStatsMods const& rhs)
+{
+    lhs += rhs;
+    return lhs;
+}
 
 namespace FSBUtilsStats
 {
-    // Regen presets
-    extern const FSBUtilsStatsRegen DefaultRegen;
-    extern const FSBUtilsStatsRegen PriestRegen;
-
-    // Basic regen helpers
-    void ApplyHealthRegen(Unit* unit);
-    void ApplyManaRegen(Unit* unit);
-    void ApplyRegen(Unit* unit);
+    FSB_ClassStats const* GetBotClassStats(FSB_Class botClass);
+    void ApplyBotBaseClassStats(Creature* creature, FSB_Class botClass);
+    void ApplyBotBaseRegen(Creature* me, FSBUtilsStatsMods& mods, FSB_Class botClass);
 
     // Full mod-aware version
-    void ApplyRegen(Unit* unit, const FSBUtilsStatsMods& mods, bool doHealth = true, bool doMana = true);
+    void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana);
     void ApplyMaxHealth(Unit* unit, const FSBUtilsStatsMods& mods);
+    void ProcessBotCustomRegenTick(Creature* creature, FSB_Class botClass, const FSBUtilsStatsMods& _baseStatsMods, const FSBUtilsStatsMods& _statsMods);
 
-    void RecalculateStats(Unit* unit, const FSBUtilsStatsMods& mods);
+
+    void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods);
 
     /**
      * @brief Updates the bot's level to match the player's level and recalculates stats.
