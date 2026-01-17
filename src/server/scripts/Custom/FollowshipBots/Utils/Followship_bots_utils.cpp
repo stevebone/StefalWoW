@@ -13,6 +13,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_db.h"
+#include "Followship_bots_mgr.h"
 
 struct FSBEntryClassMap
 {
@@ -39,7 +40,7 @@ static constexpr FSBEntryClassMap BotEntryClassTable[] =
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired)
+    void SetInitialState(Creature* creature, bool& hired, uint16& moveState)
     {
         ASSERT(creature);
 
@@ -47,6 +48,7 @@ namespace FSBUtils
         creature->setActive(true);
 
         hired = false;                  // now persists
+        moveState = FSB_MOVE_STATE_IDLE;
 
         // Initial Flags and States
         creature->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
@@ -61,6 +63,44 @@ namespace FSBUtils
         creature->SetPower(creature->GetPowerType(), creature->GetMaxPower(creature->GetPowerType()));
     }
 
+    void BotUpdateAllies(Creature* bot, GuidSet _allySet)
+    {
+        Unit* owner = FSBMgr::GetBotOwner(bot);
+
+        if (!owner)
+            return;
+
+        Group* group = nullptr;
+        if (Player* player = owner->ToPlayer())
+            group = player->GetGroup();
+
+        // only pet and owner/not in group->ok
+        if (_allySet.size() == 1 && !group)
+            return;
+
+        // owner is in group; group members filled in already (no raid -> subgroupcount = whole count)
+        if (group && !group->isRaidGroup() && _allySet.size() == (group->GetMembersCount() + 2))
+            return;
+
+        _allySet.clear();
+        _allySet.insert(bot->GetGUID());
+        if (group) // add group
+        {
+            for (GroupReference const& itr : group->GetMembers())
+            {
+                Player* Target = itr.GetSource();
+                if (!Target->IsInMap(owner) || !group->SameSubGroup(owner->ToPlayer(), Target))
+                    continue;
+
+                if (Target->GetGUID() == owner->GetGUID())
+                    continue;
+
+                _allySet.insert(Target->GetGUID());
+            }
+        }
+        else // remove group
+            _allySet.insert(owner->GetGUID());
+    }
 
     FSB_Class GetBotClassForEntry(uint32 entry)
     {

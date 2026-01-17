@@ -62,8 +62,9 @@ enum class FSBSpellType
     Damage
 };
 
+
 // Struct for spell info (could mirror your FSBotSpells)
-struct FSBSpellCandidate
+struct FSBSpellDefinition
 {
     uint32 spellId = 0;
     FSBSpellType type = FSBSpellType::Damage;
@@ -74,7 +75,13 @@ struct FSBSpellCandidate
     bool isSelfCast = false;    // cast on self
     uint32 cooldownMs = 0;      // static cooldown duration
     uint32 allowedRoles = FSB_ROLEMASK_ANY;
-    uint32 nextReadyMs = 0;     // dynamic, updated at runtime
+    //uint32 nextReadyMs = 0;     // dynamic, updated at runtime
+};
+
+struct FSBSpellRuntime
+{
+    FSBSpellDefinition const* def; // pointer to static definition
+    uint32 nextReadyMs = 0; // runtime cooldown
 };
 
 namespace FSBUtilsSpells
@@ -97,31 +104,16 @@ namespace FSBUtilsSpells
     /// Returns true if the unit has a debuff that is dispellable by the bot (magic, disease, poison)
     bool HasDispellableDebuff(Unit* unit);
 
-    // Returns the best candidate spell for the given unit/target/context
-    std::optional<FSBSpellCandidate> SelectSpell(
-        Unit* caster,
-        Unit* target,
-        const std::vector<FSBSpellCandidate>& spellTable,
-        FSBSpellType typeFilter,
-        bool isSelfCast = false);
-
-    // ------------------------------
-    // Select best spell candidate
-    // ------------------------------
-    /// Selects the best spell for a caster/target based on type, role, self-cast preference, etc.
-    FSBSpellCandidate* SelectSpell(Unit* caster, Unit* target, std::vector<FSBSpellCandidate>& spells,
-        FSBSpellType type, bool preferSelfCast = false);
-
-    bool TryCast(Unit* caster, Unit* target, FSBSpellCandidate* spell, uint32& globalCooldownUntil);
-
-    /// Random float generator in [min,max]
-    float Frand(float min, float max);
+    
 
     /// Returns true if spell cooldown is ready
-    bool IsSpellReady(const FSBSpellCandidate& spell, uint32 now);
+    bool IsSpellReady(const FSBSpellDefinition& spell, uint32 now);
 
     /// Trigger spell cooldown
-    void TriggerCooldown(FSBSpellCandidate& spell, uint32 now);
+    void TriggerCooldown(FSBSpellRuntime& spell, uint32 now);
+
+
+
 
     // Mount Spells
     using MountSpellList = std::vector<uint32>;
@@ -131,6 +123,13 @@ namespace FSBUtilsSpells
 
     uint32 GetRandomMountSpellForBot(Creature* me);
     void CastRandomMountLevelSpell(Creature* me);
+}
+
+namespace FSBUtilsCombatSpells
+{
+    std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, uint32& globalCooldownUntil);
+    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells);
+    void BotCastSpell(Creature* bot, FSBSpellRuntime* runtime, uint32& globalCooldownUntil);
 }
 
 enum FSB_StandardGroundMounts

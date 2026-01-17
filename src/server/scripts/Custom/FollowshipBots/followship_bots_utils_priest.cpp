@@ -4,7 +4,7 @@
 #include "followship_bots_utils_spells.h"
 
 
-std::vector<FSBSpellCandidate> PriestSpellsTable =
+std::vector<FSBSpellDefinition> PriestSpellsTable =
 {
     // Spell ID                         Spell Type              Priority    HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
     { SPELL_PRIEST_DESPERATE_PRAYER,    FSBSpellType::Heal,     100.f,      20.f,           100.f,          0.f,            true,       90000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },

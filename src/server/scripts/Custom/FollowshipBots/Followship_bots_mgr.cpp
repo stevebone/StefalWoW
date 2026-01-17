@@ -1,4 +1,6 @@
 
+#include "CharmInfo.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots.h"
 
@@ -159,7 +161,7 @@ namespace FSBMgr
 
         }
 
-        // Set owner + creator GUIDs
+        // Set owner
         bot->SetOwnerGUID(player->GetGUID());
 
         bot->AI()->SetData(FSB_DATA_HIRED, 1);
@@ -277,5 +279,16 @@ namespace FSBMgr
             {
                 return b.entry == entry;
             });
+    }
+
+    Player* GetBotOwner(Unit* unit)
+    {
+        if (!unit)
+            return nullptr;
+
+        if (Unit* owner = unit->GetOwner())
+            return owner->ToPlayer();
+
+        return nullptr;
     }
 }

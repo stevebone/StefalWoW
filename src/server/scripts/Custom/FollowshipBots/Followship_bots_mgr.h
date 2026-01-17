@@ -19,4 +19,6 @@ namespace FSBMgr
     void RemoveTempBots(Player* player);
 
     bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry);
+
+    Player* GetBotOwner(Unit* unit);
 }

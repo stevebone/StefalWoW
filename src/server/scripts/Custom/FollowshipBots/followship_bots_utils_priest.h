@@ -5,4 +5,4 @@
 #include "followship_bots_utils_spells.h"
 
 // Priest spell tables
-extern std::vector<FSBSpellCandidate> PriestSpellsTable;
+extern std::vector<FSBSpellDefinition> PriestSpellsTable;

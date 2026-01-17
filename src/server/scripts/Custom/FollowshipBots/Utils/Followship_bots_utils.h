@@ -16,7 +16,9 @@
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired);
+    void SetInitialState(Creature* creature, bool& hired, uint16& moveState);
+
+    void BotUpdateAllies(Creature* bot, GuidSet _allySet);
 
     FSB_Class GetBotClassForEntry(uint32 entry);
     void SetBotClass(Creature* creature, FSB_Class& outClass);

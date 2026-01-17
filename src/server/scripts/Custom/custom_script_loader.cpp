@@ -16,7 +16,7 @@
  */
 
 // This is where scripts' loading functions should be declared:
-void AddSC_followship_bots_priest();                // FSB Priest Script
+void AddSC_followship_bots();                // FSB main Script
 
 void AddSC_followship_bots_player();                // FSB Player Scripts
 
@@ -24,7 +24,7 @@ void AddSC_followship_bots_player();                // FSB Player Scripts
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
-    AddSC_followship_bots_priest();
+    AddSC_followship_bots();
 
     AddSC_followship_bots_player();
 }

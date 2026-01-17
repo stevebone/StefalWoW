@@ -6,8 +6,9 @@
 #include "ThreatManager.h"
 #include "Unit.h"
 
-#include "followship_bots_utils.h"
-#include "followship_bots_utils_spells.h"
+#include "Followship_bots_utils.h"
+#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_mgr.h"
 
 
 
@@ -110,150 +111,6 @@ namespace FSBUtilsSpells
         return false;
     }
 
-    FSBSpellCandidate* SelectSpell(Unit* caster, Unit* target, std::vector<FSBSpellCandidate>& spells,
-        FSBSpellType type, bool preferSelfCast)
-    {
-        if (!caster || !target)
-            return nullptr;
-
-        uint32 now = getMSTime();
-        FSB_Roles botRole = FSBUtils::GetRole(caster->ToCreature());
-        uint32 botRoleMask = RoleToMask(botRole);
-
-        // ----- First pass: self-cast preferred -----
-        if (preferSelfCast)
-        {
-            for (auto& spell : spells)
-            {
-                if (spell.type != type)
-                    continue;
-
-                // Role check
-                if (spell.allowedRoles != FSB_ROLEMASK_ANY &&
-                    (spell.allowedRoles & botRoleMask) == 0)
-                    continue;
-
-                if (!spell.isSelfCast)
-                    continue;
-
-                if (!FSBUtilsSpells::IsSpellReady(spell, now))
-                    continue;
-
-                if (target->HasAura(spell.spellId))
-                    continue;
-
-                return &spell;
-            }
-        }
-
-        // ----- Second pass: highest priority -----
-        FSBSpellCandidate* best = nullptr;
-        float highestPriority = -1.0f;
-
-        for (auto& spell : spells)
-        {
-            if (spell.type != type)
-                continue;
-
-            if (spell.allowedRoles != FSB_ROLEMASK_ANY &&
-                (spell.allowedRoles & botRoleMask) == 0)
-                continue;
-
-            if (!FSBUtilsSpells::IsSpellReady(spell, now))
-                continue;
-
-            if (spell.chance < FSBUtilsSpells::Frand(0.f, 100.f))
-                continue;
-
-            if (type == FSBSpellType::Heal)
-            {
-                Unit* actualTarget = spell.isSelfCast ? caster : target;
-                float hpPct = actualTarget->GetHealthPct();
-                if (hpPct > spell.hpThreshold)
-                    continue;
-            }
-
-            if (target->HasAura(spell.spellId))
-                continue;
-
-            if (spell.priority > highestPriority)
-            {
-                highestPriority = spell.priority;
-                best = &spell;
-            }
-        }
-
-        return best;
-    }
-
-    bool TryCast(Unit* caster, Unit* target, FSBSpellCandidate* spell, uint32& globalCooldownUntil)
-    {
-        if (!caster || !target || !spell)
-            return false;
-
-        uint32 now = getMSTime();
-
-        // Check global cooldown
-        if (!FSBUtilsSpells::CanCastNow(caster, now, globalCooldownUntil))
-            return false;
-
-        // Check spell-specific cooldown
-        if (!FSBUtilsSpells::IsSpellReady(*spell, now))
-            return false;
-
-        // Prevent casting if aura already exists
-        if (!spell->isSelfCast && target->HasAura(spell->spellId))
-            return false;
-
-        if (spell->isSelfCast && caster->HasAura(spell->spellId))
-            return false;
-
-        // Self-cast handling
-        Unit* actualTarget = spell->isSelfCast ? caster : target;
-
-        // Target validity
-        if (!actualTarget->IsAlive())
-            return false;
-
-        // LOS check
-        if (!spell->isSelfCast && !caster->IsWithinLOSInMap(actualTarget))
-            return false;
-
-        // Range check (should have been handled with EnsureInRange)
-        float dist = spell->dist;
-        if (!spell->isSelfCast && caster->GetDistance(actualTarget) > dist)
-            return false;
-
-        // Everything passed ? cast the spell
-        caster->CastSpell(actualTarget, spell->spellId, true);
-
-        // Trigger spell cooldown
-        FSBUtilsSpells::TriggerCooldown(*spell, now);
-
-        // Trigger GCD
-        globalCooldownUntil = now + BOT_GCD_MS;
-
-        return true;
-    }
-
-    float Frand(float min, float max)
-    {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dist(min, max);
-        return dist(gen);
-    }
-
-    bool IsSpellReady(const FSBSpellCandidate& spell, uint32 now)
-    {
-        return now >= spell.nextReadyMs;
-    }
-
-    void TriggerCooldown(FSBSpellCandidate& spell, uint32 now)
-    {
-        spell.nextReadyMs = now + spell.cooldownMs;
-    }
-
     MountSpellList const* GetMountSpellsForLevel(uint8 level)
     {
         MountSpellList const* result = nullptr;
@@ -289,4 +146,151 @@ namespace FSBUtilsSpells
 
         me->CastSpell(me, spellId, true);
     }
+}
+
+namespace FSBUtilsCombatSpells
+{
+    std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, uint32& globalCooldownUntil)
+    {
+        std::vector<FSBSpellRuntime*> available;
+        FSB_Roles botRole = FSBUtils::GetRole(bot);
+        uint32 botRoleMask = RoleToMask(botRole);
+        uint32 now = getMSTime();
+
+        for (auto& runtime : runtimeSpells)
+        {
+            FSBSpellDefinition const* def = runtime.def;
+            if (!def)
+                continue;
+
+            SpellInfo const* spellInfo =
+                sSpellMgr->GetSpellInfo(def->spellId, bot->GetMap()->GetDifficultyID());
+            if (!spellInfo)
+                continue;
+
+            // Role check (STATIC)
+            if (def->allowedRoles != FSB_ROLEMASK_ANY &&
+                (def->allowedRoles & botRoleMask) == 0)
+                continue;
+
+            // Global cooldown (BOT-level)
+            if (!FSBUtilsSpells::CanCastNow(bot, now, globalCooldownUntil))
+                continue;
+
+            // Per-spell cooldown (RUNTIME)
+            if (runtime.nextReadyMs > now)
+                continue;
+
+            available.push_back(&runtime);
+        }
+
+        return available;
+    }
+
+    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells)
+    {
+        if (availableSpells.empty())
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no available spell");
+            return nullptr;
+        }
+
+        // Sort by priority descending
+        std::sort(availableSpells.begin(), availableSpells.end(),
+            [](FSBSpellRuntime* a, FSBSpellRuntime* b)
+            {
+                return a->def->priority > b->def->priority;
+            });
+
+        for (FSBSpellRuntime* runtime : availableSpells)
+        {
+            FSBSpellDefinition const* spell = runtime->def;
+
+            // Roll chance
+            if (urand(0, 100) > spell->chance)
+                continue;
+
+            // Determine target
+            Unit* target = nullptr;
+
+            if (spell->type == FSBSpellType::Heal)
+            {
+                if (spell->isSelfCast)
+                    target = bot;
+                else
+                    target = FSBMgr::GetBotOwner(bot);
+
+                if (!target || !target->IsAlive())
+                    continue;
+
+                // Check HP%
+                float hpPct = target->GetHealthPct();
+                if (hpPct > spell->hpThreshold)
+                    continue;
+            }
+            else if (spell->type == FSBSpellType::Damage)
+            {
+                target = bot->GetVictim();
+                if (!target || !target->IsAlive())
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no target for spell");
+                    continue;
+                }
+
+                // Optionally check distance
+                if (bot->GetDistance(target) > spell->dist)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - target too far");
+                    continue;
+                }
+                    
+            }
+
+            if (target->HasAura(spell->spellId))
+                continue;
+
+            return runtime;
+        }
+
+        return nullptr;
+    }
+
+    void BotCastSpell(Creature* bot, FSBSpellRuntime* runtime, uint32& globalCooldownUntil)
+    {
+        if (!runtime || !runtime->def)
+            return;
+
+        uint32 now = getMSTime();
+
+        FSBSpellDefinition const* def = runtime->def;
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(def->spellId, bot->GetMap()->GetDifficultyID());
+        if (!spellInfo)
+            return;
+
+        Unit* target = nullptr;
+        if (def->type == FSBSpellType::Heal)
+            target = def->isSelfCast ? bot : FSBMgr::GetBotOwner(bot)->ToUnit();
+        else
+            target = bot->GetVictim();
+
+        if (!target)
+            return;
+
+        Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
+        SpellCastTargets targets;
+        targets.SetUnitTarget(target);
+        //spell->prepare(targets);
+
+        SpellCastResult result = spell->prepare(targets);
+
+        if (result != SPELL_CAST_OK)
+            return;
+
+        // ? Per-spell cooldown
+        runtime->nextReadyMs = now + def->cooldownMs;
+
+        // Trigger GCD
+        globalCooldownUntil = now + BOT_GCD_MS;
+    }
+
 }

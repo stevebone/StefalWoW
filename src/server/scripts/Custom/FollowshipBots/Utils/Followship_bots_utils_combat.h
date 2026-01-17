@@ -46,3 +46,27 @@ namespace FSBUtilsCombat
     // - other bots owned by the same player
     void BuildBotGroup(Unit* me, std::vector<Unit*>& outGroup, float searchRange = 100.0f);
 }
+
+namespace FSBUtilsBotCombat
+{
+    bool BotCanAttack(Unit* target, Creature* bot, uint16 moveState);
+    void BotAttackStart(Creature* bot, Unit* target, uint16 moveState);
+    void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 moveState);
+    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect);
+    void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle);
+}
+
+namespace FSBUtilsOwnerCombat
+{
+    // Owner attacked victim
+    bool CheckBotOwnerAttacked(Player* owner, ObjectGuid& lastVictim);
+
+    // Owner was attacked by target
+    Unit* CheckBotOwnerAttackedBy(Player* owner);
+
+    // Bot reaction when owner attacks target
+    void OnBotOwnerAttacked(Unit* victim, Creature* bot, uint16 moveState);
+
+    // Bot reaction when owner is attacked by target
+    void OnBotOwnerAttackedBy(Unit* attacker, Creature* bot, uint16 moveState);
+}
