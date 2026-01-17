@@ -9,11 +9,12 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils_priest.h"
 
 
 
-
-
+using FSBSpellTable = std::vector<FSBSpellDefinition>;
+static std::unordered_map<FSB_Class, FSBSpellTable const*> sBotSpellTables;
 
 namespace FSBUtilsSpells
 {
@@ -150,6 +151,46 @@ namespace FSBUtilsSpells
 
 namespace FSBUtilsCombatSpells
 {
+    void InitBotSpellTables()
+    {
+        sBotSpellTables[FSB_Class::Priest] = &PriestSpellsTable;
+        //sBotSpellTables[FSB_Class::Mage] = &MageSpellsTable;
+        //sBotSpellTables[FSB_Class::Warrior] = &WarriorSpellsTable;
+    }
+
+    void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells)
+    {
+        _runtimeSpells.clear();
+
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        auto table = FSBUtilsCombatSpells::GetBotSpellTableForClass(botClass);
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: InitSpellRuntime() - Bot: {} has Class: {}", bot->GetName(), botClass);
+
+        if (!table)
+            return;
+
+        for (FSBSpellDefinition const& def : *table)
+        {
+            FSBSpellRuntime runtime;
+            runtime.def = &def;
+            runtime.nextReadyMs = 0;
+            _runtimeSpells.push_back(runtime);
+        }
+    }
+
+    
+    FSBSpellTable const* GetBotSpellTableForClass(FSB_Class botClass)
+    {
+        auto itr = sBotSpellTables.find(botClass);
+        if (itr == sBotSpellTables.end())
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellTableForClass not found");
+            return nullptr;
+        }
+
+        return itr->second;
+    }
+
     std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, uint32& globalCooldownUntil)
     {
         std::vector<FSBSpellRuntime*> available;
@@ -294,3 +335,5 @@ namespace FSBUtilsCombatSpells
     }
 
 }
+
+

@@ -12,6 +12,7 @@
 #include "SpellAuraDefines.h"
 
 #include "Followship_bots_roles.h"
+#include "Followship_bots_utils_stats.h"
 
 
 // Spell Related
@@ -84,6 +85,8 @@ struct FSBSpellRuntime
     uint32 nextReadyMs = 0; // runtime cooldown
 };
 
+using FSBSpellTable = std::vector<FSBSpellDefinition>;
+
 namespace FSBUtilsSpells
 {
     // Gets drink amount of mana regen per level
@@ -106,15 +109,6 @@ namespace FSBUtilsSpells
 
     
 
-    /// Returns true if spell cooldown is ready
-    bool IsSpellReady(const FSBSpellDefinition& spell, uint32 now);
-
-    /// Trigger spell cooldown
-    void TriggerCooldown(FSBSpellRuntime& spell, uint32 now);
-
-
-
-
     // Mount Spells
     using MountSpellList = std::vector<uint32>;
     using MountLevelSpellMap = std::map<uint8, MountSpellList>;
@@ -127,6 +121,11 @@ namespace FSBUtilsSpells
 
 namespace FSBUtilsCombatSpells
 {
+    void InitBotSpellTables();
+    void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells);
+
+    FSBSpellTable const* GetBotSpellTableForClass(FSB_Class botClass);
+
     std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, uint32& globalCooldownUntil);
     FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells);
     void BotCastSpell(Creature* bot, FSBSpellRuntime* runtime, uint32& globalCooldownUntil);

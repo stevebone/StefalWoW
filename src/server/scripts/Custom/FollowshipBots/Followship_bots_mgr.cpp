@@ -158,7 +158,6 @@ namespace FSBMgr
                 player->GetOrientation());
 
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
-
         }
 
         // Set owner

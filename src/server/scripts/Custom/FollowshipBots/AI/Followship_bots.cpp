@@ -18,6 +18,7 @@
 #include "Followship_bots_utils_gossip.h"
 //#include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils_spells.h"
 
 
 
@@ -30,8 +31,17 @@ public:
     {
         npc_followship_botsAI(Creature* creature) : FSB_BaseAI(creature)
         {
+            
             // Runs once when creature is spawned
-            InitSpellRuntime();
+            static bool tablesInitialized = false;
+            if (!tablesInitialized)
+            {
+                FSBUtilsCombatSpells::InitBotSpellTables();
+                tablesInitialized = true;
+            }
+
+            FSBUtilsCombatSpells::InitSpellRuntime(me, _runtimeSpells);
+            
         }
 
         
@@ -69,9 +79,6 @@ public:
             if (FollowshipBotsConfig::configFSBEnabled)
             {
                 events.Reset();
-
-                //me->SetClass(CLASS_PRIEST);
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() class {} set for bot: {}", me->GetClass(), me->GetName());
 
                 _statsMods = FSBUtilsStatsMods();     // now resets caller state
 
@@ -120,12 +127,12 @@ public:
         // This only works if creature is spawned by summon (NOT DB spawn)
         void IsSummonedBy(WorldObject* summoner) override
         {
-
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IsSummonedBy() triggered for bot: {}", me->GetName());
         }
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
-
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
@@ -573,9 +580,7 @@ public:
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
-            Unit* owner = me->GetOwner();
-            Player* player = owner ? owner->ToPlayer() : nullptr;
-
+            Player* player = FSBMgr::GetBotOwner(me)->ToPlayer();
             if (player)
             {
                 std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
@@ -1676,20 +1681,8 @@ public:
             // Misc
             GuidSet _allySet;
 
-            void InitSpellRuntime()
-            {
-                _runtimeSpells.clear();
-
-                // Example: Priest
-                for (FSBSpellDefinition const& def : PriestSpellsTable)
-                {
-                    FSBSpellRuntime runtime;
-                    runtime.def = &def;
-                    runtime.nextReadyMs = 0;
-                    _runtimeSpells.push_back(runtime);
-                }
-            }
-        
+            
+            
     };
 
     
@@ -1704,6 +1697,7 @@ public:
 void AddSC_followship_bots()
 {
     FollowshipBotsConfig::Load();
+    FSBUtilsCombatSpells::InitBotSpellTables();
 
     new npc_followship_bots();
 }
