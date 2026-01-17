@@ -107,7 +107,7 @@ namespace FSBUtilsSpells
     /// Returns true if the unit has a debuff that is dispellable by the bot (magic, disease, poison)
     bool HasDispellableDebuff(Unit* unit);
 
-    
+    bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target);
 
     // Mount Spells
     using MountSpellList = std::vector<uint32>;

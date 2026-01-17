@@ -3,7 +3,7 @@
 constexpr auto FSB_GOSSIP_ITEM_PRIEST_INFO = "Hey, I am a priest from Stormwind in search for work and adventure. I charge gold for my services...";
 
 // Spell Related Cooldowns
-static constexpr uint32 DESPERATE_PRAYER_CD_MS = 90000;
+//static constexpr uint32 DESPERATE_PRAYER_CD_MS = 90000;
 
 enum FSB_PRIEST_BUFF_SPELLS
 {

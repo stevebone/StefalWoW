@@ -54,6 +54,10 @@ namespace FSBUtilsBotCombat
     void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 moveState);
     Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect);
     void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle);
+
+    float GetBotChaseDistance(Creature* bot);
+    float GetFallbackChaseDistanceForClass(FSB_Class cls);
+    bool ShouldForceMeleeRange(Creature* bot);
 }
 
 namespace FSBUtilsOwnerCombat

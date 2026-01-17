@@ -6,10 +6,12 @@
 #include "ThreatManager.h"
 #include "Unit.h"
 
+#include "Followship_bots_priest.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_priest.h"
+#include "Followship_bots_utils_combat.h"
 
 
 
@@ -110,6 +112,25 @@ namespace FSBUtilsSpells
         }
 
         return false;
+    }
+
+    bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target)
+    {
+        switch (spellId)
+        {
+        case SPELL_PRIEST_PSYCHIC_SCREAM:
+        {
+            Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
+
+            uint8 attackers =
+                FSBUtilsCombat::CountAttackersOn(bot) +
+                (player ? FSBUtilsCombat::CountAttackersOn(player) : 0);
+
+            return attackers >= 3;
+        }
+        default:
+            return true;
+        }
     }
 
     MountSpellList const* GetMountSpellsForLevel(uint8 level)
@@ -222,7 +243,9 @@ namespace FSBUtilsCombatSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
+            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
             available.push_back(&runtime);
+
         }
 
         return available;
@@ -287,7 +310,7 @@ namespace FSBUtilsCombatSpells
                     
             }
 
-            if (target->HasAura(spell->spellId))
+            if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
                 continue;
 
             return runtime;
@@ -315,6 +338,9 @@ namespace FSBUtilsCombatSpells
             target = bot->GetVictim();
 
         if (!target)
+            return;
+
+        if (target->HasAura(def->spellId))
             return;
 
         Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);

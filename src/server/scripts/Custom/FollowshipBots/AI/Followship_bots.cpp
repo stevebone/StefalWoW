@@ -132,6 +132,8 @@ public:
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
+            me->SetHealth(me->GetMaxHealth());
+            me->SetPower(me->GetPowerType(), me->GetMaxPower(me->GetPowerType()));
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 
@@ -379,7 +381,7 @@ public:
                 // Bot Role Option Damage Deal
             case GOSSIP_ACTION_INFO_DEF + 24:
             {
-                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_DAMAGE);
+                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
                 me->SetReactState(REACT_AGGRESSIVE);
                 me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
@@ -409,7 +411,7 @@ public:
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered JustEngagedWith: {}", who->GetName());
 
-            if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST || FSBUtils::GetRole(me) == FSB_Roles:: FSB_ROLE_DAMAGE)
+            if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST || FSBUtils::GetRole(me) == FSB_Roles:: FSB_ROLE_RANGED_DAMAGE)
                 events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 100ms);
 
             // Target might be NULL if called from spell with invalid cast targets
@@ -1243,11 +1245,7 @@ public:
                         me->Say(msg, LANG_UNIVERSAL);
                     }
 
-                    // BOT LEVEL Update
-                    if (player && hired)
-                    {
-                        FSBUtilsStats::UpdateBotLevelToPlayer(me, player, _statsMods);
-                    }
+                    
 
                     // BOT Check OOC Actions
                     if (!me->IsInCombat() && me->IsAlive())
@@ -1396,10 +1394,11 @@ public:
                     if (hired)
                     {
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_OWNER_COMBAT, 500ms);
-                        events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_ALLIES, 500ms);
+                        events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_ALLIES, 1s);
+                        events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_BOT_LEVEL, 1s);
                     }
 
-                    events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 500ms);
+                    events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
 
                     break;
                 }
@@ -1433,6 +1432,13 @@ public:
                 case FSB_EVENT_HIRED_UPDATE_ALLIES:
                 {
                     FSBUtils::BotUpdateAllies(me, _allySet);
+
+                    break;
+                }
+
+                case FSB_EVENT_HIRED_UPDATE_BOT_LEVEL:
+                {
+                    FSBUtilsStats::UpdateBotLevelToPlayer(me, _statsMods);
 
                     break;
                 }

@@ -222,8 +222,10 @@ namespace FSBUtilsStats
         // ApplySpellPower(...)
     }
 
-    void UpdateBotLevelToPlayer(Creature* bot, Player* player, const FSBUtilsStatsMods& mods)
+    void UpdateBotLevelToPlayer(Creature* bot, const FSBUtilsStatsMods& mods)
     {
+        Player* player = bot->GetOwner()->ToPlayer();
+
         if (!bot || !player)
             return;
 

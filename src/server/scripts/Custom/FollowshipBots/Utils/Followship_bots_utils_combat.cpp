@@ -91,254 +91,7 @@ namespace FSBUtilsCombat
         nextSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS, 5 * MINUTE * IN_MILLISECONDS);
     }
 
-    Unit* FSBUtilsCombat::SelectDamageTarget(Creature* me, const std::vector<Unit*>& group, Unit* playerTarget)
-    {
-        if (!me)
-            return nullptr;
 
-        Unit* owner = me->GetOwner();
-        Player* player = owner ? owner->ToPlayer() : nullptr;
-
-        FSB_Roles role = FSBUtils::GetRole(me);
-
-        std::vector<Unit*> combatTargets;
-        auto const& threatList = me->GetThreatManager().GetSortedThreatList();
-        for (ThreatReference const* ref : threatList)
-        {
-            if (Unit* u = ref->GetVictim())
-                combatTargets.push_back(u);
-        }
-
-        
-
-        // Player target exists?
-        if (playerTarget && playerTarget->IsAlive())
-        {
-            if (role == FSB_ROLE_DAMAGE || role == FSB_ROLE_ASSIST || role == FSB_ROLE_TANK)
-                return playerTarget;
-        }
-
-        switch (role)
-        {
-        case FSB_ROLE_TANK:
-        {
-            // Tank bots prefer player target first
-            if (playerTarget && playerTarget->IsAlive())
-                return playerTarget;
-
-            if (player)
-            {
-                auto const& pthreatList = player->GetThreatManager().GetSortedThreatList();
-                for (ThreatReference const* ref : pthreatList)
-                {
-                    if (Unit* u = ref->GetVictim())
-                        combatTargets.push_back(u);
-                }
-            }
-
-            std::sort(combatTargets.begin(), combatTargets.end());
-            combatTargets.erase(std::unique(combatTargets.begin(), combatTargets.end()), combatTargets.end());
-
-            // Then bot's threat list
-            if (!combatTargets.empty())
-                return combatTargets.front(); // could prioritize highest threat
-
-            break;
-        }
-
-        case FSB_ROLE_HEALER:
-        {
-            // Healers prioritize tank
-            Unit* tank = nullptr;
-            for (Unit* u : group)
-            {
-                if (!u || !u->IsAlive())
-                    continue;
-                if (FSBUtils::GetRole(u->ToCreature()) == FSB_ROLE_TANK)
-                {
-                    tank = u;
-                    break;
-                }
-            }
-
-            if (tank)
-                return tank->GetVictim();
-
-            if (playerTarget && playerTarget->IsAlive())
-                return playerTarget;
-
-            std::sort(combatTargets.begin(), combatTargets.end());
-            combatTargets.erase(std::unique(combatTargets.begin(), combatTargets.end()), combatTargets.end());
-
-            // Fallback: bot's own threat list
-            if (!combatTargets.empty())
-                return combatTargets.front();
-
-            break;
-        }
-
-        case FSB_ROLE_DAMAGE:
-        case FSB_ROLE_ASSIST:
-        default:
-        {
-            if (playerTarget && playerTarget->IsAlive())
-                return playerTarget;
-
-            Unit* tank = nullptr;
-            for (Unit* u : group)
-            {
-                if (!u || !u->IsAlive())
-                    continue;
-                if (FSBUtils::GetRole(u->ToCreature()) == FSB_ROLE_TANK)
-                {
-                    tank = u;
-                    break;
-                }
-            }
-
-            if (tank)
-                return tank->GetVictim();
-            else
-            {
-
-                if (player)
-                {
-                    auto const& pthreatList = player->GetThreatManager().GetSortedThreatList();
-                    for (ThreatReference const* ref : pthreatList)
-                    {
-                        if (Unit* u = ref->GetVictim())
-                            combatTargets.push_back(u);
-                    }
-                }
-            }
-
-            std::sort(combatTargets.begin(), combatTargets.end());
-            combatTargets.erase(std::unique(combatTargets.begin(), combatTargets.end()), combatTargets.end());
-
-            if (!combatTargets.empty())
-                return combatTargets.front();
-
-            break;
-        }
-        }
-
-        // Fallback: pick any alive enemy in threat list
-        for (Unit* u : combatTargets)
-        {
-            if (u && u->IsAlive())
-                return u;
-        }
-
-        return nullptr;
-    }
-    Unit* SelectHealTarget(Unit* me, const std::vector<Unit*>& group)
-    {
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Triggered");
-        TC_LOG_DEBUG("scripts.ai.fsb", "SelectHealTarget called: me={}, role={}, hp={}", me->GetName(), FSBUtils::GetRole(me->ToCreature()), me->GetHealthPct());
-
-        if (!me)
-            return nullptr;
-
-        FSB_Roles myRole = FSBUtils::GetRole(me->ToCreature());
-        Player* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
-
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Bot Role: {}", myRole);
-
-        // -------------------------------
-        // ROLE: HEALER
-        // -------------------------------
-        if (myRole == FSB_ROLE_HEALER)
-        {
-            // 1. Tank @ 80%
-            for (Unit* u : group)
-            {
-                if (!u || !u->IsAlive())
-                    continue;
-
-                if (FSBUtils::GetRole(u->ToCreature()) == FSB_ROLE_TANK &&
-                    u->GetHealthPct() < 80.0f)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Found Tank to heal");
-                    return u;
-                }
-            }
-
-            // 2. Owner player @ 80%
-            if (owner && owner->IsAlive() && owner->GetHealthPct() < 80.0f)
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat: SelectHealTarget Found Owner to heal");
-                return owner;
-            }
-
-            // 3. Any other group member @ 50%
-            Unit* lowest = nullptr;
-            float lowestPct = 50.0f;
-
-            for (Unit* u : group)
-            {
-                if (!u || !u->IsAlive())
-                    continue;
-
-                if (u->GetHealthPct() < lowestPct)
-                {
-                    lowestPct = u->GetHealthPct();
-                    lowest = u;
-                }
-            }
-
-            return lowest; // nullptr if nobody qualifies
-        }
-
-        // -------------------------------
-        // ROLE: ASSIST
-        // -------------------------------
-        if (myRole == FSB_ROLE_ASSIST)
-        {
-            Unit* lowest = nullptr;
-            float lowestPct = 50.0f;
-
-            for (Unit* u : group)
-            {
-                if (!u || !u->IsAlive())
-                    continue;
-
-                if (u->GetHealthPct() < lowestPct)
-                {
-                    lowestPct = u->GetHealthPct();
-                    lowest = u;
-                }
-            }
-
-            return lowest;
-        }
-
-        // -------------------------------
-        // ROLE: TANK
-        // -------------------------------
-        if (myRole == FSB_ROLE_TANK)
-        {
-            if (me->GetHealthPct() < 80.0f)
-                return me;
-
-            return nullptr;
-        }
-
-        // -------------------------------
-        // ROLE: DAMAGE
-        // -------------------------------
-        if (myRole == FSB_ROLE_DAMAGE)
-        {
-            if (me->GetHealthPct() < 50.0f)
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat Damage : Bot Role Damage HP < 50. ");
-                return me;
-            }
-
-            return nullptr;
-        }
-
-        return nullptr;
-    }
 
     std::vector<Unit*> GetEmergencyCandidates(const std::vector<Unit*>& group, float lowHpThreshold)
     {
@@ -529,19 +282,19 @@ namespace FSBUtilsBotCombat
                 if (bot->HasUnitState(UNIT_STATE_FOLLOW))
                     bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
 
-                // Pets with ranged attacks should not care about the chase angle at all.
-                float chaseDistance = 2.f;// TO-DO create a dedicated method bot->GetBotChaseDistance();
+                // Bots with ranged attacks should not care about the chase angle at all.
+                float chaseDistance = GetBotChaseDistance(bot);
                 float angle = chaseDistance == 0.f ? float(M_PI) : 0.f;
                 float tolerance = chaseDistance == 0.f ? float(M_PI_4) : float(M_PI * 2);
                 bot->GetMotionMaster()->MoveChase(target, ChaseRange(0.f, chaseDistance), ChaseAngle(angle, tolerance));
             }
-            else // (Stay && ((Aggressive || Defensive) && In Melee Range)))
-            {
-                if (bot->HasUnitState(UNIT_STATE_FOLLOW))
-                    bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-
-                bot->GetMotionMaster()->MoveIdle();
-            }
+            //else // (Stay && ((Aggressive || Defensive) && In Melee Range)))
+            //{
+            //    if (bot->HasUnitState(UNIT_STATE_FOLLOW))
+            //        bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
+            //
+            //    bot->GetMotionMaster()->MoveIdle();
+            //}
         }
     }
 
@@ -617,8 +370,90 @@ namespace FSBUtilsBotCombat
                 bot->GetMotionMaster()->MoveFollow(owner, followDist, followAngle);
             
         }
-        bot->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT); // on player pets, this flag indicates that we're actively going after a target - we're returning, so remove it
+        bot->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT); 
     }
+
+    float GetBotChaseDistance(Creature* bot)
+    {
+        // 1?? HARD OVERRIDES (state-based, must win)
+        if (ShouldForceMeleeRange(bot))
+            return 2.0f;
+
+        FSB_Roles role = FSBUtils::GetRole(bot);
+        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        switch (role)
+        {
+        case FSB_ROLE_TANK:
+            return 2.0f;   // glue yourself to target
+
+        case FSB_ROLE_MELEE_DAMAGE:
+            return 2.5f;
+
+        case FSB_ROLE_RANGED_DAMAGE:
+            return 28.0f;
+
+        case FSB_ROLE_HEALER:
+            return 30.0f;
+
+        default:
+            break;
+        }
+
+        return GetFallbackChaseDistanceForClass(cls);
+    }
+
+    float GetFallbackChaseDistanceForClass(FSB_Class cls)
+    {
+        switch (cls)
+        {
+        case FSB_Class::Mage:
+        case FSB_Class::Warlock:
+            return 30.0f;
+
+        case FSB_Class::Priest:
+            return 25.0f; // priest tends to step closer for fear / dispel
+
+        case FSB_Class::Hunter:
+            return 35.0f; // dead zone avoidance
+
+        case FSB_Class::Rogue:
+        case FSB_Class::Warrior:
+        case FSB_Class::Paladin:
+            return 2.5f;
+
+        default:
+            return 5.0f;
+        }
+    }
+
+    bool ShouldForceMeleeRange(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        // Only mana users
+        if (bot->GetPowerType() != POWER_MANA)
+            return false;
+
+        uint32 maxMana = bot->GetMaxPower(POWER_MANA);
+        if (maxMana == 0)
+            return false;
+
+        float manaPct = 100.0f * bot->GetPower(POWER_MANA) / maxMana;
+
+        // < 5% mana = desperate mode
+        if (manaPct >= 5.0f)
+            return false;
+
+        // Optional: must be in combat
+        if (!bot->IsInCombat())
+            return false;
+
+        return true;
+    }
+
+
 }
 
 namespace FSBUtilsOwnerCombat
