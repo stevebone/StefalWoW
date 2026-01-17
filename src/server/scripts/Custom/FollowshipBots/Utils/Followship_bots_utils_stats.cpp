@@ -224,10 +224,12 @@ namespace FSBUtilsStats
 
     void UpdateBotLevelToPlayer(Creature* bot, const FSBUtilsStatsMods& mods)
     {
-        Player* player = bot->GetOwner()->ToPlayer();
-
-        if (!bot || !player)
+        if (!bot || !bot->GetOwner())
             return;
+
+        Player* player = bot->GetOwner()->ToPlayer();
+        if (!player)
+            return; // <-- Prevent crash if owner is gone
 
         uint8 pLevel = player->GetLevel();
         if (bot->GetLevel() == pLevel)
@@ -245,4 +247,5 @@ namespace FSBUtilsStats
         // Recalculate any additional stats/modifiers
         RecalculateMods(bot, mods);
     }
+
 }

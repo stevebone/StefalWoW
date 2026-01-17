@@ -42,9 +42,7 @@ public:
 
             FSBUtilsCombatSpells::InitSpellRuntime(me, _runtimeSpells);
             
-        }
-
-        
+        }        
 
         // Bot Operations
         bool hired = false;
@@ -132,8 +130,8 @@ public:
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
-            me->SetHealth(me->GetMaxHealth());
-            me->SetPower(me->GetPowerType(), me->GetMaxPower(me->GetPowerType()));
+            //me->SetHealth(me->GetMaxHealth());
+            //me->SetPower(me->GetPowerType(), me->GetMaxPower(me->GetPowerType()));
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 
@@ -440,21 +438,9 @@ public:
         void JustExitedCombat() override
         {
             
-        }
+        }        
 
-        void OwnerAttackedBy(Unit* attacker) override
-        {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OwnerAttackedBy Triggered");
-        }
-
-        void OwnerAttacked(Unit* target) override
-        {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OwnerAttacked Triggered");
-        }
-
-        
-
-        void AttackStart(Unit* target) override
+        void AttackStart(Unit* /*target*/) override
         {
 
         }
@@ -845,17 +831,6 @@ public:
                 {
                     me->GetThreatManager().AddThreat(dmgTarget, 10.0f);
                     me->Attack(dmgTarget, true);
-                }
-
-                // =============================
-                // Class Related Handling
-                // =============================
-                // 
-                // ---------- Psychic Scream special case ----------
-                if (spell->spellId == SPELL_PRIEST_PSYCHIC_SCREAM)
-                {
-                    if (FSBUtilsCombat::CountAttackersOn(me) + (player ? FSBUtilsCombat::CountAttackersOn(player) : 0) < 3)
-                        return;
                 }
 
                 // =============================
@@ -1407,7 +1382,9 @@ public:
                     // This is used to determine when assist is needed
                 case FSB_EVENT_HIRED_CHECK_OWNER_COMBAT:
                 {
-                    if (FSBMgr::GetBotOwner(me) && me->IsAlive())
+                    Player* owner = FSBMgr::GetBotOwner(me);
+
+                    if (owner && me->IsAlive())
                     {
                         // OWNER ATTACKED SOMEONE
                         if (FSBUtilsOwnerCombat::CheckBotOwnerAttacked(FSBMgr::GetBotOwner(me), _lastOwnerVictim))

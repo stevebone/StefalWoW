@@ -122,6 +122,12 @@ namespace FSBUtilsSpells
         {
             Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
 
+            if (!player)
+            {
+                uint8 attackers = FSBUtilsCombat::CountAttackersOn(bot);
+                return attackers >= 2;
+            }
+
             uint8 attackers =
                 FSBUtilsCombat::CountAttackersOn(bot) +
                 (player ? FSBUtilsCombat::CountAttackersOn(player) : 0);
