@@ -4,7 +4,7 @@
 #include "CreatureAI.h"
 #include "Unit.h"
 
-#include "Followship_bots_roles.h"
+#include "Followship_bots_defines.h"
 #include "Followship_bots_utils_stats.h"
 
 class FSB_BaseAI : public ScriptedAI
