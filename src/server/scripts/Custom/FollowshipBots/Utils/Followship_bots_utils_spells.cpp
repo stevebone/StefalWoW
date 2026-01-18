@@ -364,6 +364,26 @@ namespace FSBUtilsCombatSpells
 
         // Trigger GCD
         globalCooldownUntil = now + BOT_GCD_MS;
+
+
+        // Bot Say after spell cast - TO-DO transform this into its own method
+        if (def->type == FSBSpellType::Heal)
+        {
+            if (!target)
+                return;
+
+            if(target == bot)
+                FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::HealSelf, def->spellId);
+            else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::HealTarget, def->spellId);
+        }
+        else if (def->type == FSBSpellType::Damage)
+        {
+            if (!target)
+                return;
+
+            FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::SpellOnTarget, def->spellId);
+
+        }
     }
 
 }

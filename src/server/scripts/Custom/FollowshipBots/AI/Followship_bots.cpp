@@ -686,15 +686,7 @@ public:
                     }
                 }
 
-                if (FSBUtilsSpells::TryCast(me, healTarget, spell, _globalCooldownUntil))
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), healTarget->GetName());
-
-                    if (healTarget == me)
-                        FSBUtilsCombat::SayCombatMessage(me, healTarget, 0, FSBSayType::HealSelf, spell->spellId);
-                    else FSBUtilsCombat::SayCombatMessage(me, healTarget, 0, FSBSayType::HealTarget, spell->spellId);
-
-                }
+                
                 */
                 break;
             }
@@ -840,13 +832,7 @@ public:
 
                 // =============================
 
-                if (FSBUtilsSpells::TryCast(me, dmgTarget, spell, _globalCooldownUntil))
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), dmgTarget->GetName());
-
-                    FSBUtilsCombat::SayCombatMessage(me, dmgTarget, 0, FSBSayType::SpellOnTarget, spell->spellId);
-
-                }
+                
                 */
                 break;
             }
