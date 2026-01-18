@@ -446,8 +446,13 @@ public:
         }
 
         // Runs every time creature takes damage
-        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
+            if (!me->GetVictim() && attacker)
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: DamageTaken - bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
+                FSBUtilsBotCombat::BotAttackStart(me, attacker, moveState);
+            }
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades
@@ -488,7 +493,7 @@ public:
             if (spell->Id == SPELL_PRIEST_DEVOURING_PLAGUE || spell->Id == SPELL_PRIEST_PENANCE)
             {
                 //_regenMods.manaPctBonus -= 2.0f;
-                TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {} we need to subtract 2% mana", spell->Id);
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Priest Casting spell id {} we need to subtract 2% mana", spell->Id);
             }
         }
 
@@ -1309,7 +1314,7 @@ public:
                         //    me->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT);
                     }
 
-                    FSBUtilsCombat::BuildBotGroup(me->ToCreature(), botGroup_, 100.0f);
+                    
 
                     // Teleport if too far away
                     if (player && me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
@@ -1368,9 +1373,14 @@ public:
                 {
                     if (hired)
                     {
+                        uint32 now = getMSTime();
+
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_OWNER_COMBAT, 500ms);
                         events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_ALLIES, 1s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_BOT_LEVEL, 1s);
+
+                        if (now >= _nextAlliesCheckMs)
+                            events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_ALLIES, 5s);
                     }
 
                     events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
@@ -1409,6 +1419,19 @@ public:
                 case FSB_EVENT_HIRED_UPDATE_ALLIES:
                 {
                     FSBUtils::BotUpdateAllies(me, _allySet);
+
+                    break;
+                }
+
+                case FSB_EVENT_HIRED_CHECK_ALLIES:
+                {
+                    uint32 now = getMSTime();
+
+                    if (now >= _nextAlliesCheckMs)
+                        FSBUtilsCombat::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
+
+                    // ? lock check for next 5 seconds
+                    _nextAlliesCheckMs = now + 5000;
 
                     break;
                 }
@@ -1661,7 +1684,8 @@ public:
             uint16 moveState;
 
             // ----------
-            // Misc
+            // Allies & Group
+            uint32 _nextAlliesCheckMs = 0;
             GuidSet _allySet;
 
             

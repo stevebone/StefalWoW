@@ -44,7 +44,7 @@ namespace FSBUtilsCombat
     // - owner (player)
     // - the calling bot (me)
     // - other bots owned by the same player
-    void BuildBotGroup(Unit* me, std::vector<Unit*>& outGroup, float searchRange = 100.0f);
+    void CheckBotAllies(Unit* me, std::vector<Unit*>& outGroup, float searchRange = 100.0f);
 }
 
 namespace FSBUtilsBotCombat

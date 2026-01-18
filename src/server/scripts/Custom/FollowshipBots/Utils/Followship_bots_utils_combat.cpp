@@ -155,7 +155,7 @@ namespace FSBUtilsCombat
             });
     }
 
-    void BuildBotGroup(Unit* me, std::vector<Unit*>& outGroup, float searchRange)
+    void CheckBotAllies(Unit* me, std::vector<Unit*>& outGroup, float searchRange)
     {
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup triggered"); // TEMP-LOG
 
@@ -194,7 +194,7 @@ namespace FSBUtilsCombat
             outGroup.push_back(unit);
         }
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got allies of {}", nearbyAllies.size());  // TEMP-LOG
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: CheckBotAllies. Bot: {} got allies {} and a group of: {}", me->GetName(), nearbyAllies.size(), outGroup.size());  // TEMP-LOG
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got group of {}", outGroup.size());  // TEMP-LOG
     }
 }
@@ -316,6 +316,19 @@ namespace FSBUtilsBotCombat
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with myAttacker: {}", myAttacker->GetName());
             if (!myAttacker->HasBreakableByDamageCrowdControlAura())
                 return myAttacker;
+        }
+
+        // 1. Bot is being attacked ? defend self
+        if (!bot->getAttackers().empty())
+        {
+            // Pick the highest-threat attacker on the bot
+            Unit* attacker = bot->GetVictim();
+
+            if (!attacker)
+                attacker = *bot->getAttackers().begin();
+
+            if (attacker && attacker->IsAlive())
+                return attacker;
         }
 
         // Not sure why we wouldn't have an owner but just in case...
