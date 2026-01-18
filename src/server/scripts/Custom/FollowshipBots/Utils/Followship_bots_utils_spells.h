@@ -127,8 +127,8 @@ namespace FSBUtilsCombatSpells
     FSBSpellTable const* GetBotSpellTableForClass(FSB_Class botClass);
 
     std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, uint32& globalCooldownUntil);
-    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells);
-    void BotCastSpell(Creature* bot, FSBSpellRuntime* runtime, uint32& globalCooldownUntil);
+    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells, std::vector<Unit*> botGroup_, Unit*& outTarget);
+    void BotCastSpell(Creature* bot, Unit* target, FSBSpellRuntime* runtime, uint32& globalCooldownUntil);
 }
 
 enum FSB_StandardGroundMounts

@@ -49,10 +49,8 @@ public:
 
         bool updateFollowInfo = false;
         float followDistance = FOLLOW_DISTANCE_NORMAL;
-        float followAngle = FOLLOW_ANGLE_BEHIND;
+        float followAngle = frand(0.0f, float(M_PI * 2.0f)); //FOLLOW_ANGLE_BEHIND;
 
-        
-        //uint32 _desperatePrayerReadyMs = 0;
         uint32 _recuperateReadyMs = 0;
         bool _pendingResurrection = false;
         bool _playerDead = false;
@@ -1385,7 +1383,7 @@ public:
                         // OWNER ATTACKED SOMEONE
                         if (FSBUtilsOwnerCombat::CheckBotOwnerAttacked(FSBMgr::GetBotOwner(me), _lastOwnerVictim))
                         {
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner attacked a new target");
+                            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner attacked a new target");
 
                             FSBUtilsOwnerCombat::OnBotOwnerAttacked(FSBMgr::GetBotOwner(me)->GetVictim(), me, moveState);
                         }
@@ -1393,7 +1391,7 @@ public:
                         // OWNER WAS ATTACKED
                         if (Unit* attacker = FSBUtilsOwnerCombat::CheckBotOwnerAttackedBy(FSBMgr::GetBotOwner(me)))
                         {
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner was attacked by {}", attacker->GetName());
+                            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner was attacked by {}", attacker->GetName());
 
                             FSBUtilsOwnerCombat::OnBotOwnerAttackedBy(attacker, me, moveState);
                         }
@@ -1451,9 +1449,14 @@ public:
                 {
                     std::vector<FSBSpellRuntime*> available = FSBUtilsCombatSpells::BotGetAvailableSpells(me, _runtimeSpells, _globalCooldownUntil);
 
-                    FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available);
+                    // target is purposefully left to fall through as nullptr in BotCastSpell
+                    // There is handling there for automatic target selection in case of nullptr
+                    Unit* target = nullptr;
 
-                    FSBUtilsCombatSpells::BotCastSpell(me, toCast, _globalCooldownUntil);
+                    FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available, botGroup_, target);
+
+                    if(toCast)
+                        FSBUtilsCombatSpells::BotCastSpell(me, target, toCast, _globalCooldownUntil);
 
                     break;
                 }
@@ -1645,7 +1648,7 @@ public:
             FSBUtilsStatsMods _statsMods;
             FSBUtilsStatsMods _baseStatsMods;
 
-            std::vector<Unit*> botGroup_;
+            
 
             bool combatEmergency = false;
             bool groupHealthy = false;
@@ -1671,6 +1674,7 @@ public:
 
             // ----------
             // Allies & Group
+            std::vector<Unit*> botGroup_;
             uint32 _nextAlliesCheckMs = 0;
             GuidSet _allySet;
 

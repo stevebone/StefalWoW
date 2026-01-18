@@ -110,11 +110,11 @@ namespace FSBUtilsCombat
             }
 
             // Emergency 2: dispellable debuff
-            if (FSBUtilsSpells::HasDispellableDebuff(unit))
-            {
-                emergencies.push_back(unit);
-                continue;
-            }
+            //if (FSBUtilsSpells::HasDispellableDebuff(unit))
+            //{
+            //    emergencies.push_back(unit);
+            //    continue;
+            //}
 
             // You can add more emergency checks here in the future
             // e.g., specific negative auras, debuffs, status effects
@@ -185,7 +185,7 @@ namespace FSBUtilsCombat
             if (!unit || unit == me || unit == owner)
                 continue;
 
-            if (!unit->IsBot())
+            if (!unit->ToCreature()->IsBot())
                 continue;
 
             if (unit->GetOwnerGUID() != owner->GetGUID())

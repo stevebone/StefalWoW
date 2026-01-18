@@ -108,6 +108,8 @@ namespace FSBUtilsSpells
             //if (info->HasAttribute(SPELL_ATTR0_CANT_BE_DISPELLED))
             //    continue;
 
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Spell casting: found unit: {} with dispellable aura.", unit->GetName());
+
             return true;
         }
 
@@ -118,6 +120,8 @@ namespace FSBUtilsSpells
     {
         switch (spellId)
         {
+
+            // Can only be cast on more than 2/3 attackers
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
             Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
@@ -134,6 +138,17 @@ namespace FSBUtilsSpells
 
             return attackers >= 3;
         }
+
+        case SPELL_PRIEST_DESPERATE_PRAYER:
+        {
+            return target == bot;
+        }
+
+        case SPELL_PRIEST_PURIFY:
+        {
+            return target && HasDispellableDebuff(target);
+        }
+
         default:
             return true;
         }
@@ -257,12 +272,41 @@ namespace FSBUtilsCombatSpells
         return available;
     }
 
-    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells)
+    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells, std::vector<Unit*> botGroup_, Unit*& outTarget)
     {
+        outTarget = nullptr;
+
         if (availableSpells.empty())
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no available spell");
             return nullptr;
+        }
+
+        // =====================================
+        // ============= HEALER LOGIC ==========
+
+        std::vector<Unit*> emergencyTargets;
+        if (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER)
+        {
+            emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_, 30.f); // e.g., 30% HP threshold
+
+            if (!emergencyTargets.empty())
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - Emergency Detected - filtering available spells.");
+
+                // Filter availableSpells to only keep healing spells
+                availableSpells.erase(
+                    std::remove_if(availableSpells.begin(), availableSpells.end(),
+                        [](FSBSpellRuntime* runtime)
+                        {
+                            return runtime->def->type != FSBSpellType::Heal;
+                        }),
+                    availableSpells.end()
+                );
+
+                // Sort by priority
+                FSBUtilsCombat::SortEmergencyTargets(emergencyTargets);
+            }
         }
 
         // Sort by priority descending
@@ -283,49 +327,62 @@ namespace FSBUtilsCombatSpells
             // Determine target
             Unit* target = nullptr;
 
-            if (spell->type == FSBSpellType::Heal)
+            // === EMERGENCY PATH ===
+            if (!emergencyTargets.empty() && spell->type == FSBSpellType::Heal)
             {
-                if (spell->isSelfCast)
-                    target = bot;
-                else
-                    target = FSBMgr::GetBotOwner(bot);
-
-                if (!target || !target->IsAlive())
-                    continue;
-
-                // Check HP%
-                float hpPct = target->GetHealthPct();
-                if (hpPct > spell->hpThreshold)
-                    continue;
+                // Pick the first emergency target (or do more advanced selection)
+                target = emergencyTargets.front();
             }
-            else if (spell->type == FSBSpellType::Damage)
+            else
             {
-                target = bot->GetVictim();
-                if (!target || !target->IsAlive())
+
+                if (spell->type == FSBSpellType::Heal)
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no target for spell");
-                    continue;
+                    if (spell->isSelfCast)
+                        target = bot;
+                    else
+                        target = FSBMgr::GetBotOwner(bot);
+
+                    if (!target || !target->IsAlive())
+                        continue;
+
+                    // Check HP%
+                    float hpPct = target->GetHealthPct();
+                    if (hpPct > spell->hpThreshold)
+                        continue;
+                }
+                else if (spell->type == FSBSpellType::Damage)
+                {
+                    target = bot->GetVictim();
+                    if (!target || !target->IsAlive())
+                    {
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no target for spell");
+                        continue;
+                    }
+
+                    // Optionally check distance
+                    if (bot->GetDistance(target) > spell->dist)
+                    {
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - target too far");
+                        continue;
+                    }
+
                 }
 
-                // Optionally check distance
-                if (bot->GetDistance(target) > spell->dist)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - target too far");
+                if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
                     continue;
-                }
-                    
             }
 
-            if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
-                continue;
+            outTarget = target;
 
-            return runtime;
+            //if(target)
+              return runtime;
         }
 
         return nullptr;
     }
 
-    void BotCastSpell(Creature* bot, FSBSpellRuntime* runtime, uint32& globalCooldownUntil)
+    void BotCastSpell(Creature* bot, Unit* target, FSBSpellRuntime* runtime, uint32& globalCooldownUntil)
     {
         if (!runtime || !runtime->def)
             return;
@@ -337,11 +394,13 @@ namespace FSBUtilsCombatSpells
         if (!spellInfo)
             return;
 
-        Unit* target = nullptr;
-        if (def->type == FSBSpellType::Heal)
-            target = def->isSelfCast ? bot : FSBMgr::GetBotOwner(bot)->ToUnit();
-        else
-            target = bot->GetVictim();
+        if (!target)
+        {
+            if (def->type == FSBSpellType::Heal)
+                target = def->isSelfCast ? bot : FSBMgr::GetBotOwner(bot)->ToUnit();
+            else
+                target = bot->GetVictim();
+        }
 
         if (!target)
             return;

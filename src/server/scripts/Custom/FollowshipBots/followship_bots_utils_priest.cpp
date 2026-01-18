@@ -13,6 +13,8 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
     { SPELL_PRIEST_FLASH_HEAL,          FSBSpellType::Heal,     70.f,       60.f,           70.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
     { SPELL_PRIEST_RENEW,               FSBSpellType::Heal,     60.f,       85.f,           60.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
     { SPELL_PRIEST_PURIFY,              FSBSpellType::Heal,     100.f,      0.f,            70.f,           40.f,           false,      8000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_POWER_WORD_SHIELD,   FSBSpellType::Heal,     75.f,        70.f,          70.f,           30.f,           false,      8000,           FSB_RoleMask::FSB_ROLEMASK_HEALER | FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+
     { SPELL_PRIEST_PSYCHIC_SCREAM,      FSBSpellType::Damage,   100.f,      0.f,            80.f,           8.f,            true,       45000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE    },
     { SPELL_PRIEST_SHADOW_WORD_PAIN,    FSBSpellType::Damage,   90.f,       0.f,            80.f,           30.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_ANY    },
     { SPELL_PRIEST_VAMPIRIC_TOUCH,      FSBSpellType::Damage,   90.f,       0.f,            80.f,           30.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
