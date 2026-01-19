@@ -133,7 +133,7 @@ namespace FSBUtilsStats
             return;
 
         // ---------- HEALTH ----------
-        if (doHealth)
+        if (doHealth && unit->GetHealthPct() < 100)
         {
             int32 baseHpRegen = inCombat
                 ? classStats->baseHpRegenIC
@@ -149,10 +149,12 @@ namespace FSBUtilsStats
 
             if (amount > 0)
                 unit->ModifyHealth(amount);
+
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={})", unit->GetName(), amount);
         }
 
         // ---------- POWER ----------
-        if (doMana && unit->GetPowerType() == POWER_MANA)
+        if (doMana && unit->GetPowerType() == POWER_MANA && unit->GetPowerPct(POWER_MANA) < 100)
         {
             int32 basePowerRegen = inCombat
                 ? classStats->basePowerRegenIC
@@ -168,6 +170,8 @@ namespace FSBUtilsStats
 
             if (amount > 0)
                 unit->ModifyPower(POWER_MANA, amount);
+
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={})", unit->GetName(), amount);
         }
     }
 
@@ -186,8 +190,6 @@ namespace FSBUtilsStats
             // Apply regen
             ApplyBotRegen(creature, botClass, finalMods, true, true);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={} MP={})",
-                creature->GetName(), finalMods.flatHealthPerTick, finalMods.flatManaPerTick);
         }
     }
     
