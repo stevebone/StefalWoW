@@ -625,266 +625,6 @@ public:
         {
             switch (action)
             {
-            case FSB_ACTION_COMBAT_HEAL:
-            {
-                /*
-                groupHealthy = false;
-                bool isSelfTarget = false;
-
-                Unit* healTarget = FSBUtilsCombat::SelectHealTarget(me, botGroup_);
-                //Unit* healTarget = nullptr;
-
-                if (healTarget)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Heal target is: {}", healTarget->GetName());
-                }
-
-                if (!healTarget)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Heal targets empty");
-                    groupHealthy = true;
-                    return; // nothing to do
-                }
-
-                FSBSpellCandidate* spell = FSBUtilsSpells::SelectSpell(
-                    me,
-                    healTarget,
-                    PriestSpellsTable,      // or bot-specific table
-                    FSBSpellType::Heal,
-                    false
-                );
-
-                if (!spell)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "{} no valid heal spell selected", me->GetName());
-                    return;
-                }
-
-                // If not self-cast, ensure we are in range first
-                if (!spell->isSelfCast)
-                {
-                    if (FSBUtilsMovement::EnsureInRange(me, healTarget, spell->dist))
-                        return; // movement started, casting deferred
-                }
-
-                // LOS check
-                if (!spell->isSelfCast)
-                {
-                    if (FSBUtilsMovement::EnsureLOS(me, healTarget))
-                        return;
-                }
-
-                // Purify check for Debuff
-                if (spell->spellId == SPELL_PRIEST_PURIFY)
-                {
-                    if (!FSBUtilsSpells::HasDispellableDebuff(healTarget))
-                    {
-                        TC_LOG_DEBUG("scripts.ai.fsb", "{} Selected Purify spell cast on target: {} but no Debuff found", me->GetName(), healTarget->GetName());
-                        break;
-                    }
-                }
-
-                
-                */
-                break;
-            }
-            case FSB_ACTION_COMBAT_EMERGENCY:
-            {/*
-                bool isSelfTarget = false;
-
-                std::vector<Unit*> emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_);
-                if (emergencyTargets.empty())
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Emergency targets empty");
-                    return; // nothing to do
-                }
-
-                if (FSBUtilsMovement::GetMovementType(me) == CHASE_MOTION_TYPE)
-                    return;
-
-                // Sort by priority
-                FSBUtilsCombat::SortEmergencyTargets(emergencyTargets);
-
-                // Pick the highest priority target
-                Unit* emergencyTarget = emergencyTargets.front();
-                if (!emergencyTarget)
-                    return;
-
-                // Check if the emergency target is the bot itself
-                isSelfTarget = (emergencyTarget == me);
-
-                // Now you can pass this info to your spell-casting logic
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Combat Emergency target: {} | isSelfTarget: {}",
-                    emergencyTarget->GetName(), isSelfTarget);
-
-                // Example: trying to select a heal spell for a target
-                FSBSpellCandidate* spell = FSBUtilsSpells::SelectSpell(
-                    me,                      // caster
-                    emergencyTarget,                  // target
-                    PriestSpellsTable,         // vector<FSBSpellCandidate> for heals
-                    FSBSpellType::Heal,      // type of spell
-                    false                     // preferSelfCast first
-                );
-
-                if (!spell)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "{} no valid spell selected", me->GetName());
-                    return;
-                }
-
-                // If not self-cast, ensure we are in range first
-                if (!spell->isSelfCast)
-                {
-                    if (FSBUtilsMovement::EnsureInRange(me, emergencyTarget, spell->dist))
-                        return; // movement started, casting deferred
-                }
-
-                // LOS check
-                if (!spell->isSelfCast)
-                {
-                    if (FSBUtilsMovement::EnsureLOS(me, emergencyTarget))
-                        return;
-                }
-
-                // Purify check for Debuff
-                if (spell->spellId == SPELL_PRIEST_PURIFY)
-                {
-                    if (!FSBUtilsSpells::HasDispellableDebuff(emergencyTarget))
-                    {
-                        TC_LOG_DEBUG("scripts.ai.fsb", "{} Selected Purify spell cast on target: {} but no Debuff found", me->GetName(), emergencyTarget->GetName());
-                        break;
-                    }
-                }
-
-                if (FSBUtilsSpells::TryCast(me, emergencyTarget, spell, _globalCooldownUntil))
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "{} Tried cast {} on target: {}", me->GetName(), FSBUtilsSpells::GetSpellName(spell->spellId), emergencyTarget->GetName());
-
-                    if (spell->spellId == SPELL_PRIEST_DESPERATE_PRAYER)
-                        FSBUtilsCombat::SayCombatMessage(me, emergencyTarget, 0, FSBSayType::HealSelf, spell->spellId);
-
-                }
-                */
-                break;
-            }
-
-            case FSB_ACTION_COMBAT_DAMAGE:
-            {/*
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Damage Spells triggered");
-
-                Unit* playerTarget = nullptr;
-                Player* player = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
-
-                if (player)
-                {
-                    playerTarget = player->GetSelectedUnit(); // The player's target
-                }
-
-
-                Unit* dmgTarget = FSBUtilsCombat::SelectDamageTarget(me, botGroup_, playerTarget);
-
-                if (!dmgTarget)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spell targets empty");
-                    break; // nothing to do
-                }
-
-                FSBSpellCandidate* spell = FSBUtilsSpells::SelectSpell(
-                    me,
-                    dmgTarget,
-                    PriestSpellsTable,      // or bot-specific table
-                    FSBSpellType::Damage,
-                    false
-                );
-
-                if (!spell)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "{} no valid damage spell selected", me->GetName());
-                    break;
-                }
-                else if (!spell && dmgTarget)
-                {
-                    me->Attack(dmgTarget, true); // melee attack
-                }
-
-                // If not self-cast, ensure we are in range first
-                if (!spell->isSelfCast)
-                {
-                    if (FSBUtilsMovement::EnsureInRange(me, dmgTarget, spell->dist))
-                        return; // movement started, casting deferred
-                }
-
-                // LOS check
-                if (!spell->isSelfCast)
-                {
-                    if (FSBUtilsMovement::EnsureLOS(me, dmgTarget))
-                        return;
-                }
-
-                // Sync combat state with target
-                if (!me->GetThreatManager().IsThreatenedBy(dmgTarget))
-                {
-                    me->GetThreatManager().AddThreat(dmgTarget, 10.0f);
-                    me->Attack(dmgTarget, true);
-                }
-
-                // =============================
-
-                
-                */
-                break;
-            }
-
-            case FSB_ACTION_INITIATE_COMBAT:
-            {
-                /*
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spells triggered");
-                combatEmergency = false;
-
-                // Check Hard Requirements
-                if (!me->IsAlive())
-                    return;
-
-
-                // =============================
-                // HEALING EMERGENCY: Player or Bots based on Role
-                // =============================
-                // Check for emergencies - targets < 30% hP
-                std::vector<Unit*> emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_);
-                if (!emergencyTargets.empty())
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spells emergency targets NOT empty");
-
-                    combatEmergency = true;
-                    DoAction(FSB_ACTION_COMBAT_EMERGENCY);
-                    return;
-                }
-
-                // This needs to be here so that we do not interrupt emergency chase motion
-                if (FSBUtilsMovement::GetMovementType(me) == CHASE_MOTION_TYPE)
-                    return;
-
-                // =============================
-                // HEALING: Player or Bot based on Role
-                // =============================
-                if (!me->HasUnitState(UNIT_STATE_CASTING) && !groupHealthy)
-                {
-                    DoAction(FSB_ACTION_COMBAT_HEAL);
-                    break;
-                }
-
-                // =============================
-                // DAMAGE: Bot based on Role
-                // =============================
-                else
-                {
-                    DoAction(FSB_ACTION_COMBAT_DAMAGE);
-                    break;
-                }
-                */
-                break;
-            }
-
             case FSB_ACTION_RESURRECT_PLAYER:
             {
                 if (!_pendingResurrection)
@@ -968,7 +708,7 @@ public:
                 }
 
 
-                if (_globalCooldownUntil < now)
+                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
                 {
                     if (!player->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
                     {
@@ -1030,8 +770,6 @@ public:
 
                 if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
                 {
-
-                    
                         if (!me->HasAura(SPELL_PRIEST_RECUPERATE) && now >= _recuperateReadyMs)
                         {
                             FSBUtilsMovement::StopFollow(me);
@@ -1288,12 +1026,7 @@ public:
                         if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                             events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
 
-                        //if (!me->HasUnitFlag(UNIT_FLAG_IN_COMBAT))
-                        //{
-                        //    me->SetUnitFlag(UNIT_FLAG_IN_COMBAT);
-                        //}
-
-                        events.ScheduleEvent(FSB_EVENT_INITIATE_COMBAT, 2s);
+                        
                     }
 
                     if (player && player->IsAlive() && !player->IsInCombat() && _playerCombatStarted)
@@ -1369,11 +1102,13 @@ public:
                         uint32 now = getMSTime();
 
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_OWNER_COMBAT, 500ms);
-                        events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_ALLIES, 1s);
-                        events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_BOT_LEVEL, 1s);
+                        
 
-                        if (now >= _nextAlliesCheckMs)
+                        if (now >= _5secondsCheckMs)
+                        {
                             events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_ALLIES, 5s);
+                            events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_BOT_LEVEL, 5s);
+                        }
                     }
 
                     events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
@@ -1409,29 +1144,31 @@ public:
                     break;
                 }
 
-                case FSB_EVENT_HIRED_UPDATE_ALLIES:
-                {
-                    FSBUtils::BotUpdateAllies(me, _allySet);
-
-                    break;
-                }
-
+                    // Check to dermine what friendlies we have in our "group"
+                    // Includes: bot, owner and other bots owner by its owner
+                    // TO-DO: Add check to include other players in the group of the owner
                 case FSB_EVENT_HIRED_CHECK_ALLIES:
                 {
                     uint32 now = getMSTime();
 
-                    if (now >= _nextAlliesCheckMs)
+                    if (now >= _5secondsCheckMs)
                         FSBUtilsCombat::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
 
                     // ? lock check for next 5 seconds
-                    _nextAlliesCheckMs = now + 5000;
+                    _5secondsCheckMs = now + 5000;
 
                     break;
                 }
 
                 case FSB_EVENT_HIRED_UPDATE_BOT_LEVEL:
                 {
-                    FSBUtilsStats::UpdateBotLevelToPlayer(me, _statsMods);
+                    uint32 now = getMSTime();
+
+                    if (now >= _5secondsCheckMs)
+                        FSBUtilsStats::UpdateBotLevelToPlayer(me, _statsMods);
+
+                    // ? lock check for next 5 seconds
+                    _5secondsCheckMs = now + 5000;
 
                     break;
                 }
@@ -1458,46 +1195,37 @@ public:
                 {
                     std::vector<FSBSpellRuntime*> available = FSBUtilsCombatSpells::BotGetAvailableSpells(me, _runtimeSpells, _globalCooldownUntil);
 
-                    // target is purposefully left to fall through as nullptr in BotCastSpell
-                    // There is handling there for automatic target selection in case of nullptr
                     Unit* target = nullptr;
 
                     FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available, botGroup_, target);
 
-                    if(toCast)
+                    if(toCast && target)
                         FSBUtilsCombatSpells::BotCastSpell(me, target, toCast, _globalCooldownUntil);
 
                     break;
                 }
 
-                    
+                // =================================================== //
+                // ========= TIMED ACTION EVENTS ===================== //
+                // Events that are checked during combat               //
+                // =================================================== //   
 
                     // BOT Follows player again
                     // For timed events
                 case FSB_EVENT_RESUME_FOLLOW:
                 {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
+                    Player* player = FSBMgr::GetBotOwner(me)->ToPlayer();
 
-                    ResumeFollow(player);
+                    if(player)
+                        ResumeFollow(player);
 
                     break;
                 }
-                case FSB_EVENT_INITIATE_COMBAT:
-                {
-                    /*
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateAI Event Priest Combat triggered with role = {}", roleState);
 
-                    DoAction(FSB_ACTION_INITIATE_COMBAT);
 
-                    // ?? ALWAYS reschedule while combat exists for player OR bot
-                    if (FSBUtilsCombat::IsCombatActive(me))
-                    {
-                        events.ScheduleEvent(FSB_EVENT_INITIATE_COMBAT, 1s);
-                    }
-                    */
-                    break;
-                }
+
+
+
 
                     // Priest casts Renew and PWS on Engagement
                     // Only in Assist and Damage roles
@@ -1684,10 +1412,7 @@ public:
             // ----------
             // Allies & Group
             std::vector<Unit*> botGroup_;
-            uint32 _nextAlliesCheckMs = 0;
-            GuidSet _allySet;
-
-            
+            uint32 _5secondsCheckMs = 0;            
             
     };
 

@@ -492,16 +492,6 @@ namespace FSBUtilsCombatSpells
         if (!spellInfo)
             return;
 
-        /*
-        if (!target)
-        {
-            if (def->type == FSBSpellType::Heal)
-                target = def->isSelfCast ? bot : FSBMgr::GetBotOwner(bot)->ToUnit();
-            else
-                target = bot->GetVictim();
-        }
-        */
-
         if (!target)
             return;
 
@@ -511,7 +501,6 @@ namespace FSBUtilsCombatSpells
         Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
         SpellCastTargets targets;
         targets.SetUnitTarget(target);
-        //spell->prepare(targets);
 
         SpellCastResult result = spell->prepare(targets);
 
