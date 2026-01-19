@@ -14,7 +14,7 @@ enum class FSBSayType;
 namespace FSBUtilsCombat
 {
     // Checks if either bot or player is in combat
-    bool IsCombatActive(Unit* me);
+    bool IsCombatActive(Creature* me);
 
     // Counts active attackers
     uint8 CountActiveAttackers(Unit* me);

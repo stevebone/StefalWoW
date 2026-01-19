@@ -11,15 +11,17 @@
 
 namespace FSBUtilsCombat
 {
-    bool IsCombatActive(Unit* me)
+    bool IsCombatActive(Creature* bot)
     {
-        if (!me)
+        if (!bot)
             return false;
 
-        Unit* owner = me->GetOwner();
-        Player* player = owner ? owner->ToPlayer() : nullptr;
+        Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
 
-        return me->IsInCombat() || (player && player->IsInCombat());
+        if (!player)
+            return bot->IsInCombat();
+
+        return bot->IsInCombat() || player->IsInCombat();
     }
 
     uint8 CountActiveAttackers(Unit* me)
