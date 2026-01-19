@@ -48,8 +48,8 @@ public:
         bool hired = false;
 
         bool updateFollowInfo = false;
-        float followDistance = FOLLOW_DISTANCE_NORMAL;
-        float followAngle = frand(0.0f, float(M_PI * 2.0f)); //FOLLOW_ANGLE_BEHIND;
+        float followDistance = frand(2.f, 8.f);
+        float followAngle = frand(0.0f, float(M_PI * 2.0f));
 
         uint32 _recuperateReadyMs = 0;
         bool _pendingResurrection = false;
@@ -837,6 +837,7 @@ public:
 
             case FSB_ACTION_INITIATE_COMBAT:
             {
+                /*
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB DoAction::Combat Spells triggered");
                 combatEmergency = false;
 
@@ -880,7 +881,7 @@ public:
                     DoAction(FSB_ACTION_COMBAT_DAMAGE);
                     break;
                 }
-
+                */
                 break;
             }
 
@@ -958,11 +959,17 @@ public:
             {
                 uint32 now = getMSTime();
 
+                Player* player = FSBMgr::GetBotOwner(me)->ToPlayer();
+                if (!player)
+                {
+                    events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 1500ms);
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: No player found");
+                    break;
+                }
+
+
                 if (_globalCooldownUntil < now)
                 {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
                     if (!player->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
                     {
                         me->CastSpell(player, SPELL_PRIEST_POWER_WORD_SHIELD);
@@ -1268,7 +1275,7 @@ public:
                     // BOT PLAYER OOC Heal
                     if (_botOutCombat && _playerCombatEnded)
                     {
-                        events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_PLAYER, 100ms);
+                        //events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_PLAYER, 100ms);
                     }
 
                     // PLAYER check on combat for buffs and combat spells
@@ -1338,10 +1345,12 @@ public:
                     uint32 now = getMSTime();
 
                     if (me->GetHealthPct() < 100 || me->GetPowerPct(me->GetPowerType()) < 100)
+                    {
                         FSBUtilsStats::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
 
-                    // ? lock regen for next 2 seconds
-                    _nextRegenMs = now + 2000;
+                        // ? lock regen for next 2 seconds
+                        _nextRegenMs = now + 2000;
+                    }
 
                     break;
                 }
@@ -1615,8 +1624,8 @@ public:
 
                 case FSB_EVENT_PRIEST_OOC_HEAL_PLAYER:
                 {
-                    DoAction(FSB_ACTION_OOC_HEAL_PLAYER);
-                    break;
+                //    DoAction(FSB_ACTION_OOC_HEAL_PLAYER);
+                //    break;
                 }
 
                 default:

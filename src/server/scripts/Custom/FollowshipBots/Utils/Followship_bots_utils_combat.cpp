@@ -93,9 +93,9 @@ namespace FSBUtilsCombat
 
 
 
-    std::vector<Unit*> GetEmergencyCandidates(const std::vector<Unit*>& group, float lowHpThreshold)
+    std::vector<Unit*> BotGetHealCandidates(const std::vector<Unit*>& group, float lowHpThreshold)
     {
-        std::vector<Unit*> emergencies;
+        std::vector<Unit*> candidates;
 
         for (Unit* unit : group)
         {
@@ -105,27 +105,19 @@ namespace FSBUtilsCombat
             // Emergency 1: HP below threshold
             if (unit->GetHealthPct() <= lowHpThreshold)
             {
-                emergencies.push_back(unit);
-                continue;
+                candidates.push_back(unit);
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency Candidate: {}", unit->GetName());
             }
-
-            // Emergency 2: dispellable debuff
-            //if (FSBUtilsSpells::HasDispellableDebuff(unit))
-            //{
-            //    emergencies.push_back(unit);
-            //    continue;
-            //}
-
-            // You can add more emergency checks here in the future
-            // e.g., specific negative auras, debuffs, status effects
         }
 
         // Optional: sort by urgency (lowest HP first)
-        std::sort(emergencies.begin(), emergencies.end(),
+        std::sort(candidates.begin(), candidates.end(),
             [](Unit* a, Unit* b) { return a->GetHealthPct() < b->GetHealthPct(); });
 
-        return emergencies;
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
+        return candidates;
     }
+
     float CalculateEmergencyPriority(Unit* unit)
     {
         if (!unit)

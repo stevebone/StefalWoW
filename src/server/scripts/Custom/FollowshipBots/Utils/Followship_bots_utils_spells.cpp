@@ -282,104 +282,202 @@ namespace FSBUtilsCombatSpells
             return nullptr;
         }
 
-        // =====================================
-        // ============= HEALER LOGIC ==========
+        // =========================================================
+        // ===================== ROLE / MODE =======================
+        // =========================================================
+
+        bool isHealer = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER);
+        bool isHybrid = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_ASSIST);
 
         std::vector<Unit*> emergencyTargets;
-        if (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER)
+        std::vector<Unit*> healTargets;
+
+        if (isHealer)
         {
-            emergencyTargets = FSBUtilsCombat::GetEmergencyCandidates(botGroup_, 30.f); // e.g., 30% HP threshold
-
-            if (!emergencyTargets.empty())
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - Emergency Detected - filtering available spells.");
-
-                // Filter availableSpells to only keep healing spells
-                availableSpells.erase(
-                    std::remove_if(availableSpells.begin(), availableSpells.end(),
-                        [](FSBSpellRuntime* runtime)
-                        {
-                            return runtime->def->type != FSBSpellType::Heal;
-                        }),
-                    availableSpells.end()
-                );
-
-                // Sort by priority
-                FSBUtilsCombat::SortEmergencyTargets(emergencyTargets);
-            }
+            emergencyTargets = FSBUtilsCombat::BotGetHealCandidates(botGroup_, 40.f);
+            healTargets = FSBUtilsCombat::BotGetHealCandidates(botGroup_, 70.f);
         }
 
-        // Sort by priority descending
-        std::sort(availableSpells.begin(), availableSpells.end(),
-            [](FSBSpellRuntime* a, FSBSpellRuntime* b)
-            {
-                return a->def->priority > b->def->priority;
-            });
+        enum class SpellMode
+        {
+            EmergencyHeal,
+            NormalHeal,
+            DamageOnly,
+            Hybrid
+        };
+
+        SpellMode mode = SpellMode::DamageOnly;
+
+        if (isHealer)
+        {
+            if (!emergencyTargets.empty())
+                mode = SpellMode::EmergencyHeal;
+            else if (!healTargets.empty())
+                mode = SpellMode::NormalHeal;
+            else
+                mode = SpellMode::DamageOnly;
+        }
+
+        if (isHybrid)
+            mode = SpellMode::Hybrid;
+
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB: SelectSpell - role={} mode={} emergencyTargets={} healTargets={}",
+            isHealer ? "HEALER" : "NON-HEALER",
+            mode == SpellMode::EmergencyHeal ? "EMERGENCY" :
+            mode == SpellMode::NormalHeal ? "HEAL" :
+            mode == SpellMode::DamageOnly ? "DAMAGE" : "HYBRID",
+            emergencyTargets.size(),
+            healTargets.size()
+        );
+
+        // =========================================================
+        // ================== BUILD SPELL POOL =====================
+        // =========================================================
+
+        std::vector<FSBSpellRuntime*> spellPool;
 
         for (FSBSpellRuntime* runtime : availableSpells)
         {
-            FSBSpellDefinition const* spell = runtime->def;
-
-            // Roll chance
-            if (urand(0, 100) > spell->chance)
-                continue;
-
-            // Determine target
-            Unit* target = nullptr;
-
-            // === EMERGENCY PATH ===
-            if (!emergencyTargets.empty() && spell->type == FSBSpellType::Heal)
+            switch (mode)
             {
-                // Pick the first emergency target (or do more advanced selection)
-                target = emergencyTargets.front();
+            case SpellMode::EmergencyHeal:
+            case SpellMode::NormalHeal:
+                if (runtime->def->type == FSBSpellType::Heal)
+                    spellPool.push_back(runtime);
+                break;
+
+            case SpellMode::DamageOnly:
+                if (runtime->def->type == FSBSpellType::Damage)
+                    spellPool.push_back(runtime);
+                break;
+
+            case SpellMode::Hybrid:
+                spellPool.push_back(runtime);
+                break;
             }
-            else
-            {
-
-                if (spell->type == FSBSpellType::Heal)
-                {
-                    if (spell->isSelfCast)
-                        target = bot;
-                    else
-                        target = FSBMgr::GetBotOwner(bot);
-
-                    if (!target || !target->IsAlive())
-                        continue;
-
-                    // Check HP%
-                    float hpPct = target->GetHealthPct();
-                    if (hpPct > spell->hpThreshold)
-                        continue;
-                }
-                else if (spell->type == FSBSpellType::Damage)
-                {
-                    target = bot->GetVictim();
-                    if (!target || !target->IsAlive())
-                    {
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no target for spell");
-                        continue;
-                    }
-
-                    // Optionally check distance
-                    if (bot->GetDistance(target) > spell->dist)
-                    {
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - target too far");
-                        continue;
-                    }
-
-                }
-
-                if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
-                    continue;
-            }
-
-            outTarget = target;
-
-            //if(target)
-              return runtime;
         }
 
-        return nullptr;
+        if (spellPool.empty())
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spell pool empty after filtering");
+            return nullptr;
+        }
+
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB: SelectSpell - spellPool size after filtering: {}",
+            spellPool.size()
+        );
+
+        // =========================================================
+        // ===================== SPELLS PICK =======================
+        // =========================================================
+        Trinity::Containers::RandomShuffle(spellPool);
+
+        for (FSBSpellRuntime* runtime : spellPool)
+        {
+            FSBSpellDefinition const* spell = runtime->def;
+
+            // Chance roll
+            uint32 roll = urand(0, 100);
+            if (roll > spell->chance)
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb",
+                    "FSB: SpellSkip - {} chance failed (roll={} chance={})",
+                    spell->spellId, roll, spell->chance);
+                continue;
+            }
+
+            Unit* target = nullptr;
+
+            // =================================================
+            // ================= TARGET PICK ===================
+            // =================================================
+
+            if (spell->type == FSBSpellType::Heal)
+            {
+                if (mode == SpellMode::EmergencyHeal)
+                {
+                    target = emergencyTargets.front();
+                }
+                else if (mode == SpellMode::NormalHeal)
+                {
+                    target = healTargets.front();
+                }
+                else if (mode == SpellMode::Hybrid)
+                {
+                    auto candidates = FSBUtilsCombat::BotGetHealCandidates(botGroup_, spell->hpThreshold);
+                    if (!candidates.empty())
+                        target = candidates.front();
+                }
+
+                if (!target)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb",
+                        "FSB: SpellSkip - heal {} no valid target",
+                        spell->spellId);
+                    continue;
+                }
+
+                float hp = target->GetHealthPct();
+                if (hp > spell->hpThreshold)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb",
+                        "FSB: SpellSkip - heal {} target hp {} > threshold {}",
+                        spell->spellId, hp, spell->hpThreshold);
+                    continue;
+                }
+            }
+            else if (spell->type == FSBSpellType::Damage)
+            {
+                target = bot->GetVictim();
+
+                if (!target || !target->IsAlive())
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb",
+                        "FSB: SpellSkip - damage {} no valid victim",
+                        spell->spellId);
+                    continue;
+                }
+
+                float dist = bot->GetDistance(target);
+                if (dist > spell->dist)
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb",
+                        "FSB: SpellSkip - damage {} target too far ({}/{})",
+                        spell->spellId, dist, spell->dist);
+                    continue;
+                }
+            }
+
+            
+
+                // Class Spells validation
+                if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb",
+                        "FSB: SpellSkip - class invalid for spell {}",
+                        spell->spellId);
+                    continue;
+                }
+
+                // ================= SUCCESS =================
+                outTarget = target;
+
+                TC_LOG_DEBUG("scripts.ai.fsb",
+                    "FSB: SpellSelect SUCCESS - spell={} type={} target={} hp={} threshold={}",
+                    spell->spellId,
+                    spell->type == FSBSpellType::Heal ? "HEAL" : "DAMAGE",
+                    target->GetName(),
+                    target->GetHealthPct(),
+                    spell->hpThreshold
+                );
+
+                return runtime;
+            }
+
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - no valid spell found after evaluation");
+            return nullptr;
     }
 
     void BotCastSpell(Creature* bot, Unit* target, FSBSpellRuntime* runtime, uint32& globalCooldownUntil)
@@ -394,6 +492,7 @@ namespace FSBUtilsCombatSpells
         if (!spellInfo)
             return;
 
+        /*
         if (!target)
         {
             if (def->type == FSBSpellType::Heal)
@@ -401,6 +500,7 @@ namespace FSBUtilsCombatSpells
             else
                 target = bot->GetVictim();
         }
+        */
 
         if (!target)
             return;
@@ -417,6 +517,8 @@ namespace FSBUtilsCombatSpells
 
         if (result != SPELL_CAST_OK)
             return;
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
 
         // ? Per-spell cooldown
         runtime->nextReadyMs = now + def->cooldownMs;
