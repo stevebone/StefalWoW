@@ -16,12 +16,10 @@ namespace FSBUtilsCombat
         if (!bot)
             return false;
 
-        Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
+        auto owner = FSBMgr::GetBotOwner(bot);
+        Player* player = owner ? owner->ToPlayer() : nullptr;
 
-        if (!player)
-            return bot->IsInCombat();
-
-        return bot->IsInCombat() || player->IsInCombat();
+        return bot->IsInCombat() || (player && player->IsInCombat());
     }
 
     uint8 CountActiveAttackers(Unit* me)
@@ -158,7 +156,7 @@ namespace FSBUtilsCombat
         if (!me || !me->ToCreature()->IsBot())
             return;
 
-        Player* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
+        Player* owner = FSBMgr::GetBotOwner(me);
         if (!owner)
             return;
 
@@ -262,7 +260,7 @@ namespace FSBUtilsBotCombat
         BotDoAttack(bot, target, chase, moveState);
     }
 
-    void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 moveState)
+    void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 /*moveState*/)
     {
         // Handles attack with or without chase and also resets flags
         // for next update / creature kill

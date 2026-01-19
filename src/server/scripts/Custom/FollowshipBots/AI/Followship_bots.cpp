@@ -51,7 +51,6 @@ public:
         float followDistance = frand(2.f, 8.f);
         float followAngle = frand(0.0f, float(M_PI * 2.0f));
 
-        uint32 _recuperateReadyMs = 0;
         bool _pendingResurrection = false;
         bool _playerDead = false;
         uint32 _nextCombatSayMs = 0;
@@ -571,7 +570,7 @@ public:
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
-            Player* player = FSBMgr::GetBotOwner(me)->ToPlayer();
+            Player* player = FSBMgr::GetBotOwner(me);
             if (player)
             {
                 std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
@@ -625,6 +624,121 @@ public:
         {
             switch (action)
             {
+            case FSB_ACTION_OOC_ACTIONS:
+            {
+                
+                if (!me)
+                    return;
+
+                if (!me->IsAlive())
+                    return;
+
+                if (FSBUtilsCombat::IsCombatActive(me))
+                    return;
+
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
+
+                uint32 now = getMSTime();
+
+                // 1. Bot OOC Player Heal
+                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                {
+                    Player* player = FSBMgr::GetBotOwner(me);
+
+                    if (player && player->IsAlive() && player->GetHealthPct() <= 70)
+                    {
+                        switch (botClass)
+                        {
+                        case FSB_Class::Priest:
+                        {
+                            uint32 spellId = 0;
+
+                            if (FSB_PriestActionsSpells::BotHealPlayerOOC(me, _globalCooldownUntil, spellId))
+                            {
+                                if (spellId != 0)
+                                {
+                                    if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
+                                        me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
+
+                                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
+                                }
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                        }
+                    }
+                }
+
+                // 2. Bot OOC & OOM
+                if (me->GetPowerType() == POWER_MANA && me->GetPowerPct(POWER_MANA) < 30)
+                {
+                    if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                    {
+                        if (!me->HasAura(SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER))
+                        {
+                            Player* player = FSBMgr::GetBotOwner(me);
+
+                            if(player)
+                                FSBUtilsMovement::StopFollow(me);
+
+                            me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+                            me->CastSpell(me, SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER); // Conjured Crystal Water
+                            _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+
+                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION OOC Mana");
+
+                            if(player)
+                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 30s);
+
+                            break;
+                        }
+                    }
+                }
+
+                // 3. Bot OOC Self Heal
+                if (me->GetHealthPct() < 80)
+                {
+                    switch (botClass)
+                    {
+                    case FSB_Class::Priest:
+                    {
+                        uint32 spellId = 0;
+
+                        if (FSB_PriestActionsSpells::BotHealSelfOOC(me, _globalCooldownUntil, _60secondsCheckMs, spellId))
+                        {
+                            if (spellId == SPELL_PRIEST_HEAL)
+                            {
+                                std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
+                                me->Say(msg, LANG_UNIVERSAL);
+
+                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 2s);
+
+                                break;
+                            }
+                            else if (spellId == SPELL_PRIEST_RECUPERATE)
+                            {
+                                me->Say("I need a breather!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
+
+                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 10s);
+
+                                break;
+                            }
+
+                            
+                        }
+                            break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+
+                break;
+            }
+
             case FSB_ACTION_RESURRECT_PLAYER:
             {
                 if (!_pendingResurrection)
@@ -695,176 +809,49 @@ public:
                 break;
             }
 
-            case FSB_ACTION_INITIAL_COMBAT_SPELLS_PLAYER:
+            case FSB_ACTION_COMBAT_INITIAL_SPELLS_PLAYER:
             {
-                uint32 now = getMSTime();
+                if (!me->IsAlive())
+                    return;
 
-                Player* player = FSBMgr::GetBotOwner(me)->ToPlayer();
+                Player* player = FSBMgr::GetBotOwner(me);
                 if (!player)
                 {
-                    events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 1500ms);
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: No player found");
-                    break;
+                    return;
                 }
 
-
-                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                {
-                    if (!player->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
-                    {
-                        me->CastSpell(player, SPELL_PRIEST_POWER_WORD_SHIELD);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: PWS");
-                        events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 1500ms);
-                    }
-                    else if (!player->HasAura(SPELL_PRIEST_RENEW))
-                    {
-                        me->CastSpell(player, SPELL_PRIEST_RENEW);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: Renew");
-                    }
-                }
-                else {
-                    events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 1500ms);
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: GCD");
-                }
-                break;
-            }
-
-            case FSB_ACTION_OOC_MANA:
-            {
-                if (me->GetPowerPct(POWER_MANA) > 30)
-                    break;
+                if (!player->IsAlive())
+                    return;
 
                 uint32 now = getMSTime();
 
                 if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
                 {
-                    if (!me->HasAura(22734))
+                    switch (botClass)
                     {
-                        Unit* owner = me->GetOwner();
-                        Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                        FSBUtilsMovement::StopFollow(me);
-                        me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                        me->CastSpell(me, SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER); // Conjured Crystal Water
-                        _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
-
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION OOC Mana");
-
-                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 30s);
-                    }
-                }
-                else
-                    events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_MANA, 1500ms);
-
-                break;
-            }
-
-            case FSB_ACTION_OOC_RECUPERATE:
-            {
-                if (me->GetHealthPct() > 50)
-                    break;
-
-                uint32 now = getMSTime();
-
-                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                {
-                        if (!me->HasAura(SPELL_PRIEST_RECUPERATE) && now >= _recuperateReadyMs)
+                    case FSB_Class::Priest:
+                    {
+                        if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                         {
-                            FSBUtilsMovement::StopFollow(me);
-
-                            me->CastSpell(me, SPELL_PRIEST_RECUPERATE, false);
-                            _recuperateReadyMs = now + 60000; // 1 minute
-                            _globalCooldownUntil = now + 10000; // use 10s cooldown to not interrup duration of channel spell
-
-                            me->Say("I need a breather!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-
-                            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Recuperate");
-                            events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 10s);
-                            break;
+                            if (FSB_PriestActionsSpells::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs))
+                            {
+                                // TO-DO add something here
+                            }
                         }
-                   
-                }
-                else events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_RECUPERATE, 1500ms);
-
-                break;
-            }
-
-            case FSB_ACTION_OOC_HEAL_SELF:
-            {
-                if (me->GetHealthPct() > 80)
-                    break;
-
-                uint32 now = getMSTime();
-
-                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                {
-                    FSBUtilsMovement::StopFollow(me);
-                    me->CastSpell(me, SPELL_PRIEST_HEAL, false);
-
-                    _globalCooldownUntil = now + NPC_GCD_MS;
-
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
-                    me->Say(msg, LANG_UNIVERSAL);
-
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 2s);
-                }
-                else events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_SELF, 1500ms);
-
-                break;
-            }
-
-            case FSB_ACTION_OOC_HEAL_PLAYER:
-            {
-                uint32 now = getMSTime();
-
-                Unit* owner = me->GetOwner();
-                Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                if (!player || !player->IsAlive())
-                    break;
-
-                if (player->GetHealthPct() > 70)
-                    break;
-
-                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                {
-                    
-
-                    if (player->GetHealthPct() <= 50)
-                    {
-                        TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 50");
-
-                        FSBUtilsMovement::StopFollow(me);
-                        me->CastSpell(player, SPELL_PRIEST_HEAL, false);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-
-                        if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                            me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
-
-                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
+                        break;
                     }
-                    else if (player->GetHealthPct() <= 70)
-                    {
-                        TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 70");
-
-                        FSBUtilsMovement::StopFollow(me);
-                        me->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-
-                        if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
-                            me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
-
-                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
+                    default:
+                        break;
                     }
-                    else break;
-
                 }
-                else events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_PLAYER, 1500ms);
 
+                
                 break;
             }
+
+
+
 
             case FSB_ACTION_IC_MANA:
             {
@@ -918,6 +905,18 @@ public:
                     if (FollowshipBotsConfig::configFSBUseCustomRegen && now >= _nextRegenMs)
                         events.ScheduleEvent(FSB_EVENT_PERIODIC_CUSTOM_REGEN, 2s);
 
+                    // Check if combat is NOT taking place and schedule OOC actions
+                    if (!FSBUtilsCombat::IsCombatActive(me))
+                    {
+                        if(now >= _1secondsCheckMs)
+                            events.ScheduleEvent(FSB_EVENT_PERIODIC_OOC_ACTIONS, 1s);
+                    }
+
+
+
+
+
+
 
 
                     
@@ -956,20 +955,7 @@ public:
 
                     
 
-                    // BOT Check OOC Actions
-                    if (!me->IsInCombat() && me->IsAlive())
-                    {
-                        _botOutCombat = true;
-                        _botInCombat = false;
-                        _botManaPotionUsed = false;
-
-                        if (!me->HasUnitState(UNIT_STATE_CASTING) && _playerCombatEnded)
-                        {
-                            events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_MANA, 100ms);
-                            events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_RECUPERATE, 100ms);
-                            events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_SELF, 100ms);
-                        }
-                    }
+                    
 
                     // BOT Check In Combat Actions
                     if (me->IsInCombat() && me->IsAlive())
@@ -1010,33 +996,9 @@ public:
                         }
                     }
 
-                    // BOT PLAYER OOC Heal
-                    if (_botOutCombat && _playerCombatEnded)
-                    {
-                        //events.ScheduleEvent(FSB_EVENT_PRIEST_OOC_HEAL_PLAYER, 100ms);
-                    }
+                    
 
-                    // PLAYER check on combat for buffs and combat spells
-                    // Different Triggers per role
-                    if (player && player->IsAlive() && player->IsInCombat() && !_playerCombatStarted)
-                    {
-                        _playerCombatStarted = true;
-                        _playerCombatEnded = false;
-
-                        if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
-                            events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER, 100ms);
-
-                        
-                    }
-
-                    if (player && player->IsAlive() && !player->IsInCombat() && _playerCombatStarted)
-                    {
-                        _playerCombatStarted = false;
-                        _playerCombatEnded = true;
-
-                        //if (me->HasUnitFlag(UNIT_FLAG_IN_COMBAT))
-                        //    me->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT);
-                    }
+                    
 
                     
 
@@ -1072,6 +1034,7 @@ public:
                     break;
                 }
 
+                // =====================================
                 // Applies custom regeneration & mods
                 case FSB_EVENT_PERIODIC_CUSTOM_REGEN:
                 {
@@ -1085,6 +1048,22 @@ public:
                         _nextRegenMs = now + 2000;
                     }
 
+                    break;
+                }
+
+                // =====================================
+                // Triggers actions (per class) when bot is OOC
+                case FSB_EVENT_PERIODIC_OOC_ACTIONS:
+                {
+                    uint32 now = getMSTime();
+
+                    if (now >= _1secondsCheckMs)
+                    {
+                        DoAction(FSB_ACTION_OOC_ACTIONS);
+
+                        // ? lock regen for next 2 seconds
+                        _1secondsCheckMs = now + 1000;
+                    }
                     break;
                 }
 
@@ -1180,9 +1159,27 @@ public:
                     
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
-                    if (me->IsInCombat() && me->IsAlive())
+                    if (!me->IsAlive())
+                        return;
+
+                    Player* player = FSBMgr::GetBotOwner(me);
+
+                    // 1. Player check combat state for initial buffs
+                    if (player && player->IsAlive() && player->IsInCombat())
                     {
-                        if(!me->HasUnitState(UNIT_STATE_CASTING))
+                        _ownerWasInCombat = true;
+                        events.ScheduleEvent(FSB_EVENT_COMBAT_INITIAL_SPELLS_PLAYER, 1s);
+                    }
+                    else if (player && player->IsAlive() && !player->IsInCombat())
+                    {
+                        _ownerWasInCombat = false;
+                        _appliedInitialCBuffs = 0;
+                    }
+
+                    // 2. Combat spells loop
+                    if (me->IsInCombat())
+                    {
+                        if (!me->HasUnitState(UNIT_STATE_CASTING))
                             events.ScheduleEvent(FSB_EVENT_COMBAT_SPELL_CHECK, 1s);
                     }
 
@@ -1205,16 +1202,25 @@ public:
                     break;
                 }
 
+                // Priest casts Renew and PWS on Player
+                    // Only in Healer role
+                    // Triggered from Periodic Maintenance check and flag
+                case FSB_EVENT_COMBAT_INITIAL_SPELLS_PLAYER:
+                {
+                    DoAction(FSB_ACTION_COMBAT_INITIAL_SPELLS_PLAYER);
+                    break;
+                }
+
                 // =================================================== //
                 // ========= TIMED ACTION EVENTS ===================== //
-                // Events that are checked during combat               //
+                // Events that are needed for actions                  //
                 // =================================================== //   
 
                     // BOT Follows player again
                     // For timed events
                 case FSB_EVENT_RESUME_FOLLOW:
                 {
-                    Player* player = FSBMgr::GetBotOwner(me)->ToPlayer();
+                    Player* player = FSBMgr::GetBotOwner(me);
 
                     if(player)
                         ResumeFollow(player);
@@ -1237,15 +1243,6 @@ public:
                         DoAction(FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF);
                     }
 
-                    break;
-                }
-
-                    // Priest casts Renew and PWS on Player
-                    // Only in Healer role
-                    // Triggered from Periodic Maintenance check and flag
-                case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_PLAYER:
-                {
-                    DoAction(FSB_ACTION_INITIAL_COMBAT_SPELLS_PLAYER);
                     break;
                 }
 
@@ -1327,34 +1324,7 @@ public:
                     break;
                 }
 
-                case FSB_EVENT_PRIEST_OOC_MANA:
-                {
-                    if (_botOutCombat && me->GetPowerPct(POWER_MANA) < 30)
-                        DoAction(FSB_ACTION_OOC_MANA);
-                    
-                    break;
-                }
-                case FSB_EVENT_PRIEST_OOC_RECUPERATE:
-                {
-                    if (_botOutCombat && me->GetHealthPct() <= 50)
-                        DoAction(FSB_ACTION_OOC_RECUPERATE);
 
-                    break;
-                }
-
-                case FSB_EVENT_PRIEST_OOC_HEAL_SELF:
-                {
-                    if (_botOutCombat && me->GetHealthPct() <= 80)
-                        DoAction(FSB_ACTION_OOC_HEAL_SELF);
-
-                    break;
-                }
-
-                case FSB_EVENT_PRIEST_OOC_HEAL_PLAYER:
-                {
-                //    DoAction(FSB_ACTION_OOC_HEAL_PLAYER);
-                //    break;
-                }
 
                 default:
                     break;
@@ -1385,10 +1355,6 @@ public:
             FSBUtilsStatsMods _statsMods;
             FSBUtilsStatsMods _baseStatsMods;
 
-            
-
-            bool combatEmergency = false;
-            bool groupHealthy = false;
 
             uint32 hireTimeLeft = 0;
 
@@ -1401,9 +1367,9 @@ public:
             // Combat
             ObjectGuid _lastOwnerVictim;
             bool _ownerWasInCombat = false;
+            uint8 _appliedInitialCBuffs = 0;
             std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
             uint32 _globalCooldownUntil; // global cooldown
-            //void InitSpellRuntime();
 
             // ----------
             // Movement States
@@ -1412,7 +1378,10 @@ public:
             // ----------
             // Allies & Group
             std::vector<Unit*> botGroup_;
-            uint32 _5secondsCheckMs = 0;            
+
+            uint32 _60secondsCheckMs = 0;
+            uint32 _5secondsCheckMs = 0;
+            uint32 _1secondsCheckMs = 0;
             
     };
 

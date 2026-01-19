@@ -47,3 +47,9 @@ enum FSB_PRIEST_MISC_SPELLS
 };
 
 
+namespace FSB_PriestActionsSpells
+{
+    bool BotHealSelfOOC(Creature* bot, uint32& _globalCooldownUntil, uint32& _60secondsCheckMs, uint32& outSpellId);
+    bool BotHealPlayerOOC(Creature* bot, uint32& _globalCooldownUntil, uint32& outSpellId);
+    bool BotInitialCombatSpells(Creature* bot, uint32& _globalCooldownUntil, bool& _ownerWasInCombat, uint8& _appliedInitialCBuffs);
+}
