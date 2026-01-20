@@ -307,7 +307,11 @@ namespace FSBUtilsTexts
                 "You pay, I follow, <name>. <duration> hours it is.",
                 "For <duration> hours, <name>, I am your loyal companion. After that, we renegotiate.",
                 "Ah yes, <duration> hours of danger, glory, and questionable decisions, <name>.",
-                "Very well <name>, I shall tolerate you for <duration> hours."
+                "Very well <name>, I shall tolerate you for <duration> hours.",
+                "<duration> hours? Fine. But if we die, it's your fault, <name>.",
+                "I was bored anyway, <name>. <duration> hours sounds perfect.",
+                "Gold talks, <name>. And it says '<duration> hours of adventure.'",
+                "Let's do this, <name>. <duration> hours in, we pretend we planned it."
             };
 
             std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
@@ -324,7 +328,12 @@ namespace FSBUtilsTexts
                 "That's it, <name>. Contract fulfilled. Try not to die without me.",
                 "Well, that was a few hours of my life I'll never get back. Farewell.",
                 "My watch is over. If you need me again, bring more coin.",
-                "Alright, <name>, that's my cue. Duty done, boots moving."
+                "Alright, <name>, that's my cue. Duty done, boots moving.",
+                "The gold's gone and so am I. Fair deal.",
+                "Contract's finished. I suggest you find another friend. quickly.",
+                "That's enough adventuring for one pay period. I'm out.",
+                "No hard feelings, <name>. Business is business.",
+                "Well, this is where I leave you. Try not to pull anything too big next time."
             };
 
             std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
@@ -339,6 +348,15 @@ namespace FSBUtilsTexts
                 "Alright, I'll hold this spot. Don't take too long.",
                 "Staying put. If something bites me, I'm blaming you.",
                 "Very well, <name>. I'll stand guard right here.",
+                "You want me here? Fine. I wasn't going anywhere anyway.",
+                "Holding position. Try not to forget about me.",
+                "Right here, <name>. I'll keep watch.",
+                "I'll stay. But if a dragon shows up, that's on you.",
+                "Standing still. which is harder than it sounds.",
+                "This spot? Really? Alright. I'll make it work.",
+                "As you wish, <name>. I'll be right here when you return.",
+                "Standing guard. This better be important.",
+                "I'll stay. Just don't expect me to enjoy it.",
                 "Holding position. Someone's got to be the responsible one."
             };
 
@@ -354,11 +372,70 @@ namespace FSBUtilsTexts
                 "Alright, I'm back with you.",
                 "Following you again. Let's move.",
                 "There you are. Lead the way, <name>.",
-                "Right behind you. More or less."
+                "I was starting to enjoy standing still. but alright.",
+                "Back on your heels. Try not to run too fast.",
+                "Following, <name>. Let's see where this goes.",
+                "Right behind you. More or less.",
+                "Okay, I'm coming. No need to shout.",
+                "Time to move again. I'm with you.",
+                "Let's go, <name>. I'm ready.",
+                "Ah, adventure calls again. I'm following.",
+                "Standing still was nice. Back to walking it is.",
+                "Alright, <name>. I'll keep up. probably."
             };
 
             std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
             ReplaceAll(chosen, "<name>", playerName);
+            return chosen;
+        }
+
+        case FSBSayType::PHire:
+        {
+            static const std::vector<std::string> phireTexts =
+            {
+                "Looks like we're in this together now, <name>.",
+                "Alright. I'm yours until the end - wherever that may be.",
+                "No contracts, no timers. I'll stay with you.",
+                "Seems I've chosen a side. Let's make it a good one, <name>.",
+                "You've got yourself a companion, not just hired help.",
+                "I'm in. Wherever you go, I follow.",
+                "Well then. looks like I'm part of your story now.",
+                "No turning back now. I've got your back, <name>.",
+                "Guess this makes us partners.",
+                "From now on, I fight by your side.",
+                "Permanent, huh? Bold choice. Let's see how this goes.",
+                "I suppose this is what loyalty feels like.",
+                "No clock ticking anymore. I'm with you."
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(phireTexts);
+            size_t pos;
+            while ((pos = chosen.find("<name>")) != std::string::npos)
+                chosen.replace(pos, 6, playerName);
+            //while ((pos = chosen.find("<duration>")) != std::string::npos)
+            //    chosen.replace(pos, 10, std::to_string(duration));
+            return chosen;
+        }
+
+        case FSBSayType::HealTarget:
+        {
+            static const std::vector<std::string> healTargetTexts =
+            {
+                "Hey, <name>, Don't you feel stronger already!",
+                "Ah, just what you needed, <name>!",
+                "Power surging through you!",
+                "Heal coming up your way, <name>!",
+                "One heal for you and another heal for you...",
+                "This heal is for free, next one...",
+                "Hope you appreciate the heal, <name>!"
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(healTargetTexts);
+            size_t pos;
+            while ((pos = chosen.find("<name>")) != std::string::npos)
+                chosen.replace(pos, 6, playerName);
+            //while ((pos = chosen.find("<duration>")) != std::string::npos)
+            //    chosen.replace(pos, 10, std::to_string(duration));
             return chosen;
         }
 
@@ -370,19 +447,72 @@ namespace FSBUtilsTexts
                 "That one actually hurt.",
                 "Not today.",
                 "I've had worse.",
+                "Just a scratch.",
+                "Focus. Breathe.",
+                "Pain is temporary.",
+                "Not done yet.",
+                "That'll keep me going.",
                 "Staying alive."
             };
 
             return Trinity::Containers::SelectRandomContainerElement(texts);
         }
 
+        case FSBSayType::Resurrect:
+        {
+            static const std::vector<std::string> resurrectTexts =
+            {
+                "Hey, <name>, Don't you die on me again, ok?",
+                "Ah, you're good as new, <name>!",
+                "Aren't you glad you brought me along?",
+                "Hope I don't have to revive you again, <name>!",
+                "One resurrect for you and another for... oh nevermind!",
+                "This resurrect is for free, next one...",
+                "Hope you appreciate the revival, <name>!"
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(resurrectTexts);
+            size_t pos;
+            while ((pos = chosen.find("<name>")) != std::string::npos)
+                chosen.replace(pos, 6, playerName);
+            //while ((pos = chosen.find("<duration>")) != std::string::npos)
+            //    chosen.replace(pos, 10, std::to_string(duration));
+            return chosen;
+        }
+
+        case FSBSayType::PlayerDead:
+        {
+            static const std::vector<std::string> playerDeadTexts =
+            {
+                "Hey <name>, what are you doing?",
+                "Ah, shiiiiiit, nooooo <name>!",
+                "How did I let this happen?",
+                "Hope you won't blame me for this, <name>!",
+                "Why? Why now?",
+                "We were so close... yet so far away",
+                "Death is just a number, <name>!"
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(playerDeadTexts);
+            size_t pos;
+            while ((pos = chosen.find("<name>")) != std::string::npos)
+                chosen.replace(pos, 6, playerName);
+            //while ((pos = chosen.find("<duration>")) != std::string::npos)
+            //    chosen.replace(pos, 10, std::to_string(duration));
+            return chosen;
+        }
+
         case FSBSayType::SpellOnTarget:
         {
             static const std::vector<std::string> texts =
             {
-                "Hey, <name>, do you like my <spell>?",
+                "Hey, <name>, do you like my <spell>",
+                "Take that, you <name>!",
                 "Feel the power of my <spell>!",
-                "You're gonna feel this one, <name>!"
+                "You're gonna feel this one, <name>!",
+                "One <spell> for you and another for you <name>.",
+                "I've got more <spell> from where this came from!",
+                "Hope you like my <spell>, you <name>!"
             };
 
             std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
@@ -391,14 +521,44 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
+        case FSBSayType::CombatMana:
+        {
+            static const std::vector<std::string> combatManaTexts =
+            {
+                "Ugh. my brain's running on empty!",
+                "Time for a little <spell> snack!",
+                "If I run out of mana now, it's over. gulp!",
+                "Someone toss me a <spell> potion, stat!",
+                "I can almost feel my powers fading.",
+                "Nothing a sip of magic can't fix!",
+                "Mana low. desperation high!",
+                "This <spell> better work. or I'm toast!",
+                "Friend have a <spell> for me? No...?! Ok, I'll use mine..."
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(combatManaTexts);
+            size_t pos;
+            //while ((pos = chosen.find("<name>")) != std::string::npos)
+            //    chosen.replace(pos, 6, playerName);
+            while ((pos = chosen.find("<spell>")) != std::string::npos)
+                chosen.replace(pos, 7, string2);
+            return chosen;
+        }
+
         case FSBSayType::BotDeath:
         {
             static const std::vector<std::string> texts =
             {
-                "Well. this seems suboptimal. <name>, I blame you.",
-                "I was promised healing. This feels like betrayal, <name>.",
-                "Tell my spellbook I loved it.",
-                "Remember me as I was. Alive. And judging your decisions, <name>."
+                "Well. this seems suboptimal. <name> , I blame you.",
+                "I was promised healing.This feels like betrayal, <name>.",
+                "Tell my spellbook. I loved it. <name>, you're still paying for repairs.",
+                "Next time, maybe don't pull half the place, <name>.",
+                "Ah yes. the sweet embrace of the spirit healer.",
+                "<name>. I hope that was worth it.",
+                "I'm not saying this is your fault, <name>. but it's definitely your fault."
+                "Good news, <name>: I found the floor.With my face."
+                "This is fine.Everything is fine.I am absolutely- dead."
+                "Remember me as I was. alive. and judging your decisions, <name>."
             };
 
             std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
@@ -412,7 +572,14 @@ namespace FSBUtilsTexts
             {
                 "Another one down. You're welcome, <name>.",
                 "Rest in pieces, <target>.",
-                "<target>? Yeah. that didn't end well."
+                "<target>? Yeah. that didn't end well for them.",
+                "See, <name>? Perfectly under control.",
+                "I warned you, <target>. Well. internally.",
+                "That went about as expected. For me.",
+                "<name>, please tell me you saw that.",
+                "And that's why I read my spellbook.",
+                "One less <target>. Try to keep up, <name>.",
+                "I call that a successful application of violence."
             };
 
             std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
