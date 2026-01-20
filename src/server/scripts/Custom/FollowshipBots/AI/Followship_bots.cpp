@@ -120,7 +120,7 @@ public:
 
         // Runs once when creature is summoned by another unit
         // This only works if creature is spawned by summon (NOT DB spawn)
-        void IsSummonedBy(WorldObject* summoner) override
+        void IsSummonedBy(WorldObject* /*summoner*/) override
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IsSummonedBy() triggered for bot: {}", me->GetName());
         }
@@ -137,7 +137,7 @@ public:
             return FSBUtilsGossip::HandleDefaultGossipHello(me, player, hired, _playerGuid);
         }
 
-        bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override // Runs once when gossip item selected
+        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override // Runs once when gossip item selected
         {
             int32 pLevel = player->GetLevel();
 
@@ -440,7 +440,7 @@ public:
         }
 
         // Runs every time creature takes damage
-        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        void DamageTaken(Unit* attacker, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
             if (!me->GetVictim() && attacker)
             {
@@ -491,12 +491,12 @@ public:
             }
         }
 
-        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* /*spellInfo*/) override
         {
 
         }
 
-        void SpellHitTarget(WorldObject* target, SpellInfo const* spellInfo) override
+        void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* /*spellInfo*/) override
         {
 
         }
@@ -555,12 +555,12 @@ public:
             }
         }
 
-        void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
+        void JustSummoned(Creature* /*summon*/) override // Runs every time the creature summons another creature
         {
 
         }
 
-        void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
+        void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
         {
 
         }
@@ -575,7 +575,7 @@ public:
             }
         }
 
-        uint32 GetData(uint32 type) const override // Runs once to check what data exists on the creature
+        uint32 GetData(uint32 /*type*/) const override // Runs once to check what data exists on the creature
         {
             return 0;
         }
