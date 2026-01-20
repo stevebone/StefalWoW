@@ -50,8 +50,6 @@ namespace FSBUtilsDB
 
         uint32 entry = bot->GetEntry();
 
-        //uint32 CharacterDatabase.ExecuteAndReturnID(char const* sql);
-
         CharacterDatabase.PExecute(
             "INSERT INTO followship_bot_owners (bot_guid, bot_entry, player_guid, hire_expiry_time) "
             "VALUES ({}, {}, {}, {})",
@@ -60,7 +58,7 @@ namespace FSBUtilsDB
             playerGuidLow,
             hireExpiry);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB DB: Bot: {} was saved to DB for player: {}", bot->GetName(), player->GetName());
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB DB: Bot: {} was saved to DB for player: {} with expiry time: {}", bot->GetName(), player->GetName(), hireExpiry);
 
         // 2?? Retry select until we get the bot_id
         uint32 botId = 0;
@@ -79,7 +77,7 @@ namespace FSBUtilsDB
             }
 
             TC_LOG_WARN("scripts.ai.fsb",
-                "FSB DB: bot_id not yet available for bot_guid {} player {}, retrying...",
+                "FSB DB: bot_id not yet available for bot spawn {} player {}, retrying...",
                 spawnId, player->GetName());
 
             std::this_thread::sleep_for(std::chrono::milliseconds(50)); // small delay

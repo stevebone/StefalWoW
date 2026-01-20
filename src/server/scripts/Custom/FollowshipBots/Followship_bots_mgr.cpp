@@ -172,7 +172,10 @@ namespace FSBMgr
         ASSERT(player && bot);
 
         // Calculate expiry
-        uint64 hireExpiry = FSBMgr::GetBotExpireTime(hireDurationHours);
+        // Permanent hire comes with duration 0
+        uint64 hireExpiry = 0;
+        if(hireDurationHours != 0)
+            hireExpiry = FSBMgr::GetBotExpireTime(hireDurationHours);
 
         // 2?? Update memory
         PlayerBotData botData;
