@@ -66,7 +66,9 @@ enum class FSBSayType
     SpellOnTarget,  // NPC reacts when casting combat spell on target
     CombatMana,     // NPC IC OOM and uses mana potion
     BotDeath,       // NPC Dies
-    TargetDeath     // NPC Kills Target
+    TargetDeath,    // NPC Kills Target
+    BuffTarget,
+    BuffSelf
 };
 
 namespace FSBUtilsTexts

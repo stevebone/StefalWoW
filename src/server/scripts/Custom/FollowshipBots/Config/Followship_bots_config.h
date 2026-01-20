@@ -11,6 +11,7 @@ struct FollowshipBotsConfig
     static int32 configFSBHireDuration2;
     static int32 configFSBHireDuration3;
     static bool  configFSBUseCustomRegen;
+    static uint32 configFSBChatterRate;
 
     static void Load();
 };

@@ -1,5 +1,7 @@
-#include "followship_bots_config.h"
 #include "Config.h"
+
+#include "Followship_bots_config.h"
+
 
 bool  FollowshipBotsConfig::configFSBEnabled = false;
 int64 FollowshipBotsConfig::configFSBPricePerLevel = 10;
@@ -8,6 +10,7 @@ int32 FollowshipBotsConfig::configFSBHireDuration1 = 1;
 int32 FollowshipBotsConfig::configFSBHireDuration2 = 2;
 int32 FollowshipBotsConfig::configFSBHireDuration3 = 3;
 bool  FollowshipBotsConfig::configFSBUseCustomRegen = false;
+uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 
 void FollowshipBotsConfig::Load()
 {
@@ -31,4 +34,7 @@ void FollowshipBotsConfig::Load()
 
     configFSBUseCustomRegen =
         sConfigMgr->GetBoolDefault("Followship.Bots.UseCustomRegen", false);
+
+    configFSBChatterRate =
+        sConfigMgr->GetIntDefault("Followship.Bots.ChatterRate", 10);
 }

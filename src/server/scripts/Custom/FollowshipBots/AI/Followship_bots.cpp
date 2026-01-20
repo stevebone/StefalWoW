@@ -53,7 +53,7 @@ public:
 
         bool _pendingResurrection = false;
         bool _playerDead = false;
-        uint32 _nextCombatSayMs = 0;
+        //uint32 _nextCombatSayMs = 0;
 
         bool _botOutCombat = false;
         bool _botInCombat = false;
@@ -654,7 +654,7 @@ public:
                             {
                                 if (spellId != 0)
                                 {
-                                    if (urand(0, 99) <= REACT_BUFFED_CHANCE_PERCENT)
+                                    if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                                         me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
 
                                     events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
@@ -765,11 +765,28 @@ public:
                             me->CastSpell(target, buffSpellId, false);
                             _globalCooldownUntil = now + 1500;
 
+                            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                            {
+                                if (target == me)
+                                {
+                                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::BuffSelf, FSBUtilsSpells::GetSpellName(buffSpellId));
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                }
+
+                                else
+                                {
+                                    std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::BuffTarget, FSBUtilsSpells::GetSpellName(buffSpellId));
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                }
+
+                                
+                            }
+
                             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot: {} Buffed target: {} with {}", me->GetName(), target->GetName(), FSBUtilsSpells::GetSpellName(buffSpellId));
 
                             return;
                         }
-                        else _buffsTimerMs = now + 300000;
+                        else _buffsTimerMs = now + 120000;
                     }
                 }
 
@@ -918,9 +935,7 @@ public:
 
 
 
-                    
-
-                    bool castedThisTick = false;
+                 
 
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
@@ -966,18 +981,7 @@ public:
 
                     
 
-                    // Teleport if too far away
-                    if (player && me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
-                    {
-                        me->NearTeleportTo(
-                            player->GetPositionX() + urand(3.f, 10.f),
-                            player->GetPositionY(),
-                            player->GetPositionZ(),
-                            player->GetOrientation());
-
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", me->GetName(), player->GetName());
-
-                    }
+                    
 
                     if (player && player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
                     {
@@ -1045,6 +1049,7 @@ public:
                         uint32 now = getMSTime();
 
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_OWNER_COMBAT, 500ms);
+                        events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         
 
                         if (now >= _5secondsCheckMs)
@@ -1114,6 +1119,37 @@ public:
 
                     // ? lock check for next 5 seconds
                     _5secondsCheckMs = now + 5000;
+
+                    break;
+                }
+
+                    // Check if player is too far (teleport) and bring bot
+                case FSB_EVENT_HIRED_CHECK_TELEPORT:
+                {
+                    if (!me || !me->IsAlive())
+                        break;
+
+                    if (FSBUtilsCombat::IsCombatActive(me))
+                        break;
+
+                    Player* player = FSBMgr::GetBotOwner(me);
+                    if (!player)
+                        break;
+
+                    if (player->IsInFlight())
+                        break;
+
+                    if (me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
+                    {
+                        me->NearTeleportTo(
+                            player->GetPositionX() + frand(3.f, 10.f),
+                            player->GetPositionY(),
+                            player->GetPositionZ(),
+                            player->GetOrientation());
+
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", me->GetName(), player->GetName());
+
+                    }
 
                     break;
                 }

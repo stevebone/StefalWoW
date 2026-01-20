@@ -588,6 +588,44 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
+        case FSBSayType::BuffSelf:
+        {
+            static const std::vector<std::string> texts =
+            {
+                "Am gonna be needing this!",
+                "This <spell> is sure gonna help.",
+                "At least I have my <spell>!",
+                "There's no <spell> like mine!",
+                "One <spell> for me and another for... me... later.",
+                "I've got more <spell> from where this came from!",
+                "This buffs me buff... haha...haha!"
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
+            ReplaceAll(chosen, "<name>", playerName);
+            ReplaceAll(chosen, "<spell>", string2);
+            return chosen;
+        }
+
+        case FSBSayType::BuffTarget:
+        {
+            static const std::vector<std::string> texts =
+            {
+                "Hey, <name>, no need to thank me for <spell>",
+                "I've got something for you, <name>!",
+                "My <spell> makes you stronger!",
+                "You're gonna feel this buff, <name>!",
+                "This <spell> is for free <name>.",
+                "Buffing was not stated in my contract but here you go!",
+                "One <spell>, coming for you <name>!"
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
+            ReplaceAll(chosen, "<name>", playerName);
+            ReplaceAll(chosen, "<spell>", string2);
+            return chosen;
+        }
+
         default:
             return "Hello " + playerName + ".";
         }
@@ -600,8 +638,11 @@ namespace FSBUtilsTexts
 
         std::string pName = player ? player->GetName() : "";
 
-        std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::TargetDeath, victim->GetName());
-        creature->Say(msg, LANG_UNIVERSAL);
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        {
+            std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::TargetDeath, victim->GetName());
+            creature->Say(msg, LANG_UNIVERSAL);
+        }
     }
 }
 

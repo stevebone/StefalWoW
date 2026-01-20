@@ -4,11 +4,6 @@ constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
 
 
-
-
-
-constexpr uint32 REACT_BUFFED_CHANCE_PERCENT = 10;
-
 // Spell Related
 static constexpr uint32 NPC_GCD_MS = 1500;
 
@@ -60,7 +55,7 @@ enum FSB_EventsHiredState
 {
     FSB_EVENT_HIRED_MAINTENANCE = 30,
     FSB_EVENT_HIRED_CHECK_OWNER_COMBAT = 31,
-    // = 32,
+    FSB_EVENT_HIRED_CHECK_TELEPORT = 32,
     FSB_EVENT_HIRED_UPDATE_BOT_LEVEL = 33,
     FSB_EVENT_HIRED_CHECK_ALLIES = 34,
 
