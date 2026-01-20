@@ -274,7 +274,6 @@ public:
 
                     std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
                     me->Say(msg, LANG_UNIVERSAL);
-                    //me->Say(FSB_SAY_HIRED120, LANG_UNIVERSAL);
                 }
                 else
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
@@ -733,6 +732,47 @@ public:
                     }
                 }
 
+                // 4. Bot OOC Buffs
+                if (now >= _buffsTimerMs)
+                {
+                    if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                    {
+                        std::vector<Unit*> buffTargets;
+
+                        uint32 buffSpellId = 0;
+
+                        switch (botClass)
+                        {
+                        case FSB_Class::Priest:
+                            buffSpellId = SPELL_PRIEST_POWER_WORD_FORTITUDE;
+                            break;
+                        default:
+                            break;
+                        }
+
+                        if (!buffSpellId)
+                        {
+                            _buffsTimerMs = now + 300000;
+                            return;
+                        }
+
+                        FSBUtilsSpells::GetBotBuffTargets(me, buffSpellId, botGroup_, 30.0f, buffTargets);
+
+                        if (!buffTargets.empty())
+                        {
+                            Unit* target = buffTargets.front();
+
+                            me->CastSpell(target, buffSpellId, false);
+                            _globalCooldownUntil = now + 1500;
+
+                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot: {} Buffed target: {} with {}", me->GetName(), target->GetName(), FSBUtilsSpells::GetSpellName(buffSpellId));
+
+                            return;
+                        }
+                        else _buffsTimerMs = now + 300000;
+                    }
+                }
+
                 break;
             }
 
@@ -918,32 +958,7 @@ public:
 
                     
 
-                    // Fortitude Buff check
-                    if (!me->IsInCombat() && me->IsAlive())
-                    {
-                        Unit* fortTarget = nullptr;
-
-                        if (player && player->IsAlive() && !player->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE))
-                            fortTarget = player;
-                        else if (!me->HasAura(SPELL_PRIEST_POWER_WORD_FORTITUDE))
-                            fortTarget = me;
-
-                        if (fortTarget && !castedThisTick && FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                        {
-                            me->CastSpell(fortTarget, SPELL_PRIEST_POWER_WORD_FORTITUDE);
-                            castedThisTick = true;
-                            _globalCooldownUntil = now + NPC_GCD_MS;
-
-                            //TC_LOG_DEBUG("scripts.ai.core", "FSB: UpdateAI Event Maintenance Fortitude buff check"); // TEMP LOG
-
-                            if (fortTarget == me)
-                            {
-                                me->Say("Am gonna need this buff!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                            }
-                            else
-                                me->Say("Here's something for ya!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                        }
-                    }
+                    
 
                     
 
@@ -1317,6 +1332,7 @@ public:
             uint8 _appliedInitialCBuffs = 0;
             std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
             uint32 _globalCooldownUntil = 0; // global cooldown
+            uint32 _buffsTimerMs = 0;
 
             // ----------
             // Movement States

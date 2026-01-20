@@ -109,6 +109,8 @@ namespace FSBUtilsSpells
 
     bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target);
 
+    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, std::vector<Unit*> botGroup_, float maxRange, std::vector<Unit*>& outTargets);
+
     // Mount Spells
     using MountSpellList = std::vector<uint32>;
     using MountLevelSpellMap = std::map<uint8, MountSpellList>;
