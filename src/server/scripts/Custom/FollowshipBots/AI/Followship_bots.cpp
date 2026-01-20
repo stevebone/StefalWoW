@@ -1316,11 +1316,11 @@ public:
             bool _ownerWasInCombat = false;
             uint8 _appliedInitialCBuffs = 0;
             std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
-            uint32 _globalCooldownUntil; // global cooldown
+            uint32 _globalCooldownUntil = 0; // global cooldown
 
             // ----------
             // Movement States
-            uint16 moveState;
+            uint16 moveState = 0;
 
             // ----------
             // Allies & Group

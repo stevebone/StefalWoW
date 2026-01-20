@@ -1,15 +1,19 @@
 #pragma once
+
+#include <cstdint>
+
 #include "Player.h"
 #include "Creature.h"
-#include <cstdint>
 
 struct PlayerBotData
 {
-    uint64 botId;       // logical ID from DB
-    ObjectGuid::LowType spawnId; // spawn id
-    uint32 entry;
-    uint64 hireExpiry;
-    ObjectGuid runtimeGuid;
+    uint64 botId                = 0;       // logical ID from DB
+    ObjectGuid::LowType spawnId = 0; // spawn id
+    uint32 entry                = 0;
+    uint64 hireExpiry           = 0;
+    ObjectGuid runtimeGuid      = ObjectGuid::Empty;
+
+    PlayerBotData() = default;
 };
 
 namespace FSBUtilsDB

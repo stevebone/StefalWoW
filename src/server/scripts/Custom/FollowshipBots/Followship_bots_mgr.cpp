@@ -120,7 +120,7 @@ namespace FSBMgr
 
     bool IsBotExpired(PlayerBotData const& bot)
     {
-        return bot.hireExpiry > 0 && bot.hireExpiry < time(nullptr);
+        return bot.hireExpiry > 0 && bot.hireExpiry < static_cast<uint64>(time(nullptr));
     }
 
     void RemoveExpiredBots(Player* player)

@@ -97,6 +97,6 @@ constexpr float FOLLOW_DISTANCE_NORMAL = 5.0f;
 constexpr float FOLLOW_DISTANCE_WIDE = 8.0f;
 
 constexpr float FOLLOW_ANGLE_BEHIND = 0.0f;
-constexpr float FOLLOW_ANGLE_FRONT = M_PI;
-constexpr float FOLLOW_ANGLE_LEFT = M_PI / 2.0f;
-constexpr float FOLLOW_ANGLE_RIGHT = -M_PI / 2.0f;
+constexpr float FOLLOW_ANGLE_FRONT = float(M_PI);
+constexpr float FOLLOW_ANGLE_LEFT = float(M_PI) / 2.0f;
+constexpr float FOLLOW_ANGLE_RIGHT =  float(-M_PI) / 2.0f;
