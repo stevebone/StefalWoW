@@ -406,9 +406,6 @@ public:
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered JustEngagedWith: {}", who->GetName());
 
-            if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST || FSBUtils::GetRole(me) == FSB_Roles:: FSB_ROLE_RANGED_DAMAGE)
-                events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 100ms);
-
             // Target might be NULL if called from spell with invalid cast targets
             if (!who || !me->IsAlive())
                 return;
@@ -417,7 +414,7 @@ public:
             if (me->HasReactState(REACT_PASSIVE))
                 return;
 
-            // Prevent pet from disengaging from current target
+            // Prevent bot from disengaging from current target
             if (me->GetVictim() && me->EnsureVictim()->IsAlive())
                 return;
 
@@ -427,7 +424,7 @@ public:
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", who->GetName(), moveState);
         }
 
-        void JustEnteredCombat(Unit* who) override
+        void JustEnteredCombat(Unit* /*who*/) override
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustEnteredCombat Triggered");
         }
@@ -739,6 +736,64 @@ public:
                 break;
             }
 
+            case FSB_ACTION_COMBAT_IC_ACTIONS:
+            {
+                
+                if (me->IsInCombat() && me->IsAlive())
+                {
+                    // 1. Generic mana potions for bots with mana
+                    if (me->GetPowerType() == POWER_MANA && me->GetPowerPct(POWER_MANA) < 20)
+                    {
+                        if (!_botManaPotionUsed)
+                        {
+                            uint32 ManaPotionSpellId = FSBUtilsSpells::GetManaPotionSpellForLevel(me->GetLevel());
+
+                            if (ManaPotionSpellId)
+                            {
+                                // Global Cooldown does NOT apply for potions
+                                // Limit of 1 potion per type (MP or HP) per combat 
+                                me->CastSpell(me, ManaPotionSpellId, false);
+                                _botManaPotionUsed = true;
+
+                                std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
+                                std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::CombatMana, spellName);
+                                me->Say(msg, LANG_UNIVERSAL);
+
+                                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IC Action mana potion used by bot: {} with spell id: {}", me->GetName(), ManaPotionSpellId);
+                            }
+                        }
+                            
+                    }
+
+                    // 2. On Enter Combat spells
+                    uint32 now = getMSTime();
+                    if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
+                    {
+                        switch (botClass)
+                        {
+                        case FSB_Class::Priest:
+                        {
+                            if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST) // self cast for Assist Role
+                            {
+                                if (FSB_PriestActionsSpells::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, true))
+                                    break;
+                            }
+                            else if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER) // player cast for Healer role
+                            {
+                                if (FSB_PriestActionsSpells::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, false))
+                                    break;
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                        }
+                    }
+                }
+
+                break;
+            }
+
             case FSB_ACTION_RESURRECT_PLAYER:
             {
                 if (!_pendingResurrection)
@@ -781,104 +836,7 @@ public:
 
                 break;
             }
-            case FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF:
-            {
-                uint32 now = getMSTime();
-
-                if (_globalCooldownUntil < now && !me->HasUnitState(UNIT_STATE_CASTING))
-                {
-
-                    if (!me->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
-                    {
-                        me->CastSpell(me, SPELL_PRIEST_POWER_WORD_SHIELD);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat SELF Spell Cast: PWS");
-                        events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 1500ms);
-                    }
-                    else if (!me->HasAura(SPELL_PRIEST_RENEW))
-                    {
-                        me->CastSpell(me, SPELL_PRIEST_RENEW);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat SELF Spell Cast: Renew");
-                    }
-                }
-                else {
-                    events.ScheduleEvent(FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF, 1500ms);
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat SELF Spell Cast: GCD");
-                }
-                break;
-            }
-
-            case FSB_ACTION_COMBAT_INITIAL_SPELLS_PLAYER:
-            {
-                if (!me->IsAlive())
-                    return;
-
-                Player* player = FSBMgr::GetBotOwner(me);
-                if (!player)
-                {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat PLAYER Spell Cast: No player found");
-                    return;
-                }
-
-                if (!player->IsAlive())
-                    return;
-
-                uint32 now = getMSTime();
-
-                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                {
-                    switch (botClass)
-                    {
-                    case FSB_Class::Priest:
-                    {
-                        if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
-                        {
-                            if (FSB_PriestActionsSpells::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs))
-                            {
-                                // TO-DO add something here
-                            }
-                        }
-                        break;
-                    }
-                    default:
-                        break;
-                    }
-                }
-
-                
-                break;
-            }
-
-
-
-
-            case FSB_ACTION_IC_MANA:
-            {
-                if (me->GetPowerPct(POWER_MANA) > 20)
-                    break;
-
-                //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-                Unit* owner = me->GetOwner();
-                Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                uint32 now = getMSTime();
-
-                if (ManaPotionSpellId)
-                {
-                    me->CastSpell(me, ManaPotionSpellId, false);
-                    _botManaPotionUsed = true;
-
-                    std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::CombatMana, spellName);
-                    me->Say(msg, LANG_UNIVERSAL);
-
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat mana potion used with spell id: {}", ManaPotionSpellId);
-                }
-
-                break;
-            }
-
+            
             default:
                 break;
             }
@@ -895,6 +853,7 @@ public:
                 // =================================================== //
                 // ========= PERIODIC MAINTENANCE ==================== //
                 // Events that are triggered periodically              //
+                // These events can trigger even when bot is NOT hired //
                 // =================================================== //
 
                 case FSB_EVENT_PERIODIC_MAINTENANCE:
@@ -957,17 +916,7 @@ public:
 
                     
 
-                    // BOT Check In Combat Actions
-                    if (me->IsInCombat() && me->IsAlive())
-                    {
-                        _botInCombat = true;
-                        _botOutCombat = false;
-
-                        if (!me->HasUnitState(UNIT_STATE_CASTING))
-                            events.ScheduleEvent(FSB_EVENT_PRIEST_IC_MANA, 100ms);
-
-
-                    }
+                    
 
                     // Fortitude Buff check
                     if (!me->IsInCombat() && me->IsAlive())
@@ -1092,6 +1041,8 @@ public:
 
                     events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
 
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Hired Maintenance Reached the end"); // TEMP LOG
+
                     break;
                 }
 
@@ -1159,8 +1110,6 @@ public:
                     
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
-                    if (!me->IsAlive())
-                        return;
 
                     Player* player = FSBMgr::GetBotOwner(me);
 
@@ -1168,7 +1117,7 @@ public:
                     if (player && player->IsAlive() && player->IsInCombat())
                     {
                         _ownerWasInCombat = true;
-                        events.ScheduleEvent(FSB_EVENT_COMBAT_INITIAL_SPELLS_PLAYER, 1s);
+                        //events.ScheduleEvent(FSB_EVENT_COMBAT_INITIAL_SPELLS_PLAYER, 1s);
                     }
                     else if (player && player->IsAlive() && !player->IsInCombat())
                     {
@@ -1180,10 +1129,24 @@ public:
                     if (me->IsInCombat())
                     {
                         if (!me->HasUnitState(UNIT_STATE_CASTING))
+                        {
+                            // IC Actions (ex mana potions or health potions)
+                            events.ScheduleEvent(FSB_EVENT_COMBAT_IC_ACTIONS, 100ms);
+                            // Regular spells
                             events.ScheduleEvent(FSB_EVENT_COMBAT_SPELL_CHECK, 1s);
+                        }
+                    }
+
+                    // 3. Complete off Combat State check
+                    if(!FSBUtilsCombat::IsCombatActive(me))
+                    {
+                        _botManaPotionUsed = false; // we need to reset this when combat ends so that bot can reapply on the next combat state
+                        _appliedInitialCBuffs = 0;
                     }
 
                     events.ScheduleEvent(FSB_EVENT_COMBAT_MAINTENANCE, 1s);
+
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Combat Maintenance Reached the end"); // TEMP LOG
 
                     break;
                 }
@@ -1202,12 +1165,19 @@ public:
                     break;
                 }
 
-                // Priest casts Renew and PWS on Player
-                    // Only in Healer role
-                    // Triggered from Periodic Maintenance check and flag
-                case FSB_EVENT_COMBAT_INITIAL_SPELLS_PLAYER:
+                case FSB_EVENT_COMBAT_IC_ACTIONS:
                 {
-                    DoAction(FSB_ACTION_COMBAT_INITIAL_SPELLS_PLAYER);
+                    if (!me->IsAlive())
+                        break;
+
+                    if (!me->IsInCombat())
+                        break;
+
+                    if (!me->HasUnitState(UNIT_STATE_CASTING))
+                    {
+                        DoAction(FSB_ACTION_COMBAT_IC_ACTIONS);
+                    }
+
                     break;
                 }
 
@@ -1228,23 +1198,6 @@ public:
                     break;
                 }
 
-
-
-
-
-
-                    // Priest casts Renew and PWS on Engagement
-                    // Only in Assist and Damage roles
-                    // Triggered from: JustEngagedWith()
-                case FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF:
-                {
-                    if (_botInCombat)
-                    {
-                        DoAction(FSB_ACTION_INITIAL_COMBAT_SPELLS_SELF);
-                    }
-
-                    break;
-                }
 
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
@@ -1316,13 +1269,7 @@ public:
                     break;
                 }
 
-                case FSB_EVENT_PRIEST_IC_MANA:
-                {
-                    if (_botInCombat && me->GetPowerPct(POWER_MANA) <= 20 && !_botManaPotionUsed)
-                        DoAction(FSB_ACTION_IC_MANA);
 
-                    break;
-                }
 
 
 
@@ -1344,7 +1291,7 @@ public:
         }
 
         uint8 attackers = FSBUtilsCombat::CountActiveAttackers(me); // count active attackers on bot
-        uint32 ManaPotionSpellId = FSBUtilsSpells::GetManaPotionSpellForLevel(me->GetLevel());
+        
         std::unordered_map<uint32 /*spellId*/, uint32 /*nextReadyMs*/> _spellCooldowns;
 
         
