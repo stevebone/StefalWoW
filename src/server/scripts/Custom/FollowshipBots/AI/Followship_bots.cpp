@@ -339,14 +339,14 @@ public:
                 // Bot Stay Option
             case GOSSIP_ACTION_INFO_DEF + 20:
             {
-                events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 100ms);
+                events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 1s, 3s);
                 break;
             }
 
                 // Bot Follow Option
             case GOSSIP_ACTION_INFO_DEF + 21:
             {
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s, 3s);
                 break;
             }
 
@@ -988,7 +988,7 @@ public:
                             if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                                 events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_RESS_TARGETS, 1s, 3s);
 
-                        // After a bot is resurrected we need determine if they are alive
+                        // After a bot is resurrected we need to determine if they are alive
                         // and then perform after ress stuff
                         if (!_pendingResTarget.IsEmpty() && _announceMemberDead)
                         {
@@ -1193,19 +1193,29 @@ public:
 
                     if (!me->IsInCombat() && !me->HasUnitState(UNIT_STATE_CASTING))
                     {
-                        uint32 now = getMSTime();
 
-                        FSBUtilsMovement::StopFollow(me);
+                        if (me->GetMapId() == target->GetMapId() && me->GetDistance(target) > 30.0f)
+                        {
+                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect target {} too far from bot: {}", target->GetName(), me->GetName());
+                            me->GetMotionMaster()->MoveChase(target, 28.f);
+                        }
+                        else
+                        {
 
-                        uint32 spellId = SPELL_PRIEST_RESURRECTION;
-                        
+                            uint32 now = getMSTime();
 
-                        me->CastSpell(target, spellId, false);
-                        _globalCooldownUntil = now + NPC_GCD_MS;
+                            FSBUtilsMovement::StopFollow(me);
 
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", me->GetName(), spellId, target->GetName());                      
+                            uint32 spellId = SPELL_PRIEST_RESURRECTION;
 
-                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 5s);
+
+                            me->CastSpell(target, spellId, false);
+                            _globalCooldownUntil = now + NPC_GCD_MS;
+
+                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", me->GetName(), spellId, target->GetName());
+
+                            events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 5s);
+                        }
                     }
                     else events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
 
@@ -1316,7 +1326,8 @@ public:
 
                     me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     events.Reset();
-                    events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 100ms);
+                    me->StopMoving();
+                    me->GetMotionMaster()->Clear();
                     if (player)
                     {
                         std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
@@ -1400,8 +1411,6 @@ public:
         }
 
         uint8 attackers = FSBUtilsCombat::CountActiveAttackers(me); // count active attackers on bot
-        
-        std::unordered_map<uint32 /*spellId*/, uint32 /*nextReadyMs*/> _spellCooldowns;
 
         
         private:
