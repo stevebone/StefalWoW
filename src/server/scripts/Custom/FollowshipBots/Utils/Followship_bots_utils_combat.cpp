@@ -290,7 +290,7 @@ namespace FSBUtilsBotCombat
         }
     }
 
-    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect)
+    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect, std::vector<Unit*> botGroup_)
     {
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with allowAutoSelect: {}", allowAutoSelect);
         // Provides next target selection after current target death.
@@ -340,6 +340,30 @@ namespace FSBUtilsBotCombat
         // 3.0.2 - Pets now start attacking their owners victim in defensive mode as soon as the hunter does
         if (Unit* ownerVictim = owner->GetVictim())
             return ownerVictim;
+
+        // 3. Check other bots owned by the same player
+        for (Unit* otherBot : botGroup_)
+        {
+            if (!otherBot || otherBot == bot)
+                continue;
+
+            if (!otherBot->IsAlive() || !otherBot->IsInCombat())
+                continue;
+
+            Unit* otherVictim = otherBot->GetVictim();
+            if (!otherVictim || !otherVictim->IsAlive())
+                continue;
+
+            // Don't break CC
+            if (otherVictim->HasBreakableByDamageCrowdControlAura())
+                continue;
+
+            TC_LOG_DEBUG("scripts.ai.fsb",
+                "FSB: BotSelectNextTarget using sibling bot {} target {}",
+                otherBot->GetName(), otherVictim->GetName());
+
+            return otherVictim;
+        }
 
         // Neither pet or owner had a target and aggressive pets can pick any target
         // To prevent aggressive pets from chain selecting targets and running off, we

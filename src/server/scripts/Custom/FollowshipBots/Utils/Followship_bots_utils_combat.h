@@ -46,7 +46,7 @@ namespace FSBUtilsBotCombat
     bool BotCanAttack(Unit* target, Creature* bot, uint16 moveState);
     void BotAttackStart(Creature* bot, Unit* target, uint16 moveState);
     void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 moveState);
-    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect);
+    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect, std::vector<Unit*> botGroup_);
     void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle);
 
     float GetBotChaseDistance(Creature* bot);

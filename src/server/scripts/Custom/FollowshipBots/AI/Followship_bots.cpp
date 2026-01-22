@@ -471,8 +471,9 @@ public:
 
             // TO-DO Add autoselect for damage role
             // Before returning to owner, see if there are more things to attack
-            if (Unit* nextTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, false))
-                AttackStart(nextTarget);
+            if (Unit* nextTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, false, botGroup_))
+                //AttackStart(nextTarget);
+                FSBUtilsBotCombat::BotAttackStart(me, nextTarget, moveState);
             else
                 FSBUtilsBotCombat::BotHandleReturnMovement(me, moveState, followDistance, followAngle); // Return
 
@@ -879,6 +880,26 @@ public:
 
         void UpdateAI(uint32 diff) override
         {
+            if (me->IsInCombat() && !me->HasUnitState(UNIT_STATE_CASTING))
+            {
+                Unit* victim = me->GetVictim();
+
+                if (!victim || !victim->IsAlive())
+                {
+                    Unit* newTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, true, botGroup_);
+                    if (newTarget)
+                    {
+                        //AttackStart(newTarget);
+                        FSBUtilsBotCombat::BotAttackStart(me, newTarget, moveState);
+                        TC_LOG_DEBUG("scripts.ai.fsb",
+                            "FSB: Bot {} selected new target {}",
+                            me->GetName(), newTarget->GetName());
+                    }
+                    else FSBUtilsBotCombat::BotHandleReturnMovement(me, moveState, followDistance, followAngle); // Return
+                }
+                
+            }
+
             events.Update(diff);
 
             while (uint32 eventId = events.ExecuteEvent())
