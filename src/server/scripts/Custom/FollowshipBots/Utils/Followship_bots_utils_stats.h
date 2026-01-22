@@ -3,18 +3,7 @@
 #include "Define.h"
 #include "Unit.h"
 
-enum class FSB_Class : uint8
-{
-    None = 0,
-    Warrior = 1,
-    Priest = 2,
-    Mage = 3,
-    Rogue = 4,
-    Druid = 5,
-    Paladin = 6,
-    Hunter = 7,
-    Warlock = 8,
-};
+#include "Followship_bots_defines.h"
 
 struct FSB_ClassStats
 {
