@@ -6,6 +6,7 @@
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_mage.h"
 #include "Followship_bots_priest.h"
 
 namespace FSBUtilsGossip
@@ -92,9 +93,40 @@ namespace FSBUtilsGossip
 
     bool HandleRolesGossipSelect(Creature* me, Player* player)
     {
-        AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ASSIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
-        AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DAMAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
-        AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_BALANCED, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(me->GetEntry());
+        switch (botClass)
+        {
+        case FSB_Class::None:
+            break;
+        case FSB_Class::Warrior:
+            break;
+        case FSB_Class::Priest:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ASSIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DAMAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_BALANCED, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
+            break;
+        case FSB_Class::Mage:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ARCANE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_FROST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_FIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
+            break;
+        case FSB_Class::Rogue:
+            break;
+        case FSB_Class::Druid:
+            break;
+        case FSB_Class::Paladin:
+            break;
+        case FSB_Class::Hunter:
+            break;
+        case FSB_Class::Warlock:
+            break;
+        default:
+            break;
+        }
+
+        //AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ASSIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+        //AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DAMAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+        //AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_BALANCED, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
         player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_ROLES_MENU, me->GetGUID());

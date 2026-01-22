@@ -11,9 +11,9 @@
 #include "followship_bots_ai_base.h"
 #include "followship_bots_config.h"
 #include "followship_bots_priest.h"
+#include "followship_bots_mage.h"
 #include "followship_bots_utils.h"
 #include "followship_bots_utils_stats.h"
-#include "followship_bots_utils_priest.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"
 //#include "Followship_bots_db.h"
@@ -362,12 +362,21 @@ public:
                 // Bot Role Option Healer
             case GOSSIP_ACTION_INFO_DEF + 23:
             {
-                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
+                switch (botClass)
+                {
+                case FSB_Class::Priest:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
+                    if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
+                        me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
+                    break;
+                case FSB_Class::Mage:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_ARCANE);
+                    break;
+                default:
+                    break;
+                }
 
-                //me->SetReactState(REACT_DEFENSIVE);
                 me->SetReactState(REACT_AGGRESSIVE);
-                if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
-                    me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
                 break;
             }
@@ -375,9 +384,20 @@ public:
                 // Bot Role Option Damage Deal
             case GOSSIP_ACTION_INFO_DEF + 24:
             {
-                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
-                me->SetReactState(REACT_AGGRESSIVE);
-                me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
+                switch (botClass)
+                {
+                case FSB_Class::Priest:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
+                    me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
+                    break;
+                case FSB_Class::Mage:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_FROST);
+                    break;
+                default:
+                    break;
+                }
+
+                me->SetReactState(REACT_AGGRESSIVE);                 
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
                 break;
             }
@@ -385,11 +405,21 @@ public:
             // Bot Role Option Balanced
             case GOSSIP_ACTION_INFO_DEF + 25:
             {
-                FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
-                //me->SetReactState(REACT_ASSIST);
-                me->SetReactState(REACT_AGGRESSIVE);
-                if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
-                    me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
+                switch (botClass)
+                {
+                case FSB_Class::Priest:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
+                    if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
+                        me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
+                    break;
+                case FSB_Class::Mage:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_FIRE);
+                    break;
+                default:
+                    break;
+                }
+
+                me->SetReactState(REACT_AGGRESSIVE);                
                 me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
                 break;
             }
@@ -765,6 +795,9 @@ public:
                         case FSB_Class::Priest:
                             buffSpellId = SPELL_PRIEST_POWER_WORD_FORTITUDE;
                             break;
+                        case FSB_Class::Mage:
+                            buffSpellId = SPELL_MAGE_ARCANE_INTELLECT;
+                            break;
                         default:
                             break;
                         }
@@ -1012,8 +1045,15 @@ public:
 
                         if (now >= _5secondsCheckMs)
                         {
-                            events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_ALLIES, 5s);
-                            events.ScheduleEvent(FSB_EVENT_HIRED_UPDATE_BOT_LEVEL, 5s);
+                            FSBUtilsStats::UpdateBotLevelToPlayer(me, _statsMods);
+
+                            // Check to dermine what friendlies we have in our "group"
+                            // Includes: bot, owner and other bots owner by its owner
+                            // TO-DO: Add check to include other players in the group of the owner
+                            FSBUtilsCombat::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
+
+                            // ? lock check for next 5 seconds
+                            _5secondsCheckMs = now + 5000;
                         }
                     }
 
@@ -1048,35 +1088,6 @@ public:
                             FSBUtilsOwnerCombat::OnBotOwnerAttackedBy(attacker, me, moveState);
                         }
                     }
-
-                    break;
-                }
-
-                    // Check to dermine what friendlies we have in our "group"
-                    // Includes: bot, owner and other bots owner by its owner
-                    // TO-DO: Add check to include other players in the group of the owner
-                case FSB_EVENT_HIRED_CHECK_ALLIES:
-                {
-                    uint32 now = getMSTime();
-
-                    if (now >= _5secondsCheckMs)
-                        FSBUtilsCombat::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
-
-                    // ? lock check for next 5 seconds
-                    _5secondsCheckMs = now + 5000;
-
-                    break;
-                }
-
-                case FSB_EVENT_HIRED_UPDATE_BOT_LEVEL:
-                {
-                    uint32 now = getMSTime();
-
-                    if (now >= _5secondsCheckMs)
-                        FSBUtilsStats::UpdateBotLevelToPlayer(me, _statsMods);
-
-                    // ? lock check for next 5 seconds
-                    _5secondsCheckMs = now + 5000;
 
                     break;
                 }

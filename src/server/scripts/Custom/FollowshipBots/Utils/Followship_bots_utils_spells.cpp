@@ -7,10 +7,11 @@
 #include "Unit.h"
 
 #include "Followship_bots_priest.h"
+#include "Followship_bots_mage.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_mgr.h"
-#include "Followship_bots_utils_priest.h"
+#include "Followship_bots_mage.h"
 #include "Followship_bots_utils_combat.h"
 
 
@@ -199,7 +200,6 @@ namespace FSBUtilsSpells
         return nullptr;
     }
 
-
     MountSpellList const* GetMountSpellsForLevel(uint8 level)
     {
         MountSpellList const* result = nullptr;
@@ -242,7 +242,7 @@ namespace FSBUtilsCombatSpells
     void InitBotSpellTables()
     {
         sBotSpellTables[FSB_Class::Priest] = &PriestSpellsTable;
-        //sBotSpellTables[FSB_Class::Mage] = &MageSpellsTable;
+        sBotSpellTables[FSB_Class::Mage] = &MageSpellsTable;
         //sBotSpellTables[FSB_Class::Warrior] = &WarriorSpellsTable;
     }
 
@@ -310,7 +310,7 @@ namespace FSBUtilsCombatSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
-            //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
+            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
             available.push_back(&runtime);
 
         }
@@ -324,7 +324,7 @@ namespace FSBUtilsCombatSpells
 
         if (availableSpells.empty())
         {
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no available spell");
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no available spell");
             return nullptr;
         }
 
@@ -407,11 +407,11 @@ namespace FSBUtilsCombatSpells
 
         if (spellPool.empty())
         {
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spell pool empty after filtering");
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spell pool empty after filtering");
             return nullptr;
         }
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spellPool size after filtering: {}", spellPool.size());
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spellPool size after filtering: {}", spellPool.size());
 
         // =========================================================
         // ===================== SPELLS PICK =======================
@@ -426,7 +426,7 @@ namespace FSBUtilsCombatSpells
             uint32 roll = urand(0, 100);
             if (roll > spell->chance)
             {
-                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - {} chance failed (roll={} chance={})", spell->spellId, roll, spell->chance);
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - {} chance failed (roll={} chance={})", spell->spellId, roll, spell->chance);
                 continue;
             }
 
@@ -510,7 +510,7 @@ namespace FSBUtilsCombatSpells
                 return runtime;
             }
 
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - no valid spell found after evaluation");
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - no valid spell found after evaluation");
             return nullptr;
     }
 
@@ -532,8 +532,8 @@ namespace FSBUtilsCombatSpells
         if (target->HasAura(def->spellId))
             return;
 
-        if (!FSBUtilsStats::SpendManaPct(bot, runtime->def->manaCostOverride))
-            return; // not enough mana
+        //if (!FSBUtilsStats::SpendManaPct(bot, runtime->def->manaCostOverride))
+        //    return; // not enough mana
 
         Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
         SpellCastTargets targets;
@@ -542,9 +542,12 @@ namespace FSBUtilsCombatSpells
         SpellCastResult result = spell->prepare(targets);
 
         if (result != SPELL_CAST_OK)
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot: {} SPELL CAST NOT OK", bot->GetName());
             return;
+        }
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
+        TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
 
         // ? Per-spell cooldown
         runtime->nextReadyMs = now + def->cooldownMs;

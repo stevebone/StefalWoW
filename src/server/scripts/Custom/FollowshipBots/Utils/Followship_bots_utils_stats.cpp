@@ -236,7 +236,7 @@ namespace FSBUtilsStats
         uint8 pLevel = player->GetLevel();
         if (bot->GetLevel() == pLevel)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateBotLevel: Nothing to do");
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateBotLevel: Nothing to do");
             return; // nothing to do
         }
 
