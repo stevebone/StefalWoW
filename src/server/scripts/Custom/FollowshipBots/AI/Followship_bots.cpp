@@ -581,8 +581,11 @@ public:
             Player* player = FSBMgr::GetBotOwner(me);
             if (player)
             {
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
-                me->Yell(msg, LANG_UNIVERSAL);
+                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                {
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
+                    me->Yell(msg, LANG_UNIVERSAL);
+                }
             }
         }
 
@@ -719,8 +722,11 @@ public:
                         {
                             if (spellId == SPELL_PRIEST_HEAL)
                             {
-                                std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
-                                me->Say(msg, LANG_UNIVERSAL);
+                                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                                {
+                                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                }
 
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 2s);
 
@@ -824,9 +830,12 @@ public:
                                 me->CastSpell(me, ManaPotionSpellId, false);
                                 _botManaPotionUsed = true;
 
-                                std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
-                                std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::CombatMana, spellName);
-                                me->Say(msg, LANG_UNIVERSAL);
+                                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                                {
+                                    std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
+                                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::CombatMana, spellName);
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                }
 
                                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IC Action mana potion used by bot: {} with spell id: {}", me->GetName(), ManaPotionSpellId);
                             }
@@ -897,49 +906,6 @@ public:
                             events.ScheduleEvent(FSB_EVENT_PERIODIC_OOC_ACTIONS, 1s);
                     }
 
-
-
-
-
-
-
-                    /*
-                 
-
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                    // BOT check if player dead
-                    if (player && !player->IsAlive() && !_pendingResurrection)
-                    {
-                        if (me->IsAlive() && !_playerDead)
-                        {
-                            std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PlayerDead, "");
-                            me->Yell(msg, LANG_UNIVERSAL);
-                        }
-
-                        _playerDead = true; // This will stop the bot spamming the SAY
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player found dead in Periodic Check");
-
-                        if (!me->IsInCombat())
-                        {
-                            _pendingResurrection = true;
-                            DoAction(FSB_ACTION_RESURRECT_PLAYER);
-                        }
-                    }
-                    else if (player && player->IsAlive() && _pendingResurrection && _playerDead)
-                    {
-                        _pendingResurrection = false;
-                        _playerDead = false;
-
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Resurrect, "");
-                        me->Say(msg, LANG_UNIVERSAL);
-                    }
-
-                    
-                    */
-
-
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
                     //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end"); // TEMP LOG
@@ -1009,11 +975,14 @@ public:
                             if (target && target->IsAlive())
                             {
                                 _announceMemberDead = false;
-
                                 _pendingResurrection = false;
-                                // SAY after ressurect
-                                std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::Resurrect, "");
-                                me->Say(msg, LANG_UNIVERSAL);
+
+                                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                                {
+                                    // SAY after ressurect
+                                    std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::Resurrect, "");
+                                    me->Say(msg, LANG_UNIVERSAL);
+                                }
 
                                 _pendingResTarget.Clear();
                             }
@@ -1166,7 +1135,7 @@ public:
 
                                 // announce target died
                                 // we need extra flag so chatter does not repeat
-                                if (me->IsAlive() && !_announceMemberDead)
+                                if (me->IsAlive() && !_announceMemberDead && (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate))
                                 {
                                     std::string msg = FSBUtilsTexts::BuildNPCSayText(deadTarget->GetName(), NULL, FSBSayType::PlayerOrMemberDead, "");
                                     me->Yell(msg, LANG_UNIVERSAL);
