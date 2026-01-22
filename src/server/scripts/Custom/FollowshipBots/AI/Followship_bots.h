@@ -38,19 +38,6 @@ enum FSB_GenericEvents
     // = 12,
 };
 
-enum FSB_PriestSpellEvents
-{
-    
-    // = 21,
-
-    // = 23,
-    FSB_EVENT_CHECK_COMBAT = 24,
-    
-    FSB_EVENT_PRIEST_INITIAL_COMBAT_SPELLS_SELF = 26,
-    // = 27,
-    // = 28
-};
-
 enum FSB_EventsHiredState
 {
     FSB_EVENT_HIRED_MAINTENANCE = 30,
@@ -58,6 +45,9 @@ enum FSB_EventsHiredState
     FSB_EVENT_HIRED_CHECK_TELEPORT = 32,
     FSB_EVENT_HIRED_UPDATE_BOT_LEVEL = 33,
     FSB_EVENT_HIRED_CHECK_ALLIES = 34,
+    FSB_EVENT_HIRED_CHECK_MOUNT = 35,
+    FSB_EVENT_HIRED_CHECK_RESS_TARGETS = 36,
+    FSB_EVENT_HIRED_RESS_TARGET = 37,
 
     FSB_EVENT_COMBAT_MAINTENANCE = 41,
     FSB_EVENT_COMBAT_SPELL_CHECK = 42,
@@ -76,15 +66,9 @@ enum FSB_MovementStates
 };
 
 enum FSB_Actions
-{
-    FSB_ACTION_RESURRECT_PLAYER = 2,
-    
-
-
-    
-    FSB_ACTION_OOC_ACTIONS = 21,
-
-    FSB_ACTION_COMBAT_IC_ACTIONS = 23,
+{    
+    FSB_ACTION_OOC_ACTIONS = 1,
+    FSB_ACTION_COMBAT_IC_ACTIONS = 2
 };
 
 constexpr float FOLLOW_DISTANCE_CLOSE = 3.0f;

@@ -480,9 +480,9 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
-        case FSBSayType::PlayerDead:
+        case FSBSayType::PlayerOrMemberDead:
         {
-            static const std::vector<std::string> playerDeadTexts =
+            static const std::vector<std::string> PlayerOrMemberDeadTexts =
             {
                 "Hey <name>, what are you doing?",
                 "Ah, shiiiiiit, nooooo <name>!",
@@ -493,7 +493,7 @@ namespace FSBUtilsTexts
                 "Death is just a number, <name>!"
             };
 
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(playerDeadTexts);
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(PlayerOrMemberDeadTexts);
             size_t pos;
             while ((pos = chosen.find("<name>")) != std::string::npos)
                 chosen.replace(pos, 6, playerName);

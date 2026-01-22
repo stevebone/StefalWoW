@@ -180,6 +180,25 @@ namespace FSBUtilsSpells
         }
     }
 
+    Unit* FindBotDeadResTarget(Creature* bot, std::vector<Unit*> const& botGroup_)
+    {
+        Player* owner = FSBMgr::GetBotOwner(bot);
+
+        if (owner && !owner->IsAlive())
+            return owner;
+
+        for (Unit* unit : botGroup_)
+        {
+            if (!unit || unit == owner)
+                continue;
+
+            if (!unit->IsAlive())
+                return unit;
+        }
+
+        return nullptr;
+    }
+
 
     MountSpellList const* GetMountSpellsForLevel(uint8 level)
     {
@@ -291,7 +310,7 @@ namespace FSBUtilsCombatSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
+            //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
             available.push_back(&runtime);
 
         }
@@ -305,7 +324,7 @@ namespace FSBUtilsCombatSpells
 
         if (availableSpells.empty())
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no available spell");
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectSpell - no available spell");
             return nullptr;
         }
 
@@ -348,8 +367,8 @@ namespace FSBUtilsCombatSpells
         if (isHybrid)
             mode = SpellMode::Hybrid;
 
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: SelectSpell - role={} mode={} emergencyTargets={} healTargets={}",
+        /*
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - role={} mode={} emergencyTargets={} healTargets={}",
             isHealer ? "HEALER" : "NON-HEALER",
             mode == SpellMode::EmergencyHeal ? "EMERGENCY" :
             mode == SpellMode::NormalHeal ? "HEAL" :
@@ -357,6 +376,7 @@ namespace FSBUtilsCombatSpells
             emergencyTargets.size(),
             healTargets.size()
         );
+        */
 
         // =========================================================
         // ================== BUILD SPELL POOL =====================
@@ -387,14 +407,11 @@ namespace FSBUtilsCombatSpells
 
         if (spellPool.empty())
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spell pool empty after filtering");
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spell pool empty after filtering");
             return nullptr;
         }
 
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: SelectSpell - spellPool size after filtering: {}",
-            spellPool.size()
-        );
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spellPool size after filtering: {}", spellPool.size());
 
         // =========================================================
         // ===================== SPELLS PICK =======================
@@ -409,9 +426,7 @@ namespace FSBUtilsCombatSpells
             uint32 roll = urand(0, 100);
             if (roll > spell->chance)
             {
-                TC_LOG_DEBUG("scripts.ai.fsb",
-                    "FSB: SpellSkip - {} chance failed (roll={} chance={})",
-                    spell->spellId, roll, spell->chance);
+                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - {} chance failed (roll={} chance={})", spell->spellId, roll, spell->chance);
                 continue;
             }
 
@@ -440,18 +455,14 @@ namespace FSBUtilsCombatSpells
 
                 if (!target)
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb",
-                        "FSB: SpellSkip - heal {} no valid target",
-                        spell->spellId);
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - heal {} no valid target", spell->spellId);
                     continue;
                 }
 
                 float hp = target->GetHealthPct();
                 if (hp > spell->hpThreshold)
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb",
-                        "FSB: SpellSkip - heal {} target hp {} > threshold {}",
-                        spell->spellId, hp, spell->hpThreshold);
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - heal {} target hp {} > threshold {}", spell->spellId, hp, spell->hpThreshold);
                     continue;
                 }
             }
@@ -461,18 +472,14 @@ namespace FSBUtilsCombatSpells
 
                 if (!target || !target->IsAlive())
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb",
-                        "FSB: SpellSkip - damage {} no valid victim",
-                        spell->spellId);
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - damage {} no valid victim", spell->spellId);
                     continue;
                 }
 
                 float dist = bot->GetDistance(target);
                 if (dist > spell->dist)
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb",
-                        "FSB: SpellSkip - damage {} target too far ({}/{})",
-                        spell->spellId, dist, spell->dist);
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - damage {} target too far ({}/{})", spell->spellId, dist, spell->dist);
                     continue;
                 }
             }
@@ -480,17 +487,16 @@ namespace FSBUtilsCombatSpells
             
 
                 // Class Spells validation
-                if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
+                if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target)) 
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb",
-                        "FSB: SpellSkip - class invalid for spell {}",
-                        spell->spellId);
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - class invalid for spell {}", spell->spellId);
                     continue;
                 }
 
                 // ================= SUCCESS =================
                 outTarget = target;
 
+                /*
                 TC_LOG_DEBUG("scripts.ai.fsb",
                     "FSB: SpellSelect SUCCESS - spell={} type={} target={} hp={} threshold={}",
                     spell->spellId,
@@ -499,11 +505,12 @@ namespace FSBUtilsCombatSpells
                     target->GetHealthPct(),
                     spell->hpThreshold
                 );
+                */
 
                 return runtime;
             }
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - no valid spell found after evaluation");
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - no valid spell found after evaluation");
             return nullptr;
     }
 
@@ -534,7 +541,7 @@ namespace FSBUtilsCombatSpells
         if (result != SPELL_CAST_OK)
             return;
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
 
         // ? Per-spell cooldown
         runtime->nextReadyMs = now + def->cooldownMs;

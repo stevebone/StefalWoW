@@ -52,7 +52,7 @@ public:
         float followAngle = frand(0.0f, float(M_PI * 2.0f));
 
         bool _pendingResurrection = false;
-        bool _playerDead = false;
+        bool _announceMemberDead = false;
         //uint32 _nextCombatSayMs = 0;
 
         bool _botOutCombat = false;
@@ -490,9 +490,21 @@ public:
             }
         }
 
-        void SpellHit(WorldObject* /*caster*/, SpellInfo const* /*spellInfo*/) override
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
         {
+            if (!spellInfo)
+                return;
 
+            // When bot is resurrected we need to set it back to death state alive
+            if (spellInfo->Id == SPELL_PRIEST_RESURRECTION)
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb",
+                    "FSB: Bot {} was resurrected by spell {}",
+                    me->GetName(),
+                    spellInfo->Id);
+
+                me->setDeathState(ALIVE);
+            }
         }
 
         void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* /*spellInfo*/) override
@@ -850,49 +862,6 @@ public:
 
                 break;
             }
-
-            case FSB_ACTION_RESURRECT_PLAYER:
-            {
-                if (!_pendingResurrection)
-                    return;
-
-                uint32 now = getMSTime();
-
-                //Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-                Unit* owner = me->GetOwner();
-                Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                if (!player)
-                    return;
-
-                // Must be fully safe
-                if (me->IsInCombat() || player->IsInCombat())
-                    return;
-
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
-
-                if (player->IsAlive())
-                {
-                    _pendingResurrection = false;
-                    return;
-                }
-
-                // Must be close enough (important!)
-                if (!me->IsWithinDistInMap(player, 30.0f))
-                    return;
-
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION Resurrect Player");
-
-                FSBUtilsMovement::StopFollow(me);
-
-                me->CastSpell(player, SPELL_PRIEST_RESURRECTION, false);
-                _globalCooldownUntil = now + NPC_GCD_MS;
-
-                ResumeFollow(player);
-
-                break;
-            }
             
             default:
                 break;
@@ -934,7 +903,7 @@ public:
 
 
 
-
+                    /*
                  
 
                     Unit* owner = me->GetOwner();
@@ -968,32 +937,8 @@ public:
                     }
 
                     
+                    */
 
-                    
-
-                    
-
-                    
-
-                    
-
-                    
-
-                    
-
-                    
-
-                    if (player && player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
-                    {
-                        FSBUtilsSpells::CastRandomMountLevelSpell(me);
-                        botMounted = true;
-                    }
-                    else if (player && !player->HasAuraType(SPELL_AURA_MOUNTED) && botMounted)
-                    {
-                        botMounted = false;
-                        me->Dismount();
-                        me->RemoveAurasByType(SPELL_AURA_MOUNTED);
-                    }
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
@@ -1050,6 +995,29 @@ public:
 
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_OWNER_COMBAT, 500ms);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
+                        events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
+
+                        if(now >= _1secondsCheckMs)
+                            if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
+                                events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_RESS_TARGETS, 1s, 3s);
+
+                        // After a bot is resurrected we need determine if they are alive
+                        // and then perform after ress stuff
+                        if (!_pendingResTarget.IsEmpty() && _announceMemberDead)
+                        {
+                            Unit* target = ObjectAccessor::GetUnit(*me, _pendingResTarget);
+                            if (target && target->IsAlive())
+                            {
+                                _announceMemberDead = false;
+
+                                _pendingResurrection = false;
+                                // SAY after ressurect
+                                std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::Resurrect, "");
+                                me->Say(msg, LANG_UNIVERSAL);
+
+                                _pendingResTarget.Clear();
+                            }
+                        }
                         
 
                         if (now >= _5secondsCheckMs)
@@ -1150,6 +1118,106 @@ public:
                         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", me->GetName(), player->GetName());
 
                     }
+
+                    break;
+                }
+
+                    // Check if Bot needs to mount or dismount
+                case FSB_EVENT_HIRED_CHECK_MOUNT:
+                {
+                    if (!me || !me->IsAlive())
+                        break;
+
+                    if (me->HasUnitState(UNIT_STATE_CASTING))
+                        break;
+
+                    Player* player = FSBMgr::GetBotOwner(me);
+
+                    if (player && player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
+                    {
+                        FSBUtilsSpells::CastRandomMountLevelSpell(me);
+                        botMounted = true;
+                    }
+                    else if (player && !player->HasAuraType(SPELL_AURA_MOUNTED) && botMounted)
+                    {
+                        botMounted = false;
+                        me->Dismount();
+                        me->RemoveAurasByType(SPELL_AURA_MOUNTED);
+                    }
+
+                    break;
+                }
+
+                    // Check if someone in our group died (bot or player)
+                case FSB_EVENT_HIRED_CHECK_RESS_TARGETS:
+                {
+                    uint32 now = getMSTime();
+                    if (now >= _1secondsCheckMs)
+                    {
+
+                        if (!_pendingResurrection && me->IsAlive() && !_pendingResTarget)
+                        {
+                            Unit* deadTarget = FSBUtilsSpells::FindBotDeadResTarget(me, botGroup_);
+
+                            if (deadTarget)
+                            {
+                                _pendingResurrection = true;
+                                _pendingResTarget = deadTarget->GetGUID();
+
+                                // announce target died
+                                // we need extra flag so chatter does not repeat
+                                if (me->IsAlive() && !_announceMemberDead)
+                                {
+                                    std::string msg = FSBUtilsTexts::BuildNPCSayText(deadTarget->GetName(), NULL, FSBSayType::PlayerOrMemberDead, "");
+                                    me->Yell(msg, LANG_UNIVERSAL);
+                                }
+                                _announceMemberDead = true;
+
+
+                                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", me->GetName(), deadTarget->GetName());
+
+                                events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
+
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+
+                case FSB_EVENT_HIRED_RESS_TARGET:
+                {
+                    if (!_pendingResurrection)
+                        break;
+
+                    if (!_pendingResTarget)
+                        break;
+
+                    Unit* target = ObjectAccessor::GetUnit(*me, _pendingResTarget);
+
+                    if (!target || target->IsAlive())
+                    {
+                        _pendingResurrection = false;
+                        break;
+                    }
+
+                    if (!me->IsInCombat() && !me->HasUnitState(UNIT_STATE_CASTING))
+                    {
+                        uint32 now = getMSTime();
+
+                        FSBUtilsMovement::StopFollow(me);
+
+                        uint32 spellId = SPELL_PRIEST_RESURRECTION;
+                        
+
+                        me->CastSpell(target, spellId, false);
+                        _globalCooldownUntil = now + NPC_GCD_MS;
+
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", me->GetName(), spellId, target->GetName());                      
+
+                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 5s);
+                    }
+                    else events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
 
                     break;
                 }
@@ -1363,6 +1431,7 @@ public:
 
             // ----------
             // Combat
+            ObjectGuid _pendingResTarget;
             ObjectGuid _lastOwnerVictim;
             bool _ownerWasInCombat = false;
             uint8 _appliedInitialCBuffs = 0;

@@ -62,7 +62,7 @@ enum class FSBSayType
     HealTarget,     // NPC Heals target (not self)
     HealSelf,       // NPC Heals self
     Resurrect,      // NPC Resurrects the player
-    PlayerDead,     // NPC reacts to dead player
+    PlayerOrMemberDead,     // NPC reacts to dead player or bot
     SpellOnTarget,  // NPC reacts when casting combat spell on target
     CombatMana,     // NPC IC OOM and uses mana potion
     BotDeath,       // NPC Dies

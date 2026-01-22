@@ -106,7 +106,7 @@ namespace FSBUtilsCombat
             if (unit->GetHealthPct() <= lowHpThreshold)
             {
                 candidates.push_back(unit);
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency Candidate: {}", unit->GetName());
+                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency Candidate: {}", unit->GetName());
             }
         }
 
@@ -114,7 +114,7 @@ namespace FSBUtilsCombat
         std::sort(candidates.begin(), candidates.end(),
             [](Unit* a, Unit* b) { return a->GetHealthPct() < b->GetHealthPct(); });
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
         return candidates;
     }
 
