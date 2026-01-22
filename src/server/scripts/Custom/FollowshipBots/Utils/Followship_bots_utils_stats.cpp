@@ -235,7 +235,11 @@ namespace FSBUtilsStats
 
         uint8 pLevel = player->GetLevel();
         if (bot->GetLevel() == pLevel)
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateBotLevel: Nothing to do");
             return; // nothing to do
+        }
+
 
         bot->SetLevel(pLevel);
 
@@ -248,6 +252,36 @@ namespace FSBUtilsStats
 
         // Recalculate any additional stats/modifiers
         RecalculateMods(bot, mods);
+    }
+
+    bool SpendManaPct(Creature* bot, float pct)
+    {
+        if (!bot || pct <= 0.0f)
+            return false;
+
+        uint32 maxMana = bot->GetMaxPower(POWER_MANA);
+        if (!maxMana)
+            return false;
+
+        int32 cost = uint32(maxMana * pct);
+
+        if (bot->GetPower(POWER_MANA) < cost)
+            return false;
+
+        bot->ModifyPower(POWER_MANA, -int32(cost));
+        return true;
+    }
+
+    bool SpendManaFlat(Creature* bot, int32 cost)
+    {
+        if (!bot)
+            return false;
+
+        if (bot->GetPower(POWER_MANA) < cost)
+            return false;
+
+        bot->ModifyPower(POWER_MANA, -int32(cost));
+        return true;
     }
 
 }

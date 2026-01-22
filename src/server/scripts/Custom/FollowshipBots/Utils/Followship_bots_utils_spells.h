@@ -69,7 +69,7 @@ struct FSBSpellDefinition
 {
     uint32 spellId = 0;
     FSBSpellType type = FSBSpellType::Damage;
-    float priority = 0.0f;      // higher = more important
+    float manaCostOverride = 0.0f;      // for spells that do not have a dbc value
     float hpThreshold = 100.f;  // optional
     float chance = 100.f;       // 0-100%
     float dist = 0.0f;          // desired distance to target

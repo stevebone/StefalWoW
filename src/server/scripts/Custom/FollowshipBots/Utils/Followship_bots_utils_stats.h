@@ -84,5 +84,8 @@ namespace FSBUtilsStats
      * @param regenMods Optional pointer to regeneration modifiers, if used for stat recalculation.
      */
     void UpdateBotLevelToPlayer(Creature* bot, const FSBUtilsStatsMods& regenMods);
+
+    bool SpendManaPct(Creature* bot, float pct);
+    bool SpendManaFlat(Creature* bot, int32 cost);
 }
 
