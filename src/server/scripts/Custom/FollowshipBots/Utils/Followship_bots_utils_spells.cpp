@@ -532,8 +532,8 @@ namespace FSBUtilsCombatSpells
         if (target->HasAura(def->spellId))
             return;
 
-        //if (!FSBUtilsStats::SpendManaPct(bot, runtime->def->manaCostOverride))
-        //    return; // not enough mana
+        if (runtime->def->manaCostOverride != 0.f && !FSBUtilsStats::SpendManaPct(bot, runtime->def->manaCostOverride))
+            return; // not enough mana
 
         Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
         SpellCastTargets targets;
