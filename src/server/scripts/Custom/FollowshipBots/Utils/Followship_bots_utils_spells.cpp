@@ -123,6 +123,11 @@ namespace FSBUtilsSpells
         {
 
             // Can only be cast on more than 2/3 attackers
+            // OR when 2/3 attackers are around
+            // This way we limit spells to CC instead of general/spam use
+        case SPELL_MAGE_BLIZZARD:
+        case SPELL_MAGE_FROST_NOVA:
+        case SPELL_MAGE_POLYMORPH:
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
             Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
@@ -134,8 +139,8 @@ namespace FSBUtilsSpells
             }
 
             uint8 attackers =
-                FSBUtilsCombat::CountAttackersOn(bot) +
-                (player ? FSBUtilsCombat::CountAttackersOn(player) : 0);
+                FSBUtilsCombat::CountActiveAttackers(bot) +
+                (player ? FSBUtilsCombat::CountActiveAttackers(player) : 0);
 
             return attackers >= 3;
         }
@@ -149,6 +154,14 @@ namespace FSBUtilsSpells
         {
             return target && HasDispellableDebuff(target);
         }
+
+        case SPELL_MAGE_ICE_BLOCK:
+        {
+            return target == bot && bot->GetHealthPct() < 10;
+        }
+
+        case SPELL_MAGE_ICE_BARRIER:
+            return target == bot && bot->GetHealthPct() < 75;
 
         default:
             return true;
@@ -484,7 +497,8 @@ namespace FSBUtilsCombatSpells
                 }
             }
 
-            
+            if (spell->isSelfCast)
+                target = bot;
 
                 // Class Spells validation
                 if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target)) 
@@ -535,9 +549,28 @@ namespace FSBUtilsCombatSpells
         if (runtime->def->manaCostOverride != 0.f && !FSBUtilsStats::SpendManaPct(bot, runtime->def->manaCostOverride))
             return; // not enough mana
 
+        if (def->spellId == SPELL_MAGE_POLYMORPH)
+            target = FSBUtilsCombat::GetRandomAttacker(bot);
+
         Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
         SpellCastTargets targets;
-        targets.SetUnitTarget(target);
+
+        if (spellInfo->HasTargetType(TARGET_DEST_DEST))
+        //if(def->spellId == SPELL_MAGE_BLIZZARD)
+        {
+            // Ground-targeted spell (Blizzard, Rain of Fire, etc)
+            Position pos = target->GetPosition();          
+
+            targets.SetDst(pos);
+
+            // Optional but recommended
+            //bot->SetFacingTo(bot->GetAngle(pos.GetPositionX(), pos.GetPositionY()));
+        }
+        else
+        {
+            // Normal unit-target spell (existing logic)
+            targets.SetUnitTarget(target);
+        }
 
         SpellCastResult result = spell->prepare(targets);
 

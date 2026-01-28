@@ -460,7 +460,7 @@ public:
 
         void JustExitedCombat() override
         {
-            
+            FSBUtilsBotCombat::BotHandleReturnMovement(me, moveState, followDistance, followAngle); // Return
         }        
 
         void AttackStart(Unit* /*target*/) override
@@ -558,9 +558,13 @@ public:
             }
 
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
-                _statsMods.flatMaxHealth += 10 * me->GetLevel();      // flat
+                _statsMods.flatMaxHealth += 5 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
                 break;
+
+            case SPELL_MAGE_ARCANE_INTELLECT:
+                _statsMods.pctMaxManaBonus += 0.02f;
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
             }
 
         }
@@ -587,13 +591,20 @@ public:
             }
 
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
-                _statsMods.flatMaxHealth -= 10 * me->GetLevel();      // flat
+                _statsMods.flatMaxHealth -= 5 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 if (me->GetHealth() > me->GetMaxHealth())
                     me->SetHealth(me->GetMaxHealth());
 
                 break;
+
+            case SPELL_MAGE_ARCANE_INTELLECT:
+                _statsMods.pctMaxManaBonus -= 0.02f;
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+
+                if (me->GetPower(POWER_MANA) > me->GetMaxPower(POWER_MANA))
+                    me->SetPower(POWER_MANA, me->GetMaxPower(POWER_MANA));
             }
         }
 
@@ -1106,6 +1117,9 @@ public:
                         break;
 
                     if (player->IsInFlight())
+                        break;
+
+                    if (!player->IsAlive())
                         break;
 
                     if (me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
