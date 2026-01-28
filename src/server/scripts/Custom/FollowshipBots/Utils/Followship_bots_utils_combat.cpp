@@ -22,6 +22,19 @@ namespace FSBUtilsCombat
         return bot->IsInCombat() || (player && player->IsInCombat());
     }
 
+    Unit* GetRandomAttacker(Creature* bot)
+    {
+        auto const& attackers = bot->getAttackers();
+
+        if (attackers.empty())
+            return nullptr;
+
+        auto it = attackers.begin();
+        std::advance(it, urand(0, attackers.size() - 1));
+
+        return *it;
+    }
+
     uint8 CountActiveAttackers(Unit* me)
     {
         if (!me)
@@ -186,8 +199,7 @@ namespace FSBUtilsCombat
             outGroup.push_back(unit);
         }
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: CheckBotAllies. Bot: {} got allies {} and a group of: {}", me->GetName(), nearbyAllies.size(), outGroup.size());  // TEMP-LOG
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup. We got group of {}", outGroup.size());  // TEMP-LOG
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: CheckBotAllies. Bot: {} got allies {} and a group of: {}", me->GetName(), nearbyAllies.size(), outGroup.size());  // TEMP-LOG
     }
 }
 
@@ -292,7 +304,8 @@ namespace FSBUtilsBotCombat
 
     Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect, std::vector<Unit*> botGroup_)
     {
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with allowAutoSelect: {}", allowAutoSelect);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with allowAutoSelect: {}", allowAutoSelect);
+
         // Provides next target selection after current target death.
         // This function should only be called internally by the AI
         // Targets are not evaluated here for being valid targets, that is done in _CanAttack()
@@ -305,7 +318,7 @@ namespace FSBUtilsBotCombat
         // Check pet attackers first so we don't drag a bunch of targets to the owner
         if (Unit* myAttacker = bot->getAttackerForHelper())
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with myAttacker: {}", myAttacker->GetName());
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with myAttacker: {}", myAttacker->GetName());
             if (!myAttacker->HasBreakableByDamageCrowdControlAura())
                 return myAttacker;
         }
@@ -331,7 +344,7 @@ namespace FSBUtilsBotCombat
         // Check owner attackers
         if (Unit* ownerAttacker = owner->getAttackerForHelper())
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with ownerAttacker: {}", ownerAttacker->GetName());
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with ownerAttacker: {}", ownerAttacker->GetName());
             if (!ownerAttacker->HasBreakableByDamageCrowdControlAura())
                 return ownerAttacker;
         }
@@ -541,7 +554,7 @@ namespace FSBUtilsOwnerCombat
         // Continue to evaluate and attack if necessary
         FSBUtilsBotCombat::BotAttackStart(bot, victim, moveState);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", victim->GetName(), moveState);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", victim->GetName(), moveState);
     }
 
     // Bot reaction when owner is attacked by target
@@ -564,6 +577,6 @@ namespace FSBUtilsOwnerCombat
         // Continue to evaluate and attack if necessary
         FSBUtilsBotCombat::BotAttackStart(bot, attacker, moveState);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttackedBy attacker: {}, move state: {}", attacker->GetName(), moveState);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttackedBy attacker: {}, move state: {}", attacker->GetName(), moveState);
     }
 }

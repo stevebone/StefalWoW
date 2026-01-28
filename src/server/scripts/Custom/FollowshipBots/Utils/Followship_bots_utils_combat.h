@@ -16,6 +16,8 @@ namespace FSBUtilsCombat
     // Checks if either bot or player is in combat
     bool IsCombatActive(Creature* me);
 
+    Unit* GetRandomAttacker(Creature* bot);
+
     // Counts active attackers
     uint8 CountActiveAttackers(Unit* me);
 
