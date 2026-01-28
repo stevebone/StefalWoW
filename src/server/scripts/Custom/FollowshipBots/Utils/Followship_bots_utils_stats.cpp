@@ -199,7 +199,8 @@ namespace FSBUtilsStats
         if (!unit)
             return;
 
-        uint32 baseMaxHealth = unit->GetCreateHealth();
+        //uint32 baseMaxHealth = unit->GetCreateHealth();
+        uint32 baseMaxHealth = unit->GetMaxHealth();
         int32 bonusFlat = mods.flatMaxHealth;
         float bonusPct = mods.pctMaxHealthBonus;
 
@@ -216,10 +217,33 @@ namespace FSBUtilsStats
         }
     }
 
+    void ApplyMaxMana(Unit* unit, const FSBUtilsStatsMods& mods)
+    {
+        if (!unit)
+            return;
+
+        //uint32 baseMaxHealth = unit->GetCreateHealth();
+        uint32 baseMaxPower = unit->GetMaxPower(POWER_MANA);
+        int32 bonusFlat = mods.flatMaxMana;
+        float bonusPct = mods.pctMaxManaBonus;
+
+        int32 newMaxPower = baseMaxPower + bonusFlat;
+        if (bonusPct > 0.0f)
+            newMaxPower += uint32(float(baseMaxPower) * bonusPct);
+
+        if (unit->GetMaxPower(POWER_MANA) != newMaxPower)
+        {
+            unit->SetMaxPower(POWER_MANA, newMaxPower);
+
+            //if (unit->GetHealth() > newMaxHealth)
+            //    unit->SetHealth(newMaxHealth);
+        }
+    }
+
     void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods)
     {
         ApplyMaxHealth(unit, mods);
-        // Future:
+        ApplyMaxMana(unit, mods);
         // ApplyArmor(...)
         // ApplySpellPower(...)
     }
@@ -269,6 +293,9 @@ namespace FSBUtilsStats
             return false;
 
         bot->ModifyPower(POWER_MANA, -int32(cost));
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat spellcasting: Reduced power mana by {} for bot: {}", cost, bot->GetName());
+
         return true;
     }
 
