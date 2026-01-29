@@ -70,6 +70,33 @@ namespace FSBUtilsSpells
             && !me->HasUnitState(UNIT_STATE_CASTING);
     }
 
+    bool HasPositiveDebuff(Unit* unit)
+    {
+        if (!unit)
+            return false;
+
+        for (auto const& pair : unit->GetAppliedAuras())
+        {
+            AuraApplication const* aurApp = pair.second;
+            if (!aurApp)
+                continue;
+
+            Aura const* aura = aurApp->GetBase();
+            if (!aura)
+                continue;
+
+            // Skip non positive auras
+            if (!aurApp->IsPositive())
+                continue;
+
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Spell casting: found unit: {} with positive aura.", unit->GetName());
+
+            return true;
+        }
+
+        return false;
+    }
+
     bool HasDispellableDebuff(Unit* unit)
     {
         if (!unit)
@@ -125,6 +152,7 @@ namespace FSBUtilsSpells
             // Can only be cast on more than 2/3 attackers
             // OR when 2/3 attackers are around
             // This way we limit spells to CC instead of general/spam use
+        case SPELL_MAGE_ARCANE_EXPLOSION:
         case SPELL_MAGE_BLIZZARD:
         case SPELL_MAGE_FROST_NOVA:
         case SPELL_MAGE_POLYMORPH:
@@ -162,6 +190,15 @@ namespace FSBUtilsSpells
 
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
+
+        case SPELL_MAGE_COUNTERSPELL:
+            return target->HasUnitState(UNIT_STATE_CASTING);
+
+        case SPELL_MAGE_SPELL_STEAL:
+            return target && HasPositiveDebuff(target);
+
+        case SPELL_MAGE_BLINK:
+            return !bot->GetMap()->IsDungeon();
 
         default:
             return true;

@@ -104,6 +104,8 @@ namespace FSBUtilsSpells
     // Checks global cooldown
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
 
+    bool HasPositiveDebuff(Unit* unit);
+
     /// Returns true if the unit has a debuff that is dispellable by the bot (magic, disease, poison)
     bool HasDispellableDebuff(Unit* unit);
 
