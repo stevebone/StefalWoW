@@ -200,7 +200,7 @@ class boss_foereaper5000 : public CreatureScript
                 _JustDied();
                 Talk(SAY_DEATH);
                 instance->SetBossState(BOSS_FOE_REAPER_5000, DONE);
-                GameObject* foundryDoor = me->FindNearestGameObject(GO_FOUNDRY_DOOR, 30.0f);
+                GameObject* foundryDoor = me->FindNearestGameObject(GO_FOUNDRY_DOOR, 60.0f);
                 if (foundryDoor)
                 {
                     //factoryDoor->DespawnOrUnsummon();

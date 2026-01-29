@@ -110,7 +110,7 @@ class boss_glubtok : public CreatureScript
 
                 // This should be handled by instance script
                 // But it is NOT working for some reason
-                GameObject* factoryDoor = me->FindNearestGameObject(GO_FACTORY_DOOR, 30.0f);
+                GameObject* factoryDoor = me->FindNearestGameObject(GO_FACTORY_DOOR, 50.0f);
                 if (factoryDoor)
                 {
                     //factoryDoor->DespawnOrUnsummon();

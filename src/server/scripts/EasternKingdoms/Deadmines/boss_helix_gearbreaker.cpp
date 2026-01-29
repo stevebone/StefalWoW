@@ -180,7 +180,7 @@ class boss_helix_gearbreaker : public CreatureScript
 
                 // This should be done by instance script
                 // But is not working for some reason
-                GameObject* mastDoor = me->FindNearestGameObject(GO_MAST_ROOM_DOOR, 30.0f);
+                GameObject* mastDoor = me->FindNearestGameObject(GO_MAST_ROOM_DOOR, 60.0f);
                 if (mastDoor)
                 {
                     //factoryDoor->DespawnOrUnsummon();
