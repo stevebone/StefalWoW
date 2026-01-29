@@ -986,13 +986,17 @@ public:
                             
                         }
                     }
-                        //events.ScheduleEvent(FSB_EVENT_PERIODIC_CUSTOM_REGEN, 2s);
 
                     // Check if combat is NOT taking place and schedule OOC actions
                     if (!FSBUtilsCombat::IsCombatActive(me))
                     {
-                        if(now >= _1secondsCheckMs)
-                            events.ScheduleEvent(FSB_EVENT_PERIODIC_OOC_ACTIONS, 1s);
+                        if (now >= _1secondsCheckMs)
+                        {
+                            DoAction(FSB_ACTION_OOC_ACTIONS);
+
+                            // ? lock regen for next 2 seconds
+                            _1secondsCheckMs = now + 1000;
+                        }
                     }
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -1003,39 +1007,7 @@ public:
                 }
 
                 // =====================================
-                // Applies custom regeneration & mods
-                case FSB_EVENT_PERIODIC_CUSTOM_REGEN:
-                {
-                    uint32 now = getMSTime();
-
-                    if (me->GetHealthPct() < 100 || me->GetPowerPct(me->GetPowerType()) < 100)
-                    {
-                        FSBUtilsStats::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
-
-                        // ? lock regen for next 2 seconds
-                        _nextRegenMs = now + 2000;
-                    }
-
-                    break;
-                }
-
                 // =====================================
-                // Triggers actions (per class) when bot is OOC
-                case FSB_EVENT_PERIODIC_OOC_ACTIONS:
-                {
-                    uint32 now = getMSTime();
-
-                    if (now >= _1secondsCheckMs)
-                    {
-                        DoAction(FSB_ACTION_OOC_ACTIONS);
-
-                        // ? lock regen for next 2 seconds
-                        _1secondsCheckMs = now + 1000;
-                    }
-                    break;
-                }
-
-
                 // =================================================== //
                 // ========= HIRED MAINTENANCE ======================= //
                 // Important polls that are needed when bot is hired   //
@@ -1144,6 +1116,9 @@ public:
                         break;
 
                     if (!player->IsAlive())
+                        break;
+
+                    if (moveState == FSB_MOVE_STATE_STAY)
                         break;
 
                     if (me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
