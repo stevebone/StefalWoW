@@ -11,43 +11,51 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         30,     // HP per level
         0,      // Power per level
         5,      // HP regen %
-        0       // Power regen %
+        0,       // Power regen %
+        0,
+        0
     },
 
     // PRIEST
     {
-        FSB_Class::Priest,
-        POWER_MANA,
-        90,             // base HP
-        160,            // base Power
-        18,             // HP per level
-        30,             // Power per level
-        3,              // HP regen %
-        12              // Power regen %
+        .classId = FSB_Class::Priest,
+        .powerType = POWER_MANA,
+        .baseHealth = 90,             // base HP
+        .basePower = 160,            // base Power
+        .healthPerLevel = 18,             // HP per level
+        .powerPerLevel = 30,             // Power per level
+        .baseHpRegenOOC = 3,              // HP regen %
+        .basePowerRegenOOC = 4,              // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2
     },
 
     // MAGE
     {
-        FSB_Class::Mage,
-        POWER_MANA,
-        80,
-        200,
-        15,
-        35,
-        2,
-        14
+        .classId = FSB_Class::Mage,
+        .powerType = POWER_MANA,
+        .baseHealth = 80,            
+        .basePower = 200,            
+        .healthPerLevel = 15,        
+        .powerPerLevel = 35,         
+        .baseHpRegenOOC = 2,         
+        .basePowerRegenOOC = 6,      
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2
     },
 
     // ROGUE
     {
-        FSB_Class::Rogue,
-        POWER_ENERGY,
-        100,
-        100,
-        22,
-        10,
-        4,
-        10
+        .classId = FSB_Class::Rogue,
+        .powerType = POWER_ENERGY,
+        .baseHealth = 100,
+        .basePower = 100,
+        .healthPerLevel = 22,
+        .powerPerLevel = 10,
+        .baseHpRegenOOC = 4,
+        .basePowerRegenOOC = 10,
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2
     },
 };
 
@@ -97,35 +105,12 @@ namespace FSBUtilsStats
             maxPower);
     }
 
-    void ApplyBotBaseRegen(Creature* me, FSBUtilsStatsMods& mods, FSB_Class botClass)
-    {
-        if (!me->IsAlive())
-            return;
-
-        auto const* stats = GetBotClassStats(botClass);
-        if (!stats)
-            return;
-
-        bool inCombat = me->IsInCombat();
-
-        if (!inCombat)
-        {
-            mods.flatHealthPerTick += stats->baseHpRegenOOC;
-            mods.flatManaPerTick += stats->basePowerRegenOOC;
-        }
-        else
-        {
-            mods.flatHealthPerTick += stats->baseHpRegenIC;
-            mods.flatManaPerTick += stats->basePowerRegenIC;
-        }
-    }
-
     void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana)
     {
         if (!unit || !unit->IsAlive())
             return;
 
-        bool inCombat = unit->IsInCombat();
+        bool inCombat = unit->IsInCombat() || unit->HasUnitFlag(UNIT_FLAG_IN_COMBAT);
 
         // Fetch class base stats
         FSB_ClassStats const* classStats = GetBotClassStats(botClass);
@@ -147,10 +132,16 @@ namespace FSBUtilsStats
                 amount += int32(maxHp * mods.pctMaxHealthBonus);
             }
 
+            if (mods.pctHealthPerTick > 0.0f)
+            {
+                uint32 maxHp = unit->GetMaxHealth();
+                amount += int32(maxHp * mods.pctHealthPerTick);
+            }
+
             if (amount > 0)
                 unit->ModifyHealth(amount);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={})", unit->GetName(), amount);
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
 
         // ---------- POWER ----------
@@ -168,10 +159,16 @@ namespace FSBUtilsStats
                 amount += int32(maxPower * mods.pctMaxManaBonus);
             }
 
+            if (mods.pctManaPerTick > 0.0f)
+            {
+                uint32 maxPower = unit->GetMaxPower(POWER_MANA);
+                amount += int32(maxPower * mods.pctManaPerTick);
+            }
+
             if (amount > 0)
                 unit->ModifyPower(POWER_MANA, amount);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={})", unit->GetName(), amount);
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
     }
 

@@ -95,7 +95,7 @@ public:
                 if (FollowshipBotsConfig::configFSBUseCustomRegen)
                 {
                     _baseStatsMods = FSBUtilsStatsMods(); // zero
-                    FSBUtilsStats::ApplyBotBaseRegen(me, _baseStatsMods, botClass);
+                    //FSBUtilsStats::ApplyBotBaseRegen(me, _baseStatsMods, botClass);
 
                     // Disable npc flags if any in DB
                     me->RemoveUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
@@ -450,7 +450,7 @@ public:
             // Continue to evaluate and attack if necessary
             FSBUtilsBotCombat::BotAttackStart(me, who, moveState);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", who->GetName(), moveState);
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", who->GetName(), moveState);
         }
 
         void JustEnteredCombat(Unit* /*who*/) override
@@ -565,6 +565,12 @@ public:
             case SPELL_MAGE_ARCANE_INTELLECT:
                 _statsMods.pctMaxManaBonus += 0.02f;
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
+                break;
+
+            case SPELL_MAGE_EVOCATION:
+                _statsMods.pctManaPerTick += 1500.f;
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+                break;
             }
 
         }
@@ -605,6 +611,14 @@ public:
 
                 if (me->GetPower(POWER_MANA) > me->GetMaxPower(POWER_MANA))
                     me->SetPower(POWER_MANA, me->GetMaxPower(POWER_MANA));
+
+                break;
+
+            case SPELL_MAGE_EVOCATION:
+                _statsMods.pctManaPerTick -= 1500.f;
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+
+                break;
             }
         }
 
@@ -962,7 +976,17 @@ public:
 
                     // Check if custom regen is enabled and we can schedule every 2s
                     if (FollowshipBotsConfig::configFSBUseCustomRegen && now >= _nextRegenMs)
-                        events.ScheduleEvent(FSB_EVENT_PERIODIC_CUSTOM_REGEN, 2s);
+                    {
+                        if (me->GetHealthPct() < 100 || me->GetPowerPct(me->GetPowerType()) < 100)
+                        {
+                            FSBUtilsStats::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
+
+                            // ? lock regen for next 2 seconds
+                            _nextRegenMs = now + 2000;
+                            
+                        }
+                    }
+                        //events.ScheduleEvent(FSB_EVENT_PERIODIC_CUSTOM_REGEN, 2s);
 
                     // Check if combat is NOT taking place and schedule OOC actions
                     if (!FSBUtilsCombat::IsCombatActive(me))

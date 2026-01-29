@@ -34,6 +34,9 @@ struct FSBUtilsStatsMods
     int32 flatHealthPerTick = 0;
     int32 flatManaPerTick = 0;
 
+    float pctHealthPerTick = 0;
+    float pctManaPerTick = 0;
+
     // MAX STATS
     int32 flatMaxHealth = 0;
     int32 flatMaxMana = 0;
@@ -46,6 +49,9 @@ struct FSBUtilsStatsMods
     {
         flatHealthPerTick += rhs.flatHealthPerTick;
         flatManaPerTick += rhs.flatManaPerTick;
+
+        pctHealthPerTick += rhs.pctHealthPerTick;
+        pctManaPerTick += rhs.pctManaPerTick;
 
         pctMaxHealthBonus += rhs.pctMaxHealthBonus;
         pctMaxManaBonus += rhs.pctMaxManaBonus;
@@ -67,7 +73,6 @@ namespace FSBUtilsStats
 {
     FSB_ClassStats const* GetBotClassStats(FSB_Class botClass);
     void ApplyBotBaseClassStats(Creature* creature, FSB_Class botClass);
-    void ApplyBotBaseRegen(Creature* me, FSBUtilsStatsMods& mods, FSB_Class botClass);
 
     // Full mod-aware version
     void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana);

@@ -188,6 +188,9 @@ namespace FSBUtilsSpells
             return target == bot && bot->GetHealthPct() < 10;
         }
 
+        case SPELL_MAGE_EVOCATION:
+            return bot->GetPowerPct(POWER_MANA) < 50;
+
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
