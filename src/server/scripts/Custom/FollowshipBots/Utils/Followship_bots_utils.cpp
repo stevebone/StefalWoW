@@ -704,6 +704,25 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
+        case FSBSayType::OOCRecovery:
+        {
+            static const std::vector<std::string> texts =
+            {
+                "Hey, <name>, I really need a break...",
+                "Let's sit for a moment yeah, <name>!",
+                "My <spell> will make me like new...",
+                "You're gonna have to wait for me, <name>!",
+                "This <spell> is exactly what I need.",
+                "We can't go on an empty stomach, now can we?",
+                "I need my <spell>, break now <name>!"
+            };
+
+            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
+            ReplaceAll(chosen, "<name>", playerName);
+            ReplaceAll(chosen, "<spell>", string2);
+            return chosen;
+        }
+
         default:
             return "Hello " + playerName + ".";
         }

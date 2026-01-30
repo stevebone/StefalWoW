@@ -604,6 +604,7 @@ public:
                 break;
             }
 
+            case SPELL_FOOD_SCALED_WITH_LVL:
             case SPELL_MAGE_CONJURED_MANA_PUDDING:
             {
                 if (me->GetStandState() == UNIT_STAND_STATE_SIT)

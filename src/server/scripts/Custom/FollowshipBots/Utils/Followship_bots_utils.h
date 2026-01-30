@@ -74,7 +74,8 @@ enum class FSBSayType
     BotDeath,       // NPC Dies
     TargetDeath,    // NPC Kills Target
     BuffTarget,
-    BuffSelf
+    BuffSelf,
+    OOCRecovery
 };
 
 namespace FSBUtilsTexts

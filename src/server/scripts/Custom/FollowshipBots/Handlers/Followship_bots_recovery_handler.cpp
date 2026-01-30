@@ -39,6 +39,7 @@ namespace FSBRecovery
     void BuildRecoveryActions(Creature* bot, RecoveryActionList& _recoveryActions)
     {
         _recoveryActions.emplace_back(new ActionDrinkMana());
+        _recoveryActions.emplace_back(new ActionEatFood());
 
         if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Mage)
             _recoveryActions.emplace_back(new ActionMageConjuredDrink());
