@@ -230,7 +230,7 @@ namespace FSBUtils
 
         
             if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(unit->AI()))
-                return ai->roleState;
+                return ai->botRole;
         
 
         return FSB_Roles::FSB_ROLE_NONE;
@@ -243,7 +243,7 @@ namespace FSBUtils
 
 
             if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(unit->AI()))
-                ai->roleState = role;
+                ai->botRole = role;
         
     }
 
