@@ -78,7 +78,8 @@ public:
                 _statsMods = FSBUtilsStatsMods();     // now resets caller state
 
                 FSBUtils::SetInitialState(me, hired, moveState);
-                FSBUtils::SetBotClass(me, botClass);
+                //FSBUtils::SetBotClass(me, botClass);
+                FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
@@ -95,7 +96,6 @@ public:
                 if (FollowshipBotsConfig::configFSBUseCustomRegen)
                 {
                     _baseStatsMods = FSBUtilsStatsMods(); // zero
-                    //FSBUtilsStats::ApplyBotBaseRegen(me, _baseStatsMods, botClass);
 
                     // Disable npc flags if any in DB
                     me->RemoveUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
@@ -1260,7 +1260,6 @@ public:
                     if (player && player->IsAlive() && player->IsInCombat())
                     {
                         _ownerWasInCombat = true;
-                        //events.ScheduleEvent(FSB_EVENT_COMBAT_INITIAL_SPELLS_PLAYER, 1s);
                     }
                     else if (player && player->IsAlive() && !player->IsInCombat())
                     {

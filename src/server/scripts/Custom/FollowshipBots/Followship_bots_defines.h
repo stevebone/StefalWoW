@@ -14,6 +14,19 @@ enum class FSB_Class : uint8
     Warlock = 8,
 };
 
+enum class FSB_Race : uint8
+{
+    None = 0,
+    Human = 1,
+    Dwarf = 2,
+    NightElf = 3,
+    Gnome = 4,
+    Draenei = 5,
+    Worgen = 6,
+    Pandaren = 7,
+    VoidElf = 8,
+};
+
 enum FSB_Roles
 {
     FSB_ROLE_NONE = 0,

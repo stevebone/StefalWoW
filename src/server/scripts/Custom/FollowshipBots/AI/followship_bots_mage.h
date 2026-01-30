@@ -1,6 +1,6 @@
 #pragma once
 
-#include "followship_bots_utils_spells.h"
+#include "Followship_bots_utils_spells.h"
 
 constexpr auto FSB_GOSSIP_ITEM_ROLE_ARCANE = "Arcane Damage Role: mostly arcane spells";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_FROST = "Frost Damage Dealer: mostly frost and ice spells";

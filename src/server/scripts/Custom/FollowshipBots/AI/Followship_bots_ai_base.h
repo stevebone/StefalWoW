@@ -12,12 +12,12 @@ class FSB_BaseAI : public ScriptedAI
 public:
     FSB_BaseAI(Creature* creature) : ScriptedAI(creature),
         roleState(FSB_Roles::FSB_ROLE_NONE),
-        botClass(FSB_Class::None)
-        //moveState(FSB_MOVE_STATE_IDLE)
+        botClass(FSB_Class::None),
+        botRace(FSB_Race::None)
     {
     }
 
     FSB_Roles roleState; // each bot sets this
     FSB_Class botClass;
-    //uint16 moveState;
+    FSB_Race botRace;
 };

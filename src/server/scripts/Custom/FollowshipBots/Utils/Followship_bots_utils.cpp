@@ -19,20 +19,21 @@ struct FSBEntryClassMap
 {
     uint32 entry;
     FSB_Class botClass;
+    FSB_Race botRace;
 };
 
 static constexpr FSBEntryClassMap BotEntryClassTable[] =
 {
     // PRIESTS
-    { 141508,   FSB_Class::Priest },  // Stormwind Priest
-    { 375,      FSB_Class::Priest },     // Priestess Anetta
+    { 141508,   FSB_Class::Priest,      FSB_Race::Human },  // Stormwind Priest
+    { 375,      FSB_Class::Priest,      FSB_Race::Human },     // Priestess Anetta
 
     // WARRIORS
     //{ 90010, FSB_Class::Warrior },
     //{ 90011, FSB_Class::Warrior },
 
     // MAGES
-    { 198, FSB_Class::Mage }, // Khelden Bremen
+    { 198, FSB_Class::Mage,             FSB_Race::Human }, // Khelden Bremen
 
     // ROGUES
     //{ 90030, FSB_Class::Rogue },
@@ -129,6 +130,83 @@ namespace FSBUtils
 
         outClass = cls;
     }
+
+    FSB_Race GetBotRaceForEntry(uint32 entry)
+    {
+        for (auto const& map : BotEntryClassTable)
+        {
+            if (map.entry == entry)
+                return map.botRace;
+        }
+
+        return FSB_Race::None;
+    }
+
+    void SetBotRace(Creature* creature, FSB_Race& outRace)
+    {
+        if (!creature)
+            return;
+
+        FSB_Race race = GetBotRaceForEntry(creature->GetEntry());
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Race set: {} for bot with entry {}", race, creature->GetEntry());
+
+        if (race == FSB_Race::None)
+        {
+            TC_LOG_WARN("scripts.ai.fsb", "FSB: No race mapping found for creature entry {}", creature->GetEntry());
+        }
+
+        outRace = race;
+    }
+
+    bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace)
+    {
+        for (auto const& map : BotEntryClassTable)
+        {
+            if (map.entry == entry)
+            {
+                outClass = map.botClass;
+                outRace = map.botRace;
+                return true;
+            }
+        }
+
+        outClass = FSB_Class::None;
+        outRace = FSB_Race::None;
+        return false;
+    }
+
+    void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)
+    {
+        if (!creature)
+            return;
+
+        bool found = GetBotClassAndRaceForEntry(
+            creature->GetEntry(),
+            outClass,
+            outRace
+        );
+
+        if (!found)
+        {
+            TC_LOG_WARN(
+                "scripts.ai.fsb",
+                "FSB: No class/race mapping found for creature entry {}",
+                creature->GetEntry()
+            );
+            return;
+        }
+
+        TC_LOG_DEBUG(
+            "scripts.ai.fsb",
+            "FSB: Class set to {} and Race set to {} for bot with entry {}",
+            outClass,
+            outRace,
+            creature->GetEntry()
+        );
+    }
+
+
 
 
     float GetRandomLeftAngle()
