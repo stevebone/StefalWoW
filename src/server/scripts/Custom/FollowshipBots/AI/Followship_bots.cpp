@@ -757,73 +757,6 @@ public:
                     }
                 }
 
-                // 2. Bot OOC & OOM
-                if (me->GetPowerType() == POWER_MANA && me->GetPowerPct(POWER_MANA) < 30)
-                {
-                    if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                    {
-                        if (!me->HasAura(SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER))
-                        {
-                            Player* player = FSBMgr::GetBotOwner(me);
-
-                            if(player)
-                                FSBUtilsMovement::StopFollow(me);
-
-                            me->Say("I'm gonna take a mana break!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-                            me->CastSpell(me, SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER); // Conjured Crystal Water
-                            _globalCooldownUntil = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
-
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: ACTION OOC Mana");
-
-                            if(player)
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 30s);
-
-                            break;
-                        }
-                    }
-                }
-
-                // 3. Bot OOC Self Heal
-                if (me->GetHealthPct() < 80)
-                {
-                    switch (botClass)
-                    {
-                    case FSB_Class::Priest:
-                    {
-                        uint32 spellId = 0;
-
-                        if (FSB_PriestActionsSpells::BotHealSelfOOC(me, _globalCooldownUntil, _60secondsCheckMs, spellId))
-                        {
-                            if (spellId == SPELL_PRIEST_HEAL)
-                            {
-                                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                                {
-                                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                }
-
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 2s);
-
-                                break;
-                            }
-                            else if (spellId == SPELL_PRIEST_RECUPERATE)
-                            {
-                                me->Say("I need a breather!", LANG_UNIVERSAL); // TO-DO maybe turn this into a choice of lines
-
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 10s);
-
-                                break;
-                            }
-
-                            
-                        }
-                            break;
-                    }
-                    default:
-                        break;
-                    }
-                }
-
                 // 4. Bot OOC Buffs
                 if (now >= _buffsTimerMs)
                 {
@@ -1010,7 +943,7 @@ public:
                     {
                         if (now >= _1secondsCheckMs)
                         {
-                            //DoAction(FSB_ACTION_OOC_ACTIONS);
+                            DoAction(FSB_ACTION_OOC_ACTIONS);
 
                             // ? lock regen for next 2 seconds
                             _1secondsCheckMs = now + 1000;
