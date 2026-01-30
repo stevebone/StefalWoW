@@ -31,6 +31,7 @@ enum class BotRecoveryIntent
 
 enum class BotRecoveryType
 {
+    None,
     Health,
     Mana,
     Both
@@ -38,7 +39,7 @@ enum class BotRecoveryType
 
 struct BotRecoveryAction
 {
-    BotRecoveryType type;
+    BotRecoveryType type = BotRecoveryType::None;
     uint8 priority = 0; // higher = preferred
 
     virtual ~BotRecoveryAction() = default;

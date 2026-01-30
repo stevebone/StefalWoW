@@ -18,7 +18,11 @@ std::vector<FSBSpellDefinition> MageSpellsTable =
     
 
     // FIRE
-    { SPELL_MAGE_FIREBALL,     FSBSpellType::Damage,            0.f,        0.f,            100.f,           40.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FIRE },
+    { SPELL_MAGE_FIREBALL,     FSBSpellType::Damage,            0.f,        0.f,            30.f,           40.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FIRE },
+    { SPELL_MAGE_PYROBLAST,     FSBSpellType::Damage,            0.f,        0.f,            40.f,           40.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FIRE },
+    { SPELL_MAGE_FIRE_BLAST,     FSBSpellType::Damage,            0.f,        0.f,            50.f,           40.f,          false,       14000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FIRE },
+    { SPELL_MAGE_FLAMESTRIKE,     FSBSpellType::Damage,            0.f,        0.f,            60.f,           40.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FIRE },
+    { SPELL_MAGE_COMBUSTION,     FSBSpellType::Damage,            0.f,        0.f,            70.f,           2.f,          true,       120000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FIRE },
 
     // ARCANE
     { SPELL_MAGE_ARCANE_MISSILES,   FSBSpellType::Damage,            0.f,        0.f,            50.f,           30.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_ARCANE },
