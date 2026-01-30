@@ -19,6 +19,7 @@
 //#include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_spells.h"
+#include "Followship_bots_recovery_handler.h"
 
 
 
@@ -81,6 +82,12 @@ public:
                 //FSBUtils::SetBotClass(me, botClass);
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
+
+                _recoveryActions.clear();
+
+                FSBRecovery::BuildRecoveryActions(me, _recoveryActions);
+
+                _nextRecoveryCheckMs = 0;
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
@@ -585,13 +592,24 @@ public:
             // Example: generic drink spells
             switch (spellId)
             {
-            case SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER: // Conjured Crystal water
+            case SPELL_DRINK_CONJURED_CRYSTAL_WATER: // Conjured Crystal water
             {
                 if (me->GetStandState() == UNIT_STAND_STATE_SIT)
                 {
                     me->SetStandState(UNIT_STAND_STATE_STAND);
                     int32 amount = FSBUtilsSpells::GetDrinkManaRegen(me->GetLevel());
                     _statsMods.flatManaPerTick -= amount;
+                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
+                }
+                break;
+            }
+
+            case SPELL_MAGE_CONJURED_MANA_PUDDING:
+            {
+                if (me->GetStandState() == UNIT_STAND_STATE_SIT)
+                {
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
                 }
                 break;
             }
@@ -992,10 +1010,16 @@ public:
                     {
                         if (now >= _1secondsCheckMs)
                         {
-                            DoAction(FSB_ACTION_OOC_ACTIONS);
+                            //DoAction(FSB_ACTION_OOC_ACTIONS);
 
                             // ? lock regen for next 2 seconds
                             _1secondsCheckMs = now + 1000;
+                        }
+
+                        if (now >= _nextRecoveryCheckMs)
+                        {
+                            FSBRecovery::TryRecovery(me, _recoveryActions, _globalCooldownUntil, _isRecovering, _recoveryLockUntil);
+                            _nextRecoveryCheckMs = now + 1000; // once per second is plenty
                         }
                     }
 
@@ -1458,6 +1482,7 @@ public:
             bool _ownerWasInCombat = false;
             uint8 _appliedInitialCBuffs = 0;
             std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
+            std::vector<std::unique_ptr<BotRecoveryAction>> _recoveryActions;
             uint32 _globalCooldownUntil = 0; // global cooldown
             uint32 _buffsTimerMs = 0;
 
@@ -1472,6 +1497,10 @@ public:
             uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;
             uint32 _1secondsCheckMs = 0;
+
+            uint32 _nextRecoveryCheckMs = 0;
+            bool _isRecovering = false;
+            uint32 _recoveryLockUntil = 0;
             
     };
 
