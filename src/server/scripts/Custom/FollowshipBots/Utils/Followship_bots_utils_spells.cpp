@@ -158,7 +158,7 @@ namespace FSBUtilsSpells
         case SPELL_MAGE_POLYMORPH:
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
-            Player* player = FSBMgr::GetBotOwner(bot)->ToPlayer();
+            Player* player = FSBMgr::GetBotOwner(bot);
 
             if (!player)
             {
@@ -641,7 +641,7 @@ namespace FSBUtilsCombatSpells
         }
         else if (def->type == FSBSpellType::Damage)
         {
-            if (!target)
+            if (!target || target == bot)
                 return;
 
             FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::SpellOnTarget, def->spellId);
