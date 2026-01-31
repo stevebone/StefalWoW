@@ -11,6 +11,8 @@ constexpr auto FSB_GOSSIP_MENU_FOLLOW_DIST = "Follow Distance";
 constexpr auto FSB_GOSSIP_MENU_FOLLOW_ANGLE = "Follow Angle";
 constexpr auto FSB_GOSSIP_MENU_ROLES = "Roles";
 
+constexpr auto FSB_GOSSIP_MENU_PORTAL = "I need a portal";
+
 // Non menu items
 constexpr auto FSB_GOSSIP_ITEM_PHIRE = "I need you for a longer time...";
 constexpr auto FSB_GOSSIP_ITEM_FIRE = "Dismiss!";
@@ -32,6 +34,10 @@ constexpr auto FSB_GOSSIP_ITEM_ROLE_ASSIST = "Healer Role: mostly heals and ligh
 constexpr auto FSB_GOSSIP_ITEM_ROLE_DAMAGE = "Damage Dealer: only damage on all targets";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_BALANCED = "Assist Role: a mix of heals and damage spells";
 
+constexpr auto FSB_GOSSIP_ITEM_PORTAL_STORMWIND = "Stormwind";
+constexpr auto FSB_GOSSIP_ITEM_PORTAL_DARNASSUS = "Darnassus";
+constexpr auto FSB_GOSSIP_ITEM_PORTAL_IRONFORGE = "Ironforge";
+constexpr auto FSB_GOSSIP_ITEM_PORTAL_EXODAR = "Exodar";
 
 constexpr auto FSB_GOSSIP_ITEM_INFO = "Tell me more about yourself";
 
@@ -48,7 +54,8 @@ enum FSB_GossipMenus
     FSB_GOSSIP_HIRE_MENU = 900002,
     FSB_GOSSIP_INSTRUCTIONS_MENU = 900003,
     FSB_GOSSIP_FOLLOW_DIST_MENU = 900004,
-    FSB_GOSSIP_FOLLOW_ANGLE_MENU = 900005
+    FSB_GOSSIP_FOLLOW_ANGLE_MENU = 900005,
+    FSB_GOSSIP_PORTAL_MENU = 900006
 
 };
 
@@ -67,4 +74,6 @@ namespace FSBUtilsGossip
     bool HandleFollowDistanceGossipSelect(Creature* me, Player* player);
 
     bool HandleFollowAngleGossipSelect(Creature* me, Player* player);
+
+    bool HandlePortalGossipSelect(Creature* me, Player* player);
 }

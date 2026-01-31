@@ -42,6 +42,10 @@ namespace FSBUtilsGossip
 
             AddGossipItemFor(player, GossipOptionNpc::Trainer,
                 FSB_GOSSIP_MENU_INSTRUCTIONS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 6);
+
+            if (FSBUtils::GetBotClassForEntry(me->GetEntry()) == FSB_Class::Mage)
+                AddGossipItemFor(player, GossipOptionNpc::None,
+                    FSB_GOSSIP_MENU_PORTAL, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 26);
         }
         else
         {
@@ -177,7 +181,17 @@ namespace FSBUtilsGossip
         return true;
     }
 
-    //bool HandleHire1GossipSelect(Creature* me, Player* player)
+    bool HandlePortalGossipSelect(Creature* me, Player* player)
+    {
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_PORTAL_STORMWIND, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 27);
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_PORTAL_DARNASSUS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 28);
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_PORTAL_IRONFORGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 29);
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_PORTAL_EXODAR, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 30);
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
+
+        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_PORTAL_MENU, me->GetGUID());
+        return true;
+    }
     
 
 }

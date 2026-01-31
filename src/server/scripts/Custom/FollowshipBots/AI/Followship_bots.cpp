@@ -431,6 +431,37 @@ public:
                 break;
             }
 
+            case GOSSIP_ACTION_INFO_DEF + 26:
+                return FSBUtilsGossip::HandlePortalGossipSelect(me, player);
+
+            case GOSSIP_ACTION_INFO_DEF + 27:
+            {
+                me->CastSpell(me, SPELL_MAGE_PORTAL_STORMWIND);
+                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                break;
+            }
+
+            case GOSSIP_ACTION_INFO_DEF + 28:
+            {
+                player->CastSpell(me, 121849);
+                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                break;
+            }
+
+            case GOSSIP_ACTION_INFO_DEF + 29:
+            {
+                player->CastSpell(player, 121851);
+                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                break;
+            }
+
+            case GOSSIP_ACTION_INFO_DEF + 30:
+            {
+                player->CastSpell(player, 121850);
+                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                break;
+            }
+
             default:
                 break;
             }

@@ -141,7 +141,7 @@ namespace FSBUtilsStats
             if (amount > 0)
                 unit->ModifyHealth(amount);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={}) in combat: {}", unit->GetName(), amount, inCombat);
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
 
         // ---------- POWER ----------
@@ -168,7 +168,7 @@ namespace FSBUtilsStats
             if (amount > 0)
                 unit->ModifyPower(POWER_MANA, amount);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
     }
 
