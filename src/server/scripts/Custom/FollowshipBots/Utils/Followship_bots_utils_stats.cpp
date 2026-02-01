@@ -1,19 +1,24 @@
 #include "followship_bots_utils_stats.h"
+#include "followship_bots_utils.h"
+
+constexpr float RAGE_FROM_DAMAGE_COEFF = 1.15f;
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
 {
     // WARRIOR
     {
-        FSB_Class::Warrior,
-        POWER_RAGE,
-        120,    // base HP
-        0,      // base power
-        30,     // HP per level
-        0,      // Power per level
-        5,      // HP regen %
-        0,       // Power regen %
-        0,
-        0
+        .classId = FSB_Class::Warrior,
+        .powerType = POWER_RAGE,
+        .baseHealth = 120,    // base HP
+        .basePower = 0,      // base power
+        .healthPerLevel = 60,     // HP per level
+        .powerPerLevel = 0,      // Power per level
+        .baseHpRegenOOC = 5,      // HP regen %
+        .basePowerRegenOOC = 0,       // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 0,
+        .baseAttackPower = 100,
+        .baseRangedAttackPower = 50
     },
 
     // PRIEST
@@ -27,7 +32,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenOOC = 3,              // HP regen %
         .basePowerRegenOOC = 4,              // Power regen %
         .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0
     },
 
     // MAGE
@@ -41,7 +48,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenOOC = 2,         
         .basePowerRegenOOC = 6,      
         .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0
     },
 
     // ROGUE
@@ -55,7 +64,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenOOC = 4,
         .basePowerRegenOOC = 10,
         .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 80,
+        .baseRangedAttackPower = 50
     },
 };
 
@@ -80,7 +91,10 @@ namespace FSBUtilsStats
             return;
 
         uint8 level = creature->GetLevel();
+        creature->SetClass(FSBToTCClass(botClass));
 
+        Powers powerType = stats->powerType;
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} stats powerType: {}", creature->GetName(), stats->powerType);
         uint32 maxHealth =
             stats->baseHealth +
             stats->healthPerLevel * (level - 1);
@@ -89,20 +103,48 @@ namespace FSBUtilsStats
             stats->basePower +
             stats->powerPerLevel * (level - 1);
 
-        creature->SetPowerType(stats->powerType);
+        if (botClass == FSB_Class::Warrior)
+            maxPower = 1000;
+
+        //creature->SetOverrideDisplayPowerId(466);
+
+        creature->SetPowerType(powerType, true);
         creature->SetMaxHealth(maxHealth);
         creature->SetHealth(maxHealth);
+        creature->SetMaxPower(powerType, maxPower);
 
-        // TO-DO set conditions for rage and energy
-        creature->SetMaxPower(stats->powerType, maxPower);
-        creature->SetPower(stats->powerType, maxPower);
+        if (stats->powerType == POWER_RAGE)
+            creature->SetPower(powerType, 0, true);
+        else creature->SetPower(powerType, maxPower);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, MaxHealth= {}, Power= {}, MaxPower= {}",
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, MaxHealth= {}, Power= {}, MaxPower= {}, TC Class= {}, FSB Class= {}",
             creature->GetName(),
             level,
             maxHealth,
             creature->GetPowerType(),
-            maxPower);
+            creature->GetMaxPower(powerType),
+            creature->GetClass(),
+            botClass);
+    }
+
+    Classes FSBToTCClass(FSB_Class botClass)
+    {
+        switch (botClass)
+        {
+        case FSB_Class::Warrior:            return CLASS_WARRIOR;
+        case FSB_Class::Priest:             return CLASS_PRIEST;
+        case FSB_Class::Mage:               return CLASS_MAGE;
+        case FSB_Class::Rogue:              return CLASS_ROGUE;
+        case FSB_Class::Druid:              return CLASS_DRUID;
+        case FSB_Class::Paladin:            return CLASS_PALADIN;
+        case FSB_Class::Hunter:             return CLASS_HUNTER;
+        case FSB_Class::Warlock:            return CLASS_WARLOCK;
+        case FSB_Class::None:               return CLASS_NONE;
+        default:
+            break;
+        }
+
+        return CLASS_NONE;
     }
 
     void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana)
@@ -265,14 +307,73 @@ namespace FSBUtilsStats
         bot->SetLevel(pLevel);
 
         // Update stats for new level
-        bot->UpdateLevelDependantStats();
+        UpdateBotLevelDependantStats(bot);
 
         // Reset health & power
-        bot->SetHealth(bot->GetMaxHealth());
-        bot->SetPower(bot->GetPowerType(), bot->GetMaxPower(bot->GetPowerType()));
+        //bot->SetHealth(bot->GetMaxHealth());
+        //if(FSBUtils::GetBotClassForEntry(bot->GetEntry()) != FSB_Class::Warrior)
+        //    bot->SetPower(FSBUtilsStats::GetBotPowerType(bot), bot->GetMaxPower(FSBUtilsStats::GetBotPowerType(bot)));
 
         // Recalculate any additional stats/modifiers
         RecalculateMods(bot, mods);
+    }
+
+    void UpdateBotLevelDependantStats(Creature* bot)
+    {
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        auto const* stats = GetBotClassStats(botClass);
+        if (!stats)
+            return;
+
+        uint8 level = bot->GetLevel();
+
+        // health
+
+        uint32 basehp = stats->baseHealth;
+        uint32 health = uint32(basehp + (stats->healthPerLevel * level));
+
+        bot->SetCreateHealth(health);
+        bot->SetMaxHealth(health);
+        bot->SetHealth(health);
+        bot->ResetPlayerDamageReq();
+
+        bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
+
+        // Powers
+        Powers powerType = GetBotPowerType(bot);
+
+        uint32 basePower = stats->basePower;
+        uint32 power = uint32(basePower + (stats->powerPerLevel * level));
+
+        if (botClass == FSB_Class::Warrior)
+            power = 1000;
+
+        bot->SetCreateMana(power);
+        bot->SetStatPctModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_PCT, bot->GetCreatureDifficulty()->ManaModifier);
+        bot->SetPowerType(powerType, true, true);
+        bot->SetMaxPower(powerType, power);
+        bot->SetPower(powerType, power);
+
+        // damage
+        float basedamage = bot->GetBaseDamageForLevel(level);
+
+        float weaponBaseMinDamage = basedamage;
+        float weaponBaseMaxDamage = basedamage * 1.5f;
+
+        bot->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+        bot->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+
+        bot->SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+        bot->SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+
+        bot->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+        bot->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+
+        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->baseAttackPower);
+        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->baseRangedAttackPower);
+
+        float armor = bot->GetBaseArmorForLevel(level);
+        bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, armor);
     }
 
     bool SpendManaPct(Creature* bot, float pct)
@@ -307,5 +408,54 @@ namespace FSBUtilsStats
         bot->ModifyPower(POWER_MANA, -int32(cost));
         return true;
     }
+
+    Powers GetBotPowerType(Creature* bot)
+    {
+        if (!bot)
+            return POWER_MANA;
+
+        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        for (auto const& stats : BotClassStatsTable)
+        {
+            if (stats.classId == cls)
+                return stats.powerType;
+        }
+
+        return POWER_MANA; // safe fallback
+    }
+
+
+    bool IsRageUser(Creature* bot)
+    {
+        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Warrior;
+    }
+
+    void GenerateRageFromDamageTaken(Creature* bot, uint32 damage)
+    {
+        if (!damage || !bot->IsAlive())
+            return;
+
+        if (!IsRageUser(bot))
+            return;
+
+        // Rage from damage taken
+        uint32 rageGain = uint32(damage * RAGE_FROM_DAMAGE_COEFF);
+
+        if (rageGain == 0)
+            rageGain = 1; // always give *something*
+
+        uint32 currentRage = bot->GetPower(POWER_RAGE);
+        uint32 maxRage = bot->GetMaxPower(POWER_RAGE);
+
+        uint32 newRage = std::min(currentRage + rageGain, maxRage);
+
+        bot->ModifyPower(POWER_RAGE, rageGain, false);
+
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB: {} gained {} rage from taking {} damage (now {})",
+            bot->GetName(), rageGain, damage, newRage);
+    }
+
 
 }

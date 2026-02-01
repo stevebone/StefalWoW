@@ -7,13 +7,14 @@
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 
-#include "followship_bots.h"
-#include "followship_bots_ai_base.h"
-#include "followship_bots_config.h"
-#include "followship_bots_priest.h"
-#include "followship_bots_mage.h"
-#include "followship_bots_utils.h"
-#include "followship_bots_utils_stats.h"
+#include "Followship_bots.h"
+#include "Followship_bots_ai_base.h"
+#include "Followship_bots_config.h"
+#include "Followship_bots_priest.h"
+#include "Followship_bots_mage.h"
+#include "Followship_bots_warrior.h"
+#include "Followship_bots_utils.h"
+#include "Followship_bots_utils_stats.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"
 //#include "Followship_bots_db.h"
@@ -79,7 +80,6 @@ public:
                 _statsMods = FSBUtilsStatsMods();     // now resets caller state
 
                 FSBUtils::SetInitialState(me, hired, moveState);
-                //FSBUtils::SetBotClass(me, botClass);
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
@@ -371,6 +371,10 @@ public:
             {
                 switch (botClass)
                 {
+                case FSB_Class::Warrior:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
+                    me->CastSpell(me, SPELL_WARRIOR_DEFENSIVE_STANCE);
+                    break;
                 case FSB_Class::Priest:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
                     if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
@@ -393,6 +397,9 @@ public:
             {
                 switch (botClass)
                 {
+                case FSB_Class::Warrior:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                    break;
                 case FSB_Class::Priest:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
                     me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
@@ -507,8 +514,10 @@ public:
         }
 
         // Runs every time creature takes damage
-        void DamageTaken(Unit* attacker, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
+            FSBUtilsStats::GenerateRageFromDamageTaken(me, damage);
+
             if (!me->GetVictim() && attacker)
             {
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: DamageTaken - bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
@@ -552,10 +561,16 @@ public:
         {
             TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {}", spell->Id);
 
-            if (spell->Id == SPELL_PRIEST_DEVOURING_PLAGUE || spell->Id == SPELL_PRIEST_PENANCE)
+            if (spell->Id == SPELL_WARRIOR_CHARGE)
             {
-                //_regenMods.manaPctBonus -= 2.0f;
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Priest Casting spell id {} we need to subtract 2% mana", spell->Id);
+                uint32 currentRage = me->GetPower(POWER_RAGE);
+                uint32 maxRage = me->GetMaxPower(POWER_RAGE);
+
+                uint32 newRage = std::min(currentRage + 200, maxRage);
+
+                me->ModifyPower(POWER_RAGE, newRage, false);
+
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Warrior Casting spell id {} we need to add 20 rage", spell->Id);
             }
         }
 
@@ -859,7 +874,7 @@ public:
                 if (me->IsInCombat() && me->IsAlive())
                 {
                     // 1. Generic mana potions for bots with mana
-                    if (me->GetPowerType() == POWER_MANA && me->GetPowerPct(POWER_MANA) < 20)
+                    if (me->GetMaxPower(POWER_MANA) > 0 && me->GetPowerPct(POWER_MANA) < 20)
                     {
                         if (!_botManaPotionUsed)
                         {

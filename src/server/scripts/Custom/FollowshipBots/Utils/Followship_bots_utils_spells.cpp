@@ -6,12 +6,12 @@
 #include "ThreatManager.h"
 #include "Unit.h"
 
-#include "Followship_bots_priest.h"
 #include "Followship_bots_mage.h"
+#include "Followship_bots_priest.h"
+#include "Followship_bots_warrior.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_mgr.h"
-#include "Followship_bots_mage.h"
 #include "Followship_bots_utils_combat.h"
 
 
@@ -297,7 +297,7 @@ namespace FSBUtilsCombatSpells
     {
         sBotSpellTables[FSB_Class::Priest] = &PriestSpellsTable;
         sBotSpellTables[FSB_Class::Mage] = &MageSpellsTable;
-        //sBotSpellTables[FSB_Class::Warrior] = &WarriorSpellsTable;
+        sBotSpellTables[FSB_Class::Warrior] = &WarriorSpellsTable;
     }
 
     void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells)
@@ -364,7 +364,7 @@ namespace FSBUtilsCombatSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
+            //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
             available.push_back(&runtime);
 
         }

@@ -26,6 +26,9 @@ struct FSB_ClassStats
     // Regen (flat, before auras/mods)
     int32 baseHpRegenIC;
     int32 basePowerRegenIC;
+
+    int32 baseAttackPower;
+    int32 baseRangedAttackPower;
 };
 
 struct FSBUtilsStatsMods
@@ -73,6 +76,7 @@ namespace FSBUtilsStats
 {
     FSB_ClassStats const* GetBotClassStats(FSB_Class botClass);
     void ApplyBotBaseClassStats(Creature* creature, FSB_Class botClass);
+    void UpdateBotLevelDependantStats(Creature* bot);
 
     // Full mod-aware version
     void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana);
@@ -93,5 +97,12 @@ namespace FSBUtilsStats
 
     bool SpendManaPct(Creature* bot, float pct);
     bool SpendManaFlat(Creature* bot, int32 cost);
+
+    Classes FSBToTCClass(FSB_Class botClass);
+    Powers GetBotPowerType(Creature* bot);
+
+    bool IsRageUser(Creature* bot);
+    void GenerateRageFromDamageTaken(Creature* bot, uint32 damage);
+
 }
 

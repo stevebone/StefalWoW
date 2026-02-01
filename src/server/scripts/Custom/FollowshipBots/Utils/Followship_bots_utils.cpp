@@ -29,7 +29,7 @@ static constexpr FSBEntryClassMap BotEntryClassTable[] =
     { 375,      FSB_Class::Priest,      FSB_Race::Human },     // Priestess Anetta
 
     // WARRIORS
-    //{ 90010, FSB_Class::Warrior },
+    { 911, FSB_Class::Warrior,          FSB_Race::Human },  // Llane Beshere
     //{ 90011, FSB_Class::Warrior },
 
     // MAGES
@@ -61,7 +61,7 @@ namespace FSBUtils
 
         creature->UpdateLevelDependantStats();
         creature->SetHealth(creature->GetMaxHealth());
-        creature->SetPower(creature->GetPowerType(), creature->GetMaxPower(creature->GetPowerType()));
+        creature->SetPowerType(FSBUtilsStats::GetBotPowerType(creature), true);
     }
 
     void BotUpdateAllies(Creature* bot, GuidSet _allySet)
