@@ -13,14 +13,12 @@
 #include "Followship_bots_priest.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_warrior.h"
-#include "Followship_bots_utils.h"
-#include "Followship_bots_utils_stats.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"
-//#include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_recovery_handler.h"
+#include "Followship_bots_regen_handler.h"
 
 
 
@@ -994,7 +992,7 @@ public:
                     {
                         if (me->GetHealthPct() < 100 || me->GetPowerPct(me->GetPowerType()) < 100)
                         {
-                            FSBUtilsStats::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
+                            FSBRegen::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
 
                             // ? lock regen for next 2 seconds
                             _nextRegenMs = now + 2000;

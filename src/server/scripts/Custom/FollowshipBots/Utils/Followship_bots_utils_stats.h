@@ -79,10 +79,10 @@ namespace FSBUtilsStats
     void UpdateBotLevelDependantStats(Creature* bot);
 
     // Full mod-aware version
-    void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana);
+    
     void ApplyMaxHealth(Unit* unit, const FSBUtilsStatsMods& mods);
     void ApplyMaxMana(Unit* unit, const FSBUtilsStatsMods& mods);
-    void ProcessBotCustomRegenTick(Creature* creature, FSB_Class botClass, const FSBUtilsStatsMods& _baseStatsMods, const FSBUtilsStatsMods& _statsMods);
+    
 
 
     void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods);
