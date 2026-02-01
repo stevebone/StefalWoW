@@ -20,6 +20,8 @@ void AddSC_followship_bots();                // FSB main Script
 
 void AddSC_followship_bots_player();                // FSB Player Scripts
 
+void AddSC_followship_bots_commandscript();
+
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
@@ -27,4 +29,6 @@ void AddCustomScripts()
     AddSC_followship_bots();
 
     AddSC_followship_bots_player();
+
+    AddSC_followship_bots_commandscript();
 }

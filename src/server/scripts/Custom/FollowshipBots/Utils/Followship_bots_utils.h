@@ -29,6 +29,10 @@ namespace FSBUtils
     bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace);
     void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace);
 
+    const char* BotClassToString(FSB_Class cls);
+    const char* BotRaceToString(FSB_Race race);
+    const char* PowerTypeToString(Powers power);
+
     constexpr float SIDE_OFFSET_MAX = float(M_PI) / 6.0f; // +-30 degrees from pure left/right
 
     // Returns a random angle slightly to the left of the player

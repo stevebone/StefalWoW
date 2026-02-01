@@ -207,7 +207,47 @@ namespace FSBUtils
         );
     }
 
+    const char* BotClassToString(FSB_Class cls)
+    {
+        switch (cls)
+        {
+        case FSB_Class::Warrior: return "Warrior";
+        case FSB_Class::Priest:  return "Priest";
+        case FSB_Class::Mage:    return "Mage";
+        case FSB_Class::Rogue:   return "Rogue";
+        case FSB_Class::Druid:   return "Druid";
+        case FSB_Class::Paladin: return "Paladin";
+        case FSB_Class::Hunter:  return "Hunter";
+        case FSB_Class::Warlock: return "Warlock";
+        default:                 return "Unknown";
+        }
+    }
 
+    const char* BotRaceToString(FSB_Race race)
+    {
+        switch (race)
+        {
+        case FSB_Race::Human:    return "Human";
+        case FSB_Race::Dwarf:    return "Dwarf";
+        case FSB_Race::Draenei:  return "Draenei";
+        case FSB_Race::NightElf: return "NightElf";
+        case FSB_Race::Gnome:    return "Gnome";
+        case FSB_Race::Worgen:   return "Worgen";
+        case FSB_Race::Pandaren: return "Pandaren";
+        default:                 return "Unknown";
+        }
+    }
+
+    const char* PowerTypeToString(Powers power)
+    {
+        switch (power)
+        {
+        case POWER_MANA:   return "Mana";
+        case POWER_RAGE:   return "Rage";
+        case POWER_ENERGY: return "Energy";
+        default:           return "Other";
+        }
+    }
 
 
     float GetRandomLeftAngle()
