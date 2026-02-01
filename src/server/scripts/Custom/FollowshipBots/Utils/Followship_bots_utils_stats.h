@@ -103,6 +103,7 @@ namespace FSBUtilsStats
 
     bool IsRageUser(Creature* bot);
     void GenerateRageFromDamageTaken(Creature* bot, uint32 damage);
+    void GenerateRageFromDamageDone(Creature* bot, uint32 damage);
 
 }
 

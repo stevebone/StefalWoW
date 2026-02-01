@@ -152,6 +152,8 @@ namespace FSBUtilsSpells
             // Can only be cast on more than 2/3 attackers
             // OR when 2/3 attackers are around
             // This way we limit spells to CC instead of general/spam use
+        case SPELL_WARRIOR_COLOSSUS_SMASH:
+        case SPELL_WARRIOR_CLEAVE:
         case SPELL_MAGE_FLAMESTRIKE:
         case SPELL_MAGE_ARCANE_EXPLOSION:
         case SPELL_MAGE_BLIZZARD:
@@ -195,14 +197,18 @@ namespace FSBUtilsSpells
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+        case SPELL_WARRIOR_PUMMEL:
         case SPELL_MAGE_COUNTERSPELL:
-            return target->HasUnitState(UNIT_STATE_CASTING);
+            return target && target->HasUnitState(UNIT_STATE_CASTING);
 
         case SPELL_MAGE_SPELL_STEAL:
             return target && HasPositiveDebuff(target);
 
         case SPELL_MAGE_BLINK:
             return !bot->GetMap()->IsDungeon();
+
+        case SPELL_WARRIOR_EXECUTE:
+            return target && target->GetHealthPct() <= 20;
 
         default:
             return true;

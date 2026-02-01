@@ -398,8 +398,12 @@ public:
                 switch (botClass)
                 {
                 case FSB_Class::Warrior:
+                {
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                    uint32 spellId = urand(0, 1) ? SPELL_WARRIOR_BATTLE_STANCE : SPELL_WARRIOR_BERSERKER_STANCE;
+                    me->CastSpell(me, spellId);
                     break;
+                }
                 case FSB_Class::Priest:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
                     me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
@@ -511,6 +515,16 @@ public:
         void AttackStart(Unit* /*target*/) override
         {
 
+        }
+
+        void HealReceived(Unit* /*done_by*/, uint32& /*addhealth*/) override
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal Received");
+        }
+
+        void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
+        {
+            FSBUtilsStats::GenerateRageFromDamageDone(me, damage);
         }
 
         // Runs every time creature takes damage
@@ -815,6 +829,9 @@ public:
 
                         switch (botClass)
                         {
+                        case FSB_Class::Warrior:
+                            buffSpellId = SPELL_WARRIOR_BATTLE_SHOUT;
+                            break;
                         case FSB_Class::Priest:
                             buffSpellId = SPELL_PRIEST_POWER_WORD_FORTITUDE;
                             break;

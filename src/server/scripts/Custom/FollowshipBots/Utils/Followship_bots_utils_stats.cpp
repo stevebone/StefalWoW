@@ -1,7 +1,7 @@
 #include "followship_bots_utils_stats.h"
 #include "followship_bots_utils.h"
 
-constexpr float RAGE_FROM_DAMAGE_COEFF = 1.15f;
+constexpr float RAGE_FROM_DAMAGE_COEFF = 0.3f;
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
 {
@@ -471,6 +471,40 @@ namespace FSBUtilsStats
             "FSB: {} gained {} rage from taking {} damage (now {})",
             bot->GetName(), rageGain, damage, newRage);
     }
+
+    void GenerateRageFromDamageDone(Creature* bot, uint32 damage)
+    {
+        if (!bot || damage == 0 || !bot->IsAlive())
+            return;
+
+        if (!IsRageUser(bot))
+            return;
+
+        int32 maxRage = int32(bot->GetMaxPower(POWER_RAGE));
+        if (maxRage <= 0)
+            return;
+
+        // Tunable coefficient
+        int32 rageGain = int32(float(damage) * RAGE_FROM_DAMAGE_COEFF);
+
+        if (rageGain <= 0)
+            rageGain = 1; // minimum feedback
+
+        //int32 current = bot->GetPower(POWER_RAGE);
+        //int32 newRage = std::min(current + rageGain, maxRage);
+
+        bot->ModifyPower(POWER_RAGE, rageGain);
+
+        TC_LOG_DEBUG(
+            "scripts.ai.fsb",
+            "FSB: {} gained {} rage from dealing {} damage (now {})",
+            bot->GetName(),
+            rageGain,
+            damage,
+            bot->GetPower(POWER_RAGE)
+        );
+    }
+
 
 
 }
