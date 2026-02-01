@@ -5687,8 +5687,8 @@ void Unit::SetPowerType(Powers power, bool sendUpdate/* = true*/, bool onInit /*
     if (!powerTypeEntry)
         return;
 
-    if (IsCreature() && !powerTypeEntry->GetFlags().HasFlag(PowerTypeFlags::IsUsedByNPCs))
-        return;
+    //if (IsCreature() && !powerTypeEntry->GetFlags().HasFlag(PowerTypeFlags::IsUsedByNPCs))
+    //    return;
 
     SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::DisplayPower), power);
 
