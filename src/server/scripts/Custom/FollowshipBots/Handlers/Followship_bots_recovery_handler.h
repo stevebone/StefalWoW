@@ -5,8 +5,8 @@
 #include "Followship_bots_utils_spells.h"
 
 
-constexpr float BOT_RECOVERY_HP_PCT = 70.f;
-constexpr float BOT_RECOVERY_MP_PCT = 70.f;
+constexpr float BOT_RECOVERY_HP_PCT = 50.f;
+constexpr float BOT_RECOVERY_MP_PCT = 50.f;
 
 
 enum BotRecoverySpells
