@@ -17,6 +17,8 @@
 #include "Followship_bots_utils_gossip.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_spells.h"
+
+#include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
 
@@ -522,13 +524,13 @@ public:
 
         void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
         {
-            FSBUtilsStats::GenerateRageFromDamageDone(me, damage);
+            FSBPowers::GenerateRageFromDamageDone(me, damage);
         }
 
         // Runs every time creature takes damage
         void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
-            FSBUtilsStats::GenerateRageFromDamageTaken(me, damage);
+            FSBPowers::GenerateRageFromDamageTaken(me, damage);
 
             if (!me->GetVictim() && attacker)
             {

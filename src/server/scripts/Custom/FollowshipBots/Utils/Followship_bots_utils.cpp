@@ -14,6 +14,7 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_powers_handler.h"
 
 struct FSBEntryClassMap
 {
@@ -61,7 +62,7 @@ namespace FSBUtils
 
         creature->UpdateLevelDependantStats();
         creature->SetHealth(creature->GetMaxHealth());
-        creature->SetPowerType(FSBUtilsStats::GetBotPowerType(creature), true);
+        creature->SetPowerType(FSBPowers::GetBotPowerType(creature), true);
     }
 
     void BotUpdateAllies(Creature* bot, GuidSet _allySet)

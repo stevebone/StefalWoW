@@ -1,74 +1,5 @@
 #include "followship_bots_utils_stats.h"
-#include "followship_bots_utils.h"
-
-constexpr float RAGE_FROM_DAMAGE_COEFF = 0.3f;
-
-static constexpr FSB_ClassStats BotClassStatsTable[] =
-{
-    // WARRIOR
-    {
-        .classId = FSB_Class::Warrior,
-        .powerType = POWER_RAGE,
-        .baseHealth = 120,    // base HP
-        .basePower = 0,      // base power
-        .healthPerLevel = 60,     // HP per level
-        .powerPerLevel = 0,      // Power per level
-        .baseHpRegenOOC = 5,      // HP regen %
-        .basePowerRegenOOC = -2,       // Power regen %
-        .baseHpRegenIC = 0,
-        .basePowerRegenIC = 0,
-        .baseAttackPower = 100,
-        .baseRangedAttackPower = 50
-    },
-
-    // PRIEST
-    {
-        .classId = FSB_Class::Priest,
-        .powerType = POWER_MANA,
-        .baseHealth = 90,             // base HP
-        .basePower = 160,            // base Power
-        .healthPerLevel = 48,             // HP per level
-        .powerPerLevel = 30,             // Power per level
-        .baseHpRegenOOC = 3,              // HP regen %
-        .basePowerRegenOOC = 4,              // Power regen %
-        .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2,
-        .baseAttackPower = 10,
-        .baseRangedAttackPower = 0
-    },
-
-    // MAGE
-    {
-        .classId = FSB_Class::Mage,
-        .powerType = POWER_MANA,
-        .baseHealth = 80,            
-        .basePower = 200,            
-        .healthPerLevel = 45,        
-        .powerPerLevel = 35,         
-        .baseHpRegenOOC = 2,         
-        .basePowerRegenOOC = 6,      
-        .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2,
-        .baseAttackPower = 10,
-        .baseRangedAttackPower = 0
-    },
-
-    // ROGUE
-    {
-        .classId = FSB_Class::Rogue,
-        .powerType = POWER_ENERGY,
-        .baseHealth = 100,
-        .basePower = 100,
-        .healthPerLevel = 22,
-        .powerPerLevel = 10,
-        .baseHpRegenOOC = 4,
-        .basePowerRegenOOC = 10,
-        .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2,
-        .baseAttackPower = 80,
-        .baseRangedAttackPower = 50
-    },
-};
+#include "followship_bots_powers_handler.h"
 
 namespace FSBUtilsStats
 {
@@ -257,7 +188,7 @@ namespace FSBUtilsStats
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
 
         // Powers
-        Powers powerType = GetBotPowerType(bot);
+        Powers powerType = FSBPowers::GetBotPowerType(bot);
 
         uint32 basePower = stats->basePower;
         uint32 power = uint32(basePower + (stats->powerPerLevel * level));
@@ -293,119 +224,14 @@ namespace FSBUtilsStats
         bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, armor);
     }
 
-    bool SpendManaPct(Creature* bot, float pct)
-    {
-        if (!bot || pct <= 0.0f)
-            return false;
+    
 
-        uint32 maxMana = bot->GetMaxPower(POWER_MANA);
-        if (!maxMana)
-            return false;
-
-        int32 cost = uint32(maxMana * pct);
-
-        if (bot->GetPower(POWER_MANA) < cost)
-            return false;
-
-        bot->ModifyPower(POWER_MANA, -int32(cost));
-
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat spellcasting: Reduced power mana by {} for bot: {}", cost, bot->GetName());
-
-        return true;
-    }
-
-    bool SpendManaFlat(Creature* bot, int32 cost)
-    {
-        if (!bot)
-            return false;
-
-        if (bot->GetPower(POWER_MANA) < cost)
-            return false;
-
-        bot->ModifyPower(POWER_MANA, -int32(cost));
-        return true;
-    }
-
-    Powers GetBotPowerType(Creature* bot)
-    {
-        if (!bot)
-            return POWER_MANA;
-
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
-
-        for (auto const& stats : BotClassStatsTable)
-        {
-            if (stats.classId == cls)
-                return stats.powerType;
-        }
-
-        return POWER_MANA; // safe fallback
-    }
+    
 
 
-    bool IsRageUser(Creature* bot)
-    {
-        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Warrior;
-    }
+    
 
-    void GenerateRageFromDamageTaken(Creature* bot, uint32 damage)
-    {
-        if (!damage || !bot->IsAlive())
-            return;
 
-        if (!IsRageUser(bot))
-            return;
-
-        // Rage from damage taken
-        uint32 rageGain = uint32(damage * RAGE_FROM_DAMAGE_COEFF);
-
-        if (rageGain == 0)
-            rageGain = 1; // always give *something*
-
-        uint32 currentRage = bot->GetPower(POWER_RAGE);
-        uint32 maxRage = bot->GetMaxPower(POWER_RAGE);
-
-        uint32 newRage = std::min(currentRage + rageGain, maxRage);
-
-        bot->ModifyPower(POWER_RAGE, rageGain, false);
-
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: {} gained {} rage from taking {} damage (now {})",
-            bot->GetName(), rageGain, damage, newRage);
-    }
-
-    void GenerateRageFromDamageDone(Creature* bot, uint32 damage)
-    {
-        if (!bot || damage == 0 || !bot->IsAlive())
-            return;
-
-        if (!IsRageUser(bot))
-            return;
-
-        int32 maxRage = int32(bot->GetMaxPower(POWER_RAGE));
-        if (maxRage <= 0)
-            return;
-
-        // Tunable coefficient
-        int32 rageGain = int32(float(damage) * RAGE_FROM_DAMAGE_COEFF);
-
-        if (rageGain <= 0)
-            rageGain = 1; // minimum feedback
-
-        //int32 current = bot->GetPower(POWER_RAGE);
-        //int32 newRage = std::min(current + rageGain, maxRage);
-
-        bot->ModifyPower(POWER_RAGE, rageGain);
-
-        TC_LOG_DEBUG(
-            "scripts.ai.fsb",
-            "FSB: {} gained {} rage from dealing {} damage (now {})",
-            bot->GetName(),
-            rageGain,
-            damage,
-            bot->GetPower(POWER_RAGE)
-        );
-    }
 
 
 

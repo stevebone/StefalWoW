@@ -31,6 +31,73 @@ struct FSB_ClassStats
     int32 baseRangedAttackPower;
 };
 
+static constexpr FSB_ClassStats BotClassStatsTable[] =
+{
+    // WARRIOR
+    {
+        .classId = FSB_Class::Warrior,
+        .powerType = POWER_RAGE,
+        .baseHealth = 120,    // base HP
+        .basePower = 0,      // base power
+        .healthPerLevel = 60,     // HP per level
+        .powerPerLevel = 0,      // Power per level
+        .baseHpRegenOOC = 5,      // HP regen %
+        .basePowerRegenOOC = -2,       // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 0,
+        .baseAttackPower = 100,
+        .baseRangedAttackPower = 50
+    },
+
+    // PRIEST
+    {
+        .classId = FSB_Class::Priest,
+        .powerType = POWER_MANA,
+        .baseHealth = 90,             // base HP
+        .basePower = 160,            // base Power
+        .healthPerLevel = 48,             // HP per level
+        .powerPerLevel = 30,             // Power per level
+        .baseHpRegenOOC = 3,              // HP regen %
+        .basePowerRegenOOC = 4,              // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0
+    },
+
+    // MAGE
+    {
+        .classId = FSB_Class::Mage,
+        .powerType = POWER_MANA,
+        .baseHealth = 80,
+        .basePower = 200,
+        .healthPerLevel = 45,
+        .powerPerLevel = 35,
+        .baseHpRegenOOC = 2,
+        .basePowerRegenOOC = 6,
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0
+    },
+
+    // ROGUE
+    {
+        .classId = FSB_Class::Rogue,
+        .powerType = POWER_ENERGY,
+        .baseHealth = 100,
+        .basePower = 100,
+        .healthPerLevel = 22,
+        .powerPerLevel = 10,
+        .baseHpRegenOOC = 4,
+        .basePowerRegenOOC = 10,
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 80,
+        .baseRangedAttackPower = 50
+    },
+};
+
 struct FSBUtilsStatsMods
 {
     // REGEN
@@ -95,15 +162,10 @@ namespace FSBUtilsStats
      */
     void UpdateBotLevelToPlayer(Creature* bot, const FSBUtilsStatsMods& regenMods);
 
-    bool SpendManaPct(Creature* bot, float pct);
-    bool SpendManaFlat(Creature* bot, int32 cost);
-
     Classes FSBToTCClass(FSB_Class botClass);
-    Powers GetBotPowerType(Creature* bot);
+    
 
-    bool IsRageUser(Creature* bot);
-    void GenerateRageFromDamageTaken(Creature* bot, uint32 damage);
-    void GenerateRageFromDamageDone(Creature* bot, uint32 damage);
+    
 
 }
 

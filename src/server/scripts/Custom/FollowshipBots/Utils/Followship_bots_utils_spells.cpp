@@ -13,6 +13,7 @@
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_combat.h"
+#include "Followship_bots_powers_handler.h"
 
 
 
@@ -593,7 +594,7 @@ namespace FSBUtilsCombatSpells
         if (target->HasAura(def->spellId))
             return;
 
-        if (runtime->def->manaCostOverride != 0.f && !FSBUtilsStats::SpendManaPct(bot, runtime->def->manaCostOverride))
+        if (runtime->def->manaCostOverride != 0.f && !FSBPowers::SpendManaPct(bot, runtime->def->manaCostOverride))
             return; // not enough mana
 
         if (def->spellId == SPELL_MAGE_POLYMORPH)
