@@ -113,7 +113,8 @@ struct ActionDrinkMana : BotRecoveryAction
     {
         uint32 now = getMSTime();
 
-        return bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_MP_PCT
+        return bot->GetPower(POWER_MANA)
+            && bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_MP_PCT
             && !bot->isMoving()
             && !bot->IsInCombat()
             && FSBUtilsSpells::CanCastNow(bot, now, cooldown)

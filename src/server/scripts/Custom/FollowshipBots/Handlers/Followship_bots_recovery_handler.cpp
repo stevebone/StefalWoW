@@ -6,17 +6,26 @@ namespace FSBRecovery
     BotRecoveryIntent DetermineRecoveryIntent(Creature* bot)
     {
         bool lowHP = bot->GetHealthPct() < BOT_RECOVERY_HP_PCT;
-        bool lowMana = bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_MP_PCT;
+
+        // Determine if this bot uses mana at all
+        bool usesMana = bot->GetMaxPower(POWER_MANA) > 0;
+
+        bool lowMana = false;
+        if (usesMana)
+            lowMana = bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_MP_PCT;
 
         if (lowHP && lowMana)
             return BotRecoveryIntent::RecoverHealthAndMana;
+
         if (lowHP)
             return BotRecoveryIntent::RecoverHealth;
+
         if (lowMana)
             return BotRecoveryIntent::RecoverMana;
 
         return BotRecoveryIntent::None;
     }
+
 
     bool MatchesIntent(BotRecoveryType type, BotRecoveryIntent intent)
     {
