@@ -14,7 +14,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .healthPerLevel = 60,     // HP per level
         .powerPerLevel = 0,      // Power per level
         .baseHpRegenOOC = 5,      // HP regen %
-        .basePowerRegenOOC = 0,       // Power regen %
+        .basePowerRegenOOC = -2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 0,
         .baseAttackPower = 100,
@@ -211,6 +211,21 @@ namespace FSBUtilsStats
                 unit->ModifyPower(POWER_MANA, amount);
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
+        }
+
+        if (unit->GetPowerType() == POWER_RAGE && unit->GetPower(POWER_RAGE) > 0)
+        {
+            int32 basePowerRegen = inCombat
+                ? classStats->basePowerRegenIC
+                : classStats->basePowerRegenOOC;
+
+            int32 maxPower = int32(unit->GetMaxPower(POWER_RAGE));
+            int32 amount = (basePowerRegen * maxPower) / 100;
+
+            if (amount != 0)
+                unit->ModifyPower(POWER_RAGE, amount);
+
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (RP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
     }
 
