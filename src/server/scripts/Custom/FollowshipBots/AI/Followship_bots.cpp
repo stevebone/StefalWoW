@@ -642,6 +642,12 @@ public:
                 break;
             }
 
+            case SPELL_WARRIOR_BATTLE_STANCE:
+            {
+                _statsMods.flatRagePerTick += 20;
+                break;
+            }
+
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
                 _statsMods.flatMaxHealth += 5 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
@@ -689,6 +695,12 @@ public:
                 me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct - 0.05f);
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
 
+                break;
+            }
+
+            case SPELL_WARRIOR_BATTLE_STANCE:
+            {
+                _statsMods.flatRagePerTick -= 20;
                 break;
             }
 

@@ -2,7 +2,7 @@
 #include "Followship_bots_utils.h"
 
 
-constexpr float RAGE_FROM_DAMAGE_COEFF = 0.3f;
+constexpr float RAGE_FROM_DAMAGE_COEFF = 0.15f;
 
 namespace FSBPowers
 {

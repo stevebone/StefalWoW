@@ -70,14 +70,18 @@ namespace FSBRegen
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
 
-        if (unit->GetPowerType() == POWER_RAGE && unit->GetPower(POWER_RAGE) > 0)
+        if (unit->GetPowerType() == POWER_RAGE)
         {
             int32 basePowerRegen = inCombat
                 ? classStats->basePowerRegenIC
                 : classStats->basePowerRegenOOC;
 
             int32 maxPower = int32(unit->GetMaxPower(POWER_RAGE));
+
             int32 amount = (basePowerRegen * maxPower) / 100;
+
+            if (mods.flatRagePerTick > 0 && unit->IsInCombat())
+                amount = classStats->basePowerRegenIC + mods.flatRagePerTick;
 
             if (amount != 0)
                 unit->ModifyPower(POWER_RAGE, amount);
@@ -92,7 +96,7 @@ namespace FSBRegen
             return;
 
         // Only apply regen if HP or power is not full
-        if (creature->GetHealthPct() < 100 || creature->GetPowerPct(creature->GetPowerType()) < 100)
+        if (creature->GetHealthPct() < 100 || creature->GetPowerPct(POWER_MANA) < 100 || creature->GetPower(POWER_RAGE))
         {
             // Merge base + aura mods
             FSBUtilsStatsMods finalMods = _baseStatsMods;

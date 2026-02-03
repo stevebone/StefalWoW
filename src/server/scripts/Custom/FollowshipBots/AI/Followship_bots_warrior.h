@@ -56,4 +56,6 @@ enum FSB_WARRIOR_COMBAT_SPELLS
 namespace FSBWarrior
 {
     bool BotHasDefensiveStance(Creature* bot);
+    bool BotHasBattleStance(Creature* bot);
+    bool BotHasBerserkerStance(Creature* bot);
 }

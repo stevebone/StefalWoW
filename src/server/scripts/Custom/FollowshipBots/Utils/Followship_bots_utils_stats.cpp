@@ -307,6 +307,7 @@ namespace FSBUtilsStats
     }
 
     // This is applied in DamageDealt() so with every damage bot does
+    // This method can also increase damage done > 1.f
     float ApplyBotDamageDoneReduction(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
@@ -316,6 +317,12 @@ namespace FSBUtilsStats
 
         if (FSBWarrior::BotHasDefensiveStance(bot))
             multiplier *= 0.90f;
+
+        if (FSBWarrior::BotHasBattleStance(bot))
+            multiplier *= 1.03f;
+
+        if (FSBWarrior::BotHasBerserkerStance(bot))
+            multiplier *= 1.15f;
 
         return multiplier;
     }

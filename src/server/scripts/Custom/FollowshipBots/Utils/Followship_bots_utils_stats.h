@@ -113,9 +113,13 @@ struct FSBUtilsStatsMods
     // REGEN
     int32 flatHealthPerTick = 0;
     int32 flatManaPerTick = 0;
+    int32 flatRagePerTick = 0;
 
     float pctHealthPerTick = 0;
     float pctManaPerTick = 0;
+
+    
+
 
     // MAX STATS
     int32 flatMaxHealth = 0;
@@ -129,6 +133,7 @@ struct FSBUtilsStatsMods
     {
         flatHealthPerTick += rhs.flatHealthPerTick;
         flatManaPerTick += rhs.flatManaPerTick;
+        flatRagePerTick += rhs.flatRagePerTick;
 
         pctHealthPerTick += rhs.pctHealthPerTick;
         pctManaPerTick += rhs.pctManaPerTick;

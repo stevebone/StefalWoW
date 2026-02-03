@@ -53,4 +53,28 @@ namespace FSBWarrior
         return false;
 
     }
+
+    bool BotHasBattleStance(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_WARRIOR_BATTLE_STANCE))
+            return true;
+
+        return false;
+
+    }
+
+    bool BotHasBerserkerStance(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_WARRIOR_BERSERKER_STANCE))
+            return true;
+
+        return false;
+
+    }
 }
