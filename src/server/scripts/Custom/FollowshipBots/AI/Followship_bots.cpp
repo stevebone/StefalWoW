@@ -581,18 +581,27 @@ public:
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
         {
-            TC_LOG_DEBUG("scripts.core.fsb", "FSB Priest Casting spell id {}", spell->Id);
-
-            if (spell->Id == SPELL_WARRIOR_CHARGE)
+            switch (botClass)
             {
-                uint32 currentRage = me->GetPower(POWER_RAGE);
-                uint32 maxRage = me->GetMaxPower(POWER_RAGE);
-
-                uint32 newRage = std::min(currentRage + 200, maxRage);
-
-                me->ModifyPower(POWER_RAGE, newRage, false);
-
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Warrior Casting spell id {} we need to add 20 rage", spell->Id);
+            case FSB_Class::Warrior:
+                FSBWarrior::HandleOnSpellCast(me, spell->Id);
+                break;
+            case FSB_Class::Priest:
+                break;
+            case FSB_Class::Mage:
+                break;
+            case FSB_Class::Rogue:
+                break;
+            case FSB_Class::Druid:
+                break;
+            case FSB_Class::Paladin:
+                break;
+            case FSB_Class::Hunter:
+                break;
+            case FSB_Class::Warlock:
+                break;
+            default:
+                break;
             }
         }
 
@@ -639,7 +648,7 @@ public:
                 me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct + 0.05f);
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
 
-                break;
+                break; 
             }
 
             case SPELL_WARRIOR_BATTLE_STANCE:

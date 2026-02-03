@@ -70,7 +70,7 @@ namespace FSBRegen
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
 
-        if (unit->GetPowerType() == POWER_RAGE)
+        else if (unit->GetPowerType() == POWER_RAGE)
         {
             int32 basePowerRegen = inCombat
                 ? classStats->basePowerRegenIC

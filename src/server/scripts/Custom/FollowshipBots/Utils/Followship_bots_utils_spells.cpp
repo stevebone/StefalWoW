@@ -211,6 +211,9 @@ namespace FSBUtilsSpells
         case SPELL_WARRIOR_EXECUTE:
             return target && target->GetHealthPct() <= 20;
 
+        case SPELL_WARRIOR_LAST_STAND:
+            return target == bot && bot->GetHealthPct() < 30;
+
         default:
             return true;
         }

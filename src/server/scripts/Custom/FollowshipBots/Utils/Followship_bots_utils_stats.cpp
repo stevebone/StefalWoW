@@ -303,6 +303,9 @@ namespace FSBUtilsStats
         if (FSBWarrior::BotHasDefensiveStance(bot))
             multiplier *= 0.85f;
 
+        if (FSBWarrior::BotHasShieldWall(bot))
+            multiplier *= 0.60f;
+
         return multiplier;
     }
 
