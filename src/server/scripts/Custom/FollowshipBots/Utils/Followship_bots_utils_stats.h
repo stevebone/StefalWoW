@@ -29,6 +29,9 @@ struct FSB_ClassStats
 
     int32 baseAttackPower;
     int32 baseRangedAttackPower;
+    int32 attackPowerPerLevel;
+
+    float baseClassDamageVariance;
 };
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
@@ -45,8 +48,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = -2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 0,
-        .baseAttackPower = 100,
-        .baseRangedAttackPower = 50
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 4,
+        .baseClassDamageVariance = 0.9f
     },
 
     // PRIEST
@@ -61,8 +66,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 4,              // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 10,
-        .baseRangedAttackPower = 0
+        .baseAttackPower = 5,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 1,
+        .baseClassDamageVariance = 0.2f
     },
 
     // MAGE
@@ -77,8 +84,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 6,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 10,
-        .baseRangedAttackPower = 0
+        .baseAttackPower = 5,
+        .attackPowerPerLevel = 1,
+        .baseClassDamageVariance = 0.2f
     },
 
     // ROGUE
@@ -93,8 +101,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 10,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 80,
-        .baseRangedAttackPower = 50
+        .baseAttackPower = 60,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 10,
+        .baseClassDamageVariance = 1.2f
     },
 };
 
@@ -149,6 +159,8 @@ namespace FSBUtilsStats
     
     void ApplyMaxHealth(Unit* unit, const FSBUtilsStatsMods& mods);
     void ApplyMaxMana(Unit* unit, const FSBUtilsStatsMods& mods);
+    void ApplyBotAttackPower(Unit* unit);
+    void ApplyBotDamage(Unit* unit);
     
 
 

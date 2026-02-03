@@ -56,6 +56,40 @@ namespace FSBUtilsStats
             creature->GetMaxPower(powerType),
             creature->GetClass(),
             botClass);
+
+        // damage
+        float basedamage = creature->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance;
+        float baseAttackPower = stats->baseAttackPower;
+        float baseRAttackPower = stats->baseRangedAttackPower;
+        float attackPowerPerLevel = stats->attackPowerPerLevel;
+
+        float multiplierAttackPower = creature->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
+        float multiplierRAttackPower = creature->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT);
+
+        float weaponBaseMinDamage = basedamage;
+        float weaponBaseMaxDamage = basedamage * 1.5f;
+
+        creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+        creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+
+        creature->SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+        creature->SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+
+        creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+        creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+
+        creature->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, baseAttackPower);
+        creature->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, baseRAttackPower);
+
+        creature->SetRangedAttackPower(int32((baseRAttackPower + (level * attackPowerPerLevel)) * multiplierRAttackPower));
+        creature->SetAttackPower(int32((baseAttackPower + (level * attackPowerPerLevel)) * multiplierAttackPower));
+
+        creature->UpdateDamagePhysical(RANGED_ATTACK);
+        creature->UpdateDamagePhysical(BASE_ATTACK);
+        creature->UpdateDamagePhysical(OFF_ATTACK);
+
+        float armor = creature->GetBaseArmorForLevel(level);
+        creature->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, armor);
     }
 
     Classes FSBToTCClass(FSB_Class botClass)
@@ -127,12 +161,59 @@ namespace FSBUtilsStats
         }
     }
 
+    void ApplyBotAttackPower(Unit* unit)
+    {
+        if (!unit)
+            return;
+
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(unit->GetEntry());
+
+        auto const* stats = GetBotClassStats(botClass);
+        if (!stats)
+            return;
+
+        int32 level = unit->GetLevel();
+
+        float attackPowerPerLevel = stats->attackPowerPerLevel;
+
+        float baseAttackPower = unit->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
+        float baseRAttackPower = unit->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
+
+        float multiplierAttackPower = unit->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
+        float multiplierRAttackPower = unit->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT);
+
+        float totalAttackPowerMod = unit->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE);
+        float totalRAttackPowerMod = unit->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE);
+
+        int32 finalAttackPower = int32(((baseAttackPower + (level * attackPowerPerLevel)) + totalAttackPowerMod) * multiplierAttackPower);
+        int32 finalRAttackPower = int32(((baseRAttackPower + (level * attackPowerPerLevel)) + totalRAttackPowerMod) * multiplierRAttackPower);
+
+        unit->SetRangedAttackPower(finalRAttackPower);
+        unit->SetAttackPower(finalAttackPower);
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has baseAP: {}, levelAP: {}, modAP: {}, multiAP: {}, totalAP: {}",
+            unit->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
+    }
+
+    void ApplyBotDamage(Unit* unit)
+    {
+        if (!unit)
+            return;
+
+        unit->UpdateDamagePhysical(RANGED_ATTACK);
+        unit->UpdateDamagePhysical(BASE_ATTACK);
+        unit->UpdateDamagePhysical(OFF_ATTACK);
+    }
+
     void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods)
     {
         ApplyMaxHealth(unit, mods);
         ApplyMaxMana(unit, mods);
+        ApplyBotAttackPower(unit);
+        ApplyBotDamage(unit);
         // ApplyArmor(...)
         // ApplySpellPower(...)
+        
     }
 
     void UpdateBotLevelToPlayer(Creature* bot, const FSBUtilsStatsMods& mods)
@@ -200,28 +281,14 @@ namespace FSBUtilsStats
         bot->SetStatPctModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_PCT, bot->GetCreatureDifficulty()->ManaModifier);
         bot->SetPowerType(powerType, true, true);
         bot->SetMaxPower(powerType, power);
-        bot->SetPower(powerType, power);
 
-        // damage
-        float basedamage = bot->GetBaseDamageForLevel(level);
+        if(botClass != FSB_Class::Warrior)
+            bot->SetPower(powerType, power);
 
-        float weaponBaseMinDamage = basedamage;
-        float weaponBaseMaxDamage = basedamage * 1.5f;
-
-        bot->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-        bot->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-
-        bot->SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-        bot->SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-
-        bot->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-        bot->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-
-        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->baseAttackPower);
-        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->baseRangedAttackPower);
-
-        float armor = bot->GetBaseArmorForLevel(level);
-        bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, armor);
+        // Att power
+        ApplyBotAttackPower(bot);
+        ApplyBotDamage(bot);
+        
     }
 
     
@@ -236,3 +303,4 @@ namespace FSBUtilsStats
 
 
 }
+

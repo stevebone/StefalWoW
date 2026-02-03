@@ -208,6 +208,7 @@ public:
 
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -231,6 +232,7 @@ public:
 
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -254,6 +256,7 @@ public:
 
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -276,6 +279,7 @@ public:
 
                     hired = true;
                     FSBMgr::HandleBotHire(player, me, 0);
+                    FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -624,6 +628,26 @@ public:
                 break;
             }
 
+            case SPELL_WARRIOR_BATTLE_SHOUT:
+            {
+                float totalPct = me->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
+
+                me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct + 0.05f);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+
+                break;
+            }
+
+            case SPELL_WARRIOR_DEFENSIVE_STANCE:
+            {
+                float totalPct = me->GetPctModifierValue(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT);
+
+                me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, totalPct - 0.1f);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+
+                break;
+            }
+
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
                 _statsMods.flatMaxHealth += 5 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
@@ -661,6 +685,26 @@ public:
                     _statsMods.flatManaPerTick -= amount;
                     events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
                 }
+                break;
+            }
+
+            case SPELL_WARRIOR_BATTLE_SHOUT:
+            {
+                float totalPct = me->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
+
+                me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct - 0.05f);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+
+                break;
+            }
+
+            case SPELL_WARRIOR_DEFENSIVE_STANCE:
+            {
+                float totalPct = me->GetPctModifierValue(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT);
+
+                me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, totalPct + 0.1f);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+
                 break;
             }
 
