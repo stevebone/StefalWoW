@@ -176,7 +176,8 @@ namespace FSBUtilsStats
 
     Classes FSBToTCClass(FSB_Class botClass);
     
-
+    float ApplyBotDamageTakenReduction(Creature* bot);
+    float ApplyBotDamageDoneReduction(Creature* bot);
     
 
 }

@@ -529,12 +529,16 @@ public:
         void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
         {
             FSBPowers::GenerateRageFromDamageDone(me, damage);
+
+            damage = uint32(damage * FSBUtilsStats::ApplyBotDamageDoneReduction(me));
         }
 
         // Runs every time creature takes damage
         void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
             FSBPowers::GenerateRageFromDamageTaken(me, damage);
+
+            damage = uint32(damage * FSBUtilsStats::ApplyBotDamageTakenReduction(me));
 
             if (!me->GetVictim() && attacker)
             {
@@ -638,16 +642,6 @@ public:
                 break;
             }
 
-            case SPELL_WARRIOR_DEFENSIVE_STANCE:
-            {
-                float totalPct = me->GetPctModifierValue(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT);
-
-                me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, totalPct - 0.1f);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                break;
-            }
-
             case SPELL_PRIEST_POWER_WORD_FORTITUDE:
                 _statsMods.flatMaxHealth += 5 * me->GetLevel();      // flat
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
@@ -693,16 +687,6 @@ public:
                 float totalPct = me->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
 
                 me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct - 0.05f);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                break;
-            }
-
-            case SPELL_WARRIOR_DEFENSIVE_STANCE:
-            {
-                float totalPct = me->GetPctModifierValue(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT);
-
-                me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, totalPct + 0.1f);
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 break;

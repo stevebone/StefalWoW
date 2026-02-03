@@ -1,5 +1,6 @@
-#include "followship_bots_utils_stats.h"
-#include "followship_bots_powers_handler.h"
+#include "Followship_bots_utils_stats.h"
+#include "Followship_bots_powers_handler.h"
+#include "Followship_bots_warrior.h"
 
 namespace FSBUtilsStats
 {
@@ -291,9 +292,33 @@ namespace FSBUtilsStats
         
     }
 
-    
+    // This is applied in DamageTaken() so with every damage
+    float ApplyBotDamageTakenReduction(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return 1.0f;
 
-    
+        float multiplier = 1.0f;
+
+        if (FSBWarrior::BotHasDefensiveStance(bot))
+            multiplier *= 0.85f;
+
+        return multiplier;
+    }
+
+    // This is applied in DamageDealt() so with every damage bot does
+    float ApplyBotDamageDoneReduction(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return 1.0f;
+
+        float multiplier = 1.0f;
+
+        if (FSBWarrior::BotHasDefensiveStance(bot))
+            multiplier *= 0.90f;
+
+        return multiplier;
+    }
 
 
     

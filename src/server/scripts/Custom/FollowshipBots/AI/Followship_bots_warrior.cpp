@@ -39,3 +39,18 @@ std::vector<FSBSpellDefinition> WarriorSpellsTable =
     { SPELL_WARRIOR_RAMPAGE,        FSBSpellType::Damage,            0.f,        0.f,            60.f,          2.f,           false,        1000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_WARRIOR_FURIOUS_SLASH,  FSBSpellType::Damage,            0.f,        0.f,            50.f,          2.f,           false,        1000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 };
+
+namespace FSBWarrior
+{
+    bool BotHasDefensiveStance(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_WARRIOR_DEFENSIVE_STANCE))
+            return true;
+
+        return false;
+
+    }
+}

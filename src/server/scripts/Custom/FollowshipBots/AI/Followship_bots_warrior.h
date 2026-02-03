@@ -52,3 +52,8 @@ enum FSB_WARRIOR_COMBAT_SPELLS
     SPELL_WARRIOR_HEROIC_THROW = 57755,
     SPELL_WARRIOR_HAMSTRING = 1715
 };
+
+namespace FSBWarrior
+{
+    bool BotHasDefensiveStance(Creature* bot);
+}
