@@ -1,5 +1,6 @@
 
 #include "CharmInfo.h"
+#include "PhasingHandler.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots.h"
@@ -193,6 +194,10 @@ namespace FSBMgr
 
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player {} hired bot {} (entry {}) until {}",
             player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
+
+        // some bots may be hired from a non regular phase
+        // on hire we need to overwrite with the normal phase
+        PhasingHandler::AddPhase(bot, 169, true);
     }
 
     void DismissBot(Player* player, Creature* bot)

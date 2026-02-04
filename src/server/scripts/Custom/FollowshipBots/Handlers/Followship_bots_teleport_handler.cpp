@@ -75,7 +75,7 @@ namespace FSBTeleport
             if (!player->IsAlive())
                 return false;
 
-            if (bot->GetMapId() == player->GetMapId() && bot->GetDistance(player) > 200.0f)
+            if (bot->GetMapId() == player->GetMapId() && bot->GetDistance(player) > 100.0f)
             {
                 bot->NearTeleportTo(
                     player->GetPositionX() + frand(3.f, 10.f),
