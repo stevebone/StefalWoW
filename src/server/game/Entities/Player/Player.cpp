@@ -8814,7 +8814,7 @@ void Player::CastItemCombatSpell(DamageInfo const& damageInfo, Item* item, ItemT
     }
 }
 
-void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, ObjectGuid castCount, int32* misc)
+void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, ObjectGuid castCount, std::array<int32, 3> const& misc)
 {
     if (!item->GetTemplate()->HasFlag(ITEM_FLAG_LEGACY))
     {
@@ -8841,8 +8841,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, Objec
 
             spell->m_fromClient = true;
             spell->m_CastItem = item;
-            spell->m_misc.Raw.Data[0] = misc[0];
-            spell->m_misc.Raw.Data[1] = misc[1];
+            std::ranges::copy(misc, std::ranges::begin(spell->m_misc.Raw.Data));
             spell->prepare(targets);
             return;
         }
@@ -8876,8 +8875,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, Objec
 
             spell->m_fromClient = true;
             spell->m_CastItem = item;
-            spell->m_misc.Raw.Data[0] = misc[0];
-            spell->m_misc.Raw.Data[1] = misc[1];
+            std::ranges::copy(misc, std::ranges::begin(spell->m_misc.Raw.Data));
             spell->prepare(targets);
             return;
         }
@@ -28862,10 +28860,10 @@ void Player::ApplyTraitEntryChanges(int32 editedConfigId, WorldPackets::Traits::
 
     if (consumeCurrencies)
     {
-        std::map<int32, int32> currencies;
+        std::map<int32, TraitMgr::SpentCurrency> currencies;
         TraitMgr::FillSpentCurrenciesMap(costEntries, currencies);
 
-        for (auto [traitCurrencyId, amount] : currencies)
+        for (auto const& [traitCurrencyId, amount] : currencies)
         {
             TraitCurrencyEntry const* traitCurrency = sTraitCurrencyStore.LookupEntry(traitCurrencyId);
             if (!traitCurrency)
@@ -28874,10 +28872,10 @@ void Player::ApplyTraitEntryChanges(int32 editedConfigId, WorldPackets::Traits::
             switch (traitCurrency->GetType())
             {
                 case TraitCurrencyType::Gold:
-                    ModifyMoney(-amount);
+                    ModifyMoney(-amount.Total);
                     break;
                 case TraitCurrencyType::CurrencyTypesBased:
-                    RemoveCurrency(traitCurrency->CurrencyTypesID, amount /* TODO: CurrencyDestroyReason */);
+                    RemoveCurrency(traitCurrency->CurrencyTypesID, amount.Total /* TODO: CurrencyDestroyReason */);
                     break;
                 default:
                     break;
@@ -31030,8 +31028,7 @@ void Player::ExecutePendingSpellCastRequest()
     SendDirectMessage(spellPrepare.Write());
 
     spell->m_fromClient = true;
-    spell->m_misc.Raw.Data[0] = _pendingSpellCastRequest->CastRequest.Misc[0];
-    spell->m_misc.Raw.Data[1] = _pendingSpellCastRequest->CastRequest.Misc[1];
+    std::ranges::copy(_pendingSpellCastRequest->CastRequest.Misc, std::ranges::begin(spell->m_misc.Raw.Data));
     spell->prepare(targets);
 
     _pendingSpellCastRequest = nullptr;
