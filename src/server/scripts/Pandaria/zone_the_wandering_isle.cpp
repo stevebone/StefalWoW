@@ -1414,7 +1414,7 @@ struct npc_master_li_fei_challenge : public ScriptedAI
         {
             switch (eventId)
             {
-                case EVENT_RANDOM_SPELL:
+                case EVENT_FEI_RANDOM_SPELL:
                 {
                     uint32 spellId = RAND(SPELL_FEET_OF_FURY, SPELL_FLYING_SHADOW_KICK);
                     DoCastVictim(spellId);
