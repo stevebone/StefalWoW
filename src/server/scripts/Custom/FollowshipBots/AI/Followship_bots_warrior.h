@@ -2,10 +2,6 @@
 
 #include "Followship_bots_utils_spells.h"
 
-constexpr auto FSB_GOSSIP_ITEM_ROLE_TANK = "Tank Role: take a beating";
-constexpr auto FSB_GOSSIP_ITEM_ROLE_MELEE = "Melee DPS Role: use close range weapons and attacks";
-//constexpr auto FSB_GOSSIP_ITEM_ROLE_FIRE = "Fire Damage Role: mostly fire spells";
-
 extern std::vector<FSBSpellDefinition> WarriorSpellsTable;
 
 enum FSB_WARRIOR_STANCES

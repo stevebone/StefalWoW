@@ -7,6 +7,7 @@
 #include "Unit.h"
 
 #include "Followship_bots_mage.h"
+#include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_warrior.h"
 #include "Followship_bots_utils.h"
@@ -289,6 +290,7 @@ namespace FSBUtilsCombatSpells
         sBotSpellTables[FSB_Class::Priest] = &PriestSpellsTable;
         sBotSpellTables[FSB_Class::Mage] = &MageSpellsTable;
         sBotSpellTables[FSB_Class::Warrior] = &WarriorSpellsTable;
+        sBotSpellTables[FSB_Class::Paladin] = &PaladinSpellsTable;
     }
 
     void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells)

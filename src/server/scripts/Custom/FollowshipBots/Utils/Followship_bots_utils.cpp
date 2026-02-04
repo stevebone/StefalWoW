@@ -36,6 +36,9 @@ static constexpr FSBEntryClassMap BotEntryClassTable[] =
     // MAGES
     { 198, FSB_Class::Mage,             FSB_Race::Human }, // Khelden Bremen
 
+    // PALADINS
+    { 925, FSB_Class::Paladin,          FSB_Race::Human }, // Brother Sammuel
+
     // ROGUES
     //{ 90030, FSB_Class::Rogue },
 };

@@ -371,11 +371,14 @@ public:
                 break;
             }
 
-                // Bot Role Option Healer
+                // Bot Role Option 1
             case GOSSIP_ACTION_INFO_DEF + 23:
             {
                 switch (botClass)
                 {
+                case FSB_Class::Paladin:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
+                    break;
                 case FSB_Class::Warrior:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
                     me->CastSpell(me, SPELL_WARRIOR_DEFENSIVE_STANCE);
@@ -397,11 +400,14 @@ public:
                 break;
             }
 
-                // Bot Role Option Damage Deal
+                // Bot Role Option 2
             case GOSSIP_ACTION_INFO_DEF + 24:
             {
                 switch (botClass)
                 {
+                case FSB_Class::Paladin:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                    break;
                 case FSB_Class::Warrior:
                 {
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
@@ -425,11 +431,14 @@ public:
                 break;
             }
 
-            // Bot Role Option Balanced
+            // Bot Role Option 3
             case GOSSIP_ACTION_INFO_DEF + 25:
             {
                 switch (botClass)
                 {
+                case FSB_Class::Paladin:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
+                    break;
                 case FSB_Class::Priest:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
                     if (me->HasAura(SPELL_PRIEST_SHADOWFORM))

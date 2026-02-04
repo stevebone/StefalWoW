@@ -2,10 +2,6 @@
 
 #include "Followship_bots_utils_spells.h"
 
-constexpr auto FSB_GOSSIP_ITEM_ROLE_ARCANE = "Arcane Damage Role: mostly arcane spells";
-constexpr auto FSB_GOSSIP_ITEM_ROLE_FROST = "Frost Damage Dealer: mostly frost and ice spells";
-constexpr auto FSB_GOSSIP_ITEM_ROLE_FIRE = "Fire Damage Role: mostly fire spells";
-
 extern std::vector<FSBSpellDefinition> MageSpellsTable;
 
 enum FSB_MAGE_PORTAL_SPELLS

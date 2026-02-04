@@ -35,6 +35,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('375', '900003', '-1'),
 ('375', '900004', '-1'),
 ('375', '900005', '-1'),
+('925', '900000', '-1'),
+('925', '900001', '-1'),
+('925', '900002', '-1'),
+('925', '900003', '-1'),
+('925', '900004', '-1'),
+('925', '900005', '-1'),
 ('50595', '900000', '-1'),
 ('50595', '900001', '-1'),
 ('50595', '900002', '-1'),
@@ -47,4 +53,5 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 375; -- Priest
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 198; -- Mage
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 911; -- Warrior
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 50595; -- Stormwind Defender (Warrior)

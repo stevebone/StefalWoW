@@ -39,6 +39,26 @@ struct FSB_ClassStats
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
 {
+    // PALADIN
+    {
+        .classId = FSB_Class::Paladin,
+        .powerType = POWER_MANA,
+        .baseHealth = 140,    // base HP
+        .basePower = 160,      // base power
+        .healthPerLevel = 65,     // HP per level
+        .powerPerLevel = 30,      // Power per level
+        .baseHpRegenOOC = 3,      // HP regen %
+        .basePowerRegenOOC = 2,       // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 1,
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 4,
+        .baseClassDamageVariance = 0.9f,
+        .baseAttackTime = 2000,
+        .baseRangedAttackTime = 2000
+    },
+
     // WARRIOR
     {
         .classId = FSB_Class::Warrior,

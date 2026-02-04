@@ -9,6 +9,7 @@
 #include "Followship_bots_mage.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_warrior.h"
+#include "Followship_bots_paladin.h"
 
 namespace FSBUtilsGossip
 {
@@ -122,6 +123,9 @@ namespace FSBUtilsGossip
         case FSB_Class::Druid:
             break;
         case FSB_Class::Paladin:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_TANK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_MELEE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_HEALER, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
             break;
         case FSB_Class::Hunter:
             break;

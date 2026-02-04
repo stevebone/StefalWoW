@@ -33,6 +33,12 @@ constexpr auto FSB_GOSSIP_ITEM_FOLLOW_ANGLE_RIGHT = "Move on my right!";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_ASSIST = "Healer Role: mostly heals and light combat assist";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_DAMAGE = "Damage Dealer: only damage on all targets";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_BALANCED = "Assist Role: a mix of heals and damage spells";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_TANK = "Tank Role: take a beating";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_MELEE = "Melee DPS Role: use close range weapons and attacks";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_HEALER = "Healer Role: mostly heals and light combat assist";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_ARCANE = "Arcane Damage Role: mostly arcane spells";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_FROST = "Frost Damage Dealer: mostly frost and ice spells";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_FIRE = "Fire Damage Role: mostly fire spells";
 
 constexpr auto FSB_GOSSIP_ITEM_PORTAL_STORMWIND = "Stormwind";
 constexpr auto FSB_GOSSIP_ITEM_PORTAL_DARNASSUS = "Darnassus";
