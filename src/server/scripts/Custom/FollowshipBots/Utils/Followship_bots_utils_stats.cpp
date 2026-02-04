@@ -63,7 +63,14 @@ namespace FSBUtilsStats
         creature->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
         creature->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
 
-        float basedamage = creature->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance;
+        float basedamage = creature->GetBaseDamageForLevel(level) * 0.5f * stats->baseClassDamageVariance;
+
+        if(level >= 10)
+            basedamage = creature->GetBaseDamageForLevel(level) * 1.2f * stats->baseClassDamageVariance;
+
+        if (level >= 20)
+            basedamage = creature->GetBaseDamageForLevel(level) * 1.5f * stats->baseClassDamageVariance;
+
         float baseAttackPower = stats->baseAttackPower;
         float baseRAttackPower = stats->baseRangedAttackPower;
         float attackPowerPerLevel = stats->attackPowerPerLevel;
