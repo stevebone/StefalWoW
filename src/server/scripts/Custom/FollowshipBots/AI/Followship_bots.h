@@ -38,11 +38,12 @@ enum FSB_GenericEvents
     // = 12,
 };
 
-enum FSB_EventsHiredState
+enum FSB_Events
 {
     FSB_EVENT_HIRED_MAINTENANCE = 30,
     FSB_EVENT_HIRED_CHECK_OWNER_COMBAT = 31,
     FSB_EVENT_HIRED_CHECK_TELEPORT = 32,
+    FSB_EVENT_HIRED_TELEPORT_DEATH = 33,
     
     
     FSB_EVENT_HIRED_CHECK_MOUNT = 35,
@@ -54,13 +55,6 @@ enum FSB_EventsHiredState
     FSB_EVENT_COMBAT_IC_ACTIONS = 44,
 
     FSB_EVENT_PERIODIC_MAINTENANCE = 50,
-};
-
-enum FSB_MovementStates
-{
-    FSB_MOVE_STATE_IDLE = 0,
-    FSB_MOVE_STATE_FOLLOWING = 1,
-    FSB_MOVE_STATE_STAY = 2
 };
 
 enum FSB_Actions

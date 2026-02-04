@@ -21,6 +21,7 @@
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
+#include "Followship_bots_teleport_handler.h"
 
 
 
@@ -79,7 +80,7 @@ public:
 
                 _statsMods = FSBUtilsStatsMods();     // now resets caller state
 
-                FSBUtils::SetInitialState(me, hired, moveState);
+                FSBUtils::SetInitialState(me, hired, botMoveState);
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
@@ -501,7 +502,7 @@ public:
                 return;
 
             // Continue to evaluate and attack if necessary
-            FSBUtilsBotCombat::BotAttackStart(me, who, moveState);
+            FSBUtilsBotCombat::BotAttackStart(me, who, botMoveState);
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", who->GetName(), moveState);
         }
@@ -513,7 +514,7 @@ public:
 
         void JustExitedCombat() override
         {
-            FSBUtilsBotCombat::BotHandleReturnMovement(me, moveState, followDistance, followAngle); // Return
+            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
         }        
 
         void AttackStart(Unit* /*target*/) override
@@ -543,7 +544,7 @@ public:
             if (!me->GetVictim() && attacker)
             {
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: DamageTaken - bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
-                FSBUtilsBotCombat::BotAttackStart(me, attacker, moveState);
+                FSBUtilsBotCombat::BotAttackStart(me, attacker, botMoveState);
             }
         }
 
@@ -572,9 +573,9 @@ public:
             // Before returning to owner, see if there are more things to attack
             if (Unit* nextTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, false, botGroup_))
                 //AttackStart(nextTarget);
-                FSBUtilsBotCombat::BotAttackStart(me, nextTarget, moveState);
+                FSBUtilsBotCombat::BotAttackStart(me, nextTarget, botMoveState);
             else
-                FSBUtilsBotCombat::BotHandleReturnMovement(me, moveState, followDistance, followAngle); // Return
+                FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
 
             
         }
@@ -771,6 +772,8 @@ public:
                     me->Yell(msg, LANG_UNIVERSAL);
                 }
             }
+
+            events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 60s);
         }
 
         uint32 GetData(uint32 /*type*/) const override // Runs once to check what data exists on the creature
@@ -1012,12 +1015,12 @@ public:
                     if (newTarget)
                     {
                         //AttackStart(newTarget);
-                        FSBUtilsBotCombat::BotAttackStart(me, newTarget, moveState);
+                        FSBUtilsBotCombat::BotAttackStart(me, newTarget, botMoveState);
                         TC_LOG_DEBUG("scripts.ai.fsb",
                             "FSB: Bot {} selected new target {}",
                             me->GetName(), newTarget->GetName());
                     }
-                    else FSBUtilsBotCombat::BotHandleReturnMovement(me, moveState, followDistance, followAngle); // Return
+                    else FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
                 }
                 
             }
@@ -1154,7 +1157,7 @@ public:
                         {
                             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner attacked a new target");
 
-                            FSBUtilsOwnerCombat::OnBotOwnerAttacked(FSBMgr::GetBotOwner(me)->GetVictim(), me, moveState);
+                            FSBUtilsOwnerCombat::OnBotOwnerAttacked(FSBMgr::GetBotOwner(me)->GetVictim(), me, botMoveState);
                         }
 
                         // OWNER WAS ATTACKED
@@ -1162,7 +1165,7 @@ public:
                         {
                             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner was attacked by {}", attacker->GetName());
 
-                            FSBUtilsOwnerCombat::OnBotOwnerAttackedBy(attacker, me, moveState);
+                            FSBUtilsOwnerCombat::OnBotOwnerAttackedBy(attacker, me, botMoveState);
                         }
                     }
 
@@ -1172,38 +1175,21 @@ public:
                     // Check if player is too far (teleport) and bring bot
                 case FSB_EVENT_HIRED_CHECK_TELEPORT:
                 {
-                    if (!me || !me->IsAlive())
-                        break;
-
-                    if (FSBUtilsCombat::IsCombatActive(me))
-                        break;
-
-                    Player* player = FSBMgr::GetBotOwner(me);
-                    if (!player)
-                        break;
-
-                    if (player->IsInFlight())
-                        break;
-
-                    if (!player->IsAlive())
-                        break;
-
-                    if (moveState == FSB_MOVE_STATE_STAY)
-                        break;
-
-                    if (me->GetMapId() == player->GetMapId() && me->GetDistance(player) > 100.0f)
-                    {
-                        me->NearTeleportTo(
-                            player->GetPositionX() + frand(3.f, 10.f),
-                            player->GetPositionY(),
-                            player->GetPositionZ(),
-                            player->GetOrientation());
-
-                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", me->GetName(), player->GetName());
-
-                    }
-
+                    if(botMoveState != FSB_MOVE_STATE_STAY)
+                        FSBTeleport::BotTeleport(me, BOT_TOO_FAR);
                     break;
+                }
+
+                    // After death bot is teleported to graveyard or dungeon entrance
+                case FSB_EVENT_HIRED_TELEPORT_DEATH:
+                {
+                    if (FSBTeleport::BotTeleport(me, BOT_DEATH))
+                    {
+                        me->setDeathState(ALIVE);
+                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
+                    }
+                    break;
+
                 }
 
                     // Check if Bot needs to mount or dismount
@@ -1450,7 +1436,7 @@ public:
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
                     FSBUtilsMovement::StopFollow(me);
-                    moveState = FSB_MOVE_STATE_STAY;
+                    botMoveState = FSB_MOVE_STATE_STAY;
 
                     if (hired && player)
                     {
@@ -1466,7 +1452,7 @@ public:
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
                     ResumeFollow(player);
-                    moveState = FSB_MOVE_STATE_FOLLOWING;
+                    botMoveState = FSB_MOVE_STATE_FOLLOWING;
 
                     if (updateFollowInfo)
                     {
@@ -1534,7 +1520,7 @@ public:
 
             // ----------
             // Movement States
-            uint16 moveState = 0;
+            //uint16 moveState = 0;
 
             // ----------
             // Allies & Group

@@ -68,3 +68,10 @@ static uint32 RoleToMask(FSB_Roles role)
     default:                        return 0;
     }
 }
+
+enum FSB_MovementStates
+{
+    FSB_MOVE_STATE_IDLE = 0,
+    FSB_MOVE_STATE_FOLLOWING = 1,
+    FSB_MOVE_STATE_STAY = 2
+};

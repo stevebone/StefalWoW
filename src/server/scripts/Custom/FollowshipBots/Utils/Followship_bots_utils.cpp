@@ -42,7 +42,7 @@ static constexpr FSBEntryClassMap BotEntryClassTable[] =
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired, uint16& moveState)
+    void SetInitialState(Creature* creature, bool& hired, FSB_MovementStates& moveState)
     {
         ASSERT(creature);
 
