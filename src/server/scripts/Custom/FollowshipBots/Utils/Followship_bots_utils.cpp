@@ -60,9 +60,9 @@ namespace FSBUtils
         creature->SetReactState(REACT_DEFENSIVE);
         creature->SetFaction(FSB_FACTION_ALLIANCE);
 
-        creature->UpdateLevelDependantStats();
-        creature->SetHealth(creature->GetMaxHealth());
-        creature->SetPowerType(FSBPowers::GetBotPowerType(creature), true);
+        //creature->UpdateLevelDependantStats();
+        //creature->SetHealth(creature->GetMaxHealth());
+        //creature->SetPowerType(FSBPowers::GetBotPowerType(creature), true);
     }
 
     void BotUpdateAllies(Creature* bot, GuidSet _allySet)
