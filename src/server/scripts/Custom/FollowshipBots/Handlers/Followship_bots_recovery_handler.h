@@ -275,7 +275,23 @@ struct ActionPriestHeal : BotRecoveryAction
     }
 };
 
+struct DrinkFoodPerLevel
+{
+    uint8 minLevel;
+    uint8 maxLevel;
+    int32 value;
+};
 
+// min level, max level, value
+static constexpr DrinkFoodPerLevel DrinkFoodTable[] =
+{
+    { 1, 10,  10 }, // level 1-10
+    { 11, 20, 25 }, // level 11-20
+    { 21, 30, 45 },
+    { 31, 40, 90 },
+    { 41, 50, 120 },
+    { 51, 60, 220 },
+};
 
 namespace FSBRecovery
 {
@@ -287,4 +303,10 @@ namespace FSBRecovery
     void BuildRecoveryActions(Creature* bot, RecoveryActionList& _recoveryActions);
     void TryRecovery(Creature* bot, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil);
     void TryRecover(Creature* bot, BotRecoveryIntent intent, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil);
+
+    // Gets drink amount of mana regen per level
+    int32 GetDrinkFoodPerLevel(uint8 level, DrinkFoodPerLevel const* table, size_t tableSize);
+
+    // Wrapper for GetDrinkManaRegenPerLevel
+    int32 GetDrinkFood(uint16 level);
 }

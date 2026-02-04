@@ -22,26 +22,7 @@ static std::unordered_map<FSB_Class, FSBSpellTable const*> sBotSpellTables;
 
 namespace FSBUtilsSpells
 {
-    int32 GetDrinkManaRegenPerLevel(uint8 level, DrinkManaPerLevel const* table, size_t tableSize)
-    {
-        for (size_t i = 0; i < tableSize; ++i)
-        {
-            if (level >= table[i].minLevel && level <= table[i].maxLevel)
-                return table[i].mana;
-        }
-
-        return 0;
-    }
-
-    // Wrapper for GetDrinkManaRegenPerLevel
-    int32 GetDrinkManaRegen(uint16 level)
-    {
-        return GetDrinkManaRegenPerLevel(
-            level,
-            DrinkManaRegenTable,
-            std::size(DrinkManaRegenTable)
-        );
-    }
+    
 
     // Gets the Mana Potion spell id on a provided level
     uint32 GetManaPotionSpellForLevel(uint8 level)

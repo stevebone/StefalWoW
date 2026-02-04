@@ -635,10 +635,17 @@ public:
 
             switch (aurApp->GetBase()->GetId())
             {
-            case SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER:
+            case SPELL_DRINK_CONJURED_CRYSTAL_WATER:
             {
-                int32 amount = FSBUtilsSpells::GetDrinkManaRegen(me->GetLevel());
+                int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
                 _statsMods.flatManaPerTick += amount;
+                break;
+            }
+
+            case SPELL_FOOD_SCALED_WITH_LVL:
+            {
+                int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
+                _statsMods.flatHealthPerTick += amount;
                 break;
             }
 
@@ -691,8 +698,20 @@ public:
                 if (me->GetStandState() == UNIT_STAND_STATE_SIT)
                 {
                     me->SetStandState(UNIT_STAND_STATE_STAND);
-                    int32 amount = FSBUtilsSpells::GetDrinkManaRegen(me->GetLevel());
+                    int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
                     _statsMods.flatManaPerTick -= amount;
+                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
+                }
+                break;
+            }
+
+            case SPELL_FOOD_SCALED_WITH_LVL: // Food
+            {
+                if (me->GetStandState() == UNIT_STAND_STATE_SIT)
+                {
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+                    int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
+                    _statsMods.flatHealthPerTick -= amount;
                     events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
                 }
                 break;
@@ -714,7 +733,6 @@ public:
                 break;
             }
 
-            case SPELL_FOOD_SCALED_WITH_LVL:
             case SPELL_MAGE_CONJURED_MANA_PUDDING:
             {
                 if (me->GetStandState() == UNIT_STAND_STATE_SIT)
@@ -773,7 +791,7 @@ public:
                 }
             }
 
-            events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 60s);
+            events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 90s);
         }
 
         uint32 GetData(uint32 /*type*/) const override // Runs once to check what data exists on the creature

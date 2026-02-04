@@ -18,23 +18,7 @@
 // Spell Related
 static constexpr uint32 BOT_GCD_MS = 1500;
 
-struct DrinkManaPerLevel
-{
-    uint8 minLevel;
-    uint8 maxLevel;
-    int32 mana;
-};
 
-// min level, max level, value
-static constexpr DrinkManaPerLevel DrinkManaRegenTable[] =
-{
-    { 1, 10,  10 }, // level 1-10
-    { 11, 20, 25 }, // level 11-20
-    { 21, 30, 45 },
-    { 31, 40, 90 },
-    { 41, 50, 120 },
-    { 51, 60, 220 },
-};
 
 // Mana Potion Spells
 struct ManaPotionSpell
@@ -89,11 +73,7 @@ using FSBSpellTable = std::vector<FSBSpellDefinition>;
 
 namespace FSBUtilsSpells
 {
-    // Gets drink amount of mana regen per level
-    int32 GetDrinkManaRegenPerLevel(uint8 level, DrinkManaPerLevel const* table, size_t tableSize);
-
-    // Wrapper for GetDrinkManaRegenPerLevel
-    int32 GetDrinkManaRegen(uint16 level);
+    
 
     // Gets mana potion spell per level
     uint32 GetManaPotionSpellForLevel(uint8 level);

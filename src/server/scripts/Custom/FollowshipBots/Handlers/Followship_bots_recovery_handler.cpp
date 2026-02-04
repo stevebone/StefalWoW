@@ -111,4 +111,24 @@ namespace FSBRecovery
         }
     }
 
+    int32 GetDrinkFoodPerLevel(uint8 level, DrinkFoodPerLevel const* table, size_t tableSize)
+    {
+        for (size_t i = 0; i < tableSize; ++i)
+        {
+            if (level >= table[i].minLevel && level <= table[i].maxLevel)
+                return table[i].value;
+        }
+
+        return 0;
+    }
+
+    // Wrapper for GetDrinkFoodPerLevel
+    int32 GetDrinkFood(uint16 level)
+    {
+        return GetDrinkFoodPerLevel(
+            level,
+            DrinkFoodTable,
+            std::size(DrinkFoodTable)
+        );
+    }
 }
