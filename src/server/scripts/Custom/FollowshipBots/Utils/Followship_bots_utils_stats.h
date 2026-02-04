@@ -32,6 +32,9 @@ struct FSB_ClassStats
     int32 attackPowerPerLevel;
 
     float baseClassDamageVariance;
+
+    int32 baseAttackTime;
+    int32 baseRangedAttackTime;
 };
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
@@ -51,7 +54,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackPower = 10,
         .baseRangedAttackPower = 0,
         .attackPowerPerLevel = 4,
-        .baseClassDamageVariance = 0.9f
+        .baseClassDamageVariance = 0.9f,
+        .baseAttackTime = 2000,
+        .baseRangedAttackTime = 2000
     },
 
     // PRIEST
@@ -69,7 +74,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackPower = 5,
         .baseRangedAttackPower = 0,
         .attackPowerPerLevel = 1,
-        .baseClassDamageVariance = 0.2f
+        .baseClassDamageVariance = 0.2f,
+        .baseAttackTime = 2500,
+        .baseRangedAttackTime = 2500
     },
 
     // MAGE
@@ -86,7 +93,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenIC = 2,
         .baseAttackPower = 5,
         .attackPowerPerLevel = 1,
-        .baseClassDamageVariance = 0.2f
+        .baseClassDamageVariance = 0.2f,
+        .baseAttackTime = 2500,
+        .baseRangedAttackTime = 2500
     },
 
     // ROGUE
@@ -104,7 +113,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackPower = 60,
         .baseRangedAttackPower = 0,
         .attackPowerPerLevel = 10,
-        .baseClassDamageVariance = 1.2f
+        .baseClassDamageVariance = 1.2f,
+        .baseAttackTime = 1500,
+        .baseRangedAttackTime = 2500
     },
 };
 

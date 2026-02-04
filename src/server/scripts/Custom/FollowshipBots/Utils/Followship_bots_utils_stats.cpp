@@ -59,6 +59,10 @@ namespace FSBUtilsStats
             botClass);
 
         // damage
+
+        creature->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
+        creature->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
+
         float basedamage = creature->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance;
         float baseAttackPower = stats->baseAttackPower;
         float baseRAttackPower = stats->baseRangedAttackPower;
