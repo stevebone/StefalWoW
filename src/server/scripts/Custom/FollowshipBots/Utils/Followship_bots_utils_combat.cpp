@@ -432,6 +432,9 @@ namespace FSBUtilsBotCombat
         case FSB_ROLE_MELEE_DAMAGE:
             return 2.5f;
 
+        case FSB_ROLE_RANGED_ARCANE:
+        case FSB_ROLE_RANGED_FIRE:
+        case FSB_ROLE_RANGED_FROST:
         case FSB_ROLE_RANGED_DAMAGE:
             return 28.0f;
 

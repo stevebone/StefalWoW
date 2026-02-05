@@ -135,6 +135,7 @@ namespace FSBUtilsSpells
             // Can only be cast on more than 2/3 attackers
             // OR when 2/3 attackers are around
             // This way we limit spells to CC instead of general/spam use
+        case SPELL_PALADIN_DIVINE_STORM:
         case SPELL_WARRIOR_COLOSSUS_SMASH:
         case SPELL_WARRIOR_CLEAVE:
         case SPELL_MAGE_FLAMESTRIKE:
@@ -380,7 +381,7 @@ namespace FSBUtilsCombatSpells
         // =========================================================
 
         bool isHealer = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER);
-        bool isHybrid = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_ASSIST);
+        bool isHybrid = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_ASSIST || (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Paladin && !FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER));
 
         std::vector<Unit*> emergencyTargets;
         std::vector<Unit*> healTargets;

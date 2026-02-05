@@ -1,5 +1,6 @@
 #include "Followship_bots_utils_stats.h"
 #include "Followship_bots_powers_handler.h"
+#include "Followship_bots_paladin.h"
 #include "Followship_bots_warrior.h"
 
 namespace FSBUtilsStats
@@ -315,6 +316,9 @@ namespace FSBUtilsStats
 
         if (FSBWarrior::BotHasShieldWall(bot))
             multiplier *= 0.60f;
+
+        if (FSBPaladin::BotHasDevotionAura(bot))
+            multiplier *= 0.97f;
 
         return multiplier;
     }
