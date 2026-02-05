@@ -276,7 +276,7 @@ namespace FSBUtilsStats
         bot->SetCreateHealth(health);
         bot->SetMaxHealth(health);
         bot->SetHealth(health);
-        bot->ResetPlayerDamageReq();
+        //bot->ResetPlayerDamageReq();
 
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
 
@@ -291,7 +291,6 @@ namespace FSBUtilsStats
 
         bot->SetCreateMana(power);
         bot->SetStatPctModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_PCT, bot->GetCreatureDifficulty()->ManaModifier);
-        bot->SetPowerType(powerType, true, true);
         bot->SetMaxPower(powerType, power);
 
         if(botClass != FSB_Class::Warrior)

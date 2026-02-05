@@ -10,6 +10,7 @@
 #include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_config.h"
+#include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_warrior.h"
@@ -378,6 +379,11 @@ public:
                 {
                 case FSB_Class::Paladin:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
+                    if (me->HasAura(SPELL_PALADIN_RETRIBUTION_AURA))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RETRIBUTION_AURA);
+                    if (me->HasAura(SPELL_PALADIN_CONCENTRATION_AURA))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_CONCENTRATION_AURA);
+                    me->CastSpell(me, SPELL_PALADIN_DEVOTION_AURA);
                     break;
                 case FSB_Class::Warrior:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
@@ -407,6 +413,11 @@ public:
                 {
                 case FSB_Class::Paladin:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                    if (me->HasAura(SPELL_PALADIN_DEVOTION_AURA))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_DEVOTION_AURA);
+                    if (me->HasAura(SPELL_PALADIN_CONCENTRATION_AURA))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_CONCENTRATION_AURA);
+                    me->CastSpell(me, SPELL_PALADIN_RETRIBUTION_AURA);
                     break;
                 case FSB_Class::Warrior:
                 {
@@ -438,6 +449,11 @@ public:
                 {
                 case FSB_Class::Paladin:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
+                    if (me->HasAura(SPELL_PALADIN_DEVOTION_AURA))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_DEVOTION_AURA);
+                    if (me->HasAura(SPELL_PALADIN_RETRIBUTION_AURA))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RETRIBUTION_AURA);
+                    me->CastSpell(me, SPELL_PALADIN_CONCENTRATION_AURA);
                     break;
                 case FSB_Class::Priest:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
@@ -605,6 +621,7 @@ public:
             case FSB_Class::Druid:
                 break;
             case FSB_Class::Paladin:
+                FSBPaladin::HandleOnSpellCast(me, spell->Id);
                 break;
             case FSB_Class::Hunter:
                 break;
@@ -621,7 +638,7 @@ public:
                 return;
 
             // When bot is resurrected we need to set it back to death state alive
-            if (spellInfo->Id == SPELL_PRIEST_RESURRECTION)
+            if (spellInfo->Id == SPELL_PRIEST_RESURRECTION || spellInfo->Id == SPELL_PALADIN_REDEMPTION)
             {
                 TC_LOG_DEBUG("scripts.ai.fsb",
                     "FSB: Bot {} was resurrected by spell {}",
@@ -1313,7 +1330,21 @@ public:
 
                             FSBUtilsMovement::StopFollow(me);
 
-                            uint32 spellId = SPELL_PRIEST_RESURRECTION;
+                            uint32 spellId = 0;
+
+                            switch (botClass)
+                            {
+                            case FSB_Class::Priest:
+                                spellId = SPELL_PRIEST_RESURRECTION;
+                                break;
+                            case FSB_Class::Druid:
+                                break;
+                            case FSB_Class::Paladin:
+                                spellId = SPELL_PALADIN_REDEMPTION;
+                                break;
+                            default:
+                                break;
+                            }
 
 
                             me->CastSpell(target, spellId, false);
