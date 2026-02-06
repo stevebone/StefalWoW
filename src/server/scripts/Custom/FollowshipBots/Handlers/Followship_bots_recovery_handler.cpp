@@ -58,6 +58,9 @@ namespace FSBRecovery
 
         if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Priest)
             _recoveryActions.emplace_back(new ActionPriestHeal());
+
+        if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Paladin)
+            _recoveryActions.emplace_back(new ActionPaladinHeal());
     }
 
     void TryRecovery(Creature* bot, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil)

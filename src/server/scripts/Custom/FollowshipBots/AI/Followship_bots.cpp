@@ -380,13 +380,7 @@ public:
                 {
                 case FSB_Class::Paladin:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
-                    if (me->HasAura(SPELL_PALADIN_RETRIBUTION_AURA))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RETRIBUTION_AURA);
-                    if (me->HasAura(SPELL_PALADIN_CONCENTRATION_AURA))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_CONCENTRATION_AURA);
-                    if (me->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RITE_OF_SANCTIFICATION);
-                    me->CastSpell(me, SPELL_PALADIN_DEVOTION_AURA);
+                    FSBPaladin::BotSetRoleAuras(me, FSB_ROLE_TANK);
                     break;
                 case FSB_Class::Warrior:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
@@ -416,15 +410,7 @@ public:
                 {
                 case FSB_Class::Paladin:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
-                    if (me->HasAura(SPELL_PALADIN_DEVOTION_AURA))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_DEVOTION_AURA);
-                    if (me->HasAura(SPELL_PALADIN_CONCENTRATION_AURA))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_CONCENTRATION_AURA);
-                    if (me->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RITE_OF_SANCTIFICATION);
-                    if (me->HasAura(SPELL_PALADIN_FURY))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_FURY);
-                    me->CastSpell(me, SPELL_PALADIN_RETRIBUTION_AURA);
+                    FSBPaladin::BotSetRoleAuras(me, FSB_ROLE_MELEE_DAMAGE);
                     break;
                 case FSB_Class::Warrior:
                 {
@@ -456,13 +442,7 @@ public:
                 {
                 case FSB_Class::Paladin:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
-                    if (me->HasAura(SPELL_PALADIN_DEVOTION_AURA))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_DEVOTION_AURA);
-                    if (me->HasAura(SPELL_PALADIN_RETRIBUTION_AURA))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RETRIBUTION_AURA);
-                    if (me->HasAura(SPELL_PALADIN_FURY))
-                        me->RemoveAurasDueToSpell(SPELL_PALADIN_FURY);
-                    me->CastSpell(me, SPELL_PALADIN_CONCENTRATION_AURA);
+                    FSBPaladin::BotSetRoleAuras(me, FSB_ROLE_HEALER);
                     break;
                 case FSB_Class::Priest:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);

@@ -103,6 +103,7 @@ namespace FSBPaladin
             bot->CastSpell(bot, SPELL_PALADIN_RITE_OF_SANCTIFICATION, false);
             selfBuffTimer = now + 60000; // 1 minute
             globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
+            outSpellId = SPELL_PALADIN_RITE_OF_SANCTIFICATION;
 
             return true;
         }
@@ -114,10 +115,53 @@ namespace FSBPaladin
             bot->CastSpell(bot, SPELL_PALADIN_FURY, false);
             selfBuffTimer = now + 60000; // 1 minute
             globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
+            outSpellId = SPELL_PALADIN_FURY;
 
             return true;
         }
 
         return false;
+    }
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    {
+        switch (role)
+        {
+        case FSB_ROLE_TANK:
+        {
+            for (uint32 spellId : paladinAurasToRemoveForTank)
+            {
+                if (bot->HasAura(spellId))
+                    bot->RemoveAurasDueToSpell(spellId);
+            }
+
+            bot->CastSpell(bot, SPELL_PALADIN_DEVOTION_AURA);
+            break;
+        }
+        case FSB_ROLE_HEALER:
+        {
+            for (uint32 spellId : paladinAurasToRemoveForHealer)
+            {
+                if (bot->HasAura(spellId))
+                    bot->RemoveAurasDueToSpell(spellId);
+            }
+
+            bot->CastSpell(bot, SPELL_PALADIN_CONCENTRATION_AURA);
+            break;
+        }
+        case FSB_ROLE_MELEE_DAMAGE:
+        {
+            for (uint32 spellId : paladinAurasToRemoveForDPS)
+            {
+                if (bot->HasAura(spellId))
+                    bot->RemoveAurasDueToSpell(spellId);
+            }
+
+            bot->CastSpell(bot, SPELL_PALADIN_RETRIBUTION_AURA);
+            break;
+        }
+        default:
+            break;
+        }
     }
 }

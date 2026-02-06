@@ -1,6 +1,7 @@
 
 #include "Followship_bots_config.h"
 #include "Followship_bots_utils.h"
+#include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_utils_spells.h"
 
@@ -264,6 +265,41 @@ struct ActionPriestHeal : BotRecoveryAction
         uint32 now = getMSTime();
 
         bot->CastSpell(bot, SPELL_PRIEST_HEAL, false);
+
+        _globalCooldownUntil = now + GetCooldownMs(); // GCD
+
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        {
+            std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::HealSelf, "");
+            bot->Say(msg, LANG_UNIVERSAL);
+        }
+    }
+};
+
+struct ActionPaladinHeal : BotRecoveryAction
+{
+    ActionPaladinHeal()
+    {
+        type = BotRecoveryType::Health;
+        priority = 90;
+    }
+
+    bool CanExecute(Creature* bot, uint32 cooldown) const override
+    {
+        uint32 now = getMSTime();
+
+        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Paladin
+            && bot->GetHealthPct() < BOT_RECOVERY_HP_PCT
+            && !bot->isMoving()
+            && !bot->IsInCombat()
+            && FSBUtilsSpells::CanCastNow(bot, now, cooldown);
+    }
+
+    void Execute(Creature* bot, uint32& _globalCooldownUntil) override
+    {
+        uint32 now = getMSTime();
+
+        bot->CastSpell(bot, SPELL_PALADIN_FLASH_OF_LIGHT, false);
 
         _globalCooldownUntil = now + GetCooldownMs(); // GCD
 

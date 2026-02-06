@@ -50,6 +50,28 @@ enum FSB_PALADIN_AURAS
     SPELL_PALADIN_CONCENTRATION_AURA = 79963
 };
 
+static const uint32 paladinAurasToRemoveForHealer[] =
+{
+    SPELL_PALADIN_DEVOTION_AURA,
+    SPELL_PALADIN_RETRIBUTION_AURA,
+    SPELL_PALADIN_FURY
+};
+
+static const uint32 paladinAurasToRemoveForDPS[] =
+{
+    SPELL_PALADIN_DEVOTION_AURA,
+    SPELL_PALADIN_CONCENTRATION_AURA,
+    SPELL_PALADIN_RITE_OF_SANCTIFICATION,
+    SPELL_PALADIN_FURY
+};
+
+static const uint32 paladinAurasToRemoveForTank[] =
+{
+    SPELL_PALADIN_CONCENTRATION_AURA,
+    SPELL_PALADIN_RETRIBUTION_AURA,
+    SPELL_PALADIN_RITE_OF_SANCTIFICATION
+};
+
 namespace FSBPaladin
 {
     bool BotHasDevotionAura(Creature* bot);
@@ -58,4 +80,6 @@ namespace FSBPaladin
 
     bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown);
     bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId);
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role);
 }

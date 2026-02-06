@@ -355,7 +355,7 @@ namespace FSBUtilsCombatSpells
         // =========================================================
 
         bool isHealer = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER);
-        bool isHybrid = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_ASSIST || (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Paladin && !FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER));
+        //bool isHybrid = (FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_ASSIST || (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Paladin && !FSBUtils::GetRole(bot) == FSB_Roles::FSB_ROLE_HEALER));
 
         std::vector<Unit*> emergencyTargets;
         std::vector<Unit*> healTargets;
@@ -384,10 +384,7 @@ namespace FSBUtilsCombatSpells
                 mode = SpellMode::NormalHeal;
             else
                 mode = SpellMode::DamageOnly;
-        }
-
-        if (isHybrid)
-            mode = SpellMode::Hybrid;
+        } else  mode = SpellMode::Hybrid;
 
         /*
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - role={} mode={} emergencyTargets={} healTargets={}",
