@@ -368,6 +368,17 @@ namespace FSBUtilsMovement
         me->GetMotionMaster()->Clear();
     }
 
+    // Resume Follow
+    void ResumeFollow(Creature* bot, float followDistance, float followAngle)
+    {
+        Player* player = FSBMgr::GetBotOwner(bot);
+
+        if (!player)
+            return;
+
+        bot->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
+    }
+
     MovementGeneratorType GetMovementType(Unit* me)
     {
         if (!me)

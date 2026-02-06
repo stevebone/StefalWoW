@@ -26,34 +26,39 @@ namespace FSBUtilsStats
         uint8 level = creature->GetLevel();
         creature->SetClass(FSBToTCClass(botClass));
 
-        Powers powerType = stats->powerType;
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} stats powerType: {}", creature->GetName(), stats->powerType);
-        uint32 maxHealth =
-            stats->baseHealth +
-            stats->healthPerLevel * (level - 1);
+        // Health
+        uint32 baseHealth = stats->baseHealth + stats->healthPerLevel * (level - 1);
+        creature->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
+        creature->SetMaxHealth(baseHealth);
+        creature->SetHealth(baseHealth);
 
-        uint32 maxPower =
-            stats->basePower +
-            stats->powerPerLevel * (level - 1);
+        // Power
+        Powers powerType = stats->powerType;
+        uint32 basePower = stats->basePower + stats->powerPerLevel * (level - 1);
 
         if (botClass == FSB_Class::Warrior)
-            maxPower = 1000;
-
-        //creature->SetOverrideDisplayPowerId(466);
+            basePower = 1000;
 
         creature->SetPowerType(powerType, true);
-        creature->SetMaxHealth(maxHealth);
-        creature->SetHealth(maxHealth);
-        creature->SetMaxPower(powerType, maxPower);
+        
+        creature->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, 0);   
+        creature->SetCreateMana(basePower);
+        creature->SetMaxPower(powerType, basePower);
 
         if (stats->powerType == POWER_RAGE)
             creature->SetPower(powerType, 0, true);
-        else creature->SetPower(powerType, maxPower);
+        else creature->SetPower(powerType, basePower);
+
+        //creature->SetOverrideDisplayPowerId(466);
+
+        
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} stats powerType: {}", creature->GetName(), stats->powerType);
+        
 
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, MaxHealth= {}, Power= {}, MaxPower= {}, TC Class= {}, FSB Class= {}",
             creature->GetName(),
             level,
-            maxHealth,
+            baseHealth,
             creature->GetPowerType(),
             creature->GetMaxPower(powerType),
             creature->GetClass(),
@@ -125,32 +130,6 @@ namespace FSBUtilsStats
         return CLASS_NONE;
     }
 
-
-    
-
-    void ApplyMaxHealth(Unit* unit, const FSBUtilsStatsMods& mods)
-    {
-        if (!unit)
-            return;
-
-        //uint32 baseMaxHealth = unit->GetCreateHealth();
-        uint32 baseMaxHealth = unit->GetMaxHealth();
-        int32 bonusFlat = mods.flatMaxHealth;
-        float bonusPct = mods.pctMaxHealthBonus;
-
-        uint32 newMaxHealth = baseMaxHealth + bonusFlat;
-        if (bonusPct > 0.0f)
-            newMaxHealth += uint32(float(baseMaxHealth) * bonusPct);
-
-        if (unit->GetMaxHealth() != newMaxHealth)
-        {
-            unit->SetMaxHealth(newMaxHealth);
-
-            if (unit->GetHealth() > newMaxHealth)
-                unit->SetHealth(newMaxHealth);
-        }
-    }
-
     void ApplyMaxMana(Unit* unit, const FSBUtilsStatsMods& mods)
     {
         if (!unit)
@@ -220,11 +199,13 @@ namespace FSBUtilsStats
 
     void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods)
     {
-        ApplyMaxHealth(unit, mods);
-        ApplyMaxMana(unit, mods);
+        //ApplyMaxHealth(unit, mods);
+        //ApplyMaxMana(unit, mods);
         ApplyBotAttackPower(unit);
         ApplyBotDamage(unit);
         unit->UpdateArmor();
+        unit->UpdateMaxHealth();
+        unit->UpdateMaxPower(unit->GetPowerType());
         // ApplyArmor(...)
         // ApplySpellPower(...)
         
@@ -273,30 +254,37 @@ namespace FSBUtilsStats
         // health
 
         uint32 basehp = stats->baseHealth;
-        uint32 health = uint32(basehp + (stats->healthPerLevel * level));
-
-        bot->SetCreateHealth(health);
-        bot->SetMaxHealth(health);
-        bot->SetHealth(health);
-        //bot->ResetPlayerDamageReq();
+        uint32 health = uint32(basehp + (stats->healthPerLevel * level-1));
 
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
 
-        // Powers
-        Powers powerType = FSBPowers::GetBotPowerType(bot);
+        float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
-        uint32 basePower = stats->basePower;
-        uint32 power = uint32(basePower + (stats->powerPerLevel * level));
+        bot->SetCreateHealth(health);
+        bot->SetMaxHealth(uint32(totalHealth));
+        bot->SetHealth(uint32(totalHealth));
+
+        // Power
+        Powers powerType = stats->powerType;
+        uint32 basePower = stats->basePower + stats->powerPerLevel * (level - 1);
 
         if (botClass == FSB_Class::Warrior)
-            power = 1000;
+            basePower = 1000;
 
-        bot->SetCreateMana(power);
-        bot->SetStatPctModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_PCT, bot->GetCreatureDifficulty()->ManaModifier);
-        bot->SetMaxPower(powerType, power);
+        bot->SetPowerType(powerType, true);
 
-        if(botClass != FSB_Class::Warrior)
-            bot->SetPower(powerType, power);
+        bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, 0);
+        bot->SetCreateMana(basePower);
+        float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)));
+
+        if (botClass == FSB_Class::Warrior)
+            totalPower = 1000;
+        bot->SetMaxPower(powerType, totalPower);
+
+        if (stats->powerType == POWER_RAGE)
+            bot->SetPower(powerType, 0, true);
+        else bot->SetPower(powerType, totalPower);
+        //bot->ResetPlayerDamageReq();
 
         // Att power
         ApplyBotAttackPower(bot);

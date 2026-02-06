@@ -57,9 +57,14 @@ public:
         handler->PSendSysMessage("Class: %s", FSBUtils::BotClassToString(botClass));
         handler->PSendSysMessage("Race: %s", FSBUtils::BotRaceToString(botRace));
 
-        handler->PSendSysMessage("Health: Created: %u Max: %u (%.1f%%)",
-            bot->GetCreateHealth(),
-            bot->GetMaxHealth(),
+        float baseHealth = bot->GetFlatModifierValue(UNIT_MOD_HEALTH, BASE_VALUE);
+        float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
+
+        handler->PSendSysMessage("Health: Base: %.1f Max: %.1f (%.1f%%)",
+            //bot->GetCreateHealth(),
+            baseHealth,
+            //bot->GetMaxHealth(),
+            totalHealth,
             bot->GetHealthPct());
 
         handler->PSendSysMessage("Power (%s): %u / %u",

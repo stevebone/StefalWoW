@@ -19,6 +19,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_spells.h"
 
+#include "Followship_bots_auras_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
@@ -648,63 +649,7 @@ public:
             if (!aurApp)
                 return;
 
-            switch (aurApp->GetBase()->GetId())
-            {
-            case SPELL_DRINK_CONJURED_CRYSTAL_WATER:
-            {
-                int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
-                _statsMods.flatManaPerTick += amount;
-                break;
-            }
-
-            case SPELL_FOOD_SCALED_WITH_LVL:
-            {
-                int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
-                _statsMods.flatHealthPerTick += amount;
-                break;
-            }
-
-            case SPELL_WARRIOR_BATTLE_SHOUT:
-            {
-                float totalPct = me->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
-
-                me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct + 0.05f);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                break; 
-            }
-
-            case SPELL_WARRIOR_BATTLE_STANCE:
-            {
-                _statsMods.flatRagePerTick += 20;
-                break;
-            }
-
-            case SPELL_PRIEST_POWER_WORD_FORTITUDE:
-                _statsMods.flatMaxHealth += 5 * me->GetLevel();      // flat
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-                break;
-
-            case SPELL_MAGE_ARCANE_INTELLECT:
-                _statsMods.pctMaxManaBonus += 0.02f;
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-                break;
-
-            case SPELL_MAGE_EVOCATION:
-                _statsMods.pctManaPerTick += 1500.f;
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-                break;
-
-            case SPELL_PALADIN_RITE_OF_SANCTIFICATION:
-            {
-                me->ApplyStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, 0.05f);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-                break;
-            }
-            }
-
-            
-
+            FSBAuras::BotOnAuraApplied(me, aurApp, true, _statsMods);         
         }
 
         void OnAuraRemoved(AuraApplication const* aurApp) override
@@ -712,92 +657,7 @@ public:
             if (!aurApp)
                 return;
 
-            uint32 spellId = aurApp->GetBase()->GetId();
-
-            // Example: generic drink spells
-            switch (spellId)
-            {
-            case SPELL_DRINK_CONJURED_CRYSTAL_WATER: // Conjured Crystal water
-            {
-                if (me->GetStandState() == UNIT_STAND_STATE_SIT)
-                {
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
-                    int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
-                    _statsMods.flatManaPerTick -= amount;
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
-                }
-                break;
-            }
-
-            case SPELL_FOOD_SCALED_WITH_LVL: // Food
-            {
-                if (me->GetStandState() == UNIT_STAND_STATE_SIT)
-                {
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
-                    int32 amount = FSBRecovery::GetDrinkFood(me->GetLevel());
-                    _statsMods.flatHealthPerTick -= amount;
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
-                }
-                break;
-            }
-
-            case SPELL_WARRIOR_BATTLE_SHOUT:
-            {
-                float totalPct = me->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
-
-                me->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, totalPct - 0.05f);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                break;
-            }
-
-            case SPELL_WARRIOR_BATTLE_STANCE:
-            {
-                _statsMods.flatRagePerTick -= 20;
-                break;
-            }
-
-            case SPELL_MAGE_CONJURED_MANA_PUDDING:
-            {
-                if (me->GetStandState() == UNIT_STAND_STATE_SIT)
-                {
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 500ms);
-                }
-                break;
-            }
-
-            case SPELL_PRIEST_POWER_WORD_FORTITUDE:
-                _statsMods.flatMaxHealth -= 5 * me->GetLevel();      // flat
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                if (me->GetHealth() > me->GetMaxHealth())
-                    me->SetHealth(me->GetMaxHealth());
-
-                break;
-
-            case SPELL_MAGE_ARCANE_INTELLECT:
-                _statsMods.pctMaxManaBonus -= 0.02f;
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                if (me->GetPower(POWER_MANA) > me->GetMaxPower(POWER_MANA))
-                    me->SetPower(POWER_MANA, me->GetMaxPower(POWER_MANA));
-
-                break;
-
-            case SPELL_MAGE_EVOCATION:
-                _statsMods.pctManaPerTick -= 1500.f;
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-
-                break;
-
-            case SPELL_PALADIN_RITE_OF_SANCTIFICATION:
-            {
-                me->ApplyStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, -0.05f);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
-                break;
-            }
-            }
+            FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods);
         }
 
         void JustSummoned(Creature* /*summon*/) override // Runs every time the creature summons another creature
@@ -1337,11 +1197,7 @@ public:
                     // For timed events
                 case FSB_EVENT_RESUME_FOLLOW:
                 {
-                    Player* player = FSBMgr::GetBotOwner(me);
-
-                    if(player)
-                        ResumeFollow(player);
-
+                    FSBUtilsMovement::ResumeFollow(me, followDistance, followAngle);
                     break;
                 }
 
@@ -1400,7 +1256,7 @@ public:
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                    ResumeFollow(player);
+                    FSBUtilsMovement::ResumeFollow(me, followDistance, followAngle);
                     botMoveState = FSB_MOVE_STATE_FOLLOWING;
 
                     if (updateFollowInfo)
@@ -1428,15 +1284,6 @@ public:
         }
 
         // Helper methods
-
-        // Resume Follow
-        void ResumeFollow(Player* player)
-        {
-            if (!player)
-                return;
-
-            me->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
-        }
 
         uint8 attackers = FSBUtilsCombat::CountActiveAttackers(me); // count active attackers on bot
 

@@ -57,6 +57,7 @@ namespace FSBUtilsMovement
     bool EnsureLOS(Unit* me, Unit* target);
 
     void StopFollow(Unit* me);
+    void ResumeFollow(Creature* bot, float followDistance, float followAngle);
 
     MovementGeneratorType GetMovementType(Unit* me);
 }
