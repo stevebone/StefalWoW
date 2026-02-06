@@ -224,6 +224,7 @@ namespace FSBUtilsStats
         ApplyMaxMana(unit, mods);
         ApplyBotAttackPower(unit);
         ApplyBotDamage(unit);
+        unit->UpdateArmor();
         // ApplyArmor(...)
         // ApplySpellPower(...)
         

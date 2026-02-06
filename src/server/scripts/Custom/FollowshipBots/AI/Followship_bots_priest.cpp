@@ -28,7 +28,7 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
 };
 
 
-namespace FSB_PriestActionsSpells
+namespace FSBPriest
 {
     bool BotInitialCombatSpells(Creature* bot, uint32& _globalCooldownUntil, bool& _ownerWasInCombat, uint8& _appliedInitialCBuffs, bool selfCast)
     {
@@ -122,38 +122,29 @@ namespace FSB_PriestActionsSpells
         return false;
     }
 
-    bool BotHealPlayerOOC(Creature* bot, uint32& _globalCooldownUntil, uint32& outSpellId)
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown)
     {
-        uint32 now = getMSTime();
-
-        Player* player = FSBMgr::GetBotOwner(bot);
-        if (!player)
+        if (!player || !bot)
             return false;
+
+        uint32 now = getMSTime();
 
         if (player->GetHealthPct() <= 50)
         {
-            
-
-            FSBUtilsMovement::StopFollow(bot);
             bot->CastSpell(player, SPELL_PRIEST_HEAL, false);
-            _globalCooldownUntil = now + 1500;
+            globalCooldown = now + 1500;
 
-            outSpellId = SPELL_PRIEST_HEAL;
-
-            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 50");
+            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
 
             return true;
 
         }
-        else if (player->GetHealthPct() <= 70)
+        else if (player->GetHealthPct() <= 90)
         {
-            FSBUtilsMovement::StopFollow(bot);
             bot->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
-            _globalCooldownUntil = now + 1500;
+            globalCooldown = now + 1500;
 
-            outSpellId = SPELL_PRIEST_FLASH_HEAL;
-
-            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Player Heal < 70");
+            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
 
             return true;
         }

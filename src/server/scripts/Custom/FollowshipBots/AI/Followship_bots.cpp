@@ -19,6 +19,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils_spells.h"
 
+#include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
@@ -383,6 +384,8 @@ public:
                         me->RemoveAurasDueToSpell(SPELL_PALADIN_RETRIBUTION_AURA);
                     if (me->HasAura(SPELL_PALADIN_CONCENTRATION_AURA))
                         me->RemoveAurasDueToSpell(SPELL_PALADIN_CONCENTRATION_AURA);
+                    if (me->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RITE_OF_SANCTIFICATION);
                     me->CastSpell(me, SPELL_PALADIN_DEVOTION_AURA);
                     break;
                 case FSB_Class::Warrior:
@@ -417,6 +420,10 @@ public:
                         me->RemoveAurasDueToSpell(SPELL_PALADIN_DEVOTION_AURA);
                     if (me->HasAura(SPELL_PALADIN_CONCENTRATION_AURA))
                         me->RemoveAurasDueToSpell(SPELL_PALADIN_CONCENTRATION_AURA);
+                    if (me->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_RITE_OF_SANCTIFICATION);
+                    if (me->HasAura(SPELL_PALADIN_FURY))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_FURY);
                     me->CastSpell(me, SPELL_PALADIN_RETRIBUTION_AURA);
                     break;
                 case FSB_Class::Warrior:
@@ -453,6 +460,8 @@ public:
                         me->RemoveAurasDueToSpell(SPELL_PALADIN_DEVOTION_AURA);
                     if (me->HasAura(SPELL_PALADIN_RETRIBUTION_AURA))
                         me->RemoveAurasDueToSpell(SPELL_PALADIN_RETRIBUTION_AURA);
+                    if (me->HasAura(SPELL_PALADIN_FURY))
+                        me->RemoveAurasDueToSpell(SPELL_PALADIN_FURY);
                     me->CastSpell(me, SPELL_PALADIN_CONCENTRATION_AURA);
                     break;
                 case FSB_Class::Priest:
@@ -705,7 +714,16 @@ public:
                 _statsMods.pctManaPerTick += 1500.f;
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
                 break;
+
+            case SPELL_PALADIN_RITE_OF_SANCTIFICATION:
+            {
+                me->ApplyStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, 0.05f);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+                break;
             }
+            }
+
+            
 
         }
 
@@ -792,6 +810,13 @@ public:
                 FSBUtilsStats::RecalculateMods(me, _statsMods);
 
                 break;
+
+            case SPELL_PALADIN_RITE_OF_SANCTIFICATION:
+            {
+                me->ApplyStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, -0.05f);
+                FSBUtilsStats::RecalculateMods(me, _statsMods);
+                break;
+            }
             }
         }
 
@@ -866,121 +891,6 @@ public:
         {
             switch (action)
             {
-            case FSB_ACTION_OOC_ACTIONS:
-            {
-                
-                if (!me)
-                    return;
-
-                if (!me->IsAlive())
-                    return;
-
-                if (FSBUtilsCombat::IsCombatActive(me))
-                    return;
-
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
-
-                uint32 now = getMSTime();
-
-                // 1. Bot OOC Player Heal
-                if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                {
-                    Player* player = FSBMgr::GetBotOwner(me);
-
-                    if (player && player->IsAlive() && player->GetHealthPct() <= 70)
-                    {
-                        switch (botClass)
-                        {
-                        case FSB_Class::Priest:
-                        {
-                            uint32 spellId = 0;
-
-                            if (FSB_PriestActionsSpells::BotHealPlayerOOC(me, _globalCooldownUntil, spellId))
-                            {
-                                if (spellId != 0)
-                                {
-                                    if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                                        me->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
-
-                                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 3s);
-                                }
-                            }
-                            break;
-                        }
-                        default:
-                            break;
-                        }
-                    }
-                }
-
-                // 4. Bot OOC Buffs
-                if (now >= _buffsTimerMs)
-                {
-                    if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                    {
-                        std::vector<Unit*> buffTargets;
-
-                        uint32 buffSpellId = 0;
-
-                        switch (botClass)
-                        {
-                        case FSB_Class::Warrior:
-                            buffSpellId = SPELL_WARRIOR_BATTLE_SHOUT;
-                            break;
-                        case FSB_Class::Priest:
-                            buffSpellId = SPELL_PRIEST_POWER_WORD_FORTITUDE;
-                            break;
-                        case FSB_Class::Mage:
-                            buffSpellId = SPELL_MAGE_ARCANE_INTELLECT;
-                            break;
-                        default:
-                            break;
-                        }
-
-                        if (!buffSpellId)
-                        {
-                            _buffsTimerMs = now + 300000;
-                            return;
-                        }
-
-                        FSBUtilsSpells::GetBotBuffTargets(me, buffSpellId, botGroup_, 30.0f, buffTargets);
-
-                        if (!buffTargets.empty())
-                        {
-                            Unit* target = buffTargets.front();
-
-                            me->CastSpell(target, buffSpellId, false);
-                            _globalCooldownUntil = now + 1500;
-
-                            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                            {
-                                if (target == me)
-                                {
-                                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::BuffSelf, FSBUtilsSpells::GetSpellName(buffSpellId));
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                }
-
-                                else
-                                {
-                                    std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::BuffTarget, FSBUtilsSpells::GetSpellName(buffSpellId));
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                }
-
-                                
-                            }
-
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot: {} Buffed target: {} with {}", me->GetName(), target->GetName(), FSBUtilsSpells::GetSpellName(buffSpellId));
-
-                            return;
-                        }
-                        else _buffsTimerMs = now + 120000;
-                    }
-                }
-
-                break;
-            }
-
             case FSB_ACTION_COMBAT_IC_ACTIONS:
             {
                 
@@ -1023,12 +933,12 @@ public:
                         {
                             if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST) // self cast for Assist Role
                             {
-                                if (FSB_PriestActionsSpells::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, true))
+                                if (FSBPriest::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, true))
                                     break;
                             }
                             else if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER) // player cast for Healer role
                             {
-                                if (FSB_PriestActionsSpells::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, false))
+                                if (FSBPriest::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, false))
                                     break;
                             }
                             break;
@@ -1103,7 +1013,8 @@ public:
                     {
                         if (now >= _1secondsCheckMs)
                         {
-                            DoAction(FSB_ACTION_OOC_ACTIONS);
+                            if (!_isRecovering && FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_))
+                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s, 3s);
 
                             // ? lock regen for next 2 seconds
                             _1secondsCheckMs = now + 1000;
@@ -1575,6 +1486,7 @@ public:
             std::vector<std::unique_ptr<BotRecoveryAction>> _recoveryActions;
             uint32 _globalCooldownUntil = 0; // global cooldown
             uint32 _buffsTimerMs = 0;
+            uint32 _selfBuffsTimerMs = 0;
 
             // ----------
             // Movement States

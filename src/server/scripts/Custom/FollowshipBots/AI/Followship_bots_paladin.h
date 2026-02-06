@@ -7,7 +7,10 @@ extern std::vector<FSBSpellDefinition> PaladinSpellsTable;
 enum FSB_PALADIN_SELF_BUFFS
 {
     // HEALER
-    SPELL_PALADIN_RITE_OF_SANCTIFICATION = 433550
+    SPELL_PALADIN_RITE_OF_SANCTIFICATION = 433550,
+
+    // TANK
+    SPELL_PALADIN_FURY = 187218
 };
 
 enum FSB_PALADIN_COMBAT_SPELLS
@@ -52,4 +55,7 @@ namespace FSBPaladin
     bool BotHasDevotionAura(Creature* bot);
 
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
+
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown);
+    bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId);
 }

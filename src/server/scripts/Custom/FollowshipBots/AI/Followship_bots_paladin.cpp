@@ -1,3 +1,5 @@
+#include "Followship_bots_utils.h"
+
 #include "followship_bots_paladin.h"
 
 std::vector<FSBSpellDefinition> PaladinSpellsTable =
@@ -55,5 +57,67 @@ namespace FSBPaladin
         default:
             break;
         }
+    }
+
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown)
+    {
+        if (!player || !bot)
+            return false;
+
+        uint32 now = getMSTime();
+
+        if (player->GetHealthPct() <= 50)
+        {
+            bot->CastSpell(player, SPELL_PALADIN_HOLY_LIGHT, false);
+            globalCooldown = now + 1500;
+
+            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
+
+            return true;
+
+        }
+        else if (player->GetHealthPct() <= 90)
+        {
+            bot->CastSpell(player, SPELL_PALADIN_FLASH_OF_LIGHT, false);
+            globalCooldown = now + 1500;
+
+            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId)
+    {
+        uint32 now = getMSTime();
+
+        bool isHealer = FSBUtils::GetRole(bot) == FSB_ROLE_HEALER;
+        bool isTank = FSBUtils::GetRole(bot) == FSB_ROLE_TANK;
+
+        if (isHealer && !bot->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
+        {
+            FSBUtilsMovement::StopFollow(bot);
+
+            bot->CastSpell(bot, SPELL_PALADIN_RITE_OF_SANCTIFICATION, false);
+            selfBuffTimer = now + 60000; // 1 minute
+            globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
+
+            return true;
+        }
+
+        if (isTank && !bot->HasAura(SPELL_PALADIN_FURY))
+        {
+            FSBUtilsMovement::StopFollow(bot);
+
+            bot->CastSpell(bot, SPELL_PALADIN_FURY, false);
+            selfBuffTimer = now + 60000; // 1 minute
+            globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
+
+            return true;
+        }
+
+        return false;
     }
 }

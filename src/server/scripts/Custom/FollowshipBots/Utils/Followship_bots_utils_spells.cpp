@@ -202,32 +202,6 @@ namespace FSBUtilsSpells
         }
     }
 
-    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, std::vector<Unit*> botGroup_, float maxRange, std::vector<Unit*>& outTargets)
-    {
-        if (!bot)
-            return;
-
-        for (Unit* member : botGroup_)
-        {
-            if (!member)
-                continue;
-
-            if (!member->IsAlive())
-                continue;
-
-            if (member->HasAura(buffSpellId))
-                continue;
-
-            if (!bot->IsWithinDistInMap(member, maxRange))
-                continue;
-
-            if (!bot->IsWithinLOSInMap(member))
-                continue;
-
-            outTargets.push_back(member);
-        }
-    }
-
     Unit* FindBotDeadResTarget(Creature* bot, std::vector<Unit*> const& botGroup_)
     {
         Player* owner = FSBMgr::GetBotOwner(bot);
