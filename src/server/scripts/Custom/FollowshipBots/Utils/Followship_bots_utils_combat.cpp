@@ -243,7 +243,7 @@ namespace FSBUtilsBotCombat
 
         // Stay - can attack if target is within range or commanded to
         if (moveState == FSB_MOVE_STATE_STAY)
-            return (bot->IsWithinMeleeRange(target));
+            return (bot->IsWithinMeleeRange(target) || bot->IsWithinCombatRange(target, GetBotChaseDistance(bot)));
         else return true;
 
         //  Bots attacking something (or chasing) should only switch targets if owner tells them to
@@ -288,17 +288,10 @@ namespace FSBUtilsBotCombat
 
                 // Bots with ranged attacks should not care about the chase angle at all.
                 float chaseDistance = GetBotChaseDistance(bot);
-                float angle = chaseDistance == 0.f ? float(M_PI) : 0.f;
+                float angle = chaseDistance == 2.f ? float(M_PI) : frand(-2.f, 2.f);
                 float tolerance = chaseDistance == 0.f ? float(M_PI_4) : float(M_PI * 2);
                 bot->GetMotionMaster()->MoveChase(target, ChaseRange(0.f, chaseDistance), ChaseAngle(angle, tolerance));
             }
-            //else // (Stay && ((Aggressive || Defensive) && In Melee Range)))
-            //{
-            //    if (bot->HasUnitState(UNIT_STATE_FOLLOW))
-            //        bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-            //
-            //    bot->GetMotionMaster()->MoveIdle();
-            //}
         }
     }
 
