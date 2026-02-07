@@ -32,6 +32,7 @@ static constexpr FSBEntryClassMap BotEntryClassTable[] =
     // WARRIORS
     { 911, FSB_Class::Warrior,          FSB_Race::Human },  // Llane Beshere
     { 50595, FSB_Class::Warrior,        FSB_Race::Human },  // Stormwind Defender
+    { 46405, FSB_Class::Warrior,        FSB_Race::Human },  // Stockade Guard
 
     // MAGES
     { 198, FSB_Class::Mage,             FSB_Race::Human }, // Khelden Bremen

@@ -46,7 +46,13 @@ INSERT INTO `creature_template_gossip` VALUES
 ('50595', '900002', '-1'),
 ('50595', '900003', '-1'),
 ('50595', '900004', '-1'),
-('50595', '900005', '-1');
+('50595', '900005', '-1'),
+('46405', '900000', '-1'),
+('46405', '900001', '-1'),
+('46405', '900002', '-1'),
+('46405', '900003', '-1'),
+('46405', '900004', '-1'),
+('46405', '900005', '-1');
 
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 141508; -- Stormwind Priest
@@ -55,3 +61,4 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 911; -- Warrior
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 50595; -- Stormwind Defender (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 46405; -- Stockade Guard (Warrior)
