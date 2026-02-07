@@ -50,6 +50,55 @@ struct BotRecoveryAction
     virtual void Execute(Creature* bot, uint32& _globalCooldownUntil) = 0;
 };
 
+struct ActionEatDrink : BotRecoveryAction
+{
+    ActionEatDrink()
+    {
+        type = BotRecoveryType::Both;
+        priority = 50;
+    }
+
+    uint32 GetCooldownMs() const override
+    {
+        return 30000; // drinking feels slower than a heal
+    }
+
+    bool CanExecute(Creature* bot, uint32 cooldown) const override
+    {
+        uint32 now = getMSTime();
+
+        return bot->GetPower(POWER_MANA)
+            && (bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_MP_PCT && bot->GetHealthPct() < BOT_RECOVERY_HP_PCT)
+            && !bot->isMoving()
+            && !bot->IsInCombat()
+            && FSBUtilsSpells::CanCastNow(bot, now, cooldown)
+            && (!bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER) || !bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL));
+    }
+
+    void Execute(Creature* bot, uint32& _globalCooldownUntil) override
+    {
+        uint32 now = getMSTime();
+
+        FSBUtilsMovement::StopFollow(bot);
+
+        bot->CastSpell(bot, SPELL_DRINK_CONJURED_CRYSTAL_WATER, true);
+        bot->CastSpell(bot, SPELL_FOOD_SCALED_WITH_LVL, true);
+
+        _globalCooldownUntil = now + GetCooldownMs(); // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        {
+            std::string pname = "";
+            Player* player = bot->GetOwner()->ToPlayer();
+            if (player)
+                pname = player->GetName();
+
+            std::string msg = FSBUtilsTexts::BuildNPCSayText(pname, NULL, FSBSayType::OOCRecovery, FSBUtilsSpells::GetSpellName(SPELL_DRINK_CONJURED_CRYSTAL_WATER));
+            bot->Say(msg, LANG_UNIVERSAL);
+        }
+    }
+};
+
 struct ActionEatFood : BotRecoveryAction
 {
     ActionEatFood()
@@ -67,7 +116,7 @@ struct ActionEatFood : BotRecoveryAction
     {
         uint32 now = getMSTime();
 
-        return bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_HP_PCT
+        return bot->GetHealthPct() < BOT_RECOVERY_HP_PCT
             && !bot->isMoving()
             && !bot->IsInCombat()
             && FSBUtilsSpells::CanCastNow(bot, now, cooldown)

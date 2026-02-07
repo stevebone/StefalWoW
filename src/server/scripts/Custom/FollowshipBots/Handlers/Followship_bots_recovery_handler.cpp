@@ -47,6 +47,7 @@ namespace FSBRecovery
 
     void BuildRecoveryActions(Creature* bot, RecoveryActionList& _recoveryActions)
     {
+        _recoveryActions.emplace_back(new ActionEatDrink());
         _recoveryActions.emplace_back(new ActionDrinkMana());
         _recoveryActions.emplace_back(new ActionEatFood());
 
@@ -76,7 +77,7 @@ namespace FSBRecovery
         if (intent == BotRecoveryIntent::None)
             return;
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover intent check for: {}", bot->GetName());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover intent check for: {}", bot->GetName());
 
         // -- Shuffle the actions before executing --
         Trinity::Containers::RandomShuffle(_recoveryActions);
@@ -105,10 +106,10 @@ namespace FSBRecovery
                 continue;
 
             action->Execute(bot, _globalCooldownUntil);
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover execute action for: {}", bot->GetName());
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover execute action for: {}", bot->GetName());
 
             _isRecovering = true;
-            _recoveryLockUntil = getMSTime() + action->GetCooldownMs();
+            _recoveryLockUntil = now + action->GetCooldownMs();
 
             break; // one action per tick
         }
