@@ -13,5 +13,7 @@ struct FollowshipBotsConfig
     static bool  configFSBUseCustomRegen;
     static uint32 configFSBChatterRate;
 
+    static bool configFSBUseOOCActions;
+
     static void Load();
 };

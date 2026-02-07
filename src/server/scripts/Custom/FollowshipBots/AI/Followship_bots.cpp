@@ -214,6 +214,9 @@ public:
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
                 FSBUtilsStats::RecalculateMods(me);
 
+                if (me->HasUnitState(UNIT_STAND_STATE_SIT))
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -237,6 +240,9 @@ public:
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
                 FSBUtilsStats::RecalculateMods(me);
+
+                if (me->HasUnitState(UNIT_STAND_STATE_SIT))
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -262,6 +268,9 @@ public:
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
                 FSBUtilsStats::RecalculateMods(me);
 
+                if (me->HasUnitState(UNIT_STAND_STATE_SIT))
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -284,6 +293,9 @@ public:
                     hired = true;
                     FSBMgr::HandleBotHire(player, me, 0);
                     FSBUtilsStats::RecalculateMods(me);
+
+                    if (me->HasUnitState(UNIT_STAND_STATE_SIT))
+                        me->SetStandState(UNIT_STAND_STATE_STAND);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -636,7 +648,7 @@ public:
                     spellInfo->Id);
 
                 me->setDeathState(ALIVE);
-                hired = true;
+                //hired = true;
                 me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
             }
         }
@@ -686,7 +698,8 @@ public:
                 }
             }
 
-            events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 90s);
+            if(hired)
+                events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 90s);
         }
 
         uint32 GetData(uint32 /*type*/) const override // Runs once to check what data exists on the creature
@@ -855,7 +868,7 @@ public:
                     // Check if combat is NOT taking place and schedule OOC actions
                     if (!FSBUtilsCombat::IsCombatActive(me))
                     {
-                        if (now >= _1secondsCheckMs)
+                        if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs)
                         {
                             if (!_isRecovering && FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s, 3s);
@@ -985,7 +998,7 @@ public:
                     if (FSBTeleport::BotTeleport(me, BOT_DEATH))
                     {
                         me->setDeathState(ALIVE);
-                        hired = true;
+                        //hired = true;
                         me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                         events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
                     }

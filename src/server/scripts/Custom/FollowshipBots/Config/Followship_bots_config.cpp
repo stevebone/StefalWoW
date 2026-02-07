@@ -9,6 +9,8 @@ int64 FollowshipBotsConfig::configFSBPermanentPricePerLevel = 10000;
 int32 FollowshipBotsConfig::configFSBHireDuration1 = 1;
 int32 FollowshipBotsConfig::configFSBHireDuration2 = 2;
 int32 FollowshipBotsConfig::configFSBHireDuration3 = 3;
+
+bool  FollowshipBotsConfig::configFSBUseOOCActions = false;
 bool  FollowshipBotsConfig::configFSBUseCustomRegen = false;
 uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 
@@ -34,6 +36,9 @@ void FollowshipBotsConfig::Load()
 
     configFSBUseCustomRegen =
         sConfigMgr->GetBoolDefault("Followship.Bots.UseCustomRegen", false);
+
+    configFSBUseOOCActions =
+        sConfigMgr->GetBoolDefault("Followship.Bots.UseOOCActions", false);
 
     configFSBChatterRate =
         sConfigMgr->GetIntDefault("Followship.Bots.ChatterRate", 10);
