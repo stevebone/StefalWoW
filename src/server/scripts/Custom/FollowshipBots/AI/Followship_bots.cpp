@@ -877,11 +877,13 @@ public:
                             _1secondsCheckMs = now + 1000;
                         }
 
+                        /*
                         if (now >= _nextRecoveryCheckMs)
                         {
                             FSBRecovery::TryRecovery(me, _recoveryActions, _globalCooldownUntil, _isRecovering, _recoveryLockUntil);
                             _nextRecoveryCheckMs = now + 1000; // once per second is plenty
                         }
+                        */
                     }
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -1043,27 +1045,38 @@ public:
                         {
                             Unit* deadTarget = FSBUtilsSpells::FindBotDeadResTarget(me, botGroup_);
 
-                            if (deadTarget)
+                            // Validate pointer before doing anything else
+                            if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
+                                return;
+
+                            // Store GUID early (safe even if unit despawns later)
+                            _pendingResurrection = true;
+                            _pendingResTarget = deadTarget->GetGUID();
+
+                            // Build safe names for logging and chatter
+                            const char* botName = (me && me->IsInWorld()) ? me->GetName().c_str() : "";
+                            const char* targetName = (deadTarget && deadTarget->IsInWorld()) ? deadTarget->GetName().c_str() : "";
+
+                            // Announce death (only once)
+                            if (!_announceMemberDead && me->IsAlive() &&
+                                urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                             {
-                                _pendingResurrection = true;
-                                _pendingResTarget = deadTarget->GetGUID();
-
-                                // announce target died
-                                // we need extra flag so chatter does not repeat
-                                if (me->IsAlive() && !_announceMemberDead && (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate))
-                                {
-                                    std::string msg = FSBUtilsTexts::BuildNPCSayText(deadTarget->GetName(), NULL, FSBSayType::PlayerOrMemberDead, "");
-                                    me->Yell(msg, LANG_UNIVERSAL);
-                                }
-                                _announceMemberDead = true;
-
-
-                                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", me->GetName(), deadTarget->GetName());
-
-                                events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
-
-                                break;
+                                std::string msg = FSBUtilsTexts::BuildNPCSayText(
+                                    targetName, 0, FSBSayType::PlayerOrMemberDead, "");
+                                me->Yell(msg, LANG_UNIVERSAL);
                             }
+
+                            _announceMemberDead = true;
+
+                            // Safe logging
+                            TC_LOG_DEBUG("scripts.ai.fsb",
+                                "FSB: {} found dead unit {} for resurrection",
+                                botName, targetName);
+
+                            // Schedule resurrection
+                            events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
+
+                            break;
                         }
                     }
                     break;

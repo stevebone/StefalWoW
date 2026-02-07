@@ -12,7 +12,7 @@
 
 namespace FSBOOC
 {
-    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, std::vector<Unit*> botGroup)
+    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup)
     {
         if (!bot)
             return false;
@@ -50,7 +50,7 @@ namespace FSBOOC
         return false; 
     }
 
-    bool BotOOCHealOwner(Creature* bot, Player* player, uint32 globalCooldown)
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown)
     {
         if (!bot || !player || !player->IsAlive())
             return false;
@@ -82,7 +82,7 @@ namespace FSBOOC
             break;
         }
 
-        if (check)
+        if (check && player)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 bot->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
@@ -126,8 +126,14 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCBuffGroup(Creature* bot, std::vector<Unit*> botGroup, uint32& buffTimer, uint32& globalCooldown)
+    bool BotOOCBuffGroup(Creature* bot, const std::vector<Unit*> botGroup, uint32& buffTimer, uint32& globalCooldown)
     {
+        if (!bot)
+            return false;
+
+        if (botGroup.empty())
+            return false;
+
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
         std::vector<Unit*> buffTargets;
         uint32 buffSpellId = 0;
@@ -172,8 +178,8 @@ namespace FSBOOC
                 if (result != SPELL_CAST_OK)
                 {
                     // Optional: debug log
-                    // TC_LOG_DEBUG("scripts.ai.fsb", "Bot {} failed to cast {} on {} (reason {})",
-                    //     bot->GetName(), buffSpellId, target->GetName(), result);
+                     TC_LOG_DEBUG("scripts.ai.fsb", "Bot {} failed to cast {} on {} (reason {})",
+                         bot->GetName(), buffSpellId, target->GetName(), result);
 
                     return false; // stop here, no chatter, no GCD
                 }
@@ -204,9 +210,12 @@ namespace FSBOOC
         return false;
     }
 
-    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, std::vector<Unit*> botGroup, float maxRange, std::vector<Unit*>& outTargets)
+    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*> botGroup, float maxRange, std::vector<Unit*>& outTargets)
     {
         if (!bot)
+            return;
+
+        if (botGroup.empty())
             return;
 
         for (Unit* member : botGroup)

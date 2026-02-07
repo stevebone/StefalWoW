@@ -337,7 +337,7 @@ namespace FSBUtilsCombatSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
-            //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
+            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
             available.push_back(&runtime);
 
         }
@@ -583,12 +583,15 @@ namespace FSBUtilsCombatSpells
             targets.SetUnitTarget(target);
         }
 
-        SpellCastResult result = spell->prepare(targets);
-
-        if (result != SPELL_CAST_OK)
+        if (targets.GetUnitTarget() || target)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot: {} SPELL CAST NOT OK", bot->GetName());
-            return;
+            SpellCastResult result = spell->prepare(targets);
+
+            if (result != SPELL_CAST_OK)
+            {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot: {} SPELL CAST NOT OK", bot->GetName());
+                return;
+            }
         }
 
         TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());

@@ -85,6 +85,9 @@ namespace FSBPriest
 
     bool BotHealSelfOOC(Creature* bot, uint32& _globalCooldownUntil, uint32& _60secondsCheckMs, uint32& outSpellId)
     {
+        if (!bot)
+            return false;
+
         uint32 now = getMSTime();
 
         if (FSBUtilsSpells::CanCastNow(bot, now, _globalCooldownUntil))

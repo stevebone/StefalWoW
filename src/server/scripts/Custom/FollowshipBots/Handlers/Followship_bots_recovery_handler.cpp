@@ -5,6 +5,9 @@ namespace FSBRecovery
 {
     BotRecoveryIntent DetermineRecoveryIntent(Creature* bot)
     {
+        if (!bot)
+            return BotRecoveryIntent::None;
+
         bool lowHP = bot->GetHealthPct() < BOT_RECOVERY_HP_PCT;
 
         // Determine if this bot uses mana at all
@@ -47,6 +50,9 @@ namespace FSBRecovery
 
     void BuildRecoveryActions(Creature* bot, RecoveryActionList& _recoveryActions)
     {
+        if (!bot)
+            return;
+
         _recoveryActions.emplace_back(new ActionEatDrink());
         _recoveryActions.emplace_back(new ActionDrinkMana());
         _recoveryActions.emplace_back(new ActionEatFood());
@@ -66,6 +72,9 @@ namespace FSBRecovery
 
     void TryRecovery(Creature* bot, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil)
     {
+        if (!bot)
+            return;
+
         if (bot->IsInCombat())
             return;
 
@@ -87,6 +96,9 @@ namespace FSBRecovery
 
     void TryRecover(Creature* bot, BotRecoveryIntent intent, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil)
     {
+        if (!bot)
+            return;
+
         uint32 now = getMSTime();
 
         if (_isRecovering)

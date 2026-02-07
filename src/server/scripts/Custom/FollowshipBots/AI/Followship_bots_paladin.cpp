@@ -158,6 +158,9 @@ namespace FSBPaladin
 
     bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId)
     {
+        if (!bot)
+            return false;
+
         uint32 now = getMSTime();
 
         bool isHealer = FSBUtils::GetRole(bot) == FSB_ROLE_HEALER;

@@ -169,6 +169,7 @@ namespace FSBMgr
         bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
 
         PhasingHandler::ResetPhaseShift(bot);
+        bot->ClearUnitState(UNIT_STAND_STATE_SIT);
     }
 
     void HandleBotHire(Player* player, Creature* bot, uint32 hireDurationHours)
@@ -201,7 +202,7 @@ namespace FSBMgr
         // some bots may be hired from a non regular phase
         // on hire we need to overwrite with the normal phase
         
-        PhasingHandler::ResetPhaseShift(bot);
+        //PhasingHandler::ResetPhaseShift(bot);
     }
 
     void DismissBot(Player* player, Creature* bot)
