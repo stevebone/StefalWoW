@@ -46,8 +46,8 @@ namespace FSBUtilsStats
         creature->SetMaxPower(powerType, basePower);
 
         if (botClass == FSB_Class::Warrior)
-            creature->SetPower(powerType, 0);
-        else creature->SetPower(powerType, basePower);
+            creature->SetPower(powerType, 0, true);
+        else creature->SetPower(powerType, basePower, true);
 
         //creature->SetOverrideDisplayPowerId(466);
 
@@ -259,8 +259,8 @@ namespace FSBUtilsStats
         bot->SetMaxPower(powerType, totalPower);
 
         if (botClass == FSB_Class::Warrior)
-            bot->SetPower(powerType, 0);
-        else bot->SetPower(powerType, totalPower);
+            bot->SetPower(powerType, 0, true);
+        else bot->SetPower(powerType, totalPower, true);
         //bot->ResetPlayerDamageReq();
 
         // Att power
