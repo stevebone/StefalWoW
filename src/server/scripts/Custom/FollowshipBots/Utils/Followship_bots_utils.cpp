@@ -48,10 +48,14 @@ namespace FSBUtils
 {
     void SetInitialState(Creature* creature, bool& hired, FSB_MovementStates& moveState)
     {
-        ASSERT(creature);
+        if (!creature)
+            return;
 
         creature->SetBot(true);
         creature->setActive(true);
+
+        if (creature->HasUnitState(UNIT_STAND_STATE_SIT))
+            creature->SetStandState(UNIT_STAND_STATE_STAND);
 
         hired = false;                  // now persists
         moveState = FSB_MOVE_STATE_IDLE;
@@ -376,6 +380,9 @@ namespace FSBUtilsMovement
 
         if (!player)
             return;
+
+        if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
+            bot->SetStandState(UNIT_STAND_STATE_STAND);
 
         bot->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
     }
