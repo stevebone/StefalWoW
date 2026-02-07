@@ -41,12 +41,12 @@ namespace FSBUtilsStats
 
         creature->SetPowerType(powerType, true);
         
-        creature->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, 0);   
+        creature->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, (float)basePower);   
         creature->SetCreateMana(basePower);
         creature->SetMaxPower(powerType, basePower);
 
-        if (stats->powerType == POWER_RAGE)
-            creature->SetPower(powerType, 0, true);
+        if (botClass == FSB_Class::Warrior)
+            creature->SetPower(powerType, 0);
         else creature->SetPower(powerType, basePower);
 
         //creature->SetOverrideDisplayPowerId(466);
@@ -130,29 +130,6 @@ namespace FSBUtilsStats
         return CLASS_NONE;
     }
 
-    void ApplyMaxMana(Unit* unit, const FSBUtilsStatsMods& mods)
-    {
-        if (!unit)
-            return;
-
-        //uint32 baseMaxHealth = unit->GetCreateHealth();
-        uint32 baseMaxPower = unit->GetMaxPower(POWER_MANA);
-        int32 bonusFlat = mods.flatMaxMana;
-        float bonusPct = mods.pctMaxManaBonus;
-
-        int32 newMaxPower = baseMaxPower + bonusFlat;
-        if (bonusPct > 0.0f)
-            newMaxPower += uint32(float(baseMaxPower) * bonusPct);
-
-        if (unit->GetMaxPower(POWER_MANA) != newMaxPower)
-        {
-            unit->SetMaxPower(POWER_MANA, newMaxPower);
-
-            //if (unit->GetHealth() > newMaxHealth)
-            //    unit->SetHealth(newMaxHealth);
-        }
-    }
-
     void ApplyBotAttackPower(Unit* unit)
     {
         if (!unit)
@@ -197,7 +174,7 @@ namespace FSBUtilsStats
         unit->UpdateDamagePhysical(OFF_ATTACK);
     }
 
-    void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods)
+    void RecalculateMods(Unit* unit/*, const FSBUtilsStatsMods& mods*/)
     {
         //ApplyMaxHealth(unit, mods);
         //ApplyMaxMana(unit, mods);
@@ -239,7 +216,7 @@ namespace FSBUtilsStats
         //    bot->SetPower(FSBUtilsStats::GetBotPowerType(bot), bot->GetMaxPower(FSBUtilsStats::GetBotPowerType(bot)));
 
         // Recalculate any additional stats/modifiers
-        RecalculateMods(bot, mods);
+        RecalculateMods(bot);
     }
 
     void UpdateBotLevelDependantStats(Creature* bot)
@@ -273,7 +250,7 @@ namespace FSBUtilsStats
 
         bot->SetPowerType(powerType, true);
 
-        bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, 0);
+        bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, (float)basePower);
         bot->SetCreateMana(basePower);
         float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)));
 
@@ -281,8 +258,8 @@ namespace FSBUtilsStats
             totalPower = 1000;
         bot->SetMaxPower(powerType, totalPower);
 
-        if (stats->powerType == POWER_RAGE)
-            bot->SetPower(powerType, 0, true);
+        if (botClass == FSB_Class::Warrior)
+            bot->SetPower(powerType, 0);
         else bot->SetPower(powerType, totalPower);
         //bot->ResetPlayerDamageReq();
 

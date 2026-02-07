@@ -212,7 +212,7 @@ public:
 
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
+                FSBUtilsStats::RecalculateMods(me);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -236,7 +236,7 @@ public:
 
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
+                FSBUtilsStats::RecalculateMods(me);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -260,7 +260,7 @@ public:
 
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
-                FSBUtilsStats::RecalculateMods(me, _statsMods);
+                FSBUtilsStats::RecalculateMods(me);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -283,7 +283,7 @@ public:
 
                     hired = true;
                     FSBMgr::HandleBotHire(player, me, 0);
-                    FSBUtilsStats::RecalculateMods(me, _statsMods);
+                    FSBUtilsStats::RecalculateMods(me);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -637,6 +637,7 @@ public:
 
                 me->setDeathState(ALIVE);
                 hired = true;
+                me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
             }
         }
 
@@ -985,6 +986,7 @@ public:
                     {
                         me->setDeathState(ALIVE);
                         hired = true;
+                        me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                         events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
                     }
                     break;

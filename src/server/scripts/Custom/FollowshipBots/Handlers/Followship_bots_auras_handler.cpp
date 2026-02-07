@@ -18,7 +18,7 @@ namespace FSBAuras
             // Generic
         case SPELL_DRINK_CONJURED_CRYSTAL_WATER:
         {
-            int32 amount = FSBRecovery::GetDrinkFood(bot->GetLevel());
+            int32 amount = FSBRecovery::GetDrinkFood(bot->GetLevel()) * 2;
 
             if(applied)
                 mods.flatManaPerTick += amount;
@@ -41,7 +41,7 @@ namespace FSBAuras
 
         case SPELL_FOOD_SCALED_WITH_LVL:
         {
-            int32 amount = FSBRecovery::GetDrinkFood(bot->GetLevel());
+            int32 amount = FSBRecovery::GetDrinkFood(bot->GetLevel()) * 2;
 
             if(applied)
                 mods.flatHealthPerTick += amount;
@@ -85,7 +85,7 @@ namespace FSBAuras
             else if(!applied)
                 bot->SetStatPctModifier(UNIT_MOD_MANA, TOTAL_PCT, pct - 0.03f);
 
-            FSBUtilsStats::RecalculateMods(bot, mods);
+            FSBUtilsStats::RecalculateMods(bot);
 
             break;
         }
@@ -97,7 +97,7 @@ namespace FSBAuras
             else if(!applied)
                 mods.pctManaPerTick -= 1500.f;
 
-            FSBUtilsStats::RecalculateMods(bot, mods);
+            FSBUtilsStats::RecalculateMods(bot);
 
             break;
         }
@@ -125,7 +125,7 @@ namespace FSBAuras
                 bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, rapPct - 0.1f);
             }
 
-            FSBUtilsStats::RecalculateMods(bot, mods);
+            FSBUtilsStats::RecalculateMods(bot);
 
             break;
         }
@@ -144,7 +144,7 @@ namespace FSBAuras
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, pct - 0.02f);
             }
 
-            FSBUtilsStats::RecalculateMods(bot, mods);
+            FSBUtilsStats::RecalculateMods(bot);
 
             break;
         }
@@ -159,7 +159,7 @@ namespace FSBAuras
             else if(!applied)
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, pct - 0.1f);
 
-            FSBUtilsStats::RecalculateMods(bot, mods);
+            FSBUtilsStats::RecalculateMods(bot);
 
             break;
         }
@@ -172,7 +172,7 @@ namespace FSBAuras
             else if(!applied)
                 bot->ApplyStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, -0.05f);
 
-            FSBUtilsStats::RecalculateMods(bot, mods);
+            FSBUtilsStats::RecalculateMods(bot);
 
             break;
         }

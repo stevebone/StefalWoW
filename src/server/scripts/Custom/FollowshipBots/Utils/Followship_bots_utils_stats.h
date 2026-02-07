@@ -191,16 +191,12 @@ namespace FSBUtilsStats
     void ApplyBotBaseClassStats(Creature* creature, FSB_Class botClass);
     void UpdateBotLevelDependantStats(Creature* bot);
 
-    // Full mod-aware version
-    
-    void ApplyMaxHealth(Unit* unit, const FSBUtilsStatsMods& mods);
-    void ApplyMaxMana(Unit* unit, const FSBUtilsStatsMods& mods);
     void ApplyBotAttackPower(Unit* unit);
     void ApplyBotDamage(Unit* unit);
     
 
 
-    void RecalculateMods(Unit* unit, const FSBUtilsStatsMods& mods);
+    void RecalculateMods(Unit* unit/*, const FSBUtilsStatsMods& mods*/);
 
     /**
      * @brief Updates the bot's level to match the player's level and recalculates stats.

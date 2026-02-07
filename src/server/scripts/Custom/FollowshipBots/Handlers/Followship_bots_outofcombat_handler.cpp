@@ -23,6 +23,9 @@ namespace FSBOOC
         if (FSBUtilsCombat::IsCombatActive(bot))
             return false;
 
+        if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
+            return false;
+
         uint32 now = getMSTime();
 
         if (!FSBUtilsSpells::CanCastNow(bot, now, globalCooldown))
@@ -161,27 +164,38 @@ namespace FSBOOC
         {
             Unit* target = buffTargets.front();
 
-            bot->CastSpell(target, buffSpellId, false);
-            globalCooldown = now + 1500;
-
-            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+            if (target)
             {
-                if (target == bot)
+                SpellCastResult result = bot->CastSpell(target, buffSpellId, false);
+
+                // Only continue if the cast succeeded
+                if (result != SPELL_CAST_OK)
                 {
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::BuffSelf, FSBUtilsSpells::GetSpellName(buffSpellId));
-                    bot->Say(msg, LANG_UNIVERSAL);
+                    // Optional: debug log
+                    // TC_LOG_DEBUG("scripts.ai.fsb", "Bot {} failed to cast {} on {} (reason {})",
+                    //     bot->GetName(), buffSpellId, target->GetName(), result);
+
+                    return false; // stop here, no chatter, no GCD
                 }
 
-                else
+                globalCooldown = now + 1500;
+
+                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::BuffTarget, FSBUtilsSpells::GetSpellName(buffSpellId));
-                    bot->Say(msg, LANG_UNIVERSAL);
+                    if (target == bot)
+                    {
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(
+                            "", NULL, FSBSayType::BuffSelf, FSBUtilsSpells::GetSpellName(buffSpellId));
+                        bot->Say(msg, LANG_UNIVERSAL);
+                    }
+                    else
+                    {
+                        std::string msg = FSBUtilsTexts::BuildNPCSayText(
+                            target->GetName(), NULL, FSBSayType::BuffTarget, FSBUtilsSpells::GetSpellName(buffSpellId));
+                        bot->Say(msg, LANG_UNIVERSAL);
+                    }
                 }
-
-
             }
-
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot: {} Buffed target: {} with {}", bot->GetName(), target->GetName(), FSBUtilsSpells::GetSpellName(buffSpellId));
 
             return true;
         }

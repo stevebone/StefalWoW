@@ -43,6 +43,10 @@ public:
             if (botData.spawnId != 0)
                 bot = player->GetMap()->GetCreatureBySpawnId(botData.spawnId);
 
+            if (player->GetMap()->IsDungeon() && !bot)
+                bot = player->FindNearestCreature(botData.entry, 500.f);
+
+
             // If not found ? spawn runtime temp
             if (!bot)
             {

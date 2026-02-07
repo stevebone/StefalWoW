@@ -18,6 +18,7 @@ std::vector<FSBSpellDefinition> PaladinSpellsTable =
     
     // HOLY
     { SPELL_PALADIN_LAY_ON_HANDS,           FSBSpellType::Heal,     0.f,        10.f,       100.f,        40.f,          false,      600000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_WORD_OF_GLORY,          FSBSpellType::Heal,     0.1f,       10.f,       100.f,        40.f,          false,      600000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_PALADIN_HOLY_LIGHT,             FSBSpellType::Heal,     0.f,        50.f,       100.f,        40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_PALADIN_BLESSING_SACRIFICE,     FSBSpellType::Heal,     0.f,        60.f,       50.f,         40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
@@ -110,7 +111,7 @@ namespace FSBPaladin
 
     }
 
-    void HandleOnSpellCast(Creature* bot, uint32 spellId)
+    void HandleOnSpellCast(Creature* /*bot*/, uint32 spellId)
     {
         switch (spellId)
         {
