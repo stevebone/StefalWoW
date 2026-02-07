@@ -150,6 +150,7 @@ namespace FSBMgr
             return;
 
         // Teleport if too far away
+        /*
         if (bot->GetMapId() == player->GetMapId() && bot->GetDistance(player) > 100.0f)
         {
             bot->NearTeleportTo(
@@ -159,13 +160,15 @@ namespace FSBMgr
                 player->GetOrientation());
 
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
-        }
+        }*/
 
         // Set owner
         bot->SetOwnerGUID(player->GetGUID());
 
         bot->AI()->SetData(FSB_DATA_HIRED, 1);
         bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
+
+        PhasingHandler::ResetPhaseShift(bot);
     }
 
     void HandleBotHire(Player* player, Creature* bot, uint32 hireDurationHours)
@@ -197,7 +200,8 @@ namespace FSBMgr
 
         // some bots may be hired from a non regular phase
         // on hire we need to overwrite with the normal phase
-        PhasingHandler::AddPhase(bot, 169, true);
+        
+        PhasingHandler::ResetPhaseShift(bot);
     }
 
     void DismissBot(Player* player, Creature* bot)
