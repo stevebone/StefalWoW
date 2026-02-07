@@ -141,6 +141,10 @@ namespace FSBOOC
         case FSB_Class::Mage:
             buffSpellId = SPELL_MAGE_ARCANE_INTELLECT;
             break;
+        case FSB_Class::Paladin:
+            buffSpellId = SPELL_PALADIN_BLESSING_KINGS;
+            break;
+
         default:
             break;
         }
@@ -177,7 +181,7 @@ namespace FSBOOC
 
             }
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot: {} Buffed target: {} with {}", bot->GetName(), target->GetName(), FSBUtilsSpells::GetSpellName(buffSpellId));
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot: {} Buffed target: {} with {}", bot->GetName(), target->GetName(), FSBUtilsSpells::GetSpellName(buffSpellId));
 
             return true;
         }

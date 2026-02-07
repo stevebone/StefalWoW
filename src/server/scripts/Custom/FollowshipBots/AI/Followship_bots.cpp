@@ -636,6 +636,7 @@ public:
                     spellInfo->Id);
 
                 me->setDeathState(ALIVE);
+                hired = true;
             }
         }
 
@@ -672,6 +673,8 @@ public:
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
+            me->RemoveAllAuras();
+
             Player* player = FSBMgr::GetBotOwner(me);
             if (player)
             {
@@ -981,6 +984,7 @@ public:
                     if (FSBTeleport::BotTeleport(me, BOT_DEATH))
                     {
                         me->setDeathState(ALIVE);
+                        hired = true;
                         events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
                     }
                     break;

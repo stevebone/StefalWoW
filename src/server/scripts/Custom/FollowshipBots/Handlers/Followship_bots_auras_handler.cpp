@@ -103,6 +103,32 @@ namespace FSBAuras
         }
 
             // Paladin
+        case SPELL_PALADIN_BLESSING_KINGS:
+        {
+            float hpPct = bot->GetPctModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT);
+            float manaPct = bot->GetPctModifierValue(UNIT_MOD_MANA, TOTAL_PCT);
+            float apPct = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
+            float rapPct = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT);
+
+            if (applied)
+            {
+                bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, hpPct + 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_MANA, TOTAL_PCT, manaPct + 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, apPct + 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, rapPct + 0.1f);
+            }
+            else if (!applied)
+            {
+                bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, hpPct - 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_MANA, TOTAL_PCT, manaPct - 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, apPct - 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, rapPct - 0.1f);
+            }
+
+            FSBUtilsStats::RecalculateMods(bot, mods);
+
+            break;
+        }
         case SPELL_PALADIN_RITE_OF_SANCTIFICATION:
         {
             float pct = bot->GetPctModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT);

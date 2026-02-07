@@ -65,7 +65,7 @@ namespace FSBUtilsStats
             botClass);
 
         // damage
-
+        
         creature->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
         creature->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
 
@@ -309,6 +309,15 @@ namespace FSBUtilsStats
         if (FSBPaladin::BotHasDevotionAura(bot))
             multiplier *= 0.97f;
 
+        if (FSBPaladin::BotHasGuardianOfAncientKings(bot))
+            multiplier *= 0.50f;
+
+        if (FSBPaladin::BotHasDivineProtection(bot))
+            multiplier *= 0.80f;
+
+        if (FSBPaladin::BotHasBlessingOfSacrifice(bot))
+            multiplier *= 0.70f;
+
         return multiplier;
     }
 
@@ -329,6 +338,9 @@ namespace FSBUtilsStats
 
         if (FSBWarrior::BotHasBerserkerStance(bot))
             multiplier *= 1.15f;
+
+        if (FSBPaladin::BotHasAvengingWrath(bot))
+            multiplier *= 1.2f;
 
         return multiplier;
     }

@@ -181,6 +181,7 @@ namespace FSBUtilsSpells
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+        case SPELL_PALADIN_REBUKE:
         case SPELL_WARRIOR_PUMMEL:
         case SPELL_MAGE_COUNTERSPELL:
             return target && target->HasUnitState(UNIT_STATE_CASTING);
@@ -196,6 +197,10 @@ namespace FSBUtilsSpells
 
         case SPELL_WARRIOR_LAST_STAND:
             return target == bot && bot->GetHealthPct() < 30;
+
+        case SPELL_PALADIN_LAY_ON_HANDS:
+        case SPELL_PALADIN_DIVINE_SHIELD:
+            return bot->GetPowerPct(POWER_MANA) < 20;
 
         default:
             return true;
