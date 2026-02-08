@@ -18,6 +18,11 @@
 #ifndef TRINITYCORE_SESSION_MANAGER_H
 #define TRINITYCORE_SESSION_MANAGER_H
 
+namespace Battlenet
+{
+    class SessionManager;   // <-- MUST be first
+}
+
 #include "SocketMgr.h"
 #include "Session.h"
 
@@ -29,7 +34,7 @@ namespace Battlenet
 
     struct SessionManagerTraits
     {
-        using Self = class SessionManager;
+        using Self = SessionManager;
         using SocketType = Session;
         using ThreadType = SessionNetworkThread;
     };
