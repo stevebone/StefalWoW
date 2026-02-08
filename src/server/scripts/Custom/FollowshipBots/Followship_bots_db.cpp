@@ -34,6 +34,45 @@ namespace FSBUtilsDB
         return true;
     }
 
+    bool LoadBotOwners(std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType>& botOwners)
+    {
+        botOwners.clear();
+
+        QueryResult result = CharacterDatabase.Query(
+            "SELECT bot_guid, player_guid, hire_expiry_time FROM followship_bot_owners");
+
+        if (!result)
+            return true; // no bots is valid
+
+        do
+        {
+            Field* fields = result->Fetch();
+
+            ObjectGuid::LowType spawnId = fields[0].GetUInt64(); // bot_guid
+            ObjectGuid::LowType ownerGuid = fields[1].GetUInt32(); // player_guid
+            uint64 hireExpiry = fields[2].GetUInt64();
+
+            // Skip expired bots
+            if (hireExpiry > 0 && hireExpiry <= static_cast<uint64>(time(nullptr)))
+            {
+                // Clean up DB entry
+                CharacterDatabase.PExecute(
+                    "DELETE FROM followship_bot_owners WHERE bot_guid = {}", spawnId);
+
+                TC_LOG_DEBUG("scripts.ai.fsb",
+                    "FSB Bot MGR: Removing expired bot {} (owner {})", spawnId, ownerGuid);
+
+                continue;
+            }
+
+
+            botOwners[spawnId] = ownerGuid;
+
+        } while (result->NextRow());
+
+        return true;
+    }
+
     bool SaveBotToDB(Creature* bot, Player* player, uint64 hireExpiry)
     {
         ASSERT(bot && player);

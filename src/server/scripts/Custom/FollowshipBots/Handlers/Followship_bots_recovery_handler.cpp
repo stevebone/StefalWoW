@@ -38,6 +38,7 @@ namespace FSBRecovery
             return BotRecoverAction::None;
 
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Race botRace = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
 
         std::vector<BotRecoverAction> recoveryActions;
 
@@ -46,10 +47,15 @@ namespace FSBRecovery
         case BotRecoveryIntent::RecoverHealth:
             recoveryActions.emplace_back(BotRecoverAction::Eat);
             recoveryActions.emplace_back(BotRecoverAction::Recuperate);
+
             if (botClass == FSB_Class::Priest || botClass == FSB_Class::Paladin)
                 recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
             if (botClass == FSB_Class::Mage)
                 recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+
+            if (botRace == FSB_Race::Draenei)
+                recoveryActions.emplace_back(BotRecoverAction::RaceHeal);
+
             break;
         case BotRecoveryIntent::RecoverMana:
             recoveryActions.emplace_back(BotRecoverAction::Drink);
@@ -84,6 +90,7 @@ namespace FSBRecovery
         uint32 spellId = 0;
 
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Race botRace = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
 
         if (drinkOrEat == DRINK_EAT)
         {
@@ -164,7 +171,7 @@ namespace FSBRecovery
 
         if (drinkOrEat == RECUPERATE)
         {
-            spellId = SPELL_HUMAN_RECUPERATE;
+            spellId = SPELL_RECUPERATE;
 
             if (bot->HasAura(spellId))
                 return false;
@@ -187,6 +194,27 @@ namespace FSBRecovery
                 spellId = RAND(SPELL_PRIEST_HEAL, SPELL_PRIEST_FLASH_HEAL);
             else if (botClass == FSB_Class::Paladin)
                 spellId = RAND(SPELL_PALADIN_HOLY_LIGHT, SPELL_PALADIN_FLASH_OF_LIGHT);
+            else return false;
+
+            if (bot->HasAura(spellId))
+                return false;
+
+            FSBUtilsMovement::StopFollow(bot);
+
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
+
+            if (result == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = spellId;
+                return true;
+            }
+        }
+
+        if (drinkOrEat == RACE_HEAL)
+        {
+            if (botRace == FSB_Race::Draenei)
+                spellId = SPELL_DRAENEI_GIFT_NAARU;
             else return false;
 
             if (bot->HasAura(spellId))

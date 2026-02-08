@@ -47,6 +47,8 @@ public:
             }
 
             FSBUtilsCombatSpells::InitSpellRuntime(me, _runtimeSpells);
+
+            //FSBUtilsDB::LoadBotOwners(_botOwners);
             
         }        
 
@@ -1366,6 +1368,7 @@ public:
 void AddSC_followship_bots()
 {
     FollowshipBotsConfig::Load();
+    FSBMgr::BotManagerInit();
     FSBUtilsCombatSpells::InitBotSpellTables();
 
     new npc_followship_bots();

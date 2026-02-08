@@ -15,8 +15,10 @@ enum BotRecoverySpells
     SPELL_DRINK_CONJURED_CRYSTAL_WATER = 22734,
     SPELL_FOOD_SCALED_WITH_LVL = 1131,
 
-    // Human spells
-    SPELL_HUMAN_RECUPERATE = 1231418,
+    SPELL_RECUPERATE = 1231418,
+
+    // Draenei spells
+    SPELL_DRAENEI_GIFT_NAARU = 416250,
 
     // Mage spells
     SPELL_MAGE_CONJURED_MANA_PUDDING = 167152
@@ -38,7 +40,8 @@ enum class BotRecoverAction
     ClassDrinkEat,
     Eat,
     Recuperate,
-    ClassHeal
+    ClassHeal,
+    RaceHeal
 };
 
 enum BotDrinkEatType
@@ -48,7 +51,8 @@ enum BotDrinkEatType
     DRINK_EAT = 2,
     CLASS_DRINK_EAT = 3,
     RECUPERATE = 4,
-    CLASS_HEAL = 5
+    CLASS_HEAL = 5,
+    RACE_HEAL = 6
 };
 
 struct DrinkFoodPerLevel

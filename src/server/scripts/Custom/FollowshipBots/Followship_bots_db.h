@@ -7,6 +7,7 @@
 
 struct PlayerBotData
 {
+    ObjectGuid::LowType owner   = 0;
     uint64 botId                = 0;       // logical ID from DB
     ObjectGuid::LowType spawnId = 0; // spawn id
     uint32 entry                = 0;
@@ -18,6 +19,7 @@ struct PlayerBotData
 
 namespace FSBUtilsDB
 {
+    bool LoadBotOwners(std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType>& botOwners);
     bool LoadBotsForPlayer(uint64 playerGuidLow, std::vector<PlayerBotData>& outBots);
     
     bool SaveBotToDB(Creature* bot, Player* player, uint64 hireExpiry);

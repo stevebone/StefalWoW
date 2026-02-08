@@ -594,7 +594,8 @@ namespace FSBUtilsCombatSpells
             }
         }
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
+        if(target)
+            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
 
         // ? Per-spell cooldown
         runtime->nextReadyMs = now + def->cooldownMs;

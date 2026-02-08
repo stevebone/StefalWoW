@@ -1,8 +1,12 @@
 
 #include "Followship_bots_db.h"
 
+
+
 namespace FSBMgr
 {
+    void BotManagerInit();
+
     void StorePlayerBot(Player* player, PlayerBotData& botData, bool saveToDB);
     std::vector<PlayerBotData>* GetBotsForPlayer(Player* player);
     bool RemovePlayerBot(Player* player, uint32 botEntry, bool isTemp);
@@ -19,6 +23,8 @@ namespace FSBMgr
     void RemoveTempBots(Player* player);
 
     bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry);
+    bool IsBotOwnedByPlayer(Player* player, Creature* bot);
+    bool IsBotOwned(Creature* bot);
 
     Player* GetBotOwner(Unit* unit);
 }

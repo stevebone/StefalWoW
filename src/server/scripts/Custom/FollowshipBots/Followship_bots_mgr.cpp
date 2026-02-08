@@ -10,6 +10,14 @@ namespace FSBMgr
     // playerGuidLow -> vector of PlayerBotData
     std::unordered_map<uint64, std::vector<PlayerBotData>> _playerBots;
 
+    // Maps bot spawnId ? ownerGuidLow
+    std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType> _botOwners;
+
+    void BotManagerInit()
+    {
+        FSBUtilsDB::LoadBotOwners(_botOwners);
+    }
+
     void StorePlayerBot(Player* player, PlayerBotData& botData, bool saveToDB)
     {
         if (!player)
@@ -275,8 +283,8 @@ namespace FSBMgr
 
     bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry)
     {
-        ASSERT(player);
-        ASSERT(entry != 0);
+        if (!player || !entry)
+            return false;
 
         uint64 playerGuidLow = player->GetGUID().GetCounter();
         auto it = _playerBots.find(playerGuidLow);
@@ -290,6 +298,32 @@ namespace FSBMgr
             {
                 return b.entry == entry;
             });
+    }
+
+    bool IsBotOwnedByPlayer(Player* player, Creature* bot)
+    {
+        if (!player || !bot)
+            return false;
+
+        ObjectGuid::LowType spawnId = bot->GetSpawnId();
+        ObjectGuid::LowType playerGuid = player->GetGUID().GetCounter();
+
+        auto it = _botOwners.find(spawnId);
+        if (it == _botOwners.end())
+            return false; // bot has no owner at all
+
+        return it->second == playerGuid; // true if this player is the owner
+    }
+
+    bool IsBotOwned(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        ObjectGuid::LowType spawnId = bot->GetSpawnId();
+
+        // Check if this spawnId exists in the reverse lookup map
+        return _botOwners.contains(spawnId);
     }
 
     Player* GetBotOwner(Unit* unit)
