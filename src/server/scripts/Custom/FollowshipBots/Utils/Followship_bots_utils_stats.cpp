@@ -160,8 +160,8 @@ namespace FSBUtilsStats
         unit->SetRangedAttackPower(finalRAttackPower);
         unit->SetAttackPower(finalAttackPower);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has baseAP: {}, levelAP: {}, modAP: {}, multiAP: {}, totalAP: {}",
-            unit->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has baseAP: {}, levelAP: {}, modAP: {}, multiAP: {}, totalAP: {}",
+        //    unit->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
     }
 
     void ApplyBotDamage(Unit* unit)
