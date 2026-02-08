@@ -56,7 +56,10 @@ namespace FSBUtilsMovement
     bool EnsureInRange(Creature* me, Unit* target, float requiredRange);
     bool EnsureLOS(Unit* me, Unit* target);
 
-    void StopFollow(Unit* me);
+    FSB_MovementStates GetBotMoveState(Creature* bot);
+    void SetBotMoveState(Creature* bot, FSB_MovementStates moveState);
+
+    void StopFollow(Creature* bot);
     void ResumeFollow(Creature* bot, float followDistance, float followAngle);
 
     MovementGeneratorType GetMovementType(Unit* me);

@@ -364,13 +364,42 @@ namespace FSBUtilsMovement
         return true; // movement started
     }
 
-    void StopFollow(Unit* me)
+    FSB_MovementStates GetBotMoveState(Creature* bot)
     {
-        if (!me)
+        if (!bot || !bot->IsBot())
+            return FSB_MOVE_STATE_IDLE;
+
+
+        if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            return ai->botMoveState;
+
+
+        return FSB_MOVE_STATE_IDLE;
+    }
+
+    void SetBotMoveState(Creature* bot, FSB_MovementStates moveState)
+    {
+        if (!bot || !bot->IsBot())
             return;
 
-        me->StopMoving();
-        me->GetMotionMaster()->Clear();
+
+        if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            ai->botMoveState = moveState;
+
+    }
+
+    void StopFollow(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        if (bot->HasUnitState(UNIT_STATE_FOLLOW))
+            bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
+
+        SetBotMoveState(bot, FSB_MOVE_STATE_STAY);
+
+        bot->StopMoving();
+        bot->GetMotionMaster()->Clear();
     }
 
     // Resume Follow
@@ -381,8 +410,9 @@ namespace FSBUtilsMovement
         if (!player)
             return;
 
-        if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
-            bot->SetStandState(UNIT_STAND_STATE_STAND);
+        SetBotMoveState(bot, FSB_MOVE_STATE_FOLLOWING);
+
+        bot->ClearUnitState(UNIT_STAND_STATE_SIT);
 
         bot->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
     }
