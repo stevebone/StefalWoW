@@ -12,9 +12,8 @@ namespace FSBMgr
 
     void StorePlayerBot(Player* player, PlayerBotData& botData, bool saveToDB)
     {
-        ASSERT(botData.spawnId != 0);        // sanity
-        ASSERT(botData.entry != 0);
-        ASSERT(player);
+        if (!player)
+            return;
 
         uint64 playerGuidLow = player->GetGUID().GetCounter();
         auto& vec = _playerBots[playerGuidLow];
@@ -22,7 +21,7 @@ namespace FSBMgr
         // Check if bot already exists for this player
         for (auto& existing : vec)
         {
-            if (existing.botId == botData.botId)
+            if (existing.botId == botData.botId || existing.entry == botData.entry)
             {
                 // Update existing entry
                 existing = botData;
@@ -169,7 +168,7 @@ namespace FSBMgr
         bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
 
         PhasingHandler::ResetPhaseShift(bot);
-        bot->ClearUnitState(UNIT_STAND_STATE_SIT);
+        bot->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
     void HandleBotHire(Player* player, Creature* bot, uint32 hireDurationHours)
