@@ -393,6 +393,8 @@ namespace FSBUtilsBotCombat
         Player* owner = FSBMgr::GetBotOwner(bot);
         if (!owner)
         {
+            if (bot->HasUnitState(UNIT_STATE_FOLLOW))
+                bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
             bot->GetMotionMaster()->MoveIdle();
             return;
         }

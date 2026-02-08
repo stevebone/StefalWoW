@@ -87,12 +87,6 @@ public:
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
-                _recoveryActions.clear();
-
-                FSBRecovery::BuildRecoveryActions(me, _recoveryActions);
-
-                _nextRecoveryCheckMs = 0;
-
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
                 // Schedule Generic Events
@@ -831,7 +825,15 @@ public:
                             "FSB: Bot {} selected new target {}",
                             me->GetName(), newTarget->GetName());
                     }
-                    else FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
+                    else
+                    {
+                        me->AttackStop();
+                        me->CombatStop();
+                        Player* owner = FSBMgr::GetBotOwner(me);
+
+                        if(owner)
+                            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
+                    }
                 }
                 
             }
@@ -870,20 +872,12 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs)
                         {
-                            if (!_isRecovering && FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_))
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s, 3s);
+                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_))
+                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
 
                             // ? lock regen for next 2 seconds
                             _1secondsCheckMs = now + 1000;
                         }
-
-                        /*
-                        if (now >= _nextRecoveryCheckMs)
-                        {
-                            FSBRecovery::TryRecovery(me, _recoveryActions, _globalCooldownUntil, _isRecovering, _recoveryLockUntil);
-                            _nextRecoveryCheckMs = now + 1000; // once per second is plenty
-                        }
-                        */
                     }
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -1342,7 +1336,6 @@ public:
             bool _ownerWasInCombat = false;
             uint8 _appliedInitialCBuffs = 0;
             std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
-            std::vector<std::unique_ptr<BotRecoveryAction>> _recoveryActions;
             uint32 _globalCooldownUntil = 0; // global cooldown
             uint32 _buffsTimerMs = 0;
             uint32 _selfBuffsTimerMs = 0;
@@ -1358,10 +1351,6 @@ public:
             uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;
             uint32 _1secondsCheckMs = 0;
-
-            uint32 _nextRecoveryCheckMs = 0;
-            bool _isRecovering = false;
-            uint32 _recoveryLockUntil = 0;
             
     };
 

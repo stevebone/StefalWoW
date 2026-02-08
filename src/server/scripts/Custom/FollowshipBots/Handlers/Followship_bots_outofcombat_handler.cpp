@@ -3,6 +3,7 @@
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_recovery_handler.h"
 
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
@@ -47,7 +48,37 @@ namespace FSBOOC
         if (now >= selfBuffTimer && BotOOCBuffSelf(bot, selfBuffTimer, globalCooldown))
             return true;
 
+        //4. Recover HP/MP
+        // One recover action at a time
+        if (BotOOCRecovery(bot, globalCooldown))
+            return true;
+
         return false; 
+    }
+
+    bool BotOOCRecovery(Creature* bot, uint32& globalCooldown)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        BotRecoveryIntent intent = FSBRecovery::DetermineRecoveryIntent(bot);
+
+        switch (intent)
+        {
+        case BotRecoveryIntent::None:
+            return false;
+        case BotRecoveryIntent::RecoverHealthAndMana:
+        case BotRecoveryIntent::RecoverMana:
+        case BotRecoveryIntent::RecoverHealth:
+            return FSBRecovery::TryOOCRecovery(bot, intent, globalCooldown);
+        default:
+            return false;
+        }
+
+        return false;
     }
 
     bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown)
@@ -95,6 +126,9 @@ namespace FSBOOC
 
     bool BotOOCBuffSelf(Creature* bot, uint32& selfBuffTimer, uint32& globalCooldown)
     {
+        if (!bot || !bot->IsAlive())
+            return false;
+
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
         uint32 buffSpellId = 0;
         bool check = false;

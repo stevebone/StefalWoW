@@ -1,5 +1,6 @@
 
 #include "Followship_bots_recovery_handler.h"
+#include "Followship_bots_mgr.h"
 
 namespace FSBRecovery
 {
@@ -7,6 +8,8 @@ namespace FSBRecovery
     {
         if (!bot)
             return BotRecoveryIntent::None;
+
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover intent check for: {}", bot->GetName());
 
         bool lowHP = bot->GetHealthPct() < BOT_RECOVERY_HP_PCT;
 
@@ -29,102 +32,275 @@ namespace FSBRecovery
         return BotRecoveryIntent::None;
     }
 
-
-    bool MatchesIntent(BotRecoveryType type, BotRecoveryIntent intent)
+    BotRecoverAction GetRecoveryAction(Creature* bot, BotRecoveryIntent intent)
     {
+        if (!bot || intent == BotRecoveryIntent::None)
+            return BotRecoverAction::None;
+
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        std::vector<BotRecoverAction> recoveryActions;
+
         switch (intent)
         {
         case BotRecoveryIntent::RecoverHealth:
-            return type == BotRecoveryType::Health || type == BotRecoveryType::Both;
-
+            recoveryActions.emplace_back(BotRecoverAction::Eat);
+            recoveryActions.emplace_back(BotRecoverAction::Recuperate);
+            if (botClass == FSB_Class::Priest || botClass == FSB_Class::Paladin)
+                recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
+            if (botClass == FSB_Class::Mage)
+                recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            break;
         case BotRecoveryIntent::RecoverMana:
-            return type == BotRecoveryType::Mana || type == BotRecoveryType::Both;
-
+            recoveryActions.emplace_back(BotRecoverAction::Drink);
+            if (botClass == FSB_Class::Mage)
+                recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            break;
         case BotRecoveryIntent::RecoverHealthAndMana:
-            return true;
-
+            recoveryActions.emplace_back(BotRecoverAction::DrinkEat);
+            if (botClass == FSB_Class::Mage)
+                recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            break;
         default:
-            return false;
+            recoveryActions.emplace_back(BotRecoverAction::None);
         }
+
+        return Trinity::Containers::SelectRandomContainerElement(recoveryActions);
     }
 
-    void BuildRecoveryActions(Creature* bot, RecoveryActionList& _recoveryActions)
+    bool BotActionDrinkEat(Creature* bot, uint32& globalCooldown, uint32& outSpell, uint8 drinkOrEat)
     {
         if (!bot)
-            return;
-
-        _recoveryActions.emplace_back(new ActionEatDrink());
-        _recoveryActions.emplace_back(new ActionDrinkMana());
-        _recoveryActions.emplace_back(new ActionEatFood());
-
-        if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Mage)
-            _recoveryActions.emplace_back(new ActionMageConjuredDrink());
-
-        if (FSBUtils::GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Human)
-            _recoveryActions.emplace_back(new ActionHumanRecuperate());
-
-        if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Priest)
-            _recoveryActions.emplace_back(new ActionPriestHeal());
-
-        if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Paladin)
-            _recoveryActions.emplace_back(new ActionPaladinHeal());
-    }
-
-    void TryRecovery(Creature* bot, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil)
-    {
-        if (!bot)
-            return;
+            return false;
 
         if (bot->IsInCombat())
-            return;
+            return false;
 
         if (!bot->IsAlive())
-            return;
-
-        BotRecoveryIntent intent = FSBRecovery::DetermineRecoveryIntent(bot);
-
-        if (intent == BotRecoveryIntent::None)
-            return;
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover intent check for: {}", bot->GetName());
-
-        // -- Shuffle the actions before executing --
-        Trinity::Containers::RandomShuffle(_recoveryActions);
-
-        TryRecover(bot, intent, _recoveryActions, _globalCooldownUntil, _isRecovering, _recoveryLockUntil);
-    }
-
-    void TryRecover(Creature* bot, BotRecoveryIntent intent, RecoveryActionList& _recoveryActions, uint32 _globalCooldownUntil, bool& _isRecovering, uint32& _recoveryLockUntil)
-    {
-        if (!bot)
-            return;
+            return false;
 
         uint32 now = getMSTime();
 
-        if (_isRecovering)
-        {
-            if (now < _recoveryLockUntil)
-                return; // still busy
+        uint32 spellId = 0;
 
-            _isRecovering = false; // finished recovery action
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        if (drinkOrEat == DRINK_EAT)
+        {
+            if (bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER) || bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL))
+                return false;
+
+            FSBUtilsMovement::StopFollow(bot);
+
+            SpellCastResult result = bot->CastSpell(bot, SPELL_DRINK_CONJURED_CRYSTAL_WATER, false);
+            SpellCastResult result2 = bot->CastSpell(bot, SPELL_FOOD_SCALED_WITH_LVL, false);
+
+            if (result == SPELL_CAST_OK && result2 == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = RAND(SPELL_DRINK_CONJURED_CRYSTAL_WATER, SPELL_FOOD_SCALED_WITH_LVL);
+                return true;
+            }
         }
 
-        for (auto const& action : _recoveryActions)
+        if (drinkOrEat == DRINK)
         {
-            if (!MatchesIntent(action->type, intent))
-                continue;
+            spellId = SPELL_DRINK_CONJURED_CRYSTAL_WATER;
 
-            if (!action->CanExecute(bot, _globalCooldownUntil))
-                continue;
+            if (bot->HasAura(spellId))
+                return false;
 
-            action->Execute(bot, _globalCooldownUntil);
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover execute action for: {}", bot->GetName());
+            FSBUtilsMovement::StopFollow(bot);
 
-            _isRecovering = true;
-            _recoveryLockUntil = now + action->GetCooldownMs();
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
-            break; // one action per tick
+            if (result == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = spellId;
+                return true;
+            }
         }
+
+        if (drinkOrEat == EAT)
+        {
+            spellId = SPELL_FOOD_SCALED_WITH_LVL;
+
+            if (bot->HasAura(spellId))
+                return false;
+
+            FSBUtilsMovement::StopFollow(bot);
+
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
+
+            if (result == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = spellId;
+                return true;
+            }
+        }
+
+        if (drinkOrEat == CLASS_DRINK_EAT)
+        {
+            if (botClass == FSB_Class::Mage)
+                spellId = SPELL_MAGE_CONJURED_MANA_PUDDING;
+            else return false;
+
+            if (bot->HasAura(spellId))
+                return false;
+
+            FSBUtilsMovement::StopFollow(bot);
+
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
+
+            if (result == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = spellId;
+                return true;
+            }
+        }
+
+        if (drinkOrEat == RECUPERATE)
+        {
+            spellId = SPELL_HUMAN_RECUPERATE;
+
+            if (bot->HasAura(spellId))
+                return false;
+
+            FSBUtilsMovement::StopFollow(bot);
+
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
+
+            if (result == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 10000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = spellId;
+                return true;
+            }
+        }
+
+        if (drinkOrEat == CLASS_HEAL)
+        {
+            if (botClass == FSB_Class::Priest)
+                spellId = RAND(SPELL_PRIEST_HEAL, SPELL_PRIEST_FLASH_HEAL);
+            else if (botClass == FSB_Class::Paladin)
+                spellId = RAND(SPELL_PALADIN_HOLY_LIGHT, SPELL_PALADIN_FLASH_OF_LIGHT);
+            else return false;
+
+            if (bot->HasAura(spellId))
+                return false;
+
+            FSBUtilsMovement::StopFollow(bot);
+
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
+
+            if (result == SPELL_CAST_OK)
+            {
+                globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
+                outSpell = spellId;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool TryRecoverAction(Creature* bot, BotRecoverAction action, uint32& globalCooldown)
+    {
+        if (!bot)
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        if (!bot->IsAlive())
+            return false;
+
+        bool check = false;
+        uint32 spellId = 0;
+        uint8 drinkOrEat = 0;
+
+        switch (action)
+        {
+        case BotRecoverAction::None:
+            return false;
+        case BotRecoverAction::DrinkEat:
+            drinkOrEat = DRINK_EAT;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        case BotRecoverAction::Drink:
+            drinkOrEat = DRINK;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        case BotRecoverAction::ClassDrinkEat:
+            drinkOrEat = CLASS_DRINK_EAT;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        case BotRecoverAction::Eat:
+            drinkOrEat = EAT;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        case BotRecoverAction::Recuperate:
+            drinkOrEat = RECUPERATE;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        case BotRecoverAction::ClassHeal:
+            drinkOrEat = CLASS_HEAL;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        default:
+            break;
+        }
+
+        if (check)
+        {
+            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+            {
+                std::string pname = "";
+                Player* player = FSBMgr::GetBotOwner(bot);
+                if (player)
+                    pname = player->GetName();
+
+                std::string msg = FSBUtilsTexts::BuildNPCSayText(pname, NULL, FSBSayType::OOCRecovery, FSBUtilsSpells::GetSpellName(spellId));
+                bot->Say(msg, LANG_UNIVERSAL);
+            }
+
+            return true;
+        }
+
+        return false;
+
+    }
+
+    bool TryOOCRecovery(Creature* bot, BotRecoveryIntent intent, uint32& globalCooldown)
+    {
+        if (!bot)
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        if (!bot->IsAlive())
+            return false;
+
+        if (intent == BotRecoveryIntent::None)
+            return false;
+
+
+        BotRecoverAction action = GetRecoveryAction(bot, intent);
+        
+        if (TryRecoverAction(bot, action, globalCooldown))
+            return true;
+
+        return false;
     }
 
     int32 GetDrinkFoodPerLevel(uint8 level, DrinkFoodPerLevel const* table, size_t tableSize)
