@@ -8,12 +8,13 @@
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
+#include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 
 
 namespace FSBOOC
 {
-    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup)
+    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup, bool& demonDead)
     {
         if (!bot)
             return false;
@@ -53,7 +54,30 @@ namespace FSBOOC
         if (BotOOCRecovery(bot, globalCooldown))
             return true;
 
+        //5. Warlock Demon Summon
+        if (BotOOCSummonDemons(bot, globalCooldown, demonDead))
+            return true;
+
         return false; 
+    }
+
+    bool BotOOCSummonDemons(Creature* bot, uint32& globalCooldown, bool& demonDead)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        if (cls != FSB_Class::Warlock)
+            return false;
+
+        if (FSBWarlock::BotSummonRandomDemon(bot, globalCooldown, demonDead))
+            return true;
+
+        return false;
     }
 
     bool BotOOCRecovery(Creature* bot, uint32& globalCooldown)
@@ -187,7 +211,9 @@ namespace FSBOOC
         case FSB_Class::Paladin:
             buffSpellId = SPELL_PALADIN_BLESSING_KINGS;
             break;
-
+        case FSB_Class::Warlock:
+            buffSpellId = SPELL_WARLOCK_UNENDING_BREATH;
+            break;
         default:
             break;
         }

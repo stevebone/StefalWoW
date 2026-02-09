@@ -99,6 +99,26 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseRangedAttackTime = 2500
     },
 
+    // WARLOCK
+    {
+        .classId = FSB_Class::Warlock,
+        .powerType = POWER_MANA,
+        .baseHealth = 90,             // base HP
+        .basePower = 180,            // base Power
+        .healthPerLevel = 52,             // HP per level
+        .powerPerLevel = 35,             // Power per level
+        .baseHpRegenOOC = 3,              // HP regen %
+        .basePowerRegenOOC = 4,              // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 5,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 1,
+        .baseClassDamageVariance = 0.2f,
+        .baseAttackTime = 2500,
+        .baseRangedAttackTime = 2500
+    },
+
     // MAGE
     {
         .classId = FSB_Class::Mage,

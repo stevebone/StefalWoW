@@ -1,6 +1,7 @@
 #include "Followship_bots_utils_stats.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_paladin.h"
+#include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 
 namespace FSBUtilsStats
@@ -294,6 +295,9 @@ namespace FSBUtilsStats
 
         if (FSBPaladin::BotHasBlessingOfSacrifice(bot))
             multiplier *= 0.70f;
+
+        if (FSBWarlock::BotHasUnendingResolve(bot))
+            multiplier *= 0.75f;
 
         return multiplier;
     }

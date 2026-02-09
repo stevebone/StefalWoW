@@ -44,6 +44,9 @@ static constexpr FSBEntryClassMap BotEntryClassTable[] =
     { 925, FSB_Class::Paladin,              FSB_Race::Human },      // Brother Sammuel
     { 16501, FSB_Class::Paladin,            FSB_Race::Draenei },    // Aurelon (Draenei)
 
+    // WARLOCKS
+    { 459,   FSB_Class::Warlock,            FSB_Race::Human },      // Drusilla la Salle
+
     // ROGUES
     //{ 90030, FSB_Class::Rogue },
 };
@@ -258,6 +261,7 @@ namespace FSBUtils
         case POWER_RAGE:   return "Rage";
         case POWER_ENERGY: return "Energy";
         case POWER_HOLY_POWER: return "Holy";
+        case POWER_SOUL_SHARDS:return "Sould Shards";
         default:           return "Other";
         }
     }

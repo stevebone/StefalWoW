@@ -17,6 +17,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('198', '900004', '-1'),
 ('198', '900005', '-1'),
 ('198', '900006', '-1'),
+('459', '900000', '-1'),
+('459', '900001', '-1'),
+('459', '900002', '-1'),
+('459', '900003', '-1'),
+('459', '900004', '-1'),
+('459', '900005', '-1'),
 ('911', '900000', '-1'),
 ('911', '900001', '-1'),
 ('911', '900002', '-1'),
@@ -80,14 +86,19 @@ INSERT INTO `creature_template_gossip` VALUES
 ('46405', '900005', '-1');
 
 
-
-UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 141508; -- Stormwind Priest
-UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 375; -- Priest
+-- Northshire trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 198; -- Mage
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 375; -- Priest
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 459; -- Drusilla la Salle (Warlock)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 911; -- Warrior
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 141508; -- Stormwind Priest
+
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 50595; -- Stormwind Defender (Warrior)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 46405; -- Stockade Guard (Warrior)
+
+-- Ammen Vale trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16500; -- Valaatu (Mage)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16501; -- Aurelon (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16502; -- Zalduun (Priest)

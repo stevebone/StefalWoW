@@ -1,0 +1,46 @@
+#pragma once
+
+#include "Followship_bots_utils_spells.h"
+
+extern std::vector<FSBSpellDefinition> WarlockSpellsTable;
+
+enum FSB_WARLOCK_SPECIAL_SPELLS
+{
+    SPELL_WARLOCK_GIFT_NAARU = 28880,
+
+    SPELL_WARLOCK_UNENDING_BREATH = 5697,
+
+    SPELL_WARLOCK_SOULSTONE = 20707,
+    SPELL_WARLOCK_SOULSTONE_VISUAL = 73704 // needed for npcs
+};
+
+enum FSB_WARLOCK_COMBAT_SPELLS
+{
+    SPELL_WARLOCK_UNENDING_RESOLVE = 104773,
+    SPELL_WARLOCK_FEAR = 12096, //5782,
+
+    SPELL_WARLOCK_SHADOW_BOLT = 20825, //686
+    SPELL_WARLOCK_DRAIN_LIFE = 17173
+};
+
+enum FSB_WARLOCK_AFFLICTION_SPELLS
+{
+    SPELL_WARLOCK_CORRUPTION = 31405, //172, //21068 //31405 //30938
+    SPELL_WARLOCK_AGONY = 37334, //980,
+    SPELL_WARLOCK_CURSE_WEAKNESS = 702
+};
+
+enum FSB_WARLOCK_DEMONOLOGY_SPELLS
+{
+    SPELL_WARLOCK_SUMMON_IMP = 11939, //688, //11939,
+    SPELL_WARLOCK_SUMMON_SUCCUBUS = 78060, //366222, //712,
+    SPELL_WARLOCK_SUMMON_VOIDWALKER = 344692, //43896 //697
+    SPELL_WARLOCK_SUMMON_FELHUNTER = 344744
+};
+
+namespace FSBWarlock
+{
+    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& demonDead);
+
+    bool BotHasUnendingResolve(Creature* bot);
+}

@@ -136,6 +136,9 @@ namespace FSBUtilsGossip
         case FSB_Class::Hunter:
             break;
         case FSB_Class::Warlock:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_AFFLICTION, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DEMONOLOGY, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DESTRUCTION, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
             break;
         default:
             break;

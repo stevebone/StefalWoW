@@ -89,6 +89,8 @@ public:
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
+                demonDead = true;
+
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
                 // Schedule Generic Events
@@ -403,6 +405,10 @@ public:
                 case FSB_Class::Mage:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_ARCANE);
                     break;
+                case FSB_Class::Warlock:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_AFFLICTION);
+                    demonDead = true;
+                    break;
                 default:
                     break;
                 }
@@ -435,6 +441,10 @@ public:
                 case FSB_Class::Mage:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_FROST);
                     break;
+                case FSB_Class::Warlock:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DEMONOLOGY);
+                    demonDead = true;
+                    break;
                 default:
                     break;
                 }
@@ -460,6 +470,10 @@ public:
                     break;
                 case FSB_Class::Mage:
                     FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_FIRE);
+                    break;
+                case FSB_Class::Warlock:
+                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DESTRUCTION);
+                    demonDead = true;
                     break;
                 default:
                     break;
@@ -670,14 +684,20 @@ public:
             FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods);
         }
 
-        void JustSummoned(Creature* /*summon*/) override // Runs every time the creature summons another creature
+        void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
         {
-
+            if (summon)
+            {
+                demonDead = false;
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} appeared", summon->GetName(), me->GetName());
+            }
+                
         }
 
-        void SummonedCreatureDies(Creature* /*summon*/, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
+        void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
         {
-
+            demonDead = true;
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} died", summon->GetName(), me->GetName());
         }
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
@@ -874,7 +894,7 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs)
                         {
-                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_))
+                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, demonDead))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
 
                             // ? lock regen for next 2 seconds
@@ -1353,6 +1373,9 @@ public:
             uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;
             uint32 _1secondsCheckMs = 0;
+
+            // Warlock bot
+            bool demonDead = true;
             
     };
 

@@ -38,6 +38,9 @@ enum FSB_Roles
     FSB_ROLE_RANGED_FROST,
     FSB_ROLE_RANGED_ARCANE,
     FSB_ROLE_RANGED_FIRE,
+    FSB_ROLE_RANGED_AFFLICTION,
+    FSB_ROLE_RANGED_DEMONOLOGY,
+    FSB_ROLE_RANGED_DESTRUCTION
 };
 
 enum FSB_RoleMask : uint32
@@ -51,21 +54,27 @@ enum FSB_RoleMask : uint32
     FSB_ROLEMASK_RANGED_FROST = 1 << 5,
     FSB_ROLEMASK_RANGED_ARCANE = 1 << 6,
     FSB_ROLEMASK_RANGED_FIRE = 1 << 7,
+    FSB_ROLEMASK_RANGED_AFFLICTION = 1 << 8,
+    FSB_ROLEMASK_RANGED_DEMONOLOGY = 1 << 9,
+    FSB_ROLEMASK_RANGED_DESTRUCTION = 1 << 10
 };
 
 static uint32 RoleToMask(FSB_Roles role)
 {
     switch (role)
     {
-    case FSB_ROLE_TANK:             return FSB_ROLEMASK_TANK;
-    case FSB_ROLE_HEALER:           return FSB_ROLEMASK_HEALER;
-    case FSB_ROLE_RANGED_DAMAGE:    return FSB_ROLEMASK_RANGED_DAMAGE;
-    case FSB_ROLE_ASSIST:           return FSB_ROLEMASK_ASSIST;
-    case FSB_ROLE_MELEE_DAMAGE:     return FSB_ROLEMASK_MELEE_DAMAGE;
-    case FSB_ROLE_RANGED_FROST:     return FSB_ROLEMASK_RANGED_FROST;
-    case FSB_ROLE_RANGED_ARCANE:     return FSB_ROLEMASK_RANGED_ARCANE;
-    case FSB_ROLE_RANGED_FIRE:     return FSB_ROLEMASK_RANGED_FIRE;
-    default:                        return 0;
+    case FSB_ROLE_TANK:                 return FSB_ROLEMASK_TANK;
+    case FSB_ROLE_HEALER:               return FSB_ROLEMASK_HEALER;
+    case FSB_ROLE_RANGED_DAMAGE:        return FSB_ROLEMASK_RANGED_DAMAGE;
+    case FSB_ROLE_ASSIST:               return FSB_ROLEMASK_ASSIST;
+    case FSB_ROLE_MELEE_DAMAGE:         return FSB_ROLEMASK_MELEE_DAMAGE;
+    case FSB_ROLE_RANGED_FROST:         return FSB_ROLEMASK_RANGED_FROST;
+    case FSB_ROLE_RANGED_ARCANE:        return FSB_ROLEMASK_RANGED_ARCANE;
+    case FSB_ROLE_RANGED_FIRE:          return FSB_ROLEMASK_RANGED_FIRE;
+    case FSB_ROLE_RANGED_AFFLICTION:    return FSB_ROLEMASK_RANGED_AFFLICTION;
+    case FSB_ROLE_RANGED_DEMONOLOGY:    return FSB_ROLEMASK_RANGED_DEMONOLOGY;
+    case FSB_ROLE_RANGED_DESTRUCTION:   return FSB_ROLEMASK_RANGED_DESTRUCTION;
+    default:                            return 0;
     }
 }
 
