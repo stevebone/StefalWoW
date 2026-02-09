@@ -45,6 +45,7 @@ namespace FSBMgr
             if (Creature* bot = player->GetMap()->GetCreatureBySpawnId(botData.spawnId))
             {
                 botData.botId = FSBUtilsDB::SaveBotToDB(bot, player, botData.hireExpiry);
+                AddBotOwner(botData.spawnId, playerGuidLow);
             }
         }
 
@@ -106,6 +107,8 @@ namespace FSBMgr
             TC_LOG_DEBUG("scripts.ai.fsb",
                 "FSBMgr: Removed DB bot entry {} (botId {}) for player {}",
                 botEntry, vit->botId, player->GetName());
+
+            RemoveBotOwner(vit->spawnId);
         }
         else
         {
@@ -144,6 +147,7 @@ namespace FSBMgr
                 uint32 botEntry = it->entry;
                 uint32 playerGuid = player->GetGUID().GetCounter();
                 it = bots->erase(it);
+                RemoveBotOwner(it->spawnId);
                 FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
             }
             else
@@ -335,5 +339,29 @@ namespace FSBMgr
             return owner->ToPlayer();
 
         return nullptr;
+    }
+
+    void AddBotOwner(ObjectGuid::LowType spawnId, ObjectGuid::LowType ownerGuid)
+    {
+        if (!spawnId || !ownerGuid)
+            return;
+
+        // Update in-memory map
+        _botOwners[spawnId] = ownerGuid;
+
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB Bot MGR: Added bot owner spawnId={} owner={}", spawnId, ownerGuid);
+    }
+
+    void RemoveBotOwner(ObjectGuid::LowType spawnId)
+    {
+        if (!spawnId)
+            return;
+
+        // Remove from in-memory map
+        _botOwners.erase(spawnId);
+
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB Bot MGR: Removed bot owner for spawnId={}", spawnId);
     }
 }

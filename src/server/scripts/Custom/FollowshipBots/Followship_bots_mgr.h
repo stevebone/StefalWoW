@@ -27,4 +27,7 @@ namespace FSBMgr
     bool IsBotOwned(Creature* bot);
 
     Player* GetBotOwner(Unit* unit);
+
+    void AddBotOwner(ObjectGuid::LowType spawnId, ObjectGuid::LowType ownerGuid);
+    void RemoveBotOwner(ObjectGuid::LowType spawnId);
 }
