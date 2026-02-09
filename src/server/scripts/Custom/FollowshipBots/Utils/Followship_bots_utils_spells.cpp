@@ -202,6 +202,9 @@ namespace FSBUtilsSpells
         case SPELL_PALADIN_DIVINE_SHIELD:
             return bot->GetPowerPct(POWER_MANA) < 20;
 
+        case SPELL_WARRIOR_GIFT_NAARU:
+            return FSBUtils::GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Draenei;
+
         default:
             return true;
         }
@@ -475,6 +478,7 @@ namespace FSBUtilsCombatSpells
                     auto candidates = FSBUtilsCombat::BotGetHealCandidates(botGroup_, spell->hpThreshold);
                     if (!candidates.empty())
                         target = candidates.front();
+                    else target = bot;
                 }
 
                 if (!target)
@@ -585,6 +589,8 @@ namespace FSBUtilsCombatSpells
 
         if (targets.GetUnitTarget() || target)
         {
+            bot->SetFacingToObject(target, true);
+
             SpellCastResult result = spell->prepare(targets);
 
             if (result != SPELL_CAST_OK)

@@ -4,6 +4,11 @@
 
 extern std::vector<FSBSpellDefinition> PaladinSpellsTable;
 
+enum FSB_PALADIN_SPECIAL_SPELLS
+{
+    SPELL_PALADIN_GIFT_NAARU = 28880
+};
+
 enum FSB_PALADIN_SELF_BUFFS
 {
     // HEALER

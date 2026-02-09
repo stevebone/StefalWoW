@@ -7,13 +7,15 @@ std::vector<FSBSpellDefinition> WarriorSpellsTable =
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
 
     // ANY
+    { SPELL_WARRIOR_GIFT_NAARU,     FSBSpellType::Heal,              0.f,        50.f,           100.f,          2.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+
     { SPELL_WARRIOR_CHARGE,         FSBSpellType::Damage,            0.f,        0.f,            100.f,          25.f,          false,        20000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_WARRIOR_TAUNT,          FSBSpellType::Damage,            0.f,        0.f,            100.f,          30.f,          false,        8000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_WARRIOR_TAUNT,          FSBSpellType::Damage,            0.f,        0.f,            100.f,          30.f,          false,        8000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_WARRIOR_PUMMEL,         FSBSpellType::Damage,            0.f,        0.f,            100.f,          2.f,           false,        15000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_WARRIOR_HEROIC_THROW,   FSBSpellType::Damage,            0.f,        0.f,            100.f,          30.f,          false,        6000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_WARRIOR_HEROIC_THROW,   FSBSpellType::Damage,            0.f,        0.f,            100.f,          30.f,          false,        6000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_WARRIOR_RECKLESSNESS,   FSBSpellType::Damage,            0.f,        0.f,            50.f,           2.f,           true,         90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_WARRIOR_WHIRLWIND,      FSBSpellType::Damage,            0.f,        0.f,            50.f,           2.f,           true,         1000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_WARRIOR_HAMSTRING,      FSBSpellType::Damage,            0.f,        0.f,            45.f,          2.f,           false,        15000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_WARRIOR_WHIRLWIND,      FSBSpellType::Damage,            0.f,        0.f,            50.f,           2.f,           true,         1000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_WARRIOR_HAMSTRING,      FSBSpellType::Damage,            0.f,        0.f,            45.f,          2.f,            false,        15000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     // PROTECTION
     { SPELL_WARRIOR_SHIELD_CHARGE,  FSBSpellType::Damage,            0.f,        0.f,            100.f,         25.f,          false,        45000,         FSB_RoleMask::FSB_ROLEMASK_TANK },

@@ -1,12 +1,15 @@
 
 #include "Followship_bots_priest.h"
-#include "Followship_bots_utils_spells.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
 std::vector<FSBSpellDefinition> PriestSpellsTable =
 {
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
+
+    // ANY
+    { SPELL_PRIEST_GIFT_NAARU,     FSBSpellType::Heal,              0.f,        50.f,           100.f,          2.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+
     { SPELL_PRIEST_DESPERATE_PRAYER,    FSBSpellType::Heal,     0.f,        20.f,           100.f,          0.f,            true,       90000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_PRIEST_HEAL,                FSBSpellType::Heal,     0.f,        40.f,           80.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_PRIEST_PRAYER_OF_MENDING,   FSBSpellType::Heal,     0.f,        60.f,           50.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },

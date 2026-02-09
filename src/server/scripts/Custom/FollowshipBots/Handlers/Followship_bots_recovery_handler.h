@@ -18,7 +18,7 @@ enum BotRecoverySpells
     SPELL_RECUPERATE = 1231418,
 
     // Draenei spells
-    SPELL_DRAENEI_GIFT_NAARU = 416250,
+    SPELL_DRAENEI_GIFT_NAARU = 28880, //416250,
 
     // Mage spells
     SPELL_MAGE_CONJURED_MANA_PUDDING = 167152

@@ -52,7 +52,7 @@ namespace FSBRecovery
                 recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
             if (botClass == FSB_Class::Mage)
                 recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
-
+                
             if (botRace == FSB_Race::Draenei)
                 recoveryActions.emplace_back(BotRecoverAction::RaceHeal);
 
@@ -226,10 +226,12 @@ namespace FSBRecovery
 
             if (result == SPELL_CAST_OK)
             {
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryAction Race Heal cast result: {}", result);
                 globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
                 return true;
             }
+            else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryAction Race Heal cast result not ok: {}", result);
         }
 
         return false;
@@ -281,6 +283,11 @@ namespace FSBRecovery
             break;
         case BotRecoverAction::ClassHeal:
             drinkOrEat = CLASS_HEAL;
+            if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
+                check = true;
+            break;
+        case BotRecoverAction::RaceHeal:
+            drinkOrEat = RACE_HEAL;
             if (BotActionDrinkEat(bot, globalCooldown, spellId, drinkOrEat))
                 check = true;
             break;

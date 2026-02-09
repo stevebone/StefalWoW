@@ -4,6 +4,11 @@
 
 extern std::vector<FSBSpellDefinition> MageSpellsTable;
 
+enum FSB_MAGE_SPECIAL_SPELLS
+{
+    SPELL_MAGE_GIFT_NAARU = 28880
+};
+
 enum FSB_MAGE_PORTAL_SPELLS
 {
     SPELL_MAGE_PORTAL_STORMWIND = 129467
