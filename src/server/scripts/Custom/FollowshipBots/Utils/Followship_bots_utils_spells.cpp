@@ -136,6 +136,7 @@ namespace FSBUtilsSpells
             // Can only be cast on more than 2/3 attackers
             // OR when 2/3 attackers are around
             // This way we limit spells to CC instead of general/spam use
+        case SPELL_WARLOCK_FEAR:
         case SPELL_PALADIN_DIVINE_STORM:
         case SPELL_WARRIOR_COLOSSUS_SMASH:
         case SPELL_WARRIOR_CLEAVE:
@@ -182,6 +183,7 @@ namespace FSBUtilsSpells
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+        case SPELL_WARLOCK_CURSE_TONGUES:
         case SPELL_PALADIN_REBUKE:
         case SPELL_WARRIOR_PUMMEL:
         case SPELL_MAGE_COUNTERSPELL:
@@ -566,7 +568,7 @@ namespace FSBUtilsCombatSpells
         if (runtime->def->manaCostOverride != 0.f && !FSBPowers::SpendManaPct(bot, runtime->def->manaCostOverride))
             return; // not enough mana
 
-        if (def->spellId == SPELL_MAGE_POLYMORPH)
+        if (def->spellId == SPELL_MAGE_POLYMORPH || def->spellId == SPELL_WARLOCK_FEAR)
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
         Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);

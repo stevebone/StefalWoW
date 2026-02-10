@@ -289,6 +289,8 @@ namespace FSBGossip
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_AFFLICTION);
+                if (bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
+                    bot->RemoveAurasDueToSpell(SPELL_WARLOCK_DEMON_ARMOR);
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
@@ -297,8 +299,8 @@ namespace FSBGossip
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DESTRUCTION);
-                demonDead = true;
-                break;
+                if (bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
+                    bot->RemoveAurasDueToSpell(SPELL_WARLOCK_DEMON_ARMOR);
             }
 
             demonDead = true;

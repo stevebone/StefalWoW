@@ -1,6 +1,7 @@
 #include "Followship_bots_utils.h"
 
 #include "followship_bots_mage.h"
+#include "followship_bots_warlock.h"
 #include "followship_bots_warrior.h"
 
 #include "Followship_bots_auras_handler.h"
@@ -186,6 +187,26 @@ namespace FSBAuras
                 mods.flatRagePerTick += 20;
             else if(!applied)
                 mods.flatRagePerTick -= 20;
+
+            break;
+        }
+
+            // Warlock
+        case SPELL_WARLOCK_DEMON_ARMOR:
+        {
+            float HpPct = bot->GetPctModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT);
+            float armorPct = bot->GetPctModifierValue(UNIT_MOD_ARMOR, TOTAL_PCT);
+
+            if (applied)
+            {
+                bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, HpPct + 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct + 1.6f);
+            }
+            else if (!applied)
+            {
+                bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, HpPct - 0.1f);
+                bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct - 1.6f);
+            }
 
             break;
         }

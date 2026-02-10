@@ -7,6 +7,7 @@ namespace FSBOOC
     bool BotOOCBuffSelf(Creature* bot, uint32& selfBuffTimer, uint32& globalCooldown);
     bool BotOOCRecovery(Creature* bot, uint32& globalCooldown);
     bool BotOOCSummonDemons(Creature* bot, uint32& globalCooldown, bool& demonDead);
+    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup);
 
     void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*> botGroup, float maxRange, std::vector<Unit*>& outTargets);
 }

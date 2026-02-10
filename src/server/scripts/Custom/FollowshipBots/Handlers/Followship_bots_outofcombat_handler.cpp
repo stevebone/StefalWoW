@@ -58,7 +58,30 @@ namespace FSBOOC
         if (BotOOCSummonDemons(bot, globalCooldown, demonDead))
             return true;
 
+        //6. Warlock SoulStone
+        if (BotOOCBuffSoulstone(bot, globalCooldown, botGroup))
+            return true;
+
         return false; 
+    }
+
+    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        if (cls != FSB_Class::Warlock)
+            return false;
+
+        if (FSBWarlock::BotOOCBuffSoulstone(bot, globalCooldown, botGroup))
+            return true;
+
+        return false;
     }
 
     bool BotOOCSummonDemons(Creature* bot, uint32& globalCooldown, bool& demonDead)
@@ -161,6 +184,10 @@ namespace FSBOOC
         {
         case FSB_Class::Paladin:
             if (FSBPaladin::BotOOCBuffSelf(bot, globalCooldown, selfBuffTimer, buffSpellId))
+                check = true;
+            break;
+        case FSB_Class::Warlock:
+            if (FSBWarlock::BotOOCBuffSelf(bot, globalCooldown, selfBuffTimer, buffSpellId))
                 check = true;
             break;
         default:

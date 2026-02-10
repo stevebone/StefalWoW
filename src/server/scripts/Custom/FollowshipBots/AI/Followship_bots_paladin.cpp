@@ -169,8 +169,6 @@ namespace FSBPaladin
 
         if (isHealer && !bot->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
         {
-            FSBUtilsMovement::StopFollow(bot);
-
             bot->CastSpell(bot, SPELL_PALADIN_RITE_OF_SANCTIFICATION, false);
             selfBuffTimer = now + 60000; // 1 minute
             globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
@@ -181,8 +179,6 @@ namespace FSBPaladin
 
         if (isTank && !bot->HasAura(SPELL_PALADIN_FURY))
         {
-            FSBUtilsMovement::StopFollow(bot);
-
             bot->CastSpell(bot, SPELL_PALADIN_FURY, false);
             selfBuffTimer = now + 60000; // 1 minute
             globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell

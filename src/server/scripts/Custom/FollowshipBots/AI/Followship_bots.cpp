@@ -13,6 +13,7 @@
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_mage.h"
+#include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"
@@ -137,8 +138,6 @@ public:
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
-            //me->SetHealth(me->GetMaxHealth());
-            //me->SetPower(me->GetPowerType(), me->GetMaxPower(me->GetPowerType()));
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 
@@ -213,9 +212,6 @@ public:
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
                 FSBUtilsStats::RecalculateMods(me);
 
-                if (me->HasUnitState(UNIT_STAND_STATE_SIT))
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
-
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -239,9 +235,6 @@ public:
                 hired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
                 FSBUtilsStats::RecalculateMods(me);
-
-                if (me->HasUnitState(UNIT_STAND_STATE_SIT))
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -267,9 +260,6 @@ public:
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
                 FSBUtilsStats::RecalculateMods(me);
 
-                if (me->HasUnitState(UNIT_STAND_STATE_SIT))
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
-
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -292,9 +282,6 @@ public:
                     hired = true;
                     FSBMgr::HandleBotHire(player, me, 0);
                     FSBUtilsStats::RecalculateMods(me);
-
-                    if (me->HasUnitState(UNIT_STAND_STATE_SIT))
-                        me->SetStandState(UNIT_STAND_STATE_STAND);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -554,6 +541,7 @@ public:
             case FSB_Class::Hunter:
                 break;
             case FSB_Class::Warlock:
+                FSBWarlock::HandleOnSpellCast(me, spell->Id);
                 break;
             default:
                 break;
@@ -604,6 +592,19 @@ public:
         {
             if (summon)
             {
+                if (summon->GetEntry() == 42874)
+                {
+                    uint64 maxHealth = me->GetMaxHealth() * 1.5f;
+                    summon->SetMaxHealth(maxHealth);
+                    summon->SetHealth(maxHealth);
+                }
+                else if (summon->GetEntry() == 175190)
+                {
+                    uint64 maxHealth = me->GetMaxHealth() * 0.8f;
+                    summon->SetMaxHealth(maxHealth);
+                    summon->SetHealth(maxHealth);
+                }
+
                 demonDead = false;
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} appeared", summon->GetName(), me->GetName());
             }
@@ -630,8 +631,14 @@ public:
                 }
             }
 
-            if(hired)
+            if (me->HasAura(SPELL_WARLOCK_SOULSTONE))
+            {
+                me->setDeathState(ALIVE);
+            }
+            else if(hired)
                 events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 90s);
+
+            botCorpse = me->GetPosition();
         }
 
         uint32 GetData(uint32 /*type*/) const override // Runs once to check what data exists on the creature
@@ -921,7 +928,7 @@ public:
                     // Check if player is too far (teleport) and bring bot
                 case FSB_EVENT_HIRED_CHECK_TELEPORT:
                 {
-                    if(botMoveState != FSB_MOVE_STATE_STAY)
+                    if(botMoveState != FSB_MOVE_STATE_STAY || !me->HasAura(SPELL_SPECIAL_GHOST))
                         FSBTeleport::BotTeleport(me, BOT_TOO_FAR);
                     break;
                 }
@@ -931,7 +938,10 @@ public:
                 {
                     if (FSBTeleport::BotTeleport(me, BOT_DEATH))
                     {
+                        me->AddAura(SPELL_SPECIAL_GHOST, me);
                         me->setDeathState(ALIVE);
+                        me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                        me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
                         //hired = true;
                         me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                         events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
@@ -1292,6 +1302,7 @@ public:
 
             // Warlock bot
             bool demonDead = true;
+            Position botCorpse;
             
     };
 

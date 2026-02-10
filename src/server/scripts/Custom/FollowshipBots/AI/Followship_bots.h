@@ -63,6 +63,11 @@ enum FSB_Actions
     FSB_ACTION_COMBAT_IC_ACTIONS = 2
 };
 
+enum FSB_SpecialSpells
+{
+    SPELL_SPECIAL_GHOST = 8326
+};
+
 constexpr float FOLLOW_DISTANCE_CLOSE = 3.0f;
 constexpr float FOLLOW_DISTANCE_NORMAL = 5.0f;
 constexpr float FOLLOW_DISTANCE_WIDE = 8.0f;
