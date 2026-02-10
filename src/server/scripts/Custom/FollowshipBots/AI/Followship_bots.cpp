@@ -20,6 +20,7 @@
 #include "Followship_bots_utils_spells.h"
 
 #include "Followship_bots_auras_handler.h"
+#include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
@@ -143,7 +144,7 @@ public:
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
         {
-            return FSBUtilsGossip::HandleDefaultGossipHello(me, player, hired, _playerGuid);
+            return FSBGossip::HandleDefaultGossipHello(me, player, hired, _playerGuid);
         }
 
         bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override // Runs once when gossip item selected
@@ -157,18 +158,18 @@ public:
             {
                 // Hire Menu
             case GOSSIP_ACTION_INFO_DEF + 1:
-                return FSBUtilsGossip::HandleHireGossipSelect(me, player);
+                return FSBGossip::HandleGossipMenuHire(me, player);
 
                 // Bot Info
             case GOSSIP_ACTION_INFO_DEF + 2:
             {
-                FSBUtilsGossip::HandleInfoGossipSelect(me, player);
+                FSBGossip::HandleGossipItemInfo(me, player);
                 return true;
             }
 
                 // Roles Menu
             case GOSSIP_ACTION_INFO_DEF + 3:
-                return FSBUtilsGossip::HandleRolesGossipSelect(me, player);
+                return FSBGossip::HandleGossipMenuRoles(me, player);
 
                 // Bot Gossip Back to main
             case GOSSIP_ACTION_INFO_DEF + 4:
@@ -186,17 +187,17 @@ public:
 
                 // Bot Instructions Menu
             case GOSSIP_ACTION_INFO_DEF + 6:
-                return FSBUtilsGossip::HandleInstructionsGossipSelect(me, player);
+                return FSBGossip::HandleGossipMenuInstructions(me, player);
 
                 // Bot Follow Distance Menu
             case GOSSIP_ACTION_INFO_DEF + 7:
             {
-                return FSBUtilsGossip::HandleFollowDistanceGossipSelect(me, player);
+                return FSBGossip::HandleGossipMenuFollowDistance(me, player);
             }
 
                 // Bot Follow Angle Menu
             case GOSSIP_ACTION_INFO_DEF + 8:
-                return FSBUtilsGossip::HandleFollowAngleGossipSelect(me, player);
+                return FSBGossip::HandleGossipMenuFollowAngle(me, player);
 
                 // Bot Hire Option 1
             case GOSSIP_ACTION_INFO_DEF + 10:
@@ -386,106 +387,21 @@ public:
 
                 // Bot Role Option 1
             case GOSSIP_ACTION_INFO_DEF + 23:
-            {
-                switch (botClass)
-                {
-                case FSB_Class::Paladin:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
-                    FSBPaladin::BotSetRoleAuras(me, FSB_ROLE_TANK);
-                    break;
-                case FSB_Class::Warrior:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_TANK);
-                    me->CastSpell(me, SPELL_WARRIOR_DEFENSIVE_STANCE);
-                    break;
-                case FSB_Class::Priest:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
-                    if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
-                        me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
-                    break;
-                case FSB_Class::Mage:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_ARCANE);
-                    break;
-                case FSB_Class::Warlock:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_AFFLICTION);
-                    demonDead = true;
-                    break;
-                default:
-                    break;
-                }
-
-                me->SetReactState(REACT_AGGRESSIVE);
-                me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_1, demonDead);
                 break;
-            }
 
                 // Bot Role Option 2
             case GOSSIP_ACTION_INFO_DEF + 24:
-            {
-                switch (botClass)
-                {
-                case FSB_Class::Paladin:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
-                    FSBPaladin::BotSetRoleAuras(me, FSB_ROLE_MELEE_DAMAGE);
-                    break;
-                case FSB_Class::Warrior:
-                {
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
-                    uint32 spellId = urand(0, 1) ? SPELL_WARRIOR_BATTLE_STANCE : SPELL_WARRIOR_BERSERKER_STANCE;
-                    me->CastSpell(me, spellId);
-                    break;
-                }
-                case FSB_Class::Priest:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
-                    me->CastSpell(me, SPELL_PRIEST_SHADOWFORM);
-                    break;
-                case FSB_Class::Mage:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_FROST);
-                    break;
-                case FSB_Class::Warlock:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DEMONOLOGY);
-                    demonDead = true;
-                    break;
-                default:
-                    break;
-                }
-
-                me->SetReactState(REACT_AGGRESSIVE);                 
-                me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_2, demonDead);
                 break;
-            }
 
             // Bot Role Option 3
             case GOSSIP_ACTION_INFO_DEF + 25:
-            {
-                switch (botClass)
-                {
-                case FSB_Class::Paladin:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_HEALER);
-                    FSBPaladin::BotSetRoleAuras(me, FSB_ROLE_HEALER);
-                    break;
-                case FSB_Class::Priest:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_ASSIST);
-                    if (me->HasAura(SPELL_PRIEST_SHADOWFORM))
-                        me->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
-                    break;
-                case FSB_Class::Mage:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_FIRE);
-                    break;
-                case FSB_Class::Warlock:
-                    FSBUtils::SetRole(me, FSB_Roles::FSB_ROLE_RANGED_DESTRUCTION);
-                    demonDead = true;
-                    break;
-                default:
-                    break;
-                }
-
-                me->SetReactState(REACT_AGGRESSIVE);                
-                me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_3, demonDead);
                 break;
-            }
 
             case GOSSIP_ACTION_INFO_DEF + 26:
-                return FSBUtilsGossip::HandlePortalGossipSelect(me, player);
+                return FSBGossip::HandleGossipMenuPortals(me, player);
 
             case GOSSIP_ACTION_INFO_DEF + 27:
             {
