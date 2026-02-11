@@ -10,6 +10,8 @@ namespace FSBTeleport
         if (!bot)
             return false;
 
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB BotTeleport - With Death teleport for bot {}", bot->GetName());
+
         switch (reason)
         {
         case BOT_DEATH:

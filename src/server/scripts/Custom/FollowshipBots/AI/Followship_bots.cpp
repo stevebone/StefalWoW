@@ -21,6 +21,7 @@
 #include "Followship_bots_utils_spells.h"
 
 #include "Followship_bots_auras_handler.h"
+#include "Followship_bots_death_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
@@ -577,7 +578,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, true, _statsMods);         
+            FSBAuras::BotOnAuraApplied(me, aurApp, true, _statsMods, hasSoulstone);         
         }
 
         void OnAuraRemoved(AuraApplication const* aurApp) override
@@ -585,7 +586,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods);
+            FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods, hasSoulstone);
         }
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
@@ -619,26 +620,22 @@ public:
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
-            me->RemoveAllAuras();
+            botCorpse = me->GetPosition();        
+            FSBDeath::HandlerJustDied(me, botGroup_, hasSoulstone);
+        }
 
-            Player* player = FSBMgr::GetBotOwner(me);
-            if (player)
+        void MovementInform(uint32 /*type*/, uint32 id) override
+        {
+            switch (id)
             {
-                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                {
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
-                    me->Yell(msg, LANG_UNIVERSAL);
-                }
-            }
-
-            if (me->HasAura(SPELL_WARLOCK_SOULSTONE))
+            case FSB_MOVEMENT_POINT_CORPSE:
             {
-                me->setDeathState(ALIVE);
+                FSBDeath::BotSetStateAfterCorpseRevive(me);
+                break;
             }
-            else if(hired)
-                events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DEATH, 90s);
-
-            botCorpse = me->GetPosition();
+            default:
+                break;
+            }
         }
 
         uint32 GetData(uint32 /*type*/) const override // Runs once to check what data exists on the creature
@@ -747,6 +744,21 @@ public:
 
                 break;
             }
+            case FSB_ACTION_WAIT_HEALER_RESSURECT:
+                events.ScheduleEvent(FSB_EVENT_HIRED_WAIT_HEALER_RESSURECT, 90s);
+                break;
+
+            case FSB_ACTION_SOULSTONE_RESSURECT:
+                events.ScheduleEvent(FSB_EVENT_SOULSTONE_RESSURECT, 4s, 6s);
+                break;
+
+            case FSB_ACTION_TELEPORT_GRAVEYARD:
+                events.ScheduleEvent(FSB_EVENT_TELEPORT_GRAVEYARD, 4s, 6s);
+                break;
+
+            case FSB_ACTION_TELEPORT_DUNGEON:
+                events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 4s, 6s);
+                break;
             
             default:
                 break;
@@ -800,7 +812,7 @@ public:
                     uint32 now = getMSTime();
 
                     // Check if custom regen is enabled and we can schedule every 2s
-                    if (FollowshipBotsConfig::configFSBUseCustomRegen && now >= _nextRegenMs)
+                    if (FollowshipBotsConfig::configFSBUseCustomRegen && now >= _nextRegenMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                     {
                         if (me->GetHealthPct() < 100 || me->GetPowerPct(me->GetPowerType()) < 100)
                         {
@@ -815,7 +827,7 @@ public:
                     // Check if combat is NOT taking place and schedule OOC actions
                     if (!FSBUtilsCombat::IsCombatActive(me))
                     {
-                        if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs)
+                        if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
                             if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, demonDead))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
@@ -933,22 +945,22 @@ public:
                     break;
                 }
 
-                    // After death bot is teleported to graveyard or dungeon entrance
-                case FSB_EVENT_HIRED_TELEPORT_DEATH:
-                {
-                    if (FSBTeleport::BotTeleport(me, BOT_DEATH))
+                case FSB_EVENT_HIRED_WAIT_HEALER_RESSURECT:
+                    if (me->GetMap()->IsDungeon())
                     {
-                        me->AddAura(SPELL_SPECIAL_GHOST, me);
-                        me->setDeathState(ALIVE);
-                        me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-                        me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-                        //hired = true;
-                        me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-                        events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
-                    }
+                        events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 4s, 6s);
+                    } else
+                    me->AI()->DoAction(FSB_ACTION_TELEPORT_GRAVEYARD);
                     break;
 
-                }
+                case FSB_EVENT_HIRED_TELEPORT_DUNGEON:
+                    FSBTeleport::BotTeleport(me, BOT_DEATH);
+                    events.ScheduleEvent(FSB_EVENT_HIRED_DUNGEON_RESSURECT, 1s);
+                    break;
+
+                case FSB_EVENT_HIRED_DUNGEON_RESSURECT:
+                    FSBDeath::HandleDeathInDungeon(me, followDistance, followAngle);
+                    break;
 
                     // Check if Bot needs to mount or dismount
                 case FSB_EVENT_HIRED_CHECK_MOUNT:
@@ -1247,9 +1259,18 @@ public:
                     break;
                 }
 
+                case FSB_EVENT_SOULSTONE_RESSURECT:
+                    FSBDeath::HandleDeathWithSoulstone(me, hasSoulstone);
+                    break;
 
+                case FSB_EVENT_TELEPORT_GRAVEYARD:
+                    FSBTeleport::BotTeleport(me, BOT_DEATH);
+                    events.ScheduleEvent(FSB_EVENT_GRAVEYARD_RESSURECT, 1s);
+                    break;
 
-
+                case FSB_EVENT_GRAVEYARD_RESSURECT:
+                    FSBDeath::HandleDeathWithGraveyard(me, botCorpse);
+                    break;
 
                 default:
                     break;
@@ -1303,6 +1324,7 @@ public:
             // Warlock bot
             bool demonDead = true;
             Position botCorpse;
+            bool hasSoulstone = false;
             
     };
 

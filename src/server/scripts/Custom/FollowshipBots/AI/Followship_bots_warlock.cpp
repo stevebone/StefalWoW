@@ -40,8 +40,6 @@ std::vector<FSBSpellDefinition> WarlockSpellsTable =
     { SPELL_WARLOCK_CATACLYSM,              FSBSpellType::Damage,   0.3f,       0.f,        100.f,        40.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DESTRUCTION },
     { SPELL_WARLOCK_IMMOLATE,               FSBSpellType::Damage,   0.02f,      0.f,        100.f,        30.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DESTRUCTION },
     { SPELL_WARLOCK_INCINERATE,             FSBSpellType::Damage,   0.04f,      0.f,        100.f,        40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DESTRUCTION },
-    //{ SPELL_PALADIN_HAMMER_OF_WRATH,        FSBSpellType::Damage,   0.04f,      0.f,        90.f,         40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    //{ SPELL_PALADIN_AVENGING_WRATH,         FSBSpellType::Damage,   0.f,        0.f,        50.f,         2.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 
 };
 
@@ -49,7 +47,7 @@ namespace FSBWarlock
 {
     void HandleOnSpellCast(Creature* bot, uint32 spellId)
     {
-        Unit* target = bot->GetVictim();
+        //Unit* target = bot->GetVictim();
 
         switch (spellId)
         {
@@ -96,9 +94,10 @@ namespace FSBWarlock
 
         else
         {
-            bot->AddAura(spellId, bot);
-            bot->CastSpell(bot, visualId, false);
+            bot->CastSpell(bot, spellId, false);
+            //bot->CastSpell(bot, visualId, false);
             check = true;
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock self SS buff pass");
         }
 
         if (check)

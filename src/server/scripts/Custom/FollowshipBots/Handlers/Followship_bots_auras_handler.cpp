@@ -9,7 +9,7 @@
 
 namespace FSBAuras
 {
-    void BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBUtilsStatsMods& mods)
+    void BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBUtilsStatsMods& mods, bool& hasSS)
     {
         if (!bot)
             return;
@@ -192,6 +192,12 @@ namespace FSBAuras
         }
 
             // Warlock
+        case SPELL_WARLOCK_SOULSTONE:
+        {
+            if (applied)
+                hasSS = true;
+            break;
+        }
         case SPELL_WARLOCK_DEMON_ARMOR:
         {
             float HpPct = bot->GetPctModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT);

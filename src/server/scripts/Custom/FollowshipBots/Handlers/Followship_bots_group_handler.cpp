@@ -6,17 +6,17 @@ namespace FSBGroup
 {
     Unit* BotGetFirstGroupHealer(const std::vector<Unit*>& group)
     {
-        for (Unit* bot : group)
+        for (Unit* member : group)
         {
-            if (!bot || !bot->IsAlive())
+            if (!member || !member->IsAlive())
                 continue;
 
-            FSB_Roles role = FSBUtils::GetRole(bot->ToCreature());
+            FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
 
             // Check healer role
             if (role == FSB_ROLE_HEALER)
             {
-                return bot; // first healer found
+                return member; // first healer found
             }
         }
 
