@@ -1,6 +1,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_paladin.h"
 #include "Followship_bots_warlock.h"
 
 #include "Followship_bots_movement_handler.h"
@@ -40,9 +41,16 @@ namespace FSBMovement
             }
             else if (cls == FSB_Class::Paladin)
             {
-                //uint32 spellId = RAND(randomSpell);
-                //if (FSBSpellsUtils::BotCastMountSpell(bot, spellId))
-                //    botMounted = true;
+                std::vector<uint32> paladinMounts =
+                {
+                    randomSpell,
+                    SPELL_PALADIN_CHARGER,
+                    SPELL_PALADIN_WARHORSE
+                };
+
+                uint32 spellId = paladinMounts[urand(0, paladinMounts.size() - 1)];
+                if (FSBSpellsUtils::BotCastMountSpell(bot, spellId))
+                    botMounted = true;
             }
             else
             {
