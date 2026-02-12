@@ -24,6 +24,7 @@
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
@@ -964,29 +965,8 @@ public:
 
                     // Check if Bot needs to mount or dismount
                 case FSB_EVENT_HIRED_CHECK_MOUNT:
-                {
-                    if (!me || !me->IsAlive())
-                        break;
-
-                    if (me->HasUnitState(UNIT_STATE_CASTING))
-                        break;
-
-                    Player* player = FSBMgr::GetBotOwner(me);
-
-                    if (player && player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
-                    {
-                        FSBUtilsSpells::CastRandomMountLevelSpell(me);
-                        botMounted = true;
-                    }
-                    else if (player && !player->HasAuraType(SPELL_AURA_MOUNTED) && botMounted)
-                    {
-                        botMounted = false;
-                        me->Dismount();
-                        me->RemoveAurasByType(SPELL_AURA_MOUNTED);
-                    }
-
+                    FSBMovement::BotSetMountedState(me, botMounted);
                     break;
-                }
 
                     // Check if someone in our group died (bot or player)
                 case FSB_EVENT_HIRED_CHECK_RESS_TARGETS:
@@ -1292,8 +1272,6 @@ public:
 
 
             uint32 hireTimeLeft = 0;
-
-            bool botMounted = false;
 
             // Bot Stats
             uint32 _nextRegenMs = 0;

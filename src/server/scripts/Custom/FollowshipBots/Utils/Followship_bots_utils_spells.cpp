@@ -232,41 +232,11 @@ namespace FSBUtilsSpells
         return nullptr;
     }
 
-    MountSpellList const* GetMountSpellsForLevel(uint8 level)
-    {
-        MountSpellList const* result = nullptr;
+    
 
-        for (auto const& [minLevel, spells] : MountSpellsByLevel)
-        {
-            if (level < minLevel)
-                break;
+    
 
-            result = &spells;
-        }
-
-        return result;
-    }
-
-    uint32 GetRandomMountSpellForBot(Creature* me)
-    {
-        if (!me)
-            return 0;
-
-        MountSpellList const* spells = GetMountSpellsForLevel(me->GetLevel());
-        if (!spells || spells->empty())
-            return 0;
-
-        return (*spells)[urand(0, spells->size() - 1)];
-    }
-
-    void CastRandomMountLevelSpell(Creature* me)
-    {
-        uint32 spellId = GetRandomMountSpellForBot(me);
-        if (!spellId)
-            return;
-
-        me->CastSpell(me, spellId, true);
-    }
+    
 }
 
 namespace FSBUtilsCombatSpells
@@ -636,4 +606,72 @@ namespace FSBUtilsCombatSpells
 
 }
 
+namespace FSBSpellsUtils
+{
+    const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level)
+    {
+        auto raceIt = MountSpells.find(race);
+        if (raceIt == MountSpells.end())
+            return nullptr;
 
+        auto& levelMap = raceIt->second;
+
+        // Find the highest level <= bot level
+        MountSpellList const* bestList = nullptr;
+
+        for (auto const& [reqLevel, spells] : levelMap)
+        {
+            if (level >= reqLevel)
+                bestList = &spells;
+        }
+
+        return bestList; // may be nullptr if no mounts available
+    }
+
+    uint32 GetRandomMountSpellForBot(Creature* bot)
+    {
+        if (!bot)
+            return 0;
+
+        FSB_Race race = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
+
+        MountSpellList const* spells = GetMountSpellsForBot(race, bot->GetLevel());
+        if (!spells || spells->empty())
+            return 0;
+
+        return (*spells)[urand(0, spells->size() - 1)];
+    }
+
+    bool CastRandomMountLevelSpell(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        uint32 spellId = GetRandomMountSpellForBot(bot);
+        if (!spellId)
+            return false;
+
+        SpellCastResult result = bot->CastSpell(bot, spellId, true);
+
+        if (result == SPELL_CAST_OK)
+            return true;
+
+        return false;
+    }
+
+    bool BotCastMountSpell(Creature* bot, uint32 spellId)
+    {
+        if (!bot)
+            return false;
+
+        if (!spellId)
+            return false;
+
+        SpellCastResult result = bot->CastSpell(bot, spellId, true);
+
+        if (result == SPELL_CAST_OK)
+            return true;
+
+        return false;
+    }
+}

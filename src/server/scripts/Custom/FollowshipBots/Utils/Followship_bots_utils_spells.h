@@ -94,14 +94,6 @@ namespace FSBUtilsSpells
     
     Unit* FindBotDeadResTarget(Creature* bot, std::vector<Unit*> const& botGroup_);
 
-    // Mount Spells
-    using MountSpellList = std::vector<uint32>;
-    using MountLevelSpellMap = std::map<uint8, MountSpellList>;
-    // Data access
-    MountSpellList const* GetMountSpellsForLevel(uint8 level);
-
-    uint32 GetRandomMountSpellForBot(Creature* me);
-    void CastRandomMountLevelSpell(Creature* me);
 }
 
 namespace FSBUtilsCombatSpells
@@ -125,17 +117,61 @@ enum FSB_StandardGroundMounts
 
     SPELL_MOUNT_PALOMINO = 23227,
     SPELL_MOUNT_WHITE_STEED = 23228,
-    SPELL_MOUNT_BROWN_STEED = 23229
+    SPELL_MOUNT_BROWN_STEED = 23229,
+
+    // Draenei
+    SPELL_MOUNT_BROWN_ELEKK = 34406,
+    SPELL_MOUNT_GRAY_ELEKK = 35710,
+    SPELL_MOUNT_PURPLE_ELEKK = 35711,
+
+    SPELL_MOUNT_GREAT_GREEN_ELEKK = 35712,
+    SPELL_MOUNT_GREAT_BLUE_ELEKK = 35713,
+    SPELL_MOUNT_GREAT_PURPLE_ELEKK = 35714
 };
 
 using MountSpellList = std::vector<uint32>;
-using MountLevelSpellMap = std::map<uint8, MountSpellList>;
+using MountRaceLevelMap = std::map<uint8 /*level*/, MountSpellList>;
+using MountRaceMap = std::map<FSB_Race /*race*/, MountRaceLevelMap>;
 
-// Example data
-static MountLevelSpellMap MountSpellsByLevel =
+static MountRaceMap MountSpells =
 {
-    { 10, { SPELL_MOUNT_STALLION, SPELL_MOUNT_PINTO,SPELL_MOUNT_CHESTNUT,SPELL_MOUNT_BROWN_HORSE } },              // Standard ground mounts
-    { 20, { SPELL_MOUNT_PALOMINO, SPELL_MOUNT_WHITE_STEED, SPELL_MOUNT_BROWN_STEED } },            // Epic ground mounts
-    //{ 30, { 2120, 120 } },             // 30-39
-    //{ 40, { 11426, 10 } },             // 40-49
+    {
+        FSB_Race::Human,
+        {
+            { 10, { SPELL_MOUNT_STALLION, SPELL_MOUNT_PINTO, SPELL_MOUNT_CHESTNUT, SPELL_MOUNT_BROWN_HORSE } },
+            { 20, { SPELL_MOUNT_PALOMINO, SPELL_MOUNT_WHITE_STEED, SPELL_MOUNT_BROWN_STEED } }
+        }
+    },
+
+    {
+        FSB_Race::Draenei,
+        {
+            { 10, { SPELL_MOUNT_BROWN_ELEKK, SPELL_MOUNT_GRAY_ELEKK, SPELL_MOUNT_PURPLE_ELEKK } },
+            { 20, { SPELL_MOUNT_GREAT_GREEN_ELEKK, SPELL_MOUNT_GREAT_BLUE_ELEKK, SPELL_MOUNT_GREAT_PURPLE_ELEKK } }
+        }
+    },
+    
+    {
+        FSB_Race::NightElf,
+        {
+            { 10, { /* tiger mounts */ } },
+            { 20, { /* epic tiger mounts */ } }
+        }
+    },
+
+    {
+        FSB_Race::Dwarf,
+        {
+            { 10, { /* ram mounts */ } },
+            { 20, { /* epic ram mounts */ } }
+        }
+    }
 };
+
+namespace FSBSpellsUtils
+{
+    const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level);
+    uint32 GetRandomMountSpellForBot(Creature* bot);
+    bool CastRandomMountLevelSpell(Creature* bot);
+    bool BotCastMountSpell(Creature* bot, uint32 spellId);
+}
