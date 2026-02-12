@@ -74,7 +74,16 @@ namespace FSBWarlock
             return false;
 
         Unit* target = FSBGroup::BotGetFirstGroupHealer(botGroup);
+        if (target->HasAura(SPELL_WARLOCK_SOULSTONE))
+            return false;
+
         Player* player = FSBMgr::GetBotOwner(bot);
+        if (player->HasAura(SPELL_WARLOCK_SOULSTONE))
+            return false;
+
+        if (bot->HasAura(SPELL_WARLOCK_SOULSTONE))
+            return false;
+
         uint32 spellId = SPELL_WARLOCK_SOULSTONE;
         uint32 visualId = SPELL_WARLOCK_SOULSTONE_VISUAL;
         bool check = false;
