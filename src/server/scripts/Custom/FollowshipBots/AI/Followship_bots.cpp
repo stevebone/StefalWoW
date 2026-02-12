@@ -1045,7 +1045,7 @@ public:
 
                             uint32 now = getMSTime();
 
-                            FSBUtilsMovement::StopFollow(me);
+                            FSBMovement::StopFollow(me);
 
                             uint32 spellId = 0;
 
@@ -1162,11 +1162,8 @@ public:
                     // BOT Follows player again
                     // For timed events
                 case FSB_EVENT_RESUME_FOLLOW:
-                {
-                    FSBUtilsMovement::ResumeFollow(me, followDistance, followAngle);
+                    FSBMovement::ResumeFollow(me, followDistance, followAngle);
                     break;
-                }
-
 
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
@@ -1206,8 +1203,7 @@ public:
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                    FSBUtilsMovement::StopFollow(me);
-                    botMoveState = FSB_MOVE_STATE_STAY;
+                    FSBMovement::StopFollow(me);
 
                     if (botHired && player)
                     {
@@ -1222,8 +1218,7 @@ public:
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                    FSBUtilsMovement::ResumeFollow(me, followDistance, followAngle);
-                    botMoveState = FSB_MOVE_STATE_FOLLOWING;
+                    FSBMovement::ResumeFollow(me, followDistance, followAngle);
 
                     if (updateFollowInfo)
                     {

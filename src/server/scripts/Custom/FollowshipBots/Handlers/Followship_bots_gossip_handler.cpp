@@ -3,6 +3,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_gossip_handler.h"
+#include "Followship_bots_movement_handler.h"
 
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
@@ -113,14 +114,14 @@ namespace FSBGossip
     }
     bool HandleGossipMenuInstructions(Creature* bot, Player* player)
     {
-        if (FSBUtilsMovement::GetMovementType(bot) == FOLLOW_MOTION_TYPE)
+        if (FSBMovement::GetMovementType(bot) == FOLLOW_MOTION_TYPE)
         {
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_STAY_HERE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 20);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
             AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
         }
-        else if (FSBUtilsMovement::GetMovementType(bot) == IDLE_MOTION_TYPE)
+        else if (FSBMovement::GetMovementType(bot) == IDLE_MOTION_TYPE)
         {
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 21);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);

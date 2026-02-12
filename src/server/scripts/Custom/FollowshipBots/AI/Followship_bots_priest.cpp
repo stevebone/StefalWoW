@@ -3,6 +3,8 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_movement_handler.h"
+
 std::vector<FSBSpellDefinition> PriestSpellsTable =
 {
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
@@ -97,7 +99,7 @@ namespace FSBPriest
         {
             if (bot->GetHealthPct() < 30 && !bot->HasAura(SPELL_PRIEST_RECUPERATE) && now >= _60secondsCheckMs)
             {
-                FSBUtilsMovement::StopFollow(bot);
+                FSBMovement::StopFollow(bot);
 
                 bot->CastSpell(bot, SPELL_PRIEST_RECUPERATE, false);
                 _60secondsCheckMs = now + 60000; // 1 minute
@@ -111,7 +113,7 @@ namespace FSBPriest
             }
             else if (bot->GetHealthPct() < 80)
             {
-                FSBUtilsMovement::StopFollow(bot);
+                FSBMovement::StopFollow(bot);
 
                 bot->CastSpell(bot, SPELL_PRIEST_HEAL, false);
                 _globalCooldownUntil = now + 1500;

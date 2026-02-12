@@ -5,6 +5,7 @@
 
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 #include "Followship_bots_warlock.h"
@@ -92,7 +93,7 @@ namespace FSBDeath
 
         bot->setDeathState(ALIVE);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-        FSBUtilsMovement::ResumeFollow(bot, fDistance, fAngle);
+        FSBMovement::ResumeFollow(bot, fDistance, fAngle);
     }
 
     void BotSetStateAfterCorpseRevive(Creature* bot)

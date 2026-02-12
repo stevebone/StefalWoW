@@ -372,70 +372,7 @@ namespace FSBUtilsMovement
         return true; // movement started
     }
 
-    FSB_MovementStates GetBotMoveState(Creature* bot)
-    {
-        if (!bot || !bot->IsBot())
-            return FSB_MOVE_STATE_IDLE;
-
-
-        if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
-            return ai->botMoveState;
-
-
-        return FSB_MOVE_STATE_IDLE;
-    }
-
-    void SetBotMoveState(Creature* bot, FSB_MovementStates moveState)
-    {
-        if (!bot || !bot->IsBot())
-            return;
-
-
-        if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
-            ai->botMoveState = moveState;
-
-    }
-
-    void StopFollow(Creature* bot)
-    {
-        if (!bot)
-            return;
-
-        if (bot->HasUnitState(UNIT_STATE_FOLLOW))
-            bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-
-        SetBotMoveState(bot, FSB_MOVE_STATE_STAY);
-
-        bot->StopMoving();
-        bot->GetMotionMaster()->Clear();
-    }
-
-    // Resume Follow
-    void ResumeFollow(Creature* bot, float followDistance, float followAngle)
-    {
-        Player* player = FSBMgr::GetBotOwner(bot);
-
-        if (!player)
-            return;
-
-        SetBotMoveState(bot, FSB_MOVE_STATE_FOLLOWING);
-
-        bot->ClearUnitState(UNIT_STAND_STATE_SIT);
-
-        bot->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
-    }
-
-    MovementGeneratorType GetMovementType(Unit* me)
-    {
-        if (!me)
-            return IDLE_MOTION_TYPE;
-
-        MotionMaster* mm = me->GetMotionMaster();
-        if (!mm)
-            return IDLE_MOTION_TYPE;
-
-        return mm->GetCurrentMovementGeneratorType();
-    }
+    
 }
 
 

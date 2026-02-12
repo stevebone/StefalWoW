@@ -2,6 +2,8 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_mgr.h"
+
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_recovery_handler.h"
 
@@ -142,7 +144,7 @@ namespace FSBOOC
 
         bool check = false;
 
-        FSBUtilsMovement::StopFollow(bot);
+        FSBMovement::StopFollow(bot);
 
         switch (botClass)
         {

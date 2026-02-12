@@ -1,4 +1,4 @@
-
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_mgr.h"
 
@@ -97,7 +97,7 @@ namespace FSBRecovery
             if (bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER) || bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, SPELL_DRINK_CONJURED_CRYSTAL_WATER, false);
             SpellCastResult result2 = bot->CastSpell(bot, SPELL_FOOD_SCALED_WITH_LVL, false);
@@ -117,7 +117,7 @@ namespace FSBRecovery
             if (bot->HasAura(spellId))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
@@ -136,7 +136,7 @@ namespace FSBRecovery
             if (bot->HasAura(spellId))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
@@ -157,7 +157,7 @@ namespace FSBRecovery
             if (bot->HasAura(spellId))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
@@ -176,7 +176,7 @@ namespace FSBRecovery
             if (bot->HasAura(spellId))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
@@ -199,7 +199,7 @@ namespace FSBRecovery
             if (bot->HasAura(spellId))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
@@ -220,7 +220,7 @@ namespace FSBRecovery
             if (bot->HasAura(spellId))
                 return false;
 
-            FSBUtilsMovement::StopFollow(bot);
+            FSBMovement::StopFollow(bot);
 
             SpellCastResult result = bot->CastSpell(bot, spellId, false);
 

@@ -5,6 +5,7 @@
 #include "followship_bots_warrior.h"
 
 #include "Followship_bots_auras_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_recovery_handler.h"
 
 namespace FSBAuras
@@ -36,7 +37,7 @@ namespace FSBAuras
                     float followAngle = frand(0.0f, float(M_PI * 2.0f));
 
                     bot->SetStandState(UNIT_STAND_STATE_STAND);
-                    FSBUtilsMovement::ResumeFollow(bot, followDistance, followAngle);
+                    FSBMovement::ResumeFollow(bot, followDistance, followAngle);
                 }
             }
 
@@ -59,7 +60,7 @@ namespace FSBAuras
                     float followAngle = frand(0.0f, float(M_PI * 2.0f));
 
                     bot->SetStandState(UNIT_STAND_STATE_STAND);
-                    FSBUtilsMovement::ResumeFollow(bot, followDistance, followAngle);
+                    FSBMovement::ResumeFollow(bot, followDistance, followAngle);
                 }
             }
 
@@ -75,7 +76,7 @@ namespace FSBAuras
                 float followAngle = frand(0.0f, float(M_PI * 2.0f));
 
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
-                FSBUtilsMovement::ResumeFollow(bot, followDistance, followAngle);
+                FSBMovement::ResumeFollow(bot, followDistance, followAngle);
             }
             break;
         }
