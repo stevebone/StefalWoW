@@ -44,11 +44,11 @@ namespace FSBUtilsStats
         
         creature->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE, (float)basePower);   
         creature->SetCreateMana(basePower);
-        creature->SetMaxPower(powerType, basePower);
+        creature->SetMaxPower(powerType, basePower * 2);
 
         if (botClass == FSB_Class::Warrior)
             creature->SetPower(powerType, 0, true);
-        else creature->SetPower(powerType, basePower, true);
+        else creature->SetPower(powerType, basePower * 2, true);
 
         //creature->SetOverrideDisplayPowerId(466);
 
@@ -256,12 +256,17 @@ namespace FSBUtilsStats
         float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)));
 
         if (botClass == FSB_Class::Warrior)
+        {
             totalPower = 1000;
-        bot->SetMaxPower(powerType, totalPower);
-
-        if (botClass == FSB_Class::Warrior)
+            bot->SetMaxPower(powerType, totalPower);
             bot->SetPower(powerType, 0, true);
-        else bot->SetPower(powerType, totalPower, true);
+        }
+
+        else
+        {
+            bot->SetMaxPower(powerType, totalPower + basePower);
+            bot->SetPower(powerType, totalPower + basePower, true);
+        }
         //bot->ResetPlayerDamageReq();
 
         // Att power
