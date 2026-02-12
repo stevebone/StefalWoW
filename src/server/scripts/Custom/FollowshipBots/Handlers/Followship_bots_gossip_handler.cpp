@@ -5,6 +5,7 @@
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_movement_handler.h"
 
+#include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
@@ -167,6 +168,10 @@ namespace FSBGossip
         case FSB_Class::Rogue:
             break;
         case FSB_Class::Druid:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_TANK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_MELEE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_HEALER, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DAMAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 31);
             break;
         case FSB_Class::Paladin:
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_TANK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
@@ -207,6 +212,32 @@ namespace FSBGossip
 
         switch (botClass)
         {
+        case FSB_Class::Druid:
+            if (roleOption == FSB_GOSSIP_ROLE_1)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                bot->CastSpell(bot, SPELL_DRUID_BEAR);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_2)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                bot->CastSpell(bot, SPELL_DRUID_CAT);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_3)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                //bot->CastSpell(bot, SPELL_DRUID_TREE);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_4)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
+                //bot->CastSpell(bot, SPELL_DRUID_MOONKIN);
+                break;
+            }
+            break;
         case FSB_Class::Paladin:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {

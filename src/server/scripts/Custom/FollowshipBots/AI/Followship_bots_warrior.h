@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_utils.h"
 
 extern std::vector<FSBSpellDefinition> WarriorSpellsTable;
 

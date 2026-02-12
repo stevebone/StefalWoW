@@ -116,6 +116,16 @@ namespace FSBUtilsCombatSpells
 
 enum FSB_StandardGroundMounts
 {
+    // N Elf
+    SPELL_MOUNT_STRIPED_NIGHTSABER = 10793,
+    SPELL_MOUNT_STRIPED_FROSTSABER = 8394,
+    SPELL_MOUNT_STRIPED_DAWNSABER = 66847,
+
+    SPELL_MOUNT_SWITFT_STORMSABER = 23338,
+    SPELL_MOUNT_SWITFT_FROSTSABER = 18766,
+    SPELL_MOUNT_SWITFT_MISTSABER = 18767,
+
+    // Human
     SPELL_MOUNT_PINTO = 472,
     SPELL_MOUNT_STALLION = 470,
     SPELL_MOUNT_CHESTNUT = 6648,
@@ -160,8 +170,8 @@ static MountRaceMap MountSpells =
     {
         FSB_Race::NightElf,
         {
-            { 10, { /* tiger mounts */ } },
-            { 20, { /* epic tiger mounts */ } }
+            { 10, { SPELL_MOUNT_STRIPED_NIGHTSABER, SPELL_MOUNT_STRIPED_FROSTSABER, SPELL_MOUNT_STRIPED_DAWNSABER } },
+            { 20, { SPELL_MOUNT_SWITFT_STORMSABER, SPELL_MOUNT_SWITFT_FROSTSABER, SPELL_MOUNT_SWITFT_MISTSABER } }
         }
     },
 
@@ -189,3 +199,4 @@ namespace FSBSpellsUtils
     bool CastRandomMountLevelSpell(Creature* bot);
     bool BotCastMountSpell(Creature* bot, uint32 spellId);
 }
+

@@ -413,6 +413,11 @@ public:
                 break;
             }
 
+            // Bot Role Option 4 - Druid
+            case GOSSIP_ACTION_INFO_DEF + 31:
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_4, demonDead);
+                break;
+
             default:
                 break;
             }

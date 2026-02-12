@@ -65,7 +65,8 @@ enum FSB_GossipRoleItems
 {
     FSB_GOSSIP_ROLE_1,
     FSB_GOSSIP_ROLE_2,
-    FSB_GOSSIP_ROLE_3
+    FSB_GOSSIP_ROLE_3,
+    FSB_GOSSIP_ROLE_4
 };
 
 namespace FSBGossip

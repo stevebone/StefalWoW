@@ -15,16 +15,19 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 141508,   FSB_Class::Priest,          FSB_Race::Human },      // Stormwind Priest
     { 375,      FSB_Class::Priest,          FSB_Race::Human },      // Priestess Anetta
     { 16502,    FSB_Class::Priest,          FSB_Race::Draenei },    // Zalduun
+    { 3595,     FSB_Class::Priest,          FSB_Race::NightElf },   // Shanda
 
     // WARRIORS
-    { 911, FSB_Class::Warrior,              FSB_Race::Human },      // Llane Beshere
+    { 911,   FSB_Class::Warrior,            FSB_Race::Human },      // Llane Beshere
     { 50595, FSB_Class::Warrior,            FSB_Race::Human },      // Stormwind Defender
     { 46405, FSB_Class::Warrior,            FSB_Race::Human },      // Stockade Guard
-    { 16503, FSB_Class::Warrior,            FSB_Race::Draenei },     // Kore
+    { 16503, FSB_Class::Warrior,            FSB_Race::Draenei },    // Kore
+    { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf },   // Alyissia
 
     // MAGES
-    { 198, FSB_Class::Mage,                 FSB_Race::Human },      // Khelden Bremen
+    { 198,   FSB_Class::Mage,               FSB_Race::Human },      // Khelden Bremen
     { 16500, FSB_Class::Mage,               FSB_Race::Draenei },     // Valaatu
+    { 43006, FSB_Class::Mage,               FSB_Race::NightElf },   // Rhyanda
 
     // PALADINS
     { 925, FSB_Class::Paladin,              FSB_Race::Human },      // Brother Sammuel
@@ -32,6 +35,9 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 
     // WARLOCKS
     { 459,   FSB_Class::Warlock,            FSB_Race::Human },      // Drusilla la Salle
+
+    // DRUID
+    { 3597,  FSB_Class::Druid,            FSB_Race::NightElf },   // Mardant
 
     // ROGUES
     //{ 90030, FSB_Class::Rogue },
