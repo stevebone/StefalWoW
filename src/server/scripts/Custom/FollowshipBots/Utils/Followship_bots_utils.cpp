@@ -16,41 +16,6 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_powers_handler.h"
 
-struct FSBEntryClassMap
-{
-    uint32 entry;
-    FSB_Class botClass;
-    FSB_Race botRace;
-};
-
-static constexpr FSBEntryClassMap BotEntryClassTable[] =
-{
-    // PRIESTS
-    { 141508,   FSB_Class::Priest,          FSB_Race::Human },      // Stormwind Priest
-    { 375,      FSB_Class::Priest,          FSB_Race::Human },      // Priestess Anetta
-    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei },    // Zalduun
-
-    // WARRIORS
-    { 911, FSB_Class::Warrior,              FSB_Race::Human },      // Llane Beshere
-    { 50595, FSB_Class::Warrior,            FSB_Race::Human },      // Stormwind Defender
-    { 46405, FSB_Class::Warrior,            FSB_Race::Human },      // Stockade Guard
-    { 16503, FSB_Class::Warrior,            FSB_Race::Draenei },     // Kore
-
-    // MAGES
-    { 198, FSB_Class::Mage,                 FSB_Race::Human },      // Khelden Bremen
-    { 16500, FSB_Class::Mage,               FSB_Race::Draenei },     // Valaatu
-
-    // PALADINS
-    { 925, FSB_Class::Paladin,              FSB_Race::Human },      // Brother Sammuel
-    { 16501, FSB_Class::Paladin,            FSB_Race::Draenei },    // Aurelon (Draenei)
-
-    // WARLOCKS
-    { 459,   FSB_Class::Warlock,            FSB_Race::Human },      // Drusilla la Salle
-
-    // ROGUES
-    //{ 90030, FSB_Class::Rogue },
-};
-
 namespace FSBUtils
 {
     void SetInitialState(Creature* creature, bool& hired, FSB_MovementStates& moveState)
