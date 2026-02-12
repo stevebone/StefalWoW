@@ -45,7 +45,7 @@ std::vector<FSBSpellDefinition> WarlockSpellsTable =
 
 namespace FSBWarlock
 {
-    void HandleOnSpellCast(Creature* bot, uint32 spellId)
+    void HandleOnSpellCast(Creature* /*bot*/, uint32 spellId)
     {
         //Unit* target = bot->GetVictim();
 
@@ -67,6 +67,7 @@ namespace FSBWarlock
             return false;
 
         Unit* target = FSBGroup::BotGetFirstGroupHealer(botGroup);
+        Player* player = FSBMgr::GetBotOwner(bot);
         uint32 spellId = SPELL_WARLOCK_SOULSTONE;
         uint32 visualId = SPELL_WARLOCK_SOULSTONE_VISUAL;
         bool check = false;
@@ -81,23 +82,25 @@ namespace FSBWarlock
             }
         }
 
-        else if (!target)
+        else if (player && player->IsAlive())
         {
-            Player* player = FSBMgr::GetBotOwner(bot);
-
-            if (player && player->IsAlive())
+            if (!player->HasAura(spellId))
             {
                 bot->CastSpell(player, spellId, false);
                 check = true;
             }
         }
 
-        else
+        else if(!bot->HasAura(spellId))
         {
-            bot->CastSpell(bot, spellId, false);
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
             //bot->CastSpell(bot, visualId, false);
-            check = true;
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock self SS buff pass");
+            if (result == SPELL_CAST_OK)
+            {
+                check = true;
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock self SS buff pass");
+            }
+            else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock self SS buff failed for bot: {} with result: {}", bot->GetName(), result);
         }
 
         if (check)
