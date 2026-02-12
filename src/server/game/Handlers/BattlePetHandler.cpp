@@ -18,7 +18,11 @@
 #include "WorldSession.h"
 #include "BattlePetMgr.h"
 #include "BattlePetPackets.h"
+#include "Creature.h"
+#include "DB2Stores.h"
+#include "Log.h"
 #include "ObjectAccessor.h"
+#include "PetBattleMgr.h"
 #include "Player.h"
 #include "TemporarySummon.h"
 
@@ -131,4 +135,461 @@ void WorldSession::HandleBattlePetSummon(WorldPackets::BattlePet::BattlePetSummo
 void WorldSession::HandleBattlePetUpdateNotify(WorldPackets::BattlePet::BattlePetUpdateNotify& battlePetUpdateNotify)
 {
     GetBattlePetMgr()->UpdateBattlePetData(battlePetUpdateNotify.PetGuid);
+}
+
+// ============================================================================
+// Pet Battle Combat Handlers
+// ============================================================================
+
+static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerUpdateInfo& update,
+    PetBattles::PetBattleTeamData const& team, bool isWildTeam)
+{
+    update.CharacterID = team.PlayerGUID;
+    update.TrapAbilityID = team.TrapAbilityID;
+    update.TrapStatus = team.TrapStatus;
+    update.RoundTimeSecs = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
+    update.FrontPet = team.FrontPetIndex;
+    update.InputFlags = team.InputFlags;
+
+    for (uint8 i = 0; i < team.PetCount; ++i)
+    {
+        PetBattles::PetBattlePetData const& petData = team.Pets[i];
+
+        WorldPackets::BattlePet::PetBattlePetUpdateInfo petInfo;
+        petInfo.BattlePetGUID = petData.BattlePetGUID;
+        petInfo.SpeciesID = petData.Species;
+        petInfo.CreatureID = petData.CreatureID;
+        petInfo.DisplayID = petData.DisplayID;
+        petInfo.Level = petData.Level;
+        petInfo.Xp = petData.Xp;
+        petInfo.CurHealth = petData.Health;
+        petInfo.MaxHealth = petData.MaxHealth;
+        petInfo.Power = petData.Power;
+        petInfo.Speed = petData.Speed;
+        petInfo.NpcTeamMemberID = isWildTeam ? petData.CreatureID : 0;
+        petInfo.BreedQuality = petData.Quality;
+        petInfo.StatusFlags = 0;
+        petInfo.Slot = static_cast<int8>(i);
+        petInfo.CustomName = petData.CustomName;
+
+        // Fill ability info
+        for (uint8 j = 0; j < PetBattles::MAX_PET_BATTLE_ABILITIES; ++j)
+        {
+            if (petData.AbilityIDs[j] == 0)
+                continue;
+
+            WorldPackets::BattlePet::PetBattleAbilityInfo ability;
+            ability.AbilityID = petData.AbilityIDs[j];
+            ability.CooldownRemaining = petData.AbilityCooldowns[j];
+            ability.LockdownRemaining = 0;
+            ability.AbilityIndex = static_cast<int8>(j);
+            ability.Pboid = i;
+            petInfo.Abilities.push_back(ability);
+        }
+
+        update.Pets.push_back(std::move(petInfo));
+    }
+}
+
+static void BuildPetBattleRoundPlayerData(WorldPackets::BattlePet::PetBattleRoundPlayerData& roundData,
+    PetBattles::PetBattleTeamData const& team)
+{
+    roundData.NextInputFlags = team.InputFlags;
+    roundData.NextTrapStatus = static_cast<int8>(team.TrapStatus);
+    roundData.RoundTimeSecs = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
+
+    for (uint8 i = 0; i < team.PetCount; ++i)
+    {
+        std::vector<WorldPackets::BattlePet::PetBattleCooldownInfo> petCds;
+        for (uint8 j = 0; j < PetBattles::MAX_PET_BATTLE_ABILITIES; ++j)
+        {
+            if (team.Pets[i].AbilityIDs[j] == 0)
+                continue;
+
+            WorldPackets::BattlePet::PetBattleCooldownInfo cd;
+            cd.AbilityID = team.Pets[i].AbilityIDs[j];
+            cd.CooldownRemaining = team.Pets[i].AbilityCooldowns[j];
+            cd.LockdownRemaining = 0;
+            petCds.push_back(cd);
+        }
+        roundData.PetCooldowns.push_back(std::move(petCds));
+    }
+}
+
+static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffectInfo>& effectList,
+    PetBattles::PetBattle const* battle)
+{
+    for (PetBattles::PetBattleRoundEffect const& roundEffect : battle->GetRoundEffects())
+    {
+        WorldPackets::BattlePet::PetBattleEffectInfo effect;
+        effect.AbilityEffectID = roundEffect.AbilityEffectID;
+        effect.PetBattleEffectType = roundEffect.EffectType;
+        effect.CasterPBOID = static_cast<int8>(roundEffect.SourceTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.SourcePet);
+
+        WorldPackets::BattlePet::PetBattleEffectTargetInfo target;
+        target.Type = roundEffect.EffectType;
+        target.Petx = static_cast<uint8>(roundEffect.TargetTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.TargetPet);
+        target.Param1 = roundEffect.Param1;
+        target.Param2 = roundEffect.Param2;
+        effect.Targets.push_back(target);
+
+        effectList.push_back(std::move(effect));
+    }
+}
+
+void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattleRequestWild& petBattleRequestWild)
+{
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    // Validate player state
+    if (!player->IsAlive())
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_NOT_WHILE_DEAD;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    if (player->IsInCombat())
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_NOT_WHILE_IN_COMBAT;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    if (sPetBattleMgr->IsPlayerInBattle(player->GetGUID()))
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_IN_BATTLE;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Check that player has pets in battle slots
+    BattlePets::BattlePetMgr* petMgr = GetBattlePetMgr();
+    bool hasPet = false;
+    for (uint8 i = 0; i < uint8(BattlePets::BattlePetSlot::Count); ++i)
+    {
+        WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(BattlePets::BattlePetSlot(i));
+        if (slot && !slot->Locked && !slot->Pet.Guid.IsEmpty())
+        {
+            BattlePets::BattlePet* pet = petMgr->GetPet(slot->Pet.Guid);
+            if (pet && pet->PacketInfo.Health > 0)
+            {
+                hasPet = true;
+                break;
+            }
+        }
+    }
+
+    if (!hasPet)
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_ALL_PETS_DEAD;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Validate target creature
+    Creature* creature = ObjectAccessor::GetCreature(*player, petBattleRequestWild.TargetGUID);
+    if (!creature || !creature->IsWildBattlePet())
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_TARGET;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Create the battle
+    PetBattles::PetBattle* battle = sPetBattleMgr->CreateWildBattle(player, petBattleRequestWild.TargetGUID);
+    if (!battle)
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_IN_BATTLE;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Send finalize location
+    WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
+    finalizeLocation.Location = player->GetPosition();
+    SendPacket(finalizeLocation.Write());
+
+    // Build and send initial update
+    WorldPackets::BattlePet::PetBattleInitialUpdate initialUpdate;
+
+    BuildPetBattlePlayerUpdate(initialUpdate.Players[0], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_1), false);
+    BuildPetBattlePlayerUpdate(initialUpdate.Players[1], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2), true);
+
+    initialUpdate.CurRound = battle->GetCurrentRound();
+    initialUpdate.CurPetBattleState = static_cast<int8>(battle->GetBattleState());
+    initialUpdate.NpcCreatureID = creature->GetEntry();
+    initialUpdate.NpcDisplayID = creature->GetDisplayId();
+    initialUpdate.InitialWildPetGUID = petBattleRequestWild.TargetGUID;
+    initialUpdate.IsPVP = false;
+    initialUpdate.CanAwardXP = true;
+    initialUpdate.WaitingForFrontPetsMaxSecs = 30;
+    initialUpdate.PvpMaxRoundTime = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
+
+    SendPacket(initialUpdate.Write());
+
+    // Start the battle
+    battle->Start();
+
+    // Auto-submit input for wild team (NPC uses ability 0 or skips)
+    PetBattles::PetBattleTeamData const& wildTeam = battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2);
+    if (wildTeam.PetCount > 0 && wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0] != 0)
+        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_USE_ABILITY, wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0], -1);
+    else
+        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+
+    TC_LOG_DEBUG("server.loading", "PetBattleHandler: Player {} started wild battle against {}",
+        player->GetGUID().ToString(), petBattleRequestWild.TargetGUID.ToString());
+}
+
+void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput& petBattleInput)
+{
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(player->GetGUID());
+    if (!battle)
+        return;
+
+    // Determine which team this player is
+    uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
+    if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
+        teamIdx = PetBattles::PET_BATTLE_TEAM_2;
+
+    battle->SubmitInput(teamIdx,
+        PetBattles::PetBattleMoveType(petBattleInput.MoveType),
+        petBattleInput.AbilityID,
+        petBattleInput.NewFrontPetIndex);
+
+    // Check if round should process
+    if (battle->BothTeamsReady())
+    {
+        bool wasFirstRound = (battle->GetCurrentRound() == 0);
+        battle->ProcessRound();
+
+        if (battle->IsFinished())
+        {
+            // Send final round
+            WorldPackets::BattlePet::PetBattleFinalRound finalRound;
+            finalRound.CurRound = battle->GetCurrentRound();
+            finalRound.NextPetBattleState = static_cast<uint8>(battle->GetBattleState());
+            for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+                BuildPetBattleRoundPlayerData(finalRound.Players[i], battle->GetTeam(i));
+            BuildRoundEffects(finalRound.Effects, battle);
+
+            finalRound.Winners[battle->GetWinnerTeam()] = true;
+
+            // Send to player team 1
+            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                p1->SendDirectMessage(finalRound.Write());
+            // Send to player team 2 (PvP)
+            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                p2->SendDirectMessage(finalRound.Write());
+
+            // Send finished
+            WorldPackets::BattlePet::PetBattleFinished finished;
+            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                p1->SendDirectMessage(finished.Write());
+            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                p2->SendDirectMessage(finished.Write());
+        }
+        else
+        {
+            // Send round result
+            if (wasFirstRound)
+            {
+                WorldPackets::BattlePet::PetBattleFirstRound firstRound;
+                firstRound.CurRound = battle->GetCurrentRound();
+                firstRound.NextPetBattleState = static_cast<uint8>(battle->GetBattleState());
+                for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+                    BuildPetBattleRoundPlayerData(firstRound.Players[i], battle->GetTeam(i));
+                BuildRoundEffects(firstRound.Effects, battle);
+
+                if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                    p1->SendDirectMessage(firstRound.Write());
+                if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                    p2->SendDirectMessage(firstRound.Write());
+            }
+            else
+            {
+                WorldPackets::BattlePet::PetBattleRoundResult roundResult;
+                roundResult.CurRound = battle->GetCurrentRound();
+                roundResult.NextPetBattleState = static_cast<uint8>(battle->GetBattleState());
+                for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+                    BuildPetBattleRoundPlayerData(roundResult.Players[i], battle->GetTeam(i));
+                BuildRoundEffects(roundResult.Effects, battle);
+
+                if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                    p1->SendDirectMessage(roundResult.Write());
+                if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                    p2->SendDirectMessage(roundResult.Write());
+            }
+
+            // Auto-submit wild team input for next round
+            if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_WILD)
+            {
+                PetBattles::PetBattleTeamData const& wildTeam = battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2);
+                if (wildTeam.PetCount > 0 && wildTeam.Pets[wildTeam.FrontPetIndex].IsAlive())
+                {
+                    if (wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0] != 0)
+                        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_USE_ABILITY,
+                            wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0], -1);
+                    else
+                        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+                }
+            }
+        }
+    }
+}
+
+void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBattleReplaceFrontPet& petBattleReplaceFrontPet)
+{
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(player->GetGUID());
+    if (!battle)
+        return;
+
+    uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
+    if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
+        teamIdx = PetBattles::PET_BATTLE_TEAM_2;
+
+    battle->SubmitInput(teamIdx, PetBattles::PET_BATTLE_MOVE_SWAP_PET, 0, petBattleReplaceFrontPet.FrontPetIndex);
+
+    // If both teams have submitted (wild auto-submits), process
+    if (battle->BothTeamsReady())
+    {
+        battle->ProcessRound();
+
+        WorldPackets::BattlePet::PetBattleReplacementsMade replacements;
+        replacements.CurRound = battle->GetCurrentRound();
+        replacements.NextPetBattleState = static_cast<uint8>(battle->GetBattleState());
+        for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+            BuildPetBattleRoundPlayerData(replacements.Players[i], battle->GetTeam(i));
+
+        if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+            p1->SendDirectMessage(replacements.Write());
+        if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+            p2->SendDirectMessage(replacements.Write());
+
+        // Re-submit wild team for next round
+        if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_WILD)
+        {
+            PetBattles::PetBattleTeamData const& wildTeam = battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2);
+            if (wildTeam.PetCount > 0 && wildTeam.Pets[wildTeam.FrontPetIndex].IsAlive())
+                battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+        }
+    }
+}
+
+void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQuitNotify& /*petBattleQuitNotify*/)
+{
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(player->GetGUID());
+    if (!battle)
+        return;
+
+    uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
+    if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
+        teamIdx = PetBattles::PET_BATTLE_TEAM_2;
+
+    battle->Forfeit(teamIdx);
+
+    // Send final round to both players
+    WorldPackets::BattlePet::PetBattleFinalRound finalRound;
+    finalRound.CurRound = battle->GetCurrentRound();
+    finalRound.NextPetBattleState = static_cast<uint8>(battle->GetBattleState());
+    for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+        BuildPetBattleRoundPlayerData(finalRound.Players[i], battle->GetTeam(i));
+    finalRound.Winners[battle->GetWinnerTeam()] = true;
+
+    if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+        p1->SendDirectMessage(finalRound.Write());
+    if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+        p2->SendDirectMessage(finalRound.Write());
+
+    WorldPackets::BattlePet::PetBattleFinished finished;
+    if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+        p1->SendDirectMessage(finished.Write());
+    if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+        p2->SendDirectMessage(finished.Write());
+}
+
+void WorldSession::HandlePetBattleFinalNotify(WorldPackets::BattlePet::PetBattleFinalNotify& /*petBattleFinalNotify*/)
+{
+    // Client acknowledges battle end - cleanup happens via PetBattleMgr::Update() removing finished battles
+}
+
+void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleRequestPVP& petBattleRequestPVP)
+{
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    Player* target = ObjectAccessor::FindPlayer(petBattleRequestPVP.TargetGUID);
+    if (!target)
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_TARGET;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Send PVP challenge to target
+    WorldPackets::BattlePet::PetBattlePVPChallenge challenge;
+    challenge.ChallengerGUID = player->GetGUID();
+    challenge.BattleOrigin = player->GetPosition();
+    target->SendDirectMessage(challenge.Write());
+}
+
+void WorldSession::HandleJoinPetBattleQueue(WorldPackets::BattlePet::JoinPetBattleQueue& /*joinPetBattleQueue*/)
+{
+    // PvP queue - send status update
+    WorldPackets::BattlePet::PetBattleQueueStatus status;
+    status.Status = 1; // Queued
+    SendPacket(status.Write());
+}
+
+void WorldSession::HandleLeavePetBattleQueue(WorldPackets::BattlePet::LeavePetBattleQueue& /*leavePetBattleQueue*/)
+{
+    // Remove from PvP queue
+    WorldPackets::BattlePet::PetBattleQueueStatus status;
+    status.Status = 0; // Not in queue
+    SendPacket(status.Write());
+}
+
+void WorldSession::HandlePetBattleQueueProposeMatchResult(WorldPackets::BattlePet::PetBattleQueueProposeMatchResult& /*petBattleQueueProposeMatchResult*/)
+{
+    // Handle accept/decline of proposed match
+}
+
+void WorldSession::HandlePetBattleRequestUpdate(WorldPackets::BattlePet::PetBattleRequestUpdate& /*petBattleRequestUpdate*/)
+{
+    // Client requests current battle state update
+}
+
+void WorldSession::HandlePetBattleScriptErrorNotify(WorldPackets::BattlePet::PetBattleScriptErrorNotify& /*petBattleScriptErrorNotify*/)
+{
+    // Client reports script error - log only
+    TC_LOG_DEBUG("server.loading", "PetBattleHandler: Client reported pet battle script error");
+}
+
+void WorldSession::HandlePetBattleWildLocationFail(WorldPackets::BattlePet::PetBattleWildLocationFail& /*petBattleWildLocationFail*/)
+{
+    // Client reports wild battle location failure - log only
+    TC_LOG_DEBUG("server.loading", "PetBattleHandler: Client reported wild pet battle location failure");
 }
