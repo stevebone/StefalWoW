@@ -212,6 +212,19 @@ namespace WorldPackets
         class BattlePetSummon;
         class BattlePetUpdateNotify;
         class CageBattlePet;
+        // Pet Battle combat
+        class PetBattleRequestWild;
+        class PetBattleInput;
+        class PetBattleReplaceFrontPet;
+        class PetBattleQuitNotify;
+        class PetBattleFinalNotify;
+        class PetBattleRequestPVP;
+        class JoinPetBattleQueue;
+        class LeavePetBattleQueue;
+        class PetBattleQueueProposeMatchResult;
+        class PetBattleRequestUpdate;
+        class PetBattleScriptErrorNotify;
+        class PetBattleWildLocationFail;
     }
 
     namespace BlackMarket
@@ -1853,6 +1866,19 @@ class TC_GAME_API WorldSession
         void HandleBattlePetSummon(WorldPackets::BattlePet::BattlePetSummon& battlePetSummon);
         void HandleBattlePetUpdateNotify(WorldPackets::BattlePet::BattlePetUpdateNotify& battlePetUpdateNotify);
         void HandleCageBattlePet(WorldPackets::BattlePet::CageBattlePet& cageBattlePet);
+        // Pet Battle combat
+        void HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattleRequestWild& petBattleRequestWild);
+        void HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput& petBattleInput);
+        void HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBattleReplaceFrontPet& petBattleReplaceFrontPet);
+        void HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQuitNotify& petBattleQuitNotify);
+        void HandlePetBattleFinalNotify(WorldPackets::BattlePet::PetBattleFinalNotify& petBattleFinalNotify);
+        void HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleRequestPVP& petBattleRequestPVP);
+        void HandleJoinPetBattleQueue(WorldPackets::BattlePet::JoinPetBattleQueue& joinPetBattleQueue);
+        void HandleLeavePetBattleQueue(WorldPackets::BattlePet::LeavePetBattleQueue& leavePetBattleQueue);
+        void HandlePetBattleQueueProposeMatchResult(WorldPackets::BattlePet::PetBattleQueueProposeMatchResult& petBattleQueueProposeMatchResult);
+        void HandlePetBattleRequestUpdate(WorldPackets::BattlePet::PetBattleRequestUpdate& petBattleRequestUpdate);
+        void HandlePetBattleScriptErrorNotify(WorldPackets::BattlePet::PetBattleScriptErrorNotify& petBattleScriptErrorNotify);
+        void HandlePetBattleWildLocationFail(WorldPackets::BattlePet::PetBattleWildLocationFail& petBattleWildLocationFail);
 
         // Battlenet
         void HandleBattlenetChangeRealmTicket(WorldPackets::Battlenet::ChangeRealmTicket& changeRealmTicket);
