@@ -15,9 +15,12 @@ public:
         botClass(FSB_Class::None),
         botRace(FSB_Race::None),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
+
         botHired(false),
         botMounted(false),
-        botHasSoulstone(false)
+        botHasSoulstone(false),
+
+        botCorpsePos()
     {
     }
 
@@ -28,5 +31,7 @@ public:
     bool botHired;
     bool botMounted;
     bool botHasSoulstone;
+
+    Position botCorpsePos;
 
 };

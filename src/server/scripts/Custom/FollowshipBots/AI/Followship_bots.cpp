@@ -621,7 +621,7 @@ public:
 
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
-            botCorpse = me->GetPosition();        
+            botCorpsePos = me->GetPosition();
             FSBDeath::HandlerJustDied(me, botGroup_, botHasSoulstone);
         }
 
@@ -1244,7 +1244,7 @@ public:
                     break;
 
                 case FSB_EVENT_GRAVEYARD_RESSURECT:
-                    FSBDeath::HandleDeathWithGraveyard(me, botCorpse);
+                    FSBDeath::HandleDeathWithGraveyard(me, botCorpsePos);
                     break;
 
                 default:
@@ -1296,7 +1296,6 @@ public:
 
             // Warlock bot
             bool demonDead = true;
-            Position botCorpse;
             
     };
 
