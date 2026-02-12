@@ -215,4 +215,352 @@ void BattlePetUpdateNotify::Read()
 {
     _worldPacket >> PetGuid;
 }
+
+// ============================================================================
+// Pet Battle Combat Packet Serialization
+// ============================================================================
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleAbilityInfo const& ability)
+{
+    data << int32(ability.AbilityID);
+    data << int16(ability.CooldownRemaining);
+    data << int16(ability.LockdownRemaining);
+    data << int8(ability.AbilityIndex);
+    data << uint8(ability.Pboid);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleAuraInfo const& aura)
+{
+    data << int32(aura.AbilityID);
+    data << uint32(aura.InstanceID);
+    data << int32(aura.RoundsRemaining);
+    data << int32(aura.CurrentRound);
+    data << uint8(aura.CasterPBOID);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleStateInfo const& state)
+{
+    data << uint32(state.StateID);
+    data << int32(state.StateValue);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattlePetUpdateInfo const& pet)
+{
+    data << pet.BattlePetGUID;
+    data << int32(pet.SpeciesID);
+    data << int32(pet.CreatureID);
+    data << int32(pet.DisplayID);
+    data << int16(pet.Level);
+    data << int16(pet.Xp);
+    data << int32(pet.CurHealth);
+    data << int32(pet.MaxHealth);
+    data << int32(pet.Power);
+    data << int32(pet.Speed);
+    data << int32(pet.NpcTeamMemberID);
+    data << uint8(pet.BreedQuality);
+    data << uint16(pet.StatusFlags);
+    data << int8(pet.Slot);
+
+    data << uint32(pet.Abilities.size());
+    data << uint32(pet.Auras.size());
+    data << uint32(pet.States.size());
+
+    for (PetBattleAbilityInfo const& ability : pet.Abilities)
+        data << ability;
+
+    for (PetBattleAuraInfo const& aura : pet.Auras)
+        data << aura;
+
+    for (PetBattleStateInfo const& state : pet.States)
+        data << state;
+
+    data << SizedString::BitsSize<7>(pet.CustomName);
+    data.FlushBits();
+    data << SizedString::Data(pet.CustomName);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattlePlayerUpdateInfo const& player)
+{
+    data << player.CharacterID;
+    data << int32(player.TrapAbilityID);
+    data << int32(player.TrapStatus);
+    data << uint16(player.RoundTimeSecs);
+    data << int8(player.FrontPet);
+    data << uint8(player.InputFlags);
+
+    data << Bits<2>(player.Pets.size());
+    data.FlushBits();
+
+    for (PetBattlePetUpdateInfo const& pet : player.Pets)
+        data << pet;
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleEnviroInfo const& enviro)
+{
+    data << uint32(enviro.Auras.size());
+    data << uint32(enviro.States.size());
+
+    for (PetBattleAuraInfo const& aura : enviro.Auras)
+        data << aura;
+
+    for (PetBattleStateInfo const& state : enviro.States)
+        data << state;
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleEffectTargetInfo const& target)
+{
+    data << uint8(target.Type);
+    data << uint8(target.Petx);
+    data << int32(target.Param1);
+    data << int32(target.Param2);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleEffectInfo const& effect)
+{
+    data << uint32(effect.AbilityEffectID);
+    data << uint16(effect.Flags);
+    data << uint8(effect.SourceAuraPetInstance);
+    data << uint8(effect.StackDepth);
+    data << uint8(effect.PetBattleEffectType);
+    data << int8(effect.CasterPBOID);
+
+    data << uint32(effect.Targets.size());
+    for (PetBattleEffectTargetInfo const& target : effect.Targets)
+        data << target;
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, PetBattleCooldownInfo const& cd)
+{
+    data << int32(cd.AbilityID);
+    data << int16(cd.CooldownRemaining);
+    data << int16(cd.LockdownRemaining);
+
+    return data;
+}
+
+static void WriteRoundPlayerData(ByteBuffer& data, PetBattleRoundPlayerData const& player)
+{
+    data << uint8(player.NextInputFlags);
+    data << int8(player.NextTrapStatus);
+    data << uint16(player.RoundTimeSecs);
+
+    data << uint32(player.PetCooldowns.size());
+    for (std::vector<PetBattleCooldownInfo> const& petCds : player.PetCooldowns)
+    {
+        data << uint32(petCds.size());
+        for (PetBattleCooldownInfo const& cd : petCds)
+            data << cd;
+    }
+}
+
+static void WriteRoundEffects(ByteBuffer& data, std::vector<PetBattleEffectInfo> const& effects)
+{
+    data << uint32(effects.size());
+    for (PetBattleEffectInfo const& effect : effects)
+        data << effect;
+}
+
+// ---- CMSG Read() implementations ----
+
+void PetBattleRequestWild::Read()
+{
+    _worldPacket >> TargetGUID;
+    _worldPacket >> BattleOrigin.m_positionX;
+    _worldPacket >> BattleOrigin.m_positionY;
+    _worldPacket >> BattleOrigin.m_positionZ;
+    float o; _worldPacket >> o; BattleOrigin.SetOrientation(o);
+}
+
+void PetBattleInput::Read()
+{
+    _worldPacket >> MoveType;
+    _worldPacket >> AbilityID;
+    _worldPacket >> NewFrontPetIndex;
+    _worldPacket >> Round;
+    _worldPacket >> Bits<1>(IgnoreAbandonPenalty);
+}
+
+void PetBattleReplaceFrontPet::Read()
+{
+    _worldPacket >> FrontPetIndex;
+}
+
+void PetBattleRequestPVP::Read()
+{
+    _worldPacket >> TargetGUID;
+    _worldPacket >> BattleOrigin.m_positionX;
+    _worldPacket >> BattleOrigin.m_positionY;
+    _worldPacket >> BattleOrigin.m_positionZ;
+    float o; _worldPacket >> o; BattleOrigin.SetOrientation(o);
+}
+
+void PetBattleQueueProposeMatchResult::Read()
+{
+    _worldPacket >> Bits<1>(Accepted);
+}
+
+void PetBattleRequestUpdate::Read()
+{
+    _worldPacket >> TargetGUID;
+    _worldPacket >> Bits<1>(Canceled);
+}
+
+// ---- SMSG Write() implementations ----
+
+WorldPacket const* PetBattleFinalizeLocation::Write()
+{
+    _worldPacket << Location.m_positionX;
+    _worldPacket << Location.m_positionY;
+    _worldPacket << Location.m_positionZ;
+    _worldPacket << Location.GetOrientation();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleInitialUpdate::Write()
+{
+    // Wire format matches BaseEntity.cpp:494-588
+    for (std::size_t i = 0; i < 2; ++i)
+    {
+        _worldPacket << Players[i].CharacterID;
+        _worldPacket << int32(Players[i].TrapAbilityID);
+        _worldPacket << int32(Players[i].TrapStatus);
+        _worldPacket << uint16(Players[i].RoundTimeSecs);
+        _worldPacket << int8(Players[i].FrontPet);
+        _worldPacket << uint8(Players[i].InputFlags);
+
+        _worldPacket << Bits<2>(Players[i].Pets.size());
+        _worldPacket.FlushBits();
+
+        for (PetBattlePetUpdateInfo const& pet : Players[i].Pets)
+            _worldPacket << pet;
+    }
+
+    for (std::size_t i = 0; i < 3; ++i)
+        _worldPacket << Enviros[i];
+
+    _worldPacket << uint16(WaitingForFrontPetsMaxSecs);
+    _worldPacket << uint16(PvpMaxRoundTime);
+    _worldPacket << int32(CurRound);
+    _worldPacket << uint32(NpcCreatureID);
+    _worldPacket << uint32(NpcDisplayID);
+    _worldPacket << int8(CurPetBattleState);
+    _worldPacket << uint8(ForfeitPenalty);
+    _worldPacket << InitialWildPetGUID;
+    _worldPacket << Bits<1>(IsPVP);
+    _worldPacket << Bits<1>(CanAwardXP);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleFirstRound::Write()
+{
+    _worldPacket << uint32(CurRound);
+    _worldPacket << uint8(NextPetBattleState);
+
+    for (std::size_t i = 0; i < 2; ++i)
+        WriteRoundPlayerData(_worldPacket, Players[i]);
+
+    WriteRoundEffects(_worldPacket, Effects);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleRoundResult::Write()
+{
+    _worldPacket << uint32(CurRound);
+    _worldPacket << uint8(NextPetBattleState);
+
+    for (std::size_t i = 0; i < 2; ++i)
+        WriteRoundPlayerData(_worldPacket, Players[i]);
+
+    WriteRoundEffects(_worldPacket, Effects);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleReplacementsMade::Write()
+{
+    _worldPacket << uint32(CurRound);
+    _worldPacket << uint8(NextPetBattleState);
+
+    for (std::size_t i = 0; i < 2; ++i)
+        WriteRoundPlayerData(_worldPacket, Players[i]);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleFinalRound::Write()
+{
+    _worldPacket << uint32(CurRound);
+    _worldPacket << uint8(NextPetBattleState);
+
+    for (std::size_t i = 0; i < 2; ++i)
+        WriteRoundPlayerData(_worldPacket, Players[i]);
+
+    WriteRoundEffects(_worldPacket, Effects);
+
+    _worldPacket << Bits<1>(AbandonedPVP);
+    _worldPacket << Bits<1>(PVPWinner);
+    for (std::size_t i = 0; i < 2; ++i)
+        _worldPacket << Bits<1>(Winners[i]);
+    _worldPacket.FlushBits();
+
+    for (std::size_t i = 0; i < 2; ++i)
+        _worldPacket << uint32(NpcCreatureID[i]);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleRequestFailed::Write()
+{
+    _worldPacket << uint8(Reason);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattlePVPChallenge::Write()
+{
+    _worldPacket << ChallengerGUID;
+    _worldPacket << BattleOrigin.m_positionX;
+    _worldPacket << BattleOrigin.m_positionY;
+    _worldPacket << BattleOrigin.m_positionZ;
+    _worldPacket << BattleOrigin.GetOrientation();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetBattleQueueStatus::Write()
+{
+    _worldPacket << uint32(Status);
+    _worldPacket << uint32(SlotResult[0]);
+    _worldPacket << uint32(SlotResult[1]);
+    _worldPacket << OptionalInit(ClientWaitTime);
+    _worldPacket << OptionalInit(AvgWaitTime);
+    _worldPacket.FlushBits();
+
+    if (ClientWaitTime)
+        _worldPacket << uint32(*ClientWaitTime);
+    if (AvgWaitTime)
+        _worldPacket << uint32(*AvgWaitTime);
+
+    return &_worldPacket;
+}
 }
