@@ -16,15 +16,17 @@ public:
         botRace(FSB_Race::None),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
         botHired(false),
-        botMounted(false)
+        botMounted(false),
+        botHasSoulstone(false)
     {
     }
 
-    FSB_Roles botRole; // each bot sets this
+    FSB_Roles botRole; 
     FSB_Class botClass;
     FSB_Race botRace;
     FSB_MovementStates botMoveState;
     bool botHired;
     bool botMounted;
+    bool botHasSoulstone;
 
 };

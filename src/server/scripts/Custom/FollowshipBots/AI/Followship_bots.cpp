@@ -579,7 +579,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, true, _statsMods, hasSoulstone);         
+            FSBAuras::BotOnAuraApplied(me, aurApp, true, _statsMods, botHasSoulstone);
         }
 
         void OnAuraRemoved(AuraApplication const* aurApp) override
@@ -587,7 +587,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods, hasSoulstone);
+            FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods, botHasSoulstone);
         }
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
@@ -622,7 +622,7 @@ public:
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
             botCorpse = me->GetPosition();        
-            FSBDeath::HandlerJustDied(me, botGroup_, hasSoulstone);
+            FSBDeath::HandlerJustDied(me, botGroup_, botHasSoulstone);
         }
 
         void MovementInform(uint32 /*type*/, uint32 id) override
@@ -1235,7 +1235,7 @@ public:
                 }
 
                 case FSB_EVENT_SOULSTONE_RESSURECT:
-                    FSBDeath::HandleDeathWithSoulstone(me, hasSoulstone);
+                    FSBDeath::HandleDeathWithSoulstone(me, botHasSoulstone);
                     break;
 
                 case FSB_EVENT_TELEPORT_GRAVEYARD:
@@ -1297,7 +1297,6 @@ public:
             // Warlock bot
             bool demonDead = true;
             Position botCorpse;
-            bool hasSoulstone = false;
             
     };
 
