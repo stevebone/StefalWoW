@@ -23,6 +23,7 @@
 #include "Followship_bots_auras_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_gossip_handler.h"
+#include "Followship_bots_group_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
@@ -894,7 +895,7 @@ public:
                             // Check to dermine what friendlies we have in our "group"
                             // Includes: bot, owner and other bots owner by its owner
                             // TO-DO: Add check to include other players in the group of the owner
-                            FSBUtilsCombat::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
+                            FSBGroup::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
 
                             // ? lock check for next 5 seconds
                             _5secondsCheckMs = now + 5000;

@@ -36,11 +36,7 @@ namespace FSBUtilsCombat
     /// Sorts units by emergency priority (highest first)
     void SortEmergencyTargets(std::vector<Unit*>& targets);
 
-    // Builds a list containing:
-    // - owner (player)
-    // - the calling bot (me)
-    // - other bots owned by the same player
-    void CheckBotAllies(Unit* me, std::vector<Unit*>& outGroup, float searchRange = 100.0f);
+    
 }
 
 namespace FSBUtilsBotCombat
