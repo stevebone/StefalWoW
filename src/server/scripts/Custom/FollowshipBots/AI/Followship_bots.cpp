@@ -56,7 +56,6 @@ public:
         }        
 
         // Bot Operations
-        bool hired = false;
 
         bool updateFollowInfo = false;
         float followDistance = frand(2.f, 8.f);
@@ -88,7 +87,7 @@ public:
 
                 _statsMods = FSBUtilsStatsMods();     // now resets caller state
 
-                FSBUtils::SetInitialState(me, hired, botMoveState);
+                FSBUtils::SetInitialState(me, botHired, botMoveState);
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
@@ -144,7 +143,7 @@ public:
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
         {
-            return FSBGossip::HandleDefaultGossipHello(me, player, hired, _playerGuid);
+            return FSBGossip::HandleDefaultGossipHello(me, player, botHired, _playerGuid);
         }
 
         bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override // Runs once when gossip item selected
@@ -209,7 +208,7 @@ public:
                     return true;
                 }
 
-                hired = true;
+                botHired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
                 FSBUtilsStats::RecalculateMods(me);
 
@@ -233,7 +232,7 @@ public:
                     return true;
                 }
 
-                hired = true;
+                botHired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
                 FSBUtilsStats::RecalculateMods(me);
 
@@ -257,7 +256,7 @@ public:
                     return true;
                 }
 
-                hired = true;
+                botHired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
                 FSBUtilsStats::RecalculateMods(me);
 
@@ -280,7 +279,7 @@ public:
                     player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel));
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
-                    hired = true;
+                    botHired = true;
                     FSBMgr::HandleBotHire(player, me, 0);
                     FSBUtilsStats::RecalculateMods(me);
 
@@ -649,9 +648,9 @@ public:
             {
             case FSB_DATA_HIRED:
             {
-                hired = value;
+                botHired = value;
 
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired value: {}", me->GetName(), hired);
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired value: {}", me->GetName(), botHired);
 
                 break;
             }
@@ -854,7 +853,7 @@ public:
                     
                 case FSB_EVENT_HIRED_MAINTENANCE:
                 {
-                    if (hired)
+                    if (botHired)
                     {
                         uint32 now = getMSTime();
 
@@ -1229,7 +1228,7 @@ public:
                     FSBUtilsMovement::StopFollow(me);
                     botMoveState = FSB_MOVE_STATE_STAY;
 
-                    if (hired && player)
+                    if (botHired && player)
                     {
                         std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
                         me->Say(msg, LANG_UNIVERSAL);

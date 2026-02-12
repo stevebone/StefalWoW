@@ -14,7 +14,8 @@ public:
         botRole(FSB_Roles::FSB_ROLE_NONE),
         botClass(FSB_Class::None),
         botRace(FSB_Race::None),
-        botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE)
+        botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
+        botHired(false)
     {
     }
 
@@ -22,4 +23,6 @@ public:
     FSB_Class botClass;
     FSB_Race botRace;
     FSB_MovementStates botMoveState;
+    bool botHired;
+
 };
