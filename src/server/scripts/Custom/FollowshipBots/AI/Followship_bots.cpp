@@ -24,6 +24,7 @@
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_incombat_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_powers_handler.h"
@@ -73,7 +74,7 @@ public:
         bool _playerCombatStarted = false;
         bool _playerCombatEnded = false;
 
-        bool _botManaPotionUsed = false;
+
         bool _botIsDrinking = false;
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
@@ -690,33 +691,6 @@ public:
                 
                 if (me->IsInCombat() && me->IsAlive())
                 {
-                    // 1. Generic mana potions for bots with mana
-                    if (me->GetMaxPower(POWER_MANA) > 0 && me->GetPowerPct(POWER_MANA) < 20)
-                    {
-                        if (!_botManaPotionUsed)
-                        {
-                            uint32 ManaPotionSpellId = FSBUtilsSpells::GetManaPotionSpellForLevel(me->GetLevel());
-
-                            if (ManaPotionSpellId)
-                            {
-                                // Global Cooldown does NOT apply for potions
-                                // Limit of 1 potion per type (MP or HP) per combat 
-                                me->CastSpell(me, ManaPotionSpellId, false);
-                                _botManaPotionUsed = true;
-
-                                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                                {
-                                    std::string spellName = FSBUtilsSpells::GetSpellName(ManaPotionSpellId);
-                                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::CombatMana, spellName);
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                }
-
-                                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IC Action mana potion used by bot: {} with spell id: {}", me->GetName(), ManaPotionSpellId);
-                            }
-                        }
-                            
-                    }
-
                     // 2. On Enter Combat spells
                     uint32 now = getMSTime();
                     if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
@@ -830,7 +804,7 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, demonDead))
+                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, demonDead, botManaPotionUsed, botHealthPotionUsed))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
 
                             // ? lock regen for next 2 seconds
@@ -1084,6 +1058,8 @@ public:
                     
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
+                    if (me->IsAlive() && me->IsInCombat())
+                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed);
 
                     Player* player = FSBMgr::GetBotOwner(me);
 
@@ -1104,7 +1080,7 @@ public:
                         if (!me->HasUnitState(UNIT_STATE_CASTING))
                         {
                             // IC Actions (ex mana potions or health potions)
-                            events.ScheduleEvent(FSB_EVENT_COMBAT_IC_ACTIONS, 100ms);
+                            //events.ScheduleEvent(FSB_EVENT_COMBAT_IC_ACTIONS, 100ms);
                             // Regular spells
                             events.ScheduleEvent(FSB_EVENT_COMBAT_SPELL_CHECK, 1s);
                         }
@@ -1113,7 +1089,6 @@ public:
                     // 3. Complete off Combat State check
                     if(!FSBUtilsCombat::IsCombatActive(me))
                     {
-                        _botManaPotionUsed = false; // we need to reset this when combat ends so that bot can reapply on the next combat state
                         _appliedInitialCBuffs = 0;
                     }
 

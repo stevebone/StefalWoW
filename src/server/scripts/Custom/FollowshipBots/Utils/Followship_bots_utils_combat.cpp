@@ -89,7 +89,7 @@ namespace FSBUtilsCombat
         // Spell name lookup
         std::string spellName;
         if (spellId)
-            spellName = FSBUtilsSpells::GetSpellName(spellId);
+            spellName = FSBSpellsUtils::GetSpellName(spellId);
 
         // Target name
         std::string targetName;

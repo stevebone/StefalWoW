@@ -14,6 +14,7 @@ struct FollowshipBotsConfig
     static uint32 configFSBChatterRate;
 
     static bool configFSBUseOOCActions;
+    static bool configFSBUseICPotions;
 
     static void Load();
 };

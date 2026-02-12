@@ -49,6 +49,8 @@ namespace FSBUtils
     void SetRole(Creature* unit, FSB_Roles role);
 
     bool TryChargeHire(Player* player, uint32 duration);
+
+    bool BotIsHealerClass(Creature* bot);
 }
 
 namespace FSBUtilsMovement
@@ -74,6 +76,7 @@ enum class FSBSayType
     PlayerOrMemberDead,     // NPC reacts to dead player or bot
     SpellOnTarget,  // NPC reacts when casting combat spell on target
     CombatMana,     // NPC IC OOM and uses mana potion
+    CombatHealth,
     BotDeath,       // NPC Dies
     TargetDeath,    // NPC Kills Target
     BuffTarget,

@@ -10,8 +10,9 @@ int32 FollowshipBotsConfig::configFSBHireDuration1 = 1;
 int32 FollowshipBotsConfig::configFSBHireDuration2 = 2;
 int32 FollowshipBotsConfig::configFSBHireDuration3 = 3;
 
-bool  FollowshipBotsConfig::configFSBUseOOCActions = false;
-bool  FollowshipBotsConfig::configFSBUseCustomRegen = false;
+bool  FollowshipBotsConfig::configFSBUseOOCActions = true;
+bool  FollowshipBotsConfig::configFSBUseICPotions = true;
+bool  FollowshipBotsConfig::configFSBUseCustomRegen = true;
 uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 
 void FollowshipBotsConfig::Load()
@@ -35,10 +36,13 @@ void FollowshipBotsConfig::Load()
         sConfigMgr->GetIntDefault("Followship.Bot.HireDuration3", 3);
 
     configFSBUseCustomRegen =
-        sConfigMgr->GetBoolDefault("Followship.Bots.UseCustomRegen", false);
+        sConfigMgr->GetBoolDefault("Followship.Bots.UseCustomRegen", true);
 
     configFSBUseOOCActions =
-        sConfigMgr->GetBoolDefault("Followship.Bots.UseOOCActions", false);
+        sConfigMgr->GetBoolDefault("Followship.Bots.UseOOCActions", true);
+
+    configFSBUseICPotions =
+        sConfigMgr->GetBoolDefault("Followship.Bots.UseICPotions", true);
 
     configFSBChatterRate =
         sConfigMgr->GetIntDefault("Followship.Bots.ChatterRate", 10);

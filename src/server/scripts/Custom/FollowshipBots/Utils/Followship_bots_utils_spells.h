@@ -21,14 +21,14 @@ static constexpr uint32 BOT_GCD_MS = 1500;
 
 
 // Mana Potion Spells
-struct ManaPotionSpell
+struct PotionSpell
 {
     uint8 minLevel;
     uint8 maxLevel;
     uint32 spellId;
 };
 
-static constexpr ManaPotionSpell ManaPotionTable[] =
+static constexpr PotionSpell ManaPotionTable[] =
 {
     {  1,  15,  437 },   // Minor Mana Potion 120
     { 16,  29,  438 },   // Lesser Mana Potion 159
@@ -36,6 +36,16 @@ static constexpr ManaPotionSpell ManaPotionTable[] =
     { 41,  50,  17531 }, // Major Mana Potion 512
     { 51,  60,  28499 }, // Super Mana Potion 682
     { 61,  80,  43186 } // Runic Mana Potion 956
+};
+
+static constexpr PotionSpell HealthPotionTable[] =
+{
+    {  1,  15,  439 },   // Minor HP Potion 120
+    { 16,  29,  440 },   // Lesser HP Potion 159
+    { 30,  40,  4042 }, // Superior HP Potion 494
+    { 41,  50,  17534 }, // Major HP Potion 512
+    { 51,  60,  28495 }, // Super HP Potion 682
+    { 61,  80,  43185 } // Runic HP Potion 956
 };
 
 
@@ -75,11 +85,7 @@ namespace FSBUtilsSpells
 {
     
 
-    // Gets mana potion spell per level
-    uint32 GetManaPotionSpellForLevel(uint8 level);
-
-    /// Returns the English name of a spell by its ID, or "unknown spell" if not found.
-    std::string GetSpellName(uint32 spellId);
+    
 
     // Checks global cooldown
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
@@ -170,6 +176,14 @@ static MountRaceMap MountSpells =
 
 namespace FSBSpellsUtils
 {
+    // Gets mana potion spell per level
+    uint32 GetManaPotionSpellForLevel(uint8 level);
+    // Gets hp potion spell per level
+    uint32 GetHealthPotionSpellForLevel(uint8 level);
+
+    /// Returns the English name of a spell by its ID, or "unknown spell" if not found.
+    std::string GetSpellName(uint32 spellId);
+
     const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level);
     uint32 GetRandomMountSpellForBot(Creature* bot);
     bool CastRandomMountLevelSpell(Creature* bot);

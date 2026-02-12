@@ -304,7 +304,7 @@ namespace FSBRecovery
                 if (player)
                     pname = player->GetName();
 
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(pname, NULL, FSBSayType::OOCRecovery, FSBUtilsSpells::GetSpellName(spellId));
+                std::string msg = FSBUtilsTexts::BuildNPCSayText(pname, NULL, FSBSayType::OOCRecovery, FSBSpellsUtils::GetSpellName(spellId));
                 bot->Say(msg, LANG_UNIVERSAL);
             }
 

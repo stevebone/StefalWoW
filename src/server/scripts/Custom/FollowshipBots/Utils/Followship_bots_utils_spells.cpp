@@ -26,26 +26,7 @@ namespace FSBUtilsSpells
 {
     
 
-    // Gets the Mana Potion spell id on a provided level
-    uint32 GetManaPotionSpellForLevel(uint8 level)
-    {
-        for (auto const& entry : ManaPotionTable)
-        {
-            if (level >= entry.minLevel && level <= entry.maxLevel)
-                return entry.spellId;
-        }
-        return 0;
-    }
-
-    std::string GetSpellName(uint32 spellId)
-    {
-        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
-        if (!spellInfo || !spellInfo->SpellName)
-            return "unknown spell";
-
-        std::string name = spellInfo->SpellName->Str[LOCALE_enUS];
-        return name.empty() ? "unknown spell" : name;
-    }
+    
 
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil)
     {
@@ -314,7 +295,7 @@ namespace FSBUtilsCombatSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBUtilsSpells::GetSpellName(def->spellId));
+            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBSpellsUtils::GetSpellName(def->spellId));
             available.push_back(&runtime);
 
         }
@@ -575,7 +556,7 @@ namespace FSBUtilsCombatSpells
         }
 
         if(target)
-            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBUtilsSpells::GetSpellName(def->spellId), target->GetName());
+            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} casted: {} on target: {}", bot->GetName(), FSBSpellsUtils::GetSpellName(def->spellId), target->GetName());
 
         // ? Per-spell cooldown
         runtime->nextReadyMs = now + def->cooldownMs;
@@ -608,6 +589,37 @@ namespace FSBUtilsCombatSpells
 
 namespace FSBSpellsUtils
 {
+    // Gets the Mana Potion spell id on a provided level
+    uint32 GetManaPotionSpellForLevel(uint8 level)
+    {
+        for (auto const& entry : ManaPotionTable)
+        {
+            if (level >= entry.minLevel && level <= entry.maxLevel)
+                return entry.spellId;
+        }
+        return 0;
+    }
+
+    uint32 GetHealthPotionSpellForLevel(uint8 level)
+    {
+        for (auto const& entry : HealthPotionTable)
+        {
+            if (level >= entry.minLevel && level <= entry.maxLevel)
+                return entry.spellId;
+        }
+        return 0;
+    }
+
+    std::string GetSpellName(uint32 spellId)
+    {
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
+        if (!spellInfo || !spellInfo->SpellName)
+            return "unknown spell";
+
+        std::string name = spellInfo->SpellName->Str[LOCALE_enUS];
+        return name.empty() ? "unknown spell" : name;
+    }
+
     const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level)
     {
         auto raceIt = MountSpells.find(race);

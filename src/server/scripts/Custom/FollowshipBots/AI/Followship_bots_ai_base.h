@@ -19,6 +19,8 @@ public:
         botHired(false),
         botMounted(false),
         botHasSoulstone(false),
+        botManaPotionUsed(false),
+        botHealthPotionUsed(false),
 
         botCorpsePos()
     {
@@ -28,9 +30,12 @@ public:
     FSB_Class botClass;
     FSB_Race botRace;
     FSB_MovementStates botMoveState;
+
     bool botHired;
     bool botMounted;
     bool botHasSoulstone;
+    bool botManaPotionUsed;
+    bool botHealthPotionUsed;
 
     Position botCorpsePos;
 

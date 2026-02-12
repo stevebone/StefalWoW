@@ -16,7 +16,7 @@
 
 namespace FSBOOC
 {
-    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup, bool& demonDead)
+    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup, bool& demonDead, bool& botManaPotionUsed, bool& botHealthPotionUsed)
     {
         if (!bot)
             return false;
@@ -64,7 +64,39 @@ namespace FSBOOC
         if (BotOOCBuffSoulstone(bot, globalCooldown, botGroup))
             return true;
 
+        //7. Clear combat flags and states
+        if (BotOOCClearCombatFlags(bot, botManaPotionUsed, botHealthPotionUsed))
+            return true;
+
         return false; 
+    }
+
+    bool BotOOCClearCombatFlags(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        bool check = false;
+
+        if (botManaPotionUsed)
+        {
+            botManaPotionUsed = false;
+            check = true;
+        }
+
+        if (botHealthPotionUsed)
+        {
+            botHealthPotionUsed = false;
+            check = true;
+        }
+
+        if (check)
+            return true;
+
+        return false;
     }
 
     bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup)
@@ -202,7 +234,7 @@ namespace FSBOOC
             {
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", 0, FSBSayType::BuffSelf, FSBUtilsSpells::GetSpellName(buffSpellId));
+                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", 0, FSBSayType::BuffSelf, FSBSpellsUtils::GetSpellName(buffSpellId));
                     bot->Say(msg, LANG_UNIVERSAL);
                 }
             }
@@ -280,13 +312,13 @@ namespace FSBOOC
                     if (target == bot)
                     {
                         std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                            "", NULL, FSBSayType::BuffSelf, FSBUtilsSpells::GetSpellName(buffSpellId));
+                            "", NULL, FSBSayType::BuffSelf, FSBSpellsUtils::GetSpellName(buffSpellId));
                         bot->Say(msg, LANG_UNIVERSAL);
                     }
                     else
                     {
                         std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                            target->GetName(), NULL, FSBSayType::BuffTarget, FSBUtilsSpells::GetSpellName(buffSpellId));
+                            target->GetName(), NULL, FSBSayType::BuffTarget, FSBSpellsUtils::GetSpellName(buffSpellId));
                         bot->Say(msg, LANG_UNIVERSAL);
                     }
                 }
