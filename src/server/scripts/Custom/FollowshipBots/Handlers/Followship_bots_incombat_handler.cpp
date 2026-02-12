@@ -22,6 +22,8 @@ namespace FSBIC
         // These can be cast instant with no GCD
         if (BotICPotions(bot, botManaPotionUsed, botHealthPotionUsed))
             return true;
+
+        return false;
     }
 
     bool BotICPotions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed)
@@ -79,7 +81,7 @@ namespace FSBIC
             {
                 HealthPotionSpellId = SPELL_WARLOCK_HEALTHSTONE;
             }
-            else uint32 HealthPotionSpellId = FSBSpellsUtils::GetHealthPotionSpellForLevel(bot->GetLevel());
+            else HealthPotionSpellId = FSBSpellsUtils::GetHealthPotionSpellForLevel(bot->GetLevel());
 
             bot->CastSpell(bot, HealthPotionSpellId, false);
             botHealthPotionUsed = true;

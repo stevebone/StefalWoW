@@ -15,10 +15,8 @@
 #include "Followship_bots_mage.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
-#include "Followship_bots_utils_combat.h"
-#include "Followship_bots_utils_gossip.h"
 #include "Followship_bots_mgr.h"
-#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_utils.h"
 
 #include "Followship_bots_auras_handler.h"
 #include "Followship_bots_death_handler.h"
@@ -30,6 +28,7 @@
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
+#include "Followship_bots_spells_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 
@@ -43,7 +42,6 @@ public:
     {
         npc_followship_botsAI(Creature* creature) : FSB_BaseAI(creature)
         {
-            
             // Runs once when creature is spawned
             static bool tablesInitialized = false;
             if (!tablesInitialized)
@@ -52,10 +50,7 @@ public:
                 tablesInitialized = true;
             }
 
-            FSBUtilsCombatSpells::InitSpellRuntime(me, _runtimeSpells);
-
-            //FSBUtilsDB::LoadBotOwners(_botOwners);
-            
+            FSBUtilsCombatSpells::InitSpellRuntime(me, _runtimeSpells);            
         }        
 
         // Bot Operations
@@ -73,9 +68,6 @@ public:
 
         bool _playerCombatStarted = false;
         bool _playerCombatEnded = false;
-
-
-        bool _botIsDrinking = false;
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
         {
@@ -525,30 +517,9 @@ public:
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
         {
-            switch (botClass)
-            {
-            case FSB_Class::Warrior:
-                FSBWarrior::HandleOnSpellCast(me, spell->Id);
-                break;
-            case FSB_Class::Priest:
-                break;
-            case FSB_Class::Mage:
-                break;
-            case FSB_Class::Rogue:
-                break;
-            case FSB_Class::Druid:
-                break;
-            case FSB_Class::Paladin:
-                FSBPaladin::HandleOnSpellCast(me, spell->Id);
-                break;
-            case FSB_Class::Hunter:
-                break;
-            case FSB_Class::Warlock:
-                FSBWarlock::HandleOnSpellCast(me, spell->Id);
-                break;
-            default:
-                break;
-            }
+            uint32 spellId = spell->Id;
+
+            FSBSpells::HandleOnSpellCast(me, botClass, spellId);
         }
 
         void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override

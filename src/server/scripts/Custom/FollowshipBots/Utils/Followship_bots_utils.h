@@ -12,8 +12,11 @@
 #include "Unit.h"
 
 #include "Followship_bots_defines.h"
+#include "Followship_bots_utils_combat.h"
+#include "Followship_bots_utils_gossip.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_utils_stats.h"
+
 
 namespace FSBUtils
 {
