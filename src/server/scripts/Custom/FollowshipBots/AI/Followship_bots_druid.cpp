@@ -9,13 +9,18 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
 
     // ANY
     { SPELL_DRUID_WRATH,                FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,            false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRUID_BARKSKIN,             FSBSpellType::Heal,     0.f,        70.f,           100.f,            0.f,             true,        60000,       FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     // TANK
+    { SPELL_DRUID_BEAR_GROWL,               FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,             false,       8000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_DRUID_BEAR_THRASH,               FSBSpellType::Damage,   0.f,        0.f,            100.f,            8.f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_MANGLE,               FSBSpellType::Damage,   0.f,        0.f,            100.f,            2.5f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
 
     // MELEE
     { SPELL_DRUID_CAT_THRASH,               FSBSpellType::Damage,   0.2f,        0.f,            100.f,            8.f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_DRUID_CAT_SHRED,               FSBSpellType::Damage,   0.4f,        0.f,            100.f,            2.5f,             false,       1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_MANGLE,               FSBSpellType::Damage,   0.4f,        0.f,            100.f,            2.5f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_FEROCIOUS_BITE,    FSBSpellType::Damage,   0.25f,        0.f,            100.f,            2.5f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 
 };
 
@@ -58,6 +63,9 @@ namespace FSBDruid
     {
         switch (spellId)
         {
+        case SPELL_DRUID_BEAR_MANGLE:
+            bot->ModifyPower(POWER_RAGE, 120, false);
+            break;
         case SPELL_DRUID_BEAR_THRASH:
             bot->ModifyPower(POWER_RAGE, 60, false);
             break;
