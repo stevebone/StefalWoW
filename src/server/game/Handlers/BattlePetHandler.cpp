@@ -339,12 +339,8 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     // Start the battle
     battle->Start();
 
-    // Auto-submit input for wild team (NPC uses ability 0 or skips)
-    PetBattles::PetBattleTeamData const& wildTeam = battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2);
-    if (wildTeam.PetCount > 0 && wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0] != 0)
-        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_USE_ABILITY, wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0], -1);
-    else
-        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+    // Auto-submit input for wild team using AI
+    battle->GenerateWildTeamInput();
 
     TC_LOG_DEBUG("server.loading", "PetBattleHandler: Player {} started wild battle against {}",
         player->GetGUID().ToString(), petBattleRequestWild.TargetGUID.ToString());
@@ -436,17 +432,7 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
 
             // Auto-submit wild team input for next round
             if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_WILD)
-            {
-                PetBattles::PetBattleTeamData const& wildTeam = battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2);
-                if (wildTeam.PetCount > 0 && wildTeam.Pets[wildTeam.FrontPetIndex].IsAlive())
-                {
-                    if (wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0] != 0)
-                        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_USE_ABILITY,
-                            wildTeam.Pets[wildTeam.FrontPetIndex].AbilityIDs[0], -1);
-                    else
-                        battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
-                }
-            }
+                battle->GenerateWildTeamInput();
         }
     }
 }
@@ -485,11 +471,7 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
 
         // Re-submit wild team for next round
         if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_WILD)
-        {
-            PetBattles::PetBattleTeamData const& wildTeam = battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2);
-            if (wildTeam.PetCount > 0 && wildTeam.Pets[wildTeam.FrontPetIndex].IsAlive())
-                battle->SubmitInput(PetBattles::PET_BATTLE_TEAM_2, PetBattles::PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
-        }
+            battle->GenerateWildTeamInput();
     }
 }
 
@@ -558,7 +540,20 @@ void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleR
 
 void WorldSession::HandleJoinPetBattleQueue(WorldPackets::BattlePet::JoinPetBattleQueue& /*joinPetBattleQueue*/)
 {
-    // PvP queue - send status update
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    if (sPetBattleMgr->IsPlayerInBattle(player->GetGUID()))
+    {
+        WorldPackets::BattlePet::PetBattleQueueStatus status;
+        status.Status = 0;
+        SendPacket(status.Write());
+        return;
+    }
+
+    sPetBattleMgr->JoinQueue(player->GetGUID());
+
     WorldPackets::BattlePet::PetBattleQueueStatus status;
     status.Status = 1; // Queued
     SendPacket(status.Write());
@@ -566,15 +561,24 @@ void WorldSession::HandleJoinPetBattleQueue(WorldPackets::BattlePet::JoinPetBatt
 
 void WorldSession::HandleLeavePetBattleQueue(WorldPackets::BattlePet::LeavePetBattleQueue& /*leavePetBattleQueue*/)
 {
-    // Remove from PvP queue
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    sPetBattleMgr->LeaveQueue(player->GetGUID());
+
     WorldPackets::BattlePet::PetBattleQueueStatus status;
     status.Status = 0; // Not in queue
     SendPacket(status.Write());
 }
 
-void WorldSession::HandlePetBattleQueueProposeMatchResult(WorldPackets::BattlePet::PetBattleQueueProposeMatchResult& /*petBattleQueueProposeMatchResult*/)
+void WorldSession::HandlePetBattleQueueProposeMatchResult(WorldPackets::BattlePet::PetBattleQueueProposeMatchResult& petBattleQueueProposeMatchResult)
 {
-    // Handle accept/decline of proposed match
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    sPetBattleMgr->HandleProposalResult(player->GetGUID(), petBattleQueueProposeMatchResult.Accepted);
 }
 
 void WorldSession::HandlePetBattleRequestUpdate(WorldPackets::BattlePet::PetBattleRequestUpdate& /*petBattleRequestUpdate*/)
