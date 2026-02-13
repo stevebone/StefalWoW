@@ -29,6 +29,7 @@
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
+#include "Followship_bots_stats_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 
@@ -80,11 +81,9 @@ public:
             {
                 events.Reset();
 
-                _statsMods = FSBUtilsStatsMods();     // now resets caller state
-
                 FSBUtils::SetInitialState(me, botHired, botMoveState);
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
-                FSBUtilsStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
+                FSBStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
                 demonDead = true;
 
@@ -101,7 +100,7 @@ public:
 
                 if (FollowshipBotsConfig::configFSBUseCustomRegen)
                 {
-                    _baseStatsMods = FSBUtilsStatsMods(); // zero
+                    botRegenMods = FSBRegenMods(); // zero
 
                     // Disable npc flags if any in DB
                     me->RemoveUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
@@ -205,7 +204,7 @@ public:
 
                 botHired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
-                FSBUtilsStats::RecalculateMods(me);
+                //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -229,7 +228,7 @@ public:
 
                 botHired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
-                FSBUtilsStats::RecalculateMods(me);
+                //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -253,7 +252,7 @@ public:
 
                 botHired = true;
                 FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
-                FSBUtilsStats::RecalculateMods(me);
+                //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -276,7 +275,7 @@ public:
 
                     botHired = true;
                     FSBMgr::HandleBotHire(player, me, 0);
-                    FSBUtilsStats::RecalculateMods(me);
+                    //FSBStats::RecalculateStats(me, true, true);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
 
@@ -471,7 +470,7 @@ public:
         {
             FSBPowers::GenerateRageFromDamageDone(me, damage);
 
-            damage = uint32(damage * FSBUtilsStats::ApplyBotDamageDoneReduction(me));
+            damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
         }
 
         // Runs every time creature takes damage
@@ -479,7 +478,7 @@ public:
         {
             FSBPowers::GenerateRageFromDamageTaken(me, damage);
 
-            damage = uint32(damage * FSBUtilsStats::ApplyBotDamageTakenReduction(me));
+            damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
 
             if (!me->GetVictim() && attacker)
             {
@@ -556,7 +555,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, true, _statsMods, botHasSoulstone);
+            FSBAuras::BotOnAuraApplied(me, aurApp, true, botRegenMods, botHasSoulstone);
         }
 
         void OnAuraRemoved(AuraApplication const* aurApp) override
@@ -564,7 +563,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, false, _statsMods, botHasSoulstone);
+            FSBAuras::BotOnAuraApplied(me, aurApp, false, botRegenMods, botHasSoulstone);
         }
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
@@ -767,7 +766,7 @@ public:
                     {
                         if (me->GetHealthPct() < 100 || me->GetPowerPct(me->GetPowerType()) < 100)
                         {
-                            FSBRegen::ProcessBotCustomRegenTick(me, botClass, _baseStatsMods, _statsMods);
+                            FSBRegen::ProcessBotCustomRegenTick(me, botClass, botRegenMods);
 
                             // ? lock regen for next 2 seconds
                             _nextRegenMs = now + 2000;
@@ -841,7 +840,7 @@ public:
 
                         if (now >= _5secondsCheckMs)
                         {
-                            FSBUtilsStats::UpdateBotLevelToPlayer(me, _statsMods);
+                            FSBStats::UpdateBotLevelToPlayer(me);
 
                             // Check to dermine what friendlies we have in our "group"
                             // Includes: bot, owner and other bots owner by its owner
@@ -1212,9 +1211,6 @@ public:
         private:
             EventMap events;
             ObjectGuid _playerGuid;
-
-            FSBUtilsStatsMods _statsMods;
-            FSBUtilsStatsMods _baseStatsMods;
 
 
             uint32 hireTimeLeft = 0;

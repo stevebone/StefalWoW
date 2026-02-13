@@ -518,7 +518,7 @@ namespace FSBUtilsCombatSpells
         if (target->HasAura(def->spellId))
             return;
 
-        if (runtime->def->manaCostOverride != 0.f && !FSBPowers::SpendManaPct(bot, runtime->def->manaCostOverride))
+        if (runtime->def->manaCostOverride != 0.f && !FSBPowers::SpendPowerPct(bot, runtime->def->manaCostOverride))
             return; // not enough mana
 
         if (def->spellId == SPELL_MAGE_POLYMORPH || def->spellId == SPELL_WARLOCK_FEAR)
@@ -552,7 +552,7 @@ namespace FSBUtilsCombatSpells
 
             if (result != SPELL_CAST_OK)
             {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot: {} SPELL CAST NOT OK", bot->GetName());
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot: {} SPELL CAST NOT OK result = {}", bot->GetName(), result);
                 return;
             }
         }

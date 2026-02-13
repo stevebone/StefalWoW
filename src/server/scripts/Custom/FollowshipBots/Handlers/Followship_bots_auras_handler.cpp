@@ -1,5 +1,6 @@
 #include "Followship_bots_utils.h"
 
+#include "followship_bots_druid.h"
 #include "followship_bots_mage.h"
 #include "followship_bots_warlock.h"
 #include "followship_bots_warrior.h"
@@ -7,10 +8,12 @@
 #include "Followship_bots_auras_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_recovery_handler.h"
+#include "Followship_bots_regen_handler.h"
+#include "Followship_bots_stats_handler.h"
 
 namespace FSBAuras
 {
-    void BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBUtilsStatsMods& mods, bool& hasSS)
+    void BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBRegenMods& botRegenMods, bool& hasSS)
     {
         if (!bot)
             return;
@@ -18,18 +21,47 @@ namespace FSBAuras
         if (!aurApp || !aurApp->GetBase())
             return;
 
+        // First check class specific spell auras
+        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
+        switch (cls)
+        {
+        case FSB_Class::Warrior:
+            break;
+        case FSB_Class::Priest:
+            break;
+        case FSB_Class::Mage:
+            break;
+        case FSB_Class::Rogue:
+            break;
+        case FSB_Class::Druid:
+            if (FSBDruid::BotOnAuraApplied(bot, aurApp, applied))
+                break;
+            break;
+        case FSB_Class::Paladin:
+            break;
+        case FSB_Class::Hunter:
+            break;
+        case FSB_Class::Warlock:
+            break;
+        case FSB_Class::Shaman:
+            break;
+        default:
+            break;
+        }
+
+        // Generic Spell Auras
         switch (aurApp->GetBase()->GetId())
         {
-            // Generic
         case SPELL_DRINK_CONJURED_CRYSTAL_WATER:
         {
             int32 amount = FSBRecovery::GetDrinkFood(bot->GetLevel()) * 2;
 
             if(applied)
-                mods.flatManaPerTick += amount;
+                botRegenMods.flatManaPerTick += amount;
             else if (!applied)
             {
-                mods.flatManaPerTick -= amount;
+                botRegenMods.flatManaPerTick -= amount;
 
                 if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
                 {
@@ -49,10 +81,10 @@ namespace FSBAuras
             int32 amount = FSBRecovery::GetDrinkFood(bot->GetLevel()) * 2;
 
             if(applied)
-                mods.flatHealthPerTick += amount;
+                botRegenMods.flatHealthPerTick += amount;
             else if (!applied)
             {
-                mods.flatHealthPerTick -= amount;
+                botRegenMods.flatHealthPerTick -= amount;
 
                 if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
                 {
@@ -90,7 +122,7 @@ namespace FSBAuras
             else if(!applied)
                 bot->SetStatPctModifier(UNIT_MOD_MANA, TOTAL_PCT, pct - 0.03f);
 
-            FSBUtilsStats::RecalculateMods(bot);
+            FSBStats::RecalculateStats(bot, false, false);
 
             break;
         }
@@ -98,11 +130,11 @@ namespace FSBAuras
         case SPELL_MAGE_EVOCATION:
         {
             if(applied)
-                mods.pctManaPerTick += 1500.f;
+                botRegenMods.pctManaPerTick += 1500.f;
             else if(!applied)
-                mods.pctManaPerTick -= 1500.f;
+                botRegenMods.pctManaPerTick -= 1500.f;
 
-            FSBUtilsStats::RecalculateMods(bot);
+            FSBStats::RecalculateStats(bot, false, false);
 
             break;
         }
@@ -130,7 +162,7 @@ namespace FSBAuras
                 bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, rapPct - 0.1f);
             }
 
-            FSBUtilsStats::RecalculateMods(bot);
+            FSBStats::RecalculateStats(bot, false, false);
 
             break;
         }
@@ -149,7 +181,7 @@ namespace FSBAuras
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, pct - 0.02f);
             }
 
-            FSBUtilsStats::RecalculateMods(bot);
+            FSBStats::RecalculateStats(bot, false, false);
 
             break;
         }
@@ -164,7 +196,7 @@ namespace FSBAuras
             else if(!applied)
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, pct - 0.1f);
 
-            FSBUtilsStats::RecalculateMods(bot);
+            FSBStats::RecalculateStats(bot, false, false);
 
             break;
         }
@@ -177,7 +209,7 @@ namespace FSBAuras
             else if(!applied)
                 bot->ApplyStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, -0.05f);
 
-            FSBUtilsStats::RecalculateMods(bot);
+            FSBStats::RecalculateStats(bot, false, false);
 
             break;
         }
@@ -185,9 +217,9 @@ namespace FSBAuras
         case SPELL_WARRIOR_BATTLE_STANCE:
         {
             if(applied)
-                mods.flatRagePerTick += 20;
+                botRegenMods.flatRagePerTick += 20;
             else if(!applied)
-                mods.flatRagePerTick -= 20;
+                botRegenMods.flatRagePerTick -= 20;
 
             break;
         }

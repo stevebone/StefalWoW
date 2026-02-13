@@ -5,7 +5,8 @@
 #include "Unit.h"
 
 #include "Followship_bots_defines.h"
-#include "Followship_bots_utils_stats.h"
+
+#include "Followship_bots_regen_handler.h"
 
 class FSB_BaseAI : public ScriptedAI
 {
@@ -15,6 +16,7 @@ public:
         botClass(FSB_Class::None),
         botRace(FSB_Race::None),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
+        botRegenMods(),
 
         botHired(false),
         botMounted(false),
@@ -30,6 +32,7 @@ public:
     FSB_Class botClass;
     FSB_Race botRace;
     FSB_MovementStates botMoveState;
+    FSBRegenMods botRegenMods;
 
     bool botHired;
     bool botMounted;

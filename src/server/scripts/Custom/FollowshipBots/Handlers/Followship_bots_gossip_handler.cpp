@@ -216,24 +216,32 @@ namespace FSBGossip
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
-                bot->CastSpell(bot, SPELL_DRUID_BEAR);
+                FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_TANK);
+                //FSBDruid::BotSetRolePower(bot, FSB_ROLE_TANK);
+                //bot->CastSpell(bot, SPELL_DRUID_BEAR);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
-                bot->CastSpell(bot, SPELL_DRUID_CAT);
+                FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_MELEE_DAMAGE);
+                //FSBDruid::BotSetRolePower(bot, FSB_ROLE_MELEE_DAMAGE);
+                //bot->CastSpell(bot, SPELL_DRUID_CAT);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_HEALER);
+                //FSBDruid::BotSetRolePower(bot, FSB_ROLE_HEALER);
                 //bot->CastSpell(bot, SPELL_DRUID_TREE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_4)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
+                FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_RANGED_DAMAGE);
+                //FSBDruid::BotSetRolePower(bot, FSB_ROLE_RANGED_DAMAGE);
                 //bot->CastSpell(bot, SPELL_DRUID_MOONKIN);
                 break;
             }

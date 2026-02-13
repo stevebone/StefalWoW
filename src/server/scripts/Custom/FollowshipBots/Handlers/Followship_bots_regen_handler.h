@@ -1,8 +1,19 @@
+#pragma once
 
-#include "Followship_bots_utils.h"
+
+struct FSBRegenMods
+{
+    // REGEN
+    int32 flatHealthPerTick = 0;
+    int32 flatManaPerTick = 0;
+    int32 flatRagePerTick = 0;
+
+    float pctHealthPerTick = 0;
+    float pctManaPerTick = 0;
+};
 
 namespace FSBRegen
 {
-    void ApplyBotRegen(Unit* unit, FSB_Class botClass, const FSBUtilsStatsMods& mods, bool doHealth, bool doMana);
-    void ProcessBotCustomRegenTick(Creature* creature, FSB_Class botClass, const FSBUtilsStatsMods& _baseStatsMods, const FSBUtilsStatsMods& _statsMods);
+    void ApplyBotRegen(Unit* unit, FSB_Class botClass, FSBRegenMods regenMods, bool doHealth, bool doMana);
+    void ProcessBotCustomRegenTick(Creature* creature, FSB_Class botClass, FSBRegenMods regenMods);
 }

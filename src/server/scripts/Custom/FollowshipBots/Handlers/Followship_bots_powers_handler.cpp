@@ -1,9 +1,39 @@
 
 #include "Followship_bots_powers_handler.h"
-#include "Followship_bots_utils_stats.h"
+#include "Followship_bots_stats_handler.h"
+#include "Followship_bots_utils.h"
+
+#include "Followship_bots_druid.h"
 
 namespace FSBPowers
 {
+    void UpdateMaxPower(Creature* bot, Powers power)
+    {
+        if (bot->GetPowerIndex(power) == MAX_POWERS)
+            return;
+
+        UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(power));
+
+        float value = bot->GetFlatModifierValue(unitMod, BASE_VALUE);
+        value *= bot->GetPctModifierValue(unitMod, BASE_PCT);
+        value += bot->GetFlatModifierValue(unitMod, TOTAL_VALUE);
+        value *= bot->GetPctModifierValue(unitMod, TOTAL_PCT);
+
+        if (IsRageUser(bot))
+        {
+            power = POWER_RAGE;
+            value = 1000.f;
+        }
+
+        if (IsEnergyUser(bot))
+        {
+            power = POWER_ENERGY;
+            value = 1000.f;
+        }
+
+        bot->SetMaxPower(power, (int32)std::lroundf(value));
+    }
+
     Powers GetBotPowerType(Creature* bot)
     {
         if (!bot)
@@ -20,21 +50,22 @@ namespace FSBPowers
         return POWER_MANA; // safe fallback
     }
 
-    bool SpendManaPct(Creature* bot, float pct)
+    bool SpendPowerPct(Creature* bot, float pct)
     {
         if (!bot || pct <= 0.0f)
             return false;
 
-        uint32 maxMana = bot->GetMaxPower(POWER_MANA);
-        if (!maxMana)
+        Powers power = bot->GetPowerType();
+        uint32 maxPower = bot->GetMaxPower(power);
+        if (!maxPower)
             return false;
 
-        int32 cost = uint32(maxMana * pct);
+        int32 cost = uint32(maxPower * pct);
 
-        if (bot->GetPower(POWER_MANA) < cost)
+        if (bot->GetPower(power) < cost)
             return false;
 
-        bot->ModifyPower(POWER_MANA, -int32(cost));
+        bot->ModifyPower(power, -int32(cost));
 
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat spellcasting: Reduced power mana by {} for bot: {}", cost, bot->GetName());
 
@@ -55,7 +86,12 @@ namespace FSBPowers
 
     bool IsRageUser(Creature* bot)
     {
-        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Warrior;
+        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Warrior || bot->HasAura(SPELL_DRUID_BEAR);
+    }
+
+    bool IsEnergyUser(Creature* bot)
+    {
+        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Rogue || bot->HasAura(SPELL_DRUID_CAT);
     }
 
     void GenerateRageFromDamageTaken(Creature* bot, uint32 damage)
