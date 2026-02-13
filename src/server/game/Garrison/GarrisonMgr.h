@@ -29,7 +29,12 @@
 
 struct GameObjectsEntry;
 struct GarrAbilityEntry;
+struct GarrEncounterEntry;
 struct GarrFollowerEntry;
+struct GarrMechanicEntry;
+struct GarrMechanicTypeEntry;
+struct GarrMissionEntry;
+struct GarrMissionXEncounterEntry;
 struct GarrSiteLevelEntry;
 struct GarrSiteLevelPlotInstEntry;
 
@@ -74,6 +79,13 @@ public:
     std::list<GarrAbilityEntry const*> RollFollowerAbilities(uint32 garrFollowerId, GarrFollowerEntry const* follower, uint32 quality, uint32 faction, bool initial) const;
     std::list<GarrAbilityEntry const*> GetClassSpecAbilities(GarrFollowerEntry const* follower, uint32 faction) const;
 
+    // Mission system accessors
+    std::vector<GarrMissionEntry const*> const* GetMissionsByGarrType(int8 garrTypeID) const;
+    std::vector<GarrMissionXEncounterEntry const*> const* GetMissionEncounters(uint32 garrMissionID) const;
+    std::vector<GarrMechanicEntry const*> const* GetEncounterMechanics(uint32 garrEncounterID) const;
+    GarrMechanicTypeEntry const* GetMechanicType(int32 garrMechanicTypeID) const;
+    bool DoesAbilityCounterMechanic(GarrAbilityEntry const* ability, GarrMechanicTypeEntry const* mechanicType) const;
+
 private:
     void InitializeDbIdSequences();
     void LoadPlotFinalizeGOInfo();
@@ -88,6 +100,11 @@ private:
     std::unordered_map<uint32 /*garrFollowerId*/, GarrAbilities> _garrisonFollowerAbilities[2];
     std::unordered_map<uint32 /*classSpecId*/, std::list<GarrAbilityEntry const*>> _garrisonFollowerClassSpecAbilities;
     std::set<GarrAbilityEntry const*> _garrisonFollowerRandomTraits;
+
+    // Mission system indices
+    std::unordered_map<int8 /*garrTypeID*/, std::vector<GarrMissionEntry const*>> _missionsByGarrType;
+    std::unordered_map<uint32 /*garrMissionID*/, std::vector<GarrMissionXEncounterEntry const*>> _missionEncounters;
+    std::unordered_map<uint32 /*garrEncounterID*/, std::vector<GarrMechanicEntry const*>> _encounterMechanics;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
 };

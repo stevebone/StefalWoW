@@ -2206,6 +2206,37 @@ struct GarrClassSpecLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 8, &GarrClassSpecMeta::Instance, HOTFIX_SEL_GARR_CLASS_SPEC };
 };
 
+struct GarrEncounterLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[9] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CreatureID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CreatureDisplayInfoID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "UiAnimHeight" },
+        { .IsSigned = false, .Type = FT_FLOAT, .Name = "UiAnimScale" },
+        { .IsSigned = false, .Type = FT_FLOAT, .Name = "UiTextureScale" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "EnvGarrMechanicTypeID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrEncounterSetID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 9, &GarrEncounterMeta::Instance, HOTFIX_SEL_GARR_ENCOUNTER };
+};
+
+struct GarrEncounterXMechanicLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[4] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrMechanicID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrMechanicSetID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrEncounterID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 4, &GarrEncounterXMechanicMeta::Instance, HOTFIX_SEL_GARR_ENCOUNTER_X_MECHANIC };
+};
+
 struct GarrFollowerLoadInfo
 {
     static constexpr DB2FieldMeta Fields[34] =
@@ -2263,6 +2294,33 @@ struct GarrFollowerXAbilityLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 5, &GarrFollowerXAbilityMeta::Instance, HOTFIX_SEL_GARR_FOLLOWER_X_ABILITY };
 };
 
+struct GarrMechanicLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[4] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrMechanicTypeID" },
+        { .IsSigned = false, .Type = FT_FLOAT, .Name = "Factor" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrAbilityID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 4, &GarrMechanicMeta::Instance, HOTFIX_SEL_GARR_MECHANIC };
+};
+
+struct GarrMechanicTypeLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrAbilityCategoryID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "Category" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &GarrMechanicTypeMeta::Instance, HOTFIX_SEL_GARR_MECHANIC_TYPE };
+};
+
 struct GarrMissionLoadInfo
 {
     static constexpr DB2FieldMeta Fields[34] =
@@ -2304,6 +2362,21 @@ struct GarrMissionLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 34, &GarrMissionMeta::Instance, HOTFIX_SEL_GARR_MISSION };
+};
+
+struct GarrMissionXEncounterLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[6] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "GarrEncounterID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "GarrMissionSetEncounterID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "CombatWeightBase" },
+        { .IsSigned = true, .Type = FT_BYTE, .Name = "CombatWeightMax" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrMissionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 6, &GarrMissionXEncounterMeta::Instance, HOTFIX_SEL_GARR_MISSION_X_ENCOUNTER };
 };
 
 struct GarrPlotLoadInfo

@@ -16,18 +16,22 @@
  */
 
 #include "Garrison.h"
+#include "Containers.h"
 #include "Creature.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
 #include "GameObject.h"
 #include "GameTime.h"
 #include "GarrisonMgr.h"
+#include "Item.h"
 #include "Log.h"
+#include "Mail.h"
 #include "Map.h"
 #include "MapManager.h"
 #include "ObjectMgr.h"
 #include "PhasingHandler.h"
 #include "Player.h"
+#include "Random.h"
 #include "VehicleDefines.h"
 #include "advstd.h"
 
@@ -824,10 +828,102 @@ void Garrison::RemoveFollowerFromBuilding(uint64 dbId)
 // Mission management
 // ============================================================
 
+void Garrison::PopulateMissionData(Mission& mission, GarrMissionEntry const* missionEntry) const
+{
+    // Populate encounters from DB2
+    if (std::vector<GarrMissionXEncounterEntry const*> const* missionEncounters = sGarrisonMgr.GetMissionEncounters(missionEntry->ID))
+    {
+        for (GarrMissionXEncounterEntry const* missionEncounter : *missionEncounters)
+        {
+            GarrEncounterEntry const* encounterEntry = sGarrEncounterStore.LookupEntry(missionEncounter->GarrEncounterID);
+            if (!encounterEntry)
+                continue;
+
+            WorldPackets::Garrison::GarrisonEncounter encounter;
+            encounter.GarrEncounterID = encounterEntry->ID;
+
+            // Populate mechanics for this encounter
+            if (std::vector<GarrMechanicEntry const*> const* mechanics = sGarrisonMgr.GetEncounterMechanics(encounterEntry->ID))
+            {
+                for (GarrMechanicEntry const* mechanic : *mechanics)
+                    encounter.Mechanics.push_back(mechanic->GarrMechanicTypeID);
+            }
+
+            // Also add the encounter's environment mechanic type if it has one
+            if (encounterEntry->EnvGarrMechanicTypeID != 0)
+                encounter.Mechanics.push_back(encounterEntry->EnvGarrMechanicTypeID);
+
+            mission.PacketInfo.Encounters.push_back(std::move(encounter));
+        }
+    }
+
+    // Populate rewards from OvermaxRewardPackID (used for both base and bonus rewards)
+    // WoD garrison missions use the RewardPack system
+    if (missionEntry->OvermaxRewardPackID != 0)
+    {
+        // Items from RewardPackXItem
+        if (std::vector<RewardPackXItemEntry const*> const* items = sDB2Manager.GetRewardPackItemsByRewardID(missionEntry->OvermaxRewardPackID))
+        {
+            for (RewardPackXItemEntry const* item : *items)
+            {
+                WorldPackets::Garrison::GarrisonMissionReward reward;
+                reward.ItemID = item->ItemID;
+                reward.ItemQuantity = item->ItemQuantity;
+                mission.PacketInfo.OvermaxRewards.push_back(std::move(reward));
+            }
+        }
+
+        // Currency from RewardPackXCurrencyType
+        if (std::vector<RewardPackXCurrencyTypeEntry const*> const* currencies = sDB2Manager.GetRewardPackCurrencyTypesByRewardID(missionEntry->OvermaxRewardPackID))
+        {
+            for (RewardPackXCurrencyTypeEntry const* currency : *currencies)
+            {
+                WorldPackets::Garrison::GarrisonMissionReward reward;
+                reward.CurrencyID = currency->CurrencyTypeID;
+                reward.CurrencyQuantity = currency->Quantity;
+                mission.PacketInfo.OvermaxRewards.push_back(std::move(reward));
+            }
+        }
+
+        // Gold from RewardPack
+        if (RewardPackEntry const* pack = sRewardPackStore.LookupEntry(missionEntry->OvermaxRewardPackID))
+        {
+            if (pack->Money > 0)
+            {
+                WorldPackets::Garrison::GarrisonMissionReward reward;
+                reward.CurrencyID = 0; // Gold
+                reward.CurrencyQuantity = pack->Money;
+                mission.PacketInfo.OvermaxRewards.push_back(std::move(reward));
+            }
+        }
+    }
+
+    // Base rewards: follower XP is always included, plus any from GarrMissionSetID-linked packs
+    // For WoD garrisons, the primary reward is follower XP + whatever the mission offers
+    if (missionEntry->BaseFollowerXP > 0)
+    {
+        WorldPackets::Garrison::GarrisonMissionReward reward;
+        reward.FollowerXP = missionEntry->BaseFollowerXP;
+        mission.PacketInfo.Rewards.push_back(std::move(reward));
+    }
+
+    // Add currency/gold from mission cost currency as a reward if mission uses a reward pack
+    // (many missions grant garrison resources as primary reward)
+    if (missionEntry->MissionCostCurrencyTypesID != 0 && missionEntry->MissionCost > 0)
+    {
+        // The reward is typically more than the cost, but varies per mission
+        // For now, base rewards are whatever the OvermaxRewards specify (this is correct for WoD)
+    }
+}
+
 void Garrison::AddMission(uint32 garrMissionId)
 {
     GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(garrMissionId);
     if (!missionEntry)
+        return;
+
+    // Don't add duplicate missions
+    if (_activeMissionRecIDs.count(garrMissionId))
         return;
 
     uint64 dbId = GenerateMissionDbId();
@@ -843,6 +939,11 @@ void Garrison::AddMission(uint32 garrMissionId)
     mission.PacketInfo.SuccessChance = 0;
     mission.PacketInfo.Flags = missionEntry->Flags;
     mission.PacketInfo.MissionScalar = missionEntry->AutoMissionScalar;
+
+    // Populate encounters and rewards from DB2 data
+    PopulateMissionData(mission, missionEntry);
+
+    _activeMissionRecIDs.insert(garrMissionId);
 
     WorldPackets::Garrison::GarrisonAddMissionResult addMissionResult;
     addMissionResult.GarrTypeID = missionEntry->GarrTypeID;
@@ -887,6 +988,92 @@ Garrison::Mission* Garrison::GetMissionByRecID(uint32 missionRecID)
             return &p.second;
 
     return nullptr;
+}
+
+int32 Garrison::CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> const& followerDBIDs) const
+{
+    GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
+    if (!missionEntry)
+        return 0;
+
+    int32 successChance = missionEntry->BaseCompletionChance;
+
+    // Collect all follower counter abilities
+    std::unordered_set<uint8> counteredMechanicCategories;
+    int32 totalFollowerLevel = 0;
+    int32 totalFollowerItemLevel = 0;
+    uint32 followerCount = 0;
+
+    for (uint64 followerDbId : followerDBIDs)
+    {
+        Follower const* follower = GetFollower(followerDbId);
+        if (!follower)
+            continue;
+
+        ++followerCount;
+        totalFollowerLevel += follower->PacketInfo.FollowerLevel;
+        totalFollowerItemLevel += follower->GetItemLevel();
+
+        // Check each follower ability against mission mechanics
+        for (GarrAbilityEntry const* ability : follower->PacketInfo.AbilityID)
+        {
+            if (!ability || (ability->Flags & GARRISON_ABILITY_FLAG_TRAIT))
+                continue; // Skip traits, only counter abilities matter
+
+            // Check against each encounter's mechanics
+            Mission const* missionData = GetMissionByRecID(missionRecID);
+            if (missionData)
+            {
+                for (auto const& encounter : missionData->PacketInfo.Encounters)
+                {
+                    for (int32 mechanicTypeID : encounter.Mechanics)
+                    {
+                        GarrMechanicTypeEntry const* mechanicType = sGarrisonMgr.GetMechanicType(mechanicTypeID);
+                        if (mechanicType && sGarrisonMgr.DoesAbilityCounterMechanic(ability, mechanicType))
+                            counteredMechanicCategories.insert(mechanicType->GarrAbilityCategoryID);
+                    }
+                }
+            }
+        }
+    }
+
+    if (followerCount == 0)
+        return 0;
+
+    // Count total mechanics across all encounters
+    uint32 totalMechanics = 0;
+    Mission const* mission = GetMissionByRecID(missionRecID);
+    if (mission)
+    {
+        for (auto const& encounter : mission->PacketInfo.Encounters)
+            totalMechanics += static_cast<uint32>(encounter.Mechanics.size());
+    }
+
+    // Each countered mechanic adds a bonus proportional to mission complexity
+    // For a typical mission with 3 mechanics, each counter is worth ~10-15%
+    if (totalMechanics > 0)
+    {
+        uint32 countered = static_cast<uint32>(counteredMechanicCategories.size());
+        float counterBonus = (static_cast<float>(countered) / static_cast<float>(totalMechanics)) * 45.0f;
+        successChance += static_cast<int32>(counterBonus);
+    }
+
+    // Level difference penalty (only for under-leveled followers)
+    int32 avgFollowerLevel = totalFollowerLevel / static_cast<int32>(followerCount);
+    int32 levelDiff = avgFollowerLevel - static_cast<int32>(missionEntry->TargetLevel);
+    if (levelDiff < 0)
+        successChance += levelDiff * 3; // -3% per level below target
+
+    // Item level bonus for missions with item level requirements
+    if (missionEntry->TargetItemLevel > 0 && followerCount > 0)
+    {
+        int32 avgFollowerItemLevel = totalFollowerItemLevel / static_cast<int32>(followerCount);
+        int32 iLvlDiff = avgFollowerItemLevel - static_cast<int32>(missionEntry->TargetItemLevel);
+        if (iLvlDiff > 0)
+            successChance += std::min(iLvlDiff / 10, 10); // +1% per 10 iLvl above target, capped at +10%
+    }
+
+    return std::clamp(successChance, 0, 100);
 }
 
 GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs)
@@ -947,23 +1134,8 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
             follower->PacketInfo.CurrentMissionID = missionRecID;
     }
 
-    // Calculate success chance based on base chance + follower levels
-    int32 successChance = missionEntry->BaseCompletionChance;
-
-    // Add bonus for each follower at or above target level
-    for (uint64 followerDbId : followerDBIDs)
-    {
-        if (Follower const* follower = GetFollower(followerDbId))
-        {
-            int32 levelDiff = int32(follower->PacketInfo.FollowerLevel) - int32(missionEntry->TargetLevel);
-            if (levelDiff > 0)
-                successChance += levelDiff * 3;
-            else if (levelDiff < 0)
-                successChance += levelDiff * 3;
-        }
-    }
-
-    successChance = std::clamp(successChance, 0, 100);
+    // Calculate success chance using encounter-based mechanic system
+    int32 successChance = CalculateSuccessChance(missionRecID, followerDBIDs);
 
     mission->PacketInfo.MissionState = 1; // In Progress
     mission->PacketInfo.StartTime = GameTime::GetGameTime();
@@ -1007,23 +1179,36 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
     if (!missionEntry)
         return GARRISON_ERROR_INVALID_MISSION;
 
-    // Roll success
-    bool succeeded = (rand() % 100) < mission->PacketInfo.SuccessChance;
+    // Roll success based on calculated success chance
+    bool succeeded = static_cast<int32>(urand(0, 99)) < mission->PacketInfo.SuccessChance;
 
-    // Award follower XP
+    // Award follower XP (awarded regardless of success)
     uint32 followerXP = missionEntry->BaseFollowerXP;
     for (uint64 followerDbId : mission->CurrentFollowerDBIDs)
     {
         if (Follower* follower = GetFollower(followerDbId))
         {
-            follower->PacketInfo.Xp += followerXP;
             follower->PacketInfo.CurrentMissionID = 0;
 
-            // Level up check (simple: 1000 XP per level)
-            while (follower->PacketInfo.Xp >= 1000 && follower->PacketInfo.FollowerLevel < 40)
+            if (followerXP > 0 && !(follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_NO_XP_GAIN))
             {
-                follower->PacketInfo.Xp -= 1000;
-                follower->PacketInfo.FollowerLevel++;
+                follower->PacketInfo.Xp += followerXP;
+
+                // Level up check: XP scales with level (level * 200 + 400)
+                uint32 xpToLevel = follower->PacketInfo.FollowerLevel * 200 + 400;
+                while (follower->PacketInfo.Xp >= xpToLevel && follower->PacketInfo.FollowerLevel < 100)
+                {
+                    follower->PacketInfo.Xp -= xpToLevel;
+                    follower->PacketInfo.FollowerLevel++;
+                    xpToLevel = follower->PacketInfo.FollowerLevel * 200 + 400;
+                }
+
+                // Send follower XP update
+                WorldPackets::Garrison::GarrisonFollowerChangedXP followerXPUpdate;
+                followerXPUpdate.Result = GARRISON_SUCCESS;
+                followerXPUpdate.TotalXp = followerXP;
+                followerXPUpdate.Follower = follower->PacketInfo;
+                _owner->SendDirectMessage(followerXPUpdate.Write());
             }
         }
     }
@@ -1031,18 +1216,65 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
     // Award mission rewards if succeeded
     if (succeeded)
     {
+        // Award base rewards
         for (auto const& reward : mission->PacketInfo.Rewards)
         {
             if (reward.ItemID > 0 && reward.ItemQuantity > 0)
             {
-                // Item rewards handled by client-side loot
+                ItemPosCountVec dest;
+                if (_owner->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, reward.ItemID, reward.ItemQuantity) == EQUIP_ERR_OK)
+                {
+                    if (Item* item = _owner->StoreNewItem(dest, reward.ItemID, true))
+                        _owner->SendNewItem(item, reward.ItemQuantity, true, false);
+                }
+                else
+                {
+                    // Mail overflow items
+                    MailDraft draft("Garrison Mission Reward", "A reward from a completed garrison mission.");
+                    if (Item* item = Item::CreateItem(reward.ItemID, reward.ItemQuantity, ItemContext::NONE, _owner))
+                    {
+                        item->SaveToDB(CharacterDatabaseTransaction(nullptr));
+                        draft.AddItem(item);
+                        draft.SendMailTo(CharacterDatabaseTransaction(nullptr), MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
+                    }
+                }
             }
             if (reward.CurrencyID > 0 && reward.CurrencyQuantity > 0)
                 _owner->AddCurrency(reward.CurrencyID, reward.CurrencyQuantity, CurrencyGainSource::GarrisonMissionReward);
         }
+
+        // Check if bonus roll was done (state 3) and award overmax rewards
+        if (mission->PacketInfo.MissionState == 3)
+        {
+            for (auto const& reward : mission->PacketInfo.OvermaxRewards)
+            {
+                if (reward.ItemID > 0 && reward.ItemQuantity > 0)
+                {
+                    ItemPosCountVec dest;
+                    if (_owner->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, reward.ItemID, reward.ItemQuantity) == EQUIP_ERR_OK)
+                    {
+                        if (Item* item = _owner->StoreNewItem(dest, reward.ItemID, true))
+                            _owner->SendNewItem(item, reward.ItemQuantity, true, false);
+                    }
+                    else
+                    {
+                        MailDraft draft("Garrison Mission Bonus", "A bonus reward from a garrison mission.");
+                        if (Item* item = Item::CreateItem(reward.ItemID, reward.ItemQuantity, ItemContext::NONE, _owner))
+                        {
+                            item->SaveToDB(CharacterDatabaseTransaction(nullptr));
+                            draft.AddItem(item);
+                            draft.SendMailTo(CharacterDatabaseTransaction(nullptr), MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
+                        }
+                    }
+                }
+                if (reward.CurrencyID > 0 && reward.CurrencyQuantity > 0)
+                    _owner->AddCurrency(reward.CurrencyID, reward.CurrencyQuantity, CurrencyGainSource::GarrisonMissionReward);
+            }
+        }
     }
 
     // Remove mission from active list
+    _activeMissionRecIDs.erase(missionRecID);
     for (auto itr = _missions.begin(); itr != _missions.end(); ++itr)
     {
         if (static_cast<uint32>(itr->second.PacketInfo.MissionRecID) == missionRecID)
@@ -1064,7 +1296,14 @@ GarrisonError Garrison::MissionBonusRoll(uint32 missionRecID)
     if (mission->PacketInfo.MissionState != 2)
         return GARRISON_ERROR_MISSION_NOT_COMPLETE;
 
-    mission->PacketInfo.MissionState = 3; // Bonus rolled
+    // The bonus roll uses the same success chance as the mission
+    // If the roll succeeds, the overmax rewards will be given when claiming
+    bool bonusSucceeded = static_cast<int32>(urand(0, 99)) < mission->PacketInfo.SuccessChance;
+
+    mission->PacketInfo.MissionState = bonusSucceeded ? 3 : 2;
+    // State 3 = bonus rolled successfully (overmax rewards will be awarded)
+    // Keep state 2 if bonus failed (only base rewards will be awarded on claim)
+
     return GARRISON_SUCCESS;
 }
 
@@ -1079,21 +1318,229 @@ void Garrison::RemoveMission(uint32 missionRecID)
                 if (Follower* follower = GetFollower(followerDbId))
                     follower->PacketInfo.CurrentMissionID = 0;
 
+            _activeMissionRecIDs.erase(missionRecID);
             _missions.erase(itr);
             break;
         }
     }
 }
 
+void Garrison::RemoveExpiredMissions()
+{
+    time_t now = GameTime::GetGameTime();
+    std::vector<uint32> expiredMissions;
+
+    for (auto const& p : _missions)
+    {
+        // Only check offered missions (not in-progress or completed)
+        if (p.second.PacketInfo.MissionState != 0)
+            continue;
+
+        // Check if offer has expired
+        if (Seconds(p.second.PacketInfo.OfferDuration).count() > 0)
+        {
+            time_t offerEnd = time_t(p.second.PacketInfo.OfferTime) + Seconds(p.second.PacketInfo.OfferDuration).count();
+            if (now >= offerEnd)
+                expiredMissions.push_back(p.second.PacketInfo.MissionRecID);
+        }
+    }
+
+    for (uint32 missionRecID : expiredMissions)
+        RemoveMission(missionRecID);
+}
+
 void Garrison::GenerateAvailableMissions()
 {
-    // Generate missions based on garrison type and level
-    // This is a simplified implementation - full version would query mission sets
+    if (!_siteLevel)
+        return;
+
+    // Determine garrison type from site level
+    // GarrSiteLevelEntry links to GarrSiteID which maps to a garrison type
+    int8 garrTypeID = GARRISON_TYPE_GARRISON; // WoD garrisons
+
+    std::vector<GarrMissionEntry const*> const* availableMissions = sGarrisonMgr.GetMissionsByGarrType(garrTypeID);
+    if (!availableMissions || availableMissions->empty())
+        return;
+
+    // Remove expired offers first
+    RemoveExpiredMissions();
+
+    // Count current offered missions (not in-progress or completed)
+    uint32 currentOffered = 0;
+    for (auto const& p : _missions)
+        if (p.second.PacketInfo.MissionState == 0)
+            ++currentOffered;
+
+    // Target: up to 15 available missions at a time
+    static constexpr uint32 MAX_AVAILABLE_MISSIONS = 15;
+    if (currentOffered >= MAX_AVAILABLE_MISSIONS)
+    {
+        _lastMissionGenerationTime = GameTime::GetGameTime();
+        return;
+    }
+
+    uint32 missionsToGenerate = MAX_AVAILABLE_MISSIONS - currentOffered;
+
+    // Get average follower level for filtering
+    int32 avgFollowerLevel = 0;
+    uint32 followerCount = 0;
+    for (auto const& p : _followers)
+    {
+        if (!(p.second.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE))
+        {
+            avgFollowerLevel += p.second.PacketInfo.FollowerLevel;
+            ++followerCount;
+        }
+    }
+
+    if (followerCount > 0)
+        avgFollowerLevel /= static_cast<int32>(followerCount);
+    else
+        avgFollowerLevel = 90; // Default for no followers
+
+    // Build eligible mission pool
+    std::vector<GarrMissionEntry const*> eligibleMissions;
+    for (GarrMissionEntry const* mission : *availableMissions)
+    {
+        // Skip missions already active
+        if (_activeMissionRecIDs.count(mission->ID))
+            continue;
+
+        // Filter by follower type (WoD garrison = FOLLOWER_TYPE_GARRISON)
+        if (mission->GarrFollowerTypeID != FOLLOWER_TYPE_GARRISON)
+            continue;
+
+        // Filter by target level (within +-5 levels of average follower level)
+        int32 levelDiff = std::abs(avgFollowerLevel - static_cast<int32>(mission->TargetLevel));
+        if (levelDiff > 5)
+            continue;
+
+        // Skip missions requiring more followers than available
+        uint32 availableFollowers = 0;
+        for (auto const& p : _followers)
+        {
+            if (p.second.PacketInfo.CurrentMissionID == 0
+                && !(p.second.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE))
+                ++availableFollowers;
+        }
+
+        if (mission->MaxFollowers > availableFollowers)
+            continue;
+
+        // Skip missions with 0 duration (usually internal/debug)
+        if (mission->MissionDuration == 0)
+            continue;
+
+        eligibleMissions.push_back(mission);
+    }
+
+    // Random selection from eligible pool
+    if (eligibleMissions.size() > missionsToGenerate)
+    {
+        Trinity::Containers::RandomResize(eligibleMissions, missionsToGenerate);
+    }
+
+    for (GarrMissionEntry const* missionEntry : eligibleMissions)
+        AddMission(missionEntry->ID);
+
+    _lastMissionGenerationTime = GameTime::GetGameTime();
 }
 
 uint64 Garrison::GenerateMissionDbId()
 {
     return _missionDbIdGenerator++;
+}
+
+// ============================================================
+// Recruitment
+// ============================================================
+
+void Garrison::GenerateRecruits(uint32 faction)
+{
+    _availableRecruits.clear();
+
+    // Find all followers of the garrison type that the player doesn't already have
+    std::vector<GarrFollowerEntry const*> eligibleFollowers;
+    for (GarrFollowerEntry const* follower : sGarrFollowerStore)
+    {
+        if (follower->GarrFollowerTypeID != FOLLOWER_TYPE_GARRISON)
+            continue;
+
+        // Skip followers the player already has
+        if (_followerIds.count(follower->ID))
+            continue;
+
+        // Skip unique followers that are faction-specific
+        if (follower->Flags & GARRISON_FOLLOWER_FLAG_UNIQUE)
+            continue;
+
+        eligibleFollowers.push_back(follower);
+    }
+
+    if (eligibleFollowers.empty())
+        return;
+
+    // Pick up to 3 random followers
+    Trinity::Containers::RandomResize(eligibleFollowers, std::min<size_t>(3, eligibleFollowers.size()));
+
+    for (GarrFollowerEntry const* followerEntry : eligibleFollowers)
+    {
+        WorldPackets::Garrison::GarrisonFollower recruit;
+        recruit.DbID = 0; // Not yet in DB
+        recruit.GarrFollowerID = followerEntry->ID;
+        recruit.Quality = urand(1, 3); // Uncommon to Rare
+        recruit.FollowerLevel = std::max<int32>(90, _owner->GetLevel() - 5);
+        recruit.ItemLevelWeapon = 600;
+        recruit.ItemLevelArmor = 600;
+        recruit.CurrentMissionID = 0;
+        recruit.CurrentBuildingID = 0;
+        recruit.FollowerStatus = 0;
+        recruit.Xp = 0;
+        recruit.Durability = 5;
+        // Durability represents remaining health points for the follower (max 5 for WoD)
+
+        // Roll abilities based on quality
+        std::list<GarrAbilityEntry const*> abilities = sGarrisonMgr.RollFollowerAbilities(
+            followerEntry->ID, followerEntry, recruit.Quality, faction, true);
+
+        for (GarrAbilityEntry const* ability : abilities)
+            recruit.AbilityID.push_back(ability);
+
+        _availableRecruits.push_back(std::move(recruit));
+    }
+}
+
+GarrisonError Garrison::RecruitFollower(uint32 garrFollowerID)
+{
+    // Find the recruit in available recruits
+    auto itr = std::find_if(_availableRecruits.begin(), _availableRecruits.end(),
+        [garrFollowerID](WorldPackets::Garrison::GarrisonFollower const& f) {
+            return f.GarrFollowerID == garrFollowerID;
+        });
+
+    if (itr == _availableRecruits.end())
+        return GARRISON_ERROR_INVALID_AVAILABLE_RECRUIT;
+
+    // Check if already recruited
+    if (_followerIds.count(garrFollowerID))
+        return GARRISON_ERROR_FOLLOWER_ALREADY_RECRUITED;
+
+    // Add the follower (this uses the normal AddFollower which handles DB, packet, etc.)
+    AddFollower(garrFollowerID);
+
+    // Clear recruits after one is chosen
+    _availableRecruits.clear();
+
+    return GARRISON_SUCCESS;
+}
+
+void Garrison::HealAllFollowers()
+{
+    for (auto& p : _followers)
+    {
+        p.second.PacketInfo.Health = static_cast<int32>(p.second.PacketInfo.Durability);
+        p.second.PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_EXHAUSTED;
+    }
 }
 
 Map* Garrison::FindMap() const

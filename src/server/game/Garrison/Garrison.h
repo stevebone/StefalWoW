@@ -287,6 +287,17 @@ public:
     void RemoveMission(uint32 missionRecID);
     void GenerateAvailableMissions();
     uint64 GenerateMissionDbId();
+    int32 CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> const& followerDBIDs) const;
+    void PopulateMissionData(Mission& mission, GarrMissionEntry const* missionEntry) const;
+    void RemoveExpiredMissions();
+
+    // Recruitment
+    void GenerateRecruits(uint32 faction);
+    GarrisonError RecruitFollower(uint32 garrFollowerID);
+    std::vector<WorldPackets::Garrison::GarrisonFollower> const& GetAvailableRecruits() const { return _availableRecruits; }
+
+    // Follower healing
+    void HealAllFollowers();
 
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
@@ -310,6 +321,11 @@ private:
     std::unordered_set<uint32> _followerIds;
     std::unordered_map<uint64 /*dbId*/, Mission> _missions;
     uint64 _missionDbIdGenerator = 1;
+    time_t _lastMissionGenerationTime = 0;
+    std::unordered_set<uint32 /*missionRecID*/> _activeMissionRecIDs;
+
+    // Recruitment
+    std::vector<WorldPackets::Garrison::GarrisonFollower> _availableRecruits;
 };
 
 #endif // Garrison_h__

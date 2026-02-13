@@ -114,9 +114,14 @@ TC_GAME_API extern DB2Storage<GarrAbilityEntry>                     sGarrAbility
 TC_GAME_API extern DB2Storage<GarrBuildingEntry>                    sGarrBuildingStore;
 TC_GAME_API extern DB2Storage<GarrBuildingPlotInstEntry>            sGarrBuildingPlotInstStore;
 TC_GAME_API extern DB2Storage<GarrClassSpecEntry>                   sGarrClassSpecStore;
+TC_GAME_API extern DB2Storage<GarrEncounterEntry>                   sGarrEncounterStore;
+TC_GAME_API extern DB2Storage<GarrEncounterXMechanicEntry>          sGarrEncounterXMechanicStore;
 TC_GAME_API extern DB2Storage<GarrFollowerEntry>                    sGarrFollowerStore;
 TC_GAME_API extern DB2Storage<GarrFollowerXAbilityEntry>            sGarrFollowerXAbilityStore;
+TC_GAME_API extern DB2Storage<GarrMechanicEntry>                    sGarrMechanicStore;
+TC_GAME_API extern DB2Storage<GarrMechanicTypeEntry>                sGarrMechanicTypeStore;
 TC_GAME_API extern DB2Storage<GarrMissionEntry>                     sGarrMissionStore;
+TC_GAME_API extern DB2Storage<GarrMissionXEncounterEntry>           sGarrMissionXEncounterStore;
 TC_GAME_API extern DB2Storage<GarrPlotEntry>                        sGarrPlotStore;
 TC_GAME_API extern DB2Storage<GarrPlotBuildingEntry>                sGarrPlotBuildingStore;
 TC_GAME_API extern DB2Storage<GarrPlotInstanceEntry>                sGarrPlotInstanceStore;

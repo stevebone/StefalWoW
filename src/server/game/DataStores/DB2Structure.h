@@ -1887,6 +1887,27 @@ struct GarrClassSpecEntry
     int32 Flags;
 };
 
+struct GarrEncounterEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    int32 CreatureID;
+    int32 CreatureDisplayInfoID;
+    uint32 UiAnimHeight;
+    float UiAnimScale;
+    float UiTextureScale;
+    int32 EnvGarrMechanicTypeID;
+    int32 GarrEncounterSetID;
+};
+
+struct GarrEncounterXMechanicEntry
+{
+    uint32 ID;
+    int32 GarrMechanicID;
+    uint8 GarrMechanicSetID;
+    int32 GarrEncounterID;
+};
+
 struct GarrFollowerEntry
 {
     uint32 ID;
@@ -1934,6 +1955,23 @@ struct GarrFollowerXAbilityEntry
     uint32 GarrFollowerID;
 };
 
+struct GarrMechanicEntry
+{
+    uint32 ID;
+    int32 GarrMechanicTypeID;
+    float Factor;
+    int32 GarrAbilityID;
+};
+
+struct GarrMechanicTypeEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 GarrAbilityCategoryID;
+    uint8 Category;
+};
+
 struct GarrMissionEntry
 {
     uint32 ID;
@@ -1968,6 +2006,16 @@ struct GarrMissionEntry
     float AutoMissionScalar;
     int32 AutoMissionScalarCurveID;
     int32 AutoCombatantEnvCasterID;
+};
+
+struct GarrMissionXEncounterEntry
+{
+    uint32 ID;
+    uint32 GarrEncounterID;
+    uint32 GarrMissionSetEncounterID;
+    uint8 CombatWeightBase;
+    int8 CombatWeightMax;
+    int32 GarrMissionID;
 };
 
 struct GarrPlotEntry

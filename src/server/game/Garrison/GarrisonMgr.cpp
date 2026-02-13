@@ -73,6 +73,21 @@ void GarrisonMgr::Initialize()
         }
     }
 
+    // Build mission index by garrison type
+    for (GarrMissionEntry const* mission : sGarrMissionStore)
+        _missionsByGarrType[mission->GarrTypeID].push_back(mission);
+
+    // Build mission encounter index
+    for (GarrMissionXEncounterEntry const* missionEncounter : sGarrMissionXEncounterStore)
+        _missionEncounters[missionEncounter->GarrMissionID].push_back(missionEncounter);
+
+    // Build encounter mechanics index (GarrEncounterXMechanic -> GarrMechanic per encounter)
+    for (GarrEncounterXMechanicEntry const* encounterMechanic : sGarrEncounterXMechanicStore)
+    {
+        if (GarrMechanicEntry const* mechanic = sGarrMechanicStore.LookupEntry(encounterMechanic->GarrMechanicID))
+            _encounterMechanics[encounterMechanic->GarrEncounterID].push_back(mechanic);
+    }
+
     InitializeDbIdSequences();
     LoadPlotFinalizeGOInfo();
     LoadFollowerClassSpecAbilities();
@@ -330,6 +345,48 @@ std::list<GarrAbilityEntry const*> GarrisonMgr::GetClassSpecAbilities(GarrFollow
         abilities = itr->second;
 
     return abilities;
+}
+
+std::vector<GarrMissionEntry const*> const* GarrisonMgr::GetMissionsByGarrType(int8 garrTypeID) const
+{
+    auto itr = _missionsByGarrType.find(garrTypeID);
+    if (itr != _missionsByGarrType.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+std::vector<GarrMissionXEncounterEntry const*> const* GarrisonMgr::GetMissionEncounters(uint32 garrMissionID) const
+{
+    auto itr = _missionEncounters.find(garrMissionID);
+    if (itr != _missionEncounters.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+std::vector<GarrMechanicEntry const*> const* GarrisonMgr::GetEncounterMechanics(uint32 garrEncounterID) const
+{
+    auto itr = _encounterMechanics.find(garrEncounterID);
+    if (itr != _encounterMechanics.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+GarrMechanicTypeEntry const* GarrisonMgr::GetMechanicType(int32 garrMechanicTypeID) const
+{
+    return sGarrMechanicTypeStore.LookupEntry(garrMechanicTypeID);
+}
+
+bool GarrisonMgr::DoesAbilityCounterMechanic(GarrAbilityEntry const* ability, GarrMechanicTypeEntry const* mechanicType) const
+{
+    if (!ability || !mechanicType)
+        return false;
+
+    // An ability counters a mechanic if they share the same GarrAbilityCategoryID
+    return ability->GarrAbilityCategoryID == mechanicType->GarrAbilityCategoryID
+        && ability->GarrAbilityCategoryID != 0;
 }
 
 void GarrisonMgr::InitializeDbIdSequences()
