@@ -205,7 +205,7 @@ namespace FSBGossip
 
         player->PlayerTalkClass->SendCloseGossip();
     }
-    void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& demonDead)
+    void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon)
     {
         if (!bot)
             return;
@@ -343,7 +343,7 @@ namespace FSBGossip
                     bot->RemoveAurasDueToSpell(SPELL_WARLOCK_DEMON_ARMOR);
             }
 
-            demonDead = true;
+            botHasDemon = false;
 
             break;
         default:

@@ -85,7 +85,7 @@ public:
                 FSBUtils::SetBotClassAndRace(me, botClass, botRace);
                 FSBStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
-                demonDead = true;
+                botHasDemon = false;
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
@@ -368,17 +368,17 @@ public:
 
                 // Bot Role Option 1
             case GOSSIP_ACTION_INFO_DEF + 23:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_1, demonDead);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_1, botHasDemon);
                 break;
 
                 // Bot Role Option 2
             case GOSSIP_ACTION_INFO_DEF + 24:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_2, demonDead);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_2, botHasDemon);
                 break;
 
             // Bot Role Option 3
             case GOSSIP_ACTION_INFO_DEF + 25:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_3, demonDead);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_3, botHasDemon);
                 break;
 
             case GOSSIP_ACTION_INFO_DEF + 26:
@@ -414,7 +414,7 @@ public:
 
             // Bot Role Option 4 - Druid
             case GOSSIP_ACTION_INFO_DEF + 31:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_4, demonDead);
+                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_4, botHasDemon);
                 break;
 
             default:
@@ -568,22 +568,10 @@ public:
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
         {
-            if (summon)
+            if (summon && botClass == FSB_Class::Warlock)
             {
-                if (summon->GetEntry() == 42874)
-                {
-                    uint64 maxHealth = me->GetMaxHealth() * 1.5f;
-                    summon->SetMaxHealth(maxHealth);
-                    summon->SetHealth(maxHealth);
-                }
-                else if (summon->GetEntry() == 175190)
-                {
-                    uint64 maxHealth = me->GetMaxHealth() * 0.8f;
-                    summon->SetMaxHealth(maxHealth);
-                    summon->SetHealth(maxHealth);
-                }
-
-                demonDead = false;
+                FSBWarlock::AdjustSummonHealth(me, summon);
+                botHasDemon = true;
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} appeared", summon->GetName(), me->GetName());
             }
                 
@@ -591,7 +579,7 @@ public:
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
         {
-            demonDead = true;
+            botHasDemon = false;
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} died", summon->GetName(), me->GetName());
         }
 
@@ -779,7 +767,7 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, demonDead, botManaPotionUsed, botHealthPotionUsed))
+                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, botHasDemon, botManaPotionUsed, botHealthPotionUsed))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
 
                             // ? lock regen for next 2 seconds
@@ -1239,11 +1227,7 @@ public:
 
             uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;
-            uint32 _1secondsCheckMs = 0;
-
-            // Warlock bot
-            bool demonDead = true;
-            
+            uint32 _1secondsCheckMs = 0;            
     };
 
     

@@ -73,7 +73,7 @@ namespace FSBStats
         if (FSBPowers::IsEnergyUser(bot))
         {
             basePowerType = POWER_ENERGY;
-            basePower = 1000;
+            basePower = 100;
         }
 
         bot->SetPowerType(basePowerType, true);
@@ -139,7 +139,7 @@ namespace FSBStats
         if (FSBPowers::IsEnergyUser(bot))
         {
             basePowerType = POWER_ENERGY;
-            basePower = 1000;
+            basePower = 100;
         }
 
         bot->SetPowerType(basePowerType, true);

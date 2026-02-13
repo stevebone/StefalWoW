@@ -17,7 +17,7 @@
 
 namespace FSBOOC
 {
-    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup, bool& demonDead, bool& botManaPotionUsed, bool& botHealthPotionUsed)
+    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup, bool& botHasDemon, bool& botManaPotionUsed, bool& botHealthPotionUsed)
     {
         if (!bot)
             return false;
@@ -58,7 +58,7 @@ namespace FSBOOC
             return true;
 
         //5. Warlock Demon Summon
-        if (BotOOCSummonDemons(bot, globalCooldown, demonDead))
+        if (BotOOCSummonDemons(bot, globalCooldown, botHasDemon))
             return true;
 
         //6. Warlock SoulStone
@@ -119,7 +119,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCSummonDemons(Creature* bot, uint32& globalCooldown, bool& demonDead)
+    bool BotOOCSummonDemons(Creature* bot, uint32& globalCooldown, bool& botHasDemon)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -132,7 +132,7 @@ namespace FSBOOC
         if (cls != FSB_Class::Warlock)
             return false;
 
-        if (FSBWarlock::BotSummonRandomDemon(bot, globalCooldown, demonDead))
+        if (FSBWarlock::BotSummonRandomDemon(bot, globalCooldown, botHasDemon))
             return true;
 
         return false;

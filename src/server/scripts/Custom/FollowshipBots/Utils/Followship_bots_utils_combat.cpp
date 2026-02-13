@@ -391,6 +391,9 @@ namespace FSBUtilsBotCombat
         case FSB_ROLE_RANGED_FIRE:
         case FSB_ROLE_RANGED_FROST:
         case FSB_ROLE_RANGED_DAMAGE:
+        case FSB_ROLE_RANGED_DESTRUCTION:
+        case FSB_ROLE_RANGED_AFFLICTION:
+        case FSB_ROLE_RANGED_DEMONOLOGY:
             return 28.0f;
 
         case FSB_ROLE_HEALER:

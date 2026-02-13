@@ -57,7 +57,7 @@ namespace FSBGroup
             FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
 
             // Check healer role
-            if (role == FSB_ROLE_HEALER)
+            if (role == FSB_Roles::FSB_ROLE_HEALER)
             {
                 return member; // first healer found
             }

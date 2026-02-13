@@ -81,5 +81,5 @@ namespace FSBGossip
     bool HandleGossipMenuRoles(Creature* bot, Player* player);
 
     void HandleGossipItemInfo(Creature* bot, Player* player);
-    void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& demonDead);
+    void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon);
 }

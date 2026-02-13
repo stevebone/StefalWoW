@@ -72,13 +72,15 @@ enum FSB_WARLOCK_DESTRUCTION_SPELLS
 
 namespace FSBWarlock
 {
-    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup);
+    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*>& botGroup);
 
     bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId);
 
-    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& demonDead);
+    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& botHasDemon);
 
     bool BotHasUnendingResolve(Creature* bot);
 
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
+
+    void AdjustSummonHealth(Creature* bot, Creature* summon);
 }

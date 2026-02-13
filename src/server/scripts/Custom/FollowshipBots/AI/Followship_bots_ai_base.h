@@ -23,6 +23,7 @@ public:
         botHasSoulstone(false),
         botManaPotionUsed(false),
         botHealthPotionUsed(false),
+        botHasDemon(false),
 
         botCorpsePos()
     {
@@ -37,6 +38,7 @@ public:
     bool botHired;
     bool botMounted;
     bool botHasSoulstone;
+    bool botHasDemon;
     bool botManaPotionUsed;
     bool botHealthPotionUsed;
 

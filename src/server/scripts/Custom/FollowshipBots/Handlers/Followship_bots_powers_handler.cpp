@@ -7,33 +7,6 @@
 
 namespace FSBPowers
 {
-    void UpdateMaxPower(Creature* bot, Powers power)
-    {
-        if (bot->GetPowerIndex(power) == MAX_POWERS)
-            return;
-
-        UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(power));
-
-        float value = bot->GetFlatModifierValue(unitMod, BASE_VALUE);
-        value *= bot->GetPctModifierValue(unitMod, BASE_PCT);
-        value += bot->GetFlatModifierValue(unitMod, TOTAL_VALUE);
-        value *= bot->GetPctModifierValue(unitMod, TOTAL_PCT);
-
-        if (IsRageUser(bot))
-        {
-            power = POWER_RAGE;
-            value = 1000.f;
-        }
-
-        if (IsEnergyUser(bot))
-        {
-            power = POWER_ENERGY;
-            value = 1000.f;
-        }
-
-        bot->SetMaxPower(power, (int32)std::lroundf(value));
-    }
-
     Powers GetBotPowerType(Creature* bot)
     {
         if (!bot)

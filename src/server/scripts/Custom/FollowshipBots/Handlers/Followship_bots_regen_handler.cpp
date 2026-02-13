@@ -7,12 +7,12 @@
 
 namespace FSBRegen
 {
-    void ApplyBotRegen(Unit* unit, FSB_Class botClass, FSBRegenMods regenMods, bool doHealth, bool doMana)
+    void ApplyBotRegen(Creature* bot, FSB_Class botClass, FSBRegenMods regenMods, bool doHealth, bool doMana)
     {
-        if (!unit || !unit->IsAlive())
+        if (!bot || !bot->IsAlive())
             return;
 
-        bool inCombat = unit->IsInCombat() || unit->HasUnitFlag(UNIT_FLAG_IN_COMBAT);
+        bool inCombat = bot->IsInCombat() || bot->HasUnitFlag(UNIT_FLAG_IN_COMBAT);
 
         // Fetch class base stats
         auto const* classStats = FSBStats::GetBotClassStats(botClass);
@@ -20,7 +20,7 @@ namespace FSBRegen
             return;
 
         // ---------- HEALTH ----------
-        if (doHealth && unit->GetHealthPct() < 100)
+        if (doHealth && bot->GetHealthPct() < 100)
         {
             int32 baseHpRegen = inCombat
                 ? classStats->baseHpRegenIC
@@ -31,18 +31,18 @@ namespace FSBRegen
 
             if (regenMods.pctHealthPerTick > 0.0f)
             {
-                uint32 maxHp = unit->GetMaxHealth();
+                uint32 maxHp = bot->GetMaxHealth();
                 amount += int32(maxHp * regenMods.pctHealthPerTick);
             }
 
             if (amount > 0)
-                unit->ModifyHealth(amount);
+                bot->ModifyHealth(amount);
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (HP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
 
         // ---------- POWER ----------
-        if (doMana && unit->GetPowerType() == POWER_MANA && unit->GetPowerPct(POWER_MANA) < 100)
+        if (doMana && bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) < 100)
         {
             int32 basePowerRegen = inCombat
                 ? classStats->basePowerRegenIC
@@ -52,17 +52,17 @@ namespace FSBRegen
 
             if (regenMods.pctManaPerTick > 0.0f)
             {
-                uint32 maxPower = unit->GetMaxPower(POWER_MANA);
+                uint32 maxPower = bot->GetMaxPower(POWER_MANA);
                 amount += int32(maxPower * regenMods.pctManaPerTick);
             }
 
             if (amount > 0)
-                unit->ModifyPower(POWER_MANA, amount);
+                bot->ModifyPower(POWER_MANA, amount);
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
 
-        else if (FSBPowers::IsRageUser(unit->ToCreature()))
+        else if (FSBPowers::IsRageUser(bot))
         {
             // need this for druid bear form which has positive power regen
             int32 rageRegenOOC = classStats->basePowerRegenOOC;
@@ -74,17 +74,44 @@ namespace FSBRegen
                 ? classStats->basePowerRegenIC
                 : rageRegenOOC;
 
-            int32 maxPower = int32(unit->GetMaxPower(POWER_RAGE));
+            int32 maxPower = int32(bot->GetMaxPower(POWER_RAGE));
 
             int32 amount = (basePowerRegen * maxPower) / 100;
 
-            if (regenMods.flatRagePerTick > 0 && unit->IsInCombat())
+            if (regenMods.flatRagePerTick > 0 && bot->IsInCombat())
                 amount = basePowerRegen + regenMods.flatRagePerTick;
 
             if (amount != 0)
-                unit->ModifyPower(POWER_RAGE, amount);
+                bot->ModifyPower(POWER_RAGE, amount);
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (RP={}) in combat: {}", unit->GetName(), amount, inCombat);
+        }
+
+        // ---------- ENERGY ----------
+        else if (FSBPowers::IsEnergyUser(bot))
+        {
+            // need this for druid cat form which does not have power regen IC
+            int32 baseEnergyRegenIC = classStats->basePowerRegenIC;
+
+            if (baseEnergyRegenIC == 0)
+                baseEnergyRegenIC = 10;
+
+            int32 basePowerRegen = inCombat
+                ? baseEnergyRegenIC
+                : classStats->basePowerRegenOOC;
+
+            int32 amount = basePowerRegen; //+ regenMods.flatManaPerTick;
+
+            //if (regenMods.pctManaPerTick > 0.0f)
+            //{
+            //    uint32 maxPower = bot->GetMaxPower(POWER_MANA);
+            //    amount += int32(maxPower * regenMods.pctManaPerTick);
+            //}
+
+            if (amount > 0)
+                bot->ModifyPower(POWER_ENERGY, amount);
+
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
     }
 

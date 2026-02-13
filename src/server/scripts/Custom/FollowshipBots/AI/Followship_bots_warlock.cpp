@@ -68,17 +68,17 @@ namespace FSBWarlock
         }
     }
 
-    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup)
+    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*>& botGroup)
     {
         if (!bot || !bot->IsAlive())
             return false;
 
         Unit* target = FSBGroup::BotGetFirstGroupHealer(botGroup);
-        if (target->HasAura(SPELL_WARLOCK_SOULSTONE))
+        if (target && target->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
 
         Player* player = FSBMgr::GetBotOwner(bot);
-        if (player->HasAura(SPELL_WARLOCK_SOULSTONE))
+        if (player && player->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
 
         if (bot->HasAura(SPELL_WARLOCK_SOULSTONE))
@@ -154,12 +154,12 @@ namespace FSBWarlock
         return false;
     }
 
-    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& demonDead)
+    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& botHasDemon)
     {
         if (!bot || !bot->IsAlive())
             return false;
 
-        if (!demonDead)
+        if (!botHasDemon)
             return false;
 
         FSB_Roles role = FSBUtils::GetRole(bot);
@@ -209,5 +209,38 @@ namespace FSBWarlock
 
         return false;
 
+    }
+
+    void AdjustSummonHealth(Creature* bot, Creature* summon)
+    {
+        if (!bot || !summon)
+            return;
+
+        switch (summon->GetEntry())
+        {
+        case 42874:
+        {
+            uint64 maxHealth = bot->GetMaxHealth() * 1.5f;
+            summon->SetMaxHealth(maxHealth);
+            summon->SetHealth(maxHealth);
+            break;
+        }
+        case 175190:
+        {
+            uint64 maxHealth = bot->GetMaxHealth() * 0.8f;
+            summon->SetMaxHealth(maxHealth);
+            summon->SetHealth(maxHealth);
+            break;
+        }
+        case 54303: // Doomguard
+        {
+            uint64 maxHealth = bot->GetMaxHealth();
+            summon->SetMaxHealth(maxHealth);
+            summon->SetHealth(maxHealth);
+            break;
+        }
+        default:
+            break;
+        }
     }
 }
