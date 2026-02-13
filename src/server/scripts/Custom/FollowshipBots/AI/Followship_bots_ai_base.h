@@ -38,9 +38,9 @@ public:
     bool botHired;
     bool botMounted;
     bool botHasSoulstone;
-    bool botHasDemon;
     bool botManaPotionUsed;
     bool botHealthPotionUsed;
+    bool botHasDemon;
 
     Position botCorpsePos;
 

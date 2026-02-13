@@ -54,35 +54,16 @@ namespace FSBDruid
         }
     }
 
-    void BotSetRolePower(Creature* bot, FSB_Roles role)
+    void HandleOnSpellCast(Creature* bot, uint32 spellId)
     {
-        if (!bot)
-            return;
+        switch (spellId)
+        {
+        case SPELL_DRUID_BEAR_THRASH:
+            bot->ModifyPower(POWER_RAGE, 60, false);
+            break;
 
-        switch (role)
-        {
-        case FSB_ROLE_TANK:
-        {
-            bot->SetPowerType(POWER_RAGE, true);
-            bot->SetMaxPower(POWER_RAGE, 1000);
-            bot->SetPower(POWER_RAGE, 0, true);
+        default:
             break;
-        }
-        case FSB_ROLE_MELEE_DAMAGE:
-        {
-            bot->SetPowerType(POWER_ENERGY, true);
-            bot->SetMaxPower(POWER_ENERGY, 100);
-            bot->SetPower(POWER_ENERGY, 100, true);
-            break;
-        }
-
-        case FSB_ROLE_HEALER:
-        case FSB_ROLE_RANGED_DAMAGE:
-        {
-            bot->SetPowerType(POWER_MANA, true);
-            bot->SetMaxPower(POWER_MANA, bot->GetMaxPower(POWER_MANA));
-            break;
-        }
         }
     }
 
@@ -146,5 +127,17 @@ namespace FSBDruid
         }
 
         FSBStats::RecalculateStats(bot, false, true);
+    }
+
+    bool BotHasMarkWild(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_DRUID_MARK_WILD))
+            return true;
+
+        return false;
+
     }
 }

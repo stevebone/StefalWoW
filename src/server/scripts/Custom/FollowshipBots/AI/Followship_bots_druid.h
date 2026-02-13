@@ -61,6 +61,7 @@ static const uint32 druidAurasToRemoveForDamage[] =
 namespace FSBDruid
 {
     bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied);
+    void HandleOnSpellCast(Creature* bot, uint32 spellId);
     void BotSetRoleAuras(Creature* bot, FSB_Roles role);
-    void BotSetRolePower(Creature* bot, FSB_Roles role);
+    bool BotHasMarkWild(Creature* bot);
 }

@@ -3,6 +3,7 @@
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
 
+#include "Followship_bots_druid.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
@@ -314,6 +315,9 @@ namespace FSBStats
         if (FSBWarlock::BotHasUnendingResolve(bot))
             multiplier *= 0.75f;
 
+        if (FSBDruid::BotHasMarkWild(bot))
+            multiplier *= 0.985f;
+
         return multiplier;
     }
 
@@ -337,6 +341,9 @@ namespace FSBStats
 
         if (FSBPaladin::BotHasAvengingWrath(bot))
             multiplier *= 1.2f;
+
+        if (FSBDruid::BotHasMarkWild(bot))
+            multiplier *= 1.03f;
 
         return multiplier;
     }

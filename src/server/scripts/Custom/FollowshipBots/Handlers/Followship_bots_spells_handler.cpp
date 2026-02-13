@@ -1,5 +1,6 @@
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_druid.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
@@ -27,6 +28,7 @@ namespace FSBSpells
         case FSB_Class::Rogue:
             break;
         case FSB_Class::Druid:
+            FSBDruid::HandleOnSpellCast(bot, spellId);
             break;
         case FSB_Class::Paladin:
             FSBPaladin::HandleOnSpellCast(bot, spellId);
