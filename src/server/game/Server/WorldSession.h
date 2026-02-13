@@ -352,6 +352,34 @@ namespace WorldPackets
         class GarrisonCancelConstruction;
         class GarrisonRequestBlueprintAndSpecializationData;
         class GarrisonGetMapData;
+        class GarrisonStartMission;
+        class GarrisonCompleteMission;
+        class GarrisonMissionBonusRoll;
+        class GarrisonGetMissionReward;
+        class OpenMissionNpc;
+        class UpgradeGarrison;
+        class GarrisonCheckUpgradeable;
+        class GarrisonSetBuildingActive;
+        class GarrisonSwapBuildings;
+        class GarrisonAssignFollowerToBuilding;
+        class GarrisonRemoveFollowerFromBuilding;
+        class GarrisonRemoveFollower;
+        class GarrisonRenameFollower;
+        class GarrisonSetFollowerFavorite;
+        class GarrisonSetFollowerInactive;
+        class GarrisonRecruitFollower;
+        class GarrisonGenerateRecruits;
+        class GarrisonFullyHealAllFollowers;
+        class GarrisonAddFollowerHealth;
+        class GarrisonGetClassSpecCategoryInfo;
+        class GarrisonSetRecruitmentPreferences;
+        class GarrisonLearnTalent;
+        class GarrisonResearchTalent;
+        class GarrisonSocketTalent;
+        class GarrisonRequestShipmentInfo;
+        class SetUsingPartyGarrison;
+        class QueryGarrisonPetName;
+        class RequestGarrisonTalentWorldQuestUnlocks;
     }
 
     namespace Guild
@@ -1840,6 +1868,34 @@ class TC_GAME_API WorldSession
         void HandleGarrisonCancelConstruction(WorldPackets::Garrison::GarrisonCancelConstruction& garrisonCancelConstruction);
         void HandleGarrisonRequestBlueprintAndSpecializationData(WorldPackets::Garrison::GarrisonRequestBlueprintAndSpecializationData& garrisonRequestBlueprintAndSpecializationData);
         void HandleGarrisonGetMapData(WorldPackets::Garrison::GarrisonGetMapData& garrisonGetMapData);
+        void HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonStartMission& garrisonStartMission);
+        void HandleGarrisonCompleteMission(WorldPackets::Garrison::GarrisonCompleteMission& garrisonCompleteMission);
+        void HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::GarrisonMissionBonusRoll& garrisonMissionBonusRoll);
+        void HandleGarrisonGetMissionReward(WorldPackets::Garrison::GarrisonGetMissionReward& garrisonGetMissionReward);
+        void HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& openMissionNpc);
+        void HandleUpgradeGarrison(WorldPackets::Garrison::UpgradeGarrison& upgradeGarrison);
+        void HandleGarrisonCheckUpgradeable(WorldPackets::Garrison::GarrisonCheckUpgradeable& garrisonCheckUpgradeable);
+        void HandleGarrisonSetBuildingActive(WorldPackets::Garrison::GarrisonSetBuildingActive& garrisonSetBuildingActive);
+        void HandleGarrisonSwapBuildings(WorldPackets::Garrison::GarrisonSwapBuildings& garrisonSwapBuildings);
+        void HandleGarrisonAssignFollowerToBuilding(WorldPackets::Garrison::GarrisonAssignFollowerToBuilding& garrisonAssignFollowerToBuilding);
+        void HandleGarrisonRemoveFollowerFromBuilding(WorldPackets::Garrison::GarrisonRemoveFollowerFromBuilding& garrisonRemoveFollowerFromBuilding);
+        void HandleGarrisonRemoveFollower(WorldPackets::Garrison::GarrisonRemoveFollower& garrisonRemoveFollower);
+        void HandleGarrisonRenameFollower(WorldPackets::Garrison::GarrisonRenameFollower& garrisonRenameFollower);
+        void HandleGarrisonSetFollowerFavorite(WorldPackets::Garrison::GarrisonSetFollowerFavorite& garrisonSetFollowerFavorite);
+        void HandleGarrisonSetFollowerInactive(WorldPackets::Garrison::GarrisonSetFollowerInactive& garrisonSetFollowerInactive);
+        void HandleGarrisonRecruitFollower(WorldPackets::Garrison::GarrisonRecruitFollower& garrisonRecruitFollower);
+        void HandleGarrisonGenerateRecruits(WorldPackets::Garrison::GarrisonGenerateRecruits& garrisonGenerateRecruits);
+        void HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::GarrisonFullyHealAllFollowers& garrisonFullyHealAllFollowers);
+        void HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::GarrisonAddFollowerHealth& garrisonAddFollowerHealth);
+        void HandleGarrisonGetClassSpecCategoryInfo(WorldPackets::Garrison::GarrisonGetClassSpecCategoryInfo& garrisonGetClassSpecCategoryInfo);
+        void HandleGarrisonSetRecruitmentPreferences(WorldPackets::Garrison::GarrisonSetRecruitmentPreferences& garrisonSetRecruitmentPreferences);
+        void HandleGarrisonLearnTalent(WorldPackets::Garrison::GarrisonLearnTalent& garrisonLearnTalent);
+        void HandleGarrisonResearchTalent(WorldPackets::Garrison::GarrisonResearchTalent& garrisonResearchTalent);
+        void HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& garrisonSocketTalent);
+        void HandleGarrisonRequestShipmentInfo(WorldPackets::Garrison::GarrisonRequestShipmentInfo& garrisonRequestShipmentInfo);
+        void HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingPartyGarrison& setUsingPartyGarrison);
+        void HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarrisonPetName& queryGarrisonPetName);
+        void HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Garrison::RequestGarrisonTalentWorldQuestUnlocks& requestGarrisonTalentWorldQuestUnlocks);
 
         // Battle Pets
         void HandleBattlePetRequestJournal(WorldPackets::BattlePet::BattlePetRequestJournal& battlePetRequestJournal);

@@ -215,10 +215,16 @@ public:
         WorldPackets::Garrison::GarrisonFollower PacketInfo;
     };
 
+    struct Mission
+    {
+        WorldPackets::Garrison::GarrisonMission PacketInfo;
+        std::vector<uint64> CurrentFollowerDBIDs;
+    };
+
     explicit Garrison(Player* owner);
 
     bool LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blueprints, PreparedQueryResult buildings,
-        PreparedQueryResult followers, PreparedQueryResult abilities);
+        PreparedQueryResult followers, PreparedQueryResult abilities, PreparedQueryResult missions);
     void SaveToDB(CharacterDatabaseTransaction trans);
     static void DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans);
 
@@ -250,6 +256,13 @@ public:
     // Followers
     void AddFollower(uint32 garrFollowerId);
     Follower const* GetFollower(uint64 dbId) const;
+    Follower* GetFollower(uint64 dbId);
+    void RemoveFollower(uint64 dbId);
+    void SetFollowerFavorite(uint64 dbId, bool favorite);
+    void SetFollowerInactive(uint64 dbId, bool inactive);
+    void RenameFollower(uint64 dbId, std::string const& name);
+    void AssignFollowerToBuilding(uint64 dbId, uint32 plotInstanceId);
+    void RemoveFollowerFromBuilding(uint64 dbId);
     template<typename Predicate>
     uint32 CountFollowers(Predicate&& predicate) const
     {
@@ -260,6 +273,20 @@ public:
 
         return count;
     }
+
+    // Missions
+    void AddMission(uint32 garrMissionId);
+    Mission const* GetMission(uint64 dbId) const;
+    Mission* GetMission(uint64 dbId);
+    Mission const* GetMissionByRecID(uint32 missionRecID) const;
+    Mission* GetMissionByRecID(uint32 missionRecID);
+    GarrisonError StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs);
+    GarrisonError CompleteMission(uint32 missionRecID);
+    GarrisonError ClaimMissionReward(uint32 missionRecID);
+    GarrisonError MissionBonusRoll(uint32 missionRecID);
+    void RemoveMission(uint32 missionRecID);
+    void GenerateAvailableMissions();
+    uint64 GenerateMissionDbId();
 
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
@@ -281,6 +308,8 @@ private:
     std::unordered_set<uint32 /*garrBuildingId*/> _knownBuildings;
     std::unordered_map<uint64 /*dbId*/, Follower> _followers;
     std::unordered_set<uint32> _followerIds;
+    std::unordered_map<uint64 /*dbId*/, Mission> _missions;
+    uint64 _missionDbIdGenerator = 1;
 };
 
 #endif // Garrison_h__

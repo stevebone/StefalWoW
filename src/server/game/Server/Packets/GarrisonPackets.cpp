@@ -483,4 +483,402 @@ WorldPacket const* GarrisonBuildingActivated::Write()
 
     return &_worldPacket;
 }
+
+// ============================================================
+// Mission CMSG Read implementations
+// ============================================================
+
+void GarrisonStartMission::Read()
+{
+    _worldPacket >> NpcGUID;
+    uint32 followerCount = 0;
+    uint32 bonusAbilityCount = 0;
+    _worldPacket >> followerCount;
+    _worldPacket >> MissionRecID;
+    _worldPacket >> bonusAbilityCount;
+
+    FollowerDBIDs.resize(followerCount);
+    for (uint32 i = 0; i < followerCount; ++i)
+        _worldPacket >> FollowerDBIDs[i];
+
+    MissionBonusAbilityIDs.resize(bonusAbilityCount);
+    for (uint32 i = 0; i < bonusAbilityCount; ++i)
+        _worldPacket >> MissionBonusAbilityIDs[i];
+}
+
+void GarrisonCompleteMission::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> MissionRecID;
+}
+
+void GarrisonMissionBonusRoll::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> MissionRecID;
+}
+
+void OpenMissionNpc::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> GarrTypeID;
+}
+
+void GarrisonGetMissionReward::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> MissionRecID;
+}
+
+// ============================================================
+// Mission SMSG Write implementations
+// ============================================================
+
+WorldPacket const* GarrisonStartMissionResult::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << Mission;
+    _worldPacket << Size<uint32>(FollowerDBIDs);
+    for (uint64 dbId : FollowerDBIDs)
+        _worldPacket << uint64(dbId);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonCompleteMissionResult::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << Mission;
+    _worldPacket << uint32(MissionRecID);
+    _worldPacket << Bits<1>(Succeeded);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonMissionBonusRollResult::Write()
+{
+    _worldPacket << Mission;
+    _worldPacket << uint32(MissionRecID);
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonAddMissionResult::Write()
+{
+    _worldPacket << uint8(GarrTypeID);
+    _worldPacket << uint32(Result);
+    _worldPacket << uint8(State);
+    _worldPacket << Mission;
+    _worldPacket << Size<uint32>(Rewards);
+    _worldPacket << Size<uint32>(BonusRewards);
+
+    for (GarrisonMissionReward const& reward : Rewards)
+        _worldPacket << reward;
+
+    for (GarrisonMissionReward const& reward : BonusRewards)
+        _worldPacket << reward;
+
+    _worldPacket << Bits<1>(CanStartMission);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonDeleteMissionResult::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << uint32(MissionRecID);
+    _worldPacket << uint8(GarrTypeID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonIsUpgradeableResponse::Write()
+{
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonUpgradeResult::Write()
+{
+    _worldPacket << uint32(GarrSiteLevelID);
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+// ============================================================
+// Follower CMSG Read implementations
+// ============================================================
+
+void GarrisonAssignFollowerToBuilding::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> PlotInstanceID;
+    _worldPacket >> FollowerDBID;
+}
+
+void GarrisonRemoveFollowerFromBuilding::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> FollowerDBID;
+}
+
+void GarrisonRemoveFollower::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> FollowerDBID;
+}
+
+void GarrisonRenameFollower::Read()
+{
+    _worldPacket >> FollowerDBID;
+    _worldPacket >> SizedString::BitsSize<7>(FollowerName);
+    _worldPacket >> SizedString::Data(FollowerName);
+}
+
+void GarrisonSetFollowerFavorite::Read()
+{
+    _worldPacket >> FollowerDBID;
+    _worldPacket >> Bits<1>(Favorite);
+}
+
+void GarrisonSetFollowerInactive::Read()
+{
+    _worldPacket >> FollowerDBID;
+    _worldPacket >> Bits<1>(Inactive);
+}
+
+void GarrisonRecruitFollower::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> FollowerIndex;
+}
+
+void GarrisonGenerateRecruits::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> MechanicTypeID;
+    _worldPacket >> TraitID;
+}
+
+void GarrisonFullyHealAllFollowers::Read()
+{
+    _worldPacket >> NpcGUID;
+}
+
+void GarrisonAddFollowerHealth::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> FollowerDBID;
+    _worldPacket >> HealthToAdd;
+}
+
+void GarrisonGetClassSpecCategoryInfo::Read()
+{
+    _worldPacket >> GarrFollowerTypeID;
+}
+
+void GarrisonSetRecruitmentPreferences::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> AbilityID;
+    _worldPacket >> TraitID;
+}
+
+// ============================================================
+// Follower SMSG Write implementations
+// ============================================================
+
+WorldPacket const* GarrisonAssignFollowerToBuildingResult::Write()
+{
+    _worldPacket << uint64(FollowerDBID);
+    _worldPacket << uint32(Result);
+    _worldPacket << uint32(PlotInstanceID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonRemoveFollowerFromBuildingResult::Write()
+{
+    _worldPacket << uint64(FollowerDBID);
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonRenameFollowerResult::Write()
+{
+    _worldPacket << uint64(FollowerDBID);
+    _worldPacket << uint32(Result);
+    _worldPacket << SizedString::BitsSize<7>(FollowerName);
+    _worldPacket.FlushBits();
+    _worldPacket << SizedString::Data(FollowerName);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonFollowerChangedFlags::Write()
+{
+    _worldPacket << uint64(FollowerDBID);
+    _worldPacket << uint32(Result);
+    _worldPacket << uint32(Flags);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonFollowerChangedXP::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << uint32(TotalXp);
+    _worldPacket << Follower;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonUpdateFollower::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << Follower;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonRecruitFollowerResult::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << Size<uint32>(Followers);
+
+    for (GarrisonFollower const& follower : Followers)
+        _worldPacket << follower;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonOpenRecruitmentNpc::Write()
+{
+    _worldPacket << NpcGUID;
+    _worldPacket << Size<uint32>(Followers);
+    _worldPacket << Size<uint32>(AbilityCounters);
+    _worldPacket << Size<uint32>(AbilityTraits);
+    _worldPacket << uint32(GarrTypeID);
+
+    for (GarrisonFollower const& follower : Followers)
+        _worldPacket << follower;
+
+    for (uint32 counter : AbilityCounters)
+        _worldPacket << uint32(counter);
+
+    for (uint32 trait : AbilityTraits)
+        _worldPacket << uint32(trait);
+
+    _worldPacket << Bits<1>(CanRecruitFollower);
+    _worldPacket << Bits<1>(UnknownPurpose);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonGetClassSpecCategoryInfoResult::Write()
+{
+    _worldPacket << Size<uint32>(FollowerClassSpecCategoryInfos);
+
+    for (auto const& info : FollowerClassSpecCategoryInfos)
+    {
+        _worldPacket << uint32(info.GarrClassSpecID);
+        _worldPacket << uint32(info.GarrFollowerTypeID);
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonFollowerActivationsSet::Write()
+{
+    _worldPacket << uint32(GarrSiteLevelID);
+    _worldPacket << uint32(NumActivationsRemaining);
+
+    return &_worldPacket;
+}
+
+// ============================================================
+// Building/Utility CMSG Read implementations
+// ============================================================
+
+void UpgradeGarrison::Read()
+{
+    _worldPacket >> NpcGUID;
+}
+
+void GarrisonSetBuildingActive::Read()
+{
+    _worldPacket >> PlotInstanceID;
+}
+
+void GarrisonSwapBuildings::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> PlotInstanceID1;
+    _worldPacket >> PlotInstanceID2;
+}
+
+WorldPacket const* GarrisonSwapBuildingsResponse::Write()
+{
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+// ============================================================
+// Talent CMSG/SMSG implementations
+// ============================================================
+
+void GarrisonLearnTalent::Read()
+{
+    _worldPacket >> GarrTalentID;
+    _worldPacket >> Bits<1>(IsTemporary);
+}
+
+void GarrisonResearchTalent::Read()
+{
+    _worldPacket >> GarrTalentID;
+}
+
+void GarrisonSocketTalent::Read()
+{
+    _worldPacket >> GarrTalentID;
+    _worldPacket >> SoulbindConduitID;
+    _worldPacket >> SoulbindConduitRank;
+}
+
+WorldPacket const* GarrisonResearchTalentResult::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << uint8(GarrTypeID);
+    _worldPacket << Talent;
+
+    return &_worldPacket;
+}
+
+// ============================================================
+// Other utility CMSG Read implementations
+// ============================================================
+
+void GarrisonRequestShipmentInfo::Read()
+{
+    _worldPacket >> NpcGUID;
+}
+
+void SetUsingPartyGarrison::Read()
+{
+    _worldPacket >> GarrTypeID;
+    _worldPacket >> Bits<1>(UsingPartyGarrison);
+}
+
+void QueryGarrisonPetName::Read()
+{
+    _worldPacket >> NpcGUID;
+}
 }

@@ -36,7 +36,7 @@ Garrison::Garrison(Player* owner) : _owner(owner), _siteLevel(nullptr), _followe
 }
 
 bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blueprints, PreparedQueryResult buildings,
-    PreparedQueryResult followers, PreparedQueryResult abilities)
+    PreparedQueryResult followers, PreparedQueryResult abilities, PreparedQueryResult missions)
 {
     if (!garrison)
         return false;
@@ -139,6 +139,41 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         }
     }
 
+    //           0      1            2          3              4          5                6              7               8        9
+    // SELECT dbId, guid, missionRecID, offerTime, offerDuration, startTime, travelDuration, missionDuration, missionState, successChance FROM character_garrison_missions WHERE guid = ?
+    if (missions)
+    {
+        do
+        {
+            fields = missions->Fetch();
+
+            uint64 dbId = fields[0].GetUInt64();
+            uint32 missionRecID = fields[2].GetUInt32();
+
+            if (!sGarrMissionStore.LookupEntry(missionRecID))
+                continue;
+
+            if (_missionDbIdGenerator <= dbId)
+                _missionDbIdGenerator = dbId + 1;
+
+            Mission& mission = _missions[dbId];
+            mission.PacketInfo.DbID = dbId;
+            mission.PacketInfo.MissionRecID = missionRecID;
+            mission.PacketInfo.OfferTime = fields[3].GetInt64();
+            mission.PacketInfo.OfferDuration = Seconds(fields[4].GetInt32());
+            mission.PacketInfo.StartTime = fields[5].GetInt64();
+            mission.PacketInfo.TravelDuration = Seconds(fields[6].GetInt32());
+            mission.PacketInfo.MissionDuration = Seconds(fields[7].GetInt32());
+            mission.PacketInfo.MissionState = fields[8].GetInt32();
+            mission.PacketInfo.SuccessChance = fields[9].GetInt32();
+
+            GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
+            if (missionEntry)
+                mission.PacketInfo.MissionScalar = missionEntry->AutoMissionScalar;
+
+        } while (missions->NextRow());
+    }
+
     return true;
 }
 
@@ -203,6 +238,24 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
             trans->Append(stmt);
         }
     }
+
+    for (auto const& p : _missions)
+    {
+        Mission const& mission = p.second;
+        uint8 index = 0;
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_MISSIONS);
+        stmt->setUInt64(index++, mission.PacketInfo.DbID);
+        stmt->setUInt64(index++, _owner->GetGUID().GetCounter());
+        stmt->setUInt32(index++, mission.PacketInfo.MissionRecID);
+        stmt->setInt64(index++, mission.PacketInfo.OfferTime);
+        stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.OfferDuration).count()));
+        stmt->setInt64(index++, mission.PacketInfo.StartTime);
+        stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.TravelDuration).count()));
+        stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.MissionDuration).count()));
+        stmt->setInt32(index++, mission.PacketInfo.MissionState);
+        stmt->setInt32(index++, mission.PacketInfo.SuccessChance);
+        trans->Append(stmt);
+    }
 }
 
 void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans)
@@ -220,6 +273,10 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTran
     trans->Append(stmt);
 
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_FOLLOWERS);
+    stmt->setUInt64(0, ownerGuid);
+    trans->Append(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_MISSIONS);
     stmt->setUInt64(0, ownerGuid);
     trans->Append(stmt);
 }
@@ -546,6 +603,14 @@ void Garrison::BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) c
 
     for (auto const& p : _followers)
         garrison.Followers.push_back(&p.second.PacketInfo);
+
+    for (auto const& p : _missions)
+    {
+        garrison.Missions.push_back(&p.second.PacketInfo);
+        garrison.MissionRewards.push_back(p.second.PacketInfo.Rewards);
+        garrison.MissionOvermaxRewards.push_back(p.second.PacketInfo.OvermaxRewards);
+        garrison.CanStartMission.push_back(p.second.PacketInfo.MissionState == 0);
+    }
 }
 
 void Garrison::SendRemoteInfo() const
@@ -588,6 +653,447 @@ void Garrison::SendMapData(Player* receiver) const
     }
 
     receiver->SendDirectMessage(mapData.Write());
+}
+
+// ============================================================
+// Follower management
+// ============================================================
+
+Garrison::Follower* Garrison::GetFollower(uint64 dbId)
+{
+    auto itr = _followers.find(dbId);
+    if (itr != _followers.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+void Garrison::RemoveFollower(uint64 dbId)
+{
+    WorldPackets::Garrison::GarrisonRemoveFollowerResult removeFollowerResult;
+    removeFollowerResult.GarrTypeID = GetType();
+    removeFollowerResult.Result = GARRISON_SUCCESS;
+
+    Follower const* follower = GetFollower(dbId);
+    if (!follower)
+    {
+        removeFollowerResult.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(removeFollowerResult.Write());
+        return;
+    }
+
+    if (follower->PacketInfo.CurrentMissionID != 0)
+    {
+        removeFollowerResult.Result = GARRISON_ERROR_FOLLOWER_ALREADY_ON_MISSION;
+        _owner->SendDirectMessage(removeFollowerResult.Write());
+        return;
+    }
+
+    removeFollowerResult.FollowerDBID = dbId;
+    removeFollowerResult.Destroyed = 1;
+    _followerIds.erase(follower->PacketInfo.GarrFollowerID);
+    _followers.erase(dbId);
+    _owner->SendDirectMessage(removeFollowerResult.Write());
+}
+
+void Garrison::SetFollowerFavorite(uint64 dbId, bool favorite)
+{
+    WorldPackets::Garrison::GarrisonFollowerChangedFlags result;
+    result.Result = GARRISON_SUCCESS;
+
+    Follower* follower = GetFollower(dbId);
+    if (!follower)
+    {
+        result.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    result.FollowerDBID = dbId;
+    if (favorite)
+        follower->PacketInfo.FollowerStatus |= FOLLOWER_STATUS_FAVORITE;
+    else
+        follower->PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_FAVORITE;
+
+    result.Flags = follower->PacketInfo.FollowerStatus;
+    _owner->SendDirectMessage(result.Write());
+}
+
+void Garrison::SetFollowerInactive(uint64 dbId, bool inactive)
+{
+    WorldPackets::Garrison::GarrisonFollowerChangedFlags result;
+    result.Result = GARRISON_SUCCESS;
+
+    Follower* follower = GetFollower(dbId);
+    if (!follower)
+    {
+        result.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    if (follower->PacketInfo.CurrentMissionID != 0)
+    {
+        result.Result = GARRISON_ERROR_FOLLOWER_ALREADY_ON_MISSION;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    result.FollowerDBID = dbId;
+    if (inactive)
+        follower->PacketInfo.FollowerStatus |= FOLLOWER_STATUS_INACTIVE;
+    else
+        follower->PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_INACTIVE;
+
+    result.Flags = follower->PacketInfo.FollowerStatus;
+    _owner->SendDirectMessage(result.Write());
+}
+
+void Garrison::RenameFollower(uint64 dbId, std::string const& name)
+{
+    WorldPackets::Garrison::GarrisonRenameFollowerResult result;
+    result.Result = GARRISON_SUCCESS;
+
+    Follower* follower = GetFollower(dbId);
+    if (!follower)
+    {
+        result.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    result.FollowerDBID = dbId;
+    follower->PacketInfo.CustomName = name;
+    result.FollowerName = name;
+    _owner->SendDirectMessage(result.Write());
+}
+
+void Garrison::AssignFollowerToBuilding(uint64 dbId, uint32 plotInstanceId)
+{
+    WorldPackets::Garrison::GarrisonAssignFollowerToBuildingResult result;
+    result.Result = GARRISON_SUCCESS;
+
+    Follower* follower = GetFollower(dbId);
+    if (!follower)
+    {
+        result.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    Plot* plot = GetPlot(plotInstanceId);
+    if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
+    {
+        result.Result = GARRISON_ERROR_INVALID_PLOT_INSTANCEID;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    if (follower->PacketInfo.CurrentMissionID != 0)
+    {
+        result.Result = GARRISON_ERROR_FOLLOWER_ALREADY_ON_MISSION;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    result.FollowerDBID = dbId;
+    result.PlotInstanceID = plotInstanceId;
+    follower->PacketInfo.CurrentBuildingID = plot->BuildingInfo.PacketInfo->GarrBuildingID;
+    _owner->SendDirectMessage(result.Write());
+}
+
+void Garrison::RemoveFollowerFromBuilding(uint64 dbId)
+{
+    WorldPackets::Garrison::GarrisonRemoveFollowerFromBuildingResult result;
+    result.Result = GARRISON_SUCCESS;
+
+    Follower* follower = GetFollower(dbId);
+    if (!follower)
+    {
+        result.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(result.Write());
+        return;
+    }
+
+    result.FollowerDBID = dbId;
+    follower->PacketInfo.CurrentBuildingID = 0;
+    _owner->SendDirectMessage(result.Write());
+}
+
+// ============================================================
+// Mission management
+// ============================================================
+
+void Garrison::AddMission(uint32 garrMissionId)
+{
+    GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(garrMissionId);
+    if (!missionEntry)
+        return;
+
+    uint64 dbId = GenerateMissionDbId();
+    Mission& mission = _missions[dbId];
+    mission.PacketInfo.DbID = dbId;
+    mission.PacketInfo.MissionRecID = garrMissionId;
+    mission.PacketInfo.OfferTime = GameTime::GetGameTime();
+    mission.PacketInfo.OfferDuration = Seconds(missionEntry->OfferDuration);
+    mission.PacketInfo.StartTime = time_t(2288912640);
+    mission.PacketInfo.TravelDuration = Seconds(missionEntry->TravelDuration);
+    mission.PacketInfo.MissionDuration = Seconds(missionEntry->MissionDuration);
+    mission.PacketInfo.MissionState = 0; // Offered
+    mission.PacketInfo.SuccessChance = 0;
+    mission.PacketInfo.Flags = missionEntry->Flags;
+    mission.PacketInfo.MissionScalar = missionEntry->AutoMissionScalar;
+
+    WorldPackets::Garrison::GarrisonAddMissionResult addMissionResult;
+    addMissionResult.GarrTypeID = missionEntry->GarrTypeID;
+    addMissionResult.Result = GARRISON_SUCCESS;
+    addMissionResult.State = 0;
+    addMissionResult.Mission = mission.PacketInfo;
+    addMissionResult.CanStartMission = true;
+    _owner->SendDirectMessage(addMissionResult.Write());
+}
+
+Garrison::Mission const* Garrison::GetMission(uint64 dbId) const
+{
+    auto itr = _missions.find(dbId);
+    if (itr != _missions.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+Garrison::Mission* Garrison::GetMission(uint64 dbId)
+{
+    auto itr = _missions.find(dbId);
+    if (itr != _missions.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+Garrison::Mission const* Garrison::GetMissionByRecID(uint32 missionRecID) const
+{
+    for (auto const& p : _missions)
+        if (static_cast<uint32>(p.second.PacketInfo.MissionRecID) == missionRecID)
+            return &p.second;
+
+    return nullptr;
+}
+
+Garrison::Mission* Garrison::GetMissionByRecID(uint32 missionRecID)
+{
+    for (auto& p : _missions)
+        if (static_cast<uint32>(p.second.PacketInfo.MissionRecID) == missionRecID)
+            return &p.second;
+
+    return nullptr;
+}
+
+GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs)
+{
+    GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
+    if (!missionEntry)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    Mission* mission = GetMissionByRecID(missionRecID);
+    if (!mission)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    if (mission->PacketInfo.MissionState != 0)
+        return GARRISON_ERROR_ALREADY_ON_MISSION;
+
+    if (followerDBIDs.size() > missionEntry->MaxFollowers)
+        return GARRISON_ERROR_MISSION_SIZE_INVALID;
+
+    if (followerDBIDs.empty())
+        return GARRISON_ERROR_MISSION_SIZE_INVALID;
+
+    // Validate all followers
+    for (uint64 followerDbId : followerDBIDs)
+    {
+        Follower const* follower = GetFollower(followerDbId);
+        if (!follower)
+            return GARRISON_ERROR_INVALID_FOLLOWER;
+
+        if (follower->PacketInfo.CurrentMissionID != 0)
+            return GARRISON_ERROR_FOLLOWER_ALREADY_ON_MISSION;
+
+        if (follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
+            return GARRISON_ERROR_FOLLOWER_INACTIVE;
+    }
+
+    // Deduct mission cost
+    if (missionEntry->MissionCost > 0)
+    {
+        if (missionEntry->MissionCostCurrencyTypesID != 0)
+        {
+            if (!_owner->HasCurrency(missionEntry->MissionCostCurrencyTypesID, missionEntry->MissionCost))
+                return GARRISON_ERROR_NOT_ENOUGH_CURRENCY;
+            _owner->RemoveCurrency(missionEntry->MissionCostCurrencyTypesID, missionEntry->MissionCost, CurrencyDestroyReason::Garrison);
+        }
+        else
+        {
+            if (!_owner->HasEnoughMoney(uint64(missionEntry->MissionCost) * GOLD))
+                return GARRISON_ERROR_NOT_ENOUGH_GOLD;
+            _owner->ModifyMoney(-int64(missionEntry->MissionCost) * GOLD, false);
+        }
+    }
+
+    // Assign followers to mission
+    mission->CurrentFollowerDBIDs = followerDBIDs;
+    for (uint64 followerDbId : followerDBIDs)
+    {
+        if (Follower* follower = GetFollower(followerDbId))
+            follower->PacketInfo.CurrentMissionID = missionRecID;
+    }
+
+    // Calculate success chance based on base chance + follower levels
+    int32 successChance = missionEntry->BaseCompletionChance;
+
+    // Add bonus for each follower at or above target level
+    for (uint64 followerDbId : followerDBIDs)
+    {
+        if (Follower const* follower = GetFollower(followerDbId))
+        {
+            int32 levelDiff = int32(follower->PacketInfo.FollowerLevel) - int32(missionEntry->TargetLevel);
+            if (levelDiff > 0)
+                successChance += levelDiff * 3;
+            else if (levelDiff < 0)
+                successChance += levelDiff * 3;
+        }
+    }
+
+    successChance = std::clamp(successChance, 0, 100);
+
+    mission->PacketInfo.MissionState = 1; // In Progress
+    mission->PacketInfo.StartTime = GameTime::GetGameTime();
+    mission->PacketInfo.SuccessChance = successChance;
+
+    return GARRISON_SUCCESS;
+}
+
+GarrisonError Garrison::CompleteMission(uint32 missionRecID)
+{
+    Mission* mission = GetMissionByRecID(missionRecID);
+    if (!mission)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    if (mission->PacketInfo.MissionState != 1) // Not in progress
+        return GARRISON_ERROR_NOT_ON_MISSION;
+
+    // Check if mission duration has elapsed
+    time_t now = GameTime::GetGameTime();
+    time_t missionEnd = time_t(mission->PacketInfo.StartTime) +
+        Seconds(mission->PacketInfo.TravelDuration).count() +
+        Seconds(mission->PacketInfo.MissionDuration).count();
+
+    if (now < missionEnd)
+        return GARRISON_ERROR_MISSION_NOT_COMPLETE;
+
+    mission->PacketInfo.MissionState = 2; // Completed
+    return GARRISON_SUCCESS;
+}
+
+GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
+{
+    Mission* mission = GetMissionByRecID(missionRecID);
+    if (!mission)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    if (mission->PacketInfo.MissionState != 2 && mission->PacketInfo.MissionState != 3)
+        return GARRISON_ERROR_MISSION_NOT_COMPLETE;
+
+    GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
+    if (!missionEntry)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    // Roll success
+    bool succeeded = (rand() % 100) < mission->PacketInfo.SuccessChance;
+
+    // Award follower XP
+    uint32 followerXP = missionEntry->BaseFollowerXP;
+    for (uint64 followerDbId : mission->CurrentFollowerDBIDs)
+    {
+        if (Follower* follower = GetFollower(followerDbId))
+        {
+            follower->PacketInfo.Xp += followerXP;
+            follower->PacketInfo.CurrentMissionID = 0;
+
+            // Level up check (simple: 1000 XP per level)
+            while (follower->PacketInfo.Xp >= 1000 && follower->PacketInfo.FollowerLevel < 40)
+            {
+                follower->PacketInfo.Xp -= 1000;
+                follower->PacketInfo.FollowerLevel++;
+            }
+        }
+    }
+
+    // Award mission rewards if succeeded
+    if (succeeded)
+    {
+        for (auto const& reward : mission->PacketInfo.Rewards)
+        {
+            if (reward.ItemID > 0 && reward.ItemQuantity > 0)
+            {
+                // Item rewards handled by client-side loot
+            }
+            if (reward.CurrencyID > 0 && reward.CurrencyQuantity > 0)
+                _owner->AddCurrency(reward.CurrencyID, reward.CurrencyQuantity, CurrencyGainSource::GarrisonMissionReward);
+        }
+    }
+
+    // Remove mission from active list
+    for (auto itr = _missions.begin(); itr != _missions.end(); ++itr)
+    {
+        if (static_cast<uint32>(itr->second.PacketInfo.MissionRecID) == missionRecID)
+        {
+            _missions.erase(itr);
+            break;
+        }
+    }
+
+    return GARRISON_SUCCESS;
+}
+
+GarrisonError Garrison::MissionBonusRoll(uint32 missionRecID)
+{
+    Mission* mission = GetMissionByRecID(missionRecID);
+    if (!mission)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    if (mission->PacketInfo.MissionState != 2)
+        return GARRISON_ERROR_MISSION_NOT_COMPLETE;
+
+    mission->PacketInfo.MissionState = 3; // Bonus rolled
+    return GARRISON_SUCCESS;
+}
+
+void Garrison::RemoveMission(uint32 missionRecID)
+{
+    for (auto itr = _missions.begin(); itr != _missions.end(); ++itr)
+    {
+        if (static_cast<uint32>(itr->second.PacketInfo.MissionRecID) == missionRecID)
+        {
+            // Unassign followers
+            for (uint64 followerDbId : itr->second.CurrentFollowerDBIDs)
+                if (Follower* follower = GetFollower(followerDbId))
+                    follower->PacketInfo.CurrentMissionID = 0;
+
+            _missions.erase(itr);
+            break;
+        }
+    }
+}
+
+void Garrison::GenerateAvailableMissions()
+{
+    // Generate missions based on garrison type and level
+    // This is a simplified implementation - full version would query mission sets
+}
+
+uint64 Garrison::GenerateMissionDbId()
+{
+    return _missionDbIdGenerator++;
 }
 
 Map* Garrison::FindMap() const
