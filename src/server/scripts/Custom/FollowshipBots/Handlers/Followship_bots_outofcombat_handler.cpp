@@ -7,6 +7,7 @@
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_recovery_handler.h"
 
+#include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
@@ -256,10 +257,15 @@ namespace FSBOOC
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
         std::vector<Unit*> buffTargets;
         uint32 buffSpellId = 0;
+        uint32 buffSpellId2 = 0;
         uint32 now = getMSTime();
 
         switch (botClass)
         {
+        case FSB_Class::Druid:
+            buffSpellId = SPELL_DRUID_MARK_WILD;
+            buffSpellId2 = SPELL_DRUID_THORNS;
+            break;
         case FSB_Class::Warrior:
             buffSpellId = SPELL_WARRIOR_BATTLE_SHOUT;
             break;
@@ -286,6 +292,11 @@ namespace FSBOOC
         }
 
         GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
+        if (buffSpellId2 && buffTargets.empty())
+        {
+            buffSpellId = buffSpellId2;
+            GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
+        }
 
         if (!buffTargets.empty())
         {
