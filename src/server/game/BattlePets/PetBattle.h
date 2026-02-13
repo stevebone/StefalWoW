@@ -24,6 +24,7 @@
 #include <vector>
 
 class Player;
+struct BattlePetAbilityEffectEntry;
 
 namespace PetBattles
 {
@@ -31,10 +32,24 @@ namespace PetBattles
 struct PetBattleAura
 {
     uint32 AbilityID = 0;
-    int32 Duration = 0;
-    int32 MaxDuration = 0;
-    uint32 AuraInstanceID = 0;
-    int32 CurrentRound = 0;
+    uint32 EffectID = 0;            // BattlePetAbilityEffectEntry::ID that triggers each tick
+    int32 Duration = 0;             // total duration in rounds
+    int32 RemainingRounds = 0;      // rounds until expiry
+    uint32 AuraInstanceID = 0;      // unique ID for this aura instance
+    int32 CurrentRound = 0;         // round when aura was applied
+    uint8 CasterTeam = 0;
+    uint8 CasterPet = 0;
+    PetBattleAuraType AuraType = PET_BATTLE_AURA_BUFF;
+    int32 DamagePerTick = 0;        // damage or healing per tick
+    int8 PetType = -1;              // pet type of the caster for type effectiveness on DoTs
+};
+
+struct PetBattleEnvironment
+{
+    uint32 AbilityID = 0;
+    PetBattleWeatherType WeatherType = PET_BATTLE_WEATHER_NONE;
+    int8 RemainingRounds = 0;
+    uint8 CasterTeam = 0;
 };
 
 struct PetBattlePetData
@@ -51,25 +66,64 @@ struct PetBattlePetData
     uint32 Flags = 0;
     std::string CustomName;
 
-    // Combat stats
+    // Combat stats (base stats used for calculation)
     int32 Health = 0;
     int32 MaxHealth = 0;
     int32 Power = 0;
     int32 Speed = 0;
 
+    // Effective stats (base + aura modifiers, recalculated each round)
+    int32 EffectivePower = 0;
+    int32 EffectiveSpeed = 0;
+
     // Ability IDs (up to 3 per pet)
     std::array<uint32, MAX_PET_BATTLE_ABILITIES> AbilityIDs = {};
     std::array<int8, MAX_PET_BATTLE_ABILITIES> AbilityCooldowns = {};
 
+    // Multi-turn ability state
+    int32 MultiTurnAbilityID = 0;       // currently executing multi-turn ability (0 = none)
+    int8 MultiTurnCurrentIndex = 0;     // which turn index we're on (0-based)
+    int8 MultiTurnTotalTurns = 0;       // total turns in the sequence
+    bool IsLockedByMultiTurn = false;    // cannot use other abilities during multi-turn
+
     // Battle state
     bool IsAlive() const { return Health > 0; }
     bool IsCaptured = false;
+    bool IsStunned = false;             // skips next turn
+
+    // Passive ability state
+    bool UndeadReviveUsed = false;      // Undead: already used revive
+    bool MechanicalReviveUsed = false;  // Mechanical: already used revive
+    bool IsUndeadReviving = false;      // Undead: currently in revive round
+    bool DragonkinDamageBonus = false;  // Dragonkin: active for current round
 
     // Auras applied to this pet
     std::vector<PetBattleAura> Auras;
 
     // State values for the pet
     std::vector<std::pair<uint32, int32>> States;
+
+    void RecalculateEffectiveStats()
+    {
+        EffectivePower = Power;
+        EffectiveSpeed = Speed;
+
+        for (PetBattleAura const& aura : Auras)
+        {
+            if (aura.AuraType == PET_BATTLE_AURA_BUFF || aura.AuraType == PET_BATTLE_AURA_DEBUFF)
+            {
+                // Stat modifying auras would adjust EffectivePower/EffectiveSpeed
+                // The actual adjustment is done when applying the aura effect
+            }
+        }
+
+        // Flying passive: +50% speed while above 50% HP
+        if (PetType == PET_TYPE_FLYING && Health > MaxHealth / 2)
+            EffectiveSpeed = int32(EffectiveSpeed * (1.0f + PASSIVE_FLYING_SPEED_BONUS));
+
+        if (EffectivePower < 1) EffectivePower = 1;
+        if (EffectiveSpeed < 1) EffectiveSpeed = 1;
+    }
 };
 
 struct PetBattleTeamData
@@ -132,9 +186,12 @@ public:
     PetBattleState GetBattleState() const { return _state; }
     uint32 GetCurrentRound() const { return _currentRound; }
     uint32 GetElapsedTime() const { return _elapsedSecs; }
+    bool CanAwardXP() const { return _canAwardXP; }
 
     PetBattleTeamData& GetTeam(uint8 teamIdx) { return _teams[teamIdx]; }
     PetBattleTeamData const& GetTeam(uint8 teamIdx) const { return _teams[teamIdx]; }
+
+    PetBattleEnvironment const& GetEnvironment(uint8 slot) const { return _environments[slot]; }
 
     // Setup
     void InitWildBattle(Player* player, ObjectGuid wildCreatureGUID);
@@ -154,19 +211,52 @@ public:
     uint8 GetWinnerTeam() const { return _winnerTeam; }
     Player* GetPlayerForTeam(uint8 teamIdx) const;
 
+    // AI for wild/NPC teams
+    void GenerateWildTeamInput();
+
     // Round resolution results
     std::vector<PetBattleRoundEffect> const& GetRoundEffects() const { return _roundEffects; }
     bool WasPetKilledThisRound(uint8 teamIdx, uint8 petIdx) const;
     bool NeedsFrontPetSwap(uint8 teamIdx) const;
 
 private:
-    void CalculateDamage(uint8 attackerTeam, uint8 attackerPet, uint8 defenderTeam, uint8 defenderPet, uint32 abilityID);
-    void ApplyAbilityEffects(uint8 team, uint8 pet, uint32 abilityID);
+    // DB2-driven ability effect chain
+    void ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint32 abilityID);
+    void ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 attackerTeam, uint8 attackerPet,
+        uint8 defenderTeam, uint8 defenderPet, uint32 abilityID);
+
+    // Damage/healing with passive family abilities applied
+    int32 CalculateAbilityDamage(int32 abilityPower, int32 attackerPower, PetBattlePetType abilityType,
+        PetBattlePetData const& attacker, PetBattlePetData& defender);
+    int32 CalculateAbilityHealing(int32 healPower, int32 attackerPower, PetBattlePetData const& healer);
+
+    // Aura system
+    void AddAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID, uint32 effectID,
+        PetBattleAuraType auraType, int32 duration, int32 damagePerTick, int8 petType,
+        uint8 casterTeam, uint8 casterPet);
+    void RemoveAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID);
+    void TickAuras();
+
+    // Environment/weather
+    void SetWeather(PetBattleWeatherType weatherType, uint32 abilityID, int8 duration, uint8 casterTeam);
+    void TickWeather();
+    float GetWeatherDamageModifier(PetBattlePetType abilityType) const;
+    float GetWeatherHealingModifier() const;
+
+    // Passive family abilities
+    void ApplyPassiveRoundStart();
+    void ApplyPassiveOnDamageDealt(uint8 attackerTeam, uint8 attackerPet, uint8 defenderTeam, uint8 defenderPet, int32 damage);
+    bool ApplyPassiveOnDeath(uint8 teamIdx, uint8 petIdx);
+
     void ResolveSpeed();
     void ProcessTurnForTeam(uint8 teamIdx);
-    void TickAuras();
     void CheckDeaths();
     void AwardExperience();
+
+    // Helper to load player's battle pet team
+    void LoadPlayerTeam(Player* player, PetBattleTeamData& team);
+    void LoadWildPetAbilities(PetBattlePetData& pet);
+    void GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID);
 
     uint32 _battleID = 0;
     PetBattleType _battleType = PET_BATTLE_TYPE_WILD;
@@ -175,8 +265,11 @@ private:
     uint32 _elapsedSecs = 0;
     uint32 _updateTimer = 0;
     uint8 _winnerTeam = 0;
+    bool _canAwardXP = true;
+    uint32 _nextAuraInstanceID = 1;
 
     std::array<PetBattleTeamData, MAX_PET_BATTLE_PLAYERS> _teams;
+    std::array<PetBattleEnvironment, MAX_PET_BATTLE_ENVIRONMENTS> _environments;
 
     // Round resolution data
     std::vector<PetBattleRoundEffect> _roundEffects;

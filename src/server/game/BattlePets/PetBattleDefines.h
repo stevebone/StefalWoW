@@ -31,6 +31,15 @@ static constexpr uint32 MAX_PET_BATTLE_SLOTS = MAX_PET_BATTLE_TEAM_SIZE;
 static constexpr uint32 PET_BATTLE_MAX_ROUND_TIME = 30;       // seconds per turn
 static constexpr uint32 PET_BATTLE_MAX_GAME_LENGTH = 1800;    // 30 minutes total
 static constexpr uint32 PET_BATTLE_TRAP_ABILITY_ID = 427;     // "Trap" ability used for capture
+static constexpr uint32 MAX_PET_BATTLE_AURAS = 10;            // max auras on a single pet
+static constexpr uint32 MAX_PET_BATTLE_ENVIRONMENTS = 3;      // battlefield + per-team
+static constexpr float  PASSIVE_HUMANOID_HEAL_PCT = 0.04f;    // 4% max HP each round
+static constexpr float  PASSIVE_DRAGONKIN_DAMAGE_BONUS = 0.50f;
+static constexpr float  PASSIVE_FLYING_SPEED_BONUS = 0.50f;
+static constexpr float  PASSIVE_MAGIC_DAMAGE_CAP_PCT = 0.35f; // cannot take more than 35% max HP
+static constexpr float  PASSIVE_BEAST_DAMAGE_BONUS = 0.25f;
+static constexpr float  PASSIVE_AQUATIC_DOT_REDUCTION = 0.25f;
+static constexpr float  PASSIVE_MECHANICAL_REVIVE_PCT = 0.20f; // revive at 20% HP
 
 enum PetBattleTeamIndex : uint8
 {
@@ -129,6 +138,60 @@ enum PetBattleEffectType : uint8
     PET_BATTLE_EFFECT_AURA_PROCESSING_END   = 13,
 };
 
+// Aura types for pet battle
+enum PetBattleAuraType : uint8
+{
+    PET_BATTLE_AURA_DOT         = 0,
+    PET_BATTLE_AURA_HOT         = 1,
+    PET_BATTLE_AURA_BUFF        = 2,
+    PET_BATTLE_AURA_DEBUFF      = 3,
+    PET_BATTLE_AURA_STUN        = 4,
+    PET_BATTLE_AURA_ROOT        = 5,
+    PET_BATTLE_AURA_SLEEP       = 6,
+};
+
+// Weather/environment effect types
+enum PetBattleWeatherType : uint8
+{
+    PET_BATTLE_WEATHER_NONE         = 0,
+    PET_BATTLE_WEATHER_SUNNY        = 1,    // +25% healing
+    PET_BATTLE_WEATHER_MOONLIGHT    = 2,    // +25% healing, +10% magic damage
+    PET_BATTLE_WEATHER_RAIN         = 3,    // +25% aquatic damage
+    PET_BATTLE_WEATHER_SANDSTORM    = 4,    // Damage reduction shield, deals damage
+    PET_BATTLE_WEATHER_BLIZZARD     = 5,    // Deals frost damage, -25% speed
+    PET_BATTLE_WEATHER_MUD          = 6,    // -25% speed
+    PET_BATTLE_WEATHER_CLEANSING    = 7,    // removes all weather
+    PET_BATTLE_WEATHER_ARCANE       = 8,    // +25% magic damage
+    PET_BATTLE_WEATHER_LIGHTNING    = 9,    // +25% mechanical damage, deals damage
+    PET_BATTLE_WEATHER_SCORCHED     = 10,   // +25% dragonkin damage
+};
+
+// DB2 effect property IDs - these correspond to BattlePetEffectPropertiesEntry::ID
+// The actual effect behavior is determined by the effect properties ID
+enum PetBattleAbilityEffectAction : uint16
+{
+    PET_BATTLE_EFFECT_ACTION_DAMAGE             = 0,
+    PET_BATTLE_EFFECT_ACTION_HEAL               = 1,
+    PET_BATTLE_EFFECT_ACTION_APPLY_AURA         = 2,
+    PET_BATTLE_EFFECT_ACTION_CHANGE_STATE       = 3,
+    PET_BATTLE_EFFECT_ACTION_DAMAGE_PERCENTAGE  = 4,
+    PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE    = 5,
+    PET_BATTLE_EFFECT_ACTION_SET_STATE          = 6,
+    PET_BATTLE_EFFECT_ACTION_PET_SWAP           = 7,
+    PET_BATTLE_EFFECT_ACTION_CATCH              = 8,
+    PET_BATTLE_EFFECT_ACTION_CHANGE_MAX_HEALTH  = 9,
+    PET_BATTLE_EFFECT_ACTION_WEATHER_SET        = 10,
+    PET_BATTLE_EFFECT_ACTION_STUN               = 11,
+    PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE    = 12,
+    PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL      = 13,
+    PET_BATTLE_EFFECT_ACTION_DAMAGE_CAPPED      = 14,
+    PET_BATTLE_EFFECT_ACTION_HEAL_CAPPED        = 15,
+    PET_BATTLE_EFFECT_ACTION_REMOVE_AURA        = 16,
+    PET_BATTLE_EFFECT_ACTION_MULTI_TURN_BEGIN   = 17,
+    PET_BATTLE_EFFECT_ACTION_MULTI_TURN_END     = 18,
+    PET_BATTLE_EFFECT_ACTION_COUNT              = 19,
+};
+
 // Type effectiveness matrix [attacker type][defender type]
 // 1.0 = normal, 1.5 = strong (super effective), 0.667 = weak (not very effective)
 static constexpr float PET_TYPE_EFFECTIVENESS[PET_TYPE_COUNT][PET_TYPE_COUNT] =
@@ -154,7 +217,7 @@ inline float GetTypeEffectiveness(PetBattlePetType attackerType, PetBattlePetTyp
 }
 
 // Passive family abilities
-// Humanoid: Recovers 4% of max HP each round when above 50% HP
+// Humanoid: Recovers 4% of max HP each round
 // Dragonkin: Deals 50% additional damage on the round after bringing an enemy below 50%
 // Flying: Gains 50% speed while above 50% HP
 // Undead: Returns to life for one round when killed (once per battle)
