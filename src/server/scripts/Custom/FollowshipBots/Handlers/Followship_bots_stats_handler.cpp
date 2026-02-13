@@ -34,7 +34,7 @@ namespace FSBStats
         ApplyBotHealth(bot, botClass, true);        
 
         // Power
-        ApplyBotPower(bot, botClass, true);
+        ApplyBotBasePower(bot, botClass);
 
         // Attack Power
         ApplyBotAttackPower(bot, botClass);
@@ -48,6 +48,48 @@ namespace FSBStats
 
 
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, TC Class= {}, FSB Class= {}", bot->GetName(), bot->GetLevel(), bot->GetClass(), botClass);
+    }
+
+    void ApplyBotBasePower(Creature* bot, FSB_Class botClass)
+    {
+        if (!bot)
+            return;
+
+        auto const* stats = GetBotClassStats(botClass);
+        if (!stats)
+            return;
+
+        uint8 level = bot->GetLevel();
+
+        Powers basePowerType = stats->powerType;
+        uint32 basePower = stats->basePower + stats->powerPerLevel * (level - 1);
+
+        if (FSBPowers::IsRageUser(bot))
+        {
+            basePowerType = POWER_RAGE;
+            basePower = 1000;
+        }
+
+        if (FSBPowers::IsEnergyUser(bot))
+        {
+            basePowerType = POWER_ENERGY;
+            basePower = 1000;
+        }
+
+        bot->SetPowerType(basePowerType, true);
+
+        bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)), BASE_VALUE, (float)basePower);
+        bot->SetCreateMana(basePower);
+        float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)));
+        bot->SetMaxPower(basePowerType, totalPower);
+
+        if (FSBPowers::IsRageUser(bot))
+            bot->SetPower(basePowerType, 0, true);
+        else bot->SetPower(basePowerType, totalPower, true);
+
+        //creature->SetOverrideDisplayPowerId(466);
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler BASE powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
     }
 
     void ApplyBotHealth(Creature* bot, FSB_Class botClass, bool updateHealth)
@@ -100,24 +142,20 @@ namespace FSBStats
             basePower = 1000;
         }
 
-        bot->SetPowerType(basePowerType, true, true);
+        bot->SetPowerType(basePowerType, true);
 
         bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)), BASE_VALUE, (float)basePower);
         bot->SetCreateMana(basePower);
         float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)));
         bot->SetMaxPower(basePowerType, totalPower);
+            
 
-        float currentPower = 0;
-
-        if (FSBPowers::IsRageUser(bot))
-            currentPower = 0;
-        else currentPower = bot->GetPower(basePowerType);
-
-        if(!updatePower)
-            bot->SetPower(basePowerType, totalPower, true);
-
-        if(updatePower)
-            bot->SetPower(basePowerType, currentPower, true);
+        if (updatePower)
+        {
+            if (!FSBPowers::IsRageUser(bot))
+                bot->SetPower(basePowerType, totalPower, true);
+        }
+        else bot->SetPower(basePowerType, bot->GetPower(basePowerType), true);
         
 
         //creature->SetOverrideDisplayPowerId(466);

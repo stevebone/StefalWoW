@@ -53,6 +53,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('3595', '900003', '-1'),
 ('3595', '900004', '-1'),
 ('3595', '900005', '-1'),
+('3597', '900000', '-1'),
+('3597', '900001', '-1'),
+('3597', '900002', '-1'),
+('3597', '900003', '-1'),
+('3597', '900004', '-1'),
+('3597', '900005', '-1'),
 ('16500', '900000', '-1'),
 ('16500', '900001', '-1'),
 ('16500', '900002', '-1'),
@@ -125,4 +131,5 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 -- Shadowglen trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3593; -- Alyissia (Warrior)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3595; -- Shanda (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3597; -- Mardant (Druid)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43006; -- Rhyanda (Mage)

@@ -178,6 +178,8 @@ namespace FSBStats
 {
     FSB_ClassStats const* GetBotClassStats(FSB_Class botClass);
     void ApplyBotBaseClassStats(Creature* creature, FSB_Class botClass);
+    void ApplyBotBasePower(Creature* bot, FSB_Class botClass);
+
     void ApplyBotHealth(Creature* bot, FSB_Class botClass, bool updateHealth);
     void ApplyBotPower(Creature* bot, FSB_Class botClass, bool updatePower);
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass);
