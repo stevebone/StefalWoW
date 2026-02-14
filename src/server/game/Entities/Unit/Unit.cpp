@@ -95,6 +95,8 @@
 #include <sstream>
 #include <cmath>
 
+#include "..\scripts\Custom\FollowshipBots\Handlers\Followship_bots_stats_handler.h"
+
 float baseMoveSpeed[MAX_MOVE_TYPE] =
 {
     2.5f,                  // MOVE_WALK
@@ -7107,6 +7109,13 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask) const
 
     }
 
+    Creature const* thisCreature = ToCreature();
+    if (thisCreature)
+    {
+        DoneAdvertisedBenefit = FSBStats::BotGetSpellPower(thisCreature);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB SPELLPOWER TEST");
+    }
+
     return DoneAdvertisedBenefit;
 }
 
@@ -7353,6 +7362,12 @@ int32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, int
     int32 DoneAdvertisedBenefit = SpellBaseHealingBonusDone(spellProto->GetSchoolMask());
     // modify spell power by victim's SPELL_AURA_MOD_HEALING auras (eg Amplify/Dampen Magic)
     DoneAdvertisedBenefit += victim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_HEALING, spellProto->GetSchoolMask());
+
+    Creature const* thisCreature = ToCreature();
+    if (thisCreature)
+    {
+        DoneAdvertisedBenefit = FSBStats::BotGetSpellPower(thisCreature);
+    }
 
     // Pets just add their bonus damage to their spell damage
     // note that their spell damage is just gain of their own auras
