@@ -149,6 +149,7 @@ namespace FSBUtilsSpells
             return target == bot;
         }
 
+        case SPELL_DRUID_NATURE_CURE:
         case SPELL_PRIEST_PURIFY:
         {
             return target && HasDispellableDebuff(target);
@@ -161,6 +162,10 @@ namespace FSBUtilsSpells
 
         case SPELL_MAGE_EVOCATION:
             return bot->GetPowerPct(POWER_MANA) < 50;
+
+        case SPELL_DRUID_IRONBARK:
+        case SPELL_DRUID_CELESTIAL_ALIGNMENT:
+            return target == bot && bot->GetHealthPct() < 50;
 
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;

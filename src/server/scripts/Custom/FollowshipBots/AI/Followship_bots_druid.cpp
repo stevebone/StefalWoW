@@ -33,8 +33,13 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     { SPELL_DRUID_CELESTIAL_ALIGNMENT,  FSBSpellType::Damage,   0.f,        0.f,             50.f,             40.f,            true,        180000,      FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
 
     // HEALER
-    { SPELL_DRUID_CELESTIAL_ALIGNMENT,  FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,            true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_NATURE_CURE,          FSBSpellType::Heal,     0.f,        100.f,           100.f,            40.f,           false,        8000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_REJUVENATION,         FSBSpellType::Heal,     0.f,        80.f,            100.f,            40.f,           false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_TREE_OF_LIFE,         FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,            true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_DRUID_IRONBARK,             FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,            true,         90000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_LIFEBLOOM,            FSBSpellType::Heal,     0.f,        50.f,            50.f,             40.f,           false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_SWIFTMEND,            FSBSpellType::Heal,     0.f,        30.f,            50.f,             40.f,           false,        15000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_TRANQUILITY,          FSBSpellType::Heal,     0.f,        30.f,            50.f,             40.f,           true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
 };
 
 namespace FSBDruid
@@ -77,8 +82,29 @@ namespace FSBDruid
                 bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct + 1.2f);
             }
 
-            if(!applied)
+            if (!applied)
+            {
+                botStats.spellPowerPct -= 0.1f;
                 bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct - 1.2f);
+            }
+            FSBStats::RecalculateStats(bot, false, false);
+            return true;
+        }
+        case SPELL_DRUID_MOONKIN:
+        {
+            float armorPct = bot->GetPctModifierValue(UNIT_MOD_ARMOR, TOTAL_PCT);
+
+            if (applied)
+            {
+                botStats.spellPowerPct += 0.1f;
+                bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct + 1.25f);
+            }
+
+            if (!applied)
+            {
+                botStats.spellPowerPct -= 0.1f;
+                bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct - 1.25f);
+            }
             FSBStats::RecalculateStats(bot, false, false);
             return true;
         }
