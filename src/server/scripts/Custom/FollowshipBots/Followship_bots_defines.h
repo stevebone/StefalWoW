@@ -85,3 +85,14 @@ enum FSB_MovementStates
     FSB_MOVE_STATE_FOLLOWING = 1,
     FSB_MOVE_STATE_STAY = 2
 };
+
+struct FSBBotStats
+{
+
+    float spellPowerPct = 0.f;
+    //int32 flatManaPerTick = 0;
+    //int32 flatRagePerTick = 0;
+
+    //float pctHealthPerTick = 0;
+    //float pctManaPerTick = 0;
+};

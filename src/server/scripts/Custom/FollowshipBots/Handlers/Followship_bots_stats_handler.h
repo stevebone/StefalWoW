@@ -1,4 +1,4 @@
-#include "Followship_bots_defines.h"
+#include "..\Followship_bots_defines.h"
 
 struct FSB_ClassStats
 {
@@ -30,6 +30,9 @@ struct FSB_ClassStats
 
     int32 baseAttackTime;
     int32 baseRangedAttackTime;
+
+    int32 baseSpellPower;
+    int32 spellPowerPerLevel;
 };
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
@@ -51,7 +54,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
-        .baseRangedAttackTime = 2000
+        .baseRangedAttackTime = 2000,
+        .baseSpellPower = 8,
+        .spellPowerPerLevel = 2
     },
 
     // WARRIOR
@@ -71,7 +76,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
-        .baseRangedAttackTime = 2000
+        .baseRangedAttackTime = 2000,
+        .baseSpellPower = 2,
+        .spellPowerPerLevel = 1
     },
 
     // PRIEST
@@ -91,7 +98,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 2500,
-        .baseRangedAttackTime = 2500
+        .baseRangedAttackTime = 2500,
+        .baseSpellPower = 8,
+        .spellPowerPerLevel = 2
     },
 
     // WARLOCK
@@ -111,7 +120,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 2500,
-        .baseRangedAttackTime = 2500
+        .baseRangedAttackTime = 2500,
+        .baseSpellPower = 9,
+        .spellPowerPerLevel = 2
     },
 
     // MAGE
@@ -130,7 +141,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 2500,
-        .baseRangedAttackTime = 2500
+        .baseRangedAttackTime = 2500,
+        .baseSpellPower = 10,
+        .spellPowerPerLevel = 2
     },
 
     // DRUID
@@ -150,7 +163,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 2,
         .baseClassDamageVariance = 0.7f,
         .baseAttackTime = 2000,
-        .baseRangedAttackTime = 2500
+        .baseRangedAttackTime = 2500,
+        .baseSpellPower = 8,
+        .spellPowerPerLevel = 3
     },
 
     // ROGUE
@@ -170,7 +185,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .attackPowerPerLevel = 10,
         .baseClassDamageVariance = 1.2f,
         .baseAttackTime = 1500,
-        .baseRangedAttackTime = 2500
+        .baseRangedAttackTime = 2500,
+        .baseSpellPower = 1,
+        .spellPowerPerLevel = 2
     },
 };
 
@@ -192,4 +209,5 @@ namespace FSBStats
     void UpdateBotLevelToPlayer(Creature* bot);
     void RecalculateStats(Creature* bot, bool updateHealth, bool updatePower);
 
+    int32 BotGetSpellPower(const Creature* bot);
 }

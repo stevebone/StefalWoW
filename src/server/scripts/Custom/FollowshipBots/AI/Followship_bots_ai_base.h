@@ -17,6 +17,7 @@ public:
         botRace(FSB_Race::None),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
         botRegenMods(),
+        botStats(),
 
         botHired(false),
         botMounted(false),
@@ -34,6 +35,7 @@ public:
     FSB_Race botRace;
     FSB_MovementStates botMoveState;
     FSBRegenMods botRegenMods;
+    FSBBotStats botStats;
 
     bool botHired;
     bool botMounted;

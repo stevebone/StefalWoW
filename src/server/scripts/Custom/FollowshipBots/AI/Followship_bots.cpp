@@ -86,6 +86,7 @@ public:
                 FSBStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
 
                 botHasDemon = false;
+                botStats = FSBBotStats();
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
@@ -555,7 +556,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, true, botRegenMods, botHasSoulstone);
+            FSBAuras::BotOnAuraApplied(me, aurApp, true, botRegenMods, botHasSoulstone, botStats);
         }
 
         void OnAuraRemoved(AuraApplication const* aurApp) override
@@ -563,7 +564,7 @@ public:
             if (!aurApp)
                 return;
 
-            FSBAuras::BotOnAuraApplied(me, aurApp, false, botRegenMods, botHasSoulstone);
+            FSBAuras::BotOnAuraApplied(me, aurApp, false, botRegenMods, botHasSoulstone, botStats);
         }
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature

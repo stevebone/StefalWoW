@@ -13,7 +13,7 @@
 
 namespace FSBAuras
 {
-    void BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBRegenMods& botRegenMods, bool& hasSS)
+    void BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBRegenMods& botRegenMods, bool& hasSS, FSBBotStats& botStats)
     {
         if (!bot)
             return;
@@ -35,7 +35,7 @@ namespace FSBAuras
         case FSB_Class::Rogue:
             break;
         case FSB_Class::Druid:
-            if (FSBDruid::BotOnAuraApplied(bot, aurApp, applied))
+            if (FSBDruid::BotOnAuraApplied(bot, aurApp, applied, botStats))
                 break;
             break;
         case FSB_Class::Paladin:

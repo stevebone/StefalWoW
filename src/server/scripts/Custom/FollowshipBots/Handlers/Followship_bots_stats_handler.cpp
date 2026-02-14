@@ -286,6 +286,33 @@ namespace FSBStats
         ApplyBotArmor(bot);
     }
 
+    int32 BotGetSpellPower(const Creature* bot)
+    {
+        if (!bot)
+            return 0;
+
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        uint16 level = bot->GetLevel();
+
+        auto const* stats = GetBotClassStats(botClass);
+        if (!stats)
+            return 0;
+
+        int32 baseSP = stats->baseSpellPower;
+        float spPct = 1.f;
+        int32 levelSP = stats->spellPowerPerLevel * (level - 1);
+
+        if (FSB_BaseAI* ai = CAST_AI(FSB_BaseAI, bot->AI()))
+        {
+            spPct += ai->botStats.spellPowerPct;
+        }
+
+        int32 value = (baseSP + levelSP) * spPct;
+
+        return value;
+
+    }
+
     // This is applied in DamageTaken() so with every damage
     float ApplyBotDamageTakenReduction(Creature* bot)
     {
@@ -317,6 +344,9 @@ namespace FSBStats
 
         if (FSBDruid::BotHasMarkWild(bot))
             multiplier *= 0.985f;
+
+        if (FSBDruid::BotHasIronbark(bot))
+            multiplier *= 0.8f;
 
         return multiplier;
     }

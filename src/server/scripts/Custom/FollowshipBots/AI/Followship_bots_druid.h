@@ -25,7 +25,9 @@ enum DRUID_SPECIAL_SPELLS
 
 enum DRUID_COMBAT_SPELLS
 {
-    SPELL_DRUID_WRATH = 76815,
+    SPELL_DRUID_WRATH = 5176, //76815,
+    SPELL_DRUID_REGROWTH = 8936, //97426,
+    SPELL_DRUID_BARKSKIN = 22812,
 
     // BEAR
     SPELL_DRUID_BEAR_GROWL = 182848,
@@ -38,10 +40,22 @@ enum DRUID_COMBAT_SPELLS
     SPELL_DRUID_CAT_MANGLE = 79828,
     SPELL_DRUID_CAT_FEROCIOUS_BITE = 27557,
 
-    
+    // RANGED
+    SPELL_DRUID_MOONFIRE = 8921, //15798,
+    SPELL_DRUID_ROOTS = 37823,
+    SPELL_DRUID_FORCE_NATURE = 205636,
+    SPELL_DRUID_SOLAR_BEAM = 78675,
+    SPELL_DRUID_NEW_MOON = 274281,
+    SPELL_DRUID_STARFALL = 1286243,
+    SPELL_DRUID_WILD_MUSHROOM = 88747,
+    SPELL_DRUID_CELESTIAL_ALIGNMENT = 194223,
+
+    // HEALER
+    SPELL_DRUID_TREE_OF_LIFE = 33891,
+    SPELL_DRUID_IRONBARK = 102342,
 
     // COMBAT BUFFS
-    SPELL_DRUID_BARKSKIN = 22812,
+    
 };
 
 static const uint32 druidAurasToRemoveForHealer[] =
@@ -74,8 +88,9 @@ static const uint32 druidAurasToRemoveForDamage[] =
 
 namespace FSBDruid
 {
-    bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied);
+    bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& botStats);
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
     void BotSetRoleAuras(Creature* bot, FSB_Roles role);
     bool BotHasMarkWild(Creature* bot);
+    bool BotHasIronbark(Creature* bot);
 }
