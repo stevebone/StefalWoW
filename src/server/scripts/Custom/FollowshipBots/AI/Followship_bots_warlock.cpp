@@ -159,7 +159,7 @@ namespace FSBWarlock
         if (!bot || !bot->IsAlive())
             return false;
 
-        if (!botHasDemon)
+        if (botHasDemon)
             return false;
 
         FSB_Roles role = FSBUtils::GetRole(bot);
@@ -174,10 +174,6 @@ namespace FSBWarlock
                 SPELL_WARLOCK_SUMMON_FELHUNTER,
                 SPELL_WARLOCK_SUMMON_FELGUARD,
                 SPELL_WARLOCK_SUMMON_DOOMGUARD);
-
-        //bot->SetPowerType(POWER_SOUL_SHARDS, true);
-        //bot->SetMaxPower(POWER_SOUL_SHARDS, 50);
-        //bot->SetPower(POWER_SOUL_SHARDS, 50, true);
 
         SpellCastResult result = bot->CastSpell(bot, spellId, false);
 
