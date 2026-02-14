@@ -17,7 +17,8 @@
 
 namespace FSBOOC
 {
-    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup, bool& botHasDemon, bool& botManaPotionUsed, bool& botHealthPotionUsed)
+    bool BotOOCActions(Creature* bot, uint32& globalCooldown, uint32& buffTimer, uint32& selfBuffTimer, const std::vector<Unit*> botGroup,
+        bool& botHasDemon, bool& botManaPotionUsed, bool& botHealthPotionUsed, bool& botCastedCombatBuffs)
     {
         if (!bot)
             return false;
@@ -66,13 +67,13 @@ namespace FSBOOC
             return true;
 
         //7. Clear combat flags and states
-        if (BotOOCClearCombatFlags(bot, botManaPotionUsed, botHealthPotionUsed))
+        if (BotOOCClearCombatFlags(bot, botManaPotionUsed, botHealthPotionUsed, botCastedCombatBuffs))
             return true;
 
         return false; 
     }
 
-    bool BotOOCClearCombatFlags(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed)
+    bool BotOOCClearCombatFlags(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, bool& botCastedCombatBuffs)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -91,6 +92,12 @@ namespace FSBOOC
         if (botHealthPotionUsed)
         {
             botHealthPotionUsed = false;
+            check = true;
+        }
+
+        if (botCastedCombatBuffs)
+        {
+            botCastedCombatBuffs = false;
             check = true;
         }
 

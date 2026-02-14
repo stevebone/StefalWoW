@@ -678,7 +678,7 @@ namespace FSBSpellsUtils
         return false;
     }
 
-    bool BotCastMountSpell(Creature* bot, uint32 spellId)
+    bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target)
     {
         if (!bot)
             return false;
@@ -686,7 +686,7 @@ namespace FSBSpellsUtils
         if (!spellId)
             return false;
 
-        SpellCastResult result = bot->CastSpell(bot, spellId, true);
+        SpellCastResult result = bot->CastSpell(target, spellId, true);
 
         if (result == SPELL_CAST_OK)
             return true;

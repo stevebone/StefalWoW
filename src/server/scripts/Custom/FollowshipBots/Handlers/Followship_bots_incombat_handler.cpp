@@ -1,13 +1,15 @@
 #include "Followship_bots_config.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_druid.h"
+#include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 
 #include "Followship_bots_incombat_handler.h"
 
 namespace FSBIC
 {
-    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed)
+    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -22,6 +24,41 @@ namespace FSBIC
         // These can be cast instant with no GCD
         if (BotICPotions(bot, botManaPotionUsed, botHealthPotionUsed))
             return true;
+
+        //2. IC (initial)Buffs
+        // These are cast when combat starts
+        if (BotICInitialBuffs(bot, globalCooldown, botCastedCombatBuffs, botGroup))
+            return true;
+
+        return false;
+    }
+
+    bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup)
+    {
+        if (!bot)
+            return false;
+
+        uint32 now = getMSTime();
+
+        if (!FSBUtilsSpells::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        if (!bot->IsInCombat())
+            return false;
+
+        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Roles botRole = FSBUtils::GetRole(bot);
+
+        switch (botClass)
+        {
+        case FSB_Class::Priest:
+            if(FSBPriest::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, botRole, botGroup))
+                return true;
+        case FSB_Class::Druid:
+            break;
+        default:
+            return false;
+        }
 
         return false;
     }

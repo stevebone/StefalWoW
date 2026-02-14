@@ -25,6 +25,9 @@ public:
         botManaPotionUsed(false),
         botHealthPotionUsed(false),
         botHasDemon(false),
+        botCastedCombatBuffs(false),
+
+        botGlobalCooldown(0),
 
         botCorpsePos()
     {
@@ -43,6 +46,9 @@ public:
     bool botManaPotionUsed;
     bool botHealthPotionUsed;
     bool botHasDemon;
+    bool botCastedCombatBuffs;
+
+    uint32 botGlobalCooldown;
 
     Position botCorpsePos;
 

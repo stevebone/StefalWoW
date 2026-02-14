@@ -65,4 +65,23 @@ namespace FSBGroup
 
         return nullptr; // no healer in group
     }
+
+    Unit* BotGetFirstGroupTank(const std::vector<Unit*>& group)
+    {
+        for (Unit* member : group)
+        {
+            if (!member || !member->IsAlive())
+                continue;
+
+            FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
+
+            // Check healer role
+            if (role == FSB_Roles::FSB_ROLE_TANK)
+            {
+                return member; // first healer found
+            }
+        }
+
+        return nullptr; // no healer in group
+    }
 }

@@ -3,6 +3,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
 
 std::vector<FSBSpellDefinition> PriestSpellsTable =
@@ -35,55 +36,73 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
 
 namespace FSBPriest
 {
-    bool BotInitialCombatSpells(Creature* bot, uint32& _globalCooldownUntil, bool& _ownerWasInCombat, uint8& _appliedInitialCBuffs, bool selfCast)
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup)
     {
-        Unit* target = bot;
+        if (botCastedCombatBuffs)
+            return false;
 
-        if (!selfCast)
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!bot->IsInCombat())
+            return false;
+
+        Unit* target = nullptr;
+        Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+
+        switch (botRole)
         {
-            Player* player = FSBMgr::GetBotOwner(bot);
+        case FSB_ROLE_HEALER:
+            if (tank)
+                target = tank;
+            else
+            {
+                Player* player = FSBMgr::GetBotOwner(bot);
 
-            if (!player)
-                return false;
+                if (!player)
+                    break;
 
-            if (!player->IsAlive())
-                return false;
+                if (!player->IsAlive())
+                    break;
 
-            if (!player->IsInCombat())
-                return false;
+                if (!player->IsInCombat())
+                    break;
 
-            target = player;
+                target = player;
+            }
+            break;
+        case FSB_ROLE_ASSIST:
+            target = bot;
+            break;
+        default:
+            target = bot;
+            break;
         }
 
-        // we need to default this in case bot does not have owner.
-        // otherwise bot will never buff itself when not hired.
-        if (selfCast)
-            _ownerWasInCombat = bot->IsInCombat(); 
-
-
-        uint32 now = getMSTime();
-
-        if (FSBUtilsSpells::CanCastNow(bot, now, _globalCooldownUntil) && !target->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD) && _ownerWasInCombat && _appliedInitialCBuffs == 0)
+        if (target)
         {
-            bot->CastSpell(target, SPELL_PRIEST_POWER_WORD_SHIELD);
-            _globalCooldownUntil = now + 1500;
-            _appliedInitialCBuffs = 1; // pws applied
+            uint32 now = getMSTime();
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: PWS on target: {}", target->GetName());
-
-            return true;
+            if (!target->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
+            {
+                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_PRIEST_POWER_WORD_SHIELD, target))
+                {
+                    globalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: PWS on target: {}", target->GetName());
+                    return true;
+                }
+            }
+            else if(!target->HasAura(SPELL_PRIEST_RENEW))
+            {
+                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_PRIEST_RENEW, target))
+                {
+                    globalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Renew on target: {}", target->GetName());
+                    botCastedCombatBuffs = true;
+                    return true;
+                }
+            }
         }
-        else if (FSBUtilsSpells::CanCastNow(bot, now, _globalCooldownUntil) && !target->HasAura(SPELL_PRIEST_RENEW) && _appliedInitialCBuffs == 1)
-        {
-            bot->CastSpell(target, SPELL_PRIEST_RENEW);
-            _globalCooldownUntil = now + 1500;
-            _appliedInitialCBuffs = 2;
-
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Renew on target: {}", target->GetName());
-
-            return true;
-        }
-
         return false;
 
     }

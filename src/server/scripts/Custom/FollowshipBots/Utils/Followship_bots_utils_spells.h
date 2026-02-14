@@ -197,6 +197,6 @@ namespace FSBSpellsUtils
     const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level);
     uint32 GetRandomMountSpellForBot(Creature* bot);
     bool CastRandomMountLevelSpell(Creature* bot);
-    bool BotCastMountSpell(Creature* bot, uint32 spellId);
+    bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target);
 }
 

@@ -99,7 +99,7 @@ namespace FSBMovement
                 };
 
                 uint32 spellId = warlockMounts[urand(0, warlockMounts.size() - 1)];
-                if (FSBSpellsUtils::BotCastMountSpell(bot, spellId))
+                if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
                     botMounted = true;
             }
             else if (cls == FSB_Class::Paladin)
@@ -112,7 +112,7 @@ namespace FSBMovement
                 };
 
                 uint32 spellId = paladinMounts[urand(0, paladinMounts.size() - 1)];
-                if (FSBSpellsUtils::BotCastMountSpell(bot, spellId))
+                if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
                     botMounted = true;
             }
             else

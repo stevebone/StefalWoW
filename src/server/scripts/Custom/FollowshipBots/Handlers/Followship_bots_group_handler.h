@@ -8,4 +8,5 @@ namespace FSBGroup
     void CheckBotAllies(Unit* me, std::vector<Unit*>& outGroup, float searchRange = 100.0f);
 
     Unit* BotGetFirstGroupHealer(const std::vector<Unit*>& group);
+    Unit* BotGetFirstGroupTank(const std::vector<Unit*>& group);
 }

@@ -655,30 +655,6 @@ public:
                 
                 if (me->IsInCombat() && me->IsAlive())
                 {
-                    // 2. On Enter Combat spells
-                    uint32 now = getMSTime();
-                    if (FSBUtilsSpells::CanCastNow(me, now, _globalCooldownUntil))
-                    {
-                        switch (botClass)
-                        {
-                        case FSB_Class::Priest:
-                        {
-                            if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_ASSIST) // self cast for Assist Role
-                            {
-                                if (FSBPriest::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, true))
-                                    break;
-                            }
-                            else if (FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER) // player cast for Healer role
-                            {
-                                if (FSBPriest::BotInitialCombatSpells(me, _globalCooldownUntil, _ownerWasInCombat, _appliedInitialCBuffs, false))
-                                    break;
-                            }
-                            break;
-                        }
-                        default:
-                            break;
-                        }
-                    }
                 }
 
                 break;
@@ -768,7 +744,8 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, botHasDemon, botManaPotionUsed, botHealthPotionUsed))
+                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, botHasDemon, botManaPotionUsed, botHealthPotionUsed,
+                                botCastedCombatBuffs))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
 
                             // ? lock regen for next 2 seconds
@@ -1023,7 +1000,7 @@ public:
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
                     if (me->IsAlive() && me->IsInCombat())
-                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed);
+                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botGroup_);
 
                     Player* player = FSBMgr::GetBotOwner(me);
 
@@ -1035,7 +1012,6 @@ public:
                     else if (player && player->IsAlive() && !player->IsInCombat())
                     {
                         _ownerWasInCombat = false;
-                        _appliedInitialCBuffs = 0;
                     }
 
                     // 2. Combat spells loop
