@@ -5,6 +5,8 @@
 
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_stats_handler.h"
+
 using namespace Trinity::ChatCommands;
 
 class followship_bots_commandscript : public CommandScript
@@ -74,6 +76,10 @@ public:
         float totalRAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER_RANGED);
 
         handler->PSendSysMessage("Ranged Attack Power: Base %.1f / Total %.1f", baseRAttackPower, totalRAttackPower);
+
+        int32 spellPower = FSBStats::BotGetSpellPower(bot);
+
+        handler->PSendSysMessage("Spell Power: %u", spellPower);
 
         return true;
     }
