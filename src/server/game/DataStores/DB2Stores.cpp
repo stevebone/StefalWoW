@@ -396,6 +396,7 @@ DB2Storage<VehicleEntry>                        sVehicleStore("Vehicle.db2", &Ve
 DB2Storage<VehicleSeatEntry>                    sVehicleSeatStore("VehicleSeat.db2", &VehicleSeatLoadInfo::Instance);
 DB2Storage<VignetteEntry>                       sVignetteStore("Vignette.db2", &VignetteLoadInfo::Instance);
 DB2Storage<WarbandSceneEntry>                   sWarbandSceneStore("WarbandScene.db2", &WarbandSceneLoadInfo::Instance);
+DB2Storage<WarbandScenePlacementEntry>          sWarbandScenePlacementStore("WarbandScenePlacement.db2", &WarbandScenePlacementLoadInfo::Instance);
 DB2Storage<WMOAreaTableEntry>                   sWMOAreaTableStore("WMOAreaTable.db2", &WmoAreaTableLoadInfo::Instance);
 DB2Storage<WorldEffectEntry>                    sWorldEffectStore("WorldEffect.db2", &WorldEffectLoadInfo::Instance);
 DB2Storage<WorldMapOverlayEntry>                sWorldMapOverlayStore("WorldMapOverlay.db2", &WorldMapOverlayLoadInfo::Instance);
@@ -546,6 +547,7 @@ namespace
     std::unordered_set<int32> _uiMapPhases;
     WMOAreaTableLookupContainer _wmoAreaTableLookup;
     std::unordered_map<uint32, std::unordered_set<uint32>> _pvpStatIdsByMap;
+    std::unordered_map<int32, std::vector<WarbandScenePlacementEntry const*>> _warbandScenePlacementsByScene;
 }
 
 static void LoadDB2(std::bitset<TOTAL_LOCALES>& availableDb2Locales, std::vector<std::string>& errlist, StorageMap& stores, DB2StorageBase* storage, std::string const& db2Path,
@@ -1026,6 +1028,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sVehicleSeatStore);
     LOAD_DB2(sVignetteStore);
     LOAD_DB2(sWarbandSceneStore);
+    LOAD_DB2(sWarbandScenePlacementStore);
     LOAD_DB2(sWMOAreaTableStore);
     LOAD_DB2(sWorldEffectStore);
     LOAD_DB2(sWorldMapOverlayStore);
@@ -1725,6 +1728,9 @@ void DB2Manager::IndexLoadedStores()
 
     for (PVPStatEntry const* pvpStat : sPVPStatStore)
         _pvpStatIdsByMap[pvpStat->MapID].insert(pvpStat->ID);
+
+    for (WarbandScenePlacementEntry const* placement : sWarbandScenePlacementStore)
+        _warbandScenePlacementsByScene[placement->WarbandSceneID].push_back(placement);
 
     TC_LOG_INFO("server.loading", ">> Indexed DB2 data stores in {} ms", GetMSTimeDiffToNow(oldMSTime));
 }
@@ -3492,6 +3498,11 @@ WMOAreaTableEntry const* DB2Manager::GetWMOAreaTable(int32 rootId, int32 adtId, 
 std::unordered_set<uint32> const* DB2Manager::GetPVPStatIDsForMap(uint32 mapId) const
 {
     return Trinity::Containers::MapGetValuePtr(_pvpStatIdsByMap, mapId);
+}
+
+std::vector<WarbandScenePlacementEntry const*> const* DB2Manager::GetWarbandScenePlacements(uint32 warbandSceneId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_warbandScenePlacementsByScene, static_cast<int32>(warbandSceneId));
 }
 
 bool ChrClassesXPowerTypesEntryComparator::Compare(ChrClassesXPowerTypesEntry const* left, ChrClassesXPowerTypesEntry const* right)

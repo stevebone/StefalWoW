@@ -2090,6 +2090,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_LOCALE_STMT(HOTFIX_SEL_WARBAND_SCENE, "SELECT ID, Name_lang, Description_lang FROM warband_scene_locale WHERE (`VerifiedBuild` > 0) = ?"
         " AND locale = ?", CONNECTION_SYNCH);
 
+    // WarbandScenePlacement.db2
+    PrepareStatement(HOTFIX_SEL_WARBAND_SCENE_PLACEMENT, "SELECT PositionX, PositionY, PositionZ, ID, WarbandSceneID, SlotType, Rotation, Scale, "
+        "Field_11_0_0_54210_004, Field_11_0_0_54210_005, SlotID, Field_11_1_0_58221_009 FROM warband_scene_placement"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_WARBAND_SCENE_PLACEMENT, "SELECT MAX(ID) + 1 FROM warband_scene_placement", CONNECTION_SYNCH);
+
     // WmoAreaTable.db2
     PrepareStatement(HOTFIX_SEL_WMO_AREA_TABLE, "SELECT AreaName, ID, WmoID, NameSetID, WmoGroupID, SoundProviderPref, SoundProviderPrefUnderwater, "
         "AmbienceID, UwAmbience, ZoneMusic, UwZoneMusic, IntroSound, UwIntroSound, AreaTableID, Flags FROM wmo_area_table"

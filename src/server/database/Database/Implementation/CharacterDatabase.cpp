@@ -803,6 +803,15 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHARACTER_BANK_TAB_SETTINGS, "SELECT tabId, name, icon, description, depositFlags FROM character_bank_tab_settings WHERE characterGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS, "DELETE FROM character_bank_tab_settings WHERE characterGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_BANK_TAB_SETTINGS, "INSERT INTO character_bank_tab_settings (characterGuid, tabId, name, icon, description, depositFlags) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+
+    PrepareStatement(CHAR_SEL_WARBAND_GROUPS, "SELECT groupId, orderIndex, warbandSceneId, flags, contentSetId, name FROM character_warband_groups WHERE battlenetAccountId = ? ORDER BY orderIndex", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_SEL_WARBAND_GROUP_MEMBERS, "SELECT gm.groupId, gm.memberIndex, gm.guid, gm.warbandScenePlacementId, gm.memberType, gm.contentSetId FROM character_warband_group_members gm INNER JOIN character_warband_groups g ON gm.groupId = g.groupId WHERE g.battlenetAccountId = ? ORDER BY gm.groupId, gm.memberIndex", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_INS_WARBAND_GROUP, "INSERT INTO character_warband_groups (groupId, battlenetAccountId, orderIndex, warbandSceneId, flags, contentSetId, name) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_UPD_WARBAND_GROUP, "UPDATE character_warband_groups SET orderIndex = ?, warbandSceneId = ?, flags = ?, contentSetId = ?, name = ? WHERE groupId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_WARBAND_GROUPS_BY_ACCOUNT, "DELETE FROM character_warband_groups WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_WARBAND_GROUP_MEMBER, "INSERT INTO character_warband_group_members (groupId, memberIndex, guid, warbandScenePlacementId, memberType, contentSetId) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_WARBAND_GROUP_MEMBERS, "DELETE FROM character_warband_group_members WHERE groupId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_WARBAND_MEMBER_BY_GUID, "DELETE FROM character_warband_group_members WHERE guid = ?", CONNECTION_ASYNC);
 }
 
 CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)
