@@ -1,10 +1,45 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_db.h"
 
 #include "Followship_bots_group_handler.h"
 
 namespace FSBGroup
 {
+    void BuildLogicalBotGroup(Creature* bot, std::vector<Unit*>& outGroup)
+    {
+        outGroup.clear();
+
+        Player* owner = FSBMgr::GetBotOwner(bot);
+
+        if (!owner || !bot)
+            return;
+
+        outGroup.push_back(owner);
+        outGroup.push_back(bot);
+
+        uint64 ownerGuid = owner->GetGUID().GetCounter();
+
+        auto botsPtr = FSBMgr::GetCachedBotsForPlayer(owner);
+        if (!botsPtr)
+            return;
+
+        for (auto const& botData : *botsPtr)
+        {
+            if (botData.runtimeGuid.IsEmpty())
+                continue;
+
+            if (Unit* botUnit = ObjectAccessor::GetUnit(*owner, botData.runtimeGuid))
+            {
+                outGroup.push_back(botUnit);
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildLogicalGroup. Bot: {} got added {} to group of: {}", bot->GetName(), botUnit->GetName(), outGroup.size());  // TEMP-LOG
+            }
+        }
+
+        
+    }
+
+
     void CheckBotAllies(Unit* me, std::vector<Unit*>& outGroup, float searchRange)
     {
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildBotGroup triggered"); // TEMP-LOG
@@ -33,6 +68,15 @@ namespace FSBGroup
 
             for (Unit* unit : nearbyAllies)
             {
+                if (unit->ToCreature() && unit->ToCreature()->IsBot())
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb",
+                        "Bot candidate {} | Alive: {} | Owner: {}",
+                        unit->GetName(),
+                        unit->IsAlive(),
+                        unit->GetOwnerGUID().ToString());
+                }
+
                 if (!unit || unit == me || unit == owner)
                     continue;
 
@@ -68,9 +112,9 @@ namespace FSBGroup
         return nullptr; // no healer in group
     }
 
-    Unit* BotGetFirstGroupTank(const std::vector<Unit*>& group)
+    Unit* BotGetFirstGroupTank(const std::vector<Unit*>& botGroup)
     {
-        for (Unit* member : group)
+        for (Unit* member : botGroup)
         {
             if (!member || !member->IsAlive())
                 continue;
@@ -85,5 +129,20 @@ namespace FSBGroup
         }
 
         return nullptr; // no healer in group
+    }
+
+    Unit* BotGetFirstDeadMember(const std::vector<Unit*>& botGroup)
+    {
+
+        for (Unit* unit : botGroup)
+        {
+            if (!unit)
+                continue;
+
+            if (!unit->IsAlive())
+                return unit;
+        }
+
+        return nullptr;
     }
 }

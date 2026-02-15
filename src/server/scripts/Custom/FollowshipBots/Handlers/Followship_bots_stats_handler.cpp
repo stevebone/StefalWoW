@@ -48,7 +48,7 @@ namespace FSBStats
 
 
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, TC Class= {}, FSB Class= {}", bot->GetName(), bot->GetLevel(), bot->GetClass(), botClass);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, TC Class= {}, FSB Class= {}", bot->GetName(), bot->GetLevel(), bot->GetClass(), botClass);
     }
 
     void ApplyBotBasePower(Creature* bot, FSB_Class botClass)
@@ -90,7 +90,7 @@ namespace FSBStats
 
         //creature->SetOverrideDisplayPowerId(466);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler BASE powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler BASE powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
     }
 
     void ApplyBotHealth(Creature* bot, FSB_Class botClass, bool updateHealth)
@@ -114,7 +114,7 @@ namespace FSBStats
         if(updateHealth)
             bot->SetHealth(uint32(totalHealth));
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler health base: {}, total: {}", bot->GetName(), baseHealth, totalHealth);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler health base: {}, total: {}", bot->GetName(), baseHealth, totalHealth);
     }
 
     void ApplyBotPower(Creature* bot, FSB_Class botClass, bool updatePower)
@@ -161,7 +161,7 @@ namespace FSBStats
 
         //creature->SetOverrideDisplayPowerId(466);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
     }
 
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass)
@@ -248,7 +248,7 @@ namespace FSBStats
 
         bot->SetArmor(baseArmor, totalArmor - baseArmor);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}", bot->GetName(), baseArmor, totalArmor);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}", bot->GetName(), baseArmor, totalArmor);
     }
 
     void UpdateBotLevelToPlayer(Creature* bot)

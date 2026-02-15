@@ -20,6 +20,9 @@ public:
         botRegenMods(),
         botStats(),
 
+        botFollowDistance(0.f),
+        botFollowAngle(0.f),
+
         botHired(false),
         botMounted(false),
         botHasSoulstone(false),
@@ -27,10 +30,15 @@ public:
         botHealthPotionUsed(false),
         botHasDemon(false),
         botCastedCombatBuffs(false),
+        botSayMemberDead(false),
 
         botGlobalCooldown(0),
+        botBuffsTimer(0),
+        botSelfBuffsTimer(0),
 
-        botCorpsePos()
+        botCorpsePos(),
+
+        botResurrectTargetGuid(ObjectGuid::Empty)
     {
     }
 
@@ -41,6 +49,9 @@ public:
     FSBRegenMods botRegenMods;
     FSBBotStats botStats;
 
+    float botFollowDistance;
+    float botFollowAngle;
+
     bool botHired;
     bool botMounted;
     bool botHasSoulstone;
@@ -48,13 +59,22 @@ public:
     bool botHealthPotionUsed;
     bool botHasDemon;
     bool botCastedCombatBuffs;
+    bool botSayMemberDead;
 
     uint32 botGlobalCooldown;
+    uint32 botBuffsTimer;
+    uint32 botSelfBuffsTimer;
 
     Position botCorpsePos;
 
+    ObjectGuid botResurrectTargetGuid;
+
     void ScheduleBotEvent(uint32 eventId, Milliseconds time);
     void ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime);
+
+    Creature* GetBot() { return me; };
+
+    std::vector<Unit*> botLogicalGroup;
 
 protected:
     EventMap botEvents;

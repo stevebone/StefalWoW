@@ -10,6 +10,8 @@
 #include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_config.h"
+
+#include "Followship_bots_druid.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_mage.h"
@@ -57,8 +59,7 @@ public:
         // Bot Operations
 
         bool updateFollowInfo = false;
-        float followDistance = frand(2.f, 8.f);
-        float followAngle = frand(0.0f, float(M_PI * 2.0f));
+        
 
         bool _pendingResurrection = false;
         bool _announceMemberDead = false;
@@ -87,6 +88,8 @@ public:
 
                 botHasDemon = false;
                 botStats = FSBBotStats();
+                botFollowDistance = frand(2.f, 8.f);
+                botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
@@ -293,7 +296,7 @@ public:
                 // Bot Follow Distance Option 1
             case GOSSIP_ACTION_INFO_DEF + 14:
             {
-                followDistance = FOLLOW_DISTANCE_CLOSE;
+                botFollowDistance = FOLLOW_DISTANCE_CLOSE;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
                 break;
@@ -302,7 +305,7 @@ public:
                 // Bot Follow Distance Option 2
             case GOSSIP_ACTION_INFO_DEF + 15:
             {
-                followDistance = FOLLOW_DISTANCE_NORMAL;
+                botFollowDistance = FOLLOW_DISTANCE_NORMAL;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
                 break;
@@ -311,7 +314,7 @@ public:
                 // Bot Follow Distance Option 3
             case GOSSIP_ACTION_INFO_DEF + 16:
             {
-                followDistance = FOLLOW_DISTANCE_WIDE;
+                botFollowDistance = FOLLOW_DISTANCE_WIDE;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
                 break;
@@ -320,7 +323,7 @@ public:
                 // Bot Follow Angle Option 1
             case GOSSIP_ACTION_INFO_DEF + 17:
             {
-                followAngle = FOLLOW_ANGLE_FRONT;
+                botFollowAngle = FOLLOW_ANGLE_FRONT;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
                 break;
@@ -329,7 +332,7 @@ public:
                 // Bot Follow Angle Option 2
             case GOSSIP_ACTION_INFO_DEF + 18:
             {
-                followAngle = FOLLOW_ANGLE_BEHIND;
+                botFollowAngle = FOLLOW_ANGLE_BEHIND;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
                 break;
@@ -338,7 +341,7 @@ public:
                 // Bot Follow Angle Option 3
             case GOSSIP_ACTION_INFO_DEF + 19:
             {
-                followAngle = FSBUtils::GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
+                botFollowAngle = FSBUtils::GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
                 break;
@@ -361,7 +364,7 @@ public:
                 // Bot Follow Angle Option 4
             case GOSSIP_ACTION_INFO_DEF + 22:
             {
-                followAngle = FSBUtils::GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
+                botFollowAngle = FSBUtils::GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
                 updateFollowInfo = true;
                 events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
                 break;
@@ -454,7 +457,7 @@ public:
 
         void JustExitedCombat() override
         {
-            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
+            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
         }        
 
         void AttackStart(Unit* /*target*/) override
@@ -511,11 +514,11 @@ public:
 
             // TO-DO Add autoselect for damage role
             // Before returning to owner, see if there are more things to attack
-            if (Unit* nextTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, false, botGroup_))
+            if (Unit* nextTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, false, botLogicalGroup))
                 //AttackStart(nextTarget);
                 FSBUtilsBotCombat::BotAttackStart(me, nextTarget, botMoveState);
             else
-                FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
+                FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
 
             
         }
@@ -533,7 +536,7 @@ public:
                 return;
 
             // When bot is resurrected we need to set it back to death state alive
-            if (spellInfo->Id == SPELL_PRIEST_RESURRECTION || spellInfo->Id == SPELL_PALADIN_REDEMPTION)
+            if (spellInfo->Id == SPELL_PRIEST_RESURRECTION || spellInfo->Id == SPELL_PALADIN_REDEMPTION || spellInfo->Id == SPELL_DRUID_REVIVE)
             {
                 TC_LOG_DEBUG("scripts.ai.fsb",
                     "FSB: Bot {} was resurrected by spell {}",
@@ -587,7 +590,7 @@ public:
         void JustDied(Unit* /*killer*/) override // Runs once when creature dies
         {
             botCorpsePos = me->GetPosition();
-            FSBDeath::HandlerJustDied(me, botGroup_, botHasSoulstone);
+            FSBDeath::HandlerJustDied(me, botLogicalGroup, botHasSoulstone);
         }
 
         void MovementInform(uint32 /*type*/, uint32 id) override
@@ -650,15 +653,6 @@ public:
         {
             switch (action)
             {
-            case FSB_ACTION_COMBAT_IC_ACTIONS:
-            {
-                
-                if (me->IsInCombat() && me->IsAlive())
-                {
-                }
-
-                break;
-            }
             case FSB_ACTION_WAIT_HEALER_RESSURECT:
                 events.ScheduleEvent(FSB_EVENT_HIRED_WAIT_HEALER_RESSURECT, 90s);
                 break;
@@ -688,7 +682,7 @@ public:
 
                 if (!victim || !victim->IsAlive())
                 {
-                    Unit* newTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, true, botGroup_);
+                    Unit* newTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, true, botLogicalGroup);
                     if (newTarget)
                     {
                         //AttackStart(newTarget);
@@ -704,7 +698,7 @@ public:
                         Player* owner = FSBMgr::GetBotOwner(me);
 
                         if(owner)
-                            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, followDistance, followAngle); // Return
+                            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
                     }
                 }
                 
@@ -745,8 +739,9 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            if (FSBOOC::BotOOCActions(me, botGlobalCooldown, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, botHasDemon, botManaPotionUsed, botHealthPotionUsed,
-                                botCastedCombatBuffs))
+                            auto baseAI = dynamic_cast<FSB_BaseAI*>(me->AI());
+
+                            if (FSBOOC::BotOOCActions(baseAI))
                                 events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
 
                             // ? lock regen for next 2 seconds
@@ -779,10 +774,11 @@ public:
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
 
+                        /*
                         if(now >= _1secondsCheckMs)
                             if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
                                 events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_RESS_TARGETS, 1s, 3s);
-
+                                */
                         // After a bot is resurrected we need to determine if they are alive
                         // and then perform after ress stuff
                         if (!_pendingResTarget.IsEmpty() && _announceMemberDead)
@@ -812,7 +808,8 @@ public:
                             // Check to dermine what friendlies we have in our "group"
                             // Includes: bot, owner and other bots owner by its owner
                             // TO-DO: Add check to include other players in the group of the owner
-                            FSBGroup::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
+                            //FSBGroup::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
+                            FSBGroup::BuildLogicalBotGroup(me, botLogicalGroup);
 
                             // ? lock check for next 5 seconds
                             _5secondsCheckMs = now + 5000;
@@ -876,7 +873,7 @@ public:
                     break;
 
                 case FSB_EVENT_HIRED_DUNGEON_RESSURECT:
-                    FSBDeath::HandleDeathInDungeon(me, followDistance, followAngle);
+                    FSBDeath::HandleDeathInDungeon(me, botFollowDistance, botFollowAngle);
                     break;
 
                     // Check if Bot needs to mount or dismount
@@ -893,7 +890,7 @@ public:
 
                         if (!_pendingResurrection && me->IsAlive() && !_pendingResTarget)
                         {
-                            Unit* deadTarget = FSBUtilsSpells::FindBotDeadResTarget(me, botGroup_);
+                            Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botLogicalGroup);
 
                             // Validate pointer before doing anything else
                             if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
@@ -1001,7 +998,7 @@ public:
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
                     if (me->IsAlive() && me->IsInCombat())
-                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botGroup_);
+                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
 
                     Player* player = FSBMgr::GetBotOwner(me);
 
@@ -1046,7 +1043,7 @@ public:
 
                     Unit* target = nullptr;
 
-                    FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available, botGroup_, target);
+                    FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available, botLogicalGroup, target);
 
                     if(toCast && target)
                         FSBUtilsCombatSpells::BotCastSpell(me, target, toCast, botGlobalCooldown);
@@ -1078,7 +1075,7 @@ public:
                     // BOT Follows player again
                     // For timed events
                 case FSB_EVENT_RESUME_FOLLOW:
-                    FSBMovement::ResumeFollow(me, followDistance, followAngle);
+                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
                     break;
 
                 case FSB_EVENT_HIRE_EXPIRED:
@@ -1134,7 +1131,7 @@ public:
                     Unit* owner = me->GetOwner();
                     Player* player = owner ? owner->ToPlayer() : nullptr;
 
-                    FSBMovement::ResumeFollow(me, followDistance, followAngle);
+                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
                     if (updateFollowInfo)
                     {
@@ -1206,7 +1203,7 @@ public:
 
             // ----------
             // Allies & Group
-            std::vector<Unit*> botGroup_;
+            //std::vector<Unit*> botGroup_;
 
             uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;

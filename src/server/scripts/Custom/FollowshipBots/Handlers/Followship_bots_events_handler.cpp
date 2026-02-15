@@ -1,6 +1,8 @@
 #include "Followship_bots_ai_base.h"
 
 #include "Followship_bots_events_handler.h"
+#include "Followship_bots_movement_handler.h"
+#include "Followship_bots_outofcombat_handler.h"
 
 #include "Followship_bots_paladin.h"
 
@@ -28,12 +30,22 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     switch (eventId)
     {
-        // Example placeholder
     case FSB_EVENT_HIRED_MOUNT_AURA:
         bot->CastSpell(bot, SPELL_PALADIN_CRUSADER_AURA, false);
         bot->Say("This should help us go faster", LANG_UNIVERSAL);
-        // Do delayed hire logic
         break;
+
+    case FSB_EVENT_HIRED_RESURRECT_TARGET:
+        FSBOOC::BotOOCResurrectTarget(bot);
+        break;
+
+    case FSB_EVENT_HIRED_RESUME_FOLLOW:
+    {
+        auto followDistance = ai->botFollowDistance;
+        auto followAngle = ai->botFollowAngle;
+        FSBMovement::ResumeFollow(bot, followDistance, followAngle);
+        break;
+    }
 
     default:
         break;

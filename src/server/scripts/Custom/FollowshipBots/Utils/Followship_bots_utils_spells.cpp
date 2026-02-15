@@ -203,24 +203,7 @@ namespace FSBUtilsSpells
         }
     }
 
-    Unit* FindBotDeadResTarget(Creature* bot, std::vector<Unit*> const& botGroup_)
-    {
-        Player* owner = FSBMgr::GetBotOwner(bot);
-
-        if (owner && !owner->IsAlive())
-            return owner;
-
-        for (Unit* unit : botGroup_)
-        {
-            if (!unit || unit == owner)
-                continue;
-
-            if (!unit->IsAlive())
-                return unit;
-        }
-
-        return nullptr;
-    }
+    
 
     
 
