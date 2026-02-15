@@ -113,7 +113,10 @@ namespace FSBMovement
 
                 uint32 spellId = paladinMounts[urand(0, paladinMounts.size() - 1)];
                 if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
+                {
                     botMounted = true;
+                    bot->CastSpell(bot, SPELL_PALADIN_CRUSADER_AURA, false);
+                }
             }
             else
             {
@@ -126,6 +129,7 @@ namespace FSBMovement
             botMounted = false;
             bot->Dismount();
             bot->RemoveAurasByType(SPELL_AURA_MOUNTED);
+            bot->RemoveAurasDueToSpell(SPELL_PALADIN_CRUSADER_AURA);
         }
     }
 }
