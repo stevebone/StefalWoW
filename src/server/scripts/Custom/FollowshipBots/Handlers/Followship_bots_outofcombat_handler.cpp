@@ -267,6 +267,9 @@ namespace FSBOOC
         if (botGroup.empty())
             return false;
 
+        if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT))
+            return false;
+
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
         std::vector<Unit*> buffTargets;
         uint32 buffSpellId = 0;
