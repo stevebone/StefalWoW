@@ -745,9 +745,9 @@ public:
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            if (FSBOOC::BotOOCActions(me, _globalCooldownUntil, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, botHasDemon, botManaPotionUsed, botHealthPotionUsed,
+                            if (FSBOOC::BotOOCActions(me, botGlobalCooldown, _buffsTimerMs, _selfBuffsTimerMs, botGroup_, botHasDemon, botManaPotionUsed, botHealthPotionUsed,
                                 botCastedCombatBuffs))
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(_globalCooldownUntil-now));
+                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
 
                             // ? lock regen for next 2 seconds
                             _1secondsCheckMs = now + 1000;
@@ -981,7 +981,7 @@ public:
 
 
                             me->CastSpell(target, spellId, false);
-                            _globalCooldownUntil = now + NPC_GCD_MS;
+                            botGlobalCooldown = now + NPC_GCD_MS;
 
                             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", me->GetName(), spellId, target->GetName());
 
@@ -1042,14 +1042,14 @@ public:
 
                 case FSB_EVENT_COMBAT_SPELL_CHECK:
                 {
-                    std::vector<FSBSpellRuntime*> available = FSBUtilsCombatSpells::BotGetAvailableSpells(me, _runtimeSpells, _globalCooldownUntil);
+                    std::vector<FSBSpellRuntime*> available = FSBUtilsCombatSpells::BotGetAvailableSpells(me, _runtimeSpells, botGlobalCooldown);
 
                     Unit* target = nullptr;
 
                     FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available, botGroup_, target);
 
                     if(toCast && target)
-                        FSBUtilsCombatSpells::BotCastSpell(me, target, toCast, _globalCooldownUntil);
+                        FSBUtilsCombatSpells::BotCastSpell(me, target, toCast, botGlobalCooldown);
 
                     break;
                 }
@@ -1197,7 +1197,6 @@ public:
             bool _ownerWasInCombat = false;
             uint8 _appliedInitialCBuffs = 0;
             std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
-            uint32 _globalCooldownUntil = 0; // global cooldown
             uint32 _buffsTimerMs = 0;
             uint32 _selfBuffsTimerMs = 0;
 
