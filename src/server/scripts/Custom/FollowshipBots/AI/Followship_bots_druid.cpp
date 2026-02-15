@@ -11,7 +11,7 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
 
     // ANY
-    { SPELL_DRUID_WRATH,                FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRUID_WRATH,                FSBSpellType::Damage,   0.f,        0.f,            70.f,            40.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRUID_BARKSKIN,             FSBSpellType::Heal,     0.f,        60.f,           100.f,            0.f,          true,        60000,       FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRUID_REGROWTH,             FSBSpellType::Heal,     0.f,        70.f,           100.f,            30.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
 
@@ -48,12 +48,16 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     
 
     // RANGED
+    { SPELL_DRUID_HIBERNATE,            FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,        false,       40000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_ROOTS,                FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_STARFIRE,             FSBSpellType::Damage,   0.05f,      0.f,             100.f,            40.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_SOLAR_BEAM,           FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,        false,       60000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_WILD_MUSHROOM,        FSBSpellType::Damage,   0.05f,      0.f,             100.f,            40.f,        false,       30000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_NEW_MOON,             FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,        false,       20000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_STARFALL,             FSBSpellType::Damage,   0.1f,       0.f,             100.f,            40.f,        false,       8000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },  
-    { SPELL_DRUID_MOONFIRE,             FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_NEW_MOON,             FSBSpellType::Damage,   0.f,        0.f,             80.f,            40.f,        false,       20000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_STARSURGE,            FSBSpellType::Damage,   0.f,        0.f,             80.f,            40.f,        false,       10000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_STARFALL,             FSBSpellType::Damage,   0.1f,       0.f,             80.f,            40.f,        false,       8000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },  
+    { SPELL_DRUID_MOONFIRE,             FSBSpellType::Damage,   0.f,        0.f,             70.f,            30.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_SUNFIRE,              FSBSpellType::Damage,   0.f,        0.f,             70.f,            40.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_CELESTIAL_ALIGNMENT,  FSBSpellType::Damage,   0.f,        0.f,             50.f,             40.f,        true,        180000,      FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
 
     // HEALER
