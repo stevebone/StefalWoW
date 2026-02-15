@@ -1,3 +1,6 @@
+#include "Followship_bots_mgr.h"
+
+#include "Followship_bots_group_handler.h"
 #include "Followship_bots_stats_handler.h"
 
 #include "Followship_bots_druid.h"
@@ -8,42 +11,119 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
 
     // ANY
-    { SPELL_DRUID_WRATH,                FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,            false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_DRUID_BARKSKIN,             FSBSpellType::Heal,     0.f,        60.f,           100.f,            0.f,             true,        60000,       FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_DRUID_REGROWTH,             FSBSpellType::Heal,     0.f,        70.f,           100.f,            30.f,            false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRUID_WRATH,                FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRUID_BARKSKIN,             FSBSpellType::Heal,     0.f,        60.f,           100.f,            0.f,          true,        60000,       FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRUID_REGROWTH,             FSBSpellType::Heal,     0.f,        70.f,           100.f,            30.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     // TANK
-    { SPELL_DRUID_BEAR_GROWL,           FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,             false,       8000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_DRUID_BEAR_THRASH,          FSBSpellType::Damage,   0.f,        0.f,            100.f,            8.f,             false,        6000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_DRUID_BEAR_MANGLE,          FSBSpellType::Damage,   0.f,        0.f,            100.f,            2.5f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_SKULL_BASH,           FSBSpellType::Damage,   0.f,        0.f,            100.f,            13.f,         false,       15000,       FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_GROWL,           FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,         false,       8000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_URSOC,           FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,          true,        180000,      FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS,FSBSpellType::Damage, 0.f,        0.f,            90.f,            2.f,          true,        180000,      FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_LUNAR_BEAM,      FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,          false,       60000,       FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_SUNDERING_ROAR,  FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,          false,       60000,       FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_RED_MOON,        FSBSpellType::Damage,   0.f,        0.f,            90.f,            40.f,         false,       30000,       FSB_RoleMask::FSB_ROLEMASK_TANK },
+    
+    { SPELL_DRUID_BEAR_THRASH,          FSBSpellType::Damage,   0.f,        0.f,            80.f,             8.f,          false,       6000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_MANGLE,          FSBSpellType::Damage,   0.f,        0.f,            80.f,             2.f,          false,       6000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_MAUL,            FSBSpellType::Damage,   0.f,        0.f,            80.f,             2.f,          false,       1000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_RAZE,            FSBSpellType::Damage,   0.f,        0.f,            80.f,             2.f,          false,       1000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_INCAPACITATING_ROAR,FSBSpellType::Damage,   0.f,        0.f,            70.f,             2.f,          false,      30000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_SWIPE,                FSBSpellType::Damage,   0.f,         0.f,           50.f,            2.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_DRUID_BEAR_IRONFUR,         FSBSpellType::Damage,   0.f,         0.f,           50.f,            2.f,        true,       1000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
 
     // MELEE
-    { SPELL_DRUID_CAT_THRASH,           FSBSpellType::Damage,   0.2f,        0.f,            100.f,            8.f,             false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_DRUID_CAT_SHRED,            FSBSpellType::Damage,   0.4f,        0.f,            100.f,            2.5f,             false,      1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_DRUID_CAT_MANGLE,           FSBSpellType::Damage,   0.4f,        0.f,            100.f,            2.5f,             false,      6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_DRUID_CAT_FEROCIOUS_BITE,   FSBSpellType::Damage,   0.25f,       0.f,            100.f,            2.5f,             false,      6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_SKULL_BASH,           FSBSpellType::Damage,   0.f,         0.f,            100.f,           13.f,        false,       15000,       FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_AVATAR_ASHAMANE,  FSBSpellType::Damage,   0.f,         0.f,            90.f,            2.f,         true,        180000,      FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_FERAL_FRENZY,     FSBSpellType::Damage,   0.25f,       0.f,            90.f,            8.f,         false,       45000,       FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_THRASH,           FSBSpellType::Damage,   0.f,         0.f,            90.f,            8.f,         false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_SHRED,            FSBSpellType::Damage,   0.f,         0.f,            90.f,            2.5f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_MANGLE,           FSBSpellType::Damage,   0.4f,        0.f,            90.f,            2.5f,        false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_FEROCIOUS_BITE,   FSBSpellType::Damage,   0.25f,       0.f,            80.f,            2.5f,        false,       6000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_PRIMAL_WRATH,     FSBSpellType::Damage,   0.f,         0.f,            80.f,            2.5f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_TIGER_FURY,       FSBSpellType::Damage,   0.f,         0.f,            50.f,            2.5f,        true,        30000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_SWIPE,                FSBSpellType::Damage,   0.f,         0.f,            50.f,            2.5f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_RIP,              FSBSpellType::Damage,   0.2f,        0.f,            50.f,            2.5f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_DRUID_CAT_RAKE,              FSBSpellType::Damage,   0.f,         0.f,            50.f,            2.5f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    
 
     // RANGED
-    { SPELL_DRUID_SOLAR_BEAM,           FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,            false,       60000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_WILD_MUSHROOM,        FSBSpellType::Damage,   0.05f,      0.f,             100.f,            40.f,            false,       30000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_NEW_MOON,             FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,            false,       20000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_STARFALL,             FSBSpellType::Damage,   0.1f,       0.f,             100.f,            40.f,            false,       8000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_ROOTS,                FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,            false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_MOONFIRE,             FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,            false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_DRUID_CELESTIAL_ALIGNMENT,  FSBSpellType::Damage,   0.f,        0.f,             50.f,             40.f,            true,        180000,      FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_ROOTS,                FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_SOLAR_BEAM,           FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,        false,       60000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_WILD_MUSHROOM,        FSBSpellType::Damage,   0.05f,      0.f,             100.f,            40.f,        false,       30000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_NEW_MOON,             FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,        false,       20000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_STARFALL,             FSBSpellType::Damage,   0.1f,       0.f,             100.f,            40.f,        false,       8000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },  
+    { SPELL_DRUID_MOONFIRE,             FSBSpellType::Damage,   0.f,        0.f,             100.f,            30.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_CELESTIAL_ALIGNMENT,  FSBSpellType::Damage,   0.f,        0.f,             50.f,             40.f,        true,        180000,      FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
 
     // HEALER
-    { SPELL_DRUID_NATURE_CURE,          FSBSpellType::Heal,     0.f,        100.f,           100.f,            40.f,           false,        8000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_DRUID_REJUVENATION,         FSBSpellType::Heal,     0.f,        80.f,            100.f,            40.f,           false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_DRUID_TREE_OF_LIFE,         FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,            true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_DRUID_IRONBARK,             FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,            true,         90000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_DRUID_LIFEBLOOM,            FSBSpellType::Heal,     0.f,        50.f,            50.f,             40.f,           false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_DRUID_SWIFTMEND,            FSBSpellType::Heal,     0.f,        30.f,            50.f,             40.f,           false,        15000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_DRUID_TRANQUILITY,          FSBSpellType::Heal,     0.f,        30.f,            50.f,             40.f,           true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_NATURE_CURE,          FSBSpellType::Heal,     0.f,        100.f,           100.f,            40.f,        false,        8000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_REJUVENATION,         FSBSpellType::Heal,     0.f,        80.f,            100.f,            40.f,        false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_TREE_OF_LIFE,         FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,         true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_IRONBARK,             FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,         true,         90000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_LIFEBLOOM,            FSBSpellType::Heal,     0.f,        50.f,            50.f,             40.f,        false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_SWIFTMEND,            FSBSpellType::Heal,     0.f,        30.f,            50.f,             40.f,        false,        15000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_TRANQUILITY,          FSBSpellType::Heal,     0.f,        30.f,            50.f,             40.f,        true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
 };
 
 namespace FSBDruid
 {
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown)
+    {
+        if (!player || !bot)
+            return false;
+
+        if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT))
+            return false;
+
+        uint32 now = getMSTime();
+
+        if (player->GetHealthPct() <= 50)
+        {
+            bot->CastSpell(player, SPELL_DRUID_LIFEBLOOM, false);
+            globalCooldown = now + 1500;
+
+            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
+
+            return true;
+
+        }
+        else if (player->GetHealthPct() <= 90)
+        {
+            bot->CastSpell(player, SPELL_DRUID_REGROWTH, false);
+            globalCooldown = now + 1500;
+
+            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId)
+    {
+        if (!bot)
+            return false;
+
+        uint32 now = getMSTime();
+
+        bool isCat = bot->HasAura(SPELL_DRUID_CAT);
+
+        if (isCat && !bot->HasAura(SPELL_DRUID_CAT_PROWL))
+        {
+
+            bot->CastSpell(bot, SPELL_DRUID_CAT_PROWL, false);
+            selfBuffTimer = now + 60000; // 1 minute
+            globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
+            outSpellId = SPELL_DRUID_CAT_PROWL;
+
+            return true;
+        }
+
+        return false;
+    }
+
     bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& botStats)
     {
         if (!bot)
@@ -145,7 +225,11 @@ namespace FSBDruid
             }
 
             if (!bot->HasAura(SPELL_DRUID_BEAR))
+            {
                 bot->CastSpell(bot, SPELL_DRUID_BEAR);
+                uint32 bearDisplayId = RAND(2281, 29241, 29293, 29415, 29416);
+                bot->SetDisplayId(bearDisplayId, false);
+            }
             break;
         }
         case FSB_ROLE_HEALER:
@@ -169,7 +253,11 @@ namespace FSBDruid
             }
 
             if (!bot->HasAura(SPELL_DRUID_CAT))
+            {
                 bot->CastSpell(bot, SPELL_DRUID_CAT);
+                uint32 catDisplayId = RAND(29405, 29407, 892, 29406, 29408);
+                bot->SetDisplayId(catDisplayId, false);
+            }
             break;
         }
         case FSB_ROLE_RANGED_DAMAGE:
@@ -181,7 +269,11 @@ namespace FSBDruid
             }
 
             if (!bot->HasAura(SPELL_DRUID_MOONKIN))
+            {
                 bot->CastSpell(bot, SPELL_DRUID_MOONKIN);
+                uint32 moonkinDisplayId = RAND(15374, 115607);
+                bot->SetDisplayId(moonkinDisplayId, false);
+            }
             break;
         }
         default:
@@ -203,6 +295,18 @@ namespace FSBDruid
 
     }
 
+    bool BotHasSurvivalInstincts(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS))
+            return true;
+
+        return false;
+
+    }
+
     bool BotHasIronbark(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
@@ -211,6 +315,77 @@ namespace FSBDruid
         if (bot->HasAura(SPELL_DRUID_IRONBARK))
             return true;
 
+        return false;
+
+    }
+
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup)
+    {
+        if (botCastedCombatBuffs)
+            return false;
+
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!bot->IsInCombat())
+            return false;
+
+        Unit* target = nullptr;
+        Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+
+        switch (botRole)
+        {
+        case FSB_ROLE_HEALER:
+            if (tank)
+                target = tank;
+            else
+            {
+                Player* player = FSBMgr::GetBotOwner(bot);
+
+                if (!player)
+                    break;
+
+                if (!player->IsAlive())
+                    break;
+
+                if (!player->IsInCombat())
+                    break;
+
+                target = player;
+            }
+            break;
+        case FSB_ROLE_RANGED_DAMAGE:
+            target = bot;
+            break;
+        default:
+            target = bot;
+            break;
+        }
+
+        if (target)
+        {
+            uint32 now = getMSTime();
+
+            if (!target->HasAura(SPELL_DRUID_REJUVENATION))
+            {
+                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_DRUID_REJUVENATION, target))
+                {
+                    globalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Rejuvenation on target: {}", target->GetName());
+                    return true;
+                }
+            }
+            else if (!target->HasAura(SPELL_DRUID_LIFEBLOOM))
+            {
+                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_DRUID_LIFEBLOOM, target))
+                {
+                    globalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Lifebloom on target: {}", target->GetName());
+                    botCastedCombatBuffs = true;
+                    return true;
+                }
+            }
+        }
         return false;
 
     }

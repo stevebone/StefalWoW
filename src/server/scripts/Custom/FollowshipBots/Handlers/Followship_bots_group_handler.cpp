@@ -14,34 +14,36 @@ namespace FSBGroup
         if (!me || !me->ToCreature()->IsBot())
             return;
 
-        Player* owner = FSBMgr::GetBotOwner(me);
-        if (!owner)
-            return;
-
-        // Always include owner and self
-        outGroup.push_back(owner);
         outGroup.push_back(me);
 
-        // Find nearby allies
-        std::list<Unit*> nearbyAllies;
+        Player* owner = FSBMgr::GetBotOwner(me);
 
-        Trinity::AnyFriendlyUnitInObjectRangeCheck checker(me, me, searchRange, false);
-        Trinity::UnitListSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck> searcher(me, nearbyAllies, checker);
-
-        Cell::VisitAllObjects(me, searcher, searchRange);
-
-        for (Unit* unit : nearbyAllies)
+        // Always include owner and self
+        if (owner)
         {
-            if (!unit || unit == me || unit == owner)
-                continue;
+            outGroup.push_back(owner);
 
-            if (!unit->ToCreature()->IsBot())
-                continue;
+            // Find nearby allies
+            std::list<Unit*> nearbyAllies;
 
-            if (unit->GetOwnerGUID() != owner->GetGUID())
-                continue;
+            Trinity::AnyFriendlyUnitInObjectRangeCheck checker(me, me, searchRange, false);
+            Trinity::UnitListSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck> searcher(me, nearbyAllies, checker);
 
-            outGroup.push_back(unit);
+            Cell::VisitAllObjects(me, searcher, searchRange);
+
+            for (Unit* unit : nearbyAllies)
+            {
+                if (!unit || unit == me || unit == owner)
+                    continue;
+
+                if (!unit->ToCreature()->IsBot())
+                    continue;
+
+                if (unit->GetOwnerGUID() != owner->GetGUID())
+                    continue;
+
+                outGroup.push_back(unit);
+            }
         }
 
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: CheckBotAllies. Bot: {} got allies {} and a group of: {}", me->GetName(), nearbyAllies.size(), outGroup.size());  // TEMP-LOG

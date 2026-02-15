@@ -107,48 +107,6 @@ namespace FSBPriest
 
     }
 
-    bool BotHealSelfOOC(Creature* bot, uint32& _globalCooldownUntil, uint32& _60secondsCheckMs, uint32& outSpellId)
-    {
-        if (!bot)
-            return false;
-
-        uint32 now = getMSTime();
-
-        if (FSBUtilsSpells::CanCastNow(bot, now, _globalCooldownUntil))
-        {
-            if (bot->GetHealthPct() < 30 && !bot->HasAura(SPELL_PRIEST_RECUPERATE) && now >= _60secondsCheckMs)
-            {
-                FSBMovement::StopFollow(bot);
-
-                bot->CastSpell(bot, SPELL_PRIEST_RECUPERATE, false);
-                _60secondsCheckMs = now + 60000; // 1 minute
-                _globalCooldownUntil = now + 10000; // use 10s cooldown to not interrup duration of channel spell
-
-                outSpellId = SPELL_PRIEST_RECUPERATE;
-
-                TC_LOG_DEBUG("scripts.ai.core", "FSB Priest Out-of-combat: Recuperate");
-
-                return true;
-            }
-            else if (bot->GetHealthPct() < 80)
-            {
-                FSBMovement::StopFollow(bot);
-
-                bot->CastSpell(bot, SPELL_PRIEST_HEAL, false);
-                _globalCooldownUntil = now + 1500;
-
-                outSpellId = SPELL_PRIEST_HEAL;
-
-                TC_LOG_DEBUG("scripts.ai.core", "FSB Priest Out-of-combat: Heal");
-
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
     bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown)
     {
         if (!player || !bot)

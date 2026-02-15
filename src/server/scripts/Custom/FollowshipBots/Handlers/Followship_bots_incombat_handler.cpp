@@ -54,7 +54,10 @@ namespace FSBIC
         case FSB_Class::Priest:
             if(FSBPriest::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, botRole, botGroup))
                 return true;
+            break;
         case FSB_Class::Druid:
+            if (FSBDruid::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, botRole, botGroup))
+                return true;
             break;
         default:
             return false;

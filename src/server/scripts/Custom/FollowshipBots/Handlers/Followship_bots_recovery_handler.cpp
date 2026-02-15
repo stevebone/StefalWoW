@@ -2,6 +2,8 @@
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_druid.h"
+
 namespace FSBRecovery
 {
     BotRecoveryIntent DetermineRecoveryIntent(Creature* bot)
@@ -48,7 +50,7 @@ namespace FSBRecovery
             recoveryActions.emplace_back(BotRecoverAction::Eat);
             recoveryActions.emplace_back(BotRecoverAction::Recuperate);
 
-            if (botClass == FSB_Class::Priest || botClass == FSB_Class::Paladin)
+            if (botClass == FSB_Class::Priest || botClass == FSB_Class::Paladin || botClass == FSB_Class::Druid)
                 recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
             if (botClass == FSB_Class::Mage)
                 recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
@@ -194,6 +196,8 @@ namespace FSBRecovery
                 spellId = RAND(SPELL_PRIEST_HEAL, SPELL_PRIEST_FLASH_HEAL);
             else if (botClass == FSB_Class::Paladin)
                 spellId = RAND(SPELL_PALADIN_HOLY_LIGHT, SPELL_PALADIN_FLASH_OF_LIGHT);
+            else if (botClass == FSB_Class::Druid)
+                spellId = RAND(SPELL_DRUID_REGROWTH, SPELL_DRUID_REJUVENATION, SPELL_DRUID_LIFEBLOOM);
             else return false;
 
             if (bot->HasAura(spellId))

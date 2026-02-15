@@ -6,8 +6,8 @@ extern std::vector<FSBSpellDefinition> DruidSpellsTable;
 
 enum DRUID_SHAPESHIFT_FORMS
 {
-    SPELL_DRUID_BEAR = 18309,
-    SPELL_DRUID_CAT = 197167,
+    SPELL_DRUID_BEAR = 5487, //18309,
+    SPELL_DRUID_CAT = 768, //197167,
     SPELL_DRUID_MOONKIN = 24858,
     SPELL_DRUID_TREANT = 176295
 };
@@ -32,16 +32,35 @@ enum DRUID_COMBAT_SPELLS
     SPELL_DRUID_REGROWTH = 8936, //97426,
     SPELL_DRUID_BARKSKIN = 22812,
 
+    SPELL_DRUID_SKULL_BASH = 106839, // BEAR & CAT
+    SPELL_DRUID_SWIPE = 48562,
+
     // BEAR
-    SPELL_DRUID_BEAR_GROWL = 182848,
-    SPELL_DRUID_BEAR_THRASH = 292576,
-    SPELL_DRUID_BEAR_MANGLE = 288266,
+    SPELL_DRUID_BEAR_GROWL = 6795, //182848,
+    SPELL_DRUID_BEAR_THRASH = 77758, //292576,
+    SPELL_DRUID_BEAR_MANGLE = 33917, //288266,
+    SPELL_DRUID_BEAR_URSOC = 102558,
+    SPELL_DRUID_BEAR_LUNAR_BEAM = 204066,
+    SPELL_DRUID_BEAR_MAUL = 6807, //141061,
+    SPELL_DRUID_BEAR_RAZE = 400254,
+    SPELL_DRUID_BEAR_RED_MOON = 1252871,
+    SPELL_DRUID_BEAR_SUNDERING_ROAR = 1253799,
+    SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS = 61336,
+    SPELL_DRUID_BEAR_IRONFUR = 192081,
+    SPELL_DRUID_BEAR_INCAPACITATING_ROAR = 99,
 
     // CAT
-    SPELL_DRUID_CAT_THRASH = 172035,
-    SPELL_DRUID_CAT_SHRED = 215442,
-    SPELL_DRUID_CAT_MANGLE = 79828,
-    SPELL_DRUID_CAT_FEROCIOUS_BITE = 27557,
+    SPELL_DRUID_CAT_THRASH = 106830, //172035,
+    SPELL_DRUID_CAT_SHRED = 5221, //215442,
+    SPELL_DRUID_CAT_MANGLE = 59988, //79828,
+    SPELL_DRUID_CAT_FEROCIOUS_BITE = 22568, //27557,
+    SPELL_DRUID_CAT_FERAL_FRENZY = 274838,
+    SPELL_DRUID_CAT_AVATAR_ASHAMANE = 102543,
+    SPELL_DRUID_CAT_PRIMAL_WRATH = 285381,
+    SPELL_DRUID_CAT_TIGER_FURY = 5217,
+    SPELL_DRUID_CAT_RIP = 59989,
+    SPELL_DRUID_CAT_RAKE = 1822,
+    
 
     // RANGED
     SPELL_DRUID_MOONFIRE = 8921, //15798,
@@ -96,9 +115,13 @@ static const uint32 druidAurasToRemoveForDamage[] =
 
 namespace FSBDruid
 {
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown);
+    bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId);
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup);
     bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& botStats);
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
     void BotSetRoleAuras(Creature* bot, FSB_Roles role);
     bool BotHasMarkWild(Creature* bot);
     bool BotHasIronbark(Creature* bot);
+    bool BotHasSurvivalInstincts(Creature* bot);
 }

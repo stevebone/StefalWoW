@@ -348,6 +348,9 @@ namespace FSBStats
         if (FSBDruid::BotHasIronbark(bot))
             multiplier *= 0.8f;
 
+        if (FSBDruid::BotHasSurvivalInstincts(bot))
+            multiplier *= 0.5f;
+
         return multiplier;
     }
 

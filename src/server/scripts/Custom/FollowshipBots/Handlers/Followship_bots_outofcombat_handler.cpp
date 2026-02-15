@@ -193,6 +193,8 @@ namespace FSBOOC
                 check = true;
             break;
         case FSB_Class::Druid:
+            if (FSBDruid::BotOOCHealOwner(bot, player, globalCooldown))
+                check = true;
             break;
         case FSB_Class::Paladin:
             if (FSBPaladin::BotOOCHealOwner(bot, player, globalCooldown))
@@ -224,6 +226,10 @@ namespace FSBOOC
 
         switch (botClass)
         {
+        case FSB_Class::Druid:
+            if (FSBDruid::BotOOCBuffSelf(bot, globalCooldown, selfBuffTimer, buffSpellId))
+                check = true;
+            break;
         case FSB_Class::Paladin:
             if (FSBPaladin::BotOOCBuffSelf(bot, globalCooldown, selfBuffTimer, buffSpellId))
                 check = true;
@@ -253,7 +259,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCBuffGroup(Creature* bot, const std::vector<Unit*> botGroup, uint32& buffTimer, uint32& globalCooldown)
+    bool BotOOCBuffGroup(Creature* bot, const std::vector<Unit*>& botGroup, uint32& buffTimer, uint32& globalCooldown)
     {
         if (!bot)
             return false;
@@ -349,7 +355,7 @@ namespace FSBOOC
         return false;
     }
 
-    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*> botGroup, float maxRange, std::vector<Unit*>& outTargets)
+    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*>& botGroup, float maxRange, std::vector<Unit*>& outTargets)
     {
         if (!bot)
             return;

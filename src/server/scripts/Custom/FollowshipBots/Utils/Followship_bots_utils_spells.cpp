@@ -163,6 +163,7 @@ namespace FSBUtilsSpells
         case SPELL_MAGE_EVOCATION:
             return bot->GetPowerPct(POWER_MANA) < 50;
 
+        case SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS:
         case SPELL_DRUID_IRONBARK:
         case SPELL_DRUID_CELESTIAL_ALIGNMENT:
             return target == bot && bot->GetHealthPct() < 50;
