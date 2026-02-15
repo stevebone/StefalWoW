@@ -711,6 +711,7 @@ public:
             }
 
             events.Update(diff);
+            botEvents.Update(diff);
 
             while (uint32 eventId = events.ExecuteEvent())
             {
@@ -1166,6 +1167,12 @@ public:
                     break;
                 }
             }
+
+            while (uint32 eventId = botEvents.ExecuteEvent())
+            {
+                HandleBotEvent(this, eventId);
+            }
+
         }
 
         // Helper methods

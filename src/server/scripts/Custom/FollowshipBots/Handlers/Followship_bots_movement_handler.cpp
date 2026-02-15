@@ -5,6 +5,7 @@
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_warlock.h"
 
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 
 namespace FSBMovement
@@ -115,7 +116,7 @@ namespace FSBMovement
                 if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
                 {
                     botMounted = true;
-                    bot->CastSpell(bot, SPELL_PALADIN_CRUSADER_AURA, false);
+                    FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_MOUNT_AURA, 3s, 5s);
                 }
             }
             else

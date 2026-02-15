@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CreatureAI.h"
+#include "EventMap.h"
 #include "Unit.h"
 
 #include "Followship_bots_defines.h"
@@ -51,5 +52,12 @@ public:
     uint32 botGlobalCooldown;
 
     Position botCorpsePos;
+
+    void ScheduleBotEvent(uint32 eventId, Milliseconds time);
+    void ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime);
+
+protected:
+    EventMap botEvents;
+    void HandleBotEvent(FSB_BaseAI* ai, uint32 eventId);
 
 };
