@@ -252,6 +252,9 @@ namespace FSBRecovery
         if (!bot->IsAlive())
             return false;
 
+        if (bot->HasAura(SPELL_DRUID_TRAVEL) || bot->HasAuraType(SPELL_AURA_MOUNTED))
+            return false;
+
         bool check = false;
         uint32 spellId = 0;
         uint8 drinkOrEat = 0;

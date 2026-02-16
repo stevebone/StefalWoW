@@ -2,6 +2,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_druid.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_warlock.h"
 
@@ -85,11 +86,12 @@ namespace FSBMovement
         if (!player)
             return;
 
+        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+
         if (player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
         {
             uint32 randomSpell = FSBSpellsUtils::GetRandomMountSpellForBot(bot);
-            FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
-
+            
             if (cls == FSB_Class::Warlock)
             {
                 std::vector<uint32> warlockMounts =
@@ -119,6 +121,28 @@ namespace FSBMovement
                     FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_MOUNT_AURA, 3s, 5s);
                 }
             }
+            else if (cls == FSB_Class::Druid)
+            {
+                std::vector<uint32> druidMounts =
+                {
+                    randomSpell,
+                    SPELL_DRUID_TRAVEL
+                };
+
+                bot->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
+
+                uint32 spellId = druidMounts[urand(0, druidMounts.size() - 1)];
+                if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
+                {
+                    botMounted = true;
+                    if (spellId == SPELL_DRUID_TRAVEL)
+                    {
+                        //bot->SetDisplayId(65133, false);
+                    }
+                }
+
+                
+            }
             else
             {
                 if (FSBSpellsUtils::CastRandomMountLevelSpell(bot))
@@ -131,6 +155,14 @@ namespace FSBMovement
             bot->Dismount();
             bot->RemoveAurasByType(SPELL_AURA_MOUNTED);
             bot->RemoveAurasDueToSpell(SPELL_PALADIN_CRUSADER_AURA);
+            if(cls == FSB_Class::Druid)
+            {
+                auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+                bot->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
+                bot->RemoveAurasDueToSpell(SPELL_DRUID_TRAVEL);
+                baseAI->botRole = FSB_ROLE_NONE;
+
+            }
         }
     }
 }

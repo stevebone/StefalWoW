@@ -16,6 +16,7 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     { SPELL_DRUID_REGROWTH,             FSBSpellType::Heal,     0.f,        70.f,           100.f,            30.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     // TANK
+    { SPELL_DRUID_REGROWTH,             FSBSpellType::Heal,     0.f,        50.f,           100.f,            0.f,         true,       36000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_DRUID_SKULL_BASH,           FSBSpellType::Damage,   0.f,        0.f,            100.f,            13.f,         false,       15000,       FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_DRUID_BEAR_GROWL,           FSBSpellType::Damage,   0.f,        0.f,            100.f,            40.f,         false,       8000,        FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_DRUID_BEAR_URSOC,           FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,          true,        180000,      FSB_RoleMask::FSB_ROLEMASK_TANK },
@@ -53,6 +54,7 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     { SPELL_DRUID_STARFIRE,             FSBSpellType::Damage,   0.05f,      0.f,             100.f,            40.f,        false,       1000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_SOLAR_BEAM,           FSBSpellType::Damage,   0.f,        0.f,             100.f,            40.f,        false,       60000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_WILD_MUSHROOM,        FSBSpellType::Damage,   0.05f,      0.f,             100.f,            40.f,        false,       30000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_DRUID_TYPHOON,              FSBSpellType::Damage,   0.f,        0.f,             80.f,            15.f,        false,       30000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_NEW_MOON,             FSBSpellType::Damage,   0.f,        0.f,             80.f,            40.f,        false,       20000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_STARSURGE,            FSBSpellType::Damage,   0.f,        0.f,             80.f,            40.f,        false,       10000,       FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_DRUID_STARFALL,             FSBSpellType::Damage,   0.1f,       0.f,             80.f,            40.f,        false,       8000,        FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },  
@@ -63,6 +65,7 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     // HEALER
     { SPELL_DRUID_NATURE_CURE,          FSBSpellType::Heal,     0.f,        100.f,           100.f,            40.f,        false,        8000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_DRUID_REJUVENATION,         FSBSpellType::Heal,     0.f,        80.f,            100.f,            40.f,        false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_DRUID_WILD_GROWTH,          FSBSpellType::Heal,     0.f,        70.f,            100.f,            40.f,        false,        10000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_DRUID_TREE_OF_LIFE,         FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,         true,         180000,      FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_DRUID_IRONBARK,             FSBSpellType::Heal,     0.f,        50.f,            50.f,             0.f,         true,         90000,       FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_DRUID_LIFEBLOOM,            FSBSpellType::Heal,     0.f,        50.f,            50.f,             40.f,        false,        1000,        FSB_RoleMask::FSB_ROLEMASK_HEALER },
@@ -122,6 +125,17 @@ namespace FSBDruid
             globalCooldown = now + 1500; // use 10s cooldown to not interrup duration of channel spell
             outSpellId = SPELL_DRUID_CAT_PROWL;
 
+            return true;
+        }
+
+        if (bot->IsUnderWater() && !bot->HasAura(SPELL_DRUID_AQUATIC))
+        {
+            bot->CastSpell(bot, SPELL_DRUID_AQUATIC, false);
+            return true;
+        }
+        else if (!bot->IsUnderWater() && bot->HasAura(SPELL_DRUID_AQUATIC))
+        {
+            bot->RemoveAurasDueToSpell(SPELL_DRUID_AQUATIC);
             return true;
         }
 
