@@ -344,7 +344,7 @@ namespace FSBDruid
                 target = tank;
             else
             {
-                Player* player = FSBMgr::GetBotOwner(bot);
+                Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
                 if (!player)
                     break;

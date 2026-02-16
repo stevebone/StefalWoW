@@ -4,6 +4,33 @@
 
 namespace FSBUtilsDB
 {
+    bool LoadAllPersistentBotsFromDB(std::vector<PlayerBotData>& outBots)
+    {
+        QueryResult result = CharacterDatabase.Query(
+            "SELECT bot_id, bot_guid, bot_entry, player_guid, hire_expiry_time "
+            "FROM followship_bot_owners");
+
+        if (!result)
+            return false;
+
+        do
+        {
+            Field* fields = result->Fetch();
+
+            PlayerBotData data;
+            data.botId = fields[0].GetUInt32();
+            data.spawnId = fields[1].GetUInt64(); // rename!
+            data.entry = fields[2].GetUInt32();
+            data.owner = fields[3].GetUInt32();
+            data.hireExpiry = fields[4].GetUInt64();
+            data.runtimeGuid = ObjectGuid::Empty;
+
+            outBots.push_back(data);
+        } while (result->NextRow());
+
+        return true;
+    }
+
     bool LoadBotsForPlayer(uint64 playerGuidLow, std::vector<PlayerBotData>& outBots)
     {
         outBots.clear();

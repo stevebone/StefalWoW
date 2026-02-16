@@ -22,6 +22,7 @@
 
 #include "Followship_bots_auras_handler.h"
 #include "Followship_bots_death_handler.h"
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_incombat_handler.h"
@@ -207,7 +208,8 @@ public:
                 }
 
                 botHired = true;
-                FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
+                //FSBMgr::Get()->HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
+                FSBMgr::Get()->HirePersistentBot(player, me, FollowshipBotsConfig::configFSBHireDuration1);
                 //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
@@ -231,7 +233,7 @@ public:
                 }
 
                 botHired = true;
-                FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration2);
+                FSBMgr::Get()->HirePersistentBot(player, me, FollowshipBotsConfig::configFSBHireDuration2);
                 //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
@@ -255,7 +257,7 @@ public:
                 }
 
                 botHired = true;
-                FSBMgr::HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration3);
+                FSBMgr::Get()->HirePersistentBot(player, me, FollowshipBotsConfig::configFSBHireDuration3);
                 //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
@@ -278,7 +280,7 @@ public:
                     player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
 
                     botHired = true;
-                    FSBMgr::HandleBotHire(player, me, 0);
+                    FSBMgr::Get()->HirePersistentBot(player, me, 0);
                     //FSBStats::RecalculateStats(me, true, true);
 
                     events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
@@ -695,7 +697,7 @@ public:
                     {
                         me->AttackStop();
                         me->CombatStop();
-                        Player* owner = FSBMgr::GetBotOwner(me);
+                        Player* owner = FSBMgr::Get()->GetBotOwner(me);
 
                         if(owner)
                             FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
@@ -719,6 +721,10 @@ public:
 
                 case FSB_EVENT_PERIODIC_MAINTENANCE:
                 {
+                    // bot events
+                    FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_CHECK_HIRED_TIME, 10s);
+                    FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
+
                     uint32 now = getMSTime();
 
                     // Check if custom regen is enabled and we can schedule every 2s
@@ -827,20 +833,20 @@ public:
                     // This is used to determine when assist is needed
                 case FSB_EVENT_HIRED_CHECK_OWNER_COMBAT:
                 {
-                    Player* owner = FSBMgr::GetBotOwner(me);
+                    Player* owner = FSBMgr::Get()->GetBotOwner(me);
 
                     if (owner && me->IsAlive())
                     {
                         // OWNER ATTACKED SOMEONE
-                        if (FSBUtilsOwnerCombat::CheckBotOwnerAttacked(FSBMgr::GetBotOwner(me), _lastOwnerVictim))
+                        if (FSBUtilsOwnerCombat::CheckBotOwnerAttacked(FSBMgr::Get()->GetBotOwner(me), _lastOwnerVictim))
                         {
                             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner attacked a new target");
 
-                            FSBUtilsOwnerCombat::OnBotOwnerAttacked(FSBMgr::GetBotOwner(me)->GetVictim(), me, botMoveState);
+                            FSBUtilsOwnerCombat::OnBotOwnerAttacked(FSBMgr::Get()->GetBotOwner(me)->GetVictim(), me, botMoveState);
                         }
 
                         // OWNER WAS ATTACKED
-                        if (Unit* attacker = FSBUtilsOwnerCombat::CheckBotOwnerAttackedBy(FSBMgr::GetBotOwner(me)))
+                        if (Unit* attacker = FSBUtilsOwnerCombat::CheckBotOwnerAttackedBy(FSBMgr::Get()->GetBotOwner(me)))
                         {
                             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner was attacked by {}", attacker->GetName());
 
@@ -1000,7 +1006,7 @@ public:
                     if (me->IsAlive() && me->IsInCombat())
                         FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
 
-                    Player* player = FSBMgr::GetBotOwner(me);
+                    Player* player = FSBMgr::Get()->GetBotOwner(me);
 
                     // 1. Player check combat state for initial buffs
                     if (player && player->IsAlive() && player->IsInCombat())
@@ -1081,20 +1087,14 @@ public:
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
                 {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                    me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-                    events.Reset();
-                    me->StopMoving();
-                    me->GetMotionMaster()->Clear();
-                    if (player)
+                    if (!me->IsInCombat())
                     {
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
-                        me->Say(msg, LANG_UNIVERSAL);
+                        events.Reset();
+                        FSBMgr::Get()->DismissPersistentBot(me);
+                        events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
+                        break;
                     }
-                    FSBMgr::DismissBot(player, me);
-                    events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
+                    else events.ScheduleEvent(FSB_EVENT_HIRE_DISMISSED, 5s);                                     
                     break;
                 }
 
@@ -1222,7 +1222,7 @@ public:
 void AddSC_followship_bots()
 {
     FollowshipBotsConfig::Load();
-    FSBMgr::BotManagerInit();
+    FSBMgr::Get()->LoadAllPersistentBots();
     FSBUtilsCombatSpells::InitBotSpellTables();
 
     new npc_followship_bots();

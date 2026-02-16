@@ -58,7 +58,7 @@ namespace FSBOOC
 
         //1. Bot Heal Owner
         // If we heal owner this turn return and end tick
-        Player* player = FSBMgr::GetBotOwner(bot);
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
         if (player && BotOOCHealOwner(bot, player, globalCooldown))
             return true;
 

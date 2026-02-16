@@ -96,3 +96,15 @@ struct FSBBotStats
     //float pctHealthPerTick = 0;
     //float pctManaPerTick = 0;
 };
+
+struct PlayerBotData
+{
+    ObjectGuid::LowType owner = 0;
+    uint64 botId = 0;       // logical ID from DB
+    ObjectGuid::LowType spawnId = 0; // spawn id
+    uint32 entry = 0;
+    uint64 hireExpiry = 0;
+    ObjectGuid runtimeGuid = ObjectGuid::Empty;
+
+    PlayerBotData() = default;
+};

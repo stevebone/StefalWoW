@@ -26,7 +26,7 @@ namespace FSBMovement
 
     void ResumeFollow(Creature* bot, float followDistance, float followAngle)
     {
-        Player* player = FSBMgr::GetBotOwner(bot);
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
         if (!player)
             return;
@@ -80,7 +80,7 @@ namespace FSBMovement
         if (bot->HasUnitState(UNIT_STATE_CASTING))
             return;
 
-        Player* player = FSBMgr::GetBotOwner(bot);
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
         if (!player)
             return;

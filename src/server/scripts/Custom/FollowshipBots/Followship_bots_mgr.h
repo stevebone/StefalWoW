@@ -1,5 +1,6 @@
 
 #include "Followship_bots_db.h"
+#include "Followship_bots_defines.h"
 #include "Followship_bots_utils.h"
 
 struct FSBEntryRaceClassMap
@@ -43,31 +44,48 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     //{ 90030, FSB_Class::Rogue },
 };
 
-namespace FSBMgr
+
+
+class FSBMgr
 {
-    void BotManagerInit();
+public:
+    static FSBMgr* Get();
 
-    void StorePlayerBot(Player* player, PlayerBotData& botData, bool saveToDB);
-    std::vector<PlayerBotData>* GetBotsForPlayer(Player* player);
-    bool RemovePlayerBot(Player* player, uint32 botEntry, bool isTemp);
-    
+    // Persistent Layer - with DB relation
+    void LoadAllPersistentBots();
+    bool StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry);
 
-    void HandleBotHire(Player* player, Creature* bot, uint32 hireDurationHours);
-    void DismissBot(Player* player, Creature* bot);
-    void RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeLeft);
+    void LoadPersistentPlayerBots(Player* player);
+    void RemovePersistentExpiredPlayerBots(Player* player);
+    bool RemovePersistentBot(uint64 playerGuid, uint32 botEntry);
 
-    uint64 GetBotExpireTime(uint32 durationHours);
+    void SpawnPlayerBots(Player* player);
+
+    // Getters
+    std::vector<PlayerBotData>* GetPersistentBotsForPlayer(Player* player);
+    PlayerBotData* GetPersistentBotBySpawnId(uint64 spawnId);
+    Player* GetBotOwner(Unit* unit);
+
+    // Checks the persistent container directly
+    bool IsPersistentBotExpired(uint64 ownerGuid, uint64 botEntry);
+    // Checks provided bot data
     bool IsBotExpired(PlayerBotData const& bot);
-    void RemoveExpiredBots(Player* player);
 
-    void RemoveTempBots(Player* player);
+
+    // Bot Management
+    void HirePersistentBot(Player* player, Creature* bot, uint32 hireDurationHours);
+    void DismissPersistentBot(Creature* bot);
+
+    void RegisterBotSpawn(Creature* bot, Player* owner);
 
     bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry);
     bool IsBotOwnedByPlayer(Player* player, Creature* bot);
     bool IsBotOwned(Creature* bot);
 
-    Player* GetBotOwner(Unit* unit);
+    uint64 GetBotExpireTime(uint32 durationHours);
+    
+    void RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeLeft);
 
-    void AddBotOwner(ObjectGuid::LowType spawnId, ObjectGuid::LowType ownerGuid);
-    void RemoveBotOwner(ObjectGuid::LowType spawnId);
-}
+private:
+    std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
+};

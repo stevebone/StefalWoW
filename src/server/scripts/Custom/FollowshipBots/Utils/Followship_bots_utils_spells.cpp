@@ -131,7 +131,7 @@ namespace FSBUtilsSpells
         case SPELL_MAGE_POLYMORPH:
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
-            Player* player = FSBMgr::GetBotOwner(bot);
+            Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
             if (!player)
             {

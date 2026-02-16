@@ -16,7 +16,7 @@ namespace FSBUtilsCombat
         if (!bot)
             return false;
 
-        auto owner = FSBMgr::GetBotOwner(bot);
+        auto owner = FSBMgr::Get()->GetBotOwner(bot);
         Player* player = owner ? owner->ToPlayer() : nullptr;
 
         return bot->IsInCombat() || (player && player->IsInCombat());
@@ -290,7 +290,7 @@ namespace FSBUtilsBotCombat
         }
 
         // Not sure why we wouldn't have an owner but just in case...
-        Player* owner = FSBMgr::GetBotOwner(bot);
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
         if (!owner)
             return nullptr;
 
@@ -350,7 +350,7 @@ namespace FSBUtilsBotCombat
     {
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotHandleReturnMovement move state: {}", moveState);
         // Handles moving the bot back to follow or owner
-        Player* owner = FSBMgr::GetBotOwner(bot);
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
         if (!owner)
         {
             if (bot->HasUnitState(UNIT_STATE_FOLLOW))

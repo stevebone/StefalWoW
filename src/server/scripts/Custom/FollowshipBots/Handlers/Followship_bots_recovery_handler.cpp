@@ -304,7 +304,7 @@ namespace FSBRecovery
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
             {
                 std::string pname = "";
-                Player* player = FSBMgr::GetBotOwner(bot);
+                Player* player = FSBMgr::Get()->GetBotOwner(bot);
                 if (player)
                     pname = player->GetName();
 

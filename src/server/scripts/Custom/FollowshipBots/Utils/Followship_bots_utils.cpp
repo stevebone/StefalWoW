@@ -47,7 +47,7 @@ namespace FSBUtils
 
     void BotUpdateAllies(Creature* bot, GuidSet _allySet)
     {
-        Unit* owner = FSBMgr::GetBotOwner(bot);
+        Unit* owner = FSBMgr::Get()->GetBotOwner(bot);
 
         if (!owner)
             return;

@@ -21,7 +21,7 @@ namespace FSBDeath
 
         // handle chatter after death
         // TO-DO add more chatter when player is not around or when player is the attacker
-        Player* player = FSBMgr::GetBotOwner(bot);
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
         if (player)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)

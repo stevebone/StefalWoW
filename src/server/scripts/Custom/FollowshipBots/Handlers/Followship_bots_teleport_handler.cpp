@@ -67,7 +67,7 @@ namespace FSBTeleport
             if (FSBUtilsCombat::IsCombatActive(bot))
                 return false;
 
-            Player* player = FSBMgr::GetBotOwner(bot);
+            Player* player = FSBMgr::Get()->GetBotOwner(bot);
             if (!player)
                 return false;
 

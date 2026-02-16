@@ -19,14 +19,14 @@ namespace FSBGossip
         if (!bot || !player)
             return false;
 
-        if (FSBMgr::IsBotOwned(bot) && !FSBMgr::IsBotOwnedByPlayer(player, bot))
+        if (FSBMgr::Get()->IsBotOwned(bot) && !FSBMgr::Get()->IsBotOwnedByPlayer(player, bot))
             return false;
 
         // TO-DO make this a method to check when to enable certain bots
         if (bot->GetEntry() == 16502 && !player->GetQuestRewardStatus(9283))
             return false;
 
-        if (FSBMgr::CheckPlayerHasBotWithEntry(player, bot->GetEntry()) && !hired)
+        if (FSBMgr::Get()->CheckPlayerHasBotWithEntry(player, bot->GetEntry()) && !hired)
         {
             bot->Say(FSB_SAY_DUPLICATE_FOLLOWER, LANG_UNIVERSAL);
             ClearGossipMenuFor(player);

@@ -77,7 +77,7 @@ namespace FSBWarlock
         if (target && target->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
 
-        Player* player = FSBMgr::GetBotOwner(bot);
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
         if (player && player->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
 

@@ -1,367 +1,443 @@
-
-#include "CharmInfo.h"
-#include "PhasingHandler.h"
-
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_db.h"
 #include "Followship_bots.h"
+#include "PhasingHandler.h"
+#include "CharmInfo.h"
 
-namespace FSBMgr
+// Maps bot spawnId ? ownerGuidLow
+std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType> _botOwners;
+
+FSBMgr* FSBMgr::Get()
 {
-    // playerGuidLow -> vector of PlayerBotData
-    std::unordered_map<uint64, std::vector<PlayerBotData>> _playerBots;
+    static FSBMgr instance;
+    return &instance;
+}
 
-    // Maps bot spawnId ? ownerGuidLow
-    std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType> _botOwners;
+// ==================== PERSISTENT LAYER ================================================= //
+void FSBMgr::LoadAllPersistentBots()
+{
+    std::vector<PlayerBotData> allBots;
+    if (!FSBUtilsDB::LoadAllPersistentBotsFromDB(allBots))
+        return;
 
-    void BotManagerInit()
+    _playerBotsPersistent.clear();
+
+    for (auto const& bot : allBots)
     {
-        FSBUtilsDB::LoadBotOwners(_botOwners);
+        _playerBotsPersistent[bot.owner].push_back(bot);
     }
 
-    void StorePlayerBot(Player* player, PlayerBotData& botData, bool saveToDB)
+    TC_LOG_INFO("scripts.ai.fsb",
+        "FSB Mgr: Loaded {} persistent bots for {} players",
+        allBots.size(),
+        _playerBotsPersistent.size());
+}
+
+bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry)
+{
+    if (!bot || !player)
+        return false;
+
+    uint64 ownerGuid = player->GetGUID().GetCounter();
+    uint64 spawnId = bot->GetSpawnId();
+    uint32 entry = bot->GetEntry();
+
+    // Build persistent record
+    PlayerBotData data;
+    data.botId = 0; // if you auto-increment in DB, this will be filled on reload
+    data.spawnId = spawnId;
+    data.entry = entry;
+    data.owner = ownerGuid;
+    data.hireExpiry = hireExpiry;
+    data.runtimeGuid = bot->GetGUID();
+
+    // Save to DB first
+    if (!FSBUtilsDB::SaveBotToDB(bot, player, hireExpiry))
     {
-        if (!player)
-            return;
-
-        uint64 playerGuidLow = player->GetGUID().GetCounter();
-        auto& vec = _playerBots[playerGuidLow];
-
-        // Check if bot already exists for this player
-        for (auto& existing : vec)
-        {
-            if (existing.botId == botData.botId || existing.entry == botData.entry)
-            {
-                // Update existing entry
-                existing = botData;
-
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSBMgr: Updated bot {} for player {}.", botData.spawnId, playerGuidLow);
-
-                return;
-            }
-        }
-
-        if (saveToDB && botData.botId == 0)
-        {
-            if (Creature* bot = player->GetMap()->GetCreatureBySpawnId(botData.spawnId))
-            {
-                botData.botId = FSBUtilsDB::SaveBotToDB(bot, player, botData.hireExpiry);
-                AddBotOwner(botData.spawnId, playerGuidLow);
-            }
-        }
-
-        ASSERT(!saveToDB || botData.botId != 0);
-
-        vec.push_back(botData);
-
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSBMgr: Stored bot entry={} spawnId={} for player {}",
-            botData.entry, botData.spawnId, player->GetName());
-
-        
+        TC_LOG_ERROR("scripts.ai.fsb",
+            "FSB Mgr: Failed to save bot {} for player {} to DB",
+            entry, player->GetName());
+        return false;
     }
 
-    std::vector<PlayerBotData>* GetBotsForPlayer(Player* player)
+    // Insert into persistent container
+    _playerBotsPersistent[ownerGuid].push_back(data);
+
+    TC_LOG_DEBUG("scripts.ai.fsb",
+        "FSB Mgr: Stored persistent bot {} for player {} (spawnId {}). Player has now {} bots.",
+        entry, player->GetName(), spawnId, _playerBotsPersistent[ownerGuid].size());
+
+    return true;
+}
+
+// Load persistent bots - once for player - this is used at first login for example
+void FSBMgr::LoadPersistentPlayerBots(Player* player)
+{
+    if (!player)
+        return;
+
+    uint64 guid = player->GetGUID().GetCounter();
+
+    // Already loaded from DB?
+    if (_playerBotsPersistent.contains(guid) && _playerBotsPersistent[guid].size() != 0)
     {
-        uint64 playerGuidLow = player->GetGUID().GetCounter();
-
-        auto it = _playerBots.find(playerGuidLow);
-        if (it == _playerBots.end())
-        {
-            std::vector<PlayerBotData> bots;
-            if (!FSBUtilsDB::LoadBotsForPlayer(playerGuidLow, bots))
-                return nullptr; // real DB error
-
-            it = _playerBots.emplace(playerGuidLow, std::move(bots)).first;
-        }
-
-        return &it->second;
+        TC_LOG_DEBUG("scripts.ai.fsb", "LoadPlayerBots: already cached for {} and playerBots size: {}", player->GetName(), _playerBotsPersistent[guid].size());
+        return;
     }
 
-    bool RemovePlayerBot(Player* player, uint32 botEntry, bool isTemp)
+    std::vector<PlayerBotData> bots;
+    if (!FSBUtilsDB::LoadBotsForPlayer(guid, bots))
+        return;
+
+    _playerBotsPersistent[guid] = std::move(bots);
+
+    TC_LOG_DEBUG("scripts.ai.fsb",
+        "FSB Mgr: Loaded persistent bots for player {} with size {}", player->GetName(), _playerBotsPersistent[guid].size());
+}
+
+void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
+{
+    if (!player)
+        return;
+
+    uint64 guid = player->GetGUID().GetCounter();
+
+    // Look up persistent bots for this player
+    auto it = _playerBotsPersistent.find(guid);
+    if (it == _playerBotsPersistent.end())
+        return;
+
+    auto& bots = it->second;
+
+    for (auto botIt = bots.begin(); botIt != bots.end(); )
     {
-        if (!player)
-            return false;
-
-        uint32 playerGuidLow = player->GetGUID().GetCounter();
-
-        auto it = _playerBots.find(playerGuidLow);
-        if (it == _playerBots.end())
-            return false;
-
-        auto& vec = it->second;
-
-        auto vit = std::find_if(vec.begin(), vec.end(),
-            [botEntry](PlayerBotData const& b)
-            {
-                return b.entry == botEntry;
-            });
-
-        if (vit == vec.end())
-            return false;
-
-        // Remove from DB if requested
-        if (!isTemp)
+        if (IsBotExpired(*botIt))
         {
-            FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuidLow);
+            uint32 botEntry = botIt->entry;
+
+            // Remove from DB
+            FSBUtilsDB::DeleteBotByEntry(botEntry, guid);
+
+            // Remove from persistent container
+            botIt = bots.erase(botIt);
 
             TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSBMgr: Removed DB bot entry {} (botId {}) for player {}",
-                botEntry, vit->botId, player->GetName());
+                "FSB Mgr: Removed expired bot entry {} for player {}", botEntry, player->GetName());
+        }
+        else
+        {
+            ++botIt;
+        }
+    }
 
-            RemoveBotOwner(vit->spawnId);
+    // If the player now has zero bots, you may optionally erase the key entirely:
+    if (bots.empty())
+        _playerBotsPersistent.erase(guid);
+}
+
+bool FSBMgr::RemovePersistentBot(uint64 playerGuid, uint32 botEntry)
+{
+    auto it = _playerBotsPersistent.find(playerGuid);
+    if (it == _playerBotsPersistent.end())
+        return false;
+
+    auto& bots = it->second;
+
+    // Remove from persistent container
+    std::erase_if(bots, [&](auto const& b) { return b.entry == botEntry; });
+
+    // Remove from DB
+    FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
+
+    TC_LOG_INFO("scripts.ai.fsb",
+        "FSB Mgr: Removed 1 persistent bot with entry {} for player guid {}", botEntry, playerGuid);
+
+    // Optional: remove empty entry
+    if (bots.empty())
+        _playerBotsPersistent.erase(playerGuid);
+
+    return true;
+}
+
+void FSBMgr::SpawnPlayerBots(Player* player)
+{
+    if (!player)
+        return;
+
+    // Get persistent bots for this player
+    auto* bots = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
+    if (!bots || bots->empty())
+    {
+        TC_LOG_DEBUG("scripts.ai.fsb",
+            "FSB: OnMapChanged - Player {} has no persistent bots", player->GetName());
+        return;
+    }
+
+    uint64 now = time(nullptr);
+
+    for (auto& botData : *bots)
+    {
+        Creature* bot = nullptr;
+
+        // 1. Try to find the bot by spawnId on this map
+        if (botData.spawnId != 0)
+            bot = player->GetMap()->GetCreatureBySpawnId(botData.spawnId);
+
+        // 2. If in dungeon and not found, try nearest fallback
+        if (!bot && player->GetMap()->IsDungeon())
+        {
+            bot = player->FindNearestCreature(botData.entry, 500.f, true);
+            if (!bot)
+                bot = player->FindNearestCreature(botData.entry, 500.f, false);
+        }
+
+        // 3. If still not found ? spawn a temporary runtime bot
+        if (!bot)
+        {
+            Position pos = player->GetPosition();
+            bot = player->SummonCreature(botData.entry, pos, TEMPSUMMON_MANUAL_DESPAWN, 0s);
+
+            if (!bot)
+            {
+                TC_LOG_ERROR("scripts.ai.fsb",
+                    "FSB: OnMapChanged - Failed to summon bot entry {} for player {}",
+                    botData.entry, player->GetName());
+                continue;
+            }
+
+            botData.runtimeGuid = bot->GetGUID();
+
+            TC_LOG_DEBUG("scripts.ai.fsb",
+                "FSB: OnMapChanged - Spawned TEMP bot {} for player {} on new map",
+                bot->GetName(), player->GetName());
         }
         else
         {
             TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSBMgr: Removed runtime bot entry {} for player {}",
-                botEntry, player->GetName());
+                "FSB: OnMapChanged - Found existing DB bot {} on new map for player {}",
+                bot->GetName(), player->GetName());
         }
 
-        if(!isTemp)
-            vec.erase(vit);
+        // 4. Restore ownership (AI, follow, hire time left)
+        uint32 hireTimeLeft = botData.hireExpiry > 0
+            ? uint32(botData.hireExpiry - now)
+            : 0;
 
-        return true;
-    }
-
-    uint64 GetBotExpireTime(uint32 durationHours)
-    {
-        uint64 now = time(nullptr); // seconds since 1970
-        return uint64(now) + uint64(durationHours) * 60 * 60;
-    }
-
-    bool IsBotExpired(PlayerBotData const& bot)
-    {
-        return bot.hireExpiry > 0 && bot.hireExpiry < static_cast<uint64>(time(nullptr));
-    }
-
-    void RemoveExpiredBots(Player* player)
-    {
-        auto* bots = GetBotsForPlayer(player);
-        if (!bots)
-            return;
-
-        for (auto it = bots->begin(); it != bots->end(); )
-        {
-            if (IsBotExpired(*it))
-            {
-                uint32 botEntry = it->entry;
-                uint32 playerGuid = player->GetGUID().GetCounter();
-                it = bots->erase(it);
-                RemoveBotOwner(it->spawnId);
-                FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
-            }
-            else
-                ++it;
-        }
-    }
-
-    void RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeLeft)
-    {
-        if (!player || !bot)
-            return;
-
-        // Teleport if too far away
-        /*
-        if (bot->GetMapId() == player->GetMapId() && bot->GetDistance(player) > 100.0f)
-        {
-            bot->NearTeleportTo(
-                player->GetPositionX(),
-                player->GetPositionY(),
-                player->GetPositionZ(),
-                player->GetOrientation());
-
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
-        }*/
-
-        // Set owner
-        bot->SetOwnerGUID(player->GetGUID());
-
-        bot->AI()->SetData(FSB_DATA_HIRED, 1);
-        bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
-
-        PhasingHandler::ResetPhaseShift(bot);
-        bot->SetStandState(UNIT_STAND_STATE_STAND);
-    }
-
-    void HandleBotHire(Player* player, Creature* bot, uint32 hireDurationHours)
-    {
-        ASSERT(player && bot);
-
-        // Calculate expiry
-        // Permanent hire comes with duration 0
-        uint64 hireExpiry = 0;
-        if(hireDurationHours != 0)
-            hireExpiry = FSBMgr::GetBotExpireTime(hireDurationHours);
-
-        // 2?? Update memory
-        PlayerBotData botData;
-        botData.botId = 0; // or actual DB primary key if known
-        botData.spawnId = bot->GetSpawnId();
-        botData.entry = bot->GetEntry();
-        botData.hireExpiry = hireExpiry;
-        botData.runtimeGuid = ObjectGuid::Empty;
-
-        StorePlayerBot(player, botData, true);
-
-        // 3?? Restore ownership + AI state
-        uint32 hireTimeLeft = hireDurationHours * 3600;
-        RestoreBotOwnership(player, bot, hireTimeLeft);
-
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player {} hired bot {} (entry {}) until {}",
-            player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
-
-        // some bots may be hired from a non regular phase
-        // on hire we need to overwrite with the normal phase
-        
-        //PhasingHandler::ResetPhaseShift(bot);
-    }
-
-    void DismissBot(Player* player, Creature* bot)
-    {
-        if (!player || !bot)
-            return;
-
-        uint32 playerGuid = player->GetGUID().GetCounter();
-        auto* bots = FSBMgr::GetBotsForPlayer(player);
-        if (!bots)
-            return;
-
-        uint32 botEntry = bot->GetEntry();
-
-        // Remove ALL matching bots from memory
-        bots->erase(
-            std::remove_if(
-                bots->begin(),
-                bots->end(),
-                [botEntry](PlayerBotData const& b)
-                {
-                    return b.entry == botEntry;
-                }
-            ),
-            bots->end()
-        );
-
-        // Remove ALL matching bots from DB
-        FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
-
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: Dismissed all bots with entry {} for player {}",
-            botEntry, player->GetName());
-    }
-
-    // Removes temporary spawned bots - upon relog / map change
-    void RemoveTempBots(Player* player)
-    {
-        ASSERT(player);
-
-        // Get all bots for the player (persistent table)
-        auto* bots = GetBotsForPlayer(player);
-
-        if (!bots || bots->empty())
-            return;
-
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Remove Temp Bots Mgr - Found {} bots for player {}",
-            bots->size(), player->GetName());
-
-        for (PlayerBotData& botData : *bots)
-        {
-            if (!botData.runtimeGuid)
-                continue;
-
-            // runtimeGuid is already a full ObjectGuid
-            if (Creature* bot = ObjectAccessor::GetCreature(*player, botData.runtimeGuid))
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb",
-                    "FSB: OnLogout - Despawning bot {} for player {}",
-                    bot->GetName(), player->GetName());
-
-                FSBMgr::RemovePlayerBot(player, botData.entry, true);
-                bot->DespawnOrUnsummon();
-
-            }
-
-            //botData.runtimeGuid.Clear(); // reset so next login/map change won't try to despawn same creature
-            
-        }
-    }
-
-    bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry)
-    {
-        if (!player || !entry)
-            return false;
-
-        uint64 playerGuidLow = player->GetGUID().GetCounter();
-        auto it = _playerBots.find(playerGuidLow);
-        if (it == _playerBots.end())
-            return false;
-
-        auto const& vec = it->second;
-
-        return std::any_of(vec.begin(), vec.end(),
-            [entry](PlayerBotData const& b)
-            {
-                return b.entry == entry;
-            });
-    }
-
-    bool IsBotOwnedByPlayer(Player* player, Creature* bot)
-    {
-        if (!player || !bot)
-            return false;
-
-        ObjectGuid::LowType spawnId = bot->GetSpawnId();
-        ObjectGuid::LowType playerGuid = player->GetGUID().GetCounter();
-
-        auto it = _botOwners.find(spawnId);
-        if (it == _botOwners.end())
-            return false; // bot has no owner at all
-
-        return it->second == playerGuid; // true if this player is the owner
-    }
-
-    bool IsBotOwned(Creature* bot)
-    {
-        if (!bot)
-            return false;
-
-        ObjectGuid::LowType spawnId = bot->GetSpawnId();
-
-        // Check if this spawnId exists in the reverse lookup map
-        return _botOwners.contains(spawnId);
-    }
-
-    Player* GetBotOwner(Unit* unit)
-    {
-        if (!unit)
-            return nullptr;
-
-        if (Unit* owner = unit->GetOwner())
-            return owner->ToPlayer();
-
-        return nullptr;
-    }
-
-    void AddBotOwner(ObjectGuid::LowType spawnId, ObjectGuid::LowType ownerGuid)
-    {
-        if (!spawnId || !ownerGuid)
-            return;
-
-        // Update in-memory map
-        _botOwners[spawnId] = ownerGuid;
-
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB Bot MGR: Added bot owner spawnId={} owner={}", spawnId, ownerGuid);
-    }
-
-    void RemoveBotOwner(ObjectGuid::LowType spawnId)
-    {
-        if (!spawnId)
-            return;
-
-        // Remove from in-memory map
-        _botOwners.erase(spawnId);
-
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB Bot MGR: Removed bot owner for spawnId={}", spawnId);
+        FSBMgr::Get()->RestoreBotOwnership(player, bot, hireTimeLeft);
     }
 }
+
+// -------------------- Bot Ownership --------------------
+void FSBMgr::RegisterBotSpawn(Creature* bot, Player* owner)
+{
+    if (!bot || !owner)
+        return;
+
+    auto botsPtr = GetPersistentBotsForPlayer(owner);
+    if (!botsPtr)
+        return;
+
+    for (auto& botData : *botsPtr)
+        if (botData.entry == bot->GetEntry())
+            botData.runtimeGuid = bot->GetGUID();
+}
+
+void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeLeft)
+{
+    if (!player || !bot)
+        return;
+
+    // Set owner
+    bot->SetOwnerGUID(player->GetGUID());
+
+    bot->AI()->SetData(FSB_DATA_HIRED, 1);
+    bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
+
+    FSBMgr::Get()->RegisterBotSpawn(bot, player);
+
+
+    PhasingHandler::ResetPhaseShift(bot);
+    bot->SetStandState(UNIT_STAND_STATE_STAND);
+}
+
+// ==================== GETTER METHODS ==================================================== //
+std::vector<PlayerBotData>* FSBMgr::GetPersistentBotsForPlayer(Player* player)
+{
+    if (!player)
+        return nullptr;
+
+    uint64 guid = player->GetGUID().GetCounter();
+    auto it = _playerBotsPersistent.find(guid);
+
+    if (it == _playerBotsPersistent.end())
+        return nullptr;
+
+    return &it->second;
+}
+
+PlayerBotData* FSBMgr::GetPersistentBotBySpawnId(uint64 spawnId)
+{
+    for (auto& [playerGuid, bots] : _playerBotsPersistent)
+    {
+        for (auto& bot : bots)
+        {
+            if (bot.spawnId == spawnId)
+                return &bot;
+        }
+    }
+    return nullptr;
+}
+
+Player* FSBMgr::GetBotOwner(Unit* unit)
+{
+    if (!unit)
+        return nullptr;
+
+    if (Unit* owner = unit->GetOwner())
+        return owner->ToPlayer();
+
+    return nullptr;
+}
+
+// ==================== CHECK METHODS ==================================================== //
+bool FSBMgr::IsBotExpired(PlayerBotData const& bot)
+{
+    return bot.hireExpiry > 0 && bot.hireExpiry < static_cast<uint64>(time(nullptr));
+}
+
+bool FSBMgr::IsPersistentBotExpired(uint64 ownerGuid, uint64 botEntry)
+{
+    auto it = _playerBotsPersistent.find(ownerGuid);
+    if (it == _playerBotsPersistent.end())
+        return false;
+
+    for (auto const& bot : it->second)
+    {
+        if (bot.entry == botEntry)
+            return bot.hireExpiry > 0 && bot.hireExpiry < uint64(time(nullptr));
+    }
+
+    return false;
+}
+
+uint64 FSBMgr::GetBotExpireTime(uint32 durationHours)
+{
+    return uint64(time(nullptr)) + uint64(durationHours) * 60 * 60;
+}
+
+// -------------------- Player Queries --------------------
+bool FSBMgr::CheckPlayerHasBotWithEntry(Player* player, uint32 entry)
+{
+    auto* bots = GetPersistentBotsForPlayer(player);
+    if (!bots)
+        return false;
+
+    return std::any_of(bots->begin(), bots->end(), [entry](PlayerBotData const& b) { return b.entry == entry; });
+}
+
+bool FSBMgr::IsBotOwnedByPlayer(Player* player, Creature* bot)
+{
+    if (!player || !bot)
+        return false;
+
+    uint64 ownerGuid = player->GetGUID().GetCounter();
+    uint64 spawnId = bot->GetSpawnId();
+
+    auto it = _playerBotsPersistent.find(ownerGuid);
+    if (it == _playerBotsPersistent.end())
+        return false;
+
+    for (auto const& data : it->second)
+    {
+        if (data.spawnId == spawnId)
+            return true;
+    }
+
+    return false;
+}
+
+bool FSBMgr::IsBotOwned(Creature* bot)
+{
+    if (!bot)
+        return false;
+
+    uint64 spawnId = bot->GetSpawnId();
+
+    for (auto const& [ownerGuid, bots] : _playerBotsPersistent)
+    {
+        for (auto const& data : bots)
+        {
+            if (data.spawnId == spawnId)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+
+// ==================== MANAGEMENT METHODS ==================================================== //
+void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDurationHours)
+{
+    if (!bot || !player)
+        return;
+
+    // Calculate expiry
+    // Permanent hire comes with duration 0
+    uint64 hireExpiry = 0;
+    if (hireDurationHours != 0)
+        hireExpiry = GetBotExpireTime(hireDurationHours);
+
+    StorePersistentBot(bot, player, hireExpiry);
+
+    // 3?? Restore ownership + AI state
+    uint32 hireTimeLeft = hireDurationHours * 3600;
+    RestoreBotOwnership(player, bot, hireTimeLeft);
+
+    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player {} hired bot {} (entry {}) until {}",
+        player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
+
+
+}
+
+void FSBMgr::DismissPersistentBot(Creature* bot)
+{
+    if (!bot)
+        return;
+
+    Player* player = GetBotOwner(bot);
+
+    if (!player)
+        return;
+
+    uint32 playerGuidLow = player->GetGUID().GetCounter();
+    uint32 botEntry = bot->GetEntry();
+
+    bot->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+    bot->StopMoving();
+    bot->GetMotionMaster()->Clear();
+    if (player)
+    {
+        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
+        bot->Say(msg, LANG_UNIVERSAL);
+    }
+
+    RemovePersistentBot(playerGuidLow, botEntry);
+
+    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Dismissed bot {} for player {}", bot->GetName(), player->GetName());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
