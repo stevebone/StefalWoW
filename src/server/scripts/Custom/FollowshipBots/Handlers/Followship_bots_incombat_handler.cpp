@@ -5,6 +5,7 @@
 #include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 
+#include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_incombat_handler.h"
 
@@ -37,6 +38,29 @@ namespace FSBIC
         //3. IC Resurrect - Druid
         if (BotICResurrect(bot, resTargetGuid))
             return true;
+
+        //4. IC Go melee when OOM
+        if (BotICMeleeMode(bot))
+            return true;
+
+        return false;
+    }
+
+    bool BotICMeleeMode(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto& meleeMode = baseAI->botMeleeMode;
+
+        if (FSBCombat::ShouldSwitchToMelee(bot))
+        {
+            meleeMode = true;
+            FSBCombat::EnterMeleeMode(bot);
+            return true;
+        }
+        else meleeMode = false;
 
         return false;
     }
@@ -119,7 +143,7 @@ namespace FSBIC
         // 2. Generic health potions for non healer bots 
         if (bot->GetHealthPct() < BOT_IC_THRESHOLD_POTION_HP)
         {
-            if (FSBUtils::BotIsHealerClass(bot))
+            if (FSBUtils::BotIsHealerClass(bot) || botHealthPotionUsed)
                 return false;
 
             uint32 HealthPotionSpellId = 0;

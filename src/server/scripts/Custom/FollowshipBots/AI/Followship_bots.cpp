@@ -970,20 +970,8 @@ public:
                     if (me->IsAlive() && me->IsInCombat())
                         FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
 
-                    Player* player = FSBMgr::Get()->GetBotOwner(me);
-
-                    // 1. Player check combat state for initial buffs
-                    if (player && player->IsAlive() && player->IsInCombat())
-                    {
-                        _ownerWasInCombat = true;
-                    }
-                    else if (player && player->IsAlive() && !player->IsInCombat())
-                    {
-                        _ownerWasInCombat = false;
-                    }
-
                     // 2. Combat spells loop
-                    if (me->IsInCombat())
+                    if (me->IsInCombat() && !botMeleeMode)
                     {
                         if (!me->HasUnitState(UNIT_STATE_CASTING))
                         {
@@ -992,12 +980,6 @@ public:
                             // Regular spells
                             events.ScheduleEvent(FSB_EVENT_COMBAT_SPELL_CHECK, 1s);
                         }
-                    }
-
-                    // 3. Complete off Combat State check
-                    if(!FSBUtilsCombat::IsCombatActive(me))
-                    {
-                        _appliedInitialCBuffs = 0;
                     }
 
                     events.ScheduleEvent(FSB_EVENT_COMBAT_MAINTENANCE, 1s);

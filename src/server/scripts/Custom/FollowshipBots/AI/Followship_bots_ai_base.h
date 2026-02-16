@@ -31,6 +31,7 @@ public:
         botHasDemon(false),
         botCastedCombatBuffs(false),
         botSayMemberDead(false),
+        botMeleeMode(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
@@ -60,6 +61,7 @@ public:
     bool botHasDemon;
     bool botCastedCombatBuffs;
     bool botSayMemberDead;
+    bool botMeleeMode;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;
