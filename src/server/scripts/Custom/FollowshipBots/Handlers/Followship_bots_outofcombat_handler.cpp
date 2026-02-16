@@ -29,7 +29,6 @@ namespace FSBOOC
         auto& botManaPotionUsed = ai->botManaPotionUsed;
         auto& botHealthPotionUsed = ai->botHealthPotionUsed;
         auto& botCastedCombatBuffs = ai->botCastedCombatBuffs;
-        auto& botSayMemberDead = ai->botSayMemberDead;
         auto& botResTargetGuid = ai->botResurrectTargetGuid;
         auto botRole = ai->botRole;
         auto& botGroup = ai->botLogicalGroup;
@@ -53,7 +52,7 @@ namespace FSBOOC
 
         //0 OOC Resurrect
         // If we resurrect someone then end tick
-        if (botRole == FSB_ROLE_HEALER && BotOOCResurrect(bot, botGroup, botSayMemberDead, botResTargetGuid))
+        if (botRole == FSB_ROLE_HEALER && BotOOCResurrect(bot, botResTargetGuid))
             return true;
 
         //1. Bot Heal Owner
@@ -92,49 +91,14 @@ namespace FSBOOC
         return false; 
     }
 
-    bool BotOOCResurrect(Creature* bot, const std::vector<Unit*>& botGroup, bool& botSayMemberDead, ObjectGuid& resTargetGuid)
+    bool BotOOCResurrect(Creature* bot, ObjectGuid& resTargetGuid)
     {
-        
-
-        if (!bot)
+        if (!bot || !bot->IsAlive())
             return false;
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found {} units in group for check resurrection", bot->GetName(), botGroup.size());
-
-        if (!bot->IsAlive())
+        if (!resTargetGuid)
             return false;
 
-        if (!resTargetGuid.IsEmpty())
-            return false;
-
-        //if (FSBUtilsCombat::IsCombatActive(bot))
-        //    return false;
-
-        Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botGroup);
-
-        // Validate pointer before doing anything else
-        if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
-            return false;
-
-        // Build safe names for logging and chatter
-        const char* botName = (bot && bot->IsInWorld()) ? bot->GetName().c_str() : "";
-        const char* targetName = (deadTarget && deadTarget->IsInWorld()) ? deadTarget->GetName().c_str() : "";
-
-        // Announce death (only once)
-        if (!botSayMemberDead && bot->IsAlive() &&
-            urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-        {
-            std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                targetName, 0, FSBSayType::PlayerOrMemberDead, "");
-            bot->Yell(msg, LANG_UNIVERSAL);
-
-            botSayMemberDead = true;
-        }
-
-        // Safe logging
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", botName, targetName);
-
-        resTargetGuid = deadTarget->GetGUID();
         FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);
 
         return true;
@@ -151,6 +115,7 @@ namespace FSBOOC
         auto botClass = baseAI->botClass;
         auto& globalCooldown = baseAI->botGlobalCooldown;
         Unit* target = ObjectAccessor::GetUnit(*bot, resurrectTargetGuid);
+        bool canCombatRes = botClass == FSB_Class::Druid && bot->IsInCombat();
 
         if(target)
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", bot->GetName(), target->GetName());
@@ -160,13 +125,13 @@ namespace FSBOOC
             return false;
         }
 
-        if (bot->IsInCombat() || bot->HasUnitState(UNIT_STATE_CASTING))
+        if ((bot->IsInCombat() && !canCombatRes) || bot->HasUnitState(UNIT_STATE_CASTING))
         {
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
             return false;
         }
 
-        if (bot->GetMapId() == target->GetMapId() && bot->GetDistance(target) > 30.0f)
+        if (target && bot->GetMapId() == target->GetMapId() && bot->GetDistance(target) > 30.0f)
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect target {} too far from bot: {}", target->GetName(), bot->GetName());
             bot->GetMotionMaster()->MoveChase(target, 28.f);
@@ -182,7 +147,9 @@ namespace FSBOOC
             spellId = SPELL_PRIEST_RESURRECTION;
             break;
         case FSB_Class::Druid:
-            spellId = SPELL_DRUID_REVIVE;
+            if (canCombatRes)
+                spellId = SPELL_DRUID_REBIRTH;
+            else spellId = SPELL_DRUID_REVIVE;
             break;
         case FSB_Class::Paladin:
             spellId = SPELL_PALADIN_REDEMPTION;
@@ -202,7 +169,6 @@ namespace FSBOOC
                 uint32 now = getMSTime();
                 globalCooldown = now + 1500;
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", bot->GetName(), spellId, target->GetName());
-                //resurrectTargetGuid.Clear();
 
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
@@ -210,6 +176,8 @@ namespace FSBOOC
                     std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::Resurrect, "");
                     bot->Say(msg, LANG_UNIVERSAL);
                 }
+
+                resurrectTargetGuid.Clear();
             }
             else
             {
@@ -256,7 +224,9 @@ namespace FSBOOC
 
         auto& botSayMemberDead = baseAI->botSayMemberDead;
         auto& deadTargetGuid = baseAI->botResurrectTargetGuid;
-        Unit* target = ObjectAccessor::GetUnit(*bot, deadTargetGuid);
+        Unit* target = nullptr;
+        if(!deadTargetGuid.IsEmpty())
+            target = ObjectAccessor::GetUnit(*bot, deadTargetGuid);
 
         if (target && target->IsAlive())
         {

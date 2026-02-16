@@ -537,18 +537,7 @@ public:
             if (!spellInfo)
                 return;
 
-            // When bot is resurrected we need to set it back to death state alive
-            if (spellInfo->Id == SPELL_PRIEST_RESURRECTION || spellInfo->Id == SPELL_PALADIN_REDEMPTION || spellInfo->Id == SPELL_DRUID_REVIVE)
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb",
-                    "FSB: Bot {} was resurrected by spell {}",
-                    me->GetName(),
-                    spellInfo->Id);
-
-                me->setDeathState(ALIVE);
-                //hired = true;
-                me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-            }
+            FSBDeath::HandleSpellResurrection(me, spellInfo->Id);
         }
 
         void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* /*spellInfo*/) override
@@ -780,32 +769,8 @@ public:
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
 
-                        /*
-                        if(now >= _1secondsCheckMs)
-                            if(FSBUtils::GetRole(me) == FSB_Roles::FSB_ROLE_HEALER)
-                                events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_RESS_TARGETS, 1s, 3s);
-                                */
-                        // After a bot is resurrected we need to determine if they are alive
-                        // and then perform after ress stuff
-                        if (!_pendingResTarget.IsEmpty() && _announceMemberDead)
-                        {
-                            Unit* target = ObjectAccessor::GetUnit(*me, _pendingResTarget);
-                            if (target && target->IsAlive())
-                            {
-                                _announceMemberDead = false;
-                                _pendingResurrection = false;
-
-                                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                                {
-                                    // SAY after ressurect
-                                    std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::Resurrect, "");
-                                    me->Say(msg, LANG_UNIVERSAL);
-                                }
-
-                                _pendingResTarget.Clear();
-                            }
-                        }
-                        
+                        // bot events
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_CHECK_MEMBER_DEATH, 3s, 5s);                        
 
                         if (now >= _5secondsCheckMs)
                         {
@@ -814,7 +779,6 @@ public:
                             // Check to dermine what friendlies we have in our "group"
                             // Includes: bot, owner and other bots owner by its owner
                             // TO-DO: Add check to include other players in the group of the owner
-                            //FSBGroup::CheckBotAllies(me->ToCreature(), botGroup_, 50.0f);
                             FSBGroup::BuildLogicalBotGroup(me, botLogicalGroup);
 
                             // ? lock check for next 5 seconds

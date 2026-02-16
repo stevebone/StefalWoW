@@ -7,4 +7,5 @@ namespace FSBIC
     bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup);
     bool BotICPotions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed);
     bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup);
+    bool BotICResurrect(Creature* bot, ObjectGuid& resTargetGuid);
 }

@@ -13,7 +13,7 @@ public:
         FSBMgr::Get()->RemovePersistentExpiredPlayerBots(player);
     }
 
-    void OnLogout(Player* player) override
+    void OnLogout(Player* /*player*/) override
     {
     }
 

@@ -4,10 +4,14 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_death_handler.h"
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
+#include "Followship_bots_druid.h"
+#include "Followship_bots_paladin.h"
+#include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 
 namespace FSBDeath
@@ -106,5 +110,102 @@ namespace FSBDeath
         bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         bot->Say("This was a long way...", LANG_UNIVERSAL); //TO-DO add more texts here
+    }
+
+    bool CheckBotMemberDeath(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found {} units in group for check resurrection", bot->GetName(), botGroup.size());
+
+        if (!bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& botGroup = baseAI->botLogicalGroup;
+        auto& botSayMemberDead = baseAI->botSayMemberDead;
+        auto& resTargetGuid = baseAI->botResurrectTargetGuid;
+
+        if (!resTargetGuid.IsEmpty())
+            return false;
+
+        if (botSayMemberDead)
+            return false;
+
+        Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botGroup);
+
+        // Validate pointer before doing anything else
+        if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
+            return false;
+
+        // Build safe names for logging and chatter
+        const char* botName = (bot && bot->IsInWorld()) ? bot->GetName().c_str() : "";
+        const char* targetName = (deadTarget && deadTarget->IsInWorld()) ? deadTarget->GetName().c_str() : "";
+
+        // Announce death (only once)
+        if (!botSayMemberDead && bot->IsAlive() &&
+            urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        {
+            std::string msg = FSBUtilsTexts::BuildNPCSayText(
+                targetName, 0, FSBSayType::PlayerOrMemberDead, "");
+            bot->Yell(msg, LANG_UNIVERSAL);
+
+            botSayMemberDead = true;
+        }
+
+        resTargetGuid = deadTarget->GetGUID();
+
+        // Safe logging
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", botName, targetName);
+        return true;
+    }
+
+    void HandleSpellResurrection(Creature* bot, uint32 spellId)
+    {
+        if (!bot || bot->IsAlive())
+            return;
+
+        switch (spellId)
+        {
+        case SPELL_PALADIN_REDEMPTION:
+        case SPELL_PRIEST_RESURRECTION:
+        case SPELL_DRUID_REVIVE:
+        case SPELL_DRUID_REBIRTH:
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_SPELL_RESURRECT_STATE, 3s, 5s);
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} was resurrected by spell {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
+            break;
+        default:
+            break;
+        }
+    }
+
+    void HandleSpellResurrectionDelayedAction(Creature* bot)
+    {
+        if (!bot || bot->IsAlive())
+            return;
+
+        bool isCombatRes = FSBUtilsCombat::IsCombatActive(bot);
+
+        // When bot is resurrected we need to set it back to death state alive
+        bot->setDeathState(ALIVE);
+        bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+        uint64 maxHealth = bot->GetMaxHealth();
+        uint64 maxMana = bot->GetMaxPower(POWER_MANA);
+        float healthPct = 0.35f;
+        float manaPct = 0.35f;
+
+        if (isCombatRes)
+        {
+            healthPct = 1.f;
+            manaPct = 0.2f;
+        }
+
+
+        bot->SetHealth(maxHealth * healthPct);
+        if (maxMana > 1) bot->SetPower(POWER_MANA, maxMana * manaPct);
     }
 }

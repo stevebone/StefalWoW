@@ -1,6 +1,7 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
@@ -71,6 +72,14 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         else botEvents.ScheduleEvent(FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
         break;
     }
+
+    case FSB_EVENT_HIRED_CHECK_MEMBER_DEATH:
+        FSBDeath::CheckBotMemberDeath(bot);
+        break;
+
+    case FSB_EVENT_HIRED_SPELL_RESURRECT_STATE:
+        FSBDeath::HandleSpellResurrectionDelayedAction(bot);
+        break;
 
     default:
         break;

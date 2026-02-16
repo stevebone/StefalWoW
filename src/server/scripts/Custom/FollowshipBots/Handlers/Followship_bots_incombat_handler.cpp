@@ -5,6 +5,7 @@
 #include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_incombat_handler.h"
 
 namespace FSBIC
@@ -20,6 +21,9 @@ namespace FSBIC
         if (bot->HasUnitState(UNIT_STATE_CASTING))
             return false;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto& resTargetGuid = baseAI->botResurrectTargetGuid;
+
         //1. IC Potions
         // These can be cast instant with no GCD
         if (BotICPotions(bot, botManaPotionUsed, botHealthPotionUsed))
@@ -28,6 +32,10 @@ namespace FSBIC
         //2. IC (initial)Buffs
         // These are cast when combat starts
         if (BotICInitialBuffs(bot, globalCooldown, botCastedCombatBuffs, botGroup))
+            return true;
+
+        //3. IC Resurrect - Druid
+        if (BotICResurrect(bot, resTargetGuid))
             return true;
 
         return false;
@@ -137,5 +145,18 @@ namespace FSBIC
             return true;
         }
         return false;
+    }
+
+    bool BotICResurrect(Creature* bot, ObjectGuid& resTargetGuid)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!resTargetGuid)
+            return false;
+
+        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);
+
+        return true;
     }
 }
