@@ -222,6 +222,19 @@ namespace FSBDruid
             bot->ModifyPower(POWER_RAGE, 60, false);
             break;
 
+        case SPELL_DRUID_ROOTS:
+        {
+            Unit* victim = bot->GetVictim();
+
+            if (victim && bot->IsWithinMeleeRange(victim) && victim->HasAura(SPELL_DRUID_ROOTS))
+            {
+                //float x, y, z;
+                //bot->GetRandomPoint(bot->GetPosition(), 10.0f, x, y, z);
+                bot->GetMotionMaster()->MovePoint(3, bot->GetPositionX() + frand(-10.f, 10.f), bot->GetPositionY(), bot->GetPositionZ());
+            }
+            break;
+        }
+
         default:
             break;
         }

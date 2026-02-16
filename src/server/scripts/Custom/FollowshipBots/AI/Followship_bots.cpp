@@ -1051,9 +1051,10 @@ public:
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
                 {
-                    if (!me->IsInCombat())
+                    if (!me->IsInCombat() || !me->HasUnitState(UNIT_STAND_STATE_SIT))
                     {
                         events.Reset();
+                        botHired = false;
                         FSBMgr::Get()->DismissPersistentBot(me);
                         events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
                         break;
