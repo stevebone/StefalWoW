@@ -20,6 +20,7 @@
 
 #include "Packet.h"
 #include "PacketUtilities.h"
+#include "MovementInfo.h"
 #include "ObjectGuid.h"
 #include "Optional.h"
 #include "Position.h"
@@ -380,6 +381,7 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid TargetGUID;
+            MovementInfo LocationInfo;
             Position BattleOrigin;
         };
 
@@ -431,6 +433,7 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid TargetGUID;
+            MovementInfo LocationInfo;
             Position BattleOrigin;
         };
 
