@@ -50,11 +50,11 @@ public:
             static bool tablesInitialized = false;
             if (!tablesInitialized)
             {
-                FSBUtilsCombatSpells::InitBotSpellTables();
+                FSBSpells::InitBotSpellTables();
                 tablesInitialized = true;
             }
 
-            FSBUtilsCombatSpells::InitSpellRuntime(me, _runtimeSpells);            
+            FSBSpells::InitSpellRuntime(me, botRuntimeSpells);
         }        
 
         // Bot Operations
@@ -851,54 +851,6 @@ public:
                     FSBMovement::BotSetMountedState(me, botMounted);
                     break;
 
-                    // Check if someone in our group died (bot or player)
-                case FSB_EVENT_HIRED_CHECK_RESS_TARGETS:
-                {
-                    uint32 now = getMSTime();
-                    if (now >= _1secondsCheckMs)
-                    {
-
-                        if (!_pendingResurrection && me->IsAlive() && !_pendingResTarget)
-                        {
-                            Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botLogicalGroup);
-
-                            // Validate pointer before doing anything else
-                            if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
-                                return;
-
-                            // Store GUID early (safe even if unit despawns later)
-                            _pendingResurrection = true;
-                            _pendingResTarget = deadTarget->GetGUID();
-
-                            // Build safe names for logging and chatter
-                            const char* botName = (me && me->IsInWorld()) ? me->GetName().c_str() : "";
-                            const char* targetName = (deadTarget && deadTarget->IsInWorld()) ? deadTarget->GetName().c_str() : "";
-
-                            // Announce death (only once)
-                            if (!_announceMemberDead && me->IsAlive() &&
-                                urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                            {
-                                std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                                    targetName, 0, FSBSayType::PlayerOrMemberDead, "");
-                                me->Yell(msg, LANG_UNIVERSAL);
-                            }
-
-                            _announceMemberDead = true;
-
-                            // Safe logging
-                            TC_LOG_DEBUG("scripts.ai.fsb",
-                                "FSB: {} found dead unit {} for resurrection",
-                                botName, targetName);
-
-                            // Schedule resurrection
-                            events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
-
-                            break;
-                        }
-                    }
-                    break;
-                }
-
                 case FSB_EVENT_HIRED_RESS_TARGET:
                 {
                     if (!_pendingResurrection)
@@ -970,51 +922,9 @@ public:
                     if (me->IsAlive() && me->IsInCombat())
                         FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
 
-                    // 2. Combat spells loop
-                    if (me->IsInCombat() && !botMeleeMode)
-                    {
-                        if (!me->HasUnitState(UNIT_STATE_CASTING))
-                        {
-                            // IC Actions (ex mana potions or health potions)
-                            //events.ScheduleEvent(FSB_EVENT_COMBAT_IC_ACTIONS, 100ms);
-                            // Regular spells
-                            events.ScheduleEvent(FSB_EVENT_COMBAT_SPELL_CHECK, 1s);
-                        }
-                    }
-
                     events.ScheduleEvent(FSB_EVENT_COMBAT_MAINTENANCE, 1s);
 
                     //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Combat Maintenance Reached the end"); // TEMP LOG
-
-                    break;
-                }
-
-                case FSB_EVENT_COMBAT_SPELL_CHECK:
-                {
-                    std::vector<FSBSpellRuntime*> available = FSBUtilsCombatSpells::BotGetAvailableSpells(me, _runtimeSpells, botGlobalCooldown);
-
-                    Unit* target = nullptr;
-
-                    FSBSpellRuntime* toCast = FSBUtilsCombatSpells::BotSelectSpell(me, available, botLogicalGroup, target);
-
-                    if(toCast && target)
-                        FSBUtilsCombatSpells::BotCastSpell(me, target, toCast, botGlobalCooldown);
-
-                    break;
-                }
-
-                case FSB_EVENT_COMBAT_IC_ACTIONS:
-                {
-                    if (!me->IsAlive())
-                        break;
-
-                    if (!me->IsInCombat())
-                        break;
-
-                    if (!me->HasUnitState(UNIT_STATE_CASTING))
-                    {
-                        DoAction(FSB_ACTION_COMBAT_IC_ACTIONS);
-                    }
 
                     break;
                 }
@@ -1140,7 +1050,7 @@ public:
             ObjectGuid _lastOwnerVictim;
             bool _ownerWasInCombat = false;
             uint8 _appliedInitialCBuffs = 0;
-            std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
+            //std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
             uint32 _buffsTimerMs = 0;
             uint32 _selfBuffsTimerMs = 0;
 
@@ -1170,7 +1080,7 @@ void AddSC_followship_bots()
 {
     FollowshipBotsConfig::Load();
     FSBMgr::Get()->LoadAllPersistentBots();
-    FSBUtilsCombatSpells::InitBotSpellTables();
+    FSBSpells::InitBotSpellTables();
 
     new npc_followship_bots();
 }

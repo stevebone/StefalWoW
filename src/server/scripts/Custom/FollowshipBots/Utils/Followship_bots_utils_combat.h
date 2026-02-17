@@ -25,18 +25,7 @@ namespace FSBUtilsCombat
     uint8 CountAttackersOn(Unit* who);
 
     /// Sends a combat-related NPC say message with optional spell name and cooldown to prevent spam
-    void SayCombatMessage(Creature* me, Unit* target, uint32 integer, FSBSayType sayType, uint32 spellId);
-
-    // Return units that are in an emergency state (low HP, dispellable debuffs, etc.)
-    std::vector<Unit*> BotGetHealCandidates(const std::vector<Unit*>& group, float lowHpThreshold);
-
-    /// Calculates an emergency priority value for a unit (higher = more urgent)
-    float CalculateEmergencyPriority(Unit* unit);
-
-    /// Sorts units by emergency priority (highest first)
-    void SortEmergencyTargets(std::vector<Unit*>& targets);
-
-    
+    void SayCombatMessage(Creature* me, Unit* target, uint32 integer, FSBSayType sayType, uint32 spellId);   
 }
 
 namespace FSBUtilsBotCombat

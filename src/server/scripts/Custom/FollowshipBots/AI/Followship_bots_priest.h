@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_spells_handler.h"
 
 constexpr auto FSB_GOSSIP_ITEM_PRIEST_INFO = "Hey, I am a priest from Stormwind in search for work and adventure. I charge gold for my services...";
 

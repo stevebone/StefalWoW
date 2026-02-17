@@ -2,12 +2,15 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_druid.h"
+#include "Followship_bots_mage.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
+#include "Followship_bots_group_handler.h"
 #include "Followship_bots_incombat_handler.h"
+#include "Followship_bots_powers_handler.h"
 #include "Followship_bots_spells_handler.h"
 
 namespace FSBIC
@@ -44,11 +47,194 @@ namespace FSBIC
         if (BotICMeleeMode(bot))
             return true;
 
+        if (BotICHealSelf(bot))
+            return true;
+
+        if (BotICHealGroup(bot))
+            return true;
+
         if (BotICTryDispel(bot))
             return true;
 
         if (BotICTryOffensiveDispel(bot))
             return true;
+
+        if (BotICTryOffensiveSpell(bot))
+            return true;
+
+        return false;
+    }
+
+    bool BotICTryOffensiveSpell(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+        uint32 now = getMSTime();
+
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        auto& runtimeSpells = baseAI->botRuntimeSpells;
+
+        auto spells = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Damage, false);
+
+        Unit* target = bot->GetVictim();
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
+
+        FSBSpellRuntime* dmgSpell = FSBSpells::SelectBestDamageSpell(bot, spells, target);
+        if (!dmgSpell)
+            return false;
+
+        if (dmgSpell && dmgSpell->def->isSelfCast)
+            target = bot;
+
+        float dist = bot->GetDistance(target);
+        float spellDist = dmgSpell->def->dist;
+        if (dmgSpell && spellDist && target)
+        {
+            if (dist > spellDist)
+            {
+                // Move into spell range
+                bot->GetMotionMaster()->Clear();
+                bot->GetMotionMaster()->MoveChase(target, spellDist);
+                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - damage {} target too far ({}/{})", spell->spellId, dist, spell->dist);
+                return false;
+            }
+        }
+
+        
+        // TO-DO move this to its own action before other combat related spells
+        if (dmgSpell->def->spellId == SPELL_MAGE_POLYMORPH || dmgSpell->def->spellId == SPELL_WARLOCK_FEAR || dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE)
+            target = FSBUtilsCombat::GetRandomAttacker(bot);
+
+        if (dmgSpell && target)
+        {
+            if (dmgSpell->def->manaCostOverride != 0.f && !FSBPowers::SpendPowerPct(bot, dmgSpell->def->manaCostOverride))
+                return false; // not enough mana
+
+            if (FSBSpells::BotCastSpell(bot, dmgSpell->def->spellId, target))
+            {
+                dmgSpell->nextReadyMs = now + dmgSpell->def->cooldownMs;
+                globalCooldown = now + 1500;
+                if (target == bot)
+                    FSBUtilsCombat::SayCombatMessage(bot, bot, 0, FSBSayType::HealSelf, dmgSpell->def->spellId);
+                else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::SpellOnTarget, dmgSpell->def->spellId);
+                return true;
+                // Bot Say after spell cast - TO-DO transform this into its own method
+            }
+        }
+        return false;
+    }
+
+    bool BotICHealGroup(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!FSBSpellsUtils::BotHasHealSpells(bot))
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+        uint32 now = getMSTime();
+
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        auto& runtimeSpells = baseAI->botRuntimeSpells;
+        auto& botGroup = baseAI->botLogicalGroup;
+        auto botRole = baseAI->botRole;
+
+        float hpPct = 50.f;
+        if (botRole == FSB_ROLE_HEALER) hpPct = 70.f;
+
+        auto healTargets = FSBGroup::BotGetMembersToHeal(botGroup, hpPct);
+        if (healTargets.empty())
+            return false;
+
+        if (botRole == FSB_ROLE_HEALER) FSBGroup::SortEmergencyTargets(healTargets);
+
+        auto heals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, false);
+
+        Unit* target = nullptr;      
+
+        if(!healTargets.empty())
+            target = healTargets.front();
+
+        FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(heals, target);
+
+        if (healSpell && target)
+        {
+            if (healSpell->def->isSelfCast && target != bot)
+                return false;
+            // check other requirements here
+
+            if (FSBSpells::BotCastSpell(bot, healSpell->def->spellId, target))
+            {
+                healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
+                globalCooldown = now + 1500;
+                if(target == bot)
+                    FSBUtilsCombat::SayCombatMessage(bot, bot, 0, FSBSayType::HealSelf, healSpell->def->spellId);
+                else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::HealTarget, healSpell->def->spellId);
+                return true;
+                // Bot Say after spell cast - TO-DO transform this into its own method
+            }
+        }
+
+
+        return false;
+    }
+
+    bool BotICHealSelf(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!FSBSpellsUtils::BotHasHealSpellsForSelf(bot))
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+        uint32 now = getMSTime();
+
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        auto& runtimeSpells = baseAI->botRuntimeSpells;
+
+        auto selfHeals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, true);
+
+        FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(selfHeals, bot);
+
+        if (healSpell)
+        {
+            // check other requirements here
+
+            if (FSBSpells::BotCastSpell(bot, healSpell->def->spellId, bot))
+            {
+                healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
+                globalCooldown = now + 1500;
+                FSBUtilsCombat::SayCombatMessage(bot, bot, 0, FSBSayType::HealSelf, healSpell->def->spellId);
+                return true;
+                // Bot Say after spell cast - TO-DO transform this into its own method
+
+                //else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::HealTarget, def->spellId);
+            }
+        }
+
 
         return false;
     }

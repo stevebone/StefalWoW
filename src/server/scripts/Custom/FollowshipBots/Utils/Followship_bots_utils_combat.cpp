@@ -4,7 +4,8 @@
 #include "Unit.h"
 #include "Creature.h"
 
-#include "Followship_bots_utils_combat.h"
+#include "Followship_bots_config.h"
+
 #include "Followship_bots_utils.h"
 #include "Followship_bots.h"
 #include "Followship_bots_mgr.h"
@@ -79,86 +80,28 @@ namespace FSBUtilsCombat
         if (!me)
             return;
 
-        uint32 now = getMSTime();
-
-        // Cooldown to prevent spamming
-        static uint32 nextSayMs = 0;
-        if (now < nextSayMs)
-            return;
-
-        // Spell name lookup
-        std::string spellName;
-        if (spellId)
-            spellName = FSBSpellsUtils::GetSpellName(spellId);
-
-        // Target name
-        std::string targetName;
-        if (target)
-            targetName = target->GetName();
-
-        // Build the message
-        std::string msg = FSBUtilsTexts::BuildNPCSayText(targetName, integer, sayType, spellName);
-        me->Say(msg, LANG_UNIVERSAL);
-
-        // Set next say cooldown: random between 3-5 minutes
-        nextSayMs = now + urand(3 * MINUTE * IN_MILLISECONDS, 5 * MINUTE * IN_MILLISECONDS);
-    }
-
-
-
-    std::vector<Unit*> BotGetHealCandidates(const std::vector<Unit*>& group, float lowHpThreshold)
-    {
-        std::vector<Unit*> candidates;
-
-        for (Unit* unit : group)
+        if(urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
-            if (!unit || !unit->IsAlive())
-                continue;
 
-            // Emergency 1: HP below threshold
-            if (unit->GetHealthPct() <= lowHpThreshold)
-            {
-                candidates.push_back(unit);
-                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency Candidate: {}", unit->GetName());
-            }
+            // Spell name lookup
+            std::string spellName;
+            if (spellId)
+                spellName = FSBSpellsUtils::GetSpellName(spellId);
+
+            // Target name
+            std::string targetName;
+            if (target)
+                targetName = target->GetName();
+
+            // Build the message
+            std::string msg = FSBUtilsTexts::BuildNPCSayText(targetName, integer, sayType, spellName);
+            me->Say(msg, LANG_UNIVERSAL);
         }
-
-        // Optional: sort by urgency (lowest HP first)
-        std::sort(candidates.begin(), candidates.end(),
-            [](Unit* a, Unit* b) { return a->GetHealthPct() < b->GetHealthPct(); });
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
-        return candidates;
     }
 
-    float CalculateEmergencyPriority(Unit* unit)
-    {
-        if (!unit)
-            return 0.f;
 
-        // Get role (works for any bot)
-        FSB_Roles role = FSBUtils::GetRole(unit->ToCreature());
 
-        // Assign priority values (higher = more urgent)
-        if (role == FSB_ROLE_HEALER)           // healer
-            return 80.f;
-        if (role == FSB_ROLE_TANK)             // tank
-            return 100.f;
-
-        // If player, slightly lower than tank
-        if (unit->IsPlayer())
-            return 90.f;
-
-        // Default: based on missing health percentage
-        return 50.f + (100.f - unit->GetHealthPct()); // 50..150 based on HP
-    }
-    void SortEmergencyTargets(std::vector<Unit*>& targets)
-    {
-        std::sort(targets.begin(), targets.end(), [](Unit* a, Unit* b)
-            {
-                return FSBUtilsCombat::CalculateEmergencyPriority(a) > FSBUtilsCombat::CalculateEmergencyPriority(b);
-            });
-    }
+    
 
     
 }

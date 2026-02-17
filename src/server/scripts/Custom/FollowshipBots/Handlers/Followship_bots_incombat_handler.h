@@ -11,4 +11,7 @@ namespace FSBIC
     bool BotICMeleeMode(Creature* bot);
     bool BotICTryDispel(Creature* bot);
     bool BotICTryOffensiveDispel(Creature* bot);
+    bool BotICHealSelf(Creature* bot);
+    bool BotICHealGroup(Creature* bot);
+    bool BotICTryOffensiveSpell(Creature* bot);
 }

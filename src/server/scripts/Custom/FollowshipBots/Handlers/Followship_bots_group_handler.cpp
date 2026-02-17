@@ -129,4 +129,58 @@ namespace FSBGroup
 
         return nullptr;
     }
+
+    std::vector<Unit*> BotGetMembersToHeal(const std::vector<Unit*>& group, float lowHpThreshold)
+    {
+        std::vector<Unit*> candidates;
+
+        for (Unit* unit : group)
+        {
+            if (!unit || !unit->IsAlive())
+                continue;
+
+            // Emergency 1: HP below threshold
+            if (unit->GetHealthPct() <= lowHpThreshold)
+            {
+                candidates.push_back(unit);
+                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency Candidate: {}", unit->GetName());
+            }
+        }
+
+        // Optional: sort by urgency (lowest HP first)
+        std::sort(candidates.begin(), candidates.end(),
+            [](Unit* a, Unit* b) { return a->GetHealthPct() < b->GetHealthPct(); });
+
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
+        return candidates;
+    }
+
+    float CalculateEmergencyPriority(Unit* unit)
+    {
+        if (!unit)
+            return 0.f;
+
+        // Get role (works for any bot)
+        FSB_Roles role = FSBUtils::GetRole(unit->ToCreature());
+
+        // Assign priority values (higher = more urgent)
+        if (role == FSB_ROLE_HEALER)           // healer
+            return 80.f;
+        if (role == FSB_ROLE_TANK)             // tank
+            return 100.f;
+
+        // If player, slightly lower than tank
+        if (unit->IsPlayer())
+            return 90.f;
+
+        // Default: based on missing health percentage
+        return 50.f + (100.f - unit->GetHealthPct()); // 50..150 based on HP
+    }
+    void SortEmergencyTargets(std::vector<Unit*>& targets)
+    {
+        std::sort(targets.begin(), targets.end(), [](Unit* a, Unit* b)
+            {
+                return CalculateEmergencyPriority(a) > CalculateEmergencyPriority(b);
+            });
+    }
 }

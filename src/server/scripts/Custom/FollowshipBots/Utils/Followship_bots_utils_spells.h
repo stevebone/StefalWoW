@@ -14,6 +14,8 @@
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_stats.h"
 
+//#include "Followship_bots_spells_handler.h"
+
 // Mana Potion Spells
 struct PotionSpell
 {
@@ -42,60 +44,13 @@ static constexpr PotionSpell HealthPotionTable[] =
     { 61,  80,  43185 } // Runic HP Potion 956
 };
 
-
-enum class FSBSpellType
-{
-    Emergency,
-    Heal,
-    Buff,
-    Damage
-};
-
-
-// Struct for spell info (could mirror your FSBotSpells)
-struct FSBSpellDefinition
-{
-    uint32 spellId = 0;
-    FSBSpellType type = FSBSpellType::Damage;
-    float manaCostOverride = 0.0f;      // for spells that do not have a dbc value
-    float hpThreshold = 100.f;  // optional
-    float chance = 100.f;       // 0-100%
-    float dist = 0.0f;          // desired distance to target
-    bool isSelfCast = false;    // cast on self
-    uint32 cooldownMs = 0;      // static cooldown duration
-    uint32 allowedRoles = FSB_ROLEMASK_ANY;
-    //uint32 nextReadyMs = 0;     // dynamic, updated at runtime
-};
-
-struct FSBSpellRuntime
-{
-    FSBSpellDefinition const* def; // pointer to static definition
-    uint32 nextReadyMs = 0; // runtime cooldown
-};
-
-using FSBSpellTable = std::vector<FSBSpellDefinition>;
+//extern std::unordered_map<FSB_Class, FSBSpellTable const*> sBotSpellTables;
 
 namespace FSBUtilsSpells
 {
-    bool HasPositiveDebuff(Unit* unit);
-
-    /// Returns true if the unit has a debuff that is dispellable by the bot (magic, disease, poison)
-    bool HasDispellableDebuff(Unit* unit);
 
     bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target);
 
-}
-
-namespace FSBUtilsCombatSpells
-{
-    void InitBotSpellTables();
-    void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells);
-
-    FSBSpellTable const* GetBotSpellTableForClass(FSB_Class botClass);
-
-    std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, uint32& globalCooldownUntil);
-    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells, std::vector<Unit*> botGroup_, Unit*& outTarget);
-    void BotCastSpell(Creature* bot, Unit* target, FSBSpellRuntime* runtime, uint32& globalCooldownUntil);
 }
 
 enum FSB_StandardGroundMounts
@@ -197,6 +152,8 @@ namespace FSBSpellsUtils
     void PutSpellOnCooldown(uint32 spellId, uint32 cooldownMs);
 
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
+    bool BotHasHealSpells(Creature* bot);
+    bool BotHasHealSpellsForSelf(Creature* bot);
 
     DispelType ConvertAuraToDispelType(Aura* aura);
 

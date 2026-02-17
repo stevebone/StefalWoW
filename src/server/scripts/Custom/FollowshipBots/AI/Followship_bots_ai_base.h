@@ -8,6 +8,7 @@
 #include "Followship_bots_defines.h"
 
 #include "Followship_bots_regen_handler.h"
+#include "Followship_bots_spells_handler.h"
 
 class FSB_BaseAI : public ScriptedAI
 {
@@ -77,6 +78,7 @@ public:
     Creature* GetBot() { return me; };
 
     std::vector<Unit*> botLogicalGroup;
+    std::vector<FSBSpellRuntime> botRuntimeSpells; // runtime for spells cooldowns
 
 protected:
     EventMap botEvents;
