@@ -16,6 +16,7 @@
  */
 
 #include "BattlePetPackets.h"
+#include "MovementPackets.h"
 #include "PacketOperators.h"
 
 namespace WorldPackets::BattlePet
@@ -381,10 +382,8 @@ static void WriteRoundEffects(ByteBuffer& data, std::vector<PetBattleEffectInfo>
 void PetBattleRequestWild::Read()
 {
     _worldPacket >> TargetGUID;
-    _worldPacket >> BattleOrigin.m_positionX;
-    _worldPacket >> BattleOrigin.m_positionY;
-    _worldPacket >> BattleOrigin.m_positionZ;
-    float o; _worldPacket >> o; BattleOrigin.SetOrientation(o);
+    _worldPacket >> LocationInfo;
+    BattleOrigin = LocationInfo.pos;
 }
 
 void PetBattleInput::Read()
@@ -404,10 +403,8 @@ void PetBattleReplaceFrontPet::Read()
 void PetBattleRequestPVP::Read()
 {
     _worldPacket >> TargetGUID;
-    _worldPacket >> BattleOrigin.m_positionX;
-    _worldPacket >> BattleOrigin.m_positionY;
-    _worldPacket >> BattleOrigin.m_positionZ;
-    float o; _worldPacket >> o; BattleOrigin.SetOrientation(o);
+    _worldPacket >> LocationInfo;
+    BattleOrigin = LocationInfo.pos;
 }
 
 void PetBattleQueueProposeMatchResult::Read()
