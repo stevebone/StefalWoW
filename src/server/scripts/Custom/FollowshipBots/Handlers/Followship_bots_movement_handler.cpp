@@ -8,6 +8,7 @@
 
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
+#include "Followship_bots_spells_handler.h"
 
 namespace FSBMovement
 {
@@ -102,7 +103,7 @@ namespace FSBMovement
                 };
 
                 uint32 spellId = warlockMounts[urand(0, warlockMounts.size() - 1)];
-                if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
+                if (FSBSpells::BotCastSpell(bot, spellId, bot))
                     botMounted = true;
             }
             else if (cls == FSB_Class::Paladin)
@@ -115,7 +116,7 @@ namespace FSBMovement
                 };
 
                 uint32 spellId = paladinMounts[urand(0, paladinMounts.size() - 1)];
-                if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
+                if (FSBSpells::BotCastSpell(bot, spellId, bot))
                 {
                     botMounted = true;
                     FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_MOUNT_AURA, 3s, 5s);
@@ -132,7 +133,7 @@ namespace FSBMovement
                 bot->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
 
                 uint32 spellId = druidMounts[urand(0, druidMounts.size() - 1)];
-                if (FSBSpellsUtils::BotCastSpell(bot, spellId, bot))
+                if (FSBSpells::BotCastSpell(bot, spellId, bot))
                 {
                     botMounted = true;
                     if (spellId == SPELL_DRUID_TRAVEL)

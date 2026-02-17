@@ -5,6 +5,7 @@
 
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
+#include "Followship_bots_spells_handler.h"
 
 std::vector<FSBSpellDefinition> PriestSpellsTable =
 {
@@ -85,7 +86,7 @@ namespace FSBPriest
 
             if (!target->HasAura(SPELL_PRIEST_POWER_WORD_SHIELD))
             {
-                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_PRIEST_POWER_WORD_SHIELD, target))
+                if (FSBSpells::BotCastSpell(bot, SPELL_PRIEST_POWER_WORD_SHIELD, target))
                 {
                     globalCooldown = now + 1500;
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: PWS on target: {}", target->GetName());
@@ -94,7 +95,7 @@ namespace FSBPriest
             }
             else if(!target->HasAura(SPELL_PRIEST_RENEW))
             {
-                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_PRIEST_RENEW, target))
+                if (FSBSpells::BotCastSpell(bot, SPELL_PRIEST_RENEW, target))
                 {
                     globalCooldown = now + 1500;
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Renew on target: {}", target->GetName());

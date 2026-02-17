@@ -10,4 +10,5 @@ namespace FSBGroup
     Unit* BotGetFirstGroupHealer(const std::vector<Unit*>& botGroup);
     Unit* BotGetFirstGroupTank(const std::vector<Unit*>& botGroup);
     Unit* BotGetFirstDeadMember(const std::vector<Unit*>& botGroup);
+    Unit* BotGetDispelMember(Creature* bot, const DispelAbility& ability);
 }

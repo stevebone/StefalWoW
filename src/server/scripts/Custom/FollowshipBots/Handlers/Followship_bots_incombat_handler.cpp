@@ -8,6 +8,7 @@
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_incombat_handler.h"
+#include "Followship_bots_spells_handler.h"
 
 namespace FSBIC
 {
@@ -43,6 +44,68 @@ namespace FSBIC
         if (BotICMeleeMode(bot))
             return true;
 
+        if (BotICTryDispel(bot))
+            return true;
+
+        if (BotICTryOffensiveDispel(bot))
+            return true;
+
+        return false;
+    }
+
+    bool BotICTryDispel(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->GetPower(POWER_MANA) < 10)
+            return false;
+
+        uint32 now = getMSTime();
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        if (FSBSpells::BotTryDispel(bot))
+        {
+            globalCooldown = now + 1500;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool BotICTryOffensiveDispel(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->GetPower(POWER_MANA) < 10)
+            return false;
+
+        uint32 now = getMSTime();
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        if (FSBSpells::BotTryOffensiveDispel(bot))
+        {
+            globalCooldown = now + 1500;
+            return true;
+        }
+
         return false;
     }
 
@@ -72,7 +135,7 @@ namespace FSBIC
 
         uint32 now = getMSTime();
 
-        if (!FSBUtilsSpells::CanCastNow(bot, now, globalCooldown))
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
             return false;
 
         if (!bot->IsInCombat())

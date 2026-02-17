@@ -91,4 +91,42 @@ namespace FSBGroup
 
         return nullptr;
     }
+
+    Unit* BotGetDispelMember(Creature* bot, const DispelAbility& ability)
+    {
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return nullptr;
+
+        for (Unit* member : baseAI->botLogicalGroup)
+        {
+            if (!member || !member->IsInWorld())
+                continue;
+
+            // Scan all auras on the member
+            for (auto const& auraPair : member->GetAppliedAuras())
+            {
+                Aura* aura = auraPair.second->GetBase();
+                if (!aura)
+                    continue;
+
+                SpellInfo const* info = aura->GetSpellInfo();
+                if (!info)
+                    continue;
+
+                // Only negative auras
+                if (info->IsPositive())
+                    continue;
+
+
+                DispelType type = FSBSpellsUtils::ConvertAuraToDispelType(aura);
+                if (std::find(ability.dispels.begin(), ability.dispels.end(), type) != ability.dispels.end())
+                {
+                    return member; // Found someone we can dispel
+                }
+            }
+        }
+
+        return nullptr;
+    }
 }

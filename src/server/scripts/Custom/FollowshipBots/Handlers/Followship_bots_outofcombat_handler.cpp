@@ -1,6 +1,5 @@
 #include "Followship_bots_config.h"
 #include "Followship_bots_utils.h"
-#include "Followship_bots_utils_combat.h"
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_events_handler.h"
@@ -8,6 +7,7 @@
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_recovery_handler.h"
+#include "Followship_bots_spells_handler.h"
 
 #include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
@@ -47,7 +47,7 @@ namespace FSBOOC
 
         uint32 now = getMSTime();
 
-        if (!FSBUtilsSpells::CanCastNow(bot, now, globalCooldown))
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
             return false;
 
         //0 OOC Resurrect
@@ -164,7 +164,7 @@ namespace FSBOOC
             int32 castTimeMs = spellInfo->CalcCastTime(); // in milliseconds
             FSBMovement::StopFollow(bot);
 
-            if (FSBSpellsUtils::BotCastSpell(bot, spellId, target))
+            if (FSBSpells::BotCastSpell(bot, spellId, target))
             {
                 uint32 now = getMSTime();
                 globalCooldown = now + 1500;

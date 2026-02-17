@@ -14,12 +14,6 @@
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_stats.h"
 
-
-// Spell Related
-static constexpr uint32 BOT_GCD_MS = 1500;
-
-
-
 // Mana Potion Spells
 struct PotionSpell
 {
@@ -83,22 +77,12 @@ using FSBSpellTable = std::vector<FSBSpellDefinition>;
 
 namespace FSBUtilsSpells
 {
-    
-
-    
-
-    // Checks global cooldown
-    bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
-
     bool HasPositiveDebuff(Unit* unit);
 
     /// Returns true if the unit has a debuff that is dispellable by the bot (magic, disease, poison)
     bool HasDispellableDebuff(Unit* unit);
 
     bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target);
-
-    
-    Unit* FindBotDeadResTarget(Creature* bot, std::vector<Unit*> const& botGroup_);
 
 }
 
@@ -184,8 +168,38 @@ static MountRaceMap MountSpells =
     }
 };
 
+struct DispelAbility
+{
+    uint32 spellId;
+    std::vector<DispelType> dispels;
+    uint32 cooldown;
+};
+
+extern std::unordered_map<FSB_Class, DispelAbility> DispelTable;
+
+enum OffensiveDispelType
+{
+    OFFDISPEL_MAGIC,
+    OFFDISPEL_STEAL
+};
+
+struct OffensiveDispelAbility
+{
+    uint32 spellId;
+    OffensiveDispelType type;
+};
+
+extern std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable;
+
 namespace FSBSpellsUtils
 {
+    bool IsSpellReady(uint32 spellId);
+    void PutSpellOnCooldown(uint32 spellId, uint32 cooldownMs);
+
+    bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
+
+    DispelType ConvertAuraToDispelType(Aura* aura);
+
     // Gets mana potion spell per level
     uint32 GetManaPotionSpellForLevel(uint8 level);
     // Gets hp potion spell per level
@@ -197,6 +211,7 @@ namespace FSBSpellsUtils
     const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level);
     uint32 GetRandomMountSpellForBot(Creature* bot);
     bool CastRandomMountLevelSpell(Creature* bot);
-    bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target);
+
+    Aura* FindEnemyBuffToDispel(Unit* enemy);
 }
 

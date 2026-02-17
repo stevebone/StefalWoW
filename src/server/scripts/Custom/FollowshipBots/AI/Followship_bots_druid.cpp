@@ -1,6 +1,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
 
 #include "Followship_bots_druid.h"
@@ -399,7 +400,7 @@ namespace FSBDruid
 
             if (!target->HasAura(SPELL_DRUID_REJUVENATION))
             {
-                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_DRUID_REJUVENATION, target))
+                if (FSBSpells::BotCastSpell(bot, SPELL_DRUID_REJUVENATION, target))
                 {
                     globalCooldown = now + 1500;
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Rejuvenation on target: {}", target->GetName());
@@ -408,7 +409,7 @@ namespace FSBDruid
             }
             else if (!target->HasAura(SPELL_DRUID_LIFEBLOOM))
             {
-                if (FSBSpellsUtils::BotCastSpell(bot, SPELL_DRUID_LIFEBLOOM, target))
+                if (FSBSpells::BotCastSpell(bot, SPELL_DRUID_LIFEBLOOM, target))
                 {
                     globalCooldown = now + 1500;
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Lifebloom on target: {}", target->GetName());

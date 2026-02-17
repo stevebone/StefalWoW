@@ -18,10 +18,28 @@
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_powers_handler.h"
 
-
+std::unordered_map<uint32 /*spellId*/, uint32 /*readyTimeMs*/> spellCooldowns;
 
 using FSBSpellTable = std::vector<FSBSpellDefinition>;
 static std::unordered_map<FSB_Class, FSBSpellTable const*> sBotSpellTables;
+
+std::unordered_map<FSB_Class, DispelAbility> DispelTable =
+{
+    { FSB_Class::Priest,  { SPELL_PRIEST_PURIFY,   { DISPEL_MAGIC, DISPEL_DISEASE }, 8000 } },
+    { FSB_Class::Paladin, { SPELL_PALADIN_CLEANSE,       { DISPEL_MAGIC, DISPEL_DISEASE, DISPEL_POISON }, 8000  }},
+    { FSB_Class::Druid,   { SPELL_DRUID_REMOVE_CORRUPTION, { DISPEL_CURSE, DISPEL_POISON }, 8000  }},
+    //{ FSB_Class::Shaman,  { SPELL_SHAMAN_CLEANSE_SPIRIT, { DISPEL_CURSE } } },
+    { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }}
+};
+
+std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
+{
+    { FSB_Class::Priest,  { SPELL_PRIEST_DISPEL_MAGIC, OFFDISPEL_MAGIC } },
+    //{ FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
+    // Hunter
+    { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } }
+};
+
 
 namespace FSBUtilsSpells
 {
@@ -29,12 +47,7 @@ namespace FSBUtilsSpells
 
     
 
-    bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil)
-    {
-        return me
-            && now >= globalCooldownUntil
-            && !me->HasUnitState(UNIT_STATE_CASTING);
-    }
+    
 
     bool HasPositiveDebuff(Unit* unit)
     {
@@ -281,7 +294,7 @@ namespace FSBUtilsCombatSpells
                 continue;
 
             // Global cooldown (BOT-level)
-            if (!FSBUtilsSpells::CanCastNow(bot, now, globalCooldownUntil))
+            if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldownUntil))
                 continue;
 
             // Per-spell cooldown (RUNTIME)
@@ -555,7 +568,7 @@ namespace FSBUtilsCombatSpells
         runtime->nextReadyMs = now + def->cooldownMs;
 
         // Trigger GCD
-        globalCooldownUntil = now + BOT_GCD_MS;
+        globalCooldownUntil = now + 1500;
 
 
         // Bot Say after spell cast - TO-DO transform this into its own method
@@ -582,6 +595,46 @@ namespace FSBUtilsCombatSpells
 
 namespace FSBSpellsUtils
 {
+    bool IsSpellReady(uint32 spellId)
+    {
+        uint32 now = getMSTime();
+
+        auto it = spellCooldowns.find(spellId);
+        if (it == spellCooldowns.end())
+            return true; // no cooldown stored ? ready
+
+        return now >= it->second;
+    }
+
+    void PutSpellOnCooldown(uint32 spellId, uint32 cooldownMs)
+    {
+        if (!spellId || !cooldownMs)
+            return;
+
+        uint32 now = getMSTime();
+
+        spellCooldowns[spellId] = now + cooldownMs;
+    }
+
+    bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil)
+    {
+        return me
+            && now >= globalCooldownUntil
+            && !me->HasUnitState(UNIT_STATE_CASTING);
+    }
+
+    DispelType ConvertAuraToDispelType(Aura* aura)
+    {
+        switch (aura->GetSpellInfo()->Dispel)
+        {
+        case DISPEL_MAGIC:   return DISPEL_MAGIC;
+        case DISPEL_CURSE:   return DISPEL_CURSE;
+        case DISPEL_DISEASE: return DISPEL_DISEASE;
+        case DISPEL_POISON:  return DISPEL_POISON;
+        default:             return (DispelType)-1;
+        }
+    }
+
     // Gets the Mana Potion spell id on a provided level
     uint32 GetManaPotionSpellForLevel(uint8 level)
     {
@@ -664,19 +717,25 @@ namespace FSBSpellsUtils
         return false;
     }
 
-    bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target)
+    Aura* FindEnemyBuffToDispel(Unit* enemy)
     {
-        if (!bot)
-            return false;
+        for (auto const& auraPair : enemy->GetAppliedAuras())
+        {
+            Aura* aura = auraPair.second->GetBase();
+            if (!aura)
+                continue;
 
-        if (!spellId)
-            return false;
+            SpellInfo const* info = aura->GetSpellInfo();
 
-        SpellCastResult result = bot->CastSpell(target, spellId, true);
+            // Only beneficial auras
+            if (!info->IsPositive())
+                continue;
 
-        if (result == SPELL_CAST_OK)
-            return true;
+            // Only magic buffs
+            if (info->Dispel == DISPEL_MAGIC)
+                return aura;
+        }
 
-        return false;
+        return nullptr;
     }
 }
