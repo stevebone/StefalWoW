@@ -300,6 +300,9 @@ namespace FSBIC
         if (!bot)
             return false;
 
+        if (bot->GetPowerType() != POWER_MANA)
+            return false;
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         auto& meleeMode = baseAI->botMeleeMode;
 
