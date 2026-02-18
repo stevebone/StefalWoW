@@ -100,7 +100,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
-        .spellPowerPerLevel = 2
+        .spellPowerPerLevel = 3
     },
 
     // WARLOCK

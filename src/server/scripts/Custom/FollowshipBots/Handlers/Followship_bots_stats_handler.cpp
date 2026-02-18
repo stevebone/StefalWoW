@@ -5,6 +5,7 @@
 
 #include "Followship_bots_druid.h"
 #include "Followship_bots_paladin.h"
+#include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 
@@ -350,6 +351,9 @@ namespace FSBStats
 
         if (FSBDruid::BotHasSurvivalInstincts(bot))
             multiplier *= 0.5f;
+
+        if (FSBPriest::BotHasPainSuppression(bot))
+            multiplier *= 0.6f;
 
         return multiplier;
     }

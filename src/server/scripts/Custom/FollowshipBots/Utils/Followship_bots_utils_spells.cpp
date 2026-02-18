@@ -127,6 +127,7 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+        case SPELL_PRIEST_SILENCE:
         case SPELL_WARLOCK_CURSE_TONGUES:
         case SPELL_PALADIN_REBUKE:
         case SPELL_WARRIOR_PUMMEL:
@@ -149,9 +150,29 @@ namespace FSBSpellsUtils
         case SPELL_WARRIOR_GIFT_NAARU:
             return FSBUtils::GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Draenei;
 
+        case SPELL_DWARF_STONEFORM:
+            return CheckDwarfStoneformRequirements(bot);
+
         default:
             return true;
         }
+    }
+
+    bool CheckDwarfStoneformRequirements(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (FSBUtils::GetBotRaceForEntry(bot->GetEntry()) != FSB_Race::Dwarf)
+            return false;
+
+        if (HasAnyNegativeDispel(bot, { DISPEL_CURSE, DISPEL_POISON, DISPEL_MAGIC, DISPEL_DISEASE }))
+            return true;
+
+        if (HasAnyMechanic(bot, { MECHANIC_BLEED }))
+            return true;
+
+        return false;
     }
 
     DispelType ConvertAuraToDispelType(Aura* aura)
@@ -323,6 +344,90 @@ namespace FSBSpellsUtils
             if ((def.type == FSBSpellType::Heal && def.isSelfCast) &&
                 (def.allowedRoles == FSB_ROLEMASK_ANY || (def.allowedRoles & botRoleMask) != 0))
                 return true;
+        }
+
+        return false;
+    }
+
+    bool HasAnyMechanic(Unit* u, std::initializer_list<Mechanics> mechanics)
+    {
+        if (!u || !u->IsAlive())
+            return false;
+
+        for (auto const& auraPair : u->GetAppliedAuras())
+        {
+            Aura* aura = auraPair.second->GetBase();
+            if (!aura)
+                continue;
+
+            SpellInfo const* info = aura->GetSpellInfo();
+            if (!info)
+                continue;
+
+            for (Mechanics m : mechanics)
+            {
+                if (info->Mechanic == m)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool HasAnyAuraType(Unit* u, std::initializer_list<AuraType> auraTypes)
+    {
+        if (!u || !u->IsAlive())
+            return false;
+
+        for (auto const& auraPair : u->GetAppliedAuras())
+        {
+            Aura* aura = auraPair.second->GetBase();
+            if (!aura)
+                continue;
+
+            for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+            {
+                AuraEffect const* eff = aura->GetEffect(i);
+                if (!eff)
+                    continue;
+
+                for (AuraType t : auraTypes)
+                {
+                    if (eff->GetAuraType() == t)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    bool HasAnyNegativeDispel(Unit* u, std::initializer_list<DispelType> dispels)
+    {
+        if (!u || !u->IsAlive())
+            return false;
+
+        for (auto const& auraPair : u->GetAppliedAuras())
+        {
+            Aura* aura = auraPair.second->GetBase();
+            if (!aura)
+                continue;
+
+            SpellInfo const* info = aura->GetSpellInfo();
+            if (!info)
+                continue;
+
+            // Only negative auras
+            if (info->IsPositive())
+                continue;
+
+            DispelType auraDispel = DispelType(info->Dispel);
+
+            for (DispelType d : dispels)
+            {
+                if (auraDispel == d)
+                    return true;
+            }
         }
 
         return false;

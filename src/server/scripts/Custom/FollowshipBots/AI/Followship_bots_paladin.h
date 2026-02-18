@@ -6,8 +6,6 @@ extern std::vector<FSBSpellDefinition> PaladinSpellsTable;
 
 enum FSB_PALADIN_SPECIAL_SPELLS
 {
-    SPELL_PALADIN_GIFT_NAARU = 28880,
-
     SPELL_PALADIN_CHARGER = 23214,
     SPELL_PALADIN_WARHORSE = 13819
 };

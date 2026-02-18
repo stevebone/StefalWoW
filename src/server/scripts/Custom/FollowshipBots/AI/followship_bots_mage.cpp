@@ -5,6 +5,15 @@
 
 std::vector<FSBSpellDefinition> MageSpellsTable =
 {
+    // ANY
+    { SPELL_DWARF_STONEFORM,        FSBSpellType::Heal,         0.f,        80.f,           100.f,          0.f,           true,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRAENEI_GIFT_NAARU,     FSBSpellType::Heal,              0.f,        50.f,           100.f,          40.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+
+    { SPELL_MAGE_POLYMORPH,    FSBSpellType::Damage,            0.f,        0.f,            40.f,           30.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_MAGE_BLINK,        FSBSpellType::Damage,            0.f,        0.f,            55.f,           2.f,          true,       20000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_MAGE_COUNTERSPELL, FSBSpellType::Damage,            0.f,        0.f,            100.f,           40.f,          true,       25000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    
+
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
     { SPELL_MAGE_ICE_BLOCK,    FSBSpellType::Damage,            0.f,        0.f,            100.f,          2.f,           true,        240000,         FSB_RoleMask::FSB_ROLEMASK_RANGED_FROST },
     { SPELL_MAGE_FLURRY,       FSBSpellType::Damage,            0.f,        0.f,            90.f,           40.f,          false,       30000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_FROST },
@@ -39,10 +48,5 @@ std::vector<FSBSpellDefinition> MageSpellsTable =
     { SPELL_MAGE_TIME_WARP,    FSBSpellType::Damage,            0.f,        0.f,            90.f,           2.f,          true,       300000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_ARCANE },
     { SPELL_MAGE_EVOCATION,    FSBSpellType::Damage,            0.f,        0.f,            90.f,           10.f,          true,       45000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_ARCANE },
 
-    // ANY
-    { SPELL_MAGE_GIFT_NAARU,     FSBSpellType::Heal,              0.f,        50.f,           100.f,          2.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
-
-    { SPELL_MAGE_POLYMORPH,    FSBSpellType::Damage,            0.f,        0.f,            40.f,           30.f,          false,       1000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_MAGE_BLINK,        FSBSpellType::Damage,            0.f,        0.f,            55.f,           2.f,          true,       20000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_MAGE_COUNTERSPELL, FSBSpellType::Damage,            0.f,        0.f,            100.f,           40.f,          true,       25000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    
 };

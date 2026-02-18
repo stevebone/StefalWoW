@@ -17,9 +17,11 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 375,      FSB_Class::Priest,          FSB_Race::Human },      // Priestess Anetta
     { 16502,    FSB_Class::Priest,          FSB_Race::Draenei },    // Zalduun
     { 3595,     FSB_Class::Priest,          FSB_Race::NightElf },   // Shanda
+    { 837,      FSB_Class::Priest,          FSB_Race::Dwarf },      // 
 
     // WARRIORS
     { 911,   FSB_Class::Warrior,            FSB_Race::Human },      // Llane Beshere
+    { 912,   FSB_Class::Warrior,            FSB_Race::Dwarf },      // 
     { 50595, FSB_Class::Warrior,            FSB_Race::Human },      // Stormwind Defender
     { 46405, FSB_Class::Warrior,            FSB_Race::Human },      // Stockade Guard
     { 16503, FSB_Class::Warrior,            FSB_Race::Draenei },    // Kore
@@ -27,11 +29,13 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 
     // MAGES
     { 198,   FSB_Class::Mage,               FSB_Race::Human },      // Khelden Bremen
-    { 16500, FSB_Class::Mage,               FSB_Race::Draenei },     // Valaatu
+    { 16500, FSB_Class::Mage,               FSB_Race::Draenei },    // Valaatu
+    { 37121, FSB_Class::Mage,               FSB_Race::Dwarf },      //
     { 43006, FSB_Class::Mage,               FSB_Race::NightElf },   // Rhyanda
 
     // PALADINS
     { 925, FSB_Class::Paladin,              FSB_Race::Human },      // Brother Sammuel
+    { 926, FSB_Class::Paladin,              FSB_Race::Dwarf },      // 
     { 16501, FSB_Class::Paladin,            FSB_Race::Draenei },    // Aurelon (Draenei)
 
     // WARLOCKS

@@ -29,18 +29,36 @@ INSERT INTO `creature_template_gossip` VALUES
 ('459', '900003', '-1'),
 ('459', '900004', '-1'),
 ('459', '900005', '-1'),
+('837', '900000', '-1'),
+('837', '900001', '-1'),
+('837', '900002', '-1'),
+('837', '900003', '-1'),
+('837', '900004', '-1'),
+('837', '900005', '-1'),
 ('911', '900000', '-1'),
 ('911', '900001', '-1'),
 ('911', '900002', '-1'),
 ('911', '900003', '-1'),
 ('911', '900004', '-1'),
 ('911', '900005', '-1'),
+('912', '900000', '-1'),
+('912', '900001', '-1'),
+('912', '900002', '-1'),
+('912', '900003', '-1'),
+('912', '900004', '-1'),
+('912', '900005', '-1'),
 ('925', '900000', '-1'),
 ('925', '900001', '-1'),
 ('925', '900002', '-1'),
 ('925', '900003', '-1'),
 ('925', '900004', '-1'),
 ('925', '900005', '-1'),
+('926', '900000', '-1'),
+('926', '900001', '-1'),
+('926', '900002', '-1'),
+('926', '900003', '-1'),
+('926', '900004', '-1'),
+('926', '900005', '-1'),
 ('3593', '900000', '-1'),
 ('3593', '900001', '-1'),
 ('3593', '900002', '-1'),
@@ -84,6 +102,13 @@ INSERT INTO `creature_template_gossip` VALUES
 ('16503', '900003', '-1'),
 ('16503', '900004', '-1'),
 ('16503', '900005', '-1'),
+('37121', '900000', '-1'),
+('37121', '900001', '-1'),
+('37121', '900002', '-1'),
+('37121', '900003', '-1'),
+('37121', '900004', '-1'),
+('37121', '900005', '-1'),
+('37121', '900006', '-1'),
 ('43006', '900000', '-1'),
 ('43006', '900001', '-1'),
 ('43006', '900002', '-1'),
@@ -133,3 +158,9 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3595; -- Shanda (Priest)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3597; -- Mardant (Druid)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43006; -- Rhyanda (Mage)
+
+-- Anvilmar trainers
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 837; -- Priest
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 912; -- Warrior
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 926; -- Paladin
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 37121; -- Mage

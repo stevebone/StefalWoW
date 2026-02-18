@@ -3,26 +3,14 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
-#include "Followship_bots_utils_spells.h"
+
 
 
 constexpr float BOT_RECOVERY_HP_PCT = 50.f;
 constexpr float BOT_RECOVERY_MP_PCT = 50.f;
 
 
-enum BotRecoverySpells
-{
-    SPELL_DRINK_CONJURED_CRYSTAL_WATER = 22734,
-    SPELL_FOOD_SCALED_WITH_LVL = 1131,
 
-    SPELL_RECUPERATE = 1231418,
-
-    // Draenei spells
-    SPELL_DRAENEI_GIFT_NAARU = 28880, //416250,
-
-    // Mage spells
-    SPELL_MAGE_CONJURED_MANA_PUDDING = 167152
-};
 
 enum class BotRecoveryIntent
 {

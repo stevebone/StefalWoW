@@ -14,7 +14,25 @@
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_stats.h"
 
-//#include "Followship_bots_spells_handler.h"
+enum FSB_RACIAL_SPELLS
+{
+    SPELL_DWARF_STONEFORM = 20594,
+    SPELL_DRAENEI_GIFT_NAARU = 28880
+};
+
+enum FSB_RECOVERY_SPELLS
+{
+    SPELL_DRINK_CONJURED_CRYSTAL_WATER = 22734,
+    SPELL_FOOD_SCALED_WITH_LVL = 1131,
+
+    SPELL_RECUPERATE = 1231418,
+
+    // Draenei spells
+    //SPELL_DRAENEI_GIFT_NAARU = 28880, //416250,
+
+    // Mage spells
+    SPELL_MAGE_CONJURED_MANA_PUDDING = 167152
+};
 
 // Mana Potion Spells
 struct PotionSpell
@@ -145,7 +163,7 @@ namespace FSBSpellsUtils
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
     bool BotHasHealSpells(Creature* bot);
     bool BotHasHealSpellsForSelf(Creature* bot);
-    bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target);
+    
 
     DispelType ConvertAuraToDispelType(Aura* aura);
 
@@ -162,5 +180,12 @@ namespace FSBSpellsUtils
     bool CastRandomMountLevelSpell(Creature* bot);
 
     Aura* FindEnemyBuffToDispel(Unit* enemy);
+
+    bool HasAnyMechanic(Unit* u, std::initializer_list<Mechanics> mechanics);
+    bool HasAnyAuraType(Unit* u, std::initializer_list<AuraType> auraTypes);
+    bool HasAnyNegativeDispel(Unit* u, std::initializer_list<DispelType> dispels);
+
+    bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target);
+    bool CheckDwarfStoneformRequirements(Creature* bot);
 }
 

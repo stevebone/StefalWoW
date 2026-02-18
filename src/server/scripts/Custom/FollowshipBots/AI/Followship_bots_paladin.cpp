@@ -8,7 +8,9 @@ std::vector<FSBSpellDefinition> PaladinSpellsTable =
     // ID                                   Type                    Cost %      Heal
                                                                 
     //ANY
-    { SPELL_PALADIN_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,       100.f,        2.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DWARF_STONEFORM,        FSBSpellType::Heal,         0.f,        80.f,           100.f,          0.f,           true,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRAENEI_GIFT_NAARU,     FSBSpellType::Heal,              0.f,        50.f,           100.f,          40.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+
     { SPELL_PALADIN_DIVINE_SHIELD,          FSBSpellType::Heal,     0.f,        20.f,       100.f,        0.f,           true,       300000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_PALADIN_FLASH_OF_LIGHT,         FSBSpellType::Heal,     0.1f,       60.f,       60.f,         40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 

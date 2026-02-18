@@ -12,26 +12,56 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
     // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
 
     // ANY
-    { SPELL_PRIEST_GIFT_NAARU,     FSBSpellType::Heal,              0.f,        50.f,           100.f,          2.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DWARF_STONEFORM,            FSBSpellType::Heal,     0.f,        80.f,           100.f,          0.f,           true,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRAENEI_GIFT_NAARU,         FSBSpellType::Heal,     0.f,        50.f,           100.f,          30.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PRIEST_RENEW,               FSBSpellType::Heal,     0.f,        85.f,           75.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
+    { SPELL_PRIEST_FLASH_HEAL,          FSBSpellType::Heal,     0.f,        70.f,           70.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
 
+    { SPELL_PRIEST_SHADOW_WORD_PAIN,    FSBSpellType::Damage,   0.f,        0.f,            80.f,           40.f,           false,      1000,          FSB_RoleMask::FSB_ROLEMASK_ANY    },
+    { SPELL_PRIEST_SMITE,               FSBSpellType::Damage,   0.f,        0.f,            50.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
+    
+    // Healer
+    { SPELL_PRIEST_PAIN_SUPPRESSION,    FSBSpellType::Heal,     0.f,        50.f,           80.f,           40.f,           false,      180000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_POWER_WORD_RADIANCE, FSBSpellType::Heal,     0.f,        40.f,           80.f,           40.f,           false,      18000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_PRIEST_DESPERATE_PRAYER,    FSBSpellType::Heal,     0.f,        20.f,           100.f,          0.f,            true,       90000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_PRIEST_HEAL,                FSBSpellType::Heal,     0.f,        40.f,           80.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PRIEST_PRAYER_OF_MENDING,   FSBSpellType::Heal,     0.f,        60.f,           50.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PRIEST_FLASH_HEAL,          FSBSpellType::Heal,     0.f,        70.f,           70.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
-    { SPELL_PRIEST_RENEW,               FSBSpellType::Heal,     0.f,        85.f,           60.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
-    { SPELL_PRIEST_PURIFY,              FSBSpellType::Heal,     0.f,        100.f,          70.f,           40.f,           false,      8000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PRIEST_POWER_WORD_SHIELD,   FSBSpellType::Heal,     0.f,         70.f,          70.f,           30.f,           false,      8000,           FSB_RoleMask::FSB_ROLEMASK_HEALER | FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PRAYER_HEALING,      FSBSpellType::Heal,     0.f,        60.f,           70.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_PRAYER_OF_MENDING,   FSBSpellType::Heal,     0.f,        70.f,           50.f,           40.f,           false,      12000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_HOLY_WORD_SERENITY,  FSBSpellType::Heal,     0.f,        60.f,          70.f,           40.f,           false,      60000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_HOLY_WORD_SANCTIFY,  FSBSpellType::Heal,     0.f,        40.f,          70.f,           40.f,           false,      60000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_GUARDIAN_SPIRIT,     FSBSpellType::Heal,     0.f,        30.f,          70.f,           40.f,           false,      180000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_DIVINE_HYMN,         FSBSpellType::Heal,     0.f,        30.f,          70.f,           40.f,           false,      180000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PRIEST_POWER_WORD_SHIELD,   FSBSpellType::Heal,     0.f,        70.f,          70.f,           30.f,           false,      8000,           FSB_RoleMask::FSB_ROLEMASK_HEALER | FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 
+    { SPELL_PRIEST_HOLY_WORD_CHASTISE,  FSBSpellType::Damage,   0.f,        0.f,          70.f,           30.f,           false,      60000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+
+    // Shadow
+    { SPELL_PRIEST_VAMPIRIC_EMBRACE,    FSBSpellType::Heal ,    0.f,        50.f,           100.f,          0.f,           true,      120000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_DISPERSION,          FSBSpellType::Heal ,    0.f,        30.f,           100.f,          0.f,           true,      120000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+
+    { SPELL_PRIEST_SHADOWFIEND,         FSBSpellType::Damage,   0.f,        0.f,            50.f,          40.f,           false,      180000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_SILENCE,             FSBSpellType::Damage,   0.f,        0.f,            100.f,          40.f,           false,      30000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_SHADOW_WORD_DEATH,   FSBSpellType::Damage,   0.f,        0.f,            70.f,           40.f,           false,      10000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_MIND_BLAST,          FSBSpellType::Damage,   0.f,        0.f,            70.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_MIND_FLAY,           FSBSpellType::Damage,   0.2f,       0.f,            65.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_VOIDFORM,            FSBSpellType::Damage,   0.f,        0.f,            60.f,           40.f,           false,      120000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_PRIEST_PSYCHIC_SCREAM,      FSBSpellType::Damage,   0.f,        0.f,            80.f,           8.f,            false,       45000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE    },
-    { SPELL_PRIEST_SHADOW_WORD_PAIN,    FSBSpellType::Damage,   0.f,        0.f,            80.f,           30.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_ANY    },
-    { SPELL_PRIEST_VAMPIRIC_TOUCH,      FSBSpellType::Damage,   0.f,        0.f,            80.f,           30.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_PRIEST_MIND_BLAST,          FSBSpellType::Damage,   0.f,        0.f,            70.f,           30.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_PRIEST_HOLY_FIRE,           FSBSpellType::Damage,   0.f,        0.f,            60.f,           30.f,           false,      10000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_PRIEST_PENANCE,             FSBSpellType::Damage,   0.2f,       0.f,            55.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_PRIEST_SMITE,               FSBSpellType::Damage,   0.f,        0.f,            50.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
+    { SPELL_PRIEST_VOID_TORRENT,        FSBSpellType::Damage,   0.f,        0.f,            50.f,           40.f,           false,      30000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_VAMPIRIC_TOUCH,      FSBSpellType::Damage,   0.2f,        0.f,            80.f,           40.f,           false,     1000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_PRIEST_TENTACLE_SLAM,       FSBSpellType::Damage,   0.f,        0.f,            50.f,           40.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    
+    
+    
+    
     { SPELL_PRIEST_DEVOURING_PLAGUE,    FSBSpellType::Damage,   0.5f,       0.f,            40.f,           40.f,           false,      10000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_PRIEST_MIND_FLAY,           FSBSpellType::Damage,   0.2f,       0.f,            30.f,           35.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    
 
+    // Hybrid
+    { SPELL_PRIEST_PLEA,                FSBSpellType::Heal,     70.f,       0.f,            80.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PENANCE,             FSBSpellType::Heal,     60.f,       0.f,            80.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+
+    { SPELL_PRIEST_HOLY_FIRE,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           40.f,           false,      10000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PENANCE,             FSBSpellType::Damage,   0.f,       0.f,            55.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 };
 
 
@@ -136,5 +166,17 @@ namespace FSBPriest
         }
 
         return false;
+    }
+
+    bool BotHasPainSuppression(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_PRIEST_PAIN_SUPPRESSION))
+            return true;
+
+        return false;
+
     }
 }
