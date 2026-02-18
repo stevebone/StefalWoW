@@ -57,20 +57,7 @@ public:
             FSBSpells::InitSpellRuntime(me, botRuntimeSpells);
         }        
 
-        // Bot Operations
-
         bool updateFollowInfo = false;
-        
-
-        bool _pendingResurrection = false;
-        bool _announceMemberDead = false;
-        //uint32 _nextCombatSayMs = 0;
-
-        bool _botOutCombat = false;
-        bool _botInCombat = false;
-
-        bool _playerCombatStarted = false;
-        bool _playerCombatEnded = false;
 
         void InitializeAI() override // Runs once after creature is spawned and AI not loaded
         {
@@ -83,14 +70,7 @@ public:
             {
                 events.Reset();
 
-                FSBUtils::SetInitialState(me, botHired, botMoveState);
-                FSBUtils::SetBotClassAndRace(me, botClass, botRace);
-                FSBStats::ApplyBotBaseClassStats(me, FSBUtils::GetBotClassForEntry(me->GetEntry()));
-
-                botHasDemon = false;
-                botStats = FSBBotStats();
-                botFollowDistance = frand(2.f, 8.f);
-                botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+                FSBMgr::Get()->SetInitialBotState(me);
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
 
@@ -111,7 +91,7 @@ public:
                     me->RemoveUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
                     me->SetRegenerateHealth(false); // no health regen
 
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() Using Custom Regen for bot: {}", me->GetName());
+                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() Using Custom Regen for bot: {}", me->GetName());
                 }
                 else
                 {
@@ -673,13 +653,15 @@ public:
 
                 if (victim && victim->IsAlive())
                 {
-                    // If target is neutral, force hostility
-                    if (!me->IsHostileTo(victim))
+                    if (!me->IsValidAttackTarget(victim) &&
+                        victim->IsInCombatWith(me->GetOwner()))
                     {
-                        me->Attack(victim, true);              // sets victim + hostility
-                        me->GetThreatManager().AddThreat(victim, 0.1f);           // ensures combat state
-                        victim->SetInCombatWith(me);           // ensures mutual hostility
+                        me->GetCombatManager().SetInCombatWith(victim);
+                        victim->GetCombatManager().SetInCombatWith(me);
                     }
+
+
+                    FSBUtilsBotCombat::BotAttackStart(me, victim, botMoveState);
                 }
 
 

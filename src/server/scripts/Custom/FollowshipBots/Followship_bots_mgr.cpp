@@ -4,8 +4,7 @@
 #include "PhasingHandler.h"
 #include "CharmInfo.h"
 
-// Maps bot spawnId ? ownerGuidLow
-std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType> _botOwners;
+#include "Followship_bots_stats_handler.h"
 
 FSBMgr* FSBMgr::Get()
 {
@@ -427,10 +426,90 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Dismissed bot {} for player {}", bot->GetName(), player->GetName());
 }
 
+void FSBMgr::SetInitialBotState(Creature* bot)
+{
+    if (!bot)
+        return;
 
+    bot->SetBot(true);
+    bot->setActive(true);
 
+    if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
+        bot->SetStandState(UNIT_STAND_STATE_STAND);
 
+    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+    if (!baseAI)
+        return;
 
+    baseAI->botHired = false;
+    baseAI->botHasDemon = false;
+    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
+    baseAI->botFollowDistance = frand(2.f, 8.f);
+    baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+    auto& botClass = baseAI->botClass;
+    auto& botRace = baseAI->botRace;
+    auto& botStats = baseAI->botStats;
+
+    // Initial Flags and States
+    bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+    bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+
+    bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+    bot->SetReactState(REACT_DEFENSIVE);
+    bot->SetFaction(FSB_FACTION_HUMAN);
+    //creature->SetFaction(12); // it is actually template
+
+    SetBotClassAndRace(bot, botClass, botRace);
+    FSBStats::ApplyBotBaseClassStats(bot, botClass);
+    botStats = FSBBotStats();
+}
+
+void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)
+{
+    if (!creature)
+        return;
+
+    bool found = GetBotClassAndRaceForEntry(
+        creature->GetEntry(),
+        outClass,
+        outRace
+    );
+
+    if (!found)
+    {
+        TC_LOG_WARN(
+            "scripts.ai.fsb",
+            "FSB: No class/race mapping found for creature entry {}",
+            creature->GetEntry()
+        );
+        return;
+    }
+
+    TC_LOG_DEBUG(
+        "scripts.ai.fsb",
+        "FSB: Class set to {} and Race set to {} for bot with entry {}",
+        outClass,
+        outRace,
+        creature->GetEntry()
+    );
+}
+
+bool FSBMgr::GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace)
+{
+    for (auto const& map : BotEntryClassTable)
+    {
+        if (map.entry == entry)
+        {
+            outClass = map.botClass;
+            outRace = map.botRace;
+            return true;
+        }
+    }
+
+    outClass = FSB_Class::None;
+    outRace = FSB_Race::None;
+    return false;
+}
 
 
 

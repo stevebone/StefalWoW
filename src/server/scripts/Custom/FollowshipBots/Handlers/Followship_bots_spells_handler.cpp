@@ -372,7 +372,7 @@ namespace FSBSpells
 
         bot->SetFacingToObject(target, true);
 
-        SpellCastResult result = bot->CastSpell(target, spellId, true);
+        SpellCastResult result = bot->CastSpell(target, spellId);
 
         if (result == SPELL_CAST_OK)
         {

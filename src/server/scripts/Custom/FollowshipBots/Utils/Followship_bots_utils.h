@@ -20,18 +20,11 @@
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired, FSB_MovementStates& moveState);
-
-    void BotUpdateAllies(Creature* bot, GuidSet _allySet);
-
     FSB_Class GetBotClassForEntry(uint32 entry);
     void SetBotClass(Creature* creature, FSB_Class& outClass);
 
     FSB_Race GetBotRaceForEntry(uint32 entry);
     void SetBotRace(Creature* creature, FSB_Race& outRace);
-
-    bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace);
-    void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace);
 
     const char* BotClassToString(FSB_Class cls);
     const char* BotRaceToString(FSB_Race race);

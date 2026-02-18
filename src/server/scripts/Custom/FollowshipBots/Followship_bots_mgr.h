@@ -86,6 +86,11 @@ public:
     
     void RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeLeft);
 
+    void SetInitialBotState(Creature* bot);
+
+    void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace);
+    bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace);
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
 };

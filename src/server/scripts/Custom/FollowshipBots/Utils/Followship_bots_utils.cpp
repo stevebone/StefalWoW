@@ -18,72 +18,6 @@
 
 namespace FSBUtils
 {
-    void SetInitialState(Creature* creature, bool& hired, FSB_MovementStates& moveState)
-    {
-        if (!creature)
-            return;
-
-        creature->SetBot(true);
-        creature->setActive(true);
-
-        if (creature->HasUnitState(UNIT_STAND_STATE_SIT))
-            creature->SetStandState(UNIT_STAND_STATE_STAND);
-
-        hired = false;                  // now persists
-        moveState = FSB_MOVE_STATE_IDLE;
-
-        // Initial Flags and States
-        creature->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-        creature->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-
-        creature->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-        creature->SetReactState(REACT_DEFENSIVE);
-        creature->SetFaction(FSB_FACTION_ALLIANCE);
-
-        //creature->UpdateLevelDependantStats();
-        //creature->SetHealth(creature->GetMaxHealth());
-        //creature->SetPowerType(FSBPowers::GetBotPowerType(creature), true);
-    }
-
-    void BotUpdateAllies(Creature* bot, GuidSet _allySet)
-    {
-        Unit* owner = FSBMgr::Get()->GetBotOwner(bot);
-
-        if (!owner)
-            return;
-
-        Group* group = nullptr;
-        if (Player* player = owner->ToPlayer())
-            group = player->GetGroup();
-
-        // only pet and owner/not in group->ok
-        if (_allySet.size() == 1 && !group)
-            return;
-
-        // owner is in group; group members filled in already (no raid -> subgroupcount = whole count)
-        if (group && !group->isRaidGroup() && _allySet.size() == (group->GetMembersCount() + 2))
-            return;
-
-        _allySet.clear();
-        _allySet.insert(bot->GetGUID());
-        if (group) // add group
-        {
-            for (GroupReference const& itr : group->GetMembers())
-            {
-                Player* Target = itr.GetSource();
-                if (!Target->IsInMap(owner) || !group->SameSubGroup(owner->ToPlayer(), Target))
-                    continue;
-
-                if (Target->GetGUID() == owner->GetGUID())
-                    continue;
-
-                _allySet.insert(Target->GetGUID());
-            }
-        }
-        else // remove group
-            _allySet.insert(owner->GetGUID());
-    }
-
     FSB_Class GetBotClassForEntry(uint32 entry)
     {
         for (auto const& map : BotEntryClassTable)
@@ -138,53 +72,6 @@ namespace FSBUtils
         }
 
         outRace = race;
-    }
-
-    bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace)
-    {
-        for (auto const& map : BotEntryClassTable)
-        {
-            if (map.entry == entry)
-            {
-                outClass = map.botClass;
-                outRace = map.botRace;
-                return true;
-            }
-        }
-
-        outClass = FSB_Class::None;
-        outRace = FSB_Race::None;
-        return false;
-    }
-
-    void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)
-    {
-        if (!creature)
-            return;
-
-        bool found = GetBotClassAndRaceForEntry(
-            creature->GetEntry(),
-            outClass,
-            outRace
-        );
-
-        if (!found)
-        {
-            TC_LOG_WARN(
-                "scripts.ai.fsb",
-                "FSB: No class/race mapping found for creature entry {}",
-                creature->GetEntry()
-            );
-            return;
-        }
-
-        TC_LOG_DEBUG(
-            "scripts.ai.fsb",
-            "FSB: Class set to {} and Race set to {} for bot with entry {}",
-            outClass,
-            outRace,
-            creature->GetEntry()
-        );
     }
 
     const char* BotClassToString(FSB_Class cls)

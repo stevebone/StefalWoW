@@ -21,7 +21,7 @@ enum FSB_Data
 
 enum FSB_Factions
 {
-    FSB_FACTION_ALLIANCE = 1
+    FSB_FACTION_HUMAN = 1
 };
 
 enum FSB_GenericEvents
