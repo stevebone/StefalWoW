@@ -671,6 +671,19 @@ public:
             {
                 Unit* victim = me->GetVictim();
 
+                if (victim && victim->IsAlive())
+                {
+                    // If target is neutral, force hostility
+                    if (!me->IsHostileTo(victim))
+                    {
+                        me->Attack(victim, true);              // sets victim + hostility
+                        me->GetThreatManager().AddThreat(victim, 0.1f);           // ensures combat state
+                        victim->SetInCombatWith(me);           // ensures mutual hostility
+                    }
+                }
+
+
+
                 if (!victim || !victim->IsAlive())
                 {
                     Unit* newTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, true, botLogicalGroup);
@@ -850,67 +863,6 @@ public:
                 case FSB_EVENT_HIRED_CHECK_MOUNT:
                     FSBMovement::BotSetMountedState(me, botMounted);
                     break;
-
-                case FSB_EVENT_HIRED_RESS_TARGET:
-                {
-                    if (!_pendingResurrection)
-                        break;
-
-                    if (!_pendingResTarget)
-                        break;
-
-                    Unit* target = ObjectAccessor::GetUnit(*me, _pendingResTarget);
-
-                    if (!target || target->IsAlive())
-                    {
-                        _pendingResurrection = false;
-                        break;
-                    }
-
-                    if (!me->IsInCombat() && !me->HasUnitState(UNIT_STATE_CASTING))
-                    {
-
-                        if (me->GetMapId() == target->GetMapId() && me->GetDistance(target) > 30.0f)
-                        {
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect target {} too far from bot: {}", target->GetName(), me->GetName());
-                            me->GetMotionMaster()->MoveChase(target, 28.f);
-                        }
-                        else
-                        {
-
-                            uint32 now = getMSTime();
-
-                            FSBMovement::StopFollow(me);
-
-                            uint32 spellId = 0;
-
-                            switch (botClass)
-                            {
-                            case FSB_Class::Priest:
-                                spellId = SPELL_PRIEST_RESURRECTION;
-                                break;
-                            case FSB_Class::Druid:
-                                break;
-                            case FSB_Class::Paladin:
-                                spellId = SPELL_PALADIN_REDEMPTION;
-                                break;
-                            default:
-                                break;
-                            }
-
-
-                            me->CastSpell(target, spellId, false);
-                            botGlobalCooldown = now + NPC_GCD_MS;
-
-                            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", me->GetName(), spellId, target->GetName());
-
-                            events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 5s);
-                        }
-                    }
-                    else events.ScheduleEvent(FSB_EVENT_HIRED_RESS_TARGET, 3s, 5s);
-
-                    break;
-                }
 
                 // =================================================== //
                 // ========= COMBAT MAINTENANCE ====================== //

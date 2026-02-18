@@ -10,6 +10,8 @@
 #include "Followship_bots.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_group_handler.h"
+
 namespace FSBUtilsCombat
 {
     bool IsCombatActive(Creature* bot)
@@ -251,28 +253,8 @@ namespace FSBUtilsBotCombat
             return ownerVictim;
 
         // 3. Check other bots owned by the same player
-        for (Unit* otherBot : botGroup_)
-        {
-            if (!otherBot || otherBot == bot)
-                continue;
-
-            if (!otherBot->IsAlive() || !otherBot->IsInCombat())
-                continue;
-
-            Unit* otherVictim = otherBot->GetVictim();
-            if (!otherVictim || !otherVictim->IsAlive())
-                continue;
-
-            // Don't break CC
-            if (otherVictim->HasBreakableByDamageCrowdControlAura())
-                continue;
-
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB: BotSelectNextTarget using sibling bot {} target {}",
-                otherBot->GetName(), otherVictim->GetName());
-
-            return otherVictim;
-        }
+        if (Unit* target = FSBGroup::BotGetFirstMemberToAssist(bot, botGroup_))
+            return target;
 
         // Neither pet or owner had a target and aggressive pets can pick any target
         // To prevent aggressive pets from chain selecting targets and running off, we
@@ -288,6 +270,8 @@ namespace FSBUtilsBotCombat
         // Default - no valid targets
         return nullptr;
     }
+
+
 
     void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle)
     {

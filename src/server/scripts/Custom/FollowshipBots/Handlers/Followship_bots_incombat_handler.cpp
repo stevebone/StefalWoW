@@ -171,7 +171,7 @@ namespace FSBIC
         if(!healTargets.empty())
             target = healTargets.front();
 
-        FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(heals, target);
+        FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(bot, heals, target);
 
         if (healSpell && target)
         {
@@ -217,7 +217,7 @@ namespace FSBIC
 
         auto selfHeals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, true);
 
-        FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(selfHeals, bot);
+        FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(bot, selfHeals, bot);
 
         if (healSpell)
         {

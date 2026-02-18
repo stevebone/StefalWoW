@@ -8,9 +8,9 @@ class followship_bots_player : public PlayerScript
 public:
     followship_bots_player() : PlayerScript("followship_bots_player") { }
 
-    void OnLogin(Player* player, bool /*firstLogin*/ ) override
+    void OnLogin(Player* /*player*/, bool /*firstLogin*/) override
     {
-        FSBMgr::Get()->RemovePersistentExpiredPlayerBots(player);
+        
     }
 
     void OnLogout(Player* /*player*/) override
@@ -19,6 +19,7 @@ public:
 
     void OnMapChanged(Player* player) override
     {
+        FSBMgr::Get()->RemovePersistentExpiredPlayerBots(player);
         FSBMgr::Get()->SpawnPlayerBots(player);
     }
 };

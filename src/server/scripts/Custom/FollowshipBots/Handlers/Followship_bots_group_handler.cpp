@@ -39,6 +39,44 @@ namespace FSBGroup
         
     }
 
+    Unit* BotGetFirstMemberToAssist(Creature* bot, const std::vector<Unit*>& botGroup)
+    {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
+
+        Unit* bestTarget = nullptr;
+        float lowestHpPct = 100.f;
+
+        for (Unit* member : botGroup)
+        {
+            // Validate group member
+            if (!member || member == bot)
+                continue;
+
+            if (!member->IsAlive() || !member->IsInWorld() || member->IsDuringRemoveFromWorld())
+                continue;
+
+            // Check if member is under attack
+            Unit* attacker = member->getAttackerForHelper();
+            if (!attacker || !attacker->IsAlive() || !attacker->IsInWorld() || attacker->IsDuringRemoveFromWorld())
+                continue;
+
+            // Don't break CC
+            if (attacker->HasBreakableByDamageCrowdControlAura())
+                continue;
+
+            // Prioritize the most injured group member
+            float hpPct = member->GetHealthPct();
+            if (hpPct < lowestHpPct)
+            {
+                lowestHpPct = hpPct;
+                bestTarget = attacker;
+            }
+        }
+
+        return bestTarget;
+    }
+
     Unit* BotGetFirstGroupHealer(const std::vector<Unit*>& group)
     {
         for (Unit* member : group)

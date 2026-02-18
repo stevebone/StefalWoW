@@ -169,7 +169,7 @@ namespace FSBSpells
         return available;
     }
 
-    FSBSpellRuntime* SelectBestHealSpell(const std::vector<FSBSpellRuntime*>& heals, Unit* target)
+    FSBSpellRuntime* SelectBestHealSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& heals, Unit* target)
     {
         if (!target)
             return nullptr;
@@ -182,6 +182,9 @@ namespace FSBSpells
         for (auto* runtime : heals)
         {
             auto* def = runtime->def;
+
+            if (!FSBSpellsUtils::CheckSpellContextRequirements(bot, def->spellId, target))
+                continue;
 
             // Check if aura present
             if (target->HasAura(def->spellId))
@@ -233,6 +236,13 @@ namespace FSBSpells
             if (!runtime || !runtime->def)
                 continue;
 
+            if (!FSBSpellsUtils::CheckSpellContextRequirements(bot, runtime->def->spellId, target))
+                continue;
+
+            // Check target has aura
+            if (target->HasAura(runtime->def->spellId))
+                continue;
+
             if (runtime->def->type == FSBSpellType::Damage)
                 spellPool.push_back(runtime);
         }
@@ -260,22 +270,11 @@ namespace FSBSpells
             if (spell->isSelfCast)
                 target = bot;
 
-            // Check target has aura
-            if(target->HasAura(spell->spellId))
-                continue;
-
             // Chance roll
             uint32 roll = urand(0, 100);
             if (roll > spell->chance)
             {
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - {} chance failed (roll={} chance={})", spell->spellId, roll, spell->chance);
-                continue;
-            }
-
-            // Class Spells validation
-            if (!FSBUtilsSpells::IsSpellClassValid(bot, spell->spellId, target))
-            {
-                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - class invalid for spell {}", spell->spellId);
                 continue;
             }
 

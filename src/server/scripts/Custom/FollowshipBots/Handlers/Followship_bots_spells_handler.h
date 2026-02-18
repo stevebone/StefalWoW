@@ -44,14 +44,8 @@ namespace FSBSpells
     FSBSpellTable const* GetBotSpellTableForClass(FSB_Class botClass);
 
     std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, FSBSpellType desiredType, bool requireSelfCast);
-    FSBSpellRuntime* SelectBestHealSpell(const std::vector<FSBSpellRuntime*>& heals, Unit* target);
+    FSBSpellRuntime* SelectBestHealSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& heals, Unit* target);
     FSBSpellRuntime* SelectBestDamageSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& damageSpells, Unit* target);
-
-
-
-
-    FSBSpellRuntime* BotSelectSpell(Creature* bot, std::vector<FSBSpellRuntime*>& availableSpells, std::vector<Unit*> botGroup_, Unit*& outTarget);
-    void BotCastCombatSpell(Creature* bot, Unit* target, FSBSpellRuntime* runtime, uint32& globalCooldownUntil);
 
     void HandleOnSpellCast(Creature* bot, FSB_Class botClass, uint32 spellId);
     void HandleOnSpellCastGeneric(Creature*bot, uint32 spellId);

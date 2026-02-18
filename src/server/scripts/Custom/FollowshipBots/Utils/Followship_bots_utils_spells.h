@@ -44,15 +44,6 @@ static constexpr PotionSpell HealthPotionTable[] =
     { 61,  80,  43185 } // Runic HP Potion 956
 };
 
-//extern std::unordered_map<FSB_Class, FSBSpellTable const*> sBotSpellTables;
-
-namespace FSBUtilsSpells
-{
-
-    bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target);
-
-}
-
 enum FSB_StandardGroundMounts
 {
     // N Elf
@@ -154,6 +145,7 @@ namespace FSBSpellsUtils
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
     bool BotHasHealSpells(Creature* bot);
     bool BotHasHealSpellsForSelf(Creature* bot);
+    bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target);
 
     DispelType ConvertAuraToDispelType(Aura* aura);
 

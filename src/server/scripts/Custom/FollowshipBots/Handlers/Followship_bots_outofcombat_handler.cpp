@@ -309,12 +309,17 @@ namespace FSBOOC
         if (!bot || !player || !player->IsAlive())
             return false;
 
+        if (!FSBUtils::BotIsHealerClass(bot))
+            return false;
+
         float pHealth = player->GetHealthPct();
 
         if (pHealth > 90)
             return false;
 
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        if(botClass == FSB_Class::Druid && (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT) || bot->HasAura(SPELL_DRUID_TRAVEL)))
+            return false;
 
         bool check = false;
 
@@ -401,7 +406,7 @@ namespace FSBOOC
         if (botGroup.empty())
             return false;
 
-        if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT))
+        if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT) || bot->HasAura(SPELL_DRUID_TRAVEL))
             return false;
 
         FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());

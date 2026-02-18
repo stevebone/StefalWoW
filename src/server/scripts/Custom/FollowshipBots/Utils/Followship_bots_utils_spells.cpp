@@ -40,12 +40,37 @@ std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
     { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } }
 };
 
-
-namespace FSBUtilsSpells
+namespace FSBSpellsUtils
 {
-   
+    bool IsSpellReady(uint32 spellId)
+    {
+        uint32 now = getMSTime();
 
-    bool IsSpellClassValid(Creature* bot, uint32 spellId, Unit* target)
+        auto it = spellCooldowns.find(spellId);
+        if (it == spellCooldowns.end())
+            return true; // no cooldown stored ? ready
+
+        return now >= it->second;
+    }
+
+    void PutSpellOnCooldown(uint32 spellId, uint32 cooldownMs)
+    {
+        if (!spellId || !cooldownMs)
+            return;
+
+        uint32 now = getMSTime();
+
+        spellCooldowns[spellId] = now + cooldownMs;
+    }
+
+    bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil)
+    {
+        return me
+            && now >= globalCooldownUntil
+            && !me->HasUnitState(UNIT_STATE_CASTING);
+    }
+
+    bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target)
     {
         switch (spellId)
         {
@@ -127,40 +152,6 @@ namespace FSBUtilsSpells
         default:
             return true;
         }
-    }
-    
-}
-
-
-
-namespace FSBSpellsUtils
-{
-    bool IsSpellReady(uint32 spellId)
-    {
-        uint32 now = getMSTime();
-
-        auto it = spellCooldowns.find(spellId);
-        if (it == spellCooldowns.end())
-            return true; // no cooldown stored ? ready
-
-        return now >= it->second;
-    }
-
-    void PutSpellOnCooldown(uint32 spellId, uint32 cooldownMs)
-    {
-        if (!spellId || !cooldownMs)
-            return;
-
-        uint32 now = getMSTime();
-
-        spellCooldowns[spellId] = now + cooldownMs;
-    }
-
-    bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil)
-    {
-        return me
-            && now >= globalCooldownUntil
-            && !me->HasUnitState(UNIT_STATE_CASTING);
     }
 
     DispelType ConvertAuraToDispelType(Aura* aura)
