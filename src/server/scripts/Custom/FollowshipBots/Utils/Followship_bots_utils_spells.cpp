@@ -153,6 +153,9 @@ namespace FSBSpellsUtils
         case SPELL_DWARF_STONEFORM:
             return CheckDwarfStoneformRequirements(bot);
 
+        case SPELL_HUMAN_WILL_TO_SURVIVE:
+            return FSBUtils::GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Human && HasAnyMechanic(bot, { MECHANIC_STUN });
+
         default:
             return true;
         }

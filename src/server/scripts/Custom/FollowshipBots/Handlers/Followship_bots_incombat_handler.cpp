@@ -428,6 +428,9 @@ namespace FSBIC
         if (!bot || !bot->IsAlive())
             return false;
 
+        if (!FSBUtils::BotIsHealerClass(bot))
+            return false;
+
         if (!resTargetGuid)
             return false;
 

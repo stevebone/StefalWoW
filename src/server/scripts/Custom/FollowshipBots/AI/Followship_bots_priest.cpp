@@ -9,15 +9,17 @@
 
 std::vector<FSBSpellDefinition> PriestSpellsTable =
 {
-    // Spell ID                         Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
+    // Spell ID                             Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
 
     // ANY
-    { SPELL_DWARF_STONEFORM,            FSBSpellType::Heal,     0.f,        80.f,           100.f,          0.f,           true,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_DRAENEI_GIFT_NAARU,         FSBSpellType::Heal,     0.f,        50.f,           100.f,          30.f,           false,        120000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_HUMAN_WILL_TO_SURVIVE,          FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+
     { SPELL_PRIEST_RENEW,               FSBSpellType::Heal,     0.f,        85.f,           75.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
     { SPELL_PRIEST_FLASH_HEAL,          FSBSpellType::Heal,     0.f,        70.f,           70.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
 
-    { SPELL_PRIEST_SHADOW_WORD_PAIN,    FSBSpellType::Damage,   0.f,        0.f,            80.f,           40.f,           false,      1000,          FSB_RoleMask::FSB_ROLEMASK_ANY    },
+    { SPELL_PRIEST_SHADOW_WORD_PAIN,    FSBSpellType::Damage,   0.f,        0.f,            80.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
     { SPELL_PRIEST_SMITE,               FSBSpellType::Damage,   0.f,        0.f,            50.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
     
     // Healer
@@ -57,11 +59,18 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
     
 
     // Hybrid
-    { SPELL_PRIEST_PLEA,                FSBSpellType::Heal,     70.f,       0.f,            80.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_PRIEST_PENANCE,             FSBSpellType::Heal,     60.f,       0.f,            80.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_POWER_INFUSION,      FSBSpellType::Heal,     0.f,        80.f,           80.f,           40.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PLEA,                FSBSpellType::Heal,     0.f,        70.f,           80.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PENANCE,             FSBSpellType::Heal,     0.f,        60.f,           80.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PAIN_SUPPRESSION,    FSBSpellType::Heal,     0.f,        50.f,           80.f,           40.f,           false,      180000,         FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_POWER_WORD_RADIANCE, FSBSpellType::Heal,     0.f,        40.f,           80.f,           40.f,           false,      18000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_POWER_WORD_BARRIER,  FSBSpellType::Heal,     0.f,        30.f,           80.f,           40.f,           false,      180000,         FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_DESPERATE_PRAYER,    FSBSpellType::Heal,     0.f,        20.f,           100.f,          0.f,            true,       90000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 
-    { SPELL_PRIEST_HOLY_FIRE,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           40.f,           false,      10000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_PRIEST_PENANCE,             FSBSpellType::Damage,   0.f,       0.f,            55.f,           40.f,           false,      9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_ULTIMATE_PENITENCE,  FSBSpellType::Damage,   0.f,       0.f,            80.f,           40.f,           false,       240000,         FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_HOLY_FIRE,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           40.f,           false,       10000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_PENANCE,             FSBSpellType::Damage,   0.f,       0.f,            55.f,           40.f,           false,       9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_HOLY_NOVA,           FSBSpellType::Damage,   0.f,       0.f,            80.f,           6.f,            true,        1000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 };
 
 
