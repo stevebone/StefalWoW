@@ -269,6 +269,16 @@ namespace WorldPackets
             ObjectGuid PetGuid;
         };
 
+        class BattlePetUpdateDisplayNotify final : public ClientPacket
+        {
+        public:
+            explicit BattlePetUpdateDisplayNotify(WorldPacket&& packet) : ClientPacket(CMSG_BATTLE_PET_UPDATE_DISPLAY_NOTIFY, std::move(packet)) { }
+
+            void Read() override;
+
+            ObjectGuid PetGuid;
+        };
+
         // ============================================================================
         // Pet Battle Combat Packets (turn-based battle system)
         // ============================================================================
@@ -651,6 +661,24 @@ namespace WorldPackets
             PetBattleDebugQueueDumpResponse() : ServerPacket(SMSG_PET_BATTLE_DEBUG_QUEUE_DUMP_RESPONSE, 0) { }
 
             WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
+        class BattlePetsHealed final : public ServerPacket
+        {
+        public:
+            BattlePetsHealed() : ServerPacket(SMSG_BATTLE_PETS_HEALED, 0) { }
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
+        class BattlePetTrapLevel final : public ServerPacket
+        {
+        public:
+            BattlePetTrapLevel() : ServerPacket(SMSG_BATTLE_PET_TRAP_LEVEL) { }
+
+            WorldPacket const* Write() override;
+
+            uint16 TrapLevel = 0;
         };
     }
 }

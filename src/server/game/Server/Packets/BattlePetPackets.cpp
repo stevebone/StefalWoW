@@ -217,6 +217,11 @@ void BattlePetUpdateNotify::Read()
     _worldPacket >> PetGuid;
 }
 
+void BattlePetUpdateDisplayNotify::Read()
+{
+    _worldPacket >> PetGuid;
+}
+
 // ============================================================================
 // Pet Battle Combat Packet Serialization
 // ============================================================================
@@ -558,6 +563,12 @@ WorldPacket const* PetBattleQueueStatus::Write()
     if (AvgWaitTime)
         _worldPacket << uint32(*AvgWaitTime);
 
+    return &_worldPacket;
+}
+
+WorldPacket const* BattlePetTrapLevel::Write()
+{
+    _worldPacket << uint16(TrapLevel);
     return &_worldPacket;
 }
 }

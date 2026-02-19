@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
+class Creature;
 class Player;
 struct BattlePetSpeciesXAbilityEntry;
 struct BattlePetAbilityTurnEntry;
@@ -30,6 +31,15 @@ struct BattlePetAbilityEffectEntry;
 
 namespace PetBattles
 {
+
+struct NPCTeamPetInfo
+{
+    uint32 SpeciesID = 0;
+    uint16 Level = 1;
+    uint16 BreedID = 3;
+    uint8 Quality = 0;
+    std::array<uint32, MAX_PET_BATTLE_ABILITIES> AbilityIDs = {};
+};
 
 struct PvPQueueEntry
 {
@@ -60,7 +70,12 @@ public:
     // Battle lifecycle
     PetBattle* CreateWildBattle(Player* player, ObjectGuid wildCreatureGUID);
     PetBattle* CreatePvPBattle(Player* player1, Player* player2);
+    PetBattle* CreateNPCBattle(Player* player, Creature* trainer);
     void RemoveBattle(uint32 battleID);
+
+    // NPC teams
+    void LoadNPCTeams();
+    std::vector<NPCTeamPetInfo> const* GetNPCTeam(uint32 npcEntry) const;
 
     // Lookups
     PetBattle* GetBattleByID(uint32 battleID);
@@ -106,6 +121,9 @@ private:
     // Breed quality multipliers and base stats
     std::unordered_map<uint8, float> _breedQualityMultipliers;
     std::unordered_map<uint32, std::tuple<int32, int32, int32>> _breedBaseStats; // breedID -> (hp, power, speed)
+
+    // NPC Teams
+    std::unordered_map<uint32, std::vector<NPCTeamPetInfo>> _npcTeams;
 
     // PvP Queue
     std::vector<PvPQueueEntry> _pvpQueue;

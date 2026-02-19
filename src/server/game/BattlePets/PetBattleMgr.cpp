@@ -18,6 +18,8 @@
 #include "PetBattleMgr.h"
 #include "BattlePetMgr.h"
 #include "BattlePetPackets.h"
+#include "Creature.h"
+#include "DatabaseEnv.h"
 #include "DB2Stores.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -111,6 +113,9 @@ void PetBattleMgr::Initialize()
         speciesAbilityCount, abilityTurnCount, turnEffectCount);
     TC_LOG_INFO("server.loading", ">> Loaded {} breed quality entries, {} breed stat entries",
         uint32(_breedQualityMultipliers.size()), uint32(_breedBaseStats.size()));
+
+    LoadNPCTeams();
+
     TC_LOG_INFO("server.loading", ">> Pet Battle system initialized");
 }
 
@@ -179,6 +184,33 @@ PetBattle* PetBattleMgr::CreatePvPBattle(Player* player1, Player* player2)
     _activeBattles[battleID] = std::move(battle);
     _playerToBattle[player1->GetGUID()] = battleID;
     _playerToBattle[player2->GetGUID()] = battleID;
+
+    return ptr;
+}
+
+PetBattle* PetBattleMgr::CreateNPCBattle(Player* player, Creature* trainer)
+{
+    if (!player || !trainer)
+        return nullptr;
+
+    if (IsPlayerInBattle(player->GetGUID()))
+        return nullptr;
+
+    std::vector<NPCTeamPetInfo> const* npcTeam = GetNPCTeam(trainer->GetEntry());
+    if (!npcTeam || npcTeam->empty())
+        return nullptr;
+
+    uint32 battleID = _nextBattleID++;
+    auto battle = std::make_unique<PetBattle>();
+    battle->SetBattleID(battleID);
+    battle->InitNPCBattle(player, trainer, *npcTeam);
+
+    PetBattle* ptr = battle.get();
+    _activeBattles[battleID] = std::move(battle);
+    _playerToBattle[player->GetGUID()] = battleID;
+
+    TC_LOG_DEBUG("server.loading", "PetBattleMgr: Created NPC battle {} for player {} vs trainer {}",
+        battleID, player->GetGUID().ToString(), trainer->GetEntry());
 
     return ptr;
 }
@@ -286,6 +318,51 @@ void PetBattleMgr::GetBreedBaseStats(uint32 breedID, int32& outHP, int32& outPow
 }
 
 // ============================================================================
+// NPC Teams
+// ============================================================================
+
+void PetBattleMgr::LoadNPCTeams()
+{
+    _npcTeams.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT npcEntry, slot, speciesId, level, breedId, quality, ability1, ability2, ability3 FROM battle_pet_npc_team ORDER BY npcEntry, slot");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 NPC pet battle teams. DB table `battle_pet_npc_team` is empty or missing.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 npcEntry = fields[0].GetUInt32();
+
+        NPCTeamPetInfo pet;
+        pet.SpeciesID = fields[2].GetUInt32();
+        pet.Level = fields[3].GetUInt16();
+        pet.BreedID = fields[4].GetUInt16();
+        pet.Quality = fields[5].GetUInt8();
+        pet.AbilityIDs[0] = fields[6].GetUInt32();
+        pet.AbilityIDs[1] = fields[7].GetUInt32();
+        pet.AbilityIDs[2] = fields[8].GetUInt32();
+
+        _npcTeams[npcEntry].push_back(pet);
+        ++count;
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} NPC pet battle team members for {} trainers",
+        count, uint32(_npcTeams.size()));
+}
+
+std::vector<NPCTeamPetInfo> const* PetBattleMgr::GetNPCTeam(uint32 npcEntry) const
+{
+    auto it = _npcTeams.find(npcEntry);
+    return it != _npcTeams.end() ? &it->second : nullptr;
+}
+
+// ============================================================================
 // PvP Queue
 // ============================================================================
 
@@ -293,23 +370,76 @@ void PetBattleMgr::JoinQueue(ObjectGuid playerGUID)
 {
     // Don't add if already in queue
     for (auto const& entry : _pvpQueue)
+    {
         if (entry.PlayerGUID == playerGUID)
+        {
+            if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
+            {
+                WorldPackets::BattlePet::PetBattleQueueStatus status;
+                status.Status = PET_BATTLE_QUEUE_STATUS_ALREADY_QUEUED;
+                player->SendDirectMessage(status.Write());
+            }
             return;
+        }
+    }
 
     // Don't add if already in a battle
     if (IsPlayerInBattle(playerGUID))
+    {
+        if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
+        {
+            WorldPackets::BattlePet::PetBattleQueueStatus status;
+            status.Status = PET_BATTLE_QUEUE_STATUS_JOIN_FAILED;
+            player->SendDirectMessage(status.Write());
+        }
         return;
+    }
+
+    // Check player has alive slotted pets and journal lock
+    if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
+    {
+        BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
+        if (!petMgr->HasJournalLock())
+        {
+            WorldPackets::BattlePet::PetBattleQueueStatus status;
+            status.Status = PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_JOURNAL_LOCK;
+            player->SendDirectMessage(status.Write());
+            return;
+        }
+
+        bool hasPet = false;
+        for (uint8 i = 0; i < uint8(BattlePets::BattlePetSlot::Count); ++i)
+        {
+            WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(BattlePets::BattlePetSlot(i));
+            if (slot && !slot->Locked && !slot->Pet.Guid.IsEmpty())
+            {
+                BattlePets::BattlePet* pet = petMgr->GetPet(slot->Pet.Guid);
+                if (pet && pet->PacketInfo.Health > 0)
+                {
+                    hasPet = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasPet)
+        {
+            WorldPackets::BattlePet::PetBattleQueueStatus status;
+            status.Status = PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_SLOTS;
+            player->SendDirectMessage(status.Write());
+            return;
+        }
+    }
 
     PvPQueueEntry entry;
     entry.PlayerGUID = playerGUID;
-    entry.EnqueueTime = 0; // Will track elapsed time
+    entry.EnqueueTime = 0;
     _pvpQueue.push_back(entry);
 
-    // Send queued status to the player
     if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
     {
         WorldPackets::BattlePet::PetBattleQueueStatus status;
-        status.Status = 1; // Queued
+        status.Status = PET_BATTLE_QUEUE_STATUS_QUEUED;
         player->SendDirectMessage(status.Write());
     }
 
@@ -330,14 +460,13 @@ void PetBattleMgr::LeaveQueue(ObjectGuid playerGUID)
     {
         if (_pendingProposal->Player1 == playerGUID || _pendingProposal->Player2 == playerGUID)
         {
-            // Notify the other player that the match was declined
             ObjectGuid otherGUID = (_pendingProposal->Player1 == playerGUID) ?
                 _pendingProposal->Player2 : _pendingProposal->Player1;
 
             if (Player* other = ObjectAccessor::FindPlayer(otherGUID))
             {
                 WorldPackets::BattlePet::PetBattleQueueStatus status;
-                status.Status = 1; // Back to queued
+                status.Status = PET_BATTLE_QUEUE_STATUS_MATCH_OPPONENT_DECLINED;
                 other->SendDirectMessage(status.Write());
             }
 
@@ -350,11 +479,10 @@ void PetBattleMgr::LeaveQueue(ObjectGuid playerGUID)
         }
     }
 
-    // Send not-queued status
     if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
     {
         WorldPackets::BattlePet::PetBattleQueueStatus status;
-        status.Status = 0; // Not in queue
+        status.Status = PET_BATTLE_QUEUE_STATUS_REMOVED;
         player->SendDirectMessage(status.Write());
     }
 }
@@ -373,7 +501,15 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
 
     if (!accepted)
     {
-        // Declined: re-queue the other player, cancel proposal
+        // Send declined status to the declining player
+        if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
+        {
+            WorldPackets::BattlePet::PetBattleQueueStatus status;
+            status.Status = PET_BATTLE_QUEUE_STATUS_MATCH_DECLINED;
+            player->SendDirectMessage(status.Write());
+        }
+
+        // Notify the other player and re-queue them
         ObjectGuid otherGUID = (_pendingProposal->Player1 == playerGUID) ?
             _pendingProposal->Player2 : _pendingProposal->Player1;
 
@@ -384,12 +520,20 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
         if (Player* other = ObjectAccessor::FindPlayer(otherGUID))
         {
             WorldPackets::BattlePet::PetBattleQueueStatus status;
-            status.Status = 1; // Back to queued
+            status.Status = PET_BATTLE_QUEUE_STATUS_MATCH_OPPONENT_DECLINED;
             other->SendDirectMessage(status.Write());
         }
 
         _pendingProposal.reset();
         return;
+    }
+
+    // Send accepted status to this player
+    if (Player* player = ObjectAccessor::FindPlayer(playerGUID))
+    {
+        WorldPackets::BattlePet::PetBattleQueueStatus status;
+        status.Status = PET_BATTLE_QUEUE_STATUS_MATCH_ACCEPTED;
+        player->SendDirectMessage(status.Write());
     }
 
     // Check if both accepted
@@ -405,11 +549,6 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
             {
                 battle->Start();
 
-                // Send initial update to both players
-                WorldPackets::BattlePet::PetBattleInitialUpdate initialUpdate;
-
-                // Build update - helper defined in BattlePetHandler.cpp
-                // For now, send finalize location and let the handler code manage the rest
                 WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
                 finalizeLocation.Location = p1->GetPosition();
                 p1->SendDirectMessage(finalizeLocation.Write());
@@ -456,7 +595,14 @@ void PetBattleMgr::TryMatchPlayers()
     _pendingProposal->Player1 = p1.PlayerGUID;
     _pendingProposal->Player2 = p2.PlayerGUID;
 
-    // Send propose match to both players
+    // Send matchmaking then proposal status to both players
+    for (Player* matchPlayer : { player1, player2 })
+    {
+        WorldPackets::BattlePet::PetBattleQueueStatus matchStatus;
+        matchStatus.Status = PET_BATTLE_QUEUE_STATUS_PROPOSAL;
+        matchPlayer->SendDirectMessage(matchStatus.Write());
+    }
+
     WorldPackets::BattlePet::PetBattleQueueProposeMatch proposeMatch;
     player1->SendDirectMessage(proposeMatch.Write());
     player2->SendDirectMessage(proposeMatch.Write());
