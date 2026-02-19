@@ -1,6 +1,8 @@
 
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
+
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_druid.h"
@@ -12,7 +14,7 @@ namespace FSBPowers
         if (!bot)
             return POWER_MANA;
 
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         for (auto const& stats : BotClassStatsTable)
         {
@@ -59,12 +61,12 @@ namespace FSBPowers
 
     bool IsRageUser(Creature* bot)
     {
-        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Warrior || bot->HasAura(SPELL_DRUID_BEAR);
+        return FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Warrior || bot->HasAura(SPELL_DRUID_BEAR);
     }
 
     bool IsEnergyUser(Creature* bot)
     {
-        return FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Rogue || bot->HasAura(SPELL_DRUID_CAT);
+        return FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Rogue || bot->HasAura(SPELL_DRUID_CAT);
     }
 
     void GenerateRageFromDamageTaken(Creature* bot, uint32 damage)

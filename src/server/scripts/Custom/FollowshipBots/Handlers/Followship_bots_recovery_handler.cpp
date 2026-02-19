@@ -39,8 +39,8 @@ namespace FSBRecovery
         if (!bot || intent == BotRecoveryIntent::None)
             return BotRecoverAction::None;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
-        FSB_Race botRace = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
 
         std::vector<BotRecoverAction> recoveryActions;
 
@@ -91,8 +91,8 @@ namespace FSBRecovery
 
         uint32 spellId = 0;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
-        FSB_Race botRace = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
 
         if (drinkOrEat == DRINK_EAT)
         {

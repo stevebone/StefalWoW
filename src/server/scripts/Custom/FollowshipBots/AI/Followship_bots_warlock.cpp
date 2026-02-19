@@ -76,14 +76,18 @@ namespace FSBWarlock
             return false;
 
         Unit* target = FSBGroup::BotGetFirstGroupHealer(botGroup);
+        bool recastNeeded = false;
+
         if (target && target->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
+        else recastNeeded = true;
 
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
-        if (player && player->HasAura(SPELL_WARLOCK_SOULSTONE))
+        if (!recastNeeded && player && player->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
+        else recastNeeded = true;
 
-        if (bot->HasAura(SPELL_WARLOCK_SOULSTONE))
+        if (!recastNeeded && bot->HasAura(SPELL_WARLOCK_SOULSTONE))
             return false;
 
         uint32 spellId = SPELL_WARLOCK_SOULSTONE;

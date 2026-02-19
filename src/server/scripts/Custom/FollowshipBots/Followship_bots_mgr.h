@@ -95,6 +95,12 @@ public:
     void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace);
     bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace);
 
+    FSB_Class GetBotClassForEntry(uint32 entry);
+    void SetBotClass(Creature* creature, FSB_Class& outClass);
+
+    FSB_Race GetBotRaceForEntry(uint32 entry);
+    void SetBotRace(Creature* creature, FSB_Race& outRace);
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
 };

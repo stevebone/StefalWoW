@@ -85,7 +85,7 @@ namespace FSBTeleport
                     player->GetPositionZ(),
                     player->GetOrientation());
 
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 200.", bot->GetName(), player->GetName());
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
                 return true;
             }
             return false;

@@ -3,6 +3,7 @@
 #include "ChatCommand.h"
 #include "WorldSession.h"
 
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_stats_handler.h"
@@ -103,8 +104,8 @@ public:
         }
 
         // --- Fetch bot metadata ---
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
-        FSB_Race botRace = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
 
         
 

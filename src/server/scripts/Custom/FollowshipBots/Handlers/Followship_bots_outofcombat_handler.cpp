@@ -252,7 +252,7 @@ namespace FSBOOC
         if (bot->IsInCombat())
             return false;
 
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         if (cls != FSB_Class::Warlock)
             return false;
@@ -271,7 +271,7 @@ namespace FSBOOC
         if (bot->IsInCombat())
             return false;
 
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         if (cls != FSB_Class::Warlock)
             return false;
@@ -320,7 +320,7 @@ namespace FSBOOC
         if (pHealth > 90)
             return false;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         if(botClass == FSB_Class::Druid && (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT) || bot->HasAura(SPELL_DRUID_TRAVEL)))
             return false;
 
@@ -362,7 +362,7 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         uint32 buffSpellId = 0;
         bool check = false;
 
@@ -412,7 +412,7 @@ namespace FSBOOC
         if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT) || bot->HasAura(SPELL_DRUID_TRAVEL))
             return false;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         std::vector<Unit*> buffTargets;
         uint32 buffSpellId = 0;
         uint32 buffSpellId2 = 0;

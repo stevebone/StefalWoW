@@ -1,3 +1,4 @@
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_powers_handler.h"
@@ -278,7 +279,7 @@ namespace FSBStats
         if (!bot)
             return;
 
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         ApplyBotHealth(bot, cls, updateHealth);
         ApplyBotPower(bot, cls, updatePower);
@@ -292,7 +293,7 @@ namespace FSBStats
         if (!bot)
             return 0;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         uint16 level = bot->GetLevel();
 
         auto const* stats = GetBotClassStats(botClass);

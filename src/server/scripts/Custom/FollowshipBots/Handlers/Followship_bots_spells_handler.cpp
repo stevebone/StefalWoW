@@ -1,3 +1,4 @@
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_druid.h"
@@ -95,7 +96,7 @@ namespace FSBSpells
     {
         _runtimeSpells.clear();
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         auto table = GetBotSpellTableForClass(botClass);
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: InitSpellRuntime() - Bot: {} has Class: {}", bot->GetName(), botClass);
 

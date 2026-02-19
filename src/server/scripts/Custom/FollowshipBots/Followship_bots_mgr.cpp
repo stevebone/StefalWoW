@@ -511,7 +511,61 @@ bool FSBMgr::GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_R
     return false;
 }
 
+FSB_Class FSBMgr::GetBotClassForEntry(uint32 entry)
+{
+    for (auto const& map : BotEntryClassTable)
+    {
+        if (map.entry == entry)
+            return map.botClass;
+    }
 
+    return FSB_Class::None;
+}
+
+void FSBMgr::SetBotClass(Creature* creature, FSB_Class& outClass)
+{
+    if (!creature)
+        return;
+
+    FSB_Class cls = GetBotClassForEntry(creature->GetEntry());
+
+    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Class set: {} for bot with entry {}", cls, creature->GetEntry());
+
+    if (cls == FSB_Class::None)
+    {
+        TC_LOG_WARN("scripts.ai.fsb", "FSB: No class mapping found for creature entry {}", creature->GetEntry());
+    }
+
+    outClass = cls;
+}
+
+FSB_Race FSBMgr::GetBotRaceForEntry(uint32 entry)
+{
+    for (auto const& map : BotEntryClassTable)
+    {
+        if (map.entry == entry)
+            return map.botRace;
+    }
+
+    return FSB_Race::None;
+}
+
+void FSBMgr::SetBotRace(Creature* creature, FSB_Race& outRace)
+{
+    if (!creature)
+        return;
+
+    FSB_Race race = GetBotRaceForEntry(creature->GetEntry());
+
+    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Race set: {} for bot with entry {}", race, creature->GetEntry());
+
+    if (race == FSB_Race::None)
+    {
+        TC_LOG_WARN("scripts.ai.fsb", "FSB: No race mapping found for creature entry {}", creature->GetEntry());
+    }
+
+    outRace = race;
+}
 
 
 

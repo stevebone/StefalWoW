@@ -1,4 +1,5 @@
 #include "Followship_bots_config.h"
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_druid.h"
@@ -330,7 +331,7 @@ namespace FSBIC
         if (!bot->IsInCombat())
             return false;
 
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         FSB_Roles botRole = FSBUtils::GetRole(bot);
 
         switch (botClass)
@@ -399,7 +400,7 @@ namespace FSBIC
                 return false;
 
             uint32 HealthPotionSpellId = 0;
-            FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+            FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
             if (cls == FSB_Class::Warlock)
             {

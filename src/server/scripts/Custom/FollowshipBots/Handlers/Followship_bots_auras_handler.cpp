@@ -1,3 +1,4 @@
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "followship_bots_druid.h"
@@ -22,7 +23,7 @@ namespace FSBAuras
             return;
 
         // First check class specific spell auras
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         switch (cls)
         {

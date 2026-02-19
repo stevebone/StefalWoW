@@ -20,12 +20,6 @@
 
 namespace FSBUtils
 {
-    FSB_Class GetBotClassForEntry(uint32 entry);
-    void SetBotClass(Creature* creature, FSB_Class& outClass);
-
-    FSB_Race GetBotRaceForEntry(uint32 entry);
-    void SetBotRace(Creature* creature, FSB_Race& outRace);
-
     const char* BotClassToString(FSB_Class cls);
     const char* BotRaceToString(FSB_Race race);
     const char* PowerTypeToString(Powers power);

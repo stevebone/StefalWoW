@@ -74,7 +74,7 @@ namespace FSBDeath
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
             
-        bot->GetMotionMaster()->MovePoint(2, botCorpse, true);
+        bot->GetMotionMaster()->MovePoint(2, botCorpse, false);
 
     }
 

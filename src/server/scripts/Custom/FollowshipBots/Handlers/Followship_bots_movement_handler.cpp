@@ -87,7 +87,7 @@ namespace FSBMovement
         if (!player)
             return;
 
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         if (player->HasAuraType(SPELL_AURA_MOUNTED) && !botMounted)
         {

@@ -52,7 +52,7 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::Trainer,
                 FSB_GOSSIP_MENU_INSTRUCTIONS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 6);
 
-            if (FSBUtils::GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Mage)
+            if (FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Mage)
                 AddGossipItemFor(player, GossipOptionNpc::None,
                     FSB_GOSSIP_MENU_PORTAL, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 26);
         }
@@ -146,7 +146,7 @@ namespace FSBGossip
     }
     bool HandleGossipMenuRoles(Creature* bot, Player* player)
     {
-        FSB_Class botClass = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         switch (botClass)
         {
         case FSB_Class::None:

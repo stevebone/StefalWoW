@@ -18,62 +18,6 @@
 
 namespace FSBUtils
 {
-    FSB_Class GetBotClassForEntry(uint32 entry)
-    {
-        for (auto const& map : BotEntryClassTable)
-        {
-            if (map.entry == entry)
-                return map.botClass;
-        }
-
-        return FSB_Class::None;
-    }
-
-    void SetBotClass(Creature* creature, FSB_Class& outClass)
-    {
-        if (!creature)
-            return;
-
-        FSB_Class cls = GetBotClassForEntry(creature->GetEntry());
-
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Class set: {} for bot with entry {}", cls, creature->GetEntry());
-
-        if (cls == FSB_Class::None)
-        {
-            TC_LOG_WARN("scripts.ai.fsb", "FSB: No class mapping found for creature entry {}", creature->GetEntry());
-        }
-
-        outClass = cls;
-    }
-
-    FSB_Race GetBotRaceForEntry(uint32 entry)
-    {
-        for (auto const& map : BotEntryClassTable)
-        {
-            if (map.entry == entry)
-                return map.botRace;
-        }
-
-        return FSB_Race::None;
-    }
-
-    void SetBotRace(Creature* creature, FSB_Race& outRace)
-    {
-        if (!creature)
-            return;
-
-        FSB_Race race = GetBotRaceForEntry(creature->GetEntry());
-
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Race set: {} for bot with entry {}", race, creature->GetEntry());
-
-        if (race == FSB_Race::None)
-        {
-            TC_LOG_WARN("scripts.ai.fsb", "FSB: No race mapping found for creature entry {}", creature->GetEntry());
-        }
-
-        outRace = race;
-    }
-
     const char* BotClassToString(FSB_Class cls)
     {
         switch (cls)
@@ -179,7 +123,7 @@ namespace FSBUtils
         if (!bot)
             return false;
 
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         if (cls == FSB_Class::Priest || cls == FSB_Class::Druid || cls == FSB_Class::Paladin || cls == FSB_Class::Shaman)
             return true;

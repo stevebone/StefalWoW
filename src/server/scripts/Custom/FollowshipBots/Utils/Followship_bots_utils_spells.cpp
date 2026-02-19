@@ -119,6 +119,9 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_EVOCATION:
             return bot->GetPowerPct(POWER_MANA) < 50;
 
+        case SPELL_MAGE_ARCANE_SURGE:
+            return bot->GetPowerPct(POWER_MANA) < 10;
+
         case SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS:
         case SPELL_DRUID_IRONBARK:
         case SPELL_DRUID_CELESTIAL_ALIGNMENT:
@@ -148,13 +151,13 @@ namespace FSBSpellsUtils
             return bot->GetPowerPct(POWER_MANA) < 20;
 
         case SPELL_WARRIOR_GIFT_NAARU:
-            return FSBUtils::GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Draenei;
+            return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Draenei;
 
         case SPELL_DWARF_STONEFORM:
             return CheckDwarfStoneformRequirements(bot);
 
         case SPELL_HUMAN_WILL_TO_SURVIVE:
-            return FSBUtils::GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Human && HasAnyMechanic(bot, { MECHANIC_STUN });
+            return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Human && HasAnyMechanic(bot, { MECHANIC_STUN });
 
         default:
             return true;
@@ -166,7 +169,7 @@ namespace FSBSpellsUtils
         if (!bot || !bot->IsAlive())
             return false;
 
-        if (FSBUtils::GetBotRaceForEntry(bot->GetEntry()) != FSB_Race::Dwarf)
+        if (FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) != FSB_Race::Dwarf)
             return false;
 
         if (HasAnyNegativeDispel(bot, { DISPEL_CURSE, DISPEL_POISON, DISPEL_MAGIC, DISPEL_DISEASE }))
@@ -246,7 +249,7 @@ namespace FSBSpellsUtils
         if (!bot)
             return 0;
 
-        FSB_Race race = FSBUtils::GetBotRaceForEntry(bot->GetEntry());
+        FSB_Race race = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
 
         MountSpellList const* spells = GetMountSpellsForBot(race, bot->GetLevel());
         if (!spells || spells->empty())

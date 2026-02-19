@@ -304,7 +304,7 @@ namespace FSBUtilsBotCombat
             return 2.0f;
 
         FSB_Roles role = FSBUtils::GetRole(bot);
-        FSB_Class cls = FSBUtils::GetBotClassForEntry(bot->GetEntry());
+        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         switch (role)
         {
@@ -323,6 +323,7 @@ namespace FSBUtilsBotCombat
         case FSB_ROLE_RANGED_DEMONOLOGY:
             return 28.0f;
 
+        case FSB_ROLE_ASSIST:
         case FSB_ROLE_HEALER:
             return 30.0f;
 

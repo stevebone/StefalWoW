@@ -91,7 +91,31 @@ enum FSB_StandardGroundMounts
 
     SPELL_MOUNT_GREAT_GREEN_ELEKK = 35712,
     SPELL_MOUNT_GREAT_BLUE_ELEKK = 35713,
-    SPELL_MOUNT_GREAT_PURPLE_ELEKK = 35714
+    SPELL_MOUNT_GREAT_PURPLE_ELEKK = 35714,
+
+    // Dwarf
+    SPELL_MOUNT_GRAY_RAM = 6777,
+    SPELL_MOUNT_WHITE_RAM = 6898,
+    SPELL_MOUNT_BROWN_RAM = 6899,
+
+    SPELL_MOUNT_SWIFT_BROWN_RAM = 23238,
+    SPELL_MOUNT_SWIFT_GRAY_RAM = 23239,
+    SPELL_MOUNT_SWIFT_WHITE_RAM = 23240,
+
+    // Gnome
+    SPELL_MOUNT_RED_MECH = 10873,
+    SPELL_MOUNT_BLUE_MECH = 10969,
+    SPELL_MOUNT_GREEN_MECH = 17453,
+    SPELL_MOUNT_NOPAINT_MECH = 17454,
+
+    SPELL_MOUNT_SWIFT_YELLOW_MECH = 23222,
+    SPELL_MOUNT_SWIFT_WHITE_MECH = 23223,
+    SPELL_MOUNT_SWIFT_GREEN_MECH = 23225,
+
+    // Worgen
+    SPELL_MOUNT_MOUNTAIN_HORSE = 103195,
+
+    SPELL_MOUNT_SWIFT_MOUNTAIN_HORSE = 103196,
 };
 
 using MountSpellList = std::vector<uint32>;
@@ -127,8 +151,24 @@ static MountRaceMap MountSpells =
     {
         FSB_Race::Dwarf,
         {
-            { 10, { /* ram mounts */ } },
-            { 20, { /* epic ram mounts */ } }
+            { 10, { SPELL_MOUNT_BROWN_RAM, SPELL_MOUNT_GRAY_RAM, SPELL_MOUNT_WHITE_RAM } },
+            { 20, { SPELL_MOUNT_SWIFT_BROWN_RAM, SPELL_MOUNT_SWIFT_GRAY_RAM, SPELL_MOUNT_SWIFT_WHITE_RAM } }
+        }
+    },
+
+    {
+        FSB_Race::Gnome,
+        {
+            { 10, { SPELL_MOUNT_RED_MECH, SPELL_MOUNT_GREEN_MECH, SPELL_MOUNT_BLUE_MECH, SPELL_MOUNT_NOPAINT_MECH} },
+            { 20, { SPELL_MOUNT_SWIFT_WHITE_MECH, SPELL_MOUNT_SWIFT_YELLOW_MECH, SPELL_MOUNT_SWIFT_GREEN_MECH } },
+        }
+    },
+
+    {
+        FSB_Race::Worgen,
+        {
+            { 10, { SPELL_MOUNT_MOUNTAIN_HORSE} },
+            { 20, { SPELL_MOUNT_SWIFT_MOUNTAIN_HORSE } },
         }
     }
 };
