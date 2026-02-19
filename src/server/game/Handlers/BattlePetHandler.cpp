@@ -303,7 +303,7 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     if (!hasPet)
     {
         WorldPackets::BattlePet::PetBattleRequestFailed failed;
-        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_ALL_PETS_DEAD;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_ALL_DEAD;
         SendPacket(failed.Write());
         return;
     }
@@ -313,7 +313,7 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     if (!creature || !creature->IsWildBattlePet())
     {
         WorldPackets::BattlePet::PetBattleRequestFailed failed;
-        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_TARGET;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_TARGET_INVALID;
         SendPacket(failed.Write());
         return;
     }
@@ -464,9 +464,9 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             }
 
             // Auto-submit AI team input for next round
-            if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_WILD)
+            if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE)
                 battle->GenerateWildTeamInput();
-            else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE_NPC)
+            else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC)
                 battle->GenerateNPCTeamInput();
         }
     }
@@ -486,7 +486,7 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
     if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
         teamIdx = PetBattles::PET_BATTLE_TEAM_2;
 
-    battle->SubmitInput(teamIdx, PetBattles::PET_BATTLE_MOVE_SWAP_PET, 0, petBattleReplaceFrontPet.FrontPetIndex);
+    battle->SubmitInput(teamIdx, PetBattles::PET_BATTLE_MOVE_SWAP, 0, petBattleReplaceFrontPet.FrontPetIndex);
 
     // If both teams have submitted (wild auto-submits), process
     if (battle->BothTeamsReady())
@@ -505,9 +505,9 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
             p2->SendDirectMessage(replacements.Write());
 
         // Re-submit AI team for next round
-        if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_WILD)
+        if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE)
             battle->GenerateWildTeamInput();
-        else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE_NPC)
+        else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC)
             battle->GenerateNPCTeamInput();
     }
 }
@@ -630,7 +630,7 @@ void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleR
     if (!hasPet)
     {
         WorldPackets::BattlePet::PetBattleRequestFailed failed;
-        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_ALL_PETS_DEAD;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_ALL_DEAD;
         SendPacket(failed.Write());
         return;
     }
@@ -639,7 +639,7 @@ void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleR
     if (!target)
     {
         WorldPackets::BattlePet::PetBattleRequestFailed failed;
-        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_TARGET;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_TARGET_INVALID;
         SendPacket(failed.Write());
         return;
     }
@@ -647,7 +647,7 @@ void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleR
     if (sPetBattleMgr->IsPlayerInBattle(target->GetGUID()))
     {
         WorldPackets::BattlePet::PetBattleRequestFailed failed;
-        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_TARGET_IN_BATTLE;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_OPPONENT_NOT_AVAILABLE;
         SendPacket(failed.Write());
         return;
     }

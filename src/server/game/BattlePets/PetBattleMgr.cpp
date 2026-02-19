@@ -599,7 +599,7 @@ void PetBattleMgr::TryMatchPlayers()
     for (Player* matchPlayer : { player1, player2 })
     {
         WorldPackets::BattlePet::PetBattleQueueStatus matchStatus;
-        matchStatus.Status = PET_BATTLE_QUEUE_STATUS_PROPOSAL;
+        matchStatus.Status = PET_BATTLE_QUEUE_STATUS_MATCHMAKING;
         matchPlayer->SendDirectMessage(matchStatus.Write());
     }
 
