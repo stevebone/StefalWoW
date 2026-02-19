@@ -228,7 +228,7 @@ static void CalculateWildPetStats(PetBattlePetData& wildPet)
 
 void PetBattle::InitWildBattle(Player* player, ObjectGuid wildCreatureGUID)
 {
-    _battleType = PET_BATTLE_TYPE_WILD;
+    _battleType = PET_BATTLE_TYPE_PVE;
     _wildCreatureGUID = wildCreatureGUID;
     _canAwardXP = true;
 
@@ -424,7 +424,7 @@ void PetBattle::ProcessRound()
             _state = PET_BATTLE_STATE_WAITING_FOR_FRONT_PET;
 
             // Wild/NPC team auto-swaps
-            if (i == PET_BATTLE_TEAM_2 && (_battleType == PET_BATTLE_TYPE_WILD || _battleType == PET_BATTLE_TYPE_PVE_NPC))
+            if (i == PET_BATTLE_TEAM_2 && (_battleType == PET_BATTLE_TYPE_PVE || _battleType == PET_BATTLE_TYPE_NPC))
             {
                 int8 nextAlive = _teams[i].GetFirstAlivePetIndex();
                 if (nextAlive >= 0)
@@ -485,7 +485,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
 
     switch (team.PendingMoveType)
     {
-        case PET_BATTLE_MOVE_USE_ABILITY:
+        case PET_BATTLE_MOVE_ABILITY:
         {
             if (!activePet.IsAlive())
                 break;
@@ -516,7 +516,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
             ApplyAbilityEffects(teamIdx, team.FrontPetIndex, team.PendingAbilityID);
             break;
         }
-        case PET_BATTLE_MOVE_SWAP_PET:
+        case PET_BATTLE_MOVE_SWAP:
         {
             if (team.PendingNewFrontPet >= 0 && team.PendingNewFrontPet < int8(team.PetCount))
             {
@@ -536,7 +536,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
         case PET_BATTLE_MOVE_TRAP:
         {
             uint8 trapStatus = GetTrapStatus(teamIdx);
-            if (trapStatus != PET_BATTLE_TRAP_STATUS_READY)
+            if (trapStatus != PET_BATTLE_TRAP_STATUS_CAN_TRAP)
                 break;
 
             PetBattleTeamData& wildTeam = _teams[PET_BATTLE_TEAM_2];
@@ -563,12 +563,13 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
             }
             break;
         }
-        case PET_BATTLE_MOVE_FORFEIT:
+        case PET_BATTLE_MOVE_QUIT:
         {
             Forfeit(teamIdx);
             break;
         }
-        case PET_BATTLE_MOVE_SKIP_TURN:
+        case PET_BATTLE_MOVE_PASS:
+        case PET_BATTLE_MOVE_FINAL_ROUND_OK:
         default:
             break;
     }
@@ -1647,18 +1648,18 @@ void PetBattle::GenerateWildTeamInput()
         int8 nextAlive = wildTeam.GetFirstAlivePetIndex();
         if (nextAlive >= 0 && nextAlive != wildTeam.FrontPetIndex)
         {
-            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP_PET, 0, nextAlive);
+            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, nextAlive);
             return;
         }
         // No alive pets, skip
-        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
         return;
     }
 
     // If locked in multi-turn, skip input (will auto-continue)
     if (frontPet.IsLockedByMultiTurn)
     {
-        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_USE_ABILITY, frontPet.MultiTurnAbilityID, -1);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, frontPet.MultiTurnAbilityID, -1);
         return;
     }
 
@@ -1695,7 +1696,7 @@ void PetBattle::GenerateWildTeamInput()
 
     if (availableAbilities.empty())
     {
-        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
         return;
     }
 
@@ -1723,7 +1724,7 @@ void PetBattle::GenerateWildTeamInput()
                 float swapTypeMod = GetTypeEffectiveness(PetBattlePetType(wildTeam.Pets[i].PetType), PetBattlePetType(defenderPet.PetType));
                 if (swapTypeMod > currentTypeMod && urand(0, 1)) // 50% chance to swap when advantageous
                 {
-                    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP_PET, 0, static_cast<int8>(i));
+                    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, static_cast<int8>(i));
                     return;
                 }
             }
@@ -1743,13 +1744,13 @@ void PetBattle::GenerateWildTeamInput()
         cumulative += std::max(0.1f, opt.priority);
         if (roll <= cumulative)
         {
-            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_USE_ABILITY, opt.abilityID, -1);
+            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, opt.abilityID, -1);
             return;
         }
     }
 
     // Fallback: use first available ability
-    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_USE_ABILITY, availableAbilities[0].abilityID, -1);
+    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, availableAbilities[0].abilityID, -1);
 }
 
 // ============================================================================
@@ -1777,11 +1778,11 @@ Player* PetBattle::GetPlayerForTeam(uint8 teamIdx) const
 
 uint8 PetBattle::GetTrapStatus(uint8 playerTeam) const
 {
-    if (_battleType == PET_BATTLE_TYPE_PVP)
-        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_PVP;
+    if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER_BATTLE;
 
-    if (_battleType == PET_BATTLE_TYPE_PVE_NPC)
-        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER;
+    if (_battleType == PET_BATTLE_TYPE_NPC)
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER_BATTLE;
 
     if (playerTeam != PET_BATTLE_TEAM_1)
         return PET_BATTLE_TRAP_STATUS_INVALID;
@@ -1790,23 +1791,23 @@ uint8 PetBattle::GetTrapStatus(uint8 playerTeam) const
     PetBattlePetData const& wildPet = wildTeam.Pets[wildTeam.FrontPetIndex];
 
     if (!wildPet.IsAlive())
-        return PET_BATTLE_TRAP_STATUS_NOT_DEAD;
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_PET_DEAD;
 
     if (wildPet.IsCaptured)
-        return PET_BATTLE_TRAP_STATUS_ALREADY_CAPTURED;
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TWICE;
 
     // Check species is capturable (boss pets are never capturable)
     if (BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(wildPet.Species))
     {
         if (!species->GetFlags().HasFlag(BattlePetSpeciesFlags::Capturable) ||
             species->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
-            return PET_BATTLE_TRAP_STATUS_NOT_CAPTURABLE;
+            return PET_BATTLE_TRAP_STATUS_CANT_TRAP_NOT_CAPTURABLE;
     }
 
     // Check health < 35% threshold
     float healthPct = wildPet.MaxHealth > 0 ? (float(wildPet.Health) / float(wildPet.MaxHealth)) : 1.0f;
     if (healthPct > 0.35f)
-        return PET_BATTLE_TRAP_STATUS_TOO_HEALTHY;
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_PET_HEALTH;
 
     // Check journal room
     Player* player = GetPlayerForTeam(playerTeam);
@@ -1814,10 +1815,10 @@ uint8 PetBattle::GetTrapStatus(uint8 playerTeam) const
     {
         BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(wildPet.Species);
         if (species && player->GetSession()->GetBattlePetMgr()->HasMaxPetCount(species, player->GetGUID()))
-            return PET_BATTLE_TRAP_STATUS_JOURNAL_FULL;
+            return PET_BATTLE_TRAP_STATUS_CANT_TRAP_NO_ROOM;
     }
 
-    return PET_BATTLE_TRAP_STATUS_READY;
+    return PET_BATTLE_TRAP_STATUS_CAN_TRAP;
 }
 
 // ============================================================================
@@ -1826,7 +1827,7 @@ uint8 PetBattle::GetTrapStatus(uint8 playerTeam) const
 
 void PetBattle::InitNPCBattle(Player* player, Creature* trainer, std::vector<NPCTeamPetInfo> const& npcTeam)
 {
-    _battleType = PET_BATTLE_TYPE_PVE_NPC;
+    _battleType = PET_BATTLE_TYPE_NPC;
     _canAwardXP = true;
 
     LoadPlayerTeam(player, _teams[PET_BATTLE_TEAM_1]);
@@ -1888,17 +1889,17 @@ void PetBattle::GenerateNPCTeamInput()
         int8 nextAlive = npcTeam.GetFirstAlivePetIndex();
         if (nextAlive >= 0 && nextAlive != npcTeam.FrontPetIndex)
         {
-            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP_PET, 0, nextAlive);
+            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, nextAlive);
             return;
         }
-        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
         return;
     }
 
     // If locked in multi-turn, auto-continue
     if (frontPet.IsLockedByMultiTurn)
     {
-        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_USE_ABILITY, frontPet.MultiTurnAbilityID, -1);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, frontPet.MultiTurnAbilityID, -1);
         return;
     }
 
@@ -1934,11 +1935,11 @@ void PetBattle::GenerateNPCTeamInput()
         {
             if (frontPet.AbilityIDs[i] != 0)
             {
-                SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_USE_ABILITY, frontPet.AbilityIDs[i], -1);
+                SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, frontPet.AbilityIDs[i], -1);
                 return;
             }
         }
-        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SKIP_TURN, 0, -1);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
         return;
     }
 
@@ -1956,7 +1957,7 @@ void PetBattle::GenerateNPCTeamInput()
                 float swapTypeMod = GetTypeEffectiveness(PetBattlePetType(npcTeam.Pets[i].PetType), PetBattlePetType(defenderPet.PetType));
                 if (swapTypeMod > currentTypeMod)
                 {
-                    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP_PET, 0, static_cast<int8>(i));
+                    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, static_cast<int8>(i));
                     return;
                 }
             }
@@ -1967,7 +1968,7 @@ void PetBattle::GenerateNPCTeamInput()
     std::sort(availableAbilities.begin(), availableAbilities.end(),
         [](AbilityOption const& a, AbilityOption const& b) { return a.priority > b.priority; });
 
-    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_USE_ABILITY, availableAbilities[0].abilityID, -1);
+    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, availableAbilities[0].abilityID, -1);
 }
 
 } // namespace PetBattles

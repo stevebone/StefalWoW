@@ -151,7 +151,7 @@ struct PetBattleTeamData
     uint8 PetCount = 0;
 
     // Pending input for this round
-    PetBattleMoveType PendingMoveType = PET_BATTLE_MOVE_SKIP_TURN;
+    PetBattleMoveType PendingMoveType = PET_BATTLE_MOVE_PASS;
     uint32 PendingAbilityID = 0;
     int8 PendingNewFrontPet = -1;
 
@@ -277,7 +277,7 @@ private:
     void GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID);
 
     uint32 _battleID = 0;
-    PetBattleType _battleType = PET_BATTLE_TYPE_WILD;
+    PetBattleType _battleType = PET_BATTLE_TYPE_PVE;
     PetBattleState _state = PET_BATTLE_STATE_CREATED;
     uint32 _currentRound = 0;
     uint32 _elapsedSecs = 0;

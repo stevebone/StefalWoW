@@ -49,9 +49,10 @@ enum PetBattleTeamIndex : uint8
 
 enum PetBattleType : uint8
 {
-    PET_BATTLE_TYPE_WILD    = 0,
-    PET_BATTLE_TYPE_PVP     = 1,
-    PET_BATTLE_TYPE_PVE_NPC = 2,
+    PET_BATTLE_TYPE_PVE     = 0,    // Wild pet battles
+    PET_BATTLE_TYPE_PVP     = 1,    // Direct PvP challenge
+    PET_BATTLE_TYPE_LFPB    = 2,    // Looking For Pet Battle (queued PvP)
+    PET_BATTLE_TYPE_NPC     = 3,    // NPC trainer battles
 };
 
 // Pet families/types - matches BattlePetSpeciesEntry::PetTypeEnum
@@ -70,14 +71,15 @@ enum PetBattlePetType : int8
     PET_TYPE_COUNT          = 10,
 };
 
-// Input action types from client
+// Input action types from client - matches PetbattleMoveType Lua enum
 enum PetBattleMoveType : uint8
 {
-    PET_BATTLE_MOVE_USE_ABILITY     = 0,
-    PET_BATTLE_MOVE_SWAP_PET        = 1,
-    PET_BATTLE_MOVE_TRAP            = 2,
-    PET_BATTLE_MOVE_FORFEIT         = 3,
-    PET_BATTLE_MOVE_SKIP_TURN       = 4,
+    PET_BATTLE_MOVE_QUIT            = 0,
+    PET_BATTLE_MOVE_ABILITY         = 1,
+    PET_BATTLE_MOVE_SWAP            = 2,
+    PET_BATTLE_MOVE_TRAP            = 3,
+    PET_BATTLE_MOVE_FINAL_ROUND_OK  = 4,
+    PET_BATTLE_MOVE_PASS            = 5,
 };
 
 // Battle states - matches client enum
@@ -101,67 +103,76 @@ enum PetBattleResult : uint8
     PET_BATTLE_RESULT_FORFEIT       = 3,
 };
 
-// Request failure reasons sent via SMSG_PET_BATTLE_REQUEST_FAILED
+// Request failure reasons sent via SMSG_PET_BATTLE_REQUEST_FAILED - matches PetbattleResult Lua enum
 enum PetBattleRequestFailReason : uint8
 {
-    PET_BATTLE_REQUEST_FAIL_INVALID_TARGET          = 0,
-    PET_BATTLE_REQUEST_FAIL_NOT_ALIVE               = 1,
-    PET_BATTLE_REQUEST_FAIL_JOURNAL_LOCK            = 2,
-    PET_BATTLE_REQUEST_FAIL_NO_PETS_IN_SLOTS        = 3,
-    PET_BATTLE_REQUEST_FAIL_NOT_ENOUGH_PETS         = 4,
-    PET_BATTLE_REQUEST_FAIL_ALL_PETS_DEAD           = 5,
-    PET_BATTLE_REQUEST_FAIL_IN_BATTLE               = 6,
-    PET_BATTLE_REQUEST_FAIL_TARGET_IN_BATTLE        = 7,
-    PET_BATTLE_REQUEST_FAIL_NOT_WHILE_IN_COMBAT     = 8,
-    PET_BATTLE_REQUEST_FAIL_NOT_WHILE_DEAD          = 9,
-    PET_BATTLE_REQUEST_FAIL_NOT_WHILE_FLYING        = 10,
-    PET_BATTLE_REQUEST_FAIL_TARGET_NOT_CAPTURABLE   = 11,
-    PET_BATTLE_REQUEST_FAIL_NOT_ON_TRANSPORT        = 12,
-    PET_BATTLE_REQUEST_FAIL_WILD_PET_TAPPED         = 13,
-    PET_BATTLE_REQUEST_FAIL_NOT_HERE                = 14,
-    PET_BATTLE_REQUEST_FAIL_NOT_HERE_ON_TRANSPORT   = 15,
-    PET_BATTLE_REQUEST_FAIL_NOT_HERE_UNEVEN_GROUND  = 16,
-    PET_BATTLE_REQUEST_FAIL_NOT_HERE_OBSTRUCTED     = 17,
-    PET_BATTLE_REQUEST_FAIL_NOT_A_TRAINER           = 18,
-    PET_BATTLE_REQUEST_FAIL_DECLINED                = 19,
-    PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT         = 20,
-    PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_ALL_DEAD= 21,
-    PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_NONE_SLOTTED = 22,
-    PET_BATTLE_REQUEST_FAIL_NO_JOURNAL_LOCK         = 23,
+    PET_BATTLE_REQUEST_FAIL_UNKNOWN                      = 0,
+    PET_BATTLE_REQUEST_FAIL_NOT_HERE                     = 1,
+    PET_BATTLE_REQUEST_FAIL_NOT_HERE_ON_TRANSPORT        = 2,
+    PET_BATTLE_REQUEST_FAIL_NOT_HERE_UNEVEN_GROUND       = 3,
+    PET_BATTLE_REQUEST_FAIL_NOT_HERE_OBSTRUCTED          = 4,
+    PET_BATTLE_REQUEST_FAIL_NOT_WHILE_IN_COMBAT          = 5,
+    PET_BATTLE_REQUEST_FAIL_NOT_WHILE_DEAD               = 6,
+    PET_BATTLE_REQUEST_FAIL_NOT_WHILE_FLYING             = 7,
+    PET_BATTLE_REQUEST_FAIL_TARGET_INVALID               = 8,
+    PET_BATTLE_REQUEST_FAIL_TARGET_OUT_OF_RANGE          = 9,
+    PET_BATTLE_REQUEST_FAIL_TARGET_NOT_CAPTURABLE        = 10,
+    PET_BATTLE_REQUEST_FAIL_NOT_A_TRAINER                = 11,
+    PET_BATTLE_REQUEST_FAIL_DECLINED                     = 12,
+    PET_BATTLE_REQUEST_FAIL_IN_BATTLE                    = 13,
+    PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT              = 14,
+    PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_ALL_DEAD     = 15,
+    PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_NONE_SLOTTED = 16,
+    PET_BATTLE_REQUEST_FAIL_NO_JOURNAL_LOCK              = 17,
+    PET_BATTLE_REQUEST_FAIL_WILD_PET_TAPPED              = 18,
+    PET_BATTLE_REQUEST_FAIL_RESTRICTED_ACCOUNT           = 19,
+    PET_BATTLE_REQUEST_FAIL_OPPONENT_NOT_AVAILABLE       = 20,
+    PET_BATTLE_REQUEST_FAIL_LOGOUT                       = 21,
+    PET_BATTLE_REQUEST_FAIL_DISCONNECT                   = 22,
+    PET_BATTLE_REQUEST_FAIL_OK                           = 23,
 };
 
-// Effect flags for combat feedback (strong/weak/crit/miss indicators)
+// Effect flags for combat feedback - matches PetbattleEffectFlags Lua enum (bitmask)
 enum PetBattleEffectFlags : uint16
 {
-    PET_BATTLE_EFFECT_FLAG_MISS    = 0x0002,
-    PET_BATTLE_EFFECT_FLAG_CRIT    = 0x0004,
-    PET_BATTLE_EFFECT_FLAG_HEAL    = 0x0020,
-    PET_BATTLE_EFFECT_FLAG_IMMUNE  = 0x0200,
-    PET_BATTLE_EFFECT_FLAG_STRONG  = 0x0400,
-    PET_BATTLE_EFFECT_FLAG_WEAK    = 0x0800,
+    PET_BATTLE_EFFECT_FLAG_NONE           = 0x0000,
+    PET_BATTLE_EFFECT_FLAG_INVALID_TARGET = 0x0001,
+    PET_BATTLE_EFFECT_FLAG_MISS           = 0x0002,
+    PET_BATTLE_EFFECT_FLAG_CRIT           = 0x0004,
+    PET_BATTLE_EFFECT_FLAG_BLOCKED        = 0x0008,
+    PET_BATTLE_EFFECT_FLAG_DODGE          = 0x0010,
+    PET_BATTLE_EFFECT_FLAG_HEAL           = 0x0020,
+    PET_BATTLE_EFFECT_FLAG_UNKILLABLE     = 0x0040,
+    PET_BATTLE_EFFECT_FLAG_REFLECT        = 0x0080,
+    PET_BATTLE_EFFECT_FLAG_ABSORB         = 0x0100,
+    PET_BATTLE_EFFECT_FLAG_IMMUNE         = 0x0200,
+    PET_BATTLE_EFFECT_FLAG_STRONG         = 0x0400,
+    PET_BATTLE_EFFECT_FLAG_WEAK           = 0x0800,
+    PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN  = 0x1000,
+    PET_BATTLE_EFFECT_FLAG_AURA_REAPPLY   = 0x2000,
 };
 
-// PetBattleEffect action types for round resolution
+// PetBattleEffect action types for round resolution - matches PetbattleEffectType Lua enum
 enum PetBattleEffectType : uint8
 {
-    PET_BATTLE_EFFECT_SET_HEALTH        = 0,
-    PET_BATTLE_EFFECT_AURA_APPLY        = 1,
-    PET_BATTLE_EFFECT_AURA_CANCEL       = 2,
-    PET_BATTLE_EFFECT_AURA_CHANGE       = 3,
-    PET_BATTLE_EFFECT_PET_SWAP          = 4,
-    PET_BATTLE_EFFECT_SET_STATE         = 5,
-    PET_BATTLE_EFFECT_SET_MAX_HEALTH    = 6,
-    PET_BATTLE_EFFECT_SET_SPEED         = 7,
-    PET_BATTLE_EFFECT_SET_POWER         = 8,
-    PET_BATTLE_EFFECT_TRIGGER_ABILITY   = 9,
-    PET_BATTLE_EFFECT_ABILITY_CHANGE    = 10,
-    PET_BATTLE_EFFECT_NPC_EMOTE         = 11,
-    PET_BATTLE_EFFECT_AURA_PROCESSING_BEGIN = 12,
-    PET_BATTLE_EFFECT_AURA_PROCESSING_END   = 13,
-    PET_BATTLE_EFFECT_STATUS_CHANGE    = 14,
-    PET_BATTLE_EFFECT_REPLACE_PET      = 15,
-    PET_BATTLE_EFFECT_OVERRIDE_ABILITY = 16,
-    PET_BATTLE_EFFECT_WORLD_STATE_UPDATE = 17,
+    PET_BATTLE_EFFECT_SET_HEALTH             = 0,
+    PET_BATTLE_EFFECT_AURA_APPLY             = 1,
+    PET_BATTLE_EFFECT_AURA_CANCEL            = 2,
+    PET_BATTLE_EFFECT_AURA_CHANGE            = 3,
+    PET_BATTLE_EFFECT_PET_SWAP               = 4,
+    PET_BATTLE_EFFECT_STATUS_CHANGE          = 5,
+    PET_BATTLE_EFFECT_SET_STATE              = 6,
+    PET_BATTLE_EFFECT_SET_MAX_HEALTH         = 7,
+    PET_BATTLE_EFFECT_SET_SPEED              = 8,
+    PET_BATTLE_EFFECT_SET_POWER              = 9,
+    PET_BATTLE_EFFECT_TRIGGER_ABILITY        = 10,
+    PET_BATTLE_EFFECT_ABILITY_CHANGE         = 11,
+    PET_BATTLE_EFFECT_NPC_EMOTE              = 12,
+    PET_BATTLE_EFFECT_AURA_PROCESSING_BEGIN  = 13,
+    PET_BATTLE_EFFECT_AURA_PROCESSING_END    = 14,
+    PET_BATTLE_EFFECT_REPLACE_PET            = 15,
+    PET_BATTLE_EFFECT_OVERRIDE_ABILITY       = 16,
+    PET_BATTLE_EFFECT_WORLD_STATE_UPDATE     = 17,
 };
 
 // Aura types for pet battle
@@ -255,18 +266,18 @@ inline float GetTypeEffectiveness(PetBattlePetType attackerType, PetBattlePetTyp
 // Aquatic: Harmful DoT effects reduced by 25%
 // Mechanical: Comes back to life once per battle at 20% HP
 
-// Trap status codes for capture validation
+// Trap status codes for capture validation - matches PetbattleTrapstatus Lua enum
 enum PetBattleTrapStatus : uint8
 {
-    PET_BATTLE_TRAP_STATUS_INVALID              = 0,
-    PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER    = 1,
-    PET_BATTLE_TRAP_STATUS_CANT_TRAP_PVP        = 2,
-    PET_BATTLE_TRAP_STATUS_NOT_CAPTURABLE       = 3,
-    PET_BATTLE_TRAP_STATUS_NOT_DEAD             = 4,
-    PET_BATTLE_TRAP_STATUS_ALREADY_CAPTURED     = 5,
-    PET_BATTLE_TRAP_STATUS_TOO_HEALTHY          = 6,
-    PET_BATTLE_TRAP_STATUS_JOURNAL_FULL         = 7,
-    PET_BATTLE_TRAP_STATUS_READY                = 8,
+    PET_BATTLE_TRAP_STATUS_INVALID                  = 0,
+    PET_BATTLE_TRAP_STATUS_CAN_TRAP                 = 1,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_NEWBIE          = 2,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_PET_DEAD        = 3,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_PET_HEALTH      = 4,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_NO_ROOM         = 5,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_NOT_CAPTURABLE  = 6,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER_BATTLE  = 7,
+    PET_BATTLE_TRAP_STATUS_CANT_TRAP_TWICE           = 8,
 };
 
 // Pet status flags for battle state display
@@ -287,30 +298,43 @@ enum PetBattleInputFlags : uint8
     PET_BATTLE_INPUT_FLAG_WAITING_FOR_PET   = 0x08,
 };
 
-// Aura state flags
+// Aura state flags - matches PetbattleAuraStateFlags Lua enum (bitmask)
 enum PetBattleAuraStateFlags : uint8
 {
-    PET_BATTLE_AURA_STATE_NONE          = 0x00,
-    PET_BATTLE_AURA_STATE_JUST_APPLIED  = 0x01,
-    PET_BATTLE_AURA_STATE_INFINITE      = 0x02,
+    PET_BATTLE_AURA_STATE_NONE                  = 0x00,
+    PET_BATTLE_AURA_STATE_INFINITE              = 0x01,
+    PET_BATTLE_AURA_STATE_CANCELED              = 0x02,
+    PET_BATTLE_AURA_STATE_INIT_DISABLED         = 0x04,
+    PET_BATTLE_AURA_STATE_COUNTDOWN_FIRST_ROUND = 0x08,
+    PET_BATTLE_AURA_STATE_JUST_APPLIED          = 0x10,
+    PET_BATTLE_AURA_STATE_REMOVE_EVENT_HANDLED  = 0x20,
 };
 
-// PvP queue status codes - matches client enum
+// PvP queue status codes - matches PetBattleQueueStatus Lua enum
 enum PetBattleQueueStatus : uint8
 {
-    PET_BATTLE_QUEUE_STATUS_NONE                    = 0,
-    PET_BATTLE_QUEUE_STATUS_QUEUED                  = 1,
-    PET_BATTLE_QUEUE_STATUS_MATCHMAKING             = 2,
-    PET_BATTLE_QUEUE_STATUS_PROPOSAL                = 3,
-    PET_BATTLE_QUEUE_STATUS_MATCH_ACCEPTED          = 4,
-    PET_BATTLE_QUEUE_STATUS_MATCH_DECLINED          = 5,
-    PET_BATTLE_QUEUE_STATUS_MATCH_OPPONENT_DECLINED = 6,
-    PET_BATTLE_QUEUE_STATUS_ALREADY_QUEUED          = 7,
-    PET_BATTLE_QUEUE_STATUS_REMOVED                 = 8,
-    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED             = 9,
-    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_SLOTS       = 10,
-    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_JOURNAL_LOCK= 11,
-    PET_BATTLE_QUEUE_STATUS_UPDATE                  = 12,
+    PET_BATTLE_QUEUE_STATUS_NONE                          = 0,
+    PET_BATTLE_QUEUE_STATUS_QUEUED                        = 1,
+    PET_BATTLE_QUEUE_STATUS_QUEUED_UPDATE                 = 2,
+    PET_BATTLE_QUEUE_STATUS_ALREADY_QUEUED                = 3,
+    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED                   = 4,
+    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_SLOTS             = 5,
+    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_JOURNAL_LOCK      = 6,
+    PET_BATTLE_QUEUE_STATUS_JOIN_FAILED_NEUTRAL           = 7,
+    PET_BATTLE_QUEUE_STATUS_MATCH_ACCEPTED                = 8,
+    PET_BATTLE_QUEUE_STATUS_MATCH_DECLINED                = 9,
+    PET_BATTLE_QUEUE_STATUS_MATCH_OPPONENT_DECLINED       = 10,
+    PET_BATTLE_QUEUE_STATUS_PROPOSAL_TIMED_OUT            = 11,
+    PET_BATTLE_QUEUE_STATUS_REMOVED                       = 12,
+    PET_BATTLE_QUEUE_STATUS_REQUEUED_AFTER_INTERNAL_ERROR = 13,
+    PET_BATTLE_QUEUE_STATUS_REQUEUED_AFTER_OPPONENT_REMOVED = 14,
+    PET_BATTLE_QUEUE_STATUS_MATCHMAKING                   = 15,
+    PET_BATTLE_QUEUE_STATUS_LOST_CONNECTION                = 16,
+    PET_BATTLE_QUEUE_STATUS_SHUTDOWN                       = 17,
+    PET_BATTLE_QUEUE_STATUS_SUSPENDED                      = 18,
+    PET_BATTLE_QUEUE_STATUS_UNSUSPENDED                    = 19,
+    PET_BATTLE_QUEUE_STATUS_IN_BATTLE                      = 20,
+    PET_BATTLE_QUEUE_STATUS_NO_BATTLING_HERE               = 21,
 };
 
 // Crit hit constants
