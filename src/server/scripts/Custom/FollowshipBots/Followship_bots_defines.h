@@ -12,7 +12,9 @@ enum class FSB_Class : uint8
     Paladin = 6,
     Hunter = 7,
     Warlock = 8,
-    Shaman = 9
+    Shaman = 9,
+    Monk = 10,
+    DeathKnight = 11
 };
 
 enum class FSB_Race : uint8

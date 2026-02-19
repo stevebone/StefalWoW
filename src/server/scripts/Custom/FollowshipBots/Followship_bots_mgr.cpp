@@ -449,6 +449,7 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     auto& botClass = baseAI->botClass;
     auto& botRace = baseAI->botRace;
     auto& botStats = baseAI->botStats;
+    auto& botRole = baseAI->botRole;
 
     // Initial Flags and States
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
@@ -462,6 +463,9 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     SetBotClassAndRace(bot, botClass, botRace);
     FSBStats::ApplyBotBaseClassStats(bot, botClass);
     botStats = FSBBotStats();
+    botRole = GetRandomRoleForClass(botClass);
+    TC_LOG_INFO("scripts.ai.fsb", "Assigned random role {} to bot {}", botRole, bot->GetName());
+
 }
 
 void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)
@@ -567,9 +571,72 @@ void FSBMgr::SetBotRace(Creature* creature, FSB_Race& outRace)
     outRace = race;
 }
 
+uint32 FSBMgr::GetAvailableRolesForClass(FSB_Class botClass)
+{
+    switch (botClass)
+    {
+    case FSB_Class::Warrior:
+        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_MELEE_DAMAGE;
 
+    case FSB_Class::Paladin:
+        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE;
 
+    case FSB_Class::Hunter:
+        return FSB_ROLEMASK_RANGED_DAMAGE;
 
+    case FSB_Class::Rogue:
+        return FSB_ROLEMASK_MELEE_DAMAGE;
+
+    case FSB_Class::Priest:
+        return FSB_ROLEMASK_HEALER | FSB_ROLEMASK_RANGED_DAMAGE | FSB_ROLEMASK_ASSIST;
+
+    case FSB_Class::Shaman:
+        return FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_RANGED_DAMAGE;
+
+    case FSB_Class::Mage:
+        return FSB_ROLEMASK_RANGED_ARCANE | FSB_ROLEMASK_RANGED_FIRE | FSB_ROLEMASK_RANGED_FROST;
+
+    case FSB_Class::Warlock:
+        return FSB_ROLEMASK_RANGED_DEMONOLOGY | FSB_ROLEMASK_RANGED_AFFLICTION | FSB_ROLEMASK_RANGED_DESTRUCTION;
+
+    case FSB_Class::Druid:
+        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_RANGED_DAMAGE;
+
+    case FSB_Class::DeathKnight:
+        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_MELEE_DAMAGE;
+
+    case FSB_Class::Monk:
+        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE;
+
+    default:
+        return 0;
+    }
+}
+
+FSB_Roles FSBMgr::GetRandomRoleForClass(FSB_Class botClass)
+{
+    uint32 mask = GetAvailableRolesForClass(botClass);
+    if (mask == 0)
+        return FSB_ROLE_NONE;
+
+    std::vector<FSB_Roles> roles;
+
+    // Loop through ALL roles and check if their mask is in the class mask
+    for (int r = FSB_ROLE_NONE + 1; r <= FSB_ROLE_RANGED_DESTRUCTION; ++r)
+    {
+        FSB_Roles role = static_cast<FSB_Roles>(r);
+        uint32 roleMask = RoleToMask(role);
+
+        if (roleMask != 0 && (mask & roleMask))
+            roles.push_back(role);
+    }
+
+    if (roles.empty())
+        return FSB_ROLE_NONE;
+
+    uint32 idx = urand(0, roles.size() - 1);
+    return roles[idx];
+}
 
 
 

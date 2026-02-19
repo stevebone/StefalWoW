@@ -101,6 +101,9 @@ public:
     FSB_Race GetBotRaceForEntry(uint32 entry);
     void SetBotRace(Creature* creature, FSB_Race& outRace);
 
+    uint32 GetAvailableRolesForClass(FSB_Class botClass);
+    FSB_Roles GetRandomRoleForClass(FSB_Class botClass);
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
 };
