@@ -23,11 +23,21 @@
 #include <array>
 #include <vector>
 
+class Creature;
 class Player;
 struct BattlePetAbilityEffectEntry;
 
 namespace PetBattles
 {
+
+struct NPCTeamPetInfo;
+
+struct DamageResult
+{
+    int32 Damage = 0;
+    bool IsCrit = false;
+    float TypeMod = 1.0f;
+};
 
 struct PetBattleAura
 {
@@ -42,6 +52,7 @@ struct PetBattleAura
     PetBattleAuraType AuraType = PET_BATTLE_AURA_BUFF;
     int32 DamagePerTick = 0;        // damage or healing per tick
     int8 PetType = -1;              // pet type of the caster for type effectiveness on DoTs
+    uint8 StateFlags = PET_BATTLE_AURA_STATE_NONE;
 };
 
 struct PetBattleEnvironment
@@ -79,6 +90,7 @@ struct PetBattlePetData
     // Ability IDs (up to 3 per pet)
     std::array<uint32, MAX_PET_BATTLE_ABILITIES> AbilityIDs = {};
     std::array<int8, MAX_PET_BATTLE_ABILITIES> AbilityCooldowns = {};
+    std::array<int8, MAX_PET_BATTLE_ABILITIES> AbilityLockdowns = {};
 
     // Multi-turn ability state
     int32 MultiTurnAbilityID = 0;       // currently executing multi-turn ability (0 = none)
@@ -164,6 +176,7 @@ struct PetBattleTeamData
 struct PetBattleRoundEffect
 {
     uint32 AbilityEffectID = 0;
+    uint16 Flags = 0;
     uint8 EffectType = 0;
     uint8 SourceTeam = 0;
     uint8 SourcePet = 0;
@@ -196,6 +209,7 @@ public:
     // Setup
     void InitWildBattle(Player* player, ObjectGuid wildCreatureGUID);
     void InitPvPBattle(Player* player1, Player* player2);
+    void InitNPCBattle(Player* player, Creature* trainer, std::vector<NPCTeamPetInfo> const& npcTeam);
 
     // State machine
     void Start();
@@ -211,8 +225,12 @@ public:
     uint8 GetWinnerTeam() const { return _winnerTeam; }
     Player* GetPlayerForTeam(uint8 teamIdx) const;
 
+    // Trap validation
+    uint8 GetTrapStatus(uint8 playerTeam) const;
+
     // AI for wild/NPC teams
     void GenerateWildTeamInput();
+    void GenerateNPCTeamInput();
 
     // Round resolution results
     std::vector<PetBattleRoundEffect> const& GetRoundEffects() const { return _roundEffects; }
@@ -226,7 +244,7 @@ private:
         uint8 defenderTeam, uint8 defenderPet, uint32 abilityID);
 
     // Damage/healing with passive family abilities applied
-    int32 CalculateAbilityDamage(int32 abilityPower, int32 attackerPower, PetBattlePetType abilityType,
+    DamageResult CalculateAbilityDamage(int32 abilityPower, int32 attackerPower, PetBattlePetType abilityType,
         PetBattlePetData const& attacker, PetBattlePetData& defender);
     int32 CalculateAbilityHealing(int32 healPower, int32 attackerPower, PetBattlePetData const& healer);
 
@@ -266,6 +284,7 @@ private:
     uint32 _updateTimer = 0;
     uint8 _winnerTeam = 0;
     bool _canAwardXP = true;
+    bool _maxLengthWarningSent = false;
     uint32 _nextAuraInstanceID = 1;
 
     std::array<PetBattleTeamData, MAX_PET_BATTLE_PLAYERS> _teams;
