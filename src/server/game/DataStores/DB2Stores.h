@@ -317,6 +317,13 @@ TC_GAME_API extern DB2Storage<VehicleSeatEntry>                     sVehicleSeat
 TC_GAME_API extern DB2Storage<VignetteEntry>                        sVignetteStore;
 TC_GAME_API extern DB2Storage<WarbandSceneEntry>                    sWarbandSceneStore;
 TC_GAME_API extern DB2Storage<WarbandScenePlacementEntry>           sWarbandScenePlacementStore;
+TC_GAME_API extern DB2Storage<WarbandSceneAnimationEntry>           sWarbandSceneAnimationStore;
+TC_GAME_API extern DB2Storage<WarbandSceneAnimChrSpecEntry>         sWarbandSceneAnimChrSpecStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementFilterReqEntry>  sWarbandScenePlacementFilterReqStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementOptionEntry>     sWarbandScenePlacementOptionStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlcmntAnimOverrideEntry>  sWarbandScenePlcmntAnimOverrideStore;
+TC_GAME_API extern DB2Storage<WarbandPlacementDisplayInfoEntry>     sWarbandPlacementDisplayInfoStore;
+TC_GAME_API extern DB2Storage<WarbandSceneSourceInfoEntry>          sWarbandSceneSourceInfoStore;
 TC_GAME_API extern DB2Storage<WorldEffectEntry>                     sWorldEffectStore;
 TC_GAME_API extern DB2Storage<WorldMapOverlayEntry>                 sWorldMapOverlayStore;
 TC_GAME_API extern DB2Storage<WorldStateExpressionEntry>            sWorldStateExpressionStore;

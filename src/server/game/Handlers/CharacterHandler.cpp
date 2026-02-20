@@ -647,10 +647,10 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
 {
     uint32 battlenetAccountId = GetBattlenetAccountId();
 
-    // Validate: max 5 groups
-    if (setupWarbandGroups.Groups.size() > 5)
+    // Validate: max 20 groups (retail 11.1+)
+    if (setupWarbandGroups.Groups.size() > 20)
     {
-        TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent {} groups, max is 5",
+        TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent {} groups, max is 20",
             battlenetAccountId, setupWarbandGroups.Groups.size());
         return;
     }

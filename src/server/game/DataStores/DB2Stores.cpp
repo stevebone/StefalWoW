@@ -397,6 +397,13 @@ DB2Storage<VehicleSeatEntry>                    sVehicleSeatStore("VehicleSeat.d
 DB2Storage<VignetteEntry>                       sVignetteStore("Vignette.db2", &VignetteLoadInfo::Instance);
 DB2Storage<WarbandSceneEntry>                   sWarbandSceneStore("WarbandScene.db2", &WarbandSceneLoadInfo::Instance);
 DB2Storage<WarbandScenePlacementEntry>          sWarbandScenePlacementStore("WarbandScenePlacement.db2", &WarbandScenePlacementLoadInfo::Instance);
+DB2Storage<WarbandSceneAnimationEntry>          sWarbandSceneAnimationStore("WarbandSceneAnimation.db2", &WarbandSceneAnimationLoadInfo::Instance);
+DB2Storage<WarbandSceneAnimChrSpecEntry>        sWarbandSceneAnimChrSpecStore("WarbandSceneAnimChrSpec.db2", &WarbandSceneAnimChrSpecLoadInfo::Instance);
+DB2Storage<WarbandScenePlacementFilterReqEntry> sWarbandScenePlacementFilterReqStore("WarbandScenePlacementFilterReq.db2", &WarbandScenePlacementFilterReqLoadInfo::Instance);
+DB2Storage<WarbandScenePlacementOptionEntry>    sWarbandScenePlacementOptionStore("WarbandScenePlacementOption.db2", &WarbandScenePlacementOptionLoadInfo::Instance);
+DB2Storage<WarbandScenePlcmntAnimOverrideEntry> sWarbandScenePlcmntAnimOverrideStore("WarbandScenePlcmntAnimOverride.db2", &WarbandScenePlcmntAnimOverrideLoadInfo::Instance);
+DB2Storage<WarbandPlacementDisplayInfoEntry>    sWarbandPlacementDisplayInfoStore("WarbandPlacementDisplayInfo.db2", &WarbandPlacementDisplayInfoLoadInfo::Instance);
+DB2Storage<WarbandSceneSourceInfoEntry>         sWarbandSceneSourceInfoStore("WarbandSceneSourceInfo.db2", &WarbandSceneSourceInfoLoadInfo::Instance);
 DB2Storage<WMOAreaTableEntry>                   sWMOAreaTableStore("WMOAreaTable.db2", &WmoAreaTableLoadInfo::Instance);
 DB2Storage<WorldEffectEntry>                    sWorldEffectStore("WorldEffect.db2", &WorldEffectLoadInfo::Instance);
 DB2Storage<WorldMapOverlayEntry>                sWorldMapOverlayStore("WorldMapOverlay.db2", &WorldMapOverlayLoadInfo::Instance);
@@ -1029,6 +1036,13 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sVignetteStore);
     LOAD_DB2(sWarbandSceneStore);
     LOAD_DB2(sWarbandScenePlacementStore);
+    LOAD_DB2(sWarbandSceneAnimationStore);
+    LOAD_DB2(sWarbandSceneAnimChrSpecStore);
+    LOAD_DB2(sWarbandScenePlacementFilterReqStore);
+    LOAD_DB2(sWarbandScenePlacementOptionStore);
+    LOAD_DB2(sWarbandScenePlcmntAnimOverrideStore);
+    LOAD_DB2(sWarbandPlacementDisplayInfoStore);
+    LOAD_DB2(sWarbandSceneSourceInfoStore);
     LOAD_DB2(sWMOAreaTableStore);
     LOAD_DB2(sWorldEffectStore);
     LOAD_DB2(sWorldMapOverlayStore);
