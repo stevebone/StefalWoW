@@ -91,7 +91,7 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_POLYMORPH:
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
-            return CheckCrowdControlRequirements(bot);
+            return CheckCrowdControlRequirements(bot, 8.f);
         }
 
         case SPELL_PRIEST_DESPERATE_PRAYER:
@@ -169,13 +169,17 @@ namespace FSBSpellsUtils
         return false;
     }
 
-    bool CheckCrowdControlRequirements(Creature* bot)
+    bool CheckCrowdControlRequirements(Creature* bot, float range)
     {
         if (!bot || !bot->IsAlive())
             return false;
 
-        if (FSBCombatUtils::HasHostileInRange(bot, 8.f, 2))
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (player && FSBCombatUtils::HasHostileInRange(bot, range, 3))
             return true;
+
+        else (FSBCombatUtils::HasHostileInRange(bot, range, 2));
 
         return false;
     }
