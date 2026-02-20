@@ -787,20 +787,10 @@ void BattlePetMgr::GrantBattlePetLevel(ObjectGuid guid, uint16 grantedLevels)
     SendUpdates(updates, false);
 }
 
-void BattlePetMgr::SyncBattlePetHealth(ObjectGuid guid, int32 newHealth)
-{
-    BattlePet* pet = GetPet(guid);
-    if (!pet)
-        return;
-
-    pet->PacketInfo.Health = static_cast<uint32>(std::clamp(newHealth, 0, int32(pet->PacketInfo.MaxHealth)));
-
-    if (pet->SaveInfo != BATTLE_PET_NEW)
-        pet->SaveInfo = BATTLE_PET_CHANGED;
-}
-
 void BattlePetMgr::HealBattlePetsPct(uint8 pct)
 {
+    // TODO: After each Pet Battle, any injured companion will automatically
+    // regain 50 % of the damage that was taken during combat
     std::vector<std::reference_wrapper<BattlePet const>> updates;
 
     for (auto& [_, pet] : _pets)
