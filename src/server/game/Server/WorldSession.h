@@ -211,6 +211,7 @@ namespace WorldPackets
         class BattlePetClearFanfare;
         class BattlePetSummon;
         class BattlePetUpdateNotify;
+        class BattlePetUpdateDisplayNotify;
         class CageBattlePet;
         // Pet Battle combat
         class PetBattleRequestWild;
