@@ -469,3 +469,34 @@ namespace FSBUtilsOwnerCombat
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttackedBy attacker: {}, move state: {}", attacker->GetName(), moveState);
     }
 }
+
+namespace FSBCombatUtils
+{
+    bool HasHostileInRange(Unit* me, float range, uint32 count)
+    {
+        if (!me)
+            return false;
+
+        uint32 found = 0;
+
+        std::list<Unit*> targets;
+        Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(me, me, range);
+        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, check);
+
+        Cell::VisitAllObjects(me, searcher, range);
+
+        for (Unit* u : targets)
+        {
+            if (!u->IsAlive())
+                continue;
+
+            if (!me->IsValidAttackTarget(u))
+                continue;
+
+            if (++found >= count)
+                return true;
+        }
+
+        return false;
+    }
+}

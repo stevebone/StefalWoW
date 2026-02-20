@@ -137,7 +137,8 @@ namespace FSBOOC
         if (target && bot->GetMapId() == target->GetMapId() && bot->GetDistance(target) > 30.0f)
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect target {} too far from bot: {}", target->GetName(), bot->GetName());
-            bot->GetMotionMaster()->MoveChase(target, 28.f);
+            //bot->GetMotionMaster()->MoveChase(target, 28.f);
+            bot->GetMotionMaster()->MoveCloserAndStop(4, target, 28.f);
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
             return false;
         }

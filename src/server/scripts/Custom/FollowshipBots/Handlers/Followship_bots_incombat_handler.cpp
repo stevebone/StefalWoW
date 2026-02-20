@@ -112,7 +112,7 @@ namespace FSBIC
 
         
         // TO-DO move this to its own action before other combat related spells
-        if (dmgSpell->def->spellId == SPELL_MAGE_POLYMORPH || dmgSpell->def->spellId == SPELL_WARLOCK_FEAR || dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE)
+        if (dmgSpell->def->spellId == SPELL_MAGE_POLYMORPH || dmgSpell->def->spellId == SPELL_WARLOCK_FEAR || dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE || dmgSpell->def->spellId == SPELL_WARLOCK_HAVOC)
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
         if (dmgSpell && target)
@@ -216,7 +216,7 @@ namespace FSBIC
 
         auto& runtimeSpells = baseAI->botRuntimeSpells;
 
-        auto selfHeals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, true);
+        auto selfHeals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, false);
 
         FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(bot, selfHeals, bot);
 

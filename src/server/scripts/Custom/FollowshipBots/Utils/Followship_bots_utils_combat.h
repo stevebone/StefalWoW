@@ -55,3 +55,8 @@ namespace FSBUtilsOwnerCombat
     // Bot reaction when owner is attacked by target
     void OnBotOwnerAttackedBy(Unit* attacker, Creature* bot, uint16 moveState);
 }
+
+namespace FSBCombatUtils
+{
+    bool HasHostileInRange(Unit* me, float range, uint32 count);
+}

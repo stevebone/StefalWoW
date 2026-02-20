@@ -653,9 +653,10 @@ public:
 
                 if (victim && victim->IsAlive())
                 {
-                    if (!me->IsValidAttackTarget(victim) &&
-                        victim->IsInCombatWith(me->GetOwner()))
+                    if (!me->IsValidAttackTarget(victim) && victim->IsInCombatWith(me->GetOwner()) ||
+                        !me->IsHostileTo(victim) && victim->IsInCombatWith(me->GetOwner()))
                     {
+                        victim->SetFaction(14);
                         me->GetCombatManager().SetInCombatWith(victim);
                         victim->GetCombatManager().SetInCombatWith(me);
                     }

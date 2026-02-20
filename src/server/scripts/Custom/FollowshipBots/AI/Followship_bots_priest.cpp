@@ -70,7 +70,7 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
     { SPELL_PRIEST_ULTIMATE_PENITENCE,  FSBSpellType::Damage,   0.f,       0.f,            80.f,           40.f,           false,       240000,         FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_PRIEST_HOLY_FIRE,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           40.f,           false,       10000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_PRIEST_PENANCE,             FSBSpellType::Damage,   0.f,       0.f,            55.f,           40.f,           false,       9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_PRIEST_HOLY_NOVA,           FSBSpellType::Damage,   0.f,       0.f,            80.f,           6.f,            true,        1000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_HOLY_NOVA,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           6.f,            true,        1000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 };
 
 

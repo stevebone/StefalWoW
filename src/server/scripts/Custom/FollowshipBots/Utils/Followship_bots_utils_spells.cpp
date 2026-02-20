@@ -78,9 +78,9 @@ namespace FSBSpellsUtils
             // Can only be cast on more than 2/3 attackers
             // OR when 2/3 attackers are around
             // This way we limit spells to CC instead of general/spam use
+        case SPELL_WARLOCK_HOWL_TERROR:
         case SPELL_DRUID_HIBERNATE:
         case SPELL_DRUID_STARFIRE:
-        case SPELL_WARLOCK_FEAR:
         case SPELL_PALADIN_DIVINE_STORM:
         case SPELL_WARRIOR_COLOSSUS_SMASH:
         case SPELL_WARRIOR_CLEAVE:
@@ -91,19 +91,7 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_POLYMORPH:
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
-            Player* player = FSBMgr::Get()->GetBotOwner(bot);
-
-            if (!player)
-            {
-                uint8 attackers = FSBUtilsCombat::CountAttackersOn(bot);
-                return attackers >= 2;
-            }
-
-            uint8 attackers =
-                FSBUtilsCombat::CountActiveAttackers(bot) +
-                (player ? FSBUtilsCombat::CountActiveAttackers(player) : 0);
-
-            return attackers >= 3;
+            return CheckCrowdControlRequirements(bot);
         }
 
         case SPELL_PRIEST_DESPERATE_PRAYER:
@@ -176,6 +164,17 @@ namespace FSBSpellsUtils
             return true;
 
         if (HasAnyMechanic(bot, { MECHANIC_BLEED }))
+            return true;
+
+        return false;
+    }
+
+    bool CheckCrowdControlRequirements(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (FSBCombatUtils::HasHostileInRange(bot, 8.f, 2))
             return true;
 
         return false;

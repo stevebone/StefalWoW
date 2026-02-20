@@ -122,7 +122,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 9,
-        .spellPowerPerLevel = 2
+        .spellPowerPerLevel = 4
     },
 
     // MAGE
@@ -143,7 +143,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 10,
-        .spellPowerPerLevel = 4
+        .spellPowerPerLevel = 5
     },
 
     // DRUID
