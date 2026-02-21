@@ -174,20 +174,20 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .powerType = POWER_ENERGY,
         .baseHealth = 100,
         .basePower = 100,
-        .healthPerLevel = 22,
-        .powerPerLevel = 10,
-        .baseHpRegenOOC = 4,
+        .healthPerLevel = 52,
+        .powerPerLevel = 0,
+        .baseHpRegenOOC = 3,
         .basePowerRegenOOC = 10,
         .baseHpRegenIC = 0,
-        .basePowerRegenIC = 2,
-        .baseAttackPower = 60,
+        .basePowerRegenIC = 10,
+        .baseAttackPower = 10,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 10,
+        .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 1.2f,
         .baseAttackTime = 1500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 1,
-        .spellPowerPerLevel = 2
+        .spellPowerPerLevel = 1
     },
 };
 

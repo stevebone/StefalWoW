@@ -47,6 +47,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('912', '900003', '-1'),
 ('912', '900004', '-1'),
 ('912', '900005', '-1'),
+('915', '900000', '-1'),
+('915', '900001', '-1'),
+('915', '900002', '-1'),
+('915', '900003', '-1'),
+('915', '900004', '-1'),
+('915', '900005', '-1'),
 ('925', '900000', '-1'),
 ('925', '900001', '-1'),
 ('925', '900002', '-1'),
@@ -140,6 +146,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 375; -- Priest
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 459; -- Drusilla la Salle (Warlock)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 911; -- Warrior
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 915; -- Rogue
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 141508; -- Stormwind Priest

@@ -26,7 +26,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 50595, FSB_Class::Warrior,            FSB_Race::Human },      // Stormwind Defender
     { 46405, FSB_Class::Warrior,            FSB_Race::Human },      // Stockade Guard
     { 16503, FSB_Class::Warrior,            FSB_Race::Draenei },    // Kore
-    { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf },   // Alyissia
+    { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf, 15067 },   // Alyissia
 
     // MAGES
     { 198,   FSB_Class::Mage,               FSB_Race::Human, 10697 },      // Khelden Bremen
@@ -37,16 +37,16 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     // PALADINS
     { 925, FSB_Class::Paladin,              FSB_Race::Human },      // Brother Sammuel
     { 926, FSB_Class::Paladin,              FSB_Race::Dwarf },      // 
-    { 16501, FSB_Class::Paladin,            FSB_Race::Draenei },    // Aurelon (Draenei)
+    { 16501, FSB_Class::Paladin,            FSB_Race::Draenei, 408311 },    // Aurelon (Draenei)
 
     // WARLOCKS
     { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252 },      // Drusilla la Salle
 
     // DRUID
-    { 3597,  FSB_Class::Druid,            FSB_Race::NightElf },   // Mardant
+    { 3597,  FSB_Class::Druid,            FSB_Race::NightElf, 15067 },   // Mardant
 
     // ROGUES
-    //{ 90030, FSB_Class::Rogue },
+    { 915, FSB_Class::Rogue,                FSB_Race::Human, },     // Jorik Kerridan
 };
 
 

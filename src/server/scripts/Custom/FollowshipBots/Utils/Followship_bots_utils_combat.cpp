@@ -309,10 +309,10 @@ namespace FSBUtilsBotCombat
         switch (role)
         {
         case FSB_ROLE_TANK:
-            return 2.0f;   // glue yourself to target
+            return 1.0f;   // glue yourself to target
 
         case FSB_ROLE_MELEE_DAMAGE:
-            return 2.5f;
+            return 2.f;
 
         case FSB_ROLE_RANGED_ARCANE:
         case FSB_ROLE_RANGED_FIRE:

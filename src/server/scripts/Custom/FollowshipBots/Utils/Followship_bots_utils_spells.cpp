@@ -10,6 +10,7 @@
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
+#include "Followship_bots_rogue.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 #include "Followship_bots_utils.h"
@@ -118,6 +119,7 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+        case SPELL_ROGUE_KICK:
         case SPELL_PRIEST_SILENCE:
         case SPELL_WARLOCK_CURSE_TONGUES:
         case SPELL_PALADIN_REBUKE:
@@ -138,7 +140,7 @@ namespace FSBSpellsUtils
         case SPELL_PALADIN_DIVINE_SHIELD:
             return bot->GetPowerPct(POWER_MANA) < 20;
 
-        case SPELL_WARRIOR_GIFT_NAARU:
+        case SPELL_DRAENEI_GIFT_NAARU:
             return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Draenei;
 
         case SPELL_DWARF_STONEFORM:
