@@ -365,6 +365,41 @@ Most currencies: 1:1. Some with loss:
 
 ---
 
+## Git Branching Strategy
+
+Each phase is developed on its own branch and submitted as a separate PR when the full featureset is complete.
+
+### Branch Naming
+```
+warband/phase1-scene
+warband/phase2-items
+warband/phase3-bank
+warband/phase4-reputation
+warband/phase5-currency
+warband/phase6-flightpath-xp
+warband/phase7-achievements
+warband/phase8-transmog
+warband/phase9-delves
+```
+
+### Workflow
+1. Each phase branches from the previous phase (stacked branches)
+2. Base commit: `0b6d4eaf8e` (Core: Updated to 12.0.1)
+3. When starting a new phase: `git checkout warband/phaseN-xxx && git checkout -b warband/phaseN+1-yyy`
+4. PRs are created when the entire warband featureset is complete
+5. PRs are submitted in order, each targeting `master`
+6. After each PR merges, rebase the next branch onto updated `master`
+
+### Current Branch Status
+| Branch | Status | Base |
+|--------|--------|------|
+| `warband/phase1-scene` | Complete | `0b6d4eaf8e` |
+| `warband/phase2-items` | Not started | Will branch from phase1 |
+| `warband/phase3-bank` | Not started | Will branch from phase2 |
+| ... | ... | ... |
+
+---
+
 ## Reference Resources
 
 ### IDA Decompilation (C:\dump2)
