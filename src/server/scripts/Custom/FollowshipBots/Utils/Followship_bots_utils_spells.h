@@ -219,6 +219,7 @@ namespace FSBSpellsUtils
     const MountSpellList* GetMountSpellsForBot(FSB_Race race, uint8 level);
     uint32 GetRandomMountSpellForBot(Creature* bot);
     bool CastRandomMountLevelSpell(Creature* bot);
+    uint32 GetBotCompanionSpellForEntry(uint32 entry);
 
     Aura* FindEnemyBuffToDispel(Unit* enemy);
 

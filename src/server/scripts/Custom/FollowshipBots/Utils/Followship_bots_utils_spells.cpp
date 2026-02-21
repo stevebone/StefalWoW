@@ -278,6 +278,17 @@ namespace FSBSpellsUtils
         return false;
     }
 
+    uint32 GetBotCompanionSpellForEntry(uint32 entry)
+    {
+        for (auto const& map : BotEntryClassTable)
+        {
+            if (map.entry == entry)
+                return map.companionSpell;
+        }
+
+        return 0;
+    }
+
     Aura* FindEnemyBuffToDispel(Unit* enemy)
     {
         for (auto const& auraPair : enemy->GetAppliedAuras())

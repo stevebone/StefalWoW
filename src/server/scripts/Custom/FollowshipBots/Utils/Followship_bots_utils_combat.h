@@ -59,4 +59,5 @@ namespace FSBUtilsOwnerCombat
 namespace FSBCombatUtils
 {
     bool HasHostileInRange(Unit* me, float range, uint32 count);
+    bool IsOutOfCombatFor(Creature* bot, uint32 ms);
 }

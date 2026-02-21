@@ -499,4 +499,23 @@ namespace FSBCombatUtils
 
         return false;
     }
+
+    bool IsOutOfCombatFor(Creature* bot, uint32 ms)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto combatTimer = baseAI->botOutOfCombatTimer;
+
+        // Prevent triggering before first combat
+        if (combatTimer == 0)
+            return false;
+
+
+        return GetMSTimeDiffToNow(combatTimer) >= ms;
+    }
 }

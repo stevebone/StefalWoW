@@ -88,7 +88,64 @@ namespace FSBOOC
         if (BotOOCClearCombatFlags(bot, botManaPotionUsed, botHealthPotionUsed, botCastedCombatBuffs))
             return true;
 
+        // Random event
+        if (BotOOCDoRandomEvent(bot))
+            return true;
+
         return false; 
+    }
+
+    bool BotOOCDoRandomEvent(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto& botRandomEventCooldown = baseAI->botRandomEventTimer;
+
+        uint32 now = getMSTime();
+        if (now < botRandomEventCooldown)
+            return false;
+
+        if (BotOOCSpawnCompanion(bot))
+        {
+            botRandomEventCooldown = now + 120000; // 2 min cooldown
+            return true;
+        }
+
+        botRandomEventCooldown = now + 120000; // 2 min cooldown
+        return false;
+    }
+
+    bool BotOOCSpawnCompanion(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto& botHasCompanion = baseAI->botHasCompanion;
+        
+
+        uint32 companionSpell = FSBSpellsUtils::GetBotCompanionSpellForEntry(bot->GetEntry());
+        if (companionSpell == 0)
+            return false;        
+
+        // 30% chance to even consider doing this
+        if (urand(1, 100) <= 30)
+        {
+            int32 timerDiff = urandms(45, 60);
+
+            if (FSBCombatUtils::IsOutOfCombatFor(bot, timerDiff) && !botHasCompanion)
+            {
+                
+                botHasCompanion = true;
+                FSBSpells::BotCastSpell(bot, companionSpell, bot);
+                
+                return true;
+            }
+        }
+
+        return false;
     }
 
     bool BotOOCResurrect(Creature* bot, ObjectGuid& resTargetGuid)

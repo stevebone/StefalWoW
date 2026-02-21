@@ -33,10 +33,13 @@ public:
         botCastedCombatBuffs(false),
         botSayMemberDead(false),
         botMeleeMode(false),
+        botHasCompanion(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
         botSelfBuffsTimer(0),
+        botRandomEventTimer(0),
+        botOutOfCombatTimer(0),
 
         botCorpsePos(),
 
@@ -63,10 +66,13 @@ public:
     bool botCastedCombatBuffs;
     bool botSayMemberDead;
     bool botMeleeMode;
+    bool botHasCompanion;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;
     uint32 botSelfBuffsTimer;
+    uint32 botRandomEventTimer;
+    uint32 botOutOfCombatTimer;
 
     Position botCorpsePos;
 

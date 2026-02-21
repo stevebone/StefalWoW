@@ -8,13 +8,14 @@ struct FSBEntryRaceClassMap
     uint32 entry;
     FSB_Class botClass;
     FSB_Race botRace;
+    uint32 companionSpell;
 };
 
 static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 {
     // PRIESTS
     { 141508,   FSB_Class::Priest,          FSB_Race::Human },      // Stormwind Priest
-    { 375,      FSB_Class::Priest,          FSB_Race::Human },      // Priestess Anetta
+    { 375,      FSB_Class::Priest,          FSB_Race::Human, 10675 },      // Priestess Anetta
     { 16502,    FSB_Class::Priest,          FSB_Race::Draenei },    // Zalduun
     { 3595,     FSB_Class::Priest,          FSB_Race::NightElf },   // Shanda
     { 837,      FSB_Class::Priest,          FSB_Race::Dwarf },      // 
@@ -28,7 +29,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf },   // Alyissia
 
     // MAGES
-    { 198,   FSB_Class::Mage,               FSB_Race::Human },      // Khelden Bremen
+    { 198,   FSB_Class::Mage,               FSB_Race::Human, 10697 },      // Khelden Bremen
     { 16500, FSB_Class::Mage,               FSB_Race::Draenei },    // Valaatu
     { 37121, FSB_Class::Mage,               FSB_Race::Dwarf },      //
     { 43006, FSB_Class::Mage,               FSB_Race::NightElf },   // Rhyanda
@@ -39,7 +40,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 16501, FSB_Class::Paladin,            FSB_Race::Draenei },    // Aurelon (Draenei)
 
     // WARLOCKS
-    { 459,   FSB_Class::Warlock,            FSB_Race::Human },      // Drusilla la Salle
+    { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252 },      // Drusilla la Salle
 
     // DRUID
     { 3597,  FSB_Class::Druid,            FSB_Race::NightElf },   // Mardant

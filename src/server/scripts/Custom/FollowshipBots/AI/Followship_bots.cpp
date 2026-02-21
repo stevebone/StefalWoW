@@ -439,6 +439,7 @@ public:
 
         void JustExitedCombat() override
         {
+            botOutOfCombatTimer = getMSTime();
             FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
         }        
 
