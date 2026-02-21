@@ -9609,6 +9609,25 @@ std::vector<Item*> Player::GetCraftingReagentItemsToDeposit()
     return itemList;
 }
 
+std::vector<Item*> Player::GetWarboundItemsToDeposit()
+{
+    std::vector<Item*> itemList;
+    ForEachItem(ItemSearchLocation::Inventory, [&itemList](Item* item)
+    {
+        // Only deposit warbound/BoA items, not character-soulbound
+        if (item->IsAccountBound() || !item->IsSoulBound())
+        {
+            // Skip quest items and bags
+            if (item->GetTemplate()->GetClass() != ITEM_CLASS_QUEST && !item->IsNotEmptyBag())
+                itemList.push_back(item);
+        }
+
+        return ItemSearchCallbackResult::Continue;
+    });
+
+    return itemList;
+}
+
 Item* Player::GetItemByGuid(ObjectGuid guid) const
 {
     Item* result = nullptr;
@@ -9788,6 +9807,8 @@ bool Player::IsBagPos(uint16 pos)
         return true;
     if (bag == INVENTORY_SLOT_BAG_0 && (slot >= REAGENT_BAG_SLOT_START && slot < REAGENT_BAG_SLOT_END))
         return true;
+    if (bag == INVENTORY_SLOT_BAG_0 && (slot >= ACCOUNT_BANK_SLOT_BAG_START && slot < ACCOUNT_BANK_SLOT_BAG_END))
+        return true;
     return false;
 }
 
@@ -9796,9 +9817,11 @@ bool Player::IsChildEquipmentPos(uint8 bag, uint8 slot)
     return bag == INVENTORY_SLOT_BAG_0 && (slot >= CHILD_EQUIPMENT_SLOT_START && slot < CHILD_EQUIPMENT_SLOT_END);
 }
 
-bool Player::IsAccountBankPos(uint8 bag, uint8 /*slot*/)
+bool Player::IsAccountBankPos(uint8 bag, uint8 slot)
 {
     if (bag >= ACCOUNT_BANK_SLOT_BAG_START && bag < ACCOUNT_BANK_SLOT_BAG_END)
+        return true;
+    if (bag == INVENTORY_SLOT_BAG_0 && slot >= ACCOUNT_BANK_SLOT_BAG_START && slot < ACCOUNT_BANK_SLOT_BAG_END)
         return true;
     return false;
 }
@@ -9839,11 +9862,16 @@ bool Player::IsValidPos(uint8 bag, uint8 slot, bool explicit_pos) const
         if (slot >= BANK_SLOT_BAG_START && slot < BANK_SLOT_BAG_END)
             return true;
 
+        // account bank bag slots
+        if (slot >= ACCOUNT_BANK_SLOT_BAG_START && slot < ACCOUNT_BANK_SLOT_BAG_END)
+            return true;
+
         return false;
     }
 
     // bag content slots
     // bank bag content slots
+    // account bank bag content slots
     if (Bag* pBag = GetBagByPos(bag))
     {
         // any post selected
@@ -11207,6 +11235,82 @@ InventoryResult Player::CanBankItem(uint8 bag, uint8 slot, ItemPosCountVec& dest
     }
 
     return reagentBankOnly ? EQUIP_ERR_REAGENT_BANK_FULL : EQUIP_ERR_BANK_FULL;
+}
+
+InventoryResult Player::CanAccountBankItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap) const
+{
+    if (!pItem)
+        return swap ? EQUIP_ERR_CANT_SWAP : EQUIP_ERR_ITEM_NOT_FOUND;
+
+    // Check: no character-soulbound items allowed (only warbound/BoA/unbound)
+    if (pItem->IsSoulBound() && !pItem->IsAccountBound())
+        return EQUIP_ERR_NO_SOULBOUND_ITEM_IN_ACCOUNT_BANK;
+
+    // Check: no quest items in account bank
+    if (pItem->GetTemplate()->GetClass() == ITEM_CLASS_QUEST)
+        return EQUIP_ERR_CANT_SWAP;
+
+    uint32 count = pItem->GetCount();
+    ItemTemplate const* pProto = pItem->GetTemplate();
+
+    // Specific slot requested
+    if (bag != NULL_BAG && slot != NULL_SLOT)
+    {
+        if (bag >= ACCOUNT_BANK_SLOT_BAG_START && bag < ACCOUNT_BANK_SLOT_BAG_END)
+        {
+            InventoryResult res = CanStoreItem_InSpecificSlot(bag, slot, dest, pProto, count, swap, pItem);
+            if (res != EQUIP_ERR_OK)
+                return res;
+
+            if (count == 0)
+                return EQUIP_ERR_OK;
+        }
+        return EQUIP_ERR_BANK_FULL;
+    }
+
+    // Specific bag requested
+    if (bag != NULL_BAG && slot == NULL_SLOT)
+    {
+        if (bag >= ACCOUNT_BANK_SLOT_BAG_START && bag < ACCOUNT_BANK_SLOT_BAG_END)
+        {
+            // Try merge first, then empty slots
+            InventoryResult res = CanStoreItem_InBag(bag, dest, pProto, count, true, false, pItem, NULL_BAG, NULL_SLOT);
+            if (res != EQUIP_ERR_OK)
+                res = CanStoreItem_InBag(bag, dest, pProto, count, false, false, pItem, NULL_BAG, NULL_SLOT);
+
+            if (res != EQUIP_ERR_OK)
+                return res;
+
+            if (count == 0)
+                return EQUIP_ERR_OK;
+        }
+        return EQUIP_ERR_BANK_FULL;
+    }
+
+    // No specific bag/slot: search all account bank bags
+    // First pass: try to merge with existing stacks
+    for (uint8 i = ACCOUNT_BANK_SLOT_BAG_START; i < ACCOUNT_BANK_SLOT_BAG_END; i++)
+    {
+        InventoryResult res = CanStoreItem_InBag(i, dest, pProto, count, true, false, pItem, bag, slot);
+        if (res != EQUIP_ERR_OK)
+            continue;
+
+        if (count == 0)
+            return EQUIP_ERR_OK;
+    }
+
+    // Second pass: try empty slots
+    for (uint8 i = ACCOUNT_BANK_SLOT_BAG_START; i < ACCOUNT_BANK_SLOT_BAG_END; i++)
+    {
+        InventoryResult res = CanStoreItem_InBag(i, dest, pProto, count, false, true, pItem, bag, slot);
+        if (res != EQUIP_ERR_OK)
+            continue;
+
+        if (count == 0)
+            return EQUIP_ERR_OK;
+    }
+
+    return EQUIP_ERR_BANK_FULL;
 }
 
 InventoryResult Player::CanUseItem(Item* pItem, bool not_loading) const
@@ -18423,6 +18527,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     m_reputationMgr->LoadFromDB(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_REPUTATION));
 
     _LoadCharacterBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS));
+    _LoadAccountBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS));
 
     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ARTIFACTS),
@@ -18431,6 +18536,8 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE_UNLOCKED_ESSENCES),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE_EMPOWERED),
         time_diff);
+
+    _LoadAccountBankItems(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS), time_diff);
 
     // update items with duration and realtime
     UpdateItemDuration(time_diff, true);
@@ -20165,6 +20272,121 @@ void Player::_LoadCharacterBankTabSettings(PreparedQueryResult result)
         AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::CharacterBankTabSettings));
 }
 
+void Player::_LoadAccountBankTabSettings(PreparedQueryResult result)
+{
+    uint8 tabCount = 0;
+
+    if (result)
+    {
+        do
+        {
+            DEFINE_FIELD_ACCESSOR_CACHE_ANONYMOUS(PreparedResultSet, (tabId)(name)(icon)(description)(depositFlags)) fields { *result };
+
+            uint8 tabId = fields.tabId().GetUInt8();
+            if (tabId >= (ACCOUNT_BANK_SLOT_BAG_END - ACCOUNT_BANK_SLOT_BAG_START))
+                continue;
+
+            SetAccountBankTabSettings(tabId, fields.name().GetString(), fields.icon().GetString(),
+                fields.description().GetString(), static_cast<BagSlotFlags>(fields.depositFlags().GetUInt32()));
+
+            if (tabId >= tabCount)
+                tabCount = tabId + 1;
+
+        } while (result->NextRow());
+    }
+
+    // Derive tab count from the rows loaded
+    SetAccountBankTabCount(tabCount);
+
+    while (m_activePlayerData->AccountBankTabSettings.size() < *m_activePlayerData->NumAccountBankTabs)
+        AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::AccountBankTabSettings));
+}
+
+void Player::_LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff)
+{
+    //  Same field layout as character_inventory load, but with bag/slot from account_bank_item at the end
+    //  Fields 0-51: item_instance fields (same as _LoadInventory)
+    //  Field 52: abi.bag (tab index 0-4)
+    //  Field 53: abi.slot (slot within tab 0-97)
+
+    if (!result)
+        return;
+
+    uint32 zoneId = GetZoneId();
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+
+    m_itemUpdateQueueBlocked = true;
+    do
+    {
+        Field* fields = result->Fetch();
+        if (Item* item = _LoadItem(trans, zoneId, timeDiff, fields))
+        {
+            uint8 tabIndex = fields[52].GetUInt8();
+            uint8 slot = fields[53].GetUInt8();
+
+            if (tabIndex >= GetAccountBankTabCount())
+            {
+                TC_LOG_ERROR("entities.player", "Player::_LoadAccountBankItems: Player '{}' ({}) has account bank item ({}, entry: {}) in tab {} which exceeds tab count {}. Skipping.",
+                    GetName(), GetGUID().ToString(), item->GetGUID().ToString(), item->GetEntry(), tabIndex, GetAccountBankTabCount());
+                item->DeleteFromDB(trans);
+                delete item;
+                continue;
+            }
+
+            uint8 bagSlot = ACCOUNT_BANK_SLOT_BAG_START + tabIndex;
+
+            // Ensure the bag exists at this position
+            Bag* bag = GetBagByPos(bagSlot);
+            if (!bag)
+            {
+                // Create the bag item for this tab if it doesn't exist yet
+                if (Item* bagItem = Item::CreateItem(ITEM_ACCOUNT_BANK_TAB_BAG, 1, ItemContext::NONE, this))
+                {
+                    uint16 bagPos = (INVENTORY_SLOT_BAG_0 << 8) | bagSlot;
+                    bagItem->SetContainer(nullptr);
+                    bagItem->SetSlot(bagSlot);
+                    StoreItem(ItemPosCountVec(1, ItemPosCount(bagPos, 1)), bagItem, true);
+                    bagItem->SetState(ITEM_UNCHANGED, this);
+                    bag = bagItem->ToBag();
+                }
+
+                if (!bag)
+                {
+                    TC_LOG_ERROR("entities.player", "Player::_LoadAccountBankItems: Player '{}' ({}) failed to create account bank bag for tab {}.",
+                        GetName(), GetGUID().ToString(), tabIndex);
+                    item->DeleteFromDB(trans);
+                    delete item;
+                    continue;
+                }
+            }
+
+            GetSession()->GetCollectionMgr()->CheckHeirloomUpgrades(item);
+            GetSession()->GetCollectionMgr()->AddItemAppearance(item);
+
+            ItemPosCountVec dest;
+            InventoryResult err = CanStoreItem(bagSlot, slot, dest, item);
+            if (err == EQUIP_ERR_OK)
+            {
+                item = StoreItem(dest, item, true);
+                item->SetState(ITEM_UNCHANGED, this);
+            }
+            else
+            {
+                TC_LOG_ERROR("entities.player", "Player::_LoadAccountBankItems: Player '{}' ({}) has account bank item ({}, entry: {}) which can't be loaded (tab {}, slot {}) by reason {}. Item will be sent by mail.",
+                    GetName(), GetGUID().ToString(), item->GetGUID().ToString(), item->GetEntry(), tabIndex, slot, uint32(err));
+                item->DeleteFromInventoryDB(trans);
+
+                MailDraft draft(GetSession()->GetTrinityString(LANG_NOT_EQUIPPED_ITEM), "There were problems with equipping item(s).");
+                draft.AddItem(item);
+                draft.SendMailTo(trans, this, MailSender(this, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_COPIED);
+            }
+        }
+    } while (result->NextRow());
+
+    m_itemUpdateQueueBlocked = false;
+    CharacterDatabase.CommitTransaction(trans);
+}
+
 /*********************************************************/
 /***                   SAVE SYSTEM                     ***/
 /*********************************************************/
@@ -20562,6 +20784,8 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveCUFProfiles(trans);
     _SavePlayerData(trans);
     _SaveCharacterBankTabSettings(trans);
+    _SaveAccountBankTabSettings(trans);
+    _SaveAccountBankItems(trans);
     if (_garrison)
         _garrison->SaveToDB(trans);
 
@@ -20882,21 +21106,31 @@ void Player::_SaveInventory(CharacterDatabaseTransaction trans)
             }
         }
 
+        // Account bank items are saved separately in _SaveAccountBankItems — skip inventory position save
+        bool isAccountBankItem = IsAccountBankPos(item->GetBagSlot(), item->GetSlot())
+            || (container && IsAccountBankPos(INVENTORY_SLOT_BAG_0, container->GetSlot()));
+
         switch (item->GetState())
         {
             case ITEM_NEW:
             case ITEM_CHANGED:
-                stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_INVENTORY_ITEM);
-                stmt->setUInt64(0, GetGUID().GetCounter());
-                stmt->setUInt64(1, container ? container->GetGUID().GetCounter() : UI64LIT(0));
-                stmt->setUInt8 (2, item->GetSlot());
-                stmt->setUInt64(3, item->GetGUID().GetCounter());
-                trans->Append(stmt);
+                if (!isAccountBankItem)
+                {
+                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_INVENTORY_ITEM);
+                    stmt->setUInt64(0, GetGUID().GetCounter());
+                    stmt->setUInt64(1, container ? container->GetGUID().GetCounter() : UI64LIT(0));
+                    stmt->setUInt8 (2, item->GetSlot());
+                    stmt->setUInt64(3, item->GetGUID().GetCounter());
+                    trans->Append(stmt);
+                }
                 break;
             case ITEM_REMOVED:
-                stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_INVENTORY_BY_ITEM);
-                stmt->setUInt64(0, item->GetGUID().GetCounter());
-                trans->Append(stmt);
+                if (!isAccountBankItem)
+                {
+                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_INVENTORY_BY_ITEM);
+                    stmt->setUInt64(0, item->GetGUID().GetCounter());
+                    trans->Append(stmt);
+                }
                 break;
             case ITEM_UNCHANGED:
                 break;
@@ -21510,6 +21744,61 @@ void Player::_SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) c
         stmt->setString(4, *tabSetting.Description);
         stmt->setInt32(5, *tabSetting.DepositFlags);
         trans->Append(stmt);
+    }
+}
+
+void Player::_SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const
+{
+    uint32 bnetAccountId = GetSession()->GetBattlenetAccountId();
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_BANK_TAB_SETTINGS);
+    stmt->setUInt32(0, bnetAccountId);
+    trans->Append(stmt);
+
+    for (std::size_t i = 0; i < m_activePlayerData->AccountBankTabSettings.size(); ++i)
+    {
+        UF::BankTabSettings const& tabSetting = m_activePlayerData->AccountBankTabSettings[i];
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_ACCOUNT_BANK_TAB_SETTINGS);
+        stmt->setUInt32(0, bnetAccountId);
+        stmt->setUInt8(1, i);
+        stmt->setString(2, *tabSetting.Name);
+        stmt->setString(3, *tabSetting.Icon);
+        stmt->setString(4, *tabSetting.Description);
+        stmt->setInt32(5, *tabSetting.DepositFlags);
+        trans->Append(stmt);
+    }
+}
+
+void Player::_SaveAccountBankItems(CharacterDatabaseTransaction trans)
+{
+    uint32 bnetAccountId = GetSession()->GetBattlenetAccountId();
+
+    // Delete all account bank item positions — they will be re-inserted below
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET);
+    stmt->setUInt32(0, bnetAccountId);
+    trans->Append(stmt);
+
+    // Re-insert current positions
+    for (uint8 tabIndex = 0; tabIndex < GetAccountBankTabCount(); ++tabIndex)
+    {
+        uint8 bagSlot = ACCOUNT_BANK_SLOT_BAG_START + tabIndex;
+        Bag* bag = GetBagByPos(bagSlot);
+        if (!bag)
+            continue;
+
+        for (uint32 slot = 0; slot < bag->GetBagSize(); ++slot)
+        {
+            Item* item = bag->GetItemByPos(slot);
+            if (!item)
+                continue;
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_ACCOUNT_BANK_ITEM);
+            stmt->setUInt32(0, bnetAccountId);
+            stmt->setUInt8(1, tabIndex);
+            stmt->setUInt8(2, slot);
+            stmt->setUInt64(3, item->GetGUID().GetCounter());
+            trans->Append(stmt);
+        }
     }
 }
 
