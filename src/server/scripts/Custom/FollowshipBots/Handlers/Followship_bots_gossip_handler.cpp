@@ -166,8 +166,9 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_FIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
             break;
         case FSB_Class::Rogue:
-            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_MELEE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
-            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_MELEE_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ROGUE_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ROGUE_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ROGUE_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
             break;
         case FSB_Class::Druid:
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_TANK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
@@ -270,6 +271,11 @@ namespace FSBGossip
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE_2);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_3)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE_3);
                 break;
             }
             break;

@@ -313,6 +313,7 @@ namespace FSBUtilsBotCombat
 
         case FSB_ROLE_MELEE_DAMAGE:
         case FSB_ROLE_MELEE_DAMAGE_2:
+        case FSB_ROLE_MELEE_DAMAGE_3:
             return 2.f;
 
         case FSB_ROLE_RANGED_ARCANE:
