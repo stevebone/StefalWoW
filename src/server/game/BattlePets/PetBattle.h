@@ -69,6 +69,7 @@ struct PetBattlePetData
     uint32 Species = 0;
     uint32 CreatureID = 0;
     uint32 DisplayID = 0;
+    int32 NpcTeamMemberID = 0;
     uint16 Breed = 0;
     uint16 Level = 0;
     uint16 Xp = 0;

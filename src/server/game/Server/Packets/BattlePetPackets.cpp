@@ -259,8 +259,8 @@ ByteBuffer& operator<<(ByteBuffer& data, PetBattlePetUpdateInfo const& pet)
 {
     data << pet.BattlePetGUID;
     data << int32(pet.SpeciesID);
-    data << int32(pet.CreatureID);
     data << int32(pet.DisplayID);
+    data << int32(pet.CollarID);
     data << int16(pet.Level);
     data << int16(pet.Xp);
     data << int32(pet.CurHealth);

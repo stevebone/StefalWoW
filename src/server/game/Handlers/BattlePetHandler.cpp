@@ -163,7 +163,6 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
         WorldPackets::BattlePet::PetBattlePetUpdateInfo petInfo;
         petInfo.BattlePetGUID = petData.BattlePetGUID;
         petInfo.SpeciesID = petData.Species;
-        petInfo.CreatureID = petData.CreatureID;
         petInfo.DisplayID = petData.DisplayID;
         petInfo.Level = petData.Level;
         petInfo.Xp = petData.Xp;
@@ -171,7 +170,7 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
         petInfo.MaxHealth = petData.MaxHealth;
         petInfo.Power = petData.Power;
         petInfo.Speed = petData.Speed;
-        petInfo.NpcTeamMemberID = isWildTeam ? petData.CreatureID : 0;
+        petInfo.NpcTeamMemberID = isWildTeam ? petData.NpcTeamMemberID : 0;
         petInfo.BreedQuality = petData.Quality;
         petInfo.Slot = static_cast<int8>(i);
         petInfo.CustomName = petData.CustomName;
@@ -200,6 +199,14 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
             ability.Pboid = i;
             petInfo.Abilities.push_back(ability);
         }
+
+        // Populate States (power, stamina, speed, crit chance, family passive)
+        petInfo.States.push_back({ BattlePets::STATE_STAT_POWER, petData.Power });
+        petInfo.States.push_back({ BattlePets::STATE_STAT_STAMINA, petData.MaxHealth });
+        petInfo.States.push_back({ BattlePets::STATE_STAT_SPEED, petData.Speed });
+        petInfo.States.push_back({ 40, 5 }); // CritChance = 5%
+        if (petData.PetType >= 0 && petData.PetType < PetBattles::PET_TYPE_COUNT)
+            petInfo.States.push_back({ uint32(44 + petData.PetType), 1 }); // Family passive flag
 
         update.Pets.push_back(std::move(petInfo));
     }
@@ -398,9 +405,9 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
         return;
     }
 
-    // Send finalize location
+    // Send finalize location (echo back client's LocationResult)
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
-    finalizeLocation.Location.LocationResult = 0;
+    finalizeLocation.Location.LocationResult = petBattleRequestWild.Location.LocationResult;
     finalizeLocation.Location.BattleOrigin = player->GetPosition();
     finalizeLocation.Location.BattleFacing = player->GetAbsoluteAngle(creature);
     finalizeLocation.Location.PlayerPositions[0] = player->GetPosition();
