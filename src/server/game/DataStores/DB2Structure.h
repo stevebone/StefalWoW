@@ -471,6 +471,35 @@ struct BattlePetAbilityEntry
     int32 Flags;
 };
 
+struct BattlePetAbilityEffectEntry
+{
+    uint32 ID;
+    uint16 BattlePetAbilityTurnID;
+    uint8 OrderIndex;
+    uint16 Aura;
+    uint16 BattlePetEffectPropertiesID;
+    uint16 VisualID;
+    std::array<int16, 6> Param;
+};
+
+struct BattlePetAbilityStateEntry
+{
+    int32 ID;
+    uint32 BattlePetStateID;
+    int32 Value;
+    uint32 BattlePetAbilityID;
+};
+
+struct BattlePetAbilityTurnEntry
+{
+    uint32 ID;
+    uint16 BattlePetAbilityID;
+    uint8 OrderIndex;
+    uint8 TurnTypeEnum;
+    uint8 EventTypeEnum;
+    uint16 BattlePetVisualID;
+};
+
 struct BattlePetBreedQualityEntry
 {
     uint32 ID;
@@ -485,6 +514,14 @@ struct BattlePetBreedStateEntry
     int32 BattlePetStateID;
     uint16 Value;
     uint32 BattlePetBreedID;
+};
+
+struct BattlePetEffectPropertiesEntry
+{
+    uint32 ID;
+    std::array<char const*, 6> ParamLabel;
+    uint16 BattlePetVisualID;
+    std::array<uint8, 6> ParamTypeEnum;
 };
 
 struct BattlePetSpeciesEntry
@@ -510,6 +547,15 @@ struct BattlePetSpeciesStateEntry
     uint32 ID;
     uint16 BattlePetStateID;
     int32 Value;
+    uint32 BattlePetSpeciesID;
+};
+
+struct BattlePetSpeciesXAbilityEntry
+{
+    uint32 ID;
+    uint16 BattlePetAbilityID;
+    uint8 RequiredLevel;
+    int8 SlotEnum;
     uint32 BattlePetSpeciesID;
 };
 
