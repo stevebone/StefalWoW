@@ -240,6 +240,10 @@ void PetBattle::InitWildBattle(Player* player, ObjectGuid wildCreatureGUID)
         for (uint8 p = 0; p < _teams[t].PetCount; ++p)
             _teams[t].Pets[p].RecalculateEffectiveStats();
 
+    // Lock abilities and swaps until first round begins
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        _teams[t].InputFlags = PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
+
     _state = PET_BATTLE_STATE_WAITING_PRE_BATTLE;
 }
 
@@ -262,6 +266,10 @@ void PetBattle::InitPvPBattle(Player* player1, Player* player2)
     for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
         for (uint8 p = 0; p < _teams[t].PetCount; ++p)
             _teams[t].Pets[p].RecalculateEffectiveStats();
+
+    // Lock abilities and swaps until first round begins
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        _teams[t].InputFlags = PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
 
     _state = PET_BATTLE_STATE_WAITING_PRE_BATTLE;
 }
@@ -1875,6 +1883,10 @@ void PetBattle::InitNPCBattle(Player* player, Creature* trainer, std::vector<NPC
     for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
         for (uint8 p = 0; p < _teams[t].PetCount; ++p)
             _teams[t].Pets[p].RecalculateEffectiveStats();
+
+    // Lock abilities and swaps until first round begins
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        _teams[t].InputFlags = PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
 
     _state = PET_BATTLE_STATE_WAITING_PRE_BATTLE;
 }

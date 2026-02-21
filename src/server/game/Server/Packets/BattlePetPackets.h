@@ -311,8 +311,8 @@ namespace WorldPackets
         {
             ObjectGuid BattlePetGUID;
             int32 SpeciesID = 0;
-            int32 CreatureID = 0;
             int32 DisplayID = 0;
+            int32 CollarID = 0;
             int16 Level = 0;
             int16 Xp = 0;
             int32 CurHealth = 0;
