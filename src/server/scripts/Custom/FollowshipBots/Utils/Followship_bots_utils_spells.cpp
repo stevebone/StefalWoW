@@ -89,11 +89,28 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_ARCANE_EXPLOSION:
         case SPELL_MAGE_BLIZZARD:
         case SPELL_MAGE_FROST_NOVA:
-        case SPELL_MAGE_POLYMORPH:
         case SPELL_PRIEST_PSYCHIC_SCREAM:
         {
             return CheckCrowdControlRequirements(bot, 8.f);
         }
+
+        case SPELL_ROGUE_BLACK_POWDER:
+        case SPELL_ROGUE_FAN_KNIVES:
+            return CheckCrowdControlRequirements(bot, 8.f);
+
+        case SPELL_ROGUE_SHURIKEN_STORM:
+        case SPELL_ROGUE_CRIMSON_TEMPEST:
+            return CheckCrowdControlRequirements(bot, 10.f);
+
+        case SPELL_ROGUE_BLIND:
+            return CheckCrowdControlRequirements(bot, 15.f);
+
+        case SPELL_MAGE_POLYMORPH:
+            return CheckCrowdControlRequirements(bot, 30.f);
+
+        case SPELL_ROGUE_CHEAP_SHOT:
+        case SPELL_ROGUE_AMBUSH:
+            return bot->HasAura(SPELL_ROGUE_STEALTH);
 
         case SPELL_PRIEST_DESPERATE_PRAYER:
         {
@@ -148,6 +165,9 @@ namespace FSBSpellsUtils
 
         case SPELL_HUMAN_WILL_TO_SURVIVE:
             return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Human && HasAnyMechanic(bot, { MECHANIC_STUN });
+
+        case SPELL_ROGUE_THISTLE_TEA:
+            return bot->GetPowerPct(bot->GetPowerType()) <= 30;
 
         default:
             return true;

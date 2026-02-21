@@ -5,6 +5,7 @@
 #include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_priest.h"
+#include "Followship_bots_rogue.h"
 #include "Followship_bots_warlock.h"
 
 #include "Followship_bots_combat_handler.h"
@@ -112,7 +113,11 @@ namespace FSBIC
 
         
         // TO-DO move this to its own action before other combat related spells
-        if (dmgSpell->def->spellId == SPELL_MAGE_POLYMORPH || dmgSpell->def->spellId == SPELL_WARLOCK_FEAR || dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE || dmgSpell->def->spellId == SPELL_WARLOCK_HAVOC)
+        if (dmgSpell->def->spellId == SPELL_MAGE_POLYMORPH ||
+            dmgSpell->def->spellId == SPELL_WARLOCK_FEAR ||
+            dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE ||
+            dmgSpell->def->spellId == SPELL_WARLOCK_HAVOC ||
+            dmgSpell->def->spellId == SPELL_ROGUE_BLIND)
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
         if (dmgSpell && target)

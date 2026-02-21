@@ -13,6 +13,7 @@
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
+#include "Followship_bots_rogue.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 
@@ -420,6 +421,11 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
+        uint32 now = getMSTime();
+
+        if (now < selfBuffTimer)
+            return false;
+
         FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         uint32 buffSpellId = 0;
         bool check = false;
@@ -432,6 +438,10 @@ namespace FSBOOC
             break;
         case FSB_Class::Paladin:
             if (FSBPaladin::BotOOCBuffSelf(bot, globalCooldown, selfBuffTimer, buffSpellId))
+                check = true;
+            break;
+        case FSB_Class::Rogue:
+            if (FSBRogue::BotOOCBuffSelf(bot, buffSpellId))
                 check = true;
             break;
         case FSB_Class::Warlock:
@@ -455,7 +465,7 @@ namespace FSBOOC
 
             return true;
         }
-
+        selfBuffTimer = now + 60000; // 1 minute
         return false;
     }
 

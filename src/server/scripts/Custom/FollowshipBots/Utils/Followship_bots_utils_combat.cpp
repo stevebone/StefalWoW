@@ -312,6 +312,7 @@ namespace FSBUtilsBotCombat
             return 1.0f;   // glue yourself to target
 
         case FSB_ROLE_MELEE_DAMAGE:
+        case FSB_ROLE_MELEE_DAMAGE_2:
             return 2.f;
 
         case FSB_ROLE_RANGED_ARCANE:
@@ -351,7 +352,7 @@ namespace FSBUtilsBotCombat
         case FSB_Class::Rogue:
         case FSB_Class::Warrior:
         case FSB_Class::Paladin:
-            return 2.5f;
+            return 2.f;
 
         default:
             return 5.0f;
