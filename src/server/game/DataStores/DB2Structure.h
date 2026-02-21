@@ -484,9 +484,10 @@ struct BattlePetAbilityEffectEntry
 
 struct BattlePetAbilityStateEntry
 {
-    uint32 ID;
-    int32 BattlePetStateID;
-    int32 BattlePetAbilityID;
+    int32 ID;
+    uint32 BattlePetStateID;
+    int32 Value;
+    uint32 BattlePetAbilityID;
 };
 
 struct BattlePetAbilityTurnEntry
@@ -555,7 +556,7 @@ struct BattlePetSpeciesXAbilityEntry
     uint16 BattlePetAbilityID;
     uint8 RequiredLevel;
     int8 SlotEnum;
-    int32 BattlePetSpeciesID;
+    uint32 BattlePetSpeciesID;
 };
 
 struct BattlemasterListEntry

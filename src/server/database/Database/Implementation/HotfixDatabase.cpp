@@ -256,7 +256,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_BATTLE_PET_ABILITY_EFFECT, "SELECT MAX(ID) + 1 FROM battle_pet_ability_effect", CONNECTION_SYNCH);
 
     // BattlePetAbilityState.db2
-    PrepareStatement(HOTFIX_SEL_BATTLE_PET_ABILITY_STATE, "SELECT ID, BattlePetStateID, BattlePetAbilityID FROM battle_pet_ability_state"
+    PrepareStatement(HOTFIX_SEL_BATTLE_PET_ABILITY_STATE, "SELECT ID, BattlePetStateID, Value, BattlePetAbilityID FROM battle_pet_ability_state"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_BATTLE_PET_ABILITY_STATE, "SELECT MAX(ID) + 1 FROM battle_pet_ability_state", CONNECTION_SYNCH);
 

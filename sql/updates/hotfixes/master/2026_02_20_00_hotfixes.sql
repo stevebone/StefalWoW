@@ -24,9 +24,10 @@ CREATE TABLE `battle_pet_ability_effect` (
 -- Table structure for table `battle_pet_ability_state`
 DROP TABLE IF EXISTS `battle_pet_ability_state`;
 CREATE TABLE `battle_pet_ability_state` (
-  `ID` int unsigned NOT NULL DEFAULT '0',
-  `BattlePetStateID` int NOT NULL DEFAULT '0',
-  `BattlePetAbilityID` int NOT NULL DEFAULT '0',
+  `ID` int NOT NULL DEFAULT '0',
+  `BattlePetStateID` int unsigned NOT NULL DEFAULT '0',
+  `Value` int NOT NULL DEFAULT '0',
+  `BattlePetAbilityID` int unsigned NOT NULL DEFAULT '0',
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
