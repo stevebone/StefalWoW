@@ -20,7 +20,6 @@
 
 #include "Packet.h"
 #include "PacketUtilities.h"
-#include "MovementInfo.h"
 #include "ObjectGuid.h"
 #include "Optional.h"
 #include "Position.h"
@@ -349,20 +348,23 @@ namespace WorldPackets
 
         struct PetBattleEffectTargetInfo
         {
-            uint8 Type = 0;
+            uint8 Type = 0;     // Written as 3 bits + ResetBitReader
             uint8 Petx = 0;
-            int32 Param1 = 0;
-            int32 Param2 = 0;
+            // Variable-length params based on Type:
+            // 0: nothing, 1: 4 int32s (aura), 2: 2 int32s (state), 3: 1 int32 (health),
+            // 4: 1 int32 (stat), 5: 1 int32 (trigger), 6: 3 int32s (cooldown), 7: 1 int32 (broadcast)
+            std::vector<int32> Params;
         };
 
         struct PetBattleEffectInfo
         {
             uint32 AbilityEffectID = 0;
             uint16 Flags = 0;
-            uint8 SourceAuraPetInstance = 0;
+            uint16 SourceAuraInstanceID = 0;
+            uint16 TurnInstanceID = 0;
+            int8 PetBattleEffectType = 0;
+            uint8 CasterPBOID = 0;
             uint8 StackDepth = 0;
-            uint8 PetBattleEffectType = 0;
-            int8 CasterPBOID = 0;
             std::vector<PetBattleEffectTargetInfo> Targets;
         };
 
@@ -371,6 +373,8 @@ namespace WorldPackets
             int32 AbilityID = 0;
             int16 CooldownRemaining = 0;
             int16 LockdownRemaining = 0;
+            int8 AbilityIndex = 0;
+            uint8 Pboid = 0;
         };
 
         struct PetBattleRoundPlayerData
@@ -378,7 +382,15 @@ namespace WorldPackets
             uint8 NextInputFlags = 0;
             int8 NextTrapStatus = 0;
             uint16 RoundTimeSecs = 0;
-            std::vector<std::vector<PetBattleCooldownInfo>> PetCooldowns; // per pet
+        };
+
+        // Shared location structure used by multiple pet battle packets
+        struct PetBattleLocation
+        {
+            int32 LocationResult = 0;
+            Position BattleOrigin;          // Only XYZ written
+            float BattleFacing = 0.0f;
+            std::array<Position, 2> PlayerPositions;  // Only XYZ written
         };
 
         // ---- CMSG packets ----
@@ -391,8 +403,7 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid TargetGUID;
-            MovementInfo LocationInfo;
-            Position BattleOrigin;
+            PetBattleLocation Location;
         };
 
         class PetBattleInput final : public ClientPacket
@@ -402,10 +413,12 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint8 MoveType = 0;
-            int32 AbilityID = 0;
+            int32 MoveType = 0;
             int8 NewFrontPetIndex = -1;
-            uint8 Round = 0;
+            int32 DebugFlags = 0;
+            uint8 BattleInterrupted = 0;
+            int32 AbilityID = 0;
+            int32 Round = 0;
             bool IgnoreAbandonPenalty = false;
         };
 
@@ -443,8 +456,7 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid TargetGUID;
-            MovementInfo LocationInfo;
-            Position BattleOrigin;
+            PetBattleLocation Location;
         };
 
         class JoinPetBattleQueue final : public ClientPacket
@@ -509,7 +521,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            Position Location;
+            PetBattleLocation Location;
         };
 
         class PetBattleInitialUpdate final : public ServerPacket
@@ -541,9 +553,11 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 CurRound = 0;
-            uint8 NextPetBattleState = 0;
+            int8 NextPetBattleState = 0;
             std::array<PetBattleRoundPlayerData, 2> Players;
             std::vector<PetBattleEffectInfo> Effects;
+            std::vector<PetBattleCooldownInfo> Cooldowns;
+            std::vector<int8> PetXDied;
         };
 
         class PetBattleRoundResult final : public ServerPacket
@@ -554,9 +568,11 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 CurRound = 0;
-            uint8 NextPetBattleState = 0;
+            int8 NextPetBattleState = 0;
             std::array<PetBattleRoundPlayerData, 2> Players;
             std::vector<PetBattleEffectInfo> Effects;
+            std::vector<PetBattleCooldownInfo> Cooldowns;
+            std::vector<int8> PetXDied;
         };
 
         class PetBattleReplacementsMade final : public ServerPacket
@@ -567,8 +583,26 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 CurRound = 0;
-            uint8 NextPetBattleState = 0;
+            int8 NextPetBattleState = 0;
             std::array<PetBattleRoundPlayerData, 2> Players;
+            std::vector<PetBattleEffectInfo> Effects;
+            std::vector<PetBattleCooldownInfo> Cooldowns;
+            std::vector<int8> PetXDied;
+        };
+
+        struct PetBattleFinalPet
+        {
+            ObjectGuid Guid;
+            uint16 Level = 0;
+            uint16 Xp = 0;
+            int32 Health = 0;
+            int32 MaxHealth = 0;
+            uint16 InitialLevel = 0;
+            uint8 Pboid = 0;
+            bool Captured = false;
+            bool Caged = false;
+            bool SeenAction = false;
+            bool AwardedXP = false;
         };
 
         class PetBattleFinalRound final : public ServerPacket
@@ -578,15 +612,11 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 CurRound = 0;
-            uint8 NextPetBattleState = 0;
-            std::array<PetBattleRoundPlayerData, 2> Players;
-            std::vector<PetBattleEffectInfo> Effects;
-            // Final state includes flags
-            bool AbandonedPVP = false;
-            bool PVPWinner = false;
+            bool Abandoned = false;
+            bool PvpBattle = false;
             std::array<bool, 2> Winners = {};
-            std::array<uint32, 2> NpcCreatureID = {};
+            std::array<int32, 2> NpcCreatureID = {};
+            std::vector<PetBattleFinalPet> Pets;
         };
 
         class PetBattleFinished final : public ServerPacket
@@ -615,7 +645,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             ObjectGuid ChallengerGUID;
-            Position BattleOrigin;
+            PetBattleLocation Location;
         };
 
         class PetBattleQueueStatus final : public ServerPacket
