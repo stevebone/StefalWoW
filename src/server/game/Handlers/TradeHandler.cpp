@@ -766,6 +766,15 @@ void WorldSession::HandleSetTradeItemOpcode(WorldPackets::Trade::SetTradeItem& s
 
     my_trade->UpdateClientStateIndex();
 
+    // warbound items cannot be traded to other players
+    if (setTradeItem.TradeSlot != TRADE_SLOT_NONTRADED && item->IsWarbandBound())
+    {
+        info.Status = TRADE_STATUS_NOT_ON_TAPLIST;
+        info.TradeSlot = setTradeItem.TradeSlot;
+        SendTradeStatus(info);
+        return;
+    }
+
     if (setTradeItem.TradeSlot != TRADE_SLOT_NONTRADED && item->IsBindedNotWith(my_trade->GetTrader()))
     {
         info.Status = TRADE_STATUS_NOT_ON_TAPLIST;

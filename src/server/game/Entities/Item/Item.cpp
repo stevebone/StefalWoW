@@ -1344,7 +1344,7 @@ bool Item::CanBeTraded(bool mail, bool trade) const
     if (m_lootGenerated)
         return false;
 
-    if ((!mail || !IsBoundAccountWide()) && (IsSoulBound() && (!IsBOPTradeable() || !trade)))
+    if ((!mail || !IsAccountBound()) && (IsSoulBound() && (!IsBOPTradeable() || !trade)))
         return false;
 
     if (IsBag() && (Player::IsBagPos(GetPos()) || !ToBag()->IsEmpty()))
@@ -1766,6 +1766,28 @@ Item* Item::CloneItem(uint32 count, Player const* player /*= nullptr*/) const
     return newItem;
 }
 
+bool Item::IsWarbandBound() const
+{
+    ItemBondingType bonding = GetBonding();
+    if (bonding == BIND_WOW_ACCOUNT || bonding == BIND_BNET_ACCOUNT)
+        return true;
+    if (bonding == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED && !HasItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND))
+        return true;
+    return false;
+}
+
+void Item::ConvertToSoulbound()
+{
+    if (GetBonding() != BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
+        return;
+    if (HasItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND))
+        return;
+
+    SetBinding(true);
+    SetItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND);
+    SetState(ITEM_CHANGED, GetOwner());
+}
+
 bool Item::IsBindedNotWith(Player const* player) const
 {
     // not binded item
@@ -1781,7 +1803,7 @@ bool Item::IsBindedNotWith(Player const* player) const
             return false;
 
     // BOA item case
-    if (IsBoundAccountWide())
+    if (IsAccountBound())
         return false;
 
     return true;
