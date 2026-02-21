@@ -550,7 +550,11 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
                 battle->Start();
 
                 WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
-                finalizeLocation.Location = p1->GetPosition();
+                finalizeLocation.Location.LocationResult = 0;
+                finalizeLocation.Location.BattleOrigin = p1->GetPosition();
+                finalizeLocation.Location.BattleFacing = p1->GetAbsoluteAngle(p2);
+                finalizeLocation.Location.PlayerPositions[0] = p1->GetPosition();
+                finalizeLocation.Location.PlayerPositions[1] = p2->GetPosition();
                 p1->SendDirectMessage(finalizeLocation.Write());
                 p2->SendDirectMessage(finalizeLocation.Write());
             }
