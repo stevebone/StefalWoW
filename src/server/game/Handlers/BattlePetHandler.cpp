@@ -217,7 +217,9 @@ static void BuildPetBattleRoundPlayerData(WorldPackets::BattlePet::PetBattleRoun
 {
     roundData.NextInputFlags = team.InputFlags;
     roundData.NextTrapStatus = battle ? static_cast<int8>(battle->GetTrapStatus(teamIdx)) : static_cast<int8>(team.TrapStatus);
-    roundData.RoundTimeSecs = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
+    // RoundTimeSecs is 0 for PvE/NPC battles; only PvP uses a timer
+    roundData.RoundTimeSecs = (battle && (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVP || battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_LFPB))
+        ? PetBattles::PET_BATTLE_MAX_ROUND_TIME : 0;
 }
 
 static void BuildRoundCooldowns(std::vector<WorldPackets::BattlePet::PetBattleCooldownInfo>& cooldowns,
