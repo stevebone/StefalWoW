@@ -595,21 +595,44 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
     // If both teams have submitted (wild auto-submits), process
     if (battle->BothTeamsReady())
     {
+        bool isFirstRound = battle->GetCurrentRound() == 0;
+
         battle->ProcessRound();
 
-        WorldPackets::BattlePet::PetBattleReplacementsMade replacements;
-        replacements.CurRound = battle->GetCurrentRound();
-        replacements.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
-        for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
-            BuildPetBattleRoundPlayerData(replacements.Players[i], battle->GetTeam(i), battle, i);
-        BuildRoundEffects(replacements.Effects, battle);
-        BuildRoundCooldowns(replacements.Cooldowns, battle);
-        BuildPetXDied(replacements.PetXDied, battle);
+        if (isFirstRound)
+        {
+            // Initial pet selection: send FIRST_ROUND to start the battle UI
+            WorldPackets::BattlePet::PetBattleFirstRound firstRound;
+            firstRound.CurRound = battle->GetCurrentRound();
+            firstRound.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
+            for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+                BuildPetBattleRoundPlayerData(firstRound.Players[i], battle->GetTeam(i), battle, i);
+            BuildRoundEffects(firstRound.Effects, battle);
+            BuildRoundCooldowns(firstRound.Cooldowns, battle);
+            BuildPetXDied(firstRound.PetXDied, battle);
 
-        if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-            p1->SendDirectMessage(replacements.Write());
-        if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-            p2->SendDirectMessage(replacements.Write());
+            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                p1->SendDirectMessage(firstRound.Write());
+            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                p2->SendDirectMessage(firstRound.Write());
+        }
+        else
+        {
+            // Mid-battle pet replacement after a pet died
+            WorldPackets::BattlePet::PetBattleReplacementsMade replacements;
+            replacements.CurRound = battle->GetCurrentRound();
+            replacements.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
+            for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+                BuildPetBattleRoundPlayerData(replacements.Players[i], battle->GetTeam(i), battle, i);
+            BuildRoundEffects(replacements.Effects, battle);
+            BuildRoundCooldowns(replacements.Cooldowns, battle);
+            BuildPetXDied(replacements.PetXDied, battle);
+
+            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                p1->SendDirectMessage(replacements.Write());
+            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                p2->SendDirectMessage(replacements.Write());
+        }
 
         // Re-submit AI team for next round
         if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE)
