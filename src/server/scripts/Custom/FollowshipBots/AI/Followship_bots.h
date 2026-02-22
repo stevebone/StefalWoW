@@ -71,12 +71,9 @@ enum FSB_Actions
 
 enum FSB_MovementPoints
 {
-    FSB_MOVEMENT_POINT_CORPSE = 2
-};
-
-enum FSB_SpecialSpells
-{
-    SPELL_SPECIAL_GHOST = 8326
+    FSB_MOVEMENT_POINT_CORPSE = 2,
+    FSB_MOVEMENT_POINT_OUT_FIRE = 10,
+    FSB_MOVEMENT_POINT_NEAR_FIRE = 11,
 };
 
 constexpr float FOLLOW_DISTANCE_CLOSE = 3.0f;

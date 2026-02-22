@@ -34,6 +34,7 @@ public:
         botSayMemberDead(false),
         botMeleeMode(false),
         botHasCompanion(false),
+        botSitsByFire(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
@@ -67,6 +68,7 @@ public:
     bool botSayMemberDead;
     bool botMeleeMode;
     bool botHasCompanion;
+    bool botSitsByFire;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;

@@ -1,3 +1,4 @@
+#include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 
@@ -80,6 +81,24 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     case FSB_EVENT_HIRED_SPELL_RESURRECT_STATE:
         FSBDeath::HandleSpellResurrectionDelayedAction(bot);
         break;
+
+    case FSB_EVENT_RANDOM_ACTION_MOVE_FIRE:
+    {
+        // check if we need to move to a camp fire (if someone made one already)
+        GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
+        if (!campfire)
+            break;
+
+        if (campfire && !bot->HasUnitState(UNIT_STAND_STATE_SIT) && !ai->botSitsByFire)
+        {
+            ai->botSitsByFire = true;
+            float offsetx = RAND(-2.f, 2.f);
+            float offsety = frand(-2.f, 2.f);
+            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, campfire->GetPositionX() + offsetx, campfire->GetPositionY() + offsety, campfire->GetPositionZ());
+            break;
+        }
+        break;
+    }
 
     default:
         break;

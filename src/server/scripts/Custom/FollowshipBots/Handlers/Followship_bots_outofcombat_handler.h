@@ -1,4 +1,10 @@
 
+struct FSBAFKAction
+{
+    std::function<bool(Creature*)> action;
+    uint8 chance; // 0-100
+};
+
 namespace FSBOOC
 {
     bool BotOOCActions(FSB_BaseAI* ai/*, const std::vector<Unit*> botGroup*/);
@@ -12,8 +18,9 @@ namespace FSBOOC
     bool BotOOCResurrectTarget(Creature* bot);
     bool BotOOCDoRandomEvent(Creature* bot);
     bool BotOOCSpawnCompanion(Creature* bot);
+    bool BotOOCActionPlayerAFK(Creature* bot);
 
-    bool BotOOCClearCombatFlags(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, bool& botCastedCombatBuffs);
+    bool BotOOCClearFlagsStates(Creature* bot);
 
     void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*>& botGroup, float maxRange, std::vector<Unit*>& outTargets);
 }

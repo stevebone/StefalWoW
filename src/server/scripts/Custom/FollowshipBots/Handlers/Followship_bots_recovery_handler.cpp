@@ -365,4 +365,12 @@ namespace FSBRecovery
             std::size(DrinkFoodTable)
         );
     }
+
+    bool BotHasRecoveryActive(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        return bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL) || bot->HasAura(SPELL_MAGE_CONJURED_MANA_PUDDING) || bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER);
+    }
 }

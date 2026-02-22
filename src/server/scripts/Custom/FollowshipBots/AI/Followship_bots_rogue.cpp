@@ -97,6 +97,7 @@ namespace FSBRogue
 
         auto& buffTimer = baseAI->botBuffsTimer;
         auto& cooldown = baseAI->botGlobalCooldown;
+        auto hired = baseAI->botHired;
 
         uint32 now = getMSTime();
 
@@ -119,14 +120,14 @@ namespace FSBRogue
         {
             uint32 spellId = RAND(SPELL_ROGUE_CRIPPLING_POISON, SPELL_ROGUE_ATROPHIC_POISON, SPELL_ROGUE_NUMBING_POISON);
             bot->CastSpell(bot, spellId, false);
-            //buffTimer = now + 60000; // 1 minute
+            buffTimer = now + 60000; // 1 minute
             cooldown = now + 1500; // 
             outSpellId = spellId;
 
             return true;
         }
 
-        else if (!isStealth)
+        else if (!isStealth && hired)
         {
             uint32 spellId = SPELL_ROGUE_STEALTH;
             bot->CastSpell(bot, spellId, false);

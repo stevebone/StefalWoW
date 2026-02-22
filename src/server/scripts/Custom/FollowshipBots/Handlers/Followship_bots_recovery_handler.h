@@ -75,4 +75,6 @@ namespace FSBRecovery
 
     // Wrapper for GetDrinkManaRegenPerLevel
     int32 GetDrinkFood(uint16 level);
+
+    bool BotHasRecoveryActive(Creature* bot);
 }

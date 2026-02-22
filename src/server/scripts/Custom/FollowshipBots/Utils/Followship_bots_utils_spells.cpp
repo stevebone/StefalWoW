@@ -94,6 +94,7 @@ namespace FSBSpellsUtils
             return CheckCrowdControlRequirements(bot, 8.f);
         }
 
+        case SPELL_PALADIN_CONSECRATION:
         case SPELL_ROGUE_BLACK_POWDER:
         case SPELL_ROGUE_FAN_KNIVES:
             return CheckCrowdControlRequirements(bot, 8.f);

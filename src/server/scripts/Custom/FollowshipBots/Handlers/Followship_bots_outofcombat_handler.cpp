@@ -1,3 +1,4 @@
+#include "Followship_bots.h"
 #include "Followship_bots_config.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
@@ -17,6 +18,87 @@
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 
+std::vector<FSBAFKAction> afkActions =
+{
+    {
+    [](Creature* bot)
+    {
+        // 0. Check if there is a fire already
+        GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
+        if (campfire)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            //return false;
+
+        baseAI->botSitsByFire = true;
+
+        // 1. Cast campfire spell
+        bot->CastSpell(bot, SPELL_SPECIAL_CAMP_FIRE, false);
+
+        // 2. Move 2f left or right
+        bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_OUT_FIRE, bot->GetPositionX() + 2.f, bot->GetPositionY(), bot->GetPositionZ());
+
+        // continues in the MovementInform for the movePoint
+        return true;
+    },
+    45 // 25% chance
+},
+
+    {
+        // Sit down
+        [](Creature* bot)
+        {
+            bot->Say("Am gonna rest for a while...", LANG_UNIVERSAL);
+            bot->SetStandState(UNIT_STAND_STATE_SIT);
+            return true;
+        },
+        10 // 40% chance
+    },
+
+    {
+        // Beg
+        [](Creature* bot)
+        {
+            Player* player = FSBMgr::Get()->GetBotOwner(bot);
+            if (player)
+            {
+                bot->TextEmote(97, player, false);
+                bot->HandleEmoteCommand(EMOTE_ONESHOT_BEG, player);
+                return true;
+            }
+
+            return false;
+        },
+        50
+    },
+
+    {
+        // Look around
+        [](Creature* bot)
+        {
+            std::string emote = bot->GetName() + " looks around absentmindedly.";
+            bot->TextEmote(emote);
+            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+
+            return true;
+        },
+        10
+    },
+
+    {
+        // Yawn
+        [](Creature* bot)
+        {
+            bot->TextEmote("yawns loudly.");
+            bot->HandleEmoteCommand(EMOTE_STATE_SLEEP);
+
+            return true;
+        },
+        50
+    }
+};
 
 namespace FSBOOC
 {
@@ -27,9 +109,6 @@ namespace FSBOOC
         auto& buffTimer = ai->botBuffsTimer;
         auto& selfBuffTimer = ai->botSelfBuffsTimer;
         auto& botHasDemon = ai->botHasDemon;
-        auto& botManaPotionUsed = ai->botManaPotionUsed;
-        auto& botHealthPotionUsed = ai->botHealthPotionUsed;
-        auto& botCastedCombatBuffs = ai->botCastedCombatBuffs;
         auto& botResTargetGuid = ai->botResurrectTargetGuid;
         auto botRole = ai->botRole;
         auto& botGroup = ai->botLogicalGroup;
@@ -43,7 +122,7 @@ namespace FSBOOC
         if (FSBUtilsCombat::IsCombatActive(bot))
             return false;
 
-        if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
+        if (FSBRecovery::BotHasRecoveryActive(bot))
             return false;
 
         uint32 now = getMSTime();
@@ -53,7 +132,7 @@ namespace FSBOOC
 
         //0 OOC Resurrect
         // If we resurrect someone then end tick
-        if (botRole == FSB_ROLE_HEALER && BotOOCResurrect(bot, botResTargetGuid))
+        if (BotOOCResurrect(bot, botResTargetGuid))
             return true;
 
         //1. Bot Heal Owner
@@ -86,7 +165,7 @@ namespace FSBOOC
             return true;
 
         //7. Clear combat flags and states
-        if (BotOOCClearCombatFlags(bot, botManaPotionUsed, botHealthPotionUsed, botCastedCombatBuffs))
+        if (BotOOCClearFlagsStates(bot))
             return true;
 
         // Random event
@@ -114,7 +193,39 @@ namespace FSBOOC
             return true;
         }
 
+        if (BotOOCActionPlayerAFK(bot))
+        {
+            botRandomEventCooldown = now + 120000; // 2 min cooldown
+            return true;
+        }
+
         botRandomEventCooldown = now + 120000; // 2 min cooldown
+        return false;
+    }
+
+    bool BotOOCActionPlayerAFK(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+        if (!player || !player->IsAlive())
+            return false;
+
+        if (player->isAFK())
+        {
+            for (auto const& entry : afkActions)
+            {
+                if (urand(1, 100) <= entry.chance)
+                {
+                    if (entry.action(bot))
+                        return true; // action executed
+                    // else: skip and continue to next action
+                }
+            }
+
+        }
+
         return false;
     }
 
@@ -254,7 +365,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCClearCombatFlags(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, bool& botCastedCombatBuffs)
+    bool BotOOCClearFlagsStates(Creature* bot)
     {
         if (!bot)
             return false;
@@ -262,27 +373,33 @@ namespace FSBOOC
         if (bot->IsInCombat())
             return false;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& manaUsed = baseAI->botManaPotionUsed;
+        auto& healthUsed = baseAI->botHealthPotionUsed;
+        auto& buffsCasted = baseAI->botCastedCombatBuffs;
+
         bool check = false;
 
-        if (botManaPotionUsed)
+        if (manaUsed)
         {
-            botManaPotionUsed = false;
+            manaUsed = false;
             check = true;
         }
 
-        if (botHealthPotionUsed)
+        if (healthUsed)
         {
-            botHealthPotionUsed = false;
+            healthUsed = false;
             check = true;
         }
 
-        if (botCastedCombatBuffs)
+        if (buffsCasted)
         {
-            botCastedCombatBuffs = false;
+            buffsCasted = false;
             check = true;
-        }
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        }       
 
         auto& botSayMemberDead = baseAI->botSayMemberDead;
         auto& deadTargetGuid = baseAI->botResurrectTargetGuid;
@@ -294,6 +411,35 @@ namespace FSBOOC
         {
             deadTargetGuid.Clear();
             botSayMemberDead = false;
+            check = true;
+        }
+
+        // check if we need to make the bot stand again (after random sit event)
+        auto& botSitsByFire = baseAI->botSitsByFire;
+        auto fDistance = baseAI->botFollowDistance;
+        auto fAngle = baseAI->botFollowAngle;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+        if (!player && bot->HasUnitState(UNIT_STAND_STATE_SIT))
+        {
+            bot->SetStandState(UNIT_STAND_STATE_STAND);
+            if (botSitsByFire)
+                botSitsByFire = false;
+        }
+        else if (player && bot->HasUnitState(UNIT_STAND_STATE_SIT) && (!player->isAFK() || player->isMoving()))
+        {
+            bot->SetStandState(UNIT_STAND_STATE_STAND);
+            if (botSitsByFire)
+                botSitsByFire = false;
+
+            FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+        }
+
+        
+
+        if (!botSitsByFire)
+        {
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RANDOM_ACTION_MOVE_FIRE, 1s, 3s);
             check = true;
         }
 
@@ -530,6 +676,10 @@ namespace FSBOOC
 
             if (target)
             {
+                // we cannot buff bots with stealth aura
+                if (target->HasAura(SPELL_ROGUE_STEALTH))
+                    return false;
+
                 SpellCastResult result = bot->CastSpell(target, buffSpellId, false);
 
                 // Only continue if the cast succeeded

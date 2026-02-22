@@ -85,6 +85,9 @@ namespace FSBWarlock
         if (!bot || !bot->IsAlive())
             return false;
 
+        if (bot->GetSpellHistory()->HasCooldown(SPELL_WARLOCK_SOULSTONE))
+            return false;
+
         Unit* target = FSBGroup::BotGetFirstGroupHealer(botGroup);
         bool recastNeeded = false;
 

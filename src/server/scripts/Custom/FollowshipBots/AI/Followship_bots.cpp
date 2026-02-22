@@ -574,6 +574,45 @@ public:
                 FSBDeath::BotSetStateAfterCorpseRevive(me);
                 break;
             }
+
+            case FSB_MOVEMENT_POINT_NEAR_FIRE:
+            {
+                // 3. Find nearest gameobject with entry 266354
+                GameObject* campfire = GetClosestGameObjectWithEntry(me, 266354, 10.f);
+
+                // 4. Face the campfire if found
+                if (campfire)
+                {
+                    me->SetFacingToObject(campfire);
+                }
+
+                // 5. Sit down
+                me->SetStandState(UNIT_STAND_STATE_SIT);
+
+                // Optional: emote text
+                std::string emote = me->GetName() + " sits down by the fire.";
+                me->TextEmote(emote);
+                break;
+            }
+            case FSB_MOVEMENT_POINT_OUT_FIRE:
+            {
+                // 3. Find nearest gameobject with entry 266354
+                GameObject* campfire = GetClosestGameObjectWithEntry(me, 266354, 10.f);
+
+                // 4. Face the campfire if found
+                if (campfire)
+                {
+                    me->SetFacingToObject(campfire);
+                }
+
+                // 5. Sit down
+                me->SetStandState(UNIT_STAND_STATE_SIT);
+
+                // Optional: emote text
+                std::string emote = me->GetName() + " sits down by the fire.";
+                me->TextEmote(emote);
+                break;
+            }
             default:
                 break;
             }
