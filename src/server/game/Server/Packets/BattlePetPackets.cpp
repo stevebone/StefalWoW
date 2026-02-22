@@ -326,7 +326,7 @@ ByteBuffer& operator<<(ByteBuffer& data, PetBattleEnviroInfo const& enviro)
 
 ByteBuffer& operator<<(ByteBuffer& data, PetBattleEffectTargetInfo const& target)
 {
-    data << Bits<3>(target.Type);
+    data << Bits<4>(target.Type); // V8+ uses 4-bit type (PetBattleEffectTargetEx)
     data.FlushBits();
 
     data << uint8(target.Petx);
@@ -386,14 +386,15 @@ static void WriteRoundResult(ByteBuffer& data, uint32 curRound, int8 nextPetBatt
 
     data << uint32(cooldowns.size());
 
-    for (PetBattleEffectInfo const& effect : effects)
-        data << effect;
-
+    // V8+ wire order: Cooldowns, PetXDied count (3 bits), Effects, PetXDied data
     for (PetBattleCooldownInfo const& cd : cooldowns)
         data << cd;
 
     data << Bits<3>(petXDied.size());
     data.FlushBits();
+
+    for (PetBattleEffectInfo const& effect : effects)
+        data << effect;
 
     for (int8 pboid : petXDied)
         data << int8(pboid);

@@ -152,7 +152,7 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
     update.CharacterID = team.PlayerGUID;
     update.TrapAbilityID = team.TrapAbilityID;
     update.TrapStatus = battle ? battle->GetTrapStatus(teamIdx) : team.TrapStatus;
-    update.RoundTimeSecs = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
+    update.RoundTimeSecs = 0; // Initial update uses 0; round-level timer is in PvpMaxRoundTime
     update.FrontPet = team.FrontPetIndex;
     update.InputFlags = team.InputFlags;
 
@@ -163,7 +163,7 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
         WorldPackets::BattlePet::PetBattlePetUpdateInfo petInfo;
         petInfo.BattlePetGUID = petData.BattlePetGUID;
         petInfo.SpeciesID = petData.Species;
-        petInfo.DisplayID = petData.DisplayID;
+        petInfo.DisplayID = isWildTeam ? 0 : petData.DisplayID;
         petInfo.Level = petData.Level;
         petInfo.Xp = petData.Xp;
         petInfo.CurHealth = petData.Health;
@@ -196,7 +196,7 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
             ability.CooldownRemaining = petData.AbilityCooldowns[j];
             ability.LockdownRemaining = petData.AbilityLockdowns[j];
             ability.AbilityIndex = static_cast<int8>(j);
-            ability.Pboid = i;
+            ability.Pboid = teamIdx * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i;
             petInfo.Abilities.push_back(ability);
         }
 

@@ -348,7 +348,7 @@ namespace WorldPackets
 
         struct PetBattleEffectTargetInfo
         {
-            uint8 Type = 0;     // Written as 3 bits + ResetBitReader
+            uint8 Type = 0;     // Written as 4 bits (V8+) + FlushBits
             uint8 Petx = 0;
             // Variable-length params based on Type:
             // 0: nothing, 1: 4 int32s (aura), 2: 2 int32s (state), 3: 1 int32 (health),
