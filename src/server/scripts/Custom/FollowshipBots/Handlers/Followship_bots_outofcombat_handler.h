@@ -1,8 +1,21 @@
+constexpr uint32 RANDOM_EVENT_INTERVAL = 45000;
 
-struct FSBAFKAction
+
+enum FSB_AFK_ACTIONS
 {
-    std::function<bool(Creature*)> action;
-    uint8 chance; // 0-100
+    FSB_AFK_ACTION_MAKE_FIRE,
+    FSB_AFK_ACTION_COOKING_POT,
+    FSB_AFK_ACTION_COOK_SAUSAGES,
+    FSB_AFK_ACTION_BEG,
+    FSB_AFK_ACTION_KISS,
+    FSB_AFK_ACTION_SLEEP,
+    FSB_AFK_ACTION_REST,
+    FSB_AFK_ACTION_TALK,
+    FSB_AFK_ACTION_WHISPER,
+
+    FSB_AFK_ACTION_NOTHING, // yes we want a nothing action
+
+    FSB_AFK_MAX_ACTIONS
 };
 
 namespace FSBOOC
@@ -18,9 +31,10 @@ namespace FSBOOC
     bool BotOOCResurrectTarget(Creature* bot);
     bool BotOOCDoRandomEvent(Creature* bot);
     bool BotOOCSpawnCompanion(Creature* bot);
-    bool BotOOCActionPlayerAFK(Creature* bot);
+    bool BotOOCActionPlayerAFK(Creature* bot, bool force);
+    bool BotOOCAFKAction(Creature* bot, uint8 action);
 
-    bool BotOOCClearFlagsStates(Creature* bot);
+    void BotOOCClearFlagsStates(Creature* bot);
 
     void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*>& botGroup, float maxRange, std::vector<Unit*>& outTargets);
 }

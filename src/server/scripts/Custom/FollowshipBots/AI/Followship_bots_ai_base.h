@@ -35,12 +35,14 @@ public:
         botMeleeMode(false),
         botHasCompanion(false),
         botSitsByFire(false),
+        botDoingRandomEvent(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
         botSelfBuffsTimer(0),
         botRandomEventTimer(0),
         botOutOfCombatTimer(0),
+        botOwnerNotMovingTimer(0),
 
         botCorpsePos(),
 
@@ -69,12 +71,14 @@ public:
     bool botMeleeMode;
     bool botHasCompanion;
     bool botSitsByFire;
+    bool botDoingRandomEvent;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;
     uint32 botSelfBuffsTimer;
     uint32 botRandomEventTimer;
     uint32 botOutOfCombatTimer;
+    uint32 botOwnerNotMovingTimer;
 
     Position botCorpsePos;
 

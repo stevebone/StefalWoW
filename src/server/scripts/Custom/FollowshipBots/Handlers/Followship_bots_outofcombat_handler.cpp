@@ -18,91 +18,9 @@
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 
-std::vector<FSBAFKAction> afkActions =
-{
-    {
-    [](Creature* bot)
-    {
-        // 0. Check if there is a fire already
-        GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
-        if (campfire)
-            return false;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            //return false;
-
-        baseAI->botSitsByFire = true;
-
-        // 1. Cast campfire spell
-        bot->CastSpell(bot, SPELL_SPECIAL_CAMP_FIRE, false);
-
-        // 2. Move 2f left or right
-        bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_OUT_FIRE, bot->GetPositionX() + 2.f, bot->GetPositionY(), bot->GetPositionZ());
-
-        // continues in the MovementInform for the movePoint
-        return true;
-    },
-    45 // 25% chance
-},
-
-    {
-        // Sit down
-        [](Creature* bot)
-        {
-            bot->Say("Am gonna rest for a while...", LANG_UNIVERSAL);
-            bot->SetStandState(UNIT_STAND_STATE_SIT);
-            return true;
-        },
-        10 // 40% chance
-    },
-
-    {
-        // Beg
-        [](Creature* bot)
-        {
-            Player* player = FSBMgr::Get()->GetBotOwner(bot);
-            if (player)
-            {
-                bot->TextEmote(97, player, false);
-                bot->HandleEmoteCommand(EMOTE_ONESHOT_BEG, player);
-                return true;
-            }
-
-            return false;
-        },
-        50
-    },
-
-    {
-        // Look around
-        [](Creature* bot)
-        {
-            std::string emote = bot->GetName() + " looks around absentmindedly.";
-            bot->TextEmote(emote);
-            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-
-            return true;
-        },
-        10
-    },
-
-    {
-        // Yawn
-        [](Creature* bot)
-        {
-            bot->TextEmote("yawns loudly.");
-            bot->HandleEmoteCommand(EMOTE_STATE_SLEEP);
-
-            return true;
-        },
-        50
-    }
-};
-
 namespace FSBOOC
 {
-    bool BotOOCActions(FSB_BaseAI* ai/*, const std::vector<Unit*> botGroup*/)
+    bool BotOOCActions(FSB_BaseAI* ai)
     {
         Creature* bot = ai->GetBot();
         auto& globalCooldown = ai->botGlobalCooldown;
@@ -110,7 +28,7 @@ namespace FSBOOC
         auto& selfBuffTimer = ai->botSelfBuffsTimer;
         auto& botHasDemon = ai->botHasDemon;
         auto& botResTargetGuid = ai->botResurrectTargetGuid;
-        auto botRole = ai->botRole;
+        //auto botRole = ai->botRole;
         auto& botGroup = ai->botLogicalGroup;
 
         if (!bot)
@@ -129,6 +47,9 @@ namespace FSBOOC
 
         if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
             return false;
+
+        //Clear combat flags and states
+        BotOOCClearFlagsStates(bot);
 
         //0 OOC Resurrect
         // If we resurrect someone then end tick
@@ -164,13 +85,14 @@ namespace FSBOOC
         if (BotOOCBuffSoulstone(bot, globalCooldown, botGroup))
             return true;
 
-        //7. Clear combat flags and states
-        if (BotOOCClearFlagsStates(bot))
-            return true;
-
-        // Random event
+        //7. Random event
+        // This always returns true!!!!!!!!!!
         if (BotOOCDoRandomEvent(bot))
             return true;
+
+        
+
+        
 
         return false; 
     }
@@ -180,6 +102,8 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
+        //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent", bot->GetName());
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         auto& botRandomEventCooldown = baseAI->botRandomEventTimer;
 
@@ -187,23 +111,80 @@ namespace FSBOOC
         if (now < botRandomEventCooldown)
             return false;
 
+        //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent passed cooldown", bot->GetName());
+
+        bool check = false;
+
         if (BotOOCSpawnCompanion(bot))
         {
-            botRandomEventCooldown = now + 120000; // 2 min cooldown
-            return true;
+            check = true;
         }
 
-        if (BotOOCActionPlayerAFK(bot))
+        if (BotOOCActionPlayerAFK(bot, false))
         {
-            botRandomEventCooldown = now + 120000; // 2 min cooldown
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent action player afk", bot->GetName());
+            check = true;
+        }
+
+        if (check)
+        {
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: check true, applied cooldown", bot->GetName());
+            botRandomEventCooldown = now + RANDOM_EVENT_INTERVAL; 
             return true;
         }
 
-        botRandomEventCooldown = now + 120000; // 2 min cooldown
         return false;
     }
 
-    bool BotOOCActionPlayerAFK(Creature* bot)
+    bool BotOOCActionPlayerAFK(Creature* bot, bool force)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto botByFire = baseAI->botSitsByFire;
+        auto& isDoingRandomEvent = baseAI->botDoingRandomEvent;
+        auto botOwnerNotMoving = baseAI->botOwnerNotMovingTimer;
+        auto hired = baseAI->botHired;
+
+        if (!hired)
+            return false;
+
+        if (isDoingRandomEvent || botByFire)
+            return false;
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: Player AFK detection step", bot->GetName());
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+        if (!player || !player->IsAlive())
+            return false;
+
+        uint32 now = getMSTime();
+        uint32 ownerNotMovingTime = now - botOwnerNotMoving;
+        
+        bool playerAfk = player->isAFK() || ownerNotMovingTime > RANDOM_EVENT_INTERVAL;
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: owner not moving for: {}", bot->GetName(), ownerNotMovingTime);
+        if (force)
+            playerAfk = true;
+
+        if (playerAfk)
+        {
+            if (bot->HasAura(SPELL_ROGUE_STEALTH))
+                bot->RemoveAurasDueToSpell(SPELL_ROGUE_STEALTH);
+
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} detected owner AFK", bot->GetName());
+            isDoingRandomEvent = true;
+            uint8 randomAction = urand(0, FSB_AFK_MAX_ACTIONS - 1);
+
+            if (BotOOCAFKAction(bot, randomAction))
+            {
+                FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool BotOOCAFKAction(Creature* bot, uint8 action)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -212,18 +193,160 @@ namespace FSBOOC
         if (!player || !player->IsAlive())
             return false;
 
-        if (player->isAFK())
+        switch (action)
         {
-            for (auto const& entry : afkActions)
+        case FSB_AFK_ACTION_MAKE_FIRE:
+        {
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
+            // 0. Check if there is a fire already
+            GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
+            if (campfire)
+                return false;
+
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI)
+                return false;
+
+            auto& botByFire = baseAI->botSitsByFire;
+
+            if (!botByFire)
             {
-                if (urand(1, 100) <= entry.chance)
-                {
-                    if (entry.action(bot))
-                        return true; // action executed
-                    // else: skip and continue to next action
-                }
+                // 1. Cast campfire spell
+                bot->CastSpell(bot, SPELL_SPECIAL_CAMP_FIRE, false);
+                return true;
             }
 
+            return false;
+        }
+
+        case FSB_AFK_ACTION_COOKING_POT:
+        {
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
+            // 0. Check if there is a fire already
+            GameObject* campfire = GetClosestGameObjectWithEntry(bot, 379147, 20.f);
+            if (campfire)
+                return false;
+
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI)
+                return false;
+
+            auto& botByFire = baseAI->botSitsByFire;
+
+            if (!botByFire)
+            {
+                // 1. Cast campfire spell
+                bot->CastSpell(bot, SPELL_SPECIAL_COOKING_POT, false);
+                return true;
+            }
+
+            return false;
+        }
+
+        case FSB_AFK_ACTION_COOK_SAUSAGES:
+        {
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
+            // 0. Check if there is a fire already
+            GameObject* campfire = GetClosestGameObjectWithEntry(bot, 236110, 20.f);
+            if (campfire)
+                return false;
+
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI)
+                return false;
+
+            auto& botByFire = baseAI->botSitsByFire;
+
+            if (!botByFire)
+            {
+                // 1. Cast campfire spell
+                bot->CastSpell(bot, SPELL_SPECIAL_COOK_SAUSAGES, false);
+                bot->Say("Time to eat... who wants a sausage?", LANG_UNIVERSAL);
+                return true;
+            }
+
+            return false;
+        }
+
+        case FSB_AFK_ACTION_BEG:
+        {
+            if (player)
+            {
+                TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: beg", bot->GetName());
+                std::string emote = bot->GetName() + " begs " + player->GetName() + ". How pathethic!";
+                bot->TextEmote(emote, player);
+                bot->HandleEmoteCommand(EMOTE_ONESHOT_BEG, player);
+                return true;
+            }
+            return false;
+        }
+
+        case FSB_AFK_ACTION_KISS:
+        {
+            if (player)
+            {
+                auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+                if (!baseAI)
+                    return false;
+                auto botGroup = baseAI->botLogicalGroup;
+
+                Unit* randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+
+                if (randomUnit)
+                {
+                    TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
+                    std::string emote = bot->GetName() + " blows a kiss to " + randomUnit->GetName();
+                    bot->TextEmote(emote, randomUnit);
+                    bot->HandleEmoteCommand(EMOTE_ONESHOT_KISS);
+                    randomUnit->Say("Oh thank you... I guess, what was that for?", LANG_UNIVERSAL);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        case FSB_AFK_ACTION_SLEEP:
+        {
+            std::string emote = bot->GetName() + " yawns loudly.";
+            bot->TextEmote(emote, player);
+            //bot->SetEmoteState(Emote(EMOTE_STATE_SLEEP));
+            bot->SetStandState(UNIT_STAND_STATE_SLEEP);
+
+            return true;
+        }
+
+        case FSB_AFK_ACTION_REST:
+        {
+            bot->Say("Am gonna rest for a while...", LANG_UNIVERSAL);
+            bot->SetStandState(UNIT_STAND_STATE_SIT);
+            return true;
+        }
+
+        case FSB_AFK_ACTION_TALK:
+        {
+            std::string emote = bot->GetName() + " looks around absentmindedly.";
+            bot->TextEmote(emote);
+            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+            bot->Say("So how long are we gonna be here?", LANG_UNIVERSAL);
+            return true;
+        }
+
+        case FSB_AFK_ACTION_WHISPER:
+        {
+            std::string emote = player->GetName() + " can we please go now?";
+            bot->TextEmote(emote);
+            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+            bot->Whisper(emote, LANG_UNIVERSAL, player);
+            return true;
+        }
+
+        case FSB_AFK_ACTION_NOTHING:
+        {
+            return true;
+        }
+
+        default:
+            break;
         }
 
         return false;
@@ -365,41 +488,30 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCClearFlagsStates(Creature* bot)
+    void BotOOCClearFlagsStates(Creature* bot)
     {
         if (!bot)
-            return false;
+            return;
 
         if (bot->IsInCombat())
-            return false;
+            return;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
-            return false;
+            return;
 
         auto& manaUsed = baseAI->botManaPotionUsed;
         auto& healthUsed = baseAI->botHealthPotionUsed;
         auto& buffsCasted = baseAI->botCastedCombatBuffs;
 
-        bool check = false;
-
         if (manaUsed)
-        {
             manaUsed = false;
-            check = true;
-        }
 
         if (healthUsed)
-        {
             healthUsed = false;
-            check = true;
-        }
 
         if (buffsCasted)
-        {
             buffsCasted = false;
-            check = true;
-        }       
 
         auto& botSayMemberDead = baseAI->botSayMemberDead;
         auto& deadTargetGuid = baseAI->botResurrectTargetGuid;
@@ -411,42 +523,38 @@ namespace FSBOOC
         {
             deadTargetGuid.Clear();
             botSayMemberDead = false;
-            check = true;
         }
-
-        // check if we need to make the bot stand again (after random sit event)
+        
+        
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
         auto& botSitsByFire = baseAI->botSitsByFire;
+        auto& botRandomEvent = baseAI->botDoingRandomEvent;
         auto fDistance = baseAI->botFollowDistance;
         auto fAngle = baseAI->botFollowAngle;
 
-        Player* player = FSBMgr::Get()->GetBotOwner(bot);
-        if (!player && bot->HasUnitState(UNIT_STAND_STATE_SIT))
-        {
-            bot->SetStandState(UNIT_STAND_STATE_STAND);
-            if (botSitsByFire)
-                botSitsByFire = false;
-        }
-        else if (player && bot->HasUnitState(UNIT_STAND_STATE_SIT) && (!player->isAFK() || player->isMoving()))
-        {
-            bot->SetStandState(UNIT_STAND_STATE_STAND);
-            if (botSitsByFire)
-                botSitsByFire = false;
+        auto& botOwnerNotMoving = baseAI->botOwnerNotMovingTimer;
+        uint32 now = getMSTime();
 
-            FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+        if (player && player->isMoving())
+            botOwnerNotMoving = now;
+
+        // check if we have a fire to go and sit around
+        if (!botSitsByFire && player && (player->isAFK() || (now - botOwnerNotMoving) > RANDOM_EVENT_INTERVAL))
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RANDOM_ACTION_MOVE_FIRE, 1s, 3s);
+
+        // check if we need to make the bot stand again (after random sit event) and player is no longer afk
+        if (player && (/*!player->isAFK() || */player->isMoving()))
+        {
+            if (botSitsByFire || botRandomEvent)
+            {
+                bot->SetStandState(UNIT_STAND_STATE_STAND);
+                botSitsByFire = false;
+                botRandomEvent = false;
+                FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+            }
         }
 
         
-
-        if (!botSitsByFire)
-        {
-            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RANDOM_ACTION_MOVE_FIRE, 1s, 3s);
-            check = true;
-        }
-
-        if (check)
-            return true;
-
-        return false;
     }
 
     bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup)
@@ -455,6 +563,15 @@ namespace FSBOOC
             return false;
 
         if (bot->IsInCombat())
+            return false;
+
+        if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
+
+        if (isDoingRandomEvent)
             return false;
 
         FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
@@ -474,6 +591,12 @@ namespace FSBOOC
             return false;
 
         if (bot->IsInCombat())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
+
+        if (isDoingRandomEvent)
             return false;
 
         FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
@@ -518,6 +641,15 @@ namespace FSBOOC
             return false;
 
         if (!FSBUtils::BotIsHealerClass(bot))
+            return false;
+
+        if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
+
+        if (isDoingRandomEvent)
             return false;
 
         float pHealth = player->GetHealthPct();
@@ -565,6 +697,15 @@ namespace FSBOOC
     bool BotOOCBuffSelf(Creature* bot, uint32& selfBuffTimer, uint32& globalCooldown)
     {
         if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
+
+        if (isDoingRandomEvent)
             return false;
 
         uint32 now = getMSTime();
@@ -618,6 +759,15 @@ namespace FSBOOC
     bool BotOOCBuffGroup(Creature* bot, const std::vector<Unit*>& botGroup, uint32& buffTimer, uint32& globalCooldown)
     {
         if (!bot)
+            return false;
+
+        if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
+
+        if (isDoingRandomEvent)
             return false;
 
         if (botGroup.empty())

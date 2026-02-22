@@ -86,17 +86,82 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     {
         // check if we need to move to a camp fire (if someone made one already)
         GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
-        if (!campfire)
+        GameObject* cookingpot = GetClosestGameObjectWithEntry(bot, 379147, 20.f);
+        GameObject* sausages = GetClosestGameObjectWithEntry(bot, 236110, 20.f);
+        if (!campfire && !cookingpot && !sausages)
             break;
 
-        if (campfire && !bot->HasUnitState(UNIT_STAND_STATE_SIT) && !ai->botSitsByFire)
+        if (ai->botSitsByFire)
+            break;
+
+        if (campfire && bot->GetStandState() != UNIT_STAND_STATE_SIT)
         {
             ai->botSitsByFire = true;
             float offsetx = RAND(-2.f, 2.f);
             float offsety = frand(-2.f, 2.f);
             bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, campfire->GetPositionX() + offsetx, campfire->GetPositionY() + offsety, campfire->GetPositionZ());
+            botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
             break;
         }
+
+        else if (cookingpot && bot->GetStandState() != UNIT_STAND_STATE_SIT)
+        {
+            ai->botSitsByFire = true;
+            float offsetx = RAND(-2.f, 2.f);
+            float offsety = frand(-2.f, 2.f);
+            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, cookingpot->GetPositionX() + offsetx, cookingpot->GetPositionY() + offsety, cookingpot->GetPositionZ());
+            botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
+            break;
+        }
+
+        else if (sausages && bot->GetStandState() != UNIT_STAND_STATE_SIT)
+        {
+            ai->botSitsByFire = true;
+            float offsetx = RAND(-2.f, 2.f);
+            float offsety = frand(-2.f, 2.f);
+            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, sausages->GetPositionX() + offsetx, sausages->GetPositionY() + offsety, sausages->GetPositionZ());
+            botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
+            break;
+        }
+        break;
+    }
+
+    case FSB_EVENT_RANDOM_ACTION_FINISH:
+    {
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH for bot {}", bot->GetName());
+        // cleanup event for random bot actions
+        auto& botByFire = ai->botSitsByFire;
+        auto& botDoingRandomEvent = ai->botDoingRandomEvent;
+        auto fDistance = ai->botFollowDistance;
+        auto fAngle = ai->botFollowAngle;
+
+        if (!botDoingRandomEvent && !botByFire)
+            break;
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH (cleanup) for bot {}", bot->GetName());
+        GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 5.f);
+        GameObject* cookingpot = GetClosestGameObjectWithEntry(bot, 379147, 5.f);
+        GameObject* sausages = GetClosestGameObjectWithEntry(bot, 236110, 5.f);
+        if(campfire)
+            campfire->DespawnOrUnsummon(0s);
+
+        if (cookingpot)
+            cookingpot->DespawnOrUnsummon(0s);
+
+        if (sausages)
+            sausages->DespawnOrUnsummon(0s);
+
+        if (botByFire)
+            botByFire = false;
+
+        if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
+            bot->SetStandState(UNIT_STAND_STATE_STAND);
+
+        FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+
+        botDoingRandomEvent = false;
+
         break;
     }
 
