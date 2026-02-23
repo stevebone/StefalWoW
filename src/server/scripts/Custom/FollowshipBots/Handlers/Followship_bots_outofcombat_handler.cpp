@@ -199,84 +199,48 @@ namespace FSBOOC
 
         switch (action)
         {
-        case FSB_AFK_ACTION_MAKE_FIRE:
+        case FSB_AFK_ACTION_MAKE_PICNIC:
         {
-            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_CAMP_FIRE))
+            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_ROMANTIC_PICNIC))
                 return false;
 
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: picnic", bot->GetName());
             // 0. Check if there is a fire already
-            GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
-            if (campfire)
+            GameObject* picnic = GetClosestGameObjectWithEntry(bot, 187267, 20.f);
+            if (picnic)
                 return false;
 
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-
-            auto& botByFire = baseAI->botSitsByFire;
-
-            if (!botByFire)
+            if (bot->GetStandState() == UNIT_STAND_STATE_STAND)
             {
                 // 1. Cast campfire spell
-                bot->CastSpell(bot, SPELL_SPECIAL_CAMP_FIRE, false);
+                bot->CastSpell(bot, SPELL_SPECIAL_ROMANTIC_PICNIC, false);
+                bot->SetStandState(UNIT_STAND_STATE_SIT);
                 return true;
             }
+
+            return false;
+        }
+
+        case FSB_AFK_ACTION_MAKE_FIRE:
+        {
+            if (BotOOCActionCook(bot, SPELL_SPECIAL_CAMP_FIRE, 266354))
+                return true;
 
             return false;
         }
 
         case FSB_AFK_ACTION_COOKING_POT:
         {
-            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_COOKING_POT))
-                return false;
-
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: cookpot", bot->GetName());
-            // 0. Check if there is a fire already
-            GameObject* campfire = GetClosestGameObjectWithEntry(bot, 379147, 20.f);
-            if (campfire)
-                return false;
-
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-
-            auto& botByFire = baseAI->botSitsByFire;
-
-            if (!botByFire)
-            {
-                // 1. Cast campfire spell
-                bot->CastSpell(bot, SPELL_SPECIAL_COOKING_POT, false);
+            if (BotOOCActionCook(bot, SPELL_SPECIAL_COOKING_POT, 266354))
                 return true;
-            }
 
             return false;
         }
 
         case FSB_AFK_ACTION_COOK_SAUSAGES:
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: sausages", bot->GetName());
-            // 0. Check if there is a fire already
-            GameObject* campfire = GetClosestGameObjectWithEntry(bot, 236110, 20.f);
-            if (campfire)
-                return false;
-
-            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_COOK_SAUSAGES))
-                return false;
-
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-
-            auto& botByFire = baseAI->botSitsByFire;
-
-            if (!botByFire)
-            {
-                // 1. Cast campfire spell
-                bot->CastSpell(bot, SPELL_SPECIAL_COOK_SAUSAGES, false);
-                bot->Say("Time to eat... who wants a sausage?", LANG_UNIVERSAL);
+            if (BotOOCActionCook(bot, SPELL_SPECIAL_COOK_SAUSAGES, 266354))
                 return true;
-            }
 
             return false;
         }
@@ -285,6 +249,7 @@ namespace FSBOOC
         {
             if (player)
             {
+                bot->SetFacingToObject(player, true);
                 TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: beg", bot->GetName());
                 std::string emote = bot->GetName() + " begs " + player->GetName() + ". How pathethic!";
                 bot->TextEmote(emote, player);
@@ -294,49 +259,25 @@ namespace FSBOOC
             return false;
         }
 
-        case FSB_AFK_ACTION_KISS:
+        case FSB_AFK_ACTION_DANCE:
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
             if (player)
             {
-                auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-                if (!baseAI)
-                    return false;
-                auto& botGroup = baseAI->botLogicalGroup;
-
-                Unit* randomUnit = nullptr;
-
-                if (botGroup.size() >= 3)
-                {
-                    do
-                    {
-                        randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
-                    } while (randomUnit == bot);
-                }
-                else if (player)
-                {
-                    randomUnit = player;
-                }
-                else return false;
-
-                if (randomUnit)
-                {
-                    TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
-                    //std::string emote = bot->GetName() + " blows a kiss to " + randomUnit->GetName();
-                    //bot->TextEmote(emote, randomUnit);
-
-                    // 1. Emote text
-                    std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_kiss", FSB_ChatterType::None);
-                    if (!emote.empty())
-                        bot->TextEmote(emote, randomUnit);
-
-                    bot->HandleEmoteCommand(EMOTE_ONESHOT_KISS);
-
-                    if(!randomUnit->IsPlayer())
-                        FSBChatter::DemandTimedReply(bot, randomUnit, "emote_kiss", FSB_ReplyType::Say);
-                    return true;
-                }
+                bot->SetFacingToObject(player, true);
+                TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: dance", bot->GetName());
+                std::string emote = bot->GetName() + " dances with " + player->GetName();
+                bot->TextEmote(emote, player);
+                bot->HandleEmoteCommand(EMOTE_STATE_DANCE, player);
+                return true;
             }
+            return false;
+        }
+
+        case FSB_AFK_ACTION_KISS:
+        {
+            if (BotOOCActionKiss(bot))
+                return true;
+
             return false;
         }
 
@@ -370,117 +311,34 @@ namespace FSBOOC
 
         case FSB_AFK_ACTION_FLIRT:
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: flirt", bot->GetName());
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-            auto& botGroup = baseAI->botLogicalGroup;
-            auto botRace = baseAI->botRace;
-            auto botGenger = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_FLIRT, FSBUtils::BotRaceToTC(botRace), botGenger, 0);
-            uint32 soundId = 0;
-            if (soundInfo)
-            {
-                soundId = soundInfo->SoundID;
-            }
-
-            Unit* randomUnit = nullptr;
-
-            if (botGroup.size() >= 3)
-            {
-                do
-                {
-                    randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
-                } while (randomUnit == bot);
-            }
-            else if (player)
-            {
-                randomUnit = player;
-            }
-            else return false;
-
-            if (randomUnit)
-            {
-                // 1. Emote text
-                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_flirt", FSB_ChatterType::None);
-                if (!emote.empty())
-                    bot->TextEmote(emote);
-
-                bot->HandleEmoteCommand(EMOTE_ONESHOT_SHY);
-                if (soundId)
-                    bot->PlayDistanceSound(soundId);
-                else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action FLIRT: no sound found for race {}", botRace);
-
-                if (!randomUnit->IsPlayer())
-                    FSBChatter::DemandTimedReply(bot, randomUnit, "emote_flirt", FSB_ReplyType::Say);
-
+            if (BotOOCActionFlirt(bot))
                 return true;
-            }
 
             return false;
         }
 
         case FSB_AFK_ACTION_JOKE:
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: joke", bot->GetName());
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-            auto& botGroup = baseAI->botLogicalGroup;
-            auto botRace = baseAI->botRace;
-            auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_JOKE, FSBUtils::BotRaceToTC(botRace), botGender, 0);
-            uint32 soundId = 0;
-            if (soundInfo)
-            {
-                soundId = soundInfo->SoundID;
-            }
-
-            Unit* randomUnit = nullptr;
-
-            if (botGroup.size() >= 3)
-            {
-                do
-                {
-                    randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
-                } while (randomUnit == bot);
-            }
-            else if (player)
-            {
-                randomUnit = player;
-            }
-            else return false;
-
-            if (randomUnit)
-            {
-                // 1. Emote text
-                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_joke", FSB_ChatterType::None);
-                if (!emote.empty())
-                    bot->TextEmote(emote);
-
-                bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-                if (soundId)
-                    bot->PlayDistanceSound(soundId);
-                else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action JOKE: no sound found for race {}", botRace);
-
-                if (!randomUnit->IsPlayer())
-                    FSBChatter::DemandTimedReply(bot, randomUnit, "emote_joke", FSB_ReplyType::Say);
-
+            if (BotOOCActionJoke(bot))
                 return true;
-            }
 
             return false;
         }
 
         case FSB_AFK_ACTION_SLEEP:
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: sleep", bot->GetName());
-            std::string emote = bot->GetName() + " yawns loudly.";
-            bot->TextEmote(emote, player);
-            //bot->SetEmoteState(Emote(EMOTE_STATE_SLEEP));
-            bot->SetStandState(UNIT_STAND_STATE_SLEEP);
+            if (BotOOCActionSleep(bot))
+                return true;
 
-            return true;
+            return false;
+        }
+
+        case FSB_AFK_ACTION_SIGH:
+        {
+            if (BotOOCActionSigh(bot))
+                return true;
+
+            return false;
         }
 
         case FSB_AFK_ACTION_REST:
@@ -723,6 +581,7 @@ namespace FSBOOC
         {
             if (botSitsByFire || botRandomEvent)
             {
+                bot->HandleEmoteCommand(EMOTE_STATE_NONE);
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
                 botSitsByFire = false;
                 botRandomEvent = false;
@@ -1071,5 +930,273 @@ namespace FSBOOC
 
             outTargets.push_back(member);
         }
+    }
+
+    bool BotOOCActionSigh(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: SIGH", bot->GetName());
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+        auto botRace = baseAI->botRace;
+        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_SIGH, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+        uint32 soundId = 0;
+        if (soundInfo)
+        {
+            soundId = soundInfo->SoundID;
+        }
+
+        // 1. Emote text
+        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, "emote_sigh", FSB_ChatterType::None);
+        if (!emote.empty())
+            bot->TextEmote(emote);
+
+        if (soundId)
+            bot->PlayDistanceSound(soundId);
+        else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action SIGH: no sound found for race {}", botRace);
+
+        return true;
+    }
+
+    bool BotOOCActionSleep(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: sleep", bot->GetName());
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+        auto botRace = baseAI->botRace;
+        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_YAWN, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+        uint32 soundId = 0;
+        if (soundInfo)
+        {
+            soundId = soundInfo->SoundID;
+        }
+
+        // 1. Emote text
+        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, "emote_sleep", FSB_ChatterType::None);
+        if (!emote.empty())
+            bot->TextEmote(emote);
+
+        if (soundId)
+            bot->PlayDistanceSound(soundId);
+        else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action SLEEP: no sound found for race {}", botRace);
+
+        bot->SetStandState(UNIT_STAND_STATE_SLEEP);
+
+        return true;
+    }
+
+    bool BotOOCActionJoke(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: joke", bot->GetName());
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+        auto& botGroup = baseAI->botLogicalGroup;
+        auto botRace = baseAI->botRace;
+        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_JOKE, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+        uint32 soundId = 0;
+        if (soundInfo)
+        {
+            soundId = soundInfo->SoundID;
+        }
+
+        Unit* randomUnit = nullptr;
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (botGroup.size() >= 3)
+        {
+            do
+            {
+                randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+            } while (randomUnit == bot);
+        }
+        else if (player)
+        {
+            randomUnit = player;
+        }
+        else return false;
+
+        if (randomUnit)
+        {
+            // 1. Emote text
+            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_joke", FSB_ChatterType::None);
+            if (!emote.empty())
+                bot->TextEmote(emote);
+
+            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+            if (soundId)
+                bot->PlayDistanceSound(soundId);
+            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action JOKE: no sound found for race {}", botRace);
+
+            if (!randomUnit->IsPlayer())
+                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_joke", FSB_ReplyType::Say);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool BotOOCActionKiss(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
+        if (player)
+        {
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI)
+                return false;
+            auto& botGroup = baseAI->botLogicalGroup;
+            auto botRace = baseAI->botRace;
+            auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_KISS, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+            uint32 soundId = 0;
+            if (soundInfo)
+            {
+                soundId = soundInfo->SoundID;
+            }
+
+            Unit* randomUnit = nullptr;
+
+            if (botGroup.size() >= 3)
+            {
+                do
+                {
+                    randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+                } while (randomUnit == bot);
+            }
+            else if (player)
+            {
+                randomUnit = player;
+            }
+            else return false;
+
+            if (randomUnit)
+            {
+                TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
+
+                // 1. Emote text
+                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_kiss", FSB_ChatterType::None);
+                if (!emote.empty())
+                    bot->TextEmote(emote, randomUnit);
+
+                bot->HandleEmoteCommand(EMOTE_ONESHOT_KISS);
+                if (soundId)
+                    bot->PlayDistanceSound(soundId);
+                else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action KISS: no sound found for race {}", botRace);
+
+                if (!randomUnit->IsPlayer())
+                    FSBChatter::DemandTimedReply(bot, randomUnit, "emote_kiss", FSB_ReplyType::Say);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool BotOOCActionFlirt(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: flirt", bot->GetName());
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+        auto& botGroup = baseAI->botLogicalGroup;
+        auto botRace = baseAI->botRace;
+        auto botGenger = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_FLIRT, FSBUtils::BotRaceToTC(botRace), botGenger, 0);
+        uint32 soundId = 0;
+        if (soundInfo)
+        {
+            soundId = soundInfo->SoundID;
+        }
+
+        Unit* randomUnit = nullptr;
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (botGroup.size() >= 3)
+        {
+            do
+            {
+                randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+            } while (randomUnit == bot);
+        }
+        else if (player)
+        {
+            randomUnit = player;
+        }
+        else return false;
+
+        if (randomUnit)
+        {
+            // 1. Emote text
+            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_flirt", FSB_ChatterType::None);
+            if (!emote.empty())
+                bot->TextEmote(emote);
+
+            bot->HandleEmoteCommand(EMOTE_ONESHOT_SHY);
+            if (soundId)
+                bot->PlayDistanceSound(soundId);
+            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action FLIRT: no sound found for race {}", botRace);
+
+            if (!randomUnit->IsPlayer())
+                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_flirt", FSB_ReplyType::Say);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool BotOOCActionCook(Creature* bot, uint32 spellId, uint32 goId)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: sausages", bot->GetName());
+        // 0. Check if there is a fire already
+        GameObject* gobject = GetClosestGameObjectWithEntry(bot, goId, 20.f);
+        if (gobject)
+            return false;
+
+        if (bot->GetSpellHistory()->HasCooldown(spellId))
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& botByFire = baseAI->botSitsByFire;
+
+        if (!botByFire)
+        {
+            // 1. Cast campfire spell
+            bot->CastSpell(bot, spellId, false);
+            FSBChatter::DemandTimedReply(bot, nullptr, "emote_cooking", FSB_ReplyType::Say);
+            return true;
+        }
+
+        return false;
     }
 }

@@ -131,6 +131,9 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (ai->botSitsByFire)
             break;
 
+        if (bot->GetEmoteState() != EMOTE_STATE_NONE)
+            break;
+
         if (campfire && bot->GetStandState() != UNIT_STAND_STATE_SIT)
         {
             ai->botSitsByFire = true;
@@ -166,7 +169,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     case FSB_EVENT_RANDOM_ACTION_FINISH:
     {
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH for bot {}", bot->GetName());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH for bot {}", bot->GetName());
         // cleanup event for random bot actions
         auto& botByFire = ai->botSitsByFire;
         auto& botDoingRandomEvent = ai->botDoingRandomEvent;
@@ -176,7 +179,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (!botDoingRandomEvent && !botByFire)
             break;
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH (cleanup) for bot {}", bot->GetName());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH (cleanup) for bot {}", bot->GetName());
         GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 5.f);
         GameObject* cookingpot = GetClosestGameObjectWithEntry(bot, 379147, 5.f);
         GameObject* sausages = GetClosestGameObjectWithEntry(bot, 236110, 5.f);
@@ -191,6 +194,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
         if (botByFire)
             botByFire = false;
+
+        bot->HandleEmoteCommand(EMOTE_STATE_NONE);
 
         if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
             bot->SetStandState(UNIT_STAND_STATE_STAND);
@@ -214,7 +219,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
     if (!bot)
         return;
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB ChatterEvents: we got chatterString: {}", chatterReply);
+    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB ChatterEvents: we got chatterString: {}", chatterReply);
 
     switch (eventId)
     {
@@ -250,7 +255,6 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
 
     case FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE:
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action crash check dummy");
         if (!target || target->IsPlayer())
             break;
 

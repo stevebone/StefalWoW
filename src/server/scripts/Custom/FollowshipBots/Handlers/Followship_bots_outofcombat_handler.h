@@ -5,6 +5,7 @@ constexpr uint32 RANDOM_AFK_EVENT_CHANCE = 100;
 
 enum FSB_AFK_ACTIONS
 {
+    FSB_AFK_ACTION_MAKE_PICNIC,
     FSB_AFK_ACTION_MAKE_FIRE,
     FSB_AFK_ACTION_COOKING_POT,
     FSB_AFK_ACTION_COOK_SAUSAGES,
@@ -16,6 +17,8 @@ enum FSB_AFK_ACTIONS
     FSB_AFK_ACTION_TALK,
     FSB_AFK_ACTION_FLIRT,
     FSB_AFK_ACTION_JOKE,
+    FSB_AFK_ACTION_DANCE,
+    FSB_AFK_ACTION_SIGH,
     FSB_AFK_ACTION_WHISPER,
 
     FSB_AFK_ACTION_NOTHING, // yes we want a nothing action
@@ -42,4 +45,11 @@ namespace FSBOOC
     void BotOOCClearFlagsStates(Creature* bot);
 
     void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*>& botGroup, float maxRange, std::vector<Unit*>& outTargets);
+
+    bool BotOOCActionCook(Creature* bot, uint32 spellId, uint32 goId);
+    bool BotOOCActionFlirt(Creature* bot);
+    bool BotOOCActionJoke(Creature* bot);
+    bool BotOOCActionKiss(Creature* bot);
+    bool BotOOCActionSigh(Creature* bot);
+    bool BotOOCActionSleep(Creature* bot);
 }

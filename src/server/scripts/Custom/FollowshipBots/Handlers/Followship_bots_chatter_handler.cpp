@@ -494,6 +494,113 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "Adventure, danger, treasure. I'm here for all of it!"
         }
     },
+
+    {
+    "emote_sleep", FSB_ChatterType::None,
+        {
+            "{bot} yawns loudly.",
+            "{bot} lays down for a nap.",
+            "{bot} feels sleepy.",
+            "{bot} goes for a power nap.",
+            "{bot} uses the ground as a bed.",
+            "{bot} lays down to rest.",
+            "{bot} takes a quick rest."
+        }
+    },
+
+    {
+        "emote_sigh", FSB_ChatterType::None,
+        {
+            "{bot} lets out a long, weary sigh.",
+            "{bot} sighs softly, looking a bit drained.",
+            "{bot} exhales heavily, clearly tired of it all.",
+            "{bot} sighs and stares off into the distance.",
+            "{bot} releases a deep, frustrated sigh.",
+            "{bot} sighs as if carrying the weight of the world.",
+            "{bot} takes a slow breath and sighs quietly.",
+            "{bot} sighs, sounding resigned.",
+            "{bot} gives a tired sigh and shakes their head.",
+            "{bot} sighs, clearly not impressed."
+        }
+    },
+
+    {
+        "emote_cooking", FSB_ChatterType::Neutral,
+        {
+            "Alright. fire's going. Do what you want with it.",
+            "Cooking time, I guess.",
+            "There. Fire's ready.",
+            "Okay, that should do it.",
+            "Campfire's up. Don't burn yourselves.",
+            "Food or warmth, take your pick.",
+            "Well, that's one way to pass the time.",
+            "Fire's lit. Do whatever you need.",
+            "There we go. simple enough.",
+            "Alright, heat's ready.",
+            "If anyone needs the fire, it's there.",
+            "That should be warm enough.",
+            "Okay. cooking setup complete.",
+            "Fire's going. Smells. fine, I guess.",
+            "There. Now we wait.",
+            "Alright, who's actually hungry?",
+            "Fire's up. Don't expect miracles.",
+            "Well, it's something.",
+            "Heat's ready if you need it.",
+            "Okay. that's done."
+        }
+    },
+
+    {
+        "emote_cooking", FSB_ChatterType::Positive,
+        {
+            "Fire's ready! Who's hungry?",
+            "Perfect! Let's cook something delicious!",
+            "There we go - warm fire, warm hearts!",
+            "Alright, everyone gather around!",
+            "This is going to smell amazing in a moment.",
+            "Nothing like a good fire to lift the mood!",
+            "Cooking time! I hope you're ready!",
+            "Let's make something tasty together!",
+            "Fire's up - let's turn this into a feast!",
+            "Ahh, perfect! This is my favorite part of adventuring.",
+            "Come on, get closer! It's warm!",
+            "I love moments like this.",
+            "Who wants first pick when it's done?",
+            "This is going to be great, I can feel it.",
+            "Let's make this meal legendary!",
+            "I hope you're hungry - I know I am!",
+            "Nothing beats fresh food by a fire.",
+            "This is the good life right here.",
+            "Warm fire, good company - perfect.",
+            "Let's cook up something amazing!"
+        }
+    },
+
+    {
+        "emote_cooking", FSB_ChatterType::Negative,
+        {
+            "There. Fire's lit. Try not to ruin it.",
+            "Fine. I'll cook. Again.",
+            "If this burns, it's not my fault.",
+            "Great. now I smell like smoke.",
+            "Don't expect gourmet food from this.",
+            "Ugh. why am I always the one doing this?",
+            "If someone complains, I swear.",
+            "This better be worth the effort.",
+            "I'm not your personal chef, you know.",
+            "Fine. Eat whatever comes out of this.",
+            "If anyone asks, I was forced to do this.",
+            "I hope you like 'slightly burnt' flavor.",
+            "Don't crowd me. I'm already annoyed.",
+            "If this catches fire, that's on you.",
+            "I'm only doing this once.",
+            "Great. now we wait. My favorite.",
+            "If someone else wants to take over, be my guest.",
+            "I swear, next time someone else cooks.",
+            "This is the last time I do this without complaining.",
+            "There, food's coming. Happy now?"
+        }
+    },
 };
 
 namespace FSBChatter
@@ -504,7 +611,6 @@ namespace FSBChatter
         const std::string& category,
         FSB_ChatterType chatterType)
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action crash check random reply");
         for (auto const& entry : FSBReplyTable)
         {
             if (entry.category == category && entry.chatterType == chatterType)
@@ -530,7 +636,6 @@ namespace FSBChatter
 
     void DemandTimedReply(Creature* bot, Unit* target, const std::string& category, FSB_ReplyType replyType)
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action crash check demand reply");
         if (!bot)
             return;
 
