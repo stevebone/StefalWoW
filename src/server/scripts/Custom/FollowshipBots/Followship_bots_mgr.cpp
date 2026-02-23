@@ -638,6 +638,26 @@ FSB_Roles FSBMgr::GetRandomRoleForClass(FSB_Class botClass)
     return roles[idx];
 }
 
+FSB_ChatterType FSBMgr::GetBotChatterTypeForEntry(uint32 entry)
+{
+    for (auto const& map : BotEntryClassTable)
+    {
+        if (map.entry == entry)
+            return map.chatterType;
+    }
 
+    return FSB_ChatterType::None;
+}
+
+Gender FSBMgr::GetBotGenderForEntry(uint32 entry)
+{
+    for (auto const& map : BotEntryClassTable)
+    {
+        if (map.entry == entry)
+            return map.gender;
+    }
+
+    return GENDER_NONE;
+}
 
 

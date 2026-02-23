@@ -17,7 +17,9 @@ public:
         botRole(FSB_Roles::FSB_ROLE_NONE),
         botClass(FSB_Class::None),
         botRace(FSB_Race::None),
+        botGender(GENDER_NONE),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
+        botChatterType(FSB_ChatterType::None),
         botRegenMods(),
         botStats(),
 
@@ -53,7 +55,9 @@ public:
     FSB_Roles botRole; 
     FSB_Class botClass;
     FSB_Race botRace;
+    Gender botGender;
     FSB_MovementStates botMoveState;
+    FSB_ChatterType botChatterType;
     FSBRegenMods botRegenMods;
     FSBBotStats botStats;
 
@@ -86,14 +90,25 @@ public:
 
     void ScheduleBotEvent(uint32 eventId, Milliseconds time);
     void ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime);
+    void ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime, FSB_ReplyType replyType, const std::string& chatterString, Unit* target);
 
     Creature* GetBot() { return me; };
 
     std::vector<Unit*> botLogicalGroup;
     std::vector<FSBSpellRuntime> botRuntimeSpells; // runtime for spells cooldowns
 
+    struct FSBEventPayload
+    {
+        FSB_ReplyType replyType;
+        std::string chatterString;
+        Unit* unit;   
+    };
+
+    std::unordered_map<uint32, FSBEventPayload> eventPayloads;
+
 protected:
     EventMap botEvents;
     void HandleBotEvent(FSB_BaseAI* ai, uint32 eventId);
+    void HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType replyType, std::string chatterString, Unit* target);
 
 };

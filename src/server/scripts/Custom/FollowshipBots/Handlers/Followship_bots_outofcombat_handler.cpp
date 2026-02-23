@@ -3,6 +3,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -122,13 +123,13 @@ namespace FSBOOC
 
         if (BotOOCActionPlayerAFK(bot, false))
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent action player afk", bot->GetName());
+            //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent action player afk", bot->GetName());
             check = true;
         }
 
         if (check)
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: check true, applied cooldown", bot->GetName());
+            //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: check true, applied cooldown", bot->GetName());
             botRandomEventCooldown = now + RANDOM_EVENT_INTERVAL; 
             return true;
         }
@@ -138,6 +139,9 @@ namespace FSBOOC
 
     bool BotOOCActionPlayerAFK(Creature* bot, bool force)
     {
+        if (urand(1, 100) > RANDOM_AFK_EVENT_CHANCE)
+            return false;
+
         if (!bot || !bot->IsAlive())
             return false;
 
@@ -152,7 +156,7 @@ namespace FSBOOC
 
         if (isDoingRandomEvent || botByFire)
             return false;
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: Player AFK detection step", bot->GetName());
+        //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: Player AFK detection step", bot->GetName());
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
         if (!player || !player->IsAlive())
             return false;
@@ -161,7 +165,7 @@ namespace FSBOOC
         uint32 ownerNotMovingTime = now - botOwnerNotMoving;
         
         bool playerAfk = player->isAFK() || ownerNotMovingTime > RANDOM_EVENT_INTERVAL;
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: owner not moving for: {}", bot->GetName(), ownerNotMovingTime);
+        //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: owner not moving for: {}", bot->GetName(), ownerNotMovingTime);
         if (force)
             playerAfk = true;
 
@@ -170,7 +174,7 @@ namespace FSBOOC
             if (bot->HasAura(SPELL_ROGUE_STEALTH))
                 bot->RemoveAurasDueToSpell(SPELL_ROGUE_STEALTH);
 
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} detected owner AFK", bot->GetName());
+            //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} detected owner AFK", bot->GetName());
             isDoingRandomEvent = true;
             uint8 randomAction = urand(0, FSB_AFK_MAX_ACTIONS - 1);
 
@@ -197,6 +201,9 @@ namespace FSBOOC
         {
         case FSB_AFK_ACTION_MAKE_FIRE:
         {
+            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_CAMP_FIRE))
+                return false;
+
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
             // 0. Check if there is a fire already
             GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
@@ -221,6 +228,9 @@ namespace FSBOOC
 
         case FSB_AFK_ACTION_COOKING_POT:
         {
+            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_COOKING_POT))
+                return false;
+
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
             // 0. Check if there is a fire already
             GameObject* campfire = GetClosestGameObjectWithEntry(bot, 379147, 20.f);
@@ -245,10 +255,13 @@ namespace FSBOOC
 
         case FSB_AFK_ACTION_COOK_SAUSAGES:
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
+            //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: campfire", bot->GetName());
             // 0. Check if there is a fire already
             GameObject* campfire = GetClosestGameObjectWithEntry(bot, 236110, 20.f);
             if (campfire)
+                return false;
+
+            if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_COOK_SAUSAGES))
                 return false;
 
             auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -290,19 +303,56 @@ namespace FSBOOC
                     return false;
                 auto botGroup = baseAI->botLogicalGroup;
 
-                Unit* randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+                Unit* randomUnit = nullptr;
+                do
+                {
+                    randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+                } while (randomUnit == bot);
 
                 if (randomUnit)
                 {
                     TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
-                    std::string emote = bot->GetName() + " blows a kiss to " + randomUnit->GetName();
-                    bot->TextEmote(emote, randomUnit);
+                    //std::string emote = bot->GetName() + " blows a kiss to " + randomUnit->GetName();
+                    //bot->TextEmote(emote, randomUnit);
+
+                    // 1. Emote text
+                    std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_kiss", FSB_ChatterType::None);
+                    if (!emote.empty())
+                        bot->TextEmote(emote, randomUnit);
+
                     bot->HandleEmoteCommand(EMOTE_ONESHOT_KISS);
-                    randomUnit->Say("Oh thank you... I guess, what was that for?", LANG_UNIVERSAL);
+
+                    if(!randomUnit->IsPlayer())
+                        FSBChatter::DemandTimedReply(bot, randomUnit, "emote_kiss", FSB_ReplyType::Say);
                     return true;
                 }
             }
             return false;
+        }
+
+        case FSB_AFK_ACTION_WHISTLE:
+        {
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            auto botRace = baseAI->botRace;
+            auto botGenger = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_BORED, FSBUtils::BotRaceToTC(botRace), botGenger, 0);
+            uint32 soundId = 0;
+            if (soundInfo)
+            {
+                soundId = soundInfo->SoundID;
+            }
+
+            // 1. Emote text
+            std::string emote = FSBChatter::GetRandomReply(bot, nullptr, "emote_whistle", FSB_ChatterType::None);
+            if (!emote.empty())
+                bot->TextEmote(emote);
+
+            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+            if (soundId)
+                bot->PlayDistanceSound(soundId);
+            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action Whistle: no sound found for race {}", botRace);
+
+            return true;
         }
 
         case FSB_AFK_ACTION_SLEEP:
@@ -333,11 +383,13 @@ namespace FSBOOC
 
         case FSB_AFK_ACTION_WHISPER:
         {
-            std::string emote = player->GetName() + " can we please go now?";
-            bot->TextEmote(emote);
-            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            bot->Whisper(emote, LANG_UNIVERSAL, player);
-            return true;
+            if (player)
+            {
+                bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+                FSBChatter::DemandTimedReply(bot, player, "whisper_afk", FSB_ReplyType::Whisper);
+                return true;
+            }
+            return false;
         }
 
         case FSB_AFK_ACTION_NOTHING:
@@ -366,7 +418,7 @@ namespace FSBOOC
             return false;        
 
         // 30% chance to even consider doing this
-        if (urand(1, 100) <= 30)
+        if (urand(1, 100) <= SPAWN_COMPANION_CHANCE)
         {
             int32 timerDiff = urandms(45, 60);
 

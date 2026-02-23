@@ -1,6 +1,22 @@
 // followship_bots_defines.h
 #pragma once
 
+enum class FSB_ChatterType : uint8
+{
+    None,
+    Neutral,
+    Positive,
+    Negative,
+};
+
+enum class FSB_ReplyType : uint8
+{
+    None,
+    Say,
+    Yell,
+    Whisper
+};
+
 enum class FSB_Class : uint8
 {
     None = 0,

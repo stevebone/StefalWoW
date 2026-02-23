@@ -24,9 +24,46 @@ void FSB_BaseAI::ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Millisec
     botEvents.ScheduleEvent(eventId, delay);
 }
 
+void FSB_BaseAI::ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime, FSB_ReplyType replyType, const std::string& chatterString, Unit* target)
+{
+    if (minTime > maxTime)
+        std::swap(minTime, maxTime);
+
+    auto delay = std::chrono::milliseconds(urand(minTime.count(), maxTime.count()));
+
+    // Store payload
+    eventPayloads[eventId] = {
+        replyType,
+        chatterString,
+        target ? target : nullptr };
+
+
+    // Schedule event normally
+    botEvents.ScheduleEvent(eventId, delay);
+}
+
 
 void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 {
+    auto it = eventPayloads.find(eventId);
+
+    if (it != eventPayloads.end())
+    {
+        auto payload = it->second;
+        eventPayloads.erase(it);
+
+        // Resolve target
+        Unit* target = nullptr;
+        if (payload.unit)
+            target = payload.unit;
+
+        // Forward to the new overload
+        HandleBotEvent(ai, eventId, payload.replyType, payload.chatterString, target);
+        return;
+    }
+
+
+
     Creature* bot = ai->me;
     if (!bot)
         return;
@@ -170,6 +207,52 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     }
 }
 
+void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType replyType, std::string chatterReply, Unit* target)
+{
+    Creature* bot = ai->me;
+    
+    if (!bot)
+        return;
+
+    TC_LOG_DEBUG("scripts.ai.fsb", "FSB ChatterEvents: we got chatterString: {}", chatterReply);
+
+    switch (eventId)
+    {
+    case FSB_EVENT_HIRED_TIMED_CHATTER_REPLY:
+    {
+        switch (replyType)
+        {
+        case FSB_ReplyType::Say:
+            if(target)
+                target->Say(chatterReply, LANG_UNIVERSAL);
+            else bot->Say(chatterReply, LANG_UNIVERSAL);
+            break;
+        case FSB_ReplyType::Yell:
+            if(target)
+                target->Yell(chatterReply, LANG_UNIVERSAL);
+            else bot->Yell(chatterReply, LANG_UNIVERSAL);
+            break;
+        case FSB_ReplyType::Whisper:
+        {
+            Player* player = FSBMgr::Get()->GetBotOwner(bot);
+            if (!player)
+                break;
+
+            bot->Whisper(chatterReply, LANG_UNIVERSAL, player, false);
+
+            break;
+        }
+        default:
+            break;
+        }
+    }
+        break;
+
+    default:
+        break;
+    }
+}
+
 namespace FSBEvents
 {
     // Wrapper for scheduling a bot event directly from Creature*
@@ -186,6 +269,24 @@ namespace FSBEvents
                     baseAI->ScheduleBotEvent(eventId, minTime);
                 else
                     baseAI->ScheduleBotEvent(eventId, minTime, maxTime);
+            }
+        }
+    }
+
+    // Wrapper for scheduling a bot event directly from Creature*
+    void ScheduleBotEventWithChatter(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime, FSB_ReplyType replyType, std::string chatterString, Unit* target)
+    {
+        if (!bot)
+            return;
+
+        if (auto ai = bot->AI())
+        {
+            if (auto baseAI = dynamic_cast<FSB_BaseAI*>(ai))
+            {
+                if (maxTime.count() == 0) // only minTime provided
+                    baseAI->ScheduleBotEvent(eventId, minTime);
+                else
+                    baseAI->ScheduleBotEvent(eventId, minTime, maxTime, replyType, chatterString, target);
             }
         }
     }

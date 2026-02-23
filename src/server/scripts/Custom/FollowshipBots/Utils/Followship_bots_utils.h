@@ -24,6 +24,8 @@ namespace FSBUtils
     const char* BotRaceToString(FSB_Race race);
     const char* PowerTypeToString(Powers power);
 
+    Races BotRaceToTC(FSB_Race race);
+
     constexpr float SIDE_OFFSET_MAX = float(M_PI) / 6.0f; // +-30 degrees from pure left/right
 
     // Returns a random angle slightly to the left of the player

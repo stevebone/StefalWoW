@@ -49,6 +49,23 @@ namespace FSBUtils
         }
     }
 
+    Races BotRaceToTC(FSB_Race race)
+    {
+        switch (race)
+        {
+        case FSB_Race::Human:    return RACE_HUMAN;
+        case FSB_Race::Dwarf:    return RACE_DWARF;
+        case FSB_Race::Draenei:  return RACE_DRAENEI;
+        case FSB_Race::NightElf: return RACE_NIGHTELF;
+        case FSB_Race::Gnome:    return RACE_GNOME;
+        case FSB_Race::Worgen:   return RACE_WORGEN;
+        case FSB_Race::Pandaren: return RACE_PANDAREN_ALLIANCE;
+        default:
+            TC_LOG_WARN("scripts.ai.fsb", "FSB Utils BotRaceToTC has no mapping for race {}", race);
+            return RACE_NONE;
+        }
+    }
+
     const char* PowerTypeToString(Powers power)
     {
         switch (power)

@@ -23,6 +23,7 @@ public:
             { "info", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBInfo, "This is help text?"},
             { "stats", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBStats, "This is help text?"},
             { "afkaction", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBAfkAction, "This is help text?"},
+            { "playsound", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBPlaySound, "This is help text?"},
         };
 
         static std::vector<ChatCommand> commandTable =
@@ -156,6 +157,33 @@ public:
         // --- Fetch bot metadata ---
         handler->PSendSysMessage("=== Followship Bot Random AFK Action ===");
         handler->PSendSysMessage("Returned: %s", FSBOOC::BotOOCActionPlayerAFK(bot, true) ? "true" : "false");
+
+        return true;
+    }
+
+    static bool HandleFSBPlaySound(ChatHandler* handler, uint32 soundId)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Play Sound ID ===");
+        handler->PSendSysMessage("Playing Sound Id: %u", soundId);
+
+        bot->PlayDistanceSound(soundId, handler->GetPlayer());
 
         return true;
     }
