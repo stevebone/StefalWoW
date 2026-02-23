@@ -157,6 +157,7 @@ public:
     static BattlePetSpeciesEntry const* GetBattlePetSpeciesBySpell(uint32 spellId);
     static uint16 RollPetBreed(uint32 species);
     static BattlePetBreedQuality GetDefaultPetQuality(uint32 species);
+    static void GetBaseStats(uint32 speciesId, uint16 breedId, int32& outPower, int32& outStamina, int32& outSpeed);
     static uint32 SelectPetDisplay(BattlePetSpeciesEntry const* speciesEntry);
 
     void LoadFromDB(PreparedQueryResult pets, PreparedQueryResult slots);

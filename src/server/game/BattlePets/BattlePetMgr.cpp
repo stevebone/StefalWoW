@@ -213,6 +213,37 @@ BattlePetBreedQuality BattlePetMgr::GetDefaultPetQuality(uint32 species)
     return BattlePetBreedQuality(itr->second);
 }
 
+void BattlePetMgr::GetBaseStats(uint32 speciesId, uint16 breedId, int32& outPower, int32& outStamina, int32& outSpeed)
+{
+    outPower = 0;
+    outStamina = 0;
+    outSpeed = 0;
+
+    // Breed base stats
+    auto breedState = _battlePetBreedStates.find(breedId);
+    if (breedState != _battlePetBreedStates.end())
+    {
+        auto it = breedState->second.find(BattlePetState(STATE_STAT_POWER));
+        if (it != breedState->second.end()) outPower = it->second;
+        it = breedState->second.find(BattlePetState(STATE_STAT_STAMINA));
+        if (it != breedState->second.end()) outStamina = it->second;
+        it = breedState->second.find(BattlePetState(STATE_STAT_SPEED));
+        if (it != breedState->second.end()) outSpeed = it->second;
+    }
+
+    // Species base stats (added on top of breed)
+    auto speciesState = _battlePetSpeciesStates.find(speciesId);
+    if (speciesState != _battlePetSpeciesStates.end())
+    {
+        auto it = speciesState->second.find(BattlePetState(STATE_STAT_POWER));
+        if (it != speciesState->second.end()) outPower += it->second;
+        it = speciesState->second.find(BattlePetState(STATE_STAT_STAMINA));
+        if (it != speciesState->second.end()) outStamina += it->second;
+        it = speciesState->second.find(BattlePetState(STATE_STAT_SPEED));
+        if (it != speciesState->second.end()) outSpeed += it->second;
+    }
+}
+
 uint32 BattlePetMgr::SelectPetDisplay(BattlePetSpeciesEntry const* speciesEntry)
 {
     if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(speciesEntry->CreatureID))

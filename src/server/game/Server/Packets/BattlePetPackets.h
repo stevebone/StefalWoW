@@ -348,22 +348,24 @@ namespace WorldPackets
 
         struct PetBattleEffectTargetInfo
         {
-            uint8 Type = 0;     // Written as 4 bits (V8+) + FlushBits
-            uint8 Petx = 0;
+            uint8 Type = 0;     // Written as uint8(Type << 4) — upper nibble (IDA-verified 12.0)
+            int32 Remaining = 0;
             // Variable-length params based on Type:
             // 0: nothing, 1: 4 int32s (aura), 2: 2 int32s (state), 3: 1 int32 (health),
             // 4: 1 int32 (stat), 5: 1 int32 (trigger), 6: 3 int32s (cooldown), 7: 1 int32 (broadcast)
+            // 8: embedded PetBattlePetUpdateInfo + params
             std::vector<int32> Params;
+            Optional<PetBattlePetUpdateInfo> EmbeddedPetUpdate; // Only when Type == 8
         };
 
         struct PetBattleEffectInfo
         {
-            uint32 AbilityEffectID = 0;
-            uint16 Flags = 0;
-            uint16 SourceAuraInstanceID = 0;
-            uint16 TurnInstanceID = 0;
-            int8 PetBattleEffectType = 0;
-            uint8 CasterPBOID = 0;
+            int32 AbilityEffectID = 0;
+            int32 Flags = 0;
+            int16 SourceAuraInstanceID = 0;
+            int16 TurnInstanceID = 0;
+            int32 EffectIndex = 0;
+            int32 CasterPBOID = 0;
             uint8 StackDepth = 0;
             std::vector<PetBattleEffectTargetInfo> Targets;
         };

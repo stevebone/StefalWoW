@@ -21,6 +21,7 @@
 #include "Creature.h"
 #include "DB2Stores.h"
 #include "Log.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PetBattleMgr.h"
 #include "Player.h"
@@ -200,10 +201,10 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
             petInfo.Abilities.push_back(ability);
         }
 
-        // Populate States (power, stamina, speed, crit chance, family passive)
-        petInfo.States.push_back({ BattlePets::STATE_STAT_POWER, petData.Power });
-        petInfo.States.push_back({ BattlePets::STATE_STAT_STAMINA, petData.MaxHealth });
-        petInfo.States.push_back({ BattlePets::STATE_STAT_SPEED, petData.Speed });
+        // Populate States with base breed+species stats from DB2 (retail format)
+        petInfo.States.push_back({ BattlePets::STATE_STAT_POWER, petData.BasePower });
+        petInfo.States.push_back({ BattlePets::STATE_STAT_STAMINA, petData.BaseStamina });
+        petInfo.States.push_back({ BattlePets::STATE_STAT_SPEED, petData.BaseSpeed });
         petInfo.States.push_back({ 40, 5 }); // CritChance = 5%
         if (petData.PetType >= 0 && petData.PetType < PetBattles::PET_TYPE_COUNT)
             petInfo.States.push_back({ uint32(44 + petData.PetType), 1 }); // Family passive flag
@@ -263,6 +264,7 @@ static void BuildPetXDied(std::vector<int8>& petXDied, PetBattles::PetBattle con
 static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffectInfo>& effectList,
     PetBattles::PetBattle const* battle)
 {
+    int32 effectIndex = 0;
     for (PetBattles::PetBattleRoundEffect const& roundEffect : battle->GetRoundEffects())
     {
         WorldPackets::BattlePet::PetBattleEffectInfo effect;
@@ -270,12 +272,12 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
         effect.Flags = roundEffect.Flags;
         effect.SourceAuraInstanceID = 0;
         effect.TurnInstanceID = 0;
-        effect.PetBattleEffectType = static_cast<int8>(roundEffect.EffectType);
-        effect.CasterPBOID = static_cast<uint8>(roundEffect.SourceTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.SourcePet);
+        effect.EffectIndex = effectIndex++;
+        effect.CasterPBOID = static_cast<int32>(roundEffect.SourceTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.SourcePet);
         effect.StackDepth = 0;
 
         WorldPackets::BattlePet::PetBattleEffectTargetInfo target;
-        target.Petx = static_cast<uint8>(roundEffect.TargetTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.TargetPet);
+        target.Remaining = static_cast<int32>(roundEffect.TargetTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.TargetPet);
 
         // Map effect type to target type and variable-length params
         // Target types: 0=none, 1=aura(4 i32), 2=state(2 i32), 3=health(1 i32),
@@ -397,6 +399,17 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
         return;
     }
 
+    // Validate that the creature has a valid BattlePetSpecies entry (Species=0 crashes client)
+    if (!BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(creature->GetEntry()))
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_TARGET_INVALID;
+        SendPacket(failed.Write());
+        TC_LOG_ERROR("server.loading", "PetBattle: Creature {} (entry {}) has no BattlePetSpecies entry, rejecting battle",
+            creature->GetGUID().ToString(), creature->GetEntry());
+        return;
+    }
+
     // Create the battle
     PetBattles::PetBattle* battle = sPetBattleMgr->CreateWildBattle(player, petBattleRequestWild.TargetGUID);
     if (!battle)
@@ -407,10 +420,20 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
         return;
     }
 
-    // Send finalize location (echo back client's LocationResult)
+    // Freeze the wild creature during battle (stop movement, make non-interactable)
+    creature->SetUnitFlag(UNIT_FLAG_PACIFIED);
+    creature->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+    creature->GetMotionMaster()->MoveIdle();
+
+    // Send finalize location with OK result
+    // BattleOrigin is the midpoint between player and creature (matching retail)
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
-    finalizeLocation.Location.LocationResult = petBattleRequestWild.Location.LocationResult;
-    finalizeLocation.Location.BattleOrigin = player->GetPosition();
+    finalizeLocation.Location.LocationResult = PetBattles::PET_BATTLE_REQUEST_FAIL_OK;
+    Position midpoint;
+    midpoint.m_positionX = (player->GetPositionX() + creature->GetPositionX()) / 2.0f;
+    midpoint.m_positionY = (player->GetPositionY() + creature->GetPositionY()) / 2.0f;
+    midpoint.m_positionZ = (player->GetPositionZ() + creature->GetPositionZ()) / 2.0f;
+    finalizeLocation.Location.BattleOrigin = midpoint;
     finalizeLocation.Location.BattleFacing = player->GetAbsoluteAngle(creature);
     finalizeLocation.Location.PlayerPositions[0] = player->GetPosition();
     finalizeLocation.Location.PlayerPositions[1] = creature->GetPosition();
@@ -424,21 +447,68 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
 
     initialUpdate.CurRound = battle->GetCurrentRound();
     initialUpdate.CurPetBattleState = static_cast<int8>(battle->GetBattleState());
-    initialUpdate.NpcCreatureID = creature->GetEntry();
-    initialUpdate.NpcDisplayID = creature->GetDisplayId();
+    initialUpdate.NpcCreatureID = 0; // Wild battles have no NPC trainer; creature identified by InitialWildPetGUID
+    initialUpdate.NpcDisplayID = 0;
     initialUpdate.InitialWildPetGUID = petBattleRequestWild.TargetGUID;
     initialUpdate.IsPVP = false;
     initialUpdate.CanAwardXP = true;
     initialUpdate.WaitingForFrontPetsMaxSecs = 30;
     initialUpdate.PvpMaxRoundTime = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
 
-    SendPacket(initialUpdate.Write());
+    WorldPacket const* pkt = initialUpdate.Write();
 
-    // Start the battle
+    // Dump all critical fields for debugging
+    for (uint8 t = 0; t < 2; ++t)
+    {
+        auto const& pu = initialUpdate.Players[t];
+        TC_LOG_ERROR("server.loading", "PetBattle InitialUpdate Player[{}]: CharID={} TrapAbilityID={} TrapStatus={} RoundTimeSecs={} FrontPet={} InputFlags={} PetCount={}",
+            t, pu.CharacterID.ToString(), pu.TrapAbilityID, pu.TrapStatus, pu.RoundTimeSecs, pu.FrontPet, pu.InputFlags, pu.Pets.size());
+        for (uint8 p = 0; p < pu.Pets.size(); ++p)
+        {
+            auto const& pet = pu.Pets[p];
+            TC_LOG_ERROR("server.loading", "  Pet[{}]: GUID={} Species={} Display={} Collar={} Lvl={} Xp={} HP={}/{} Pow={} Spd={} NpcTM={} Quality={} Status={} Slot={} Abilities={} Auras={} States={} Name='{}'",
+                p, pet.BattlePetGUID.ToString(), pet.SpeciesID, pet.DisplayID, pet.CollarID, pet.Level, pet.Xp,
+                pet.CurHealth, pet.MaxHealth, pet.Power, pet.Speed, pet.NpcTeamMemberID,
+                pet.BreedQuality, pet.StatusFlags, pet.Slot, pet.Abilities.size(), pet.Auras.size(), pet.States.size(), pet.CustomName);
+            for (uint8 a = 0; a < pet.Abilities.size(); ++a)
+                TC_LOG_ERROR("server.loading", "    Ability[{}]: ID={} CD={} LD={} Idx={} Pboid={}",
+                    a, pet.Abilities[a].AbilityID, pet.Abilities[a].CooldownRemaining, pet.Abilities[a].LockdownRemaining, pet.Abilities[a].AbilityIndex, pet.Abilities[a].Pboid);
+            for (uint8 s = 0; s < pet.States.size(); ++s)
+                TC_LOG_ERROR("server.loading", "    State[{}]: ID={} Val={}",
+                    s, pet.States[s].StateID, pet.States[s].StateValue);
+        }
+    }
+    TC_LOG_ERROR("server.loading", "PetBattle InitialUpdate: CurRound={} State={} NpcCreature={} NpcDisplay={} WildGUID={} IsPVP={} CanAwardXP={} PktSize={}",
+        initialUpdate.CurRound, initialUpdate.CurPetBattleState, initialUpdate.NpcCreatureID, initialUpdate.NpcDisplayID,
+        initialUpdate.InitialWildPetGUID.ToString(), initialUpdate.IsPVP, initialUpdate.CanAwardXP, pkt->size());
+
+    SendPacket(pkt);
+
+    // Start the battle (sets state to ROUND_IN_PROGRESS, round=0)
     battle->Start();
 
-    // Auto-submit input for wild/NPC team using AI
-    battle->GenerateWildTeamInput();
+    // Send SMSG_PET_BATTLE_FIRST_ROUND to unlock abilities for the client
+    // Retail sends this ~1 second after INITIAL_UPDATE; we send it immediately since
+    // we don't have intro animations. This packet tells the client abilities are available.
+    {
+        WorldPackets::BattlePet::PetBattleFirstRound firstRound;
+        firstRound.CurRound = 0;
+        firstRound.NextPetBattleState = static_cast<int8>(PetBattles::PET_BATTLE_STATE_ROUND_IN_PROGRESS);
+
+        // Unlock abilities for both teams (NextInputFlags=0 means no restrictions)
+        for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+        {
+            firstRound.Players[i].NextInputFlags = 0;
+            firstRound.Players[i].NextTrapStatus = static_cast<int8>(battle->GetTrapStatus(i));
+            firstRound.Players[i].RoundTimeSecs = 0;
+        }
+        // No effects, cooldowns, or deaths for the initial first-round packet
+
+        SendPacket(firstRound.Write());
+    }
+
+    // NOTE: Do NOT call GenerateWildTeamInput() here. The wild team AI submits
+    // its input when the player submits theirs (in HandlePetBattleInput).
 
     TC_LOG_DEBUG("server.loading", "PetBattleHandler: Player {} started wild battle against {}",
         player->GetGUID().ToString(), petBattleRequestWild.TargetGUID.ToString());
@@ -464,11 +534,18 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
         petBattleInput.AbilityID,
         petBattleInput.NewFrontPetIndex);
 
+    // Auto-submit AI team input now that the player has committed
+    if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE)
+        battle->GenerateWildTeamInput();
+    else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC)
+        battle->GenerateNPCTeamInput();
+
     // Check if round should process
     if (battle->BothTeamsReady())
     {
-        bool wasFirstRound = (battle->GetCurrentRound() == 0);
         battle->ProcessRound();
+
+        uint32 battleID = battle->GetBattleID();
 
         if (battle->IsFinished())
         {
@@ -532,48 +609,32 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
                 petMgr->HealBattlePetsPct(50);
                 petMgr->SendJournal();
             }
+
+            // Remove the battle from tracking maps so player can start a new one
+            sPetBattleMgr->RemoveBattle(battleID);
         }
         else
         {
-            // Send round result
-            if (wasFirstRound)
-            {
-                WorldPackets::BattlePet::PetBattleFirstRound firstRound;
-                firstRound.CurRound = battle->GetCurrentRound();
-                firstRound.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
-                for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
-                    BuildPetBattleRoundPlayerData(firstRound.Players[i], battle->GetTeam(i), battle, i);
-                BuildRoundEffects(firstRound.Effects, battle);
-                BuildRoundCooldowns(firstRound.Cooldowns, battle);
-                BuildPetXDied(firstRound.PetXDied, battle);
+            // Send round result (FIRST_ROUND was already sent during init,
+            // all combat rounds use ROUND_RESULT)
+            WorldPackets::BattlePet::PetBattleRoundResult roundResult;
+            roundResult.CurRound = battle->GetCurrentRound();
+            roundResult.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
+            for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+                BuildPetBattleRoundPlayerData(roundResult.Players[i], battle->GetTeam(i), battle, i);
+            BuildRoundEffects(roundResult.Effects, battle);
+            BuildRoundCooldowns(roundResult.Cooldowns, battle);
+            BuildPetXDied(roundResult.PetXDied, battle);
 
-                if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                    p1->SendDirectMessage(firstRound.Write());
-                if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-                    p2->SendDirectMessage(firstRound.Write());
-            }
-            else
-            {
-                WorldPackets::BattlePet::PetBattleRoundResult roundResult;
-                roundResult.CurRound = battle->GetCurrentRound();
-                roundResult.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
-                for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
-                    BuildPetBattleRoundPlayerData(roundResult.Players[i], battle->GetTeam(i), battle, i);
-                BuildRoundEffects(roundResult.Effects, battle);
-                BuildRoundCooldowns(roundResult.Cooldowns, battle);
-                BuildPetXDied(roundResult.PetXDied, battle);
+            TC_LOG_ERROR("server.loading", "PetBattle ROUND_RESULT: Round={} State={} Effects={} Cooldowns={} Deaths={} P0Flags={} P1Flags={}",
+                roundResult.CurRound, roundResult.NextPetBattleState,
+                roundResult.Effects.size(), roundResult.Cooldowns.size(), roundResult.PetXDied.size(),
+                roundResult.Players[0].NextInputFlags, roundResult.Players[1].NextInputFlags);
 
-                if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                    p1->SendDirectMessage(roundResult.Write());
-                if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-                    p2->SendDirectMessage(roundResult.Write());
-            }
-
-            // Auto-submit AI team input for next round
-            if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE)
-                battle->GenerateWildTeamInput();
-            else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC)
-                battle->GenerateNPCTeamInput();
+            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                p1->SendDirectMessage(roundResult.Write());
+            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+                p2->SendDirectMessage(roundResult.Write());
         }
     }
 }
@@ -592,56 +653,35 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
     if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
         teamIdx = PetBattles::PET_BATTLE_TEAM_2;
 
-    battle->SubmitInput(teamIdx, PetBattles::PET_BATTLE_MOVE_SWAP, 0, petBattleReplaceFrontPet.FrontPetIndex);
+    // Validate pet index
+    int8 newPetIdx = petBattleReplaceFrontPet.FrontPetIndex;
+    PetBattles::PetBattleTeamData& team = battle->GetTeam(teamIdx);
+    if (newPetIdx < 0 || newPetIdx >= team.PetCount || !team.Pets[newPetIdx].IsAlive())
+        return;
 
-    // If both teams have submitted (wild auto-submits), process
-    if (battle->BothTeamsReady())
+    // Set the new front pet directly (this is a pet swap, not a round action)
+    team.FrontPetIndex = newPetIdx;
+    team.HasInputThisRound = false;
+
+    // Reset battle state to ROUND_IN_PROGRESS (ready for next round)
+    // The battle was in WAITING_FOR_FRONT_PET state
+
+    // Send REPLACEMENTS_MADE to acknowledge the swap
+    WorldPackets::BattlePet::PetBattleReplacementsMade replacements;
+    replacements.CurRound = battle->GetCurrentRound();
+    replacements.NextPetBattleState = static_cast<int8>(PetBattles::PET_BATTLE_STATE_ROUND_IN_PROGRESS);
+    for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
     {
-        bool isFirstRound = battle->GetCurrentRound() == 0;
-
-        battle->ProcessRound();
-
-        if (isFirstRound)
-        {
-            // Initial pet selection: send FIRST_ROUND to start the battle UI
-            WorldPackets::BattlePet::PetBattleFirstRound firstRound;
-            firstRound.CurRound = battle->GetCurrentRound();
-            firstRound.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
-            for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
-                BuildPetBattleRoundPlayerData(firstRound.Players[i], battle->GetTeam(i), battle, i);
-            BuildRoundEffects(firstRound.Effects, battle);
-            BuildRoundCooldowns(firstRound.Cooldowns, battle);
-            BuildPetXDied(firstRound.PetXDied, battle);
-
-            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                p1->SendDirectMessage(firstRound.Write());
-            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-                p2->SendDirectMessage(firstRound.Write());
-        }
-        else
-        {
-            // Mid-battle pet replacement after a pet died
-            WorldPackets::BattlePet::PetBattleReplacementsMade replacements;
-            replacements.CurRound = battle->GetCurrentRound();
-            replacements.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
-            for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
-                BuildPetBattleRoundPlayerData(replacements.Players[i], battle->GetTeam(i), battle, i);
-            BuildRoundEffects(replacements.Effects, battle);
-            BuildRoundCooldowns(replacements.Cooldowns, battle);
-            BuildPetXDied(replacements.PetXDied, battle);
-
-            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                p1->SendDirectMessage(replacements.Write());
-            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-                p2->SendDirectMessage(replacements.Write());
-        }
-
-        // Re-submit AI team for next round
-        if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVE)
-            battle->GenerateWildTeamInput();
-        else if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC)
-            battle->GenerateNPCTeamInput();
+        replacements.Players[i].NextInputFlags = 0; // Abilities unlocked for next round
+        replacements.Players[i].NextTrapStatus = static_cast<int8>(battle->GetTrapStatus(i));
+        replacements.Players[i].RoundTimeSecs = 0;
     }
+    // No effects, cooldowns, or deaths for a simple pet swap
+
+    if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+        p1->SendDirectMessage(replacements.Write());
+    if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
+        p2->SendDirectMessage(replacements.Write());
 }
 
 void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQuitNotify& /*petBattleQuitNotify*/)
@@ -653,6 +693,8 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
     PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(player->GetGUID());
     if (!battle)
         return;
+
+    uint32 battleID = battle->GetBattleID();
 
     uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
     if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
@@ -715,11 +757,14 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
         petMgr->HealBattlePetsPct(50);
         petMgr->SendJournal();
     }
+
+    // Remove the battle from tracking maps so player can start a new one
+    sPetBattleMgr->RemoveBattle(battleID);
 }
 
 void WorldSession::HandlePetBattleFinalNotify(WorldPackets::BattlePet::PetBattleFinalNotify& /*petBattleFinalNotify*/)
 {
-    // Client acknowledges battle end - cleanup happens via PetBattleMgr::Update() removing finished battles
+    // Client acknowledges battle end - battle was already cleaned up when FinalRound/Finished were sent
 }
 
 void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleRequestPVP& petBattleRequestPVP)
