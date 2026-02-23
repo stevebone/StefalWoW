@@ -118,8 +118,12 @@ void PetBattle::LoadWildPetAbilities(PetBattlePetData& pet)
     std::vector<BattlePetSpeciesXAbilityEntry const*> const* speciesAbilities =
         sPetBattleMgr->GetSpeciesAbilitiesFull(pet.Species);
     if (!speciesAbilities)
+    {
+        TC_LOG_ERROR("server.loading", "PetBattle LoadWildPetAbilities: Species {} has NO entries in BattlePetSpeciesXAbility!", pet.Species);
         return;
+    }
 
+    uint8 loaded = 0;
     for (BattlePetSpeciesXAbilityEntry const* entry : *speciesAbilities)
     {
         if (entry->RequiredLevel > pet.Level)
@@ -129,7 +133,12 @@ void PetBattle::LoadWildPetAbilities(PetBattlePetData& pet)
 
         uint8 slotIdx = static_cast<uint8>(entry->SlotEnum);
         pet.AbilityIDs[slotIdx] = entry->BattlePetAbilityID;
+        ++loaded;
     }
+
+    TC_LOG_ERROR("server.loading", "PetBattle LoadWildPetAbilities: Species={} Level={} entries={} loaded={} abilities=[{},{},{}]",
+        pet.Species, pet.Level, speciesAbilities->size(), loaded,
+        pet.AbilityIDs[0], pet.AbilityIDs[1], pet.AbilityIDs[2]);
 }
 
 static void CalculateWildPetStats(PetBattlePetData& wildPet);
@@ -403,10 +412,19 @@ void PetBattle::ProcessRound()
             std::swap(firstTeam, secondTeam);
     }
 
+    TC_LOG_ERROR("server.loading", "PetBattle ProcessRound: BEFORE TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{}",
+        _teams[0].FrontPetIndex, _teams[0].Pets[_teams[0].FrontPetIndex].Health, _teams[0].Pets[_teams[0].FrontPetIndex].MaxHealth,
+        _teams[1].FrontPetIndex, _teams[1].Pets[_teams[1].FrontPetIndex].Health, _teams[1].Pets[_teams[1].FrontPetIndex].MaxHealth);
+
     // Process turns in speed order
     ProcessTurnForTeam(firstTeam);
     if (!IsFinished())
         ProcessTurnForTeam(secondTeam);
+
+    TC_LOG_ERROR("server.loading", "PetBattle ProcessRound: AFTER TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{} effects={}",
+        _teams[0].FrontPetIndex, _teams[0].Pets[_teams[0].FrontPetIndex].Health, _teams[0].Pets[_teams[0].FrontPetIndex].MaxHealth,
+        _teams[1].FrontPetIndex, _teams[1].Pets[_teams[1].FrontPetIndex].Health, _teams[1].Pets[_teams[1].FrontPetIndex].MaxHealth,
+        _roundEffects.size());
 
     if (IsFinished())
         return;
@@ -452,26 +470,49 @@ void PetBattle::ProcessRound()
     }
 
     // Check if any team needs to swap front pet (front pet died)
+    // Process ALL teams before returning so wild/NPC auto-swap happens even
+    // when the player's pet also died in the same round
+    bool anyPlayerNeedsSwap = false;
     for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
     {
         if (!_teams[i].Pets[_teams[i].FrontPetIndex].IsAlive())
         {
-            _needsFrontPetSwap[i] = true;
-            _state = PET_BATTLE_STATE_WAITING_FOR_FRONT_PET;
+            TC_LOG_ERROR("server.loading", "PetBattle: Team {} front pet {} died (HP={}), needs swap",
+                i, _teams[i].FrontPetIndex, _teams[i].Pets[_teams[i].FrontPetIndex].Health);
 
-            // Wild/NPC team auto-swaps
+            _needsFrontPetSwap[i] = true;
+
+            // Wild/NPC team auto-swaps immediately
             if (i == PET_BATTLE_TEAM_2 && (_battleType == PET_BATTLE_TYPE_PVE || _battleType == PET_BATTLE_TYPE_NPC))
             {
                 int8 nextAlive = _teams[i].GetFirstAlivePetIndex();
                 if (nextAlive >= 0)
                 {
+                    TC_LOG_ERROR("server.loading", "PetBattle: Wild/NPC team auto-swap {} -> {}", _teams[i].FrontPetIndex, nextAlive);
                     _teams[i].FrontPetIndex = nextAlive;
                     _needsFrontPetSwap[i] = false;
+
+                    // Generate PET_SWAP effect so client updates the active pet display
+                    PetBattleRoundEffect swapEffect;
+                    swapEffect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
+                    swapEffect.SourceTeam = i;
+                    swapEffect.SourcePet = nextAlive;
+                    swapEffect.TargetTeam = i;
+                    swapEffect.TargetPet = nextAlive;
+                    _roundEffects.push_back(swapEffect);
                 }
             }
+
             if (_needsFrontPetSwap[i])
-                return;
+                anyPlayerNeedsSwap = true;
         }
+    }
+
+    if (anyPlayerNeedsSwap)
+    {
+        TC_LOG_ERROR("server.loading", "PetBattle: Setting state WAITING_FOR_FRONT_PET, player needs to pick replacement");
+        _state = PET_BATTLE_STATE_WAITING_FOR_FRONT_PET;
+        return;
     }
 
     // Compute InputFlags per team for the next round
@@ -579,6 +620,8 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                     effect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
                     effect.SourceTeam = teamIdx;
                     effect.SourcePet = team.PendingNewFrontPet;
+                    effect.TargetTeam = teamIdx;
+                    effect.TargetPet = team.PendingNewFrontPet;
                     _roundEffects.push_back(effect);
                 }
             }
@@ -1114,6 +1157,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             break;
         }
         default:
+            TC_LOG_ERROR("server.loading", "PetBattle ProcessEffect: UNHANDLED effectCategory={} basePower={} defenderAlive={}",
+                effectCategory, basePower, defender.IsAlive());
             // Unhandled effect category - treat as damage if basePower > 0
             if (basePower > 0 && defender.IsAlive())
             {
@@ -1779,6 +1824,9 @@ void PetBattle::GenerateWildTeamInput()
 
     if (availableAbilities.empty())
     {
+        TC_LOG_ERROR("server.loading", "PetBattle GenerateWildTeamInput: NO available abilities! AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS",
+            frontPet.AbilityIDs[0], frontPet.AbilityIDs[1], frontPet.AbilityIDs[2],
+            frontPet.AbilityCooldowns[0], frontPet.AbilityCooldowns[1], frontPet.AbilityCooldowns[2]);
         SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
         return;
     }
@@ -1827,12 +1875,15 @@ void PetBattle::GenerateWildTeamInput()
         cumulative += std::max(0.1f, opt.priority);
         if (roll <= cumulative)
         {
+            TC_LOG_ERROR("server.loading", "PetBattle GenerateWildTeamInput: SELECTED ability={} (avail={} roll={:.1f}/{:.1f})",
+                opt.abilityID, availableAbilities.size(), roll, totalWeight);
             SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, opt.abilityID, -1);
             return;
         }
     }
 
     // Fallback: use first available ability
+    TC_LOG_ERROR("server.loading", "PetBattle GenerateWildTeamInput: FALLBACK ability={}", availableAbilities[0].abilityID);
     SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, availableAbilities[0].abilityID, -1);
 }
 

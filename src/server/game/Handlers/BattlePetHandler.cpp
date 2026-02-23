@@ -264,7 +264,6 @@ static void BuildPetXDied(std::vector<int8>& petXDied, PetBattles::PetBattle con
 static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffectInfo>& effectList,
     PetBattles::PetBattle const* battle)
 {
-    int32 effectIndex = 0;
     for (PetBattles::PetBattleRoundEffect const& roundEffect : battle->GetRoundEffects())
     {
         WorldPackets::BattlePet::PetBattleEffectInfo effect;
@@ -272,7 +271,9 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
         effect.Flags = roundEffect.Flags;
         effect.SourceAuraInstanceID = 0;
         effect.TurnInstanceID = 0;
-        effect.EffectIndex = effectIndex++;
+        // Wire offset 12 is the PetBattleEffectType — client switches on this to process effects
+        // (SetHealth=0, AuraApply=1, PetSwap=4, SetState=6, etc.), NOT a sequential index
+        effect.EffectIndex = roundEffect.EffectType;
         effect.CasterPBOID = static_cast<int32>(roundEffect.SourceTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.SourcePet);
         effect.StackDepth = 0;
 
@@ -631,6 +632,23 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
                 roundResult.Effects.size(), roundResult.Cooldowns.size(), roundResult.PetXDied.size(),
                 roundResult.Players[0].NextInputFlags, roundResult.Players[1].NextInputFlags);
 
+            // Dump each effect for debugging
+            for (std::size_t e = 0; e < roundResult.Effects.size(); ++e)
+            {
+                auto const& eff = roundResult.Effects[e];
+                TC_LOG_ERROR("server.loading", "  Effect[{}]: AbilEffID={} Flags=0x{:X} Idx={} CasterPBOID={} StackDepth={} Targets={}",
+                    e, eff.AbilityEffectID, eff.Flags, eff.EffectIndex, eff.CasterPBOID, eff.StackDepth, eff.Targets.size());
+                for (std::size_t tgt = 0; tgt < eff.Targets.size(); ++tgt)
+                {
+                    auto const& t = eff.Targets[tgt];
+                    std::string paramStr;
+                    for (int32 p : t.Params)
+                        paramStr += std::to_string(p) + " ";
+                    TC_LOG_ERROR("server.loading", "    Target[{}]: Type={} Remaining(PBOID)={} Params=[{}]",
+                        tgt, t.Type, t.Remaining, paramStr);
+                }
+            }
+
             if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
                 p1->SendDirectMessage(roundResult.Write());
             if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
@@ -656,15 +674,30 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
     // Validate pet index
     int8 newPetIdx = petBattleReplaceFrontPet.FrontPetIndex;
     PetBattles::PetBattleTeamData& team = battle->GetTeam(teamIdx);
-    if (newPetIdx < 0 || newPetIdx >= team.PetCount || !team.Pets[newPetIdx].IsAlive())
-        return;
 
-    // Set the new front pet directly (this is a pet swap, not a round action)
+    TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: team={} newPetIdx={} petCount={} battleState={} needsSwap={}",
+        teamIdx, newPetIdx, team.PetCount, int(battle->GetBattleState()), battle->NeedsFrontPetSwap(teamIdx));
+
+    if (newPetIdx < 0 || newPetIdx >= team.PetCount)
+    {
+        TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: REJECTED - invalid index");
+        return;
+    }
+    if (!team.Pets[newPetIdx].IsAlive())
+    {
+        TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: REJECTED - pet {} is dead (HP={})",
+            newPetIdx, team.Pets[newPetIdx].Health);
+        return;
+    }
+
+    TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: Swapping team {} front pet {} -> {}",
+        teamIdx, team.FrontPetIndex, newPetIdx);
+
+    // Set the new front pet and transition state back to ROUND_IN_PROGRESS
     team.FrontPetIndex = newPetIdx;
     team.HasInputThisRound = false;
-
-    // Reset battle state to ROUND_IN_PROGRESS (ready for next round)
-    // The battle was in WAITING_FOR_FRONT_PET state
+    battle->ClearNeedsFrontPetSwap(teamIdx);
+    battle->SetBattleState(PetBattles::PET_BATTLE_STATE_ROUND_IN_PROGRESS);
 
     // Send REPLACEMENTS_MADE to acknowledge the swap
     WorldPackets::BattlePet::PetBattleReplacementsMade replacements;
@@ -676,7 +709,21 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
         replacements.Players[i].NextTrapStatus = static_cast<int8>(battle->GetTrapStatus(i));
         replacements.Players[i].RoundTimeSecs = 0;
     }
-    // No effects, cooldowns, or deaths for a simple pet swap
+
+    // Include a PetSwap effect so client updates the active pet and ability bar
+    WorldPackets::BattlePet::PetBattleEffectInfo swapEffect;
+    swapEffect.AbilityEffectID = 0;
+    swapEffect.Flags = 0;
+    swapEffect.SourceAuraInstanceID = 0;
+    swapEffect.TurnInstanceID = 0;
+    swapEffect.EffectIndex = PetBattles::PET_BATTLE_EFFECT_PET_SWAP; // Wire offset 12 = EffectType, client case 4
+    swapEffect.CasterPBOID = static_cast<int32>(teamIdx * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + newPetIdx);
+    swapEffect.StackDepth = 0;
+    WorldPackets::BattlePet::PetBattleEffectTargetInfo swapTarget;
+    swapTarget.Type = 0; // No extra params needed for PetSwap
+    swapTarget.Remaining = static_cast<int32>(teamIdx * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + newPetIdx);
+    swapEffect.Targets.push_back(swapTarget);
+    replacements.Effects.push_back(std::move(swapEffect));
 
     if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
         p1->SendDirectMessage(replacements.Write());

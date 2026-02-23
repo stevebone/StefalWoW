@@ -364,7 +364,7 @@ namespace WorldPackets
             int32 Flags = 0;
             int16 SourceAuraInstanceID = 0;
             int16 TurnInstanceID = 0;
-            int32 EffectIndex = 0;
+            int32 EffectIndex = 0;          // Actually PetBattleEffectType — client switches on this value
             int32 CasterPBOID = 0;
             uint8 StackDepth = 0;
             std::vector<PetBattleEffectTargetInfo> Targets;
