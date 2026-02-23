@@ -31,7 +31,7 @@ class Map;
 class Player;
 struct GarrSiteLevelEntry;
 
-enum GarrisonType
+enum GarrisonType : int32
 {
     GARRISON_TYPE_GARRISON      = 2,
     GARRISON_TYPE_CLASS_ORDER   = 3,
@@ -237,7 +237,7 @@ public:
 
     static constexpr GarrisonFactionIndex GetFaction(Team team) { return team == HORDE ? GARRISON_FACTION_INDEX_HORDE : GARRISON_FACTION_INDEX_ALLIANCE; }
     GarrisonFactionIndex GetFaction() const;
-    GarrisonType GetType() const { return GARRISON_TYPE_GARRISON; }
+    GarrisonType GetType() const { return _garrType; }
     GarrSiteLevelEntry const* GetSiteLevel() const { return _siteLevel; }
 
     // Plots
@@ -312,6 +312,7 @@ private:
     GarrisonError CheckBuildingPlacement(uint32 garrPlotInstanceId, uint32 garrBuildingId) const;
     GarrisonError CheckBuildingRemoval(uint32 garrPlotInstanceId) const;
     Player* _owner;
+    GarrisonType _garrType;
     GarrSiteLevelEntry const* _siteLevel;
     uint32 _followerActivationsRemainingToday;
 

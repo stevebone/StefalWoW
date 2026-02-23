@@ -31,7 +31,10 @@ struct GameObjectsEntry;
 struct GarrAbilityEntry;
 struct GarrEncounterEntry;
 struct GarrFollowerEntry;
+struct GarrFollowerLevelXPEntry;
+struct GarrFollowerQualityEntry;
 struct GarrMechanicEntry;
+struct GarrMissionXFollowerEntry;
 struct GarrMechanicTypeEntry;
 struct GarrMissionEntry;
 struct GarrMissionXEncounterEntry;
@@ -79,10 +82,15 @@ public:
     std::list<GarrAbilityEntry const*> RollFollowerAbilities(uint32 garrFollowerId, GarrFollowerEntry const* follower, uint32 quality, uint32 faction, bool initial) const;
     std::list<GarrAbilityEntry const*> GetClassSpecAbilities(GarrFollowerEntry const* follower, uint32 faction) const;
 
+    // Follower progression
+    GarrFollowerLevelXPEntry const* GetFollowerLevelXP(uint8 garrFollowerTypeID, int8 followerLevel) const;
+    GarrFollowerQualityEntry const* GetFollowerQuality(uint16 garrFollowerTypeID, int8 quality) const;
+
     // Mission system accessors
     std::vector<GarrMissionEntry const*> const* GetMissionsByGarrType(int8 garrTypeID) const;
     std::vector<GarrMissionXEncounterEntry const*> const* GetMissionEncounters(uint32 garrMissionID) const;
     std::vector<GarrMechanicEntry const*> const* GetEncounterMechanics(uint32 garrEncounterID) const;
+    std::vector<GarrMissionXFollowerEntry const*> const* GetMissionRequiredFollowers(uint32 garrMissionID) const;
     GarrMechanicTypeEntry const* GetMechanicType(int32 garrMechanicTypeID) const;
     bool DoesAbilityCounterMechanic(GarrAbilityEntry const* ability, GarrMechanicTypeEntry const* mechanicType) const;
 
@@ -101,10 +109,15 @@ private:
     std::unordered_map<uint32 /*classSpecId*/, std::list<GarrAbilityEntry const*>> _garrisonFollowerClassSpecAbilities;
     std::set<GarrAbilityEntry const*> _garrisonFollowerRandomTraits;
 
+    // Follower progression indices
+    std::unordered_map<std::pair<uint8 /*garrFollowerTypeID*/, int8 /*level*/>, GarrFollowerLevelXPEntry const*> _followerLevelXP;
+    std::unordered_map<std::pair<uint16 /*garrFollowerTypeID*/, int8 /*quality*/>, GarrFollowerQualityEntry const*> _followerQuality;
+
     // Mission system indices
     std::unordered_map<int8 /*garrTypeID*/, std::vector<GarrMissionEntry const*>> _missionsByGarrType;
     std::unordered_map<uint32 /*garrMissionID*/, std::vector<GarrMissionXEncounterEntry const*>> _missionEncounters;
     std::unordered_map<uint32 /*garrEncounterID*/, std::vector<GarrMechanicEntry const*>> _encounterMechanics;
+    std::unordered_map<uint32 /*garrMissionID*/, std::vector<GarrMissionXFollowerEntry const*>> _missionRequiredFollowers;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
 };

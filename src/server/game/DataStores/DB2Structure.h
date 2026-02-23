@@ -1866,6 +1866,16 @@ struct GarrBuildingEntry
     int32 Flags;
 };
 
+struct GarrBuildingDoodadSetEntry
+{
+    uint32 ID;
+    uint8 GarrBuildingID;
+    uint8 HordeDoodadSetID;
+    uint8 AllianceDoodadSetID;
+    uint8 HordeAltDoodadSetID;
+    uint8 AllianceAltDoodadSetID;
+};
+
 struct GarrBuildingPlotInstEntry
 {
     DBCPosition2D MapOffset;
@@ -1946,6 +1956,48 @@ struct GarrFollowerEntry
     int32 CovenantID;
 };
 
+struct GarrFollItemSetMemberEntry
+{
+    uint32 ID;
+    int32 GarrFollItemSetID;
+    uint8 ItemSlot;
+    uint16 ItemModifiedAppearanceID;
+    int32 GarrFollowerID;
+};
+
+struct GarrFollowerLevelXPEntry
+{
+    uint32 ID;
+    int8 FollowerLevel;
+    uint8 GarrFollowerTypeID;
+    uint16 XpToNextLevel;
+    uint16 ShipmentXP;
+};
+
+struct GarrFollowerQualityEntry
+{
+    uint32 ID;
+    int32 XpThreshold;
+    uint32 QualityItemID;
+    int8 Quality;
+    uint8 AbilityCount;
+    uint8 TraitCount;
+    uint16 GarrFollowerTypeID;
+    uint32 ClassSpecID;
+};
+
+struct GarrFollowerTypeEntry
+{
+    uint32 ID;
+    int8 GarrTypeID;
+    uint8 MaxFollowers;
+    uint8 MaxFollowerBuildingType;
+    uint16 MaxItemLevel;
+    uint8 LevelRangeBias;
+    uint8 ItemLevelRangeBias;
+    int32 Flags;
+};
+
 struct GarrFollowerXAbilityEntry
 {
     uint32 ID;
@@ -1970,6 +2022,15 @@ struct GarrMechanicTypeEntry
     LocalizedString Description;
     int32 GarrAbilityCategoryID;
     uint8 Category;
+};
+
+struct GarrItemLevelUpgradeDataEntry
+{
+    uint32 ID;
+    int32 Operation;
+    int32 MinItemLevel;
+    int32 MaxItemLevel;
+    int8 FollowerTypeID;
 };
 
 struct GarrMissionEntry
@@ -2008,6 +2069,25 @@ struct GarrMissionEntry
     int32 AutoCombatantEnvCasterID;
 };
 
+struct GarrMissionSetEntry
+{
+    uint32 ID;
+    int8 GarrTypeID;
+    int32 MissionCostCurrencyTypesID;
+    int32 ContentTuningID;
+    int32 MapID;
+    int32 Flags;
+    int32 Priority;
+};
+
+struct GarrMissionTypeEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    uint16 UiTextureAtlasMemberID;
+    uint16 UiTextureKitID;
+};
+
 struct GarrMissionXEncounterEntry
 {
     uint32 ID;
@@ -2016,6 +2096,25 @@ struct GarrMissionXEncounterEntry
     uint8 CombatWeightBase;
     int8 CombatWeightMax;
     int32 GarrMissionID;
+};
+
+struct GarrMissionXFollowerEntry
+{
+    uint32 ID;
+    int32 GarrFollowerID;
+    int32 GarrFollowerTypeID;
+    int8 BoardIndex;
+    int32 GarrMissionID;
+};
+
+struct GarrMssnBonusAbilityEntry
+{
+    uint32 ID;
+    uint8 GarrMssnBonusAbilityType;
+    uint8 MssnSort;
+    uint16 GarrAbilityID;
+    float Modifier;
+    int32 MissionSetID;
 };
 
 struct GarrPlotEntry
@@ -2066,6 +2165,18 @@ struct GarrSiteLevelPlotInstEntry
     uint8 UiMarkerSize;
 };
 
+struct GarrSpecializationEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    uint8 GarrTypeID;
+    int32 IconFileDataID;
+    uint8 GarrFollowerTypeID;
+    int32 Param;
+    std::array<float, 2> Bonus;
+};
+
 struct GarrTalentTreeEntry
 {
     uint32 ID;
@@ -2081,6 +2192,20 @@ struct GarrTalentTreeEntry
     uint8 FeatureTypeIndex;
     uint8 FeatureSubtypeIndex;
     int32 CurrencyID;
+};
+
+struct GarrTypeEntry
+{
+    uint32 ID;
+    uint8 Expansion;
+    uint32 Flags;
+    uint32 CurrencyTypeID;
+    uint32 SecondCurrencyTypeID;
+    int32 MapID;
+    float BaseMissionXPMultiplier;
+    int32 PerkSpellID;
+    float BaseMissionXPGainMultiplier;
+    std::array<int32, 2> Unk;
 };
 
 struct GemPropertiesEntry

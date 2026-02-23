@@ -79,6 +79,7 @@ class CinematicMgr;
 class Creature;
 class DynamicObject;
 class Garrison;
+enum GarrisonType : int32;
 class Group;
 class Guild;
 class Item;
@@ -2817,8 +2818,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void UnlockReagentBank() { SetPlayerFlagEx(PLAYER_FLAGS_EX_REAGENT_BANK_UNLOCKED); }
 
         void CreateGarrison(uint32 garrSiteId);
-        void DeleteGarrison();
-        Garrison* GetGarrison() const { return _garrison.get(); }
+        void DeleteGarrison(GarrisonType type = GARRISON_TYPE_GARRISON);
+        Garrison* GetGarrison() const { return GetGarrison(GARRISON_TYPE_GARRISON); }
+        Garrison* GetGarrison(GarrisonType type) const;
+        std::unordered_map<int32, std::unique_ptr<Garrison>> const& GetGarrisons() const { return _garrisons; }
 
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
@@ -3326,7 +3329,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
 
         uint32 _activeCheats;
 
-        std::unique_ptr<Garrison> _garrison;
+        std::unordered_map<int32 /*GarrisonType*/, std::unique_ptr<Garrison>> _garrisons;
 
         bool _advancedCombatLoggingEnabled;
 

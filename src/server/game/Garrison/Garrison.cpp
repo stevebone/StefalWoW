@@ -35,7 +35,7 @@
 #include "VehicleDefines.h"
 #include "advstd.h"
 
-Garrison::Garrison(Player* owner) : _owner(owner), _siteLevel(nullptr), _followerActivationsRemainingToday(1)
+Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1)
 {
 }
 
@@ -48,6 +48,7 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
     Field* fields = garrison->Fetch();
     _siteLevel = sGarrSiteLevelStore.LookupEntry(fields[0].GetUInt32());
     _followerActivationsRemainingToday = fields[1].GetUInt32();
+    _garrType = static_cast<GarrisonType>(fields[2].GetUInt32());
     if (!_siteLevel)
         return false;
 
@@ -90,8 +91,8 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         } while (buildings->NextRow());
     }
 
-    //           0           1        2      3                4               5   6                7               8       9
-    // SELECT dbId, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status FROM character_garrison_followers WHERE guid = ?
+    //           0           1        2      3                4               5   6                7               8       9          10
+    // SELECT dbId, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, customName FROM character_garrison_followers WHERE guid = ?
     if (followers)
     {
         do
@@ -115,6 +116,7 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             follower.PacketInfo.CurrentBuildingID = fields[7].GetUInt32();
             follower.PacketInfo.CurrentMissionID = fields[8].GetUInt32();
             follower.PacketInfo.FollowerStatus = fields[9].GetUInt32();
+            follower.PacketInfo.CustomName = fields[10].GetString();
             if (!sGarrBuildingStore.LookupEntry(follower.PacketInfo.CurrentBuildingID))
                 follower.PacketInfo.CurrentBuildingID = 0;
 
@@ -189,6 +191,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     stmt->setUInt64(0, _owner->GetGUID().GetCounter());
     stmt->setUInt32(1, _siteLevel->ID);
     stmt->setUInt32(2, _followerActivationsRemainingToday);
+    stmt->setUInt32(3, static_cast<uint32>(_garrType));
     trans->Append(stmt);
 
     for (uint32 building : _knownBuildings)
@@ -230,6 +233,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setUInt32(index++, follower.PacketInfo.CurrentBuildingID);
         stmt->setUInt32(index++, follower.PacketInfo.CurrentMissionID);
         stmt->setUInt32(index++, follower.PacketInfo.FollowerStatus);
+        stmt->setString(index++, follower.PacketInfo.CustomName);
         trans->Append(stmt);
 
         uint8 slot = 0;
@@ -285,6 +289,18 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTran
     trans->Append(stmt);
 }
 
+static GarrisonType GetGarrisonTypeFromSiteId(uint32 garrSiteId)
+{
+    switch (garrSiteId)
+    {
+        case 2:   return GARRISON_TYPE_GARRISON;      // WoD
+        case 71:  return GARRISON_TYPE_CLASS_ORDER;    // Legion
+        case 173: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA
+        case 500: return GARRISON_TYPE_COVENANT;       // Shadowlands
+        default:  return GARRISON_TYPE_GARRISON;
+    }
+}
+
 bool Garrison::Create(uint32 garrSiteId)
 {
     GarrSiteLevelEntry const* siteLevel = sGarrisonMgr.GetGarrSiteLevelEntry(garrSiteId, 1);
@@ -292,6 +308,7 @@ bool Garrison::Create(uint32 garrSiteId)
         return false;
 
     _siteLevel = siteLevel;
+    _garrType = GetGarrisonTypeFromSiteId(garrSiteId);
 
     InitializePlots();
 
@@ -344,6 +361,54 @@ void Garrison::InitializePlots()
 
 void Garrison::Upgrade()
 {
+    GarrSiteLevelEntry const* nextLevel = sGarrisonMgr.GetGarrSiteLevelEntry(_siteLevel->GarrSiteID, _siteLevel->GarrLevel + 1);
+    if (!nextLevel)
+        return;
+
+    // Play upgrade cinematic before changing level
+    if (nextLevel->UpgradeMovieID)
+        _owner->SendMovieStart(nextLevel->UpgradeMovieID);
+
+    // Save existing buildings keyed by plot instance ID
+    std::unordered_map<uint32 /*garrPlotInstanceId*/, WorldPackets::Garrison::GarrisonBuildingInfo> existingBuildings;
+    for (auto const& p : _plots)
+        if (p.second.BuildingInfo.PacketInfo)
+            existingBuildings[p.first] = *p.second.BuildingInfo.PacketInfo;
+
+    // Remove existing plot game objects from the map
+    Map* map = FindMap();
+    if (map)
+        for (auto& p : _plots)
+            p.second.DeleteGameObject(map);
+
+    // Advance to next site level
+    _siteLevel = nextLevel;
+
+    // Re-initialize plots for the new level (this adds new plot slots)
+    _plots.clear();
+    InitializePlots();
+
+    // Restore buildings that still exist in the new layout
+    for (auto const& [plotInstanceId, buildingInfo] : existingBuildings)
+    {
+        Plot* plot = GetPlot(plotInstanceId);
+        if (!plot)
+            continue;
+
+        plot->BuildingInfo.PacketInfo = buildingInfo;
+    }
+
+    // Spawn game objects for all plots on the map
+    if (map)
+    {
+        for (auto& p : _plots)
+            if (GameObject* go = p.second.CreateGameObject(map, GetFaction()))
+                map->AddToMap(go);
+    }
+
+    // Update phasing for the new garrison level
+    PhasingHandler::OnConditionChange(_owner);
+    SendRemoteInfo();
 }
 
 void Garrison::Enter() const
@@ -1109,6 +1174,28 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
             return GARRISON_ERROR_FOLLOWER_INACTIVE;
     }
 
+    // Check required followers (GarrMissionXFollower.db2)
+    if (std::vector<GarrMissionXFollowerEntry const*> const* requiredFollowers = sGarrisonMgr.GetMissionRequiredFollowers(missionRecID))
+    {
+        for (GarrMissionXFollowerEntry const* required : *requiredFollowers)
+        {
+            bool found = false;
+            for (uint64 followerDbId : followerDBIDs)
+            {
+                if (Follower const* follower = GetFollower(followerDbId))
+                {
+                    if (static_cast<int32>(follower->PacketInfo.GarrFollowerID) == required->GarrFollowerID)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found)
+                return GARRISON_ERROR_MISSION_MISSING_REQUIRED_FOLLOWER;
+        }
+    }
+
     // Deduct mission cost
     if (missionEntry->MissionCost > 0)
     {
@@ -1192,15 +1279,43 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
 
             if (followerXP > 0 && !(follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_NO_XP_GAIN))
             {
+                GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
+                uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : FOLLOWER_TYPE_GARRISON;
+
                 follower->PacketInfo.Xp += followerXP;
 
-                // Level up check: XP scales with level (level * 200 + 400)
-                uint32 xpToLevel = follower->PacketInfo.FollowerLevel * 200 + 400;
-                while (follower->PacketInfo.Xp >= xpToLevel && follower->PacketInfo.FollowerLevel < 100)
+                // Level progression using GarrFollowerLevelXP DB2
+                GarrFollowerLevelXPEntry const* levelXP = sGarrisonMgr.GetFollowerLevelXP(followerTypeID, follower->PacketInfo.FollowerLevel);
+                while (levelXP && levelXP->XpToNextLevel > 0 && follower->PacketInfo.Xp >= levelXP->XpToNextLevel)
                 {
-                    follower->PacketInfo.Xp -= xpToLevel;
+                    follower->PacketInfo.Xp -= levelXP->XpToNextLevel;
                     follower->PacketInfo.FollowerLevel++;
-                    xpToLevel = follower->PacketInfo.FollowerLevel * 200 + 400;
+                    levelXP = sGarrisonMgr.GetFollowerLevelXP(followerTypeID, follower->PacketInfo.FollowerLevel);
+                }
+
+                // At max level, excess XP converts to quality (iLvl) progression
+                if (!levelXP || levelXP->XpToNextLevel == 0)
+                {
+                    GarrFollowerQualityEntry const* qualityEntry = sGarrisonMgr.GetFollowerQuality(followerTypeID, follower->PacketInfo.Quality);
+                    while (qualityEntry && qualityEntry->XpThreshold > 0 && follower->PacketInfo.Xp >= static_cast<uint32>(qualityEntry->XpThreshold))
+                    {
+                        follower->PacketInfo.Xp -= qualityEntry->XpThreshold;
+                        follower->PacketInfo.Quality++;
+
+                        // Re-roll abilities for new quality tier
+                        if (followerEntry)
+                        {
+                            follower->PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(
+                                follower->PacketInfo.GarrFollowerID, followerEntry,
+                                follower->PacketInfo.Quality, GetFaction(), false);
+                        }
+
+                        qualityEntry = sGarrisonMgr.GetFollowerQuality(followerTypeID, follower->PacketInfo.Quality);
+                    }
+
+                    // Cap XP at 0 if no further progression is possible
+                    if (!qualityEntry || qualityEntry->XpThreshold == 0)
+                        follower->PacketInfo.Xp = 0;
                 }
 
                 // Send follower XP update

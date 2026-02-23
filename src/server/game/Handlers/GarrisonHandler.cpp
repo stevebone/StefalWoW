@@ -30,7 +30,7 @@ void WorldSession::HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo
     WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
     garrisonInfo.FactionIndex = Garrison::GetFaction(_player->GetTeam());
 
-    if (Garrison* garrison = _player->GetGarrison())
+    for (auto const& [type, garrison] : _player->GetGarrisons())
         garrison->BuildInfoPacket(garrisonInfo.Garrisons.emplace_back());
 
     SendPacket(garrisonInfo.Write());

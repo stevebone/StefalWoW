@@ -73,6 +73,14 @@ void GarrisonMgr::Initialize()
         }
     }
 
+    // Build follower level XP index
+    for (GarrFollowerLevelXPEntry const* levelXP : sGarrFollowerLevelXPStore)
+        _followerLevelXP[std::make_pair(levelXP->GarrFollowerTypeID, levelXP->FollowerLevel)] = levelXP;
+
+    // Build follower quality index
+    for (GarrFollowerQualityEntry const* quality : sGarrFollowerQualityStore)
+        _followerQuality[std::make_pair(quality->GarrFollowerTypeID, quality->Quality)] = quality;
+
     // Build mission index by garrison type
     for (GarrMissionEntry const* mission : sGarrMissionStore)
         _missionsByGarrType[mission->GarrTypeID].push_back(mission);
@@ -80,6 +88,10 @@ void GarrisonMgr::Initialize()
     // Build mission encounter index
     for (GarrMissionXEncounterEntry const* missionEncounter : sGarrMissionXEncounterStore)
         _missionEncounters[missionEncounter->GarrMissionID].push_back(missionEncounter);
+
+    // Build mission required followers index
+    for (GarrMissionXFollowerEntry const* missionFollower : sGarrMissionXFollowerStore)
+        _missionRequiredFollowers[missionFollower->GarrMissionID].push_back(missionFollower);
 
     // Build encounter mechanics index (GarrEncounterXMechanic -> GarrMechanic per encounter)
     for (GarrEncounterXMechanicEntry const* encounterMechanic : sGarrEncounterXMechanicStore)
@@ -347,6 +359,24 @@ std::list<GarrAbilityEntry const*> GarrisonMgr::GetClassSpecAbilities(GarrFollow
     return abilities;
 }
 
+GarrFollowerLevelXPEntry const* GarrisonMgr::GetFollowerLevelXP(uint8 garrFollowerTypeID, int8 followerLevel) const
+{
+    auto itr = _followerLevelXP.find(std::make_pair(garrFollowerTypeID, followerLevel));
+    if (itr != _followerLevelXP.end())
+        return itr->second;
+
+    return nullptr;
+}
+
+GarrFollowerQualityEntry const* GarrisonMgr::GetFollowerQuality(uint16 garrFollowerTypeID, int8 quality) const
+{
+    auto itr = _followerQuality.find(std::make_pair(garrFollowerTypeID, quality));
+    if (itr != _followerQuality.end())
+        return itr->second;
+
+    return nullptr;
+}
+
 std::vector<GarrMissionEntry const*> const* GarrisonMgr::GetMissionsByGarrType(int8 garrTypeID) const
 {
     auto itr = _missionsByGarrType.find(garrTypeID);
@@ -369,6 +399,15 @@ std::vector<GarrMechanicEntry const*> const* GarrisonMgr::GetEncounterMechanics(
 {
     auto itr = _encounterMechanics.find(garrEncounterID);
     if (itr != _encounterMechanics.end())
+        return &itr->second;
+
+    return nullptr;
+}
+
+std::vector<GarrMissionXFollowerEntry const*> const* GarrisonMgr::GetMissionRequiredFollowers(uint32 garrMissionID) const
+{
+    auto itr = _missionRequiredFollowers.find(garrMissionID);
+    if (itr != _missionRequiredFollowers.end())
         return &itr->second;
 
     return nullptr;
