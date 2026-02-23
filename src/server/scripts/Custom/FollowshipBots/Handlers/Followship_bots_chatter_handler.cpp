@@ -601,6 +601,84 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "There, food's coming. Happy now?"
         }
     },
+
+    {
+        "emote_oom", FSB_ChatterType::None,
+        {
+            "I'm out of mana!",
+            "No mana left - I need a moment!",
+            "I'm dry here, can't cast anything!",
+            "Out of mana, someone cover me!",
+            "I need mana, now!",
+            "I'm tapped out - can't help much!",
+            "No mana! I'm useless like this!",
+            "I'm empty - need time to recover!",
+            "I can't cast, I'm out!",
+            "Mana's gone - watch my back!",
+            "I'm running on fumes here!",
+            "I've got nothing left to cast!",
+            "I'm drained - need a breather!",
+            "I'm completely out of mana!",
+            "I can't keep this up without mana!",
+            "Mana's gone - someone take over!",
+            "I'm dry! Need mana badly!",
+            "I'm out - can't support right now!",
+            "No mana! I need a second!",
+            "I'm spent - someone else handle this!"
+        }
+    },
+
+    {
+        "emote_help", FSB_ChatterType::None,
+        {
+            "I need help over here!",
+            "Someone get this thing off me!",
+            "I can't handle this alone!",
+            "Little help would be great!",
+            "I'm getting overwhelmed!",
+            "Help! I'm in trouble!",
+            "I need backup, now!",
+            "This one's too much for me!",
+            "I can't keep this up alone!",
+            "Anyone? A little help!",
+            "I'm getting torn apart here!",
+            "I need assistance!",
+            "Someone cover me!",
+            "I can't hold this thing!",
+            "Help me out here!",
+            "I'm struggling - need support!",
+            "This is bad - help!",
+            "I need someone on this target!",
+            "I can't take much more of this!",
+            "Back me up!"
+        }
+    },
+
+    {
+        "emote_heal", FSB_ChatterType::None,
+        {
+            "I need healing!",
+            "I'm not gonna last much longer!",
+            "Healer! I need you!",
+            "I'm badly hurt - help!",
+            "I need a heal, now!",
+            "I'm going down if I don't get healed!",
+            "I'm bleeding out here!",
+            "Someone patch me up!",
+            "I can't take another hit!",
+            "I'm in trouble - heal me!",
+            "I'm hurt bad!",
+            "I need healing support!",
+            "I'm barely standing!",
+            "I'm about to drop!",
+            "Heals! I need heals!",
+            "I'm critical - help!",
+            "I can't survive like this!",
+            "I'm one hit from dying!",
+            "Please heal me!",
+            "I need urgent healing!"
+        }
+    },
 };
 
 namespace FSBChatter

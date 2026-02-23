@@ -373,4 +373,26 @@ namespace FSBRecovery
 
         return bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL) || bot->HasAura(SPELL_MAGE_CONJURED_MANA_PUDDING) || bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER);
     }
+
+    void BotCancelRecoveryAtFull(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        if (!BotHasRecoveryActive(bot))
+            return;
+
+        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) == 100;
+        bool fullHealth = bot->GetHealthPct() == 100;
+        bool full = fullMana && fullHealth;
+
+        if (fullMana)
+            bot->RemoveAurasDueToSpell(SPELL_DRINK_CONJURED_CRYSTAL_WATER);
+
+        if (fullHealth)
+            bot->RemoveAurasDueToSpell(SPELL_FOOD_SCALED_WITH_LVL);
+
+        if(full)
+            bot->RemoveAurasDueToSpell(SPELL_MAGE_CONJURED_MANA_PUDDING);
+    }
 }

@@ -8,6 +8,7 @@
 #include "Followship_bots_rogue.h"
 #include "Followship_bots_warlock.h"
 
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
@@ -64,7 +65,88 @@ namespace FSBIC
         if (BotICTryOffensiveSpell(bot))
             return true;
 
+        if (BotICRandomActions(bot))
+            return true;
+
         return false;
+    }
+
+    bool BotICRandomActions(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (BotICAnnounceLowManaHealth(bot))
+            return true;
+
+        return false;
+    }
+
+    bool BotICAnnounceLowManaHealth(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+        auto botRace = baseAI->botRace;
+        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+        auto& botLowMana = baseAI->botAnnouncedLowMana;
+        auto& botLowHealth = baseAI->botAnnouncedLowHealth;
+        auto& botVeryLowHealth = baseAI->botAnnouncedVeryLowHealth;
+
+        TextEmotes tEmote = TEXT_EMOTE_AGREE;
+        std::string emoteReply = "";
+
+        bool check = false;
+
+        if (!botLowMana)
+        {
+            if (bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) <= 10)
+            {
+                tEmote = TEXT_EMOTE_OOM;
+                botLowMana = true;
+                emoteReply = "emote_oom";
+                check = true;
+            }
+        }
+
+        else if (!botLowHealth && bot->GetHealthPct() <= 50)
+        {
+            tEmote = TEXT_EMOTE_HELPME;
+            botLowHealth = true;
+            emoteReply = "emote_help";
+            check = true;
+        }
+
+        else if (!botVeryLowHealth && bot->GetHealthPct() <= 20)
+        {
+            tEmote = TEXT_EMOTE_HEALME;
+            botLowHealth = true;
+            botVeryLowHealth = true;
+            emoteReply = "emote_heal";
+            check = true;
+        }
+
+        if (check)
+        {
+            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(tEmote, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+            uint32 soundId = 0;
+            if (soundInfo)
+                soundId = soundInfo->SoundID;
+
+            if (soundId)
+                bot->PlayDistanceSound(soundId);
+            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action OOM/Health: no sound found for race {}", botRace);
+
+            FSBChatter::DemandTimedReply(bot, bot, emoteReply, FSB_ReplyType::Say);
+
+            return true;
+        }
+
+        return false;
+        
     }
 
     bool BotICTryOffensiveSpell(Creature* bot)

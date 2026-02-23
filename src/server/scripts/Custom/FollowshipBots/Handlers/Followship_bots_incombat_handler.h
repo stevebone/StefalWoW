@@ -14,4 +14,8 @@ namespace FSBIC
     bool BotICHealSelf(Creature* bot);
     bool BotICHealGroup(Creature* bot);
     bool BotICTryOffensiveSpell(Creature* bot);
+
+    bool BotICRandomActions(Creature* bot);
+    bool BotICAnnounceLowManaHealth(Creature* bot);
+
 }

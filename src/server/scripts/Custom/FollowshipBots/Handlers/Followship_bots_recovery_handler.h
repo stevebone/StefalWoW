@@ -77,4 +77,5 @@ namespace FSBRecovery
     int32 GetDrinkFood(uint16 level);
 
     bool BotHasRecoveryActive(Creature* bot);
+    void BotCancelRecoveryAtFull(Creature* bot);
 }

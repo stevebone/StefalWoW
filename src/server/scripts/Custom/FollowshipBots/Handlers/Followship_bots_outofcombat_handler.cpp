@@ -530,9 +530,18 @@ namespace FSBOOC
         if (bot->IsInCombat())
             return;
 
+        FSBRecovery::BotCancelRecoveryAtFull(bot);
+
+        if (FSBRecovery::BotHasRecoveryActive(bot))
+            return;
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return;
+
+        baseAI->botAnnouncedLowMana = false;
+        baseAI->botAnnouncedLowHealth = false;
+        baseAI->botAnnouncedVeryLowHealth = false;
 
         auto& manaUsed = baseAI->botManaPotionUsed;
         auto& healthUsed = baseAI->botHealthPotionUsed;

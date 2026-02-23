@@ -38,6 +38,9 @@ public:
         botHasCompanion(false),
         botSitsByFire(false),
         botDoingRandomEvent(false),
+        botAnnouncedLowMana(false),
+        botAnnouncedLowHealth(false),
+        botAnnouncedVeryLowHealth(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
@@ -76,6 +79,9 @@ public:
     bool botHasCompanion;
     bool botSitsByFire;
     bool botDoingRandomEvent;
+    bool botAnnouncedLowMana;
+    bool botAnnouncedLowHealth;
+    bool botAnnouncedVeryLowHealth;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;
