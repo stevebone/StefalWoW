@@ -248,6 +248,44 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
     }
         break;
 
+    case FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE:
+    {
+        TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action crash check dummy");
+        if (!target || target->IsPlayer())
+            break;
+
+        auto targetAI = dynamic_cast<FSB_BaseAI*>(target->ToCreature()->AI());
+        auto targetRace = targetAI->botRace;
+        auto targetGender = FSBMgr::Get()->GetBotGenderForEntry(target->GetEntry());
+
+        TextEmotes tEmote = TEXT_EMOTE_AGREE;
+        Emote emote = EMOTE_ONESHOT_NONE;
+
+        if (chatterReply == "emote:laugh")
+        {
+            tEmote = TEXT_EMOTE_LAUGH;
+            emote = EMOTE_ONESHOT_LAUGH;
+        }
+        else if (chatterReply == "emote:rudeno")
+        {
+            tEmote = RAND(TEXT_EMOTE_NO, TEXT_EMOTE_RASP);
+            emote = (tEmote == TEXT_EMOTE_NO) ? EMOTE_ONESHOT_NO : EMOTE_ONESHOT_RUDE;
+        }
+
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(tEmote, FSBUtils::BotRaceToTC(targetRace), targetGender, 0);
+        uint32 soundId = 0;
+        if (soundInfo)
+        {
+            soundId = soundInfo->SoundID;
+        }
+        target->HandleEmoteCommand(emote);
+        if (soundId)
+            target->PlayDistanceSound(soundId);
+        else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action {}: no sound found for race {}", chatterReply, targetRace);
+
+        break;
+    }
+
     default:
         break;
     }

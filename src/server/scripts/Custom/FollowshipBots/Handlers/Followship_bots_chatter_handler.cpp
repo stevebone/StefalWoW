@@ -124,6 +124,191 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        "emote_flirt", FSB_ChatterType::None,
+        {
+            "{bot} gives {target} a playful wink.",
+            "{bot} flashes {target} a charming smile.",
+            "{bot} tilts their head and gives {target} a flirty grin.",
+            "{bot} shoots {target} a mischievous look.",
+            "{bot} gives {target} a slow, teasing wink.",
+            "{bot} smirks softly in {target}'s direction.",
+            "{bot} gives {target} a warm, inviting smile.",
+            "{bot} glances at {target} with a hint of playful interest.",
+            "{bot} offers {target} a coy, knowing smile.",
+            "{bot} gives {target} a subtle but unmistakably flirty look."
+        }
+    },
+
+    {
+        "emote_flirt", FSB_ChatterType::Neutral,
+        {
+            "Oh. was that supposed to be flirting?",
+            "Interesting approach, {bot}. Not sure what to make of it.",
+            "Huh. that was a thing you just did, {bot}.",
+            "Is that how you usually flirt?",
+            "Well, that happened.",
+            "I'll. pretend I understood that.",
+            "Not sure what you're going for, {bot} but okay.",
+            "You're full of surprises today.",
+            "I'm not sure how to respond to that.",
+            "Was that meant for me?",
+            "I'll just take that as a compliment. I think.",
+            "You're being. oddly expressive.",
+            "Is this a new habit of yours?",
+            "I guess that was a flirt? Maybe?",
+            "I'll let that one slide without comment.",
+            "You're doing something {bot}. Not sure what, but something.",
+            "I'll just nod and move on.",
+            "That was. subtle? Maybe?",
+            "I'm not sure if that was flirting or a glitch.",
+            "Well, that's one way to get attention."
+        }
+    },
+
+    {
+        "emote_flirt", FSB_ChatterType::Positive,
+        {
+            "Oh? Someone's feeling bold today.",
+            "Well now. aren't you charming.",
+            "You're going to make me blush at this rate.",
+            "Careful, {bot}. I might flirt back.",
+            "Oh! That was actually kind of cute.",
+            "You're full of sweet surprises.",
+            "If you keep that up, I might get the wrong idea.",
+            "You're quite the charmer, aren't you {bot}?",
+            "Oh wow. that was smooth.",
+            "You're making this adventure a lot more fun.",
+            "Flirting now? I don't mind.",
+            "You're adorable when you try like that.",
+            "Oh! I wasn't expecting that, but I liked it.",
+            "You're dangerously good at this {bot}.",
+            "If that was flirting. it worked.",
+            "You're going to spoil me with attention.",
+            "You're surprisingly sweet today.",
+            "Oh, keep going. I'm enjoying this.",
+            "You're making me smile, {bot}.",
+            "You're a natural at this, you know."
+        }
+    },
+
+    {
+    "emote_joke", FSB_ChatterType::None,
+        {
+            "{bot} tells a joke.",
+            "{bot} tells a funny quote.",
+            "{bot} whispers a small joke.",
+            "{bot} makes a funny face and jokes.",
+            "{bot} tells a joke to themselves.",
+            "{bot} tells a funny story.",
+            "{bot} recollects a funny event."
+        }
+    },
+
+    {
+        "emote_joke", FSB_ChatterType::Neutral,
+        {
+            "Huh. I think I get it.",
+            "Was that the whole joke {bot}?",
+            "Interesting sense of humor you've got there.",
+            "I'll pretend that was funny {bot}.",
+            "Not bad. {bot} not great. just there.",
+            "I'm not sure how to react to that.",
+            "That was. something.",
+            "I think I've heard that one before.",
+            "I'll give you points for trying.",
+            "I guess that counts as a joke.",
+            "I'm processing. still processing.",
+            "That one flew right past me.",
+            "I'm not sure if I should laugh or sigh.",
+            "I'll allow it.",
+            "That joke existed. That's all I can say.",
+            "I'll give you a polite nod for that one.",
+            "I'm neutral on this. Very neutral.",
+            "I'll file that under 'attempted humor'.",
+            "I didn't hate it. Didn't love it either.",
+            "Well. {bot} that was a joke, technically."
+        }
+    },
+
+    {
+        "emote_joke", FSB_ChatterType::Positive,
+        {
+            "Haha! Okay, that one was actually good {bot}.",
+            "You got me {bot} - that was funny!",
+            "Oh wow, I wasn't expecting that!",
+            "You're funnier than you look, {target}.",
+            "That one made me smile.",
+            "Keep them coming, I like your humor.",
+            "Haha! Nice one!",
+            "You're on a roll today!",
+            "I needed that laugh {bot}, thanks.",
+            "You've got a real talent for this.",
+            "That joke was surprisingly good!",
+            "I'll be laughing about that one later.",
+            "You always know how to lighten the mood.",
+            "That was adorable and funny.",
+            "You're actually hilarious sometimes.",
+            "I love your sense of humor.",
+            "That one hit just right.",
+            "You're making this adventure way more fun.",
+            "Okay {bot}, that was genuinely great.",
+            "You should tell more jokes like that."
+        }
+    },
+
+    {
+        "emote_joke", FSB_ChatterType::Negative,
+        {
+            "That joke hurt me on a spiritual level.",
+            "Please never say that again {bot}.",
+            "I think my soul just died a little.",
+            "Was that supposed to be funny?",
+            "I've heard murlocs make better jokes.",
+            "{bot} That joke was a crime.",
+            "I'm reporting you to the humor authorities.",
+            "I'd laugh, but I respect myself too much.",
+            "That was so bad it looped back to worse.",
+            "You should be banned from telling jokes.",
+            "I want the last ten seconds of my life back.",
+            "If that was humor, I fear for your future.",
+            "I've seen kobolds with better material.",
+            "That joke physically pained me.",
+            "Congratulations, you made silence awkward.",
+            "I'm embarrassed for both of us {bot}.",
+            "That joke belongs in a dungeon. A deep one.",
+            "Please stop {bot}. For both our sakes.",
+            "I'd laugh, but I don't want to encourage you.",
+            "That was the worst thing I've heard all day."
+        }
+    },
+
+    {
+        "emote_flirt", FSB_ChatterType::Negative,
+        {
+            "Oh no. don't start with that.",
+            "Please don't flirt with me. Seriously {bot}.",
+            "Was that flirting? Ew.",
+            "Nope. Absolutely not.",
+            "Save the flirting for someone who wants it.",
+            "You're trying way too hard.",
+            "Stop. Just stop {bot}.",
+            "That was painful to witness.",
+            "If that was flirting, you need help.",
+            "I'm not interested, {bot}.",
+            "Please don't make this weird.",
+            "You're making things awkward again.",
+            "I'd rather fight a dragon than deal with this.",
+            "You call that flirting?",
+            "Try that again and I'm walking away.",
+            "You're not charming. You're just annoying.",
+            "I'm immune to whatever that was.",
+            "No thanks. Really.",
+            "You're embarrassing yourself.",
+            "Let's pretend that didn't happen."
+        }
+    },
+
+    {
         "whisper_afk", FSB_ChatterType::Neutral,
         {
             "Are we ready to move on?",
@@ -203,13 +388,112 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
 
 
     {
-        "campfire", FSB_ChatterType::None,
+        "emote_talk", FSB_ChatterType::Neutral,
         {
-            "Let me warm up a bit...",
-            "Starting a fire, hold on.",
-            "A little warmth never hurt anyone."
+            "So. how long are we gonna be here?",
+            "I'd really rather be somewhere else right now.",
+            "You ever wonder why we do all this?",
+            "Feels like we've been standing here forever.",
+            "I remember my family. haven't seen them in ages.",
+            "Is it just me, or is it way too quiet?",
+            "I could really go for a drink right now.",
+            "Any day now.",
+            "I once got lost for three days in Elwynn Forest.",
+            "I swear my boots are getting smaller.",
+            "I miss my bed. and my pillow. and not being here.",
+            "So. what now?",
+            "I had a weird dream last night. Don't ask.",
+            "I could be napping right now.",
+            "I once knew someone who talked even more than I do.",
+            "Anyone else feeling watched? No? Just me?",
+            "I hope this doesn't take all day. again.",
+            "I should've stayed home today.",
+            "You ever think about just. walking away?",
+            "I'm not saying I'm bored, but. I'm bored.",
+            "I miss real food. Not travel rations.",
+            "I once had a pet. It ran away. Smart pet.",
+            "If this goes on much longer, I'm charging overtime.",
+            "I wonder what my friends are doing right now. probably something fun.",
+            "I should've brought a book.",
+            "You ever get the feeling you forgot something important?",
+            "I used to be an adventurer. then I met you lot.",
+            "If I stand still any longer, I'll turn into a statue.",
+            "I heard a joke once. Forgot the punchline. Still funny though.",
+            "Alright. any moment now. right?"
         }
-    }
+    },
+
+    {
+        "emote_talk", FSB_ChatterType::Negative,
+        {
+            "Some days. it's hard to keep going.",
+            "I don't even know why I'm still doing this.",
+            "Feels like everything's getting heavier lately.",
+            "I miss the days when things felt simple.",
+            "Sometimes I wonder if anyone would notice if I disappeared.",
+            "I'm tired. not physically, just tired.",
+            "Feels like I'm walking through fog all the time.",
+            "I wish things had turned out differently.",
+            "I keep thinking about all the mistakes I've made.",
+            "It's strange how lonely you can feel even in a group.",
+            "I don't remember the last time I felt truly happy.",
+            "Some memories hurt more than any wound.",
+            "I pretend I'm fine, but I'm really not.",
+            "I miss people I'll never see again.",
+            "I feel like I'm fading a little more every day.",
+            "Sometimes I wonder what the point of all this is.",
+            "I wish I could go back. just once.",
+            "Everything feels so distant lately.",
+            "I don't know if I'm strong enough for this.",
+            "I keep hoping things will get better. but they don't.",
+            "I feel like I'm stuck in place while the world moves on.",
+            "I miss the person I used to be.",
+            "Some days I just want to stop and never move again.",
+            "I'm surrounded by people, yet I feel alone.",
+            "I wish someone would ask if I'm okay.",
+            "I'm not sure I belong anywhere anymore.",
+            "I keep trying, but it never feels like enough.",
+            "I don't know how much longer I can pretend.",
+            "Everything feels so. empty.",
+            "I just want one moment of peace."
+        }
+    },
+
+    {
+        "emote_talk", FSB_ChatterType::Positive,
+        {
+            "What a great day for an adventure!",
+            "I can't wait to see what's around the next corner.",
+            "Feels like something exciting is about to happen.",
+            "I've got a good feeling about today.",
+            "Let's make some memories out here.",
+            "I love being out in the world like this.",
+            "Every step forward feels like a story waiting to happen.",
+            "I'm ready for anything - bring it on!",
+            "You know, I think we make a pretty good team.",
+            "I hope we find something amazing today.",
+            "I feel alive out here!",
+            "There's so much to see. let's not waste a moment.",
+            "I swear, the world feels brighter today.",
+            "I'm excited to see where this journey takes us.",
+            "I could do this all day.",
+            "Let's keep moving - adventure doesn't wait!",
+            "I love the smell of the wilds in the morning.",
+            "Something tells me today's going to be special.",
+            "I'm ready to take on the world!",
+            "Feels good to be out here with you.",
+            "I hope we run into something fun soon.",
+            "I'm feeling unstoppable right now.",
+            "Let's go find some trouble - the good kind.",
+            "I can't help but smile today.",
+            "I feel like we're on the edge of something big.",
+            "This is exactly where I want to be.",
+            "I'm in the mood to explore everything.",
+            "Let's make today legendary.",
+            "I'm ready for the next challenge - whatever it is.",
+            "Adventure, danger, treasure. I'm here for all of it!"
+        }
+    },
 };
 
 namespace FSBChatter
@@ -220,6 +504,7 @@ namespace FSBChatter
         const std::string& category,
         FSB_ChatterType chatterType)
     {
+        TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action crash check random reply");
         for (auto const& entry : FSBReplyTable)
         {
             if (entry.category == category && entry.chatterType == chatterType)
@@ -245,10 +530,11 @@ namespace FSBChatter
 
     void DemandTimedReply(Creature* bot, Unit* target, const std::string& category, FSB_ReplyType replyType)
     {
+        TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action crash check demand reply");
         if (!bot)
             return;
 
-        if (!bot->IsAlive() || !target->IsAlive())
+        if (!bot->IsAlive() || (target && !target->IsAlive()))
             return;
 
         FSB_ChatterType type = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
@@ -256,6 +542,21 @@ namespace FSBChatter
         std::string replyString = GetRandomReply(bot, target, category, type);
 
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);
+
+        // we use a dummy timed event to make the target bot do a delayed emote
+        // at the same time they are also replying to the initial bot
+        // example: target laughing at the bot joke
+        if (category == "emote_joke" && type == FSB_ChatterType::Positive)
+        {
+            replyString = "emote:laugh";
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
+        }
+
+        else if ((category == "emote_flirt" || category == "emote_kiss") && type == FSB_ChatterType::Negative)
+        {
+            replyString = "emote:rudeno";
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
+        }
     }
 
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to)
