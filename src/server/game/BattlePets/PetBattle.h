@@ -78,7 +78,12 @@ struct PetBattlePetData
     uint32 Flags = 0;
     std::string CustomName;
 
-    // Combat stats (base stats used for calculation)
+    // Base breed+species stats from DB2 (sent in States, used by client)
+    int32 BasePower = 0;    // STATE_STAT_POWER (18) raw base value
+    int32 BaseStamina = 0;  // STATE_STAT_STAMINA (19) raw base value
+    int32 BaseSpeed = 0;    // STATE_STAT_SPEED (20) raw base value
+
+    // Combat stats (computed from base stats + level + quality)
     int32 Health = 0;
     int32 MaxHealth = 0;
     int32 Power = 0;

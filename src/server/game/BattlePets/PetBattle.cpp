@@ -48,6 +48,7 @@ PetBattle::~PetBattle() = default;
 void PetBattle::LoadPlayerTeam(Player* player, PetBattleTeamData& team)
 {
     team.PlayerGUID = player->GetGUID();
+    team.TrapAbilityID = PET_BATTLE_TRAP_ABILITY_ID;
 
     BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
     uint8 petIdx = 0;
@@ -81,6 +82,10 @@ void PetBattle::LoadPlayerTeam(Player* player, PetBattleTeamData& team)
         BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(pet->PacketInfo.Species);
         if (species)
             battlePet.PetType = species->PetTypeEnum;
+
+        // Load base breed+species stats for States (client needs these)
+        BattlePets::BattlePetMgr::GetBaseStats(battlePet.Species, battlePet.Breed,
+            battlePet.BasePower, battlePet.BaseStamina, battlePet.BaseSpeed);
 
         // Load abilities for this pet from DB2
         std::vector<BattlePetSpeciesXAbilityEntry const*> const* speciesAbilities =
@@ -209,10 +214,33 @@ static void CalculateWildPetStats(PetBattlePetData& wildPet)
             baseSpeed = entry->Value;
     }
 
-    wildPet.MaxHealth = int32((baseHP * 5.0f * wildPet.Level + 100.0f) * qualityMultiplier);
+    // Also add species base stats (breed + species = total base)
+    for (BattlePetSpeciesStateEntry const* entry : sBattlePetSpeciesStateStore)
+    {
+        if (entry->BattlePetSpeciesID != wildPet.Species)
+            continue;
+        if (entry->BattlePetStateID == BattlePets::STATE_STAT_STAMINA)
+            baseHP += entry->Value;
+        else if (entry->BattlePetStateID == BattlePets::STATE_STAT_POWER)
+            basePower += entry->Value;
+        else if (entry->BattlePetStateID == BattlePets::STATE_STAT_SPEED)
+            baseSpeed += entry->Value;
+    }
+
+    // Store raw base stats for States in InitialUpdate (client uses these)
+    wildPet.BasePower = basePower;
+    wildPet.BaseStamina = baseHP;
+    wildPet.BaseSpeed = baseSpeed;
+
+    // Use same formula as BattlePet::CalculateStats (DB2 values are scaled ~1000-2000)
+    float health = float(baseHP) * qualityMultiplier * wildPet.Level;
+    float power = float(basePower) * qualityMultiplier * wildPet.Level;
+    float speed = float(baseSpeed) * qualityMultiplier * wildPet.Level;
+
+    wildPet.MaxHealth = int32(round(health / 20.0f) + 100);
     wildPet.Health = wildPet.MaxHealth;
-    wildPet.Power = int32((basePower * wildPet.Level / 20.0f) * qualityMultiplier);
-    wildPet.Speed = int32((baseSpeed * wildPet.Level / 20.0f) * qualityMultiplier);
+    wildPet.Power = int32(round(power / 100.0f));
+    wildPet.Speed = int32(round(speed / 100.0f));
     wildPet.EffectivePower = wildPet.Power;
     wildPet.EffectiveSpeed = wildPet.Speed;
 
@@ -491,6 +519,9 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
         return;
     }
 
+    TC_LOG_ERROR("server.loading", "PetBattle ProcessTurnForTeam[{}]: MoveType={} AbilityID={} FrontPet={} PetAlive={}",
+        teamIdx, int(team.PendingMoveType), team.PendingAbilityID, team.FrontPetIndex, activePet.IsAlive());
+
     switch (team.PendingMoveType)
     {
         case PET_BATTLE_MOVE_ABILITY:
@@ -500,13 +531,16 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
 
             // Check ability cooldown
             bool abilityOnCooldown = false;
+            bool abilityFound = false;
             for (uint8 i = 0; i < MAX_PET_BATTLE_ABILITIES; ++i)
             {
                 if (activePet.AbilityIDs[i] == team.PendingAbilityID)
                 {
+                    abilityFound = true;
                     if (activePet.AbilityCooldowns[i] > 0)
                     {
                         abilityOnCooldown = true;
+                        TC_LOG_ERROR("server.loading", "PetBattle: Ability {} on cooldown ({})", team.PendingAbilityID, activePet.AbilityCooldowns[i]);
                         break;
                     }
 
@@ -517,11 +551,20 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                 }
             }
 
+            if (!abilityFound)
+            {
+                TC_LOG_ERROR("server.loading", "PetBattle: AbilityID {} NOT FOUND in pet's ability list! Pet abilities: [{}, {}, {}]",
+                    team.PendingAbilityID, activePet.AbilityIDs[0], activePet.AbilityIDs[1], activePet.AbilityIDs[2]);
+            }
+
             if (abilityOnCooldown)
                 break;
 
             // Apply ability effects through the DB2 chain
+            uint32 effectsBefore = _roundEffects.size();
             ApplyAbilityEffects(teamIdx, team.FrontPetIndex, team.PendingAbilityID);
+            TC_LOG_ERROR("server.loading", "PetBattle: ApplyAbilityEffects({}) generated {} effects",
+                team.PendingAbilityID, _roundEffects.size() - effectsBefore);
             break;
         }
         case PET_BATTLE_MOVE_SWAP:
@@ -595,6 +638,7 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
 
     // Get ability turns from DB2 index
     std::vector<BattlePetAbilityTurnEntry const*> const* turns = sPetBattleMgr->GetAbilityTurnsFull(abilityID);
+    TC_LOG_ERROR("server.loading", "PetBattle ApplyAbilityEffects: abilityID={} turns={}", abilityID, turns ? turns->size() : 0);
     if (!turns || turns->empty())
     {
         // Fallback: apply simple damage if no DB2 turn data exists
@@ -678,12 +722,17 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
 
     // Get effects for this turn from DB2 index
     std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turn->ID);
+    TC_LOG_ERROR("server.loading", "PetBattle: TurnID={} turnIndex={} effects={}", turn->ID, turnIndex, effects ? effects->size() : 0);
     if (!effects)
         return;
 
     // Process each effect in order
     for (BattlePetAbilityEffectEntry const* effectEntry : *effects)
     {
+        TC_LOG_ERROR("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} Params=[{},{},{},{},{},{}]",
+            effectEntry->ID, effectEntry->BattlePetEffectPropertiesID,
+            effectEntry->Param[0], effectEntry->Param[1], effectEntry->Param[2],
+            effectEntry->Param[3], effectEntry->Param[4], effectEntry->Param[5]);
         ProcessEffect(effectEntry, attackerTeam, attackerPet, defenderTeam, defenderPet, abilityID);
     }
 }
@@ -735,6 +784,10 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
     // We map the DB2 BattlePetEffectPropertiesID to our action types
     // In practice, the ID maps to specific effect behaviors
     BattlePetEffectPropertiesEntry const* effectProps = sBattlePetEffectPropertiesStore.LookupEntry(effectPropsID);
+    TC_LOG_ERROR("server.loading", "PetBattle ProcessEffect: propsID={} found={} basePower={} accuracy={}",
+        effectPropsID, effectProps != nullptr, basePower, accuracy);
+    if (effectProps)
+        TC_LOG_ERROR("server.loading", "PetBattle ProcessEffect: effectCategory(ParamTypeEnum[0])={}", effectProps->ParamTypeEnum[0]);
     if (!effectProps)
     {
         // If no properties entry, treat as simple damage with basePower
@@ -1602,6 +1655,28 @@ void PetBattle::FinishBattle(PetBattleResult result)
     }
 
     AwardExperience();
+
+    // Restore wild creature state (undo battle freeze)
+    if (_battleType == PET_BATTLE_TYPE_PVE && !_wildCreatureGUID.IsEmpty())
+    {
+        if (Player* player = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        {
+            if (Creature* creature = ObjectAccessor::GetCreature(*player, _wildCreatureGUID))
+            {
+                creature->RemoveUnitFlag(UNIT_FLAG_PACIFIED);
+                creature->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+
+                // If the wild pet was captured or defeated, despawn and schedule respawn
+                bool anyPetCaptured = false;
+                for (uint8 i = 0; i < _teams[PET_BATTLE_TEAM_2].PetCount; ++i)
+                    if (_teams[PET_BATTLE_TEAM_2].Pets[i].IsCaptured)
+                        anyPetCaptured = true;
+
+                if (anyPetCaptured || result == PET_BATTLE_RESULT_TEAM_1_WIN)
+                    creature->DespawnOrUnsummon();
+            }
+        }
+    }
 
     // Achievement criteria updates
     // Note: ModifierTreeType conditions (BattlePetFightWasPVP, BattlePetTeamLevel,

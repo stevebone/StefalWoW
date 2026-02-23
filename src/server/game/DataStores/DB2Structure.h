@@ -476,9 +476,9 @@ struct BattlePetAbilityEffectEntry
     uint32 ID;
     uint16 BattlePetAbilityTurnID;
     uint8 OrderIndex;
-    uint16 Aura;
-    uint16 BattlePetEffectPropertiesID;
-    uint16 VisualID;
+    uint16 BattlePetEffectPropertiesID;     // WoWDBDefs field 3
+    uint16 AuraBattlePetAbilityID;          // WoWDBDefs field 4 (was incorrectly named "BattlePetEffectPropertiesID")
+    uint16 BattlePetVisualID;
     std::array<int16, 6> Param;
 };
 

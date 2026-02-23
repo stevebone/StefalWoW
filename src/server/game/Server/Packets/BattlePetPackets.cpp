@@ -326,10 +326,12 @@ ByteBuffer& operator<<(ByteBuffer& data, PetBattleEnviroInfo const& enviro)
 
 ByteBuffer& operator<<(ByteBuffer& data, PetBattleEffectTargetInfo const& target)
 {
-    data << Bits<4>(target.Type); // V8+ uses 4-bit type (PetBattleEffectTargetEx)
-    data.FlushBits();
+    data << uint8(target.Type << 4); // Upper nibble (IDA-verified 12.0: client reads uint8 >> 4)
 
-    data << uint8(target.Petx);
+    if (target.Type == 8 && target.EmbeddedPetUpdate)
+        data << *target.EmbeddedPetUpdate;
+
+    data << int32(target.Remaining);
 
     for (int32 param : target.Params)
         data << int32(param);
@@ -339,12 +341,12 @@ ByteBuffer& operator<<(ByteBuffer& data, PetBattleEffectTargetInfo const& target
 
 ByteBuffer& operator<<(ByteBuffer& data, PetBattleEffectInfo const& effect)
 {
-    data << uint32(effect.AbilityEffectID);
-    data << uint16(effect.Flags);
-    data << uint16(effect.SourceAuraInstanceID);
-    data << uint16(effect.TurnInstanceID);
-    data << int8(effect.PetBattleEffectType);
-    data << uint8(effect.CasterPBOID);
+    data << int32(effect.AbilityEffectID);
+    data << int32(effect.Flags);
+    data << int16(effect.SourceAuraInstanceID);
+    data << int16(effect.TurnInstanceID);
+    data << int32(effect.EffectIndex);
+    data << int32(effect.CasterPBOID);
     data << uint8(effect.StackDepth);
 
     data << uint32(effect.Targets.size());
@@ -386,7 +388,8 @@ static void WriteRoundResult(ByteBuffer& data, uint32 curRound, int8 nextPetBatt
 
     data << uint32(cooldowns.size());
 
-    // V8+ wire order: Cooldowns, PetXDied count (3 bits), Effects, PetXDied data
+    // V12 wire order: Cooldowns, PetXDied count (3 bits), Effects, PetXDied data
+    // (V6 had Effects before Cooldowns, but V12 client expects this order)
     for (PetBattleCooldownInfo const& cd : cooldowns)
         data << cd;
 
