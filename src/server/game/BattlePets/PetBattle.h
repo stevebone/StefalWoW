@@ -203,6 +203,7 @@ public:
 
     PetBattleType GetBattleType() const { return _battleType; }
     PetBattleState GetBattleState() const { return _state; }
+    void SetBattleState(PetBattleState state) { _state = state; }
     uint32 GetCurrentRound() const { return _currentRound; }
     uint32 GetElapsedTime() const { return _elapsedSecs; }
     bool CanAwardXP() const { return _canAwardXP; }
@@ -242,6 +243,7 @@ public:
     std::vector<PetBattleRoundEffect> const& GetRoundEffects() const { return _roundEffects; }
     bool WasPetKilledThisRound(uint8 teamIdx, uint8 petIdx) const;
     bool NeedsFrontPetSwap(uint8 teamIdx) const;
+    void ClearNeedsFrontPetSwap(uint8 teamIdx) { if (teamIdx < MAX_PET_BATTLE_PLAYERS) _needsFrontPetSwap[teamIdx] = false; }
 
 private:
     // DB2-driven ability effect chain
