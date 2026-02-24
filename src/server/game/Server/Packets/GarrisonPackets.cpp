@@ -871,6 +871,80 @@ void GarrisonRequestShipmentInfo::Read()
     _worldPacket >> NpcGUID;
 }
 
+WorldPacket const* GetShipmentInfoResponse::Write()
+{
+    _worldPacket << Bits<1>(Success);
+    _worldPacket.FlushBits();
+    _worldPacket << int32(ShipmentID);
+    _worldPacket << int32(MaxShipments);
+    _worldPacket << uint32(Shipments.size());
+    _worldPacket << int32(PlotInstanceID);
+    for (CharacterShipment const& shipment : Shipments)
+    {
+        _worldPacket << int32(shipment.ShipmentRecID);
+        _worldPacket << uint64(shipment.ShipmentID);
+        _worldPacket << uint64(shipment.AssignedFollowerDBID);
+        _worldPacket << shipment.CreationTime;
+        _worldPacket << int32(shipment.ShipmentDuration);
+        _worldPacket << int32(shipment.BuildingType);
+    }
+
+    return &_worldPacket;
+}
+
+void OpenShipmentNpc::Read()
+{
+    _worldPacket >> NpcGUID;
+}
+
+WorldPacket const* OpenShipmentNpcResult::Write()
+{
+    _worldPacket << NpcGUID;
+    _worldPacket << uint32(CharShipmentContainerID);
+
+    return &_worldPacket;
+}
+
+void CreateShipment::Read()
+{
+    _worldPacket >> NpcGUID;
+    _worldPacket >> Count;
+}
+
+WorldPacket const* CreateShipmentResponse::Write()
+{
+    _worldPacket << uint64(ShipmentID);
+    _worldPacket << uint32(ShipmentRecID);
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GetLandingPageShipmentsResponse::Write()
+{
+    _worldPacket << uint32(GarrTypeID);
+    _worldPacket << uint32(Shipments.size());
+    for (CharacterShipment const& shipment : Shipments)
+    {
+        _worldPacket << int32(shipment.ShipmentRecID);
+        _worldPacket << uint64(shipment.ShipmentID);
+        _worldPacket << uint64(shipment.AssignedFollowerDBID);
+        _worldPacket << shipment.CreationTime;
+        _worldPacket << int32(shipment.ShipmentDuration);
+        _worldPacket << int32(shipment.BuildingType);
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* CompleteShipmentResponse::Write()
+{
+    _worldPacket << uint64(ShipmentID);
+    _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
 void SetUsingPartyGarrison::Read()
 {
     _worldPacket >> GarrTypeID;
@@ -880,5 +954,72 @@ void SetUsingPartyGarrison::Read()
 void QueryGarrisonPetName::Read()
 {
     _worldPacket >> NpcGUID;
+}
+
+// ============================================================
+// Trophy / Monument packet implementations
+// ============================================================
+
+void GetTrophyList::Read()
+{
+    _worldPacket >> TrophyTypeID;
+}
+
+WorldPacket const* GetTrophyListResponse::Write()
+{
+    _worldPacket << Bits<1>(Success);
+    _worldPacket.FlushBits();
+    _worldPacket << uint32(Trophies.size());
+    for (GarrisonTrophyData const& trophy : Trophies)
+    {
+        _worldPacket << uint32(trophy.TrophyID);
+        _worldPacket << uint32(trophy.Unk1);
+    }
+
+    return &_worldPacket;
+}
+
+void ReplaceTrophy::Read()
+{
+    _worldPacket >> TrophyID;
+}
+
+WorldPacket const* ReplaceTrophyResponse::Write()
+{
+    _worldPacket << Bits<1>(Success);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+void LoadSelectedTrophy::Read()
+{
+    _worldPacket >> TrophyID;
+}
+
+WorldPacket const* GetSelectedTrophyIDResponse::Write()
+{
+    _worldPacket << uint32(TrophyID);
+    _worldPacket << Bits<1>(Success);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+void ChangeMonumentAppearance::Read()
+{
+    _worldPacket >> TrophyID;
+}
+
+WorldPacket const* GarrisonUpdateGarrisonMonumentSelections::Write()
+{
+    _worldPacket << uint32(Trophies.size());
+    for (GarrisonTrophyData const& trophy : Trophies)
+    {
+        _worldPacket << uint32(trophy.TrophyID);
+        _worldPacket << uint32(trophy.Unk1);
+    }
+
+    return &_worldPacket;
 }
 }

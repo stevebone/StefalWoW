@@ -16,9 +16,12 @@
  */
 
 #include "GarrisonMap.h"
+#include "Creature.h"
+#include "DB2Stores.h"
 #include "DBCEnums.h"
 #include "GameObject.h"
 #include "Garrison.h"
+#include "Group.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "ObjectGridLoader.h"
@@ -95,9 +98,92 @@ void GarrisonGridLoader::Visit(GameObjectMapType& m)
     }
 }
 
-void GarrisonGridLoader::Visit(CreatureMapType& /*m*/)
+void GarrisonGridLoader::Visit(CreatureMapType& m)
 {
+    if (!i_garrison)
+        return;
 
+    CellCoord cellCoord = i_cell.GetCellCoord();
+    GarrisonFactionIndex faction = i_garrison->GetFaction();
+    std::vector<Garrison::Plot*> plots = i_garrison->GetPlots();
+
+    if (plots.empty())
+        return;
+
+    uint32 plotCount = static_cast<uint32>(plots.size());
+    uint32 followerIndex = 0;
+
+    for (auto const& [dbId, follower] : i_garrison->GetFollowerMap())
+    {
+        // Skip followers currently on missions
+        if (follower.PacketInfo.CurrentMissionID != 0)
+            continue;
+
+        // Skip inactive followers
+        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
+            continue;
+
+        GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower.PacketInfo.GarrFollowerID);
+        if (!followerEntry)
+            continue;
+
+        // Only spawn followers matching this garrison type
+        if (followerEntry->GarrTypeID != static_cast<int8>(i_garrison->GetType()))
+            continue;
+
+        uint32 creatureId = faction == GARRISON_FACTION_INDEX_HORDE ?
+            followerEntry->HordeCreatureID : followerEntry->AllianceCreatureID;
+        if (!creatureId)
+            continue;
+
+        // Determine spawn position
+        Position spawnPos;
+        bool positionFound = false;
+
+        if (follower.PacketInfo.CurrentBuildingID != 0)
+        {
+            // Follower is assigned to a building - spawn near that building's plot
+            for (Garrison::Plot* plot : plots)
+            {
+                if (plot->BuildingInfo.PacketInfo &&
+                    plot->BuildingInfo.PacketInfo->GarrBuildingID == follower.PacketInfo.CurrentBuildingID)
+                {
+                    spawnPos = plot->PacketInfo.PlotPos.Pos;
+                    spawnPos.RelocateOffset({ 3.0f, 3.0f, 0.0f, 0.0f });
+                    positionFound = true;
+                    break;
+                }
+            }
+        }
+
+        if (!positionFound)
+        {
+            // Unassigned follower - scatter around plots
+            Garrison::Plot* plot = plots[followerIndex % plotCount];
+            spawnPos = plot->PacketInfo.PlotPos.Pos;
+            // Distribute followers in a circle around the plot center
+            float angle = static_cast<float>(followerIndex % 8) * (float(M_PI) / 4.0f);
+            float dist = 5.0f + 2.0f * (followerIndex / 8);
+            spawnPos.m_positionX += dist * std::cos(angle);
+            spawnPos.m_positionY += dist * std::sin(angle);
+        }
+
+        ++followerIndex;
+
+        // Check if this position belongs to current cell
+        if (cellCoord != Trinity::ComputeCellCoord(spawnPos.GetPositionX(), spawnPos.GetPositionY()))
+            continue;
+
+        Creature* creature = Creature::CreateCreature(creatureId, i_map, spawnPos);
+        if (!creature)
+            continue;
+
+        creature->SetHomePosition(spawnPos);
+        creature->AddToGrid(m);
+        ObjectGridLoader::SetObjectCell(creature, cellCoord);
+        creature->AddToWorld();
+        ++i_creatures;
+    }
 }
 
 GarrisonMap::GarrisonMap(uint32 id, time_t expiry, uint32 instanceId, ObjectGuid const& owner)
@@ -136,6 +222,22 @@ bool GarrisonMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/)
 {
     if (player->GetGUID() == _owner)
         _loadingPlayer = player;
+    else
+    {
+        // Allow party members to enter if they are in the same group as the owner
+        // and the party garrison feature is enabled
+        Player* owner = ObjectAccessor::FindConnectedPlayer(_owner);
+        if (!owner)
+            return false;
+
+        Group* group = player->GetGroup();
+        if (!group || !group->IsMember(owner->GetGUID()))
+        {
+            TC_LOG_DEBUG("garrison", "Player {} denied entry to garrison map {} - not in owner's group",
+                player->GetGUID().ToString().c_str(), GetId());
+            return false;
+        }
+    }
 
     bool result = Map::AddPlayerToMap(player, initPlayer);
 

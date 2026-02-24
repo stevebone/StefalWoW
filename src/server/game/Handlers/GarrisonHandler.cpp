@@ -17,11 +17,14 @@
 
 #include "WorldSession.h"
 #include "DB2Stores.h"
+#include "DB2Structure.h"
 #include "GameTime.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
 #include "GarrisonPackets.h"
+#include "Group.h"
 #include "Log.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "Random.h"
 
@@ -140,14 +143,14 @@ void WorldSession::HandleGarrisonGetMissionReward(WorldPackets::Garrison::Garris
 
     GarrisonError result = garrison->ClaimMissionReward(garrisonGetMissionReward.MissionRecID);
 
-    // After claiming, send updated garrison info so client refreshes
-    if (result == GARRISON_SUCCESS)
-    {
-        WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
-        garrisonInfo.FactionIndex = Garrison::GetFaction(_player->GetTeam());
-        garrison->BuildInfoPacket(garrisonInfo.Garrisons.emplace_back());
-        SendPacket(garrisonInfo.Write());
-    }
+    // ClaimMissionReward already sends GarrisonFollowerChangedXP for each follower,
+    // and removes the mission internally. Send a targeted deletion notification
+    // instead of a full GetGarrisonInfoResult to reduce bandwidth.
+    WorldPackets::Garrison::GarrisonDeleteMissionResult deleteMissionResult;
+    deleteMissionResult.Result = result;
+    deleteMissionResult.MissionRecID = garrisonGetMissionReward.MissionRecID;
+    deleteMissionResult.GarrTypeID = garrison->GetType();
+    SendPacket(deleteMissionResult.Write());
 }
 
 void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& /*openMissionNpc*/)
@@ -156,15 +159,11 @@ void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& 
     if (!garrison)
         return;
 
-    // Remove expired offers and generate new missions if needed
+    // Remove expired offers (sends GarrisonDeleteMissionResult per expired mission)
+    // and generate new missions (sends GarrisonAddMissionResult per new mission).
+    // Individual targeted packets are sent instead of a full GetGarrisonInfoResult.
     garrison->RemoveExpiredMissions();
     garrison->GenerateAvailableMissions();
-
-    // Send updated garrison info so client refreshes mission list
-    WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
-    garrisonInfo.FactionIndex = Garrison::GetFaction(_player->GetTeam());
-    garrison->BuildInfoPacket(garrisonInfo.Garrisons.emplace_back());
-    SendPacket(garrisonInfo.Write());
 }
 
 // ============================================================
@@ -273,11 +272,9 @@ void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::G
 
     garrison->HealAllFollowers();
 
-    // Send updated garrison info so client sees healed followers
-    WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
-    garrisonInfo.FactionIndex = Garrison::GetFaction(_player->GetTeam());
-    garrison->BuildInfoPacket(garrisonInfo.Garrisons.emplace_back());
-    SendPacket(garrisonInfo.Write());
+    // Send individual GarrisonUpdateFollower packets for each follower
+    // instead of a full GetGarrisonInfoResult to reduce bandwidth
+    garrison->SendAllFollowerUpdates();
 }
 
 void WorldSession::HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::GarrisonAddFollowerHealth& garrisonAddFollowerHealth)
@@ -314,11 +311,14 @@ void WorldSession::HandleGarrisonGetClassSpecCategoryInfo(WorldPackets::Garrison
     SendPacket(result.Write());
 }
 
-void WorldSession::HandleGarrisonSetRecruitmentPreferences(WorldPackets::Garrison::GarrisonSetRecruitmentPreferences& /*garrisonSetRecruitmentPreferences*/)
+void WorldSession::HandleGarrisonSetRecruitmentPreferences(WorldPackets::Garrison::GarrisonSetRecruitmentPreferences& garrisonSetRecruitmentPreferences)
 {
-    // Recruitment preferences affect which ability types appear on generated recruits
-    // Stored on the Garrison object but primarily influences GenerateRecruits()
-    // For now, preferences are applied client-side and the server generates random recruits
+    if (!_player->GetGarrison())
+        return;
+
+    _player->GetGarrison()->SetRecruitmentPreferences(
+        garrisonSetRecruitmentPreferences.AbilityID,
+        garrisonSetRecruitmentPreferences.TraitID);
 }
 
 // ============================================================
@@ -431,66 +431,307 @@ void WorldSession::HandleGarrisonSetBuildingActive(WorldPackets::Garrison::Garri
     garrison->ActivateBuilding(garrisonSetBuildingActive.PlotInstanceID);
 }
 
-void WorldSession::HandleGarrisonSwapBuildings(WorldPackets::Garrison::GarrisonSwapBuildings& /*garrisonSwapBuildings*/)
+void WorldSession::HandleGarrisonSwapBuildings(WorldPackets::Garrison::GarrisonSwapBuildings& garrisonSwapBuildings)
 {
-    // Building swapping is not supported in the current garrison implementation
-    WorldPackets::Garrison::GarrisonSwapBuildingsResponse result;
-    result.Result = GARRISON_ERROR_OPERATION_NOT_SUPPORTED;
-    SendPacket(result.Write());
+    if (!_player->GetNPCIfCanInteractWith(garrisonSwapBuildings.NpcGUID, UNIT_NPC_FLAG_NONE, UNIT_NPC_FLAG_2_GARRISON_ARCHITECT))
+        return;
+
+    if (Garrison* garrison = _player->GetGarrison())
+        garrison->SwapBuildings(garrisonSwapBuildings.PlotInstanceID1, garrisonSwapBuildings.PlotInstanceID2);
 }
 
 // ============================================================
 // Talent handlers
 // ============================================================
 
-void WorldSession::HandleGarrisonLearnTalent(WorldPackets::Garrison::GarrisonLearnTalent& /*garrisonLearnTalent*/)
+void WorldSession::HandleGarrisonLearnTalent(WorldPackets::Garrison::GarrisonLearnTalent& garrisonLearnTalent)
 {
-    // Garrison talents require GarrTalent DB2 data which is not yet loaded
-    WorldPackets::Garrison::GarrisonResearchTalentResult result;
-    result.Result = GARRISON_ERROR_INVALID_TALENT;
-    result.GarrTypeID = GARRISON_TYPE_GARRISON;
-    SendPacket(result.Write());
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrisonLearnTalent.GarrTalentID);
+    if (!talentEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
+    if (!garrison)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_NO_GARRISON;
+        result.GarrTypeID = treeEntry->GarrTypeID;
+        SendPacket(result.Write());
+        return;
+    }
+
+    garrison->LearnTalent(garrisonLearnTalent.GarrTalentID, garrisonLearnTalent.IsTemporary);
 }
 
-void WorldSession::HandleGarrisonResearchTalent(WorldPackets::Garrison::GarrisonResearchTalent& /*garrisonResearchTalent*/)
+void WorldSession::HandleGarrisonResearchTalent(WorldPackets::Garrison::GarrisonResearchTalent& garrisonResearchTalent)
 {
-    // Garrison talents require GarrTalent DB2 data which is not yet loaded
-    WorldPackets::Garrison::GarrisonResearchTalentResult result;
-    result.Result = GARRISON_ERROR_INVALID_TALENT;
-    result.GarrTypeID = GARRISON_TYPE_GARRISON;
-    SendPacket(result.Write());
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrisonResearchTalent.GarrTalentID);
+    if (!talentEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
+    if (!garrison)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_NO_GARRISON;
+        result.GarrTypeID = treeEntry->GarrTypeID;
+        SendPacket(result.Write());
+        return;
+    }
+
+    garrison->ResearchTalent(garrisonResearchTalent.GarrTalentID);
 }
 
-void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& /*garrisonSocketTalent*/)
+void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& garrisonSocketTalent)
 {
-    // Garrison talents require GarrTalent DB2 data which is not yet loaded
-    WorldPackets::Garrison::GarrisonResearchTalentResult result;
-    result.Result = GARRISON_ERROR_INVALID_TALENT;
-    result.GarrTypeID = GARRISON_TYPE_GARRISON;
-    SendPacket(result.Write());
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrisonSocketTalent.GarrTalentID);
+    if (!talentEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
+    if (!garrison)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_NO_GARRISON;
+        result.GarrTypeID = treeEntry->GarrTypeID;
+        SendPacket(result.Write());
+        return;
+    }
+
+    garrison->SocketTalent(garrisonSocketTalent.GarrTalentID, garrisonSocketTalent.SoulbindConduitID, garrisonSocketTalent.SoulbindConduitRank);
 }
 
 // ============================================================
 // Other utility handlers
 // ============================================================
 
-void WorldSession::HandleGarrisonRequestShipmentInfo(WorldPackets::Garrison::GarrisonRequestShipmentInfo& /*garrisonRequestShipmentInfo*/)
+void WorldSession::HandleGarrisonRequestShipmentInfo(WorldPackets::Garrison::GarrisonRequestShipmentInfo& garrisonRequestShipmentInfo)
 {
-    // Shipments (work orders) require CharShipment DB2 data
-    // Send empty response to prevent client errors
+    Garrison* garrison = _player->GetGarrison();
+    if (!garrison)
+    {
+        WorldPackets::Garrison::GetShipmentInfoResponse response;
+        SendPacket(response.Write());
+        return;
+    }
+
+    garrison->SendShipmentInfo(garrisonRequestShipmentInfo.NpcGUID);
 }
 
-void WorldSession::HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingPartyGarrison& /*setUsingPartyGarrison*/)
+void WorldSession::HandleOpenShipmentNpc(WorldPackets::Garrison::OpenShipmentNpc& openShipmentNpc)
 {
-    // Party garrison sharing preference - client tracks this state
+    Garrison* garrison = _player->GetGarrison();
+    if (!garrison)
+        return;
+
+    uint32 plotInstanceId = garrison->FindPlotInstanceForNpc(openShipmentNpc.NpcGUID);
+    if (!plotInstanceId)
+        return;
+
+    Garrison::Plot const* plot = garrison->GetPlot(plotInstanceId);
+    if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
+        return;
+
+    GarrBuildingEntry const* building = sGarrBuildingStore.LookupEntry(plot->BuildingInfo.PacketInfo->GarrBuildingID);
+    if (!building)
+        return;
+
+    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType);
+    if (!container)
+        return;
+
+    WorldPackets::Garrison::OpenShipmentNpcResult result;
+    result.NpcGUID = openShipmentNpc.NpcGUID;
+    result.CharShipmentContainerID = container->ID;
+    SendPacket(result.Write());
 }
 
-void WorldSession::HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarrisonPetName& /*queryGarrisonPetName*/)
+void WorldSession::HandleCreateShipment(WorldPackets::Garrison::CreateShipment& createShipment)
+{
+    Garrison* garrison = _player->GetGarrison();
+    if (!garrison)
+        return;
+
+    garrison->CreateShipment(createShipment.NpcGUID, createShipment.Count);
+}
+
+void WorldSession::HandleGetLandingPageShipments(WorldPackets::Garrison::GetLandingPageShipments& /*getLandingPageShipments*/)
+{
+    Garrison* garrison = _player->GetGarrison();
+    if (!garrison)
+        return;
+
+    garrison->SendLandingPageShipments();
+}
+
+void WorldSession::HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingPartyGarrison& setUsingPartyGarrison)
+{
+    if (setUsingPartyGarrison.UsingPartyGarrison)
+    {
+        // Player wants to visit party leader's garrison
+        Group* group = _player->GetGroup();
+        if (!group)
+            return;
+
+        Player* leader = ObjectAccessor::FindPlayer(group->GetLeaderGUID());
+        if (!leader || leader == _player)
+            return;
+
+        Garrison* leaderGarrison = leader->GetGarrison(static_cast<GarrisonType>(setUsingPartyGarrison.GarrTypeID));
+        if (!leaderGarrison)
+            return;
+
+        GarrSiteLevelEntry const* siteLevel = leaderGarrison->GetSiteLevel();
+        if (!siteLevel)
+            return;
+
+        // Teleport the visiting player to the leader's garrison map instance
+        // The garrison map instance ID is the owner's GUID counter
+        _player->TeleportTo(WorldLocation(siteLevel->MapID, *_player), TELE_TO_SEAMLESS);
+    }
+    else
+    {
+        // Player wants to leave the party garrison — teleport back to Draenor
+        if (Garrison* ownGarrison = _player->GetGarrison())
+            ownGarrison->Leave();
+    }
+}
+
+void WorldSession::HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarrisonPetName& queryGarrisonPetName)
 {
     // Garrison pet name query - used for stables building pets
+    // SMSG_QUERY_GARRISON_PET_NAME_RESPONSE packet structure is not yet defined
+    TC_LOG_DEBUG("garrison", "HandleQueryGarrisonPetName: Player {} queried pet name for NPC {}",
+        _player->GetGUID().ToString().c_str(), queryGarrisonPetName.NpcGUID.ToString().c_str());
 }
 
 void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Garrison::RequestGarrisonTalentWorldQuestUnlocks& /*requestGarrisonTalentWorldQuestUnlocks*/)
 {
-    // Talent-gated world quest unlocks - not applicable for WoD garrisons
+    // Talent-gated world quest unlocks - Legion+ feature
+    // SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE packet structure is not yet defined
+    // When implemented, this should query researched talents with GarrTalentMapPOI data
+    // and send back the list of unlocked world quest POIs
+    TC_LOG_DEBUG("garrison", "HandleRequestGarrisonTalentWorldQuestUnlocks: Player {} requested talent world quest unlocks",
+        _player->GetGUID().ToString().c_str());
+}
+
+void WorldSession::HandleGetTrophyList(WorldPackets::Garrison::GetTrophyList& /*getTrophyList*/)
+{
+    WorldPackets::Garrison::GetTrophyListResponse response;
+
+    Garrison* garrison = _player->GetGarrison();
+    if (garrison)
+    {
+        response.Success = true;
+        for (uint32 trophyId : garrison->GetTrophies())
+        {
+            WorldPackets::Garrison::GarrisonTrophyData data;
+            data.TrophyID = trophyId;
+            response.Trophies.push_back(data);
+        }
+    }
+
+    SendPacket(response.Write());
+}
+
+void WorldSession::HandleReplaceTrophy(WorldPackets::Garrison::ReplaceTrophy& replaceTrophy)
+{
+    WorldPackets::Garrison::ReplaceTrophyResponse response;
+
+    Garrison* garrison = _player->GetGarrison();
+    if (garrison)
+    {
+        garrison->AddTrophy(replaceTrophy.TrophyID);
+        response.Success = true;
+
+        WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
+        for (uint32 trophyId : garrison->GetTrophies())
+        {
+            WorldPackets::Garrison::GarrisonTrophyData data;
+            data.TrophyID = trophyId;
+            selections.Trophies.push_back(data);
+        }
+        SendPacket(selections.Write());
+    }
+
+    SendPacket(response.Write());
+}
+
+void WorldSession::HandleLoadSelectedTrophy(WorldPackets::Garrison::LoadSelectedTrophy& loadSelectedTrophy)
+{
+    WorldPackets::Garrison::GetSelectedTrophyIDResponse response;
+
+    Garrison* garrison = _player->GetGarrison();
+    if (garrison && garrison->HasTrophy(loadSelectedTrophy.TrophyID))
+    {
+        response.TrophyID = loadSelectedTrophy.TrophyID;
+        response.Success = true;
+    }
+
+    SendPacket(response.Write());
+}
+
+void WorldSession::HandleChangeMonumentAppearance(WorldPackets::Garrison::ChangeMonumentAppearance& changeMonumentAppearance)
+{
+    Garrison* garrison = _player->GetGarrison();
+    if (garrison)
+        garrison->AddTrophy(changeMonumentAppearance.TrophyID);
+}
+
+void WorldSession::HandleRevertMonumentAppearance(WorldPackets::Garrison::RevertMonumentAppearance& /*revertMonumentAppearance*/)
+{
+    Garrison* garrison = _player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // Clear all trophies from the garrison (revert to default monument appearance)
+    std::vector<uint32> trophiesToRemove(garrison->GetTrophies().begin(), garrison->GetTrophies().end());
+    for (uint32 trophyId : trophiesToRemove)
+        garrison->RemoveTrophy(trophyId);
+
+    // Send updated (empty) monument selections to the client
+    WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
+    SendPacket(selections.Write());
 }

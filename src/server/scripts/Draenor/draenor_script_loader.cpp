@@ -20,6 +20,8 @@ void AddSC_assault_on_the_dark_portal();
 void AddSC_draenor_shadowmoon_valley();
 void AddSC_frostfire_ridge();
 void AddSC_garrison_generic();
+void AddSC_garrison_invasion();
+void AddSC_npc_garrison_bodyguard();
 
 // Auchindoun
 void AddSC_instance_auchindoun();
@@ -33,6 +35,8 @@ void AddDraenorScripts()
     AddSC_draenor_shadowmoon_valley();
     AddSC_frostfire_ridge();
     AddSC_garrison_generic();
+    AddSC_garrison_invasion();
+    AddSC_npc_garrison_bodyguard();
 
     // Auchindoun
     AddSC_instance_auchindoun();

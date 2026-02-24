@@ -1038,6 +1038,10 @@ void Player::Update(uint32 p_time)
             m_nextSave -= p_time;
     }
 
+    // Update garrison timers (building completion, shipments, talent research, mission expiry)
+    for (auto& [type, garrison] : _garrisons)
+        garrison->Update(p_time);
+
     //Handle Water/drowning
     HandleDrowning(p_time);
 
@@ -18554,7 +18558,11 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_BUILDINGS),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_FOLLOWERS),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_FOLLOWER_ABILITIES),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_MISSIONS)))
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_MISSIONS),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_SPECIALIZATIONS),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_SHIPMENTS),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TALENTS),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TROPHIES)))
         _garrisons[garrison->GetType()] = std::move(garrison);
 
     _InitHonorLevelOnLoadFromDB(fields.honor, fields.honorLevel);

@@ -377,9 +377,17 @@ namespace WorldPackets
         class GarrisonResearchTalent;
         class GarrisonSocketTalent;
         class GarrisonRequestShipmentInfo;
+        class OpenShipmentNpc;
+        class CreateShipment;
+        class GetLandingPageShipments;
         class SetUsingPartyGarrison;
         class QueryGarrisonPetName;
         class RequestGarrisonTalentWorldQuestUnlocks;
+        class GetTrophyList;
+        class ReplaceTrophy;
+        class LoadSelectedTrophy;
+        class ChangeMonumentAppearance;
+        class RevertMonumentAppearance;
     }
 
     namespace Guild
@@ -1893,9 +1901,17 @@ class TC_GAME_API WorldSession
         void HandleGarrisonResearchTalent(WorldPackets::Garrison::GarrisonResearchTalent& garrisonResearchTalent);
         void HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& garrisonSocketTalent);
         void HandleGarrisonRequestShipmentInfo(WorldPackets::Garrison::GarrisonRequestShipmentInfo& garrisonRequestShipmentInfo);
+        void HandleOpenShipmentNpc(WorldPackets::Garrison::OpenShipmentNpc& openShipmentNpc);
+        void HandleCreateShipment(WorldPackets::Garrison::CreateShipment& createShipment);
+        void HandleGetLandingPageShipments(WorldPackets::Garrison::GetLandingPageShipments& getLandingPageShipments);
         void HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingPartyGarrison& setUsingPartyGarrison);
         void HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarrisonPetName& queryGarrisonPetName);
         void HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Garrison::RequestGarrisonTalentWorldQuestUnlocks& requestGarrisonTalentWorldQuestUnlocks);
+        void HandleGetTrophyList(WorldPackets::Garrison::GetTrophyList& getTrophyList);
+        void HandleReplaceTrophy(WorldPackets::Garrison::ReplaceTrophy& replaceTrophy);
+        void HandleLoadSelectedTrophy(WorldPackets::Garrison::LoadSelectedTrophy& loadSelectedTrophy);
+        void HandleChangeMonumentAppearance(WorldPackets::Garrison::ChangeMonumentAppearance& changeMonumentAppearance);
+        void HandleRevertMonumentAppearance(WorldPackets::Garrison::RevertMonumentAppearance& revertMonumentAppearance);
 
         // Battle Pets
         void HandleBattlePetRequestJournal(WorldPackets::BattlePet::BattlePetRequestJournal& battlePetRequestJournal);

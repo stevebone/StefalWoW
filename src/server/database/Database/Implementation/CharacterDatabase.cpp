@@ -757,17 +757,31 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_BLUEPRINTS, "SELECT buildingId FROM character_garrison_blueprints WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_BLUEPRINTS, "INSERT INTO character_garrison_blueprints (guid, buildingId) VALUES (?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_BLUEPRINTS, "DELETE FROM character_garrison_blueprints WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_BUILDINGS, "SELECT plotInstanceId, buildingId, timeBuilt, active FROM character_garrison_buildings WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_BUILDINGS, "INSERT INTO character_garrison_buildings (guid, plotInstanceId, buildingId, timeBuilt, active) VALUES (?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_BUILDINGS, "SELECT plotInstanceId, buildingId, timeBuilt, active, currentGarSpecId, timeSpecCooldown FROM character_garrison_buildings WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_BUILDINGS, "INSERT INTO character_garrison_buildings (guid, plotInstanceId, buildingId, timeBuilt, active, currentGarSpecId, timeSpecCooldown) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_BUILDINGS, "DELETE FROM character_garrison_buildings WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_FOLLOWERS, "SELECT dbId, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, customName FROM character_garrison_followers WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_FOLLOWERS, "INSERT INTO character_garrison_followers (dbId, guid, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, customName) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_SPECIALIZATIONS, "SELECT specId FROM character_garrison_specializations WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_SPECIALIZATIONS, "INSERT INTO character_garrison_specializations (guid, specId) VALUES (?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_SPECIALIZATIONS, "DELETE FROM character_garrison_specializations WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_FOLLOWERS, "SELECT dbId, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, durability, customName FROM character_garrison_followers WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_FOLLOWERS, "INSERT INTO character_garrison_followers (dbId, guid, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, durability, customName) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_FOLLOWERS, "DELETE gfab, gf FROM character_garrison_follower_abilities gfab INNER JOIN character_garrison_followers gf ON gfab.dbId = gf.dbId WHERE gf.guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_FOLLOWER_ABILITIES, "SELECT gfab.dbId, gfab.abilityId FROM character_garrison_follower_abilities gfab INNER JOIN character_garrison_followers gf ON gfab.dbId = gf.dbId WHERE guid = ? ORDER BY gfab.slot", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_FOLLOWER_ABILITIES, "INSERT INTO character_garrison_follower_abilities (dbId, abilityId, slot) VALUES (?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_MISSIONS, "SELECT dbId, guid, missionRecID, offerTime, offerDuration, startTime, travelDuration, missionDuration, missionState, successChance FROM character_garrison_missions WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_MISSIONS, "INSERT INTO character_garrison_missions (dbId, guid, missionRecID, offerTime, offerDuration, startTime, travelDuration, missionDuration, missionState, successChance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_MISSIONS, "DELETE FROM character_garrison_missions WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_SHIPMENTS, "SELECT dbId, shipmentId, plotInstanceId, creationTime, duration, assignedFollowerDbId FROM character_garrison_shipments WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_SHIPMENTS, "INSERT INTO character_garrison_shipments (dbId, guid, shipmentId, plotInstanceId, creationTime, duration, assignedFollowerDbId) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_SHIPMENTS, "DELETE FROM character_garrison_shipments WHERE guid = ?", CONNECTION_ASYNC);
+
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TALENTS, "SELECT garrTalentId, `rank`, researchStartTime, flags, soulbindConduitId, soulbindConduitRank FROM character_garrison_talents WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_TALENT, "INSERT INTO character_garrison_talents (guid, garrTalentId, `rank`, researchStartTime, flags, soulbindConduitId, soulbindConduitRank) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TALENTS, "DELETE FROM character_garrison_talents WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TALENT, "DELETE FROM character_garrison_talents WHERE guid = ? AND garrTalentId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TROPHIES, "SELECT trophyId FROM character_garrison_trophies WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_TROPHY, "INSERT INTO character_garrison_trophies (guid, trophyId) VALUES (?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TROPHIES, "DELETE FROM character_garrison_trophies WHERE guid = ?", CONNECTION_ASYNC);
 
     // Black Market
     PrepareStatement(CHAR_SEL_BLACKMARKET_AUCTIONS, "SELECT marketId, currentBid, time, numBids, bidder FROM blackmarket_auctions", CONNECTION_SYNCH);

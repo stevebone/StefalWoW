@@ -34,6 +34,7 @@
 #include "CreatureTextMgr.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
+#include "DB2Structure.h"
 #include "DuelPackets.h"
 #include "DynamicObject.h"
 #include "GameEventSender.h"
@@ -41,6 +42,7 @@
 #include "GameObjectAI.h"
 #include "GameTime.h"
 #include "Garrison.h"
+#include "GarrisonMgr.h"
 #include "GossipDef.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
@@ -168,7 +170,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectScriptEffect,                             // 77 SPELL_EFFECT_SCRIPT_EFFECT
     &Spell::EffectUnused,                                   // 78 SPELL_EFFECT_ATTACK
     &Spell::EffectSanctuary,                                // 79 SPELL_EFFECT_SANCTUARY
-    &Spell::EffectNULL,                                     // 80 SPELL_EFFECT_MODIFY_FOLLOWER_ITEM_LEVEL
+    &Spell::EffectModifyFollowerItemLevel,                   // 80 SPELL_EFFECT_MODIFY_FOLLOWER_ITEM_LEVEL
     &Spell::EffectNULL,                                     // 81 SPELL_EFFECT_PUSH_ABILITY_TO_ACTION_BAR
     &Spell::EffectNULL,                                     // 82 SPELL_EFFECT_BIND_SIGHT
     &Spell::EffectDuel,                                     // 83 SPELL_EFFECT_DUEL
@@ -234,7 +236,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectUnused,                                   //143 SPELL_EFFECT_APPLY_AREA_AURA_OWNER
     &Spell::EffectKnockBack,                                //144 SPELL_EFFECT_KNOCK_BACK_DEST
     &Spell::EffectPullTowardsDest,                          //145 SPELL_EFFECT_PULL_TOWARDS_DEST        Black Hole Effect
-    &Spell::EffectNULL,                                     //146 SPELL_EFFECT_RESTORE_GARRISON_TROOP_VITALITY
+    &Spell::EffectRestoreGarrisonTroopVitality,              //146 SPELL_EFFECT_RESTORE_GARRISON_TROOP_VITALITY
     &Spell::EffectQuestFail,                                //147 SPELL_EFFECT_QUEST_FAIL               quest fail
     &Spell::EffectTriggerMissileSpell,                      //148 SPELL_EFFECT_TRIGGER_MISSILE_SPELL_WITH_VALUE
     &Spell::EffectChargeDest,                               //149 SPELL_EFFECT_CHARGE_DEST
@@ -299,17 +301,17 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //208 SPELL_EFFECT_SET_REPUTATION
     &Spell::EffectUnused,                                   //209 SPELL_EFFECT_209
     &Spell::EffectLearnGarrisonBuilding,                    //210 SPELL_EFFECT_LEARN_GARRISON_BUILDING
-    &Spell::EffectNULL,                                     //211 SPELL_EFFECT_LEARN_GARRISON_SPECIALIZATION
+    &Spell::EffectLearnGarrisonSpecialization,               //211 SPELL_EFFECT_LEARN_GARRISON_SPECIALIZATION
     &Spell::EffectRemoveAuraBySpellLabel,                   //212 SPELL_EFFECT_REMOVE_AURA_BY_SPELL_LABEL
     &Spell::EffectJumpDest,                                 //213 SPELL_EFFECT_JUMP_DEST_2
     &Spell::EffectCreateGarrison,                           //214 SPELL_EFFECT_CREATE_GARRISON
     &Spell::EffectNULL,                                     //215 SPELL_EFFECT_UPGRADE_CHARACTER_SPELLS
-    &Spell::EffectNULL,                                     //216 SPELL_EFFECT_CREATE_SHIPMENT
-    &Spell::EffectNULL,                                     //217 SPELL_EFFECT_UPGRADE_GARRISON
+    &Spell::EffectCreateShipment,                            //216 SPELL_EFFECT_CREATE_SHIPMENT
+    &Spell::EffectUpgradeGarrison,                           //217 SPELL_EFFECT_UPGRADE_GARRISON
     &Spell::EffectNULL,                                     //218 SPELL_EFFECT_218
     &Spell::EffectCreateConversation,                       //219 SPELL_EFFECT_CREATE_CONVERSATION
     &Spell::EffectAddGarrisonFollower,                      //220 SPELL_EFFECT_ADD_GARRISON_FOLLOWER
-    &Spell::EffectNULL,                                     //221 SPELL_EFFECT_ADD_GARRISON_MISSION
+    &Spell::EffectAddGarrisonMission,                        //221 SPELL_EFFECT_ADD_GARRISON_MISSION
     &Spell::EffectCreateHeirloomItem,                       //222 SPELL_EFFECT_CREATE_HEIRLOOM_ITEM
     &Spell::EffectNULL,                                     //223 SPELL_EFFECT_CHANGE_ITEM_BONUSES
     &Spell::EffectActivateGarrisonBuilding,                 //224 SPELL_EFFECT_ACTIVATE_GARRISON_BUILDING
@@ -317,29 +319,29 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //226 SPELL_EFFECT_TRIGGER_ACTION_SET
     &Spell::EffectNULL,                                     //227 SPELL_EFFECT_TELEPORT_TO_LFG_DUNGEON
     &Spell::EffectNULL,                                     //228 SPELL_EFFECT_228
-    &Spell::EffectNULL,                                     //229 SPELL_EFFECT_SET_FOLLOWER_QUALITY
+    &Spell::EffectSetFollowerQuality,                        //229 SPELL_EFFECT_SET_FOLLOWER_QUALITY
     &Spell::EffectNULL,                                     //230 SPELL_EFFECT_230
-    &Spell::EffectNULL,                                     //231 SPELL_EFFECT_INCREASE_FOLLOWER_EXPERIENCE
+    &Spell::EffectIncreaseFollowerExperience,                //231 SPELL_EFFECT_INCREASE_FOLLOWER_EXPERIENCE
     &Spell::EffectNULL,                                     //232 SPELL_EFFECT_REMOVE_PHASE
-    &Spell::EffectNULL,                                     //233 SPELL_EFFECT_RANDOMIZE_FOLLOWER_ABILITIES
+    &Spell::EffectRandomizeFollowerAbilities,                //233 SPELL_EFFECT_RANDOMIZE_FOLLOWER_ABILITIES
     &Spell::EffectNULL,                                     //234 SPELL_EFFECT_234
     &Spell::EffectUnused,                                   //235 SPELL_EFFECT_235
     &Spell::EffectGiveExperience,                           //236 SPELL_EFFECT_GIVE_EXPERIENCE
     &Spell::EffectGiveRestedExperience,                     //237 SPELL_EFFECT_GIVE_RESTED_EXPERIENCE_BONUS
     &Spell::EffectNULL,                                     //238 SPELL_EFFECT_INCREASE_SKILL
-    &Spell::EffectNULL,                                     //239 SPELL_EFFECT_END_GARRISON_BUILDING_CONSTRUCTION
+    &Spell::EffectEndGarrisonBuildingConstruction,            //239 SPELL_EFFECT_END_GARRISON_BUILDING_CONSTRUCTION
     &Spell::EffectGiveArtifactPower,                        //240 SPELL_EFFECT_GIVE_ARTIFACT_POWER
     &Spell::EffectUnused,                                   //241 SPELL_EFFECT_241
     &Spell::EffectGiveArtifactPowerNoBonus,                 //242 SPELL_EFFECT_GIVE_ARTIFACT_POWER_NO_BONUS
     &Spell::EffectApplyEnchantIllusion,                     //243 SPELL_EFFECT_APPLY_ENCHANT_ILLUSION
-    &Spell::EffectNULL,                                     //244 SPELL_EFFECT_LEARN_FOLLOWER_ABILITY
+    &Spell::EffectLearnFollowerAbility,                      //244 SPELL_EFFECT_LEARN_FOLLOWER_ABILITY
     &Spell::EffectUpgradeHeirloom,                          //245 SPELL_EFFECT_UPGRADE_HEIRLOOM
-    &Spell::EffectNULL,                                     //246 SPELL_EFFECT_FINISH_GARRISON_MISSION
-    &Spell::EffectNULL,                                     //247 SPELL_EFFECT_ADD_GARRISON_MISSION_SET
-    &Spell::EffectNULL,                                     //248 SPELL_EFFECT_FINISH_SHIPMENT
+    &Spell::EffectFinishGarrisonMission,                     //246 SPELL_EFFECT_FINISH_GARRISON_MISSION
+    &Spell::EffectAddGarrisonMissionSet,                     //247 SPELL_EFFECT_ADD_GARRISON_MISSION_SET
+    &Spell::EffectFinishShipment,                            //248 SPELL_EFFECT_FINISH_SHIPMENT
     &Spell::EffectNULL,                                     //249 SPELL_EFFECT_FORCE_EQUIP_ITEM
     &Spell::EffectNULL,                                     //250 SPELL_EFFECT_TAKE_SCREENSHOT
-    &Spell::EffectNULL,                                     //251 SPELL_EFFECT_SET_GARRISON_CACHE_SIZE
+    &Spell::EffectSetGarrisonCacheSize,                      //251 SPELL_EFFECT_SET_GARRISON_CACHE_SIZE
     &Spell::EffectTeleportUnits,                            //252 SPELL_EFFECT_TELEPORT_UNITS
     &Spell::EffectGiveHonor,                                //253 SPELL_EFFECT_GIVE_HONOR
     &Spell::EffectJumpCharge,                               //254 SPELL_EFFECT_JUMP_CHARGE
@@ -367,7 +369,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectLearnTransmogIllusion,                    //276 SPELL_EFFECT_LEARN_TRANSMOG_ILLUSION
     &Spell::EffectNULL,                                     //277 SPELL_EFFECT_SET_CHROMIE_TIME
     &Spell::EffectNULL,                                     //278 SPELL_EFFECT_278
-    &Spell::EffectNULL,                                     //279 SPELL_EFFECT_LEARN_GARR_TALENT
+    &Spell::EffectLearnGarrTalent,                           //279 SPELL_EFFECT_LEARN_GARR_TALENT
     &Spell::EffectUnused,                                   //280 SPELL_EFFECT_280
     &Spell::EffectNULL,                                     //281 SPELL_EFFECT_LEARN_SOULBIND_CONDUIT
     &Spell::EffectNULL,                                     //282 SPELL_EFFECT_CONVERT_ITEMS_TO_CURRENCY
@@ -375,7 +377,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectSendChatMessage,                          //284 SPELL_EFFECT_SEND_CHAT_MESSAGE
     &Spell::EffectNULL,                                     //285 SPELL_EFFECT_MODIFY_KEYSTONE_2
     &Spell::EffectGrantBattlePetExperience,                 //286 SPELL_EFFECT_GRANT_BATTLEPET_EXPERIENCE
-    &Spell::EffectNULL,                                     //287 SPELL_EFFECT_SET_GARRISON_FOLLOWER_LEVEL
+    &Spell::EffectSetGarrisonFollowerLevel,                  //287 SPELL_EFFECT_SET_GARRISON_FOLLOWER_LEVEL
     &Spell::EffectNULL,                                     //288 SPELL_EFFECT_CRAFT_ITEM
     &Spell::EffectModifyAuraStacks,                         //289 SPELL_EFFECT_MODIFY_AURA_STACKS
     &Spell::EffectModifyCooldown,                           //290 SPELL_EFFECT_MODIFY_COOLDOWN
@@ -6312,4 +6314,329 @@ void Spell::EffectSetPlayerDataFlagCharacter()
         return;
 
     target->SetDataFlagCharacter(effectInfo->MiscValue, damage != 0);
+}
+
+void Spell::EffectRestoreGarrisonTroopVitality()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->HealAllFollowers();
+}
+
+void Spell::EffectLearnGarrisonSpecialization()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->LearnSpecialization(effectInfo->MiscValue);
+}
+
+void Spell::EffectCreateShipment()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->CreateShipment(m_caster->GetGUID(), effectInfo->MiscValue > 0 ? effectInfo->MiscValue : 1);
+}
+
+void Spell::EffectUpgradeGarrison()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->Upgrade();
+}
+
+void Spell::EffectAddGarrisonMission()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->AddMission(effectInfo->MiscValue);
+}
+
+void Spell::EffectSetFollowerQuality()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue = quality to set, the targeted follower is determined by the spell target
+    // For item-cast spells, the follower dbId is typically stored in the spell's misc data
+    // Iterate followers and set quality on the first one found that matches (or use generic approach)
+    // In practice, these spells are cast on a specific follower via the garrison UI
+    uint32 quality = effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        // This effect is typically cast via items targeting a specific follower
+        // Since we don't have a direct follower target, apply to all active non-troop followers
+        // In a real scenario, the UI sends the follower context
+        garrison->SetFollowerQuality(dbId, quality);
+        break; // Apply to first eligible follower (placeholder - needs UI integration)
+    }
+}
+
+void Spell::EffectIncreaseFollowerExperience()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    uint32 xp = damage > 0 ? damage : effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->AddFollowerXP(dbId, xp);
+        break; // Apply to first eligible follower
+    }
+}
+
+void Spell::EffectRandomizeFollowerAbilities()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->RandomizeFollowerAbilities(dbId);
+        break;
+    }
+}
+
+void Spell::EffectEndGarrisonBuildingConstruction()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue = plot instance ID, or 0 to complete all buildings
+    if (effectInfo->MiscValue > 0)
+    {
+        garrison->EndBuildingConstruction(effectInfo->MiscValue);
+    }
+    else
+    {
+        for (Garrison::Plot* plot : garrison->GetPlots())
+            if (plot->BuildingInfo.PacketInfo && !plot->BuildingInfo.PacketInfo->Active)
+                garrison->EndBuildingConstruction(plot->PacketInfo.GarrPlotInstanceID);
+    }
+}
+
+void Spell::EffectLearnFollowerAbility()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    uint32 abilityId = effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->LearnFollowerAbility(dbId, abilityId);
+        break;
+    }
+}
+
+void Spell::EffectFinishGarrisonMission()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->FinishMission(effectInfo->MiscValue);
+}
+
+void Spell::EffectAddGarrisonMissionSet()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Garrison* garrison = unitTarget->ToPlayer()->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue = GarrMissionSetID -- add all missions that belong to this set
+    uint32 missionSetId = effectInfo->MiscValue;
+    for (GarrMissionEntry const* mission : sGarrMissionStore)
+        if (mission->GarrMissionSetID == missionSetId)
+            garrison->AddMission(mission->ID);
+}
+
+void Spell::EffectFinishShipment()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Garrison* garrison = unitTarget->ToPlayer()->GetGarrison();
+    if (!garrison)
+        return;
+
+    // Complete the next pending shipment across all plots
+    for (Garrison::Plot* plot : garrison->GetPlots())
+    {
+        if (plot->BuildingInfo.PacketInfo)
+        {
+            garrison->FinishShipment(plot->PacketInfo.GarrPlotInstanceID);
+            break; // Only finish one shipment per cast
+        }
+    }
+}
+
+void Spell::EffectSetGarrisonCacheSize()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->SetGarrisonCacheSize(effectInfo->MiscValue);
+}
+
+void Spell::EffectLearnGarrTalent()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    // Find the correct garrison type for this talent
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(effectInfo->MiscValue);
+    if (!talentEntry)
+        return;
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry)
+        return;
+
+    Garrison* garrison = unitTarget->ToPlayer()->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
+    if (!garrison)
+        return;
+
+    garrison->LearnTalent(effectInfo->MiscValue, false);
+}
+
+void Spell::EffectSetGarrisonFollowerLevel()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    uint32 level = effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->SetFollowerLevel(dbId, level);
+        break;
+    }
+}
+
+void Spell::EffectModifyFollowerItemLevel()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue contains GarrItemLevelUpgradeData ID or direct iLevel delta
+    // MiscValueB: 0 = weapon, 1 = armor, other = both
+    int32 miscValue = effectInfo->MiscValue;
+    int32 miscValueB = effectInfo->MiscValueB;
+    int32 iLevelDelta = damage;
+
+    // Try to look up GarrItemLevelUpgradeData entry
+    GarrItemLevelUpgradeDataEntry const* upgradeData = sGarrItemLevelUpgradeDataStore.LookupEntry(miscValue);
+
+    // The target follower is typically determined by the garrison UI interaction.
+    // When cast from items, the follower dbId is passed via the spell's target info.
+    // For now, we apply to the first eligible non-inactive, non-troop follower.
+    // TODO: When proper follower targeting is available, use that instead.
+    for (auto const& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
+            continue;
+        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP)
+            continue;
+
+        garrison->UpgradeFollowerItemLevel(dbId, iLevelDelta, miscValueB, upgradeData);
+        break;
+    }
 }
