@@ -15,4 +15,6 @@ namespace FSBGroup
     std::vector<Unit*> BotGetMembersToHeal(const std::vector<Unit*>& group, float lowHpThreshold);
     float CalculateEmergencyPriority(Unit* unit);
     void SortEmergencyTargets(std::vector<Unit*>& targets);
+
+    bool BotGroupIsHealthy_Average(Creature* bot, uint32 groupHP);
 }

@@ -239,6 +239,7 @@ namespace FSBSpellsUtils
 
     bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target);
     bool CheckDwarfStoneformRequirements(Creature* bot);
+    bool CheckRepentanceRequirements(Creature* bot, Unit* target);
     bool CheckCrowdControlRequirements(Creature* bot, float range);
 }
 

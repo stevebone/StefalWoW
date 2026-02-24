@@ -221,4 +221,31 @@ namespace FSBGroup
                 return CalculateEmergencyPriority(a) > CalculateEmergencyPriority(b);
             });
     }
+
+    bool BotGroupIsHealthy_Average(Creature* bot, uint32 groupHP)
+    {
+        if (!bot || !bot->IsAlive())
+            return true;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto& botGroup = baseAI->botLogicalGroup;
+
+        if (botGroup.empty())
+            return true;
+
+        float totalPct = 0.f;
+        uint32 count = 0;
+
+        for (Unit* u : botGroup)
+        {
+            if (!u || !u->IsAlive())
+                return false;
+
+            totalPct += u->GetHealthPct();
+            count++;
+        }
+
+        float avg = totalPct / count;
+        return avg >= groupHP;
+    }
 }

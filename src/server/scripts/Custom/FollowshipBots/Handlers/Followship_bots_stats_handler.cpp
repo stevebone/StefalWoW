@@ -249,7 +249,6 @@ namespace FSBStats
         float totalArmor = bot->GetTotalAuraModValue(UNIT_MOD_ARMOR);
 
         bot->SetArmor(baseArmor, totalArmor - baseArmor);
-
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}", bot->GetName(), baseArmor, totalArmor);
     }
 

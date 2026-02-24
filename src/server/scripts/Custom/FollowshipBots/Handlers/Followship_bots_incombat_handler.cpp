@@ -4,6 +4,7 @@
 
 #include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
+#include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
 #include "Followship_bots_warlock.h"
@@ -190,7 +191,8 @@ namespace FSBIC
             dmgSpell->def->spellId == SPELL_WARLOCK_FEAR ||
             dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE ||
             dmgSpell->def->spellId == SPELL_WARLOCK_HAVOC ||
-            dmgSpell->def->spellId == SPELL_ROGUE_BLIND)
+            dmgSpell->def->spellId == SPELL_ROGUE_BLIND ||
+            dmgSpell->def->spellId == SPELL_PALADIN_REPENTANCE)
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
         if (dmgSpell && target)

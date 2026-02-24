@@ -1,6 +1,9 @@
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_paladin.h"
+
+#include "Followship_bots_group_handler.h"
 
 std::vector<FSBSpellDefinition> PaladinSpellsTable =
 {
@@ -11,44 +14,50 @@ std::vector<FSBSpellDefinition> PaladinSpellsTable =
     { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
-    { SPELL_PALADIN_DIVINE_SHIELD,          FSBSpellType::Heal,     0.f,        20.f,       100.f,        0.f,           true,       300000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_PALADIN_FLASH_OF_LIGHT,         FSBSpellType::Heal,     0.1f,       60.f,       60.f,         40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PALADIN_DIVINE_SHIELD,          FSBSpellType::Heal,     0.f,        20.f,           100.f,           0.f,           true,       300000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PALADIN_FLASH_OF_LIGHT,         FSBSpellType::Heal,     0.1f,       70.f,           60.f,            40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
-    { SPELL_PALADIN_HAMMER_OF_JUSTICE,      FSBSpellType::Damage,   0.f,        0.f,        100.f,        10.f,          false,      45000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_PALADIN_JUDGEMENT,              FSBSpellType::Damage,   0.f,        0.f,        100.f,        30.f,          false,      11000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_PALADIN_CONSECRATION,           FSBSpellType::Damage,   0.02f,      0.f,        100.f,        2.f,           true,       9000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_PALADIN_CRUSADER_STRIKE,        FSBSpellType::Damage,   0.f,        0.f,        90.f,         2.f,           false,      3000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PALADIN_HAMMER_OF_JUSTICE,      FSBSpellType::Damage,   0.f,        0.f,            100.f,           10.f,          false,      45000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PALADIN_JUDGEMENT,              FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      11000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PALADIN_CONSECRATION,           FSBSpellType::Damage,   0.02f,      0.f,            100.f,           2.f,           true,       9000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PALADIN_CRUSADER_STRIKE,        FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,           false,      3000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
     
     // HOLY
-    { SPELL_PALADIN_LAY_ON_HANDS,           FSBSpellType::Heal,     0.f,        10.f,       100.f,        40.f,          false,      600000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PALADIN_WORD_OF_GLORY,          FSBSpellType::Heal,     0.1f,       10.f,       100.f,        40.f,          false,      600000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PALADIN_HOLY_LIGHT,             FSBSpellType::Heal,     0.f,        50.f,       100.f,        40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PALADIN_BLESSING_SACRIFICE,     FSBSpellType::Heal,     0.f,        60.f,       50.f,         40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_LAY_ON_HANDS,           FSBSpellType::Heal,     0.f,        10.f,           100.f,           40.f,          false,      600000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_WORD_OF_GLORY,          FSBSpellType::Heal,     0.1f,       10.f,           100.f,           40.f,          false,      600000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_LIGHT_OF_DAWN,          FSBSpellType::Heal,     0.f,        100.f,          100.f,           0.f,           true,       1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_HOLY_LIGHT,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_BLESSING_SPELLWARDING,  FSBSpellType::Heal,     0.f,        20.f,           100.f,           40.f,          false,      300000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_HOLY_PRISM,             FSBSpellType::Heal,     0.f,        100.f,          90.f,            40.f,          false,      45000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_HOLY_SHOCK,             FSBSpellType::Heal,     0.f,        60.f,           90.f,            40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_SEAL_OF_THE_CRUSADER,   FSBSpellType::Heal,     0.05f,      60.f,           60.f,            40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_BLESSING_SACRIFICE,     FSBSpellType::Heal,     0.f,        60.f,           50.f,            40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_DIVINE_PROTECTION,      FSBSpellType::Heal,     0.f,        70.f,           50.f,            0.f,           true,       60000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
-    { SPELL_PALADIN_DIVINE_PROTECTION,      FSBSpellType::Heal,     0.f,        70.f,       50.f,         0.f,           true,       60000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_PALADIN_SEAL_OF_THE_CRUSADER,   FSBSpellType::Heal,     0.05f,      60.f,       60.f,         40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
-
-    { SPELL_PALADIN_HOLY_SHOCK,             FSBSpellType::Damage,   0.f,        0.f,        90.f,         20.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_HOLY_PRISM,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      45000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_PALADIN_HOLY_SHOCK,             FSBSpellType::Damage,   0.f,        0.f,            90.f,            40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
     // TANK
-    { SPELL_PALADIN_BLESSING_PROTECTION,    FSBSpellType::Heal,     0.f,        20.f,       100.f,        40.f,          false,      300000,         FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_PALADIN_BLESSING_SALVATION,     FSBSpellType::Heal,     0.02f,      30.f,       100.f,        40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_PALADIN_GUARDIAN_ANCIENT_KINGS, FSBSpellType::Heal,     0.02f,      60.f,       50.f,         0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_BLESSING_PROTECTION,    FSBSpellType::Heal,     0.f,        20.f,           100.f,           40.f,          false,      300000,         FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_BLESSING_SALVATION,     FSBSpellType::Heal,     0.02f,      30.f,           100.f,           40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_GUARDIAN_ANCIENT_KINGS, FSBSpellType::Heal,     0.02f,      60.f,           50.f,            0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_TANK },
     
-    { SPELL_PALADIN_REBUKE,                 FSBSpellType::Damage,   0.01f,      0.f,        100.f,        2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_PALADIN_HAND_OF_RECKONING,      FSBSpellType::Damage,   0.f,        0.f,        100.f,        30.f,          false,      8000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_REBUKE,                 FSBSpellType::Damage,   0.01f,      0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_HAND_OF_RECKONING,      FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      8000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
     
-    { SPELL_PALADIN_AVENGER_SHIELD,         FSBSpellType::Damage,   0.f,        0.f,        90.f,         30.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_PALADIN_HOLY_SHIELD,            FSBSpellType::Damage,   0.f,        0.f,        90.f,         2.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_PALADIN_BLESSED_HAMMER,         FSBSpellType::Damage,   0.01f,      0.f,        90.f,         40.f,          false,      3000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
-    { SPELL_PALADIN_HAMMER_OF_THE_RIGHT,    FSBSpellType::Damage,   0.f,        0.f,        90.f,         2.f,           false,      3000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_AVENGER_SHIELD,         FSBSpellType::Damage,   0.f,        0.f,            90.f,            30.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_HOLY_SHIELD,            FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_BLESSED_HAMMER,         FSBSpellType::Damage,   0.01f,      0.f,            90.f,            40.f,          false,      3000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_PALADIN_HAMMER_OF_THE_RIGHT,    FSBSpellType::Damage,   0.f,        0.f,            90.f,            2.f,           false,      3000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
 
     // DPS
-    { SPELL_PALADIN_EXECUTION_SENTENCE,     FSBSpellType::Damage,   0.04f,      0.f,        100.f,        30.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_PALADIN_DIVINE_STORM,           FSBSpellType::Damage,   0.f,        0.f,        100.f,        2.5f,          true,       15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_PALADIN_EXORCISM,               FSBSpellType::Damage,   0.02f,      0.f,        90.f,         30.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_PALADIN_HAMMER_OF_WRATH,        FSBSpellType::Damage,   0.04f,      0.f,        90.f,         40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_PALADIN_AVENGING_WRATH,         FSBSpellType::Damage,   0.f,        0.f,        50.f,         2.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_BLESSING_SANCTUARY,     FSBSpellType::Heal,     0.04f,      100.f,          100.f,           40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_EXECUTION_SENTENCE,     FSBSpellType::Damage,   0.04f,      0.f,            100.f,           30.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_DIVINE_STORM,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           true,       15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_REPENTANCE,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_EXORCISM,               FSBSpellType::Damage,   0.02f,      0.f,            90.f,            30.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_HAMMER_OF_WRATH,        FSBSpellType::Damage,   0.04f,      0.f,            90.f,            40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_PALADIN_AVENGING_WRATH,         FSBSpellType::Damage,   0.f,        0.f,            50.f,            2.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     
 };
 
@@ -190,6 +199,75 @@ namespace FSBPaladin
         }
 
         return false;
+    }
+
+    bool BotOOCBuffBeacon(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto& botGroup = baseAI->botLogicalGroup;
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+        uint32 spellId = SPELL_PALADIN_BEACON_OF_LIGHT;
+
+        Unit* target = FSBGroup::BotGetFirstGroupTank(botGroup);
+        bool recastNeeded = false;
+
+        if (target && target->HasAura(spellId))
+            return false;
+        else recastNeeded = true;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+        if (!recastNeeded && player && player->HasAura(spellId))
+            return false;
+        else recastNeeded = true;
+
+        if (!recastNeeded && bot->HasAura(spellId))
+            return false;
+
+        bool check = false;
+
+        if (target && target->IsAlive())
+        {
+            if (!target->HasAura(spellId))
+            {
+                bot->CastSpell(target, spellId, false);
+                check = true;
+            }
+        }
+
+        else if (player && player->IsAlive())
+        {
+            if (!player->HasAura(spellId))
+            {
+                bot->CastSpell(player, spellId, false);
+                check = true;
+            }
+        }
+
+        else
+        {
+            if (!bot->HasAura(spellId))
+            {
+                SpellCastResult result = bot->CastSpell(bot, spellId, false);
+                if (result == SPELL_CAST_OK)
+                {
+                    check = true;
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Paladin self beacon buff pass");
+                }
+                else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Paladin self Beacon buff failed for bot: {} with result: {}", bot->GetName(), result);
+            }
+        }
+
+        if (check)
+        {
+            uint32 now = getMSTime();
+            globalCooldown = now + 1500;
+            return true;
+        }
+        else
+            return false;
     }
 
     void BotSetRoleAuras(Creature* bot, FSB_Roles role)

@@ -16,6 +16,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_group_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_spells_handler.h"
 
@@ -106,6 +107,9 @@ namespace FSBSpellsUtils
         case SPELL_ROGUE_BLIND:
             return CheckCrowdControlRequirements(bot, 15.f);
 
+        case SPELL_PALADIN_REPENTANCE:
+            return CheckRepentanceRequirements(bot, target);
+
         case SPELL_MAGE_POLYMORPH:
             return CheckCrowdControlRequirements(bot, 30.f);
 
@@ -167,8 +171,14 @@ namespace FSBSpellsUtils
         case SPELL_HUMAN_WILL_TO_SURVIVE:
             return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Human && HasAnyMechanic(bot, { MECHANIC_STUN });
 
+        case SPELL_PALADIN_BLESSING_SANCTUARY:
+            return HasAnyMechanic(target, { MECHANIC_FEAR, MECHANIC_HORROR, MECHANIC_SILENCE, MECHANIC_STUN });
+
         case SPELL_ROGUE_THISTLE_TEA:
             return bot->GetPowerPct(bot->GetPowerType()) <= 30;
+
+        case SPELL_PALADIN_LIGHT_OF_DAWN:
+            return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
 
         default:
             return true;
@@ -190,6 +200,21 @@ namespace FSBSpellsUtils
             return true;
 
         return false;
+    }
+
+    bool CheckRepentanceRequirements(Creature* bot, Unit* target)
+    {
+        if (!CheckCrowdControlRequirements(bot, 30.f))
+            return false;
+
+        if (target->GetTypeId() != CREATURE_TYPE_DRAGONKIN ||
+            target->GetTypeId() != CREATURE_TYPE_HUMANOID ||
+            target->GetTypeId() != CREATURE_TYPE_DEMON ||
+            target->GetTypeId() != CREATURE_TYPE_UNDEAD ||
+            target->GetTypeId() != CREATURE_TYPE_GIANT)
+            return false;
+
+        return true;
     }
 
     bool CheckCrowdControlRequirements(Creature* bot, float range)
