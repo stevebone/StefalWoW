@@ -699,11 +699,11 @@ enum class CriteriaType : int16
     LeaveAreaTriggerWithActionSet                  = 154, // Leave area trigger "{AreaTriggerActionSet}"
     LearnedNewPet                                  = 155, // (Account Only) Learned a new pet
     UniquePetsOwned                                = 156, // (Account Only) Unique pets owned
-    AccountObtainPetThroughBattle                  = 157, /*NYI*/ // (Account Only) Obtain a pet through battle
-    WinPetBattle                                   = 158, /*NYI*/ // Win a pet battle
-    LosePetBattle                                  = 159, /*NYI*/ // Lose a pet battle
+    AccountObtainPetThroughBattle                  = 157, // (Account Only) Obtain a pet through battle
+    WinPetBattle                                   = 158, // Win a pet battle
+    LosePetBattle                                  = 159, // Lose a pet battle
     BattlePetReachLevel                            = 160, // (Account Only) Battle pet has reached level {#Level}
-    PlayerObtainPetThroughBattle                   = 161, /*NYI*/ // (Player) Obtain a pet through battle
+    PlayerObtainPetThroughBattle                   = 161, // (Player) Obtain a pet through battle
     ActivelyEarnPetLevel                           = 162, // (Player) Actively earn level {#Level} with a pet by a player
     EnterArea                                      = 163, // Enter Map Area "{AreaTable}"
     LeaveArea                                      = 164, // Leave Map Area "{AreaTable}"

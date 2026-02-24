@@ -304,6 +304,7 @@ private:
     std::array<bool, MAX_PET_BATTLE_PLAYERS> _needsFrontPetSwap = {};
 
     ObjectGuid _wildCreatureGUID;
+    ObjectGuid _npcTrainerGUID;
 };
 
 } // namespace PetBattles
