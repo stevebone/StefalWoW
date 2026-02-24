@@ -41,6 +41,7 @@
 #include "MiscPackets.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "PetBattleMgr.h"
 #include "PacketUtilities.h"
 #include "Player.h"
 #include "QueryHolder.h"
@@ -625,6 +626,14 @@ void WorldSession::LogoutPlayer(bool save)
         ///- Release battle pet journal lock
         if (_battlePetMgr->HasJournalLock())
             _battlePetMgr->ToggleJournalLock(false);
+
+        ///- Clean up any active pet battle
+        if (PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(_player->GetGUID()))
+        {
+            if (!battle->IsFinished())
+                battle->CompleteBattle();
+            sPetBattleMgr->RemoveBattle(battle->GetBattleID());
+        }
 
         ///- Clear whisper whitelist
         _player->ClearWhisperWhiteList();

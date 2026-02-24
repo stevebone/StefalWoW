@@ -228,7 +228,10 @@ public:
 
     // Queries
     bool IsFinished() const { return _state == PET_BATTLE_STATE_FINISHED; }
+    bool IsFinalRound() const { return _state == PET_BATTLE_STATE_FINAL_ROUND; }
     bool BothTeamsReady() const;
+    ObjectGuid GetNpcTrainerGUID() const { return _npcTrainerGUID; }
+    void CompleteBattle();
     uint8 GetWinnerTeam() const { return _winnerTeam; }
     Player* GetPlayerForTeam(uint8 teamIdx) const;
 

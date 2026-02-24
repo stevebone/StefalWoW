@@ -1759,8 +1759,31 @@ void PetBattle::FinishBattle(PetBattleResult result)
             player->UpdateCriteria(CriteriaType::LosePetBattle, static_cast<uint64>(_battleType));
         }
     }
+}
 
+void PetBattle::CompleteBattle()
+{
     _state = PET_BATTLE_STATE_FINISHED;
+
+    // Send finished notification and sync pet health to journal
+    WorldPackets::BattlePet::PetBattleFinished finished;
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        Player* teamPlayer = GetPlayerForTeam(t);
+        if (!teamPlayer)
+            continue;
+
+        teamPlayer->SendDirectMessage(finished.Write());
+
+        BattlePets::BattlePetMgr* petMgr = teamPlayer->GetSession()->GetBattlePetMgr();
+        PetBattleTeamData const& team = _teams[t];
+        for (uint8 p = 0; p < team.PetCount; ++p)
+        {
+            if (!team.Pets[p].BattlePetGUID.IsEmpty())
+                petMgr->SyncBattlePetHealth(team.Pets[p].BattlePetGUID, team.Pets[p].Health);
+        }
+        petMgr->SendJournal();
+    }
 }
 
 void PetBattle::Forfeit(uint8 teamIdx)
