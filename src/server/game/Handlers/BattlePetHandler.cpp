@@ -525,6 +525,10 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
     if (!battle)
         return;
 
+    // Client sends MoveType=FinalRoundOk while waiting for FinalNotify — ignore it
+    if (battle->IsFinalRound())
+        return;
+
     // Determine which team this player is
     uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
     if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
@@ -548,9 +552,9 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
 
         uint32 battleID = battle->GetBattleID();
 
-        if (battle->IsFinished())
+        if (battle->IsFinalRound())
         {
-            // Send final round
+            // Send final round — client will display results and wait for player OK
             WorldPackets::BattlePet::PetBattleFinalRound finalRound;
             finalRound.Abandoned = false;
             finalRound.PvpBattle = (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVP || battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_LFPB);
@@ -560,8 +564,13 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             {
                 PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
 
+                // NpcCreatureID = trainer NPC entry, not pet species creature
                 if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC && t == PetBattles::PET_BATTLE_TEAM_2)
-                    finalRound.NpcCreatureID[t] = team.Pets[0].CreatureID;
+                {
+                    if (Player* p = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                        if (Creature* trainer = ObjectAccessor::GetCreature(*p, battle->GetNpcTrainerGUID()))
+                            finalRound.NpcCreatureID[t] = trainer->GetEntry();
+                }
 
                 for (uint8 i = 0; i < team.PetCount; ++i)
                 {
@@ -575,8 +584,8 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
                     pet.Pboid = t * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i;
                     pet.Captured = team.Pets[i].IsCaptured;
                     pet.Caged = false;
-                    pet.SeenAction = true;
-                    pet.AwardedXP = battle->CanAwardXP() && (battle->GetWinnerTeam() == t);
+                    pet.SeenAction = false;
+                    pet.AwardedXP = battle->CanAwardXP();
                     finalRound.Pets.push_back(pet);
                 }
             }
@@ -586,33 +595,7 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
                 p2->SendDirectMessage(finalRound.Write());
 
-            // Send finished
-            WorldPackets::BattlePet::PetBattleFinished finished;
-            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                p1->SendDirectMessage(finished.Write());
-            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-                p2->SendDirectMessage(finished.Write());
-
-            // Sync battle pet health back to journal and auto-heal 50%
-            for (uint8 t = 0; t < PetBattles::MAX_PET_BATTLE_PLAYERS; ++t)
-            {
-                Player* teamPlayer = battle->GetPlayerForTeam(t);
-                if (!teamPlayer)
-                    continue;
-
-                BattlePets::BattlePetMgr* petMgr = teamPlayer->GetSession()->GetBattlePetMgr();
-                PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
-                for (uint8 p = 0; p < team.PetCount; ++p)
-                {
-                    if (!team.Pets[p].BattlePetGUID.IsEmpty())
-                        petMgr->SyncBattlePetHealth(team.Pets[p].BattlePetGUID, team.Pets[p].Health);
-                }
-                petMgr->HealBattlePetsPct(50);
-                petMgr->SendJournal();
-            }
-
-            // Remove the battle from tracking maps so player can start a new one
-            sPetBattleMgr->RemoveBattle(battleID);
+            // Battle stays in FINAL_ROUND state — cleanup happens in HandlePetBattleFinalNotify
         }
         else
         {
@@ -758,6 +741,15 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
     for (uint8 t = 0; t < PetBattles::MAX_PET_BATTLE_PLAYERS; ++t)
     {
         PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
+
+        // NpcCreatureID = trainer NPC entry, not pet species creature
+        if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC && t == PetBattles::PET_BATTLE_TEAM_2)
+        {
+            if (Player* p = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
+                if (Creature* trainer = ObjectAccessor::GetCreature(*p, battle->GetNpcTrainerGUID()))
+                    finalRound.NpcCreatureID[t] = trainer->GetEntry();
+        }
+
         for (uint8 i = 0; i < team.PetCount; ++i)
         {
             WorldPackets::BattlePet::PetBattleFinalPet pet;
@@ -770,8 +762,8 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
             pet.Pboid = t * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i;
             pet.Captured = team.Pets[i].IsCaptured;
             pet.Caged = false;
-            pet.SeenAction = true;
-            pet.AwardedXP = false;
+            pet.SeenAction = false;
+            pet.AwardedXP = battle->CanAwardXP();
             finalRound.Pets.push_back(pet);
         }
     }
@@ -781,29 +773,8 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
     if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
         p2->SendDirectMessage(finalRound.Write());
 
-    WorldPackets::BattlePet::PetBattleFinished finished;
-    if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-        p1->SendDirectMessage(finished.Write());
-    if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-        p2->SendDirectMessage(finished.Write());
-
-    // Sync battle pet health back to journal and auto-heal 50%
-    for (uint8 t = 0; t < PetBattles::MAX_PET_BATTLE_PLAYERS; ++t)
-    {
-        Player* teamPlayer = battle->GetPlayerForTeam(t);
-        if (!teamPlayer)
-            continue;
-
-        BattlePets::BattlePetMgr* petMgr = teamPlayer->GetSession()->GetBattlePetMgr();
-        PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
-        for (uint8 p = 0; p < team.PetCount; ++p)
-        {
-            if (!team.Pets[p].BattlePetGUID.IsEmpty())
-                petMgr->SyncBattlePetHealth(team.Pets[p].BattlePetGUID, team.Pets[p].Health);
-        }
-        petMgr->HealBattlePetsPct(50);
-        petMgr->SendJournal();
-    }
+    // Forfeit completes immediately (sends Finished packet, syncs health, sends journal)
+    battle->CompleteBattle();
 
     // Remove the battle from tracking maps so player can start a new one
     sPetBattleMgr->RemoveBattle(battleID);
@@ -811,7 +782,19 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
 
 void WorldSession::HandlePetBattleFinalNotify(WorldPackets::BattlePet::PetBattleFinalNotify& /*petBattleFinalNotify*/)
 {
-    // Client acknowledges battle end - battle was already cleaned up when FinalRound/Finished were sent
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(player->GetGUID());
+    if (!battle || !battle->IsFinalRound())
+        return;
+
+    // Transition FINAL_ROUND → FINISHED (sends Finished packet, syncs health, sends journal)
+    battle->CompleteBattle();
+
+    // Remove the battle from tracking maps so player can start a new one
+    sPetBattleMgr->RemoveBattle(battle->GetBattleID());
 }
 
 void WorldSession::HandlePetBattleRequestPVP(WorldPackets::BattlePet::PetBattleRequestPVP& petBattleRequestPVP)
