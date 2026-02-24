@@ -231,7 +231,7 @@ namespace FSBOOC
 
         case FSB_AFK_ACTION_COOKING_POT:
         {
-            if (BotOOCActionCook(bot, SPELL_SPECIAL_COOKING_POT, 266354))
+            if (BotOOCActionCook(bot, SPELL_SPECIAL_COOKING_POT, 379147))
                 return true;
 
             return false;
@@ -239,7 +239,7 @@ namespace FSBOOC
 
         case FSB_AFK_ACTION_COOK_SAUSAGES:
         {
-            if (BotOOCActionCook(bot, SPELL_SPECIAL_COOK_SAUSAGES, 266354))
+            if (BotOOCActionCook(bot, SPELL_SPECIAL_COOK_SAUSAGES, 236110))
                 return true;
 
             return false;
@@ -352,9 +352,6 @@ namespace FSBOOC
         case FSB_AFK_ACTION_TALK:
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: talk", bot->GetName());
-            //std::string emote = bot->GetName() + " looks around absentmindedly.";
-            //bot->TextEmote(emote);
-
             bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
             FSBChatter::DemandTimedReply(bot, nullptr, "emote_talk", FSB_ReplyType::Say);
             
@@ -590,7 +587,7 @@ namespace FSBOOC
         {
             if (botSitsByFire || botRandomEvent)
             {
-                bot->HandleEmoteCommand(EMOTE_STATE_NONE);
+                bot->SetEmoteState(EMOTE_STATE_NONE);
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
                 botSitsByFire = false;
                 botRandomEvent = false;
@@ -1068,7 +1065,6 @@ namespace FSBOOC
 
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
         if (player)
         {
             auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -1103,6 +1099,8 @@ namespace FSBOOC
             {
                 TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
 
+                bot->SetFacingToObject(randomUnit, true);
+
                 // 1. Emote text
                 std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_kiss", FSB_ChatterType::None);
                 if (!emote.empty())
@@ -1125,8 +1123,6 @@ namespace FSBOOC
     {
         if (!bot || !bot->IsAlive())
             return false;
-
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: flirt", bot->GetName());
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
@@ -1159,6 +1155,10 @@ namespace FSBOOC
 
         if (randomUnit)
         {
+            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: flirt", bot->GetName());
+
+            bot->SetFacingToObject(randomUnit, true);
+
             // 1. Emote text
             std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_flirt", FSB_ChatterType::None);
             if (!emote.empty())
@@ -1183,7 +1183,6 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: sausages", bot->GetName());
         // 0. Check if there is a fire already
         GameObject* gobject = GetClosestGameObjectWithEntry(bot, goId, 20.f);
         if (gobject)
@@ -1201,9 +1200,12 @@ namespace FSBOOC
         if (!botByFire)
         {
             // 1. Cast campfire spell
-            bot->CastSpell(bot, spellId, false);
-            FSBChatter::DemandTimedReply(bot, nullptr, "emote_cooking", FSB_ReplyType::Say);
-            return true;
+            if (FSBSpells::BotCastSpell(bot, spellId, bot))
+            {
+                TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
+                FSBChatter::DemandTimedReply(bot, nullptr, "emote_cooking", FSB_ReplyType::Say);
+                return true;
+            }
         }
 
         return false;

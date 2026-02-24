@@ -8,6 +8,7 @@
 #include "Followship_bots_outofcombat_handler.h"
 
 #include "Followship_bots_paladin.h"
+#include "Followship_bots_rogue.h"
 
 void FSB_BaseAI::ScheduleBotEvent(uint32 eventId, Milliseconds time)
 {
@@ -131,10 +132,13 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (ai->botSitsByFire)
             break;
 
-        if (bot->GetEmoteState() != EMOTE_STATE_NONE)
+        if (bot->GetEmoteState() == EMOTE_STATE_DANCE || bot->GetEmoteState() == EMOTE_ONESHOT_SLEEP)
             break;
 
-        if (campfire && bot->GetStandState() != UNIT_STAND_STATE_SIT)
+        if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
+            break;
+
+        if (campfire)
         {
             ai->botSitsByFire = true;
             float offsetx = RAND(-2.f, 2.f);
@@ -144,7 +148,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             break;
         }
 
-        else if (cookingpot && bot->GetStandState() != UNIT_STAND_STATE_SIT)
+        else if (cookingpot)
         {
             ai->botSitsByFire = true;
             float offsetx = RAND(-2.f, 2.f);
@@ -154,7 +158,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             break;
         }
 
-        else if (sausages && bot->GetStandState() != UNIT_STAND_STATE_SIT)
+        else if (sausages)
         {
             ai->botSitsByFire = true;
             float offsetx = RAND(-2.f, 2.f);
@@ -163,6 +167,37 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
             break;
         }
+        break;
+    }
+
+    case FSB_EVENT_RANDOM_ACTION_SIT_BY_FIRE:
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        GameObject* go = nullptr;
+
+        // 3. Find nearest gameobject camp fire /  cooking pot / sausages
+        if(GameObject* campfire = GetClosestGameObjectWithEntry(me, 266354, 5.f))
+            go = campfire;
+        if(GameObject* cookingpot = GetClosestGameObjectWithEntry(me, 379147, 5.f))
+            go = cookingpot;
+        if(GameObject* sausages = GetClosestGameObjectWithEntry(me, 236110, 5.f))
+            go = sausages;
+
+        if(go)
+            bot->SetFacingToObject(go);
+
+        if (bot->HasAura(SPELL_ROGUE_STEALTH))
+            bot->RemoveAurasDueToSpell(SPELL_ROGUE_STEALTH);
+
+        // 5. Sit down
+        me->SetStandState(UNIT_STAND_STATE_SIT);
+
+        // Optional: emote text
+        std::string emote = me->GetName() + " sits by the fire.";
+        me->TextEmote(emote);
+
         break;
     }
 
@@ -194,8 +229,6 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
         if (botByFire)
             botByFire = false;
-
-        bot->HandleEmoteCommand(EMOTE_STATE_NONE);
 
         if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
             bot->SetStandState(UNIT_STAND_STATE_STAND);
@@ -255,7 +288,10 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
 
     case FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE:
     {
-        if (!target || target->IsPlayer())
+        if (!target)
+            target = bot;
+
+        if (target->IsPlayer())
             break;
 
         auto targetAI = dynamic_cast<FSB_BaseAI*>(target->ToCreature()->AI());
@@ -275,6 +311,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
             tEmote = RAND(TEXT_EMOTE_NO, TEXT_EMOTE_RASP);
             emote = (tEmote == TEXT_EMOTE_NO) ? EMOTE_ONESHOT_NO : EMOTE_ONESHOT_RUDE;
         }
+        else if (chatterReply == "emote:oom")
+            tEmote = TEXT_EMOTE_OOM;
+        else if (chatterReply == "emote:heal")
+            tEmote = TEXT_EMOTE_HEALME;
+        else if (chatterReply == "emote:help")
+            tEmote = TEXT_EMOTE_HELPME;
 
         auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(tEmote, FSBUtils::BotRaceToTC(targetRace), targetGender, 0);
         uint32 soundId = 0;

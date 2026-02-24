@@ -578,36 +578,7 @@ public:
 
             case FSB_MOVEMENT_POINT_NEAR_FIRE:
             {
-                // 3. Find nearest gameobject with entry 266354
-                GameObject* campfire = GetClosestGameObjectWithEntry(me, 266354, 5.f);
-                GameObject* cookingpot = GetClosestGameObjectWithEntry(me, 379147, 5.f);
-                GameObject* sausages = GetClosestGameObjectWithEntry(me, 236110, 5.f);
-
-                // 4. Face the campfire if found
-                if (campfire)
-                {
-                    me->SetFacingToObject(campfire);
-                }
-
-                if (cookingpot)
-                {
-                    me->SetFacingToObject(cookingpot);
-                }
-
-                if (sausages)
-                {
-                    me->SetFacingToObject(sausages);
-                }
-
-                if (me->HasAura(SPELL_ROGUE_STEALTH))
-                    me->RemoveAurasDueToSpell(SPELL_ROGUE_STEALTH);
-
-                // 5. Sit down
-                me->SetStandState(UNIT_STAND_STATE_SIT);
-
-                // Optional: emote text
-                std::string emote = me->GetName() + " sits by the fire.";
-                me->TextEmote(emote);
+                FSBEvents::ScheduleBotEvent(me, FSB_EVENT_RANDOM_ACTION_SIT_BY_FIRE, 1s, 3s);
                 break;
             }
             default:

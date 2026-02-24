@@ -51,7 +51,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "That brightened my day, thank you.",
             "You always know how to make things nicer.",
             "Oh! I wasn't expecting that, but I liked it.",
-            "You're such a charmer, {target}.",
+            "You're such a charmer, {bot}.",
             "That was lovely. thank you.",
             "You're making me blush over here.",
             "How cute! Do it again.",
@@ -236,7 +236,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "Haha! Okay, that one was actually good {bot}.",
             "You got me {bot} - that was funny!",
             "Oh wow, I wasn't expecting that!",
-            "You're funnier than you look, {target}.",
+            "You're funnier than you look, {bot}.",
             "That one made me smile.",
             "Keep them coming, I like your humor.",
             "Haha! Nice one!",
@@ -694,7 +694,12 @@ namespace FSBChatter
             if (entry.category == category && entry.chatterType == chatterType)
             {
                 if (entry.lines.empty())
+                {
+                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER GetRandomReply: No string found for category {} and chatterType {}", category, chatterType);
                     return "";
+                }
+
+                
 
                 std::string line = entry.lines[urand(0, (entry.lines.size() - 1))];
 
@@ -720,7 +725,13 @@ namespace FSBChatter
         if (!bot->IsAlive() || (target && !target->IsAlive()))
             return;
 
-        FSB_ChatterType type = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+        FSB_ChatterType type = FSB_ChatterType::None;
+
+        if(target && (target != bot && !target->IsPlayer()))
+            type = FSBMgr::Get()->GetBotChatterTypeForEntry(target->GetEntry());
+
+        else if(category == "emote_cooking" || category == "whisper_afk" || category == "emote_talk" || (target && target->IsPlayer()))
+            type = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
         std::string replyString = GetRandomReply(bot, target, category, type);
 
@@ -738,6 +749,24 @@ namespace FSBChatter
         else if ((category == "emote_flirt" || category == "emote_kiss") && type == FSB_ChatterType::Negative)
         {
             replyString = "emote:rudeno";
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
+        }
+
+        else if (category == "emote_oom" && type == FSB_ChatterType::None)
+        {
+            replyString = "emote:oom";
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
+        }
+
+        else if (category == "emote_heal" && type == FSB_ChatterType::None)
+        {
+            replyString = "emote:heal";
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
+        }
+
+        else if (category == "emote_help" && type == FSB_ChatterType::None)
+        {
+            replyString = "emote:help";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
         }
     }

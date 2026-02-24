@@ -131,16 +131,7 @@ namespace FSBIC
 
         if (check)
         {
-            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(tEmote, FSBUtils::BotRaceToTC(botRace), botGender, 0);
-            uint32 soundId = 0;
-            if (soundInfo)
-                soundId = soundInfo->SoundID;
-
-            if (soundId)
-                bot->PlayDistanceSound(soundId);
-            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action OOM/Health: no sound found for race {}", botRace);
-
-            FSBChatter::DemandTimedReply(bot, bot, emoteReply, FSB_ReplyType::Say);
+            FSBChatter::DemandTimedReply(bot, nullptr, emoteReply, FSB_ReplyType::Say);
 
             return true;
         }
