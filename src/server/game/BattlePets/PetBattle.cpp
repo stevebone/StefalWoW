@@ -1727,6 +1727,7 @@ void PetBattle::FinishBattle(PetBattleResult result)
     // Note: ModifierTreeType conditions (BattlePetFightWasPVP, BattlePetTeamLevel,
     // BattlePetTeamWithAliveEqualOrGreaterThan) are evaluated automatically by the
     // criteria system when checking criteria of these types.
+    // Pass battleType as miscValue1 so BattlePetFightWasPVP can evaluate.
     for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
     {
         Player* player = GetPlayerForTeam(t);
@@ -1734,9 +1735,29 @@ void PetBattle::FinishBattle(PetBattleResult result)
             continue;
 
         if (t == _winnerTeam)
-            player->UpdateCriteria(CriteriaType::WinPetBattle);
+        {
+            player->UpdateCriteria(CriteriaType::WinPetBattle, static_cast<uint64>(_battleType));
+
+            // Quest objective progress for wins
+            if (_battleType == PET_BATTLE_TYPE_PVP)
+                player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPVPPETBATTLES, 0, 1);
+
+            if (_battleType == PET_BATTLE_TYPE_NPC && !_npcTrainerGUID.IsEmpty())
+            {
+                if (Creature* trainer = ObjectAccessor::GetCreature(*player, _npcTrainerGUID))
+                    player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPETBATTLEAGAINSTNPC, trainer->GetEntry(), 1, _npcTrainerGUID);
+            }
+
+            // Credit defeated species for each enemy pet killed
+            PetBattleTeamData const& loserTeam = _teams[1 - t];
+            for (uint8 p = 0; p < loserTeam.PetCount; ++p)
+                if (!loserTeam.Pets[p].IsAlive())
+                    player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_DEFEATBATTLEPET, loserTeam.Pets[p].Species, 1);
+        }
         else
-            player->UpdateCriteria(CriteriaType::LosePetBattle);
+        {
+            player->UpdateCriteria(CriteriaType::LosePetBattle, static_cast<uint64>(_battleType));
+        }
     }
 
     _state = PET_BATTLE_STATE_FINISHED;
@@ -1963,6 +1984,7 @@ void PetBattle::InitNPCBattle(Player* player, Creature* trainer, std::vector<NPC
 {
     _battleType = PET_BATTLE_TYPE_NPC;
     _canAwardXP = true;
+    _npcTrainerGUID = trainer->GetGUID();
 
     LoadPlayerTeam(player, _teams[PET_BATTLE_TEAM_1]);
 
