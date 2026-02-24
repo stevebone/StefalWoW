@@ -40,6 +40,7 @@ constexpr auto FSB_GOSSIP_ITEM_ROLE_FIRE = "Fire Damage Role: mostly fire spells
 constexpr auto FSB_GOSSIP_ITEM_ROLE_AFFLICTION = "Affliction: A master of shadow magic";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_DEMONOLOGY = "Demonology: A master of demons";
 constexpr auto FSB_GOSSIP_ITEM_ROLE_DESTRUCTION = "Destruction: A master of chaos";
+constexpr auto FSB_GOSSIP_ITEM_ROLE_BEAST = "Hybrid Damage Role: Relies on a pet as well as ranged abilities";
 
 constexpr auto FSB_GOSSIP_ITEM_PORTAL_STORMWIND = "Stormwind";
 constexpr auto FSB_GOSSIP_ITEM_PORTAL_DARNASSUS = "Darnassus";

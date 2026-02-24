@@ -43,12 +43,17 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 
     // WARLOCKS
     { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252, FSB_ChatterType::Positive, GENDER_FEMALE },      // Drusilla la Salle
+    { 6373,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE },               // Dane Winslow
 
     // DRUID
     { 3597,  FSB_Class::Druid,            FSB_Race::NightElf, 15067, FSB_ChatterType::Neutral, GENDER_MALE },   // Mardant
 
     // ROGUES
     { 915, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE },     // Jorik Kerridan
+
+    // HUNTER
+    { 43278,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE },   // Ashley
+
 };
 
 

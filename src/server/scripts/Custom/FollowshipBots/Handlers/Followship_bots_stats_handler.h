@@ -97,7 +97,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseRangedAttackPower = 0,
         .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
-        .baseAttackTime = 2500,
+        .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
         .spellPowerPerLevel = 3
@@ -119,7 +119,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseRangedAttackPower = 0,
         .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
-        .baseAttackTime = 2500,
+        .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 9,
         .spellPowerPerLevel = 4
@@ -140,7 +140,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackPower = 5,
         .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
-        .baseAttackTime = 2500,
+        .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 10,
         .spellPowerPerLevel = 5
@@ -186,6 +186,28 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseClassDamageVariance = 1.2f,
         .baseAttackTime = 1500,
         .baseRangedAttackTime = 2500,
+        .baseSpellPower = 1,
+        .spellPowerPerLevel = 1
+    },
+
+    // HUNTER
+    {
+        .classId = FSB_Class::Hunter,
+        .powerType = POWER_FOCUS,
+        .baseHealth = 100,
+        .basePower = 100,
+        .healthPerLevel = 52,
+        .powerPerLevel = 0,
+        .baseHpRegenOOC = 3,
+        .basePowerRegenOOC = 10,
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 10,
+        .baseAttackPower = 10,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 4,
+        .baseClassDamageVariance = 1.f,
+        .baseAttackTime = 2500,
+        .baseRangedAttackTime = 2000,
         .baseSpellPower = 1,
         .spellPowerPerLevel = 1
     },

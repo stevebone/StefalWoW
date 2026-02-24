@@ -83,6 +83,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('3597', '900003', '-1'),
 ('3597', '900004', '-1'),
 ('3597', '900005', '-1'),
+('6373', '900000', '-1'),
+('6373', '900001', '-1'),
+('6373', '900002', '-1'),
+('6373', '900003', '-1'),
+('6373', '900004', '-1'),
+('6373', '900005', '-1'),
 ('16500', '900000', '-1'),
 ('16500', '900001', '-1'),
 ('16500', '900002', '-1'),
@@ -122,6 +128,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('43006', '900004', '-1'),
 ('43006', '900005', '-1'),
 ('43006', '900006', '-1'),
+('43278', '900000', '-1'),
+('43278', '900001', '-1'),
+('43278', '900002', '-1'),
+('43278', '900003', '-1'),
+('43278', '900004', '-1'),
+('43278', '900005', '-1'),
 ('46405', '900000', '-1'),
 ('46405', '900001', '-1'),
 ('46405', '900002', '-1'),
@@ -148,11 +160,12 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 911; -- Warrior
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 915; -- Rogue
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 6373; -- Dane Winslow (Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43278; -- Ashley (Hunter)
 
-UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 141508; -- Stormwind Priest
-
-UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 50595; -- Stormwind Defender (Warrior)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 46405; -- Stockade Guard (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 50595; -- Stormwind Defender (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 141508; -- Stormwind Priest
 
 -- Ammen Vale trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16500; -- Valaatu (Mage)
