@@ -206,6 +206,8 @@ public:
     bool IsBattlePetSystemEnabled() { return GetSlot(BattlePetSlot::Slot0)->Locked != true; }
 
 private:
+    void UpdateSlotPetData(ObjectGuid guid, WorldPackets::BattlePet::BattlePet const& packetInfo);
+
     WorldSession* _owner;
     bool _hasJournalLock = false;
     uint16 _trapLevel = 0;
