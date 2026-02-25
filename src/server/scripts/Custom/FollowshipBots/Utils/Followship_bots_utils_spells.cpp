@@ -7,6 +7,7 @@
 #include "Unit.h"
 
 #include "Followship_bots_druid.h"
+#include "Followship_bots_hunter.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
@@ -141,6 +142,7 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+        case SPELL_HUNTER_COUNTER_SHOT:
         case SPELL_ROGUE_KICK:
         case SPELL_PRIEST_SILENCE:
         case SPELL_WARLOCK_CURSE_TONGUES:
@@ -207,14 +209,17 @@ namespace FSBSpellsUtils
         if (!CheckCrowdControlRequirements(bot, 30.f))
             return false;
 
-        if (target->GetTypeId() != CREATURE_TYPE_DRAGONKIN ||
-            target->GetTypeId() != CREATURE_TYPE_HUMANOID ||
-            target->GetTypeId() != CREATURE_TYPE_DEMON ||
-            target->GetTypeId() != CREATURE_TYPE_UNDEAD ||
-            target->GetTypeId() != CREATURE_TYPE_GIANT)
-            return false;
+        static const std::unordered_set<uint32> allowedTypes =
+        {
+            CREATURE_TYPE_DRAGONKIN,
+            CREATURE_TYPE_HUMANOID,
+            CREATURE_TYPE_DEMON,
+            CREATURE_TYPE_UNDEAD,
+            CREATURE_TYPE_GIANT
+        };
 
-        return true;
+        return allowedTypes.contains(target->GetCreatureType());
+
     }
 
     bool CheckCrowdControlRequirements(Creature* bot, float range)

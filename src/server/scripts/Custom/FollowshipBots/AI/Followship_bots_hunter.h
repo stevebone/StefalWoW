@@ -1,12 +1,49 @@
 
 extern std::vector<FSBSpellDefinition> HunterSpellsTable;
 
+enum FSB_HUNTER_PET_SPELLS
+{
+    SPELL_HUNTER_SUMMON_HYENA = 117782,
+    SPELL_HUNTER_SUMMON_ICEGAZER = 143601,
+    SPELL_HUNTER_SUMMON_SKYTERROR = 178622,
+
+    //Combat
+    SPELL_HUNTER_PET_FURIOUS_BITE = 263840, //10s //Wolf
+    SPELL_HUNTER_PET_PRIMAL_RAGE = 264667, //6m  //Wolf
+    SPELL_HUNTER_PET_PREDATOR_THIRST = 264663, //x  //Wolf
+};
+
+enum FSB_HUNTER_HEAL_SPELLS
+{
+    // Heal self
+    SPELL_HUNTER_EXHILARATION = 109304, //2m ANY
+};
+
 enum FSB_HUNTER_RANGED_SPELLS
 {
+    SPELL_HUNTER_SHOOT = 22411,
+
+    SPELL_HUNTER_MARK = 257284, //0s, 60f
+
+    SPELL_HUNTER_COUNTER_SHOT = 147362, //24s, 40f ANY
+    
+
+    // Generate Focus
     SPELL_HUNTER_STEADY_SHOT = 56641,
+    SPELL_HUNTER_BARBED_SHOT = 217200, // 18s
+
+    // Use focus
+    SPELL_HUNTER_COBRA_SHOT = 193455, //40f //BEAST
+    SPELL_HUNTER_AIMED_SHOT = 19434, //15s, 40f //MARK
+
+
+    SPELL_HUNTER_KILL_COMMAND = 83381, //8s, 50f, 30focus
+
+    //Powerups
+    SPELL_HUNTER_BESTIAL_WRATH = 19574, //1.5m, 100f
 };
 
 namespace FSBHunter
 {
-
+    bool BotSummonPet(Creature* bot);
 }

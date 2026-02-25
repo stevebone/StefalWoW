@@ -11,48 +11,49 @@ struct FSBEntryRaceClassMap
     uint32 companionSpell;
     FSB_ChatterType chatterType;
     Gender gender;
+    const char* petName;
 };
 
 static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 {
     // PRIESTS
-    { 141508,   FSB_Class::Priest,          FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_UNKNOWN },      // Stormwind Priest
-    { 375,      FSB_Class::Priest,          FSB_Race::Human, 10675, FSB_ChatterType::Positive, GENDER_FEMALE },      // Priestess Anetta
-    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE},    // Zalduun
-    { 3595,     FSB_Class::Priest,          FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE},   // Shanda
-    { 837,      FSB_Class::Priest,          FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_MALE},      // Branstock Khalder
+    { 141508,   FSB_Class::Priest,          FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_UNKNOWN, ""},      // Stormwind Priest
+    { 375,      FSB_Class::Priest,          FSB_Race::Human, 10675, FSB_ChatterType::Positive, GENDER_FEMALE, "" },      // Priestess Anetta
+    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, ""},    // Zalduun
+    { 3595,     FSB_Class::Priest,          FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE, ""},   // Shanda
+    { 837,      FSB_Class::Priest,          FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_MALE, ""},      // Branstock Khalder
 
     // WARRIORS
-    { 911,   FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE },      // Llane Beshere
-    { 912,   FSB_Class::Warrior,            FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_MALE },      // Thran Khorman
-    { 50595, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_UNKNOWN },      // Stormwind Defender
-    { 46405, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE },      // Stockade Guard
-    { 16503, FSB_Class::Warrior,            FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE },    // Kore
-    { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf, 15067, FSB_ChatterType::Positive, GENDER_FEMALE },   // Alyissia
+    { 911,   FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, "" },      // Llane Beshere
+    { 912,   FSB_Class::Warrior,            FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_MALE, "" },      // Thran Khorman
+    { 50595, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_UNKNOWN, "" },      // Stormwind Defender
+    { 46405, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, "" },      // Stockade Guard
+    { 16503, FSB_Class::Warrior,            FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, "" },    // Kore
+    { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf, 15067, FSB_ChatterType::Positive, GENDER_FEMALE, "" },   // Alyissia
 
     // MAGES
-    { 198,   FSB_Class::Mage,               FSB_Race::Human, 10697, FSB_ChatterType::Positive, GENDER_MALE },      // Khelden Bremen
-    { 16500, FSB_Class::Mage,               FSB_Race::Draenei, 0, FSB_ChatterType::Negative, GENDER_FEMALE },    // Valaatu
-    { 37121, FSB_Class::Mage,               FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_FEMALE },      // Teegli Merrowith
-    { 43006, FSB_Class::Mage,               FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE },   // Rhyanda
+    { 198,   FSB_Class::Mage,               FSB_Race::Human, 10697, FSB_ChatterType::Positive, GENDER_MALE, "" },      // Khelden Bremen
+    { 16500, FSB_Class::Mage,               FSB_Race::Draenei, 0, FSB_ChatterType::Negative, GENDER_FEMALE, "" },    // Valaatu
+    { 37121, FSB_Class::Mage,               FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_FEMALE, "" },      // Teegli Merrowith
+    { 43006, FSB_Class::Mage,               FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE, "" },   // Rhyanda
 
     // PALADINS
-    { 925, FSB_Class::Paladin,              FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE },      // Brother Sammuel
-    { 926, FSB_Class::Paladin,              FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_MALE },      // Bromos Grummner
-    { 16501, FSB_Class::Paladin,            FSB_Race::Draenei, 408311, FSB_ChatterType::Positive, GENDER_MALE },    // Aurelon (Draenei)
+    { 925, FSB_Class::Paladin,              FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, "" },      // Brother Sammuel
+    { 926, FSB_Class::Paladin,              FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_MALE, "" },      // Bromos Grummner
+    { 16501, FSB_Class::Paladin,            FSB_Race::Draenei, 408311, FSB_ChatterType::Positive, GENDER_MALE, "" },    // Aurelon (Draenei)
 
     // WARLOCKS
-    { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252, FSB_ChatterType::Positive, GENDER_FEMALE },      // Drusilla la Salle
-    { 6373,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE },               // Dane Winslow
+    { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252, FSB_ChatterType::Positive, GENDER_FEMALE, "" },      // Drusilla la Salle
+    { 6373,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, "" },               // Dane Winslow
 
     // DRUID
-    { 3597,  FSB_Class::Druid,            FSB_Race::NightElf, 15067, FSB_ChatterType::Neutral, GENDER_MALE },   // Mardant
+    { 3597,  FSB_Class::Druid,            FSB_Race::NightElf, 15067, FSB_ChatterType::Neutral, GENDER_MALE, "" },   // Mardant
 
     // ROGUES
-    { 915, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE },     // Jorik Kerridan
+    { 915, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, "" },     // Jorik Kerridan
 
     // HUNTER
-    { 43278,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE },   // Ashley
+    { 43278,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, "Adele" },   // Ashley
 
 };
 
@@ -115,6 +116,8 @@ public:
     FSB_ChatterType GetBotChatterTypeForEntry(uint32 entry);
 
     Gender GetBotGenderForEntry(uint32 entry);
+
+    const char* GetBotPetNameForEntry(uint32 entry);
 
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;

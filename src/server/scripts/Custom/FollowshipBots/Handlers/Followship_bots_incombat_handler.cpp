@@ -91,8 +91,6 @@ namespace FSBIC
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return false;
-        auto botRace = baseAI->botRace;
-        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
         auto& botLowMana = baseAI->botAnnouncedLowMana;
         auto& botLowHealth = baseAI->botAnnouncedLowHealth;
         auto& botVeryLowHealth = baseAI->botAnnouncedVeryLowHealth;

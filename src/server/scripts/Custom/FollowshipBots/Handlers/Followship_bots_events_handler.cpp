@@ -50,7 +50,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     if (it != eventPayloads.end())
     {
-        auto payload = it->second;
+        auto& payload = it->second;
         eventPayloads.erase(it);
 
         // Resolve target

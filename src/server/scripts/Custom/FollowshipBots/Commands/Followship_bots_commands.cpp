@@ -1,10 +1,13 @@
 
 #include "Chat.h"
 #include "ChatCommand.h"
+#include "Pet.h"
 #include "WorldSession.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
+
+#include "Followship_bots_hunter.h"
 
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_stats_handler.h"
@@ -24,6 +27,7 @@ public:
             { "stats", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBStats, "This is help text?"},
             { "afkaction", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBAfkAction, "This is help text?"},
             { "playsound", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBPlaySound, "This is help text?"},
+            { "summonpet", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBSummonPet, "This is help text?"},
         };
 
         static std::vector<ChatCommand> commandTable =
@@ -185,6 +189,32 @@ public:
 
         bot->PlayDistanceSound(soundId, handler->GetPlayer());
 
+        return true;
+    }
+
+    static bool HandleFSBSummonPet(ChatHandler* handler)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Summon Pet ===");
+
+        FSBHunter::BotSummonPet(bot);
+        
         return true;
     }
 

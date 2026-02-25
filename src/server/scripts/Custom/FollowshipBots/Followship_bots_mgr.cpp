@@ -660,4 +660,14 @@ Gender FSBMgr::GetBotGenderForEntry(uint32 entry)
     return GENDER_NONE;
 }
 
+const char* FSBMgr::GetBotPetNameForEntry(uint32 entry)
+{
+    for (auto const& map : BotEntryClassTable)
+    {
+        if (map.entry == entry)
+            return map.petName;
+    }
+
+    return "Pet";
+}
 

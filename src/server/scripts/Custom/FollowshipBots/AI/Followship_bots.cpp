@@ -12,6 +12,7 @@
 #include "Followship_bots_config.h"
 
 #include "Followship_bots_druid.h"
+#include "Followship_bots_hunter.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
@@ -118,6 +119,9 @@ public:
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
+            if (botClass == FSB_Class::Hunter)
+                //if(!me->HasPetFlag())
+                FSBHunter::BotSummonPet(me);
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 
