@@ -649,9 +649,16 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                 wildPet.IsCaptured = true;
                 wildPet.Health = 0;
 
-                // Achievement: pet obtained through battle
+                // Add captured pet to the player's journal
                 if (Player* player = GetPlayerForTeam(teamIdx))
+                {
+                    BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
+                    petMgr->AddPet(wildPet.Species, wildPet.DisplayID, wildPet.Breed,
+                        BattlePets::BattlePetBreedQuality(wildPet.Quality), wildPet.Level);
+
+                    // Achievement: pet obtained through battle
                     player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildPet.Species);
+                }
 
                 FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
             }

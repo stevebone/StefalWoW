@@ -366,6 +366,9 @@ void BattlePetMgr::SaveToDB(LoginDatabaseTransaction trans)
         switch (itr->second.SaveInfo)
         {
             case BATTLE_PET_NEW:
+                TC_LOG_DEBUG("battlepet", "BattlePetMgr::SaveToDB INSERT pet {} species {} level {} xp {} health {}",
+                    itr->first, itr->second.PacketInfo.Species, itr->second.PacketInfo.Level,
+                    itr->second.PacketInfo.Exp, itr->second.PacketInfo.Health);
                 stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_BATTLE_PETS);
                 stmt->setUInt64(0, itr->first);
                 stmt->setUInt32(1, _owner->GetBattlenetAccountId());
@@ -407,6 +410,9 @@ void BattlePetMgr::SaveToDB(LoginDatabaseTransaction trans)
                 ++itr;
                 break;
             case BATTLE_PET_CHANGED:
+                TC_LOG_DEBUG("battlepet", "BattlePetMgr::SaveToDB UPDATE pet {} level {} xp {} health {}",
+                    itr->first, itr->second.PacketInfo.Level,
+                    itr->second.PacketInfo.Exp, itr->second.PacketInfo.Health);
                 stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BATTLE_PETS);
                 stmt->setUInt16(0, itr->second.PacketInfo.Level);
                 stmt->setUInt16(1, itr->second.PacketInfo.Exp);
@@ -473,6 +479,13 @@ void BattlePetMgr::SaveToDB(LoginDatabaseTransaction trans)
 BattlePet* BattlePetMgr::GetPet(ObjectGuid guid)
 {
     return Trinity::Containers::MapGetValuePtr(_pets, guid.GetCounter());
+}
+
+void BattlePetMgr::UpdateSlotPetData(ObjectGuid guid, WorldPackets::BattlePet::BattlePet const& packetInfo)
+{
+    for (auto& slot : _slots)
+        if (slot.Pet.Guid == guid)
+            slot.Pet = packetInfo;
 }
 
 void BattlePetMgr::AddPet(uint32 species, uint32 display, uint16 breed, BattlePetBreedQuality quality, uint16 level /*= 1*/)
@@ -714,6 +727,8 @@ void BattlePetMgr::ChangeBattlePetQuality(ObjectGuid guid, BattlePetBreedQuality
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
 
+    UpdateSlotPetData(guid, pet->PacketInfo);
+
     std::array<std::reference_wrapper<BattlePet const>, 1> updates = { *pet };
     SendUpdates(updates, false);
 
@@ -724,7 +739,11 @@ void BattlePetMgr::ChangeBattlePetQuality(ObjectGuid guid, BattlePetBreedQuality
 void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePetXpSource xpSource)
 {
     if (!HasJournalLock())
+    {
+        TC_LOG_ERROR("battlepet", "BattlePetMgr::GrantBattlePetExperience: Journal lock not held, cannot award {} XP to pet {}",
+            xp, guid.ToString());
         return;
+    }
 
     BattlePet* pet = GetPet(guid);
     if (!pet)
@@ -743,7 +762,10 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
 
     GtBattlePetXPEntry const* xpEntry = sBattlePetXPGameTable.GetRow(level);
     if (!xpEntry)
+    {
+        TC_LOG_ERROR("battlepet", "BattlePetMgr::GrantBattlePetExperience: Missing BattlePetXP GameTable row for level {} - XP cannot be applied. Check gt/ data files.", level);
         return;
+    }
 
     Player* player = _owner->GetPlayer();
     uint16 nextLevelXp = uint16(GetBattlePetXPPerLevel(xpEntry));
@@ -759,7 +781,7 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
 
         xpEntry = sBattlePetXPGameTable.GetRow(++level);
         if (!xpEntry)
-            return;
+            break; // Partial level-up — still save what we have
 
         nextLevelXp = uint16(GetBattlePetXPPerLevel(xpEntry));
 
@@ -773,8 +795,13 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
     pet->CalculateStats();
     pet->PacketInfo.Health = pet->PacketInfo.MaxHealth;
 
+    TC_LOG_DEBUG("battlepet", "BattlePetMgr::GrantBattlePetExperience: pet {} now level {} xp {} (SaveInfo={})",
+        guid.ToString(), level, pet->PacketInfo.Exp, pet->SaveInfo);
+
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
+
+    UpdateSlotPetData(guid, pet->PacketInfo);
 
     std::array<std::reference_wrapper<BattlePet const>, 1> updates = { *pet };
     SendUpdates(updates, false);
@@ -814,6 +841,8 @@ void BattlePetMgr::GrantBattlePetLevel(ObjectGuid guid, uint16 grantedLevels)
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
 
+    UpdateSlotPetData(guid, pet->PacketInfo);
+
     std::array<std::reference_wrapper<BattlePet const>, 1> updates = { *pet };
     SendUpdates(updates, false);
 }
@@ -828,6 +857,8 @@ void BattlePetMgr::SyncBattlePetHealth(ObjectGuid guid, int32 newHealth)
 
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
+
+    UpdateSlotPetData(guid, pet->PacketInfo);
 }
 
 void BattlePetMgr::HealBattlePetsPct(uint8 pct)
@@ -845,6 +876,7 @@ void BattlePetMgr::HealBattlePetsPct(uint8 pct)
         if (pet.SaveInfo != BATTLE_PET_NEW)
             pet.SaveInfo = BATTLE_PET_CHANGED;
 
+        UpdateSlotPetData(pet.PacketInfo.Guid, pet.PacketInfo);
         updates.push_back(pet);
     }
 
