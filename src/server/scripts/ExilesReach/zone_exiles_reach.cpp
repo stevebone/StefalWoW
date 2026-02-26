@@ -6957,7 +6957,7 @@ public:
     }
 
     //void OnQuestObjectiveComplete(Player* player, Quest const* quest, uint32 objectiveId)
-    void OnQuestObjectiveChange(Player* player, Quest const* quest, QuestObjective const& objective, int32 oldAmount, int32 newAmount)
+    void OnQuestObjectiveChange(Player* player, Quest const* quest, QuestObjective const& /*objective*/, int32 /*oldAmount*/, int32 /*newAmount*/)
     {
         if (quest->GetQuestId() != 55639)
             return;
