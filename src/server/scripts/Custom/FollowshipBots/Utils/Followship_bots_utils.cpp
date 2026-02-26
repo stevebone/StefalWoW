@@ -73,6 +73,7 @@ namespace FSBUtils
         case POWER_MANA:   return "Mana";
         case POWER_RAGE:   return "Rage";
         case POWER_ENERGY: return "Energy";
+        case POWER_FOCUS:  return "Focus";
         case POWER_HOLY_POWER: return "Holy";
         case POWER_SOUL_SHARDS:return "Sould Shards";
         default:           return "Other";

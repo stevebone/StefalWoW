@@ -1,4 +1,4 @@
-#include "..\Followship_bots_defines.h"
+#include "../Followship_bots_defines.h"
 
 struct FSB_ClassStats
 {
@@ -202,8 +202,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 5,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 5,
-        .baseAttackPower = 10,
-        .baseRangedAttackPower = 0,
+        .baseAttackPower = 1,
+        .baseRangedAttackPower = 10,
         .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 1.f,
         .baseAttackTime = 2500,

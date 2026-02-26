@@ -19,9 +19,14 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_HUNTER_EXHILARATION,            FSBSpellType::Heal,     0.f,        60.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_HUNTER_MEND_PET,                FSBSpellType::Heal,     0.f,        100.f,          100.f,           0.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_HUNTER_MARK,                    FSBSpellType::Damage,   0.f,        0.f,            100.f,           60.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_HUNTER_SCARE_BEAST,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      20000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_HUNTER_DISENGAGE,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          true,       20000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_HUNTER_COUNTER_SHOT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      24000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_HUNTER_ASPECT_TURTLE,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+
     { SPELL_HUNTER_SHOOT,                   FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_HUNTER_ARCANE_SHOT,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ANY },
@@ -31,11 +36,16 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
     //BEAST
     { SPELL_HUNTER_BESTIAL_WRATH,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       90000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_HUNTER_KILL_COMMAND,            FSBSpellType::Damage,   0.3f,       0.f,            100.f,           0.f,           true,       8000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_HUNTER_FLAMEFANG_PITCH,         FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_HUNTER_WILDFIRE_BOMB,           FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      18000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_HUNTER_COBRA_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 
     { SPELL_HUNTER_BARBED_SHOT,             FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          false,      18000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 
     //MARK
+    { SPELL_HUNTER_SERPENT_STING,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_HUNTER_CONCUSSIVE_SHOT,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      5000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_HUNTER_WAILLING_ARROW,          FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_AIMED_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_MULTI_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
 

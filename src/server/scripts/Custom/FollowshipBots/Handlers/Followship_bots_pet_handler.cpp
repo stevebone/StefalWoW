@@ -72,4 +72,32 @@ namespace FSBPet
         return true;
     }
 
+    Unit* GetBotPet(Creature* owner)
+    {
+        if (!owner || !owner->IsAlive())
+            return nullptr;
+
+        ObjectGuid petGuid = owner->GetPetGUID();
+        if (petGuid.IsEmpty())
+            return nullptr;
+
+        Unit* pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*owner, petGuid);
+        if (pet)
+            return pet;
+
+        return nullptr;
+    }
+
+    bool BotHasPet(Creature* owner)
+    {
+        if (!owner || !owner->IsAlive())
+            return false;
+
+        Unit* pet = GetBotPet(owner);
+        if (pet)
+            return true;
+
+        return false;
+    }
+
 }

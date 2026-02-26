@@ -18,6 +18,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_pet_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_spells_handler.h"
 
@@ -81,36 +82,39 @@ namespace FSBSpellsUtils
             // Can only be cast on more than 2/3 attackers
             // OR when 2/3 attackers are around
             // This way we limit spells to CC instead of general/spam use
-        case SPELL_WARLOCK_HOWL_TERROR:
-        case SPELL_DRUID_HIBERNATE:
-        case SPELL_DRUID_STARFIRE:
-        case SPELL_PALADIN_DIVINE_STORM:
-        case SPELL_WARRIOR_COLOSSUS_SMASH:
-        case SPELL_WARRIOR_CLEAVE:
-        case SPELL_MAGE_FLAMESTRIKE:
-        case SPELL_MAGE_ARCANE_EXPLOSION:
-        case SPELL_MAGE_BLIZZARD:
-        case SPELL_MAGE_FROST_NOVA:
-        case SPELL_PRIEST_PSYCHIC_SCREAM:
-        {
-            return CheckCrowdControlRequirements(bot, 8.f);
-        }
+        case SPELL_PALADIN_REPENTANCE:
+            return CheckRepentanceRequirements(bot, target);
 
+        case SPELL_HUNTER_SCARE_BEAST:
+            return CheckCrowdControlRequirements(bot, 30.f) && target->GetCreatureType() == CREATURE_TYPE_BEAST;
+
+        case SPELL_WARRIOR_CLEAVE:
+            return CheckCrowdControlRequirements(bot, 5.f);
+
+        case SPELL_PRIEST_PSYCHIC_SCREAM:
+        case SPELL_PALADIN_DIVINE_STORM:
         case SPELL_PALADIN_CONSECRATION:
         case SPELL_ROGUE_BLACK_POWDER:
         case SPELL_ROGUE_FAN_KNIVES:
             return CheckCrowdControlRequirements(bot, 8.f);
 
+        case SPELL_MAGE_ARCANE_EXPLOSION:
+        case SPELL_WARRIOR_COLOSSUS_SMASH:
+        case SPELL_DRUID_STARFIRE:
+        case SPELL_WARLOCK_HOWL_TERROR:
         case SPELL_ROGUE_SHURIKEN_STORM:
         case SPELL_ROGUE_CRIMSON_TEMPEST:
             return CheckCrowdControlRequirements(bot, 10.f);
 
+        case SPELL_MAGE_FROST_NOVA:
+            return CheckCrowdControlRequirements(bot, 12.f);
+
         case SPELL_ROGUE_BLIND:
             return CheckCrowdControlRequirements(bot, 15.f);
 
-        case SPELL_PALADIN_REPENTANCE:
-            return CheckRepentanceRequirements(bot, target);
-
+        case SPELL_MAGE_BLIZZARD:
+        case SPELL_MAGE_FLAMESTRIKE:
+        case SPELL_DRUID_HIBERNATE:
         case SPELL_MAGE_POLYMORPH:
             return CheckCrowdControlRequirements(bot, 30.f);
 
@@ -181,6 +185,12 @@ namespace FSBSpellsUtils
 
         case SPELL_PALADIN_LIGHT_OF_DAWN:
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
+
+        case SPELL_HUNTER_DISENGAGE:
+            return bot->IsWithinMeleeRange(target);
+
+        case SPELL_HUNTER_MEND_PET:
+            return FSBPet::GetBotPet(bot) && FSBPet::GetBotPet(bot)->GetHealthPct() < 50;
 
         default:
             return true;
