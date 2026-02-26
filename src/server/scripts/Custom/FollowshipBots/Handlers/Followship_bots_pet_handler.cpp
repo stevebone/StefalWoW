@@ -21,8 +21,6 @@ namespace FSBPet
         if (owner->IsInCombat() || pet->IsInCombat())
             return false;
 
-        pet->SetName(FSBMgr::Get()->GetBotPetNameForEntry(owner->GetEntry()));
-
         //entry needs to belong to the creature we want the model
         CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(43292); //pet->GetEntry()
         CreatureModel model = *ObjectMgr::ChooseDisplayId(creatureInfo);
@@ -68,6 +66,7 @@ namespace FSBPet
 
         PhasingHandler::InheritPhaseShift(pet, owner);
         pet->SetFaction(owner->GetFaction());
+        pet->SetName(FSBMgr::Get()->GetBotPetNameForEntry(owner->GetEntry()));
 
         return true;
     }

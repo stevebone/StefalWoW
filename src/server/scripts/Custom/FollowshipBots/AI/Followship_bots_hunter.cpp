@@ -78,11 +78,9 @@ namespace FSBHunter
         // place pet before player
         pet->Relocate(bot->GetPositionX() + 2, bot->GetPositionY(), bot->GetPositionZ(), float(M_PI) - bot->GetOrientation());
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSummonPet() triggered for bot: {} and pet guid: {} and pet name: {}", bot->GetName(), bot->GetPetGUID(), pet->GetName());
-
         FSBPet::SetBasePetInformation(bot, pet);
 
-        
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSummonPet() triggered for bot: {} and pet guid: {} and pet name: {}", bot->GetName(), bot->GetPetGUID(), pet->GetName());
 
         /*
         // set pet to defensive mode by default (some classes can't control controlled pets in fact).
