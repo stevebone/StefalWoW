@@ -238,6 +238,10 @@ public:
     // Trap validation
     uint8 GetTrapStatus(uint8 playerTeam) const;
 
+    // Final round delay — true if FinalRound packet is pending (death animation playing)
+    bool HasPendingFinishDelay() const { return _finishDelayMs > 0; }
+    void SendFinalRoundPacket(bool abandoned);
+
     // AI for wild/NPC teams
     void GenerateWildTeamInput();
     void GenerateNPCTeamInput();
@@ -305,6 +309,9 @@ private:
     std::vector<PetBattleRoundEffect> _roundEffects;
     std::array<bool, MAX_PET_BATTLE_TEAM_SIZE * MAX_PET_BATTLE_PLAYERS> _petKilledThisRound = {};
     std::array<bool, MAX_PET_BATTLE_PLAYERS> _needsFrontPetSwap = {};
+
+    float _trapFailBonus = 0.0f;    // +20% per failed trap attempt
+    uint32 _finishDelayMs = 0;      // delay before sending FinalRound packet (ms)
 
     ObjectGuid _wildCreatureGUID;
     ObjectGuid _npcTrainerGUID;

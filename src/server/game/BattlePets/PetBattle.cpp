@@ -151,8 +151,10 @@ void PetBattle::GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID)
     if (!creature)
         return;
 
-    // Determine wild team size: 1-3 pets based on randomness
-    uint8 wildTeamSize = static_cast<uint8>(urand(1, 3));
+    // Wild team size: 1-3 pets, but never more than the player's available pets
+    uint8 playerPetCount = _teams[PET_BATTLE_TEAM_1].PetCount;
+    uint8 maxWildSize = std::min(uint8(3), playerPetCount);
+    uint8 wildTeamSize = maxWildSize > 1 ? static_cast<uint8>(urand(1, maxWildSize)) : uint8(1);
 
     // First pet is always the targeted creature
     {
@@ -351,6 +353,19 @@ void PetBattle::Update(uint32 diff)
             FinishBattle(PET_BATTLE_RESULT_DRAW);
             return;
         }
+    }
+
+    // Handle finish delay — wait for death animation before sending FinalRound
+    if (_state == PET_BATTLE_STATE_FINAL_ROUND && _finishDelayMs > 0)
+    {
+        if (diff >= _finishDelayMs)
+        {
+            _finishDelayMs = 0;
+            SendFinalRoundPacket(false);
+        }
+        else
+            _finishDelayMs -= diff;
+        return;
     }
 
     if (_state == PET_BATTLE_STATE_ROUND_IN_PROGRESS && BothTeamsReady())
@@ -642,11 +657,27 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
             if (Player* player = GetPlayerForTeam(teamIdx))
                 trapLevel = player->GetSession()->GetBattlePetMgr()->GetTrapLevel();
 
-            float captureChance = GetCaptureChance(trapLevel, healthPct);
+            float captureChance = GetCaptureChance(trapLevel, healthPct, wildPet.Quality, _trapFailBonus);
 
             if (frand(0.0f, 1.0f) < captureChance)
             {
+                // Capture success
                 wildPet.IsCaptured = true;
+
+                // Emit SET_HEALTH effect with TRAPPED status so client plays capture animation
+                {
+                    PetBattleRoundEffect effect;
+                    effect.AbilityEffectID = team.TrapAbilityID;
+                    effect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                    effect.SourceTeam = teamIdx;
+                    effect.SourcePet = team.FrontPetIndex;
+                    effect.TargetTeam = PET_BATTLE_TEAM_2;
+                    effect.TargetPet = wildTeam.FrontPetIndex;
+                    effect.Flags = PET_BATTLE_PET_STATUS_TRAPPED;
+                    effect.Param1 = 0; // new HP = 0
+                    _roundEffects.push_back(effect);
+                }
+
                 wildPet.Health = 0;
 
                 // Add captured pet to the player's journal
@@ -661,6 +692,23 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                 }
 
                 FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
+            }
+            else
+            {
+                // Capture failed — increase next attempt chance by 20%
+                _trapFailBonus += 0.20f;
+
+                // Emit a trap-miss effect so client shows the failed trap animation
+                PetBattleRoundEffect effect;
+                effect.AbilityEffectID = team.TrapAbilityID;
+                effect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                effect.SourceTeam = teamIdx;
+                effect.SourcePet = team.FrontPetIndex;
+                effect.TargetTeam = PET_BATTLE_TEAM_2;
+                effect.TargetPet = wildTeam.FrontPetIndex;
+                effect.Flags = PET_BATTLE_EFFECT_FLAG_MISS;
+                effect.Param1 = wildPet.Health; // HP unchanged
+                _roundEffects.push_back(effect);
             }
             break;
         }
@@ -1693,6 +1741,7 @@ void PetBattle::AwardExperience()
 void PetBattle::FinishBattle(PetBattleResult result)
 {
     _state = PET_BATTLE_STATE_FINAL_ROUND;
+    _finishDelayMs = 1500; // 1.5 second delay for death animation before showing result
 
     switch (result)
     {
@@ -1766,6 +1815,48 @@ void PetBattle::FinishBattle(PetBattleResult result)
             player->UpdateCriteria(CriteriaType::LosePetBattle, static_cast<uint64>(_battleType));
         }
     }
+}
+
+void PetBattle::SendFinalRoundPacket(bool abandoned)
+{
+    WorldPackets::BattlePet::PetBattleFinalRound finalRound;
+    finalRound.Abandoned = abandoned;
+    finalRound.PvpBattle = (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB);
+    finalRound.Winners[_winnerTeam] = true;
+
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        PetBattleTeamData const& team = _teams[t];
+
+        if (_battleType == PET_BATTLE_TYPE_NPC && t == PET_BATTLE_TEAM_2)
+        {
+            if (Player* p = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+                if (Creature* trainer = ObjectAccessor::GetCreature(*p, _npcTrainerGUID))
+                    finalRound.NpcCreatureID[t] = trainer->GetEntry();
+        }
+
+        for (uint8 i = 0; i < team.PetCount; ++i)
+        {
+            WorldPackets::BattlePet::PetBattleFinalPet pet;
+            pet.Guid = team.Pets[i].BattlePetGUID;
+            pet.Level = team.Pets[i].Level;
+            pet.Xp = team.Pets[i].Xp;
+            pet.Health = team.Pets[i].Health;
+            pet.MaxHealth = team.Pets[i].MaxHealth;
+            pet.InitialLevel = team.Pets[i].Level;
+            pet.Pboid = t * MAX_PET_BATTLE_TEAM_SIZE + i;
+            pet.Captured = team.Pets[i].IsCaptured;
+            pet.Caged = false;
+            pet.SeenAction = false;
+            pet.AwardedXP = _canAwardXP;
+            finalRound.Pets.push_back(pet);
+        }
+    }
+
+    if (Player* p1 = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        p1->SendDirectMessage(finalRound.Write());
+    if (Player* p2 = GetPlayerForTeam(PET_BATTLE_TEAM_2))
+        p2->SendDirectMessage(finalRound.Write());
 }
 
 void PetBattle::CompleteBattle()
