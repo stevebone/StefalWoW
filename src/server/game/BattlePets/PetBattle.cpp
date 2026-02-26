@@ -661,24 +661,23 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
 
             if (frand(0.0f, 1.0f) < captureChance)
             {
-                // Capture success
+                // Capture success — pet is captured alive (keeps its current HP)
                 wildPet.IsCaptured = true;
 
-                // Emit SET_HEALTH effect with TRAPPED status so client plays capture animation
+                // Emit STATUS_CHANGE effect with TRAPPED status so client plays capture crate animation
                 {
                     PetBattleRoundEffect effect;
                     effect.AbilityEffectID = team.TrapAbilityID;
-                    effect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                    effect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
                     effect.SourceTeam = teamIdx;
                     effect.SourcePet = team.FrontPetIndex;
                     effect.TargetTeam = PET_BATTLE_TEAM_2;
                     effect.TargetPet = wildTeam.FrontPetIndex;
-                    effect.Flags = PET_BATTLE_PET_STATUS_TRAPPED;
-                    effect.Param1 = 0; // new HP = 0
+                    effect.Param1 = PET_BATTLE_PET_STATUS_TRAPPED;
                     _roundEffects.push_back(effect);
                 }
 
-                wildPet.Health = 0;
+                // Don't set Health to 0 — captured pet stays alive in the journal
 
                 // Add captured pet to the player's journal
                 if (Player* player = GetPlayerForTeam(teamIdx))
@@ -698,16 +697,16 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                 // Capture failed — increase next attempt chance by 20%
                 _trapFailBonus += 0.20f;
 
-                // Emit a trap-miss effect so client shows the failed trap animation
+                // Emit STATUS_CHANGE with MISS flag so client shows failed trap animation
                 PetBattleRoundEffect effect;
                 effect.AbilityEffectID = team.TrapAbilityID;
-                effect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                effect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+                effect.Flags = PET_BATTLE_EFFECT_FLAG_MISS;
                 effect.SourceTeam = teamIdx;
                 effect.SourcePet = team.FrontPetIndex;
                 effect.TargetTeam = PET_BATTLE_TEAM_2;
                 effect.TargetPet = wildTeam.FrontPetIndex;
-                effect.Flags = PET_BATTLE_EFFECT_FLAG_MISS;
-                effect.Param1 = wildPet.Health; // HP unchanged
+                effect.Param1 = 0;
                 _roundEffects.push_back(effect);
             }
             break;

@@ -796,7 +796,7 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
     pet->PacketInfo.Health = pet->PacketInfo.MaxHealth;
 
     TC_LOG_DEBUG("battlepet", "BattlePetMgr::GrantBattlePetExperience: pet {} now level {} xp {} (SaveInfo={})",
-        guid.ToString(), level, pet->PacketInfo.Exp, pet->SaveInfo);
+        guid.ToString(), level, pet->PacketInfo.Exp, static_cast<int32>(pet->SaveInfo));
 
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
