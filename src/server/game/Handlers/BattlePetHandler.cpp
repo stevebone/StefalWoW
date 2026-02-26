@@ -550,57 +550,10 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
     {
         battle->ProcessRound();
 
-        uint32 battleID = battle->GetBattleID();
-
-        if (battle->IsFinalRound())
+        // Always send RoundResult with effects (including death effects)
+        // so the client plays animations. FinalRound is sent separately
+        // after a delay by PetBattle::Update() when the battle is ending.
         {
-            // Send final round — client will display results and wait for player OK
-            WorldPackets::BattlePet::PetBattleFinalRound finalRound;
-            finalRound.Abandoned = false;
-            finalRound.PvpBattle = (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVP || battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_LFPB);
-            finalRound.Winners[battle->GetWinnerTeam()] = true;
-
-            for (uint8 t = 0; t < PetBattles::MAX_PET_BATTLE_PLAYERS; ++t)
-            {
-                PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
-
-                // NpcCreatureID = trainer NPC entry, not pet species creature
-                if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC && t == PetBattles::PET_BATTLE_TEAM_2)
-                {
-                    if (Player* p = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                        if (Creature* trainer = ObjectAccessor::GetCreature(*p, battle->GetNpcTrainerGUID()))
-                            finalRound.NpcCreatureID[t] = trainer->GetEntry();
-                }
-
-                for (uint8 i = 0; i < team.PetCount; ++i)
-                {
-                    WorldPackets::BattlePet::PetBattleFinalPet pet;
-                    pet.Guid = team.Pets[i].BattlePetGUID;
-                    pet.Level = team.Pets[i].Level;
-                    pet.Xp = team.Pets[i].Xp;
-                    pet.Health = team.Pets[i].Health;
-                    pet.MaxHealth = team.Pets[i].MaxHealth;
-                    pet.InitialLevel = team.Pets[i].Level; // TODO: track initial level before XP awards
-                    pet.Pboid = t * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i;
-                    pet.Captured = team.Pets[i].IsCaptured;
-                    pet.Caged = false;
-                    pet.SeenAction = false;
-                    pet.AwardedXP = battle->CanAwardXP();
-                    finalRound.Pets.push_back(pet);
-                }
-            }
-
-            if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                p1->SendDirectMessage(finalRound.Write());
-            if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-                p2->SendDirectMessage(finalRound.Write());
-
-            // Battle stays in FINAL_ROUND state — cleanup happens in HandlePetBattleFinalNotify
-        }
-        else
-        {
-            // Send round result (FIRST_ROUND was already sent during init,
-            // all combat rounds use ROUND_RESULT)
             WorldPackets::BattlePet::PetBattleRoundResult roundResult;
             roundResult.CurRound = battle->GetCurrentRound();
             roundResult.NextPetBattleState = static_cast<int8>(battle->GetBattleState());
@@ -610,8 +563,9 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             BuildRoundCooldowns(roundResult.Cooldowns, battle);
             BuildPetXDied(roundResult.PetXDied, battle);
 
-            TC_LOG_ERROR("server.loading", "PetBattle ROUND_RESULT: Round={} State={} Effects={} Cooldowns={} Deaths={} P0Flags={} P1Flags={}",
+            TC_LOG_ERROR("server.loading", "PetBattle ROUND_RESULT: Round={} State={} FinalRound={} Effects={} Cooldowns={} Deaths={} P0Flags={} P1Flags={}",
                 roundResult.CurRound, roundResult.NextPetBattleState,
+                battle->IsFinalRound(),
                 roundResult.Effects.size(), roundResult.Cooldowns.size(), roundResult.PetXDied.size(),
                 roundResult.Players[0].NextInputFlags, roundResult.Players[1].NextInputFlags);
 
@@ -637,6 +591,9 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
                 p2->SendDirectMessage(roundResult.Write());
         }
+
+        // FinalRound packet is now sent after a delay by PetBattle::Update()
+        // to allow the client time to play death/capture animations first
     }
 }
 
@@ -732,46 +689,8 @@ void WorldSession::HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQ
 
     battle->Forfeit(teamIdx);
 
-    // Send final round to both players
-    WorldPackets::BattlePet::PetBattleFinalRound finalRound;
-    finalRound.Abandoned = true;
-    finalRound.PvpBattle = (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_PVP || battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_LFPB);
-    finalRound.Winners[battle->GetWinnerTeam()] = true;
-
-    for (uint8 t = 0; t < PetBattles::MAX_PET_BATTLE_PLAYERS; ++t)
-    {
-        PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
-
-        // NpcCreatureID = trainer NPC entry, not pet species creature
-        if (battle->GetBattleType() == PetBattles::PET_BATTLE_TYPE_NPC && t == PetBattles::PET_BATTLE_TEAM_2)
-        {
-            if (Player* p = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-                if (Creature* trainer = ObjectAccessor::GetCreature(*p, battle->GetNpcTrainerGUID()))
-                    finalRound.NpcCreatureID[t] = trainer->GetEntry();
-        }
-
-        for (uint8 i = 0; i < team.PetCount; ++i)
-        {
-            WorldPackets::BattlePet::PetBattleFinalPet pet;
-            pet.Guid = team.Pets[i].BattlePetGUID;
-            pet.Level = team.Pets[i].Level;
-            pet.Xp = team.Pets[i].Xp;
-            pet.Health = team.Pets[i].Health;
-            pet.MaxHealth = team.Pets[i].MaxHealth;
-            pet.InitialLevel = team.Pets[i].Level;
-            pet.Pboid = t * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i;
-            pet.Captured = team.Pets[i].IsCaptured;
-            pet.Caged = false;
-            pet.SeenAction = false;
-            pet.AwardedXP = battle->CanAwardXP();
-            finalRound.Pets.push_back(pet);
-        }
-    }
-
-    if (Player* p1 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_1))
-        p1->SendDirectMessage(finalRound.Write());
-    if (Player* p2 = battle->GetPlayerForTeam(PetBattles::PET_BATTLE_TEAM_2))
-        p2->SendDirectMessage(finalRound.Write());
+    // Forfeit sends FinalRound immediately (no death animation delay needed)
+    battle->SendFinalRoundPacket(true);
 
     // Forfeit completes immediately (sends Finished packet, syncs health, sends journal)
     battle->CompleteBattle();
@@ -788,6 +707,10 @@ void WorldSession::HandlePetBattleFinalNotify(WorldPackets::BattlePet::PetBattle
 
     PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(player->GetGUID());
     if (!battle || !battle->IsFinalRound())
+        return;
+
+    // Ignore if FinalRound packet hasn't been sent yet (death animation still playing)
+    if (battle->HasPendingFinishDelay())
         return;
 
     // Transition FINAL_ROUND → FINISHED (sends Finished packet, syncs health, sends journal)

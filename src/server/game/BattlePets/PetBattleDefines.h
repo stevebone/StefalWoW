@@ -19,6 +19,7 @@
 #define TRINITYCORE_PET_BATTLE_DEFINES_H
 
 #include "Define.h"
+#include <algorithm>
 #include <array>
 
 namespace PetBattles
@@ -341,14 +342,30 @@ enum PetBattleQueueStatus : uint8
 static constexpr float PET_BATTLE_BASE_CRIT_CHANCE = 0.05f;
 static constexpr float PET_BATTLE_CRIT_MULTIPLIER  = 1.5f;
 
-// Capture success chance based on target HP percentage
-inline float GetCaptureChance(uint16 trapLevel, float healthPct)
+// Capture success chance based on target HP percentage, quality, and cumulative fail bonus
+// Quality modifiers: Poor(0)=+20%, Common(1)=+10%, Uncommon(2)=0%, Rare(3)=-10%, Epic(4)=-20%, Legendary(5)=-30%
+inline float GetCaptureChance(uint16 trapLevel, float healthPct, uint8 quality = 1, float failBonus = 0.0f)
 {
     // Base chance modified by trap level and target HP
     float baseChance = 0.20f + (trapLevel - 1) * 0.05f;
     // Lower HP = higher capture chance
     float hpModifier = 2.0f - (healthPct / 100.0f) * 1.5f;
-    return std::min(baseChance * hpModifier, 1.0f);
+
+    // Quality modifier: lower quality = easier to catch
+    float qualityMod = 1.0f;
+    switch (quality)
+    {
+        case 0: qualityMod = 1.20f; break; // Poor
+        case 1: qualityMod = 1.10f; break; // Common
+        case 2: qualityMod = 1.00f; break; // Uncommon
+        case 3: qualityMod = 0.90f; break; // Rare
+        case 4: qualityMod = 0.80f; break; // Epic
+        case 5: qualityMod = 0.70f; break; // Legendary
+        default: break;
+    }
+
+    float chance = baseChance * hpModifier * qualityMod + failBonus;
+    return std::clamp(chance, 0.0f, 1.0f);
 }
 
 } // namespace PetBattles
