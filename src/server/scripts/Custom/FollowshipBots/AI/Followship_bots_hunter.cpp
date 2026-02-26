@@ -24,6 +24,8 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
     { SPELL_HUNTER_COUNTER_SHOT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      24000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_HUNTER_SHOOT,                   FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
+    { SPELL_HUNTER_ARCANE_SHOT,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+
     { SPELL_HUNTER_STEADY_SHOT,             FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     //BEAST
@@ -35,6 +37,9 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
 
     //MARK
     { SPELL_HUNTER_AIMED_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_HUNTER_MULTI_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+
+    { SPELL_HUNTER_RAPID_FIRE,              FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          false,      16000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     
 };
 

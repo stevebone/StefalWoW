@@ -113,6 +113,27 @@ namespace FSBRegen
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
+
+        // ---------- FOCUS ----------
+        else if (FSBPowers::IsFocusUser(bot))
+        {
+            int32 basePowerRegen = inCombat
+                ? classStats->basePowerRegenIC
+                : classStats->basePowerRegenOOC;
+
+            int32 amount = basePowerRegen; //+ regenMods.flatManaPerTick;
+
+            //if (regenMods.pctManaPerTick > 0.0f)
+            //{
+            //    uint32 maxPower = bot->GetMaxPower(POWER_MANA);
+            //    amount += int32(maxPower * regenMods.pctManaPerTick);
+            //}
+
+            if (amount > 0)
+                bot->ModifyPower(POWER_FOCUS, amount);
+
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
+        }
     }
 
     void ProcessBotCustomRegenTick(Creature* creature, FSB_Class botClass, FSBRegenMods regenMods)
@@ -121,7 +142,7 @@ namespace FSBRegen
             return;
 
         // Only apply regen if HP or power is not full
-        if (creature->GetHealthPct() < 100 || creature->GetPowerPct(POWER_MANA) < 100 || creature->GetPower(POWER_RAGE))
+        if (creature->GetHealthPct() < 100 || creature->GetPowerPct(POWER_MANA) < 100 || creature->GetPower(POWER_RAGE) || creature->GetPower(POWER_FOCUS) || creature->GetPower(POWER_ENERGY))
         {
             // Apply regen
             ApplyBotRegen(creature, botClass, regenMods, true, true);

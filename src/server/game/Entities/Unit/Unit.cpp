@@ -95,7 +95,7 @@
 #include <sstream>
 #include <cmath>
 
-#include "..\scripts\Custom\FollowshipBots\Handlers\Followship_bots_stats_handler.h"
+#include "../scripts/Custom/FollowshipBots/Handlers/Followship_bots_stats_handler.h"
 
 float baseMoveSpeed[MAX_MOVE_TYPE] =
 {

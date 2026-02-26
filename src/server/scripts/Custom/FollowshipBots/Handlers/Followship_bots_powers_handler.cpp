@@ -69,6 +69,11 @@ namespace FSBPowers
         return FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Rogue || bot->HasAura(SPELL_DRUID_CAT);
     }
 
+    bool IsFocusUser(Creature* bot)
+    {
+        return FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Hunter;
+    }
+
     void GenerateRageFromDamageTaken(Creature* bot, uint32 damage)
     {
         if (!damage || !bot->IsAlive())
