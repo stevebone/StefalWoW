@@ -105,4 +105,111 @@ namespace FSBPet
         return false;
     }
 
+    FSB_PetFamily GetPetFamily(uint32 entry)
+    {
+        auto it = CreatureFamilyMap.find(entry);
+        if (it != CreatureFamilyMap.end())
+            return it->second;
+
+        return FSB_PetFamily::Unknown;
+    }
+
+    const std::vector<uint32>& GetFamilySpells(FSB_PetFamily family)
+    {
+        static const std::vector<uint32> empty;
+
+        auto it = CreatureFamilySpells.find(family);
+        if (it != CreatureFamilySpells.end())
+            return it->second;
+
+        return empty;
+    }
+
+    bool IsSelfCast(uint32 entry)
+    {
+        static const std::unordered_set<uint32> selfCastEntries = {
+            SPELL_HUNTER_PET_PRIMAL_RAGE,
+            SPELL_HUNTER_PET_PREDATOR_THIRST,
+        };
+
+        return selfCastEntries.contains(entry);
+    }
+
+
+    bool DoAttackSpell(Creature* owner)
+    {
+        if (!owner)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(owner->AI());
+        if (!baseAI)
+            return false;
+
+        Unit* pet = GetBotPet(owner);
+        if (!pet)
+            return false;
+
+        // creatures do not regen focus so we need to add it
+        // since the attack attempt runs every second then we add 5 focus at all times
+        pet->ModifyPower(POWER_FOCUS, 5);
+
+        if (!pet->IsInCombat() || !pet->GetVictim())
+            return false;
+
+        auto& petCastTimer = baseAI->botPetSpellsTimer;
+
+        uint32 now = getMSTime();
+
+        if (now < petCastTimer)
+            return false;
+
+        auto family = GetPetFamily(pet->GetEntry());
+        auto spells = GetFamilySpells(family);
+
+        Unit* target = pet->GetVictim();
+        if (!target || !target->IsAlive())
+            return false;
+
+        if (!pet->IsWithinMeleeRange(target))
+            return false;
+
+        spells.erase(
+            std::remove_if(spells.begin(), spells.end(),
+                [&](uint32 spellId)
+                {
+                    SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
+                    auto costs = info->CalcPowerCost(pet, info->GetSchoolMask());
+                    uint32 amount = 0;
+                    if (!costs.empty())
+                    {
+                        amount = costs[0].Amount;   // usually the primary cost
+                    }
+
+                    uint32 petPower = pet->GetPower(pet->GetPowerType());
+
+                    return pet->GetSpellHistory()->HasCooldown(spellId)
+                        || pet->HasAura(spellId)
+                        || target->HasAura(spellId)
+                        || petPower < amount;
+                }),
+            spells.end());
+
+        if (spells.empty())
+            return false;
+
+        uint32 randomSpell = Trinity::Containers::SelectRandomContainerElement(spells);
+
+        if (IsSelfCast(randomSpell))
+            target = pet;
+
+        if (FSBSpells::BotCastSpell(pet->ToCreature(), randomSpell, target))
+        {
+            petCastTimer = now + 5000;
+            return true;
+        }
+
+        return false;
+
+    }
+
 }

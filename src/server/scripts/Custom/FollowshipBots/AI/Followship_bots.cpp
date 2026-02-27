@@ -30,6 +30,7 @@
 #include "Followship_bots_incombat_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_pet_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
@@ -868,6 +869,9 @@ public:
                 {
                     if (me->IsAlive() && me->IsInCombat())
                         FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
+
+                    if (botClass == FSB_Class::Hunter && FSBPet::BotHasPet(me))
+                        FSBPet::DoAttackSpell(me);
 
                     events.ScheduleEvent(FSB_EVENT_COMBAT_MAINTENANCE, 1s);
 
