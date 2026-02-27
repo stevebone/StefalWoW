@@ -1,3 +1,4 @@
+#include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_chatter_handler.h"
@@ -679,16 +680,30 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "I need urgent healing!"
         }
     },
+
+    {
+        "targetKilled", FSB_ChatterType::None,
+        {
+            "Another one down. You're welcome, <player>.",
+            "Rest in pieces, <target>.",
+            "<target>? Yeah. that didn't end well for them.",
+            "See, <player>? Perfectly under control.",
+            "I warned you, <target>. Well. internally.",
+            "That went about as expected. For me.",
+            "<player>, please tell me you saw that.",
+            "And that's why I read my spellbook.",
+            "One less <target>. Try to keep up, <player>.",
+            "I call that a successful application of violence."
+        }
+    },
 };
 
 namespace FSBChatter
 {
-    std::string GetRandomReply(
-        Creature* bot,
-        Unit* target,
-        const std::string& category,
-        FSB_ChatterType chatterType)
+    std::string GetRandomReply(Creature* bot, Unit* target, const std::string& category, FSB_ChatterType chatterType)
     {
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
         for (auto const& entry : FSBReplyTable)
         {
             if (entry.category == category && entry.chatterType == chatterType)
@@ -699,8 +714,6 @@ namespace FSBChatter
                     return "";
                 }
 
-                
-
                 std::string line = entry.lines[urand(0, (entry.lines.size() - 1))];
 
                 // Token replacement
@@ -709,6 +722,9 @@ namespace FSBChatter
                 
                 if (target)
                     ReplaceAll(line, "{target}", target->GetName());
+
+                if(player)
+                    ReplaceAll(line, "{player}", player->GetName());
 
                 TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER GetRandomReply: String {} selected for category {} and chatterType {}", line, category, chatterType);
 
@@ -773,6 +789,19 @@ namespace FSBChatter
             replyString = "emote:help";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
         }
+    }
+
+    void OnKilledTargetChatter(Creature* bot, Unit* victim)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        if (urand(0, 99) > FollowshipBotsConfig::configFSBChatterRate)
+            return;
+
+        std::string chatter = GetRandomReply(bot, victim, "targetKilled", FSB_ChatterType::None);
+        if (!chatter.empty())
+            bot->Say(chatter, LANG_UNIVERSAL);
     }
 
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to)

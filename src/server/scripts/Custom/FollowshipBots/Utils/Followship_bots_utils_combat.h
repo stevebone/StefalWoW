@@ -6,8 +6,8 @@
 #include "Unit.h"
 #include "Creature.h"
 
-#include "followship_bots_utils_spells.h"
-#include "followship_bots_ai_base.h" // for FSB_Roles and FSBUtils::GetRole
+#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_ai_base.h" // for FSB_Roles and FSBUtils::GetRole
 
 enum class FSBSayType;
 

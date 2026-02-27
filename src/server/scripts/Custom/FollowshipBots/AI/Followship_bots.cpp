@@ -14,8 +14,8 @@
 #include "Followship_bots_mage.h"
 #include "Followship_bots_warlock.h"
 
-
 #include "Followship_bots_auras_handler.h"
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_gossip_handler.h"
@@ -480,7 +480,7 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-            FSBUtilsTexts::OnKilledTargetSay(me, victim);
+            FSBChatter::OnKilledTargetChatter(me, victim);
             // Called from Unit::Kill() in case where pet or owner kills something
             // if owner killed this victim, pet may still be attacking something else
             if (me->GetVictim() && me->GetVictim() != victim)
