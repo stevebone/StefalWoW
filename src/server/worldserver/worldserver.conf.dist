@@ -4358,3 +4358,71 @@ Load.Locales = 1
 
 #
 ###################################################################################################
+
+#
+# Followship NPCs Bot System
+#
+
+# Followship Bots Enable
+#
+# Main setting to enable or disable the Bots Hiring System
+# Example values: 1 enabled, 0 disabled, 
+# Default: 0
+Followship.Bots.Enabled = 1
+
+# Base Cost Per Level
+#
+# The price of the bot is calculated with a base price times player level and times duration of contract.
+# There are 3 durations possible with configs for each
+# Price is in coppers. 1 silver = 100 copper, 1 gold = 100 silver * 100 copper so total: 10000 copper
+# End price is always multiplied by actual player level and fixed duration. 
+# So if base price is 1g and player is lvl 10 then price is 10g * duration (in hours)
+# Example value in coppers: 10 -> this will lead to a price of 1 silver for a level 10 player for 1 hour
+Followship.Bots.BaseCostPerLevel = 100
+
+
+# Base Cost For Permanent Hire
+#
+# The cost for permanent hire is separate from durations
+# It is calculated based on a base price times player level
+Followship.Bots.PermanentCostPerLevel = 10000
+
+# Hire durations in hours
+#
+# There are 4 durations for hire
+# 3 are hours based and one can be permanent / or NOT
+# Example values: Followship.Bot.HireDuration1 = 1 (for one hour)
+# Example values: Followship.Bot.HireDurationPermanent = 1 (will add an extra option to hire the bot without a fixed duration)
+Followship.Bot.HireDuration1 = 1
+Followship.Bot.HireDuration2 = 2
+Followship.Bot.HireDuration3 = 4
+Followship.Bot.HireDurationPermanent = 1
+
+# Use Custom Regen Health/Powers
+#
+# Activate a custom made regeneration feature for Bots
+# This will replace the default TC regen for mobs (almost instant regen)
+# With a more player like regen formula. Applies to health and powers (Mana, Rage, etc)
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.UseCustomRegen = 1
+
+# Use Out of combat Actions
+#
+# Allows the bots to use actions like player heal, buffs and more
+# If disabled then bots will not do anything ooc
+# Example values: 1 to enabled, 0 to disable. Default: 0
+Followship.Bots.UseOOCActions = 1
+
+# Use In Combat Mana & Health Potions
+#
+# Allows the bots to use 1 mana potion and or 1 health potion per combat session
+# Health potion only available for NON healer classes
+# Example values: 1 to enabled, 0 to disable. Default: 0
+Followship.Bots.UseICPotions = 1
+
+# Bots Chatter Rate
+#
+# Increase or decrease the bots chatter rate (say/yell)
+# Higher values lead to more chatter
+# Values 1-100; Default: 10
+Followship.Bots.ChatterRate = 100
