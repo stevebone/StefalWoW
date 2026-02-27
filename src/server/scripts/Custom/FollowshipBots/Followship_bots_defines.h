@@ -82,7 +82,7 @@ enum FSB_RoleMask : uint32
     FSB_ROLEMASK_MELEE_DAMAGE_3 = 1 << 12,
 };
 
-static uint32 RoleToMask(FSB_Roles role)
+inline uint32 RoleToMask(FSB_Roles role)
 {
     switch (role)
     {
