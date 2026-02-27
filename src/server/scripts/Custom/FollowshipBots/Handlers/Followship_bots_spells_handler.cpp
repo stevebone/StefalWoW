@@ -166,7 +166,8 @@ namespace FSBSpells
             if (runtime.nextReadyMs > now)
                 continue;
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBSpellsUtils::GetSpellName(def->spellId));
+
+            //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} with role: {} has available spell: {}", bot->GetName(), botRole, FSBSpellsUtils::GetSpellName(def->spellId));
             available.push_back(&runtime);
 
         }
@@ -241,6 +242,20 @@ namespace FSBSpells
             if (!runtime || !runtime->def)
                 continue;
 
+            SpellInfo const* info = sSpellMgr->GetSpellInfo(runtime->def->spellId, DIFFICULTY_NONE);
+            auto costs = info->CalcPowerCost(bot, info->GetSchoolMask());
+            int32 amount = 0;
+            if (!costs.empty())
+            {
+                amount = costs[0].Amount;   // usually the primary cost
+            }
+
+            if (bot->GetPower(bot->GetPowerType()) < amount)
+            {
+                //TC_LOG_DEBUG("scripts.ai.fsb", "Bot: {} has not enough power for spell: {}", bot->GetName(), FSBSpellsUtils::GetSpellName(runtime->def->spellId));
+                continue;
+            }
+
             if (!FSBSpellsUtils::CheckSpellContextRequirements(bot, runtime->def->spellId, target))
                 continue;
 
@@ -258,7 +273,7 @@ namespace FSBSpells
             return nullptr;
         }
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spellPool size after filtering: {}", spellPool.size());
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SelectSpell - spellPool size after filtering: {}", spellPool.size());
 
         // =========================================================
         // ===================== SPELLS PICK =======================
@@ -279,7 +294,7 @@ namespace FSBSpells
             uint32 roll = urand(0, 100);
             if (roll > spell->chance)
             {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - {} chance failed (roll={} chance={})", spell->spellId, roll, spell->chance);
+                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - {} chance failed (roll={} chance={})", spell->spellId, roll, spell->chance);
                 continue;
             }
 

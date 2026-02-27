@@ -582,7 +582,7 @@ uint32 FSBMgr::GetAvailableRolesForClass(FSB_Class botClass)
         return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE;
 
     case FSB_Class::Hunter:
-        return FSB_ROLEMASK_RANGED_DAMAGE | FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_ASSIST;
+        return FSB_ROLEMASK_RANGED_DAMAGE | FSB_ROLEMASK_ASSIST;
 
     case FSB_Class::Rogue:
         return FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_MELEE_DAMAGE_2 | FSB_ROLEMASK_MELEE_DAMAGE_3;
@@ -660,14 +660,14 @@ Gender FSBMgr::GetBotGenderForEntry(uint32 entry)
     return GENDER_NONE;
 }
 
-const char* FSBMgr::GetBotPetNameForEntry(uint32 entry)
+uint32 FSBMgr::GetBotPetSourceForEntry(uint32 entry)
 {
     for (auto const& map : BotEntryClassTable)
     {
         if (map.entry == entry)
-            return map.petName;
+            return map.petSource;
     }
 
-    return "Pet";
+    return 0;
 }
 

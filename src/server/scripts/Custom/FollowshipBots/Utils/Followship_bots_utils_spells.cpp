@@ -40,7 +40,7 @@ std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
 {
     { FSB_Class::Priest,  { SPELL_PRIEST_DISPEL_MAGIC, OFFDISPEL_MAGIC } },
     //{ FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
-    // Hunter
+    { FSB_Class::Hunter,    { SPELL_HUNTER_TRANQUILIZING_SHOT, OFFDISPEL_MAGIC } },
     { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } }
 };
 
@@ -123,14 +123,10 @@ namespace FSBSpellsUtils
             return bot->HasAura(SPELL_ROGUE_STEALTH);
 
         case SPELL_PRIEST_DESPERATE_PRAYER:
-        {
             return target == bot;
-        }
 
         case SPELL_MAGE_ICE_BLOCK:
-        {
             return target == bot && bot->GetHealthPct() < 10;
-        }
 
         case SPELL_MAGE_EVOCATION:
             return bot->GetPowerPct(POWER_MANA) < 50;
@@ -180,12 +176,18 @@ namespace FSBSpellsUtils
         case SPELL_PALADIN_BLESSING_SANCTUARY:
             return HasAnyMechanic(target, { MECHANIC_FEAR, MECHANIC_HORROR, MECHANIC_SILENCE, MECHANIC_STUN });
 
+        case SPELL_HUNTER_TRANQUILIZING_SHOT:
+            return HasAnyMechanic(target, { MECHANIC_ENRAGED }) || FindEnemyBuffToDispel(target);
+
         case SPELL_ROGUE_THISTLE_TEA:
             return bot->GetPowerPct(bot->GetPowerType()) <= 30;
 
         case SPELL_PALADIN_LIGHT_OF_DAWN:
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
 
+        case SPELL_HUNTER_MONGOOSE_BITE:
+        case SPELL_HUNTER_WING_CLIP:
+        case SPELL_HUNTER_RAPTOR_STRIKE:
         case SPELL_HUNTER_DISENGAGE:
             return bot->IsWithinMeleeRange(target);
 

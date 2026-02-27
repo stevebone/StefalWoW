@@ -119,9 +119,9 @@ public:
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
-            if (botClass == FSB_Class::Hunter)
+            //if (botClass == FSB_Class::Hunter)
                 //if(!me->HasPetFlag())
-                FSBHunter::BotSummonPet(me);
+            //    FSBHunter::BotSummonPet(me);
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 

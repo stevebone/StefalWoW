@@ -12,6 +12,7 @@
 #include "Followship_bots_spells_handler.h"
 
 #include "Followship_bots_druid.h"
+#include "Followship_bots_hunter.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
@@ -27,7 +28,6 @@ namespace FSBOOC
         auto& globalCooldown = ai->botGlobalCooldown;
         auto& buffTimer = ai->botBuffsTimer;
         auto& selfBuffTimer = ai->botSelfBuffsTimer;
-        auto& botHasDemon = ai->botHasDemon;
         auto& botResTargetGuid = ai->botResurrectTargetGuid;
         //auto botRole = ai->botRole;
         auto& botGroup = ai->botLogicalGroup;
@@ -79,7 +79,7 @@ namespace FSBOOC
             return true;
 
         //5. Warlock Demon Summon
-        if (BotOOCSummonDemons(bot, globalCooldown, botHasDemon))
+        if (BotOOCSummonPetOrDemon(bot))
             return true;
 
         //6. Warlock SoulStone
@@ -657,7 +657,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCSummonDemons(Creature* bot, uint32& globalCooldown, bool& botHasDemon)
+    bool BotOOCSummonPetOrDemon(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -673,10 +673,13 @@ namespace FSBOOC
 
         FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
-        if (cls != FSB_Class::Warlock)
+        if (cls != FSB_Class::Warlock && cls != FSB_Class::Hunter)
             return false;
 
-        if (FSBWarlock::BotSummonRandomDemon(bot, globalCooldown, botHasDemon))
+        if (FSBWarlock::BotSummonRandomDemon(bot))
+            return true;
+
+        if (FSBHunter::BotSummonPet(bot))
             return true;
 
         return false;

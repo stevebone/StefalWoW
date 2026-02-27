@@ -173,15 +173,27 @@ namespace FSBWarlock
         return false;
     }
 
-    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& botHasDemon)
+    bool BotSummonRandomDemon(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
             return false;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto& botHasDemon = baseAI->botHasDemon;
         if (botHasDemon)
             return false;
 
-        FSB_Roles role = FSBUtils::GetRole(bot);
+        auto botClass = baseAI->botClass;
+        if (botClass != FSB_Class::Warlock)
+            return false;
+
+        auto role = baseAI->botRole;
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+
+        
 
         uint32 spellId = SPELL_WARLOCK_SUMMON_IMP;
 

@@ -87,7 +87,7 @@ namespace FSBWarlock
 
     bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId);
 
-    bool BotSummonRandomDemon(Creature* bot, uint32& globalCooldown, bool& botHasDemon);
+    bool BotSummonRandomDemon(Creature* bot);
 
     bool BotHasUnendingResolve(Creature* bot);
 

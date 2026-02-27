@@ -28,6 +28,7 @@ public:
             { "afkaction", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBAfkAction, "This is help text?"},
             { "playsound", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBPlaySound, "This is help text?"},
             { "summonpet", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBSummonPet, "This is help text?"},
+            { "castSpell", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBCastSpellOnTarget, "This is help text?"},
         };
 
         static std::vector<ChatCommand> commandTable =
@@ -215,6 +216,55 @@ public:
 
         FSBHunter::BotSummonPet(bot);
         
+        return true;
+    }
+
+    static bool HandleFSBCastSpellOnTarget(ChatHandler* handler, uint32 spellId, std::string name)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Cast Spell On Target ===");
+        Creature* spellTarget = FSBUtils::FindCreatureByName(bot, name);
+        if (!spellTarget)
+        {
+            handler->PSendSysMessage("Cast Failed: Target Not Found");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if(!spellId)
+        {
+            handler->PSendSysMessage("Cast Failed: No valid spell id");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (FSBSpells::BotCastSpell(bot, spellId, spellTarget))
+        {
+            handler->PSendSysMessage("Cast Success");
+        }
+        else
+        {
+            handler->PSendSysMessage("Cast Failed");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
         return true;
     }
 

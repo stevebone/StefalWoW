@@ -148,6 +148,34 @@ namespace FSBUtils
 
         return false;
     }
+
+    Creature* FindCreatureByName(WorldObject* bot, std::string const& name, float range)
+    {
+        if (!bot)
+            return nullptr;
+
+        std::list<WorldObject*> nearbyObjects;
+
+        Trinity::AllWorldObjectsInRange checker(bot, range);
+        Trinity::WorldObjectListSearcher<Trinity::AllWorldObjectsInRange> searcher(bot, nearbyObjects, checker);
+
+        Cell::VisitAllObjects(bot, searcher, range);
+        for (WorldObject* object : nearbyObjects)
+        {
+            if (!object)
+                continue;
+
+            Creature* c = object->ToCreature();
+            if (!c)
+                continue;
+
+            if (c->GetName() == name)
+                return c;
+        }
+
+
+        return nullptr;
+    }
 }
 
 namespace FSBUtilsMovement

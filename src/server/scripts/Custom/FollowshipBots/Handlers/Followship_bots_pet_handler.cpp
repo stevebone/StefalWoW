@@ -21,8 +21,13 @@ namespace FSBPet
         if (owner->IsInCombat() || pet->IsInCombat())
             return false;
 
+        uint32 petSource = FSBMgr::Get()->GetBotPetSourceForEntry(owner->GetEntry());
+
+        // Apply updated template
+        pet->UpdateEntry(petSource, nullptr, true); // issue is that we cannot update the name at runtime and we need it from existing creature
+
         //entry needs to belong to the creature we want the model
-        CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(43292); //pet->GetEntry()
+        CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petSource); //pet->GetEntry()
         CreatureModel model = *ObjectMgr::ChooseDisplayId(creatureInfo);
         pet->SetDisplayId(model.CreatureDisplayID, true);
 
@@ -45,6 +50,8 @@ namespace FSBPet
         pet->SetSheath(SHEATH_STATE_MELEE);
         pet->ReplaceAllNpcFlags(UNIT_NPC_FLAG_NONE);
         pet->ReplaceAllNpcFlags2(UNIT_NPC_FLAG_2_NONE);
+        pet->ReplaceAllUnitFlags(UNIT_FLAG_CAN_SWIM);
+        pet->ReplaceAllUnitFlags2(UNIT_FLAG2_ALLOW_CHEAT_SPELLS);
 
         // Force regen flag for player pets, just like we do for players themselves
         pet->SetUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
@@ -66,7 +73,6 @@ namespace FSBPet
 
         PhasingHandler::InheritPhaseShift(pet, owner);
         pet->SetFaction(owner->GetFaction());
-        pet->SetName(FSBMgr::Get()->GetBotPetNameForEntry(owner->GetEntry()));
 
         return true;
     }
