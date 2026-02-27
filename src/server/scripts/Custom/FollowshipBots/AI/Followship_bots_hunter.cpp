@@ -53,6 +53,7 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
     { SPELL_HUNTER_SERPENT_STING,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_CONCUSSIVE_SHOT,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      5000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_TRANQUILIZING_SHOT,      FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      10000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_HUNTER_SCATTER_SHOT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           20.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_WAILLING_ARROW,          FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_AIMED_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      15000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_HUNTER_MULTI_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
@@ -100,7 +101,7 @@ namespace FSBHunter
 
         
 
-
+        
 
         /*
         // set pet to defensive mode by default (some classes can't control controlled pets in fact).
