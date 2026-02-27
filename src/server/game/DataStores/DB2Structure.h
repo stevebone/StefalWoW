@@ -2459,16 +2459,15 @@ struct GarrTalTreeXGarrTalResearchEntry
 
 struct GarrTypeEntry
 {
-    uint32 ID;
-    uint8 Expansion;
-    uint32 Flags;
-    uint32 CurrencyTypeID;
-    uint32 SecondCurrencyTypeID;
-    int32 MapID;
-    float BaseMissionXPMultiplier;
-    int32 PerkSpellID;
-    float BaseMissionXPGainMultiplier;
-    std::array<int32, 2> Unk;
+    int8 ID;
+    uint32 PrimaryCurrencyTypeID;
+    uint32 SecondaryCurrencyTypeID;
+    uint32 ExpansionID;
+    int32 Flags;
+    float AutoFollowerHealRate;
+    int32 MissionCostCurveID;
+    float AutoFollowerHealCostMult;
+    std::array<int32, 2> MapIDs;
 };
 
 struct GarrUiAnimClassInfoEntry

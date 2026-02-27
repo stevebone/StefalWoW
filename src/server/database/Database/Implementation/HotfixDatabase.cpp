@@ -1003,8 +1003,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_TAL_TREE_X_GARR_TAL_RESEARCH, "SELECT MAX(ID) + 1 FROM garr_tal_tree_x_garr_tal_research", CONNECTION_SYNCH);
 
     // GarrType.db2
-    PrepareStatement(HOTFIX_SEL_GARR_TYPE, "SELECT ID, Expansion, Flags, CurrencyTypeID, SecondCurrencyTypeID, MapID, "
-        "BaseMissionXPMultiplier, PerkSpellID, BaseMissionXPGainMultiplier, Unk1, Unk2 FROM garr_type WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_GARR_TYPE, "SELECT ID, PrimaryCurrencyTypeID, SecondaryCurrencyTypeID, ExpansionID, Flags, AutoFollowerHealRate, "
+        "MissionCostCurveID, AutoFollowerHealCostMult, MapIDs1, MapIDs2 FROM garr_type WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_TYPE, "SELECT MAX(ID) + 1 FROM garr_type", CONNECTION_SYNCH);
 
     // GarrUiAnimClassInfo.db2
