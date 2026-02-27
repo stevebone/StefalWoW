@@ -17,12 +17,25 @@ INSERT INTO `creature_template_gossip` VALUES
 ('198', '900004', '-1'),
 ('198', '900005', '-1'),
 ('198', '900006', '-1'),
+('328', '900000', '-1'),
+('328', '900001', '-1'),
+('328', '900002', '-1'),
+('328', '900003', '-1'),
+('328', '900004', '-1'),
+('328', '900005', '-1'),
+('328', '900006', '-1'),
 ('375', '900000', '-1'),
 ('375', '900001', '-1'),
 ('375', '900002', '-1'),
 ('375', '900003', '-1'),
 ('375', '900004', '-1'),
 ('375', '900005', '-1'),
+('377', '900000', '-1'),
+('377', '900001', '-1'),
+('377', '900002', '-1'),
+('377', '900003', '-1'),
+('377', '900004', '-1'),
+('377', '900005', '-1'),
 ('459', '900000', '-1'),
 ('459', '900001', '-1'),
 ('459', '900002', '-1'),
@@ -35,6 +48,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('837', '900003', '-1'),
 ('837', '900004', '-1'),
 ('837', '900005', '-1'),
+('906', '900000', '-1'),
+('906', '900001', '-1'),
+('906', '900002', '-1'),
+('906', '900003', '-1'),
+('906', '900004', '-1'),
+('906', '900005', '-1'),
 ('911', '900000', '-1'),
 ('911', '900001', '-1'),
 ('911', '900002', '-1'),
@@ -47,12 +66,24 @@ INSERT INTO `creature_template_gossip` VALUES
 ('912', '900003', '-1'),
 ('912', '900004', '-1'),
 ('912', '900005', '-1'),
+('913', '900000', '-1'),
+('913', '900001', '-1'),
+('913', '900002', '-1'),
+('913', '900003', '-1'),
+('913', '900004', '-1'),
+('913', '900005', '-1'),
 ('915', '900000', '-1'),
 ('915', '900001', '-1'),
 ('915', '900002', '-1'),
 ('915', '900003', '-1'),
 ('915', '900004', '-1'),
 ('915', '900005', '-1'),
+('917', '900000', '-1'),
+('917', '900001', '-1'),
+('917', '900002', '-1'),
+('917', '900003', '-1'),
+('917', '900004', '-1'),
+('917', '900005', '-1'),
 ('925', '900000', '-1'),
 ('925', '900001', '-1'),
 ('925', '900002', '-1'),
@@ -65,6 +96,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('926', '900003', '-1'),
 ('926', '900004', '-1'),
 ('926', '900005', '-1'),
+('927', '900000', '-1'),
+('927', '900001', '-1'),
+('927', '900002', '-1'),
+('927', '900003', '-1'),
+('927', '900004', '-1'),
+('927', '900005', '-1'),
 ('3593', '900000', '-1'),
 ('3593', '900001', '-1'),
 ('3593', '900002', '-1'),
@@ -89,6 +126,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('6373', '900003', '-1'),
 ('6373', '900004', '-1'),
 ('6373', '900005', '-1'),
+('6374', '900000', '-1'),
+('6374', '900001', '-1'),
+('6374', '900002', '-1'),
+('6374', '900003', '-1'),
+('6374', '900004', '-1'),
+('6374', '900005', '-1'),
 ('16500', '900000', '-1'),
 ('16500', '900001', '-1'),
 ('16500', '900002', '-1'),
@@ -140,6 +183,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('46405', '900003', '-1'),
 ('46405', '900004', '-1'),
 ('46405', '900005', '-1'),
+('46983', '900000', '-1'),
+('46983', '900001', '-1'),
+('46983', '900002', '-1'),
+('46983', '900003', '-1'),
+('46983', '900004', '-1'),
+('46983', '900005', '-1'),
 ('50595', '900000', '-1'),
 ('50595', '900001', '-1'),
 ('50595', '900002', '-1'),
@@ -153,6 +202,16 @@ INSERT INTO `creature_template_gossip` VALUES
 ('141508', '900004', '-1'),
 ('141508', '900005', '-1');
 
+-- Goldshire trainers
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 328; -- Zaldimar (Mage)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 377; -- Josetta (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 906; -- Maximillian (Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 913; -- Lyria (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 917; -- Keryn (Rogue)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 927; -- Brother Wilhelm (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 6374; -- Cylina (Demon/Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 46983; -- Benjamin (Hunter)
+
 -- Northshire trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 198; -- Mage
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 375; -- Priest
@@ -160,7 +219,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 911; -- Warrior
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 915; -- Rogue
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
-UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 6373; -- Dane Winslow (Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 6373; -- Dane Winslow (Demon/Warlock)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43278; -- Ashley (Hunter)
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 46405; -- Stockade Guard (Warrior)
