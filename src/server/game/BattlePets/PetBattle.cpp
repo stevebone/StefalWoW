@@ -659,6 +659,24 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
 
             float captureChance = GetCaptureChance(trapLevel, healthPct, wildPet.Quality, _trapFailBonus);
 
+            // Resolve the actual BattlePetAbilityEffect ID for the trap ability so the
+            // client can look up the visual spell/animation (AbilityID != EffectID)
+            uint32 trapEffectID = 0;
+            if (std::vector<uint32> const* turnIDs = sPetBattleMgr->GetAbilityTurns(PET_BATTLE_TRAP_ABILITY_ID))
+            {
+                for (uint32 turnID : *turnIDs)
+                {
+                    if (std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turnID))
+                    {
+                        if (!effects->empty())
+                        {
+                            trapEffectID = effects->front()->ID;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (frand(0.0f, 1.0f) < captureChance)
             {
                 // Capture success — pet is captured alive (keeps its current HP)
@@ -667,7 +685,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                 // Emit STATUS_CHANGE effect with TRAPPED status so client plays capture crate animation
                 {
                     PetBattleRoundEffect effect;
-                    effect.AbilityEffectID = team.TrapAbilityID;
+                    effect.AbilityEffectID = trapEffectID;
                     effect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
                     effect.SourceTeam = teamIdx;
                     effect.SourcePet = team.FrontPetIndex;
@@ -699,7 +717,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
 
                 // Emit STATUS_CHANGE with MISS flag so client shows failed trap animation
                 PetBattleRoundEffect effect;
-                effect.AbilityEffectID = team.TrapAbilityID;
+                effect.AbilityEffectID = trapEffectID;
                 effect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
                 effect.Flags = PET_BATTLE_EFFECT_FLAG_MISS;
                 effect.SourceTeam = teamIdx;
@@ -1002,16 +1020,20 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 auraType, auraDuration, tickDamage, attacker.PetType,
                 attackerTeam, attackerPet);
 
-            PetBattleRoundEffect roundEffect;
-            roundEffect.AbilityEffectID = effect->ID;
-            roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
-            roundEffect.SourceTeam = attackerTeam;
-            roundEffect.SourcePet = attackerPet;
-            roundEffect.TargetTeam = defenderTeam;
-            roundEffect.TargetPet = defenderPet;
-            roundEffect.Param1 = abilityID;
-            roundEffect.Param2 = auraDuration;
-            _roundEffects.push_back(roundEffect);
+            {
+                PetBattlePetData const& targetPet = _teams[defenderTeam].Pets[defenderPet];
+                PetBattleAura const& newAura = targetPet.Auras.back();
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = defenderTeam;
+                roundEffect.TargetPet = defenderPet;
+                roundEffect.Param1 = newAura.AuraInstanceID;
+                roundEffect.Param2 = abilityID;
+                _roundEffects.push_back(roundEffect);
+            }
             break;
         }
         case 13: // Periodic heal aura
@@ -1026,16 +1048,20 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 PET_BATTLE_AURA_HOT, auraDuration, tickHealing, attacker.PetType,
                 attackerTeam, attackerPet);
 
-            PetBattleRoundEffect roundEffect;
-            roundEffect.AbilityEffectID = effect->ID;
-            roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
-            roundEffect.SourceTeam = attackerTeam;
-            roundEffect.SourcePet = attackerPet;
-            roundEffect.TargetTeam = attackerTeam;
-            roundEffect.TargetPet = attackerPet;
-            roundEffect.Param1 = abilityID;
-            roundEffect.Param2 = auraDuration;
-            _roundEffects.push_back(roundEffect);
+            {
+                PetBattlePetData const& selfPet = _teams[attackerTeam].Pets[attackerPet];
+                PetBattleAura const& newAura = selfPet.Auras.back();
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = newAura.AuraInstanceID;
+                roundEffect.Param2 = abilityID;
+                _roundEffects.push_back(roundEffect);
+            }
             break;
         }
         case 3: // Change state
@@ -1320,7 +1346,8 @@ void PetBattle::AddAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID, uin
             removeEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
             removeEffect.TargetTeam = targetTeam;
             removeEffect.TargetPet = targetPet;
-            removeEffect.Param1 = pet.Auras.front().AbilityID;
+            removeEffect.Param1 = pet.Auras.front().AuraInstanceID;
+            removeEffect.Param2 = pet.Auras.front().AbilityID;
             _roundEffects.push_back(removeEffect);
 
             pet.Auras.erase(pet.Auras.begin());
@@ -1359,7 +1386,8 @@ void PetBattle::RemoveAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID)
         roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
         roundEffect.TargetTeam = targetTeam;
         roundEffect.TargetPet = targetPet;
-        roundEffect.Param1 = abilityID;
+        roundEffect.Param1 = it->AuraInstanceID;
+        roundEffect.Param2 = abilityID;
         _roundEffects.push_back(roundEffect);
 
         pet.Auras.erase(it);
@@ -1440,7 +1468,8 @@ void PetBattle::TickAuras()
                     roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
                     roundEffect.TargetTeam = t;
                     roundEffect.TargetPet = p;
-                    roundEffect.Param1 = aura.AbilityID;
+                    roundEffect.Param1 = aura.AuraInstanceID;
+                    roundEffect.Param2 = aura.AbilityID;
                     _roundEffects.push_back(roundEffect);
 
                     pet.Auras.erase(pet.Auras.begin() + i);
