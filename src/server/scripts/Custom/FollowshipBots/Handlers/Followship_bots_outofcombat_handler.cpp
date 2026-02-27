@@ -119,11 +119,6 @@ namespace FSBOOC
 
         bool check = false;
 
-        if (BotOOCSpawnCompanion(bot))
-        {
-            check = true;
-        }
-
         if (BotOOCActionPlayerAFK(bot, false))
         {
             //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent action player afk", bot->GetName());
@@ -379,6 +374,10 @@ namespace FSBOOC
             return true;
         }
 
+        case FSB_AFK_ACTION_COMPANION:
+            if (BotOOCSpawnCompanion(bot))
+                return true;
+
         default:
             break;
         }
@@ -399,9 +398,6 @@ namespace FSBOOC
         if (companionSpell == 0)
             return false;        
 
-        // 30% chance to even consider doing this
-        if (urand(1, 100) <= SPAWN_COMPANION_CHANCE)
-        {
             int32 timerDiff = urandms(45, 60);
 
             if (FSBCombatUtils::IsOutOfCombatFor(bot, timerDiff) && !botHasCompanion)
@@ -412,7 +408,6 @@ namespace FSBOOC
                 
                 return true;
             }
-        }
 
         return false;
     }
