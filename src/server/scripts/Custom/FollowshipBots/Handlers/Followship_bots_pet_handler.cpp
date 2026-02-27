@@ -66,13 +66,13 @@ namespace FSBPet
         pet->SetGender(GENDER_NONE);
         pet->SetPowerType(POWER_FOCUS);
         pet->SetMaxPower(POWER_FOCUS, 100);
-        pet->SetSheath(SHEATH_STATE_MELEE);
         pet->SetMaxHealth(owner->GetMaxHealth() * 0.75);
         pet->SetFullHealth();
         pet->AIM_Initialize();
 
         PhasingHandler::InheritPhaseShift(pet, owner);
         pet->SetFaction(owner->GetFaction());
+        pet->SetStandState(UNIT_STAND_STATE_STAND);
 
         return true;
     }

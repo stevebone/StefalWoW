@@ -2,6 +2,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_hunter.h"
 #include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
 #include "Followship_bots_paladin.h"
@@ -130,7 +131,7 @@ namespace FSBIC
 
         if (check)
         {
-            FSBChatter::DemandTimedReply(bot, nullptr, emoteReply, FSB_ReplyType::Say);
+            FSBChatter::DemandTimedReply(bot, nullptr, emoteReply, FSB_ReplyType::Say, FSB_ChatterSource::None);
 
             return true;
         }
@@ -190,7 +191,9 @@ namespace FSBIC
             dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE ||
             dmgSpell->def->spellId == SPELL_WARLOCK_HAVOC ||
             dmgSpell->def->spellId == SPELL_ROGUE_BLIND ||
-            dmgSpell->def->spellId == SPELL_PALADIN_REPENTANCE)
+            dmgSpell->def->spellId == SPELL_PALADIN_REPENTANCE ||
+            dmgSpell->def->spellId == SPELL_HUNTER_SCATTER_SHOT ||
+            dmgSpell->def->spellId == SPELL_HUNTER_SCARE_BEAST)
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
         if (dmgSpell && target)

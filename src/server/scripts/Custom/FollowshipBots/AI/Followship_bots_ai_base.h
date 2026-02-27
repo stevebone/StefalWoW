@@ -47,7 +47,7 @@ public:
         botSelfBuffsTimer(0),
         botRandomEventTimer(0),
         botOutOfCombatTimer(0),
-        botOwnerNotMovingTimer(0),
+        botOwnerNotMovingTimer(getMSTime()),
 
         botCorpsePos(),
 
@@ -107,7 +107,19 @@ public:
     {
         FSB_ReplyType replyType;
         std::string chatterString;
-        Unit* unit;   
+        Unit* unit;
+
+        FSBEventPayload()
+            : replyType(FSB_ReplyType::None),
+            chatterString(""),
+            unit(nullptr)
+        {}
+
+        FSBEventPayload(FSB_ReplyType r, std::string c, Unit* u)
+            : replyType(r),
+            chatterString(std::move(c)),
+            unit(u)
+        {}
     };
 
     std::unordered_map<uint32, FSBEventPayload> eventPayloads;

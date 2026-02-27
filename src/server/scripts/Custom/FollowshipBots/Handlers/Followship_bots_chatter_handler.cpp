@@ -710,6 +710,8 @@ namespace FSBChatter
                 if (target)
                     ReplaceAll(line, "{target}", target->GetName());
 
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER GetRandomReply: String {} selected for category {} and chatterType {}", line, category, chatterType);
+
                 return line;
             }
         }
@@ -717,23 +719,25 @@ namespace FSBChatter
         return "";
     }
 
-    void DemandTimedReply(Creature* bot, Unit* target, const std::string& category, FSB_ReplyType replyType)
+    void DemandTimedReply(Creature* bot, Unit* target, const std::string& category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource)
     {
-        if (!bot)
+        if (!bot || !bot->IsAlive())
             return;
 
-        if (!bot->IsAlive() || (target && !target->IsAlive()))
+        if (target && !target->IsAlive())
             return;
 
         FSB_ChatterType type = FSB_ChatterType::None;
 
-        if(target && (target != bot && !target->IsPlayer()))
+        if(target && chatterSource == FSB_ChatterSource::Target)
             type = FSBMgr::Get()->GetBotChatterTypeForEntry(target->GetEntry());
 
-        else if(category == "emote_cooking" || category == "whisper_afk" || category == "emote_talk" || (target && target->IsPlayer()))
+        else if (chatterSource == FSB_ChatterSource::Bot)
             type = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
         std::string replyString = GetRandomReply(bot, target, category, type);
+
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER DemandTimedReply: String {} selected for category {} and chatterType {}", replyString, category, type);
 
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);
 

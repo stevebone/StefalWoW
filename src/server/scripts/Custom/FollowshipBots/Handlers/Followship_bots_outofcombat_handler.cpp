@@ -356,7 +356,7 @@ namespace FSBOOC
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: talk", bot->GetName());
             bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            FSBChatter::DemandTimedReply(bot, nullptr, "emote_talk", FSB_ReplyType::Say);
+            FSBChatter::DemandTimedReply(bot, nullptr, "emote_talk", FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             
             return true;
         }
@@ -367,7 +367,7 @@ namespace FSBOOC
             {
                 TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: whisper", bot->GetName());
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-                FSBChatter::DemandTimedReply(bot, player, "whisper_afk", FSB_ReplyType::Whisper);
+                FSBChatter::DemandTimedReply(bot, player, "whisper_afk", FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
                 return true;
             }
             return false;
@@ -590,7 +590,8 @@ namespace FSBOOC
         {
             if (botSitsByFire || botRandomEvent)
             {
-                bot->SetEmoteState(EMOTE_STATE_NONE);
+                //bot->SetEmoteState(Emote(EMOTE_STATE_NONE));
+                bot->HandleEmoteCommand(EMOTE_ONESHOT_YES);
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
                 botSitsByFire = false;
                 botRandomEvent = false;
@@ -1084,7 +1085,7 @@ namespace FSBOOC
             else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action JOKE: no sound found for race {}", botRace);
 
             if (!randomUnit->IsPlayer())
-                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_joke", FSB_ReplyType::Say);
+                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_joke", FSB_ReplyType::Say, FSB_ChatterSource::Target);
 
             return true;
         }
@@ -1146,7 +1147,7 @@ namespace FSBOOC
                 else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action KISS: no sound found for race {}", botRace);
 
                 if (!randomUnit->IsPlayer())
-                    FSBChatter::DemandTimedReply(bot, randomUnit, "emote_kiss", FSB_ReplyType::Say);
+                    FSBChatter::DemandTimedReply(bot, randomUnit, "emote_kiss", FSB_ReplyType::Say, FSB_ChatterSource::Target);
                 return true;
             }
         }
@@ -1204,7 +1205,7 @@ namespace FSBOOC
             else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action FLIRT: no sound found for race {}", botRace);
 
             if (!randomUnit->IsPlayer())
-                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_flirt", FSB_ReplyType::Say);
+                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_flirt", FSB_ReplyType::Say, FSB_ChatterSource::Target);
 
             return true;
         }
@@ -1236,8 +1237,8 @@ namespace FSBOOC
             // 1. Cast campfire spell
             if (FSBSpells::BotCastSpell(bot, spellId, bot))
             {
-                TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
-                FSBChatter::DemandTimedReply(bot, nullptr, "emote_cooking", FSB_ReplyType::Say);
+                TC_LOG_INFO("scripts.ai.fsb", "FSB RandomEvent started for bot {} with event {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
+                FSBChatter::DemandTimedReply(bot, nullptr, "emote_cooking", FSB_ReplyType::Say, FSB_ChatterSource::Bot);
                 return true;
             }
         }

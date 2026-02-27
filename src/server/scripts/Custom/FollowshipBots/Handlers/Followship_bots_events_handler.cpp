@@ -33,10 +33,7 @@ void FSB_BaseAI::ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Millisec
     auto delay = std::chrono::milliseconds(urand(minTime.count(), maxTime.count()));
 
     // Store payload
-    eventPayloads[eventId] = {
-        replyType,
-        chatterString,
-        target ? target : nullptr };
+    eventPayloads[eventId] = FSBEventPayload(replyType, chatterString, target);
 
 
     // Schedule event normally
@@ -50,15 +47,11 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     if (it != eventPayloads.end())
     {
-        auto& payload = it->second;
+        FSBEventPayload payload = it->second; // copy
         eventPayloads.erase(it);
 
-        // Resolve target
-        Unit* target = nullptr;
-        if (payload.unit)
-            target = payload.unit;
+        Unit* target = payload.unit; // allow nullptr
 
-        // Forward to the new overload
         HandleBotEvent(ai, eventId, payload.replyType, payload.chatterString, target);
         return;
     }
@@ -122,11 +115,19 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_RANDOM_ACTION_MOVE_FIRE:
     {
+        GameObject* go = nullptr;
+
         // check if we need to move to a camp fire (if someone made one already)
-        GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 20.f);
-        GameObject* cookingpot = GetClosestGameObjectWithEntry(bot, 379147, 20.f);
-        GameObject* sausages = GetClosestGameObjectWithEntry(bot, 236110, 20.f);
-        if (!campfire && !cookingpot && !sausages)
+        if(GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 15.f))
+            go = campfire;
+
+        if(GameObject* cookingpot = GetClosestGameObjectWithEntry(bot, 379147, 15.f))
+            go = cookingpot;
+
+        if(GameObject* sausages = GetClosestGameObjectWithEntry(bot, 236110, 15.f))
+            go = sausages;
+
+        if (!go)
             break;
 
         if (ai->botSitsByFire)
@@ -138,35 +139,17 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
             break;
 
-        if (campfire)
+        if (go)
         {
             ai->botSitsByFire = true;
             float offsetx = RAND(-2.f, 2.f);
             float offsety = frand(-2.f, 2.f);
-            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, campfire->GetPositionX() + offsetx, campfire->GetPositionY() + offsety, campfire->GetPositionZ());
+            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, go->GetPositionX() + offsetx, go->GetPositionY() + offsety, go->GetPositionZ());
             botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Event RANDOM_ACTION_MOVE_FIRE for bot {} finished. We found object {} and are moving to sit by", bot->GetName(), go->GetName());
             break;
         }
 
-        else if (cookingpot)
-        {
-            ai->botSitsByFire = true;
-            float offsetx = RAND(-2.f, 2.f);
-            float offsety = frand(-2.f, 2.f);
-            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, cookingpot->GetPositionX() + offsetx, cookingpot->GetPositionY() + offsety, cookingpot->GetPositionZ());
-            botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
-            break;
-        }
-
-        else if (sausages)
-        {
-            ai->botSitsByFire = true;
-            float offsetx = RAND(-2.f, 2.f);
-            float offsety = frand(-2.f, 2.f);
-            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, sausages->GetPositionX() + offsetx, sausages->GetPositionY() + offsety, sausages->GetPositionZ());
-            botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
-            break;
-        }
         break;
     }
 
@@ -198,13 +181,14 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         std::string emote = me->GetName() + " sits by the fire.";
         me->TextEmote(emote);
 
+        if(go)
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Event RANDOM_ACTION_SIT_BY_FIRE for bot {} finished. We found object {} and are sitting down.", bot->GetName(), go->GetName());
+
         break;
     }
 
     case FSB_EVENT_RANDOM_ACTION_FINISH:
     {
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH for bot {}", bot->GetName());
         // cleanup event for random bot actions
         auto& botByFire = ai->botSitsByFire;
         auto& botDoingRandomEvent = ai->botDoingRandomEvent;
@@ -214,7 +198,6 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (!botDoingRandomEvent && !botByFire)
             break;
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot event: RANDOM ACTION FINISH (cleanup) for bot {}", bot->GetName());
         GameObject* campfire = GetClosestGameObjectWithEntry(bot, 266354, 5.f);
         GameObject* cookingpot = GetClosestGameObjectWithEntry(bot, 379147, 5.f);
         GameObject* sausages = GetClosestGameObjectWithEntry(bot, 236110, 5.f);
@@ -233,9 +216,14 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
             bot->SetStandState(UNIT_STAND_STATE_STAND);
 
+        //bot->SetEmoteState(Emote(EMOTE_STATE_NONE));
+        bot->HandleEmoteCommand(EMOTE_ONESHOT_YES);
+
         FSBMovement::ResumeFollow(bot, fDistance, fAngle);
 
         botDoingRandomEvent = false;
+
+        TC_LOG_DEBUG("scripts.fsb.events", "FSB Event RANDOM_ACTION_FINISH for bot {} ended. Cleaning up states and flags", bot->GetName());
 
         break;
     }
@@ -252,12 +240,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
     if (!bot)
         return;
 
-    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB ChatterEvents: we got chatterString: {}", chatterReply);
-
     switch (eventId)
     {
     case FSB_EVENT_HIRED_TIMED_CHATTER_REPLY:
     {
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Events TIMED_CHATTER_REPLY chatterString: {}", chatterReply);
+
         switch (replyType)
         {
         case FSB_ReplyType::Say:

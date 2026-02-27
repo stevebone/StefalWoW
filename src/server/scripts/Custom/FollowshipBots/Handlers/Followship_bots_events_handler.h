@@ -20,5 +20,5 @@ namespace FSBEvents
 {
     // Wrapper for scheduling a bot event directly from Creature*
     void ScheduleBotEvent(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime = std::chrono::milliseconds(0));
-    void ScheduleBotEventWithChatter(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime = std::chrono::milliseconds(0), FSB_ReplyType replyType = FSB_ReplyType::None, std::string chatterReply = "", Unit* target = nullptr);
+    void ScheduleBotEventWithChatter(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime, FSB_ReplyType replyType, std::string chatterReply, Unit* target);
 }
