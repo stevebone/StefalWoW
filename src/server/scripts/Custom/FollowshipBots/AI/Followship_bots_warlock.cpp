@@ -113,6 +113,7 @@ namespace FSBWarlock
             {
                 bot->AddAura(spellId, target);
                 bot->CastSpell(target, visualId, false);
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB Buffs Bot {} buffed {} on target {}.", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), target->GetName());
                 check = true;
             }
         }
@@ -123,6 +124,7 @@ namespace FSBWarlock
             {
                 bot->CastSpell(player, spellId, false);
                 check = true;
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB Buffs Bot {} buffed {} on player {}.", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), player->GetName());
             }
         }
 
@@ -131,11 +133,10 @@ namespace FSBWarlock
             if (!bot->HasAura(spellId))
             {
                 SpellCastResult result = bot->CastSpell(bot, spellId, false);
-                //bot->CastSpell(bot, visualId, false);
                 if (result == SPELL_CAST_OK)
                 {
                     check = true;
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock self SS buff pass");
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB Buffs Bot {} buffed {} on self.", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
                 }
                 else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock self SS buff failed for bot: {} with result: {}", bot->GetName(), result);
             }
