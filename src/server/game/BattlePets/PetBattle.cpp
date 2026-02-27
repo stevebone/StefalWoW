@@ -708,7 +708,32 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                     player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildPet.Species);
                 }
 
-                FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
+                // Check if wild team has more alive, uncaptured pets
+                if (wildTeam.HasAlivePets())
+                {
+                    // Auto-swap to the next alive wild pet and continue battle
+                    int8 nextAlive = wildTeam.GetFirstAlivePetIndex();
+                    if (nextAlive >= 0)
+                    {
+                        TC_LOG_ERROR("server.loading", "PetBattle: Captured wild pet[{}], swapping to next alive wild pet[{}]",
+                            wildTeam.FrontPetIndex, nextAlive);
+                        wildTeam.FrontPetIndex = nextAlive;
+
+                        // Emit PET_SWAP effect so client updates the active wild pet display
+                        PetBattleRoundEffect swapEffect;
+                        swapEffect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
+                        swapEffect.SourceTeam = PET_BATTLE_TEAM_2;
+                        swapEffect.SourcePet = nextAlive;
+                        swapEffect.TargetTeam = PET_BATTLE_TEAM_2;
+                        swapEffect.TargetPet = nextAlive;
+                        _roundEffects.push_back(swapEffect);
+                    }
+                }
+                else
+                {
+                    // All wild pets captured or dead — end the battle
+                    FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
+                }
             }
             else
             {
@@ -1171,6 +1196,40 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
             break;
         }
+        case 8: // Apply buff aura to self (stat modifier, shield, etc.)
+        {
+            int8 auraDuration = static_cast<int8>(effect->Param[2]);
+            if (auraDuration <= 0)
+                auraDuration = 3;
+
+            // basePower represents the stat modifier percentage (e.g., 25 = +25%)
+            int32 modifierValue = std::abs(basePower);
+            if (modifierValue == 0)
+                modifierValue = 25; // Default modifier
+
+            AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
+                PET_BATTLE_AURA_BUFF, auraDuration, modifierValue, attacker.PetType,
+                attackerTeam, attackerPet);
+
+            {
+                PetBattlePetData const& selfPet = _teams[attackerTeam].Pets[attackerPet];
+                PetBattleAura const& newAura = selfPet.Auras.back();
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = newAura.AuraInstanceID;
+                roundEffect.Param2 = abilityID;
+                _roundEffects.push_back(roundEffect);
+            }
+
+            // Recalculate stats immediately so the buff takes effect this round
+            attacker.RecalculateEffectiveStats();
+            break;
+        }
         case 9: // Change max health
         {
             int32 healthChange = static_cast<int32>(basePower);
@@ -1294,6 +1353,15 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
     if (attacker.DragonkinDamageBonus)
         rawDamage *= (1.0f + PASSIVE_DRAGONKIN_DAMAGE_BONUS);
 
+    // State-based damage modifiers (from abilities via effectCategory 3/6)
+    for (auto const& [stateID, stateValue] : attacker.States)
+        if (stateID == BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT && stateValue != 0)
+            rawDamage *= (1.0f + stateValue / 100.0f);
+
+    for (auto const& [stateID, stateValue] : defender.States)
+        if (stateID == BattlePets::STATE_MOD_DAMAGE_TAKEN_PERCENT && stateValue != 0)
+            rawDamage *= (1.0f + stateValue / 100.0f);
+
     // Critical hit check (5% base chance, 1.5x multiplier)
     if (frand(0.0f, 1.0f) < PET_BATTLE_BASE_CRIT_CHANCE)
     {
@@ -1322,6 +1390,11 @@ int32 PetBattle::CalculateAbilityHealing(int32 healPower, int32 attackerPower, P
 
     // Weather healing modifier
     rawHealing *= (1.0f + GetWeatherHealingModifier());
+
+    // State-based healing modifiers
+    for (auto const& [stateID, stateValue] : healer.States)
+        if (stateID == BattlePets::STATE_MOD_HEALING_DEALT_PERCENT && stateValue != 0)
+            rawHealing *= (1.0f + stateValue / 100.0f);
 
     return std::max(1, int32(std::round(rawHealing)));
 }

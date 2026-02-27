@@ -19,6 +19,7 @@
 #define TRINITYCORE_PET_BATTLE_H
 
 #include "PetBattleDefines.h"
+#include "BattlePetMgr.h"
 #include "ObjectGuid.h"
 #include <array>
 #include <vector>
@@ -126,14 +127,35 @@ struct PetBattlePetData
         EffectivePower = Power;
         EffectiveSpeed = Speed;
 
-        for (PetBattleAura const& aura : Auras)
+        // Apply percentage modifiers from pet states (set by abilities via effectCategory 3/6)
+        float powerModPct = 0.0f;
+        float speedModPct = 0.0f;
+        for (auto const& [stateID, stateValue] : States)
         {
-            if (aura.AuraType == PET_BATTLE_AURA_BUFF || aura.AuraType == PET_BATTLE_AURA_DEBUFF)
+            switch (stateID)
             {
-                // Stat modifying auras would adjust EffectivePower/EffectiveSpeed
-                // The actual adjustment is done when applying the aura effect
+                case BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT:
+                    powerModPct += stateValue / 100.0f;
+                    break;
+                case BattlePets::STATE_MOD_SPEED_PERCENT:
+                    speedModPct += stateValue / 100.0f;
+                    break;
+                default:
+                    break;
             }
         }
+
+        // Apply stat modifiers from BUFF/DEBUFF auras
+        for (PetBattleAura const& aura : Auras)
+        {
+            if (aura.AuraType == PET_BATTLE_AURA_BUFF)
+                powerModPct += aura.DamagePerTick / 100.0f;
+            else if (aura.AuraType == PET_BATTLE_AURA_DEBUFF)
+                powerModPct -= aura.DamagePerTick / 100.0f;
+        }
+
+        EffectivePower = int32(EffectivePower * (1.0f + powerModPct));
+        EffectiveSpeed = int32(EffectiveSpeed * (1.0f + speedModPct));
 
         // Flying passive: +50% speed while above 50% HP
         if (PetType == PET_TYPE_FLYING && Health > MaxHealth / 2)
