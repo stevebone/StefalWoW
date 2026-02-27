@@ -25,8 +25,10 @@ REPLACE INTO `criteria` (`ID`, `Type`, `Asset`, `ModifierTreeId`, `StartEvent`, 
 -- TableHash for Achievement = 3538824359 (from Achievement.db2 header)
 -- TableHash for CriteriaTree = 1255424668 (from CriteriaTree.db2 header)
 -- TableHash for Criteria = 4012104832 (from Criteria.db2 header)
--- Status: 3 = inserted record
+-- Status: 1 = valid record (use for records that exist in the base client DB2)
+-- Achievement 7433 exists in the retail client DB2; using status=3 (insert) would
+-- corrupt the client-side entry. CriteriaTree/Criteria may not exist, so use status=3.
 REPLACE INTO `hotfix_data` (`Id`, `UniqueId`, `TableHash`, `RecordId`, `Status`, `VerifiedBuild`) VALUES
-(900001, 900001, 3538824359, 7433, 3, 65727),
+(900001, 900001, 3538824359, 7433, 1, 65727),
 (900002, 900002, 1255424668, 19024, 3, 65727),
 (900003, 900003, 4012104832, 21704, 3, 65727);

@@ -42,9 +42,39 @@ void WorldSession::HandleBattlePetRequestJournalLock(WorldPackets::BattlePet::Ba
 
 void WorldSession::HandleBattlePetSetBattleSlot(WorldPackets::BattlePet::BattlePetSetBattleSlot& battlePetSetBattleSlot)
 {
-    if (BattlePets::BattlePet* pet = GetBattlePetMgr()->GetPet(battlePetSetBattleSlot.PetGuid))
-        if (WorldPackets::BattlePet::BattlePetSlot* slot = GetBattlePetMgr()->GetSlot(BattlePets::BattlePetSlot(battlePetSetBattleSlot.Slot)))
-            slot->Pet = pet->PacketInfo;
+    BattlePets::BattlePetMgr* petMgr = GetBattlePetMgr();
+
+    BattlePets::BattlePet* pet = petMgr->GetPet(battlePetSetBattleSlot.PetGuid);
+    if (!pet)
+        return;
+
+    WorldPackets::BattlePet::BattlePetSlot* targetSlot = petMgr->GetSlot(BattlePets::BattlePetSlot(battlePetSetBattleSlot.Slot));
+    if (!targetSlot || targetSlot->Locked)
+        return;
+
+    // Find which slot this pet currently occupies (if any)
+    WorldPackets::BattlePet::BattlePetSlot* sourceSlot = nullptr;
+    for (uint8 i = 0; i < uint8(BattlePets::BattlePetSlot::Count); ++i)
+    {
+        WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(BattlePets::BattlePetSlot(i));
+        if (slot && slot->Pet.Guid == battlePetSetBattleSlot.PetGuid)
+        {
+            sourceSlot = slot;
+            break;
+        }
+    }
+
+    if (sourceSlot == targetSlot)
+        return; // Already in that slot
+
+    // Swap: move whatever is in the target slot to the source slot
+    if (sourceSlot)
+    {
+        sourceSlot->Pet = targetSlot->Pet;
+    }
+
+    // Place the pet in the target slot
+    targetSlot->Pet = pet->PacketInfo;
 }
 
 void WorldSession::HandleBattlePetModifyName(WorldPackets::BattlePet::BattlePetModifyName& battlePetModifyName)
@@ -201,6 +231,18 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
             petInfo.Abilities.push_back(ability);
         }
 
+        // Populate auras currently active on this pet
+        for (PetBattles::PetBattleAura const& aura : petData.Auras)
+        {
+            WorldPackets::BattlePet::PetBattleAuraInfo auraInfo;
+            auraInfo.AbilityID = aura.AbilityID;
+            auraInfo.InstanceID = aura.AuraInstanceID;
+            auraInfo.RoundsRemaining = aura.RemainingRounds;
+            auraInfo.CurrentRound = aura.CurrentRound;
+            auraInfo.CasterPBOID = aura.CasterTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + aura.CasterPet;
+            petInfo.Auras.push_back(auraInfo);
+        }
+
         // Populate States with base breed+species stats from DB2 (retail format)
         petInfo.States.push_back({ BattlePets::STATE_STAT_POWER, petData.BasePower });
         petInfo.States.push_back({ BattlePets::STATE_STAT_STAMINA, petData.BaseStamina });
@@ -293,12 +335,34 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
             case PetBattles::PET_BATTLE_EFFECT_AURA_APPLY:
             case PetBattles::PET_BATTLE_EFFECT_AURA_CANCEL:
             case PetBattles::PET_BATTLE_EFFECT_AURA_CHANGE:
-                target.Type = 1; // Aura
+            {
+                target.Type = 1; // Aura: 4 params
                 target.Params.push_back(roundEffect.Param1); // AuraInstanceID
                 target.Params.push_back(roundEffect.Param2); // AuraAbilityID
-                target.Params.push_back(0);                   // RoundsRemaining
-                target.Params.push_back(0);                   // CurrentRound
+
+                // Look up remaining rounds from the live aura on the target pet
+                int32 roundsRemaining = 0;
+                int32 currentRound = 0;
+                if (roundEffect.EffectType != PetBattles::PET_BATTLE_EFFECT_AURA_CANCEL)
+                {
+                    PetBattles::PetBattleTeamData const& targetTeam = battle->GetTeam(roundEffect.TargetTeam);
+                    if (roundEffect.TargetPet < targetTeam.PetCount)
+                    {
+                        for (PetBattles::PetBattleAura const& aura : targetTeam.Pets[roundEffect.TargetPet].Auras)
+                        {
+                            if (aura.AuraInstanceID == static_cast<uint32>(roundEffect.Param1))
+                            {
+                                roundsRemaining = aura.RemainingRounds;
+                                currentRound = aura.CurrentRound;
+                                break;
+                            }
+                        }
+                    }
+                }
+                target.Params.push_back(roundsRemaining);
+                target.Params.push_back(currentRound);
                 break;
+            }
             case PetBattles::PET_BATTLE_EFFECT_SET_STATE:
                 target.Type = 2; // State
                 target.Params.push_back(roundEffect.Param1); // StateID
