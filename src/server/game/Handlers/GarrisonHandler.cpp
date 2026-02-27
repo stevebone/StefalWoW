@@ -36,7 +36,19 @@ void WorldSession::HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo
     for (auto const& [type, garrison] : _player->GetGarrisons())
         garrison->BuildInfoPacket(garrisonInfo.Garrisons.emplace_back());
 
+    garrisonInfo.FollowerSoftCaps = {
+        { FOLLOWER_TYPE_GARRISON,   20 },
+        { FOLLOWER_TYPE_SHIPYARD,   6 },
+        { FOLLOWER_TYPE_CLASS_ORDER, 6 },
+        { FOLLOWER_TYPE_DELVES,     30 },
+        { FOLLOWER_TYPE_COVENANT,   100 }
+    };
+
     SendPacket(garrisonInfo.Write());
+
+    // Follow up with per-garrison mission start condition updates
+    for (auto const& [type, garrison] : _player->GetGarrisons())
+        garrison->SendMissionStartConditionUpdate();
 }
 
 void WorldSession::HandleGarrisonPurchaseBuilding(WorldPackets::Garrison::GarrisonPurchaseBuilding& garrisonPurchaseBuilding)
@@ -59,7 +71,7 @@ void WorldSession::HandleGarrisonCancelConstruction(WorldPackets::Garrison::Garr
 
 void WorldSession::HandleGarrisonRequestBlueprintAndSpecializationData(WorldPackets::Garrison::GarrisonRequestBlueprintAndSpecializationData& /*garrisonRequestBlueprintAndSpecializationData*/)
 {
-    if (Garrison* garrison = _player->GetGarrison())
+    for (auto const& [type, garrison] : _player->GetGarrisons())
         garrison->SendBlueprintAndSpecializationData();
 }
 
@@ -388,9 +400,9 @@ void WorldSession::HandleUpgradeGarrison(WorldPackets::Garrison::UpgradeGarrison
     SendPacket(result.Write());
 }
 
-void WorldSession::HandleGarrisonCheckUpgradeable(WorldPackets::Garrison::GarrisonCheckUpgradeable& /*garrisonCheckUpgradeable*/)
+void WorldSession::HandleGarrisonCheckUpgradeable(WorldPackets::Garrison::GarrisonCheckUpgradeable& garrisonCheckUpgradeable)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(garrisonCheckUpgradeable.GarrTypeID));
     GarrisonError upgradeResult = GARRISON_ERROR_UPGRADE_CONDITION_FAILED;
 
     if (garrison)

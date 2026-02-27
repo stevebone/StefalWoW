@@ -689,7 +689,18 @@ void Garrison::PlaceBuilding(uint32 garrPlotInstanceId, uint32 garrBuildingId)
         {
             oldBuildingId = plot->BuildingInfo.PacketInfo->GarrBuildingID;
             if (sGarrBuildingStore.AssertEntry(oldBuildingId)->BuildingType != building->BuildingType)
+            {
+                // Send BuildingRemoved BEFORE ClearBuildingInfo (which sends PlotRemoved)
+                // so the client processes removal in the correct order
+                WorldPackets::Garrison::GarrisonBuildingRemoved buildingRemoved;
+                buildingRemoved.GarrTypeID = GetType();
+                buildingRemoved.Result = GARRISON_SUCCESS;
+                buildingRemoved.GarrPlotInstanceID = garrPlotInstanceId;
+                buildingRemoved.GarrBuildingID = oldBuildingId;
+                _owner->SendDirectMessage(buildingRemoved.Write());
+
                 plot->ClearBuildingInfo(GetType(), _owner);
+            }
         }
 
         plot->SetBuildingInfo(placeBuildingResult.BuildingInfo, _owner);
@@ -702,12 +713,17 @@ void Garrison::PlaceBuilding(uint32 garrPlotInstanceId, uint32 garrBuildingId)
 
         if (oldBuildingId)
         {
-            WorldPackets::Garrison::GarrisonBuildingRemoved buildingRemoved;
-            buildingRemoved.GarrTypeID = GetType();
-            buildingRemoved.Result = GARRISON_SUCCESS;
-            buildingRemoved.GarrPlotInstanceID = garrPlotInstanceId;
-            buildingRemoved.GarrBuildingID = oldBuildingId;
-            _owner->SendDirectMessage(buildingRemoved.Write());
+            GarrBuildingEntry const* oldBuilding = sGarrBuildingStore.AssertEntry(oldBuildingId);
+            // Same-type upgrade: BuildingRemoved wasn't sent above, send it now
+            if (oldBuilding->BuildingType == building->BuildingType)
+            {
+                WorldPackets::Garrison::GarrisonBuildingRemoved buildingRemoved;
+                buildingRemoved.GarrTypeID = GetType();
+                buildingRemoved.Result = GARRISON_SUCCESS;
+                buildingRemoved.GarrPlotInstanceID = garrPlotInstanceId;
+                buildingRemoved.GarrBuildingID = oldBuildingId;
+                _owner->SendDirectMessage(buildingRemoved.Write());
+            }
         }
 
         _owner->UpdateCriteria(CriteriaType::PlaceGarrisonBuilding, garrBuildingId);
@@ -1028,11 +1044,22 @@ void Garrison::BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) c
     for (auto const& p : _followers)
         garrison.Followers.push_back(&p.second.PacketInfo);
 
+    // Missions: inline Encounters/Rewards/OvermaxRewards must be empty in the
+    // GarrisonInfo mission structs — the rewards go ONLY in the garrison-level
+    // parallel arrays.  The client reads both, so writing them in both places
+    // causes a packet desync (double data).  We build temporary copies with
+    // the inline vectors cleared.
+    _infoMissions.clear();
+    _infoMissions.reserve(_missions.size());
     for (auto const& p : _missions)
     {
-        garrison.Missions.push_back(&p.second.PacketInfo);
-        garrison.MissionRewards.push_back(p.second.PacketInfo.Rewards);
-        garrison.MissionOvermaxRewards.push_back(p.second.PacketInfo.OvermaxRewards);
+        auto& copy = _infoMissions.emplace_back(p.second.PacketInfo);
+        garrison.MissionRewards.push_back(copy.Rewards);
+        garrison.MissionOvermaxRewards.push_back(copy.OvermaxRewards);
+        copy.Encounters.clear();
+        copy.Rewards.clear();
+        copy.OvermaxRewards.clear();
+        garrison.Missions.push_back(&copy);
         garrison.CanStartMission.push_back(p.second.PacketInfo.MissionState == 0);
     }
 
@@ -1095,6 +1122,21 @@ void Garrison::SendMapData(Player* receiver) const
     }
 
     receiver->SendDirectMessage(mapData.Write());
+}
+
+void Garrison::SendMissionStartConditionUpdate() const
+{
+    WorldPackets::Garrison::GarrisonMissionStartConditionUpdate update;
+    update.MissionRecIDs.reserve(_missions.size());
+    update.CanStartMission.reserve(_missions.size());
+
+    for (auto const& [dbId, mission] : _missions)
+    {
+        update.MissionRecIDs.push_back(mission.PacketInfo.MissionRecID);
+        update.CanStartMission.push_back(mission.PacketInfo.MissionState == 0);
+    }
+
+    _owner->SendDirectMessage(update.Write());
 }
 
 // ============================================================
@@ -2441,10 +2483,9 @@ void Garrison::SetFollowerQuality(uint64 dbId, uint32 quality)
             quality, GetFaction(), false);
     }
 
-    WorldPackets::Garrison::GarrisonUpdateFollower updateFollower;
-    updateFollower.Result = GARRISON_SUCCESS;
-    updateFollower.Follower = follower->PacketInfo;
-    _owner->SendDirectMessage(updateFollower.Write());
+    WorldPackets::Garrison::GarrisonFollowerChangedQuality changedQuality;
+    changedQuality.Follower = follower->PacketInfo;
+    _owner->SendDirectMessage(changedQuality.Write());
 }
 
 void Garrison::SetFollowerLevel(uint64 dbId, uint32 level)

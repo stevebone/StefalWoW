@@ -63,6 +63,7 @@ enum GarrisonFollowerType
     FOLLOWER_TYPE_SHIPYARD      = 2,
     FOLLOWER_TYPE_CLASS_ORDER   = 4,
     FOLLOWER_TYPE_WAR_CAMPAIGN  = 11,
+    FOLLOWER_TYPE_DELVES        = 22,
     FOLLOWER_TYPE_COVENANT      = 123
 };
 
@@ -386,6 +387,7 @@ public:
     void SendRemoteInfo() const;
     void SendBlueprintAndSpecializationData();
     void SendMapData(Player* receiver) const;
+    void SendMissionStartConditionUpdate() const;
 
     void ResetFollowerActivationLimit() { _followerActivationsRemainingToday = 1; }
 
@@ -423,6 +425,9 @@ private:
 
     // Trophies
     std::unordered_set<uint32 /*trophyID*/> _trophies;
+
+    // Temporary storage for BuildInfoPacket (mission copies with cleared inline rewards)
+    mutable std::vector<WorldPackets::Garrison::GarrisonMission> _infoMissions;
 };
 
 #endif // Garrison_h__

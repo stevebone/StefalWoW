@@ -492,18 +492,17 @@ void GarrisonStartMission::Read()
 {
     _worldPacket >> NpcGUID;
     uint32 followerCount = 0;
-    uint32 bonusAbilityCount = 0;
     _worldPacket >> followerCount;
     _worldPacket >> MissionRecID;
-    _worldPacket >> bonusAbilityCount;
 
     FollowerDBIDs.resize(followerCount);
     for (uint32 i = 0; i < followerCount; ++i)
+    {
         _worldPacket >> FollowerDBIDs[i];
-
-    MissionBonusAbilityIDs.resize(bonusAbilityCount);
-    for (uint32 i = 0; i < bonusAbilityCount; ++i)
-        _worldPacket >> MissionBonusAbilityIDs[i];
+        _worldPacket.read_skip<int32>();  // BoardIndex (unused, always -1)
+        _worldPacket.read_skip<int32>();  // Health (unused, always 0)
+        _worldPacket.read_skip<uint8>();  // HasFollowerEntry (unused, always false)
+    }
 }
 
 void GarrisonCompleteMission::Read()
@@ -591,6 +590,24 @@ WorldPacket const* GarrisonDeleteMissionResult::Write()
     _worldPacket << uint32(Result);
     _worldPacket << uint32(MissionRecID);
     _worldPacket << uint8(GarrTypeID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonMissionStartConditionUpdate::Write()
+{
+    ASSERT(MissionRecIDs.size() == CanStartMission.size());
+
+    _worldPacket << Size<uint32>(MissionRecIDs);
+    _worldPacket << Size<uint32>(CanStartMission);
+
+    if (!MissionRecIDs.empty())
+        _worldPacket.append(MissionRecIDs.data(), MissionRecIDs.size());
+
+    for (bool canStart : CanStartMission)
+        _worldPacket << Bits<1>(canStart);
+
+    _worldPacket.FlushBits();
 
     return &_worldPacket;
 }
@@ -739,6 +756,13 @@ WorldPacket const* GarrisonFollowerChangedXP::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* GarrisonFollowerChangedQuality::Write()
+{
+    _worldPacket << Follower;
+
+    return &_worldPacket;
+}
+
 WorldPacket const* GarrisonUpdateFollower::Write()
 {
     _worldPacket << uint32(Result);
@@ -810,6 +834,11 @@ WorldPacket const* GarrisonFollowerActivationsSet::Write()
 void UpgradeGarrison::Read()
 {
     _worldPacket >> NpcGUID;
+}
+
+void GarrisonCheckUpgradeable::Read()
+{
+    _worldPacket >> GarrTypeID;
 }
 
 void GarrisonSetBuildingActive::Read()

@@ -452,7 +452,6 @@ namespace WorldPackets
             ObjectGuid NpcGUID;
             std::vector<uint64> FollowerDBIDs;
             uint32 MissionRecID = 0;
-            std::vector<uint64> MissionBonusAbilityIDs;
         };
 
         class GarrisonCompleteMission final : public ClientPacket
@@ -555,6 +554,17 @@ namespace WorldPackets
             uint32 Result = 0;
             uint32 MissionRecID = 0;
             uint8 GarrTypeID = 0;
+        };
+
+        class GarrisonMissionStartConditionUpdate final : public ServerPacket
+        {
+        public:
+            explicit GarrisonMissionStartConditionUpdate() : ServerPacket(SMSG_GARRISON_MISSION_START_CONDITION_UPDATE) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<int32> MissionRecIDs;
+            std::vector<bool> CanStartMission;
         };
 
         class GarrisonIsUpgradeableResponse final : public ServerPacket
@@ -779,6 +789,16 @@ namespace WorldPackets
             GarrisonFollower Follower;
         };
 
+        class GarrisonFollowerChangedQuality final : public ServerPacket
+        {
+        public:
+            explicit GarrisonFollowerChangedQuality() : ServerPacket(SMSG_GARRISON_FOLLOWER_CHANGED_QUALITY) { }
+
+            WorldPacket const* Write() override;
+
+            GarrisonFollower Follower;
+        };
+
         class GarrisonUpdateFollower final : public ServerPacket
         {
         public:
@@ -863,7 +883,9 @@ namespace WorldPackets
         public:
             explicit GarrisonCheckUpgradeable(WorldPacket&& packet) : ClientPacket(CMSG_GARRISON_CHECK_UPGRADEABLE, std::move(packet)) { }
 
-            void Read() override { }
+            void Read() override;
+
+            uint32 GarrTypeID = 0;
         };
 
         class GarrisonSetBuildingActive final : public ClientPacket
