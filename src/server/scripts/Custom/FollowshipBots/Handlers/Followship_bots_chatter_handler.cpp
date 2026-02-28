@@ -7,7 +7,7 @@
 std::vector<FSBChatterReplyEntry> FSBReplyTable =
 {
     {
-        "emote_kiss", FSB_ChatterType::Neutral,
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Neutral,
         {
             "Oh. thank you, I guess?",
             "What was that for?",
@@ -38,7 +38,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_kiss", FSB_ChatterType::Positive,
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Positive,
         {
             "Oh. thank you, That is so sweet...",
             "For me? Ah thank you!",
@@ -69,7 +69,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_kiss", FSB_ChatterType::Negative,
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Negative,
         {
             "Oh. no thanks...",
             "Can you please, just... not do that?",
@@ -100,7 +100,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_kiss", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::None,
         {
             "{bot} blows a kiss to {target}.",
             "{bot} sends a warm kiss toward {target}.",
@@ -109,7 +109,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-    "emote_whistle", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None,
         {
             "{bot} whistles idly.",
             "{bot} lets out a long, bored whistle.",
@@ -125,7 +125,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_flirt", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::None,
         {
             "{bot} gives {target} a playful wink.",
             "{bot} flashes {target} a charming smile.",
@@ -141,7 +141,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_flirt", FSB_ChatterType::Neutral,
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Neutral,
         {
             "Oh. was that supposed to be flirting?",
             "Interesting approach, {bot}. Not sure what to make of it.",
@@ -167,7 +167,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_flirt", FSB_ChatterType::Positive,
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Positive,
         {
             "Oh? Someone's feeling bold today.",
             "Well now. aren't you charming.",
@@ -193,98 +193,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-    "emote_joke", FSB_ChatterType::None,
-        {
-            "{bot} tells a joke.",
-            "{bot} tells a funny quote.",
-            "{bot} whispers a small joke.",
-            "{bot} makes a funny face and jokes.",
-            "{bot} tells a joke to themselves.",
-            "{bot} tells a funny story.",
-            "{bot} recollects a funny event."
-        }
-    },
-
-    {
-        "emote_joke", FSB_ChatterType::Neutral,
-        {
-            "Huh. I think I get it.",
-            "Was that the whole joke {bot}?",
-            "Interesting sense of humor you've got there.",
-            "I'll pretend that was funny {bot}.",
-            "Not bad. {bot} not great. just there.",
-            "I'm not sure how to react to that.",
-            "That was. something.",
-            "I think I've heard that one before.",
-            "I'll give you points for trying.",
-            "I guess that counts as a joke.",
-            "I'm processing. still processing.",
-            "That one flew right past me.",
-            "I'm not sure if I should laugh or sigh.",
-            "I'll allow it.",
-            "That joke existed. That's all I can say.",
-            "I'll give you a polite nod for that one.",
-            "I'm neutral on this. Very neutral.",
-            "I'll file that under 'attempted humor'.",
-            "I didn't hate it. Didn't love it either.",
-            "Well. {bot} that was a joke, technically."
-        }
-    },
-
-    {
-        "emote_joke", FSB_ChatterType::Positive,
-        {
-            "Haha! Okay, that one was actually good {bot}.",
-            "You got me {bot} - that was funny!",
-            "Oh wow, I wasn't expecting that!",
-            "You're funnier than you look, {bot}.",
-            "That one made me smile.",
-            "Keep them coming, I like your humor.",
-            "Haha! Nice one!",
-            "You're on a roll today!",
-            "I needed that laugh {bot}, thanks.",
-            "You've got a real talent for this.",
-            "That joke was surprisingly good!",
-            "I'll be laughing about that one later.",
-            "You always know how to lighten the mood.",
-            "That was adorable and funny.",
-            "You're actually hilarious sometimes.",
-            "I love your sense of humor.",
-            "That one hit just right.",
-            "You're making this adventure way more fun.",
-            "Okay {bot}, that was genuinely great.",
-            "You should tell more jokes like that."
-        }
-    },
-
-    {
-        "emote_joke", FSB_ChatterType::Negative,
-        {
-            "That joke hurt me on a spiritual level.",
-            "Please never say that again {bot}.",
-            "I think my soul just died a little.",
-            "Was that supposed to be funny?",
-            "I've heard murlocs make better jokes.",
-            "{bot} That joke was a crime.",
-            "I'm reporting you to the humor authorities.",
-            "I'd laugh, but I respect myself too much.",
-            "That was so bad it looped back to worse.",
-            "You should be banned from telling jokes.",
-            "I want the last ten seconds of my life back.",
-            "If that was humor, I fear for your future.",
-            "I've seen kobolds with better material.",
-            "That joke physically pained me.",
-            "Congratulations, you made silence awkward.",
-            "I'm embarrassed for both of us {bot}.",
-            "That joke belongs in a dungeon. A deep one.",
-            "Please stop {bot}. For both our sakes.",
-            "I'd laugh, but I don't want to encourage you.",
-            "That was the worst thing I've heard all day."
-        }
-    },
-
-    {
-        "emote_flirt", FSB_ChatterType::Negative,
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Negative,
         {
             "Oh no. don't start with that.",
             "Please don't flirt with me. Seriously {bot}.",
@@ -310,7 +219,98 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "whisper_afk", FSB_ChatterType::Neutral,
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::None,
+        {
+            "{bot} tells a joke.",
+            "{bot} tells a funny quote.",
+            "{bot} whispers a small joke.",
+            "{bot} makes a funny face and jokes.",
+            "{bot} tells a joke to themselves.",
+            "{bot} tells a funny story.",
+            "{bot} recollects a funny event."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Neutral,
+        {
+            "Huh. I think I get it.",
+            "Was that the whole joke {bot}?",
+            "Interesting sense of humor you've got there.",
+            "I'll pretend that was funny {bot}.",
+            "Not bad. {bot} not great. just there.",
+            "I'm not sure how to react to that.",
+            "That was. something.",
+            "I think I've heard that one before.",
+            "I'll give you points for trying.",
+            "I guess that counts as a joke.",
+            "I'm processing. still processing.",
+            "That one flew right past me.",
+            "I'm not sure if I should laugh or sigh.",
+            "I'll allow it.",
+            "That joke existed. That's all I can say.",
+            "I'll give you a polite nod for that one.",
+            "I'm neutral on this. Very neutral.",
+            "I'll file that under 'attempted humor'.",
+            "I didn't hate it. Didn't love it either.",
+            "Well. {bot} that was a joke, technically."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Positive,
+        {
+            "Haha! Okay, that one was actually good {bot}.",
+            "You got me {bot} - that was funny!",
+            "Oh wow, I wasn't expecting that!",
+            "You're funnier than you look, {bot}.",
+            "That one made me smile.",
+            "Keep them coming, I like your humor.",
+            "Haha! Nice one!",
+            "You're on a roll today!",
+            "I needed that laugh {bot}, thanks.",
+            "You've got a real talent for this.",
+            "That joke was surprisingly good!",
+            "I'll be laughing about that one later.",
+            "You always know how to lighten the mood.",
+            "That was adorable and funny.",
+            "You're actually hilarious sometimes.",
+            "I love your sense of humor.",
+            "That one hit just right.",
+            "You're making this adventure way more fun.",
+            "Okay {bot}, that was genuinely great.",
+            "You should tell more jokes like that."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Negative,
+        {
+            "That joke hurt me on a spiritual level.",
+            "Please never say that again {bot}.",
+            "I think my soul just died a little.",
+            "Was that supposed to be funny?",
+            "I've heard murlocs make better jokes.",
+            "{bot} That joke was a crime.",
+            "I'm reporting you to the humor authorities.",
+            "I'd laugh, but I respect myself too much.",
+            "That was so bad it looped back to worse.",
+            "You should be banned from telling jokes.",
+            "I want the last ten seconds of my life back.",
+            "If that was humor, I fear for your future.",
+            "I've seen kobolds with better material.",
+            "That joke physically pained me.",
+            "Congratulations, you made silence awkward.",
+            "I'm embarrassed for both of us {bot}.",
+            "That joke belongs in a dungeon. A deep one.",
+            "Please stop {bot}. For both our sakes.",
+            "I'd laugh, but I don't want to encourage you.",
+            "That was the worst thing I've heard all day."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Neutral,
         {
             "Are we ready to move on?",
             "{target}, ready to go when you are...",
@@ -336,7 +336,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "whisper_afk", FSB_ChatterType::Positive,
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Positive,
         {
             "Take your time, {target}. I've got your back.",
             "No worries at all - I'll wait right here.",
@@ -362,7 +362,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "whisper_afk", FSB_ChatterType::Negative,
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Negative,
         {
             "Seriously, {target}? How long is this going to take?",
             "Did you fall asleep over there?",
@@ -389,7 +389,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
 
 
     {
-        "emote_talk", FSB_ChatterType::Neutral,
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Neutral,
         {
             "So. how long are we gonna be here?",
             "I'd really rather be somewhere else right now.",
@@ -425,7 +425,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_talk", FSB_ChatterType::Negative,
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Negative,
         {
             "Some days. it's hard to keep going.",
             "I don't even know why I'm still doing this.",
@@ -461,7 +461,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_talk", FSB_ChatterType::Positive,
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Positive,
         {
             "What a great day for an adventure!",
             "I can't wait to see what's around the next corner.",
@@ -497,7 +497,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-    "emote_sleep", FSB_ChatterType::None,
+    FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None,
         {
             "{bot} yawns loudly.",
             "{bot} lays down for a nap.",
@@ -510,7 +510,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_sigh", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_sigh, FSB_ChatterType::None,
         {
             "{bot} lets out a long, weary sigh.",
             "{bot} sighs softly, looking a bit drained.",
@@ -526,7 +526,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_cooking", FSB_ChatterType::Neutral,
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Neutral,
         {
             "Alright. fire's going. Do what you want with it.",
             "Cooking time, I guess.",
@@ -552,7 +552,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_cooking", FSB_ChatterType::Positive,
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Positive,
         {
             "Fire's ready! Who's hungry?",
             "Perfect! Let's cook something delicious!",
@@ -578,7 +578,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_cooking", FSB_ChatterType::Negative,
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Negative,
         {
             "There. Fire's lit. Try not to ruin it.",
             "Fine. I'll cook. Again.",
@@ -604,7 +604,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_oom", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_oom, FSB_ChatterType::None,
         {
             "I'm out of mana!",
             "No mana left - I need a moment!",
@@ -630,7 +630,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_help", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_help, FSB_ChatterType::None,
         {
             "I need help over here!",
             "Someone get this thing off me!",
@@ -656,7 +656,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "emote_heal", FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_heal, FSB_ChatterType::None,
         {
             "I need healing!",
             "I'm not gonna last much longer!",
@@ -682,7 +682,7 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        "targetKilled", FSB_ChatterType::None,
+        FSB_ChatterCategory::targetKilled, FSB_ChatterType::None,
         {
             "Another one down. You're welcome, {player}.",
             "Rest in pieces, {target}.",
@@ -736,11 +736,47 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "One less {target} to worry about. Easy.",
         }
     },
+
+    {
+        FSB_ChatterCategory::botDismissed, FSB_ChatterType::None,
+        {
+            "Time's up. Coin's spent. I'm off - good luck out there.",
+            "That's it, {player}. Contract fulfilled. Try not to die without me.",
+            "Well, that was a few hours of my life I'll never get back. Farewell.",
+            "My watch is over. If you need me again, bring more coin.",
+            "Alright, {player}, that's my cue. Duty done, boots moving.",
+            "The gold's gone and so am I. Fair deal.",
+            "Contract's finished. I suggest you find another friend. quickly.",
+            "That's enough adventuring for one pay period. I'm out.",
+            "No hard feelings, {player}. Business is business.",
+            "Well, this is where I leave you. Try not to pull anything too big next time.",
+            "Our deal's done, {player}. Try not to get into trouble five minutes after I leave.",
+            "Contract complete. I'll be around. assuming your coin purse recovers.",
+            "That's my shift over. You're on your own from here, {player}.",
+            "Alright, that's all you paid for. Don't spend it all in one dungeon.",
+            "Duty fulfilled. I'll consider returning if the pay improves.",
+            "My time's up. You've been. tolerable, {player}.",
+            "That concludes our arrangement. Walk safe out there.",
+            "I'm heading out. If you need me again, you know the price.",
+            "Our business is concluded. Try not to summon me for nonsense next time.",
+            "That's the end of the contract. I'll see myself out.",
+            "Well, {player}, it's been real. And by real, I mean adequately compensated.",
+            "My services are officially rendered. Good luck surviving the next hour.",
+            "We're square. Don't get yourself killed before I'm hired again.",
+            "That's all from me. If danger shows up, pretend I'm still here.",
+            "Contract expired. I'm off to find a softer job. or better pay.",
+            "Alright, {player}, I'm clocking out. Try not to miss me too much.",
+            "Our deal's wrapped up. I'll be around if your wallet gets heavier.",
+            "That's my last task done. You're free to panic now, {player}.",
+            "Time's up. I'm leaving before you find more trouble.",
+            "We're done here. Don't worry, {player}-I'll remember the good parts."
+        }
+    },
 };
 
 namespace FSBChatter
 {
-    std::string GetRandomReply(Creature* bot, Unit* target, const std::string& category, FSB_ChatterType chatterType)
+    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType)
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
@@ -775,7 +811,7 @@ namespace FSBChatter
         return "";
     }
 
-    void DemandTimedReply(Creature* bot, Unit* target, const std::string& category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource)
+    void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource)
     {
         if (!bot || !bot->IsAlive())
             return;
@@ -800,31 +836,31 @@ namespace FSBChatter
         // we use a dummy timed event to make the target bot do a delayed emote
         // at the same time they are also replying to the initial bot
         // example: target laughing at the bot joke
-        if (category == "emote_joke" && type == FSB_ChatterType::Positive)
+        if (category == FSB_ChatterCategory::emote_joke && type == FSB_ChatterType::Positive)
         {
             replyString = "emote:laugh";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
         }
 
-        else if ((category == "emote_flirt" || category == "emote_kiss") && type == FSB_ChatterType::Negative)
+        else if ((category == FSB_ChatterCategory::emote_flirt || category == FSB_ChatterCategory::emote_kiss) && type == FSB_ChatterType::Negative)
         {
             replyString = "emote:rudeno";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
         }
 
-        else if (category == "emote_oom" && type == FSB_ChatterType::None)
+        else if (category == FSB_ChatterCategory::emote_oom && type == FSB_ChatterType::None)
         {
             replyString = "emote:oom";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
         }
 
-        else if (category == "emote_heal" && type == FSB_ChatterType::None)
+        else if (category == FSB_ChatterCategory::emote_heal && type == FSB_ChatterType::None)
         {
             replyString = "emote:heal";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
         }
 
-        else if (category == "emote_help" && type == FSB_ChatterType::None)
+        else if (category == FSB_ChatterCategory::emote_help && type == FSB_ChatterType::None)
         {
             replyString = "emote:help";
             FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
@@ -839,7 +875,7 @@ namespace FSBChatter
         if (urand(0, 99) > FollowshipBotsConfig::configFSBChatterRate)
             return;
 
-        std::string chatter = GetRandomReply(bot, victim, "targetKilled", FSB_ChatterType::None);
+        std::string chatter = GetRandomReply(bot, victim, FSB_ChatterCategory::targetKilled, FSB_ChatterType::None);
         if (!chatter.empty())
             bot->Say(chatter, LANG_UNIVERSAL);
     }

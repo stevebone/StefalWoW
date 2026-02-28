@@ -4,6 +4,7 @@
 #include "PhasingHandler.h"
 #include "CharmInfo.h"
 
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_stats_handler.h"
 
 FSBMgr* FSBMgr::Get()
@@ -417,8 +418,8 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     bot->GetMotionMaster()->Clear();
     if (player)
     {
-        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
-        bot->Say(msg, LANG_UNIVERSAL);
+        std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, FSB_ChatterType::None);
+        bot->Say(chatter, LANG_UNIVERSAL);
     }
 
     RemovePersistentBot(playerGuidLow, botEntry);

@@ -97,7 +97,7 @@ namespace FSBIC
         auto& botVeryLowHealth = baseAI->botAnnouncedVeryLowHealth;
 
         TextEmotes tEmote = TEXT_EMOTE_AGREE;
-        std::string emoteReply = "";
+        FSB_ChatterCategory emoteReply = FSB_ChatterCategory::chatter_none;
 
         bool check = false;
 
@@ -107,7 +107,7 @@ namespace FSBIC
             {
                 tEmote = TEXT_EMOTE_OOM;
                 botLowMana = true;
-                emoteReply = "emote_oom";
+                emoteReply = FSB_ChatterCategory::emote_oom;
                 check = true;
             }
         }
@@ -116,7 +116,7 @@ namespace FSBIC
         {
             tEmote = TEXT_EMOTE_HELPME;
             botLowHealth = true;
-            emoteReply = "emote_help";
+            emoteReply = FSB_ChatterCategory::emote_help;
             check = true;
         }
 
@@ -125,7 +125,7 @@ namespace FSBIC
             tEmote = TEXT_EMOTE_HEALME;
             botLowHealth = true;
             botVeryLowHealth = true;
-            emoteReply = "emote_heal";
+            emoteReply = FSB_ChatterCategory::emote_heal;
             check = true;
         }
 

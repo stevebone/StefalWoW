@@ -295,7 +295,7 @@ namespace FSBOOC
             }
 
             // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, nullptr, "emote_whistle", FSB_ChatterType::None);
+            std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None);
             if (!emote.empty())
                 bot->TextEmote(emote);
 
@@ -351,7 +351,7 @@ namespace FSBOOC
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: talk", bot->GetName());
             bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            FSBChatter::DemandTimedReply(bot, nullptr, "emote_talk", FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+            FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_talk, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             
             return true;
         }
@@ -362,7 +362,7 @@ namespace FSBOOC
             {
                 TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: whisper", bot->GetName());
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-                FSBChatter::DemandTimedReply(bot, player, "whisper_afk", FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
+                FSBChatter::DemandTimedReply(bot, player, FSB_ChatterCategory::whisper_afk, FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
                 return true;
             }
             return false;
@@ -379,7 +379,7 @@ namespace FSBOOC
                 return true;
 
         default:
-            break;
+            return false;
         }
 
         return false;
@@ -987,7 +987,7 @@ namespace FSBOOC
         }
 
         // 1. Emote text
-        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, "emote_sigh", FSB_ChatterType::None);
+        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sigh, FSB_ChatterType::None);
         if (!emote.empty())
             bot->TextEmote(emote);
 
@@ -1018,7 +1018,7 @@ namespace FSBOOC
         }
 
         // 1. Emote text
-        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, "emote_sleep", FSB_ChatterType::None);
+        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None);
         if (!emote.empty())
             bot->TextEmote(emote);
 
@@ -1070,7 +1070,7 @@ namespace FSBOOC
         if (randomUnit)
         {
             // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_joke", FSB_ChatterType::None);
+            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ChatterType::None);
             if (!emote.empty())
                 bot->TextEmote(emote);
 
@@ -1080,7 +1080,7 @@ namespace FSBOOC
             else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action JOKE: no sound found for race {}", botRace);
 
             if (!randomUnit->IsPlayer())
-                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_joke", FSB_ReplyType::Say, FSB_ChatterSource::Target);
+                FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ReplyType::Say, FSB_ChatterSource::Target);
 
             return true;
         }
@@ -1132,7 +1132,7 @@ namespace FSBOOC
                 bot->SetFacingToObject(randomUnit, true);
 
                 // 1. Emote text
-                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_kiss", FSB_ChatterType::None);
+                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ChatterType::None);
                 if (!emote.empty())
                     bot->TextEmote(emote, randomUnit);
 
@@ -1142,7 +1142,7 @@ namespace FSBOOC
                 else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action KISS: no sound found for race {}", botRace);
 
                 if (!randomUnit->IsPlayer())
-                    FSBChatter::DemandTimedReply(bot, randomUnit, "emote_kiss", FSB_ReplyType::Say, FSB_ChatterSource::Target);
+                    FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ReplyType::Say, FSB_ChatterSource::Target);
                 return true;
             }
         }
@@ -1190,7 +1190,7 @@ namespace FSBOOC
             bot->SetFacingToObject(randomUnit, true);
 
             // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, "emote_flirt", FSB_ChatterType::None);
+            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ChatterType::None);
             if (!emote.empty())
                 bot->TextEmote(emote);
 
@@ -1200,7 +1200,7 @@ namespace FSBOOC
             else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action FLIRT: no sound found for race {}", botRace);
 
             if (!randomUnit->IsPlayer())
-                FSBChatter::DemandTimedReply(bot, randomUnit, "emote_flirt", FSB_ReplyType::Say, FSB_ChatterSource::Target);
+                FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ReplyType::Say, FSB_ChatterSource::Target);
 
             return true;
         }
@@ -1233,7 +1233,7 @@ namespace FSBOOC
             if (FSBSpells::BotCastSpell(bot, spellId, bot))
             {
                 TC_LOG_INFO("scripts.ai.fsb", "FSB RandomEvent started for bot {} with event {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
-                FSBChatter::DemandTimedReply(bot, nullptr, "emote_cooking", FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+                FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_cooking, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
                 return true;
             }
         }
