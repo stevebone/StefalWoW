@@ -442,18 +442,18 @@ public:
             FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
         }        
 
-        void AttackStart(Unit* /*target*/) override
-        {
-
-        }
-
         void HealReceived(Unit* /*done_by*/, uint32& /*addhealth*/) override
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal Received");
         }
 
-        void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
+        void DamageDealt(Unit* victim, uint32& damage, DamageEffectType damageType) override
         {
+            //if(damageType == DIRECT_DAMAGE)
+            //    FSBStats::ApplyDynamicDamageDealt(me, victim, damage);
+
+            if (damage > 0) damage = damage / 2;
+
             FSBPowers::GenerateRageFromDamageDone(me, damage);
 
             damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));

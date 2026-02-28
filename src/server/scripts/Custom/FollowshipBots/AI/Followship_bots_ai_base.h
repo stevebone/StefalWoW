@@ -1,8 +1,9 @@
-// followship_bots_ai_base.h
+// Followship_bots_ai_base.h
 #pragma once
 
 #include "CreatureAI.h"
 #include "EventMap.h"
+#include "ScriptedCreature.h"
 #include "Unit.h"
 
 #include "Followship_bots_defines.h"

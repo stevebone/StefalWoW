@@ -40,9 +40,13 @@ namespace FSBStats
         ApplyBotBasePower(bot, botClass);
 
         // Attack Power
+        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->baseAttackPower);
+        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->baseRangedAttackPower);
         ApplyBotAttackPower(bot, botClass);
 
         // Damage
+        bot->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
+        bot->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
         ApplyBotDamage(bot, botClass);
 
         // Armor
@@ -175,27 +179,56 @@ namespace FSBStats
         if (!stats)
             return;
 
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
         int32 level = bot->GetLevel();
+        if (player)
+            level = bot->GetLevelForTarget(player);
 
         float attackPowerPerLevel = stats->attackPowerPerLevel;
+        float baseAP = stats->baseAttackPower;
+        float baseRAP = stats->baseRangedAttackPower;
 
-        float baseAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
-        float baseRAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
+        uint32 finalAP = baseAP + (attackPowerPerLevel * level);
+        uint32 finalRAP = baseRAP + (attackPowerPerLevel * level);
 
-        float multiplierAttackPower = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
-        float multiplierRAttackPower = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT);
-
-        float totalAttackPowerMod = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE);
-        float totalRAttackPowerMod = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE);
-
-        int32 finalAttackPower = int32(((baseAttackPower + (level * attackPowerPerLevel)) + totalAttackPowerMod) * multiplierAttackPower);
-        int32 finalRAttackPower = int32(((baseRAttackPower + (level * attackPowerPerLevel)) + totalRAttackPowerMod) * multiplierRAttackPower);
-
-        bot->SetRangedAttackPower(finalRAttackPower);
-        bot->SetAttackPower(finalAttackPower);
+        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, finalAP);
+        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, finalRAP);
+        //bot->SetRangedAttackPower(finalRAttackPower);
+        //bot->SetAttackPower(finalAttackPower);
 
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has baseAP: {}, levelAP: {}, modAP: {}, multiAP: {}, totalAP: {}",
-        //    unit->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
+        //    bot->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
+    }
+
+    void ApplyDynamicDamageDealt(Creature* bot, Unit* victim, uint32& damage)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        if (!victim || !victim->IsAlive())
+            return;
+
+        if (damage <= 0)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        auto stats = baseAI->botClassStats;
+        if (!stats)
+            return;
+
+        uint8 effectiveLevel = bot->GetLevelForTarget(victim);
+        float effectiveAttackPower = stats->baseAttackPower + (stats->attackPowerPerLevel * effectiveLevel);
+
+        float basedamage = (bot->GetBaseDamageForLevel(effectiveLevel) * stats->baseClassDamageVariance) + (effectiveAttackPower / 3);
+
+        float weaponBaseMinDamage = basedamage;
+        float weaponBaseMaxDamage = basedamage * 1.5f;
+
+        damage = urand(weaponBaseMinDamage, weaponBaseMaxDamage);
     }
 
     void ApplyBotDamage(Creature* bot, FSB_Class botClass)
@@ -207,21 +240,19 @@ namespace FSBStats
         if (!stats)
             return;
 
-        uint8 level = bot->GetLevel();
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        bot->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
-        bot->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
+        int32 level = bot->GetLevel();
+        if (player)
+            level = bot->GetLevelForTarget(player);
 
-        float basedamage = bot->GetBaseDamageForLevel(level) * 0.5f * stats->baseClassDamageVariance;
+        float effectiveAttackPower = stats->baseAttackPower + (stats->attackPowerPerLevel * level);
 
-        if (level >= 10)
-            basedamage = bot->GetBaseDamageForLevel(level) * 1.2f * stats->baseClassDamageVariance;
+        float basedamage = (bot->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance) + effectiveAttackPower;
+        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} has base damage {} for effective level {}", bot->GetName(), bot->GetBaseDamageForLevel(level), level);
 
-        if (level >= 20)
-            basedamage = bot->GetBaseDamageForLevel(level) * 1.5f * stats->baseClassDamageVariance;
-
-        float weaponBaseMinDamage = basedamage;
-        float weaponBaseMaxDamage = basedamage * 1.5f;
+        float weaponBaseMinDamage = basedamage / 90;
+        float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
 
         bot->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
         bot->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);

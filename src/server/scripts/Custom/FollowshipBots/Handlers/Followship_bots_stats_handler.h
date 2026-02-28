@@ -49,9 +49,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 1,
-        .baseAttackPower = 10,
+        .baseAttackPower = 5,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 4,
+        .attackPowerPerLevel = 6,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
@@ -71,9 +71,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = -2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 0,
-        .baseAttackPower = 10,
+        .baseAttackPower = 5,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 4,
+        .attackPowerPerLevel = 7,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
@@ -95,7 +95,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenIC = 2,
         .baseAttackPower = 5,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 1,
+        .attackPowerPerLevel = 0,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
@@ -117,7 +117,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenIC = 2,
         .baseAttackPower = 5,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 1,
+        .attackPowerPerLevel = 0,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
@@ -138,7 +138,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
         .baseAttackPower = 5,
-        .attackPowerPerLevel = 1,
+        .attackPowerPerLevel = 0,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
@@ -158,9 +158,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 5,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 7,
+        .baseAttackPower = 6,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 2,
+        .attackPowerPerLevel = 6,
         .baseClassDamageVariance = 0.7f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
@@ -180,9 +180,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 10,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 10,
-        .baseAttackPower = 10,
+        .baseAttackPower = 5, //10,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 4,
+        .attackPowerPerLevel = 7,
         .baseClassDamageVariance = 1.2f,
         .baseAttackTime = 1500,
         .baseRangedAttackTime = 2500,
@@ -204,7 +204,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenIC = 5,
         .baseAttackPower = 1,
         .baseRangedAttackPower = 10,
-        .attackPowerPerLevel = 4,
+        .attackPowerPerLevel = 6,
         .baseClassDamageVariance = 1.f,
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2000,
@@ -224,6 +224,8 @@ namespace FSBStats
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass);
     void ApplyBotDamage(Creature* bot, FSB_Class botClass);
     void ApplyBotArmor(Creature* bot);
+
+    void ApplyDynamicDamageDealt(Creature* bot, Unit* victim, uint32& damage);
 
     float ApplyBotDamageTakenReduction(Creature* bot);
     float ApplyBotDamageDoneReduction(Creature* bot);
