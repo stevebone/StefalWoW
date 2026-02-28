@@ -84,10 +84,8 @@ namespace FSBGroup
             if (!member || !member->IsAlive())
                 continue;
 
-            FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
-
             // Check healer role
-            if (role == FSB_Roles::FSB_ROLE_HEALER)
+            if (member->ToCreature() && FSBUtils::BotIsHealerClass(member->ToCreature()))
             {
                 return member; // first healer found
             }
