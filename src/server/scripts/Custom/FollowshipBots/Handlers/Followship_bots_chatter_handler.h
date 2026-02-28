@@ -4,6 +4,9 @@ enum FSB_ChatterCategory
     chatter_none,
     targetKilled,
     botDismissed,
+    botAcknowledge,
+    botFollow,
+    botStay,
 
     emote_oom,
     emote_heal,

@@ -292,74 +292,11 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
-        case FSBSayType::Fire:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Time's up. Coin's spent. I'm off - good luck out there.",
-                "That's it, <name>. Contract fulfilled. Try not to die without me.",
-                "Well, that was a few hours of my life I'll never get back. Farewell.",
-                "My watch is over. If you need me again, bring more coin.",
-                "Alright, <name>, that's my cue. Duty done, boots moving.",
-                "The gold's gone and so am I. Fair deal.",
-                "Contract's finished. I suggest you find another friend. quickly.",
-                "That's enough adventuring for one pay period. I'm out.",
-                "No hard feelings, <name>. Business is business.",
-                "Well, this is where I leave you. Try not to pull anything too big next time."
-            };
+        
 
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
-            ReplaceAll(chosen, "<name>", playerName);
-            return chosen;
-        }
+        
 
-        case FSBSayType::Stay:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Alright, I'll hold this spot. Don't take too long.",
-                "Staying put. If something bites me, I'm blaming you.",
-                "Very well, <name>. I'll stand guard right here.",
-                "You want me here? Fine. I wasn't going anywhere anyway.",
-                "Holding position. Try not to forget about me.",
-                "Right here, <name>. I'll keep watch.",
-                "I'll stay. But if a dragon shows up, that's on you.",
-                "Standing still. which is harder than it sounds.",
-                "This spot? Really? Alright. I'll make it work.",
-                "As you wish, <name>. I'll be right here when you return.",
-                "Standing guard. This better be important.",
-                "I'll stay. Just don't expect me to enjoy it.",
-                "Holding position. Someone's got to be the responsible one."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
-            ReplaceAll(chosen, "<name>", playerName);
-            return chosen;
-        }
-
-        case FSBSayType::Follow:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Alright, I'm back with you.",
-                "Following you again. Let's move.",
-                "There you are. Lead the way, <name>.",
-                "I was starting to enjoy standing still. but alright.",
-                "Back on your heels. Try not to run too fast.",
-                "Following, <name>. Let's see where this goes.",
-                "Right behind you. More or less.",
-                "Okay, I'm coming. No need to shout.",
-                "Time to move again. I'm with you.",
-                "Let's go, <name>. I'm ready.",
-                "Ah, adventure calls again. I'm following.",
-                "Standing still was nice. Back to walking it is.",
-                "Alright, <name>. I'll keep up. probably."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
-            ReplaceAll(chosen, "<name>", playerName);
-            return chosen;
-        }
+        
 
         case FSBSayType::PHire:
         {

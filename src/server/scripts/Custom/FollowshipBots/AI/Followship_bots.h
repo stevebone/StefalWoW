@@ -3,10 +3,6 @@
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
 
-
-// Spell Related
-static constexpr uint32 NPC_GCD_MS = 1500;
-
 // MoveChase range for spell casters
 constexpr float SPELL_MAX_RANGE = 30.0f;
 constexpr float SPELL_MIN_RANGE = 18.0f;
@@ -30,12 +26,8 @@ enum FSB_GenericEvents
     FSB_EVENT_HIRE_LEAVE = 2,
     FSB_EVENT_HIRE_DISMISSED = 3,
     
-    FSB_EVENT_RESUME_FOLLOW = 5,
-    
     FSB_EVENT_CHECK_DESPAWN = 7,
-    FSB_EVENT_MOVE_STAY = 10,
-    FSB_EVENT_MOVE_FOLLOW = 11,
-    // = 12,
+
 };
 
 enum FSB_Events

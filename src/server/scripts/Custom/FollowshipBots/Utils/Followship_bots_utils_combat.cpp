@@ -171,7 +171,7 @@ namespace FSBUtilsBotCombat
             return;
 
         bool chase = false;
-        if (moveState != FSB_EVENT_MOVE_STAY)
+        if (moveState != FSB_MOVE_STATE_STAY)
             chase = true;
 
         BotDoAttack(bot, target, chase, moveState);

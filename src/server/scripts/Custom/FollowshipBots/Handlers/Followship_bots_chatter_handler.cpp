@@ -772,6 +772,70 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "We're done here. Don't worry, {player}-I'll remember the good parts."
         }
     },
+
+    {
+        FSB_ChatterCategory::botAcknowledge, FSB_ChatterType::None,
+        {
+            "On it, {player}. Consider it handled.",
+            "Alright, moving now.",
+            "Got your command loud and clear, {player}.",
+            "Understood. Executing.",
+            "As you wish. Let's get it done.",
+            "Acknowledged. I'll take care of it.",
+            "Right away, {player}.",
+            "Okay, shifting focus.",
+            "Command received. Acting on it.",
+            "Sure thing. I'm on the move.",
+            "Got it. Don't worry, I know what to do.",
+            "Alright, {player}, doing it now.",
+            "Copy that. Adjusting course.",
+            "Understood. I'll handle the details.",
+            "Yep, I'm already on it.",
+            "Very well. Proceeding as instructed.",
+            "Okay, {player}. Let's make it look easy.",
+            "Message received. Executing your plan.",
+            "Alright, I'll take point on this.",
+            "Done. Or it will be in a moment."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botFollow, FSB_ChatterType::None,
+        {
+            "Alright, I'm back with you.",
+            "Following you again. Let's move.",
+            "There you are. Lead the way, {player}.",
+            "I was starting to enjoy standing still. but alright.",
+            "Back on your heels. Try not to run too fast.",
+            "Following, {player}. Let's see where this goes.",
+            "Right behind you. More or less.",
+            "Okay, I'm coming. No need to shout.",
+            "Time to move again. I'm with you.",
+            "Let's go, {player}. I'm ready.",
+            "Ah, adventure calls again. I'm following.",
+            "Standing still was nice. Back to walking it is.",
+            "Alright, {player}. I'll keep up. probably."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botStay, FSB_ChatterType::None,
+        {
+            "Alright, I'll hold this spot. Don't take too long.",
+            "Staying put. If something bites me, I'm blaming you.",
+            "Very well, {player}. I'll stand guard right here.",
+            "You want me here? Fine. I wasn't going anywhere anyway.",
+            "Holding position. Try not to forget about me.",
+            "Right here, {player}. I'll keep watch.",
+            "I'll stay. But if a dragon shows up, that's on you.",
+            "Standing still. which is harder than it sounds.",
+            "This spot? Really? Alright. I'll make it work.",
+            "As you wish, {player}. I'll be right here when you return.",
+            "Standing guard. This better be important.",
+            "I'll stay. Just don't expect me to enjoy it.",
+            "Holding position. Someone's got to be the responsible one."
+        }
+    },
 };
 
 namespace FSBChatter

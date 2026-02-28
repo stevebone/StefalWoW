@@ -192,7 +192,7 @@ public:
                 //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
                 std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
                 me->Say(msg, LANG_UNIVERSAL);
@@ -216,7 +216,7 @@ public:
                 //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
                 std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
                 me->Say(msg, LANG_UNIVERSAL);
@@ -240,7 +240,7 @@ public:
                 //FSBStats::RecalculateStats(me, true, true);
 
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
                 std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
                 me->Say(msg, LANG_UNIVERSAL);
@@ -260,9 +260,8 @@ public:
 
                     botHired = true;
                     FSBMgr::Get()->HirePersistentBot(player, me, 0);
-                    //FSBStats::RecalculateStats(me, true, true);
 
-                    events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
                     std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
                     me->Say(msg, LANG_UNIVERSAL);
@@ -278,8 +277,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 14:
             {
                 botFollowDistance = FOLLOW_DISTANCE_CLOSE;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -287,8 +286,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 15:
             {
                 botFollowDistance = FOLLOW_DISTANCE_NORMAL;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -296,8 +295,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 16:
             {
                 botFollowDistance = FOLLOW_DISTANCE_WIDE;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -305,8 +304,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 17:
             {
                 botFollowAngle = FOLLOW_ANGLE_FRONT;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -314,8 +313,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 18:
             {
                 botFollowAngle = FOLLOW_ANGLE_BEHIND;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -323,22 +322,24 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 19:
             {
                 botFollowAngle = FSBUtils::GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
                 // Bot Stay Option
             case GOSSIP_ACTION_INFO_DEF + 20:
             {
-                events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 1s, 3s);
+                FSBMovement::StopFollow(me);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botStay, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
                 // Bot Follow Option
             case GOSSIP_ACTION_INFO_DEF + 21:
             {
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s, 3s);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botFollow, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -346,8 +347,8 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 22:
             {
                 botFollowAngle = FSBUtils::GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                FSBChatter::DemandTimedReply(me, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 break;
             }
 
@@ -447,7 +448,7 @@ public:
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal Received");
         }
 
-        void DamageDealt(Unit* victim, uint32& damage, DamageEffectType damageType) override
+        void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
         {
             //if(damageType == DIRECT_DAMAGE)
             //    FSBStats::ApplyDynamicDamageDealt(me, victim, damage);
@@ -609,16 +610,11 @@ public:
                 if (hireTimeLeft > 0)
                 {
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::seconds(hireTimeLeft));
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
-
                     TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired left time value: {}", me->GetName(), hireTimeLeft);
                 }
-                else
-                {
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
-
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received permanent hired", me->GetName());
-                }
+                
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received permanent hired", me->GetName());
 
                 break;
             }
@@ -739,9 +735,9 @@ public:
                             auto baseAI = dynamic_cast<FSB_BaseAI*>(me->AI());
 
                             if (FSBOOC::BotOOCActions(baseAI))
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
+                                FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
 
-                            // ? lock regen for next 2 seconds
+                            // ? lock timer for next 2 seconds
                             _1secondsCheckMs = now + 1000;
                         }
                     }
@@ -878,12 +874,6 @@ public:
                 // Events that are needed for actions                  //
                 // =================================================== //   
 
-                    // BOT Follows player again
-                    // For timed events
-                case FSB_EVENT_RESUME_FOLLOW:
-                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                    break;
-
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
                 {
@@ -909,42 +899,6 @@ public:
                     me->GetMotionMaster()->MovePoint(1, x, y, z);
                     me->DespawnOrUnsummon(10s);
                     
-                    break;
-                }
-
-                case FSB_EVENT_MOVE_STAY:
-                {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                    FSBMovement::StopFollow(me);
-
-                    if (botHired && player)
-                    {
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
-                        me->Say(msg, LANG_UNIVERSAL);
-                    }
-                    break;
-                }
-
-                case FSB_EVENT_MOVE_FOLLOW:
-                {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-
-                    if (updateFollowInfo)
-                    {
-                        updateFollowInfo = false;
-                        me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
-                    }
-                    else
-                    {
-                        std::string pName = player ? player->GetName() : "";
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::Follow, "");
-                        me->Say(msg, LANG_UNIVERSAL);
-                    }
                     break;
                 }
 

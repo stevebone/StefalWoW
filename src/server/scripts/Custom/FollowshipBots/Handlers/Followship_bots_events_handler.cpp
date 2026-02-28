@@ -182,7 +182,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         me->TextEmote(emote);
 
         if(go)
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Event RANDOM_ACTION_SIT_BY_FIRE for bot {} finished. We found object {} and are sitting down.", bot->GetName(), go->GetName());
+            TC_LOG_DEBUG("scripts.fsb.events", "FSB Event RANDOM_ACTION_SIT_BY_FIRE for bot {} finished. We found object {} and are sitting down.", bot->GetName(), go->GetName());
 
         break;
     }
@@ -246,7 +246,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
     {
     case FSB_EVENT_HIRED_TIMED_CHATTER_REPLY:
     {
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB Events TIMED_CHATTER_REPLY chatterString: {}", chatterReply);
+        TC_LOG_DEBUG("scripts.fsb.events", "FSB Events TIMED_CHATTER_REPLY chatterString: {}", chatterReply);
 
         switch (replyType)
         {
@@ -317,7 +317,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
         target->HandleEmoteCommand(emote);
         if (soundId)
             target->PlayDistanceSound(soundId);
-        else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action {}: no sound found for race {}", chatterReply, targetRace);
+        else TC_LOG_WARN("scripts.fsb.events", "FSB Events AFK Action {}: no sound found for race {}", chatterReply, targetRace);
 
         break;
     }

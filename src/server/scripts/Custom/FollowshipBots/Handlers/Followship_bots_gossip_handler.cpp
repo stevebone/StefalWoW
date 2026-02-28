@@ -2,6 +2,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_movement_handler.h"
 
@@ -380,6 +381,6 @@ namespace FSBGossip
         }
 
         bot->SetReactState(REACT_AGGRESSIVE);
-        bot->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
+        FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
     }
 }
