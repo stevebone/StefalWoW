@@ -1,3 +1,4 @@
+#pragma once
 
 #include "Followship_bots_db.h"
 #include "Followship_bots_defines.h"
@@ -112,7 +113,7 @@ public:
     void SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace);
     bool GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace);
 
-    FSB_Class GetBotClassForEntry(uint32 entry);
+    static FSB_Class GetBotClassForEntry(uint32 entry);
     void SetBotClass(Creature* creature, FSB_Class& outClass);
 
     FSB_Race GetBotRaceForEntry(uint32 entry);

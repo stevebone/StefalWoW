@@ -451,6 +451,9 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     auto& botRace = baseAI->botRace;
     auto& botStats = baseAI->botStats;
     auto& botRole = baseAI->botRole;
+    baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
+
+
 
     // Initial Flags and States
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);

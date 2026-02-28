@@ -10,6 +10,8 @@
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
 
+struct FSB_ClassStats;
+
 class FSB_BaseAI : public ScriptedAI
 {
 public:
@@ -21,6 +23,7 @@ public:
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
         botChatterType(FSB_ChatterType::None),
         botRegenMods(),
+        botClassStats(),
         botStats(),
 
         botFollowDistance(0.f),
@@ -63,6 +66,7 @@ public:
     FSB_MovementStates botMoveState;
     FSB_ChatterType botChatterType;
     FSBRegenMods botRegenMods;
+    FSB_ClassStats const* botClassStats = nullptr;
     FSBBotStats botStats;
 
     float botFollowDistance;
