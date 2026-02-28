@@ -194,6 +194,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         auto& botDoingRandomEvent = ai->botDoingRandomEvent;
         auto fDistance = ai->botFollowDistance;
         auto fAngle = ai->botFollowAngle;
+        auto moveState = ai->botMoveState;
 
         if (!botDoingRandomEvent && !botByFire)
             break;
@@ -219,7 +220,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         //bot->SetEmoteState(Emote(EMOTE_STATE_NONE));
         bot->HandleEmoteCommand(EMOTE_ONESHOT_YES);
 
-        FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+        if(moveState != FSB_MOVE_STATE_STAY)
+            FSBMovement::ResumeFollow(bot, fDistance, fAngle);
 
         botDoingRandomEvent = false;
 
