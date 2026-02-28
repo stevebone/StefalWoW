@@ -25,6 +25,7 @@ public:
         {
             { "info", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBInfo, "This is help text?"},
             { "stats", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBStats, "This is help text?"},
+            { "damage", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBDamage, "This is help text?"},
             { "afkaction", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBAfkAction, "This is help text?"},
             { "playsound", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBPlaySound, "This is help text?"},
             { "summonpet", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBSummonPet, "This is help text?"},
@@ -76,18 +77,53 @@ public:
 
         handler->PSendSysMessage("Armor: Base: %.1f, Total: %.1f, Bonus: %.1f", baseArmor, totalArmor, totalArmor - baseArmor);
 
-        float baseAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
+        return true;
+    }
+
+    static bool HandleFSBDamage(ChatHandler* handler)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        uint8 level = bot->GetLevel();
+        uint8 eLevel = bot->GetLevelForTarget(handler->GetPlayer());
+
+        handler->PSendSysMessage("=== Followship Bot Damage Stats ===");
+        handler->PSendSysMessage("Bot %s with level: %u and effective level: %u", bot->GetName(), level, eLevel);
+
         float totalAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER);
+        float base_attPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE) * bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, BASE_PCT);
 
-        handler->PSendSysMessage("Attack Power: Base %.1f / Total %.1f", baseAttackPower, totalAttackPower);
+        handler->PSendSysMessage("Attack Power: Base %.1f / Total %.1f", base_attPower, totalAttackPower);
 
-        float baseRAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
         float totalRAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER_RANGED);
+        float base_RattPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE) * bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_PCT);
 
-        handler->PSendSysMessage("Ranged Attack Power: Base %.1f / Total %.1f", baseRAttackPower, totalRAttackPower);
+        handler->PSendSysMessage("Ranged Attack Power: Base %.1f / Total %.1f", base_RattPower, totalRAttackPower);
+
+        float weaponDamageMin = bot->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE);
+        float weaponDamageMax = bot->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
+
+        float basedamageL = bot->GetBaseDamageForLevel(level);
+        float basedamageEL = bot->GetBaseDamageForLevel(eLevel);
+
+        handler->PSendSysMessage("Weapon Damage: Min %.1f / Max %.1f", weaponDamageMin, weaponDamageMax);
+        handler->PSendSysMessage("Base Damage: Level %.1f / E Level %.1f", basedamageL, basedamageEL);
 
         int32 spellPower = FSBStats::BotGetSpellPower(bot);
-
         handler->PSendSysMessage("Spell Power: %u", spellPower);
 
         return true;
