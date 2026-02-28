@@ -1,7 +1,7 @@
 
 
-#include "followship_bots_mage.h"
-#include "followship_bots_utils_spells.h"
+#include "Followship_bots_mage.h"
+#include "Followship_bots_utils_spells.h"
 
 std::vector<FSBSpellDefinition> MageSpellsTable =
 {

@@ -1,10 +1,10 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "followship_bots_druid.h"
-#include "followship_bots_mage.h"
-#include "followship_bots_warlock.h"
-#include "followship_bots_warrior.h"
+#include "Followship_bots_druid.h"
+#include "Followship_bots_mage.h"
+#include "Followship_bots_warlock.h"
+#include "Followship_bots_warrior.h"
 
 #include "Followship_bots_auras_handler.h"
 #include "Followship_bots_movement_handler.h"
