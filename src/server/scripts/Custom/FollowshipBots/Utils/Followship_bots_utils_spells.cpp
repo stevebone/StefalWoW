@@ -179,6 +179,9 @@ namespace FSBSpellsUtils
         case SPELL_PALADIN_BLESSING_SANCTUARY:
             return HasAnyMechanic(target, { MECHANIC_FEAR, MECHANIC_HORROR, MECHANIC_SILENCE, MECHANIC_STUN });
 
+        case SPELL_MONK_TIGER_LUST:
+            return HasAnyMechanic(target, { MECHANIC_SNARE, MECHANIC_ROOT });
+
         case SPELL_HUNTER_TRANQUILIZING_SHOT:
             return HasAnyMechanic(target, { MECHANIC_ENRAGED }) || FindEnemyBuffToDispel(target);
 

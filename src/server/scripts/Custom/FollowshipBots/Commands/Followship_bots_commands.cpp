@@ -21,21 +21,23 @@ public:
 
     std::vector<ChatCommand> GetCommands() const override
     {
-        static std::vector<ChatCommand> fsbCommandTable =
+        static ChatCommandTable fsbCommandTable =
         {
-            { "info", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBInfo, "This is help text?"},
-            { "stats", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBStats, "This is help text?"},
-            { "damage", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBDamage, "This is help text?"},
-            { "afkaction", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBAfkAction, "This is help text?"},
-            { "playsound", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBPlaySound, "This is help text?"},
-            { "summonpet", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBSummonPet, "This is help text?"},
-            { "castSpell", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBCastSpellOnTarget, "This is help text?"},
+            { "info",      HandleFSBInfo,            rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "stats",     HandleFSBStats,           rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "damage",    HandleFSBDamage,          rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "afkaction", HandleFSBAfkAction,       rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "playsound", HandleFSBPlaySound,       rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "summonpet", HandleFSBSummonPet,       rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "castSpell", HandleFSBCastSpellOnTarget, rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommandTable commandTable =
         {
-            { "fsb", rbac::RBAC_PERM_COMMAND_GM, true, nullptr, "", fsbCommandTable }
+            { "fsb", fsbCommandTable }
         };
+
+
 
         return commandTable;
     }

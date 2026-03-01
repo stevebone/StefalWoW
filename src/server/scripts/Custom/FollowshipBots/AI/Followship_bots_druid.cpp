@@ -2,6 +2,7 @@
 #include "Log.h"
 
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
 
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_spells_handler.h"

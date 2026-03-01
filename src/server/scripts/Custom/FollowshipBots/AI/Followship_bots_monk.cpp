@@ -62,6 +62,8 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     { SPELL_MONK_INVOKE_YULON,              FSBSpellType::Damage,   0.f,        0.f,            30.f,            40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
     //DPS
+    { SPELL_MONK_TIGER_LUST,                FSBSpellType::Heal,     0.f,        100.f,          100.f,           20.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+
     { SPELL_MONK_BLACKOUT_KICK_CHI,         FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_MONK_TIGER_PALM_CHI,            FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 

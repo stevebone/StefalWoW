@@ -364,13 +364,13 @@ namespace FSBGossip
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
-                FSBPowers::SetBotToChi(bot);
+                FSBPowers::SetBotToEnergy(bot);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
-                FSBPowers::SetBotToEnergy(bot);
+                FSBPowers::SetBotToChi(bot);
                 break;
             }
             break;
