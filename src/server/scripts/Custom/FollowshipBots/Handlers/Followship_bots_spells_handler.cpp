@@ -330,13 +330,17 @@ namespace FSBSpells
         if (!baseAI)
             return false;
 
-        FSB_Class cls = baseAI->botClass;
+        auto cls = baseAI->botClass;
+        auto role = baseAI->botRole;
 
         auto it = DispelTable.find(cls);
         if (it == DispelTable.end())
             return false; // class cannot dispel anything
 
         const DispelAbility& ability = it->second;
+
+        if (ability.spellId == SPELL_MONK_DETOX_HEAL && role != FSB_ROLE_TANK)
+            return false;
 
         if (!FSBSpellsUtils::IsSpellReady(ability.spellId))
             return false;
@@ -360,7 +364,8 @@ namespace FSBSpells
         if (!baseAI)
             return false;
 
-        FSB_Class cls = baseAI->botClass;
+        auto cls = baseAI->botClass;
+        auto role = baseAI->botRole;
 
         auto it = OffensiveDispelTable.find(cls);
         if (it == OffensiveDispelTable.end())
@@ -379,6 +384,9 @@ namespace FSBSpells
 
         // Optional: avoid dispelling trivial buffs
         if (buff->GetSpellInfo()->Dispel != DISPEL_MAGIC)
+            return false;
+
+        if (ability.spellId == SPELL_MONK_DETOX_ATTACK && role != FSB_ROLE_HEALER)
             return false;
 
         // Cast the spell

@@ -34,7 +34,8 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
     { FSB_Class::Druid,   { SPELL_DRUID_REMOVE_CORRUPTION, { DISPEL_CURSE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_NATURE_CURE,       { DISPEL_MAGIC, DISPEL_CURSE, DISPEL_POISON }, 8000 }},
     //{ FSB_Class::Shaman,  { SPELL_SHAMAN_CLEANSE_SPIRIT, { DISPEL_CURSE } } },
-    { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }}
+    { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }},
+    { FSB_Class::Monk,    { SPELL_MONK_DETOX_HEAL, { DISPEL_POISON, DISPEL_DISEASE}, 8000 }},
 };
 
 std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
@@ -42,7 +43,8 @@ std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
     { FSB_Class::Priest,  { SPELL_PRIEST_DISPEL_MAGIC, OFFDISPEL_MAGIC } },
     //{ FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
     { FSB_Class::Hunter,    { SPELL_HUNTER_TRANQUILIZING_SHOT, OFFDISPEL_MAGIC } },
-    { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } }
+    { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } },
+    { FSB_Class::Monk,    { SPELL_MONK_DETOX_ATTACK, OFFDISPEL_MAGIC } },
 };
 
 namespace FSBSpellsUtils

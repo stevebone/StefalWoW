@@ -1128,7 +1128,9 @@ namespace FSBChatter
             return;
 
         // we only expect the bot to be dead for those 2 categories
-        if ((category != FSB_ChatterCategory::botDeath || category != FSB_ChatterCategory::botDeathHired) && !bot->IsAlive())
+        if ((category != FSB_ChatterCategory::botDeath &&
+            category != FSB_ChatterCategory::botDeathHired) &&
+            !bot->IsAlive())
             return;
 
         if (target && !target->IsAlive())
