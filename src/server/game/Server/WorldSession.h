@@ -1870,6 +1870,7 @@ class TC_GAME_API WorldSession
         void HandleCageBattlePet(WorldPackets::BattlePet::CageBattlePet& cageBattlePet);
         // Pet Battle combat
         void HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattleRequestWild& petBattleRequestWild);
+        void StartNPCPetBattle(Creature* trainer);
         void HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput& petBattleInput);
         void HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBattleReplaceFrontPet& petBattleReplaceFrontPet);
         void HandlePetBattleQuitNotify(WorldPackets::BattlePet::PetBattleQuitNotify& petBattleQuitNotify);

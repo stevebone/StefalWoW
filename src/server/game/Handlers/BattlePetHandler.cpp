@@ -339,28 +339,11 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
                 target.Type = 1; // Aura: 4 params
                 target.Params.push_back(roundEffect.Param1); // AuraInstanceID
                 target.Params.push_back(roundEffect.Param2); // AuraAbilityID
-
-                // Look up remaining rounds from the live aura on the target pet
-                int32 roundsRemaining = 0;
-                int32 currentRound = 0;
-                if (roundEffect.EffectType != PetBattles::PET_BATTLE_EFFECT_AURA_CANCEL)
-                {
-                    PetBattles::PetBattleTeamData const& targetTeam = battle->GetTeam(roundEffect.TargetTeam);
-                    if (roundEffect.TargetPet < targetTeam.PetCount)
-                    {
-                        for (PetBattles::PetBattleAura const& aura : targetTeam.Pets[roundEffect.TargetPet].Auras)
-                        {
-                            if (aura.AuraInstanceID == static_cast<uint32>(roundEffect.Param1))
-                            {
-                                roundsRemaining = aura.RemainingRounds;
-                                currentRound = aura.CurrentRound;
-                                break;
-                            }
-                        }
-                    }
-                }
-                target.Params.push_back(roundsRemaining);
-                target.Params.push_back(currentRound);
+                // Use pre-captured values from creation time (Param3/Param4)
+                // instead of live aura lookup — TickAuras may have decremented
+                // or removed the aura before this serialization runs.
+                target.Params.push_back(roundEffect.Param3); // RoundsRemaining
+                target.Params.push_back(roundEffect.Param4); // CurrentRound
                 break;
             }
             case PetBattles::PET_BATTLE_EFFECT_SET_STATE:
@@ -577,6 +560,131 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
 
     TC_LOG_DEBUG("server.loading", "PetBattleHandler: Player {} started wild battle against {}",
         player->GetGUID().ToString(), petBattleRequestWild.TargetGUID.ToString());
+}
+
+void WorldSession::StartNPCPetBattle(Creature* trainer)
+{
+    Player* player = GetPlayer();
+    if (!player || !trainer)
+        return;
+
+    if (player->IsInCombat())
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_NOT_WHILE_IN_COMBAT;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    if (sPetBattleMgr->IsPlayerInBattle(player->GetGUID()))
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_IN_BATTLE;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Check that player has alive pets in battle slots
+    BattlePets::BattlePetMgr* petMgr = GetBattlePetMgr();
+    bool hasPet = false;
+    for (uint8 i = 0; i < uint8(BattlePets::BattlePetSlot::Count); ++i)
+    {
+        WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(BattlePets::BattlePetSlot(i));
+        if (slot && !slot->Locked && !slot->Pet.Guid.IsEmpty())
+        {
+            BattlePets::BattlePet* pet = petMgr->GetPet(slot->Pet.Guid);
+            if (pet && pet->PacketInfo.Health > 0)
+            {
+                hasPet = true;
+                break;
+            }
+        }
+    }
+
+    if (!hasPet)
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_INVALID_LOADOUT_ALL_DEAD;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Validate that NPC has a team configured
+    if (!sPetBattleMgr->GetNPCTeam(trainer->GetEntry()))
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_TARGET_INVALID;
+        SendPacket(failed.Write());
+        TC_LOG_ERROR("server.loading", "PetBattle: NPC trainer {} (entry {}) has no pet team configured",
+            trainer->GetGUID().ToString(), trainer->GetEntry());
+        return;
+    }
+
+    // Create the NPC battle
+    PetBattles::PetBattle* battle = sPetBattleMgr->CreateNPCBattle(player, trainer);
+    if (!battle)
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_IN_BATTLE;
+        SendPacket(failed.Write());
+        return;
+    }
+
+    // Stop NPC movement during battle
+    trainer->GetMotionMaster()->MoveIdle();
+
+    // Send finalize location with OK result
+    WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
+    finalizeLocation.Location.LocationResult = PetBattles::PET_BATTLE_REQUEST_FAIL_OK;
+    Position midpoint;
+    midpoint.m_positionX = (player->GetPositionX() + trainer->GetPositionX()) / 2.0f;
+    midpoint.m_positionY = (player->GetPositionY() + trainer->GetPositionY()) / 2.0f;
+    midpoint.m_positionZ = (player->GetPositionZ() + trainer->GetPositionZ()) / 2.0f;
+    finalizeLocation.Location.BattleOrigin = midpoint;
+    finalizeLocation.Location.BattleFacing = player->GetAbsoluteAngle(trainer);
+    finalizeLocation.Location.PlayerPositions[0] = player->GetPosition();
+    finalizeLocation.Location.PlayerPositions[1] = trainer->GetPosition();
+    SendPacket(finalizeLocation.Write());
+
+    // Build and send initial update
+    WorldPackets::BattlePet::PetBattleInitialUpdate initialUpdate;
+
+    BuildPetBattlePlayerUpdate(initialUpdate.Players[0], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_1), false, battle, PetBattles::PET_BATTLE_TEAM_1);
+    BuildPetBattlePlayerUpdate(initialUpdate.Players[1], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2), false, battle, PetBattles::PET_BATTLE_TEAM_2);
+
+    initialUpdate.CurRound = battle->GetCurrentRound();
+    initialUpdate.CurPetBattleState = static_cast<int8>(battle->GetBattleState());
+    initialUpdate.NpcCreatureID = trainer->GetEntry();
+    initialUpdate.NpcDisplayID = trainer->GetDisplayId();
+    initialUpdate.InitialWildPetGUID = ObjectGuid::Empty;
+    initialUpdate.IsPVP = false;
+    initialUpdate.CanAwardXP = true;
+    initialUpdate.WaitingForFrontPetsMaxSecs = 30;
+    initialUpdate.PvpMaxRoundTime = PetBattles::PET_BATTLE_MAX_ROUND_TIME;
+
+    SendPacket(initialUpdate.Write());
+
+    // Start the battle
+    battle->Start();
+
+    // Send first round to unlock abilities
+    {
+        WorldPackets::BattlePet::PetBattleFirstRound firstRound;
+        firstRound.CurRound = 0;
+        firstRound.NextPetBattleState = static_cast<int8>(PetBattles::PET_BATTLE_STATE_ROUND_IN_PROGRESS);
+
+        for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_PLAYERS; ++i)
+        {
+            firstRound.Players[i].NextInputFlags = 0;
+            firstRound.Players[i].NextTrapStatus = static_cast<int8>(battle->GetTrapStatus(i));
+            firstRound.Players[i].RoundTimeSecs = 0;
+        }
+
+        SendPacket(firstRound.Write());
+    }
+
+    TC_LOG_DEBUG("server.loading", "PetBattleHandler: Player {} started NPC battle against trainer {} (entry {})",
+        player->GetGUID().ToString(), trainer->GetGUID().ToString(), trainer->GetEntry());
 }
 
 void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput& petBattleInput)
