@@ -3,6 +3,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
@@ -10,35 +11,45 @@
 #include "Followship_bots_teleport_handler.h"
 
 #include "Followship_bots_druid.h"
+#include "Followship_bots_monk.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_warlock.h"
 
 namespace FSBDeath
 {
-    void HandlerJustDied(Creature* bot, const std::vector<Unit*>& botGroup, bool hasSS)
+    void HandlerJustDied(Creature* bot, Unit* killer)
     {
         if (!bot || bot->IsAlive())
             return;
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB DeathHandler - Just Died for bot {}", bot->GetName());
+        if (!killer)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        auto& hasSS = baseAI->botHasSoulstone;
+        auto& botGroup = baseAI->botLogicalGroup;
+
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied from attacker {}.", bot->GetName(), killer->GetName());
 
         // handle chatter after death
-        // TO-DO add more chatter when player is not around or when player is the attacker
-        Player* player = FSBMgr::Get()->GetBotOwner(bot);
-        if (player)
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
-            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+            Player* player = FSBMgr::Get()->GetBotOwner(bot);
+            if (player)
             {
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::BotDeath, "");
-                bot->Yell(msg, LANG_UNIVERSAL);
+                FSBChatter::DemandTimedReply(bot, killer, FSB_ChatterCategory::botDeathHired, FSB_ReplyType::Yell, FSB_ChatterSource::None);
             }
+            else FSBChatter::DemandTimedReply(bot, killer, FSB_ChatterCategory::botDeath, FSB_ReplyType::Yell, FSB_ChatterSource::None);
         }
-
+        
         // handle death with soulstone
         if (hasSS)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB DeathHandler - Just Died with SS for bot {}", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied with Soulstone and will self resurrect.", bot->GetName());
             bot->AI()->DoAction(FSB_ACTION_SOULSTONE_RESSURECT);
             return;
         }
@@ -47,7 +58,7 @@ namespace FSBDeath
         bool healerPresent = FSBGroup::BotGetFirstGroupHealer(botGroup);
         if (healerPresent)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB DeathHandler - Just Died with healer present for bot {}", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied and is waiting for healer resurrect.", bot->GetName());
             bot->AI()->DoAction(FSB_ACTION_WAIT_HEALER_RESSURECT);
             return;
         }
@@ -75,6 +86,7 @@ namespace FSBDeath
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
             
         bot->GetMotionMaster()->MovePoint(2, botCorpse, false);
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Started the corpse run from graveyard.", bot->GetName());
 
     }
 
@@ -88,6 +100,7 @@ namespace FSBDeath
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         bot->RemoveAllAuras();
         hasSS = false;
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived from Soulstone.", bot->GetName());
     }
 
     void HandleDeathInDungeon(Creature* bot, float fDistance, float fAngle)
@@ -98,6 +111,11 @@ namespace FSBDeath
         bot->setDeathState(ALIVE);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        {
+            FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botRevived, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+        }
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at dungeon entrance.", bot->GetName());
     }
 
     void BotSetStateAfterCorpseRevive(Creature* bot)
@@ -109,15 +127,17 @@ namespace FSBDeath
         bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
         bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-        bot->Say("This was a long way...", LANG_UNIVERSAL); //TO-DO add more texts here
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        {
+            FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botRevived, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+        }
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at corpse location after graveyard run.", bot->GetName());
     }
 
     bool CheckBotMemberDeath(Creature* bot)
     {
         if (!bot)
             return false;
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found {} units in group for check resurrection", bot->GetName(), botGroup.size());
 
         if (!bot->IsAlive())
             return false;
@@ -138,29 +158,20 @@ namespace FSBDeath
 
         Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botGroup);
 
-        // Validate pointer before doing anything else
         if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
             return false;
-
-        // Build safe names for logging and chatter
-        const char* botName = (bot && bot->IsInWorld()) ? bot->GetName().c_str() : "";
-        const char* targetName = (deadTarget && deadTarget->IsInWorld()) ? deadTarget->GetName().c_str() : "";
 
         // Announce death (only once)
         if (!botSayMemberDead && bot->IsAlive() &&
             urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
-            std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                targetName, 0, FSBSayType::PlayerOrMemberDead, "");
-            bot->Yell(msg, LANG_UNIVERSAL);
-
+            FSBChatter::DemandTimedReply(bot, deadTarget, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
             botSayMemberDead = true;
         }
 
         resTargetGuid = deadTarget->GetGUID();
 
-        // Safe logging
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", botName, targetName);
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} found dead unit {} for resurrection", bot->GetName(), deadTarget->GetName());
         return true;
     }
 
@@ -171,12 +182,13 @@ namespace FSBDeath
 
         switch (spellId)
         {
+        case SPELL_MONK_RESUSCITATE:
         case SPELL_PALADIN_REDEMPTION:
         case SPELL_PRIEST_RESURRECTION:
         case SPELL_DRUID_REVIVE:
         case SPELL_DRUID_REBIRTH:
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_SPELL_RESURRECT_STATE, 3s, 5s);
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} was resurrected by spell {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} was resurrected by spell {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
             break;
         default:
             break;

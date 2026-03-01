@@ -1,8 +1,4 @@
 
-// Player Notifications
-constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
-constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
-
 // MoveChase range for spell casters
 constexpr float SPELL_MAX_RANGE = 30.0f;
 constexpr float SPELL_MIN_RANGE = 18.0f;

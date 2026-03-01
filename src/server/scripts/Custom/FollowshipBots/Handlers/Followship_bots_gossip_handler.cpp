@@ -409,4 +409,34 @@ namespace FSBGossip
         bot->SetReactState(REACT_AGGRESSIVE);
         FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
     }
+    bool HandleGossipItemHirePermanent(Creature* bot, Player* player)
+    {
+        if (!bot || !player)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        uint8 pLevel = player->GetLevel();
+
+        // End price is base cost per level times player level
+        if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel)))
+        {
+            player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel));
+            player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
+
+            baseAI->botHired = true;
+            FSBMgr::Get()->HirePersistentBot(player, bot, 0);
+
+            FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+
+            FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botHiredPermanent, FSB_ReplyType::Say, FSB_ChatterSource::None);
+        }
+        else
+            player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
+
+        player->PlayerTalkClass->SendCloseGossip();
+        return true;
+    }
 }

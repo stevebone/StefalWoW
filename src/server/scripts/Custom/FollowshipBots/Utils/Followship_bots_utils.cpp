@@ -12,8 +12,9 @@
 #include "Followship_bots_config.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_ai_base.h"
-#include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
+
+#include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_powers_handler.h"
 
 namespace FSBUtils
@@ -298,33 +299,6 @@ namespace FSBUtilsTexts
 
         
 
-        case FSBSayType::PHire:
-        {
-            static const std::vector<std::string> phireTexts =
-            {
-                "Looks like we're in this together now, <name>.",
-                "Alright. I'm yours until the end - wherever that may be.",
-                "No contracts, no timers. I'll stay with you.",
-                "Seems I've chosen a side. Let's make it a good one, <name>.",
-                "You've got yourself a companion, not just hired help.",
-                "I'm in. Wherever you go, I follow.",
-                "Well then. looks like I'm part of your story now.",
-                "No turning back now. I've got your back, <name>.",
-                "Guess this makes us partners.",
-                "From now on, I fight by your side.",
-                "Permanent, huh? Bold choice. Let's see how this goes.",
-                "I suppose this is what loyalty feels like.",
-                "No clock ticking anymore. I'm with you."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(phireTexts);
-            size_t pos;
-            while ((pos = chosen.find("<name>")) != std::string::npos)
-                chosen.replace(pos, 6, playerName);
-            //while ((pos = chosen.find("<duration>")) != std::string::npos)
-            //    chosen.replace(pos, 10, std::to_string(duration));
-            return chosen;
-        }
 
         case FSBSayType::HealTarget:
         {
@@ -389,27 +363,7 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
-        case FSBSayType::PlayerOrMemberDead:
-        {
-            static const std::vector<std::string> PlayerOrMemberDeadTexts =
-            {
-                "Hey <name>, what are you doing?",
-                "Ah, shiiiiiit, nooooo <name>!",
-                "How did I let this happen?",
-                "Hope you won't blame me for this, <name>!",
-                "Why? Why now?",
-                "We were so close... yet so far away",
-                "Death is just a number, <name>!"
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(PlayerOrMemberDeadTexts);
-            size_t pos;
-            while ((pos = chosen.find("<name>")) != std::string::npos)
-                chosen.replace(pos, 6, playerName);
-            //while ((pos = chosen.find("<duration>")) != std::string::npos)
-            //    chosen.replace(pos, 10, std::to_string(duration));
-            return chosen;
-        }
+        
 
         case FSBSayType::SpellOnTarget:
         {
@@ -481,26 +435,7 @@ namespace FSBUtilsTexts
             return chosen;
         }
 
-        case FSBSayType::BotDeath:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Well. this seems suboptimal. <name> , I blame you.",
-                "I was promised healing.This feels like betrayal, <name>.",
-                "Tell my spellbook. I loved it. <name>, you're still paying for repairs.",
-                "Next time, maybe don't pull half the place, <name>.",
-                "Ah yes. the sweet embrace of the spirit healer.",
-                "<name>. I hope that was worth it.",
-                "I'm not saying this is your fault, <name>. but it's definitely your fault."
-                "Good news, <name>: I found the floor.With my face."
-                "This is fine.Everything is fine.I am absolutely- dead."
-                "Remember me as I was. alive. and judging your decisions, <name>."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
-            ReplaceAll(chosen, "<name>", playerName);
-            return chosen;
-        }
+        
 
         case FSBSayType::TargetDeath:
         {

@@ -126,8 +126,6 @@ public:
 
         bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override // Runs once when gossip item selected
         {
-            int32 pLevel = player->GetLevel();
-
             uint32 const action = player->PlayerTalkClass->GetGossipOptionAction(gossipListId);
             ClearGossipMenuFor(player);
 
@@ -252,25 +250,7 @@ public:
                 // Bot Hire Option Permanent
             case GOSSIP_ACTION_INFO_DEF + 13:
             {
-                // End price is base cost per level times player level
-                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel)))
-                {
-                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel));
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
-
-                    botHired = true;
-                    FSBMgr::Get()->HirePersistentBot(player, me, 0);
-
-                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
-                    me->Say(msg, LANG_UNIVERSAL);
-                }
-                else
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
-
-                player->PlayerTalkClass->SendCloseGossip();
-                return true;
+                return FSBGossip::HandleGossipItemHirePermanent(me, player);
             }
 
                 // Bot Follow Distance Option 1
@@ -559,10 +539,10 @@ public:
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} died", summon->GetName(), me->GetName());
         }
 
-        void JustDied(Unit* /*killer*/) override // Runs once when creature dies
+        void JustDied(Unit* killer) override // Runs once when creature dies
         {
             botCorpsePos = me->GetPosition();
-            FSBDeath::HandlerJustDied(me, botLogicalGroup, botHasSoulstone);
+            FSBDeath::HandlerJustDied(me, killer);
         }
 
         void MovementInform(uint32 /*type*/, uint32 id) override

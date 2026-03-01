@@ -1,3 +1,7 @@
+// Player Notifications
+constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
+constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
+
 // Menu items - these have sub items
 constexpr auto FSB_GOSSIP_MENU_HIRE = "I'd like to hire you!";
 constexpr auto FSB_GOSSIP_MENU_INSTRUCTIONS = "Instructions";
@@ -85,4 +89,5 @@ namespace FSBGossip
 
     void HandleGossipItemInfo(Creature* bot, Player* player);
     void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon);
+    bool HandleGossipItemHirePermanent(Creature* bot, Player* player);
 }

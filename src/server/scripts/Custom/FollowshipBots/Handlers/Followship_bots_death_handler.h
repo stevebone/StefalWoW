@@ -1,7 +1,7 @@
 
 namespace FSBDeath
 {
-    void HandlerJustDied(Creature* bot, const std::vector<Unit*>& botGroup, bool hasSS);
+    void HandlerJustDied(Creature* bot, Unit* killer);
 
     void HandleDeathWithSoulstone(Creature* bot, bool& hasSS);
     void HandleDeathWithGraveyard(Creature* bot, Position botCorpse);

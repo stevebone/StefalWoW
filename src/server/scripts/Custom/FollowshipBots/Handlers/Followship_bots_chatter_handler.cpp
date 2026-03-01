@@ -836,6 +836,253 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "Holding position. Someone's got to be the responsible one."
         }
     },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Positive,
+        {
+            "Hang in there, {target}! We'll get you back up.",
+            "Don't worry, {target}, we've got this under control.",
+            "You fought well, {target}. We'll finish what you started.",
+            "Stay calm, {target}. We'll pick you up soon.",
+            "Rest for a moment, {target}. We'll handle the rest.",
+            "You're not out of the fight yet, {target}!",
+            "We'll carry on for you, {target}.",
+            "It's okay, {target}. Happens to the best of us.",
+            "You did great, {target}. We'll clean up the mess.",
+            "Hold tight, {target}. We'll get you back on your feet.",
+            "We'll avenge you, {target}. Promise.",
+            "You gave it your all, {target}. We'll finish strong.",
+            "No shame in that fall, {target}. We've got your back.",
+            "Take a breather, {target}. We'll wrap this up.",
+            "You're still part of the team, {target}. Just. temporarily horizontal.",
+            "We'll make sure your effort wasn't in vain.",
+            "You'll be back in action soon, {target}.",
+            "We'll keep pushing forward for you.",
+            "You did your part, {target}. Now it's our turn.",
+            "Stay with us, {target}. We're not done yet."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Neutral,
+        {
+            "{target} is down. Adjusting strategy.",
+            "One member down. Keep focus.",
+            "{target} has fallen. Repositioning.",
+            "Noted. {target} is out of the fight.",
+            "We've lost one. Continue the plan.",
+            "{target} is down. Maintaining formation.",
+            "Acknowledged. Party member eliminated.",
+            "Target {target} has died. Updating priorities.",
+            "One less fighter. Stay alert.",
+            "Member down. Proceeding with caution.",
+            "{target} is out. Compensating.",
+            "Death registered. Continuing engagement.",
+            "We're short one now. Keep moving.",
+            "Status update: {target} is dead.",
+            "Another one down. Staying on task.",
+            "Not ideal, but manageable.",
+            "Logging event: {target} has fallen.",
+            "We continue with reduced numbers.",
+            "Death confirmed. Adjusting behavior.",
+            "Noted. {target} won't be contributing for a bit."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Negative,
+        {
+            "Ah, shiiiiiit, nooooo {target}!",
+            "Hey {target}, what are you doing?!",
+            "How did we let this happen?!",
+            "Seriously, {target}? Now?!",
+            "Why does this always happen at the worst time?",
+            "We were so close. yet so far away.",
+            "Hope you won't blame me for this, {target}!",
+            "No, no, no-{target} is down!",
+            "Unbelievable. {target} just dropped.",
+            "This is bad. Really bad.",
+            "Come on, {target}! You had ONE job!",
+            "Why? Why now?",
+            "Great. just great. {target} is dead.",
+            "This is falling apart fast.",
+            "How did I let this happen?",
+            "Death is just a number, {target}! But still!",
+            "Ugh. that's going to leave a mark.",
+            "We're doomed. Absolutely doomed.",
+            "Not again. {target}, why?!",
+            "Perfect. Exactly what we needed. another corpse."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Positive,
+        {
+            "Ahh, feels good to breathe again.",
+            "Back on my feet! Let's not do that again.",
+            "Alright, round two. I'm ready.",
+            "That walk wasn't too bad. I've had worse.",
+            "I'm alive! Again! Still counts.",
+            "Okay, I'm back. What did I miss?",
+            "Good news: I'm no longer dead.",
+            "Freshly revived and feeling optimistic.",
+            "Alright, let's get back to business.",
+            "I return stronger. or at least less dead.",
+            "That was a refreshing stroll.",
+            "Okay, I'm upright. Let's go.",
+            "Back from the great beyond!",
+            "I lived! .Eventually.",
+            "Alright, I'm functional again.",
+            "That wasn't so bad. Could've been worse.",
+            "Respawn complete. Confidence restored.",
+            "I'm back in action. Let's keep moving.",
+            "Good walk, good revive, good to go.",
+            "Okay, I'm revived. Let's pretend that never happened."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Neutral,
+        {
+            "Revival complete. Resuming operations.",
+            "Corpse reached. Status: restored.",
+            "Back online. Continuing activity.",
+            "Resurrection successful. Proceeding.",
+            "Returned to functional state.",
+            "Revived. Rejoining the group.",
+            "Walk completed. Body recovered.",
+            "Back from the graveyard. Moving on.",
+            "Systems stable. Ready to continue.",
+            "Death penalty cleared. Resuming tasks.",
+            "Revival acknowledged. Standing by.",
+            "Operational again. Awaiting instructions.",
+            "Corpse retrieval successful.",
+            "Reactivated. No further issues.",
+            "Back to normal parameters.",
+            "Revived. Maintaining formation.",
+            "Recovery complete. Continuing route.",
+            "Status update: alive again.",
+            "Back in working condition.",
+            "Revival logged. Proceeding."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Negative,
+        {
+            "Ugh. that walk took forever.",
+            "Finally! I thought I'd never reach my body.",
+            "That was the longest jog of my life.",
+            "Great. I'm alive again. Barely worth it.",
+            "I swear the graveyard gets farther every time.",
+            "My legs hurt more than the death.",
+            "That was miserable. Absolutely miserable.",
+            "If I die again, I'm staying down.",
+            "Why is my corpse always in the worst spot?",
+            "That walk was punishment enough.",
+            "I'm back. and annoyed.",
+            "Next time, someone carry me.",
+            "I hate this part of adventuring.",
+            "That was a marathon, not a corpse run.",
+            "I'm alive, but my patience isn't.",
+            "Never making that walk again. Ever.",
+            "I need a break after that trek.",
+            "That revive better have been worth it.",
+            "I'm back, but I'm not happy about it.",
+            "If I die again, I'm blaming someone."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botDeathHired, FSB_ChatterType::None,
+        {
+            "Well. this seems suboptimal. {player}, I blame you.",
+            "I was promised healing. This feels like betrayal, {player}.",
+            "Tell my spellbook I loved it. And {player}, you're still paying for repairs.",
+            "Next time, maybe don't pull half the place, {player}.",
+            "Good news, {player}: I found the floor. With my face.",
+            "I'm not saying this is your fault, {player}. but it's definitely your fault.",
+            "Remember me as I was: alive, and judging your decisions, {player}.",
+            "Ah yes. the sweet embrace of death. Thanks, {player}.",
+            "Well played, {target}. You got me. {player}, take notes.",
+            "I hope that was worth it, {player}.",
+            "This is fine. Everything is fine. I am absolutely-dead.",
+            "If anyone asks, {player}, this was your idea.",
+            "I regret everything. mostly trusting you, {player}.",
+            "Congratulations, {target}. You win this round.",
+            "I'll be at the graveyard if you need me, {player}.",
+            "I died doing what I loved: panicking while {player} made bad choices.",
+            "Oh look, {target} killed me. Again. Lovely.",
+            "Well, {player}, at least YOU survived. That's what matters, right?",
+            "Tell my loot I loved it. And that I'll miss it.",
+            "I hope you're happy, {player}. I'm not.",
+            "Note to self: never trust {player} with my health bar.",
+            "I'm dead. Again. Shocking, I know.",
+            "If you need me, {player}, I'll be haunting the graveyard.",
+            "Hey {target}, next time try killing {player} instead.",
+            "I didn't stand a chance. not with {player} leading.",
+            "Well, {target} hit harder than expected. Or maybe I expected too much from you, {player}.",
+            "I fall so you may. continue making questionable decisions, {player}.",
+            "Death comes for us all. But mostly for me, apparently.",
+            "I hope you have a plan, {player}, because I'm fresh out.",
+            "Goodbye, cruel world. And goodbye, {player}. I trusted you."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botDeath, FSB_ChatterType::None,
+        {
+            "Ah yes. the sweet embrace of the spirit healer.",
+            "Well, {target}, you got me. Enjoy the victory.",
+            "Tell the spirit healer I said hi. Again.",
+            "I guess this is my life now. Or. unlife.",
+            "I hope you're proud of yourself, {target}.",
+            "Great. Another scenic walk from the graveyard.",
+            "I didn't want to live anyway. Too much responsibility.",
+            "Spirit healer, warm up the glow. I'm on my way.",
+            "I swear the graveyard gets farther every time.",
+            "Well, that escalated quickly.",
+            "Good fight, {target}. I mean. for you.",
+            "I'm starting to think the spirit healer knows me by name.",
+            "Ah yes, death. My oldest friend.",
+            "I'll be back. Probably annoyed.",
+            "At least the spirit healer doesn't judge me.",
+            "I fall, {target}, but I fall fabulously.",
+            "Another day, another corpse run.",
+            "I hope the spirit healer offers loyalty points.",
+            "Well, that was embarrassing.",
+            "I regret nothing. Except everything.",
+            "If anyone asks, {target}, this never happened.",
+            "I'm not dead. I'm just. temporarily defeated.",
+            "I'll rise again. Like a very irritated phoenix.",
+            "Note to self: avoid {target}.",
+            "I'm beginning to think I'm bad at this 'living' thing.",
+            "Ah well. Time to go touch my corpse again.",
+            "I hope my body is somewhere convenient this time.",
+            "Death count: too many. Patience: zero.",
+            "I'll be back, {target}. And next time, I'm bringing snacks.",
+            "Spirit healer, prepare the resurrection glow. I'm coming home."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botHiredPermanent, FSB_ChatterType::None,
+        {
+            "Looks like we're in this together now, {player}.",
+            "Alright. I'm yours until the end - wherever that may be.",
+            "No contracts, no timers. I'll stay with you.",
+            "Seems I've chosen a side. Let's make it a good one, {player}.",
+            "You've got yourself a companion, not just hired help.",
+            "I'm in. Wherever you go, I follow.",
+            "Well then. looks like I'm part of your story now.",
+            "No turning back now. I've got your back, {player}.",
+            "Guess this makes us partners.",
+            "From now on, I fight by your side.",
+            "Permanent, huh? Bold choice. Let's see how this goes.",
+            "I suppose this is what loyalty feels like.",
+            "No clock ticking anymore. I'm with you."
+        }
+    },
 };
 
 namespace FSBChatter
