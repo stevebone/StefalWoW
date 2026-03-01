@@ -926,7 +926,6 @@ public:
             // Combat
             ObjectGuid _pendingResTarget;
             ObjectGuid _lastOwnerVictim;
-            bool _ownerWasInCombat = false;
 
 
             uint32 _buffsTimerMs = 0;
