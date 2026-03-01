@@ -40,9 +40,9 @@ namespace FSBPowers
         if (bot->GetPower(power) < cost)
             return false;
 
-        bot->ModifyPower(power, -int32(cost));
+        bot->ModifyPower(power, -int32(cost), true);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Combat spellcasting: Reduced power mana by {} for bot: {}", cost, bot->GetName());
+        TC_LOG_DEBUG("scripts.fsb.spells", "FSB: SpendPowerPct: Reduced power {} by {} for bot: {}", FSBUtils::PowerTypeToString(power), cost, bot->GetName());
 
         return true;
     }

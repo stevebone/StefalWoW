@@ -7,13 +7,6 @@
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 
-#include "Followship_bots_druid.h"
-#include "Followship_bots_mage.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_warlock.h"
-#include "Followship_bots_warrior.h"
-
 namespace FSBGossip
 {
     bool HandleDefaultGossipHello(Creature* bot, Player* player, bool hired, ObjectGuid& outPlayerGuid)

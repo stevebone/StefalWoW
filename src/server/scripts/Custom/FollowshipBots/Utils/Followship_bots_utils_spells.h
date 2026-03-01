@@ -14,6 +14,16 @@
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_stats.h"
 
+#include "Followship_bots_druid.h"
+#include "Followship_bots_hunter.h"
+#include "Followship_bots_mage.h"
+#include "Followship_bots_monk.h"
+#include "Followship_bots_paladin.h"
+#include "Followship_bots_priest.h"
+#include "Followship_bots_rogue.h"
+#include "Followship_bots_warlock.h"
+#include "Followship_bots_warrior.h"
+
 enum FSB_RACIAL_SPELLS
 {
     SPELL_DWARF_STONEFORM = 20594,

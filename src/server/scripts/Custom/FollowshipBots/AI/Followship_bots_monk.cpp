@@ -12,31 +12,33 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
-    { SPELL_MONK_BLACKOUT_KICK,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_MONK_LEG_SWEEP,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           6.f,           false,      60000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_MONK_BLACKOUT_KICK,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_MONK_LEG_SWEEP,                 FSBSpellType::Damage,   0.f,        0.f,            50.f,            6.f,           false,      60000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
 
-    //DPS
-    { SPELL_MONK_VIVIFY,                    FSBSpellType::Heal,     0.3f,       50.f,           100.f,           40.f,          false,      2000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_BLACK_OX_BREW,             FSBSpellType::Heal,     0.f,        30.f,           50.f,            0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_CELESTIAL_INFUSION,        FSBSpellType::Heal,     0.f,        70.f,           50.f,            0.f,           true,       45000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_CELESTIAL_BREW,            FSBSpellType::Heal,     0.f,        30.f,           50.f,            0.f,           true,       45000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_EXPEL_HARM,                FSBSpellType::Heal,     0.15f,      40.f,           100.f,           0.f,           true,       15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_PURIFYING_BREW,            FSBSpellType::Heal,     0.f,        70.f,           50.f,            0.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    //TANK
+    { SPELL_MONK_VIVIFY,                    FSBSpellType::Heal,     0.3f,       50.f,           100.f,           40.f,          false,      2000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_BLACK_OX_BREW,             FSBSpellType::Heal,     0.f,        30.f,           50.f,            0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_CELESTIAL_INFUSION,        FSBSpellType::Heal,     0.f,        70.f,           50.f,            0.f,           true,       45000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_CELESTIAL_BREW,            FSBSpellType::Heal,     0.f,        30.f,           50.f,            0.f,           true,       45000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_EXPEL_HARM,                FSBSpellType::Heal,     0.15f,      40.f,           100.f,           0.f,           true,       15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_PURIFYING_BREW,            FSBSpellType::Heal,     0.f,        70.f,           50.f,            0.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+
+    { SPELL_MONK_PROVOKE,                   FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
 
     // silence
-    { SPELL_MONK_SPEAR_HAND_STRIKE,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_SPEAR_HAND_STRIKE,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
 
     // cc
-    { SPELL_MONK_SPINNING_CRANE,            FSBSpellType::Damage,   0.4f,       0.f,            100.f,           6.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_BLACK_OX_STATUE,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_RUSHING_JADE_WIND,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,      6000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_SPINNING_CRANE,            FSBSpellType::Damage,   0.4f,       0.f,            100.f,           6.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_BLACK_OX_STATUE,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_RUSHING_JADE_WIND,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,      6000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
     // dmg
-    { SPELL_MONK_TIGER_PALM,                FSBSpellType::Damage,   0.5f,       0.f,            100.f,           2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_INVOKE_NIUZAO,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_EXPLODING_KEG,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_CHI_BURST,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_BREATH_FIRE,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_MONK_KEG_SMASH,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           15.f,          false,      8000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_TIGER_PALM,                FSBSpellType::Damage,   0.5f,       0.f,            100.f,           2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_INVOKE_NIUZAO,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_EXPLODING_KEG,             FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_CHI_BURST,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_BREATH_FIRE,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
+    { SPELL_MONK_KEG_SMASH,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           15.f,          false,      8000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
 
     //HEAL
     { SPELL_MONK_EXPEL_HARM,                FSBSpellType::Heal,     0.15f,      40.f,           100.f,           0.f,           true,       15000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
@@ -58,14 +60,50 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     { SPELL_MONK_SUMMON_SERPENT_STATUE,     FSBSpellType::Damage,   0.05f,      0.f,            50.f,            40.f,          false,      10000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_INVOKE_CHIJI,              FSBSpellType::Damage,   0.f,        0.f,            30.f,            40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_INVOKE_YULON,              FSBSpellType::Damage,   0.f,        0.f,            30.f,            40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+
+    //DPS
+    { SPELL_MONK_BLACKOUT_KICK_CHI,         FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_TIGER_PALM_CHI,            FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+
+
+    { SPELL_MONK_STRIKE_WINDLORD,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           9.f,           false,      35000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_SLICING_WINDS_1,           FSBSpellType::Damage,   0.4f,       0.f,            100.f,           2.f,           false,      30000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_FISTS_FURY,                FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,      24000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_RISING_SUN_KICK,           FSBSpellType::Damage,   0.40f,      0.f,            60.f,            2.f,           false,      10000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_RUSHING_WIND,              FSBSpellType::Damage,   0.f,        0.f,            60.f,            6.f,           false,      6000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_MONK_SPINNING_CRANE,            FSBSpellType::Damage,   0.40f,      0.f,            60.f,            6.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 };
 
 namespace FSBMonk
 {
     void HandleOnSpellCast(Creature* bot, uint32 spellId)
     {
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        auto botRole = baseAI->botRole;
+
         switch (spellId)
         {
+        case SPELL_MONK_SLICING_WINDS_1:
+            if(Unit* target = bot->GetVictim()) FSBSpells::BotCastSpell(bot, SPELL_MONK_SLICING_WINDS_2, target);
+            break;
+
+        case SPELL_MONK_SLICING_WINDS_2:
+            if (Unit* target = bot->GetVictim()) FSBSpells::BotCastSpell(bot, SPELL_MONK_SLICING_WINDS_3, target);
+            break;
+
+        case SPELL_MONK_BLACKOUT_KICK_CHI:
+            if (botRole == FSB_ROLE_MELEE_DAMAGE)
+                bot->ModifyPower(POWER_CHI, 1, true);
+            break;
+
+        case SPELL_MONK_TIGER_PALM_CHI:
+            if (botRole == FSB_ROLE_MELEE_DAMAGE)
+                bot->ModifyPower(POWER_CHI, 2, true);
+            break;
+
         case SPELL_MONK_PURIFYING_BREW:
             bot->ModifyHealth(bot->GetMaxHealth() * 0.08f);
             break;

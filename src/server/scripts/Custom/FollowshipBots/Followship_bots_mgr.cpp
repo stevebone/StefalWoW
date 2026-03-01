@@ -1,8 +1,10 @@
+#include "CharmInfo.h"
+#include "Log.h"
+#include "PhasingHandler.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
-#include "PhasingHandler.h"
-#include "CharmInfo.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_powers_handler.h"

@@ -2,7 +2,7 @@
 // TO-DO
 // =========================================
 
-
+#include "Log.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
@@ -68,7 +68,7 @@ public:
 
                 FSBMgr::Get()->SetInitialBotState(me);
 
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: Reset() triggered for bot: {}", me->GetName());
 
                 // Schedule Generic Events
 
@@ -108,15 +108,12 @@ public:
         // This only works if creature is spawned by summon (NOT DB spawn)
         void IsSummonedBy(WorldObject* /*summoner*/) override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IsSummonedBy() triggered for bot: {}", me->GetName());
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: IsSummonedBy() triggered for bot: {}", me->GetName());
         }
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
-            //if (botClass == FSB_Class::Hunter)
-                //if(!me->HasPetFlag())
-            //    FSBHunter::BotSummonPet(me);
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
         }
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
@@ -137,10 +134,8 @@ public:
 
                 // Bot Info
             case GOSSIP_ACTION_INFO_DEF + 2:
-            {
                 FSBGossip::HandleGossipItemInfo(me, player);
                 return true;
-            }
 
                 // Roles Menu
             case GOSSIP_ACTION_INFO_DEF + 3:
@@ -148,17 +143,13 @@ public:
 
                 // Bot Gossip Back to main
             case GOSSIP_ACTION_INFO_DEF + 4:
-            {
                 OnGossipHello(player);
                 return true;
-            }
 
                 // Bot Dismiss
             case GOSSIP_ACTION_INFO_DEF + 5:
-            {
                 events.ScheduleEvent(FSB_EVENT_HIRE_DISMISSED, 1s);
                 break;
-            }
 
                 // Bot Instructions Menu
             case GOSSIP_ACTION_INFO_DEF + 6:
@@ -166,9 +157,7 @@ public:
 
                 // Bot Follow Distance Menu
             case GOSSIP_ACTION_INFO_DEF + 7:
-            {
                 return FSBGossip::HandleGossipMenuFollowDistance(me, player);
-            }
 
                 // Bot Follow Angle Menu
             case GOSSIP_ACTION_INFO_DEF + 8:
