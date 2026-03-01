@@ -42,7 +42,7 @@ public:
         return commandTable;
     }
 
-    static bool HandleFSBStats(ChatHandler* handler, char const* /*args*/)
+    static bool HandleFSBStats(ChatHandler* handler)
     {
         Creature* target = handler->getSelectedCreature();
 
@@ -135,7 +135,7 @@ public:
         return true;
     }
 
-    static bool HandleFSBInfo(ChatHandler* handler, char const* /*args*/)
+    static bool HandleFSBInfo(ChatHandler* handler)
     {
         Creature* target = handler->getSelectedCreature();
 
@@ -183,7 +183,7 @@ public:
         return true;
     }
 
-    static bool HandleFSBAfkAction(ChatHandler* handler, char const* /*args*/)
+    static bool HandleFSBAfkAction(ChatHandler* handler)
     {
         Creature* target = handler->getSelectedCreature();
 

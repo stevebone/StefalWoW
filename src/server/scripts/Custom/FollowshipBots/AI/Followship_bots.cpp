@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"

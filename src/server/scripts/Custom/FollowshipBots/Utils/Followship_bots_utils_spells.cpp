@@ -173,6 +173,10 @@ namespace FSBSpellsUtils
         case SPELL_PALADIN_DIVINE_SHIELD:
             return bot->GetPowerPct(POWER_MANA) < 20;
 
+            // RACIAL
+        case SPELL_PANDAREN_QUAKING_PALM:
+            return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Pandaren && CheckCrowdControlRequirements(bot, 5.f);
+
         case SPELL_DRAENEI_GIFT_NAARU:
             return FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()) == FSB_Race::Draenei;
 
@@ -570,6 +574,7 @@ namespace FSBSpellsUtils
         case SPELL_HUNTER_SCARE_BEAST:
         case SPELL_MONK_PARALYSIS:
         case SPELL_MONK_PARALYSIS_CHI:
+        case SPELL_PANDAREN_QUAKING_PALM:
             return true;
         default:
             return false;

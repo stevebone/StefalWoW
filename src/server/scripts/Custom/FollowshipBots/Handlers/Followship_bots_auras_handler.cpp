@@ -36,6 +36,7 @@ namespace FSBAuras
         case FSB_Class::Monk:
             if (FSBMonk::BotOnAuraApplied(bot, aurApp, applied, botStats))
                 break;
+            break;
         case FSB_Class::Rogue:
             break;
         case FSB_Class::Druid:
