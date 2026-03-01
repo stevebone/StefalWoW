@@ -66,10 +66,14 @@ public:
         handler->PSendSysMessage("Health: Base: %.1f Max: %.1f (%.1f%%)", baseHealth, totalHealth, bot->GetHealthPct());
 
         Powers powerType = bot->GetPowerType();
+
+        float currentPower = bot->GetPower(powerType);
+        float maxPower = bot->GetMaxPower(powerType);
         float basePower = bot->GetFlatModifierValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE);
         float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)));
 
         handler->PSendSysMessage("Power (%s): Base %u / %u", FSBUtils::PowerTypeToString(powerType), (int32)basePower, (int32)totalPower);
+        handler->PSendSysMessage("Current Power (%s): Now %u / Max %u", FSBUtils::PowerTypeToString(powerType), (int32)currentPower, (int32)maxPower);
 
 
         float baseArmor = bot->GetFlatModifierValue(UNIT_MOD_ARMOR, BASE_VALUE);
