@@ -240,6 +240,9 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType replyType, std::string chatterReply, Unit* target)
 {
     Creature* bot = ai->me;
+    std::string tname = "";
+    if (target)
+        tname = target->GetName();
     
     if (!bot)
         return;
@@ -248,7 +251,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
     {
     case FSB_EVENT_HIRED_TIMED_CHATTER_REPLY:
     {
-        TC_LOG_DEBUG("scripts.fsb.events", "FSB: Events TIMED_CHATTER_REPLY chatterString: {}", chatterReply);
+        TC_LOG_DEBUG("scripts.fsb.events", "FSB: Events TIMED_CHATTER_REPLY bot {} with target {} and chatterString: {}", bot->GetName(), tname, chatterReply);
 
         switch (replyType)
         {

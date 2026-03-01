@@ -1146,7 +1146,10 @@ namespace FSBChatter
 
         std::string replyString = GetRandomReply(bot, target, category, type);
 
-        TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter DemandTimedReply: String {} selected for category {} and chatterType {}", replyString, category, type);
+        TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter DemandTimedReply: Bot {} String {} selected for category {} and chatterType {}", bot->GetName(), replyString, category, type);
+
+        if (category == FSB_ChatterCategory::botDeath || category == FSB_ChatterCategory::botDeathHired || category == FSB_ChatterCategory::botMemberDied)
+            target = nullptr;
 
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);
 

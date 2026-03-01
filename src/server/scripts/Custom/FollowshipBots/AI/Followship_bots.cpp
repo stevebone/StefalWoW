@@ -3,6 +3,7 @@
 // =========================================
 
 #include "Log.h"
+#include "Map.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"

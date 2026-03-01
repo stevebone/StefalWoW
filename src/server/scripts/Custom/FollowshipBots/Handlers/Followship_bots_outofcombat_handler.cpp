@@ -393,16 +393,14 @@ namespace FSBOOC
         if (companionSpell == 0)
             return false;        
 
-            int32 timerDiff = urandms(45, 60);
+        int32 timerDiff = urandms(45, 60);
 
-            if (FSBCombatUtils::IsOutOfCombatFor(bot, timerDiff) && !botHasCompanion)
-            {
-                
-                botHasCompanion = true;
-                FSBSpells::BotCastSpell(bot, companionSpell, bot);
-                
-                return true;
-            }
+        if (FSBCombatUtils::IsOutOfCombatFor(bot, timerDiff) && !botHasCompanion)
+        {
+            botHasCompanion = true;
+            FSBSpells::BotCastSpell(bot, companionSpell, bot);
+            return true;
+        }
 
         return false;
     }
@@ -471,6 +469,9 @@ namespace FSBOOC
                 spellId = SPELL_DRUID_REBIRTH;
             else spellId = SPELL_DRUID_REVIVE;
             break;
+        case FSB_Class::Monk:
+            spellId = SPELL_MONK_RESUSCITATE;
+            break;
         case FSB_Class::Paladin:
             spellId = SPELL_PALADIN_REDEMPTION;
             break;
@@ -488,7 +489,7 @@ namespace FSBOOC
             {
                 uint32 now = getMSTime();
                 globalCooldown = now + 1500;
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect Bot {} tried ressurect spell: {} on {}", bot->GetName(), spellId, target->GetName());
+                TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget Bot {} tried ressurect spell: {} on {}", bot->GetName(), spellId, target->GetName());
 
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {

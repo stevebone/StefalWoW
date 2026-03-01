@@ -96,7 +96,7 @@ namespace FSBIC
         auto& botLowHealth = baseAI->botAnnouncedLowHealth;
         auto& botVeryLowHealth = baseAI->botAnnouncedVeryLowHealth;
 
-        TextEmotes tEmote = TEXT_EMOTE_AGREE;
+        int32 tEmote = 0;
         FSB_ChatterCategory emoteReply = FSB_ChatterCategory::chatter_none;
 
         bool check = false;
