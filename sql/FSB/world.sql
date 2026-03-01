@@ -195,6 +195,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('50595', '900003', '-1'),
 ('50595', '900004', '-1'),
 ('50595', '900005', '-1'),
+('63258', '900000', '-1'),
+('63258', '900001', '-1'),
+('63258', '900002', '-1'),
+('63258', '900003', '-1'),
+('63258', '900004', '-1'),
+('63258', '900005', '-1'),
 ('141508', '900000', '-1'),
 ('141508', '900001', '-1'),
 ('141508', '900002', '-1'),
@@ -221,6 +227,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 925; -- Brother Sammuel (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 6373; -- Dane Winslow (Demon/Warlock)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43278; -- Ashley (Hunter)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 63258; -- Bao (Monk)
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 46405; -- Stockade Guard (Warrior)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 50595; -- Stormwind Defender (Warrior)

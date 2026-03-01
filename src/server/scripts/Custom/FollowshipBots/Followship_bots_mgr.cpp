@@ -5,6 +5,7 @@
 #include "CharmInfo.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
 
 FSBMgr* FSBMgr::Get()
@@ -469,6 +470,18 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     botStats = FSBBotStats();
     botRole = GetRandomRoleForClass(botClass);
     TC_LOG_INFO("scripts.ai.fsb", "Assigned random role {} to bot {}", botRole, bot->GetName());
+
+    if (botClass == FSB_Class::Monk)
+    {
+        if(botRole == FSB_Roles::FSB_ROLE_HEALER)
+            FSBPowers::SetBotToMana(bot);
+
+        if (botRole == FSB_Roles::FSB_ROLE_TANK)
+            FSBPowers::SetBotToMana(bot);
+
+        if (botRole == FSB_Roles::FSB_ROLE_MELEE_DAMAGE)
+            FSBPowers::SetBotToChi(bot);
+    }
 
 }
 

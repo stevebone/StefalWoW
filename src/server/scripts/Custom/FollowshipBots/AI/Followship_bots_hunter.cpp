@@ -1,5 +1,6 @@
 #include "CharmInfo.h"
 #include "CreatureData.h"
+#include "ObjectAccessor.h"
 #include "Pet.h"
 #include "PhasingHandler.h"
 

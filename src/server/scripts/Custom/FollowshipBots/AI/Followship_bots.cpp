@@ -947,18 +947,10 @@ public:
             ObjectGuid _pendingResTarget;
             ObjectGuid _lastOwnerVictim;
             bool _ownerWasInCombat = false;
-            uint8 _appliedInitialCBuffs = 0;
-            //std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
+
+
             uint32 _buffsTimerMs = 0;
             uint32 _selfBuffsTimerMs = 0;
-
-            // ----------
-            // Movement States
-            //uint16 moveState = 0;
-
-            // ----------
-            // Allies & Group
-            //std::vector<Unit*> botGroup_;
 
             uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;

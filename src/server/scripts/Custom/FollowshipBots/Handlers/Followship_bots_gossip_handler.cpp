@@ -5,6 +5,7 @@
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_movement_handler.h"
+#include "Followship_bots_powers_handler.h"
 
 #include "Followship_bots_druid.h"
 #include "Followship_bots_mage.h"
@@ -165,6 +166,11 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ARCANE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_FROST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_FIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
+            break;
+        case FSB_Class::Monk:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_HEALER, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_TANK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_MELEE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
             break;
         case FSB_Class::Rogue:
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_ROGUE_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
@@ -352,6 +358,26 @@ namespace FSBGossip
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
                 FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_FIRE);
+                break;
+            }
+            break;
+        case FSB_Class::Monk:
+            if (roleOption == FSB_GOSSIP_ROLE_1)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                FSBPowers::SetBotToMana(bot);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_2)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                FSBPowers::SetBotToChi(bot);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_3)
+            {
+                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                FSBPowers::SetBotToEnergy(bot);
                 break;
             }
             break;

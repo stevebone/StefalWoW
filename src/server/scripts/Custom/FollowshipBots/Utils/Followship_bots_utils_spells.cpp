@@ -9,6 +9,7 @@
 #include "Followship_bots_druid.h"
 #include "Followship_bots_hunter.h"
 #include "Followship_bots_mage.h"
+#include "Followship_bots_monk.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
@@ -142,6 +143,8 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_ICE_BARRIER:
             return target == bot && bot->GetHealthPct() < 75;
 
+            //SILENCE
+        case SPELL_MONK_SPEAR_HAND_STRIKE:
         case SPELL_HUNTER_COUNTER_SHOT:
         case SPELL_ROGUE_KICK:
         case SPELL_PRIEST_SILENCE:
@@ -178,6 +181,9 @@ namespace FSBSpellsUtils
 
         case SPELL_HUNTER_TRANQUILIZING_SHOT:
             return HasAnyMechanic(target, { MECHANIC_ENRAGED }) || FindEnemyBuffToDispel(target);
+
+        case SPELL_MONK_BLACK_OX_BREW:
+            return bot->GetPowerPct(bot->GetPowerType()) <= 10;
 
         case SPELL_ROGUE_THISTLE_TEA:
             return bot->GetPowerPct(bot->GetPowerType()) <= 30;

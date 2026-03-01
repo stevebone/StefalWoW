@@ -66,12 +66,47 @@ namespace FSBPowers
 
     bool IsEnergyUser(Creature* bot)
     {
-        return FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Rogue || bot->HasAura(SPELL_DRUID_CAT);
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto botClass = baseAI->botClass;
+        auto botRole = baseAI->botRole;
+
+        return botClass == FSB_Class::Rogue || bot->HasAura(SPELL_DRUID_CAT) || (botClass == FSB_Class::Monk && botRole == FSB_ROLE_MELEE_DAMAGE);
     }
 
     bool IsFocusUser(Creature* bot)
     {
         return FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Hunter;
+    }
+
+    void SetBotToEnergy(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        bot->SetPowerType(POWER_ENERGY, true);
+        bot->SetMaxPower(POWER_ENERGY, 100);
+    }
+
+    void SetBotToMana(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        bot->SetPowerType(POWER_MANA, true);
+        bot->SetMaxPower(POWER_MANA, bot->GetMaxPower(POWER_MANA));
+        bot->SetPower(POWER_MANA, bot->GetMaxPower(POWER_MANA));
+    }
+
+    void SetBotToChi(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        bot->SetPowerType(POWER_CHI, true);
+        bot->SetMaxPower(POWER_CHI, 5);
     }
 
     void GenerateRageFromDamageTaken(Creature* bot, uint32 damage)

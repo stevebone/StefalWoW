@@ -146,6 +146,28 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .spellPowerPerLevel = 5
     },
 
+    // MONK
+    {
+        .classId = FSB_Class::Monk,
+        .powerType = POWER_MANA,
+        .baseHealth = 110,
+        .basePower = 180,
+        .healthPerLevel = 52,
+        .powerPerLevel = 32,
+        .baseHpRegenOOC = 3,
+        .basePowerRegenOOC = 5,
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 2,
+        .baseAttackPower = 6,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 8,
+        .baseClassDamageVariance = 1.f,
+        .baseAttackTime = 2000,
+        .baseRangedAttackTime = 2500,
+        .baseSpellPower = 8,
+        .spellPowerPerLevel = 3
+    },
+
     // DRUID
     {
         .classId = FSB_Class::Druid,

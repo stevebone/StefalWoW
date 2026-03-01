@@ -4,6 +4,7 @@
 #include "Followship_bots_druid.h"
 #include "Followship_bots_hunter.h"
 #include "Followship_bots_mage.h"
+#include "Followship_bots_monk.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
@@ -32,7 +33,8 @@ namespace FSBSpells
             break;
         case FSB_Class::Priest:
             break;
-        case FSB_Class::Mage:
+        case FSB_Class::Monk:
+            FSBMonk::HandleOnSpellCast(bot, spellId);
             break;
         case FSB_Class::Rogue:
             break;
@@ -94,6 +96,7 @@ namespace FSBSpells
         sBotSpellTables[FSB_Class::Druid] = &DruidSpellsTable;
         sBotSpellTables[FSB_Class::Rogue] = &RogueSpellsTable;
         sBotSpellTables[FSB_Class::Hunter] = &HunterSpellsTable;
+        sBotSpellTables[FSB_Class::Monk] = &MonkSpellsTable;
     }
 
     void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells)
