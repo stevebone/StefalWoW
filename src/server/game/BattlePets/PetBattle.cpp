@@ -696,17 +696,8 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                 }
 
                 // Don't set Health to 0 — captured pet stays alive in the journal
-
-                // Add captured pet to the player's journal
-                if (Player* player = GetPlayerForTeam(teamIdx))
-                {
-                    BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
-                    petMgr->AddPet(wildPet.Species, wildPet.DisplayID, wildPet.Breed,
-                        BattlePets::BattlePetBreedQuality(wildPet.Quality), wildPet.Level);
-
-                    // Achievement: pet obtained through battle
-                    player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildPet.Species);
-                }
+                // Note: AddPet + criteria updates are deferred to CompleteBattle()
+                // so the journal notification appears AFTER the crate animation plays.
 
                 // Check if wild team has more alive, uncaptured pets
                 if (wildTeam.HasAlivePets())
@@ -1057,6 +1048,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetPet = defenderPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
                 roundEffect.Param2 = abilityID;
+                roundEffect.Param3 = newAura.RemainingRounds;
+                roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
             }
             break;
@@ -1085,6 +1078,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetPet = attackerPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
                 roundEffect.Param2 = abilityID;
+                roundEffect.Param3 = newAura.RemainingRounds;
+                roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
             }
             break;
@@ -1223,6 +1218,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetPet = attackerPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
                 roundEffect.Param2 = abilityID;
+                roundEffect.Param3 = newAura.RemainingRounds;
+                roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
             }
 
@@ -1963,6 +1960,30 @@ void PetBattle::SendFinalRoundPacket(bool abandoned)
 void PetBattle::CompleteBattle()
 {
     _state = PET_BATTLE_STATE_FINISHED;
+
+    // Add captured pets to the player's journal (deferred from capture resolution
+    // so the notification appears after the crate animation has played)
+    if (_battleType == PET_BATTLE_TYPE_PVE)
+    {
+        if (Player* player = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        {
+            BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
+            PetBattleTeamData const& wildTeam = _teams[PET_BATTLE_TEAM_2];
+            for (uint8 p = 0; p < wildTeam.PetCount; ++p)
+            {
+                if (wildTeam.Pets[p].IsCaptured)
+                {
+                    petMgr->AddPet(wildTeam.Pets[p].Species, wildTeam.Pets[p].DisplayID,
+                        wildTeam.Pets[p].Breed,
+                        BattlePets::BattlePetBreedQuality(wildTeam.Pets[p].Quality),
+                        wildTeam.Pets[p].Level);
+
+                    player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildTeam.Pets[p].Species);
+                    player->UpdateCriteria(CriteriaType::PlayerObtainPetThroughBattle, wildTeam.Pets[p].Species);
+                }
+            }
+        }
+    }
 
     // Send finished notification and sync pet health to journal
     WorldPackets::BattlePet::PetBattleFinished finished;

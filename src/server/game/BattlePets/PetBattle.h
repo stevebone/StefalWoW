@@ -212,6 +212,8 @@ struct PetBattleRoundEffect
     uint8 TargetPet = 0;
     int32 Param1 = 0;
     int32 Param2 = 0;
+    int32 Param3 = 0;      // For aura effects: RoundsRemaining (captured at creation time)
+    int32 Param4 = 0;      // For aura effects: CurrentRound (captured at creation time)
 };
 
 class TC_GAME_API PetBattle
