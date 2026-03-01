@@ -12,6 +12,7 @@ enum FSB_ChatterCategory
     botDeathHired,
     botDeath,
     botHiredPermanent,
+    botRevivedTarget,
 
     emote_oom,
     emote_heal,

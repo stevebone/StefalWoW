@@ -342,28 +342,6 @@ namespace FSBUtilsTexts
             return Trinity::Containers::SelectRandomContainerElement(texts);
         }
 
-        case FSBSayType::Resurrect:
-        {
-            static const std::vector<std::string> resurrectTexts =
-            {
-                "Hey, <name>, Don't you die on me again, ok?",
-                "Ah, you're good as new, <name>!",
-                "Aren't you glad you brought me along?",
-                "Hope I don't have to revive you again, <name>!",
-                "One resurrect for you and another for... oh nevermind!",
-                "This resurrect is for free, next one...",
-                "Hope you appreciate the revival, <name>!"
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(resurrectTexts);
-            size_t pos;
-            while ((pos = chosen.find("<name>")) != std::string::npos)
-                chosen.replace(pos, 6, playerName);
-            //while ((pos = chosen.find("<duration>")) != std::string::npos)
-            //    chosen.replace(pos, 10, std::to_string(duration));
-            return chosen;
-        }
-
         
 
         case FSBSayType::SpellOnTarget:

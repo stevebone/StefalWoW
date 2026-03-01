@@ -1083,6 +1083,39 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "No clock ticking anymore. I'm with you."
         }
     },
+
+    {
+        FSB_ChatterCategory::botRevivedTarget, FSB_ChatterType::None,
+        {
+            "Hey, {target}, Don't you die on me again, ok?",
+            "Ah, you're good as new, {target}!",
+            "Aren't you glad you brought me along?",
+            "Hope I don't have to revive you again, {target}!",
+            "One resurrect for you and another for... oh nevermind!",
+            "This resurrect is for free, next one...",
+            "Hope you appreciate the revival, {target}!",
+            "Rise, {target}! The spirits aren't done with you yet.",
+            "Back from the brink, {target}. Try not to visit again so soon.",
+            "The Light has plans for you, {target}. Don't waste them.",
+            "On your feet, {target}. Death was getting bored of you.",
+            "I dragged your soul back myself, {target}. You're welcome.",
+            "Wake up, {target}. The afterlife said 'no refunds'.",
+            "You owe me one, {target}. Preferably something shiny.",
+            "Arise, {target}! Your corpse was lowering team morale.",
+            "Death rejected your application, {target}. Try again later.",
+            "The ancestors said you still have chores to do, {target}.",
+            "Get up, {target}. The battle isn't going to lose itself.",
+            "I stitched your soul back in place, {target}. Don't pull the seams.",
+            "You're alive again, {target}. Try to stay that way this time.",
+            "The spirits whispered your name, {target}. I told them 'not today'.",
+            "Up you go, {target}. Gravity won't keep you forever.",
+            "I bring you back, {target}. What you do with that is. questionable.",
+            "Your story continues, {target}. Try not to make it a short one.",
+            "The Light shines upon you, {target}. Mostly because I forced it to.",
+            "Welcome back, {target}. Your corpse was starting to smell.",
+            "There you are, {target}. Don't scare me like that again."
+        }
+    },
 };
 
 namespace FSBChatter
@@ -1148,7 +1181,7 @@ namespace FSBChatter
 
         TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter DemandTimedReply: Bot {} String {} selected for category {} and chatterType {}", bot->GetName(), replyString, category, type);
 
-        if (category == FSB_ChatterCategory::botDeath || category == FSB_ChatterCategory::botDeathHired || category == FSB_ChatterCategory::botMemberDied)
+        if (category == FSB_ChatterCategory::botDeath || category == FSB_ChatterCategory::botDeathHired || category == FSB_ChatterCategory::botMemberDied || category == FSB_ChatterCategory::botRevivedTarget)
             target = nullptr;
 
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);

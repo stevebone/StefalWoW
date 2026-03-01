@@ -96,7 +96,6 @@ namespace FSBIC
         auto& botLowHealth = baseAI->botAnnouncedLowHealth;
         auto& botVeryLowHealth = baseAI->botAnnouncedVeryLowHealth;
 
-        int32 tEmote = 0;
         FSB_ChatterCategory emoteReply = FSB_ChatterCategory::chatter_none;
 
         bool check = false;
@@ -105,7 +104,6 @@ namespace FSBIC
         {
             if (bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) <= 10)
             {
-                tEmote = TEXT_EMOTE_OOM;
                 botLowMana = true;
                 emoteReply = FSB_ChatterCategory::emote_oom;
                 check = true;
@@ -114,7 +112,6 @@ namespace FSBIC
 
         else if (!botLowHealth && bot->GetHealthPct() <= 50)
         {
-            tEmote = TEXT_EMOTE_HELPME;
             botLowHealth = true;
             emoteReply = FSB_ChatterCategory::emote_help;
             check = true;
@@ -122,7 +119,6 @@ namespace FSBIC
 
         else if (!botVeryLowHealth && bot->GetHealthPct() <= 20)
         {
-            tEmote = TEXT_EMOTE_HEALME;
             botLowHealth = true;
             botVeryLowHealth = true;
             emoteReply = FSB_ChatterCategory::emote_heal;

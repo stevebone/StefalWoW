@@ -494,8 +494,7 @@ namespace FSBOOC
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
                     // SAY after ressurect
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(target->GetName(), NULL, FSBSayType::Resurrect, "");
-                    bot->Say(msg, LANG_UNIVERSAL);
+                    FSBChatter::DemandTimedReply(bot, target, FSB_ChatterCategory::botRevivedTarget, FSB_ReplyType::Say, FSB_ChatterSource::None);
                 }
 
                 resurrectTargetGuid.Clear();
