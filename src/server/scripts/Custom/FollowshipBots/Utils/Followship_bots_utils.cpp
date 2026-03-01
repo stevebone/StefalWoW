@@ -145,7 +145,7 @@ namespace FSBUtils
 
         FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
-        if (cls == FSB_Class::Priest || cls == FSB_Class::Druid || cls == FSB_Class::Paladin || cls == FSB_Class::Shaman)
+        if (cls == FSB_Class::Priest || cls == FSB_Class::Druid || cls == FSB_Class::Paladin || cls == FSB_Class::Shaman || cls == FSB_Class::Monk)
             return true;
 
         return false;

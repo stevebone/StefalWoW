@@ -253,12 +253,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
         switch (replyType)
         {
         case FSB_ReplyType::Say:
-            if(target)
+            if(target && target->IsAlive())
                 target->Say(chatterReply, LANG_UNIVERSAL);
             else bot->Say(chatterReply, LANG_UNIVERSAL);
             break;
         case FSB_ReplyType::Yell:
-            if(target)
+            if(target && target->IsAlive())
                 target->Yell(chatterReply, LANG_UNIVERSAL);
             else bot->Yell(chatterReply, LANG_UNIVERSAL);
             break;

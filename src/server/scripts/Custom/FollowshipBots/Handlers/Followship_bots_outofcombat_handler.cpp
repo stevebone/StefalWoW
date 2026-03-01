@@ -1,4 +1,5 @@
 #include "Log.h"
+#include "Map.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_config.h"
@@ -12,15 +13,6 @@
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_spells_handler.h"
-
-#include "Followship_bots_druid.h"
-#include "Followship_bots_hunter.h"
-#include "Followship_bots_mage.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_rogue.h"
-#include "Followship_bots_warlock.h"
-#include "Followship_bots_warrior.h"
 
 namespace FSBOOC
 {
@@ -379,6 +371,7 @@ namespace FSBOOC
         case FSB_AFK_ACTION_COMPANION:
             if (BotOOCSpawnCompanion(bot))
                 return true;
+            return false;
 
         default:
             return false;
