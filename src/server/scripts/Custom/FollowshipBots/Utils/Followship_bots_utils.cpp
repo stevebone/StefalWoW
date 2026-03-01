@@ -77,6 +77,7 @@ namespace FSBUtils
         case POWER_FOCUS:  return "Focus";
         case POWER_HOLY_POWER: return "Holy";
         case POWER_SOUL_SHARDS:return "Sould Shards";
+        case POWER_CHI:    return "Chi";
         default:           return "Other";
         }
     }
@@ -150,7 +151,7 @@ namespace FSBUtils
         return false;
     }
 
-    Creature* FindCreatureByName(WorldObject* bot, std::string const& name, float range)
+    Unit* FindCreatureByName(WorldObject* bot, std::string const& name, float range)
     {
         if (!bot)
             return nullptr;
@@ -166,7 +167,7 @@ namespace FSBUtils
             if (!object)
                 continue;
 
-            Creature* c = object->ToCreature();
+            Unit* c = object->ToUnit();
             if (!c)
                 continue;
 

@@ -200,9 +200,32 @@ namespace FSBSpellsUtils
         case SPELL_HUNTER_MEND_PET:
             return FSBPet::GetBotPet(bot) && FSBPet::GetBotPet(bot)->GetHealthPct() < 50;
 
+            //Summoned creatures
+        case SPELL_MONK_SUMMON_SERPENT_STATUE:
+            return CheckNoNpcInRangeRequirement(bot, 60849, 40.f);
+
+        case SPELL_MONK_BLACK_OX_STATUE:
+            return CheckNoNpcInRangeRequirement(bot, 61146, 40.f);
+
         default:
             return true;
         }
+    }
+
+    bool CheckNoNpcInRangeRequirement(Creature* bot, uint32 entry, float range)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!entry)
+            return false;
+
+        Creature* c = bot->FindNearestCreature(115313, range);
+
+        if (c)
+            return false;
+
+        return true;
     }
 
     bool CheckDwarfStoneformRequirements(Creature* bot)

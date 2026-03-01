@@ -1,3 +1,5 @@
+#include "Log.h"
+
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"

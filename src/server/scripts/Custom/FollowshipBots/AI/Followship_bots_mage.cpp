@@ -1,5 +1,3 @@
-
-
 #include "Followship_bots_mage.h"
 #include "Followship_bots_utils_spells.h"
 

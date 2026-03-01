@@ -1,3 +1,4 @@
+#include "Log.h"
 
 #include "Followship_bots_priest.h"
 #include "Followship_bots_utils.h"

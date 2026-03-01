@@ -1097,7 +1097,7 @@ namespace FSBChatter
             {
                 if (entry.lines.empty())
                 {
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER GetRandomReply: No string found for category {} and chatterType {}", category, chatterType);
+                    TC_LOG_WARN("scripts.fsb.chatter", "FSB: Chatter GetRandomReply: No string found for category {} and chatterType {}", category, chatterType);
                     return "";
                 }
 
@@ -1113,7 +1113,7 @@ namespace FSBChatter
                 if(player)
                     ReplaceAll(line, "{player}", player->GetName());
 
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER GetRandomReply: String {} selected for category {} and chatterType {}", line, category, chatterType);
+                TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter GetRandomReply: String {} selected for category {} and chatterType {}", line, category, chatterType);
 
                 return line;
             }
@@ -1124,7 +1124,11 @@ namespace FSBChatter
 
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource)
     {
-        if (!bot || !bot->IsAlive())
+        if (!bot)
+            return;
+
+        // we only expect the bot to be dead for those 2 categories
+        if ((category != FSB_ChatterCategory::botDeath || category != FSB_ChatterCategory::botDeathHired) && !bot->IsAlive())
             return;
 
         if (target && !target->IsAlive())
@@ -1140,7 +1144,7 @@ namespace FSBChatter
 
         std::string replyString = GetRandomReply(bot, target, category, type);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB CHATTER DemandTimedReply: String {} selected for category {} and chatterType {}", replyString, category, type);
+        TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter DemandTimedReply: String {} selected for category {} and chatterType {}", replyString, category, type);
 
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);
 

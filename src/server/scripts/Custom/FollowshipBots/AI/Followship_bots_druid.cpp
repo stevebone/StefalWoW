@@ -1,3 +1,5 @@
+#include "Log.h"
+
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_group_handler.h"

@@ -275,7 +275,7 @@ public:
 
         // --- Fetch bot metadata ---
         handler->PSendSysMessage("=== Followship Bot Cast Spell On Target ===");
-        Creature* spellTarget = FSBUtils::FindCreatureByName(bot, name);
+        Unit* spellTarget = FSBUtils::FindCreatureByName(bot, name);
         if (!spellTarget)
         {
             handler->PSendSysMessage("Cast Failed: Target Not Found");

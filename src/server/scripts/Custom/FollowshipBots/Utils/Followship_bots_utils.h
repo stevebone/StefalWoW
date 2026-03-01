@@ -44,7 +44,7 @@ namespace FSBUtils
 
     bool BotIsHealerClass(Creature* bot);
 
-    Creature* FindCreatureByName(WorldObject* bot, std::string const& name, float range = 50.0f);
+    Unit* FindCreatureByName(WorldObject* bot, std::string const& name, float range = 50.0f);
 }
 
 namespace FSBUtilsMovement
