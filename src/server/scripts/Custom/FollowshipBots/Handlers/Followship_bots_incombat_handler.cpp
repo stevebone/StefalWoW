@@ -184,16 +184,7 @@ namespace FSBIC
             }
         }
 
-        
-        // TO-DO move this to its own action before other combat related spells
-        if (dmgSpell->def->spellId == SPELL_MAGE_POLYMORPH ||
-            dmgSpell->def->spellId == SPELL_WARLOCK_FEAR ||
-            dmgSpell->def->spellId == SPELL_DRUID_HIBERNATE ||
-            dmgSpell->def->spellId == SPELL_WARLOCK_HAVOC ||
-            dmgSpell->def->spellId == SPELL_ROGUE_BLIND ||
-            dmgSpell->def->spellId == SPELL_PALADIN_REPENTANCE ||
-            dmgSpell->def->spellId == SPELL_HUNTER_SCATTER_SHOT ||
-            dmgSpell->def->spellId == SPELL_HUNTER_SCARE_BEAST)
+        if (FSBSpellsUtils::IsCrowdControlWithRandomTarget(dmgSpell->def->spellId))
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
         if (dmgSpell && target)

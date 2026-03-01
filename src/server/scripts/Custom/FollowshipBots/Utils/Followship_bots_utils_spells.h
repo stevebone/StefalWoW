@@ -224,7 +224,8 @@ namespace FSBSpellsUtils
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
     bool BotHasHealSpells(Creature* bot);
     bool BotHasHealSpellsForSelf(Creature* bot);
-    
+
+    bool IsCrowdControlWithRandomTarget(uint32 spellId);
 
     DispelType ConvertAuraToDispelType(Aura* aura);
 

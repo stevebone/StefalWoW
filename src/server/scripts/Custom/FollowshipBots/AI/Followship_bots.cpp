@@ -895,11 +895,6 @@ public:
             }
 
         }
-
-        // Helper methods
-
-        uint8 attackers = FSBUtilsCombat::CountActiveAttackers(me); // count active attackers on bot
-
         
         private:
             EventMap events;
@@ -913,14 +908,8 @@ public:
 
             // ----------
             // Combat
-            ObjectGuid _pendingResTarget;
             ObjectGuid _lastOwnerVictim;
 
-
-            uint32 _buffsTimerMs = 0;
-            uint32 _selfBuffsTimerMs = 0;
-
-            uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;
             uint32 _1secondsCheckMs = 0;            
     };

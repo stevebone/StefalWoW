@@ -113,6 +113,10 @@ namespace FSBSpellsUtils
         case SPELL_ROGUE_BLIND:
             return CheckCrowdControlRequirements(bot, 15.f);
 
+        case SPELL_MONK_PARALYSIS:
+        case SPELL_MONK_PARALYSIS_CHI:
+            return CheckCrowdControlRequirements(bot, 20.f);
+
         case SPELL_MAGE_BLIZZARD:
         case SPELL_MAGE_FLAMESTRIKE:
         case SPELL_DRUID_HIBERNATE:
@@ -548,5 +552,25 @@ namespace FSBSpellsUtils
         }
 
         return false;
+    }
+
+    bool IsCrowdControlWithRandomTarget(uint32 spellId)
+    {
+        switch (spellId)
+        {
+        case SPELL_MAGE_POLYMORPH:
+        case SPELL_WARLOCK_FEAR:
+        case SPELL_DRUID_HIBERNATE:
+        case SPELL_WARLOCK_HAVOC:
+        case SPELL_ROGUE_BLIND:
+        case SPELL_PALADIN_REPENTANCE:
+        case SPELL_HUNTER_SCATTER_SHOT:
+        case SPELL_HUNTER_SCARE_BEAST:
+        case SPELL_MONK_PARALYSIS:
+        case SPELL_MONK_PARALYSIS_CHI:
+            return true;
+        default:
+            return false;
+        }
     }
 }
