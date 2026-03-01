@@ -10,6 +10,8 @@ enum FSB_MONK_GENERIC_SPELLS
     SPELL_MONK_LEG_SWEEP = 119381, //1m, 6f, //ANY
 
     SPELL_MONK_RESUSCITATE = 157202, //10s 40f res
+
+    SPELL_MONK_FORTIFYING_BREW = 120954, //6m 0f
 };
 
 enum FSB_MONK_HEALER_SPELLS
@@ -83,4 +85,7 @@ enum FSB_MONK_DPS_SPELLS
 namespace FSBMonk
 {
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
+    bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& botStats);
+
+    bool BotHasFortifyingBrew(Creature* bot);
 }

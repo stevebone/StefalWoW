@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "Creature.h"
+#include "CreatureAIImpl.h"
 #include "MotionMaster.h"
 #include "Player.h"
 #include "Unit.h"

@@ -19,7 +19,7 @@ class followship_bots_commandscript : public CommandScript
 public:
     followship_bots_commandscript() : CommandScript("followship_bots_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const override
+    ChatCommandTable GetCommands() const override
     {
         static ChatCommandTable fsbCommandTable =
         {

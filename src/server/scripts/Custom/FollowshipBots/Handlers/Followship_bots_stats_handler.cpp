@@ -386,6 +386,9 @@ namespace FSBStats
         if (FSBPriest::BotHasPainSuppression(bot))
             multiplier *= 0.6f;
 
+        if (FSBMonk::BotHasFortifyingBrew(bot))
+            multiplier *= 0.8f;
+
         return multiplier;
     }
 

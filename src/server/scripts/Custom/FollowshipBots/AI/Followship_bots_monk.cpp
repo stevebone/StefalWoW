@@ -1,4 +1,8 @@
+#include "SpellAuras.h"
+
 #include "Followship_bots_utils.h"
+
+#include "Followship_bots_stats_handler.h"
 
 #include "Followship_bots_monk.h"
 
@@ -12,7 +16,9 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
-    { SPELL_MONK_BLACKOUT_KICK,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_MONK_FORTIFYING_BREW,           FSBSpellType::Heal,     0.f,        20.f,           100.f,           0.f,           true,       90000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
+
+    { SPELL_MONK_SPEAR_HAND_STRIKE,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_MONK_LEG_SWEEP,                 FSBSpellType::Damage,   0.f,        0.f,            50.f,            6.f,           false,      60000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     //TANK
@@ -25,9 +31,6 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
 
     { SPELL_MONK_PROVOKE,                   FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
 
-    // silence
-    { SPELL_MONK_SPEAR_HAND_STRIKE,         FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
-
     // cc
     { SPELL_MONK_SPINNING_CRANE,            FSBSpellType::Damage,   0.4f,       0.f,            100.f,           6.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_MONK_BLACK_OX_STATUE,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           true,       10000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
@@ -39,6 +42,9 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     { SPELL_MONK_CHI_BURST,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      30000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_MONK_BREATH_FIRE,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      15000,          FSB_RoleMask::FSB_ROLEMASK_TANK },
     { SPELL_MONK_KEG_SMASH,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           15.f,          false,      8000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+
+    { SPELL_MONK_BLACKOUT_KICK,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_TANK },
+
 
     //HEAL
     { SPELL_MONK_EXPEL_HARM,                FSBSpellType::Heal,     0.15f,      40.f,           100.f,           0.f,           true,       15000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
@@ -56,6 +62,7 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     // cc
     { SPELL_MONK_SPINNING_CRANE,            FSBSpellType::Damage,   0.1f,       0.f,            100.f,           6.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
+    { SPELL_MONK_BLACKOUT_KICK,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      4000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_RUSHING_WIND_KICK,         FSBSpellType::Damage,   0.02f,      0.f,            80.f,            2.f,           false,      10000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_SUMMON_SERPENT_STATUE,     FSBSpellType::Damage,   0.05f,      0.f,            50.f,            40.f,          false,      10000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_INVOKE_CHIJI,              FSBSpellType::Damage,   0.f,        0.f,            30.f,            40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
@@ -91,11 +98,11 @@ namespace FSBMonk
         switch (spellId)
         {
         case SPELL_MONK_SLICING_WINDS_1:
-            if(Unit* target = bot->GetVictim()) FSBSpells::BotCastSpell(bot, SPELL_MONK_SLICING_WINDS_2, target);
-            break;
-
-        case SPELL_MONK_SLICING_WINDS_2:
-            if (Unit* target = bot->GetVictim()) FSBSpells::BotCastSpell(bot, SPELL_MONK_SLICING_WINDS_3, target);
+            if (Unit* target = bot->GetVictim())
+            {
+                FSBSpells::BotCastSpell(bot, SPELL_MONK_SLICING_WINDS_2, target);
+                FSBSpells::BotCastSpell(bot, SPELL_MONK_SLICING_WINDS_3, target);
+            }
             break;
 
         case SPELL_MONK_BLACKOUT_KICK_CHI:
@@ -119,5 +126,48 @@ namespace FSBMonk
         default:
             break;
         }
+    }
+
+    bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& /*botStats*/)
+    {
+        if (!bot)
+            return false;
+
+        if (!aurApp || !aurApp->GetBase())
+            return false;
+
+        switch (aurApp->GetBase()->GetId())
+        {
+        case SPELL_MONK_FORTIFYING_BREW:
+        {
+            float hpPct = bot->GetPctModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT);
+
+            if (applied)
+            {
+                bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, hpPct + 0.2f);
+                bot->ModifyHealth(bot->GetMaxHealth() * 0.2f);
+            }
+            else if (!applied)
+            {
+                bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, hpPct - 0.2f);
+            }
+            FSBStats::RecalculateStats(bot, false, false);
+            return true;
+        }
+        default:
+            return false;
+        }
+    }
+
+    bool BotHasFortifyingBrew(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->HasAura(SPELL_MONK_FORTIFYING_BREW))
+            return true;
+
+        return false;
+
     }
 }
