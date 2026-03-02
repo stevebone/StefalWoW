@@ -380,7 +380,7 @@ public:
 
         void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered JustEngagedWith: {}", who->GetName());
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustEngagedWith() triggered for bot: {}", me->GetName());
 
             // Target might be NULL if called from spell with invalid cast targets
             if (!who || !me->IsAlive())
@@ -396,8 +396,6 @@ public:
 
             // Continue to evaluate and attack if necessary
             FSBUtilsBotCombat::BotAttackStart(me, who, botMoveState);
-
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", who->GetName(), moveState);
         }
 
         void JustEnteredCombat(Unit* /*who*/) override
@@ -569,8 +567,7 @@ public:
             case FSB_DATA_HIRED:
             {
                 botHired = value;
-
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired value: {}", me->GetName(), botHired);
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: SetData FSB_DATA_HIRED for bot {} with hired value {}", me->GetName(), botHired);
 
                 break;
             }
@@ -582,11 +579,11 @@ public:
                 if (hireTimeLeft > 0)
                 {
                     events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::seconds(hireTimeLeft));
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired left time value: {}", me->GetName(), hireTimeLeft);
+                    TC_LOG_DEBUG("scripts.fsb.general", "FSB: SetData FSB_DATA_HIRE_TIME_LEFT for bot {} with hireTimeLeft value {}", me->GetName(), hireTimeLeft);
                 }
                 
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received permanent hired", me->GetName());
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: SetData FSB_DATA_HIRE_TIME_LEFT for bot {} with permanent hire.", me->GetName());
 
                 break;
             }
@@ -648,9 +645,7 @@ public:
                     {
                         //AttackStart(newTarget);
                         FSBUtilsBotCombat::BotAttackStart(me, newTarget, botMoveState);
-                        TC_LOG_DEBUG("scripts.ai.fsb",
-                            "FSB: Bot {} selected new target {}",
-                            me->GetName(), newTarget->GetName());
+                        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} selected new target {}", me->GetName(), newTarget->GetName());
                     }
                     else
                     {

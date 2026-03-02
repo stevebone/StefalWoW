@@ -2,6 +2,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "PhasingHandler.h"
+#include "TemporarySummon.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
@@ -31,10 +32,7 @@ void FSBMgr::LoadAllPersistentBots()
         _playerBotsPersistent[bot.owner].push_back(bot);
     }
 
-    TC_LOG_INFO("scripts.ai.fsb",
-        "FSB Mgr: Loaded {} persistent bots for {} players",
-        allBots.size(),
-        _playerBotsPersistent.size());
+    TC_LOG_INFO("scripts.fsb.manager", "FSB: LoadAllPersistentBots {} persistent bots loaded for {} players", allBots.size(), _playerBotsPersistent.size());
 }
 
 bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry)
@@ -58,8 +56,8 @@ bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry
     // Save to DB first
     if (!FSBUtilsDB::SaveBotToDB(bot, player, hireExpiry))
     {
-        TC_LOG_ERROR("scripts.ai.fsb",
-            "FSB Mgr: Failed to save bot {} for player {} to DB",
+        TC_LOG_ERROR("scripts.fsb.manager",
+            "FSB: StorePersistentBot Failed to save bot {} for player {} to DB",
             entry, player->GetName());
         return false;
     }

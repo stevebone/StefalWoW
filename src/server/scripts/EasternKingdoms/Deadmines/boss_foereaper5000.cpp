@@ -48,7 +48,7 @@ enum Events
     EVENT_HARVEST1          = 5
 
 };
-
+/*
 const Position defiasreaperPos[3] =
 {
     { -182.742f, -565.968f, 19.389f, 3.35f},
@@ -63,7 +63,7 @@ const Position moltenslagPos[4] =
     { -206.385f, -585.898f, 20.97f, 5.17f},
     { -212.704f, -579.072f, 20.97f, 3.09f}
 };
-
+*/
 class boss_foereaper5000 : public CreatureScript
 {
     public:
@@ -94,7 +94,7 @@ class boss_foereaper5000 : public CreatureScript
             }
 
             ObjectGuid harvestTargetGuid;
-            bool bEnrage;
+            bool bEnrage = false;
 
             void Reset() override
             {
