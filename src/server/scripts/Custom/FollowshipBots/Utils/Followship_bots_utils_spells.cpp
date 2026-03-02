@@ -234,7 +234,7 @@ namespace FSBSpellsUtils
         if (!entry)
             return false;
 
-        Creature* c = bot->FindNearestCreature(115313, range);
+        Creature* c = bot->FindNearestCreature(entry, range);
 
         if (c)
             return false;

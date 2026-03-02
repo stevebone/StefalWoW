@@ -442,7 +442,10 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-            FSBChatter::DemandBotChatter(me, victim, FSB_ChatterCategory::targetKilled, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            Player* player = FSBMgr::Get()->GetBotOwner(me);
+            if(player)
+                FSBChatter::DemandBotChatter(me, victim, FSB_ChatterCategory::targetKilledHired, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            else FSBChatter::DemandBotChatter(me, victim, FSB_ChatterCategory::targetKilled, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
             // Called from Unit::Kill() in case where pet or owner kills something
             // if owner killed this victim, pet may still be attacking something else
             if (me->GetVictim() && me->GetVictim() != victim)

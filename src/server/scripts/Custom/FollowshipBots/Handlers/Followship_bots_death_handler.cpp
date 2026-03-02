@@ -43,9 +43,9 @@ namespace FSBDeath
             Player* player = FSBMgr::Get()->GetBotOwner(bot);
             if (player)
             {
-                FSBChatter::DemandTimedReply(bot, killer, FSB_ChatterCategory::botDeathHired, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+                FSBChatter::DemandBotChatter(bot, killer, FSB_ChatterCategory::botDeathHired, FSB_ReplyType::Yell, FSB_ChatterSource::None);
             }
-            else FSBChatter::DemandTimedReply(bot, killer, FSB_ChatterCategory::botDeath, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+            else FSBChatter::DemandBotChatter(bot, killer, FSB_ChatterCategory::botDeath, FSB_ReplyType::Yell, FSB_ChatterSource::None);
         }
         
         // handle death with soulstone

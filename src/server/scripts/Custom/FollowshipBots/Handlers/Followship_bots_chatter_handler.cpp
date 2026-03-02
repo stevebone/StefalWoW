@@ -684,10 +684,22 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     {
         FSB_ChatterCategory::targetKilled, FSB_ChatterType::None,
         {
+            "Rest in pieces, {target}.",
+            "{target}? Yeah. that didn't end well for you.",
+            "I warned you, {target}. Well. internally.",
+            "And that's why I read my spellbook.",
+            "One less {target}.",
+            "And that's how you solve a {target} problem.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::targetKilledHired, FSB_ChatterType::None,
+        {
             "Another one down. You're welcome, {player}.",
             "Rest in pieces, {target}.",
             "{target}? Yeah. that didn't end well for them.",
-            "See, <player>? Perfectly under control.",
+            "See, {player}? Perfectly under control.",
             "I warned you, {target}. Well. internally.",
             "That went about as expected. For me.",
             "{player}, please tell me you saw that.",
@@ -1531,20 +1543,20 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     {
         FSB_ChatterCategory::botHire, FSB_ChatterType::None,
         {
-            "Hey {player}, I am all yours for the next <duration>.",
-            "Alright {player}, let's band together for <duration>.",
-            "Ok, I'll come along, {player}, since you paid me for <duration>.",
-            "Only <duration>? Sure thing, {player}.",
-            "Well {player}, my calendar is empty for <duration>. Let's make poor life choices.",
-            "I suppose <duration> with you won't kill me, {player}. Probably.",
-            "You pay, I follow, {player}. <duration> it is.",
-            "For <duration>, {player}, I am your loyal companion. After that, we renegotiate.",
-            "Ah yes, <duration> of danger, glory, and questionable decisions, {player}.",
-            "Very well {player}, I shall tolerate you for <duration>.",
-            "<duration>? Fine. But if we die, it's your fault, {player}.",
-            "I was bored anyway, {player}. <duration> sounds perfect.",
-            "Gold talks, {player}. And it says '<duration> of adventure.'",
-            "Let's do this, {player}. <duration> in, we pretend we planned it."
+            "Hey {player}, I am all yours for the next {duration}.",
+            "Alright {player}, let's band together for {duration}.",
+            "Ok, I'll come along, {player}, since you paid me for {duration}.",
+            "Only {duration}? Sure thing, {player}.",
+            "Well {player}, my calendar is empty for {duration}. Let's make poor life choices.",
+            "I suppose {duration} with you won't kill me, {player}. Probably.",
+            "You pay, I follow, {player}. {duration} it is.",
+            "For {duration}, {player}, I am your loyal companion. After that, we renegotiate.",
+            "Ah yes, {duration} of danger, glory, and questionable decisions, {player}.",
+            "Very well {player}, I shall tolerate you for {duration}.",
+            "{duration}? Fine. But if we die, it's your fault, {player}.",
+            "I was bored anyway, {player}. {duration} sounds perfect.",
+            "Gold talks, {player}. And it says '{duration} of adventure.'",
+            "Let's do this, {player}. {duration} in, we pretend we planned it."
         }
     },
 };
@@ -1584,7 +1596,7 @@ namespace FSBChatter
                     ReplaceAll(line, "{duration}", "1 hour");
 
                 if (duration > 1)
-                    ReplaceAll(line, "{duration}", duration + "hours");
+                    ReplaceAll(line, "{duration}", std::to_string(duration) + " hours");
 
                 TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter GetRandomReply: String [{}] selected for category {} and chatterType {}", line, category, chatterType);
 

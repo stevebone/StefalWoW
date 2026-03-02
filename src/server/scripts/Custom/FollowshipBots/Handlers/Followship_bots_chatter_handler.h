@@ -3,6 +3,7 @@ enum FSB_ChatterCategory
 {
     chatter_none,
     targetKilled,
+    targetKilledHired,
     botDismissed,
     botAcknowledge,
     botFollow,
@@ -58,9 +59,9 @@ enum FSB_ChatterSource
 
 namespace FSBChatter
 {
-    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId, uint8 duration = 0);
+    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId = 0, uint8 duration = 0);
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource);
-    void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId);
+    void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId = 0);
 
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
 }

@@ -2392,7 +2392,7 @@ public:
 
     void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea) override
     {
-        if (newZone == 40 && newArea == 108 && (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_COMPLETE) || (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_REWARDED && player->GetQuestStatus(26761) != QUEST_STATUS_REWARDED))
+        if ((newZone == 40 && newArea == 108 && (player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_COMPLETE)) || ((player->GetQuestStatus(QUEST_RISE_OF_THE_BROTHERHOOD) == QUEST_STATUS_REWARDED && player->GetQuestStatus(26761) != QUEST_STATUS_REWARDED)))
         {
             PhasingHandler::AddPhase(player, 226, true);
         }
