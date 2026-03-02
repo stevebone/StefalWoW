@@ -912,15 +912,11 @@ namespace FSBOOC
                 {
                     if (target == bot)
                     {
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                            "", NULL, FSBSayType::BuffSelf, FSBSpellsUtils::GetSpellName(buffSpellId));
-                        bot->Say(msg, LANG_UNIVERSAL);
+                        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botBuffSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, buffSpellId);
                     }
                     else
                     {
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(
-                            target->GetName(), NULL, FSBSayType::BuffTarget, FSBSpellsUtils::GetSpellName(buffSpellId));
-                        bot->Say(msg, LANG_UNIVERSAL);
+                        FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botBuffTarget, FSB_ReplyType::Say, FSB_ChatterSource::Bot, buffSpellId);
                     }
                 }
             }

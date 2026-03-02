@@ -1,5 +1,6 @@
 #include "CharmInfo.h"
 #include "Log.h"
+#include "Map.h"
 #include "PhasingHandler.h"
 
 #include "Followship_bots_mgr.h"

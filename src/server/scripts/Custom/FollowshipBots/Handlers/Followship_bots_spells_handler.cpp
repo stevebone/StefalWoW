@@ -1,3 +1,5 @@
+#include "Map.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 

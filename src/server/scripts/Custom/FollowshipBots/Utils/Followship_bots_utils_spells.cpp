@@ -1,5 +1,6 @@
 #include <random>
 
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
 #include "SpellMgr.h"

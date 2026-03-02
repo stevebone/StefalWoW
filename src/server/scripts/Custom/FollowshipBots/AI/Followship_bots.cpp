@@ -488,6 +488,11 @@ public:
         void SpellHitTarget(WorldObject* target, SpellInfo const* spellInfo) override
         {
             TC_LOG_DEBUG("scripts.fsb.general", "FSB: SpellHitTarget() triggered for bot: {} with target {} and Spell {}", me->GetName(), target->GetName(), spellInfo->Id);
+
+            Player* player = target->ToPlayer();
+
+            if (spellInfo->Id == 461537 && player && !player->IsAlive() && player->GetGUID() == me->GetOwnerGUID())
+                player->ResurrectPlayer(0.35f, false);
         }
 
         void OnAuraApplied(AuraApplication const* aurApp) override

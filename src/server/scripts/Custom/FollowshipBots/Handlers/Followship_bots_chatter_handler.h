@@ -18,6 +18,10 @@ enum FSB_ChatterCategory
     botCombatMana,
     botCombatHealth,
     botCombatSpell,
+    botBuffSelf,
+    botBuffTarget,
+    botOOCRecovery,
+    botOOCRecoveryHired,
 
     emote_oom,
     emote_heal,

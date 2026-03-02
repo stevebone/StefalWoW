@@ -1,8 +1,10 @@
-#include "Followship_bots_movement_handler.h"
-#include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_druid.h"
+
+#include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_movement_handler.h"
+#include "Followship_bots_recovery_handler.h"
 
 namespace FSBRecovery
 {
@@ -306,13 +308,10 @@ namespace FSBRecovery
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
             {
-                std::string pname = "";
                 Player* player = FSBMgr::Get()->GetBotOwner(bot);
                 if (player)
-                    pname = player->GetName();
-
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(pname, NULL, FSBSayType::OOCRecovery, FSBSpellsUtils::GetSpellName(spellId));
-                bot->Say(msg, LANG_UNIVERSAL);
+                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botOOCRecoveryHired, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+                else FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botOOCRecovery, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             }
 
             return true;
