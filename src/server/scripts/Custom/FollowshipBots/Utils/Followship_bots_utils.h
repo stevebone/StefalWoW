@@ -41,23 +41,3 @@ namespace FSBUtils
 
     Unit* FindCreatureByName(WorldObject* bot, std::string const& name, float range = 50.0f);
 }
-
-namespace FSBUtilsMovement
-{
-    // Returns true if chase was started or is ongoing
-    bool EnsureInRange(Creature* me, Unit* target, float requiredRange);
-    bool EnsureLOS(Unit* me, Unit* target);
-
-    
-}
-
-namespace FSBUtilsTexts
-{
-    // Converts an int64 price in copper to a string like 10 silver
-    std::string MoneyToString(int64 price);
-
-    void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
-
-    // Builds the hire option text dynamically
-    std::string BuildHireText(int64 price, uint32 hours);
-}

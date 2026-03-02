@@ -91,13 +91,13 @@ namespace FSBGossip
 
         // we first calculate hire price based configs base price and hire duration options and actual player level
         int64 hirePrice1 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration1);
-        std::string hireText1 = FSBUtilsTexts::BuildHireText(hirePrice1, FollowshipBotsConfig::configFSBHireDuration1);
+        std::string hireText1 = BuildHireText(hirePrice1, FollowshipBotsConfig::configFSBHireDuration1);
 
         int64 hirePrice2 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration2);
-        std::string hireText2 = FSBUtilsTexts::BuildHireText(hirePrice2, FollowshipBotsConfig::configFSBHireDuration2);
+        std::string hireText2 = BuildHireText(hirePrice2, FollowshipBotsConfig::configFSBHireDuration2);
 
         int64 hirePrice3 = (FollowshipBotsConfig::configFSBPricePerLevel * pLevel * FollowshipBotsConfig::configFSBHireDuration3);
-        std::string hireText3 = FSBUtilsTexts::BuildHireText(hirePrice3, FollowshipBotsConfig::configFSBHireDuration3);
+        std::string hireText3 = BuildHireText(hirePrice3, FollowshipBotsConfig::configFSBHireDuration3);
 
         AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 10);
         AddGossipItemFor(player, GossipOptionNpc::Auctioneer, hireText2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 11);
@@ -431,5 +431,24 @@ namespace FSBGossip
 
         player->PlayerTalkClass->SendCloseGossip();
         return true;
+    }
+
+    // Converts an int64 price in copper to a string like "10 silver"
+    std::string MoneyToString(int64 price)
+    {
+        int32 gold = price / 10000;
+        int32 silver = (price % 10000) / 100;
+        int32 copper = price % 100;
+        std::string result;
+        if (gold > 0)   result += std::to_string(gold) + " gold ";
+        if (silver > 0) result += std::to_string(silver) + " silver ";
+        if (copper > 0) result += std::to_string(copper) + " copper";
+        return result.empty() ? "0 copper" : result;
+    }
+
+    // Builds the hire option text dynamically
+    std::string BuildHireText(int64 price, uint32 hours)
+    {
+        return std::to_string(hours) + " hour service: " + MoneyToString(price);
     }
 }
