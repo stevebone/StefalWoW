@@ -51,40 +51,10 @@ namespace FSBUtilsMovement
     
 }
 
-enum class FSBSayType
-{
-    Hire,           // NPC hired by player
-    PHire,          // NPC permanent hired by player
-    Fire,           // NPC Dismissed or Duration Expired
-    Stay,           // NPC asked to stay
-    Follow,         // NPC asked to follow or after hire
-    Buffed,         // NPC received a positive spell buff
-    HealTarget,     // NPC Heals target (not self)
-    HealSelf,       // NPC Heals self
-    Resurrect,      // NPC Resurrects the player
-    PlayerOrMemberDead,     // NPC reacts to dead player or bot
-    SpellOnTarget,  // NPC reacts when casting combat spell on target
-    CombatMana,     // NPC IC OOM and uses mana potion
-    CombatHealth,
-    BotDeath,       // NPC Dies
-    TargetDeath,    // NPC Kills Target
-    BuffTarget,
-    BuffSelf,
-    OOCRecovery
-};
-
 namespace FSBUtilsTexts
 {
     // Converts an int64 price in copper to a string like 10 silver
     std::string MoneyToString(int64 price);
-
-    // Builds NPC say text dynamically, inserts placeholders
-    std::string BuildNPCSayText(
-        const std::string& playerName,
-        uint32 duration,
-        FSBSayType type,
-        const std::string& string2 = std::string()
-    );
 
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
 

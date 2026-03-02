@@ -23,9 +23,6 @@ namespace FSBUtilsCombat
 
     // Counts active attackers on bot
     uint8 CountAttackersOn(Unit* who);
-
-    /// Sends a combat-related NPC say message with optional spell name and cooldown to prevent spam
-    void SayCombatMessage(Creature* me, Unit* target, uint32 integer, FSBSayType sayType, uint32 spellId);   
 }
 
 namespace FSBUtilsBotCombat

@@ -183,8 +183,7 @@ public:
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
-                me->Say(msg, LANG_UNIVERSAL);
+                FSBChatter::DemandBotChatter(me, nullptr, FSB_ChatterCategory::botHire, FSB_ReplyType::Say, FSB_ChatterSource::None, FollowshipBotsConfig::configFSBHireDuration1);
 
                 player->PlayerTalkClass->SendCloseGossip();
                 return true;
@@ -207,8 +206,7 @@ public:
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
-                me->Say(msg, LANG_UNIVERSAL);
+                FSBChatter::DemandBotChatter(me, nullptr, FSB_ChatterCategory::botHire, FSB_ReplyType::Say, FSB_ChatterSource::None, FollowshipBotsConfig::configFSBHireDuration2);
 
                 player->PlayerTalkClass->SendCloseGossip();
                 return true;
@@ -231,8 +229,7 @@ public:
                 events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
 
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
-                me->Say(msg, LANG_UNIVERSAL);
+                FSBChatter::DemandBotChatter(me, nullptr, FSB_ChatterCategory::botHire, FSB_ReplyType::Say, FSB_ChatterSource::None, FollowshipBotsConfig::configFSBHireDuration3);
 
                 player->PlayerTalkClass->SendCloseGossip();
                 return true;

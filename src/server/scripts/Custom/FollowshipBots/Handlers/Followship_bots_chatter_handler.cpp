@@ -1527,11 +1527,31 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "One day I'll learn not to stand in fire. today is not that day."
         }
     },
+
+    {
+        FSB_ChatterCategory::botHire, FSB_ChatterType::None,
+        {
+            "Hey {player}, I am all yours for the next <duration>.",
+            "Alright {player}, let's band together for <duration>.",
+            "Ok, I'll come along, {player}, since you paid me for <duration>.",
+            "Only <duration>? Sure thing, {player}.",
+            "Well {player}, my calendar is empty for <duration>. Let's make poor life choices.",
+            "I suppose <duration> with you won't kill me, {player}. Probably.",
+            "You pay, I follow, {player}. <duration> it is.",
+            "For <duration>, {player}, I am your loyal companion. After that, we renegotiate.",
+            "Ah yes, <duration> of danger, glory, and questionable decisions, {player}.",
+            "Very well {player}, I shall tolerate you for <duration>.",
+            "<duration>? Fine. But if we die, it's your fault, {player}.",
+            "I was bored anyway, {player}. <duration> sounds perfect.",
+            "Gold talks, {player}. And it says '<duration> of adventure.'",
+            "Let's do this, {player}. <duration> in, we pretend we planned it."
+        }
+    },
 };
 
 namespace FSBChatter
 {
-    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId)
+    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId, uint8 duration)
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
@@ -1559,6 +1579,12 @@ namespace FSBChatter
 
                 if (spellId)
                     ReplaceAll(line, "{spell}", FSBSpellsUtils::GetSpellName(spellId));
+
+                if(duration == 1)
+                    ReplaceAll(line, "{duration}", "1 hour");
+
+                if (duration > 1)
+                    ReplaceAll(line, "{duration}", duration + "hours");
 
                 TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter GetRandomReply: String [{}] selected for category {} and chatterType {}", line, category, chatterType);
 

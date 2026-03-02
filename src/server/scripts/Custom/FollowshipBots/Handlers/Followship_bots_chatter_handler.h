@@ -22,6 +22,7 @@ enum FSB_ChatterCategory
     botBuffTarget,
     botOOCRecovery,
     botOOCRecoveryHired,
+    botHire,
 
     emote_oom,
     emote_heal,
@@ -57,7 +58,7 @@ enum FSB_ChatterSource
 
 namespace FSBChatter
 {
-    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId);
+    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId, uint8 duration = 0);
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource);
     void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId);
 

@@ -77,30 +77,6 @@ namespace FSBUtilsCombat
         return count;
     }
 
-    void SayCombatMessage(Creature* me, Unit* target, uint32 integer, FSBSayType sayType, uint32 spellId)
-    {
-        if (!me)
-            return;
-
-        if(urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-        {
-
-            // Spell name lookup
-            std::string spellName;
-            if (spellId)
-                spellName = FSBSpellsUtils::GetSpellName(spellId);
-
-            // Target name
-            std::string targetName;
-            if (target)
-                targetName = target->GetName();
-
-            // Build the message
-            std::string msg = FSBUtilsTexts::BuildNPCSayText(targetName, integer, sayType, spellName);
-            me->Say(msg, LANG_UNIVERSAL);
-        }
-    }
-
 
 
     

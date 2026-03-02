@@ -238,49 +238,7 @@ namespace FSBUtilsTexts
             text.replace(pos, from.length(), to);
             pos += to.length();
         }
-    }
-
-    std::string BuildNPCSayText(const std::string& playerName, uint32 duration, FSBSayType type, const std::string& string2)
-    {
-        switch (type)
-        {
-        case FSBSayType::Hire:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Hey <name>, I am all yours for the next <duration> hours.",
-                "Alright <name>, let's band together for <duration> hours.",
-                "Ok, I'll come along, <name>, since you paid me for <duration> hours.",
-                "Only <duration> hours? Sure thing, <name>.",
-                "Well <name>, my calendar is empty for <duration> hours. Let's make poor life choices.",
-                "I suppose <duration> hours with you won't kill me, <name>. Probably.",
-                "You pay, I follow, <name>. <duration> hours it is.",
-                "For <duration> hours, <name>, I am your loyal companion. After that, we renegotiate.",
-                "Ah yes, <duration> hours of danger, glory, and questionable decisions, <name>.",
-                "Very well <name>, I shall tolerate you for <duration> hours.",
-                "<duration> hours? Fine. But if we die, it's your fault, <name>.",
-                "I was bored anyway, <name>. <duration> hours sounds perfect.",
-                "Gold talks, <name>. And it says '<duration> hours of adventure.'",
-                "Let's do this, <name>. <duration> hours in, we pretend we planned it."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
-            ReplaceAll(chosen, "<name>", playerName);
-            ReplaceAll(chosen, "<duration>", std::to_string(duration));
-            return chosen;
-        }
-
-        
-
-
-        
-
-        default:
-            return "Hello " + playerName + ".";
-        }
-    }
-
-    
+    }    
 }
 
 

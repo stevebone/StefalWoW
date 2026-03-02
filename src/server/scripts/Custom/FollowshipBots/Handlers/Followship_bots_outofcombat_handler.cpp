@@ -809,8 +809,7 @@ namespace FSBOOC
             {
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText("", 0, FSBSayType::BuffSelf, FSBSpellsUtils::GetSpellName(buffSpellId));
-                    bot->Say(msg, LANG_UNIVERSAL);
+                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botBuffSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, buffSpellId);
                 }
             }
 

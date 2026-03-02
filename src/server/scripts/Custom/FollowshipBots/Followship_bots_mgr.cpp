@@ -199,7 +199,9 @@ void FSBMgr::SpawnPlayerBots(Player* player)
         if (!bot)
         {
             Position pos = player->GetPosition();
-            bot = player->SummonCreature(botData.entry, pos, TEMPSUMMON_MANUAL_DESPAWN, 0s);
+            TempSummon* temp = player->SummonCreature(botData.entry, pos, TEMPSUMMON_MANUAL_DESPAWN, 0s);
+            if (temp)
+                bot = temp;
 
             if (!bot)
             {
