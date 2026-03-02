@@ -9,7 +9,7 @@ enum FSB_MONK_GENERIC_SPELLS
     SPELL_MONK_BLACKOUT_KICK = 205523, //4s, 0f, //ANY
     SPELL_MONK_LEG_SWEEP = 119381, //1m, 6f, //ANY
 
-    SPELL_MONK_RESUSCITATE = 157202, //10s 40f res //217703
+    SPELL_MONK_RESUSCITATE = 461537, //458698, //157202, //10s 40f res //217703
 
     SPELL_MONK_FORTIFYING_BREW = 120954, //6m 0f
 };
@@ -96,4 +96,6 @@ namespace FSBMonk
     bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& botStats);
 
     bool BotHasFortifyingBrew(Creature* bot);
+
+    bool BotOOCHealOwner(Creature* bot);
 }

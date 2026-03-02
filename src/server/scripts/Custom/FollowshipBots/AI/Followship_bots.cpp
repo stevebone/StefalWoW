@@ -405,7 +405,6 @@ public:
 
         void JustEnteredCombat(Unit* /*who*/) override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustEnteredCombat Triggered");
         }
 
         void JustExitedCombat() override
@@ -416,18 +415,12 @@ public:
 
         void HealReceived(Unit* /*done_by*/, uint32& /*addhealth*/) override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal Received");
         }
 
         void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
         {
-            //if(damageType == DIRECT_DAMAGE)
-            //    FSBStats::ApplyDynamicDamageDealt(me, victim, damage);
-
             if (damage > 0) damage = damage / 2;
-
             FSBPowers::GenerateRageFromDamageDone(me, damage);
-
             damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
         }
 
@@ -440,7 +433,7 @@ public:
 
             if (!me->GetVictim() && attacker)
             {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: DamageTaken - bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: DamageTaken() Bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
                 FSBUtilsBotCombat::BotAttackStart(me, attacker, botMoveState);
             }
         }
@@ -452,7 +445,7 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-            FSBChatter::OnKilledTargetChatter(me, victim);
+            FSBChatter::DemandBotChatter(me, victim, FSB_ChatterCategory::targetKilled, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
             // Called from Unit::Kill() in case where pet or owner kills something
             // if owner killed this victim, pet may still be attacking something else
             if (me->GetVictim() && me->GetVictim() != victim)
@@ -492,9 +485,9 @@ public:
             FSBDeath::HandleSpellResurrection(me, spellInfo->Id);
         }
 
-        void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* /*spellInfo*/) override
+        void SpellHitTarget(WorldObject* target, SpellInfo const* spellInfo) override
         {
-
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: SpellHitTarget() triggered for bot: {} with target {} and Spell {}", me->GetName(), target->GetName(), spellInfo->Id);
         }
 
         void OnAuraApplied(AuraApplication const* aurApp) override
@@ -519,15 +512,18 @@ public:
             {
                 FSBWarlock::AdjustSummonHealth(me, summon);
                 botHasDemon = true;
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} appeared", summon->GetName(), me->GetName());
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustSummoned Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
             }
                 
         }
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
         {
-            botHasDemon = false;
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} died", summon->GetName(), me->GetName());
+            if (summon && botClass == FSB_Class::Warlock)
+            {
+                botHasDemon = false;
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: SummonedCreatureDies Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
+            }
         }
 
         void JustDied(Unit* killer) override // Runs once when creature dies
@@ -848,7 +844,7 @@ public:
                 case FSB_EVENT_HIRE_EXPIRED:
                 case FSB_EVENT_HIRE_DISMISSED:
                 {
-                    if (!me->IsInCombat() || !me->HasUnitState(UNIT_STAND_STATE_SIT))
+                    if (!me->IsInCombat() && !me->HasUnitState(UNIT_STAND_STATE_SIT) && me->IsAlive())
                     {
                         events.Reset();
                         botHired = false;

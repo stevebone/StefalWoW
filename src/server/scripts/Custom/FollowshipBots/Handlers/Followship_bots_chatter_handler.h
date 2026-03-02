@@ -13,6 +13,11 @@ enum FSB_ChatterCategory
     botDeath,
     botHiredPermanent,
     botRevivedTarget,
+    botHealTarget,
+    botHealSelf,
+    botCombatMana,
+    botCombatHealth,
+    botCombatSpell,
 
     emote_oom,
     emote_heal,
@@ -48,9 +53,9 @@ enum FSB_ChatterSource
 
 namespace FSBChatter
 {
-    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType);
+    std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId);
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource);
-    void OnKilledTargetChatter(Creature* bot, Unit* victim);
+    void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId);
 
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
 }

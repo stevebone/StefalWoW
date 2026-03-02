@@ -421,7 +421,7 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     bot->GetMotionMaster()->Clear();
     if (player)
     {
-        std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, FSB_ChatterType::None);
+        std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, FSB_ChatterType::None, 0);
         bot->Say(chatter, LANG_UNIVERSAL);
     }
 

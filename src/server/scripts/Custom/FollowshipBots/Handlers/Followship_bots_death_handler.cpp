@@ -148,12 +148,11 @@ namespace FSBDeath
 
         auto& botGroup = baseAI->botLogicalGroup;
         auto& botSayMemberDead = baseAI->botSayMemberDead;
-        auto& resTargetGuid = baseAI->botResurrectTargetGuid;
 
-        if (!resTargetGuid.IsEmpty())
+        if (!baseAI->botResurrectTargetGuid.IsEmpty())
             return false;
 
-        if (botSayMemberDead)
+        if (baseAI->botSayMemberDead)
             return false;
 
         Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botGroup);
@@ -165,11 +164,14 @@ namespace FSBDeath
         if (!botSayMemberDead && bot->IsAlive() &&
             urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
+            std::string chatter = FSBChatter::GetRandomReply(bot, deadTarget, FSB_ChatterCategory::botMemberDied, FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry()), 0);
+            bot->Yell(chatter, LANG_UNIVERSAL);
             FSBChatter::DemandTimedReply(bot, deadTarget, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
-            botSayMemberDead = true;
+            baseAI->botSayMemberDead = true;
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} announced dead unit {}", bot->GetName(), deadTarget->GetName());
         }
 
-        resTargetGuid = deadTarget->GetGUID();
+        baseAI->botResurrectTargetGuid = deadTarget->GetGUID();
 
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} found dead unit {} for resurrection", bot->GetName(), deadTarget->GetName());
         return true;

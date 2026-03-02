@@ -22,8 +22,6 @@ namespace FSBOOC
         auto& globalCooldown = ai->botGlobalCooldown;
         auto& buffTimer = ai->botBuffsTimer;
         auto& selfBuffTimer = ai->botSelfBuffsTimer;
-        auto& botResTargetGuid = ai->botResurrectTargetGuid;
-        //auto botRole = ai->botRole;
         auto& botGroup = ai->botLogicalGroup;
 
         if (!bot)
@@ -48,7 +46,7 @@ namespace FSBOOC
 
         //0 OOC Resurrect
         // If we resurrect someone then end tick
-        if (BotOOCResurrect(bot, botResTargetGuid))
+        if (BotOOCResurrect(bot))
             return true;
 
         //1. Bot Heal Owner
@@ -86,11 +84,7 @@ namespace FSBOOC
 
         //8. Random event
         if (BotOOCDoRandomEvent(bot))
-            return true;
-
-        
-
-        
+            return true;       
 
         return false; 
     }
@@ -289,7 +283,7 @@ namespace FSBOOC
             }
 
             // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None);
+            std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None, 0);
             if (!emote.empty())
                 bot->TextEmote(emote);
 
@@ -397,7 +391,7 @@ namespace FSBOOC
 
         if (FSBCombatUtils::IsOutOfCombatFor(bot, timerDiff) && !botHasCompanion)
         {
-            botHasCompanion = true;
+            baseAI->botHasCompanion = true;
             FSBSpells::BotCastSpell(bot, companionSpell, bot);
             return true;
         }
@@ -405,7 +399,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCResurrect(Creature* bot, ObjectGuid& resTargetGuid)
+    bool BotOOCResurrect(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -413,7 +407,11 @@ namespace FSBOOC
         if (!FSBUtils::BotIsHealerClass(bot))
             return false;
 
-        if (!resTargetGuid)
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        if (!baseAI->botResurrectTargetGuid)
             return false;
 
         FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);
@@ -427,30 +425,31 @@ namespace FSBOOC
             return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
 
         auto& resurrectTargetGuid = baseAI->botResurrectTargetGuid;
         auto botClass = baseAI->botClass;
-        auto& globalCooldown = baseAI->botGlobalCooldown;
         Unit* target = ObjectAccessor::GetUnit(*bot, resurrectTargetGuid);
         bool canCombatRes = botClass == FSB_Class::Druid && bot->IsInCombat();
-
-        if(target)
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} found dead unit {} for resurrection", bot->GetName(), target->GetName());
 
         if (!target || target->IsAlive())
         {
             return false;
         }
 
+        if (target)
+            TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget Bot {} found dead unit {} for resurrection", bot->GetName(), target->GetName());
+
         if ((bot->IsInCombat() && !canCombatRes) || bot->HasUnitState(UNIT_STATE_CASTING))
         {
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
             return false;
         }
-
+        
         if (target && bot->GetMapId() == target->GetMapId() && bot->GetDistance(target) > 30.0f)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Ressurect target {} too far from bot: {}", target->GetName(), bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget target {} too far from bot: {}", target->GetName(), bot->GetName());
             //bot->GetMotionMaster()->MoveChase(target, 28.f);
             bot->GetMotionMaster()->MoveCloserAndStop(4, target, 28.f);
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
@@ -488,16 +487,16 @@ namespace FSBOOC
             if (FSBSpells::BotCastSpell(bot, spellId, target))
             {
                 uint32 now = getMSTime();
-                globalCooldown = now + 1500;
+                baseAI->botGlobalCooldown = now + 1500;
                 TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget Bot {} tried ressurect spell: {} on {}", bot->GetName(), spellId, target->GetName());
 
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
                     // SAY after ressurect
-                    FSBChatter::DemandTimedReply(bot, target, FSB_ChatterCategory::botRevivedTarget, FSB_ReplyType::Say, FSB_ChatterSource::None);
+                    FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botRevivedTarget, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
                 }
 
-                resurrectTargetGuid.Clear();
+                baseAI->botResurrectTargetGuid.Clear();
             }
             else
             {
@@ -529,24 +528,17 @@ namespace FSBOOC
         if (!baseAI)
             return;
 
+        if (!baseAI->botHired)
+            return;
+
         baseAI->botAnnouncedLowMana = false;
         baseAI->botAnnouncedLowHealth = false;
         baseAI->botAnnouncedVeryLowHealth = false;
 
-        auto& manaUsed = baseAI->botManaPotionUsed;
-        auto& healthUsed = baseAI->botHealthPotionUsed;
-        auto& buffsCasted = baseAI->botCastedCombatBuffs;
+        baseAI->botManaPotionUsed = false;
+        baseAI->botHealthPotionUsed = false;
+        baseAI->botCastedCombatBuffs = false;
 
-        if (manaUsed)
-            manaUsed = false;
-
-        if (healthUsed)
-            healthUsed = false;
-
-        if (buffsCasted)
-            buffsCasted = false;
-
-        auto& botSayMemberDead = baseAI->botSayMemberDead;
         auto& deadTargetGuid = baseAI->botResurrectTargetGuid;
         Unit* target = nullptr;
         if(!deadTargetGuid.IsEmpty())
@@ -554,8 +546,8 @@ namespace FSBOOC
 
         if (target && target->IsAlive())
         {
-            deadTargetGuid.Clear();
-            botSayMemberDead = false;
+            baseAI->botResurrectTargetGuid.Clear();
+            baseAI->botSayMemberDead = false;
         }
         
         
@@ -569,7 +561,7 @@ namespace FSBOOC
         uint32 now = getMSTime();
 
         if (player && player->isMoving())
-            botOwnerNotMoving = now;
+            baseAI->botOwnerNotMovingTimer = now;
 
         // check if we have a fire to go and sit around
         if (!botSitsByFire && player && (player->isAFK() || (now - botOwnerNotMoving) > RANDOM_EVENT_INTERVAL))
@@ -583,8 +575,8 @@ namespace FSBOOC
                 //bot->SetEmoteState(Emote(EMOTE_STATE_NONE));
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_YES);
                 bot->SetStandState(UNIT_STAND_STATE_STAND);
-                botSitsByFire = false;
-                botRandomEvent = false;
+                baseAI->botSitsByFire = false;
+                baseAI->botDoingRandomEvent = false;
                 FSBMovement::ResumeFollow(bot, fDistance, fAngle);
             }
         }
@@ -745,6 +737,10 @@ namespace FSBOOC
             if (FSBPaladin::BotOOCHealOwner(bot, player, globalCooldown))
                 check = true;
             break;
+        case FSB_Class::Monk:
+            if (FSBMonk::BotOOCHealOwner(bot))
+                check = true;
+            break;
         default:
             break;
         }
@@ -752,7 +748,9 @@ namespace FSBOOC
         if (check && player)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                bot->Say(FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::HealTarget, ""), LANG_UNIVERSAL);
+            {
+                FSBChatter::DemandBotChatter(bot, player, FSB_ChatterCategory::botHealTarget, FSB_ReplyType::Say, FSB_ChatterSource::Bot, 0);
+            }
 
             return true;
         }
@@ -968,7 +966,6 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: SIGH", bot->GetName());
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return false;
@@ -981,14 +978,16 @@ namespace FSBOOC
             soundId = soundInfo->SoundID;
         }
 
+        TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionSigh started for Bot {}", bot->GetName());
+
         // 1. Emote text
-        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sigh, FSB_ChatterType::None);
+        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sigh, FSB_ChatterType::None, 0);
         if (!emote.empty())
             bot->TextEmote(emote);
 
         if (soundId)
             bot->PlayDistanceSound(soundId);
-        else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action SIGH: no sound found for race {}", botRace);
+        else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionSigh: no sound found for race {}", botRace);
 
         return true;
     }
@@ -997,8 +996,6 @@ namespace FSBOOC
     {
         if (!bot || !bot->IsAlive())
             return false;
-
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: sleep", bot->GetName());
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
@@ -1012,14 +1009,16 @@ namespace FSBOOC
             soundId = soundInfo->SoundID;
         }
 
+        TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionSleep started for Bot {}", bot->GetName());
+
         // 1. Emote text
-        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None);
+        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None, 0);
         if (!emote.empty())
             bot->TextEmote(emote);
 
         if (soundId)
             bot->PlayDistanceSound(soundId);
-        else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action SLEEP: no sound found for race {}", botRace);
+        else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionSleep: no sound found for race {}", botRace);
 
         bot->SetStandState(UNIT_STAND_STATE_SLEEP);
 
@@ -1030,8 +1029,6 @@ namespace FSBOOC
     {
         if (!bot || !bot->IsAlive())
             return false;
-
-        TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: joke", bot->GetName());
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
@@ -1064,15 +1061,16 @@ namespace FSBOOC
 
         if (randomUnit)
         {
+            TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionJoke started for Bot {}", bot->GetName());
             // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ChatterType::None);
+            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ChatterType::None, 0);
             if (!emote.empty())
                 bot->TextEmote(emote);
 
             bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
             if (soundId)
                 bot->PlayDistanceSound(soundId);
-            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action JOKE: no sound found for race {}", botRace);
+            else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionJoke: no sound found for race {}", botRace);
 
             if (!randomUnit->IsPlayer())
                 FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ReplyType::Say, FSB_ChatterSource::Target);
@@ -1122,19 +1120,19 @@ namespace FSBOOC
 
             if (randomUnit)
             {
-                TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: kiss", bot->GetName());
+                TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionKiss started for Bot {}", bot->GetName());
 
                 bot->SetFacingToObject(randomUnit, true);
 
                 // 1. Emote text
-                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ChatterType::None);
+                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ChatterType::None, 0);
                 if (!emote.empty())
                     bot->TextEmote(emote, randomUnit);
 
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_KISS);
                 if (soundId)
                     bot->PlayDistanceSound(soundId);
-                else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action KISS: no sound found for race {}", botRace);
+                else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionKiss: no sound found for race {}", botRace);
 
                 if (!randomUnit->IsPlayer())
                     FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ReplyType::Say, FSB_ChatterSource::Target);
@@ -1180,19 +1178,19 @@ namespace FSBOOC
 
         if (randomUnit)
         {
-            TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: flirt", bot->GetName());
+            TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionFlirt started for Bot {}", bot->GetName());
 
             bot->SetFacingToObject(randomUnit, true);
 
             // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ChatterType::None);
+            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ChatterType::None, 0);
             if (!emote.empty())
                 bot->TextEmote(emote);
 
             bot->HandleEmoteCommand(EMOTE_ONESHOT_SHY);
             if (soundId)
                 bot->PlayDistanceSound(soundId);
-            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action FLIRT: no sound found for race {}", botRace);
+            else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionFlirt: no sound found for race {}", botRace);
 
             if (!randomUnit->IsPlayer())
                 FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ReplyType::Say, FSB_ChatterSource::Target);
@@ -1227,7 +1225,7 @@ namespace FSBOOC
             // 1. Cast campfire spell
             if (FSBSpells::BotCastSpell(bot, spellId, bot))
             {
-                TC_LOG_INFO("scripts.ai.fsb", "FSB RandomEvent started for bot {} with event {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
+                TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionCook started for bot {} with event {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
                 FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_cooking, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
                 return true;
             }

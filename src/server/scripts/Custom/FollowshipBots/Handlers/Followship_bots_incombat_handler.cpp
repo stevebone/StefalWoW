@@ -193,8 +193,8 @@ namespace FSBIC
                 dmgSpell->nextReadyMs = now + dmgSpell->def->cooldownMs;
                 globalCooldown = now + 1500;
                 if (target == bot)
-                    FSBUtilsCombat::SayCombatMessage(bot, bot, 0, FSBSayType::HealSelf, dmgSpell->def->spellId);
-                else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::SpellOnTarget, dmgSpell->def->spellId);
+                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, dmgSpell->def->spellId);
+                else FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botCombatSpell, FSB_ReplyType::Say, FSB_ChatterSource::Bot, dmgSpell->def->spellId);
                 return true;
                 // Bot Say after spell cast - TO-DO transform this into its own method
             }
@@ -251,12 +251,14 @@ namespace FSBIC
             if (FSBSpells::BotCastSpell(bot, healSpell->def->spellId, target))
             {
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
-                globalCooldown = now + 1500;
+                baseAI->botGlobalCooldown = now + 1500;
                 if(target == bot)
-                    FSBUtilsCombat::SayCombatMessage(bot, bot, 0, FSBSayType::HealSelf, healSpell->def->spellId);
-                else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::HealTarget, healSpell->def->spellId);
+                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
+                else
+                {
+                    FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botHealTarget, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
+                }
                 return true;
-                // Bot Say after spell cast - TO-DO transform this into its own method
             }
         }
 
@@ -295,12 +297,9 @@ namespace FSBIC
             if (FSBSpells::BotCastSpell(bot, healSpell->def->spellId, bot))
             {
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
-                globalCooldown = now + 1500;
-                FSBUtilsCombat::SayCombatMessage(bot, bot, 0, FSBSayType::HealSelf, healSpell->def->spellId);
+                baseAI->botGlobalCooldown = now + 1500;
+                FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
                 return true;
-                // Bot Say after spell cast - TO-DO transform this into its own method
-
-                //else FSBUtilsCombat::SayCombatMessage(bot, target, 0, FSBSayType::HealTarget, def->spellId);
             }
         }
 
@@ -329,7 +328,7 @@ namespace FSBIC
 
         if (FSBSpells::BotTryDispel(bot))
         {
-            globalCooldown = now + 1500;
+            baseAI->botGlobalCooldown = now + 1500;
             return true;
         }
 
@@ -357,7 +356,7 @@ namespace FSBIC
 
         if (FSBSpells::BotTryOffensiveDispel(bot))
         {
-            globalCooldown = now + 1500;
+            baseAI->botGlobalCooldown = now + 1500;
             return true;
         }
 
@@ -373,15 +372,14 @@ namespace FSBIC
             return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        auto& meleeMode = baseAI->botMeleeMode;
 
         if (FSBCombat::ShouldSwitchToMelee(bot))
         {
-            meleeMode = true;
+            baseAI->botMeleeMode = true;
             FSBCombat::EnterMeleeMode(bot);
             return true;
         }
-        else meleeMode = false;
+        else baseAI->botMeleeMode = false;
 
         return false;
     }
@@ -447,14 +445,14 @@ namespace FSBIC
                     bot->CastSpell(bot, ManaPotionSpellId, false);
                     botManaPotionUsed = true;
 
+                    std::string spellName = FSBSpellsUtils::GetSpellName(ManaPotionSpellId);
+
                     if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                     {
-                        std::string spellName = FSBSpellsUtils::GetSpellName(ManaPotionSpellId);
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::CombatMana, spellName);
-                        bot->Say(msg, LANG_UNIVERSAL);
+                        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botCombatMana, FSB_ReplyType::Say, FSB_ChatterSource::None, ManaPotionSpellId);
                     }
 
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IC Action mana potion used by bot: {} with spell id: {}", bot->GetName(), ManaPotionSpellId);
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICPotions: Bot {} used potion spell: {}", bot->GetName(), spellName);
                     return true;
                 }
             }
@@ -480,13 +478,13 @@ namespace FSBIC
             botHealthPotionUsed = true;
 
             std::string spellName = FSBSpellsUtils::GetSpellName(HealthPotionSpellId);
+
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
             {
-                std::string msg = FSBUtilsTexts::BuildNPCSayText("", NULL, FSBSayType::CombatHealth, spellName);
-                bot->Say(msg, LANG_UNIVERSAL);
+                FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botCombatHealth, FSB_ReplyType::Say, FSB_ChatterSource::None, HealthPotionSpellId);
             }
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IC Action health potion used by bot: {} with spell: {}", bot->GetName(), spellName);
+            TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICPotions: Bot {} used potion spell: {}", bot->GetName(), spellName);
             return true;
         }
         return false;

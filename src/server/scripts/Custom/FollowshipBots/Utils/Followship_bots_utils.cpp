@@ -301,118 +301,17 @@ namespace FSBUtilsTexts
         
 
 
-        case FSBSayType::HealTarget:
-        {
-            static const std::vector<std::string> healTargetTexts =
-            {
-                "Hey, <name>, Don't you feel stronger already!",
-                "Ah, just what you needed, <name>!",
-                "Power surging through you!",
-                "Heal coming up your way, <name>!",
-                "One heal for you and another heal for you...",
-                "This heal is for free, next one...",
-                "Hope you appreciate the heal, <name>!"
-            };
+        
 
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(healTargetTexts);
-            size_t pos;
-            while ((pos = chosen.find("<name>")) != std::string::npos)
-                chosen.replace(pos, 6, playerName);
-            //while ((pos = chosen.find("<duration>")) != std::string::npos)
-            //    chosen.replace(pos, 10, std::to_string(duration));
-            return chosen;
-        }
 
-        case FSBSayType::HealSelf:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Still standing.",
-                "That one actually hurt.",
-                "Not today.",
-                "I've had worse.",
-                "Just a scratch.",
-                "Focus. Breathe.",
-                "Pain is temporary.",
-                "Not done yet.",
-                "That'll keep me going.",
-                "Staying alive."
-            };
-
-            return Trinity::Containers::SelectRandomContainerElement(texts);
-        }
 
         
 
-        case FSBSayType::SpellOnTarget:
-        {
-            static const std::vector<std::string> texts =
-            {
-                "Hey, <name>, do you like my <spell>",
-                "Take that, you <name>!",
-                "Feel the power of my <spell>!",
-                "You're gonna feel this one, <name>!",
-                "One <spell> for you and another for you <name>.",
-                "I've got more <spell> from where this came from!",
-                "Hope you like my <spell>, you <name>!"
-            };
+        
 
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(texts);
-            ReplaceAll(chosen, "<name>", playerName);
-            ReplaceAll(chosen, "<spell>", string2);
-            return chosen;
-        }
+        
 
-        case FSBSayType::CombatMana:
-        {
-            static const std::vector<std::string> combatManaTexts =
-            {
-                "Ugh. my brain's running on empty!",
-                "Time for a little <spell> snack!",
-                "If I run out of mana now, it's over. gulp!",
-                "Someone toss me a <spell> potion, stat!",
-                "I can almost feel my powers fading.",
-                "Nothing a sip of magic can't fix!",
-                "Mana low. desperation high!",
-                "This <spell> better work. or I'm toast!",
-                "Friend have a <spell> for me? No...?! Ok, I'll use mine..."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(combatManaTexts);
-            size_t pos;
-            //while ((pos = chosen.find("<name>")) != std::string::npos)
-            //    chosen.replace(pos, 6, playerName);
-            while ((pos = chosen.find("<spell>")) != std::string::npos)
-                chosen.replace(pos, 7, string2);
-            return chosen;
-        }
-
-        case FSBSayType::CombatHealth:
-        {
-            static const std::vector<std::string> combatHealthTexts =
-            {
-                "This <spell> is my last... wish I had more!",
-                "No! Am too young to meet the spirit healer...",
-                "<spell> I choose you! Don't let me down!",
-                "Ugh. Think am gonna faint soon!",
-                "Time for a little <spell> snack!",
-                "If I run out of juice now, it's over. gulp!",
-                "Someone toss me a <spell> potion, stat!",
-                "I can almost feel my strength fading.",
-                "Nothing a sip of magic can't fix!",
-                "Health low. desperation high!",
-                "This <spell> better work. or I have a date with the spirit healer!",
-                "Can you spare a <spell> for me? No...?! Ok, I'll use mine..."
-            };
-
-            std::string chosen = Trinity::Containers::SelectRandomContainerElement(combatHealthTexts);
-            size_t pos;
-            //while ((pos = chosen.find("<name>")) != std::string::npos)
-            //    chosen.replace(pos, 6, playerName);
-            while ((pos = chosen.find("<spell>")) != std::string::npos)
-                chosen.replace(pos, 7, string2);
-            return chosen;
-        }
+        
 
         
 

@@ -1,6 +1,6 @@
-constexpr uint32 RANDOM_EVENT_INTERVAL = 50000;
+constexpr uint32 RANDOM_EVENT_INTERVAL = 120000;
 constexpr uint32 SPAWN_COMPANION_CHANCE = 30;
-constexpr uint32 RANDOM_AFK_EVENT_CHANCE = 100;
+constexpr uint32 RANDOM_AFK_EVENT_CHANCE = 10;
 
 
 enum FSB_AFK_ACTIONS
@@ -37,7 +37,7 @@ namespace FSBOOC
     bool BotOOCRecovery(Creature* bot, uint32& globalCooldown);
     bool BotOOCSummonPetOrDemon(Creature* bot);
     bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup);
-    bool BotOOCResurrect(Creature* bot, ObjectGuid& resTargetGuid);
+    bool BotOOCResurrect(Creature* bot);
     bool BotOOCResurrectTarget(Creature* bot);
     bool BotOOCBuffBeacon(Creature* bot);
     bool BotOOCDoRandomEvent(Creature* bot);

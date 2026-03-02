@@ -1,5 +1,6 @@
 #include "SpellAuras.h"
 
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_stats_handler.h"
@@ -172,5 +173,40 @@ namespace FSBMonk
 
         return false;
 
+    }
+
+    bool BotOOCHealOwner(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (!player || !player->IsAlive())
+            return false;
+
+        auto botRole = baseAI->botRole;
+        uint32 spellId = SPELL_MONK_VIVIFY;
+        if (botRole == FSB_ROLE_MELEE_DAMAGE)
+            spellId = SPELL_MONK_SOOTHING_MIST_CHI;
+
+        uint32 now = getMSTime();
+
+        if (player->GetHealthPct() <= 50)
+        {
+            FSBSpells::BotCastSpell(bot, spellId, player);
+            baseAI->botGlobalCooldown = now + 1500;
+
+            TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: Monk BotOOCHealOwner Bot: {} Player Heal < 50", bot->GetName());
+
+            return true;
+
+        }
+
+        return false;
     }
 }
