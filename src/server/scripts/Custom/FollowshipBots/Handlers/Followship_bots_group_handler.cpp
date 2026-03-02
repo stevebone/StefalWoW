@@ -103,7 +103,7 @@ namespace FSBGroup
             if (!member || !member->IsAlive())
                 continue;
 
-            FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
+            FSB_Roles role = FSBMgr::Get()->GetRole(member->ToCreature());
 
             // Check healer role
             if (role == FSB_Roles::FSB_ROLE_TANK)
@@ -199,7 +199,7 @@ namespace FSBGroup
             return 0.f;
 
         // Get role (works for any bot)
-        FSB_Roles role = FSBUtils::GetRole(unit->ToCreature());
+        FSB_Roles role = FSBMgr::Get()->GetRole(unit->ToCreature());
 
         // Assign priority values (higher = more urgent)
         if (role == FSB_ROLE_HEALER)           // healer

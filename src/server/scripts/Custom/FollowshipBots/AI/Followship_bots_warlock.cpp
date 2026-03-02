@@ -161,7 +161,7 @@ namespace FSBWarlock
 
         uint32 now = getMSTime();
 
-        bool isDemonology = FSBUtils::GetRole(bot) == FSB_ROLE_RANGED_DEMONOLOGY;
+        bool isDemonology = FSBMgr::Get()->GetRole(bot) == FSB_ROLE_RANGED_DEMONOLOGY;
 
         if (isDemonology && !bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
         {

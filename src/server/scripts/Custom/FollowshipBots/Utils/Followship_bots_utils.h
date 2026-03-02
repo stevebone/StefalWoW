@@ -35,12 +35,6 @@ namespace FSBUtils
     // Returns a random angle slightly to the right of the player
     float GetRandomRightAngle();
 
-    // Get the role of a bot (returns FSB_ROLE_NONE if not a bot or AI not present)
-    FSB_Roles GetRole(Creature* unit);
-
-    // Set the role of a bot (does nothing if not a bot or AI not present)
-    void SetRole(Creature* unit, FSB_Roles role);
-
     bool TryChargeHire(Player* player, uint32 duration);
 
     bool BotIsHealerClass(Creature* bot);

@@ -398,7 +398,7 @@ namespace FSBIC
             return false;
 
         FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-        FSB_Roles botRole = FSBUtils::GetRole(bot);
+        FSB_Roles botRole = FSBMgr::Get()->GetRole(bot);
 
         switch (botClass)
         {

@@ -130,6 +130,12 @@ public:
 
     uint32 GetBotPetSourceForEntry(uint32 entry);
 
+    // Get the role of a bot (returns FSB_ROLE_NONE if not a bot or AI not present)
+    FSB_Roles GetRole(Creature* bot);
+
+    // Set the role of a bot (does nothing if not a bot or AI not present)
+    void SetRole(Creature* bot, FSB_Roles role);
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
 };

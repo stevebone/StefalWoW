@@ -178,8 +178,8 @@ namespace FSBPaladin
 
         uint32 now = getMSTime();
 
-        bool isHealer = FSBUtils::GetRole(bot) == FSB_ROLE_HEALER;
-        bool isTank = FSBUtils::GetRole(bot) == FSB_ROLE_TANK;
+        bool isHealer = FSBMgr::Get()->GetRole(bot) == FSB_ROLE_HEALER;
+        bool isTank = FSBMgr::Get()->GetRole(bot) == FSB_ROLE_TANK;
 
         if (isHealer && !bot->HasAura(SPELL_PALADIN_RITE_OF_SANCTIFICATION))
         {

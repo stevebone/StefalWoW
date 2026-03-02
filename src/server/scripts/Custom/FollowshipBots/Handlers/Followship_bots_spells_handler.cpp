@@ -137,7 +137,7 @@ namespace FSBSpells
     std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, FSBSpellType desiredType, bool requireSelfCast)
     {
         std::vector<FSBSpellRuntime*> available;
-        FSB_Roles botRole = FSBUtils::GetRole(bot);
+        FSB_Roles botRole = FSBMgr::Get()->GetRole(bot);
         uint32 botRoleMask = RoleToMask(botRole);
         uint32 now = getMSTime();
 

@@ -220,25 +220,25 @@ namespace FSBGossip
         case FSB_Class::Druid:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
                 FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_TANK);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
                 FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_MELEE_DAMAGE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
                 FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_HEALER);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_4)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
                 FSBDruid::BotSetRoleAuras(bot, FSB_ROLE_RANGED_DAMAGE);
                 break;
             }
@@ -247,12 +247,12 @@ namespace FSBGossip
         case FSB_Class::Hunter:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_ASSIST);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_ASSIST);
                 break;
             }
             break;
@@ -260,19 +260,19 @@ namespace FSBGossip
         case FSB_Class::Paladin:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
                 FSBPaladin::BotSetRoleAuras(bot, FSB_ROLE_TANK);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
                 FSBPaladin::BotSetRoleAuras(bot, FSB_ROLE_MELEE_DAMAGE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
                 FSBPaladin::BotSetRoleAuras(bot, FSB_ROLE_HEALER);
                 break;
             }
@@ -281,30 +281,30 @@ namespace FSBGossip
         case FSB_Class::Rogue:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE_2);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE_2);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE_3);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE_3);
                 break;
             }
             break;
         case FSB_Class::Warrior:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
                 bot->CastSpell(bot, SPELL_WARRIOR_DEFENSIVE_STANCE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
                 uint32 spellId = urand(0, 1) ? SPELL_WARRIOR_BATTLE_STANCE : SPELL_WARRIOR_BERSERKER_STANCE;
                 bot->CastSpell(bot, spellId);
                 break;
@@ -318,20 +318,20 @@ namespace FSBGossip
         case FSB_Class::Priest:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
                 if (bot->HasAura(SPELL_PRIEST_SHADOWFORM))
                     bot->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DAMAGE);
                 bot->CastSpell(bot, SPELL_PRIEST_SHADOWFORM);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_ASSIST);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_ASSIST);
                 if (bot->HasAura(SPELL_PRIEST_SHADOWFORM))
                     bot->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
                 break;
@@ -340,36 +340,36 @@ namespace FSBGossip
         case FSB_Class::Mage:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_ARCANE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_ARCANE);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_FROST);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_FROST);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_FIRE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_FIRE);
                 break;
             }
             break;
         case FSB_Class::Monk:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
                 FSBPowers::SetBotToMana(bot);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
                 FSBPowers::SetBotToEnergy(bot);
                 break;
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
                 FSBPowers::SetBotToChi(bot);
                 break;
             }
@@ -377,17 +377,17 @@ namespace FSBGossip
         case FSB_Class::Warlock:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_AFFLICTION);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_AFFLICTION);
                 if (bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
                     bot->RemoveAurasDueToSpell(SPELL_WARLOCK_DEMON_ARMOR);
             }
             else if (roleOption == FSB_GOSSIP_ROLE_2)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DEMONOLOGY);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DEMONOLOGY);
             }
             else if (roleOption == FSB_GOSSIP_ROLE_3)
             {
-                FSBUtils::SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DESTRUCTION);
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_RANGED_DESTRUCTION);
                 if (bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
                     bot->RemoveAurasDueToSpell(SPELL_WARLOCK_DEMON_ARMOR);
             }

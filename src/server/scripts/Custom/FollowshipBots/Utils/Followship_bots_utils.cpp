@@ -97,30 +97,6 @@ namespace FSBUtils
         return (-M_PI / 2.0f) + frand(-SIDE_OFFSET_MAX, SIDE_OFFSET_MAX);
     }
 
-    FSB_Roles GetRole(Creature* unit)
-    {
-        if (!unit || !unit->IsBot())
-            return FSB_Roles::FSB_ROLE_NONE;
-
-        
-            if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(unit->AI()))
-                return ai->botRole;
-        
-
-        return FSB_Roles::FSB_ROLE_NONE;
-    }
-
-    void SetRole(Creature* unit, FSB_Roles role)
-    {
-        if (!unit || !unit->IsBot())
-            return;
-
-
-            if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(unit->AI()))
-                ai->botRole = role;
-        
-    }
-
     bool TryChargeHire(Player* player, uint32 duration)
     {
         uint32 pLevel = player->GetLevel();

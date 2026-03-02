@@ -303,7 +303,7 @@ namespace FSBUtilsBotCombat
         if (ShouldForceMeleeRange(bot))
             return 2.0f;
 
-        FSB_Roles role = FSBUtils::GetRole(bot);
+        FSB_Roles role = FSBMgr::Get()->GetRole(bot);
         FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         switch (role)

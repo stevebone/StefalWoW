@@ -691,3 +691,23 @@ uint32 FSBMgr::GetBotPetSourceForEntry(uint32 entry)
     return 0;
 }
 
+FSB_Roles FSBMgr::GetRole(Creature* bot)
+{
+    if (!bot || !bot->IsBot())
+        return FSB_Roles::FSB_ROLE_NONE;
+
+    if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        return ai->botRole;
+
+    return FSB_Roles::FSB_ROLE_NONE;
+}
+
+void FSBMgr::SetRole(Creature* bot, FSB_Roles role)
+{
+    if (!bot || !bot->IsBot())
+        return;
+
+    if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        ai->botRole = role;
+}
+
