@@ -619,6 +619,10 @@ public:
                 {
                     if(botMoveState != FSB_MOVE_STATE_STAY || !me->HasAura(SPELL_SPECIAL_GHOST))
                         FSBTeleport::BotTeleport(me, BOT_TOO_FAR);
+
+                    if (FSBPet::BotHasPet(me))
+                        FSBTeleport::BotPetTeleport(me);
+
                     break;
                 }
 

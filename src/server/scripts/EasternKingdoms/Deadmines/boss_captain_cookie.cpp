@@ -109,7 +109,7 @@ const uint32 ThrowFoodSpells[12] =
 
 constexpr auto POINT_MOVE = 1;
 
-const Position cauldronPos = {-64.07f, -820.27f, 41.17f, 0.0f};
+//const Position cauldronPos = {-64.07f, -820.27f, 41.17f, 0.0f};
 const Position movePos = {-64.07f, -820.27f, 41.17f, 0.04f};
 
 class boss_captain_cookie : public CreatureScript

@@ -3331,8 +3331,8 @@ struct npc_shu_at_farmstead : public ScriptedAI
                     // Cast the summoning spell at the chosen location
                     //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
                     // Dynamic position spell casting summon not supported. we summon creature directly instead
-
-                    if (Creature* bunny = me->SummonCreature(NPC_WATER_SPOUT_AT_FARM_POOL, targetPos, TEMPSUMMON_MANUAL_DESPAWN))
+                    Creature* bunny = me->SummonCreature(NPC_WATER_SPOUT_AT_FARM_POOL, targetPos, TEMPSUMMON_MANUAL_DESPAWN);
+                    if (bunny)
                         DoCast(SPELL_WATER_SPOUT);
                     _events.ScheduleEvent(EVENT_SHU_AT_FARMSTEAD_PLAY, 6s);
                     break;

@@ -1,3 +1,5 @@
+#include "Log.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
@@ -88,9 +90,6 @@ namespace FSBTeleport
                     player->GetOrientation());
 
                 TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotTeleport Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
-
-                if (FSBPet::BotHasPet(bot))
-                    BotPetTeleport(bot);
 
                 return true;
             }

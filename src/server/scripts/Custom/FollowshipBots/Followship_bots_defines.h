@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Define.h"
+#include "ObjectGuid.h"
 
 enum class FSB_ChatterType : uint8
 {
