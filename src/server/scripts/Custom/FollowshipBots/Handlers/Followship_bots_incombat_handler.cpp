@@ -1,20 +1,15 @@
+#include "Log.h"
+
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-
-#include "Followship_bots_hunter.h"
-#include "Followship_bots_druid.h"
-#include "Followship_bots_mage.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_rogue.h"
-#include "Followship_bots_warlock.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_incombat_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_spells_handler.h"
 
@@ -173,10 +168,11 @@ namespace FSBIC
             if (dist > spellDist)
             {
                 // Move into spell range
-                bot->GetMotionMaster()->Clear();
-                bot->GetMotionMaster()->MoveChase(target, spellDist);
-                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: SpellSkip - damage {} target too far ({}/{})", spell->spellId, dist, spell->dist);
-                return false;
+                if (FSBMovement::EnsureInRange(bot, target, spellDist))
+                {
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICTryOffensiveSpell Bot {} target too far for spell {} with distances ({}/{}). Trying to chase.", bot->GetName(), dmgSpell->def->spellId, dist, spellDist);
+                    return false;
+                }
             }
         }
 

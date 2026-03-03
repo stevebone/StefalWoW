@@ -1675,7 +1675,7 @@ namespace FSBChatter
         }
     }
 
-    void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId)
+    void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId, uint16 duration)
     {
         if (!bot)
             return;
@@ -1688,7 +1688,7 @@ namespace FSBChatter
         if (chatterSource == FSB_ChatterSource::Bot)
             type = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
-        std::string chatter = GetRandomReply(bot, target, category, type, spellId);
+        std::string chatter = GetRandomReply(bot, target, category, type, spellId, duration);
 
         if (chatter.empty())
             return;

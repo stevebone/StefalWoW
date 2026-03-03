@@ -55,6 +55,9 @@ namespace FSBUtilsOwnerCombat
 
 namespace FSBCombatUtils
 {
+    float GetBotChaseDistance(Creature* bot);
+    float GetFallbackChaseDistanceForClass(FSB_Class cls);
+
     bool HasHostileInRange(Unit* me, float range, uint32 count);
     bool IsOutOfCombatFor(Creature* bot, uint32 ms);
 }

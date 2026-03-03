@@ -148,7 +148,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             float offsety = frand(-2.f, 2.f);
             bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, go->GetPositionX() + offsetx, go->GetPositionY() + offsety, go->GetPositionZ());
             botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event RANDOM_ACTION_MOVE_FIRE for bot {} finished. We found object {} and are moving to sit by", bot->GetName(), go->GetName());
+            TC_LOG_DEBUG("scripts.fsb.events", "FSB: Event RANDOM_ACTION_MOVE_FIRE for bot {} finished. We found object {} and are moving to sit by", bot->GetName(), go->GetName());
             break;
         }
 
@@ -228,6 +228,33 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         botDoingRandomEvent = false;
 
         TC_LOG_DEBUG("scripts.fsb.events", "FSB: Event RANDOM_ACTION_FINISH for bot {} ended. Cleaning up states and flags", bot->GetName());
+
+        break;
+    }
+
+    case FSB_EVENT_HIRED_EXPIRED: // or dismissed
+    {
+        if (!bot->IsInCombat() && !bot->HasUnitState(UNIT_STAND_STATE_SIT) && bot->IsAlive())
+        {
+            botEvents.Reset();
+            ai->botHired = false;
+            FSBMgr::Get()->DismissPersistentBot(me);
+            ScheduleBotEvent(FSB_EVENT_HIRED_LEAVE, 5s);
+            break;
+        }
+        else ScheduleBotEvent(FSB_EVENT_HIRED_EXPIRED, 5s);
+        break;
+    }
+
+    case FSB_EVENT_HIRED_LEAVE:
+    {
+        //float x, y, z;
+        //me->GetRandomPoint(me->GetPosition(), 10.0f, x, y, z); // 10 yd radius
+        //me->GetMotionMaster()->MovePoint(1, me->GetPositionX() + 30, me->GetPositionY(), me->GetPositionZ(), true);
+        float x, y, z;
+        me->GetRandomPoint(me->GetPosition(), 50.0f, x, y, z);
+        me->GetMotionMaster()->MovePoint(1, x, y, z);
+        me->DespawnOrUnsummon(10s);
 
         break;
     }

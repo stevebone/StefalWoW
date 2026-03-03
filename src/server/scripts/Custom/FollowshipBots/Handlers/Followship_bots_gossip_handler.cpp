@@ -3,6 +3,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
@@ -429,6 +430,43 @@ namespace FSBGossip
         else
             player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
 
+        player->PlayerTalkClass->SendCloseGossip();
+        return true;
+    }
+
+    bool HandleGossipItemHire(Creature* bot, Player* player, uint32 durationHours)
+    {
+        if (!bot || !player)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        // 1. Charge the player
+        if (!FSBUtils::TryChargeHire(player, durationHours))
+        {
+            player->PlayerTalkClass->SendCloseGossip();
+            return false;
+        }
+
+        // 2. Mark hired
+        baseAI->botHired = true;
+
+        // 3. Persist bot hire
+        FSBMgr::Get()->HirePersistentBot(player, bot, durationHours);
+
+        // 4. Schedule expiration
+        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_EXPIRED, std::chrono::minutes(durationHours * 60));
+
+        // 5. Resume follow
+        FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+
+        // 6. Chatter
+        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHire,
+            FSB_ReplyType::Say, FSB_ChatterSource::None, 0, durationHours);
+
+        // 7. Close gossip
         player->PlayerTalkClass->SendCloseGossip();
         return true;
     }

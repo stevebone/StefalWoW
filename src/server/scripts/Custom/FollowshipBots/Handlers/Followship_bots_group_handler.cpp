@@ -22,7 +22,7 @@ namespace FSBGroup
         auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(owner);
         if (!botsPtr)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildLogicalGroup. Player has no bots");
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: BuildLogicalBotGroup Player has no bots");
             return;
         }
 
@@ -51,28 +51,44 @@ namespace FSBGroup
 
         for (Unit* member : botGroup)
         {
-            // Validate group member
             if (!member || member == bot)
                 continue;
 
             if (!member->IsAlive() || !member->IsInWorld() || member->IsDuringRemoveFromWorld())
                 continue;
 
-            // Check if member is under attack
+            // Case 1: Member is being attacked
             Unit* attacker = member->getAttackerForHelper();
-            if (!attacker || !attacker->IsAlive() || !attacker->IsInWorld() || attacker->IsDuringRemoveFromWorld())
-                continue;
-
-            // Don't break CC
-            if (attacker->HasBreakableByDamageCrowdControlAura())
-                continue;
-
-            // Prioritize the most injured group member
-            float hpPct = member->GetHealthPct();
-            if (hpPct < lowestHpPct)
+            if (attacker && attacker->IsAlive() && attacker->IsInWorld() && !attacker->IsDuringRemoveFromWorld())
             {
-                lowestHpPct = hpPct;
-                bestTarget = attacker;
+                // Skip CC
+                if (!attacker->HasBreakableByDamageCrowdControlAura() &&
+                    !member->HasBreakableByDamageCrowdControlAura())
+                {
+                    float hpPct = member->GetHealthPct();
+                    if (hpPct < lowestHpPct)
+                    {
+                        lowestHpPct = hpPct;
+                        bestTarget = attacker;
+                    }
+                }
+            }
+
+            // Case 2: Member is attacking something (victim)
+            Unit* victim = member->GetVictim();
+            if (victim && victim->IsAlive() && victim->IsInWorld() && !victim->IsDuringRemoveFromWorld())
+            {
+                // Skip CC
+                if (!victim->HasBreakableByDamageCrowdControlAura() &&
+                    !member->HasBreakableByDamageCrowdControlAura())
+                {
+                    float hpPct = member->GetHealthPct();
+                    if (hpPct < lowestHpPct)
+                    {
+                        lowestHpPct = hpPct;
+                        bestTarget = victim;
+                    }
+                }
             }
         }
 

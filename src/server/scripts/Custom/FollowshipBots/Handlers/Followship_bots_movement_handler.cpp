@@ -1,10 +1,8 @@
+#include "Log.h"
+
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-
-#include "Followship_bots_druid.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_warlock.h"
 
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -165,5 +163,109 @@ namespace FSBMovement
 
             }
         }
+    }
+
+    void BotHandleReturnMovement(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        if (!baseAI->botHired)
+        {
+            bot->GetMotionMaster()->Clear();
+            bot->GetMotionMaster()->MoveIdle();
+            return;
+        }
+
+        // Handles moving the bot back to follow or owner
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        if (!owner)
+        {
+            if (bot->HasUnitState(UNIT_STATE_FOLLOW))
+                bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
+            bot->GetMotionMaster()->MoveIdle();
+
+            TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotHandleReturnMovement bot {} does not have owner so it is set to Idle", bot->GetName());
+
+            return;
+        }
+
+        if (owner && baseAI->botMoveState == FSB_MOVE_STATE_FOLLOWING)
+        {
+            if (bot->HasUnitState(UNIT_STATE_CHASE))
+                bot->GetMotionMaster()->Remove(CHASE_MOTION_TYPE);
+
+            bot->GetMotionMaster()->MoveFollow(owner, baseAI->botFollowDistance, baseAI->botFollowAngle);
+
+            TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotHandleReturnMovement bot {} has owner so it is set to Follow", bot->GetName());
+
+        }
+    }
+
+    bool EnsureInRange(Creature* bot, Unit* target)
+    {
+        if (!bot || !target || !target->IsAlive())
+            return false;
+
+        float dist = bot->GetDistance(target);
+        float requiredRange = FSBCombatUtils::GetBotChaseDistance(bot);
+
+        // Already in range
+        if (dist <= requiredRange)
+            return false;
+
+        MotionMaster* mm = bot->GetMotionMaster();
+        if (!mm)
+            return false;
+
+        // Avoid restarting the same chase every tick
+        if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+            return true;
+
+        mm->Clear();
+
+        // Bots with ranged attacks should not care about the chase angle at all.
+        float angle = requiredRange == 2.f ? float(M_PI) : frand(-2.f, 2.f);
+        float tolerance = requiredRange == 0.f ? float(M_PI_4) : float(M_PI * 2);
+        mm->MoveChase(target, ChaseRange(0.f, requiredRange), ChaseAngle(angle, tolerance));       
+
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureInRange Bot {} chasing {} to {:.1f} yards", bot->GetName(), target->GetName(), requiredRange);
+
+        return true;
+    }
+
+    bool EnsureInRange(Creature* bot, Unit* target, float range)
+    {
+        if (!bot || !target || !target->IsAlive())
+            return false;
+
+        float dist = bot->GetDistance(target);
+
+        // Already in range
+        if (dist <= range)
+            return false;
+
+        MotionMaster* mm = bot->GetMotionMaster();
+        if (!mm)
+            return false;
+
+        // Avoid restarting the same chase every tick
+        if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+            return true;
+
+        mm->Clear();
+
+        // Bots with ranged attacks should not care about the chase angle at all.
+        float angle = range == 2.f ? float(M_PI) : frand(-2.f, 2.f);
+        float tolerance = range == 0.f ? float(M_PI_4) : float(M_PI * 2);
+        mm->MoveChase(target, ChaseRange(0.f, range), ChaseAngle(angle, tolerance));
+
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureInRange for spell Bot {} chasing {} to {:.1f} yards", bot->GetName(), target->GetName(), range);
+
+        return true;
     }
 }

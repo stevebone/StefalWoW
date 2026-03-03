@@ -483,7 +483,7 @@ namespace FSBOOC
         {
             SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
             int32 castTimeMs = spellInfo->CalcCastTime(); // in milliseconds
-            FSBMovement::StopFollow(bot);
+            //FSBMovement::StopFollow(bot);
 
             if (FSBSpells::BotCastSpell(bot, spellId, target))
             {
@@ -539,6 +539,10 @@ namespace FSBOOC
         baseAI->botManaPotionUsed = false;
         baseAI->botHealthPotionUsed = false;
         baseAI->botCastedCombatBuffs = false;
+
+        // Set bot to follow if move state is follow but we are idle
+        if (baseAI->botMoveState == FSB_MOVE_STATE_FOLLOWING && FSBMovement::GetMovementType(bot) != FOLLOW_MOTION_TYPE)
+            FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
         auto& deadTargetGuid = baseAI->botResurrectTargetGuid;
         Unit* target = nullptr;
@@ -722,7 +726,7 @@ namespace FSBOOC
 
         bool check = false;
 
-        FSBMovement::StopFollow(bot);
+        //FSBMovement::StopFollow(bot);
 
         switch (botClass)
         {
