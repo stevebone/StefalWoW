@@ -58,9 +58,9 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
     { SPELL_MONK_LIFE_COCOON,               FSBSpellType::Heal,     0.f,        30.f,           50.f,            40.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
     // mass heal
-    { SPELL_MONK_RESTORAL,                  FSBSpellType::Heal,     0.f,        100.f,          100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_MONK_REVIVAL,                   FSBSpellType::Heal,     0.f,        100.f,          100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
-    { SPELL_MONK_CELESTIAL_CONDUIT,         FSBSpellType::Heal,     0.05f,      100.f,          100.f,           0.f,           true,       90000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_MONK_RESTORAL,                  FSBSpellType::Heal,     0.f,        100.f,          50.f,            0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_MONK_REVIVAL,                   FSBSpellType::Heal,     0.f,        100.f,          50.f,            0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_MONK_CELESTIAL_CONDUIT,         FSBSpellType::Heal,     0.05f,      100.f,          50.f,            0.f,           true,       90000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
 
     // cc
     { SPELL_MONK_SPINNING_CRANE,            FSBSpellType::Damage,   0.1f,       0.f,            100.f,           6.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },

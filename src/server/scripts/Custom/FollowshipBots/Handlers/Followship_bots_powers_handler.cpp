@@ -1,11 +1,10 @@
+#include "Log.h"
 
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-
-#include "Followship_bots_druid.h"
 
 namespace FSBPowers
 {
@@ -130,8 +129,8 @@ namespace FSBPowers
 
         bot->ModifyPower(POWER_RAGE, rageGain, false);
 
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: {} gained {} rage from taking {} damage (now {})",
+        TC_LOG_DEBUG("scripts.fsb.combat",
+            "FSB: GenerateRageFromDamageTaken Bot {} gained {} rage from taking {} damage (now {})",
             bot->GetName(), rageGain, damage, newRage);
     }
 
@@ -156,8 +155,8 @@ namespace FSBPowers
         bot->ModifyPower(POWER_RAGE, rageGain);
 
         TC_LOG_DEBUG(
-            "scripts.ai.fsb",
-            "FSB: {} gained {} rage from dealing {} damage (now {})",
+            "scripts.fsb.combat",
+            "FSB: GenerateRageFromDamageTaken Bot {} gained {} rage from dealing {} damage (now {})",
             bot->GetName(),
             rageGain,
             damage,

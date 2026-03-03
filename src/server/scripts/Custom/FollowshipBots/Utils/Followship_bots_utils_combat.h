@@ -25,34 +25,6 @@ namespace FSBUtilsCombat
     uint8 CountAttackersOn(Unit* who);
 }
 
-namespace FSBUtilsBotCombat
-{
-    bool BotCanAttack(Unit* target, Creature* bot, uint16 moveState);
-    void BotAttackStart(Creature* bot, Unit* target, uint16 moveState);
-    void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 moveState);
-    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect, std::vector<Unit*> botGroup_);
-    void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle);
-
-    float GetBotChaseDistance(Creature* bot);
-    float GetFallbackChaseDistanceForClass(FSB_Class cls);
-    bool ShouldForceMeleeRange(Creature* bot);
-}
-
-namespace FSBUtilsOwnerCombat
-{
-    // Owner attacked victim
-    bool CheckBotOwnerAttacked(Player* owner, ObjectGuid& lastVictim);
-
-    // Owner was attacked by target
-    Unit* CheckBotOwnerAttackedBy(Player* owner);
-
-    // Bot reaction when owner attacks target
-    void OnBotOwnerAttacked(Unit* victim, Creature* bot, uint16 moveState);
-
-    // Bot reaction when owner is attacked by target
-    void OnBotOwnerAttackedBy(Unit* attacker, Creature* bot, uint16 moveState);
-}
-
 namespace FSBCombatUtils
 {
     float GetBotChaseDistance(Creature* bot);

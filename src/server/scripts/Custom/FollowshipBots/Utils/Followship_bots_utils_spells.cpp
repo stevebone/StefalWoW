@@ -142,6 +142,7 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_ARCANE_SURGE:
             return bot->GetPowerPct(POWER_MANA) < 10;
 
+        case SPELL_HUNTER_ASPECT_TURTLE:
         case SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS:
         case SPELL_DRUID_IRONBARK:
         case SPELL_DRUID_CELESTIAL_ALIGNMENT:

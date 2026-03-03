@@ -345,17 +345,11 @@ public:
         }
 
         // Runs every time creature takes damage
-        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
             FSBPowers::GenerateRageFromDamageTaken(me, damage);
 
             damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
-
-            if (!me->GetVictim() && attacker)
-            {
-                TC_LOG_DEBUG("scripts.fsb.general", "FSB: DamageTaken() Bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
-                FSBUtilsBotCombat::BotAttackStart(me, attacker, botMoveState);
-            }
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades

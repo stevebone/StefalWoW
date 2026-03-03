@@ -32,7 +32,7 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
     { SPELL_HUNTER_DISENGAGE,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          true,       20000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_HUNTER_COUNTER_SHOT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           40.f,          false,      24000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_HUNTER_BINDING_SHOT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           30.f,          false,      45000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_HUNTER_ASPECT_TURTLE,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_HUNTER_ASPECT_TURTLE,           FSBSpellType::Damage,   0.f,        0.f,            50.f,            0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_HUNTER_SHOOT,                   FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
