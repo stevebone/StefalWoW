@@ -1139,6 +1139,17 @@ void Garrison::SendMissionStartConditionUpdate() const
     _owner->SendDirectMessage(update.Write());
 }
 
+void Garrison::SendDeleteExpiredMissionsResult() const
+{
+    WorldPackets::Garrison::DeleteExpiredMissionsResult result;
+    result.GarrTypeID = static_cast<uint8>(_garrType);
+    result.Result = GARRISON_SUCCESS;
+    result.Succeeded = true;
+    result.LegionUnkBit = true;
+    // RemovedMissions is empty — expired missions are already cleaned up by RemoveExpiredMissions()
+    _owner->SendDirectMessage(result.Write());
+}
+
 // ============================================================
 // Follower management
 // ============================================================
@@ -1201,13 +1212,12 @@ void Garrison::SetFollowerFavorite(uint64 dbId, bool favorite)
         return;
     }
 
-    result.FollowerDBID = dbId;
     if (favorite)
         follower->PacketInfo.FollowerStatus |= FOLLOWER_STATUS_FAVORITE;
     else
         follower->PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_FAVORITE;
 
-    result.Flags = follower->PacketInfo.FollowerStatus;
+    result.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(result.Write());
 }
 
@@ -1239,7 +1249,6 @@ void Garrison::SetFollowerInactive(uint64 dbId, bool inactive)
         return;
     }
 
-    result.FollowerDBID = dbId;
     if (inactive)
     {
         follower->PacketInfo.FollowerStatus |= FOLLOWER_STATUS_INACTIVE;
@@ -1278,7 +1287,7 @@ void Garrison::SetFollowerInactive(uint64 dbId, bool inactive)
         --_followerActivationsRemainingToday;
     }
 
-    result.Flags = follower->PacketInfo.FollowerStatus;
+    result.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(result.Write());
 }
 
@@ -1831,6 +1840,9 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                 && !(follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_NO_XP_GAIN)
                 && !(follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP))
             {
+                // Capture old state before XP modification
+                WorldPackets::Garrison::GarrisonFollower oldFollowerState = follower->PacketInfo;
+
                 GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
                 uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : FOLLOWER_TYPE_GARRISON;
 
@@ -1870,10 +1882,11 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                         follower->PacketInfo.Xp = 0;
                 }
 
-                // Send follower XP update
+                // Send follower XP update with old and new state
                 WorldPackets::Garrison::GarrisonFollowerChangedXP followerXPUpdate;
                 followerXPUpdate.Result = GARRISON_SUCCESS;
                 followerXPUpdate.TotalXp = followerXP;
+                followerXPUpdate.OldFollower = oldFollowerState;
                 followerXPUpdate.Follower = follower->PacketInfo;
                 _owner->SendDirectMessage(followerXPUpdate.Write());
             }
@@ -2472,6 +2485,9 @@ void Garrison::SetFollowerQuality(uint64 dbId, uint32 quality)
     if (!follower)
         return;
 
+    // Capture old state before quality modification
+    WorldPackets::Garrison::GarrisonFollower oldFollowerState = follower->PacketInfo;
+
     follower->PacketInfo.Quality = quality;
 
     // Re-roll abilities for the new quality tier
@@ -2484,6 +2500,7 @@ void Garrison::SetFollowerQuality(uint64 dbId, uint32 quality)
     }
 
     WorldPackets::Garrison::GarrisonFollowerChangedQuality changedQuality;
+    changedQuality.OldFollower = oldFollowerState;
     changedQuality.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(changedQuality.Write());
 }
@@ -2514,6 +2531,9 @@ void Garrison::AddFollowerXP(uint64 dbId, uint32 xp)
 
     if (follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP)
         return;
+
+    // Capture old state before XP modification
+    WorldPackets::Garrison::GarrisonFollower oldFollowerState = follower->PacketInfo;
 
     GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
     uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : FOLLOWER_TYPE_GARRISON;
@@ -2555,6 +2575,7 @@ void Garrison::AddFollowerXP(uint64 dbId, uint32 xp)
     WorldPackets::Garrison::GarrisonFollowerChangedXP followerXPUpdate;
     followerXPUpdate.Result = GARRISON_SUCCESS;
     followerXPUpdate.TotalXp = xp;
+    followerXPUpdate.OldFollower = oldFollowerState;
     followerXPUpdate.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(followerXPUpdate.Write());
 }
@@ -2638,6 +2659,9 @@ GarrisonError Garrison::UpgradeFollowerItemLevel(uint64 dbId, int32 amount, int3
     if (!followerEntry)
         return GARRISON_ERROR_INVALID_FOLLOWER;
 
+    // Capture old state before item level modification
+    WorldPackets::Garrison::GarrisonFollower oldFollowerState = follower->PacketInfo;
+
     // Get item level cap from GarrFollowerType
     uint16 maxItemLevel = 0;
     GarrFollowerTypeEntry const* followerType = sGarrisonMgr.GetFollowerTypeForGarrType(followerEntry->GarrTypeID);
@@ -2676,11 +2700,12 @@ GarrisonError Garrison::UpgradeFollowerItemLevel(uint64 dbId, int32 amount, int3
     if (slot == 1 || slot < 0 || slot > 1)
         applyUpgrade(follower->PacketInfo.ItemLevelArmor);
 
-    // Send follower update to client
-    WorldPackets::Garrison::GarrisonUpdateFollower updateFollower;
-    updateFollower.Result = GARRISON_SUCCESS;
-    updateFollower.Follower = follower->PacketInfo;
-    _owner->SendDirectMessage(updateFollower.Write());
+    // Send item level change with old and new state
+    WorldPackets::Garrison::GarrisonFollowerChangedItemLevel changedItemLevel;
+    changedItemLevel.Result = GARRISON_SUCCESS;
+    changedItemLevel.OldFollower = oldFollowerState;
+    changedItemLevel.Follower = follower->PacketInfo;
+    _owner->SendDirectMessage(changedItemLevel.Write());
 
     return GARRISON_SUCCESS;
 }

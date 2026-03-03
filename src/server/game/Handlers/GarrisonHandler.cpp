@@ -40,15 +40,18 @@ void WorldSession::HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo
         { FOLLOWER_TYPE_GARRISON,   20 },
         { FOLLOWER_TYPE_SHIPYARD,   6 },
         { FOLLOWER_TYPE_CLASS_ORDER, 6 },
-        { FOLLOWER_TYPE_DELVES,     30 },
+        { FOLLOWER_TYPE_WAR_CAMPAIGN, 30 },
         { FOLLOWER_TYPE_COVENANT,   100 }
     };
 
     SendPacket(garrisonInfo.Write());
 
-    // Follow up with per-garrison mission start condition updates
+    // Follow up with expired mission cleanup and mission start condition updates per garrison
     for (auto const& [type, garrison] : _player->GetGarrisons())
+    {
+        garrison->SendDeleteExpiredMissionsResult();
         garrison->SendMissionStartConditionUpdate();
+    }
 }
 
 void WorldSession::HandleGarrisonPurchaseBuilding(WorldPackets::Garrison::GarrisonPurchaseBuilding& garrisonPurchaseBuilding)
@@ -95,6 +98,8 @@ void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonSt
 
     WorldPackets::Garrison::GarrisonStartMissionResult startResult;
     startResult.Result = result;
+    if (result == GARRISON_SUCCESS)
+        startResult.SessionMissionCount = garrison->GetAndIncrementSessionMissionCount();
     if (Garrison::Mission const* mission = garrison->GetMissionByRecID(garrisonStartMission.MissionRecID))
         startResult.Mission = mission->PacketInfo;
     startResult.FollowerDBIDs = garrisonStartMission.FollowerDBIDs;
@@ -171,11 +176,18 @@ void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& 
     if (!garrison)
         return;
 
+    // Send expired mission cleanup results for all garrison types
+    for (auto const& [type, garr] : _player->GetGarrisons())
+        garr->SendDeleteExpiredMissionsResult();
+
     // Remove expired offers (sends GarrisonDeleteMissionResult per expired mission)
     // and generate new missions (sends GarrisonAddMissionResult per new mission).
     // Individual targeted packets are sent instead of a full GetGarrisonInfoResult.
     garrison->RemoveExpiredMissions();
     garrison->GenerateAvailableMissions();
+
+    // Send mission start condition update
+    garrison->SendMissionStartConditionUpdate();
 }
 
 // ============================================================
@@ -402,7 +414,16 @@ void WorldSession::HandleUpgradeGarrison(WorldPackets::Garrison::UpgradeGarrison
 
 void WorldSession::HandleGarrisonCheckUpgradeable(WorldPackets::Garrison::GarrisonCheckUpgradeable& garrisonCheckUpgradeable)
 {
-    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(garrisonCheckUpgradeable.GarrTypeID));
+    // Client sends GarrSiteID, not GarrTypeID. Find the matching garrison.
+    Garrison* garrison = nullptr;
+    for (auto const& [type, garr] : _player->GetGarrisons())
+    {
+        if (garr->GetSiteLevel() && garr->GetSiteLevel()->GarrSiteID == garrisonCheckUpgradeable.GarrSiteID)
+        {
+            garrison = garr.get();
+            break;
+        }
+    }
     GarrisonError upgradeResult = GARRISON_ERROR_UPGRADE_CONDITION_FAILED;
 
     if (garrison)

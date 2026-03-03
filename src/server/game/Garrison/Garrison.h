@@ -62,8 +62,7 @@ enum GarrisonFollowerType
     FOLLOWER_TYPE_GARRISON      = 1,
     FOLLOWER_TYPE_SHIPYARD      = 2,
     FOLLOWER_TYPE_CLASS_ORDER   = 4,
-    FOLLOWER_TYPE_WAR_CAMPAIGN  = 11,
-    FOLLOWER_TYPE_DELVES        = 22,
+    FOLLOWER_TYPE_WAR_CAMPAIGN  = 22,
     FOLLOWER_TYPE_COVENANT      = 123
 };
 
@@ -330,6 +329,8 @@ public:
     void PopulateMissionData(Mission& mission, GarrMissionEntry const* missionEntry) const;
     bool IsAutoCombatMission(Mission const& mission) const;
     void RemoveExpiredMissions();
+    uint32 GetAndIncrementSessionMissionCount() { return _sessionMissionCount++; }
+    void SendDeleteExpiredMissionsResult() const;
 
     // Recruitment
     void SetRecruitmentPreferences(uint32 abilityId, uint32 traitId);
@@ -413,6 +414,7 @@ private:
     uint64 _missionDbIdGenerator = 1;
     time_t _lastMissionGenerationTime = 0;
     std::unordered_set<uint32 /*missionRecID*/> _activeMissionRecIDs;
+    uint32 _sessionMissionCount = 0;
 
     // Recruitment
     std::vector<WorldPackets::Garrison::GarrisonFollower> _availableRecruits;

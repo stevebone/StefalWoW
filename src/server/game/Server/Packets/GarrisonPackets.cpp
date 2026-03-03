@@ -520,7 +520,6 @@ void GarrisonMissionBonusRoll::Read()
 void OpenMissionNpc::Read()
 {
     _worldPacket >> NpcGUID;
-    _worldPacket >> GarrTypeID;
 }
 
 void GarrisonGetMissionReward::Read()
@@ -536,6 +535,7 @@ void GarrisonGetMissionReward::Read()
 WorldPacket const* GarrisonStartMissionResult::Write()
 {
     _worldPacket << uint32(Result);
+    _worldPacket << uint32(SessionMissionCount);
     _worldPacket << Mission;
     _worldPacket << Size<uint32>(FollowerDBIDs);
     for (uint64 dbId : FollowerDBIDs)
@@ -740,9 +740,8 @@ WorldPacket const* GarrisonRenameFollowerResult::Write()
 
 WorldPacket const* GarrisonFollowerChangedFlags::Write()
 {
-    _worldPacket << uint64(FollowerDBID);
     _worldPacket << uint32(Result);
-    _worldPacket << uint32(Flags);
+    _worldPacket << Follower;
 
     return &_worldPacket;
 }
@@ -751,6 +750,7 @@ WorldPacket const* GarrisonFollowerChangedXP::Write()
 {
     _worldPacket << uint32(Result);
     _worldPacket << uint32(TotalXp);
+    _worldPacket << OldFollower;
     _worldPacket << Follower;
 
     return &_worldPacket;
@@ -758,6 +758,7 @@ WorldPacket const* GarrisonFollowerChangedXP::Write()
 
 WorldPacket const* GarrisonFollowerChangedQuality::Write()
 {
+    _worldPacket << OldFollower;
     _worldPacket << Follower;
 
     return &_worldPacket;
@@ -838,7 +839,7 @@ void UpgradeGarrison::Read()
 
 void GarrisonCheckUpgradeable::Read()
 {
-    _worldPacket >> GarrTypeID;
+    _worldPacket >> GarrSiteID;
 }
 
 void GarrisonSetBuildingActive::Read()
@@ -1048,6 +1049,30 @@ WorldPacket const* GarrisonUpdateGarrisonMonumentSelections::Write()
         _worldPacket << uint32(trophy.TrophyID);
         _worldPacket << uint32(trophy.Unk1);
     }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* GarrisonFollowerChangedItemLevel::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << OldFollower;
+    _worldPacket << Follower;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* DeleteExpiredMissionsResult::Write()
+{
+    _worldPacket << uint8(GarrTypeID);
+    _worldPacket << uint32(Result);
+    _worldPacket << Size<uint32>(RemovedMissions);
+    for (int32 missionId : RemovedMissions)
+        _worldPacket << int32(missionId);
+
+    _worldPacket << Bits<1>(Succeeded);
+    _worldPacket << Bits<1>(LegionUnkBit);
+    _worldPacket.FlushBits();
 
     return &_worldPacket;
 }

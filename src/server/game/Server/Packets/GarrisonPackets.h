@@ -484,7 +484,6 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid NpcGUID;
-            uint8 GarrTypeID = 0;
         };
 
         // ============================================================
@@ -499,6 +498,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
+            uint32 SessionMissionCount = 0;
             GarrisonMission Mission;
             std::vector<uint64> FollowerDBIDs;
         };
@@ -554,6 +554,20 @@ namespace WorldPackets
             uint32 Result = 0;
             uint32 MissionRecID = 0;
             uint8 GarrTypeID = 0;
+        };
+
+        class DeleteExpiredMissionsResult final : public ServerPacket
+        {
+        public:
+            explicit DeleteExpiredMissionsResult() : ServerPacket(SMSG_DELETE_EXPIRED_MISSIONS_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 Result = 0;
+            std::vector<int32> RemovedMissions;
+            bool Succeeded = true;
+            bool LegionUnkBit = true;
         };
 
         class GarrisonMissionStartConditionUpdate final : public ServerPacket
@@ -768,13 +782,12 @@ namespace WorldPackets
         class GarrisonFollowerChangedFlags final : public ServerPacket
         {
         public:
-            explicit GarrisonFollowerChangedFlags() : ServerPacket(SMSG_GARRISON_FOLLOWER_CHANGED_FLAGS, 8 + 4 + 4) { }
+            explicit GarrisonFollowerChangedFlags() : ServerPacket(SMSG_GARRISON_FOLLOWER_CHANGED_FLAGS) { }
 
             WorldPacket const* Write() override;
 
-            uint64 FollowerDBID = 0;
             uint32 Result = 0;
-            uint32 Flags = 0;
+            GarrisonFollower Follower;
         };
 
         class GarrisonFollowerChangedXP final : public ServerPacket
@@ -786,6 +799,7 @@ namespace WorldPackets
 
             uint32 Result = 0;
             uint32 TotalXp = 0;
+            GarrisonFollower OldFollower;
             GarrisonFollower Follower;
         };
 
@@ -796,6 +810,19 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
+            GarrisonFollower OldFollower;
+            GarrisonFollower Follower;
+        };
+
+        class GarrisonFollowerChangedItemLevel final : public ServerPacket
+        {
+        public:
+            explicit GarrisonFollowerChangedItemLevel() : ServerPacket(SMSG_GARRISON_FOLLOWER_CHANGED_ITEM_LEVEL) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            GarrisonFollower OldFollower;
             GarrisonFollower Follower;
         };
 
@@ -885,7 +912,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 GarrTypeID = 0;
+            uint32 GarrSiteID = 0;
         };
 
         class GarrisonSetBuildingActive final : public ClientPacket
