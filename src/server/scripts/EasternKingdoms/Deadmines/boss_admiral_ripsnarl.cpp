@@ -359,7 +359,7 @@ public:
     {
         npc_admiral_ripsnarl_vaporAI(Creature* pCreature) : ScriptedAI(pCreature) {}
 
-        void Reset()
+        void Reset() override
         {
             events.Reset();
         }

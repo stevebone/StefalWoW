@@ -1,6 +1,8 @@
-#include "Followship_bots_db.h"
-#include "DatabaseEnv.h"
 #include "CharacterDatabase.h"
+#include "DatabaseEnv.h"
+#include "Log.h"
+
+#include "Followship_bots_db.h"
 
 namespace FSBUtilsDB
 {
@@ -86,8 +88,8 @@ namespace FSBUtilsDB
                 CharacterDatabase.PExecute(
                     "DELETE FROM followship_bot_owners WHERE bot_guid = {}", spawnId);
 
-                TC_LOG_DEBUG("scripts.ai.fsb",
-                    "FSB Bot MGR: Removing expired bot {} (owner {})", spawnId, ownerGuid);
+                TC_LOG_DEBUG("scripts.fsb.manager",
+                    "FSB: LoadBotOwners from DB Removing expired bot {} (owner {})", spawnId, ownerGuid);
 
                 continue;
             }
@@ -109,8 +111,8 @@ namespace FSBUtilsDB
 
         if (!spawnId)
         {
-            TC_LOG_ERROR("scripts.ai.fsb",
-                "FSB DB: Attempted to save non-DB bot (entry {})", bot->GetEntry());
+            TC_LOG_ERROR("scripts.fsb.manager",
+                "FSB: SaveBotToDB Attempted to save non-DB bot (entry {})", bot->GetEntry());
             return false;
         }
 
@@ -124,7 +126,7 @@ namespace FSBUtilsDB
             playerGuidLow,
             hireExpiry);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB DB: Bot: {} was saved to DB for player: {} with expiry time: {}", bot->GetName(), player->GetName(), hireExpiry);
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SaveBotToDB Bot: {} was saved to DB for player: {} with expiry time: {}", bot->GetName(), player->GetName(), hireExpiry);
 
         // 2?? Retry select until we get the bot_id
         uint32 botId = 0;
@@ -142,8 +144,8 @@ namespace FSBUtilsDB
                     break;
             }
 
-            TC_LOG_WARN("scripts.ai.fsb",
-                "FSB DB: bot_id not yet available for bot spawn {} player {}, retrying...",
+            TC_LOG_WARN("scripts.fsb.manager",
+                "FSB: SaveBotToDB bot_id not yet available for bot spawn {} player {}, retrying...",
                 spawnId, player->GetName());
 
             std::this_thread::sleep_for(std::chrono::milliseconds(50)); // small delay
@@ -151,13 +153,13 @@ namespace FSBUtilsDB
 
         if (!botId)
         {
-            TC_LOG_ERROR("scripts.ai.fsb",
-                "FSB DB: Failed to retrieve bot_id for bot_guid {} player {}", spawnId, player->GetName());
+            TC_LOG_ERROR("scripts.fsb.manager",
+                "FSB: SaveBotToDB Failed to retrieve bot_id for bot_guid {} player {}", spawnId, player->GetName());
         }
         else
         {
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB DB: Saved bot {} for player {} with bot_id {}", bot->GetName(), player->GetName(), botId);
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: SaveBotToDB Saved bot {} for player {} with bot_id {}", bot->GetName(), player->GetName(), botId);
         }
 
         return botId;
@@ -170,7 +172,7 @@ namespace FSBUtilsDB
 
         CharacterDatabase.PExecute("DELETE FROM followship_bot_owners WHERE bot_entry = {} AND player_guid = {} ", bot_entry, player_guid);
 
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB DB: Bot with bot_entry: {} was deleted", bot_entry);
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: DeleteBotByEntry Deleted Bot with bot_entry: {}", bot_entry);
 
         return true;
     }

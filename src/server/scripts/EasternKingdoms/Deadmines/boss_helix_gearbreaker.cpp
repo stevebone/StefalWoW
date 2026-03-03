@@ -82,10 +82,10 @@ const Position helixcrewPos[4] =
     {-285.63f,-504.04f,60.16f, 0.0f}
 };
 
-const Position oafPos[1] =
-{
-    {-302.361f, -516.346f, 52.0315f, 0.174533f}
-};
+//const Position oafPos[1] =
+//{
+//    {-302.361f, -516.346f, 52.0315f, 0.174533f}
+//};
 const Position RatPos[8] =
 {
     {-290.90f, -486.49f, 49.88f},

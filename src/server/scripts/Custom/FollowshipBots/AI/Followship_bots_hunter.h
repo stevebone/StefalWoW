@@ -58,5 +58,5 @@ enum FSB_HUNTER_RANGED_SPELLS
 
 namespace FSBHunter
 {
-    bool BotSummonPet(Creature* bot);
+    
 }

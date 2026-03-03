@@ -65,36 +65,11 @@ bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry
     // Insert into persistent container
     _playerBotsPersistent[ownerGuid].push_back(data);
 
-    TC_LOG_DEBUG("scripts.ai.fsb",
-        "FSB Mgr: Stored persistent bot {} for player {} (spawnId {}). Player has now {} bots.",
+    TC_LOG_DEBUG("scripts.fsb.manager",
+        "FSB: StorePersistentBot Stored persistent bot {} for player {} (spawnId {}). Player has now {} bots.",
         entry, player->GetName(), spawnId, _playerBotsPersistent[ownerGuid].size());
 
     return true;
-}
-
-// Load persistent bots - once for player - this is used at first login for example
-void FSBMgr::LoadPersistentPlayerBots(Player* player)
-{
-    if (!player)
-        return;
-
-    uint64 guid = player->GetGUID().GetCounter();
-
-    // Already loaded from DB?
-    if (_playerBotsPersistent.contains(guid) && _playerBotsPersistent[guid].size() != 0)
-    {
-        TC_LOG_DEBUG("scripts.ai.fsb", "LoadPlayerBots: already cached for {} and playerBots size: {}", player->GetName(), _playerBotsPersistent[guid].size());
-        return;
-    }
-
-    std::vector<PlayerBotData> bots;
-    if (!FSBUtilsDB::LoadBotsForPlayer(guid, bots))
-        return;
-
-    _playerBotsPersistent[guid] = std::move(bots);
-
-    TC_LOG_DEBUG("scripts.ai.fsb",
-        "FSB Mgr: Loaded persistent bots for player {} with size {}", player->GetName(), _playerBotsPersistent[guid].size());
 }
 
 void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
@@ -123,8 +98,8 @@ void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
             // Remove from persistent container
             botIt = bots.erase(botIt);
 
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB Mgr: Removed expired bot entry {} for player {}", botEntry, player->GetName());
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: RemovePersistentExpiredPlayerBots Removed expired bot entry {} for player {}", botEntry, player->GetName());
         }
         else
         {
@@ -151,8 +126,8 @@ bool FSBMgr::RemovePersistentBot(uint64 playerGuid, uint32 botEntry)
     // Remove from DB
     FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
 
-    TC_LOG_INFO("scripts.ai.fsb",
-        "FSB Mgr: Removed 1 persistent bot with entry {} for player guid {}", botEntry, playerGuid);
+    TC_LOG_INFO("scripts.fsb.manager",
+        "FSB: RemovePersistentBot Removed 1 persistent bot with entry {} for player guid {}", botEntry, playerGuid);
 
     // Optional: remove empty entry
     if (bots.empty())
@@ -170,8 +145,8 @@ void FSBMgr::SpawnPlayerBots(Player* player)
     auto* bots = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
     if (!bots || bots->empty())
     {
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: OnMapChanged - Player {} has no persistent bots", player->GetName());
+        TC_LOG_INFO("scripts.fsb.manager",
+            "FSB: SpawnPlayerBots Player {} has no persistent bots", player->GetName());
         return;
     }
 
@@ -203,22 +178,22 @@ void FSBMgr::SpawnPlayerBots(Player* player)
 
             if (!bot)
             {
-                TC_LOG_ERROR("scripts.ai.fsb",
-                    "FSB: OnMapChanged - Failed to summon bot entry {} for player {}",
+                TC_LOG_ERROR("scripts.fsb.manager",
+                    "FSB: SpawnPlayerBots Failed to summon bot entry {} for player {}",
                     botData.entry, player->GetName());
                 continue;
             }
 
             botData.runtimeGuid = bot->GetGUID();
 
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB: OnMapChanged - Spawned TEMP bot {} for player {} on new map",
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: SpawnPlayerBots Spawned TEMP bot {} for player {} on new map",
                 bot->GetName(), player->GetName());
         }
         else
         {
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB: OnMapChanged - Found existing DB bot {} on new map for player {}",
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: SpawnPlayerBots Found existing DB bot {} on new map for player {}",
                 bot->GetName(), player->GetName());
         }
 
@@ -398,7 +373,7 @@ void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDuratio
     uint32 hireTimeLeft = hireDurationHours * 3600;
     RestoreBotOwnership(player, bot, hireTimeLeft);
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player {} hired bot {} (entry {}) until {}",
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: HirePersistentBot Player {} hired bot {} (entry {}) until {}",
         player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
 
 
@@ -422,13 +397,12 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     bot->GetMotionMaster()->Clear();
     if (player)
     {
-        std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, FSB_ChatterType::None, 0);
-        bot->Say(chatter, LANG_UNIVERSAL);
+        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
     }
 
     RemovePersistentBot(playerGuidLow, botEntry);
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Dismissed bot {} for player {}", bot->GetName(), player->GetName());
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: DismissPersistentBot Dismissed bot {} for player {}", bot->GetName(), player->GetName());
 }
 
 void FSBMgr::SetInitialBotState(Creature* bot)
@@ -472,7 +446,7 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     FSBStats::ApplyBotBaseClassStats(bot, botClass);
     botStats = FSBBotStats();
     botRole = GetRandomRoleForClass(botClass);
-    TC_LOG_INFO("scripts.ai.fsb", "Assigned random role {} to bot {}", botRole, bot->GetName());
+    TC_LOG_INFO("scripts.fsb.manager", "FSB: SetInitialBotState Assigned random role {} to bot {}", botRole, bot->GetName());
 
     if (botClass == FSB_Class::Monk)
     {
@@ -480,7 +454,7 @@ void FSBMgr::SetInitialBotState(Creature* bot)
             FSBPowers::SetBotToMana(bot);
 
         if (botRole == FSB_Roles::FSB_ROLE_TANK)
-            FSBPowers::SetBotToMana(bot);
+            FSBPowers::SetBotToEnergy(bot);
 
         if (botRole == FSB_Roles::FSB_ROLE_MELEE_DAMAGE)
             FSBPowers::SetBotToChi(bot);
@@ -502,16 +476,16 @@ void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Rac
     if (!found)
     {
         TC_LOG_WARN(
-            "scripts.ai.fsb",
-            "FSB: No class/race mapping found for creature entry {}",
+            "scripts.fsb.manager",
+            "FSB: SetBotClassAndRace No class/race mapping found for creature entry {}",
             creature->GetEntry()
         );
         return;
     }
 
     TC_LOG_DEBUG(
-        "scripts.ai.fsb",
-        "FSB: Class set to {} and Race set to {} for bot with entry {}",
+        "scripts.fsb.manager",
+        "FSB: SetBotClassAndRace Class set to {} and Race set to {} for bot with entry {}",
         outClass,
         outRace,
         creature->GetEntry()
@@ -553,11 +527,11 @@ void FSBMgr::SetBotClass(Creature* creature, FSB_Class& outClass)
 
     FSB_Class cls = GetBotClassForEntry(creature->GetEntry());
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Class set: {} for bot with entry {}", cls, creature->GetEntry());
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SetBotClass Class set: {} for bot with entry {}", cls, creature->GetEntry());
 
     if (cls == FSB_Class::None)
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB: No class mapping found for creature entry {}", creature->GetEntry());
+        TC_LOG_WARN("scripts.fsb.manager", "FSB: SetBotClass No class mapping found for creature entry {}", creature->GetEntry());
     }
 
     outClass = cls;
@@ -581,11 +555,11 @@ void FSBMgr::SetBotRace(Creature* creature, FSB_Race& outRace)
 
     FSB_Race race = GetBotRaceForEntry(creature->GetEntry());
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Race set: {} for bot with entry {}", race, creature->GetEntry());
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SetBotRace Race set: {} for bot with entry {}", race, creature->GetEntry());
 
     if (race == FSB_Race::None)
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB: No race mapping found for creature entry {}", creature->GetEntry());
+        TC_LOG_WARN("scripts.fsb.manager", "FSB: SetBotRace No race mapping found for creature entry {}", creature->GetEntry());
     }
 
     outRace = race;

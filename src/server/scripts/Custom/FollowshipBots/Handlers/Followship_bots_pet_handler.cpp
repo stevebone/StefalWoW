@@ -1,6 +1,7 @@
 #include "BaseEntity.h"
 #include "CharmInfo.h"
 #include "Creature.h"
+#include "Log.h"
 #include "Pet.h"
 #include "PhasingHandler.h"
 
@@ -10,6 +11,44 @@
 
 namespace FSBPet
 {
+    bool BotSummonPet(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        if (FSBPet::BotHasPet(bot))
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto botClass = baseAI->botClass;
+        if (botClass != FSB_Class::Hunter)
+            return false;
+
+        uint32 petSource = FSBMgr::Get()->GetBotPetSourceForEntry(bot->GetEntry());
+        Creature* originalPet = bot->FindNearestCreature(petSource, 10.f);
+
+        FSBSpells::BotCastSpell(bot, SPELL_HUNTER_SUMMON_HYENA, bot);
+
+        Creature* pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*bot, bot->GetPetGUID());
+
+        // place pet before player
+        pet->Relocate(bot->GetPositionX() + 2, bot->GetPositionY(), bot->GetPositionZ(), float(M_PI) - bot->GetOrientation());
+
+        FSBPet::SetBasePetInformation(bot, pet);
+
+        if (originalPet)
+            originalPet->DespawnOrUnsummon();
+        TC_LOG_DEBUG("scripts.fsb.pet", "FSB: BotSummonPet() triggered for bot: {} and pet guid: {} and pet name: {}", bot->GetName(), bot->GetPetGUID(), pet->GetName());
+
+        return true;
+    }
+
     bool SetBasePetInformation(Creature* owner, Creature* pet)
     {
         if (!owner || !owner->IsAlive())

@@ -51,6 +51,8 @@ static const std::unordered_map<FSB_PetFamily, std::vector<uint32>> CreatureFami
 
 namespace FSBPet
 {
+    bool BotSummonPet(Creature* bot);
+
     Unit* GetBotPet(Creature* owner);
     bool BotHasPet(Creature* owner);
 

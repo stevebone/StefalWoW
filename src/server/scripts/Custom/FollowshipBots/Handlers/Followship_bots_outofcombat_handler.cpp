@@ -11,6 +11,7 @@
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_pet_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_spells_handler.h"
 
@@ -662,7 +663,7 @@ namespace FSBOOC
         if (FSBWarlock::BotSummonRandomDemon(bot))
             return true;
 
-        if (FSBHunter::BotSummonPet(bot))
+        if (FSBPet::BotSummonPet(bot))
             return true;
 
         return false;

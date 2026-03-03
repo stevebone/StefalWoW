@@ -25,7 +25,6 @@ struct go_defias_cannon : public GameObjectAI
 {
     go_defias_cannon(GameObject* go) : GameObjectAI(go) { }
 
-    //bool OnGossipHello(Player* /*pPlayer*/) override
     bool OnReportUse(Player* /*player*/) override
     {
         InstanceScript* instance = me->GetInstanceScript();
@@ -33,15 +32,7 @@ struct go_defias_cannon : public GameObjectAI
         if (!instance)
             return false;
 
-        //instance->SetData(DATA_CANNON_EVENT, CANNON_GUNPOWDER_USED /*CANNON_BLAST_INITIATED*/);
         instance->SetData(EVENT_STATE, CANNON_GUNPOWDER_USED);
-        //TC_LOG_DEBUG("scripts.ai.core", "DEFIAS CANNON SET DATA");
-        return true;
-
-        if (GameObject* ironCladDoor = me->FindNearestGameObject(GO_IRON_CLAD_DOOR, 30.0f))
-        {
-            me->SetGoState(GO_STATE_ACTIVE);
-        }
         return true;
     }
 };
@@ -66,8 +57,6 @@ public:
             {
                 PhasingHandler::AddPhase(player, 170, true);
                 PhasingHandler::AddPhase(player, 169, true);
-                //player->SetPhaseMask(1 | 20, true); // Visible to default (1) and Horde phase (20)
-                TC_LOG_DEBUG("scripts.ai.core", "DEADMINES: We need a correct phase id/group for horde");
             }
         }
     }
@@ -77,7 +66,6 @@ public:
     {
         if (player->GetMapId() == 36 && newZone == 1581)
         {
-            TC_LOG_DEBUG("scripts.ai.core", "DEADMINES: ALLY player in deadmines");
             if (player->GetTeamId() == TEAM_ALLIANCE)
             {
                 //player->SetPhaseMask(1 | 10, true); // Visible to default (1) and Alliance phase (10)
@@ -90,7 +78,6 @@ public:
                 PhasingHandler::AddPhase(player, 170, true);
                 PhasingHandler::AddPhase(player, 169, true);
                 //player->SetPhaseMask(1 | 20, true); // Visible to default (1) and Horde phase (20)
-                TC_LOG_DEBUG("scripts.ai.core", "DEADMINES: We need a correct phase id/group for horde");
             }
         }
     }
@@ -99,7 +86,6 @@ public:
     {
         if (player->GetMapId() == 36)
         {
-            TC_LOG_DEBUG("scripts.ai.core", "DEADMINES: ALLY player in MAP deadmines");
             if (player->GetTeamId() == TEAM_ALLIANCE)
             {
                 //player->SetPhaseMask(1 | 10, true); // Visible to default (1) and Alliance phase (10)
@@ -112,7 +98,6 @@ public:
                 PhasingHandler::AddPhase(player, 170, true);
                 PhasingHandler::AddPhase(player, 169, true);
                 //player->SetPhaseMask(1 | 20, true); // Visible to default (1) and Horde phase (20)
-                TC_LOG_DEBUG("scripts.ai.core", "DEADMINES: We need a correct phase id/group for horde");
             }
         }
     }

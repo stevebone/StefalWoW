@@ -4,12 +4,6 @@
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
 
-#include "Followship_bots_druid.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_warlock.h"
-#include "Followship_bots_warrior.h"
-
 namespace FSBStats
 {
     // Get (base) stats for bot depending on class
@@ -31,7 +25,7 @@ namespace FSBStats
             return;
 
         
-        bot->SetClass(FSBStatsUtils::FSBToTCClass(botClass));
+        bot->SetClass(FSBUtils::FSBToTCClass(botClass));
 
         // Health
         ApplyBotHealth(bot, botClass, true);        
@@ -249,7 +243,7 @@ namespace FSBStats
         float effectiveAttackPower = stats->baseAttackPower + (stats->attackPowerPerLevel * level);
 
         float basedamage = (bot->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance) + effectiveAttackPower;
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} has base damage {} for effective level {}", bot->GetName(), bot->GetBaseDamageForLevel(level), level);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} has base damage {} for effective level {}", bot->GetName(), bot->GetBaseDamageForLevel(level), level);
 
         float weaponBaseMinDamage = basedamage / 90;
         float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;

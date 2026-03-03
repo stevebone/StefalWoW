@@ -25,6 +25,7 @@ namespace FSBUtils
     const char* BotRaceToString(FSB_Race race);
     const char* PowerTypeToString(Powers power);
 
+    Classes FSBToTCClass(FSB_Class botClass);
     Races BotRaceToTC(FSB_Race race);
 
     constexpr float SIDE_OFFSET_MAX = float(M_PI) / 6.0f; // +-30 degrees from pure left/right
