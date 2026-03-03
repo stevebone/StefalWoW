@@ -119,7 +119,7 @@ class boss_glubtok : public CreatureScript
                 
             }
 
-            void UpdateAI(uint32 diff)
+            void UpdateAI(uint32 diff) override
             {
                 if (!UpdateVictim())
                     return;

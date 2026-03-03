@@ -195,12 +195,30 @@ INSERT INTO `creature_template_gossip` VALUES
 ('50595', '900003', '-1'),
 ('50595', '900004', '-1'),
 ('50595', '900005', '-1'),
+('63238', '900000', '-1'),
+('63238', '900001', '-1'),
+('63238', '900002', '-1'),
+('63238', '900003', '-1'),
+('63238', '900004', '-1'),
+('63238', '900005', '-1'),
 ('63258', '900000', '-1'),
 ('63258', '900001', '-1'),
 ('63258', '900002', '-1'),
 ('63258', '900003', '-1'),
 ('63258', '900004', '-1'),
 ('63258', '900005', '-1'),
+('63285', '900000', '-1'),
+('63285', '900001', '-1'),
+('63285', '900002', '-1'),
+('63285', '900003', '-1'),
+('63285', '900004', '-1'),
+('63285', '900005', '-1'),
+('63331', '900000', '-1'),
+('63331', '900001', '-1'),
+('63331', '900002', '-1'),
+('63331', '900003', '-1'),
+('63331', '900004', '-1'),
+('63331', '900005', '-1'),
 ('141508', '900000', '-1'),
 ('141508', '900001', '-1'),
 ('141508', '900002', '-1'),
@@ -244,9 +262,14 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3595; -- Shanda (Priest)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3597; -- Mardant (Druid)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43006; -- Rhyanda (Mage)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 63331; -- Laoxi (Monk)
 
 -- Anvilmar trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 837; -- Priest
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 912; -- Warrior
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 926; -- Paladin
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 37121; -- Mage
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 63285; -- Lo
+
+-- Tinkertown trainers
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 63238; -- Xi

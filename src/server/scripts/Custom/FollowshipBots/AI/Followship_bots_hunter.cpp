@@ -42,7 +42,7 @@ std::vector<FSBSpellDefinition> HunterSpellsTable =
 
     //BEAST
     { SPELL_HUNTER_BESTIAL_WRATH,           FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       90000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_HUNTER_KILL_COMMAND,            FSBSpellType::Damage,   0.3f,       0.f,            100.f,           0.f,           true,       8000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_HUNTER_KILL_COMMAND,            FSBSpellType::Damage,   0.3f,       0.f,            100.f,           0.f,           false,      8000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_HUNTER_FLAMEFANG_PITCH,         FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      60000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_HUNTER_WILDFIRE_BOMB,           FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      18000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_HUNTER_COBRA_SHOT,              FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1500,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },

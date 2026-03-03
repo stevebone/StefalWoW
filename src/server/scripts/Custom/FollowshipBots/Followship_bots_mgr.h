@@ -66,6 +66,9 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 
     //MONK
     { 63258,  FSB_Class::Monk,            FSB_Race::Pandaren, 17707, FSB_ChatterType::Positive, GENDER_MALE, 0 },  //Bao
+    { 63331,  FSB_Class::Monk,            FSB_Race::Pandaren, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },  //Laoxi
+    { 63285,  FSB_Class::Monk,            FSB_Race::Pandaren, 345740, FSB_ChatterType::Positive, GENDER_MALE, 0 },  //Lo
+    { 63235,  FSB_Class::Monk,            FSB_Race::Pandaren, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },  //Xi
 };
 
 
@@ -79,7 +82,6 @@ public:
     void LoadAllPersistentBots();
     bool StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry);
 
-    void LoadPersistentPlayerBots(Player* player);
     void RemovePersistentExpiredPlayerBots(Player* player);
     bool RemovePersistentBot(uint64 playerGuid, uint32 botEntry);
 

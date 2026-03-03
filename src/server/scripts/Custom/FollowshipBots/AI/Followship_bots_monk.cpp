@@ -1,3 +1,4 @@
+#include "Log.h"
 #include "SpellAuras.h"
 
 #include "Followship_bots_mgr.h"

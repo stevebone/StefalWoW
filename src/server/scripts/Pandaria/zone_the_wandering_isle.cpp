@@ -2788,8 +2788,9 @@ struct npc_shu_playing : public ScriptedAI
                 //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
                 // Dynamic position spell casting summon not supported. we summon creature directly instead
 
-                if(Creature* bunny = me->SummonCreature(NPC_BUNNY_WATER_SPOUT, targetPos, TEMPSUMMON_MANUAL_DESPAWN))
-                   DoCast(SPELL_WATER_SPOUT);
+                Creature* bunny = me->SummonCreature(NPC_BUNNY_WATER_SPOUT, targetPos, TEMPSUMMON_MANUAL_DESPAWN);
+                if(bunny)
+                    DoCast(SPELL_WATER_SPOUT);
                 events.ScheduleEvent(EVENT_JUMP_SPELL, 6s);
                 break;
                 }
