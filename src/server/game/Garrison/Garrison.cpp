@@ -1150,6 +1150,22 @@ void Garrison::SendDeleteExpiredMissionsResult() const
     _owner->SendDirectMessage(result.Write());
 }
 
+void Garrison::SendTroopQualityRefresh() const
+{
+    // Sniff-confirmed: server sends GarrisonFollowerChangedQuality for each troop
+    // at login BEFORE the main GetGarrisonInfoResult packet
+    for (auto const& [dbId, follower] : _followers)
+    {
+        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP)
+        {
+            WorldPackets::Garrison::GarrisonFollowerChangedQuality changedQuality;
+            changedQuality.OldFollower = follower.PacketInfo;
+            changedQuality.Follower = follower.PacketInfo;
+            _owner->SendDirectMessage(changedQuality.Write());
+        }
+    }
+}
+
 // ============================================================
 // Follower management
 // ============================================================
@@ -3028,7 +3044,7 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
 
         WorldPackets::Garrison::CreateShipmentResponse response;
         response.ShipmentID = shipment.DbID;
-        response.ShipmentRecID = shipment.ShipmentRecID;
+        response.ShipmentRecID = 0; // Sniff confirms Blizzard sends 0 here
         response.Result = GARRISON_SUCCESS;
         _owner->SendDirectMessage(response.Write());
     }
@@ -3168,7 +3184,8 @@ void Garrison::SendShipmentInfo(ObjectGuid npcGUID)
         packetShipment.AssignedFollowerDBID = shipment->AssignedFollowerDBID;
         packetShipment.CreationTime = shipment->CreationTime;
         packetShipment.ShipmentDuration = shipment->Duration;
-        packetShipment.BuildingType = building->BuildingType;
+        packetShipment.BuildingTypeID = building->BuildingType;
+        packetShipment.GarrTypeID = static_cast<uint8>(GetType());
     }
 
     _owner->SendDirectMessage(response.Write());
@@ -3188,7 +3205,8 @@ void Garrison::SendLandingPageShipments()
         packetShipment.AssignedFollowerDBID = shipment.AssignedFollowerDBID;
         packetShipment.CreationTime = shipment.CreationTime;
         packetShipment.ShipmentDuration = shipment.Duration;
-        packetShipment.BuildingType = GetBuildingTypeForPlot(shipment.PlotInstanceID);
+        packetShipment.BuildingTypeID = GetBuildingTypeForPlot(shipment.PlotInstanceID);
+        packetShipment.GarrTypeID = static_cast<uint8>(GetType());
     }
 
     _owner->SendDirectMessage(response.Write());

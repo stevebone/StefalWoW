@@ -916,7 +916,9 @@ WorldPacket const* GetShipmentInfoResponse::Write()
         _worldPacket << uint64(shipment.AssignedFollowerDBID);
         _worldPacket << shipment.CreationTime;
         _worldPacket << int32(shipment.ShipmentDuration);
-        _worldPacket << int32(shipment.BuildingType);
+        _worldPacket << int32(shipment.BuildingTypeID);
+        _worldPacket << int32(shipment.UnkInt32);
+        _worldPacket << uint8(shipment.GarrTypeID);
     }
 
     return &_worldPacket;
@@ -961,7 +963,9 @@ WorldPacket const* GetLandingPageShipmentsResponse::Write()
         _worldPacket << uint64(shipment.AssignedFollowerDBID);
         _worldPacket << shipment.CreationTime;
         _worldPacket << int32(shipment.ShipmentDuration);
-        _worldPacket << int32(shipment.BuildingType);
+        _worldPacket << int32(shipment.BuildingTypeID);
+        _worldPacket << int32(shipment.UnkInt32);
+        _worldPacket << uint8(shipment.GarrTypeID);
     }
 
     return &_worldPacket;

@@ -389,6 +389,7 @@ public:
     void SendBlueprintAndSpecializationData();
     void SendMapData(Player* receiver) const;
     void SendMissionStartConditionUpdate() const;
+    void SendTroopQualityRefresh() const;
 
     void ResetFollowerActivationLimit() { _followerActivationsRemainingToday = 1; }
 

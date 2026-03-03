@@ -30,6 +30,10 @@
 
 void WorldSession::HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo& /*getGarrisonInfo*/)
 {
+    // Sniff-confirmed: troop quality refresh packets sent BEFORE main garrison info
+    for (auto const& [type, garrison] : _player->GetGarrisons())
+        garrison->SendTroopQualityRefresh();
+
     WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
     garrisonInfo.FactionIndex = Garrison::GetFaction(_player->GetTeam());
 
@@ -81,7 +85,19 @@ void WorldSession::HandleGarrisonRequestBlueprintAndSpecializationData(WorldPack
 void WorldSession::HandleGarrisonGetMapData(WorldPackets::Garrison::GarrisonGetMapData& /*garrisonGetMapData*/)
 {
     if (Garrison* garrison = _player->GetGarrison())
+    {
         garrison->SendMapData(_player);
+
+        // Send monument/trophy selections after map data (sniff-confirmed zone-in sequence)
+        WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
+        for (uint32 trophyId : garrison->GetTrophies())
+        {
+            WorldPackets::Garrison::GarrisonTrophyData data;
+            data.TrophyID = trophyId;
+            selections.Trophies.push_back(data);
+        }
+        SendPacket(selections.Write());
+    }
 }
 
 // ============================================================

@@ -1007,7 +1007,9 @@ namespace WorldPackets
             uint64 AssignedFollowerDBID = 0;
             Timestamp<> CreationTime;
             int32 ShipmentDuration = 0;
-            int32 BuildingType = 0;
+            int32 BuildingTypeID = 0;
+            int32 UnkInt32 = 0;
+            uint8 GarrTypeID = 0;
         };
 
         class GarrisonRequestShipmentInfo final : public ClientPacket
