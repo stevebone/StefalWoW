@@ -13,17 +13,36 @@ namespace FSBCombat
 
         Unit* victim = bot->GetVictim();
         // Prevent bot from disengaging from current target
-        if (victim && bot->EnsureVictim()->IsAlive())
+        if (victim)
         {
-            // This fix is needed for nps that bots cannot attack due to being neutral to them
-            // They should become hostile/enemy when player is engaging those npcs
+            // Victim must be valid and in world
+            if (!victim->IsAlive() || !victim->IsInWorld() || victim->IsDuringRemoveFromWorld())
+                return;
+
+            // Bot must still consider this its real victim
+            Unit* ensured = bot->EnsureVictim();
+            if (!ensured || ensured != victim || !ensured->IsAlive())
+                return;
+
             Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-            if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) || (!bot->IsHostileTo(victim) && owner->IsInCombatWith(victim)))
+
+            // Owner may be null OR on another map
+            if (!owner || !owner->IsInWorld() || owner->IsDuringRemoveFromWorld())
+                return;
+
+            // Owner must be on same map for combat checks
+            if (owner->GetMapId() != victim->GetMapId())
+                return;
+
+            // Now safe to check combat state
+            if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) ||
+                (!bot->IsHostileTo(victim) && owner->IsInCombatWith(victim)))
             {
                 victim->SetFaction(14);
                 bot->GetCombatManager().SetInCombatWith(victim);
                 victim->GetCombatManager().SetInCombatWith(bot);
             }
+
             return;
         }
 

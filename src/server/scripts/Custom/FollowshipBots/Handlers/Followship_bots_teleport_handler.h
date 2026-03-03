@@ -8,4 +8,5 @@ enum FSB_TeleportReasons
 namespace FSBTeleport
 {
     bool BotTeleport(Creature* bot, FSB_TeleportReasons reason);
+    void BotPetTeleport(Creature* bot);
 }

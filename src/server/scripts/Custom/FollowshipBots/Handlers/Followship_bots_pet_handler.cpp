@@ -169,8 +169,9 @@ namespace FSBPet
         static const std::unordered_set<uint32> selfCastEntries = {
             SPELL_HUNTER_PET_PRIMAL_RAGE,
             SPELL_HUNTER_PET_PREDATOR_THIRST,
-            SPELL_HUNTER_AGILE_REFLEXES,
-            SPELL_HUNTER_MASTER_CALL
+            SPELL_HUNTER_PET_AGILE_REFLEXES,
+            SPELL_HUNTER_PET_MASTER_CALL,
+            SPELL_HUNTER_PET_BRISTLE,
         };
 
         return selfCastEntries.contains(entry);

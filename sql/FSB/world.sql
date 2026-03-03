@@ -48,6 +48,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('837', '900003', '-1'),
 ('837', '900004', '-1'),
 ('837', '900005', '-1'),
+('895', '900000', '-1'),
+('895', '900001', '-1'),
+('895', '900002', '-1'),
+('895', '900003', '-1'),
+('895', '900004', '-1'),
+('895', '900005', '-1'),
 ('906', '900000', '-1'),
 ('906', '900001', '-1'),
 ('906', '900002', '-1'),
@@ -266,6 +272,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 
 -- Anvilmar trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 837; -- Priest
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 895; -- Thorgas Grimson (Hunter)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 912; -- Warrior
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 926; -- Paladin
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 37121; -- Mage

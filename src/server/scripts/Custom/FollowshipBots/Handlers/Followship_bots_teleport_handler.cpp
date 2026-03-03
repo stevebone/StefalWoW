@@ -1,7 +1,9 @@
-
-#include "Followship_bots_teleport_handler.h"
-#include "Followship_bots_utils_combat.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
+
+#include "Followship_bots_pet_handler.h"
+#include "Followship_bots_teleport_handler.h"
+
 
 namespace FSBTeleport
 {
@@ -85,7 +87,11 @@ namespace FSBTeleport
                     player->GetPositionZ(),
                     player->GetOrientation());
 
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
+                TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotTeleport Teleported bot {} to player {} due to distance > 100.", bot->GetName(), player->GetName());
+
+                if (FSBPet::BotHasPet(bot))
+                    BotPetTeleport(bot);
+
                 return true;
             }
             return false;
@@ -93,5 +99,35 @@ namespace FSBTeleport
         default:
             return false;
         }
+    }
+
+    void BotPetTeleport(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        if (FSBUtilsCombat::IsCombatActive(bot))
+            return;
+
+        Unit* pet = nullptr;
+
+        if (FSBPet::BotHasPet(bot))
+            pet = FSBPet::GetBotPet(bot);
+
+        if (pet && pet->IsAlive())
+        {
+            if (bot->GetMapId() == pet->GetMapId() && bot->GetDistance(pet) > 100.0f)
+            {
+                pet->NearTeleportTo(
+                    bot->GetPositionX() + frand(3.f, 10.f),
+                    bot->GetPositionY(),
+                    bot->GetPositionZ(),
+                    bot->GetOrientation());
+
+                TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotPetTeleport Teleported bot pet {} to bot {} due to distance > 100.", pet->GetName(), bot->GetName());
+            }
+        }
+
+
     }
 }

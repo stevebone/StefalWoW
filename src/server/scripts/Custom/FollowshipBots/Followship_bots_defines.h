@@ -1,6 +1,8 @@
 // followship_bots_defines.h
 #pragma once
 
+#include "Define.h"
+
 enum class FSB_ChatterType : uint8
 {
     None,

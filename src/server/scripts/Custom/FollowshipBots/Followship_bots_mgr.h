@@ -63,6 +63,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     // HUNTER
     { 43278,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 43292 /*Adele*/},   // Ashley
     { 46983,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 46982 /*Sly*/},  //Benjamin Foxworthy
+    { 895,    FSB_Class::Hunter,            FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_MALE, 1125 /*Crag Boar Black*/},  //Thorgas Grimson
 
     //MONK
     { 63258,  FSB_Class::Monk,            FSB_Race::Pandaren, 17707, FSB_ChatterType::Positive, GENDER_MALE, 0 },  //Bao
