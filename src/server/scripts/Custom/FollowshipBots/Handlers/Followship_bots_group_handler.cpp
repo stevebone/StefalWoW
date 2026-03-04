@@ -1,4 +1,5 @@
 #include "Log.h"
+#include "ObjectAccessor.h"
 
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"

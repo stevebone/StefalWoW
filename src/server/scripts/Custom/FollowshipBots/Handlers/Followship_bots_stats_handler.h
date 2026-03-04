@@ -252,8 +252,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
-        .baseSpellPower = 8,
-        .spellPowerPerLevel = 2
+        .baseSpellPower = 2,
+        .spellPowerPerLevel = 3
     },
 };
 

@@ -17,6 +17,7 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
     { SPELL_SHAMAN_HEALING_SURGE,           FSBSpellType::Heal,     0.1f,       50.f,           100.f,           40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_SHAMAN_LIGHTNING_BOLT,          FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_SHAMAN_PRIMAL_STRIKE,           FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 };
 
 namespace FSBShaman
