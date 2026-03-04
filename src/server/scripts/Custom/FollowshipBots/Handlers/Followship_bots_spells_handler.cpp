@@ -90,6 +90,7 @@ namespace FSBSpells
         sBotSpellTables[FSB_Class::Rogue] = &RogueSpellsTable;
         sBotSpellTables[FSB_Class::Hunter] = &HunterSpellsTable;
         sBotSpellTables[FSB_Class::Monk] = &MonkSpellsTable;
+        sBotSpellTables[FSB_Class::Shaman] = &ShamanSpellsTable;
     }
 
     void InitSpellRuntime(Creature* bot, std::vector<FSBSpellRuntime>& _runtimeSpells)

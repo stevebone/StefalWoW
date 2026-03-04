@@ -3,8 +3,6 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "Followship_bots_paladin.h"
-
 #include "Followship_bots_group_handler.h"
 
 std::vector<FSBSpellDefinition> PaladinSpellsTable =

@@ -186,6 +186,11 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DAMAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_BEAST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
             break;
+        case FSB_Class::Shaman:
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_TANK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_MELEE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
+            AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_HEALER, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 25);
+            break;
         case FSB_Class::Warlock:
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_AFFLICTION, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 23);
             AddGossipItemFor(player, GossipOptionNpc::Trainer, FSB_GOSSIP_ITEM_ROLE_DEMONOLOGY, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 24);
@@ -278,7 +283,23 @@ namespace FSBGossip
                 break;
             }
             break;
-
+        case FSB_Class::Shaman:
+            if (roleOption == FSB_GOSSIP_ROLE_1)
+            {
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_TANK);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_2)
+            {
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_MELEE_DAMAGE);
+                break;
+            }
+            else if (roleOption == FSB_GOSSIP_ROLE_3)
+            {
+                FSBMgr::Get()->SetRole(bot, FSB_Roles::FSB_ROLE_HEALER);
+                break;
+            }
+            break;
         case FSB_Class::Rogue:
             if (roleOption == FSB_GOSSIP_ROLE_1)
             {

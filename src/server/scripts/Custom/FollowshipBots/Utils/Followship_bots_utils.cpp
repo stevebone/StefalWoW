@@ -31,6 +31,7 @@ namespace FSBUtils
         case FSB_Class::Paladin: return "Paladin";
         case FSB_Class::Hunter:  return "Hunter";
         case FSB_Class::Warlock: return "Warlock";
+        case FSB_Class::Shaman:  return "Shaman";
         default:                 return "Unknown";
         }
     }
@@ -94,6 +95,7 @@ namespace FSBUtils
         case FSB_Class::Paladin:            return CLASS_PALADIN;
         case FSB_Class::Hunter:             return CLASS_HUNTER;
         case FSB_Class::Warlock:            return CLASS_WARLOCK;
+        case FSB_Class::Shaman:             return CLASS_SHAMAN;
         case FSB_Class::None:               return CLASS_NONE;
         default:
             break;

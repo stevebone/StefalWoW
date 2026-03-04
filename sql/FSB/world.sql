@@ -163,6 +163,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('16503', '900003', '-1'),
 ('16503', '900004', '-1'),
 ('16503', '900005', '-1'),
+('17089', '900000', '-1'),
+('17089', '900001', '-1'),
+('17089', '900002', '-1'),
+('17089', '900003', '-1'),
+('17089', '900004', '-1'),
+('17089', '900005', '-1'),
 ('37121', '900000', '-1'),
 ('37121', '900001', '-1'),
 ('37121', '900002', '-1'),
@@ -262,6 +268,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16501; -- Aurelon (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16502; -- Zalduun (Priest)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 16503; -- Kore (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 17089; -- Firmanvaar (Shaman)
 
 -- Shadowglen trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 3593; -- Alyissia (Warrior)

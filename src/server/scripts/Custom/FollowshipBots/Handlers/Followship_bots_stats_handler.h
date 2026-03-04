@@ -233,6 +233,28 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseSpellPower = 1,
         .spellPowerPerLevel = 1
     },
+
+    // SHAMAN
+    {
+        .classId = FSB_Class::Shaman,
+        .powerType = POWER_MANA,
+        .baseHealth = 140,    // base HP
+        .basePower = 160,      // base power
+        .healthPerLevel = 65,     // HP per level
+        .powerPerLevel = 30,      // Power per level
+        .baseHpRegenOOC = 3,      // HP regen %
+        .basePowerRegenOOC = 2,       // Power regen %
+        .baseHpRegenIC = 0,
+        .basePowerRegenIC = 1,
+        .baseAttackPower = 5,
+        .baseRangedAttackPower = 0,
+        .attackPowerPerLevel = 6,
+        .baseClassDamageVariance = 0.9f,
+        .baseAttackTime = 2000,
+        .baseRangedAttackTime = 2000,
+        .baseSpellPower = 8,
+        .spellPowerPerLevel = 2
+    },
 };
 
 namespace FSBStats

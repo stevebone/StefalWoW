@@ -6,9 +6,6 @@
 
 #include "Followship_bots_stats_handler.h"
 
-#include "Followship_bots_monk.h"
-
-
 std::vector<FSBSpellDefinition> MonkSpellsTable =
 {
     // Spell ID                             Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask

@@ -21,6 +21,7 @@
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
+#include "Followship_bots_shaman.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 

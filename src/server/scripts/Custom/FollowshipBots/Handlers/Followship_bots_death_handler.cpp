@@ -12,12 +12,6 @@
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
-#include "Followship_bots_druid.h"
-#include "Followship_bots_monk.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_warlock.h"
-
 namespace FSBDeath
 {
     void HandlerJustDied(Creature* bot, Unit* killer)
@@ -186,6 +180,7 @@ namespace FSBDeath
 
         switch (spellId)
         {
+        case SPELL_SHAMAN_ANCESTRAL_SPIRIT:
         case SPELL_MONK_RESUSCITATE:
         case SPELL_PALADIN_REDEMPTION:
         case SPELL_PRIEST_RESURRECTION:

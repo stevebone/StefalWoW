@@ -339,7 +339,7 @@ public:
 
         int32 GetBotSpellPower() const override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: GetBotSpellPower() triggered for bot: {}", me->GetName());
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: GetBotSpellPower() triggered for bot: {}", me->GetName());
 
             return FSBStats::BotGetSpellPower(me);
         }

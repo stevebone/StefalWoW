@@ -1,7 +1,5 @@
 #include "Followship_bots_defines.h"
-
-#include "Followship_bots_warrior.h"
-#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_utils.h"
 
 
 std::vector<FSBSpellDefinition> WarriorSpellsTable =

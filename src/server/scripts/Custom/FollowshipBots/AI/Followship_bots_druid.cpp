@@ -8,9 +8,6 @@
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
 
-#include "Followship_bots_druid.h"
-
-
 std::vector<FSBSpellDefinition> DruidSpellsTable =
 {
     // Spell ID                             Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask

@@ -320,6 +320,31 @@ namespace FSBStats
         FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         uint16 level = bot->GetLevel();
 
+        Unit* target = nullptr;
+
+        // Owner must exist, be a player, and be in world
+        if (Unit* owner = bot->GetOwner())
+        {
+            if (Player* player = owner->ToPlayer())
+            {
+                if (player->IsInWorld())
+                    target = player;
+            }
+        }
+
+        // If no valid owner, try victim
+        if (!target)
+        {
+            if (Unit* victim = bot->GetVictim())
+            {
+                if (victim->IsInWorld() && victim->IsAlive())
+                    target = victim;
+            }
+        }
+
+        if (target)
+            level = bot->GetLevelForTarget(target);
+
         auto const* stats = GetBotClassStats(botClass);
         if (!stats)
             return 0;
@@ -334,6 +359,10 @@ namespace FSBStats
         }
 
         int32 value = (baseSP + levelSP) * spPct;
+
+        //if (level > 10) value = value * 1.5;
+        //if (level > 20) value = value * 2;
+        //if (level > 30) value = value * 2.5;
 
         return value;
 

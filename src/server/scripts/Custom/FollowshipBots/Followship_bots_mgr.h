@@ -70,6 +70,9 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 63331,  FSB_Class::Monk,            FSB_Race::Pandaren, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },  //Laoxi
     { 63285,  FSB_Class::Monk,            FSB_Race::Pandaren, 345740, FSB_ChatterType::Positive, GENDER_MALE, 0 },  //Lo
     { 63235,  FSB_Class::Monk,            FSB_Race::Pandaren, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },  //Xi
+
+    //SHAMAN
+    { 17089,  FSB_Class::Shaman,          FSB_Race::Draenei,  0, FSB_ChatterType::Negative, GENDER_MALE, 0 }, //Firmanvaar
 };
 
 

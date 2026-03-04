@@ -475,6 +475,9 @@ namespace FSBOOC
         case FSB_Class::Paladin:
             spellId = SPELL_PALADIN_REDEMPTION;
             break;
+        case FSB_Class::Shaman:
+            spellId = SPELL_SHAMAN_ANCESTRAL_SPIRIT;
+            break;
         default:
             break;
         }
@@ -802,6 +805,10 @@ namespace FSBOOC
             break;
         case FSB_Class::Warlock:
             if (FSBWarlock::BotOOCBuffSelf(bot, globalCooldown, selfBuffTimer, buffSpellId))
+                check = true;
+            break;
+        case FSB_Class::Shaman:
+            if (FSBShaman::BotOOCBuffSelf(bot, buffSpellId))
                 check = true;
             break;
         default:

@@ -8,8 +8,6 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "Followship_bots_hunter.h"
-
 #include "Followship_bots_pet_handler.h"
 #include "Followship_bots_spells_handler.h"
 

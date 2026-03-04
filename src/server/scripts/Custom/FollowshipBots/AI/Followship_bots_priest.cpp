@@ -1,6 +1,5 @@
 #include "Log.h"
 
-#include "Followship_bots_priest.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
@@ -130,7 +129,7 @@ namespace FSBPriest
                 if (FSBSpells::BotCastSpell(bot, SPELL_PRIEST_POWER_WORD_SHIELD, target))
                 {
                     globalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: PWS on target: {}", target->GetName());
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Priest Initial Combat Spell Cast: PWS on target: {}", target->GetName());
                     return true;
                 }
             }
@@ -139,7 +138,7 @@ namespace FSBPriest
                 if (FSBSpells::BotCastSpell(bot, SPELL_PRIEST_RENEW, target))
                 {
                     globalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Renew on target: {}", target->GetName());
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Priest Initial Combat Spell Cast: Renew on target: {}", target->GetName());
                     botCastedCombatBuffs = true;
                     return true;
                 }
@@ -161,7 +160,7 @@ namespace FSBPriest
             bot->CastSpell(player, SPELL_PRIEST_HEAL, false);
             globalCooldown = now + 1500;
 
-            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.spells", "FSB: Priest Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
 
             return true;
 
@@ -171,7 +170,7 @@ namespace FSBPriest
             bot->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
             globalCooldown = now + 1500;
 
-            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.spells", "FSB: Priest Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
 
             return true;
         }
