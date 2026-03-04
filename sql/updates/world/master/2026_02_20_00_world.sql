@@ -14,5 +14,7 @@ CREATE TABLE `battle_pet_npc_team` (
     `ability1` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'BattlePetAbility.db2 ID for slot 0',
     `ability2` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'BattlePetAbility.db2 ID for slot 1',
     `ability3` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'BattlePetAbility.db2 ID for slot 2',
+    `npcTeamMemberID` INT NOT NULL DEFAULT 0 COMMENT 'BattlePetNPCTeamMember.db2 ID for pet name',
+    `creatureId` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Creature template entry override for model (0=species default)',
     PRIMARY KEY (`npcEntry`, `slot`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Pet Battle NPC Trainer Teams';

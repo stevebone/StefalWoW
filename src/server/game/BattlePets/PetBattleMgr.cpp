@@ -325,7 +325,7 @@ void PetBattleMgr::LoadNPCTeams()
 {
     _npcTeams.clear();
 
-    QueryResult result = WorldDatabase.Query("SELECT npcEntry, slot, speciesId, level, breedId, quality, ability1, ability2, ability3 FROM battle_pet_npc_team ORDER BY npcEntry, slot");
+    QueryResult result = WorldDatabase.Query("SELECT npcEntry, slot, speciesId, level, breedId, quality, ability1, ability2, ability3, npcTeamMemberID, creatureId FROM battle_pet_npc_team ORDER BY npcEntry, slot");
     if (!result)
     {
         TC_LOG_INFO("server.loading", ">> Loaded 0 NPC pet battle teams. DB table `battle_pet_npc_team` is empty or missing.");
@@ -346,6 +346,8 @@ void PetBattleMgr::LoadNPCTeams()
         pet.AbilityIDs[0] = fields[6].GetUInt32();
         pet.AbilityIDs[1] = fields[7].GetUInt32();
         pet.AbilityIDs[2] = fields[8].GetUInt32();
+        pet.NpcTeamMemberID = fields[9].GetInt32();
+        pet.CreatureID = fields[10].GetUInt32();
 
         _npcTeams[npcEntry].push_back(pet);
         ++count;

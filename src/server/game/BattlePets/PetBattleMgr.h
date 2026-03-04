@@ -39,6 +39,8 @@ struct NPCTeamPetInfo
     uint16 BreedID = 3;
     uint8 Quality = 0;
     std::array<uint32, MAX_PET_BATTLE_ABILITIES> AbilityIDs = {};
+    int32 NpcTeamMemberID = 0;  // Maps to BattlePetNPCTeamMember.db2 for pet name
+    uint32 CreatureID = 0;      // Optional override for creature model (0 = use species default)
 };
 
 struct PvPQueueEntry

@@ -835,8 +835,10 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
             attacker.MultiTurnCurrentIndex++;
             turnIndex = attacker.MultiTurnCurrentIndex;
 
-            // Check if multi-turn sequence is complete
-            if (attacker.MultiTurnCurrentIndex >= attacker.MultiTurnTotalTurns)
+            // Check if this is the LAST turn of the sequence.
+            // Clear state now so the pet unlocks for the next round
+            // (previously checked >= TotalTurns which delayed unlock by one round).
+            if (attacker.MultiTurnCurrentIndex >= attacker.MultiTurnTotalTurns - 1)
             {
                 attacker.MultiTurnAbilityID = 0;
                 attacker.MultiTurnCurrentIndex = 0;
@@ -854,8 +856,22 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
     // Get effects for this turn from DB2 index
     std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turn->ID);
     TC_LOG_ERROR("server.loading", "PetBattle: TurnID={} turnIndex={} effects={}", turn->ID, turnIndex, effects ? effects->size() : 0);
-    if (!effects)
+    if (!effects || effects->empty())
+    {
+        // Multi-turn turn with no DB2 effects — emit a STATUS_CHANGE so the client
+        // still shows the ability was used this round (otherwise the turn is invisible).
+        if (turns->size() > 1)
+        {
+            PetBattleRoundEffect roundEffect;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = attackerTeam;
+            roundEffect.TargetPet = attackerPet;
+            _roundEffects.push_back(roundEffect);
+        }
         return;
+    }
 
     // Process each effect in order
     for (BattlePetAbilityEffectEntry const* effectEntry : *effects)
@@ -1290,6 +1306,102 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             if (auraAbilityID == 0)
                 auraAbilityID = abilityID;
             RemoveAura(defenderTeam, defenderPet, auraAbilityID);
+            break;
+        }
+        case 17: // Multi-turn begin marker
+        {
+            // DB2 effects with this category appear on the first turn of multi-turn abilities.
+            // They signal to the client that the ability's multi-turn sequence is active.
+            // Param[2] may contain a state ID to set (e.g., "burrowed", "flying").
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+            int32 stateValue = static_cast<int32>(effect->Param[3]);
+            if (stateValue == 0)
+                stateValue = 1; // Default: flag is "on"
+
+            if (stateID != 0)
+            {
+                // Set the state on the attacker (e.g., "is underground")
+                bool found = false;
+                for (auto& [id, val] : attacker.States)
+                {
+                    if (id == stateID)
+                    {
+                        val = stateValue;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    attacker.States.emplace_back(stateID, stateValue);
+
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = stateID;
+                roundEffect.Param2 = stateValue;
+                _roundEffects.push_back(roundEffect);
+            }
+            else
+            {
+                // No state to set — emit a status change so the client plays the animation
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                _roundEffects.push_back(roundEffect);
+            }
+            break;
+        }
+        case 18: // Multi-turn end marker
+        {
+            // Appears on the last turn of a multi-turn ability.
+            // Param[2] may contain a state ID to clear (matching the one set by case 17).
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+
+            if (stateID != 0)
+            {
+                // Clear the state on the attacker
+                for (auto& [id, val] : attacker.States)
+                {
+                    if (id == stateID)
+                    {
+                        val = 0;
+                        break;
+                    }
+                }
+
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = stateID;
+                roundEffect.Param2 = 0;
+                _roundEffects.push_back(roundEffect);
+            }
+            else
+            {
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                _roundEffects.push_back(roundEffect);
+            }
+
+            // If the ability has damage on this turn as well, that will be handled
+            // by a separate effect entry in the DB2 chain — not here.
             break;
         }
         default:
@@ -2244,13 +2356,18 @@ void PetBattle::InitNPCBattle(Player* player, Creature* trainer, std::vector<NPC
         pet.Level = info.Level;
         pet.Breed = info.BreedID;
         pet.Quality = info.Quality;
+        pet.NpcTeamMemberID = info.NpcTeamMemberID;
 
+        // Determine CreatureID: use override from NPC team table, or fall back to species default
+        uint32 creatureIDForModel = info.CreatureID;
         BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(info.SpeciesID);
         if (species)
         {
-            pet.CreatureID = species->CreatureID;
+            if (creatureIDForModel == 0)
+                creatureIDForModel = species->CreatureID;
+            pet.CreatureID = creatureIDForModel;
             pet.PetType = species->PetTypeEnum;
-            if (CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(species->CreatureID))
+            if (CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(creatureIDForModel))
                 if (CreatureModel const* model = ct->GetRandomValidModel())
                     pet.DisplayID = model->CreatureDisplayID;
         }

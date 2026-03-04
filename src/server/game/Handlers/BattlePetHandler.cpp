@@ -201,7 +201,7 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
         petInfo.MaxHealth = petData.MaxHealth;
         petInfo.Power = petData.Power;
         petInfo.Speed = petData.Speed;
-        petInfo.NpcTeamMemberID = isWildTeam ? petData.NpcTeamMemberID : 0;
+        petInfo.NpcTeamMemberID = petData.NpcTeamMemberID;
         petInfo.BreedQuality = petData.Quality;
         petInfo.Slot = static_cast<int8>(i);
         petInfo.CustomName = petData.CustomName;
