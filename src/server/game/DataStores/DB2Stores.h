@@ -66,7 +66,6 @@ TC_GAME_API extern DB2Storage<BattlePetAbilityTurnEntry>            sBattlePetAb
 TC_GAME_API extern DB2Storage<BattlePetBreedQualityEntry>           sBattlePetBreedQualityStore;
 TC_GAME_API extern DB2Storage<BattlePetBreedStateEntry>             sBattlePetBreedStateStore;
 TC_GAME_API extern DB2Storage<BattlePetEffectPropertiesEntry>       sBattlePetEffectPropertiesStore;
-TC_GAME_API extern DB2Storage<BattlePetNPCTeamMemberEntry>         sBattlePetNPCTeamMemberStore;
 TC_GAME_API extern DB2Storage<BattlePetSpeciesEntry>                sBattlePetSpeciesStore;
 TC_GAME_API extern DB2Storage<BattlePetSpeciesStateEntry>           sBattlePetSpeciesStateStore;
 TC_GAME_API extern DB2Storage<BattlePetSpeciesXAbilityEntry>        sBattlePetSpeciesXAbilityStore;
