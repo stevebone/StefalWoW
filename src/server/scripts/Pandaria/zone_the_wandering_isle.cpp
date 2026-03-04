@@ -1810,7 +1810,7 @@ struct npc_huo_follower : public FollowerAI
     void IsSummonedBy(WorldObject* summoner) override
     {
         if (Player* player = summoner->ToPlayer())
-            StartFollow(player, 2.5f, 0.f);
+            StartFollow(player);
     }
 
     // Add quest completion logic or movement change later
