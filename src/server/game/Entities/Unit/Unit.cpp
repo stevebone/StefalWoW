@@ -95,8 +95,6 @@
 #include <sstream>
 #include <cmath>
 
-#include "../scripts/Custom/FollowshipBots/Handlers/Followship_bots_stats_handler.h"
-
 float baseMoveSpeed[MAX_MOVE_TYPE] =
 {
     2.5f,                  // MOVE_WALK
@@ -7112,8 +7110,7 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask) const
     Creature const* thisCreature = ToCreature();
     if (thisCreature)
     {
-        DoneAdvertisedBenefit = FSBStats::BotGetSpellPower(thisCreature);
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB SPELLPOWER TEST");
+        DoneAdvertisedBenefit = thisCreature->GetBotSpellPower();
     }
 
     return DoneAdvertisedBenefit;
@@ -7366,7 +7363,7 @@ int32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, int
     Creature const* thisCreature = ToCreature();
     if (thisCreature)
     {
-        DoneAdvertisedBenefit = FSBStats::BotGetSpellPower(thisCreature);
+        DoneAdvertisedBenefit = thisCreature->GetBotSpellPower();
     }
 
     // Pets just add their bonus damage to their spell damage

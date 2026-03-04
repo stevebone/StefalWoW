@@ -337,6 +337,13 @@ public:
         {
         }
 
+        int32 GetBotSpellPower() const override
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: GetBotSpellPower() triggered for bot: {}", me->GetName());
+
+            return FSBStats::BotGetSpellPower(me);
+        }
+
         void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
         {
             if (damage > 0) damage = damage / 2;

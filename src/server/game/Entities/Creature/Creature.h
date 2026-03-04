@@ -493,6 +493,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
 
         void SetBot(bool isBot) { m_isFSBot = isBot; }
         bool IsBot() const { return m_isFSBot; }
+        virtual int32 GetBotSpellPower() const;
 
     protected:
         void BuildValuesCreate(UF::UpdateFieldFlag flags, ByteBuffer& data, Player const* target) const override;

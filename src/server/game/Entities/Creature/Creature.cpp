@@ -3951,3 +3951,11 @@ void Creature::ValuesUpdateForPlayerWithMaskSender::operator()(Player const* pla
     udata.BuildPacket(&packet);
     player->SendDirectMessage(&packet);
 }
+
+int32 Creature::GetBotSpellPower() const
+{
+    if (AI())
+        return AI()->GetBotSpellPower();
+
+    return 0;
+}

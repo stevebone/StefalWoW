@@ -75,8 +75,3 @@ endif()
 if(USE_COREPCH)
   add_cxx_pch(game PrecompiledHeaders/gamePCH.h)
 endif()
-
-target_include_directories(game
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/server/scripts/Custom/FollowshipBots
-)
