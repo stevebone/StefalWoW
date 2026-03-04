@@ -281,6 +281,13 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " FROM battle_pet_effect_properties WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_BATTLE_PET_EFFECT_PROPERTIES, "SELECT MAX(ID) + 1 FROM battle_pet_effect_properties", CONNECTION_SYNCH);
 
+    // BattlePetNPCTeamMember.db2
+    PrepareStatement(HOTFIX_SEL_BATTLE_PET_NPC_TEAM_MEMBER, "SELECT Name, ID FROM battle_pet_npc_team_member"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_BATTLE_PET_NPC_TEAM_MEMBER, "SELECT MAX(ID) + 1 FROM battle_pet_npc_team_member", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_BATTLE_PET_NPC_TEAM_MEMBER, "SELECT ID, Name_lang FROM battle_pet_npc_team_member_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
     // BattlePetSpecies.db2
     PrepareStatement(HOTFIX_SEL_BATTLE_PET_SPECIES, "SELECT Description, SourceText, ID, CreatureID, SummonSpellID, IconFileDataID, PetTypeEnum, "
         "Flags, SourceTypeEnum, CardUIModelSceneID, LoadoutUIModelSceneID, CovenantID FROM battle_pet_species WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);

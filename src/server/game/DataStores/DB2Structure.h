@@ -524,6 +524,12 @@ struct BattlePetEffectPropertiesEntry
     std::array<uint8, 6> ParamTypeEnum;
 };
 
+struct BattlePetNPCTeamMemberEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+};
+
 struct BattlePetSpeciesEntry
 {
     LocalizedString Description;

@@ -770,6 +770,17 @@ struct BattlePetEffectPropertiesLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 14, &BattlePetEffectPropertiesMeta::Instance, HOTFIX_SEL_BATTLE_PET_EFFECT_PROPERTIES };
 };
 
+struct BattlePetNPCTeamMemberLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[2] =
+    {
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 2, &BattlePetNPCTeamMemberMeta::Instance, HOTFIX_SEL_BATTLE_PET_NPC_TEAM_MEMBER };
+};
+
 struct BattlePetSpeciesLoadInfo
 {
     static constexpr DB2FieldMeta Fields[12] =
