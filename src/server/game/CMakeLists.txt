@@ -77,5 +77,5 @@ if(USE_COREPCH)
 endif()
 
 target_sources(game PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/server/scripts/Custom/FollowshipBots/Followship_bots_stats_handler.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/scripts/Custom/FollowshipBots/Handlers/Followship_bots_stats_handler.cpp
 )
