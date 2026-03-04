@@ -2693,7 +2693,7 @@ struct npc_shu_playing : public ScriptedAI
 {
     npc_shu_playing(Creature* creature) : ScriptedAI(creature),
         jumpPosition(1),
-        spawnPosition(0),
+        //spawnPosition(0),
         positionBefore(1),
         startAI(false) { }
 
@@ -2839,7 +2839,7 @@ private:
     EventMap events;
     uint32 jumpSpells[4] = { SPELL_JUMP_FRONT_RIGHT, SPELL_JUMP_FRONT_LEFT, SPELL_JUMP_BACK_RIGHT, SPELL_JUMP_BACK_LEFT };
     uint8 jumpPosition;
-    uint8 spawnPosition;
+    //uint8 spawnPosition;
     uint8 positionBefore;
     bool startAI;
 };
