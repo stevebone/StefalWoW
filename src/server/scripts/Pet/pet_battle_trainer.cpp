@@ -27,6 +27,9 @@ struct npc_pet_battle_trainer : public ScriptedAI
 
     bool OnGossipHello(Player* player) override
     {
+        if (me->IsQuestGiver())
+            player->PrepareQuestMenu(me->GetGUID());
+
         AddGossipItemFor(player, GossipOptionNpc::None, "I'd like to battle your pets.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_BATTLE);
         SendGossipMenuFor(player, player->GetGossipTextId(me), me->GetGUID());
         return true;

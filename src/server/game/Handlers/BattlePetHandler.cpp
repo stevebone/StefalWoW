@@ -472,6 +472,7 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     creature->SetUnitFlag(UNIT_FLAG_PACIFIED);
     creature->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
     creature->GetMotionMaster()->MoveIdle();
+    player->SetFacingToObject(creature);
 
     // Send finalize location with OK result
     // BattleOrigin is the midpoint between player and creature (matching retail)
@@ -630,8 +631,9 @@ void WorldSession::StartNPCPetBattle(Creature* trainer)
         return;
     }
 
-    // Stop NPC movement during battle
+    // Stop NPC movement during battle and face player toward trainer
     trainer->GetMotionMaster()->MoveIdle();
+    player->SetFacingToObject(trainer);
 
     // Send finalize location with OK result
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;

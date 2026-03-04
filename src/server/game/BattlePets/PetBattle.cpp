@@ -538,7 +538,7 @@ void PetBattle::ProcessRound()
 
         PetBattlePetData const& frontPet = team.Pets[team.FrontPetIndex];
         if (frontPet.IsLockedByMultiTurn)
-            team.InputFlags |= PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED;
+            team.InputFlags |= PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
         if (frontPet.IsStunned)
             team.InputFlags |= PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
     }
@@ -964,9 +964,9 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
         return;
     }
 
-    // Use ParamTypeEnum to determine the effect type behavior
-    // ParamTypeEnum[0] encodes the general category of the effect
-    uint8 effectCategory = effectProps->ParamTypeEnum[0];
+    // Route on the EffectProperties ID — this directly maps to PetBattleAbilityEffectAction
+    // (0=Damage, 1=Heal, 2=ApplyAura, 3=ChangeState, ... 18=MultiTurnEnd)
+    uint16 effectCategory = effectPropsID;
 
     // Map effect categories to actions
     // effectCategory values are stable across client versions
@@ -1880,6 +1880,12 @@ void PetBattle::CheckDeaths()
             PetBattlePetData& pet = _teams[t].Pets[p];
             if (pet.Health <= 0 && !pet.IsCaptured && !_petKilledThisRound[t * MAX_PET_BATTLE_TEAM_SIZE + p])
             {
+                // Clear multi-turn state on death
+                pet.IsLockedByMultiTurn = false;
+                pet.MultiTurnAbilityID = 0;
+                pet.MultiTurnCurrentIndex = 0;
+                pet.MultiTurnTotalTurns = 0;
+
                 // Try passive resurrection (Undead / Mechanical)
                 if (ApplyPassiveOnDeath(t, p))
                     continue;
@@ -2115,6 +2121,21 @@ void PetBattle::CompleteBattle()
                 petMgr->SyncBattlePetHealth(team.Pets[p].BattlePetGUID, team.Pets[p].Health);
         }
         petMgr->SendJournal();
+    }
+
+    // NPC trainer post-battle: restore movement and play cry emote on loss
+    if (_battleType == PET_BATTLE_TYPE_NPC && !_npcTrainerGUID.IsEmpty())
+    {
+        if (Player* player = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        {
+            if (Creature* trainer = ObjectAccessor::GetCreature(*player, _npcTrainerGUID))
+            {
+                trainer->GetMotionMaster()->MoveTargetedHome();
+
+                if (_winnerTeam == PET_BATTLE_TEAM_1)
+                    trainer->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+            }
+        }
     }
 }
 
