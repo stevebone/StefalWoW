@@ -1769,9 +1769,6 @@ enum ThePassionOfShenZinSu
     EVENT_AYSA_CLOUDSINGER_00 = 9
 };
 
-#define FOLLOW_DIST 1.5f
-#define FOLLOW_ANGLE 0.0f
-
 struct npc_huo_spawn_follower : public ScriptedAI
 {
     npc_huo_spawn_follower(Creature* creature) : ScriptedAI(creature) { }
@@ -1813,7 +1810,7 @@ struct npc_huo_follower : public FollowerAI
     void IsSummonedBy(WorldObject* summoner) override
     {
         if (Player* player = summoner->ToPlayer())
-            StartFollow(player, FOLLOW_DIST, FOLLOW_ANGLE);
+            StartFollow(player, 2.5f, 0.f);
     }
 
     // Add quest completion logic or movement change later

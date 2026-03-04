@@ -1,17 +1,8 @@
+#include "Log.h"
 #include "Map.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-
-#include "Followship_bots_druid.h"
-#include "Followship_bots_hunter.h"
-#include "Followship_bots_mage.h"
-#include "Followship_bots_monk.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_rogue.h"
-#include "Followship_bots_warlock.h"
-#include "Followship_bots_warrior.h"
 
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_powers_handler.h"
@@ -107,7 +98,7 @@ namespace FSBSpells
 
         FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
         auto table = GetBotSpellTableForClass(botClass);
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: InitSpellRuntime() - Bot: {} has Class: {}", bot->GetName(), botClass);
+        TC_LOG_DEBUG("scripts.fsb.spells", "FSB: InitSpellRuntime() Bot: {} has Class: {}", bot->GetName(), botClass);
 
         if (!table)
             return;

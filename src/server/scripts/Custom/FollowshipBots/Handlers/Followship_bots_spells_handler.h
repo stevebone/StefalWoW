@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Creature.h"
+
 #include "Followship_bots_defines.h"
 
 enum class FSBSpellType

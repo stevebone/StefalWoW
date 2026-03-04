@@ -75,3 +75,7 @@ endif()
 if(USE_COREPCH)
   add_cxx_pch(game PrecompiledHeaders/gamePCH.h)
 endif()
+
+target_sources(game PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server/scripts/Custom/FollowshipBots/Followship_bots_stats_handler.cpp
+)
