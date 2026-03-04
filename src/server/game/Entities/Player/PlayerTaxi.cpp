@@ -54,6 +54,14 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
         case RACE_DRAENEI:
         case RACE_WORGEN:
         case RACE_PANDAREN_ALLIANCE:
+        case RACE_VOID_ELF:
+        case RACE_LIGHTFORGED_DRAENEI:
+        case RACE_KUL_TIRAN:
+        case RACE_DARK_IRON_DWARF:
+        case RACE_MECHAGNOME:
+        case RACE_DRACTHYR_ALLIANCE:
+        case RACE_EARTHEN_DWARF_ALLIANCE:
+        case RACE_HARRONIR_ALLIANCE:
             SetTaximaskNode(2);     // Stormwind, Elwynn
             SetTaximaskNode(6);     // Ironforge, Dun Morogh
             SetTaximaskNode(26);    // Lor'danel, Darkshore
@@ -75,6 +83,14 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
         case RACE_BLOODELF:
         case RACE_GOBLIN:
         case RACE_PANDAREN_HORDE:
+        case RACE_NIGHTBORNE:
+        case RACE_HIGHMOUNTAIN_TAUREN:
+        case RACE_ZANDALARI_TROLL:
+        case RACE_VULPERA:
+        case RACE_MAGHAR_ORC:
+        case RACE_DRACTHYR_HORDE:
+        case RACE_EARTHEN_DWARF_HORDE:
+        case RACE_HARRONIR_HORDE:
             SetTaximaskNode(11);    // Undercity, Tirisfal
             SetTaximaskNode(22);    // Thunder Bluff, Mulgore
             SetTaximaskNode(23);    // Orgrimmar, Durotar
@@ -100,7 +116,7 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
     }
 
     // level dependent taxi hubs
-    if (level >= 68)
+    if (level >= 18)
         SetTaximaskNode(213);                               //Shattered Sun Staging Area
 }
 

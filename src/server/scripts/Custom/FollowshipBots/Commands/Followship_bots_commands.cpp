@@ -2,6 +2,7 @@
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "Pet.h"
+#include "SpellAuras.h"
 #include "WorldSession.h"
 
 #include "Followship_bots_mgr.h"

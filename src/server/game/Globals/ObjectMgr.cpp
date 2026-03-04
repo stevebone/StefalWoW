@@ -4369,6 +4369,9 @@ void ObjectMgr::LoadPlayerInfo()
                 if (sWorld->getIntConfig(CONFIG_EXPANSION) < EXPANSION_THE_WAR_WITHIN && (race == RACE_EARTHEN_DWARF_HORDE || race == RACE_EARTHEN_DWARF_ALLIANCE))
                     continue;
 
+                if (sWorld->getIntConfig(CONFIG_EXPANSION) < EXPANSION_MIDNIGHT && (race == RACE_HARRONIR_HORDE || race == RACE_HARRONIR_ALLIANCE))
+                    continue;
+
                 // fatal error if no level 1 data
                 if (!playerInfo->levelInfo || playerInfo->levelInfo[0].stats[0] == 0)
                 {
