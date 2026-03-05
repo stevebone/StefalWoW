@@ -1,6 +1,7 @@
-#include "ScriptMgr.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "ScriptedCreature.h"
+#include "ScriptMgr.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "EventMap.h"
@@ -27,7 +28,11 @@ public:
         void JustAppeared() override
         {
             events.Reset();
-            events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s);
+            if (me->GetEntry() != NPC_FIRE_NOVA_TOTEM)
+                events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s);
+            else events.ScheduleEvent(EVENT_TIMED_SPELL_CAST, 5500ms);
+
+            TC_LOG_DEBUG("scripts.ai.fsb", "Triggered JustApperead for {}", me->GetName());
         }
 
         void UpdateAI(uint32 diff) override
@@ -36,7 +41,10 @@ public:
 
             while (uint32 eventId = events.ExecuteEvent())
             {
-                if (eventId == EVENT_PERIODIC_SPELL_CAST)
+                switch (eventId)
+                {
+
+                case EVENT_PERIODIC_SPELL_CAST:
                 {
                     uint32 spellId = 0;
 
@@ -77,17 +85,24 @@ public:
                             }
                         }
                         break;
-                    case NPC_HEALING_TIDE_TOTEM:
+                    case SPELL_HEALING_TIDE_TOTEM:
                         target = me;
                         break;
                     default:
                         break;
-                    }                    
+                    }
 
                     if (target)
                         me->CastSpell(target, spellId, false);
 
                     events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 2s);
+                }
+                case EVENT_TIMED_SPELL_CAST:
+                    me->CastSpell(me, SPELL_FIRE_NOVA_TOTEM, false);
+                    break;
+
+                default:
+                    break;
                 }
             }
         }

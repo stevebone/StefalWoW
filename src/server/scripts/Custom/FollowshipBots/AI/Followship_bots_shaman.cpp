@@ -107,6 +107,7 @@ namespace FSBShaman
             break;
         case FSB_ROLE_TANK:
             totem2Spell = SPELL_SHAMAN_EARTHGRAB_TOTEM;
+            totem3Spell = SPELL_SHAMAN_FIRE_NOVA_TOTEM;
             break;
         case FSB_ROLE_MELEE_DAMAGE:
             totem2Spell = SPELL_SHAMAN_WIND_RUSH_TOTEM;
@@ -161,7 +162,7 @@ namespace FSBShaman
                     return true;
                 }
             }
-            else if (totem3Spell == SPELL_SHAMAN_MANA_TIDE_TOTEM)
+            else if (totem3Spell == SPELL_SHAMAN_MANA_TIDE_TOTEM || totem3Spell == SPELL_SHAMAN_FIRE_NOVA_TOTEM)
             {
                 if (FSBSpells::BotCastSpell(bot, totem3Spell, bot))
                 {
