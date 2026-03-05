@@ -102,6 +102,7 @@ namespace FSBShaman
             totem2Spell = SPELL_SHAMAN_HEALING_STREAM_TOTEM;
             break;
         case FSB_ROLE_TANK:
+            totem2Spell = SPELL_SHAMAN_EARTHGRAB_TOTEM;
             break;
         case FSB_ROLE_MELEE_DAMAGE:
             totem2Spell = SPELL_SHAMAN_WIND_RUSH_TOTEM;
@@ -127,7 +128,8 @@ namespace FSBShaman
         {
             if (totem2Spell == SPELL_SHAMAN_HEALING_STREAM_TOTEM)
             {
-                if (FSBSpells::BotCastSpell(bot, totem2Spell, bot))
+                Unit* healingStreamtotem = bot->FindNearestCreature(3527, 40.f);
+                if (!healingStreamtotem && FSBSpells::BotCastSpell(bot, totem2Spell, bot))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
                     TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem2Spell));

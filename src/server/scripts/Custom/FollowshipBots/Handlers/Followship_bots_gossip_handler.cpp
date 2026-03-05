@@ -1,4 +1,5 @@
 #include "ScriptedGossip.h"
+#include "WorldSession.h"
 
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
