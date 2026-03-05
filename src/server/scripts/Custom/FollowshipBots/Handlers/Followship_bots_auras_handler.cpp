@@ -132,9 +132,9 @@ namespace FSBAuras
         case SPELL_MAGE_EVOCATION:
         {
             if(applied)
-                botRegenMods.pctManaPerTick += 1500.f;
+                botRegenMods.pctManaPerTick += 15.f;
             else if(!applied)
-                botRegenMods.pctManaPerTick -= 1500.f;
+                botRegenMods.pctManaPerTick -= 15.f;
 
             FSBStats::RecalculateStats(bot, false, false);
 
@@ -248,6 +248,17 @@ namespace FSBAuras
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, HpPct - 0.1f);
                 bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct - 1.6f);
             }
+
+            break;
+        }
+
+        // Shaman
+        case SPELL_MANA_TIDE_TOTEM:
+        {
+            if (applied)
+                botRegenMods.pctManaPerTick += 0.8f;
+            else if (!applied)
+                botRegenMods.pctManaPerTick -= 0.8f;
 
             break;
         }

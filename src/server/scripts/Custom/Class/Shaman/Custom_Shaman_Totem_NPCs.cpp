@@ -20,14 +20,14 @@ public:
 
         void IsSummonedBy(WorldObject* /*summoner*/) override
         {
-            events.Reset();
-            events.ScheduleEvent(1, 2s); // 8 seconds
+            //events.Reset();
+            //events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s); // 8 seconds
         }
 
         void JustAppeared() override
         {
             events.Reset();
-            events.ScheduleEvent(1, 2s);
+            events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -45,13 +45,44 @@ public:
                     case NPC_EARTHGRAB_TOTEM:
                         spellId = SPELL_EARTHGRAB_TOTEM;
                         break;
+                    case NPC_MANA_TIDE_TOTEM:
+                        spellId = SPELL_MANA_TIDE_TOTEM;
+                        break;
+                    case NPC_HEALING_TIDE_TOTEM:
+                        spellId = SPELL_HEALING_TIDE_TOTEM;
+                        break;
                     default:
                         break;
                     }
 
-                    Unit* target = me->GetVictim();
-                    if (!target)
-                        target = me->SelectNearestTarget(8.0f);
+                    Unit* target = nullptr;
+
+                    switch (spellId)
+                    {
+                    case SPELL_EARTHGRAB_TOTEM:
+                        target = me->GetVictim();
+                        if (!target)
+                            target = me->SelectNearestTarget(8.0f);
+                        break;
+                    case SPELL_MANA_TIDE_TOTEM:
+                        target = me->GetOwner();
+                        if (target && target->HasAura(SPELL_MANA_TIDE_TOTEM))
+                        {
+                            target = target->GetOwner();
+                            if (target && target->HasAura(SPELL_MANA_TIDE_TOTEM))
+                            {
+                                Trinity::AnyFriendlyUnitInObjectRangeCheck check(me, me, 20.0f);
+                                Trinity::UnitLastSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck> searcher(me, target, check);
+                                Cell::VisitAllObjects(me, searcher, 20.0f);
+                            }
+                        }
+                        break;
+                    case NPC_HEALING_TIDE_TOTEM:
+                        target = me;
+                        break;
+                    default:
+                        break;
+                    }                    
 
                     if (target)
                         me->CastSpell(target, spellId, false);

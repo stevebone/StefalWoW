@@ -1,4 +1,5 @@
 #include "Log.h"
+#include "ScriptedCreature.h"
 #include "SpellHistory.h"
 
 #include "Followship_bots_mgr.h"
@@ -90,6 +91,7 @@ namespace FSBShaman
         uint32 totem1Spell = SPELL_SHAMAN_EARTH_TOTEM; // all roles
         uint32 totem2Spell = 0;
         uint32 totem3Spell = 0;
+        uint32 totem4Spell = 0;
 
         Position pos = Position{ bot->GetPositionX() + frand(-2.f, 2.f), bot->GetPositionY() + frand(-2.f, 2.f), bot->GetPositionZ() };
 
@@ -100,6 +102,8 @@ namespace FSBShaman
         {
         case FSB_ROLE_HEALER:
             totem2Spell = SPELL_SHAMAN_HEALING_STREAM_TOTEM;
+            totem3Spell = SPELL_SHAMAN_MANA_TIDE_TOTEM;
+            totem4Spell = SPELL_SHAMAN_HEALING_TIDE_TOTEM;
             break;
         case FSB_ROLE_TANK:
             totem2Spell = SPELL_SHAMAN_EARTHGRAB_TOTEM;
@@ -154,6 +158,27 @@ namespace FSBShaman
                 {
                     baseAI->botGlobalCooldown = now + 1500;
                     TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem3Spell), pos.ToString());
+                    return true;
+                }
+            }
+            else if (totem3Spell == SPELL_SHAMAN_MANA_TIDE_TOTEM)
+            {
+                if (FSBSpells::BotCastSpell(bot, totem3Spell, bot))
+                {
+                    baseAI->botGlobalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem3Spell));
+                    return true;
+                }
+            }
+        }
+        else if (totem4Spell && !bot->GetSpellHistory()->HasCooldown(totem4Spell))
+        {
+            if (totem4Spell == SPELL_SHAMAN_HEALING_TIDE_TOTEM)
+            {
+                if (FSBSpells::BotCastSpell(bot, totem4Spell, bot))
+                {
+                    baseAI->botGlobalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem4Spell));
                     return true;
                 }
             }
