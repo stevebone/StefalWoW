@@ -26,11 +26,11 @@ public:
         void JustAppeared() override
         {
             events.Reset();
-            if (me->GetEntry() != NPC_FIRE_NOVA_TOTEM)
-                events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s);
-            else events.ScheduleEvent(EVENT_TIMED_SPELL_CAST, 5500ms);
-
-            //TC_LOG_DEBUG("scripts.ai.fsb", "Triggered JustApperead for {}", me->GetName());
+            if (me->GetEntry() == NPC_FIRE_NOVA_TOTEM)
+                events.ScheduleEvent(EVENT_TIMED_SPELL_CAST_NOVA, 5500ms);
+            else if (me->GetEntry() == NPC_CAPACITATOR_TOTEM)
+                events.ScheduleEvent(EVENT_TIMED_SPELL_CAST_CAPACITATOR, 2s);                
+            else events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -57,6 +57,9 @@ public:
                     case NPC_HEALING_TIDE_TOTEM:
                         spellId = SPELL_HEALING_TIDE_TOTEM;
                         break;
+                    case NPC_SCORCHING_TOTEM:
+                        spellId = SPELL_SCORCH_TOTEM;
+                        break;
                     default:
                         break;
                     }
@@ -65,6 +68,7 @@ public:
 
                     switch (spellId)
                     {
+                    case SPELL_SCORCH_TOTEM:
                     case SPELL_EARTHGRAB_TOTEM:
                         target = me->GetVictim();
                         if (!target)
@@ -99,7 +103,7 @@ public:
                                 };
 
                                 FriendlyWithoutAuraCheck check(me, 20.0f, SPELL_MANA_TIDE_TOTEM);
-                                Trinity::UnitLastSearcher<FriendlyWithoutAuraCheck> searcher(me, found, check);
+                                Trinity::UnitSearcher<FriendlyWithoutAuraCheck> searcher(me, found, check);
                                 Cell::VisitAllObjects(me, searcher, 20.0f);
 
                                 if (found)
@@ -122,8 +126,12 @@ public:
 
                     break;
                 }
-                case EVENT_TIMED_SPELL_CAST:
+                case EVENT_TIMED_SPELL_CAST_NOVA:
                     me->CastSpell(me, SPELL_FIRE_NOVA_TOTEM, false);
+                    break;
+
+                case EVENT_TIMED_SPELL_CAST_CAPACITATOR:
+                    me->CastSpell(me, SPELL_CAPACITATOR_TOTEM, false);
                     break;
 
                 default:

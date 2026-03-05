@@ -93,7 +93,7 @@ namespace FSBShaman
         uint32 totem3Spell = 0;
         uint32 totem4Spell = 0;
 
-        Position pos = Position{ bot->GetPositionX() + frand(-2.f, 2.f), bot->GetPositionY() + frand(-2.f, 2.f), bot->GetPositionZ() };
+        Position pos = Position{ bot->GetPositionX() + frand(-2.f, 5.f), bot->GetPositionY() + frand(-2.f, 5.f), bot->GetPositionZ() };
 
         //Unit* target = nullptr;
         //Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
@@ -108,10 +108,12 @@ namespace FSBShaman
         case FSB_ROLE_TANK:
             totem2Spell = SPELL_SHAMAN_EARTHGRAB_TOTEM;
             totem3Spell = SPELL_SHAMAN_FIRE_NOVA_TOTEM;
+            totem4Spell = SPELL_SHAMAN_CAPACITATOR_TOTEM;
             break;
         case FSB_ROLE_MELEE_DAMAGE:
             totem2Spell = SPELL_SHAMAN_WIND_RUSH_TOTEM;
             totem3Spell = SPELL_SHAMAN_LIQUID_MAGMA_TOTEM;
+            totem4Spell = SPELL_SHAMAN_SCORCHING_TOTEM;
             break;
         default:
             break;
@@ -124,7 +126,7 @@ namespace FSBShaman
             if (FSBSpells::BotCastSpellatLocation(bot, totem1Spell, pos))
             {
                 baseAI->botGlobalCooldown = now + 1500;
-                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem1Spell), pos.ToString());
+                TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem1Spell), pos.ToString());
                 return true;
             }
         }
@@ -137,7 +139,7 @@ namespace FSBShaman
                 if (!healingStreamtotem && FSBSpells::BotCastSpell(bot, totem2Spell, bot))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem2Spell));
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem2Spell));
                     return true;
                 }
             }
@@ -146,7 +148,7 @@ namespace FSBShaman
                 if (FSBSpells::BotCastSpellatLocation(bot, totem2Spell, pos))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem2Spell), pos.ToString());
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem2Spell), pos.ToString());
                     return true;
                 }
             }
@@ -159,7 +161,7 @@ namespace FSBShaman
                 if (FSBSpells::BotCastSpellatLocation(bot, totem3Spell, pos))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem3Spell), pos.ToString());
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem3Spell), pos.ToString());
                     return true;
                 }
             }
@@ -168,7 +170,7 @@ namespace FSBShaman
                 if (FSBSpells::BotCastSpell(bot, totem3Spell, bot))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem3Spell));
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem3Spell));
                     return true;
                 }
             }
@@ -176,12 +178,21 @@ namespace FSBShaman
 
         if (totem4Spell && !bot->GetSpellHistory()->HasCooldown(totem4Spell))
         {
-            if (totem4Spell == SPELL_SHAMAN_HEALING_TIDE_TOTEM)
+            if (totem4Spell == SPELL_SHAMAN_HEALING_TIDE_TOTEM || totem4Spell == SPELL_SHAMAN_SCORCHING_TOTEM)
             {
                 if (FSBSpells::BotCastSpell(bot, totem4Spell, bot))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem4Spell));
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem4Spell));
+                    return true;
+                }
+            }
+            else if (totem4Spell == SPELL_SHAMAN_CAPACITATOR_TOTEM)
+            {
+                if (FSBSpells::BotCastSpellatLocation(bot, totem4Spell, pos))
+                {
+                    baseAI->botGlobalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem4Spell), pos.ToString());
                     return true;
                 }
             }
