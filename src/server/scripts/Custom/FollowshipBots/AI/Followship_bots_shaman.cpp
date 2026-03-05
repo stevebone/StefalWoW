@@ -129,7 +129,7 @@ namespace FSBShaman
             }
         }
 
-        else if (totem2Spell && !bot->GetSpellHistory()->HasCooldown(totem2Spell))
+        if (totem2Spell && !bot->GetSpellHistory()->HasCooldown(totem2Spell))
         {
             if (totem2Spell == SPELL_SHAMAN_HEALING_STREAM_TOTEM)
             {
@@ -151,7 +151,8 @@ namespace FSBShaman
                 }
             }
         }
-        else if (totem3Spell && !bot->GetSpellHistory()->HasCooldown(totem3Spell))
+
+        if (totem3Spell && !bot->GetSpellHistory()->HasCooldown(totem3Spell))
         {
             if (totem3Spell == SPELL_SHAMAN_LIQUID_MAGMA_TOTEM)
             {
@@ -172,7 +173,8 @@ namespace FSBShaman
                 }
             }
         }
-        else if (totem4Spell && !bot->GetSpellHistory()->HasCooldown(totem4Spell))
+
+        if (totem4Spell && !bot->GetSpellHistory()->HasCooldown(totem4Spell))
         {
             if (totem4Spell == SPELL_SHAMAN_HEALING_TIDE_TOTEM)
             {

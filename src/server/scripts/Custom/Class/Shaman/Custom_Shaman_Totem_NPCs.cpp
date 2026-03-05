@@ -21,8 +21,6 @@ public:
 
         void IsSummonedBy(WorldObject* /*summoner*/) override
         {
-            //events.Reset();
-            //events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s); // 8 seconds
         }
 
         void JustAppeared() override
@@ -32,7 +30,7 @@ public:
                 events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 0s);
             else events.ScheduleEvent(EVENT_TIMED_SPELL_CAST, 5500ms);
 
-            TC_LOG_DEBUG("scripts.ai.fsb", "Triggered JustApperead for {}", me->GetName());
+            //TC_LOG_DEBUG("scripts.ai.fsb", "Triggered JustApperead for {}", me->GetName());
         }
 
         void UpdateAI(uint32 diff) override
@@ -96,6 +94,8 @@ public:
                         me->CastSpell(target, spellId, false);
 
                     events.ScheduleEvent(EVENT_PERIODIC_SPELL_CAST, 2s);
+
+                    break;
                 }
                 case EVENT_TIMED_SPELL_CAST:
                     me->CastSpell(me, SPELL_FIRE_NOVA_TOTEM, false);
