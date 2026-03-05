@@ -87,52 +87,71 @@ namespace FSBShaman
         if (baseAI->botCastedCombatBuffs)
             return false;
 
-        uint32 totem1Spell = SPELL_SHAMAN_EARTH_TOTEM;
+        uint32 totem1Spell = SPELL_SHAMAN_EARTH_TOTEM; // all roles
+        uint32 totem2Spell = 0;
+        uint32 totem3Spell = 0;
+
+        Position pos = Position{ bot->GetPositionX() + frand(-2.f, 2.f), bot->GetPositionY() + frand(-2.f, 2.f), bot->GetPositionZ() };
 
         //Unit* target = nullptr;
         //Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
-        /*
-        switch (botRole)
+
+        switch (baseAI->botRole)
         {
         case FSB_ROLE_HEALER:
-            if (tank)
-                target = tank;
-            else
-            {
-                Player* player = FSBMgr::Get()->GetBotOwner(bot);
-
-                if (!player)
-                    break;
-
-                if (!player->IsAlive())
-                    break;
-
-                if (!player->IsInCombat())
-                    break;
-
-                target = player;
-            }
+            totem2Spell = SPELL_SHAMAN_HEALING_STREAM_TOTEM;
             break;
-        case FSB_ROLE_ASSIST:
-            target = bot;
+        case FSB_ROLE_TANK:
+            break;
+        case FSB_ROLE_MELEE_DAMAGE:
+            totem2Spell = SPELL_SHAMAN_WIND_RUSH_TOTEM;
+            totem3Spell = SPELL_SHAMAN_LIQUID_MAGMA_TOTEM;
             break;
         default:
-            target = bot;
             break;
         }
-        */
-        if (totem1Spell)
-        {
-            uint32 now = getMSTime();
 
-            if (!bot->GetSpellHistory()->HasCooldown(SPELL_SHAMAN_EARTH_TOTEM))
+        uint32 now = getMSTime();
+
+        if (!bot->GetSpellHistory()->HasCooldown(totem1Spell))
+        {
+            if (FSBSpells::BotCastSpellatLocation(bot, totem1Spell, pos))
             {
-                Position pos = Position{ bot->GetPositionX() + 2.f, bot->GetPositionY() + 2.f, bot->GetPositionZ() };
-                if (FSBSpells::BotCastSpellatLocation(bot, SPELL_SHAMAN_EARTH_TOTEM, pos))
+                baseAI->botGlobalCooldown = now + 1500;
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem1Spell), pos.ToString());
+                return true;
+            }
+        }
+
+        else if (totem2Spell && !bot->GetSpellHistory()->HasCooldown(totem2Spell))
+        {
+            if (totem2Spell == SPELL_SHAMAN_HEALING_STREAM_TOTEM)
+            {
+                if (FSBSpells::BotCastSpell(bot, totem2Spell, bot))
                 {
                     baseAI->botGlobalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: Earth at location: {}", pos.ToString());
-                    baseAI->botCastedCombatBuffs = true;
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {}", FSBSpellsUtils::GetSpellName(totem2Spell));
+                    return true;
+                }
+            }
+            else
+            {
+                if (FSBSpells::BotCastSpellatLocation(bot, totem2Spell, pos))
+                {
+                    baseAI->botGlobalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem2Spell), pos.ToString());
+                    return true;
+                }
+            }
+        }
+        else if (totem3Spell && !bot->GetSpellHistory()->HasCooldown(totem3Spell))
+        {
+            if (totem3Spell == SPELL_SHAMAN_LIQUID_MAGMA_TOTEM)
+            {
+                if (FSBSpells::BotCastSpellatLocation(bot, totem3Spell, pos))
+                {
+                    baseAI->botGlobalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: {} at location: {}", FSBSpellsUtils::GetSpellName(totem3Spell), pos.ToString());
                     return true;
                 }
             }
