@@ -246,9 +246,9 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .basePowerRegenOOC = 2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 1,
-        .baseAttackPower = 5,
+        .baseAttackPower = 1, //5,
         .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 6,
+        .attackPowerPerLevel = 0, //6,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
@@ -278,4 +278,7 @@ namespace FSBStats
     void RecalculateStats(Creature* bot, bool updateHealth, bool updatePower);
 
     int32 BotGetSpellPower(const Creature* bot);
+
+    float GetBotDamageMultiplier(uint8 level);
+    int32 CalculateScaledBotDamage(Creature* bot, Unit* victim, int32 rawDamage);
 }

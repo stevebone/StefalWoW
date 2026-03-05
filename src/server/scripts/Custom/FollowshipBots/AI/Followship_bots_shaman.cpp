@@ -1,5 +1,7 @@
 #include "Log.h"
+#include "SpellHistory.h"
 
+#include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_spells_handler.h"
@@ -38,8 +40,13 @@ namespace FSBShaman
 
         if (!bot->HasAura(SPELL_SHAMAN_SKYFURY))
         {
+            Unit* target = nullptr;
+            if (Player* player = FSBMgr::Get()->GetBotOwner(bot))
+                target = player;
+            else target = bot;
+
             uint32 spellId = SPELL_SHAMAN_SKYFURY;
-            if (FSBSpells::BotCastSpell(bot, spellId, bot))
+            if (FSBSpells::BotCastSpell(bot, spellId, target))
             {
                 //buffTimer = now + 60000; // 1 minute we set it after the second buff is set
                 cooldown = now + 1500; // 
@@ -63,5 +70,74 @@ namespace FSBShaman
         }
 
         return false;
+    }
+
+    bool BotInitialCombatSpells(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!bot->IsInCombat())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        if (baseAI->botCastedCombatBuffs)
+            return false;
+
+        uint32 totem1Spell = SPELL_SHAMAN_EARTH_TOTEM;
+
+        //Unit* target = nullptr;
+        //Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+        /*
+        switch (botRole)
+        {
+        case FSB_ROLE_HEALER:
+            if (tank)
+                target = tank;
+            else
+            {
+                Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+                if (!player)
+                    break;
+
+                if (!player->IsAlive())
+                    break;
+
+                if (!player->IsInCombat())
+                    break;
+
+                target = player;
+            }
+            break;
+        case FSB_ROLE_ASSIST:
+            target = bot;
+            break;
+        default:
+            target = bot;
+            break;
+        }
+        */
+        if (totem1Spell)
+        {
+            uint32 now = getMSTime();
+
+            if (!bot->GetSpellHistory()->HasCooldown(SPELL_SHAMAN_EARTH_TOTEM))
+            {
+                Position pos = Position{ bot->GetPositionX() + 2.f, bot->GetPositionY() + 2.f, bot->GetPositionZ() };
+                if (FSBSpells::BotCastSpellatLocation(bot, SPELL_SHAMAN_EARTH_TOTEM, pos))
+                {
+                    baseAI->botGlobalCooldown = now + 1500;
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Initial Totem Spell Cast: Earth at location: {}", pos.ToString());
+                    baseAI->botCastedCombatBuffs = true;
+                    return true;
+                }
+            }
+        }
+        return false;
+
     }
 }

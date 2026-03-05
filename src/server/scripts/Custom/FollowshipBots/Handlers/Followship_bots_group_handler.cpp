@@ -1,5 +1,6 @@
 #include "Log.h"
 #include "ObjectAccessor.h"
+#include "SpellAuras.h"
 
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"

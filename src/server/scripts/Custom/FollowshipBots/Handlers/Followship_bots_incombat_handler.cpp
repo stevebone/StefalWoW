@@ -406,6 +406,10 @@ namespace FSBIC
             if (FSBDruid::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, botRole, botGroup))
                 return true;
             break;
+        case FSB_Class::Shaman:
+            if (FSBShaman::BotInitialCombatSpells(bot))
+                return true;
+            break;
         default:
             return false;
         }

@@ -56,5 +56,6 @@ namespace FSBSpells
     bool BotTryOffensiveDispel(Creature* bot);
 
     bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target);
+    bool BotCastSpellatLocation(Creature* bot, uint32 spellId, const Position& pos);
     bool BotCastSpellWithCooldown(Creature* bot, uint32 spellId, Unit* target, uint32 cooldown);
 }

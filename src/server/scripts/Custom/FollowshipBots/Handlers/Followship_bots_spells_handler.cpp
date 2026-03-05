@@ -409,6 +409,29 @@ namespace FSBSpells
         return false;
     }
 
+    bool BotCastSpellatLocation(Creature* bot, uint32 spellId, const Position& pos)
+    {
+        if (!bot)
+            return false;
+
+        if (!spellId)
+            return false;
+
+        // Face the location
+        bot->SetFacingToPoint(pos, true);
+
+        SpellCastResult result = bot->CastSpell(pos, spellId);
+
+        if (result == SPELL_CAST_OK)
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} casted spell {} at location {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString());
+            return true;
+        }
+        else TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} Unable to cast spell {} at location {} with result {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString(), result);
+
+        return false;
+    }
+
     bool BotCastSpellWithCooldown(Creature* bot, uint32 spellId, Unit* target, uint32 cooldown)
     {
         if (!bot || !target)

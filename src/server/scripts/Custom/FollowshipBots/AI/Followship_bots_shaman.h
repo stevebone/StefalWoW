@@ -17,7 +17,13 @@ enum FSB_SHAMAN_GENERIC_SPELLS
     SPELL_SHAMAN_PRIMAL_STRIKE = 73899, //
 };
 
+enum FSB_SHAMAN_TOTEM_SPELLS
+{
+    SPELL_SHAMAN_EARTH_TOTEM = 2484, //30s, 40f
+};
+
 namespace FSBShaman
 {
     bool BotOOCBuffSelf(Creature* bot, uint32& outSpellId);
+    bool BotInitialCombatSpells(Creature* bot);
 }

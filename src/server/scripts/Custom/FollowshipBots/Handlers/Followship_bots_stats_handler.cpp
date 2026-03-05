@@ -245,7 +245,7 @@ namespace FSBStats
         float basedamage = (bot->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance) + effectiveAttackPower;
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} has base damage {} for effective level {}", bot->GetName(), bot->GetBaseDamageForLevel(level), level);
 
-        float weaponBaseMinDamage = basedamage / 90;
+        float weaponBaseMinDamage = basedamage; // / 90;
         float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
 
         bot->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
@@ -440,5 +440,62 @@ namespace FSBStats
             multiplier *= 1.03f;
 
         return multiplier;
+    }
+
+    float GetBotDamageMultiplier(uint8 level)
+    {
+        if (level < 1)
+            level = 1;
+
+        // Level 1-10: 0.5% ? 5%
+        if (level <= 10)
+        {
+            return 0.005f + (level - 1) * 0.005f;
+        }
+
+        // Level 10-20: 30% ? 80%
+        if (level <= 20)
+        {
+            return 0.30f + (level - 10) * 0.05f;
+        }
+
+        // Level 20-80: 80% ? 140%
+        if (level <= 80)
+        {
+            return 0.80f + (level - 20) * 0.01f;
+        }
+
+        // Above 80: clamp or extend
+        return 1.40f; // or extend formula if needed
+    }
+    int32 CalculateScaledBotDamage(Creature* bot, Unit* victim, int32 rawDamage)
+    {
+        if (!bot || !victim || rawDamage <= 0)
+            return rawDamage;
+
+        // Determine effective level for scaling
+        uint8 level = bot->GetLevel();
+
+        if (Player* owner = FSBMgr::Get()->GetBotOwner(bot))
+        {
+            // Bot hired by a player ? scale with owner
+            level = bot->GetLevelForTarget(owner);
+        }
+        else if (Player* playerVictim = victim->ToPlayer())
+        {
+            // Bot attacking a player ? scale with the player's level
+            level = bot->GetLevelForTarget(playerVictim);
+        }
+
+        // Apply level-based multiplier
+        float mult = FSBStats::GetBotDamageMultiplier(level);
+        int32 scaledDamage = int32(rawDamage * mult);
+
+        TC_LOG_DEBUG("scripts.fsb.combat",
+            "FSB: CalculateScaledBotDamage bot={} lvl={} mult={} raw={} scaled={}",
+            bot->GetName(), level, mult, rawDamage, scaledDamage
+        );
+
+        return scaledDamage;
     }
 }

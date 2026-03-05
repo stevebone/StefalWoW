@@ -344,19 +344,18 @@ public:
             return FSBStats::BotGetSpellPower(me);
         }
 
-        void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
+        void DamageDealt(Unit* victim, uint32& damage, DamageEffectType /*damageType*/) override
         {
-            if (damage > 0) damage = damage / 2;
-            FSBPowers::GenerateRageFromDamageDone(me, damage);
+            damage = FSBStats::CalculateScaledBotDamage(me, victim, damage);
             damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
+            FSBPowers::GenerateRageFromDamageDone(me, damage);
         }
 
         // Runs every time creature takes damage
         void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
-            FSBPowers::GenerateRageFromDamageTaken(me, damage);
-
             damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
+            FSBPowers::GenerateRageFromDamageTaken(me, damage);
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades
