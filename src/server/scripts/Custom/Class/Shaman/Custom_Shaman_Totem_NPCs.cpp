@@ -71,18 +71,43 @@ public:
                             target = me->SelectNearestTarget(8.0f);
                         break;
                     case SPELL_MANA_TIDE_TOTEM:
+                    {
                         target = me->GetOwner();
                         if (target && target->HasAura(SPELL_MANA_TIDE_TOTEM))
                         {
                             target = target->GetOwner();
                             if (target && target->HasAura(SPELL_MANA_TIDE_TOTEM))
                             {
-                                Trinity::AnyFriendlyUnitInObjectRangeCheck check(me, me, 20.0f);
-                                Trinity::UnitLastSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck> searcher(me, target, check);
+                                Unit* found = nullptr;
+
+                                struct FriendlyWithoutAuraCheck
+                                {
+                                    Unit* me;
+                                    float range;
+                                    uint32 aura;
+
+                                    FriendlyWithoutAuraCheck(Unit* me, float range, uint32 aura)
+                                        : me(me), range(range), aura(aura) {}
+
+                                    bool operator()(Unit* u)
+                                    {
+                                        return u && u != me &&
+                                            me->IsFriendlyTo(u) &&
+                                            me->GetDistance(u) <= range &&
+                                            !u->HasAura(aura);
+                                    }
+                                };
+
+                                FriendlyWithoutAuraCheck check(me, 20.0f, SPELL_MANA_TIDE_TOTEM);
+                                Trinity::UnitLastSearcher<FriendlyWithoutAuraCheck> searcher(me, found, check);
                                 Cell::VisitAllObjects(me, searcher, 20.0f);
+
+                                if (found)
+                                    target = found;
                             }
                         }
                         break;
+                    }
                     case SPELL_HEALING_TIDE_TOTEM:
                         target = me;
                         break;
