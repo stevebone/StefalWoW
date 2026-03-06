@@ -37,10 +37,11 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
 
     // ===================== ENHANCEMENT (MELEE DAMAGE) =====================
     { SPELL_SHAMAN_STORMSTRIKE,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      7500,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_SHAMAN_LAVA_LASH,              FSBSpellType::Damage,   0.f,        0.f,            70.f,            2.f,           false,      18000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_SHAMAN_LAVA_LASH,               FSBSpellType::Damage,   0.f,        0.f,            70.f,            2.f,           false,      18000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_CRASH_LIGHTNING,         FSBSpellType::Damage,   0.f,        0.f,            60.f,            2.f,           false,      12000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_PRIMAL_STRIKE,           FSBSpellType::Damage,   0.f,        0.f,            70.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_SUNDERING,               FSBSpellType::Damage,   0.f,        0.f,            50.f,            2.f,           false,      40000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    { SPELL_SHAMAN_DOOM_WINDS,              FSBSpellType::Damage,   0.f,        0.f,            50.f,            2.f,           true,       40000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     //{ SPELL_SHAMAN_FERAL_SPIRIT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 
     // ===================== RESTORATION (HEALER) =====================
@@ -95,7 +96,7 @@ namespace FSBShaman
         if (baseAI->botRole == FSB_ROLE_HEALER)
             shieldSpell = SPELL_SHAMAN_WATER_SHIELD;
 
-        else if (!bot->HasAura(shieldSpell))
+        if (!bot->HasAura(shieldSpell))
         {
             if (FSBSpells::BotCastSpell(bot, shieldSpell, bot))
             {
@@ -103,6 +104,18 @@ namespace FSBShaman
                 cooldown = now + 1500; // 
                 outSpellId = shieldSpell;
                 TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Bot {} Shaman Spell Cast: {} on self", bot->GetName(), FSBSpellsUtils::GetSpellName(shieldSpell));
+                return true;
+            }
+        }
+
+        if (baseAI->botRole == FSB_ROLE_MELEE_DAMAGE && !bot->HasAura(SPELL_SHAMAN_FLAMETONGUE_WEAPON))
+        {
+            if (FSBSpells::BotCastSpell(bot, SPELL_SHAMAN_FLAMETONGUE_WEAPON, bot))
+            {
+                buffTimer = now + 60000; // 1 minute
+                cooldown = now + 1500; // 
+                outSpellId = SPELL_SHAMAN_FLAMETONGUE_WEAPON;
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Bot {} Shaman Spell Cast: {} on self", bot->GetName(), FSBSpellsUtils::GetSpellName(SPELL_SHAMAN_FLAMETONGUE_WEAPON));
                 return true;
             }
         }

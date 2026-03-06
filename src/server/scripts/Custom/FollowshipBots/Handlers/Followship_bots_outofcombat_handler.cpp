@@ -898,6 +898,8 @@ namespace FSBOOC
             break;
         case FSB_Class::Shaman:
             buffSpellId = SPELL_SHAMAN_WATER_WALKING;
+            if (baseAI->botRole == FSB_ROLE_HEALER)
+                buffSpellId2 = SPELL_SHAMAN_EARTH_SHIELD;
             break;
         default:
             break;
@@ -913,7 +915,21 @@ namespace FSBOOC
         if (buffSpellId2 && buffTargets.empty())
         {
             buffSpellId = buffSpellId2;
-            GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
+            if (baseAI->botRole == FSB_ROLE_HEALER)
+            {
+                Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+
+                if (tank)
+                    buffTargets[0] = tank;
+                else
+                {
+                    Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+                    if (owner)
+                        buffTargets[0] = owner;
+                }
+            }
+                
+            else GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
         }
 
         if (!buffTargets.empty())
