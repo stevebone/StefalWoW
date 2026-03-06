@@ -1,3 +1,4 @@
+#include "GameObject.h"
 #include "Log.h"
 
 #include "Followship_bots.h"

@@ -385,8 +385,8 @@ namespace FSBRecovery
         if (!BotHasRecoveryActive(bot))
             return;
 
-        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) == 100;
-        bool fullHealth = bot->GetHealthPct() == 100;
+        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) >= 99.0f;
+        bool fullHealth = bot->GetHealthPct() >= 99.0f;
         bool full = fullMana && fullHealth;
 
         if (fullMana)
