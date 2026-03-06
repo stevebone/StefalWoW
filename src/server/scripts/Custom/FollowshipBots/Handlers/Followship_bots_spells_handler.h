@@ -25,6 +25,7 @@ struct FSBSpellDefinition
     bool isSelfCast = false;    // cast on self
     uint32 cooldownMs = 0;      // static cooldown duration
     uint32 allowedRoles = FSB_ROLEMASK_ANY;
+    bool isLocationSpell = false; // cast at position, not unit target
 };
 
 using FSBSpellTable = std::vector<FSBSpellDefinition>;
@@ -58,4 +59,8 @@ namespace FSBSpells
     bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target);
     bool BotCastSpellatLocation(Creature* bot, uint32 spellId, const Position& pos);
     bool BotCastSpellWithCooldown(Creature* bot, uint32 spellId, Unit* target, uint32 cooldown);
+    bool BotCastSpellatLocationWithCooldown(Creature* bot, uint32 spellId, const Position& pos, uint32 cooldown);
+
+    Position GetOffensiveAoEPosition(Creature* bot);
+    Position GetHealingAoEPosition(Creature* bot, const std::vector<Unit*>& group);
 }

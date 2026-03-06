@@ -14,6 +14,7 @@
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
+#include "Followship_bots_shaman.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 #include "Followship_bots_utils.h"
@@ -42,7 +43,7 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
 std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
 {
     { FSB_Class::Priest,  { SPELL_PRIEST_DISPEL_MAGIC, OFFDISPEL_MAGIC } },
-    //{ FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
+    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
     { FSB_Class::Hunter,    { SPELL_HUNTER_TRANQUILIZING_SHOT, OFFDISPEL_MAGIC } },
     { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } },
     { FSB_Class::Monk,    { SPELL_MONK_DETOX_ATTACK, OFFDISPEL_MAGIC } },
@@ -152,6 +153,7 @@ namespace FSBSpellsUtils
             return target == bot && bot->GetHealthPct() < 75;
 
             //SILENCE
+        case SPELL_SHAMAN_WIND_SHEAR:
         case SPELL_MONK_SPEAR_HAND_STRIKE:
         case SPELL_HUNTER_COUNTER_SHOT:
         case SPELL_ROGUE_KICK:
@@ -206,6 +208,30 @@ namespace FSBSpellsUtils
         case SPELL_SHAMAN_ASCENDANCE:
         case SPELL_PALADIN_LIGHT_OF_DAWN:
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
+
+        // Shaman 12.0.1 context requirements
+
+        case SPELL_SHAMAN_HEX:
+            return CheckCrowdControlRequirements(bot, 30.f);
+
+        case SPELL_SHAMAN_THUNDERSTORM:
+            return CheckCrowdControlRequirements(bot, 10.f);
+
+        case SPELL_SHAMAN_ASTRAL_SHIFT:
+            return target == bot && bot->GetHealthPct() < 30;
+
+        case SPELL_SHAMAN_EARTHQUAKE:
+        case SPELL_SHAMAN_CHAIN_LIGHTNING:
+        case SPELL_SHAMAN_CRASH_LIGHTNING:
+        case SPELL_SHAMAN_SUNDERING:
+            return CheckCrowdControlRequirements(bot, 10.f);
+
+        // NYI in TC
+        //case SPELL_SHAMAN_SPIRIT_LINK_TOTEM:
+        //    return !FSBGroup::BotGroupIsHealthy_Average(bot, 40);
+
+        case SPELL_SHAMAN_DOWNPOUR:
+            return !FSBGroup::BotGroupIsHealthy_Average(bot, 50);
 
         case SPELL_HUNTER_MONGOOSE_BITE:
         case SPELL_HUNTER_WING_CLIP:
@@ -578,6 +604,7 @@ namespace FSBSpellsUtils
         case SPELL_MONK_PARALYSIS:
         case SPELL_MONK_PARALYSIS_CHI:
         case SPELL_PANDAREN_QUAKING_PALM:
+        case SPELL_SHAMAN_HEX:
             return true;
         default:
             return false;
