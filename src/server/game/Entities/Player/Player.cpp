@@ -18562,7 +18562,8 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_SPECIALIZATIONS),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_SHIPMENTS),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TALENTS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TROPHIES)))
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TROPHIES),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_ARCHIVED_MISSIONS)))
         _garrisons[garrison->GetType()] = std::move(garrison);
 
     _InitHonorLevelOnLoadFromDB(fields.honor, fields.honorLevel);

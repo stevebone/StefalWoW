@@ -44,7 +44,7 @@ Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRI
 bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blueprints, PreparedQueryResult buildings,
     PreparedQueryResult followers, PreparedQueryResult abilities, PreparedQueryResult missions,
     PreparedQueryResult specializations, PreparedQueryResult shipments, PreparedQueryResult talents,
-    PreparedQueryResult trophies)
+    PreparedQueryResult trophies, PreparedQueryResult archivedMissions)
 {
     if (!garrison)
         return false;
@@ -53,8 +53,18 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
     _siteLevel = sGarrSiteLevelStore.LookupEntry(fields[0].GetUInt32());
     _followerActivationsRemainingToday = fields[1].GetUInt32();
     _garrType = static_cast<GarrisonType>(fields[2].GetUInt32());
+    _missionsStartedToday = fields[3].GetUInt32();
+    _lastMissionStartDay = fields[4].GetUInt32();
     if (!_siteLevel)
         return false;
+
+    // Reset daily mission counter if the day has changed
+    uint32 today = static_cast<uint32>(GameTime::GetGameTime() / DAY);
+    if (today != _lastMissionStartDay)
+    {
+        _missionsStartedToday = 0;
+        _lastMissionStartDay = today;
+    }
 
     InitializePlots();
 
@@ -156,6 +166,19 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             fields = trophies->Fetch();
             _trophies.insert(fields[0].GetUInt32());
         } while (trophies->NextRow());
+    }
+
+    //           0          1
+    // SELECT garrType, missionRecID FROM character_garrison_archived_missions WHERE guid = ?
+    if (archivedMissions)
+    {
+        do
+        {
+            fields = archivedMissions->Fetch();
+            uint32 garrType = fields[0].GetUInt32();
+            if (garrType == static_cast<uint32>(_garrType))
+                _archivedMissions.push_back(fields[1].GetInt32());
+        } while (archivedMissions->NextRow());
     }
 
     //           0           1        2      3                4               5   6                7               8       9          10         11
@@ -263,6 +286,8 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     stmt->setUInt32(1, _siteLevel->ID);
     stmt->setUInt32(2, _followerActivationsRemainingToday);
     stmt->setUInt32(3, static_cast<uint32>(_garrType));
+    stmt->setUInt32(4, _missionsStartedToday);
+    stmt->setUInt32(5, _lastMissionStartDay);
     trans->Append(stmt);
 
     for (uint32 building : _knownBuildings)
@@ -395,6 +420,15 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setUInt32(1, trophyId);
         trans->Append(stmt);
     }
+
+    for (int32 missionRecID : _archivedMissions)
+    {
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_ARCHIVED_MISSION);
+        stmt->setUInt64(0, _owner->GetGUID().GetCounter());
+        stmt->setUInt32(1, static_cast<uint32>(_garrType));
+        stmt->setInt32(2, missionRecID);
+        trans->Append(stmt);
+    }
 }
 
 void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans)
@@ -432,6 +466,10 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTran
     trans->Append(stmt);
 
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_TROPHIES);
+    stmt->setUInt64(0, ownerGuid);
+    trans->Append(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS);
     stmt->setUInt64(0, ownerGuid);
     trans->Append(stmt);
 }
@@ -1033,6 +1071,8 @@ void Garrison::BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) c
     garrison.GarrSiteID = _siteLevel->GarrSiteID;
     garrison.GarrSiteLevelID = _siteLevel->ID;
     garrison.NumFollowerActivationsRemaining = _followerActivationsRemainingToday;
+    garrison.NumMissionsStartedToday = _missionsStartedToday;
+    garrison.ArchivedMissions = _archivedMissions;
     for (auto& p : _plots)
     {
         Plot const& plot = p.second;
@@ -1060,7 +1100,7 @@ void Garrison::BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) c
         copy.Rewards.clear();
         copy.OvermaxRewards.clear();
         garrison.Missions.push_back(&copy);
-        garrison.CanStartMission.push_back(p.second.PacketInfo.MissionState == 0);
+        garrison.CanStartMission.push_back(true);
     }
 
     for (auto const& [talentId, talent] : _talents)
@@ -1735,6 +1775,15 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
     mission->PacketInfo.StartTime = GameTime::GetGameTime();
     mission->PacketInfo.SuccessChance = successChance;
 
+    // Track missions started today (daily reset based on day boundary)
+    uint32 today = static_cast<uint32>(GameTime::GetGameTime() / DAY);
+    if (today != _lastMissionStartDay)
+    {
+        _missionsStartedToday = 0;
+        _lastMissionStartDay = today;
+    }
+    ++_missionsStartedToday;
+
     return GARRISON_SUCCESS;
 }
 
@@ -2013,6 +2062,9 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
             }
         }
     }
+
+    // Archive the completed mission
+    _archivedMissions.push_back(static_cast<int32>(missionRecID));
 
     // Remove mission from active list
     _activeMissionRecIDs.erase(missionRecID);

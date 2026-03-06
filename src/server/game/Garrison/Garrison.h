@@ -253,7 +253,7 @@ public:
     bool LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blueprints, PreparedQueryResult buildings,
         PreparedQueryResult followers, PreparedQueryResult abilities, PreparedQueryResult missions,
         PreparedQueryResult specializations, PreparedQueryResult shipments, PreparedQueryResult talents,
-        PreparedQueryResult trophies);
+        PreparedQueryResult trophies, PreparedQueryResult archivedMissions);
     void SaveToDB(CharacterDatabaseTransaction trans);
     static void DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans);
 
@@ -416,6 +416,9 @@ private:
     time_t _lastMissionGenerationTime = 0;
     std::unordered_set<uint32 /*missionRecID*/> _activeMissionRecIDs;
     uint32 _sessionMissionCount = 0;
+    uint32 _missionsStartedToday = 0;
+    uint32 _lastMissionStartDay = 0; // days since epoch, for daily reset detection
+    std::vector<int32> _archivedMissions;
 
     // Recruitment
     std::vector<WorldPackets::Garrison::GarrisonFollower> _availableRecruits;
