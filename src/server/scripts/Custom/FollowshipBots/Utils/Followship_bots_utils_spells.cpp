@@ -153,6 +153,7 @@ namespace FSBSpellsUtils
             return target == bot && bot->GetHealthPct() < 75;
 
             //SILENCE
+        case SPELL_SHAMAN_WIND_SHEAR:
         case SPELL_MONK_SPEAR_HAND_STRIKE:
         case SPELL_HUNTER_COUNTER_SHOT:
         case SPELL_ROGUE_KICK:
@@ -209,8 +210,6 @@ namespace FSBSpellsUtils
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
 
         // Shaman 12.0.1 context requirements
-        case SPELL_SHAMAN_WIND_SHEAR:
-            return target && target->HasUnitState(UNIT_STATE_CASTING);
 
         case SPELL_SHAMAN_HEX:
             return CheckCrowdControlRequirements(bot, 30.f);
@@ -227,8 +226,9 @@ namespace FSBSpellsUtils
         case SPELL_SHAMAN_SUNDERING:
             return CheckCrowdControlRequirements(bot, 10.f);
 
-        case SPELL_SHAMAN_SPIRIT_LINK_TOTEM:
-            return !FSBGroup::BotGroupIsHealthy_Average(bot, 40);
+        // NYI in TC
+        //case SPELL_SHAMAN_SPIRIT_LINK_TOTEM:
+        //    return !FSBGroup::BotGroupIsHealthy_Average(bot, 40);
 
         case SPELL_SHAMAN_DOWNPOUR:
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 50);
