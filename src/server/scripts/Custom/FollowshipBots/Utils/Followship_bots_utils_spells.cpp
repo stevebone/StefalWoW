@@ -220,7 +220,7 @@ namespace FSBSpellsUtils
         case SPELL_SHAMAN_ASTRAL_SHIFT:
             return target == bot && bot->GetHealthPct() < 30;
 
-        case SPELL_SHAMAN_EARTHQUAKE:
+        //case SPELL_SHAMAN_EARTHQUAKE:
         case SPELL_SHAMAN_CHAIN_LIGHTNING:
         case SPELL_SHAMAN_CRASH_LIGHTNING:
         case SPELL_SHAMAN_SUNDERING:

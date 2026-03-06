@@ -33,7 +33,7 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
     { SPELL_SHAMAN_EARTH_SHOCK,             FSBSpellType::Damage,   0.f,        0.f,            70.f,            25.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_SHAMAN_CHAIN_LIGHTNING,         FSBSpellType::Damage,   0.f,        0.f,            60.f,            40.f,          false,      3000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_SHAMAN_ELEMENTAL_BLAST,         FSBSpellType::Damage,   0.f,        0.f,            70.f,            40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
-    { SPELL_SHAMAN_EARTHQUAKE,              FSBSpellType::Damage,   0.f,        0.f,            60.f,            40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE,                        true },
+    //{ SPELL_SHAMAN_EARTHQUAKE,              FSBSpellType::Damage,   0.f,        0.f,            60.f,            40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE,                        true },
 
     // ===================== ENHANCEMENT (MELEE DAMAGE) =====================
     { SPELL_SHAMAN_STORMSTRIKE,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      7500,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
@@ -41,7 +41,7 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
     { SPELL_SHAMAN_CRASH_LIGHTNING,         FSBSpellType::Damage,   0.f,        0.f,            60.f,            2.f,           false,      12000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_PRIMAL_STRIKE,           FSBSpellType::Damage,   0.f,        0.f,            70.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_SUNDERING,               FSBSpellType::Damage,   0.f,        0.f,            50.f,            2.f,           false,      40000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
-    { SPELL_SHAMAN_FERAL_SPIRIT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+    //{ SPELL_SHAMAN_FERAL_SPIRIT,            FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
 
     // ===================== RESTORATION (HEALER) =====================
     { SPELL_SHAMAN_ASCENDANCE,              FSBSpellType::Heal,     0.f,        90.f,           50.f,            0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
@@ -51,7 +51,7 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
     { SPELL_SHAMAN_UNLEASH_LIFE,            FSBSpellType::Heal,     0.f,        70.f,           50.f,            40.f,          false,      20000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_SHAMAN_RIPTIDE,                 FSBSpellType::Heal,     0.f,        70.f,           100.f,           40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_SHAMAN_DOWNPOUR,                FSBSpellType::Heal,     0.f,        30.f,           80.f,            35.f,          false,      35000,          FSB_RoleMask::FSB_ROLEMASK_HEALER,                               true },
-    { SPELL_SHAMAN_SPIRIT_LINK_TOTEM,       FSBSpellType::Heal,     0.f,        25.f,           100.f,           40.f,          false,      180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER,                               true },
+    //{ SPELL_SHAMAN_SPIRIT_LINK_TOTEM,       FSBSpellType::Heal,     0.f,        25.f,           100.f,           40.f,          false,      180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER,                               true },
 
     // Healer filler damage (when group is healthy)
     { SPELL_SHAMAN_LIGHTNING_BOLT,          FSBSpellType::Damage,   0.f,        0.f,            40.f,            40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
