@@ -144,6 +144,9 @@ namespace FSBMovement
             }
             else
             {
+                if (cls == FSB_Class::Shaman && bot->HasAura(SPELL_SHAMAN_GHOST_WOLF))
+                    bot->RemoveAurasDueToSpell(SPELL_SHAMAN_GHOST_WOLF);
+
                 if (FSBSpellsUtils::CastRandomMountLevelSpell(bot))
                     botMounted = true;
             } 

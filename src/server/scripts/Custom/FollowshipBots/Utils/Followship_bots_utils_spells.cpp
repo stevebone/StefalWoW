@@ -34,7 +34,7 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
     { FSB_Class::Paladin, { SPELL_PALADIN_CLEANSE,       { DISPEL_MAGIC, DISPEL_DISEASE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_REMOVE_CORRUPTION, { DISPEL_CURSE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_NATURE_CURE,       { DISPEL_MAGIC, DISPEL_CURSE, DISPEL_POISON }, 8000 }},
-    //{ FSB_Class::Shaman,  { SPELL_SHAMAN_CLEANSE_SPIRIT, { DISPEL_CURSE } } },
+    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURIFY_SPIRIT,    { DISPEL_MAGIC } } },
     { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }},
     { FSB_Class::Monk,    { SPELL_MONK_DETOX_HEAL, { DISPEL_POISON, DISPEL_DISEASE}, 8000 }},
 };
@@ -203,6 +203,7 @@ namespace FSBSpellsUtils
         case SPELL_ROGUE_THISTLE_TEA:
             return bot->GetPowerPct(bot->GetPowerType()) <= 30;
 
+        case SPELL_SHAMAN_ASCENDANCE:
         case SPELL_PALADIN_LIGHT_OF_DAWN:
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
 

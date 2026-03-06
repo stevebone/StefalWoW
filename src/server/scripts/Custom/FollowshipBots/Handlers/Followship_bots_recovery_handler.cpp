@@ -200,6 +200,10 @@ namespace FSBRecovery
                 spellId = RAND(SPELL_PALADIN_HOLY_LIGHT, SPELL_PALADIN_FLASH_OF_LIGHT);
             else if (botClass == FSB_Class::Druid)
                 spellId = RAND(SPELL_DRUID_REGROWTH, SPELL_DRUID_REJUVENATION, SPELL_DRUID_LIFEBLOOM);
+            else if (botClass == FSB_Class::Shaman)
+                spellId = RAND(uint32(SPELL_SHAMAN_HEALING_SURGE), uint32(SPELL_SHAMAN_HEALING_STREAM_TOTEM), uint32(SPELL_SHAMAN_HEALING_TIDE_TOTEM));
+            else if (botClass == FSB_Class::Monk)
+                spellId = SPELL_MONK_VIVIFY;
             else return false;
 
             if (bot->HasAura(spellId))

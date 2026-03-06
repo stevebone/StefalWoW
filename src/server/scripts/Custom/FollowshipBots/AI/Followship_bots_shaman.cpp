@@ -19,8 +19,18 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
 
     { SPELL_SHAMAN_HEALING_SURGE,           FSBSpellType::Heal,     0.1f,       50.f,           100.f,           40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
 
-    { SPELL_SHAMAN_LIGHTNING_BOLT,          FSBSpellType::Damage,   0.f,        0.f,            80.f,            40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
-    { SPELL_SHAMAN_PRIMAL_STRIKE,           FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_SHAMAN_FLAME_SHOCK,             FSBSpellType::Damage,   0.f,        0.f,            70.f,            25.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_SHAMAN_LIGHTNING_BOLT,          FSBSpellType::Damage,   0.f,        0.f,            70.f,            40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_SHAMAN_PRIMAL_STRIKE,           FSBSpellType::Damage,   0.f,        0.f,            70.f,            2.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY },
+
+    { SPELL_SHAMAN_HEROISM,                 FSBSpellType::Damage,   0.f,        0.f,            50.f,            2.f,           true,       600000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+
+    //HEAL
+    { SPELL_SHAMAN_ASCENDANCE,              FSBSpellType::Heal,     0.f,        90.f,           50.f,            20.f,          false,      180000,         FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_SHAMAN_HEALING_RAIN,            FSBSpellType::Heal,     0.f,        40.f,           100.f,           40.f,          false,      18000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_SHAMAN_HEALING_WAVE,            FSBSpellType::Heal,     0.f,        40.f,           100.f,           40.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_SHAMAN_UNLEASH_LIFE,            FSBSpellType::Heal,     0.f,        70.f,           50.f,            40.f,          false,      20000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
+    { SPELL_SHAMAN_RIPTIDE,                 FSBSpellType::Heal,     0.f,        70.f,           100.f,           40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
 };
 
 namespace FSBShaman
@@ -52,20 +62,23 @@ namespace FSBShaman
                 //buffTimer = now + 60000; // 1 minute we set it after the second buff is set
                 cooldown = now + 1500; // 
                 outSpellId = spellId;
-                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Spell Cast: Skyfury on target: {}", bot->GetName());
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Bot {} Shaman Spell Cast: Skyfury on self.", bot->GetName());
                 return true;
             }
         }
 
-        else if (!bot->HasAura(SPELL_SHAMAN_LIGHTNING_SHIELD))
+        uint32 shieldSpell = SPELL_SHAMAN_LIGHTNING_SHIELD;
+        if (baseAI->botRole == FSB_ROLE_HEALER)
+            shieldSpell = SPELL_SHAMAN_WATER_SHIELD;
+
+        else if (!bot->HasAura(shieldSpell))
         {
-            uint32 spellId = SPELL_SHAMAN_LIGHTNING_SHIELD;
-            if (FSBSpells::BotCastSpell(bot, spellId, bot))
+            if (FSBSpells::BotCastSpell(bot, shieldSpell, bot))
             {
                 buffTimer = now + 60000; // 1 minute
                 cooldown = now + 1500; // 
-                outSpellId = spellId;
-                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Shaman Spell Cast: Lightning Shield on target: {}", bot->GetName());
+                outSpellId = shieldSpell;
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Bot {} Shaman Spell Cast: {} on self", bot->GetName(), FSBSpellsUtils::GetSpellName(shieldSpell));
                 return true;
             }
         }
@@ -199,5 +212,37 @@ namespace FSBShaman
         }
         return false;
 
+    }
+
+    bool BotOOCHealOwner(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (!player || !player->IsAlive())
+            return false;
+
+        uint32 spellId = SPELL_SHAMAN_HEALING_SURGE;
+
+        uint32 now = getMSTime();
+
+        if (player->GetHealthPct() <= 50)
+        {
+            FSBSpells::BotCastSpell(bot, spellId, player);
+            baseAI->botGlobalCooldown = now + 1500;
+
+            TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: Shaman BotOOCHealOwner Bot: {} Player Heal < 50", bot->GetName());
+
+            return true;
+
+        }
+
+        return false;
     }
 }

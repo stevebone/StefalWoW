@@ -431,7 +431,18 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     auto& botRole = baseAI->botRole;
     baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
 
+    // For shaman we set self resurrect flag for reincarnation
+    if (botClass == FSB_Class::Shaman)
+    {
+        baseAI->botHasSoulstone = true;
 
+        if (roll_chance_i(30))
+        {
+            bot->CastSpell(bot, SPELL_SHAMAN_GHOST_WOLF, false);
+        }
+
+
+    }
 
     // Initial Flags and States
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);

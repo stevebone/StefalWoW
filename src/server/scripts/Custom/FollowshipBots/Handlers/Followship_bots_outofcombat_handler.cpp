@@ -186,6 +186,20 @@ namespace FSBOOC
 
         switch (action)
         {
+        case FSB_AFK_ACTION_SHAMAN_WOLF:
+        {
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI)
+                return false;
+
+            if (baseAI->botClass != FSB_Class::Shaman)
+                return false;
+
+            if (FSBSpells::BotCastSpell(bot, SPELL_SHAMAN_GHOST_WOLF, bot))
+                return true;
+
+            return false;
+        }
         case FSB_AFK_ACTION_MAKE_PICNIC:
         {
             if (bot->GetSpellHistory()->HasCooldown(SPELL_SPECIAL_ROMANTIC_PICNIC))
@@ -749,6 +763,10 @@ namespace FSBOOC
             if (FSBMonk::BotOOCHealOwner(bot))
                 check = true;
             break;
+        case FSB_Class::Shaman:
+            if (FSBShaman::BotOOCHealOwner(bot))
+                check = true;
+            break;
         default:
             break;
         }
@@ -877,6 +895,9 @@ namespace FSBOOC
             break;
         case FSB_Class::Warlock:
             buffSpellId = SPELL_WARLOCK_UNENDING_BREATH;
+            break;
+        case FSB_Class::Shaman:
+            buffSpellId = SPELL_SHAMAN_WATER_WALKING;
             break;
         default:
             break;

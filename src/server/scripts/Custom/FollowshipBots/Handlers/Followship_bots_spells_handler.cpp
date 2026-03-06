@@ -336,6 +336,9 @@ namespace FSBSpells
         if (ability.spellId == SPELL_MONK_DETOX_HEAL && role != FSB_ROLE_TANK)
             return false;
 
+        if (ability.spellId == SPELL_SHAMAN_PURIFY_SPIRIT && role != FSB_ROLE_HEALER)
+            return false;
+
         if (!FSBSpellsUtils::IsSpellReady(ability.spellId))
             return false;
 

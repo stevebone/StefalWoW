@@ -42,7 +42,7 @@ namespace FSBDeath
             else FSBChatter::DemandBotChatter(bot, killer, FSB_ChatterCategory::botDeath, FSB_ReplyType::Yell, FSB_ChatterSource::None);
         }
         
-        // handle death with soulstone
+        // handle death with soulstone or Self Resurrect (Shaman)
         if (hasSS)
         {
             TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied with Soulstone and will self resurrect.", bot->GetName());

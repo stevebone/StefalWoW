@@ -7,14 +7,19 @@ extern std::vector<FSBSpellDefinition> ShamanSpellsTable;
 enum FSB_SHAMAN_GENERIC_SPELLS
 {
     SPELL_SHAMAN_ANCESTRAL_SPIRIT = 2008, //RESS
+    SPELL_SHAMAN_GHOST_WOLF = 2645,
 
     SPELL_SHAMAN_HEALING_SURGE = 8004, //0s, 40f, 10% mana
 
     SPELL_SHAMAN_SKYFURY = 462854, //buff self
     SPELL_SHAMAN_LIGHTNING_SHIELD = 192106, //buff self
+    SPELL_SHAMAN_HEROISM = 32182, //10m, self
+
+    SPELL_SHAMAN_WATER_WALKING = 546, //buff 30f
 
     SPELL_SHAMAN_LIGHTNING_BOLT = 224721, //188196, //0s, 40f, 0.2% mana
     SPELL_SHAMAN_PRIMAL_STRIKE = 73899, //
+    SPELL_SHAMAN_FLAME_SHOCK = 163057, //6s 25f
 
     // these are used by totems but we need them for aura application detection
     SPELL_MANA_TIDE_TOTEM = 320763,
@@ -34,8 +39,21 @@ enum FSB_SHAMAN_TOTEM_SPELLS
     SPELL_SHAMAN_SCORCHING_TOTEM = 15038, //35s, //DMG
 };
 
+enum FSB_SHAMAN_RESTO_SPELLS
+{
+    SPELL_SHAMAN_HEALING_WAVE = 77472, //40f
+    SPELL_SHAMAN_PURIFY_SPIRIT = 77130, //8s 40f //Dispell
+    SPELL_SHAMAN_RIPTIDE = 61295, //6s 40f
+    SPELL_SHAMAN_UNLEASH_LIFE = 73685, //20s 40f
+    SPELL_SHAMAN_HEALING_RAIN = 73920, //18s 40f
+    SPELL_SHAMAN_ASCENDANCE = 114052, //3m self
+
+    SPELL_SHAMAN_WATER_SHIELD = 52127, //buff
+};
+
 namespace FSBShaman
 {
     bool BotOOCBuffSelf(Creature* bot, uint32& outSpellId);
     bool BotInitialCombatSpells(Creature* bot);
+    bool BotOOCHealOwner(Creature* bot);
 }

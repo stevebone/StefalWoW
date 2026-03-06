@@ -5,6 +5,8 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "EventMap.h"
+#include "GridNotifiers.h"
+#include "Cell.h"
 
 #include "Custom_Shaman_Totem_NPCs.h"
 
