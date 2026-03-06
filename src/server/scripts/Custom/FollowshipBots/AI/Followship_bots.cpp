@@ -29,6 +29,7 @@
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
+#include "Followship_bots_party_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 
@@ -607,6 +608,13 @@ public:
                             // Includes: bot, owner and other bots owner by its owner
                             // TO-DO: Add check to include other players in the group of the owner
                             FSBGroup::BuildLogicalBotGroup(me, botLogicalGroup);
+
+                            // Send fake party frame update and bot health/mana states to owner
+                            if (Player* owner = FSBMgr::Get()->GetBotOwner(me))
+                            {
+                                FSBParty::SendFakePartyUpdate(owner);
+                                FSBParty::SendAllBotMemberStates(owner);
+                            }
 
                             // ? lock check for next 5 seconds
                             _5secondsCheckMs = now + 5000;
