@@ -29,6 +29,7 @@
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
+#include "Followship_bots_party_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 
@@ -566,17 +567,13 @@ public:
 
                             FSBOOC::BotOOCActions(baseAI);
 
-                            //if (FSBOOC::BotOOCActions(baseAI))
-                                //FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
-
-                            // ? lock timer for next 2 seconds
                             _1secondsCheckMs = now + 1000;
                         }
                     }
 
-                    events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
+                    FSBParty::PeriodicPartyNeededCheck(me);
 
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end"); // TEMP LOG
+                    events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
                     break;
                 }
@@ -598,27 +595,19 @@ public:
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
 
-                        // bot events
-                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_CHECK_MEMBER_DEATH, 3s, 5s);                        
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_CHECK_MEMBER_DEATH, 3s, 5s);
 
                         if (now >= _5secondsCheckMs)
                         {
                             FSBStats::UpdateBotLevelToPlayer(me);
 
-                            // Check to dermine what friendlies we have in our "group"
-                            // Includes: bot, owner and other bots owner by its owner
-                            // TO-DO: Add check to include other players in the group of the owner
                             FSBGroup::BuildLogicalBotGroup(me, botLogicalGroup);
 
-                            // ? lock check for next 5 seconds
                             _5secondsCheckMs = now + 5000;
                         }
                     }
 
                     events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
-
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Hired Maintenance Reached the end"); // TEMP LOG
-
                     break;
                 }
 
