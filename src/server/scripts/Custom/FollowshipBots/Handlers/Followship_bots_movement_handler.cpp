@@ -177,23 +177,15 @@ namespace FSBMovement
         if (!baseAI)
             return;
 
-        if (!baseAI->botHired)
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (!baseAI->botHired || !owner)
         {
             bot->GetMotionMaster()->Clear();
-            bot->GetMotionMaster()->MoveIdle();
-            return;
-        }
-
-        // Handles moving the bot back to follow or owner
-        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-        if (!owner)
-        {
-            if (bot->HasUnitState(UNIT_STATE_FOLLOW))
-                bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
+            bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE | UNIT_STATE_ROAMING);
             bot->GetMotionMaster()->MoveIdle();
 
             TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotHandleReturnMovement bot {} does not have owner so it is set to Idle", bot->GetName());
-
             return;
         }
 
@@ -202,6 +194,7 @@ namespace FSBMovement
             if (bot->HasUnitState(UNIT_STATE_CHASE))
                 bot->GetMotionMaster()->Remove(CHASE_MOTION_TYPE);
 
+            bot->GetMotionMaster()->Clear();
             bot->GetMotionMaster()->MoveFollow(owner, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
             TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotHandleReturnMovement bot {} has owner so it is set to Follow", bot->GetName());
@@ -230,6 +223,7 @@ namespace FSBMovement
             return true;
 
         mm->Clear();
+        bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
 
         // Bots with ranged attacks should not care about the chase angle at all.
         float angle = requiredRange == 2.f ? float(M_PI) : frand(-2.f, 2.f);
@@ -261,6 +255,7 @@ namespace FSBMovement
             return true;
 
         mm->Clear();
+        bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
 
         // Bots with ranged attacks should not care about the chase angle at all.
         float angle = range == 2.f ? float(M_PI) : frand(-2.f, 2.f);
