@@ -2,6 +2,7 @@
 #include "CharmInfo.h"
 #include "Creature.h"
 #include "Log.h"
+#include "ObjectAccessor.h"
 #include "Pet.h"
 #include "PhasingHandler.h"
 #include "SpellInfo.h"

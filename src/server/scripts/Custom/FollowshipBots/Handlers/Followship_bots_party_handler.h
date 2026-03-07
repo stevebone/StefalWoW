@@ -8,6 +8,7 @@ class Player;
 namespace FSBParty
 {
     void PeriodicPartyNeededCheck(Creature* bot);
+    std::vector<Creature*> CollectActiveBots(Player* player);
 
     // Sends a fake SMSG_PARTY_UPDATE to the player that includes their bots
     // If the player is in a real group, bots are appended to the real group members

@@ -251,9 +251,6 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_HIRED_LEAVE:
     {
-        //float x, y, z;
-        //me->GetRandomPoint(me->GetPosition(), 10.0f, x, y, z); // 10 yd radius
-        //me->GetMotionMaster()->MovePoint(1, me->GetPositionX() + 30, me->GetPositionY(), me->GetPositionZ(), true);
         float x, y, z;
         me->GetRandomPoint(me->GetPosition(), 50.0f, x, y, z);
         me->GetMotionMaster()->MovePoint(1, x, y, z);

@@ -51,7 +51,7 @@ public:
 
     void OnDisband(Group* /*group*/) override
     {
-        // Group disbanded — each player's bots will be re-sent as standalone fake parties
+        // Group disbanded - each player's bots will be re-sent as standalone fake parties
         // This happens naturally through the periodic maintenance
     }
 };
