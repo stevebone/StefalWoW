@@ -41,49 +41,12 @@ public:
 
     void OnAddMember(Group* group, ObjectGuid guid) override
     {
-        // When a player joins a group, re-send the party update with bots included
-        if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
-            FSBParty::SendFakePartyUpdate(player);
-
-        // Also update for existing members who have bots
-        for (auto const& memberSlot : group->GetMemberSlots())
-        {
-            if (memberSlot.guid == guid)
-                continue;
-            if (Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid))
-            {
-                auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
-                if (botsPtr && !botsPtr->empty())
-                    FSBParty::SendFakePartyUpdate(member);
-            }
-        }
+        FSBParty::OnMemberAdd(group, guid);
     }
 
     void OnRemoveMember(Group* group, ObjectGuid guid, RemoveMethod /*method*/, ObjectGuid /*kicker*/, char const* /*reason*/) override
     {
-        // When a player leaves a group, clear their fake party if they had bots
-        if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
-        {
-            auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
-            if (botsPtr && !botsPtr->empty())
-            {
-                // Re-send as standalone fake party (player + bots only)
-                FSBParty::SendFakePartyUpdate(player);
-            }
-        }
-
-        // Update remaining members who have bots
-        for (auto const& memberSlot : group->GetMemberSlots())
-        {
-            if (memberSlot.guid == guid)
-                continue;
-            if (Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid))
-            {
-                auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
-                if (botsPtr && !botsPtr->empty())
-                    FSBParty::SendFakePartyUpdate(member);
-            }
-        }
+        FSBParty::OnMemberRemove(group, guid);
     }
 
     void OnDisband(Group* /*group*/) override
