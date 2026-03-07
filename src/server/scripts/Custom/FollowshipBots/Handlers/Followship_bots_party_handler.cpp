@@ -60,17 +60,6 @@ namespace FSBParty
         SendFakePartyUpdate(player, activeBots);
     }
 
-	void SendFakePartyUpdate(Player* player)
-	{
-		if (!player || !player->GetSession())
-			return;
-
-		auto activeBots = CollectActiveBots(player);
-
-		SendFakePartyUpdate(player, activeBots);
-	}
-
-
     void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& activeBots)
     {
         if (!player || !player->GetSession())
@@ -82,12 +71,12 @@ namespace FSBParty
         {
             if (!realGroup)
             {
-                // Player is solo → send a clean "clear fake party"
+                // Player is solo ? send a clean "clear fake party"
                 SendClearFakeParty(player);
             }
             else
             {
-                // Player is in a real group → send a normal group-only PartyUpdate
+                // Player is in a real group ? send a normal group-only PartyUpdate
                 WorldPackets::Party::PartyUpdate partyUpdate;
                 partyUpdate.PartyFlags = realGroup->GetGroupFlags();
                 partyUpdate.PartyIndex = realGroup->GetGroupCategory();
@@ -148,7 +137,7 @@ namespace FSBParty
 
         if (realGroup)
         {
-            // Player is in a real group — augment it with bots
+            // Player is in a real group - augment it with bots
             partyUpdate.PartyFlags = realGroup->GetGroupFlags();
             partyUpdate.PartyIndex = realGroup->GetGroupCategory();
             partyUpdate.PartyType = GROUP_TYPE_NORMAL;
@@ -212,7 +201,7 @@ namespace FSBParty
         }
         else
         {
-            // Player is solo — create a fake standalone party
+            // Player is solo - create a fake standalone party
             partyUpdate.PartyFlags = GROUP_FLAG_NONE;
             partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
             partyUpdate.PartyType = GROUP_TYPE_NORMAL;
