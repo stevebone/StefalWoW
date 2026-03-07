@@ -1,3 +1,5 @@
+#include "Log.h"
+
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_druid.h"
@@ -236,12 +238,12 @@ namespace FSBRecovery
 
             if (result == SPELL_CAST_OK)
             {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryAction Race Heal cast result: {}", result);
+                TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: RecoveryAction Race Heal cast result: {}", result);
                 globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
                 return true;
             }
-            else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryAction Race Heal cast result not ok: {}", result);
+            else TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: RecoveryAction Race Heal cast result not ok: {}", result);
         }
 
         return false;
