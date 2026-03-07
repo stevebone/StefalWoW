@@ -33,6 +33,7 @@ namespace FSBMovement
 
         SetBotMoveState(bot, FSB_MOVE_STATE_FOLLOWING);
 
+        bot->GetMotionMaster()->Clear();
         bot->GetMotionMaster()->MoveFollow(player, followDistance, followAngle);
     }
 

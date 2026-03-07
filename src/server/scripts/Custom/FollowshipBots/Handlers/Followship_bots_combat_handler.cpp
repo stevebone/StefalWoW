@@ -21,16 +21,15 @@ namespace FSBCombat
             {
                 bot->AttackStop();
                 return;
-            }
+            }            
 
             // Bot must still consider this its real victim
             Unit* ensured = bot->EnsureVictim();
             if (!ensured || ensured != victim || !ensured->IsAlive() || !ensured->IsInWorld() || ensured->IsDuringRemoveFromWorld())
                 return;
 
-            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-
             // Owner may be null OR on another map
+            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
             if (!owner || !owner->IsInWorld() || owner->IsDuringRemoveFromWorld())
                 return;
 
@@ -38,13 +37,17 @@ namespace FSBCombat
             if (owner->GetMapId() != victim->GetMapId())
                 return;
 
-            // Now safe to check combat state
-            if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) ||
-                (!bot->IsHostileTo(victim) && owner->IsInCombatWith(victim)))
+            if (owner)
             {
-                victim->SetFaction(14);
-                bot->GetCombatManager().SetInCombatWith(victim);
-                victim->GetCombatManager().SetInCombatWith(bot);
+                // Now safe to check combat state
+                if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) ||
+                    (!bot->IsHostileTo(victim) && owner->IsInCombatWith(victim)))
+                {
+                    // Do not remove this or bots cant cast spells on neutral mobs
+                    victim->SetFaction(14);
+                    bot->GetCombatManager().SetInCombatWith(victim);
+                    victim->GetCombatManager().SetInCombatWith(bot);
+                }
             }
 
             return;
@@ -172,7 +175,7 @@ namespace FSBCombat
                 TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner victim {}", bot->GetName(), ownerVictim->GetName());
                 return ownerVictim;
             }
-
+            
             Unit* ownerAttacker = player->getAttackerForHelper();
             if (ownerAttacker && ownerAttacker->IsAlive())
             {

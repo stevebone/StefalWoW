@@ -97,7 +97,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     {
         auto followDistance = ai->botFollowDistance;
         auto followAngle = ai->botFollowAngle;
-        FSBMovement::ResumeFollow(bot, followDistance, followAngle);
+        if(ai->botHired)
+            FSBMovement::ResumeFollow(bot, followDistance, followAngle);
         break;
     }
 

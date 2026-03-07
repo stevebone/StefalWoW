@@ -1,6 +1,7 @@
 #include "Containers.h"
 #include "Log.h"
 #include "Map.h"
+#include "SpellAuras.h"
 #include "SpellInfo.h"
 
 #include "Followship_bots_mgr.h"
