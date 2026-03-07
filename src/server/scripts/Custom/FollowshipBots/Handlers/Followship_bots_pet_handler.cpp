@@ -1,5 +1,6 @@
 #include "BaseEntity.h"
 #include "CharmInfo.h"
+#include "Containers.h"
 #include "Creature.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
