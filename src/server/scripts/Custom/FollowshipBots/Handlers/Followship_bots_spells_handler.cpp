@@ -1,5 +1,8 @@
+#include "Containers.h"
 #include "Log.h"
 #include "Map.h"
+#include "SpellAuras.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
@@ -371,7 +374,7 @@ namespace FSBSpells
         const OffensiveDispelAbility& ability = it->second;
 
         Unit* target = bot->GetVictim();
-        if (!target)
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
 
         // Check if target has a buff we can remove/steal
@@ -387,12 +390,17 @@ namespace FSBSpells
             return false;
 
         // Cast the spell
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
         return BotCastSpell(bot, ability.spellId, target);
     }
 
     bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target)
     {
-        if (!bot || !target)
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return false;
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
 
         if (!spellId)
@@ -455,5 +463,51 @@ namespace FSBSpells
         }
 
         return false;
+    }
+
+    bool BotCastSpellatLocationWithCooldown(Creature* bot, uint32 spellId, const Position& pos, uint32 cooldown)
+    {
+        if (!bot || !spellId)
+            return false;
+
+        bot->SetFacingToPoint(pos, true);
+
+        SpellCastResult result = bot->CastSpell(pos, spellId);
+
+        if (result == SPELL_CAST_OK)
+        {
+            FSBSpellsUtils::PutSpellOnCooldown(spellId, cooldown);
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} casted spell {} at location {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString());
+            return true;
+        }
+        else TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} Unable to cast spell {} at location {} with result {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString(), result);
+
+        return false;
+    }
+
+    Position GetOffensiveAoEPosition(Creature* bot)
+    {
+        if (Unit* victim = bot->GetVictim())
+            return victim->GetPosition();
+        return bot->GetPosition();
+    }
+
+    Position GetHealingAoEPosition(Creature* bot, const std::vector<Unit*>& group)
+    {
+        float sumX = 0.f, sumY = 0.f, sumZ = 0.f;
+        uint32 count = 0;
+        for (Unit* member : group)
+        {
+            if (member && member->IsAlive() && member->GetHealthPct() < 85.f)
+            {
+                sumX += member->GetPositionX();
+                sumY += member->GetPositionY();
+                sumZ += member->GetPositionZ();
+                ++count;
+            }
+        }
+        if (count == 0)
+            return bot->GetPosition();
+        return Position{ sumX / count, sumY / count, sumZ / count };
     }
 }

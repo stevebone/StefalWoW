@@ -9,6 +9,7 @@
 #include "Followship_bots.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
 
@@ -226,6 +227,10 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     if (!player || !bot)
         return;
 
+    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+    if (!baseAI)
+        return;
+
     // Set owner
     bot->SetOwnerGUID(player->GetGUID());
 
@@ -237,6 +242,7 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
 
     PhasingHandler::ResetPhaseShift(bot);
     bot->SetStandState(UNIT_STAND_STATE_STAND);
+    FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 }
 
 // ==================== GETTER METHODS ==================================================== //

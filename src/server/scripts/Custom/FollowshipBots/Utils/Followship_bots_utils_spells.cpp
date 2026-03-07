@@ -3,6 +3,7 @@
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
+#include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "ThreatManager.h"
 #include "Unit.h"
@@ -14,6 +15,7 @@
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_rogue.h"
+#include "Followship_bots_shaman.h"
 #include "Followship_bots_warlock.h"
 #include "Followship_bots_warrior.h"
 #include "Followship_bots_utils.h"
@@ -34,7 +36,7 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
     { FSB_Class::Paladin, { SPELL_PALADIN_CLEANSE,       { DISPEL_MAGIC, DISPEL_DISEASE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_REMOVE_CORRUPTION, { DISPEL_CURSE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_NATURE_CURE,       { DISPEL_MAGIC, DISPEL_CURSE, DISPEL_POISON }, 8000 }},
-    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURIFY_SPIRIT,    { DISPEL_MAGIC } } },
+    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURIFY_SPIRIT,    { DISPEL_MAGIC }, 8000 } },
     { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }},
     { FSB_Class::Monk,    { SPELL_MONK_DETOX_HEAL, { DISPEL_POISON, DISPEL_DISEASE}, 8000 }},
 };
@@ -42,7 +44,7 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
 std::unordered_map<FSB_Class, OffensiveDispelAbility> OffensiveDispelTable =
 {
     { FSB_Class::Priest,  { SPELL_PRIEST_DISPEL_MAGIC, OFFDISPEL_MAGIC } },
-    //{ FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
+    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURGE,        OFFDISPEL_MAGIC } },
     { FSB_Class::Hunter,    { SPELL_HUNTER_TRANQUILIZING_SHOT, OFFDISPEL_MAGIC } },
     { FSB_Class::Mage,    { SPELL_MAGE_SPELL_STEAL,     OFFDISPEL_STEAL } },
     { FSB_Class::Monk,    { SPELL_MONK_DETOX_ATTACK, OFFDISPEL_MAGIC } },
@@ -80,6 +82,15 @@ namespace FSBSpellsUtils
 
     bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return false;
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
+
+        if (!spellId)
+            return false;
+
         switch (spellId)
         {
 
@@ -93,6 +104,7 @@ namespace FSBSpellsUtils
             return CheckCrowdControlRequirements(bot, 30.f) && target->GetCreatureType() == CREATURE_TYPE_BEAST;
 
         case SPELL_WARRIOR_CLEAVE:
+        case SPELL_SHAMAN_CRASH_LIGHTNING:
             return CheckCrowdControlRequirements(bot, 5.f);
 
         case SPELL_PRIEST_PSYCHIC_SCREAM:
@@ -108,6 +120,7 @@ namespace FSBSpellsUtils
         case SPELL_WARLOCK_HOWL_TERROR:
         case SPELL_ROGUE_SHURIKEN_STORM:
         case SPELL_ROGUE_CRIMSON_TEMPEST:
+        case SPELL_SHAMAN_THUNDERSTORM:
             return CheckCrowdControlRequirements(bot, 10.f);
 
         case SPELL_MAGE_FROST_NOVA:
@@ -124,34 +137,34 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_FLAMESTRIKE:
         case SPELL_DRUID_HIBERNATE:
         case SPELL_MAGE_POLYMORPH:
+        case SPELL_SHAMAN_HEX:
             return CheckCrowdControlRequirements(bot, 30.f);
 
+        case SPELL_SHAMAN_CHAIN_LIGHTNING:
+            return CheckCrowdControlRequirements(bot, 40.f);
+
+            // Rogue Stealth Req
         case SPELL_ROGUE_CHEAP_SHOT:
         case SPELL_ROGUE_AMBUSH:
             return bot->HasAura(SPELL_ROGUE_STEALTH);
 
-        case SPELL_PRIEST_DESPERATE_PRAYER:
-            return target == bot;
+            // Bot Power Depleted
+        case SPELL_MAGE_ARCANE_SURGE:
+        case SPELL_MONK_BLACK_OX_BREW:
+            return bot->GetPowerPct(bot->GetPowerType()) <= 10;
 
-        case SPELL_MAGE_ICE_BLOCK:
-            return target == bot && bot->GetHealthPct() < 10;
+        case SPELL_PALADIN_LAY_ON_HANDS:
+        case SPELL_PALADIN_DIVINE_SHIELD:
+            return bot->GetPowerPct(bot->GetPowerType()) <= 20;
+
+        case SPELL_ROGUE_THISTLE_TEA:
+            return bot->GetPowerPct(bot->GetPowerType()) <= 30;
 
         case SPELL_MAGE_EVOCATION:
-            return bot->GetPowerPct(POWER_MANA) < 50;
+            return bot->GetPowerPct(bot->GetPowerType()) <= 50;
 
-        case SPELL_MAGE_ARCANE_SURGE:
-            return bot->GetPowerPct(POWER_MANA) < 10;
-
-        case SPELL_HUNTER_ASPECT_TURTLE:
-        case SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS:
-        case SPELL_DRUID_IRONBARK:
-        case SPELL_DRUID_CELESTIAL_ALIGNMENT:
-            return target == bot && bot->GetHealthPct() < 50;
-
-        case SPELL_MAGE_ICE_BARRIER:
-            return target == bot && bot->GetHealthPct() < 75;
-
-            //SILENCE
+            //Silence Interrupt
+        case SPELL_SHAMAN_WIND_SHEAR:
         case SPELL_MONK_SPEAR_HAND_STRIKE:
         case SPELL_HUNTER_COUNTER_SHOT:
         case SPELL_ROGUE_KICK:
@@ -162,18 +175,26 @@ namespace FSBSpellsUtils
         case SPELL_MAGE_COUNTERSPELL:
             return target && target->HasUnitState(UNIT_STATE_CASTING);
 
-        case SPELL_MAGE_BLINK:
-            return !bot->GetMap()->IsDungeon();
+            // Bot Health Depleted
+        case SPELL_MAGE_ICE_BLOCK:
+            return target == bot && bot->GetHealthPct() < 10;
 
-        case SPELL_WARRIOR_EXECUTE:
-            return target && target->GetHealthPct() <= 20;
-
+        case SPELL_SHAMAN_ASTRAL_SHIFT:
         case SPELL_WARRIOR_LAST_STAND:
             return target == bot && bot->GetHealthPct() < 30;
 
-        case SPELL_PALADIN_LAY_ON_HANDS:
-        case SPELL_PALADIN_DIVINE_SHIELD:
-            return bot->GetPowerPct(POWER_MANA) < 20;
+        case SPELL_HUNTER_ASPECT_TURTLE:
+        case SPELL_DRUID_BEAR_SURVIVAL_INSTINCTS:
+        case SPELL_DRUID_IRONBARK:
+        case SPELL_DRUID_CELESTIAL_ALIGNMENT:
+            return target == bot && bot->GetHealthPct() < 50;
+
+        case SPELL_MAGE_ICE_BARRIER:
+            return target == bot && bot->GetHealthPct() < 75;
+
+            // Target Health Depleted
+        case SPELL_WARRIOR_EXECUTE:
+            return target && target->GetHealthPct() <= 20;
 
             // RACIAL
         case SPELL_PANDAREN_QUAKING_PALM:
@@ -197,15 +218,16 @@ namespace FSBSpellsUtils
         case SPELL_HUNTER_TRANQUILIZING_SHOT:
             return HasAnyMechanic(target, { MECHANIC_ENRAGED }) || FindEnemyBuffToDispel(target);
 
-        case SPELL_MONK_BLACK_OX_BREW:
-            return bot->GetPowerPct(bot->GetPowerType()) <= 10;
-
-        case SPELL_ROGUE_THISTLE_TEA:
-            return bot->GetPowerPct(bot->GetPowerType()) <= 30;
-
         case SPELL_SHAMAN_ASCENDANCE:
         case SPELL_PALADIN_LIGHT_OF_DAWN:
             return !FSBGroup::BotGroupIsHealthy_Average(bot, 60);
+
+        // NYI in TC
+        //case SPELL_SHAMAN_SPIRIT_LINK_TOTEM:
+        //    return !FSBGroup::BotGroupIsHealthy_Average(bot, 40);
+
+        case SPELL_SHAMAN_DOWNPOUR:
+            return !FSBGroup::BotGroupIsHealthy_Average(bot, 70);
 
         case SPELL_HUNTER_MONGOOSE_BITE:
         case SPELL_HUNTER_WING_CLIP:
@@ -222,6 +244,10 @@ namespace FSBSpellsUtils
 
         case SPELL_MONK_BLACK_OX_STATUE:
             return CheckNoNpcInRangeRequirement(bot, 61146, 40.f);
+
+            // Is Not In Dungeon
+        case SPELL_MAGE_BLINK:
+            return !bot->GetMap()->IsDungeon();
 
         default:
             return true;
@@ -578,6 +604,7 @@ namespace FSBSpellsUtils
         case SPELL_MONK_PARALYSIS:
         case SPELL_MONK_PARALYSIS_CHI:
         case SPELL_PANDAREN_QUAKING_PALM:
+        case SPELL_SHAMAN_HEX:
             return true;
         default:
             return false;

@@ -1,3 +1,4 @@
+#include "Log.h"
 #include "Map.h"
 
 #include "Followship_bots.h"

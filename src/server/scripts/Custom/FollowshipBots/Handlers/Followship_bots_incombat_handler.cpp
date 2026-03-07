@@ -136,6 +136,10 @@ namespace FSBIC
         if (!bot || !bot->IsAlive())
             return false;
 
+        Unit* target = bot->GetVictim();
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return false;
@@ -150,12 +154,8 @@ namespace FSBIC
 
         auto spells = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Damage, false);
 
-        Unit* target = bot->GetVictim();
-        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
-            return false;
-
         FSBSpellRuntime* dmgSpell = FSBSpells::SelectBestDamageSpell(bot, spells, target);
-        if (!dmgSpell)
+        if (!dmgSpell || !dmgSpell->def)
             return false;
 
         if (dmgSpell && dmgSpell->def->isSelfCast)
@@ -167,6 +167,9 @@ namespace FSBIC
         {
             if (dist > spellDist)
             {
+                if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+                    return false;
+
                 // Move into spell range
                 if (FSBMovement::EnsureInRange(bot, target, spellDist))
                 {
@@ -179,20 +182,41 @@ namespace FSBIC
         if (FSBSpellsUtils::IsCrowdControlWithRandomTarget(dmgSpell->def->spellId))
             target = FSBUtilsCombat::GetRandomAttacker(bot);
 
+        if (target && (!target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive()))
+            return false;
+
         if (dmgSpell && target)
         {
             if (dmgSpell->def->manaCostOverride != 0.f && !FSBPowers::SpendPowerPct(bot, dmgSpell->def->manaCostOverride))
                 return false; // not enough mana
 
-            if (FSBSpells::BotCastSpell(bot, dmgSpell->def->spellId, target))
+            bool castSuccess = false;
+
+            if (dmgSpell->def->isLocationSpell)
+            {
+                Position pos = FSBSpells::GetOffensiveAoEPosition(bot);
+                castSuccess = FSBSpells::BotCastSpellatLocation(bot, dmgSpell->def->spellId, pos);
+            }
+            else
+            {
+                if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+                    return false;
+
+                castSuccess = FSBSpells::BotCastSpell(bot, dmgSpell->def->spellId, target);
+            }
+
+            if (castSuccess)
             {
                 dmgSpell->nextReadyMs = now + dmgSpell->def->cooldownMs;
                 globalCooldown = now + 1500;
-                if (target == bot)
+
+                if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+                    target = nullptr;
+
+                if (target && target == bot)
                     FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, dmgSpell->def->spellId);
-                else FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botCombatSpell, FSB_ReplyType::Say, FSB_ChatterSource::Bot, dmgSpell->def->spellId);
+                else if (target && target != bot) FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botCombatSpell, FSB_ReplyType::Say, FSB_ChatterSource::Bot, dmgSpell->def->spellId);
                 return true;
-                // Bot Say after spell cast - TO-DO transform this into its own method
             }
         }
         return false;
@@ -244,11 +268,23 @@ namespace FSBIC
                 return false;
             // check other requirements here
 
-            if (FSBSpells::BotCastSpell(bot, healSpell->def->spellId, target))
+            bool castSuccess = false;
+
+            if (healSpell->def->isLocationSpell)
+            {
+                Position pos = FSBSpells::GetHealingAoEPosition(bot, botGroup);
+                castSuccess = FSBSpells::BotCastSpellatLocation(bot, healSpell->def->spellId, pos);
+            }
+            else
+            {
+                castSuccess = FSBSpells::BotCastSpell(bot, healSpell->def->spellId, target);
+            }
+
+            if (castSuccess)
             {
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
                 baseAI->botGlobalCooldown = now + 1500;
-                if(target == bot)
+                if (target == bot)
                     FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
                 else
                 {
@@ -257,7 +293,6 @@ namespace FSBIC
                 return true;
             }
         }
-
 
         return false;
     }

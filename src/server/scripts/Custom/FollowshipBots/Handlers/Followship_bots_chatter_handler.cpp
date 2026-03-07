@@ -1,3 +1,5 @@
+#include "Log.h"
+
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 
@@ -1358,8 +1360,8 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
         {
             "Am gonna be needing this!",
             "This {spell} is sure gonna help.",
-            "At least I have my <spell>!",
-            "There's no <spell> like mine!",
+            "At least I have my {spell}!",
+            "There's no {spell} like mine!",
             "One {spell} for me and another for... me... later.",
             "I've got more {spell} from where this came from!",
             "This buffs me buff... haha...haha!",

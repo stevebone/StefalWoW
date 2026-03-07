@@ -1,5 +1,6 @@
 #include "Log.h"
 #include "Map.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_config.h"
@@ -465,7 +466,7 @@ namespace FSBOOC
         if (target && bot->GetMapId() == target->GetMapId() && bot->GetDistance(target) > 30.0f)
         {
             TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget target {} too far from bot: {}", target->GetName(), bot->GetName());
-            //bot->GetMotionMaster()->MoveChase(target, 28.f);
+            bot->GetMotionMaster()->Clear();
             bot->GetMotionMaster()->MoveCloserAndStop(4, target, 28.f);
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
             return false;
@@ -898,6 +899,8 @@ namespace FSBOOC
             break;
         case FSB_Class::Shaman:
             buffSpellId = SPELL_SHAMAN_WATER_WALKING;
+            if (baseAI->botRole == FSB_ROLE_HEALER)
+                buffSpellId2 = SPELL_SHAMAN_EARTH_SHIELD;
             break;
         default:
             break;
@@ -913,7 +916,21 @@ namespace FSBOOC
         if (buffSpellId2 && buffTargets.empty())
         {
             buffSpellId = buffSpellId2;
-            GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
+            if (baseAI->botRole == FSB_ROLE_HEALER)
+            {
+                Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+
+                if (tank && !tank->HasAura(buffSpellId))
+                    buffTargets.push_back(tank);
+                else
+                {
+                    Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+                    if (owner && !owner->HasAura(buffSpellId))
+                        buffTargets.push_back(owner);
+                }
+            }
+                
+            else GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
         }
 
         if (!buffTargets.empty())

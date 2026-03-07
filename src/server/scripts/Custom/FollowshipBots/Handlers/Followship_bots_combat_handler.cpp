@@ -1,3 +1,5 @@
+#include "Log.h"
+
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_combat_handler.h"
@@ -15,18 +17,19 @@ namespace FSBCombat
         // Prevent bot from disengaging from current target
         if (victim)
         {
-            // Victim must be valid and in world
-            if (!victim->IsAlive() || !victim->IsInWorld() || victim->IsDuringRemoveFromWorld())
+            if (!victim || !victim->IsInWorld() || victim->IsDuringRemoveFromWorld() || !victim->IsAlive())
+            {
+                bot->AttackStop();
                 return;
+            }            
 
             // Bot must still consider this its real victim
             Unit* ensured = bot->EnsureVictim();
-            if (!ensured || ensured != victim || !ensured->IsAlive())
+            if (!ensured || ensured != victim || !ensured->IsAlive() || !ensured->IsInWorld() || ensured->IsDuringRemoveFromWorld())
                 return;
 
-            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-
             // Owner may be null OR on another map
+            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
             if (!owner || !owner->IsInWorld() || owner->IsDuringRemoveFromWorld())
                 return;
 
@@ -34,19 +37,26 @@ namespace FSBCombat
             if (owner->GetMapId() != victim->GetMapId())
                 return;
 
-            // Now safe to check combat state
-            if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) ||
-                (!bot->IsHostileTo(victim) && owner->IsInCombatWith(victim)))
+            if (owner)
             {
-                victim->SetFaction(14);
-                bot->GetCombatManager().SetInCombatWith(victim);
-                victim->GetCombatManager().SetInCombatWith(bot);
+                // Now safe to check combat state
+                if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) ||
+                    (!bot->IsHostileTo(victim) && owner->IsInCombatWith(victim)))
+                {
+                    // Do not remove this or bots cant cast spells on neutral mobs
+                    victim->SetFaction(14);
+                    bot->GetCombatManager().SetInCombatWith(victim);
+                    victim->GetCombatManager().SetInCombatWith(bot);
+                }
             }
 
             return;
         }
 
         Unit* target = GetNextAttackTarget(bot);
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld())
+            return;
 
         if (target && !BotCanAttack(bot, target))
             return;
@@ -60,6 +70,9 @@ namespace FSBCombat
                 bot->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT);
                 bot->AttackStop();
                 bot->InterruptNonMeleeSpells(false);
+                bot->CombatStop(true);
+                bot->ClearInCombat();
+                bot->GetMotionMaster()->Clear();
                 FSBMovement::BotHandleReturnMovement(bot);
             }
         }
@@ -67,12 +80,20 @@ namespace FSBCombat
 
     void BotDoAttack(Creature* bot, Unit* target)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return;
+
         // Handles attack with or without chase and also resets flags
         // for next update / creature kill
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return;
 
         if (bot->Attack(target, true))
         {
             bot->SetUnitFlag(UNIT_FLAG_IN_COMBAT); // on player bots, this flag indicates we're actively going after a target - that's what we're doing, so set it
+
+            bot->GetMotionMaster()->Clear();
 
             if (bot->HasUnitState(UNIT_STATE_FOLLOW))
                 bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
@@ -123,6 +144,9 @@ namespace FSBCombat
         Unit* victim = bot->GetVictim();
         if (victim && victim->IsAlive())
         {
+            if (!victim || !victim->IsInWorld() || victim->IsDuringRemoveFromWorld() || !victim->IsAlive())
+                return nullptr;
+
             TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their victim {}", bot->GetName(), victim->GetName());
             return victim;
         }
@@ -131,6 +155,9 @@ namespace FSBCombat
         Unit* attacker = bot->getAttackerForHelper();
         if (attacker && attacker->IsAlive())
         {
+            if (!attacker || !attacker->IsInWorld() || attacker->IsDuringRemoveFromWorld() || !attacker->IsAlive())
+                return nullptr;
+
             TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their attacker {}", bot->GetName(), attacker->GetName());
             return attacker;
         }
@@ -142,13 +169,19 @@ namespace FSBCombat
             Unit* ownerVictim = player->GetVictim();
             if (ownerVictim && ownerVictim->IsAlive())
             {
+                if (!ownerVictim || !ownerVictim->IsInWorld() || ownerVictim->IsDuringRemoveFromWorld() || !ownerVictim->IsAlive())
+                    return nullptr;
+
                 TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner victim {}", bot->GetName(), ownerVictim->GetName());
                 return ownerVictim;
             }
-
+            
             Unit* ownerAttacker = player->getAttackerForHelper();
             if (ownerAttacker && ownerAttacker->IsAlive())
             {
+                if (!ownerAttacker || !ownerAttacker->IsInWorld() || ownerAttacker->IsDuringRemoveFromWorld() || !ownerAttacker->IsAlive())
+                    return nullptr;
+
                 TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner attacker {}", bot->GetName(), ownerAttacker->GetName());
                 return ownerAttacker;
             }
@@ -161,6 +194,9 @@ namespace FSBCombat
             Unit* assistTarget = FSBGroup::BotGetFirstMemberToAssist(bot, baseAI->botLogicalGroup);
             if (assistTarget && assistTarget->IsAlive())
             {
+                if (!assistTarget || !assistTarget->IsInWorld() || assistTarget->IsDuringRemoveFromWorld() || !assistTarget->IsAlive())
+                    return nullptr;
+
                 TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their member attacker/victim {}", bot->GetName(), assistTarget->GetName());
                 return assistTarget;
             }

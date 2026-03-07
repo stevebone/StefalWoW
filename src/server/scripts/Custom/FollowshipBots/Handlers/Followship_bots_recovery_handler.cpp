@@ -1,8 +1,12 @@
+#include "Containers.h"
+#include "Log.h"
+
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_druid.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_recovery_handler.h"
 
@@ -236,12 +240,12 @@ namespace FSBRecovery
 
             if (result == SPELL_CAST_OK)
             {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryAction Race Heal cast result: {}", result);
+                TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: RecoveryAction Race Heal cast result: {}", result);
                 globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
                 return true;
             }
-            else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryAction Race Heal cast result not ok: {}", result);
+            else TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: RecoveryAction Race Heal cast result not ok: {}", result);
         }
 
         return false;
@@ -318,6 +322,9 @@ namespace FSBRecovery
                 else FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botOOCRecovery, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             }
 
+            uint32 now = getMSTime();
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(globalCooldown - now));
+
             return true;
         }
 
@@ -385,8 +392,8 @@ namespace FSBRecovery
         if (!BotHasRecoveryActive(bot))
             return;
 
-        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) == 100;
-        bool fullHealth = bot->GetHealthPct() == 100;
+        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) >= 99.0f;
+        bool fullHealth = bot->GetHealthPct() >= 99.0f;
         bool full = fullMana && fullHealth;
 
         if (fullMana)
