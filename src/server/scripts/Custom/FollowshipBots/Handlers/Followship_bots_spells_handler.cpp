@@ -1,3 +1,4 @@
+#include "Containers.h"
 #include "Log.h"
 #include "Map.h"
 #include "SpellInfo.h"
