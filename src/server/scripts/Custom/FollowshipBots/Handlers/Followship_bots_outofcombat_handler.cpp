@@ -919,13 +919,13 @@ namespace FSBOOC
             {
                 Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
 
-                if (tank)
-                    buffTargets[0] = tank;
+                if (tank && !tank->HasAura(buffSpellId))
+                    buffTargets.push_back(tank);
                 else
                 {
                     Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-                    if (owner)
-                        buffTargets[0] = owner;
+                    if (owner && !owner->HasAura(buffSpellId))
+                        buffTargets.push_back(owner);
                 }
             }
                 
