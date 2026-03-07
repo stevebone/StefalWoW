@@ -3,6 +3,7 @@
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
+#include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "ThreatManager.h"
 #include "Unit.h"
@@ -35,7 +36,7 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
     { FSB_Class::Paladin, { SPELL_PALADIN_CLEANSE,       { DISPEL_MAGIC, DISPEL_DISEASE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_REMOVE_CORRUPTION, { DISPEL_CURSE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_NATURE_CURE,       { DISPEL_MAGIC, DISPEL_CURSE, DISPEL_POISON }, 8000 }},
-    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURIFY_SPIRIT,    { DISPEL_MAGIC } } },
+    { FSB_Class::Shaman,  { SPELL_SHAMAN_PURIFY_SPIRIT,    { DISPEL_MAGIC }, 8000 } },
     { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }},
     { FSB_Class::Monk,    { SPELL_MONK_DETOX_HEAL, { DISPEL_POISON, DISPEL_DISEASE}, 8000 }},
 };
@@ -81,6 +82,15 @@ namespace FSBSpellsUtils
 
     bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return false;
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
+
+        if (!spellId)
+            return false;
+
         switch (spellId)
         {
 

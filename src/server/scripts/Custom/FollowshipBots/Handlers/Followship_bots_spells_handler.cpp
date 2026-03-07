@@ -1,5 +1,6 @@
 #include "Log.h"
 #include "Map.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
@@ -371,7 +372,7 @@ namespace FSBSpells
         const OffensiveDispelAbility& ability = it->second;
 
         Unit* target = bot->GetVictim();
-        if (!target)
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
 
         // Check if target has a buff we can remove/steal
@@ -387,12 +388,17 @@ namespace FSBSpells
             return false;
 
         // Cast the spell
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
         return BotCastSpell(bot, ability.spellId, target);
     }
 
     bool BotCastSpell(Creature* bot, uint32 spellId, Unit* target)
     {
-        if (!bot || !target)
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return false;
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
 
         if (!spellId)

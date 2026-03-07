@@ -4,6 +4,7 @@
 #include "Log.h"
 #include "Pet.h"
 #include "PhasingHandler.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots_mgr.h"
 

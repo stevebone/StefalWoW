@@ -564,8 +564,10 @@ public:
                         {
                             auto baseAI = dynamic_cast<FSB_BaseAI*>(me->AI());
 
-                            if (FSBOOC::BotOOCActions(baseAI))
-                                FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
+                            FSBOOC::BotOOCActions(baseAI);
+
+                            //if (FSBOOC::BotOOCActions(baseAI))
+                                //FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
 
                             // ? lock timer for next 2 seconds
                             _1secondsCheckMs = now + 1000;
