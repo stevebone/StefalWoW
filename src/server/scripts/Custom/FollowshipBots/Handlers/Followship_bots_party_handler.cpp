@@ -13,6 +13,7 @@
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_party_handler.h"
+#include "Followship_bots_pet_handler.h"
 
 
 
@@ -332,7 +333,36 @@ namespace FSBParty
                         aura.Points.push_back(float(aurEff->GetAmount()));
         }*/
 
-        TC_LOG_WARN("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), stats.Auras.size());
+        // Pet
+        if (FSBPet::BotHasPet(bot))
+        {
+            Unit* pet = FSBPet::GetBotPet(bot);
+
+            stats.PetStats.emplace();
+
+            stats.PetStats->GUID = pet->GetGUID();
+            stats.PetStats->Name = pet->GetName();
+            stats.PetStats->ModelId = pet->GetDisplayId();
+
+            stats.PetStats->CurrentHealth = pet->GetHealth();
+            stats.PetStats->MaxHealth = pet->GetMaxHealth();
+
+            for (AuraApplication const* aurApp : pet->GetVisibleAuras())
+            {
+                WorldPackets::Party::PartyMemberAuraStates& aura = stats.PetStats->Auras.emplace_back();
+
+                aura.SpellID = aurApp->GetBase()->GetId();
+                aura.ActiveFlags = aurApp->GetEffectMask();
+                aura.Flags = aurApp->GetFlags();
+
+                if (aurApp->GetFlags() & AFLAG_SCALABLE)
+                    for (AuraEffect const* aurEff : aurApp->GetBase()->GetAuraEffects())
+                        if (aurApp->HasEffect(aurEff->GetEffIndex()))
+                            aura.Points.push_back(float(aurEff->GetAmount()));
+            }
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), stats.Auras.size());
 
         player->SendDirectMessage(packet.Write());
     }

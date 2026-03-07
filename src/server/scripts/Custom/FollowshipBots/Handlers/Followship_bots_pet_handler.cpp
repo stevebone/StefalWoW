@@ -6,6 +6,7 @@
 #include "ObjectMgr.h"
 #include "Pet.h"
 #include "PhasingHandler.h"
+#include "SpellHistory.h"
 #include "SpellInfo.h"
 
 #include "Followship_bots_mgr.h"
