@@ -1,6 +1,13 @@
 #pragma once
 
+#include <vector>
+
+#include "PartyPackets.h"
+#include "Creature.h"
+
 #include "Followship_bots_defines.h"
+
+constexpr size_t MAX_CLIENT_PARTY = 5;
 
 class Creature;
 class Player;
@@ -28,4 +35,6 @@ namespace FSBParty
 
     void OnMemberAdd(Group* group, ObjectGuid guid);
     void OnMemberRemove(Group* group, ObjectGuid guid);
+
+    std::vector<WorldPackets::Party::PartyMemberAuraStates> GetBotAppliedAuras(Creature* bot);
 }

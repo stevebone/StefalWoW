@@ -1,14 +1,20 @@
+#include "PartyPackets.h"
+#include "PacketOperators.h"
+
 #include "Log.h"
 #include "Group.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
+
 #include "SpellAuras.h"
 #include "SpellAuraEffects.h"
+#include "WorldPacket.h"
+#include "WorldSession.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_party_handler.h"
 
-#include "PartyPackets.h"
+
 
 namespace FSBParty
 {
@@ -126,7 +132,7 @@ namespace FSBParty
                 player->SendDirectMessage(partyUpdate.Write());
 
                 TC_LOG_DEBUG("scripts.fsb.party",
-                    "FSB: Sent real-only PartyUpdate to {} with {} members (no active bots)",
+                    "FSB: SendFakePartyUpdate Sent real-only PartyUpdate to {} with {} members (no active bots)",
                     player->GetName(), partyUpdate.PlayerList.size());
             }
 
@@ -134,6 +140,29 @@ namespace FSBParty
         }
 
         WorldPackets::Party::PartyUpdate partyUpdate;
+
+        // ------------------------------------------------------------
+        // LIMIT PARTY SIZE TO MAX 5 (PLAYER + 4 OTHERS)
+        // ------------------------------------------------------------
+        // Count real group members (if any)
+        size_t realCount = 0;
+        if (realGroup)
+            realCount = realGroup->GetMemberSlots().size();
+        else
+            realCount = 1; // solo player counts as 1
+
+        // How many bots can we show?
+        size_t maxBotsAllowed = (realCount >= MAX_CLIENT_PARTY)
+            ? 0
+            : (MAX_CLIENT_PARTY - realCount);
+
+        // Trim activeBots if needed
+        std::vector<Creature*> trimmedBots = activeBots;
+        if (trimmedBots.size() > maxBotsAllowed)
+            trimmedBots.resize(maxBotsAllowed);
+        // ------------------------------------------------------------
+
+        // From here on, use trimmedBots instead of activeBots
 
         if (realGroup)
         {
@@ -171,7 +200,7 @@ namespace FSBParty
             partyUpdate.MyIndex = myIndex;
 
             // Append bots
-            for (Creature* bot : activeBots)
+            for (Creature* bot : trimmedBots)
             {
                 FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
                 FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
@@ -222,7 +251,7 @@ namespace FSBParty
 
             partyUpdate.MyIndex = 0;
 
-            for (Creature* bot : activeBots)
+            for (Creature* bot : trimmedBots)
             {
                 FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
                 FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
@@ -242,7 +271,7 @@ namespace FSBParty
 
         TC_LOG_DEBUG("scripts.fsb.party",
             "FSB: Sent fake PartyUpdate to {} with {} members (including {} bots)",
-            player->GetName(), partyUpdate.PlayerList.size(), activeBots.size());
+            player->GetName(), partyUpdate.PlayerList.size(), trimmedBots.size());
     }
 
     void SendBotMemberState(Player* player, Creature* bot)
@@ -287,8 +316,10 @@ namespace FSBParty
         stats.PartyType[0] = GROUP_TYPE_NORMAL;
         stats.PartyType[1] = 0;
 
-        // Auras - send visible auras for the bot
-        for (AuraApplication const* aurApp : bot->GetVisibleAuras())
+        stats.Auras = GetBotAppliedAuras(bot);
+
+        // Old code Auras - send visible auras for the bot
+/*        for (AuraApplication const* aurApp : bot->GetVisibleAuras())
         {
             WorldPackets::Party::PartyMemberAuraStates& aura = stats.Auras.emplace_back();
             aura.SpellID = aurApp->GetBase()->GetId();
@@ -299,7 +330,9 @@ namespace FSBParty
                 for (AuraEffect const* aurEff : aurApp->GetBase()->GetAuraEffects())
                     if (aurApp->HasEffect(aurEff->GetEffIndex()))
                         aura.Points.push_back(float(aurEff->GetAmount()));
-        }
+        }*/
+
+        TC_LOG_WARN("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), stats.Auras.size());
 
         player->SendDirectMessage(packet.Write());
     }
@@ -433,5 +466,42 @@ namespace FSBParty
                     FSBParty::SendFakePartyUpdate(member);
             }
         }
+    }
+
+    std::vector<WorldPackets::Party::PartyMemberAuraStates>
+        GetBotAppliedAuras(Creature* bot)
+    {
+        std::vector<WorldPackets::Party::PartyMemberAuraStates> result;
+
+        if (!bot)
+            return result;
+
+        for (AuraApplication const* aurApp : bot->GetVisibleAuras())
+        {
+            if (!aurApp)
+                continue;
+
+            Aura const* aura = aurApp->GetBase();
+            if (!aura)
+                continue;
+
+            WorldPackets::Party::PartyMemberAuraStates auraState;
+            auraState.SpellID = aura->GetId();
+            auraState.ActiveFlags = aurApp->GetEffectMask();
+            auraState.Flags = aurApp->GetFlags();
+
+            if (aurApp->GetFlags() & AFLAG_SCALABLE)
+            {
+                for (AuraEffect const* aurEff : aura->GetAuraEffects())
+                {
+                    if (aurApp->HasEffect(aurEff->GetEffIndex()))
+                        auraState.Points.push_back(float(aurEff->GetAmount()));
+                }
+            }
+
+            result.push_back(auraState);
+        }
+
+        return result;
     }
 }

@@ -3,6 +3,7 @@
 #include "Creature.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Pet.h"
 #include "PhasingHandler.h"
 #include "SpellInfo.h"
