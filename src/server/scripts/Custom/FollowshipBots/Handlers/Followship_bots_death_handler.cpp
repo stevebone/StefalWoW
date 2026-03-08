@@ -200,7 +200,7 @@ namespace FSBDeath
         if (!bot || bot->IsAlive())
             return;
 
-        bool isCombatRes = FSBUtilsCombat::IsCombatActive(bot);
+        bool isCombatRes = FSBCombatUtils::IsCombatActive(bot);
 
         // When bot is resurrected we need to set it back to death state alive
         bot->setDeathState(ALIVE);

@@ -13,9 +13,6 @@ enum class FSBSayType;
 
 namespace FSBUtilsCombat
 {
-    // Checks if either bot or player is in combat
-    bool IsCombatActive(Creature* me);
-
     Unit* GetRandomAttacker(Creature* bot);
 
     // Counts active attackers
@@ -27,9 +24,12 @@ namespace FSBUtilsCombat
 
 namespace FSBCombatUtils
 {
+    // Checks if either bot or player is in combat
+    bool IsCombatActive(Creature* me);
+
     float GetBotChaseDistance(Creature* bot);
     float GetFallbackChaseDistanceForClass(FSB_Class cls);
 
-    bool HasHostileInRange(Unit* me, float range, uint32 count);
+    bool HasHostileInRange(Unit* bot, float range, uint32 count);
     bool IsOutOfCombatFor(Creature* bot, uint32 ms);
 }

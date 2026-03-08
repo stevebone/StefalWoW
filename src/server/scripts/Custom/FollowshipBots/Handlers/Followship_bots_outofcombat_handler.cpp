@@ -22,21 +22,21 @@
 
 namespace FSBOOC
 {
-    bool BotOOCActions(FSB_BaseAI* ai)
+    bool BotOOCActions(Creature* bot)
     {
-        Creature* bot = ai->GetBot();
-        auto& globalCooldown = ai->botGlobalCooldown;
-        auto& buffTimer = ai->botBuffsTimer;
-        auto& selfBuffTimer = ai->botSelfBuffsTimer;
-        auto& botGroup = ai->botLogicalGroup;
-
-        if (!bot)
+        if (!bot || !bot->IsAlive())
             return false;
 
-        if (!bot->IsAlive())
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
             return false;
 
-        if (FSBUtilsCombat::IsCombatActive(bot))
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+        auto& buffTimer = baseAI->botBuffsTimer;
+        auto& selfBuffTimer = baseAI->botSelfBuffsTimer;
+        auto& botGroup = baseAI->botLogicalGroup;
+
+        if (FSBCombatUtils::IsCombatActive(bot))
             return false;
 
         if (FSBRecovery::BotHasRecoveryActive(bot))

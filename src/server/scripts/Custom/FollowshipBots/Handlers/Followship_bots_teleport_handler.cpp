@@ -68,7 +68,7 @@ namespace FSBTeleport
             if (!bot->IsAlive())
                 return false;
 
-            if (FSBUtilsCombat::IsCombatActive(bot))
+            if (FSBCombatUtils::IsCombatActive(bot))
                 return false;
 
             Player* player = FSBMgr::Get()->GetBotOwner(bot);
@@ -105,7 +105,7 @@ namespace FSBTeleport
         if (!bot || !bot->IsAlive())
             return;
 
-        if (FSBUtilsCombat::IsCombatActive(bot))
+        if (FSBCombatUtils::IsCombatActive(bot))
             return;
 
         Unit* pet = nullptr;

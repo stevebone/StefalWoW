@@ -1,8 +1,9 @@
 #include <algorithm>
 
+#include "Creature.h"
+#include "GridNotifiers.h"
 #include "ScriptMgr.h"
 #include "Unit.h"
-#include "Creature.h"
 
 #include "Followship_bots_config.h"
 
@@ -14,16 +15,7 @@
 
 namespace FSBUtilsCombat
 {
-    bool IsCombatActive(Creature* bot)
-    {
-        if (!bot)
-            return false;
-
-        auto owner = FSBMgr::Get()->GetBotOwner(bot);
-        Player* player = owner ? owner->ToPlayer() : nullptr;
-
-        return bot->IsInCombat() || (player && player->IsInCombat());
-    }
+    
 
     Unit* GetRandomAttacker(Creature* bot)
     {
@@ -80,6 +72,16 @@ namespace FSBUtilsCombat
 
 namespace FSBCombatUtils
 {
+    bool IsCombatActive(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        auto owner = FSBMgr::Get()->GetBotOwner(bot);
+
+        return bot->IsInCombat() || (owner && owner->IsInCombat());
+    }
+
     float GetBotChaseDistance(Creature* bot)
     {
         // 1?? HARD OVERRIDES (state-based, must win)
@@ -127,6 +129,8 @@ namespace FSBCombatUtils
         case FSB_Class::Warlock:
             return 30.0f;
 
+        case FSB_Class::Shaman:
+        case FSB_Class::Druid:
         case FSB_Class::Priest:
             return 25.0f; // priest tends to step closer for fear / dispel
 
@@ -143,25 +147,25 @@ namespace FSBCombatUtils
         }
     }
 
-    bool HasHostileInRange(Unit* me, float range, uint32 count)
+    bool HasHostileInRange(Unit* bot, float range, uint32 count)
     {
-        if (!me)
+        if (!bot)
             return false;
 
         uint32 found = 0;
 
         std::list<Unit*> targets;
-        Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(me, me, range);
-        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, check);
+        Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(bot, bot, range);
+        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(bot, targets, check);
 
-        Cell::VisitAllObjects(me, searcher, range);
+        Cell::VisitAllObjects(bot, searcher, range);
 
         for (Unit* u : targets)
         {
             if (!u->IsAlive())
                 continue;
 
-            if (!me->IsValidAttackTarget(u))
+            if (!bot->IsValidAttackTarget(u))
                 continue;
 
             if (++found >= count)

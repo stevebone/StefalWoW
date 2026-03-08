@@ -559,14 +559,11 @@ public:
                     }
 
                     // Check if combat is NOT taking place and schedule OOC actions
-                    if (!FSBUtilsCombat::IsCombatActive(me))
+                    if (!FSBCombatUtils::IsCombatActive(me))
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            auto baseAI = dynamic_cast<FSB_BaseAI*>(me->AI());
-
-                            FSBOOC::BotOOCActions(baseAI);
-
+                            FSBOOC::BotOOCActions(me);
                             _1secondsCheckMs = now + 1000;
                         }
                     }
