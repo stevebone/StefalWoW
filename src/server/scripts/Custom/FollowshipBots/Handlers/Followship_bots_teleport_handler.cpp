@@ -1,7 +1,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "ObjectMgr.h"
-#include "ScriptMgr.h"
+#include "InstanceScript.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"

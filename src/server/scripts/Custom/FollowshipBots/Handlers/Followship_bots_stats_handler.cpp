@@ -114,7 +114,7 @@ namespace FSBStats
 
         float modifier = FollowshipBotsConfig::configFSBHealthRate;
 
-        uint32 baseHealth = ((float)stats->baseHealth + (stats->healthPerLevel * (level - 1) * (level / 2))) * modifier;
+        uint32 baseHealth = ((float)stats->baseHealth + ((float)stats->healthPerLevel * (level - 1) * ((float)level / 2))) * modifier;
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
         float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
@@ -250,10 +250,12 @@ namespace FSBStats
         if (player)
             level = bot->GetLevelForTarget(player);
 
+        float modifier = FollowshipBotsConfig::configFSBDamageRate;
+
         float effectiveAttackPower = stats->baseAttackPower + (stats->attackPowerPerLevel * level);
 
         //float basedamage = (bot->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance) + effectiveAttackPower;
-        float basedamage = effectiveAttackPower;
+        float basedamage = effectiveAttackPower * modifier;
         
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} has base damage {} for effective level {}", bot->GetName(), bot->GetBaseDamageForLevel(level), level);
 

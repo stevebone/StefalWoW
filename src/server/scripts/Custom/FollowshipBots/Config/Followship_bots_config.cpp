@@ -17,6 +17,7 @@ uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 
 float FollowshipBotsConfig::configFSBHealthRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRate = 1.f;
+float FollowshipBotsConfig::configFSBDamageRate = 1.f;
 float FollowshipBotsConfig::configFSBArmorRate = 0.4f;
 
 void FollowshipBotsConfig::Load()
@@ -59,4 +60,7 @@ void FollowshipBotsConfig::Load()
 
     configFSBPowerRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.PowerRate", 1.f);
+
+    configFSBDamageRate =
+        sConfigMgr->GetFloatDefault("Followship.Bots.DamageRate", 1.f);
 }

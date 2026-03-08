@@ -4447,3 +4447,8 @@ Followship.Bots.HealthRate = 1
 # Increase or decrease the bots power
 # Values 0.1-2; Default: 1
 Followship.Bots.PowerRate = 1
+
+# Bot Damage Rate
+# Increase or decrease the bots damage
+# Values 0.1-2; Default: 1
+Followship.Bots.DamageRate = 1
