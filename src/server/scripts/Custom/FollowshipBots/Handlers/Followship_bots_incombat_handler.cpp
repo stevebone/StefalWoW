@@ -180,7 +180,7 @@ namespace FSBIC
         }
 
         if (FSBSpellsUtils::IsCrowdControlWithRandomTarget(dmgSpell->def->spellId))
-            target = FSBUtilsCombat::GetRandomAttacker(bot);
+            target = FSBCombatUtils::GetRandomAttacker(bot);
 
         if (target && (!target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive()))
             return false;

@@ -12,6 +12,7 @@
 #include "Player.h"
 #include "Unit.h"
 
+#include "Followship_bots_ai_base.h"
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"

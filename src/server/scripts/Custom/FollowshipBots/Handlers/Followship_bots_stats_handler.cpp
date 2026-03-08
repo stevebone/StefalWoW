@@ -46,7 +46,7 @@ namespace FSBStats
         ApplyBotDamage(bot, botClass);
 
         // Armor
-        ApplyBotArmor(bot);
+        ApplyBotArmor(bot, botClass);
 
 
 
@@ -244,7 +244,9 @@ namespace FSBStats
 
         float effectiveAttackPower = stats->baseAttackPower + (stats->attackPowerPerLevel * level);
 
-        float basedamage = (bot->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance) + effectiveAttackPower;
+        //float basedamage = (bot->GetBaseDamageForLevel(level) * stats->baseClassDamageVariance) + effectiveAttackPower;
+        float basedamage = effectiveAttackPower;
+        
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} has base damage {} for effective level {}", bot->GetName(), bot->GetBaseDamageForLevel(level), level);
 
         float weaponBaseMinDamage = basedamage; // / 90;
@@ -264,14 +266,22 @@ namespace FSBStats
         bot->UpdateDamagePhysical(OFF_ATTACK);
     }
 
-    void ApplyBotArmor(Creature* bot)
+    void ApplyBotArmor(Creature* bot, FSB_Class botClass)
     {
         if (!bot)
             return;
 
-        uint8 level = bot->GetLevel();
+        auto const* stats = GetBotClassStats(botClass);
+        if (!stats)
+            return;
 
-        float baseArmor = bot->GetBaseArmorForLevel(level);
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        int32 level = bot->GetLevel();
+        if (player)
+            level = bot->GetLevelForTarget(player);
+
+        float baseArmor = stats->armorPerLevel * level; //bot->GetBaseArmorForLevel(level);
         bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, baseArmor);
         float totalArmor = bot->GetTotalAuraModValue(UNIT_MOD_ARMOR);
 
@@ -311,7 +321,7 @@ namespace FSBStats
         ApplyBotPower(bot, cls, updatePower);
         ApplyBotAttackPower(bot, cls);
         ApplyBotDamage(bot, cls);
-        ApplyBotArmor(bot);
+        ApplyBotArmor(bot, cls);
     }
 
     int32 BotGetSpellPower(const Creature* bot)

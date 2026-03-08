@@ -33,6 +33,8 @@ struct FSB_ClassStats
 
     int32 baseSpellPower;
     int32 spellPowerPerLevel;
+
+    int32 armorPerLevel;
 };
 
 static constexpr FSB_ClassStats BotClassStatsTable[] =
@@ -56,7 +58,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 8,
-        .spellPowerPerLevel = 2
+        .spellPowerPerLevel = 2,
+        .armorPerLevel = 3
     },
 
     // WARRIOR
@@ -78,7 +81,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 2,
-        .spellPowerPerLevel = 1
+        .spellPowerPerLevel = 1,
+        .armorPerLevel = 3
     },
 
     // PRIEST
@@ -100,7 +104,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
-        .spellPowerPerLevel = 3
+        .spellPowerPerLevel = 3,
+        .armorPerLevel = 1
     },
 
     // WARLOCK
@@ -122,7 +127,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 9,
-        .spellPowerPerLevel = 4
+        .spellPowerPerLevel = 4,
+        .armorPerLevel = 1
     },
 
     // MAGE
@@ -143,7 +149,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 10,
-        .spellPowerPerLevel = 5
+        .spellPowerPerLevel = 5,
+        .armorPerLevel = 1
     },
 
     // MONK
@@ -165,7 +172,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
-        .spellPowerPerLevel = 3
+        .spellPowerPerLevel = 3,
+        .armorPerLevel = 2
     },
 
     // DRUID
@@ -187,7 +195,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
-        .spellPowerPerLevel = 3
+        .spellPowerPerLevel = 3,
+        .armorPerLevel = 2
     },
 
     // ROGUE
@@ -209,7 +218,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 1500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 1,
-        .spellPowerPerLevel = 1
+        .spellPowerPerLevel = 1,
+        .armorPerLevel = 2
     },
 
     // HUNTER
@@ -231,7 +241,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 1,
-        .spellPowerPerLevel = 1
+        .spellPowerPerLevel = 1,
+        .armorPerLevel = 2
     },
 
     // SHAMAN
@@ -253,7 +264,8 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 2,
-        .spellPowerPerLevel = 4
+        .spellPowerPerLevel = 4,
+        .armorPerLevel = 2
     },
 };
 
@@ -267,7 +279,7 @@ namespace FSBStats
     void ApplyBotPower(Creature* bot, FSB_Class botClass, bool updatePower);
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass);
     void ApplyBotDamage(Creature* bot, FSB_Class botClass);
-    void ApplyBotArmor(Creature* bot);
+    void ApplyBotArmor(Creature* bot, FSB_Class botClass);
 
     void ApplyDynamicDamageDealt(Creature* bot, Unit* victim, uint32& damage);
 

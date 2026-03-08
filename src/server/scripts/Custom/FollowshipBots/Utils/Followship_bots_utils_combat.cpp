@@ -6,17 +6,14 @@
 #include "Unit.h"
 
 #include "Followship_bots_config.h"
-
 #include "Followship_bots_utils.h"
 #include "Followship_bots.h"
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_group_handler.h"
 
-namespace FSBUtilsCombat
+namespace FSBCombatUtils
 {
-    
-
     Unit* GetRandomAttacker(Creature* bot)
     {
         auto const& attackers = bot->getAttackers();
@@ -30,48 +27,6 @@ namespace FSBUtilsCombat
         return *it;
     }
 
-    uint8 CountActiveAttackers(Unit* me)
-    {
-        if (!me)
-            return 0;
-
-        uint8 count = 0;
-
-        for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
-        {
-            Unit* u = ref->GetVictim();
-            if (!u || !u->IsAlive())
-                continue;
-
-            if (!me->IsInMap(u))
-                continue;
-
-            ++count;
-        }
-
-        return count;
-    }
-
-    uint8 CountAttackersOn(Unit* who)
-    {
-        if (!who)
-            return 0;
-
-        uint8 count = 0;
-
-        for (ThreatReference const* ref : who->GetThreatManager().GetUnsortedThreatList())
-        {
-            Unit* u = ref->GetVictim();
-            if (u && u->IsAlive() && u->GetVictim() == who)
-                ++count;
-        }
-
-        return count;
-    }    
-}
-
-namespace FSBCombatUtils
-{
     bool IsCombatActive(Creature* bot)
     {
         if (!bot)
