@@ -1,6 +1,8 @@
+#include "Containers.h"
 #include "DB2Stores.h"
 #include "Log.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 #include "SpellHistory.h"
 #include "SpellInfo.h"
 
