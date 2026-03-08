@@ -1,5 +1,6 @@
 #include "Log.h"
 #include "Map.h"
+#include "SpellHistory.h"
 #include "SpellInfo.h"
 
 #include "Followship_bots.h"
