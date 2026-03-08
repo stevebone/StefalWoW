@@ -389,6 +389,10 @@ namespace FSBRecovery
         if (!bot || !bot->IsAlive())
             return;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->ToCreature()->AI());
+        if (!baseAI)
+            return;
+
         if (!BotHasRecoveryActive(bot))
             return;
 
@@ -404,5 +408,8 @@ namespace FSBRecovery
 
         if(full)
             bot->RemoveAurasDueToSpell(SPELL_MAGE_CONJURED_MANA_PUDDING);
+
+        if (!BotHasRecoveryActive(bot))
+            FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
     }
 }

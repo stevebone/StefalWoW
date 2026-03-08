@@ -238,8 +238,6 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
 
     FSBMgr::Get()->RegisterBotSpawn(bot, player);
-
-
     PhasingHandler::ResetPhaseShift(bot);
     bot->SetStandState(UNIT_STAND_STATE_STAND);
     FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);

@@ -17,6 +17,12 @@ namespace FSBTeleport
         if (!bot)
             return false;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB BotTeleport - With Death teleport for bot {}", bot->GetName());
 
         switch (reason)
@@ -68,20 +74,19 @@ namespace FSBTeleport
             
         case BOT_TOO_FAR:
         {
-            if (!bot->IsAlive())
+            if (!player)
+                return false;
+
+            if (!bot->IsAlive() || !player->IsAlive())
                 return false;
 
             if (FSBCombatUtils::IsCombatActive(bot))
                 return false;
 
-            Player* player = FSBMgr::Get()->GetBotOwner(bot);
-            if (!player)
+            if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
                 return false;
 
             if (player->IsInFlight())
-                return false;
-
-            if (!player->IsAlive())
                 return false;
 
             if (bot->GetMapId() == player->GetMapId() && bot->GetDistance(player) > 100.0f)

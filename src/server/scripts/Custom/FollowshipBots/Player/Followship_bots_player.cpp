@@ -27,9 +27,6 @@ public:
     {
         FSBMgr::Get()->RemovePersistentExpiredPlayerBots(player);
         FSBMgr::Get()->SpawnPlayerBots(player);
-
-        // Send fake party frame after bots are spawned (delayed slightly so bots are in world)
-        // The actual initial send happens from the bot's hired maintenance loop once bots are ready
     }
 };
 

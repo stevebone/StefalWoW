@@ -1,4 +1,5 @@
 #include <string>
+#include "Define.h"
 
 namespace FSBGossipUtils
 {

@@ -39,9 +39,6 @@ namespace FSBOOC
         if (FSBCombatUtils::IsCombatActive(bot))
             return false;
 
-        if (FSBRecovery::BotHasRecoveryActive(bot))
-            return false;
-
         uint32 now = getMSTime();
 
         if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
@@ -49,6 +46,11 @@ namespace FSBOOC
 
         //Clear combat flags and states
         BotOOCClearFlagsStates(bot);
+
+        // This check needs to be here because BotOOCClearFlagsStates will cancel the recovery if no longer needed
+        // Moving this above the other will block the cancel check.
+        if (FSBRecovery::BotHasRecoveryActive(bot))
+            return false;
 
         //0 OOC Resurrect
         // If we resurrect someone then end tick
