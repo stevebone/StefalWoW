@@ -4,6 +4,7 @@
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
 #include "SpellAuras.h"
+#include "SpellAuraEffects.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "ThreatManager.h"
@@ -124,6 +125,7 @@ namespace FSBSpellsUtils
         case SPELL_SHAMAN_THUNDERSTORM:
             return CheckCrowdControlRequirements(bot, 10.f);
 
+        case SPELL_PRIEST_HOLY_NOVA:
         case SPELL_MAGE_FROST_NOVA:
             return CheckCrowdControlRequirements(bot, 12.f);
 

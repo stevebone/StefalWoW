@@ -13,6 +13,9 @@ namespace FSBCombat
         if (!bot || !bot->IsAlive())
             return;
 
+        if (bot->HasAura(SPELL_SPECIAL_GHOST))
+            return;
+
         Unit* victim = bot->GetVictim();
         // Prevent bot from disengaging from current target
         if (victim)
