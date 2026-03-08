@@ -1,3 +1,4 @@
+#include "DB2Stores.h"
 #include "Log.h"
 #include "Map.h"
 #include "SpellHistory.h"
