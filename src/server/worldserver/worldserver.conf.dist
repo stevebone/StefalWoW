@@ -4429,3 +4429,21 @@ Followship.Bots.UseICPotions = 1
 # Higher values lead to more chatter
 # Values 1-100; Default: 10
 Followship.Bots.ChatterRate = 100
+
+# Bots Stats
+#
+# Bot Armor Rate
+# Increase or decrease the bots armor
+# Higher values lead to more bot armor and reduced damage taken
+# Values 0.1-2; Default: 1
+Followship.Bots.ArmorRate = 0.4
+
+# Bot Health Rate
+# Increase or decrease the bots health
+# Values 0.1-2; Default: 1
+Followship.Bots.HealthRate = 1
+
+# Bot Power Rate
+# Increase or decrease the bots power
+# Values 0.1-2; Default: 1
+Followship.Bots.PowerRate = 1

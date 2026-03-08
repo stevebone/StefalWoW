@@ -16,6 +16,8 @@ struct FollowshipBotsConfig
     static int32 configFSBHireDuration3;
     static uint32 configFSBChatterRate;
 
+    static float configFSBHealthRate;
+    static float configFSBPowerRate;
     static float configFSBArmorRate;
 
     static void Load();

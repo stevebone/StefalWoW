@@ -15,6 +15,8 @@ bool  FollowshipBotsConfig::configFSBUseICPotions = true;
 bool  FollowshipBotsConfig::configFSBUseCustomRegen = true;
 uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 
+float FollowshipBotsConfig::configFSBHealthRate = 1.f;
+float FollowshipBotsConfig::configFSBPowerRate = 1.f;
 float FollowshipBotsConfig::configFSBArmorRate = 0.4f;
 
 void FollowshipBotsConfig::Load()
@@ -51,4 +53,10 @@ void FollowshipBotsConfig::Load()
 
     configFSBArmorRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.ArmorRate", 0.4f);
+
+    configFSBHealthRate =
+        sConfigMgr->GetFloatDefault("Followship.Bots.HealthRate", 1.f);
+
+    configFSBPowerRate =
+        sConfigMgr->GetFloatDefault("Followship.Bots.PowerRate", 1.f);
 }
