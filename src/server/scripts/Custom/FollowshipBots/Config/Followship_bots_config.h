@@ -4,17 +4,19 @@
 
 struct FollowshipBotsConfig
 {
-    static bool  configFSBEnabled;
+    static bool configFSBEnabled;
+    static bool configFSBUseCustomRegen;
+    static bool configFSBUseOOCActions;
+    static bool configFSBUseICPotions;
+
     static int64 configFSBPricePerLevel;
     static int64 configFSBPermanentPricePerLevel;
     static int32 configFSBHireDuration1;
     static int32 configFSBHireDuration2;
     static int32 configFSBHireDuration3;
-    static bool  configFSBUseCustomRegen;
     static uint32 configFSBChatterRate;
 
-    static bool configFSBUseOOCActions;
-    static bool configFSBUseICPotions;
+    static float configFSBArmorRate;
 
     static void Load();
 };

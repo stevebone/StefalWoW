@@ -1,5 +1,6 @@
 #include "Log.h"
 
+#include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
@@ -106,7 +107,7 @@ namespace FSBStats
 
         uint8 level = bot->GetLevel();
 
-        uint32 baseHealth = stats->baseHealth + stats->healthPerLevel * (level - 1);
+        uint32 baseHealth = stats->baseHealth + (stats->healthPerLevel * (level - 1));
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
         float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
@@ -281,7 +282,9 @@ namespace FSBStats
         if (player)
             level = bot->GetLevelForTarget(player);
 
-        float baseArmor = stats->armorPerLevel * level; //bot->GetBaseArmorForLevel(level);
+        float modifier = FollowshipBotsConfig::configFSBArmorRate;
+
+        float baseArmor = (float)(stats->armorPerLevel * level / 3) * modifier;
         bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, baseArmor);
         float totalArmor = bot->GetTotalAuraModValue(UNIT_MOD_ARMOR);
 
