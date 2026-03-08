@@ -67,7 +67,7 @@ namespace FSBStats
         float modifier = FollowshipBotsConfig::configFSBPowerRate;
 
         Powers basePowerType = stats->powerType;
-        uint32 basePower = ((float)stats->basePower + (stats->powerPerLevel * (level - 1) * (level / 3))) * modifier;
+        uint32 basePower = ((float)stats->basePower + ((float)stats->powerPerLevel * (level - 1) + (level * 3))) * modifier;
 
         if (FSBPowers::IsRageUser(bot))
         {
@@ -114,7 +114,7 @@ namespace FSBStats
 
         float modifier = FollowshipBotsConfig::configFSBHealthRate;
 
-        uint32 baseHealth = ((float)stats->baseHealth + ((float)stats->healthPerLevel * (level - 1) * ((float)level / 2))) * modifier;
+        uint32 baseHealth = ((float)stats->baseHealth + ((float)stats->healthPerLevel * (level - 1) + ((float)level * 3))) * modifier;
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
         float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
@@ -136,10 +136,16 @@ namespace FSBStats
         if (!stats)
             return;
 
-        uint8 level = bot->GetLevel();
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        int32 level = bot->GetLevel();
+        if (player)
+            level = bot->GetLevelForTarget(player);
+
+        float modifier = FollowshipBotsConfig::configFSBPowerRate;
 
         Powers basePowerType = stats->powerType;
-        uint32 basePower = stats->basePower + stats->powerPerLevel * (level - 1);
+        uint32 basePower = ((float)stats->basePower + ((float)stats->powerPerLevel * (level - 1) + (level * 3))) * modifier;
 
         if (FSBPowers::IsRageUser(bot))
         {
