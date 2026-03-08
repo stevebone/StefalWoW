@@ -2,10 +2,10 @@
 #include <vector>
 
 #include "Containers.h"
-
 #include "CreatureAI.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
+#include "Log.h"
 #include "ThreatManager.h"
 
 #include "Followship_bots.h"

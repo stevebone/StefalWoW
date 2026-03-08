@@ -3,6 +3,7 @@
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
+#include "SpellAuras.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "ThreatManager.h"
