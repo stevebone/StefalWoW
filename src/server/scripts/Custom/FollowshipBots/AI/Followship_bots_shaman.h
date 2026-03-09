@@ -106,6 +106,7 @@ enum FSB_SHAMAN_TANK_SPELLS
 
     SPELL_SHAMAN_SHOCKWAVE = 46968, //40s 2f
     SPELL_SHAMAN_SUMMON_EARTH_ELEMENTAL = 242563, //out of combat self, maybe add cooldown?
+    SPELL_SHAMAN_STATIC_CHARGE = 88043, //40f, 30s, 5% mana
 };
 
 namespace FSBShaman
