@@ -222,6 +222,9 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (bot->GetStandState() == UNIT_STAND_STATE_SIT || bot->GetStandState() == UNIT_STAND_STATE_SLEEP)
             bot->SetStandState(UNIT_STAND_STATE_STAND);
 
+        if (bot->HasAura(SPELL_SHAMAN_GHOST_WOLF))
+            bot->RemoveAurasDueToSpell(SPELL_SHAMAN_GHOST_WOLF);
+
         //bot->SetEmoteState(Emote(EMOTE_STATE_NONE));
         bot->HandleEmoteCommand(EMOTE_ONESHOT_YES);
 

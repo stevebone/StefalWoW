@@ -601,6 +601,8 @@ namespace FSBOOC
         {
             if (botSitsByFire || botRandomEvent)
             {
+                if (bot->HasAura(SPELL_SHAMAN_GHOST_WOLF))
+                    bot->RemoveAurasDueToSpell(SPELL_SHAMAN_GHOST_WOLF);
                 //bot->SetEmoteState(Emote(EMOTE_STATE_NONE));
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_YES);
                 bot->SetStandState(UNIT_STAND_STATE_STAND);

@@ -33,9 +33,12 @@ std::vector<FSBSpellDefinition> ShamanSpellsTable =
     { SPELL_SHAMAN_EARTH_SHOCK,             FSBSpellType::Damage,   0.f,        0.f,            70.f,            25.f,          false,      1000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_SHAMAN_CHAIN_LIGHTNING,         FSBSpellType::Damage,   0.f,        0.f,            60.f,            40.f,          false,      3000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     { SPELL_SHAMAN_ELEMENTAL_BLAST,         FSBSpellType::Damage,   0.f,        0.f,            70.f,            40.f,          false,      12000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
+    { SPELL_SHAMAN_STORMKEEPER,             FSBSpellType::Damage,   0.f,        0.f,            50.f,            40.f,          true,       60000,          FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE },
     //{ SPELL_SHAMAN_EARTHQUAKE,              FSBSpellType::Damage,   0.f,        0.f,            60.f,            40.f,          false,      6000,           FSB_RoleMask::FSB_ROLEMASK_RANGED_DAMAGE,                        true },
 
     // ===================== ENHANCEMENT (MELEE DAMAGE) =====================
+    { SPELL_SHAMAN_ASCENDANCE_AIR,          FSBSpellType::Damage,     0.f,      0.f,            50.f,            2.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
+
     { SPELL_SHAMAN_STORMSTRIKE,             FSBSpellType::Damage,   0.f,        0.f,            80.f,            2.f,           false,      7500,           FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_LAVA_LASH,               FSBSpellType::Damage,   0.f,        0.f,            70.f,            2.f,           false,      18000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },
     { SPELL_SHAMAN_CRASH_LIGHTNING,         FSBSpellType::Damage,   0.f,        0.f,            60.f,            2.f,           false,      12000,          FSB_RoleMask::FSB_ROLEMASK_MELEE_DAMAGE },

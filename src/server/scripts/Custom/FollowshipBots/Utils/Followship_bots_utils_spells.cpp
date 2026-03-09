@@ -39,6 +39,7 @@ std::unordered_map<FSB_Class, DispelAbility> DispelTable =
     { FSB_Class::Druid,   { SPELL_DRUID_REMOVE_CORRUPTION, { DISPEL_CURSE, DISPEL_POISON }, 8000  }},
     { FSB_Class::Druid,   { SPELL_DRUID_NATURE_CURE,       { DISPEL_MAGIC, DISPEL_CURSE, DISPEL_POISON }, 8000 }},
     { FSB_Class::Shaman,  { SPELL_SHAMAN_PURIFY_SPIRIT,    { DISPEL_MAGIC }, 8000 } },
+    { FSB_Class::Shaman,  { SPELL_SHAMAN_CLEANSE_SPIRIT,   { DISPEL_CURSE }, 8000 } },
     { FSB_Class::Mage,    { SPELL_MAGE_REMOVE_CURSE,     { DISPEL_CURSE }, 8000  }},
     { FSB_Class::Monk,    { SPELL_MONK_DETOX_HEAL, { DISPEL_POISON, DISPEL_DISEASE}, 8000 }},
 };
