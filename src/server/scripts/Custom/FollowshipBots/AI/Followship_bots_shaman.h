@@ -90,6 +90,17 @@ enum FSB_SHAMAN_RESTO_SPELLS
     SPELL_SHAMAN_EARTH_SHIELD = 974, // 40f buff tank/player
 };
 
+enum FSB_SHAMAN_TANK_SPELLS
+{
+    //potential spells for a tank spec
+    SPELL_SMAMAN_ROCKBITER_WEAPON = 159974, //selfbuff
+
+    SPELL_SHAMAN_STRENGTH_TOTEM = 31633, // needs implementation with 31634
+    SPELL_SHAMAN_WRATH_TOTEM = 204330, // needs implementation with 208963
+    SPELL_SHAMAN_WINDFURY_TOTEM = 6112, // needs implementation with 327942 //maybe exchange with another totem
+    SPELL_SHAMAN_SEARING_TOTEM = 3599, //maybe exchange with another totem
+};
+
 namespace FSBShaman
 {
     bool BotOOCBuffSelf(Creature* bot, uint32& outSpellId);

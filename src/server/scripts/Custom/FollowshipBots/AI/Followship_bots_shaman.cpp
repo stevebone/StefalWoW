@@ -111,7 +111,7 @@ namespace FSBShaman
             }
         }
 
-        if (baseAI->botRole == FSB_ROLE_MELEE_DAMAGE && !bot->HasAura(SPELL_SHAMAN_FLAMETONGUE_WEAPON))
+        if ((baseAI->botRole == FSB_ROLE_MELEE_DAMAGE || baseAI->botRole == FSB_ROLE_RANGED_DAMAGE) && !bot->HasAura(SPELL_SHAMAN_FLAMETONGUE_WEAPON))
         {
             if (FSBSpells::BotCastSpell(bot, SPELL_SHAMAN_FLAMETONGUE_WEAPON, bot))
             {

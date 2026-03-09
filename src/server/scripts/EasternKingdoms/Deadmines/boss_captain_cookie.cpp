@@ -1,4 +1,5 @@
 #include "deadmines.h"
+#include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellAuras.h"
 
