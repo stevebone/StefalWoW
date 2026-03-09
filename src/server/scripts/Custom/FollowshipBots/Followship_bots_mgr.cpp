@@ -8,6 +8,7 @@
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
 
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
@@ -239,8 +240,10 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
 
     FSBMgr::Get()->RegisterBotSpawn(bot, player);
     PhasingHandler::ResetPhaseShift(bot);
+
+    // Do not remove the below since they are needed for the Hire flow
     bot->SetStandState(UNIT_STAND_STATE_STAND);
-    FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+    FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, 1s, 3s);
 }
 
 // ==================== GETTER METHODS ==================================================== //
@@ -424,16 +427,25 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     if (!baseAI)
         return;
 
-    baseAI->botHired = false;
-    baseAI->botHasDemon = false;
-    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
-    baseAI->botFollowDistance = frand(2.f, 8.f);
-    baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+    if (FSBMgr::Get()->GetBotOwner(bot))
+    {
+        baseAI->botHired = true;
+        FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+    }
+    else
+    {
+        baseAI->botHired = false;
+        baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
+        baseAI->botFollowDistance = frand(2.f, 8.f);
+        baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+    }   
+
     auto& botClass = baseAI->botClass;
     auto& botRace = baseAI->botRace;
     auto& botStats = baseAI->botStats;
     auto& botRole = baseAI->botRole;
     baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
+    baseAI->botHasDemon = false;
 
     // For shaman we set self resurrect flag for reincarnation
     if (botClass == FSB_Class::Shaman)

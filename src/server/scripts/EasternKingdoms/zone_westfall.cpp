@@ -27,6 +27,7 @@
 #include "SpellScript.h"
 #include "PhasingHandler.h"
 #include "SharedDefines.h"
+#include "TemporarySummon.h"
 
 
 namespace Scripts::EasternKingdoms::Westfall
