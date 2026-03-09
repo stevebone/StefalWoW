@@ -1,4 +1,5 @@
 #include "deadmines.h"
+#include "GameObject.h"
 #include "InstanceScript.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"

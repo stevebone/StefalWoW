@@ -114,7 +114,7 @@ namespace FSBStats
 
         float modifier = FollowshipBotsConfig::configFSBHealthRate;
 
-        uint32 baseHealth = ((float)stats->baseHealth + ((float)stats->healthPerLevel * (level - 1) + ((float)level * 3))) * modifier;
+        uint32 baseHealth = ((float)stats->baseHealth + ((float)stats->healthPerLevel * (level - 1) + ((float)level * 65))) * modifier;
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
         float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
