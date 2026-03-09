@@ -19,6 +19,7 @@
 #define _Deadmines_h__
 
 #include "CreatureAIImpl.h"
+#include "Position.h"
 
 constexpr char const* DMScriptName = "instance_deadmines";
 constexpr char const* DataHeader = "DM";
