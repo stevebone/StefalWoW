@@ -24,6 +24,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "ScriptMgr.h"
+#include "Spell.h"
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "PhasingHandler.h"
