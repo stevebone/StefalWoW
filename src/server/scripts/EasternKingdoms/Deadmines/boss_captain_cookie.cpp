@@ -1,5 +1,7 @@
 #include "deadmines.h"
 #include "InstanceScript.h"
+#include "MotionMaster.h"
+#include "MovementDefines.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellAuras.h"

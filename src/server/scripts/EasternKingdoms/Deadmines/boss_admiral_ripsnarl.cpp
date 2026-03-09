@@ -17,6 +17,7 @@
 #include "InstanceScript.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "SpellInfo.h"
 #include "deadmines.h"
 
 

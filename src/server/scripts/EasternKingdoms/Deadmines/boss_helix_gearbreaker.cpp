@@ -1,6 +1,8 @@
 #include "deadmines.h"
 #include "GameObject.h"
 #include "InstanceScript.h"
+#include "MotionMaster.h"
+#include "MovementDefines.h"
 #include "Vehicle.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
