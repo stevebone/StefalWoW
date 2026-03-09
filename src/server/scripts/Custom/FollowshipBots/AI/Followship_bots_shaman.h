@@ -99,6 +99,13 @@ enum FSB_SHAMAN_TANK_SPELLS
     SPELL_SHAMAN_WRATH_TOTEM = 204330, // needs implementation with 208963
     SPELL_SHAMAN_WINDFURY_TOTEM = 6112, // needs implementation with 327942 //maybe exchange with another totem
     SPELL_SHAMAN_SEARING_TOTEM = 3599, //maybe exchange with another totem
+
+    SPELL_SHAMAN_EARTHEN_SPIKE = 300975, //40f 3s or more, 5% mana
+    SPELL_SHAMAN_ICE_FURY = 210714, //40f
+    SPELL_SHAMAN_STONE_BULWARK = 166584, //40f but use as self, 30s, 5% mana
+
+    SPELL_SHAMAN_SHOCKWAVE = 46968, //40s 2f
+    SPELL_SHAMAN_SUMMON_EARTH_ELEMENTAL = 242563, //out of combat self, maybe add cooldown?
 };
 
 namespace FSBShaman

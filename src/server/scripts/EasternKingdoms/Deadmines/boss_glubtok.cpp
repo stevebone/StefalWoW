@@ -1,4 +1,6 @@
 #include "deadmines.h"
+#include "ScriptedCreature.h"
+#include "ScriptMgr.h"
 
 enum ScriptTexts
 {
