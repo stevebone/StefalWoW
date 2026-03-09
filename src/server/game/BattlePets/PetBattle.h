@@ -62,6 +62,8 @@ struct PetBattleEnvironment
     PetBattleWeatherType WeatherType = PET_BATTLE_WEATHER_NONE;
     int8 RemainingRounds = 0;
     uint8 CasterTeam = 0;
+    uint32 AuraInstanceID = 0;   // Unique ID for the environment aura (sent to client)
+    int32 CurrentRound = 0;      // Round when weather was applied
 };
 
 struct PetBattlePetData
@@ -214,6 +216,7 @@ struct PetBattleRoundEffect
     int32 Param2 = 0;
     int32 Param3 = 0;      // For aura effects: RoundsRemaining (captured at creation time)
     int32 Param4 = 0;      // For aura effects: CurrentRound (captured at creation time)
+    int8 TargetEnvSlot = -1; // >= 0: target is environment slot (PBOID = PBOID_ENVIRONMENT_BASE + slot)
 };
 
 class TC_GAME_API PetBattle

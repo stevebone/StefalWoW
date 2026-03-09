@@ -1669,14 +1669,35 @@ void PetBattle::SetWeather(PetBattleWeatherType weatherType, uint32 abilityID, i
 {
     if (weatherType == PET_BATTLE_WEATHER_CLEANSING)
     {
-        // Clear all weather
-        for (auto& env : _environments)
+        // Clear all weather — emit AURA_CANCEL for any active environment auras
+        for (uint8 i = 0; i < MAX_PET_BATTLE_ENVIRONMENTS; ++i)
         {
-            env.WeatherType = PET_BATTLE_WEATHER_NONE;
-            env.AbilityID = 0;
-            env.RemainingRounds = 0;
+            if (_environments[i].WeatherType != PET_BATTLE_WEATHER_NONE && _environments[i].AuraInstanceID != 0)
+            {
+                PetBattleRoundEffect cancelEffect;
+                cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                cancelEffect.TargetEnvSlot = static_cast<int8>(i);
+                cancelEffect.Param1 = _environments[i].AuraInstanceID;
+                cancelEffect.Param2 = _environments[i].AbilityID;
+                _roundEffects.push_back(cancelEffect);
+            }
+            _environments[i].WeatherType = PET_BATTLE_WEATHER_NONE;
+            _environments[i].AbilityID = 0;
+            _environments[i].RemainingRounds = 0;
+            _environments[i].AuraInstanceID = 0;
         }
         return;
+    }
+
+    // Cancel existing weather on slot 0 if any
+    if (_environments[0].WeatherType != PET_BATTLE_WEATHER_NONE && _environments[0].AuraInstanceID != 0)
+    {
+        PetBattleRoundEffect cancelEffect;
+        cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+        cancelEffect.TargetEnvSlot = 0;
+        cancelEffect.Param1 = _environments[0].AuraInstanceID;
+        cancelEffect.Param2 = _environments[0].AbilityID;
+        _roundEffects.push_back(cancelEffect);
     }
 
     // Slot 0 is the shared battlefield weather
@@ -1684,12 +1705,28 @@ void PetBattle::SetWeather(PetBattleWeatherType weatherType, uint32 abilityID, i
     _environments[0].WeatherType = weatherType;
     _environments[0].RemainingRounds = duration;
     _environments[0].CasterTeam = casterTeam;
+    _environments[0].AuraInstanceID = _nextAuraInstanceID++;
+    _environments[0].CurrentRound = _currentRound;
+
+    // Emit AURA_APPLY targeting environment PBOID so client shows weather
+    PetBattleRoundEffect applyEffect;
+    applyEffect.AbilityEffectID = abilityID;
+    applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+    applyEffect.SourceTeam = casterTeam;
+    applyEffect.SourcePet = _teams[casterTeam].FrontPetIndex;
+    applyEffect.TargetEnvSlot = 0; // Environment slot 0 = shared battlefield weather
+    applyEffect.Param1 = _environments[0].AuraInstanceID;
+    applyEffect.Param2 = abilityID;
+    applyEffect.Param3 = duration;
+    applyEffect.Param4 = _currentRound;
+    _roundEffects.push_back(applyEffect);
 }
 
 void PetBattle::TickWeather()
 {
-    for (auto& env : _environments)
+    for (uint8 envSlot = 0; envSlot < MAX_PET_BATTLE_ENVIRONMENTS; ++envSlot)
     {
+        PetBattleEnvironment& env = _environments[envSlot];
         if (env.WeatherType == PET_BATTLE_WEATHER_NONE)
             continue;
 
@@ -1726,8 +1763,19 @@ void PetBattle::TickWeather()
 
         if (env.RemainingRounds <= 0)
         {
+            // Emit AURA_CANCEL so client removes the weather icon
+            if (env.AuraInstanceID != 0)
+            {
+                PetBattleRoundEffect cancelEffect;
+                cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                cancelEffect.TargetEnvSlot = static_cast<int8>(envSlot);
+                cancelEffect.Param1 = env.AuraInstanceID;
+                cancelEffect.Param2 = env.AbilityID;
+                _roundEffects.push_back(cancelEffect);
+            }
             env.WeatherType = PET_BATTLE_WEATHER_NONE;
             env.AbilityID = 0;
+            env.AuraInstanceID = 0;
         }
     }
 }

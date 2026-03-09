@@ -255,6 +255,26 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
     }
 }
 
+static void BuildPetBattleEnviros(std::array<WorldPackets::BattlePet::PetBattleEnviroInfo, 3>& enviros,
+    PetBattles::PetBattle const* battle)
+{
+    for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_ENVIRONMENTS; ++i)
+    {
+        PetBattles::PetBattleEnvironment const& env = battle->GetEnvironment(i);
+        if (env.WeatherType != PetBattles::PET_BATTLE_WEATHER_NONE && env.AuraInstanceID != 0)
+        {
+            WorldPackets::BattlePet::PetBattleAuraInfo auraInfo;
+            auraInfo.AbilityID = env.AbilityID;
+            auraInfo.InstanceID = env.AuraInstanceID;
+            auraInfo.RoundsRemaining = env.RemainingRounds;
+            auraInfo.CurrentRound = env.CurrentRound;
+            auraInfo.CasterPBOID = env.CasterTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE
+                + battle->GetTeam(env.CasterTeam).FrontPetIndex;
+            enviros[i].Auras.push_back(auraInfo);
+        }
+    }
+}
+
 static void BuildPetBattleRoundPlayerData(WorldPackets::BattlePet::PetBattleRoundPlayerData& roundData,
     PetBattles::PetBattleTeamData const& team, PetBattles::PetBattle const* battle, uint8 teamIdx)
 {
@@ -320,7 +340,11 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
         effect.StackDepth = 0;
 
         WorldPackets::BattlePet::PetBattleEffectTargetInfo target;
-        target.Remaining = static_cast<int32>(roundEffect.TargetTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.TargetPet);
+        // Environment targets use PBOID_ENVIRONMENT_BASE + slot; pet targets use team * TEAM_SIZE + pet
+        if (roundEffect.TargetEnvSlot >= 0)
+            target.Remaining = static_cast<int32>(PetBattles::PBOID_ENVIRONMENT_BASE + roundEffect.TargetEnvSlot);
+        else
+            target.Remaining = static_cast<int32>(roundEffect.TargetTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + roundEffect.TargetPet);
 
         // Map effect type to target type and variable-length params
         // Target types: 0=none, 1=aura(4 i32), 2=state(2 i32), 3=health(1 i32),
@@ -493,6 +517,7 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
 
     BuildPetBattlePlayerUpdate(initialUpdate.Players[0], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_1), false, battle, PetBattles::PET_BATTLE_TEAM_1);
     BuildPetBattlePlayerUpdate(initialUpdate.Players[1], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2), true, battle, PetBattles::PET_BATTLE_TEAM_2);
+    BuildPetBattleEnviros(initialUpdate.Enviros, battle);
 
     initialUpdate.CurRound = battle->GetCurrentRound();
     initialUpdate.CurPetBattleState = static_cast<int8>(battle->GetBattleState());
@@ -653,6 +678,7 @@ void WorldSession::StartNPCPetBattle(Creature* trainer)
 
     BuildPetBattlePlayerUpdate(initialUpdate.Players[0], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_1), false, battle, PetBattles::PET_BATTLE_TEAM_1);
     BuildPetBattlePlayerUpdate(initialUpdate.Players[1], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2), false, battle, PetBattles::PET_BATTLE_TEAM_2);
+    BuildPetBattleEnviros(initialUpdate.Enviros, battle);
 
     initialUpdate.CurRound = battle->GetCurrentRound();
     initialUpdate.CurPetBattleState = static_cast<int8>(battle->GetBattleState());
@@ -1056,6 +1082,7 @@ void WorldSession::HandlePetBattleRequestUpdate(WorldPackets::BattlePet::PetBatt
         WorldPackets::BattlePet::PetBattleInitialUpdate initialUpdate;
         BuildPetBattlePlayerUpdate(initialUpdate.Players[0], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_1), false, battle, PetBattles::PET_BATTLE_TEAM_1);
         BuildPetBattlePlayerUpdate(initialUpdate.Players[1], battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2), false, battle, PetBattles::PET_BATTLE_TEAM_2);
+        BuildPetBattleEnviros(initialUpdate.Enviros, battle);
         initialUpdate.CurRound = battle->GetCurrentRound();
         initialUpdate.CurPetBattleState = static_cast<int8>(battle->GetBattleState());
         initialUpdate.IsPVP = true;
