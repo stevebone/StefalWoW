@@ -17,6 +17,7 @@
 
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "InstanceScript.h"
 #include "ScriptMgr.h"
 #include "PhasingHandler.h"
 #include "deadmines.h"
