@@ -13,7 +13,11 @@ int32 FollowshipBotsConfig::configFSBHireDuration3 = 3;
 bool  FollowshipBotsConfig::configFSBUseOOCActions = true;
 bool  FollowshipBotsConfig::configFSBUseICPotions = true;
 bool  FollowshipBotsConfig::configFSBUseCustomRegen = true;
+bool  FollowshipBotsConfig::configFSBUseChatChannels = true;
+
 uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
+uint32 FollowshipBotsConfig::configFSBChatChannelsRate = 10;
+int64 FollowshipBotsConfig::configFSBChatChannelsInterval = 10000;
 
 float FollowshipBotsConfig::configFSBHealthRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRate = 1.f;
@@ -24,6 +28,9 @@ void FollowshipBotsConfig::Load()
 {
     configFSBEnabled =
         sConfigMgr->GetBoolDefault("Followship.Bots.Enabled", false);
+
+    configFSBUseChatChannels =
+        sConfigMgr->GetBoolDefault("Followship.Bots.UseChatChannels", true);
 
     configFSBPricePerLevel =
         sConfigMgr->GetInt64Default("Followship.Bots.BaseCostPerLevel", 10);
@@ -51,6 +58,12 @@ void FollowshipBotsConfig::Load()
 
     configFSBChatterRate =
         sConfigMgr->GetIntDefault("Followship.Bots.ChatterRate", 10);
+
+    configFSBChatChannelsInterval =
+        sConfigMgr->GetInt64Default("Followship.Bots.ChatChannelsInterval", 10000);
+
+    configFSBChatChannelsRate =
+        sConfigMgr->GetIntDefault("Followship.Bots.ChatChannelsRate", 10);
 
     configFSBArmorRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.ArmorRate", 0.4f);

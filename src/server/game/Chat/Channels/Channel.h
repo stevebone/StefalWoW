@@ -19,6 +19,7 @@
 #define _CHANNEL_H
 
 #include "Common.h"
+#include "Creature.h"
 #include "ObjectGuid.h"
 #include <ctime>
 #include <map>

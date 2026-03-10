@@ -8,6 +8,7 @@ struct FollowshipBotsConfig
     static bool configFSBUseCustomRegen;
     static bool configFSBUseOOCActions;
     static bool configFSBUseICPotions;
+    static bool configFSBUseChatChannels;
 
     static int64 configFSBPricePerLevel;
     static int64 configFSBPermanentPricePerLevel;
@@ -15,6 +16,8 @@ struct FollowshipBotsConfig
     static int32 configFSBHireDuration2;
     static int32 configFSBHireDuration3;
     static uint32 configFSBChatterRate;
+    static uint32 configFSBChatChannelsRate;
+    static int64 configFSBChatChannelsInterval;
 
     static float configFSBHealthRate;
     static float configFSBPowerRate;

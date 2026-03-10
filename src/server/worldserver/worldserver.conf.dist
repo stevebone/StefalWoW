@@ -4416,6 +4416,29 @@ Followship.Bots.UseCustomRegen = 1
 # Example values: 1 to enabled, 0 to disable. Default: 0
 Followship.Bots.UseOOCActions = 1
 
+# Use Chat Channels
+#
+# Allows the bots to chat in channels like General, Trade, LocalDefense, LFG
+# If disabled then bots will not send any chat
+# The bots will only chat when NOT hired and within their zone
+# Example values: 1 to enabled, 0 to disable. Default: 1
+Followship.Bots.UseChatChannels = 1
+
+# Chat Channels Interval
+#
+# How often the bots will chat on channels or start convo
+# How long the bot waits until it checks again for a chat line
+# Values are in milliseconds. So 10 seconds = 10000
+# Example values: 10000 for 10seconds. Default: 10000
+Followship.Bots.ChatChannelsInterval = 10000
+
+# Bots Chat Channels Rate
+#
+# Increase or decrease the bots chat rate (on channels)
+# Higher values lead to more chats
+# Values 1-100; Default: 10
+Followship.Bots.ChatChannelsRate = 100
+
 # Use In Combat Mana & Health Potions
 #
 # Allows the bots to use 1 mana potion and or 1 health potion per combat session
