@@ -60,14 +60,20 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         return;
     }
 
-
-
     Creature* bot = ai->me;
     if (!bot)
         return;
 
     switch (eventId)
     {
+    case FSB_EVENT_GENERIC_MAINTENANCE:
+    {
+        FSBOOC::BotActionsNotHired(bot);
+
+        ScheduleBotEvent(FSB_EVENT_GENERIC_MAINTENANCE, 1s);
+        break;
+    }
+
     case FSB_EVENT_GENERIC_CHECK_HIRED_TIME:
     {
         uint64 spawnId = bot->GetSpawnId();

@@ -55,4 +55,8 @@ namespace FSBOOC
     bool BotOOCActionKiss(Creature* bot);
     bool BotOOCActionSigh(Creature* bot);
     bool BotOOCActionSleep(Creature* bot);
+
+    // Non hired actions
+    bool BotActionsNotHired(Creature* bot);
+    bool BotChatActionsNotHired(Creature* bot);
 }

@@ -12,6 +12,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_chat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -1286,4 +1287,65 @@ namespace FSBOOC
 
         return false;
     }
+
+    bool BotActionsNotHired(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        if (baseAI->botHired)
+            return false;
+
+        FSBChat::UpdateBotConversations();
+
+        if (BotChatActionsNotHired(bot))
+            return true;
+
+        return false;
+    }
+
+    bool BotChatActionsNotHired(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        if (!FollowshipBotsConfig::configFSBUseChatChannels)
+            return false;
+
+        uint32 now = getMSTime();
+
+        // 1. If bot is already in a conversation, do nothing
+        if (FSBChat::IsBotInConversation(bot))
+            return false;
+
+        // 2. Check timer correctly
+        if (now < baseAI->botChatChannelsTimer)
+            return false;
+
+        int32 offset = urand(1000, 10000);
+
+        // 3. Random chance to start a conversation
+        if (urand(0, 99) > FollowshipBotsConfig::configFSBChatChannelsRate)
+        {
+            baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;
+            return false;
+        }
+
+        // 4. Start conversation
+        FSBChat::StartBotConversation(bot);
+
+        // 5. Set next allowed time (store future timestamp)
+        baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;
+
+        return true;
+    }
 }
+

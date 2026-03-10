@@ -53,6 +53,7 @@ public:
         botOutOfCombatTimer(0),
         botOwnerNotMovingTimer(getMSTime()),
         botPetSpellsTimer(0),
+        botChatChannelsTimer(0),
 
         botCorpsePos(),
 
@@ -96,6 +97,7 @@ public:
     uint32 botOutOfCombatTimer;
     uint32 botOwnerNotMovingTimer;
     uint32 botPetSpellsTimer;
+    int64 botChatChannelsTimer;
 
     Position botCorpsePos;
 

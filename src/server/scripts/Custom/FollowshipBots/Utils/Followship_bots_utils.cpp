@@ -176,5 +176,27 @@ namespace FSBUtils
 
         return nullptr;
     }
+
+    std::vector<Creature*> FindNearbyBots(Creature* center, float radius)
+    {
+        std::vector<Creature*> result;
+
+        Trinity::AnyUnitInObjectRangeCheck checker(center, radius);
+        Trinity::CreatureListSearcher<Trinity::AnyUnitInObjectRangeCheck> searcher(center, result, checker);
+
+        Cell::VisitAllObjects(center, searcher, radius);
+
+        // Filter only your bot entries
+        result.erase(
+            std::remove_if(result.begin(), result.end(),
+                [](Creature* c)
+                {
+                    return !c->IsAlive() || dynamic_cast<FSB_BaseAI*>(c->AI()) == nullptr;
+                }),
+            result.end()
+        );
+
+        return result;
+    }
 }
 

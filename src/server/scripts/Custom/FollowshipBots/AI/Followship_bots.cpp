@@ -73,6 +73,7 @@ public:
                 TC_LOG_DEBUG("scripts.fsb.general", "FSB: Reset() triggered for bot: {}", me->GetName());
 
                 // Schedule Generic Events
+                FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_MAINTENANCE, 1s);
 
                 // Periodic events happen as long as the bot exists in the world
                 events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -540,8 +541,6 @@ public:
 
                 case FSB_EVENT_PERIODIC_MAINTENANCE:
                 {
-                    FSBChat::BotSendGeneralChat(me, "Test chat message");
-
                     // bot events
                     FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_CHECK_HIRED_TIME, 10s);
                     FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
