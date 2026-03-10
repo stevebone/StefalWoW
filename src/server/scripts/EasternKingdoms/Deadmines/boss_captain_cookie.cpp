@@ -2,6 +2,7 @@
 #include "InstanceScript.h"
 #include "MotionMaster.h"
 #include "MovementDefines.h"
+#include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellAuras.h"
