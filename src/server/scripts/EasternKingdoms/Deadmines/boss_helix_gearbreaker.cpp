@@ -6,6 +6,7 @@
 #include "Vehicle.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "SpellScript.h"
 #include "TemporarySummon.h"
 
 enum ScriptTexts
