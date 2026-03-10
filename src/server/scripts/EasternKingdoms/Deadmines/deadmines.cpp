@@ -20,6 +20,7 @@
 #include "InstanceScript.h"
 #include "ScriptMgr.h"
 #include "PhasingHandler.h"
+#include "Player.h"
 #include "deadmines.h"
 
 struct go_defias_cannon : public GameObjectAI

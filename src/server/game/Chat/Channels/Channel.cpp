@@ -1026,3 +1026,33 @@ void Channel::SendToAllWithAddon(Builder& builder, std::string const& addonPrefi
             if (player->GetSession()->IsAddonRegistered(addonPrefix) && (guid.IsEmpty() || !player->GetSocial()->HasIgnore(guid, accountGuid)))
                 localizer(player);
 }
+
+void Channel::SendBotMessage(Creature* sender, std::string const& msg)
+{
+    auto builder = [&](LocaleConstant locale)
+        {
+            //locale = LOCALE_enUS;
+            LocaleConstant localeIdx = sWorld->GetAvailableDbcLocale(locale);
+            Trinity::PacketSenderOwning<WorldPackets::Chat::Chat>* packet =
+                new Trinity::PacketSenderOwning<WorldPackets::Chat::Chat>();
+
+            packet->Data.Initialize(
+                CHAT_MSG_CHANNEL,
+                LANG_UNIVERSAL,
+                nullptr,
+                nullptr,
+                msg,
+                0,
+                GetName(localeIdx));
+
+            packet->Data.SenderGUID = sender->GetGUID();
+            packet->Data.SenderName = sender->GetName();
+            packet->Data.ChannelGUID = _channelGuid;
+
+            packet->Data.Write();
+
+            return packet;
+        };
+
+    SendToAll(builder, sender->GetGUID(), ObjectGuid::Empty);
+}

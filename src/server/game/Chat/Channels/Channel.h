@@ -228,6 +228,9 @@ class TC_GAME_API Channel
         void LeaveNotify(Player const* player);
         void SetOwnership(bool ownership) { _ownershipEnabled = ownership; }
 
+        //FSB
+        void SendBotMessage(Creature* sender, std::string const& msg);
+
     private:
         template <class Builder>
         void SendToAll(Builder& builder, ObjectGuid const& guid = ObjectGuid::Empty, ObjectGuid const& accountGuid = ObjectGuid::Empty) const;

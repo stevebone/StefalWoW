@@ -14,6 +14,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_auras_handler.h"
+#include "Followship_bots_chat_handler.h"
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_death_handler.h"
@@ -539,6 +540,8 @@ public:
 
                 case FSB_EVENT_PERIODIC_MAINTENANCE:
                 {
+                    FSBChat::BotSendGeneralChat(me, "Test chat message");
+
                     // bot events
                     FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_CHECK_HIRED_TIME, 10s);
                     FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
