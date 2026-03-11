@@ -1578,6 +1578,22 @@ void PetBattle::RemoveAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID)
 
 void PetBattle::TickAuras()
 {
+    // PBOID 9 is a sentinel value used by the client for aura processing markers
+    // (one past the last environment slot: PBOID_ENVIRONMENT_BASE + MAX_PET_BATTLE_ENVIRONMENTS)
+    static constexpr uint8 AURA_PROCESSING_SOURCE_TEAM = 3; // 3 * 3 + 0 = PBOID 9
+    static constexpr uint8 AURA_PROCESSING_SOURCE_PET = 0;
+    static constexpr int8  AURA_PROCESSING_ENV_SLOT = 3;    // PBOID_ENVIRONMENT_BASE + 3 = 9
+
+    // Emit AURA_PROCESSING_BEGIN — client expects this wrapper around all aura tick effects
+    {
+        PetBattleRoundEffect beginEffect;
+        beginEffect.EffectType = PET_BATTLE_EFFECT_AURA_PROCESSING_BEGIN;
+        beginEffect.SourceTeam = AURA_PROCESSING_SOURCE_TEAM;
+        beginEffect.SourcePet = AURA_PROCESSING_SOURCE_PET;
+        beginEffect.TargetEnvSlot = AURA_PROCESSING_ENV_SLOT;
+        _roundEffects.push_back(beginEffect);
+    }
+
     for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
     {
         for (uint8 p = 0; p < _teams[t].PetCount; ++p)
@@ -1590,12 +1606,9 @@ void PetBattle::TickAuras()
             for (PetBattleAura& aura : pet.Auras)
                 aura.StateFlags &= ~PET_BATTLE_AURA_STATE_JUST_APPLIED;
 
-            // Process auras in reverse order for safe removal
-            for (int32 i = static_cast<int32>(pet.Auras.size()) - 1; i >= 0; --i)
+            // Phase 1: Tick periodic effects (DoT/HoT damage/healing)
+            for (PetBattleAura& aura : pet.Auras)
             {
-                PetBattleAura& aura = pet.Auras[i];
-
-                // Tick periodic effects
                 if (aura.AuraType == PET_BATTLE_AURA_DOT && aura.DamagePerTick > 0)
                 {
                     int32 tickDamage = aura.DamagePerTick;
@@ -1639,25 +1652,60 @@ void PetBattle::TickAuras()
                     roundEffect.Param1 = pet.Health;
                     _roundEffects.push_back(roundEffect);
                 }
+            }
 
-                // Decrement remaining rounds
+            // Phase 2: Emit AURA_CHANGE for each active aura (update CurrentRound)
+            for (PetBattleAura& aura : pet.Auras)
+            {
+                aura.CurrentRound++;
+
+                PetBattleRoundEffect changeEffect;
+                changeEffect.EffectType = PET_BATTLE_EFFECT_AURA_CHANGE;
+                changeEffect.SourceTeam = aura.CasterTeam;
+                changeEffect.SourcePet = aura.CasterPet;
+                changeEffect.TargetTeam = t;
+                changeEffect.TargetPet = p;
+                changeEffect.Param1 = aura.AuraInstanceID;
+                changeEffect.Param2 = aura.AbilityID;
+                changeEffect.Param3 = aura.RemainingRounds;
+                changeEffect.Param4 = aura.CurrentRound;
+                _roundEffects.push_back(changeEffect);
+            }
+
+            // Phase 3: Decrement remaining rounds and remove expired auras
+            for (int32 i = static_cast<int32>(pet.Auras.size()) - 1; i >= 0; --i)
+            {
+                PetBattleAura& aura = pet.Auras[i];
                 aura.RemainingRounds--;
 
-                // Remove expired auras
                 if (aura.RemainingRounds <= 0)
                 {
-                    PetBattleRoundEffect roundEffect;
-                    roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
-                    roundEffect.TargetTeam = t;
-                    roundEffect.TargetPet = p;
-                    roundEffect.Param1 = aura.AuraInstanceID;
-                    roundEffect.Param2 = aura.AbilityID;
-                    _roundEffects.push_back(roundEffect);
+                    PetBattleRoundEffect cancelEffect;
+                    cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                    cancelEffect.SourceTeam = aura.CasterTeam;
+                    cancelEffect.SourcePet = aura.CasterPet;
+                    cancelEffect.TargetTeam = t;
+                    cancelEffect.TargetPet = p;
+                    cancelEffect.Param1 = aura.AuraInstanceID;
+                    cancelEffect.Param2 = aura.AbilityID;
+                    cancelEffect.Param3 = 0; // RoundsRemaining = 0 (expired)
+                    cancelEffect.Param4 = aura.CurrentRound;
+                    _roundEffects.push_back(cancelEffect);
 
                     pet.Auras.erase(pet.Auras.begin() + i);
                 }
             }
         }
+    }
+
+    // Emit AURA_PROCESSING_END
+    {
+        PetBattleRoundEffect endEffect;
+        endEffect.EffectType = PET_BATTLE_EFFECT_AURA_PROCESSING_END;
+        endEffect.SourceTeam = AURA_PROCESSING_SOURCE_TEAM;
+        endEffect.SourcePet = AURA_PROCESSING_SOURCE_PET;
+        endEffect.TargetEnvSlot = AURA_PROCESSING_ENV_SLOT;
+        _roundEffects.push_back(endEffect);
     }
 }
 

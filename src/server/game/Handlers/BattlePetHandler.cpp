@@ -395,6 +395,10 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
                 target.Type = 7; // BroadcastTextID
                 target.Params.push_back(roundEffect.Param1);
                 break;
+            case PetBattles::PET_BATTLE_EFFECT_AURA_PROCESSING_BEGIN:
+            case PetBattles::PET_BATTLE_EFFECT_AURA_PROCESSING_END:
+                target.Type = 0; // No data — sentinel markers with PBOID 9
+                break;
             default:
                 target.Type = 0; // No data
                 break;
