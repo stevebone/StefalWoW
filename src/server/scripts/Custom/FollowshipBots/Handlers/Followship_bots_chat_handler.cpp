@@ -4,6 +4,7 @@
 #include "ChatPackets.h"
 #include "Channel.h"
 #include "ChannelMgr.h"
+#include "DB2Stores.h"
 #include "Log.h"
 #include "World.h"
 #include "Player.h"
@@ -129,7 +130,7 @@ namespace FSBChat
     }
 
     // Global (or file-static) storage for all running conversations
-    static std::vector<ActiveConversation> activeConversations;
+    std::vector<ActiveConversation> activeConversations;
 
     void StartBotConversation(Creature* starter)
     {
