@@ -1430,8 +1430,16 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             break;
         }
         default:
-            TC_LOG_WARN("server.loading", "PetBattle ProcessEffect: UNHANDLED effectCategory={} basePower={} defenderAlive={}",
-                effectCategory, basePower, defender.IsAlive());
+        {
+            std::string labels;
+            if (effectProps)
+                for (uint8 i = 0; i < 6; ++i)
+                    if (effectProps->ParamLabel[i] && effectProps->ParamLabel[i][0] != '\0')
+                        labels += Trinity::StringFormat("[{}]={} ", i, effectProps->ParamLabel[i]);
+            TC_LOG_WARN("server.loading", "PetBattle ProcessEffect: UNHANDLED effectCategory={} basePower={} defenderAlive={} params=[{},{},{},{},{},{}] labels={}",
+                effectCategory, basePower, defender.IsAlive(),
+                effect->Param[0], effect->Param[1], effect->Param[2], effect->Param[3], effect->Param[4], effect->Param[5],
+                labels);
             // Unhandled effect category - treat as damage if basePower > 0
             if (basePower > 0 && defender.IsAlive())
             {
@@ -1457,6 +1465,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, dmg.Damage);
             }
             break;
+        }
     }
 }
 

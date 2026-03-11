@@ -114,6 +114,31 @@ void PetBattleMgr::Initialize()
     TC_LOG_INFO("server.loading", ">> Loaded {} breed quality entries, {} breed stat entries",
         uint32(_breedQualityMultipliers.size()), uint32(_breedBaseStats.size()));
 
+    // Dump all BattlePetEffectProperties IDs used by ability effects for mapping
+    {
+        std::map<uint16, uint32> propsIdUsageCount;
+        for (BattlePetAbilityEffectEntry const* entry : sBattlePetAbilityEffectStore)
+            propsIdUsageCount[entry->BattlePetEffectPropertiesID]++;
+
+        TC_LOG_INFO("server.loading", ">> BattlePetEffectProperties mapping ({} unique IDs used by {} effects):",
+            uint32(propsIdUsageCount.size()), turnEffectCount);
+        for (auto const& [propsID, count] : propsIdUsageCount)
+        {
+            BattlePetEffectPropertiesEntry const* props = sBattlePetEffectPropertiesStore.LookupEntry(propsID);
+            if (props)
+            {
+                std::string labels;
+                for (uint8 i = 0; i < 6; ++i)
+                    if (props->ParamLabel[i] && props->ParamLabel[i][0] != '\0')
+                        labels += Trinity::StringFormat("[{}]={} ", i, props->ParamLabel[i]);
+                TC_LOG_INFO("server.loading", "  PropsID={:3d} count={:3d} visual={} labels: {}",
+                    propsID, count, props->BattlePetVisualID, labels);
+            }
+            else
+                TC_LOG_INFO("server.loading", "  PropsID={:3d} count={:3d} (NO DB2 ENTRY)", propsID, count);
+        }
+    }
+
     LoadNPCTeams();
 
     TC_LOG_INFO("server.loading", ">> Pet Battle system initialized");
