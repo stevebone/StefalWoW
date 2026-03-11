@@ -6,6 +6,7 @@
 #include "ChannelMgr.h"
 #include "Containers.h"
 #include "DB2Stores.h"
+#include "GameTime.h"
 #include "Log.h"
 #include "World.h"
 #include "Player.h"
@@ -95,7 +96,7 @@ namespace FSBChat
         if (!bot || !channel || msg.empty())
             return;
 
-        channel->SendBotMessage(bot,msg);
+        channel->SendBotMessage(bot, msg);
     }
 
     // -------------------------------------------------------
@@ -269,6 +270,108 @@ namespace FSBChat
             { ConversationRole::Follower,  "I heard the guards thought he was a murloc and almost threw a net on him." },
             { ConversationRole::Extra,     "Honestly, with the noises he made climbing out, I don't blame them." }
         }
-    }
+    },
+    {
+        "StormwindKingDebate",
+        {
+            { ConversationRole::Starter,   "If there was a vote tomorrow for who should be king of Stormwind, who would win?" },
+            { ConversationRole::Responder, "Ragnaros...?" },
+            { ConversationRole::Starter,   "That was a serious question..." },
+            { ConversationRole::Responder, "That was a serious answer." },
+            { ConversationRole::Starter,   "You can't be serious, really!" },
+            { ConversationRole::Responder, "Ok, sorry, I'll try again." },
+            { ConversationRole::Responder, "Hogger, yeah that's the one... Hogger!" },
+            { ConversationRole::Starter,   "Anyone else... please!" },
+        }
+    },
+    {
+        "MageQuarterDisaster",
+        {
+            { ConversationRole::Starter,   "Why does the Mage Quarter always smell like burnt eyebrows?" },
+            { ConversationRole::Responder, "Because mages keep trying spells they found scribbled on napkins." },
+            { ConversationRole::Follower,  "Last week someone summoned a sheep that exploded into more sheep." },
+            { ConversationRole::Extra,     "Honestly, that was an improvement over the usual smell." }
+        }
+    },
+
+    {
+        "DwarvenEngineeringDebate",
+        {
+            { ConversationRole::Starter,   "Is it true dwarves invented a cannon that fires smaller cannons?" },
+            { ConversationRole::Responder, "Aye, but the recoil launched Ironforge three inches to the left." },
+            { ConversationRole::Follower,  "They said it was 'within acceptable engineering tolerances'." }
+        }
+    },
+
+    {
+        "StormwindCanalMystery",
+        {
+            { ConversationRole::Starter,   "Something big is living in the Stormwind canals." },
+            { ConversationRole::Responder, "If it's big, it's probably a mage experiment gone wrong." },
+            { ConversationRole::Follower,  "If it's small, it's definitely a mage experiment gone wrong." }
+        }
+    },
+
+    {
+        "GoldshireRumors",
+        {
+            { ConversationRole::Starter,   "I heard Goldshire had to hire extra guards last night." },
+            { ConversationRole::Responder, "To stop trouble?" },
+            { ConversationRole::Starter,   "No, to stop people from *starting* trouble." }
+        }
+    },
+
+    {
+        "StormwindPolitics",
+        {
+            { ConversationRole::Starter,   "Stormwind politics are getting weird again." },
+            { ConversationRole::Responder, "Again? They never stopped." },
+            { ConversationRole::Follower,  "Last council meeting ended with a pie fight." },
+            { ConversationRole::Extra,     "And the pie won." }
+        }
+    },
+
+    {
+        "ElwynnForestFacts",
+        {
+            { ConversationRole::Starter,   "Fun fact: Elwynn Forest has more wolves than trees." },
+            { ConversationRole::Responder, "That can't be true." },
+            { ConversationRole::Starter,   "Have you *seen* how fast they... uhm *respawn*?" },
+            { ConversationRole::Responder, "Aahaha I see what you mean..." },
+        }
+    },
+
+    {
+        "StormwindGuardLife",
+        {
+            { ConversationRole::Starter,   "Being a Stormwind guard must be exhausting." },
+            { ConversationRole::Responder, "Standing still all day?" },
+            { ConversationRole::Starter,   "No, pretending not to see half the nonsense happening around them." }
+        }
+    },
+
+    {
+        "CathedralSquareDrama",
+        {
+            { ConversationRole::Starter,   "Why was Cathedral Square blocked off this morning?" },
+            { ConversationRole::Responder, "A paladin tried to bless the fountain." },
+            { ConversationRole::Follower,  "He slipped, fell in, and declared it holy water." },
+            { ConversationRole::Extra,     "Honestly, I respect the commitment." }
+        }
+    },
+
+    {
+        "StormwindAuctionChaos",
+        {
+            { ConversationRole::Starter,   "The Auction House was wild today." },
+            { ConversationRole::Responder, "What happened?" },
+            { ConversationRole::Starter,   "Someone listed a single linen cloth for 999 gold." },
+            { ConversationRole::Follower,  "And someone bought it, didn't they?" },
+            { ConversationRole::Starter,   "Instantly." },
+            { ConversationRole::Responder, "You're joking..." },
+            { ConversationRole::Starter,   "Wish I was..." }
+        }
+    },
+
     };
 }
