@@ -679,6 +679,10 @@ namespace WorldPackets
             WorldPacket const* Write() override { return &_worldPacket; }
         };
 
+        // TODO: SMSG_PET_BATTLE_CHAT_RESTRICTED should be sent when a player attempts to use
+        // restricted chat channels (e.g., General, Trade) while in an active pet battle.
+        // The check should be added to the chat message handler (ChatHandler.cpp) when the
+        // player's PetBattle state is active.
         class PetBattleChatRestricted final : public ServerPacket
         {
         public:

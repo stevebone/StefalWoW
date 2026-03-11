@@ -475,6 +475,15 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
         return;
     }
 
+    // Distance check — player must be reasonably close to the creature
+    if (!player->IsWithinDistInMap(creature, 50.0f))
+    {
+        WorldPackets::BattlePet::PetBattleRequestFailed failed;
+        failed.Reason = PetBattles::PET_BATTLE_REQUEST_FAIL_TARGET_OUT_OF_RANGE;
+        SendPacket(failed.Write());
+        return;
+    }
+
     // Validate that the creature has a valid BattlePetSpecies entry (Species=0 crashes client)
     if (!BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(creature->GetEntry()))
     {
@@ -539,24 +548,24 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     for (uint8 t = 0; t < 2; ++t)
     {
         auto const& pu = initialUpdate.Players[t];
-        TC_LOG_ERROR("server.loading", "PetBattle InitialUpdate Player[{}]: CharID={} TrapAbilityID={} TrapStatus={} RoundTimeSecs={} FrontPet={} InputFlags={} PetCount={}",
+        TC_LOG_DEBUG("server.loading", "PetBattle InitialUpdate Player[{}]: CharID={} TrapAbilityID={} TrapStatus={} RoundTimeSecs={} FrontPet={} InputFlags={} PetCount={}",
             t, pu.CharacterID.ToString(), pu.TrapAbilityID, pu.TrapStatus, pu.RoundTimeSecs, pu.FrontPet, pu.InputFlags, pu.Pets.size());
         for (uint8 p = 0; p < pu.Pets.size(); ++p)
         {
             auto const& pet = pu.Pets[p];
-            TC_LOG_ERROR("server.loading", "  Pet[{}]: GUID={} Species={} Display={} Collar={} Lvl={} Xp={} HP={}/{} Pow={} Spd={} NpcTM={} Quality={} Status={} Slot={} Abilities={} Auras={} States={} Name='{}'",
+            TC_LOG_DEBUG("server.loading", "  Pet[{}]: GUID={} Species={} Display={} Collar={} Lvl={} Xp={} HP={}/{} Pow={} Spd={} NpcTM={} Quality={} Status={} Slot={} Abilities={} Auras={} States={} Name='{}'",
                 p, pet.BattlePetGUID.ToString(), pet.SpeciesID, pet.DisplayID, pet.CollarID, pet.Level, pet.Xp,
                 pet.CurHealth, pet.MaxHealth, pet.Power, pet.Speed, pet.NpcTeamMemberID,
                 pet.BreedQuality, pet.StatusFlags, pet.Slot, pet.Abilities.size(), pet.Auras.size(), pet.States.size(), pet.CustomName);
             for (uint8 a = 0; a < pet.Abilities.size(); ++a)
-                TC_LOG_ERROR("server.loading", "    Ability[{}]: ID={} CD={} LD={} Idx={} Pboid={}",
+                TC_LOG_DEBUG("server.loading", "    Ability[{}]: ID={} CD={} LD={} Idx={} Pboid={}",
                     a, pet.Abilities[a].AbilityID, pet.Abilities[a].CooldownRemaining, pet.Abilities[a].LockdownRemaining, pet.Abilities[a].AbilityIndex, pet.Abilities[a].Pboid);
             for (uint8 s = 0; s < pet.States.size(); ++s)
-                TC_LOG_ERROR("server.loading", "    State[{}]: ID={} Val={}",
+                TC_LOG_DEBUG("server.loading", "    State[{}]: ID={} Val={}",
                     s, pet.States[s].StateID, pet.States[s].StateValue);
         }
     }
-    TC_LOG_ERROR("server.loading", "PetBattle InitialUpdate: CurRound={} State={} NpcCreature={} NpcDisplay={} WildGUID={} IsPVP={} CanAwardXP={} PktSize={}",
+    TC_LOG_DEBUG("server.loading", "PetBattle InitialUpdate: CurRound={} State={} NpcCreature={} NpcDisplay={} WildGUID={} IsPVP={} CanAwardXP={} PktSize={}",
         initialUpdate.CurRound, initialUpdate.CurPetBattleState, initialUpdate.NpcCreatureID, initialUpdate.NpcDisplayID,
         initialUpdate.InitialWildPetGUID.ToString(), initialUpdate.IsPVP, initialUpdate.CanAwardXP, pkt->size());
 
@@ -729,14 +738,22 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
     if (!battle)
         return;
 
-    // Client sends MoveType=FinalRoundOk while waiting for FinalNotify — ignore it
-    if (battle->IsFinalRound())
+    // Only accept input during active round states
+    if (battle->IsFinalRound() || battle->IsFinished())
+        return;
+
+    // Validate MoveType range
+    if (petBattleInput.MoveType < 0 || petBattleInput.MoveType > static_cast<int32>(PetBattles::PET_BATTLE_MOVE_PASS))
         return;
 
     // Determine which team this player is
     uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
     if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
         teamIdx = PetBattles::PET_BATTLE_TEAM_2;
+
+    // Don't accept duplicate input for the same round
+    if (battle->GetTeam(teamIdx).HasInputThisRound)
+        return;
 
     battle->SubmitInput(teamIdx,
         PetBattles::PetBattleMoveType(petBattleInput.MoveType),
@@ -767,7 +784,7 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             BuildRoundCooldowns(roundResult.Cooldowns, battle);
             BuildPetXDied(roundResult.PetXDied, battle);
 
-            TC_LOG_ERROR("server.loading", "PetBattle ROUND_RESULT: Round={} State={} FinalRound={} Effects={} Cooldowns={} Deaths={} P0Flags={} P1Flags={}",
+            TC_LOG_DEBUG("server.loading", "PetBattle ROUND_RESULT: Round={} State={} FinalRound={} Effects={} Cooldowns={} Deaths={} P0Flags={} P1Flags={}",
                 roundResult.CurRound, roundResult.NextPetBattleState,
                 battle->IsFinalRound(),
                 roundResult.Effects.size(), roundResult.Cooldowns.size(), roundResult.PetXDied.size(),
@@ -777,7 +794,7 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
             for (std::size_t e = 0; e < roundResult.Effects.size(); ++e)
             {
                 auto const& eff = roundResult.Effects[e];
-                TC_LOG_ERROR("server.loading", "  Effect[{}]: AbilEffID={} Flags=0x{:X} Idx={} CasterPBOID={} StackDepth={} Targets={}",
+                TC_LOG_DEBUG("server.loading", "  Effect[{}]: AbilEffID={} Flags=0x{:X} Idx={} CasterPBOID={} StackDepth={} Targets={}",
                     e, eff.AbilityEffectID, eff.Flags, eff.EffectIndex, eff.CasterPBOID, eff.StackDepth, eff.Targets.size());
                 for (std::size_t tgt = 0; tgt < eff.Targets.size(); ++tgt)
                 {
@@ -785,7 +802,7 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
                     std::string paramStr;
                     for (int32 p : t.Params)
                         paramStr += std::to_string(p) + " ";
-                    TC_LOG_ERROR("server.loading", "    Target[{}]: Type={} Remaining(PBOID)={} Params=[{}]",
+                    TC_LOG_DEBUG("server.loading", "    Target[{}]: Type={} Remaining(PBOID)={} Params=[{}]",
                         tgt, t.Type, t.Remaining, paramStr);
                 }
             }
@@ -811,6 +828,10 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
     if (!battle)
         return;
 
+    // Only allow replacement during WAITING_FOR_FRONT_PET or ROUND_IN_PROGRESS (voluntary swap)
+    if (battle->IsFinalRound() || battle->IsFinished())
+        return;
+
     uint8 teamIdx = PetBattles::PET_BATTLE_TEAM_1;
     if (battle->GetTeam(PetBattles::PET_BATTLE_TEAM_2).PlayerGUID == player->GetGUID())
         teamIdx = PetBattles::PET_BATTLE_TEAM_2;
@@ -819,22 +840,22 @@ void WorldSession::HandlePetBattleReplaceFrontPet(WorldPackets::BattlePet::PetBa
     int8 newPetIdx = petBattleReplaceFrontPet.FrontPetIndex;
     PetBattles::PetBattleTeamData& team = battle->GetTeam(teamIdx);
 
-    TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: team={} newPetIdx={} petCount={} battleState={} needsSwap={}",
+    TC_LOG_DEBUG("server.loading", "PetBattle ReplaceFrontPet: team={} newPetIdx={} petCount={} battleState={} needsSwap={}",
         teamIdx, newPetIdx, team.PetCount, int(battle->GetBattleState()), battle->NeedsFrontPetSwap(teamIdx));
 
     if (newPetIdx < 0 || newPetIdx >= team.PetCount)
     {
-        TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: REJECTED - invalid index");
+        TC_LOG_DEBUG("server.loading", "PetBattle ReplaceFrontPet: REJECTED - invalid index");
         return;
     }
     if (!team.Pets[newPetIdx].IsAlive())
     {
-        TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: REJECTED - pet {} is dead (HP={})",
+        TC_LOG_DEBUG("server.loading", "PetBattle ReplaceFrontPet: REJECTED - pet {} is dead (HP={})",
             newPetIdx, team.Pets[newPetIdx].Health);
         return;
     }
 
-    TC_LOG_ERROR("server.loading", "PetBattle ReplaceFrontPet: Swapping team {} front pet {} -> {}",
+    TC_LOG_DEBUG("server.loading", "PetBattle ReplaceFrontPet: Swapping team {} front pet {} -> {}",
         teamIdx, team.FrontPetIndex, newPetIdx);
 
     // Set the new front pet and transition state back to ROUND_IN_PROGRESS
@@ -1028,6 +1049,32 @@ void WorldSession::HandleJoinPetBattleQueue(WorldPackets::BattlePet::JoinPetBatt
         status.Status = 0;
         SendPacket(status.Write());
         return;
+    }
+
+    // Validate that player has at least one alive pet in battle slots
+    {
+        BattlePets::BattlePetMgr* petMgr = GetBattlePetMgr();
+        bool hasPet = false;
+        for (uint8 i = 0; i < uint8(BattlePets::BattlePetSlot::Count); ++i)
+        {
+            WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(BattlePets::BattlePetSlot(i));
+            if (slot && !slot->Locked && !slot->Pet.Guid.IsEmpty())
+            {
+                BattlePets::BattlePet* pet = petMgr->GetPet(slot->Pet.Guid);
+                if (pet && pet->PacketInfo.Health > 0)
+                {
+                    hasPet = true;
+                    break;
+                }
+            }
+        }
+        if (!hasPet)
+        {
+            WorldPackets::BattlePet::PetBattleQueueStatus status;
+            status.Status = 0;
+            SendPacket(status.Write());
+            return;
+        }
     }
 
     sPetBattleMgr->JoinQueue(player->GetGUID());

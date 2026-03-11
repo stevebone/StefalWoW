@@ -75,7 +75,7 @@ void BattlePet::CalculateStats()
             speed *= battlePetBreedQuality->StateMultiplier;
             break;
         }
-        // TOOD: add check if pet has existing quality
+        // TODO: add check if pet has existing quality
     }
 
     // scale stats depending on level
@@ -881,6 +881,10 @@ void BattlePetMgr::HealBattlePetsPct(uint8 pct)
     }
 
     SendUpdates(updates, false);
+
+    // Notify the client that battle pets have been healed (triggers UI feedback)
+    WorldPackets::BattlePet::BattlePetsHealed healed;
+    _owner->SendPacket(healed.Write());
 }
 
 void BattlePetMgr::UpdateBattlePetData(ObjectGuid guid)

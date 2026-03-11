@@ -308,7 +308,6 @@ private:
     void ApplyPassiveOnDamageDealt(uint8 attackerTeam, uint8 attackerPet, uint8 defenderTeam, uint8 defenderPet, int32 damage);
     bool ApplyPassiveOnDeath(uint8 teamIdx, uint8 petIdx);
 
-    void ResolveSpeed();
     void ProcessTurnForTeam(uint8 teamIdx);
     void CheckDeaths();
     void AwardExperience();
@@ -327,6 +326,7 @@ private:
     uint8 _winnerTeam = 0;
     bool _canAwardXP = true;
     bool _maxLengthWarningSent = false;
+    uint32 _roundTimerSecs = 0;         // seconds since last input was accepted
     uint32 _nextAuraInstanceID = 1;
 
     std::array<PetBattleTeamData, MAX_PET_BATTLE_PLAYERS> _teams;

@@ -136,7 +136,7 @@ void PetBattle::LoadWildPetAbilities(PetBattlePetData& pet)
         ++loaded;
     }
 
-    TC_LOG_ERROR("server.loading", "PetBattle LoadWildPetAbilities: Species={} Level={} entries={} loaded={} abilities=[{},{},{}]",
+    TC_LOG_DEBUG("server.loading", "PetBattle LoadWildPetAbilities: Species={} Level={} entries={} loaded={} abilities=[{},{},{}]",
         pet.Species, pet.Level, speciesAbilities->size(), loaded,
         pet.AbilityIDs[0], pet.AbilityIDs[1], pet.AbilityIDs[2]);
 }
@@ -355,6 +355,32 @@ void PetBattle::Update(uint32 diff)
         }
     }
 
+    // Per-round AFK timeout — auto-forfeit if a player hasn't submitted input
+    if (_state == PET_BATTLE_STATE_ROUND_IN_PROGRESS || _state == PET_BATTLE_STATE_WAITING_FOR_FRONT_PET)
+    {
+        _roundTimerSecs++;
+        // Grace period: round time + 15 seconds
+        if (_roundTimerSecs > PET_BATTLE_MAX_ROUND_TIME + 15)
+        {
+            if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
+            {
+                for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
+                {
+                    if (!_teams[i].HasInputThisRound)
+                    {
+                        Forfeit(i);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                Forfeit(PET_BATTLE_TEAM_1);
+                return;
+            }
+        }
+    }
+
     // Handle finish delay — wait for death animation before sending FinalRound
     if (_state == PET_BATTLE_STATE_FINAL_ROUND && _finishDelayMs > 0)
     {
@@ -382,6 +408,7 @@ void PetBattle::SubmitInput(uint8 teamIdx, PetBattleMoveType moveType, uint32 ab
     team.PendingAbilityID = abilityID;
     team.PendingNewFrontPet = newFrontPet;
     team.HasInputThisRound = true;
+    _roundTimerSecs = 0;
 }
 
 bool PetBattle::BothTeamsReady() const
@@ -398,6 +425,7 @@ void PetBattle::ProcessRound()
 {
     _state = PET_BATTLE_STATE_ROUND_IN_PROGRESS;
     _currentRound++;
+    _roundTimerSecs = 0;
     _roundEffects.clear();
     _petKilledThisRound.fill(false);
     _needsFrontPetSwap.fill(false);
@@ -427,7 +455,7 @@ void PetBattle::ProcessRound()
             std::swap(firstTeam, secondTeam);
     }
 
-    TC_LOG_ERROR("server.loading", "PetBattle ProcessRound: BEFORE TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{}",
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessRound: BEFORE TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{}",
         _teams[0].FrontPetIndex, _teams[0].Pets[_teams[0].FrontPetIndex].Health, _teams[0].Pets[_teams[0].FrontPetIndex].MaxHealth,
         _teams[1].FrontPetIndex, _teams[1].Pets[_teams[1].FrontPetIndex].Health, _teams[1].Pets[_teams[1].FrontPetIndex].MaxHealth);
 
@@ -436,7 +464,7 @@ void PetBattle::ProcessRound()
     if (!IsFinished())
         ProcessTurnForTeam(secondTeam);
 
-    TC_LOG_ERROR("server.loading", "PetBattle ProcessRound: AFTER TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{} effects={}",
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessRound: AFTER TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{} effects={}",
         _teams[0].FrontPetIndex, _teams[0].Pets[_teams[0].FrontPetIndex].Health, _teams[0].Pets[_teams[0].FrontPetIndex].MaxHealth,
         _teams[1].FrontPetIndex, _teams[1].Pets[_teams[1].FrontPetIndex].Health, _teams[1].Pets[_teams[1].FrontPetIndex].MaxHealth,
         _roundEffects.size());
@@ -492,7 +520,7 @@ void PetBattle::ProcessRound()
     {
         if (!_teams[i].Pets[_teams[i].FrontPetIndex].IsAlive())
         {
-            TC_LOG_ERROR("server.loading", "PetBattle: Team {} front pet {} died (HP={}), needs swap",
+            TC_LOG_DEBUG("server.loading", "PetBattle: Team {} front pet {} died (HP={}), needs swap",
                 i, _teams[i].FrontPetIndex, _teams[i].Pets[_teams[i].FrontPetIndex].Health);
 
             _needsFrontPetSwap[i] = true;
@@ -503,7 +531,7 @@ void PetBattle::ProcessRound()
                 int8 nextAlive = _teams[i].GetFirstAlivePetIndex();
                 if (nextAlive >= 0)
                 {
-                    TC_LOG_ERROR("server.loading", "PetBattle: Wild/NPC team auto-swap {} -> {}", _teams[i].FrontPetIndex, nextAlive);
+                    TC_LOG_DEBUG("server.loading", "PetBattle: Wild/NPC team auto-swap {} -> {}", _teams[i].FrontPetIndex, nextAlive);
                     _teams[i].FrontPetIndex = nextAlive;
                     _needsFrontPetSwap[i] = false;
 
@@ -525,7 +553,7 @@ void PetBattle::ProcessRound()
 
     if (anyPlayerNeedsSwap)
     {
-        TC_LOG_ERROR("server.loading", "PetBattle: Setting state WAITING_FOR_FRONT_PET, player needs to pick replacement");
+        TC_LOG_DEBUG("server.loading", "PetBattle: Setting state WAITING_FOR_FRONT_PET, player needs to pick replacement");
         _state = PET_BATTLE_STATE_WAITING_FOR_FRONT_PET;
         return;
     }
@@ -549,7 +577,6 @@ void PetBattle::ProcessRound()
 void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
 {
     PetBattleTeamData& team = _teams[teamIdx];
-    uint8 opponentTeam = teamIdx == PET_BATTLE_TEAM_1 ? PET_BATTLE_TEAM_2 : PET_BATTLE_TEAM_1;
     PetBattlePetData& activePet = team.Pets[team.FrontPetIndex];
 
     // Stunned pets skip their turn
@@ -575,7 +602,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
         return;
     }
 
-    TC_LOG_ERROR("server.loading", "PetBattle ProcessTurnForTeam[{}]: MoveType={} AbilityID={} FrontPet={} PetAlive={}",
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessTurnForTeam[{}]: MoveType={} AbilityID={} FrontPet={} PetAlive={}",
         teamIdx, int(team.PendingMoveType), team.PendingAbilityID, team.FrontPetIndex, activePet.IsAlive());
 
     switch (team.PendingMoveType)
@@ -596,7 +623,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                     if (activePet.AbilityCooldowns[i] > 0)
                     {
                         abilityOnCooldown = true;
-                        TC_LOG_ERROR("server.loading", "PetBattle: Ability {} on cooldown ({})", team.PendingAbilityID, activePet.AbilityCooldowns[i]);
+                        TC_LOG_DEBUG("server.loading", "PetBattle: Ability {} on cooldown ({})", team.PendingAbilityID, activePet.AbilityCooldowns[i]);
                         break;
                     }
 
@@ -619,7 +646,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
             // Apply ability effects through the DB2 chain
             uint32 effectsBefore = _roundEffects.size();
             ApplyAbilityEffects(teamIdx, team.FrontPetIndex, team.PendingAbilityID);
-            TC_LOG_ERROR("server.loading", "PetBattle: ApplyAbilityEffects({}) generated {} effects",
+            TC_LOG_DEBUG("server.loading", "PetBattle: ApplyAbilityEffects({}) generated {} effects",
                 team.PendingAbilityID, _roundEffects.size() - effectsBefore);
             break;
         }
@@ -706,7 +733,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
                     int8 nextAlive = wildTeam.GetFirstAlivePetIndex();
                     if (nextAlive >= 0)
                     {
-                        TC_LOG_ERROR("server.loading", "PetBattle: Captured wild pet[{}], swapping to next alive wild pet[{}]",
+                        TC_LOG_DEBUG("server.loading", "PetBattle: Captured wild pet[{}], swapping to next alive wild pet[{}]",
                             wildTeam.FrontPetIndex, nextAlive);
                         wildTeam.FrontPetIndex = nextAlive;
 
@@ -769,7 +796,7 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
 
     // Get ability turns from DB2 index
     std::vector<BattlePetAbilityTurnEntry const*> const* turns = sPetBattleMgr->GetAbilityTurnsFull(abilityID);
-    TC_LOG_ERROR("server.loading", "PetBattle ApplyAbilityEffects: abilityID={} turns={}", abilityID, turns ? turns->size() : 0);
+    TC_LOG_DEBUG("server.loading", "PetBattle ApplyAbilityEffects: abilityID={} turns={}", abilityID, turns ? turns->size() : 0);
     if (!turns || turns->empty())
     {
         // Fallback: apply simple damage if no DB2 turn data exists
@@ -855,7 +882,7 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
 
     // Get effects for this turn from DB2 index
     std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turn->ID);
-    TC_LOG_ERROR("server.loading", "PetBattle: TurnID={} turnIndex={} effects={}", turn->ID, turnIndex, effects ? effects->size() : 0);
+    TC_LOG_DEBUG("server.loading", "PetBattle: TurnID={} turnIndex={} effects={}", turn->ID, turnIndex, effects ? effects->size() : 0);
     if (!effects || effects->empty())
     {
         // Multi-turn turn with no DB2 effects — emit a STATUS_CHANGE so the client
@@ -876,7 +903,7 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
     // Process each effect in order
     for (BattlePetAbilityEffectEntry const* effectEntry : *effects)
     {
-        TC_LOG_ERROR("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} Params=[{},{},{},{},{},{}]",
+        TC_LOG_DEBUG("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} Params=[{},{},{},{},{},{}]",
             effectEntry->ID, effectEntry->BattlePetEffectPropertiesID,
             effectEntry->Param[0], effectEntry->Param[1], effectEntry->Param[2],
             effectEntry->Param[3], effectEntry->Param[4], effectEntry->Param[5]);
@@ -931,10 +958,10 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
     // We map the DB2 BattlePetEffectPropertiesID to our action types
     // In practice, the ID maps to specific effect behaviors
     BattlePetEffectPropertiesEntry const* effectProps = sBattlePetEffectPropertiesStore.LookupEntry(effectPropsID);
-    TC_LOG_ERROR("server.loading", "PetBattle ProcessEffect: propsID={} found={} basePower={} accuracy={}",
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessEffect: propsID={} found={} basePower={} accuracy={}",
         effectPropsID, effectProps != nullptr, basePower, accuracy);
     if (effectProps)
-        TC_LOG_ERROR("server.loading", "PetBattle ProcessEffect: effectCategory(ParamTypeEnum[0])={}", effectProps->ParamTypeEnum[0]);
+        TC_LOG_DEBUG("server.loading", "PetBattle ProcessEffect: effectCategory(ParamTypeEnum[0])={}", effectProps->ParamTypeEnum[0]);
     if (!effectProps)
     {
         // If no properties entry, treat as simple damage with basePower
@@ -1405,7 +1432,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             break;
         }
         default:
-            TC_LOG_ERROR("server.loading", "PetBattle ProcessEffect: UNHANDLED effectCategory={} basePower={} defenderAlive={}",
+            TC_LOG_WARN("server.loading", "PetBattle ProcessEffect: UNHANDLED effectCategory={} basePower={} defenderAlive={}",
                 effectCategory, basePower, defender.IsAlive());
             // Unhandled effect category - treat as damage if basePower > 0
             if (basePower > 0 && defender.IsAlive())
@@ -1957,12 +1984,6 @@ bool PetBattle::ApplyPassiveOnDeath(uint8 teamIdx, uint8 petIdx)
 // Speed resolution
 // ============================================================================
 
-void PetBattle::ResolveSpeed()
-{
-    // Speed already factored into ProcessRound() turn ordering
-    // This method is kept for compatibility
-}
-
 // ============================================================================
 // Death checking
 // ============================================================================
@@ -2317,7 +2338,7 @@ void PetBattle::GenerateWildTeamInput()
 
     if (availableAbilities.empty())
     {
-        TC_LOG_ERROR("server.loading", "PetBattle GenerateWildTeamInput: NO available abilities! AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS",
+        TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: NO available abilities! AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS",
             frontPet.AbilityIDs[0], frontPet.AbilityIDs[1], frontPet.AbilityIDs[2],
             frontPet.AbilityCooldowns[0], frontPet.AbilityCooldowns[1], frontPet.AbilityCooldowns[2]);
         SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
@@ -2368,7 +2389,7 @@ void PetBattle::GenerateWildTeamInput()
         cumulative += std::max(0.1f, opt.priority);
         if (roll <= cumulative)
         {
-            TC_LOG_ERROR("server.loading", "PetBattle GenerateWildTeamInput: SELECTED ability={} (avail={} roll={:.1f}/{:.1f})",
+            TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: SELECTED ability={} (avail={} roll={:.1f}/{:.1f})",
                 opt.abilityID, availableAbilities.size(), roll, totalWeight);
             SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, opt.abilityID, -1);
             return;
@@ -2376,7 +2397,7 @@ void PetBattle::GenerateWildTeamInput()
     }
 
     // Fallback: use first available ability
-    TC_LOG_ERROR("server.loading", "PetBattle GenerateWildTeamInput: FALLBACK ability={}", availableAbilities[0].abilityID);
+    TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: FALLBACK ability={}", availableAbilities[0].abilityID);
     SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, availableAbilities[0].abilityID, -1);
 }
 
