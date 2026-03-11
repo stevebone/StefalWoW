@@ -22,6 +22,7 @@
 #include "InstanceScript.h"
 #include "Map.h"
 #include "MotionMaster.h"
+#include "TemporarySummon.h"
 
 static constexpr ObjectData creatureData[] =
 {
