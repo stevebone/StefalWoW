@@ -72,6 +72,7 @@ enum class VendorDataTypeFlags : int32
 DEFINE_ENUM_FLAG(VendorDataTypeFlags);
 
 static constexpr uint8 WILD_BATTLE_PET_DEFAULT_LEVEL = 1;
+static constexpr uint32 WILD_BATTLE_PET_MARK_CHANCE = 40; // % of eligible critters that become wild battle pets
 static constexpr size_t CREATURE_TAPPERS_SOFT_CAP = 5;
 
 //used for handling non-repeatable random texts
@@ -104,6 +105,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         void SelectLevel();
         void UpdateLevelDependantStats();
         void SelectWildBattlePetLevel();
+        void TryMarkAsWildBattlePet();
         void LoadEquipment(int8 id = 1, bool force = false);
         void SetSpawnHealth();
 
