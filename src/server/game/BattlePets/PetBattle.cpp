@@ -472,11 +472,9 @@ void PetBattle::ProcessRound()
     if (IsFinished())
         return;
 
-    // Tick auras (DoTs, HoTs, cooldown reduction, expiry)
+    // Tick auras and weather (DoTs, HoTs, weather periodic, expiry)
+    // Weather is processed inside TickAuras so it's within the AURA_PROCESSING_BEGIN/END block
     TickAuras();
-
-    // Tick weather effects
-    TickWeather();
 
     // Decrease ability cooldowns and lockdowns
     for (auto& team : _teams)
@@ -1372,17 +1370,28 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.Param2 = stateValue;
                 _roundEffects.push_back(roundEffect);
             }
-            else
+
+            // Emit AURA_APPLY so the client shows a buff icon during the multi-turn sequence.
+            // Duration = remaining turns in the multi-turn ability.
             {
-                // No state to set — emit a status change so the client plays the animation
-                PetBattleRoundEffect roundEffect;
-                roundEffect.AbilityEffectID = effect->ID;
-                roundEffect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
-                roundEffect.SourceTeam = attackerTeam;
-                roundEffect.SourcePet = attackerPet;
-                roundEffect.TargetTeam = attackerTeam;
-                roundEffect.TargetPet = attackerPet;
-                _roundEffects.push_back(roundEffect);
+                int32 auraDuration = std::max(int32(1), int32(attacker.MultiTurnTotalTurns) - 1);
+                AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
+                    PET_BATTLE_AURA_BUFF, auraDuration, 0, attacker.PetType,
+                    attackerTeam, attackerPet);
+
+                PetBattleAura const& newAura = attacker.Auras.back();
+                PetBattleRoundEffect auraEffect;
+                auraEffect.AbilityEffectID = effect->ID;
+                auraEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                auraEffect.SourceTeam = attackerTeam;
+                auraEffect.SourcePet = attackerPet;
+                auraEffect.TargetTeam = attackerTeam;
+                auraEffect.TargetPet = attackerPet;
+                auraEffect.Param1 = newAura.AuraInstanceID;
+                auraEffect.Param2 = abilityID;
+                auraEffect.Param3 = newAura.RemainingRounds;
+                auraEffect.Param4 = newAura.CurrentRound;
+                _roundEffects.push_back(auraEffect);
             }
             break;
         }
@@ -1415,20 +1424,9 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.Param2 = 0;
                 _roundEffects.push_back(roundEffect);
             }
-            else
-            {
-                PetBattleRoundEffect roundEffect;
-                roundEffect.AbilityEffectID = effect->ID;
-                roundEffect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
-                roundEffect.SourceTeam = attackerTeam;
-                roundEffect.SourcePet = attackerPet;
-                roundEffect.TargetTeam = attackerTeam;
-                roundEffect.TargetPet = attackerPet;
-                _roundEffects.push_back(roundEffect);
-            }
 
-            // If the ability has damage on this turn as well, that will be handled
-            // by a separate effect entry in the DB2 chain — not here.
+            // Remove the multi-turn aura so the client removes the buff icon
+            RemoveAura(attackerTeam, attackerPet, abilityID);
             break;
         }
         default:
@@ -1725,6 +1723,9 @@ void PetBattle::TickAuras()
         }
     }
 
+    // Phase 4: Process environment/weather auras (inside BEGIN/END block so client sees them)
+    TickWeather();
+
     // Emit AURA_PROCESSING_END
     {
         PetBattleRoundEffect endEffect;
@@ -1804,6 +1805,22 @@ void PetBattle::TickWeather()
         PetBattleEnvironment& env = _environments[envSlot];
         if (env.WeatherType == PET_BATTLE_WEATHER_NONE)
             continue;
+
+        // Emit AURA_CHANGE for environment aura (updates round counter in client)
+        env.CurrentRound++;
+        if (env.AuraInstanceID != 0)
+        {
+            PetBattleRoundEffect changeEffect;
+            changeEffect.EffectType = PET_BATTLE_EFFECT_AURA_CHANGE;
+            changeEffect.SourceTeam = env.CasterTeam;
+            changeEffect.SourcePet = _teams[env.CasterTeam].FrontPetIndex;
+            changeEffect.TargetEnvSlot = static_cast<int8>(envSlot);
+            changeEffect.Param1 = env.AuraInstanceID;
+            changeEffect.Param2 = env.AbilityID;
+            changeEffect.Param3 = env.RemainingRounds;
+            changeEffect.Param4 = env.CurrentRound;
+            _roundEffects.push_back(changeEffect);
+        }
 
         env.RemainingRounds--;
 
