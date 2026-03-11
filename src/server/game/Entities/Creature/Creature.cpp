@@ -2379,9 +2379,11 @@ void Creature::Respawn(bool force)
                 UpdateEntry(m_originalEntry);
 
             SelectLevel();
-            TryMarkAsWildBattlePet();
 
+            // setDeathState(JUST_RESPAWNED) calls ReplaceAllNpcFlags from template,
+            // so TryMarkAsWildBattlePet must run AFTER to add the dynamic flag
             setDeathState(JUST_RESPAWNED);
+            TryMarkAsWildBattlePet();
 
             CreatureModel display(GetNativeDisplayId(), GetNativeDisplayScale(), 1.0f);
             if (sObjectMgr->GetCreatureModelRandomGender(&display, GetCreatureTemplate()))
