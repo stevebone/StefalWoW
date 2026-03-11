@@ -738,8 +738,8 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
     if (!battle)
         return;
 
-    // Only accept input during active round states
-    if (battle->IsFinalRound() || battle->IsFinished())
+    // Only accept input during active round — not during pet replacement, final round, or finished
+    if (battle->GetBattleState() != PetBattles::PET_BATTLE_STATE_ROUND_IN_PROGRESS)
         return;
 
     // Validate MoveType range
