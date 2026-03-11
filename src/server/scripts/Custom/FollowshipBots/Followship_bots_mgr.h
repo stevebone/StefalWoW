@@ -20,10 +20,11 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     // PRIESTS
     { 141508,   FSB_Class::Priest,          FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_UNKNOWN, 0},      // Stormwind Priest
     { 375,      FSB_Class::Priest,          FSB_Race::Human, 10675, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },      // Priestess Anetta
+    { 376,      FSB_Class::Priest,          FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0 }, // High Priestess Laurena
     { 377,      FSB_Class::Priest,          FSB_Race::Human, 70613, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },      // Priestess Josetta
-    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0},    // Zalduun
-    { 3595,     FSB_Class::Priest,          FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0},   // Shanda
     { 837,      FSB_Class::Priest,          FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_MALE, 0},      // Branstock Khalder
+    { 3595,     FSB_Class::Priest,          FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0},   // Shanda
+    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0},    // Zalduun    
 
     // WARRIORS
     { 911,   FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },      // Llane Beshere
@@ -48,20 +49,27 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 925, FSB_Class::Paladin,              FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 },      // Brother Sammuel
     { 926, FSB_Class::Paladin,              FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },      // Bromos Grummner
     { 927, FSB_Class::Paladin,              FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },      // Brother Wilhelm
+    { 928, FSB_Class::Paladin,              FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 }, // Lord Grayson Shadowbreaker
     { 16501, FSB_Class::Paladin,            FSB_Race::Draenei, 408311, FSB_ChatterType::Positive, GENDER_MALE, 0 },    // Aurelon (Draenei)
 
     // WARLOCKS
     { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },      // Drusilla la Salle
+    { 461,   FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 }, // Demisette Cloyce
     { 906,   FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },               // Maximillian Crowe
+    { 5495, FSB_Class::Warlock,             FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 }, // Ursula Deline
     { 6373,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },               // Dane Winslow
     { 6374,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_FEMALE, 0 },      // Cylina Darkheart
 
     // DRUID
     { 3597,  FSB_Class::Druid,            FSB_Race::NightElf, 15067, FSB_ChatterType::Neutral, GENDER_MALE, 0 },   // Mardant
+    { 5506,  FSB_Class::Druid,            FSB_Race::NightElf, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 }, // Maldryn
 
     // ROGUES
     { 915, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },     // Jorik Kerridan
     { 917, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 },     // Keryn Sylvius
+    { 918, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 }, // Osborne the Night Man
+    { 5505, FSB_Class::Rogue,               FSB_Race::NightElf, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 }, // Theridran
+    { 13283, FSB_Class::Rogue,              FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 }, // Lord Tony Romano
 
     // HUNTER
     { 43278,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 43292 /*Adele*/},   // Ashley
@@ -76,6 +84,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
 
     //SHAMAN
     { 17089,  FSB_Class::Shaman,          FSB_Race::Draenei,  0, FSB_ChatterType::Negative, GENDER_MALE, 0 }, //Firmanvaar
+    { 20407,  FSB_Class::Shaman,          FSB_Race::Draenei, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0 }, // Farseer Umbrua
 };
 
 

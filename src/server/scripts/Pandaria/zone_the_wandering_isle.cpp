@@ -31,6 +31,7 @@
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ScriptedFollowerAI.h"
+#include "ScriptedGossip.h"
 #include "SpellScript.h"
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"

@@ -1349,7 +1349,7 @@ namespace FSBOOC
         if (action == 2)
             FSBChat::StartBotRandomChat(bot, ChatChannelType::General);
 
-        if (action == 3)
+        if (action == 3 && FSBUtils::IsBotInTradeCity(bot))
             FSBChat::StartBotRandomChat(bot, ChatChannelType::Trade);
 
         // 6. Set next allowed time (store future timestamp)

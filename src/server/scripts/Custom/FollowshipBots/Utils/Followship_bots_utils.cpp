@@ -235,5 +235,29 @@ namespace FSBUtils
 
         return result;
     }
+
+    bool IsBotInTradeCity(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        uint32 zoneId = bot->GetZoneId();
+
+        switch (zoneId)
+        {
+        case 1519:  // Stormwind City
+        case 1537:  // Ironforge
+        case 1657:  // Darnassus
+        case 3557:  // The Exodar
+        case 1637:  // Orgrimmar
+        case 1638:  // Thunder Bluff
+        case 1497:  // Undercity
+        case 3487:  // Silvermoon City
+            return true;
+
+        default:
+            return false;
+        }
+    }
 }
 
