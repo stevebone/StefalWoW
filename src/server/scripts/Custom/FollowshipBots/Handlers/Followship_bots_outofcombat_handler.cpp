@@ -1339,7 +1339,7 @@ namespace FSBOOC
             return false;
         }
 
-        int8 action = urand(1, 2);
+        int8 action = urand(1, 3);
 
         // 4. Start conversation
         if(action == 1)
@@ -1348,6 +1348,9 @@ namespace FSBOOC
         // 5. Start Random Chat
         if (action == 2)
             FSBChat::StartBotRandomChat(bot, ChatChannelType::General);
+
+        if (action == 3)
+            FSBChat::StartBotRandomChat(bot, ChatChannelType::Trade);
 
         // 6. Set next allowed time (store future timestamp)
         baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;

@@ -306,6 +306,27 @@ namespace FSBChat
         return ss.str();
     }
 
+    inline void ReplaceAll(std::string& text, const std::string& from, const std::string& to)
+    {
+        size_t pos = 0;
+        while ((pos = text.find(from, pos)) != std::string::npos)
+        {
+            text.replace(pos, from.length(), to);
+            pos += to.length();
+        }
+    }
+
+    inline std::string GetAreaName(uint32 areaId)
+    {
+        if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
+        {
+            std::string name = area->AreaName[LOCALE_enUS];
+            return name;
+        }
+
+        return "<unknown area>";
+    }
+
     inline RandomChatTemplate* GetRandomMatchingLine(Creature* bot, ChatChannelType channel)
     {
         if (!bot)
@@ -345,6 +366,16 @@ namespace FSBChat
         if (!line)
             return;
 
+        // Replace tags before sending
+        if (line->spellId)
+            ReplaceAll(line->text, "{spell}", BuildSpellLink(line->spellId));
+
+        if (line->itemId)
+            ReplaceAll(line->text, "{item}", BuildItemLink(line->itemId));
+
+        if (line)
+            ReplaceAll(line->text, "{area}", GetAreaName(bot->GetAreaId()));
+
         switch (channel)
         {
         case ChatChannelType::General:
@@ -373,14 +404,22 @@ namespace FSBChat
     std::vector<RandomChatTemplate> RandomChatTables =
     {
         // Stormwind
-        { 1519, ChatChannelType::General,      Team::ALLIANCE, "Stormwind sure is crowded today..." },
-        { 1519, ChatChannelType::LFG,          Team::ALLIANCE, "LFM for Deadmines, need tank and healer!" },
+        { 1519, ChatChannelType::General,      Team::ALLIANCE,          0,      0,      "Stormwind sure is crowded today..." },
+        { 1519, ChatChannelType::LFG,          Team::ALLIANCE,          0,      0,      "LFM for Deadmines, need tank and healer!" },
 
         // Elwyn
-        {   12, ChatChannelType::LocalDefense, Team::ALLIANCE,  "Another wolf attack near the farms!" },
+        {   12, ChatChannelType::General,      Team::ALLIANCE,          0,      0,      "The marshal in Goldshire was not looking happy today..." },
 
-        {    0, ChatChannelType::Trade,        Team::ALLIANCE,  "WTS [Copper Ore] cheap!" },
-        {    0, ChatChannelType::General,      Team::ALLIANCE,  "Anyone else feel like the respawn timers are getting shorter?" }
+        {   12, ChatChannelType::LocalDefense, Team::ALLIANCE,          0,      0,      "Another wolf attack near the farms!" },
+
+        // No zone - generic
+        {    0, ChatChannelType::General,      Team::PANDARIA_NEUTRAL,  0,      0,      "Anyone else feel like the respawn timers are getting shorter?" },
+        {    0, ChatChannelType::General,      Team::PANDARIA_NEUTRAL,  0,      0,      "I am in {area} today... who knows where I will be tomorrow!" },
+        {    0, ChatChannelType::General,      Team::PANDARIA_NEUTRAL,  0,      0,      "Yesterday I was in the Blasted Lands, today I am back in {area}." },
+        {    0, ChatChannelType::General,      Team::PANDARIA_NEUTRAL,  1953,   0,      "Mages should just stop with their {spell} inside the inn." },
+
+        {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      2770,   "WTS 20x {item} cheap!" },
+        
     };
 
     std::vector<ConversationTemplate> ChatTables = {

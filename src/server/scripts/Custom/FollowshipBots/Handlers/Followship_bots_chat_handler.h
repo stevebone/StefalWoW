@@ -46,6 +46,8 @@ struct RandomChatTemplate
     uint32 zoneId;                     // 0 = any zone
     ChatChannelType channel;           // General, Trade, LFG, etc.
     Team team;                       // Alliance, Horde, Neutral
+    uint32 spellId;
+    uint32 itemId;
     std::string text;                  // The actual chat line
 };
 

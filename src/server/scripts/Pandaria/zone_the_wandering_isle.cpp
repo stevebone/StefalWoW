@@ -19,6 +19,7 @@
 #include "Containers.h"
 #include "CreatureAI.h"
 #include "CreatureAIImpl.h" // for RAND()
+#include "DB2Stores.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "GridNotifiersImpl.h"
