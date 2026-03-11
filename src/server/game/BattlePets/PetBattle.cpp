@@ -353,30 +353,30 @@ void PetBattle::Update(uint32 diff)
             FinishBattle(PET_BATTLE_RESULT_DRAW);
             return;
         }
-    }
 
-    // Per-round AFK timeout — auto-forfeit if a player hasn't submitted input
-    if (_state == PET_BATTLE_STATE_ROUND_IN_PROGRESS || _state == PET_BATTLE_STATE_WAITING_FOR_FRONT_PET)
-    {
-        _roundTimerSecs++;
-        // Grace period: round time + 15 seconds
-        if (_roundTimerSecs > PET_BATTLE_MAX_ROUND_TIME + 15)
+        // Per-round AFK timeout — auto-forfeit if a player hasn't submitted input
+        if (_state == PET_BATTLE_STATE_ROUND_IN_PROGRESS || _state == PET_BATTLE_STATE_WAITING_FOR_FRONT_PET)
         {
-            if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
+            _roundTimerSecs++;
+            // Grace period: round time + 15 seconds (45s total)
+            if (_roundTimerSecs > PET_BATTLE_MAX_ROUND_TIME + 15)
             {
-                for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
+                if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
                 {
-                    if (!_teams[i].HasInputThisRound)
+                    for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
                     {
-                        Forfeit(i);
-                        return;
+                        if (!_teams[i].HasInputThisRound)
+                        {
+                            Forfeit(i);
+                            return;
+                        }
                     }
                 }
-            }
-            else
-            {
-                Forfeit(PET_BATTLE_TEAM_1);
-                return;
+                else
+                {
+                    Forfeit(PET_BATTLE_TEAM_1);
+                    return;
+                }
             }
         }
     }
