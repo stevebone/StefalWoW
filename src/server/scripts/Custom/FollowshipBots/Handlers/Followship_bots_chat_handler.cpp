@@ -4,6 +4,7 @@
 #include "ChatPackets.h"
 #include "Channel.h"
 #include "ChannelMgr.h"
+#include "Containers.h"
 #include "DB2Stores.h"
 #include "Log.h"
 #include "World.h"
