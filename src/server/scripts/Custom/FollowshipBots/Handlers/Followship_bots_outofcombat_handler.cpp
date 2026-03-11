@@ -1332,17 +1332,24 @@ namespace FSBOOC
 
         int32 offset = urand(1000, 10000);
 
-        // 3. Random chance to start a conversation
+        // 3. Random chance to start a conversation or random chat
         if (urand(0, 99) > FollowshipBotsConfig::configFSBChatChannelsRate)
         {
             baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;
             return false;
         }
 
-        // 4. Start conversation
-        FSBChat::StartBotConversation(bot);
+        int8 action = urand(1, 2);
 
-        // 5. Set next allowed time (store future timestamp)
+        // 4. Start conversation
+        if(action == 1)
+            FSBChat::StartBotConversation(bot);
+
+        // 5. Start Random Chat
+        if (action == 2)
+            FSBChat::StartBotRandomChat(bot, ChatChannelType::General);
+
+        // 6. Set next allowed time (store future timestamp)
         baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;
 
         return true;

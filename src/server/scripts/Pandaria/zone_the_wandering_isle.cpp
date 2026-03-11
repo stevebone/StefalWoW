@@ -22,6 +22,7 @@
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "GridNotifiersImpl.h"
+#include "Log.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"

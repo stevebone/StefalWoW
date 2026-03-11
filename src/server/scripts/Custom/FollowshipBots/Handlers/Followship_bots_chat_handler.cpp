@@ -107,28 +107,28 @@ namespace FSBChat
     {
         if (Channel* channel = GetGeneralChannel(bot))
             SendBotChannelMessage(bot, channel, msg);
-        else TC_LOG_WARN("scripts.fsb.chatter", "FSB: BotSendGeneralChat Channel not found for bot {} with message {}", bot->GetName(), msg);
+        else TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: BotSendGeneralChat Channel not found for bot {} with message {}", bot->GetName(), msg);
     }
 
     void BotSendTradeChat(Creature* bot, std::string const& msg)
     {
         if (Channel* channel = GetTradeChannel(bot))
             SendBotChannelMessage(bot, channel, msg);
-        else TC_LOG_WARN("scripts.fsb.chatter", "FSB: BotSendTradeChat Channel not found for bot {} with message {}", bot->GetName(), msg);
+        else TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: BotSendTradeChat Channel not found for bot {} with message {}", bot->GetName(), msg);
     }
 
     void BotSendLocalDefenseChat(Creature* bot, std::string const& msg)
     {
         if (Channel* channel = GetLocalDefenseChannel(bot))
             SendBotChannelMessage(bot, channel, msg);
-        else TC_LOG_WARN("scripts.fsb.chatter", "FSB: BotSendLocalDefenseChat Channel not found for bot {} with message {}", bot->GetName(), msg);
+        else TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: BotSendLocalDefenseChat Channel not found for bot {} with message {}", bot->GetName(), msg);
     }
 
     void BotSendLFGChat(Creature* bot, std::string const& msg)
     {
         if (Channel* channel = GetLFGChannel(bot))
             SendBotChannelMessage(bot, channel, msg);
-        else TC_LOG_WARN("scripts.fsb.chatter", "FSB: BotSendLFGChat Channel not found for bot {} with message {}", bot->GetName(), msg);
+        else TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: BotSendLFGChat Channel not found for bot {} with message {}", bot->GetName(), msg);
     }
 
     // Global (or file-static) storage for all running conversations
