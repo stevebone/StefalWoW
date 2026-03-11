@@ -110,6 +110,10 @@ enum BattlePetState
     STATE_STAT_STAMINA              = 19,
     STATE_STAT_SPEED                = 20,
     STATE_MOD_DAMAGE_DEALT_PERCENT  = 23,
+    STATE_MOD_DAMAGE_TAKEN_PERCENT  = 24,
+    STATE_MOD_SPEED_PERCENT         = 25,
+    STATE_MOD_HEALING_DEALT_PERCENT = 26,
+    STATE_MOD_HEALING_TAKEN_PERCENT = 27,
     STATE_GENDER                    = 78, // 1 - male, 2 - female
     STATE_COSMETIC_WATER_BUBBLED    = 85,
     STATE_SPECIAL_IS_COCKROACH      = 93,
@@ -157,6 +161,7 @@ public:
     static BattlePetSpeciesEntry const* GetBattlePetSpeciesBySpell(uint32 spellId);
     static uint16 RollPetBreed(uint32 species);
     static BattlePetBreedQuality GetDefaultPetQuality(uint32 species);
+    static void GetBaseStats(uint32 speciesId, uint16 breedId, int32& outPower, int32& outStamina, int32& outSpeed);
     static uint32 SelectPetDisplay(BattlePetSpeciesEntry const* speciesEntry);
 
     void LoadFromDB(PreparedQueryResult pets, PreparedQueryResult slots);
@@ -187,6 +192,7 @@ public:
     void GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePetXpSource xpSource);
     void GrantBattlePetLevel(ObjectGuid guid, uint16 grantedLevels);
     void HealBattlePetsPct(uint8 pct);
+    void SyncBattlePetHealth(ObjectGuid guid, int32 newHealth);
     void UpdateBattlePetData(ObjectGuid guid);
 
     void SummonPet(ObjectGuid guid);
@@ -204,6 +210,8 @@ public:
     bool IsBattlePetSystemEnabled() { return GetSlot(BattlePetSlot::Slot0)->Locked != true; }
 
 private:
+    void UpdateSlotPetData(ObjectGuid guid, WorldPackets::BattlePet::BattlePet const& packetInfo);
+
     WorldSession* _owner;
     bool _hasJournalLock = false;
     uint16 _trapLevel = 0;

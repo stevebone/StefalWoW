@@ -38,6 +38,7 @@
 #include "MapManager.h"
 #include "MapUtils.h"
 #include "ObjectMgr.h"
+#include "PetBattleDefines.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "QuestMgr.h"
@@ -556,6 +557,10 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::CompleteScenario:
         case CriteriaType::BattlePetReachLevel:
         case CriteriaType::ActivelyEarnPetLevel:
+        case CriteriaType::AccountObtainPetThroughBattle:
+        case CriteriaType::WinPetBattle:
+        case CriteriaType::LosePetBattle:
+        case CriteriaType::PlayerObtainPetThroughBattle:
         case CriteriaType::DefeatDungeonEncounter:
         case CriteriaType::PlaceGarrisonBuilding:
         case CriteriaType::ActivateAnyGarrisonBuilding:
@@ -830,9 +835,6 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::KickVoterInLFRDungeon:
         case CriteriaType::KickTargetInLFRDungeon:
         case CriteriaType::GroupedTankLeftEarlyInLFRDungeon:
-        case CriteriaType::AccountObtainPetThroughBattle:
-        case CriteriaType::WinPetBattle:
-        case CriteriaType::PlayerObtainPetThroughBattle:
         case CriteriaType::ActivateGarrisonBuilding:
         case CriteriaType::UpgradeGarrison:
         case CriteriaType::StartAnyGarrisonMissionWithFollowerType:
@@ -1233,6 +1235,10 @@ bool CriteriaHandler::IsCompletedCriteria(Criteria const* criteria, uint64 requi
         case CriteriaType::UniquePetsOwned:
         case CriteriaType::BattlePetReachLevel:
         case CriteriaType::ActivelyEarnPetLevel:
+        case CriteriaType::AccountObtainPetThroughBattle:
+        case CriteriaType::WinPetBattle:
+        case CriteriaType::LosePetBattle:
+        case CriteriaType::PlayerObtainPetThroughBattle:
         case CriteriaType::DefeatDungeonEncounter:
         case CriteriaType::PlaceGarrisonBuilding:
         case CriteriaType::LearnHeirloom:
@@ -2207,8 +2213,11 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         case ModifierTreeType::BattlePetQuality: // 89 NYI
-        case ModifierTreeType::BattlePetFightWasPVP: // 90 NYI
             return false;
+        case ModifierTreeType::BattlePetFightWasPVP: // 90
+            if (miscValue1 != PetBattles::PET_BATTLE_TYPE_PVP)
+                return false;
+            break;
         case ModifierTreeType::BattlePetSpecies: // 91
             if (miscValue1 != reqValue)
                 return false;

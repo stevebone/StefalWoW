@@ -75,7 +75,7 @@ void BattlePet::CalculateStats()
             speed *= battlePetBreedQuality->StateMultiplier;
             break;
         }
-        // TOOD: add check if pet has existing quality
+        // TODO: add check if pet has existing quality
     }
 
     // scale stats depending on level
@@ -213,6 +213,37 @@ BattlePetBreedQuality BattlePetMgr::GetDefaultPetQuality(uint32 species)
     return BattlePetBreedQuality(itr->second);
 }
 
+void BattlePetMgr::GetBaseStats(uint32 speciesId, uint16 breedId, int32& outPower, int32& outStamina, int32& outSpeed)
+{
+    outPower = 0;
+    outStamina = 0;
+    outSpeed = 0;
+
+    // Breed base stats
+    auto breedState = _battlePetBreedStates.find(breedId);
+    if (breedState != _battlePetBreedStates.end())
+    {
+        auto it = breedState->second.find(BattlePetState(STATE_STAT_POWER));
+        if (it != breedState->second.end()) outPower = it->second;
+        it = breedState->second.find(BattlePetState(STATE_STAT_STAMINA));
+        if (it != breedState->second.end()) outStamina = it->second;
+        it = breedState->second.find(BattlePetState(STATE_STAT_SPEED));
+        if (it != breedState->second.end()) outSpeed = it->second;
+    }
+
+    // Species base stats (added on top of breed)
+    auto speciesState = _battlePetSpeciesStates.find(speciesId);
+    if (speciesState != _battlePetSpeciesStates.end())
+    {
+        auto it = speciesState->second.find(BattlePetState(STATE_STAT_POWER));
+        if (it != speciesState->second.end()) outPower += it->second;
+        it = speciesState->second.find(BattlePetState(STATE_STAT_STAMINA));
+        if (it != speciesState->second.end()) outStamina += it->second;
+        it = speciesState->second.find(BattlePetState(STATE_STAT_SPEED));
+        if (it != speciesState->second.end()) outSpeed += it->second;
+    }
+}
+
 uint32 BattlePetMgr::SelectPetDisplay(BattlePetSpeciesEntry const* speciesEntry)
 {
     if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(speciesEntry->CreatureID))
@@ -335,6 +366,9 @@ void BattlePetMgr::SaveToDB(LoginDatabaseTransaction trans)
         switch (itr->second.SaveInfo)
         {
             case BATTLE_PET_NEW:
+                TC_LOG_DEBUG("battlepet", "BattlePetMgr::SaveToDB INSERT pet {} species {} level {} xp {} health {}",
+                    itr->first, itr->second.PacketInfo.Species, itr->second.PacketInfo.Level,
+                    itr->second.PacketInfo.Exp, itr->second.PacketInfo.Health);
                 stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_BATTLE_PETS);
                 stmt->setUInt64(0, itr->first);
                 stmt->setUInt32(1, _owner->GetBattlenetAccountId());
@@ -376,6 +410,9 @@ void BattlePetMgr::SaveToDB(LoginDatabaseTransaction trans)
                 ++itr;
                 break;
             case BATTLE_PET_CHANGED:
+                TC_LOG_DEBUG("battlepet", "BattlePetMgr::SaveToDB UPDATE pet {} level {} xp {} health {}",
+                    itr->first, itr->second.PacketInfo.Level,
+                    itr->second.PacketInfo.Exp, itr->second.PacketInfo.Health);
                 stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BATTLE_PETS);
                 stmt->setUInt16(0, itr->second.PacketInfo.Level);
                 stmt->setUInt16(1, itr->second.PacketInfo.Exp);
@@ -442,6 +479,13 @@ void BattlePetMgr::SaveToDB(LoginDatabaseTransaction trans)
 BattlePet* BattlePetMgr::GetPet(ObjectGuid guid)
 {
     return Trinity::Containers::MapGetValuePtr(_pets, guid.GetCounter());
+}
+
+void BattlePetMgr::UpdateSlotPetData(ObjectGuid guid, WorldPackets::BattlePet::BattlePet const& packetInfo)
+{
+    for (auto& slot : _slots)
+        if (slot.Pet.Guid == guid)
+            slot.Pet = packetInfo;
 }
 
 void BattlePetMgr::AddPet(uint32 species, uint32 display, uint16 breed, BattlePetBreedQuality quality, uint16 level /*= 1*/)
@@ -683,6 +727,8 @@ void BattlePetMgr::ChangeBattlePetQuality(ObjectGuid guid, BattlePetBreedQuality
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
 
+    UpdateSlotPetData(guid, pet->PacketInfo);
+
     std::array<std::reference_wrapper<BattlePet const>, 1> updates = { *pet };
     SendUpdates(updates, false);
 
@@ -693,7 +739,11 @@ void BattlePetMgr::ChangeBattlePetQuality(ObjectGuid guid, BattlePetBreedQuality
 void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePetXpSource xpSource)
 {
     if (!HasJournalLock())
+    {
+        TC_LOG_ERROR("battlepet", "BattlePetMgr::GrantBattlePetExperience: Journal lock not held, cannot award {} XP to pet {}",
+            xp, guid.ToString());
         return;
+    }
 
     BattlePet* pet = GetPet(guid);
     if (!pet)
@@ -712,7 +762,10 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
 
     GtBattlePetXPEntry const* xpEntry = sBattlePetXPGameTable.GetRow(level);
     if (!xpEntry)
+    {
+        TC_LOG_ERROR("battlepet", "BattlePetMgr::GrantBattlePetExperience: Missing BattlePetXP GameTable row for level {} - XP cannot be applied. Check gt/ data files.", level);
         return;
+    }
 
     Player* player = _owner->GetPlayer();
     uint16 nextLevelXp = uint16(GetBattlePetXPPerLevel(xpEntry));
@@ -728,7 +781,7 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
 
         xpEntry = sBattlePetXPGameTable.GetRow(++level);
         if (!xpEntry)
-            return;
+            break; // Partial level-up — still save what we have
 
         nextLevelXp = uint16(GetBattlePetXPPerLevel(xpEntry));
 
@@ -742,8 +795,13 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
     pet->CalculateStats();
     pet->PacketInfo.Health = pet->PacketInfo.MaxHealth;
 
+    TC_LOG_DEBUG("battlepet", "BattlePetMgr::GrantBattlePetExperience: pet {} now level {} xp {} (SaveInfo={})",
+        guid.ToString(), level, pet->PacketInfo.Exp, static_cast<int32>(pet->SaveInfo));
+
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
+
+    UpdateSlotPetData(guid, pet->PacketInfo);
 
     std::array<std::reference_wrapper<BattlePet const>, 1> updates = { *pet };
     SendUpdates(updates, false);
@@ -783,14 +841,28 @@ void BattlePetMgr::GrantBattlePetLevel(ObjectGuid guid, uint16 grantedLevels)
     if (pet->SaveInfo != BATTLE_PET_NEW)
         pet->SaveInfo = BATTLE_PET_CHANGED;
 
+    UpdateSlotPetData(guid, pet->PacketInfo);
+
     std::array<std::reference_wrapper<BattlePet const>, 1> updates = { *pet };
     SendUpdates(updates, false);
 }
 
+void BattlePetMgr::SyncBattlePetHealth(ObjectGuid guid, int32 newHealth)
+{
+    BattlePet* pet = GetPet(guid);
+    if (!pet)
+        return;
+
+    pet->PacketInfo.Health = static_cast<uint32>(std::clamp(newHealth, 0, int32(pet->PacketInfo.MaxHealth)));
+
+    if (pet->SaveInfo != BATTLE_PET_NEW)
+        pet->SaveInfo = BATTLE_PET_CHANGED;
+
+    UpdateSlotPetData(guid, pet->PacketInfo);
+}
+
 void BattlePetMgr::HealBattlePetsPct(uint8 pct)
 {
-    // TODO: After each Pet Battle, any injured companion will automatically
-    // regain 50 % of the damage that was taken during combat
     std::vector<std::reference_wrapper<BattlePet const>> updates;
 
     for (auto& [_, pet] : _pets)
@@ -804,10 +876,15 @@ void BattlePetMgr::HealBattlePetsPct(uint8 pct)
         if (pet.SaveInfo != BATTLE_PET_NEW)
             pet.SaveInfo = BATTLE_PET_CHANGED;
 
+        UpdateSlotPetData(pet.PacketInfo.Guid, pet.PacketInfo);
         updates.push_back(pet);
     }
 
     SendUpdates(updates, false);
+
+    // Notify the client that battle pets have been healed (triggers UI feedback)
+    WorldPackets::BattlePet::BattlePetsHealed healed;
+    _owner->SendPacket(healed.Write());
 }
 
 void BattlePetMgr::UpdateBattlePetData(ObjectGuid guid)

@@ -28,6 +28,7 @@
 #include "AuctionHouseMgr.h"
 #include "AuthenticationPackets.h"
 #include "BattlePetMgr.h"
+#include "PetBattleMgr.h"
 #include "BattlefieldMgr.h"
 #include "BattlegroundMgr.h"
 #include "BattlenetRpcErrorCodes.h"
@@ -2057,6 +2058,9 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading battle pets info...");
     BattlePets::BattlePetMgr::Initialize();
 
+    TC_LOG_INFO("server.loading", "Initializing pet battle system...");
+    sPetBattleMgr->Initialize();
+
     TC_LOG_INFO("server.loading", "Loading scenarios");
     sScenarioMgr->LoadDB2Data();
     sScenarioMgr->LoadDBData();
@@ -2321,6 +2325,11 @@ void World::Update(uint32 diff)
     {
         TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Update battlegrounds"));
         sBattlegroundMgr->Update(diff);
+    }
+
+    {
+        TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Update pet battles"));
+        sPetBattleMgr->Update(diff);
     }
 
     {

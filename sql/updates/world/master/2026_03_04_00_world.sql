@@ -1,3 +1,4 @@
+
 DELETE FROM `spell_proc` WHERE `SpellId` IN (85739);
 INSERT INTO `spell_proc` (`SpellId`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`SpellFamilyMask3`,`ProcFlags`,`ProcFlags2`,`SpellTypeMask`,`SpellPhaseMask`,`HitMask`,`AttributesMask`,`DisableEffectsMask`,`ProcsPerMinute`,`Chance`,`Cooldown`,`Charges`) VALUES
 (85739,0x00,4,0x00000000,0x00000000,0x00000000,0x00000000,0x0,0x0,0x0,0x1,0x0,0x18,0x0,0,0,0,0); -- Whirlwind
@@ -35,3 +36,14 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (463816, 'spell_warr_improved_whirlwind_cleave'),  -- Fury Execute FX Test
 (463817, 'spell_warr_improved_whirlwind_cleave'),  -- Fury Execute Off-Hand FX Test
 (1269383, 'spell_warr_improved_whirlwind_cleave');  -- Heroic Strike
+
+--
+-- Add npcTeamMemberID and creatureId columns to battle_pet_npc_team
+-- npcTeamMemberID: maps to BattlePetNPCTeamMember.db2 for NPC pet name display
+-- creatureId: optional override for creature model (0 = use species default)
+--
+
+ALTER TABLE `battle_pet_npc_team`
+    ADD COLUMN `npcTeamMemberID` INT NOT NULL DEFAULT 0 COMMENT 'BattlePetNPCTeamMember.db2 ID for pet name' AFTER `ability3`,
+    ADD COLUMN `creatureId` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Creature template entry override for model (0=species default)' AFTER `npcTeamMemberID`;
+
