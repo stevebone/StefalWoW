@@ -18,6 +18,7 @@
 #include "ScriptMgr.h"
 #include "deadmines.h"
 #include "InstanceScript.h"
+#include "Map.h"
 
 static constexpr ObjectData creatureData[] =
 {

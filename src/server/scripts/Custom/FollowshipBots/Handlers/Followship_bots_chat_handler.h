@@ -25,11 +25,22 @@ struct ConversationTemplate
 
 struct ActiveConversation
 {
-    ConversationTemplate* tmpl;
+    ConversationTemplate* tmpl = nullptr;
     std::vector<Creature*> participants;
     std::map<ConversationRole, size_t> roleMap;   // NEW
     size_t currentLine = 0;
     uint32 nextSpeakTime = 0;
+};
+
+enum class ItemQualityColor
+{
+    Poor,       // Gray
+    Common,     // White
+    Uncommon,   // Green
+    Rare,       // Blue
+    Epic,       // Purple
+    Legendary,  // Orange
+    Artifact    // Gold
 };
 
 namespace FSBChat
