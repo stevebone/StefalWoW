@@ -78,6 +78,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('913', '900003', '-1'),
 ('913', '900004', '-1'),
 ('913', '900005', '-1'),
+('914', '900000', '-1'),
+('914', '900001', '-1'),
+('914', '900002', '-1'),
+('914', '900003', '-1'),
+('914', '900004', '-1'),
+('914', '900005', '-1'),
 ('915', '900000', '-1'),
 ('915', '900001', '-1'),
 ('915', '900002', '-1'),
@@ -236,7 +242,19 @@ INSERT INTO `creature_template_gossip` VALUES
 ('141508', '900002', '-1'),
 ('141508', '900003', '-1'),
 ('141508', '900004', '-1'),
-('141508', '900005', '-1');
+('141508', '900005', '-1'),
+('164939', '900000', '-1'),
+('164939', '900001', '-1'),
+('164939', '900002', '-1'),
+('164939', '900003', '-1'),
+('164939', '900004', '-1'),
+('164939', '900005', '-1'),
+('164940', '900000', '-1'),
+('164940', '900001', '-1'),
+('164940', '900002', '-1'),
+('164940', '900003', '-1'),
+('164940', '900004', '-1'),
+('164940', '900005', '-1');
 
 -- Goldshire trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 328; -- Zaldimar (Mage)
@@ -287,3 +305,8 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 
 -- Tinkertown trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 63238; -- Xi
+
+-- Stormwind trainers
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 914; -- Ander Germaine (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 164939; -- Signilda Hardforge (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 164940; -- Kualiang Thunderfist (Warrior)

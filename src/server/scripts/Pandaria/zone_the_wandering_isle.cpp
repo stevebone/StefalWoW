@@ -35,6 +35,7 @@
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
 #include "ThreatManager.h"
+#include "Vehicle.h"
 
 namespace Scripts::Pandaria::TheWanderingIsle
 {

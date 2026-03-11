@@ -29,10 +29,13 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 911,   FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },      // Llane Beshere
     { 912,   FSB_Class::Warrior,            FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },      // Thran Khorman
     { 913,   FSB_Class::Warrior,            FSB_Race::Human, 171118, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },      // Lyria Du Lac
+    { 914,   FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },      // Ander Germaine
     { 50595, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_UNKNOWN, 0 },      // Stormwind Defender
     { 46405, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 },      // Stockade Guard
     { 16503, FSB_Class::Warrior,            FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },    // Kore
     { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf, 15067, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },   // Alyissia
+    { 164939,FSB_Class::Warrior,            FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 },      // Signilda Hardforge
+    { 164940,FSB_Class::Warrior,            FSB_Race::Pandaren, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },    // Kualiang Thunderfist
 
     // MAGES
     { 198,   FSB_Class::Mage,               FSB_Race::Human, 10697, FSB_ChatterType::Positive, GENDER_MALE, 0 },      // Khelden Bremen
