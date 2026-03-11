@@ -68,6 +68,43 @@ namespace FSBUtils
         }
     }
 
+    Team GetTeamFromFSBRace(Creature* bot)
+    {
+        if (!bot)
+        {
+            TC_LOG_WARN("server", "GetTeamFromFSBRace: bot pointer was null!");
+            return Team::PANDARIA_NEUTRAL;
+        }
+
+        FSB_Race race = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+
+        switch (race)
+        {
+            // Alliance races
+        case FSB_Race::Human:
+        case FSB_Race::Dwarf:
+        case FSB_Race::NightElf:
+        case FSB_Race::Gnome:
+        case FSB_Race::Draenei:
+        case FSB_Race::Worgen:
+        case FSB_Race::VoidElf:
+        case FSB_Race::Pandaren:
+            return Team::ALLIANCE;
+
+            // Pandaren can be neutral or faction-chosen later
+        //case FSB_Race::Pandaren:
+        //    TC_LOG_WARN("server", "GetTeamFromFSBRace: Pandaren bot has no faction assigned, defaulting to NEUTRAL.");
+        //    return Team::PANDARIA_NEUTRAL;
+
+            // No race / unknown
+        case FSB_Race::None:
+        default:
+            TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: Unknown or unsupported FSB race {} for bot {}. Defaulting to NEUTRAL.",
+                uint8(race), bot->GetName());
+            return Team::PANDARIA_NEUTRAL;
+        }
+    }
+
     const char* PowerTypeToString(Powers power)
     {
         switch (power)

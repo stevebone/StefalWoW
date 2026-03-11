@@ -32,15 +32,21 @@ struct ActiveConversation
     uint32 nextSpeakTime = 0;
 };
 
-enum class ItemQualityColor
+enum class ChatChannelType
 {
-    Poor,       // Gray
-    Common,     // White
-    Uncommon,   // Green
-    Rare,       // Blue
-    Epic,       // Purple
-    Legendary,  // Orange
-    Artifact    // Gold
+    General,
+    Trade,
+    LocalDefense,
+    LFG,
+    Custom
+};
+
+struct RandomChatTemplate
+{
+    uint32 zoneId;                     // 0 = any zone
+    ChatChannelType channel;           // General, Trade, LFG, etc.
+    Team team;                       // Alliance, Horde, Neutral
+    std::string text;                  // The actual chat line
 };
 
 namespace FSBChat
@@ -59,5 +65,9 @@ namespace FSBChat
     void StartBotConversation(Creature* starter);
     void UpdateBotConversations();
     bool IsBotInConversation(Creature* bot);
+
+    extern std::vector<RandomChatTemplate> RandomChatTables;
+
+    void StartBotRandomChat(Creature* bot, ChatChannelType channel);
 
 }

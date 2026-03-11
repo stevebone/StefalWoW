@@ -290,6 +290,98 @@ namespace FSBChat
         return ss.str();
     }
 
+    inline std::string BuildSpellLink(uint32 spellId)
+    {
+        if (!spellId)
+            return "";
+
+        const char* color = "|cff71d5ff"; // standard spell link color
+        std::string name = FSBSpellsUtils::GetSpellName(spellId);
+
+        std::ostringstream ss;
+        ss << color
+            << "|Hspell:" << spellId << "|h["
+            << name << "]|h|r";
+
+        return ss.str();
+    }
+
+    inline RandomChatTemplate* GetRandomMatchingLine(Creature* bot, ChatChannelType channel)
+    {
+        if (!bot)
+            return nullptr;
+
+        uint32 zoneId = bot->GetZoneId();
+        Team team = FSBUtils::GetTeamFromFSBRace(bot);
+
+        std::vector<RandomChatTemplate*> matches;
+
+        for (auto& entry : RandomChatTables)
+        {
+            if (entry.channel != channel)
+                continue;
+
+            if (entry.zoneId != 0 && entry.zoneId != zoneId)
+                continue;
+
+            if (entry.team != Team::PANDARIA_NEUTRAL && entry.team != team)
+                continue;
+
+            matches.push_back(&entry);
+        }
+
+        if (matches.empty())
+            return nullptr;
+
+        return matches[urand(0, matches.size() - 1)];
+    }
+
+    void StartBotRandomChat(Creature* bot, ChatChannelType channel)
+    {
+        if (!bot)
+            return;
+
+        RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
+        if (!line)
+            return;
+
+        switch (channel)
+        {
+        case ChatChannelType::General:
+            BotSendGeneralChat(bot, line->text);
+            break;
+
+        case ChatChannelType::Trade:
+            BotSendTradeChat(bot, line->text);
+            break;
+
+        case ChatChannelType::LocalDefense:
+            BotSendLocalDefenseChat(bot, line->text);
+            break;
+
+        case ChatChannelType::LFG:
+            BotSendLFGChat(bot, line->text);
+            break;
+
+        case ChatChannelType::Custom:
+        default:
+            BotSendGeneralChat(bot, line->text);
+            break;
+        }
+    }
+
+    std::vector<RandomChatTemplate> RandomChatTables =
+    {
+        // Stormwind
+        { 1519, ChatChannelType::General,      Team::ALLIANCE, "Stormwind sure is crowded today..." },
+        { 1519, ChatChannelType::LFG,          Team::ALLIANCE, "LFM for Deadmines, need tank and healer!" },
+
+        // Elwyn
+        {   12, ChatChannelType::LocalDefense, Team::ALLIANCE,  "Another wolf attack near the farms!" },
+
+        {    0, ChatChannelType::Trade,        Team::ALLIANCE,  "WTS [Copper Ore] cheap!" },
+        {    0, ChatChannelType::General,      Team::ALLIANCE,  "Anyone else feel like the respawn timers are getting shorter?" }
+    };
 
     std::vector<ConversationTemplate> ChatTables = {
     {
@@ -637,7 +729,7 @@ namespace FSBChat
     
     {
         "ThunderfuryDebate",
-        { // Epic: |cffa335ee
+        {
             { ConversationRole::Starter,   "Alright, be honest. if someone actually looted |cffff8000|Hitem:19019:0:0:0:0:0:0:0:0|h[Thunderfury, Blessed Blade of the Windseeker]|h|r today, what would happen?" },
             { ConversationRole::Responder, "Stormwind would hear the scream from Ironforge." },
             { ConversationRole::Follower,  "Half the city would whisper 'Did someone say Thunderfury?' for hours." },

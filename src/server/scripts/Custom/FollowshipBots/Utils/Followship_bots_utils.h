@@ -29,6 +29,8 @@ namespace FSBUtils
     Classes FSBToTCClass(FSB_Class botClass);
     Races BotRaceToTC(FSB_Race race);
 
+    Team GetTeamFromFSBRace(Creature* bot);
+
     constexpr float SIDE_OFFSET_MAX = float(M_PI) / 6.0f; // +-30 degrees from pure left/right
 
     // Returns a random angle slightly to the left of the player
