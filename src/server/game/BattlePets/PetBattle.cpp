@@ -898,9 +898,13 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
         return;
     }
 
-    // Process each effect in order
+    // Process each effect in order — stop if defender dies (prevents multi-hit overkill)
     for (BattlePetAbilityEffectEntry const* effectEntry : *effects)
     {
+        // In retail, multi-hit abilities stop when the target dies
+        if (!_teams[defenderTeam].Pets[defenderPet].IsAlive())
+            break;
+
         TC_LOG_DEBUG("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} auraAbilityID={} visualID={} Params=[{},{},{},{},{},{}]",
             effectEntry->ID, effectEntry->BattlePetEffectPropertiesID,
             effectEntry->AuraBattlePetAbilityID, effectEntry->BattlePetVisualID,
@@ -1015,40 +1019,41 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             if (auraDuration <= 0)
                 auraDuration = 3; // Default duration
 
-            // Weather auras: if AuraBattlePetAbilityID is a weather ability, apply to environment
-            if (effect->AuraBattlePetAbilityID != 0 && sPetBattleMgr->IsWeatherAbility(effect->AuraBattlePetAbilityID))
+            // Weather auras: if the cast ability is a weather ability, apply aura to environment
+            if (sPetBattleMgr->IsWeatherAbility(abilityID))
             {
-                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_AURA: effectID={} auraAbilityID={} duration={}",
-                    effect->ID, effect->AuraBattlePetAbilityID, auraDuration);
+                uint32 weatherAuraAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_AURA: effectID={} castAbility={} auraAbilityID={} duration={}",
+                    effect->ID, abilityID, weatherAuraAbilityID, auraDuration);
 
-                // Cancel existing weather on slot 0 if any
-                if (_environments[0].AbilityID != 0 && _environments[0].AuraInstanceID != 0)
+                // Cancel existing weather on weather slot (PetbattleEnviros::Weather = 2, PBOID 8)
+                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID != 0 && _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID != 0)
                 {
                     PetBattleRoundEffect cancelEffect;
                     cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
-                    cancelEffect.TargetEnvSlot = 0;
-                    cancelEffect.Param1 = _environments[0].AuraInstanceID;
-                    cancelEffect.Param2 = _environments[0].AbilityID;
+                    cancelEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                    cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                    cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
                     _roundEffects.push_back(cancelEffect);
                 }
 
-                // Set up environment slot 0 with the weather aura
-                _environments[0].AbilityID = effect->AuraBattlePetAbilityID;
-                _environments[0].WeatherType = PET_BATTLE_WEATHER_NONE; // Gameplay mods come from SET_STATE effects
-                _environments[0].RemainingRounds = auraDuration;
-                _environments[0].CasterTeam = attackerTeam;
-                _environments[0].AuraInstanceID = _nextAuraInstanceID++;
-                _environments[0].CurrentRound = _currentRound;
+                // Set up weather environment slot with the weather aura
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = weatherAuraAbilityID;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType = PET_BATTLE_WEATHER_NONE; // Gameplay mods come from SET_STATE effects
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = auraDuration;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = attackerTeam;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
 
-                // Emit AURA_APPLY targeting environment PBOID 6 (env slot 0)
+                // Emit AURA_APPLY targeting environment PBOID 8 (PetbattleEnviros::Weather)
                 PetBattleRoundEffect applyEffect;
                 applyEffect.AbilityEffectID = effect->ID;
                 applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
                 applyEffect.SourceTeam = attackerTeam;
                 applyEffect.SourcePet = attackerPet;
-                applyEffect.TargetEnvSlot = 0;
-                applyEffect.Param1 = _environments[0].AuraInstanceID;
-                applyEffect.Param2 = effect->AuraBattlePetAbilityID;
+                applyEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                applyEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                applyEffect.Param2 = weatherAuraAbilityID;
                 applyEffect.Param3 = auraDuration;
                 applyEffect.Param4 = _currentRound;
                 _roundEffects.push_back(applyEffect);
@@ -1131,36 +1136,37 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 auraDuration = 3;
 
             // Weather periodic auras (e.g. Moonlight HoT): route to environment
-            if (effect->AuraBattlePetAbilityID != 0 && sPetBattleMgr->IsWeatherAbility(effect->AuraBattlePetAbilityID))
+            if (sPetBattleMgr->IsWeatherAbility(abilityID))
             {
-                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_PERIODIC: effectID={} auraAbilityID={} duration={}",
-                    effect->ID, effect->AuraBattlePetAbilityID, auraDuration);
+                uint32 weatherAuraAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_PERIODIC: effectID={} castAbility={} auraAbilityID={} duration={}",
+                    effect->ID, abilityID, weatherAuraAbilityID, auraDuration);
 
-                if (_environments[0].AbilityID != 0 && _environments[0].AuraInstanceID != 0)
+                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID != 0 && _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID != 0)
                 {
                     PetBattleRoundEffect cancelEffect;
                     cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
-                    cancelEffect.TargetEnvSlot = 0;
-                    cancelEffect.Param1 = _environments[0].AuraInstanceID;
-                    cancelEffect.Param2 = _environments[0].AbilityID;
+                    cancelEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                    cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                    cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
                     _roundEffects.push_back(cancelEffect);
                 }
 
-                _environments[0].AbilityID = effect->AuraBattlePetAbilityID;
-                _environments[0].WeatherType = PET_BATTLE_WEATHER_NONE;
-                _environments[0].RemainingRounds = auraDuration;
-                _environments[0].CasterTeam = attackerTeam;
-                _environments[0].AuraInstanceID = _nextAuraInstanceID++;
-                _environments[0].CurrentRound = _currentRound;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = weatherAuraAbilityID;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType = PET_BATTLE_WEATHER_NONE;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = auraDuration;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = attackerTeam;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
 
                 PetBattleRoundEffect applyEffect;
                 applyEffect.AbilityEffectID = effect->ID;
                 applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
                 applyEffect.SourceTeam = attackerTeam;
                 applyEffect.SourcePet = attackerPet;
-                applyEffect.TargetEnvSlot = 0;
-                applyEffect.Param1 = _environments[0].AuraInstanceID;
-                applyEffect.Param2 = effect->AuraBattlePetAbilityID;
+                applyEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                applyEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                applyEffect.Param2 = weatherAuraAbilityID;
                 applyEffect.Param3 = auraDuration;
                 applyEffect.Param4 = _currentRound;
                 _roundEffects.push_back(applyEffect);
@@ -1336,7 +1342,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
             roundEffect.SourceTeam = attackerTeam;
             roundEffect.SourcePet = attackerPet;
-            roundEffect.TargetEnvSlot = 0; // Environment slot 0
+            roundEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
             roundEffect.Param1 = stateID;
             roundEffect.Param2 = stateValue;
             _roundEffects.push_back(roundEffect);
@@ -1833,33 +1839,33 @@ void PetBattle::SetWeather(PetBattleWeatherType weatherType, uint32 abilityID, i
         return;
     }
 
-    // Cancel existing weather on slot 0 if any
-    if (_environments[0].WeatherType != PET_BATTLE_WEATHER_NONE && _environments[0].AuraInstanceID != 0)
+    // Cancel existing weather on weather slot (PetbattleEnviros::Weather = 2, PBOID 8)
+    if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType != PET_BATTLE_WEATHER_NONE && _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID != 0)
     {
         PetBattleRoundEffect cancelEffect;
         cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
-        cancelEffect.TargetEnvSlot = 0;
-        cancelEffect.Param1 = _environments[0].AuraInstanceID;
-        cancelEffect.Param2 = _environments[0].AbilityID;
+        cancelEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+        cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+        cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
         _roundEffects.push_back(cancelEffect);
     }
 
-    // Slot 0 is the shared battlefield weather
-    _environments[0].AbilityID = abilityID;
-    _environments[0].WeatherType = weatherType;
-    _environments[0].RemainingRounds = duration;
-    _environments[0].CasterTeam = casterTeam;
-    _environments[0].AuraInstanceID = _nextAuraInstanceID++;
-    _environments[0].CurrentRound = _currentRound;
+    // Weather slot (PetbattleEnviros::Weather = 2) is the shared battlefield weather
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = abilityID;
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType = weatherType;
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = duration;
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = casterTeam;
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
 
-    // Emit AURA_APPLY targeting environment PBOID so client shows weather
+    // Emit AURA_APPLY targeting environment PBOID 8 (EnvWeather)
     PetBattleRoundEffect applyEffect;
     applyEffect.AbilityEffectID = abilityID;
     applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
     applyEffect.SourceTeam = casterTeam;
     applyEffect.SourcePet = _teams[casterTeam].FrontPetIndex;
-    applyEffect.TargetEnvSlot = 0; // Environment slot 0 = shared battlefield weather
-    applyEffect.Param1 = _environments[0].AuraInstanceID;
+    applyEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+    applyEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
     applyEffect.Param2 = abilityID;
     applyEffect.Param3 = duration;
     applyEffect.Param4 = _currentRound;
@@ -1942,7 +1948,7 @@ void PetBattle::TickWeather()
 
 float PetBattle::GetWeatherDamageModifier(PetBattlePetType abilityType) const
 {
-    PetBattleWeatherType weather = _environments[0].WeatherType;
+    PetBattleWeatherType weather = _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType;
 
     switch (weather)
     {
@@ -1964,7 +1970,7 @@ float PetBattle::GetWeatherDamageModifier(PetBattlePetType abilityType) const
 
 float PetBattle::GetWeatherHealingModifier() const
 {
-    PetBattleWeatherType weather = _environments[0].WeatherType;
+    PetBattleWeatherType weather = _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType;
 
     switch (weather)
     {

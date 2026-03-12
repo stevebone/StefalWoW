@@ -512,8 +512,9 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     player->SetFacingToObject(creature);
 
     // Send finalize location with OK result
-    // BattleOrigin = midpoint, players placed 5.0 units from center along facing axis (matching retail sniff)
-    static constexpr float PET_BATTLE_HALF_DISTANCE = 5.0f;
+    // BattleOrigin = midpoint; PlayerPositions pushed 5 units from center along facing axis
+    // so the player character stands behind their pet (matching retail sniff)
+    static constexpr float PET_BATTLE_PLAYER_DISTANCE = 5.0f;
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
     finalizeLocation.Location.LocationResult = PetBattles::PET_BATTLE_REQUEST_FAIL_OK;
     Position midpoint;
@@ -523,13 +524,13 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
     float facing = player->GetAbsoluteAngle(creature);
     finalizeLocation.Location.BattleOrigin = midpoint;
     finalizeLocation.Location.BattleFacing = facing;
-    // Player positions are 5.0 units from center along the facing axis
-    finalizeLocation.Location.PlayerPositions[0] = Position(midpoint.m_positionX - PET_BATTLE_HALF_DISTANCE * std::cos(facing),
-                                                           midpoint.m_positionY - PET_BATTLE_HALF_DISTANCE * std::sin(facing),
-                                                           midpoint.m_positionZ);
-    finalizeLocation.Location.PlayerPositions[1] = Position(midpoint.m_positionX + PET_BATTLE_HALF_DISTANCE * std::cos(facing),
-                                                           midpoint.m_positionY + PET_BATTLE_HALF_DISTANCE * std::sin(facing),
-                                                           midpoint.m_positionZ);
+    // Push players back from center so they stand behind their pets
+    finalizeLocation.Location.PlayerPositions[0] = Position(midpoint.m_positionX - PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
+                                                           midpoint.m_positionY - PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
+                                                           player->GetPositionZ());
+    finalizeLocation.Location.PlayerPositions[1] = Position(midpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
+                                                           midpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
+                                                           creature->GetPositionZ());
     SendPacket(finalizeLocation.Write());
 
     // Build and send initial update
@@ -681,8 +682,7 @@ void WorldSession::StartNPCPetBattle(Creature* trainer)
     player->SetFacingToObject(trainer);
 
     // Send finalize location with OK result
-    // BattleOrigin = midpoint, players placed 5.0 units from center along facing axis (matching retail sniff)
-    static constexpr float PET_BATTLE_HALF_DISTANCE = 5.0f;
+    static constexpr float PET_BATTLE_PLAYER_DISTANCE = 5.0f;
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
     finalizeLocation.Location.LocationResult = PetBattles::PET_BATTLE_REQUEST_FAIL_OK;
     Position midpoint;
@@ -692,12 +692,12 @@ void WorldSession::StartNPCPetBattle(Creature* trainer)
     float facing = player->GetAbsoluteAngle(trainer);
     finalizeLocation.Location.BattleOrigin = midpoint;
     finalizeLocation.Location.BattleFacing = facing;
-    finalizeLocation.Location.PlayerPositions[0] = Position(midpoint.m_positionX - PET_BATTLE_HALF_DISTANCE * std::cos(facing),
-                                                           midpoint.m_positionY - PET_BATTLE_HALF_DISTANCE * std::sin(facing),
-                                                           midpoint.m_positionZ);
-    finalizeLocation.Location.PlayerPositions[1] = Position(midpoint.m_positionX + PET_BATTLE_HALF_DISTANCE * std::cos(facing),
-                                                           midpoint.m_positionY + PET_BATTLE_HALF_DISTANCE * std::sin(facing),
-                                                           midpoint.m_positionZ);
+    finalizeLocation.Location.PlayerPositions[0] = Position(midpoint.m_positionX - PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
+                                                           midpoint.m_positionY - PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
+                                                           player->GetPositionZ());
+    finalizeLocation.Location.PlayerPositions[1] = Position(midpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
+                                                           midpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
+                                                           trainer->GetPositionZ());
     SendPacket(finalizeLocation.Write());
 
     // Build and send initial update
