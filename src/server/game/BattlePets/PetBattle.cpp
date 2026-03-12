@@ -901,8 +901,9 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
     // Process each effect in order
     for (BattlePetAbilityEffectEntry const* effectEntry : *effects)
     {
-        TC_LOG_DEBUG("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} Params=[{},{},{},{},{},{}]",
+        TC_LOG_DEBUG("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} auraAbilityID={} visualID={} Params=[{},{},{},{},{},{}]",
             effectEntry->ID, effectEntry->BattlePetEffectPropertiesID,
+            effectEntry->AuraBattlePetAbilityID, effectEntry->BattlePetVisualID,
             effectEntry->Param[0], effectEntry->Param[1], effectEntry->Param[2],
             effectEntry->Param[3], effectEntry->Param[4], effectEntry->Param[5]);
         ProcessEffect(effectEntry, attackerTeam, attackerPet, defenderTeam, defenderPet, abilityID);
@@ -952,53 +953,17 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
         }
     }
 
-    // Route to appropriate handler based on effect properties ID
-    // We map the DB2 BattlePetEffectPropertiesID to our action types
-    // In practice, the ID maps to specific effect behaviors
+    // Look up the abstract action type from the DB2 PropsID mapping (built at startup)
+    PetBattleAbilityEffectAction effectAction = sPetBattleMgr->GetEffectAction(effectPropsID);
+
     BattlePetEffectPropertiesEntry const* effectProps = sBattlePetEffectPropertiesStore.LookupEntry(effectPropsID);
-    TC_LOG_DEBUG("server.loading", "PetBattle ProcessEffect: propsID={} found={} basePower={} accuracy={}",
-        effectPropsID, effectProps != nullptr, basePower, accuracy);
-    if (effectProps)
-        TC_LOG_DEBUG("server.loading", "PetBattle ProcessEffect: effectCategory(ParamTypeEnum[0])={}", effectProps->ParamTypeEnum[0]);
-    if (!effectProps)
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessEffect: propsID={} action={} basePower={} accuracy={}",
+        effectPropsID, uint16(effectAction), basePower, accuracy);
+
+    switch (effectAction)
     {
-        // If no properties entry, treat as simple damage with basePower
-        if (basePower > 0 && defender.IsAlive())
-        {
-            DamageResult dmg = CalculateAbilityDamage(basePower, attacker.EffectivePower, abilityType, attacker, defender);
-            defender.Health = std::max(0, defender.Health - dmg.Damage);
-
-            PetBattleRoundEffect roundEffect;
-            roundEffect.AbilityEffectID = effect->ID;
-            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
-            roundEffect.SourceTeam = attackerTeam;
-            roundEffect.SourcePet = attackerPet;
-            roundEffect.TargetTeam = defenderTeam;
-            roundEffect.TargetPet = defenderPet;
-            roundEffect.Param1 = defender.Health;
-            if (dmg.IsCrit)
-                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
-            if (dmg.TypeMod > 1.0f)
-                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_STRONG;
-            else if (dmg.TypeMod < 1.0f)
-                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_WEAK;
-            _roundEffects.push_back(roundEffect);
-
-            ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, dmg.Damage);
-        }
-        return;
-    }
-
-    // Route on the EffectProperties ID — this directly maps to PetBattleAbilityEffectAction
-    // (0=Damage, 1=Heal, 2=ApplyAura, 3=ChangeState, ... 18=MultiTurnEnd)
-    uint16 effectCategory = effectPropsID;
-
-    // Map effect categories to actions
-    // effectCategory values are stable across client versions
-    switch (effectCategory)
-    {
-        case 0: // Direct damage
-        case 14: // Capped damage
+        case PET_BATTLE_EFFECT_ACTION_DAMAGE:
+        case PET_BATTLE_EFFECT_ACTION_DAMAGE_CAPPED:
         {
             if (!defender.IsAlive())
                 break;
@@ -1025,8 +990,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, dmg.Damage);
             break;
         }
-        case 1: // Healing
-        case 15: // Capped healing
+        case PET_BATTLE_EFFECT_ACTION_HEAL:
+        case PET_BATTLE_EFFECT_ACTION_HEAL_CAPPED:
         {
             int32 healing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
             attacker.Health = std::min(attacker.MaxHealth, attacker.Health + healing);
@@ -1043,22 +1008,83 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             _roundEffects.push_back(roundEffect);
             break;
         }
-        case 2: // Apply aura (DoT/HoT/Buff/Debuff)
-        case 12: // Periodic damage aura
+        case PET_BATTLE_EFFECT_ACTION_APPLY_AURA:
+        case PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE:
         {
             int8 auraDuration = static_cast<int8>(effect->Param[2]);
             if (auraDuration <= 0)
                 auraDuration = 3; // Default duration
 
-            DamageResult dmg = CalculateAbilityDamage(basePower, attacker.EffectivePower, abilityType, attacker, defender);
-            int32 tickDamage = dmg.Damage;
+            // Weather auras: if AuraBattlePetAbilityID is a weather ability, apply to environment
+            if (effect->AuraBattlePetAbilityID != 0 && sPetBattleMgr->IsWeatherAbility(effect->AuraBattlePetAbilityID))
+            {
+                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_AURA: effectID={} auraAbilityID={} duration={}",
+                    effect->ID, effect->AuraBattlePetAbilityID, auraDuration);
 
-            PetBattleAuraType auraType = (effectCategory == 12) ? PET_BATTLE_AURA_DOT : PET_BATTLE_AURA_DEBUFF;
-            if (basePower < 0) // Negative power = healing aura
+                // Cancel existing weather on slot 0 if any
+                if (_environments[0].AbilityID != 0 && _environments[0].AuraInstanceID != 0)
+                {
+                    PetBattleRoundEffect cancelEffect;
+                    cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                    cancelEffect.TargetEnvSlot = 0;
+                    cancelEffect.Param1 = _environments[0].AuraInstanceID;
+                    cancelEffect.Param2 = _environments[0].AbilityID;
+                    _roundEffects.push_back(cancelEffect);
+                }
+
+                // Set up environment slot 0 with the weather aura
+                _environments[0].AbilityID = effect->AuraBattlePetAbilityID;
+                _environments[0].WeatherType = PET_BATTLE_WEATHER_NONE; // Gameplay mods come from SET_STATE effects
+                _environments[0].RemainingRounds = auraDuration;
+                _environments[0].CasterTeam = attackerTeam;
+                _environments[0].AuraInstanceID = _nextAuraInstanceID++;
+                _environments[0].CurrentRound = _currentRound;
+
+                // Emit AURA_APPLY targeting environment PBOID 6 (env slot 0)
+                PetBattleRoundEffect applyEffect;
+                applyEffect.AbilityEffectID = effect->ID;
+                applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                applyEffect.SourceTeam = attackerTeam;
+                applyEffect.SourcePet = attackerPet;
+                applyEffect.TargetEnvSlot = 0;
+                applyEffect.Param1 = _environments[0].AuraInstanceID;
+                applyEffect.Param2 = effect->AuraBattlePetAbilityID;
+                applyEffect.Param3 = auraDuration;
+                applyEffect.Param4 = _currentRound;
+                _roundEffects.push_back(applyEffect);
+                break;
+            }
+
+            // Determine if this aura targets self or enemy
+            // DoTs (basePower > 0) target the enemy; HoTs/buffs (basePower <= 0) target self
+            // AuraBattlePetAbilityID != 0 indicates a self-referencing aura (self-buff)
+            bool targetsSelf = false;
+            if (basePower < 0)
+                targetsSelf = true; // Negative = healing aura on self
+            else if (basePower == 0 && effect->AuraBattlePetAbilityID != 0)
+                targetsSelf = true; // Non-damaging aura with ability reference = self-buff
+            else if (basePower == 0 && effectAction == PET_BATTLE_EFFECT_ACTION_APPLY_AURA)
+                targetsSelf = true; // Generic non-damaging aura defaults to self-buff
+
+            uint8 auraTargetTeam = targetsSelf ? attackerTeam : defenderTeam;
+            uint8 auraTargetPet = targetsSelf ? attackerPet : defenderPet;
+
+            DamageResult dmg = CalculateAbilityDamage(std::abs(basePower), attacker.EffectivePower, abilityType, attacker, defender);
+            int32 tickDamage = basePower != 0 ? dmg.Damage : 0;
+
+            PetBattleAuraType auraType;
+            if (effectAction == PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE)
+                auraType = PET_BATTLE_AURA_DOT;
+            else if (basePower < 0)
                 auraType = PET_BATTLE_AURA_HOT;
+            else if (targetsSelf)
+                auraType = PET_BATTLE_AURA_BUFF;
+            else
+                auraType = PET_BATTLE_AURA_DEBUFF;
 
             // Critter passive: immune to stun, root, sleep
-            if (defender.PetType == PET_TYPE_CRITTER &&
+            PetBattlePetData& auraTarget = _teams[auraTargetTeam].Pets[auraTargetPet];
+            if (auraTarget.PetType == PET_TYPE_CRITTER &&
                 (auraType == PET_BATTLE_AURA_STUN || auraType == PET_BATTLE_AURA_ROOT || auraType == PET_BATTLE_AURA_SLEEP))
             {
                 PetBattleRoundEffect immuneEffect;
@@ -1067,26 +1093,29 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 immuneEffect.Flags = PET_BATTLE_EFFECT_FLAG_IMMUNE;
                 immuneEffect.SourceTeam = attackerTeam;
                 immuneEffect.SourcePet = attackerPet;
-                immuneEffect.TargetTeam = defenderTeam;
-                immuneEffect.TargetPet = defenderPet;
+                immuneEffect.TargetTeam = auraTargetTeam;
+                immuneEffect.TargetPet = auraTargetPet;
                 _roundEffects.push_back(immuneEffect);
                 break;
             }
 
-            AddAura(defenderTeam, defenderPet, abilityID, effect->ID,
+            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} auraAbilityID={}",
+                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, effect->AuraBattlePetAbilityID);
+
+            AddAura(auraTargetTeam, auraTargetPet, abilityID, effect->ID,
                 auraType, auraDuration, tickDamage, attacker.PetType,
                 attackerTeam, attackerPet);
 
             {
-                PetBattlePetData const& targetPet = _teams[defenderTeam].Pets[defenderPet];
-                PetBattleAura const& newAura = targetPet.Auras.back();
+                PetBattlePetData const& targetPetData = _teams[auraTargetTeam].Pets[auraTargetPet];
+                PetBattleAura const& newAura = targetPetData.Auras.back();
                 PetBattleRoundEffect roundEffect;
                 roundEffect.AbilityEffectID = effect->ID;
                 roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
                 roundEffect.SourceTeam = attackerTeam;
                 roundEffect.SourcePet = attackerPet;
-                roundEffect.TargetTeam = defenderTeam;
-                roundEffect.TargetPet = defenderPet;
+                roundEffect.TargetTeam = auraTargetTeam;
+                roundEffect.TargetPet = auraTargetPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
                 roundEffect.Param2 = abilityID;
                 roundEffect.Param3 = newAura.RemainingRounds;
@@ -1095,11 +1124,48 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
             break;
         }
-        case 13: // Periodic heal aura
+        case PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL:
         {
             int8 auraDuration = static_cast<int8>(effect->Param[2]);
             if (auraDuration <= 0)
                 auraDuration = 3;
+
+            // Weather periodic auras (e.g. Moonlight HoT): route to environment
+            if (effect->AuraBattlePetAbilityID != 0 && sPetBattleMgr->IsWeatherAbility(effect->AuraBattlePetAbilityID))
+            {
+                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_PERIODIC: effectID={} auraAbilityID={} duration={}",
+                    effect->ID, effect->AuraBattlePetAbilityID, auraDuration);
+
+                if (_environments[0].AbilityID != 0 && _environments[0].AuraInstanceID != 0)
+                {
+                    PetBattleRoundEffect cancelEffect;
+                    cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                    cancelEffect.TargetEnvSlot = 0;
+                    cancelEffect.Param1 = _environments[0].AuraInstanceID;
+                    cancelEffect.Param2 = _environments[0].AbilityID;
+                    _roundEffects.push_back(cancelEffect);
+                }
+
+                _environments[0].AbilityID = effect->AuraBattlePetAbilityID;
+                _environments[0].WeatherType = PET_BATTLE_WEATHER_NONE;
+                _environments[0].RemainingRounds = auraDuration;
+                _environments[0].CasterTeam = attackerTeam;
+                _environments[0].AuraInstanceID = _nextAuraInstanceID++;
+                _environments[0].CurrentRound = _currentRound;
+
+                PetBattleRoundEffect applyEffect;
+                applyEffect.AbilityEffectID = effect->ID;
+                applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                applyEffect.SourceTeam = attackerTeam;
+                applyEffect.SourcePet = attackerPet;
+                applyEffect.TargetEnvSlot = 0;
+                applyEffect.Param1 = _environments[0].AuraInstanceID;
+                applyEffect.Param2 = effect->AuraBattlePetAbilityID;
+                applyEffect.Param3 = auraDuration;
+                applyEffect.Param4 = _currentRound;
+                _roundEffects.push_back(applyEffect);
+                break;
+            }
 
             int32 tickHealing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
 
@@ -1125,8 +1191,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
             break;
         }
-        case 3: // Change state
-        case 6: // Set state
+        case PET_BATTLE_EFFECT_ACTION_CHANGE_STATE:
+        case PET_BATTLE_EFFECT_ACTION_SET_STATE:
         {
             uint32 stateID = static_cast<uint32>(effect->Param[2]);
             int32 stateValue = static_cast<int32>(effect->Param[3]);
@@ -1136,7 +1202,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             {
                 if (id == stateID)
                 {
-                    val = (effectCategory == 3) ? val + stateValue : stateValue;
+                    val = (effectAction == PET_BATTLE_EFFECT_ACTION_CHANGE_STATE) ? val + stateValue : stateValue;
                     found = true;
                     break;
                 }
@@ -1156,7 +1222,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             _roundEffects.push_back(roundEffect);
             break;
         }
-        case 4: // Damage percentage
+        case PET_BATTLE_EFFECT_ACTION_DAMAGE_PERCENTAGE:
         {
             if (!defender.IsAlive())
                 break;
@@ -1188,7 +1254,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, damage);
             break;
         }
-        case 5: // Heal percentage
+        case PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE:
         {
             int32 healing = int32(attacker.MaxHealth * (basePower / 100.0f));
             attacker.Health = std::min(attacker.MaxHealth, attacker.Health + healing);
@@ -1205,7 +1271,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             _roundEffects.push_back(roundEffect);
             break;
         }
-        case 7: // Force pet swap
+        case PET_BATTLE_EFFECT_ACTION_PET_SWAP:
         {
             if (defender.IsAlive() && _teams[defenderTeam].PetCount > 1)
             {
@@ -1232,43 +1298,12 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
             break;
         }
-        case 8: // Apply buff aura to self (stat modifier, shield, etc.)
+        case PET_BATTLE_EFFECT_ACTION_CATCH:
         {
-            int8 auraDuration = static_cast<int8>(effect->Param[2]);
-            if (auraDuration <= 0)
-                auraDuration = 3;
-
-            // basePower represents the stat modifier percentage (e.g., 25 = +25%)
-            int32 modifierValue = std::abs(basePower);
-            if (modifierValue == 0)
-                modifierValue = 25; // Default modifier
-
-            AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
-                PET_BATTLE_AURA_BUFF, auraDuration, modifierValue, attacker.PetType,
-                attackerTeam, attackerPet);
-
-            {
-                PetBattlePetData const& selfPet = _teams[attackerTeam].Pets[attackerPet];
-                PetBattleAura const& newAura = selfPet.Auras.back();
-                PetBattleRoundEffect roundEffect;
-                roundEffect.AbilityEffectID = effect->ID;
-                roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
-                roundEffect.SourceTeam = attackerTeam;
-                roundEffect.SourcePet = attackerPet;
-                roundEffect.TargetTeam = attackerTeam;
-                roundEffect.TargetPet = attackerPet;
-                roundEffect.Param1 = newAura.AuraInstanceID;
-                roundEffect.Param2 = abilityID;
-                roundEffect.Param3 = newAura.RemainingRounds;
-                roundEffect.Param4 = newAura.CurrentRound;
-                _roundEffects.push_back(roundEffect);
-            }
-
-            // Recalculate stats immediately so the buff takes effect this round
-            attacker.RecalculateEffectiveStats();
+            // Trap/catch is handled separately by the trap input path
             break;
         }
-        case 9: // Change max health
+        case PET_BATTLE_EFFECT_ACTION_CHANGE_MAX_HEALTH:
         {
             int32 healthChange = static_cast<int32>(basePower);
             defender.MaxHealth = std::max(1, defender.MaxHealth + healthChange);
@@ -1285,17 +1320,29 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             _roundEffects.push_back(roundEffect);
             break;
         }
-        case 10: // Set weather
+        case PET_BATTLE_EFFECT_ACTION_WEATHER_SET:
         {
-            PetBattleWeatherType weatherType = static_cast<PetBattleWeatherType>(effect->Param[2]);
-            int8 weatherDuration = static_cast<int8>(effect->Param[3]);
-            if (weatherDuration <= 0)
-                weatherDuration = 9; // Default weather duration
+            // PropsID 170: labels [0]=Points, [1]=Accuracy, [2]=weatherState, [3]=Unused, [4]=IsPeriodic
+            // Param[2] = BattlePetState ID to set on environment, Param[0] = state value (Points)
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+            int32 stateValue = static_cast<int32>(effect->Param[0]);
 
-            SetWeather(weatherType, abilityID, weatherDuration, attackerTeam);
+            TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={}",
+                effect->ID, stateID, stateValue);
+
+            // Emit SET_STATE targeting environment PBOID (slot 0)
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetEnvSlot = 0; // Environment slot 0
+            roundEffect.Param1 = stateID;
+            roundEffect.Param2 = stateValue;
+            _roundEffects.push_back(roundEffect);
             break;
         }
-        case 11: // Stun
+        case PET_BATTLE_EFFECT_ACTION_STUN:
         {
             // Critter passive: immune to stun
             if (defender.PetType == PET_TYPE_CRITTER)
@@ -1325,7 +1372,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             _roundEffects.push_back(roundEffect);
             break;
         }
-        case 16: // Remove aura
+        case PET_BATTLE_EFFECT_ACTION_REMOVE_AURA:
         {
             uint32 auraAbilityID = static_cast<uint32>(effect->Param[2]);
             if (auraAbilityID == 0)
@@ -1333,7 +1380,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             RemoveAura(defenderTeam, defenderPet, auraAbilityID);
             break;
         }
-        case 17: // Multi-turn begin marker
+        case PET_BATTLE_EFFECT_ACTION_MULTI_TURN_BEGIN:
         {
             // DB2 effects with this category appear on the first turn of multi-turn abilities.
             // They signal to the client that the ability's multi-turn sequence is active.
@@ -1395,7 +1442,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
             break;
         }
-        case 18: // Multi-turn end marker
+        case PET_BATTLE_EFFECT_ACTION_MULTI_TURN_END:
         {
             // Appears on the last turn of a multi-turn ability.
             // Param[2] may contain a state ID to clear (matching the one set by case 17).
@@ -1436,8 +1483,8 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 for (uint8 i = 0; i < 6; ++i)
                     if (effectProps->ParamLabel[i] && effectProps->ParamLabel[i][0] != '\0')
                         labels += Trinity::StringFormat("[{}]={} ", i, effectProps->ParamLabel[i]);
-            TC_LOG_WARN("server.loading", "PetBattle ProcessEffect: UNHANDLED effectCategory={} basePower={} defenderAlive={} params=[{},{},{},{},{},{}] labels={}",
-                effectCategory, basePower, defender.IsAlive(),
+            TC_LOG_WARN("server.loading", "PetBattle ProcessEffect: UNHANDLED propsID={} action={} basePower={} defenderAlive={} params=[{},{},{},{},{},{}] labels={}",
+                effectPropsID, uint16(effectAction), basePower, defender.IsAlive(),
                 effect->Param[0], effect->Param[1], effect->Param[2], effect->Param[3], effect->Param[4], effect->Param[5],
                 labels);
             // Unhandled effect category - treat as damage if basePower > 0
@@ -1636,13 +1683,13 @@ void PetBattle::TickAuras()
             if (!pet.IsAlive())
                 continue;
 
-            // Clear JUST_APPLIED flag from previous round
-            for (PetBattleAura& aura : pet.Auras)
-                aura.StateFlags &= ~PET_BATTLE_AURA_STATE_JUST_APPLIED;
-
             // Phase 1: Tick periodic effects (DoT/HoT damage/healing)
+            // Skip auras with JUST_APPLIED — they were added this round and shouldn't tick yet
             for (PetBattleAura& aura : pet.Auras)
             {
+                if (aura.StateFlags & PET_BATTLE_AURA_STATE_JUST_APPLIED)
+                    continue;
+
                 if (aura.AuraType == PET_BATTLE_AURA_DOT && aura.DamagePerTick > 0)
                 {
                     int32 tickDamage = aura.DamagePerTick;
@@ -1689,8 +1736,12 @@ void PetBattle::TickAuras()
             }
 
             // Phase 2: Emit AURA_CHANGE for each active aura (update CurrentRound)
+            // Skip auras with JUST_APPLIED — they were just shown via AURA_APPLY this round
             for (PetBattleAura& aura : pet.Auras)
             {
+                if (aura.StateFlags & PET_BATTLE_AURA_STATE_JUST_APPLIED)
+                    continue;
+
                 aura.CurrentRound++;
 
                 PetBattleRoundEffect changeEffect;
@@ -1707,9 +1758,17 @@ void PetBattle::TickAuras()
             }
 
             // Phase 3: Decrement remaining rounds and remove expired auras
+            // Skip auras with JUST_APPLIED — don't decrement on the round they're applied
             for (int32 i = static_cast<int32>(pet.Auras.size()) - 1; i >= 0; --i)
             {
                 PetBattleAura& aura = pet.Auras[i];
+
+                if (aura.StateFlags & PET_BATTLE_AURA_STATE_JUST_APPLIED)
+                {
+                    aura.StateFlags &= ~PET_BATTLE_AURA_STATE_JUST_APPLIED;
+                    continue;
+                }
+
                 aura.RemainingRounds--;
 
                 if (aura.RemainingRounds <= 0)

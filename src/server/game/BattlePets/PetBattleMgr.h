@@ -21,6 +21,7 @@
 #include "PetBattle.h"
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class Creature;
@@ -98,12 +99,19 @@ public:
     float GetBreedQualityMultiplier(uint8 quality) const;
     void GetBreedBaseStats(uint32 breedID, int32& outHP, int32& outPower, int32& outSpeed) const;
 
+    // Effect action mapping (DB2 PropsID -> abstract action type)
+    PetBattleAbilityEffectAction GetEffectAction(uint16 propsID) const;
+
+    // Weather ability detection
+    bool IsWeatherAbility(uint32 abilityID) const;
+
     // PvP Queue
     void JoinQueue(ObjectGuid playerGUID);
     void LeaveQueue(ObjectGuid playerGUID);
     void HandleProposalResult(ObjectGuid playerGUID, bool accepted);
 
 private:
+    void BuildEffectActionMap();
     void TryMatchPlayers();
 
     uint32 _nextBattleID = 1;
@@ -126,6 +134,12 @@ private:
 
     // NPC Teams
     std::unordered_map<uint32, std::vector<NPCTeamPetInfo>> _npcTeams;
+
+    // Effect action map (BattlePetEffectPropertiesID -> PetBattleAbilityEffectAction)
+    std::unordered_map<uint16, PetBattleAbilityEffectAction> _effectActionMap;
+
+    // Weather ability IDs (abilities whose effects set weatherState on environment)
+    std::unordered_set<uint32> _weatherAbilityIDs;
 
     // PvP Queue
     std::vector<PvPQueueEntry> _pvpQueue;

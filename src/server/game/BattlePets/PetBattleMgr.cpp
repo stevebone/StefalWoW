@@ -114,34 +114,147 @@ void PetBattleMgr::Initialize()
     TC_LOG_INFO("server.loading", ">> Loaded {} breed quality entries, {} breed stat entries",
         uint32(_breedQualityMultipliers.size()), uint32(_breedBaseStats.size()));
 
-    // Dump all BattlePetEffectProperties IDs used by ability effects for mapping
-    {
-        std::map<uint16, uint32> propsIdUsageCount;
-        for (BattlePetAbilityEffectEntry const* entry : sBattlePetAbilityEffectStore)
-            propsIdUsageCount[entry->BattlePetEffectPropertiesID]++;
+    // Build the BattlePetEffectPropertiesID -> action type mapping
+    BuildEffectActionMap();
 
-        TC_LOG_INFO("server.loading", ">> BattlePetEffectProperties mapping ({} unique IDs used by {} effects):",
-            uint32(propsIdUsageCount.size()), turnEffectCount);
-        for (auto const& [propsID, count] : propsIdUsageCount)
+    // Build weather ability ID set: find abilities whose effects use WEATHER_SET PropsIDs
+    // Walk: WEATHER_SET PropsIDs → effects using those PropsIDs → turns → abilities
+    {
+        // Step 1: collect all PropsIDs classified as WEATHER_SET
+        std::unordered_set<uint16> weatherPropsIDs;
+        for (auto const& [propsID, action] : _effectActionMap)
+            if (action == PET_BATTLE_EFFECT_ACTION_WEATHER_SET)
+                weatherPropsIDs.insert(propsID);
+
+        // Step 2: find all turns containing effects with weather PropsIDs
+        std::unordered_set<uint32> weatherTurnIDs;
+        for (BattlePetAbilityEffectEntry const* effect : sBattlePetAbilityEffectStore)
+            if (weatherPropsIDs.count(effect->BattlePetEffectPropertiesID))
+                weatherTurnIDs.insert(effect->BattlePetAbilityTurnID);
+
+        // Step 3: find all abilities owning those turns
+        for (BattlePetAbilityTurnEntry const* turn : sBattlePetAbilityTurnStore)
+            if (weatherTurnIDs.count(turn->ID))
+                _weatherAbilityIDs.insert(turn->BattlePetAbilityID);
+
+        // Step 4: also add abilities referenced by AuraBattlePetAbilityID from weather turn effects
+        // (the aura effects reference weather abilities via AuraBattlePetAbilityID)
+        for (BattlePetAbilityEffectEntry const* effect : sBattlePetAbilityEffectStore)
         {
-            BattlePetEffectPropertiesEntry const* props = sBattlePetEffectPropertiesStore.LookupEntry(propsID);
-            if (props)
-            {
-                std::string labels;
-                for (uint8 i = 0; i < 6; ++i)
-                    if (props->ParamLabel[i] && props->ParamLabel[i][0] != '\0')
-                        labels += Trinity::StringFormat("[{}]={} ", i, props->ParamLabel[i]);
-                TC_LOG_INFO("server.loading", "  PropsID={:3d} count={:3d} visual={} labels: {}",
-                    propsID, count, props->BattlePetVisualID, labels);
-            }
-            else
-                TC_LOG_INFO("server.loading", "  PropsID={:3d} count={:3d} (NO DB2 ENTRY)", propsID, count);
+            if (weatherTurnIDs.count(effect->BattlePetAbilityTurnID) && effect->AuraBattlePetAbilityID != 0)
+                _weatherAbilityIDs.insert(effect->AuraBattlePetAbilityID);
+        }
+
+        TC_LOG_INFO("server.loading", ">> Found {} weather ability IDs from {} weather PropsIDs",
+            uint32(_weatherAbilityIDs.size()), uint32(weatherPropsIDs.size()));
+        for (uint32 abilityID : _weatherAbilityIDs)
+        {
+            BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(abilityID);
+            TC_LOG_INFO("server.loading", "  WeatherAbility: ID={} name={}", abilityID,
+                ability ? ability->Name.Str[LOCALE_enUS] : "???");
         }
     }
 
     LoadNPCTeams();
 
     TC_LOG_INFO("server.loading", ">> Pet Battle system initialized");
+}
+
+void PetBattleMgr::BuildEffectActionMap()
+{
+    // Classify every BattlePetEffectProperties entry into an abstract action type
+    // based on its ParamLabel signatures and BattlePetVisualID.
+    // This runs once at startup so string comparisons are acceptable.
+
+    uint32 mappedCount = 0;
+    for (BattlePetEffectPropertiesEntry const* props : sBattlePetEffectPropertiesStore)
+    {
+        bool hasPoints = false, hasDuration = false, hasState = false;
+        bool hasChance = false, hasPercentage = false;
+        bool hasWeather = false, hasSwap = false, hasTrap = false;
+
+        for (uint8 i = 0; i < 6; ++i)
+        {
+            if (!props->ParamLabel[i] || !props->ParamLabel[i][0])
+                continue;
+            std::string_view label(props->ParamLabel[i]);
+            if (label == "Points") hasPoints = true;
+            else if (label == "Percentage") { hasPoints = true; hasPercentage = true; }
+            else if (label == "Duration") hasDuration = true;
+            else if (label == "weatherState" || label == "WeatherState" || label == "weatherAura" || label == "WeatherAura") hasWeather = true;
+            else if (label.find("State") != std::string_view::npos) hasState = true;
+            else if (label == "Chance") hasChance = true;
+            else if (label == "SwapIndex" || label == "Swap") hasSwap = true;
+            else if (label == "TrapAbility") hasTrap = true;
+        }
+
+        PetBattleAbilityEffectAction action;
+
+        if (hasWeather)
+            action = PET_BATTLE_EFFECT_ACTION_WEATHER_SET;
+        else if (hasSwap)
+            action = PET_BATTLE_EFFECT_ACTION_PET_SWAP;
+        else if (hasTrap)
+            action = PET_BATTLE_EFFECT_ACTION_CATCH;
+        else if (hasDuration && hasPoints && props->BattlePetVisualID == 38)
+            action = PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE;
+        else if (hasDuration && hasPoints && props->BattlePetVisualID != 38)
+            action = PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL;
+        else if (hasDuration)
+            action = PET_BATTLE_EFFECT_ACTION_APPLY_AURA;
+        else if (hasPoints && hasPercentage && props->BattlePetVisualID == 38)
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE_PERCENTAGE;
+        else if (hasPoints && hasPercentage)
+            action = PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE;
+        else if (hasPoints && props->BattlePetVisualID == 38)
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE;
+        else if (hasPoints)
+            action = PET_BATTLE_EFFECT_ACTION_HEAL;
+        else if (hasState)
+            action = PET_BATTLE_EFFECT_ACTION_SET_STATE;
+        else if (hasChance)
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE; // Conditional — evaluate at use site, fall through to damage
+        else
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE; // Safe fallback — default handler checks basePower
+
+        _effectActionMap[static_cast<uint16>(props->ID)] = action;
+        ++mappedCount;
+    }
+
+    // Log all mapped entries for debugging
+    {
+        std::map<uint16, uint32> usageCounts;
+        for (BattlePetAbilityEffectEntry const* entry : sBattlePetAbilityEffectStore)
+            usageCounts[entry->BattlePetEffectPropertiesID]++;
+
+        for (auto const& [propsID, action] : _effectActionMap)
+        {
+            BattlePetEffectPropertiesEntry const* props = sBattlePetEffectPropertiesStore.LookupEntry(propsID);
+            std::string labels;
+            if (props)
+                for (uint8 i = 0; i < 6; ++i)
+                    if (props->ParamLabel[i] && props->ParamLabel[i][0] != '\0')
+                        labels += Trinity::StringFormat("[{}]={} ", i, props->ParamLabel[i]);
+            TC_LOG_INFO("server.loading", "  EffectMap: PropsID={:3d} -> action={:2d} uses={:3d} visual={} labels: {}",
+                propsID, uint16(action), usageCounts.count(propsID) ? usageCounts[propsID] : 0,
+                props ? props->BattlePetVisualID : 0, labels);
+        }
+    }
+
+    TC_LOG_INFO("server.loading", ">> Mapped {} BattlePetEffectProperties entries to action types", mappedCount);
+}
+
+PetBattleAbilityEffectAction PetBattleMgr::GetEffectAction(uint16 propsID) const
+{
+    auto it = _effectActionMap.find(propsID);
+    if (it != _effectActionMap.end())
+        return it->second;
+    return PET_BATTLE_EFFECT_ACTION_DAMAGE; // Fallback for unmapped IDs
+}
+
+bool PetBattleMgr::IsWeatherAbility(uint32 abilityID) const
+{
+    return _weatherAbilityIDs.count(abilityID) > 0;
 }
 
 void PetBattleMgr::Update(uint32 diff)
@@ -576,12 +689,22 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
             {
                 battle->Start();
 
+                static constexpr float PET_BATTLE_HALF_DISTANCE = 5.0f;
                 WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
                 finalizeLocation.Location.LocationResult = PET_BATTLE_REQUEST_FAIL_OK;
-                finalizeLocation.Location.BattleOrigin = p1->GetPosition();
-                finalizeLocation.Location.BattleFacing = p1->GetAbsoluteAngle(p2);
-                finalizeLocation.Location.PlayerPositions[0] = p1->GetPosition();
-                finalizeLocation.Location.PlayerPositions[1] = p2->GetPosition();
+                Position pvpMidpoint;
+                pvpMidpoint.m_positionX = (p1->GetPositionX() + p2->GetPositionX()) / 2.0f;
+                pvpMidpoint.m_positionY = (p1->GetPositionY() + p2->GetPositionY()) / 2.0f;
+                pvpMidpoint.m_positionZ = (p1->GetPositionZ() + p2->GetPositionZ()) / 2.0f;
+                float pvpFacing = p1->GetAbsoluteAngle(p2);
+                finalizeLocation.Location.BattleOrigin = pvpMidpoint;
+                finalizeLocation.Location.BattleFacing = pvpFacing;
+                finalizeLocation.Location.PlayerPositions[0] = Position(pvpMidpoint.m_positionX - PET_BATTLE_HALF_DISTANCE * std::cos(pvpFacing),
+                                                                     pvpMidpoint.m_positionY - PET_BATTLE_HALF_DISTANCE * std::sin(pvpFacing),
+                                                                     pvpMidpoint.m_positionZ);
+                finalizeLocation.Location.PlayerPositions[1] = Position(pvpMidpoint.m_positionX + PET_BATTLE_HALF_DISTANCE * std::cos(pvpFacing),
+                                                                     pvpMidpoint.m_positionY + PET_BATTLE_HALF_DISTANCE * std::sin(pvpFacing),
+                                                                     pvpMidpoint.m_positionZ);
                 p1->SendDirectMessage(finalizeLocation.Write());
                 p2->SendDirectMessage(finalizeLocation.Write());
             }
