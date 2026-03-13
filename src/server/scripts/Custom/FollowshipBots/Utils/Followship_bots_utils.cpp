@@ -72,7 +72,7 @@ namespace FSBUtils
     {
         if (!bot)
         {
-            TC_LOG_WARN("server", "GetTeamFromFSBRace: bot pointer was null!");
+            TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: bot pointer was null!");
             return Team::PANDARIA_NEUTRAL;
         }
 

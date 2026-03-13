@@ -9,7 +9,6 @@
 #include "GameTime.h"
 #include "Log.h"
 #include "World.h"
-#include "Player.h"
 #include "Creature.h"
 #include "ObjectMgr.h"
 #include "Language.h"
@@ -19,19 +18,6 @@
 
 namespace FSBChat
 {
-    Player* GetAnyPlayer()
-    {
-        SessionMap const& sessions = sWorld->GetAllSessions();
-
-        for (auto const& itr : sessions)
-        {
-            if (Player* plr = itr.second->GetPlayer())
-                return plr;
-        }
-
-        return nullptr;
-    }
-
     // -------------------------------------------------------
     // Helpers to get built-in channels
     // General: channelId = 1
@@ -45,13 +31,7 @@ namespace FSBChat
         if (!bot)
             return nullptr;
 
-        Player* fake = GetAnyPlayer();
-        if (!fake)
-            return nullptr;
-
-        Races botTCRace = FSBUtils::BotRaceToTC(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
-
-        Team botTeam = Player::TeamForRace(botTCRace);
+        Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
 
         ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
         if (!mgr)
@@ -62,7 +42,7 @@ namespace FSBChat
         if (!zone)
             return nullptr;
 
-        Channel* channel = mgr->GetChannel(channelId, "", fake, false, zone);
+        Channel* channel = mgr->GetChannel(channelId, "", nullptr, false, zone);
 
         return channel;
     }
@@ -97,6 +77,21 @@ namespace FSBChat
             return;
 
         channel->SendBotMessage(bot, msg);
+    }
+
+    inline bool IsValidBot(Creature* c)
+    {
+        if (!c || !c->IsInWorld() || !c->IsAlive())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(c->GetAI());
+        if (!baseAI)
+            return false;
+
+        if (baseAI->botHired)
+            return false;
+
+        return true;
     }
 
     // -------------------------------------------------------
@@ -148,18 +143,27 @@ namespace FSBChat
 
         size_t needed = CountUniqueRoles(*tmpl);
 
-        if (bots.size() < needed - 1) // minus 1 because starter is included
-            return; // not enough bots nearby
-
+        // Starter is always valid (we checked earlier)
         std::vector<Creature*> participants;
         participants.push_back(starter);
 
         // Shuffle the nearby bots
         Trinity::Containers::RandomShuffle(bots);
 
-        // Add as many as needed
-        for (size_t i = 0; i < needed - 1; ++i)
-            participants.push_back(bots[i]);
+        // Add valid bots only
+        for (size_t i = 0; i < bots.size() && participants.size() < needed; ++i)
+        {
+            Creature* candidate = bots[i];
+
+            if (!IsValidBot(candidate))
+                continue;
+
+            participants.push_back(candidate);
+        }
+
+        // If we still don't have enough valid bots, abort
+        if (participants.size() < needed)
+            return;
 
         // Build role ? participant index map
         std::map<ConversationRole, size_t> roleMap;
@@ -213,6 +217,12 @@ namespace FSBChat
                     if (speakerIndex < conv.participants.size())
                     {
                         Creature* speaker = conv.participants[speakerIndex];
+                        if (!IsValidBot(speaker))
+                        {
+                            it = activeConversations.erase(it);
+                            continue;
+                        }
+
                         BotSendGeneralChat(speaker, line.text);
                     }
                 }
@@ -378,39 +388,38 @@ namespace FSBChat
             return;
 
         // Replace tags before sending
+        std::string msg = line->text;
+
         if (line->spellId)
-            ReplaceAll(line->text, "{spell}", BuildSpellLink(line->spellId));
+            ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
 
         if (line->itemId)
-            ReplaceAll(line->text, "{item}", BuildItemLink(line->itemId));
+            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId));
 
-        if (line)
-        {
-            ReplaceAll(line->text, "{area}", GetAreaName(bot->GetAreaId()));
-            ReplaceAll(line->text, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
-        }
+        ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
+        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
 
         switch (channel)
         {
         case ChatChannelType::General:
-            BotSendGeneralChat(bot, line->text);
+            BotSendGeneralChat(bot, msg);
             break;
 
         case ChatChannelType::Trade:
-            BotSendTradeChat(bot, line->text);
+            BotSendTradeChat(bot, msg);
             break;
 
         case ChatChannelType::LocalDefense:
-            BotSendLocalDefenseChat(bot, line->text);
+            BotSendLocalDefenseChat(bot, msg);
             break;
 
         case ChatChannelType::LFG:
-            BotSendLFGChat(bot, line->text);
+            BotSendLFGChat(bot, msg);
             break;
 
         case ChatChannelType::Custom:
         default:
-            BotSendGeneralChat(bot, line->text);
+            BotSendGeneralChat(bot, msg);
             break;
         }
     }

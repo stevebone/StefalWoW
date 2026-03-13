@@ -1,6 +1,5 @@
 #pragma once
 
-class Player;
 class Creature;
 
 enum class ConversationRole
@@ -53,8 +52,6 @@ struct RandomChatTemplate
 
 namespace FSBChat
 {
-    Player* GetAnyPlayer();
-
     void BotSendGeneralChat(Creature* bot, std::string const& msg);
     void BotSendTradeChat(Creature* bot, std::string const& msg);
     void BotSendLocalDefenseChat(Creature* bot, std::string const& msg);
@@ -71,6 +68,4 @@ namespace FSBChat
     extern std::vector<RandomChatTemplate> RandomChatTables;
 
     void StartBotRandomChat(Creature* bot, ChatChannelType channel);
-
-
 }
