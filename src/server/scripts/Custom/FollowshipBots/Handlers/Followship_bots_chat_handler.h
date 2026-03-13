@@ -72,4 +72,5 @@ namespace FSBChat
 
     void StartBotRandomChat(Creature* bot, ChatChannelType channel);
 
+
 }

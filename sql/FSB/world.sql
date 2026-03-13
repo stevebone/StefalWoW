@@ -308,7 +308,55 @@ INSERT INTO `creature_template_gossip` VALUES
 ('13283', '900002', '-1'),
 ('13283', '900003', '-1'),
 ('13283', '900004', '-1'),
-('13283', '900005', '-1');
+('13283', '900005', '-1'),
+('112912', '900000', '-1'),
+('112912', '900001', '-1'),
+('112912', '900002', '-1'),
+('112912', '900003', '-1'),
+('112912', '900004', '-1'),
+('112912', '900005', '-1'),
+
+('5489', '900000', '-1'),
+('5489', '900001', '-1'),
+('5489', '900002', '-1'),
+('5489', '900003', '-1'),
+('5489', '900004', '-1'),
+('5489', '900005', '-1'),
+
+('173819', '900000', '-1'),
+('173819', '900001', '-1'),
+('173819', '900002', '-1'),
+('173819', '900003', '-1'),
+('173819', '900004', '-1'),
+('173819', '900005', '-1'),
+
+('5484', '900000', '-1'),
+('5484', '900001', '-1'),
+('5484', '900002', '-1'),
+('5484', '900003', '-1'),
+('5484', '900004', '-1'),
+('5484', '900005', '-1'),
+
+('5492', '900000', '-1'),
+('5492', '900001', '-1'),
+('5492', '900002', '-1'),
+('5492', '900003', '-1'),
+('5492', '900004', '-1'),
+('5492', '900005', '-1'),
+
+('5491', '900000', '-1'),
+('5491', '900001', '-1'),
+('5491', '900002', '-1'),
+('5491', '900003', '-1'),
+('5491', '900004', '-1'),
+('5491', '900005', '-1'),
+
+('5516', '900000', '-1'),
+('5516', '900001', '-1'),
+('5516', '900002', '-1'),
+('5516', '900003', '-1'),
+('5516', '900004', '-1'),
+('5516', '900005', '-1');
 
 -- Goldshire trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 328; -- Zaldimar (Mage)
@@ -373,4 +421,10 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 20407; -- Farseer Umbrua (Shaman)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5506; -- Maldryn (Druid)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5495; -- Ursula Deline (Warlock)
-
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 112912; -- Martin Ocejo (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5489;   -- Brother Joshua (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 173819; -- Reckful (Rogue)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5484;   -- Brother Benjamin (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5492;   -- Katherine the Pure (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5491;   -- Arthur the Faithful (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5516;   -- Ulfir Ironbeard (Hunter)

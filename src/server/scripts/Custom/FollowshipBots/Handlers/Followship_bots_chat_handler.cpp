@@ -327,6 +327,17 @@ namespace FSBChat
         return "<unknown area>";
     }
 
+    std::vector<uint32> tradeItems = { 2840, 2835, 2589, 2318 };
+
+    inline uint32 GetRandomItemId(const std::vector<uint32>& items)
+    {
+        if (items.empty())
+            return 0;
+
+        return items[urand(0, items.size() - 1)];
+    }
+
+
     inline RandomChatTemplate* GetRandomMatchingLine(Creature* bot, ChatChannelType channel)
     {
         if (!bot)
@@ -374,7 +385,10 @@ namespace FSBChat
             ReplaceAll(line->text, "{item}", BuildItemLink(line->itemId));
 
         if (line)
+        {
             ReplaceAll(line->text, "{area}", GetAreaName(bot->GetAreaId()));
+            ReplaceAll(line->text, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
+        }
 
         switch (channel)
         {
@@ -419,6 +433,11 @@ namespace FSBChat
         {    0, ChatChannelType::General,      Team::PANDARIA_NEUTRAL,  1953,   0,      "Mages should just stop with their {spell} inside the inn." },
 
         {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      2770,   "WTS 20x {item} cheap!" },
+        {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "WTS tons of {item} cheap!" },
+        {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "WTB {item} please send offer!" },
+        {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "Anyone have some {item} I can buy?" },
+        {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "Giving some {item} for free, contact me!" },
+        {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "Does anyone need {item} otherwise they go on auction..." },
         
     };
 
