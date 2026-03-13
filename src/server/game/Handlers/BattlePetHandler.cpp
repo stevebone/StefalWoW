@@ -177,6 +177,9 @@ void WorldSession::HandleBattlePetUpdateDisplayNotify(WorldPackets::BattlePet::B
 // Pet Battle Combat Handlers
 // ============================================================================
 
+static WorldPackets::BattlePet::PetBattlePetUpdateInfo BuildPetUpdateInfo(
+    PetBattles::PetBattlePetData const& petData, uint8 teamIdx, uint8 petIdx);
+
 static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerUpdateInfo& update,
     PetBattles::PetBattleTeamData const& team, bool isWildTeam, PetBattles::PetBattle const* battle, uint8 teamIdx)
 {
@@ -189,68 +192,9 @@ static void BuildPetBattlePlayerUpdate(WorldPackets::BattlePet::PetBattlePlayerU
 
     for (uint8 i = 0; i < team.PetCount; ++i)
     {
-        PetBattles::PetBattlePetData const& petData = team.Pets[i];
-
-        WorldPackets::BattlePet::PetBattlePetUpdateInfo petInfo;
-        petInfo.BattlePetGUID = petData.BattlePetGUID;
-        petInfo.SpeciesID = petData.Species;
-        petInfo.DisplayID = isWildTeam ? 0 : petData.DisplayID;
-        petInfo.Level = petData.Level;
-        petInfo.Xp = petData.Xp;
-        petInfo.CurHealth = petData.Health;
-        petInfo.MaxHealth = petData.MaxHealth;
-        petInfo.Power = petData.Power;
-        petInfo.Speed = petData.Speed;
-        petInfo.NpcTeamMemberID = petData.NpcTeamMemberID;
-        petInfo.BreedQuality = petData.Quality;
-        petInfo.Slot = static_cast<int8>(i);
-        petInfo.CustomName = petData.CustomName;
-
-        // Compute StatusFlags from pet state
-        uint16 statusFlags = 0;
-        if (petData.IsCaptured)
-            statusFlags |= PetBattles::PET_BATTLE_PET_STATUS_TRAPPED;
-        if (petData.IsStunned)
-            statusFlags |= PetBattles::PET_BATTLE_PET_STATUS_STUNNED;
-        if (petData.IsLockedByMultiTurn)
-            statusFlags |= PetBattles::PET_BATTLE_PET_STATUS_SWAP_OUT_LOCKED;
-        petInfo.StatusFlags = statusFlags;
-
-        // Fill ability info
-        for (uint8 j = 0; j < PetBattles::MAX_PET_BATTLE_ABILITIES; ++j)
-        {
-            if (petData.AbilityIDs[j] == 0)
-                continue;
-
-            WorldPackets::BattlePet::PetBattleAbilityInfo ability;
-            ability.AbilityID = petData.AbilityIDs[j];
-            ability.CooldownRemaining = petData.AbilityCooldowns[j];
-            ability.LockdownRemaining = petData.AbilityLockdowns[j];
-            ability.AbilityIndex = static_cast<int8>(j);
-            ability.Pboid = teamIdx * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i;
-            petInfo.Abilities.push_back(ability);
-        }
-
-        // Populate auras currently active on this pet
-        for (PetBattles::PetBattleAura const& aura : petData.Auras)
-        {
-            WorldPackets::BattlePet::PetBattleAuraInfo auraInfo;
-            auraInfo.AbilityID = aura.AbilityID;
-            auraInfo.InstanceID = aura.AuraInstanceID;
-            auraInfo.RoundsRemaining = aura.RemainingRounds;
-            auraInfo.CurrentRound = aura.CurrentRound;
-            auraInfo.CasterPBOID = aura.CasterTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + aura.CasterPet;
-            petInfo.Auras.push_back(auraInfo);
-        }
-
-        // Populate States with base breed+species stats from DB2 (retail format)
-        petInfo.States.push_back({ BattlePets::STATE_STAT_POWER, petData.BasePower });
-        petInfo.States.push_back({ BattlePets::STATE_STAT_STAMINA, petData.BaseStamina });
-        petInfo.States.push_back({ BattlePets::STATE_STAT_SPEED, petData.BaseSpeed });
-        petInfo.States.push_back({ 40, 5 }); // CritChance = 5%
-        if (petData.PetType >= 0 && petData.PetType < PetBattles::PET_TYPE_COUNT)
-            petInfo.States.push_back({ uint32(44 + petData.PetType), 1 }); // Family passive flag
-
+        WorldPackets::BattlePet::PetBattlePetUpdateInfo petInfo = BuildPetUpdateInfo(team.Pets[i], teamIdx, i);
+        if (isWildTeam)
+            petInfo.DisplayID = 0;
         update.Pets.push_back(std::move(petInfo));
     }
 }
@@ -321,6 +265,68 @@ static void BuildPetXDied(std::vector<int8>& petXDied, PetBattles::PetBattle con
                 petXDied.push_back(static_cast<int8>(t * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + i));
         }
     }
+}
+
+static WorldPackets::BattlePet::PetBattlePetUpdateInfo BuildPetUpdateInfo(
+    PetBattles::PetBattlePetData const& petData, uint8 teamIdx, uint8 petIdx)
+{
+    WorldPackets::BattlePet::PetBattlePetUpdateInfo petInfo;
+    petInfo.BattlePetGUID = petData.BattlePetGUID;
+    petInfo.SpeciesID = petData.Species;
+    petInfo.DisplayID = petData.DisplayID;
+    petInfo.Level = petData.Level;
+    petInfo.Xp = petData.Xp;
+    petInfo.CurHealth = petData.Health;
+    petInfo.MaxHealth = petData.MaxHealth;
+    petInfo.Power = petData.Power;
+    petInfo.Speed = petData.Speed;
+    petInfo.NpcTeamMemberID = petData.NpcTeamMemberID;
+    petInfo.BreedQuality = petData.Quality;
+    petInfo.Slot = static_cast<int8>(petIdx);
+    petInfo.CustomName = petData.CustomName;
+
+    uint16 statusFlags = 0;
+    if (petData.IsCaptured)
+        statusFlags |= PetBattles::PET_BATTLE_PET_STATUS_TRAPPED;
+    if (petData.IsStunned)
+        statusFlags |= PetBattles::PET_BATTLE_PET_STATUS_STUNNED;
+    if (petData.IsLockedByMultiTurn)
+        statusFlags |= PetBattles::PET_BATTLE_PET_STATUS_SWAP_OUT_LOCKED;
+    petInfo.StatusFlags = statusFlags;
+
+    for (uint8 j = 0; j < PetBattles::MAX_PET_BATTLE_ABILITIES; ++j)
+    {
+        if (petData.AbilityIDs[j] == 0)
+            continue;
+
+        WorldPackets::BattlePet::PetBattleAbilityInfo ability;
+        ability.AbilityID = petData.AbilityIDs[j];
+        ability.CooldownRemaining = petData.AbilityCooldowns[j];
+        ability.LockdownRemaining = petData.AbilityLockdowns[j];
+        ability.AbilityIndex = static_cast<int8>(j);
+        ability.Pboid = teamIdx * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + petIdx;
+        petInfo.Abilities.push_back(ability);
+    }
+
+    for (PetBattles::PetBattleAura const& aura : petData.Auras)
+    {
+        WorldPackets::BattlePet::PetBattleAuraInfo auraInfo;
+        auraInfo.AbilityID = aura.AbilityID;
+        auraInfo.InstanceID = aura.AuraInstanceID;
+        auraInfo.RoundsRemaining = aura.RemainingRounds;
+        auraInfo.CurrentRound = aura.CurrentRound;
+        auraInfo.CasterPBOID = aura.CasterTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + aura.CasterPet;
+        petInfo.Auras.push_back(auraInfo);
+    }
+
+    petInfo.States.push_back({ BattlePets::STATE_STAT_POWER, petData.BasePower });
+    petInfo.States.push_back({ BattlePets::STATE_STAT_STAMINA, petData.BaseStamina });
+    petInfo.States.push_back({ BattlePets::STATE_STAT_SPEED, petData.BaseSpeed });
+    petInfo.States.push_back({ 40, 5 }); // CritChance = 5%
+    if (petData.PetType >= 0 && petData.PetType < PetBattles::PET_TYPE_COUNT)
+        petInfo.States.push_back({ uint32(44 + petData.PetType), 1 }); // Family passive flag
+
+    return petInfo;
 }
 
 static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffectInfo>& effectList,
@@ -399,6 +405,16 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
             case PetBattles::PET_BATTLE_EFFECT_AURA_PROCESSING_END:
                 target.Type = 0; // No data — sentinel markers with PBOID 9
                 break;
+            case PetBattles::PET_BATTLE_EFFECT_REPLACE_PET:
+            {
+                // Target type 8: embedded PetBattlePetUpdateInfo (full pet data refresh)
+                target.Type = 8;
+                PetBattles::PetBattleTeamData const& targetTeam = battle->GetTeam(roundEffect.TargetTeam);
+                if (roundEffect.TargetPet < targetTeam.PetCount)
+                    target.EmbeddedPetUpdate = BuildPetUpdateInfo(targetTeam.Pets[roundEffect.TargetPet],
+                        roundEffect.TargetTeam, roundEffect.TargetPet);
+                break;
+            }
             default:
                 target.Type = 0; // No data
                 break;

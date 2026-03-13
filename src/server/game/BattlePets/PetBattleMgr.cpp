@@ -394,6 +394,27 @@ void PetBattleMgr::Update(uint32 diff)
     for (uint32 battleID : finishedBattles)
         RemoveBattle(battleID);
 
+    // Check PvP proposal timeout
+    if (_pendingProposal)
+    {
+        _pendingProposal->ProposalTime += diff;
+        if (_pendingProposal->ProposalTime >= PET_BATTLE_PVP_PROPOSAL_TIMEOUT)
+        {
+            // Timeout: notify both players, re-queue them
+            for (ObjectGuid const& guid : { _pendingProposal->Player1, _pendingProposal->Player2 })
+            {
+                if (Player* player = ObjectAccessor::FindPlayer(guid))
+                {
+                    WorldPackets::BattlePet::PetBattleQueueStatus timeoutStatus;
+                    timeoutStatus.Status = PET_BATTLE_QUEUE_STATUS_PROPOSAL_TIMED_OUT;
+                    player->SendDirectMessage(timeoutStatus.Write());
+                }
+                _pvpQueue.push_back({ guid, 0 });
+            }
+            _pendingProposal.reset();
+        }
+    }
+
     // Try to match PvP queue players periodically (every 5 seconds)
     _queueMatchTimer += diff;
     if (_queueMatchTimer >= 5000)
@@ -870,6 +891,7 @@ void PetBattleMgr::TryMatchPlayers()
     _pendingProposal = std::make_unique<PvPMatchProposal>();
     _pendingProposal->Player1 = p1.PlayerGUID;
     _pendingProposal->Player2 = p2.PlayerGUID;
+    _pendingProposal->ProposalTime = 0;
 
     // Send matchmaking then proposal status to both players
     for (Player* matchPlayer : { player1, player2 })

@@ -430,11 +430,12 @@ void PetBattle::ProcessRound()
     _petKilledThisRound.fill(false);
     _needsFrontPetSwap.fill(false);
 
-    // Recalculate effective stats for all living pets (includes passive bonuses)
+    // Recalculate effective stats for all living pets (includes passive bonuses, weather speed)
+    PetBattleWeatherType activeWeather = _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType;
     for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
         for (uint8 p = 0; p < _teams[t].PetCount; ++p)
             if (_teams[t].Pets[p].IsAlive())
-                _teams[t].Pets[p].RecalculateEffectiveStats();
+                _teams[t].Pets[p].RecalculateEffectiveStats(activeWeather);
 
     // Apply passive round-start effects (Humanoid heal, Dragonkin reset, etc.)
     ApplyPassiveRoundStart();
@@ -644,6 +645,7 @@ void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
             // Apply ability effects through the DB2 chain
             uint32 effectsBefore = _roundEffects.size();
             ApplyAbilityEffects(teamIdx, team.FrontPetIndex, team.PendingAbilityID);
+            _lastAbilityID[teamIdx] = team.PendingAbilityID;
             TC_LOG_DEBUG("server.loading", "PetBattle: ApplyAbilityEffects({}) generated {} effects",
                 team.PendingAbilityID, _roundEffects.size() - effectsBefore);
             break;
@@ -1538,8 +1540,9 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
     result.TypeMod = GetTypeEffectiveness(abilityType, PetBattlePetType(defender.PetType));
     rawDamage *= result.TypeMod;
 
-    // Weather damage modifier
-    rawDamage *= (1.0f + GetWeatherDamageModifier(abilityType));
+    // Weather damage modifier (Elemental passive: ignores all weather effects)
+    if (attacker.PetType != PET_TYPE_ELEMENTAL)
+        rawDamage *= (1.0f + GetWeatherDamageModifier(abilityType));
 
     // Beast passive: +25% damage when below 50% HP
     if (attacker.PetType == PET_TYPE_BEAST && attacker.Health <= attacker.MaxHealth / 2)
@@ -2219,7 +2222,7 @@ void PetBattle::FinishBattle(PetBattleResult result)
             player->UpdateCriteria(CriteriaType::WinPetBattle, static_cast<uint64>(_battleType));
 
             // Quest objective progress for wins
-            if (_battleType == PET_BATTLE_TYPE_PVP)
+            if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
                 player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPVPPETBATTLES, 0, 1);
 
             if (_battleType == PET_BATTLE_TYPE_NPC && !_npcTrainerGUID.IsEmpty())
@@ -2439,9 +2442,28 @@ void PetBattle::GenerateWildTeamInput()
     // Check if healing is desirable (HP < 50% and a healing ability exists)
     if (frontPet.Health < frontPet.MaxHealth / 2)
     {
-        // For simplicity, we can't easily distinguish healing abilities from damage abilities
-        // without deeper DB2 inspection. The type-effectiveness preference already provides
-        // reasonable behavior.
+        for (auto& opt : availableAbilities)
+        {
+            // Check if this ability has any healing effects via the DB2 chain
+            std::vector<uint32> const* turns = sPetBattleMgr->GetAbilityTurns(opt.abilityID);
+            if (!turns)
+                continue;
+            for (uint32 turnID : *turns)
+            {
+                std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turnID);
+                if (!effects)
+                    continue;
+                for (BattlePetAbilityEffectEntry const* effect : *effects)
+                {
+                    PetBattleAbilityEffectAction action = sPetBattleMgr->GetEffectAction(effect->BattlePetEffectPropertiesID);
+                    if (action == PET_BATTLE_EFFECT_ACTION_HEAL || action == PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE ||
+                        action == PET_BATTLE_EFFECT_ACTION_HEAL_CAPPED || action == PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL)
+                    {
+                        opt.priority += 3.0f; // Strong preference for healing when low HP
+                    }
+                }
+            }
+        }
     }
 
     // Consider swapping to a pet with type advantage if current pet is at disadvantage and low HP
@@ -2509,6 +2531,18 @@ bool PetBattle::NeedsFrontPetSwap(uint8 teamIdx) const
 Player* PetBattle::GetPlayerForTeam(uint8 teamIdx) const
 {
     return ObjectAccessor::FindPlayer(_teams[teamIdx].PlayerGUID);
+}
+
+uint32 PetBattle::GetOpponentCreatureID(uint8 teamIdx) const
+{
+    uint8 opponentTeam = 1 - teamIdx;
+    if (opponentTeam >= MAX_PET_BATTLE_PLAYERS)
+        return 0;
+
+    PetBattleTeamData const& team = _teams[opponentTeam];
+    if (team.FrontPetIndex >= 0 && team.FrontPetIndex < team.PetCount)
+        return team.Pets[team.FrontPetIndex].CreatureID;
+    return 0;
 }
 
 // ============================================================================

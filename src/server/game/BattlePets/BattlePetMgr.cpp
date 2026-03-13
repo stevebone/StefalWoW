@@ -99,6 +99,8 @@ void BattlePetMgr::Initialize()
         if (uint32 creatureId = battlePetSpecies->CreatureID)
             _battlePetSpeciesByCreature[creatureId] = battlePetSpecies;
 
+    TC_LOG_INFO("server.loading", ">> Loaded {} battle pet species with creature mappings from DB2.", _battlePetSpeciesByCreature.size());
+
     for (BattlePetBreedStateEntry const* battlePetBreedState : sBattlePetBreedStateStore)
         _battlePetBreedStates[battlePetBreedState->BattlePetBreedID][BattlePetState(battlePetBreedState->BattlePetStateID)] = battlePetBreedState->Value;
 
@@ -131,7 +133,11 @@ void BattlePetMgr::LoadAvailablePetBreeds()
             continue;
         }
 
-        // TODO: verify breed id (3 - 12 (male) or 3 - 22 (male and female)) if needed
+        if (breedId < 3 || breedId > 22)
+        {
+            TC_LOG_ERROR("sql.sql", "Invalid breed ID {} for species {} in `battle_pet_breeds`. Valid range is 3-22.", breedId, speciesId);
+            continue;
+        }
 
         _availableBreedsPerSpecies[speciesId].insert(breedId);
         ++count;

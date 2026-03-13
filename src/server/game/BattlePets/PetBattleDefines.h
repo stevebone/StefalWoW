@@ -31,6 +31,7 @@ static constexpr uint32 MAX_PET_BATTLE_PLAYERS = 2;
 static constexpr uint32 MAX_PET_BATTLE_SLOTS = MAX_PET_BATTLE_TEAM_SIZE;
 static constexpr uint32 PET_BATTLE_MAX_ROUND_TIME = 30;       // seconds per turn
 static constexpr uint32 PET_BATTLE_MAX_GAME_LENGTH = 1800;    // 30 minutes total
+static constexpr uint32 PET_BATTLE_PVP_PROPOSAL_TIMEOUT = 60000; // 60 seconds to accept PvP proposal
 static constexpr uint32 PET_BATTLE_TRAP_ABILITY_ID = 427;     // "Trap" ability used for capture
 static constexpr uint32 MAX_PET_BATTLE_AURAS = 10;            // max auras on a single pet
 static constexpr uint32 MAX_PET_BATTLE_ENVIRONMENTS = 3;      // Pad0(0), Pad1(1), Weather(2)
