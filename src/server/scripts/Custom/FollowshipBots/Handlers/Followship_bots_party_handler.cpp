@@ -1,3 +1,25 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "PartyPackets.h"
 #include "PacketOperators.h"
 
@@ -62,6 +84,9 @@ namespace FSBParty
         if (!player || !player->GetSession())
             return;
 
+        if (!player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || player->IsBeingTeleported())
+            return;
+
         auto activeBots = CollectActiveBots(player);
 
         SendFakePartyUpdate(player, activeBots);
@@ -70,6 +95,9 @@ namespace FSBParty
     void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& activeBots)
     {
         if (!player || !player->GetSession())
+            return;
+
+        if (!player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || player->IsBeingTeleported())
             return;
 
         Group* realGroup = player->GetGroup();
@@ -161,9 +189,16 @@ namespace FSBParty
         std::vector<Creature*> trimmedBots = activeBots;
         if (trimmedBots.size() > maxBotsAllowed)
             trimmedBots.resize(maxBotsAllowed);
-        // ------------------------------------------------------------
 
-        // From here on, use trimmedBots instead of activeBots
+        // filter bots
+        std::vector<Creature*> safeBots;
+        for (Creature* bot : trimmedBots)
+        {
+            if (bot && bot->IsInWorld())
+                safeBots.push_back(bot);
+        }
+
+        // ------------------------------------------------------------
 
         if (realGroup)
         {
@@ -201,7 +236,7 @@ namespace FSBParty
             partyUpdate.MyIndex = myIndex;
 
             // Append bots
-            for (Creature* bot : trimmedBots)
+            for (Creature* bot : safeBots)
             {
                 FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
                 FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
@@ -252,7 +287,7 @@ namespace FSBParty
 
             partyUpdate.MyIndex = 0;
 
-            for (Creature* bot : trimmedBots)
+            for (Creature* bot : safeBots)
             {
                 FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
                 FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
@@ -277,7 +312,25 @@ namespace FSBParty
 
     void SendBotMemberState(Player* player, Creature* bot)
     {
-        if (!player || !player->GetSession() || !bot || !bot->IsInWorld())
+        if (!player || !player->GetSession() || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly())
+            return;
+
+        if (player->GetSession()->PlayerLoading())
+            return;
+
+        if (!bot || !bot->IsInWorld())
+            return;
+
+        if (FSBMgr::Get()->IsTeleportLocked(player))
+            return;
+
+        if (player->GetMapId() != bot->GetMapId())
+            return;
+
+        if (!player->HaveAtClient(bot))
+            return;
+
+        if (!player->isMoving())
             return;
 
         WorldPackets::Party::PartyMemberFullState packet;
@@ -306,9 +359,9 @@ namespace FSBParty
 
         // Position
         stats.ZoneID = bot->GetZoneId();
-        stats.PositionX = int16(bot->GetPositionX());
-        stats.PositionY = int16(bot->GetPositionY());
-        stats.PositionZ = int16(bot->GetPositionZ());
+        stats.PositionX = bot->GetPositionX();
+        stats.PositionY = bot->GetPositionY();
+        stats.PositionZ = bot->GetPositionZ();
 
         // Spec - bots don't have specs, use 0
         stats.SpecID = 0;
@@ -317,7 +370,7 @@ namespace FSBParty
         stats.PartyType[0] = GROUP_TYPE_NORMAL;
         stats.PartyType[1] = 0;
 
-        stats.Auras = GetBotAppliedAuras(bot);
+        //stats.Auras = GetBotAppliedAuras(bot);
 
         // Old code Auras - send visible auras for the bot
 /*        for (AuraApplication const* aurApp : bot->GetVisibleAuras())
@@ -334,6 +387,7 @@ namespace FSBParty
         }*/
 
         // Pet
+        /*
         if (FSBPet::BotHasPet(bot))
         {
             Unit* pet = FSBPet::GetBotPet(bot);
@@ -361,7 +415,7 @@ namespace FSBParty
                             aura.Points.push_back(float(aurEff->GetAmount()));
             }
         }
-
+        */
         TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), stats.Auras.size());
 
         player->SendDirectMessage(packet.Write());
@@ -369,12 +423,18 @@ namespace FSBParty
 
     void SendAllBotMemberStates(Player* player, std::vector<Creature*> const& activeBots)
     {
-        if (!player)
+        if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || !player->IsInWorld())
             return;
 
         for (Creature* bot : activeBots)
         {
             if (!bot || !bot->IsInWorld())
+                continue;
+
+            if (!player->HaveAtClient(bot))
+                continue;
+
+            if (player->GetMapId() != bot->GetMapId())
                 continue;
 
             SendBotMemberState(player, bot);
@@ -383,7 +443,7 @@ namespace FSBParty
 
     void SendClearFakeParty(Player* player)
     {
-        if (!player || !player->GetSession())
+        if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || !player->IsInWorld())
             return;
 
         // Only clear if the player is NOT in a real group
@@ -413,6 +473,8 @@ namespace FSBParty
 
         if (Player* owner = FSBMgr::Get()->GetBotOwner(bot))
         {
+            if (!owner || !owner->GetSession() || owner->IsBeingTeleportedNear() || owner->IsBeingTeleported() || owner->IsBeingTeleportedFar() || owner->IsBeingTeleportedSeamlessly() || !owner->IsInWorld())
+                return;
             // Build a single activeBots list for this owner
             std::vector<Creature*> activeBots;
 
@@ -452,7 +514,17 @@ namespace FSBParty
 
         // When a player joins a group, re-send the party update with bots included
         if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
+        {
+            if (!player ||
+                !player->IsInWorld() ||
+                player->IsBeingTeleportedNear() ||
+                player->IsBeingTeleportedFar() ||
+                player->IsBeingTeleported() ||
+                player->IsBeingTeleportedSeamlessly())
+                return;
+
             FSBParty::SendFakePartyUpdate(player);
+        }
 
         // Also update for existing members who have bots
         for (auto const& memberSlot : group->GetMemberSlots())
@@ -461,6 +533,14 @@ namespace FSBParty
                 continue;
             if (Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid))
             {
+                if (!member ||
+                    !member->IsInWorld() ||
+                    member->IsBeingTeleportedNear() ||
+                    member->IsBeingTeleportedFar() ||
+                    member->IsBeingTeleported() ||
+                    member->IsBeingTeleportedSeamlessly())
+                    return;
+
                 auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
                 if (botsPtr && !botsPtr->empty())
                     FSBParty::SendFakePartyUpdate(member);
@@ -476,6 +556,14 @@ namespace FSBParty
         // When a player leaves a group, clear their fake party if they had bots
         if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
         {
+            if (!player ||
+                !player->IsInWorld() ||
+                player->IsBeingTeleportedNear() ||
+                player->IsBeingTeleportedFar() ||
+                player->IsBeingTeleported() ||
+                player->IsBeingTeleportedSeamlessly())
+                return;
+
             auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
             if (botsPtr && !botsPtr->empty())
             {
@@ -491,6 +579,14 @@ namespace FSBParty
                 continue;
             if (Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid))
             {
+                if (!member ||
+                    !member->IsInWorld() ||
+                    member->IsBeingTeleportedNear() ||
+                    member->IsBeingTeleportedFar() ||
+                    member->IsBeingTeleported() ||
+                    member->IsBeingTeleportedSeamlessly())
+                    return;
+
                 auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
                 if (botsPtr && !botsPtr->empty())
                     FSBParty::SendFakePartyUpdate(member);
