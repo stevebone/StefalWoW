@@ -321,9 +321,6 @@ namespace FSBParty
         if (!bot || !bot->IsInWorld())
             return;
 
-        if (FSBMgr::Get()->IsTeleportLocked(player))
-            return;
-
         if (player->GetMapId() != bot->GetMapId())
             return;
 
