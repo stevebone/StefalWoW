@@ -51,7 +51,7 @@ public:
         FSBMgr::Get()->SpawnPlayerBots(player);
     }
 
-    void OnPlayerTeleport(Player* player)
+    void OnPlayerTeleport(Player* /*player*/)
     {
     }
 
