@@ -1357,7 +1357,19 @@ namespace FSBOOC
 
         int32 offset = urand(1000, 10000);
 
-        // 3. Random chance to start a conversation or random chat
+        // 3.1 Combat message when bot is attacked
+        // This is in addition to the JustEngagedWith() trigger
+        // Timer should ensure we are not spamming these
+        if (bot->IsInCombat())
+        {
+            FSBChat::StartBotRandomChat(bot, ChatChannelType::CombatDefense);
+
+            baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;
+
+            return true;
+        }
+
+        // 3.2 Random chance to start a conversation or random chat
         if (urand(0, 99) > FollowshipBotsConfig::configFSBChatChannelsRate)
         {
             baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;

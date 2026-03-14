@@ -340,8 +340,11 @@ public:
             return true;
         }
 
-        void JustEngagedWith(Unit* /*who*/) override // Runs every time creature gets in combat
+        void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
         {
+            if(!botHired)
+                FSBChat::StartBotRandomChat(me, ChatChannelType::CombatDefense, who);
+
             TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustEngagedWith() triggered for bot: {}", me->GetName());
         }
 

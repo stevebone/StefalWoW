@@ -58,6 +58,7 @@ enum class ChatChannelType
     General,
     Trade,
     LocalDefense,
+    CombatDefense, // is basically for LocalDefense but specific to bot combat
     LFG,
     Custom
 };
@@ -90,4 +91,7 @@ namespace FSBChat
     extern std::vector<RandomChatTemplate> RandomChatTables;
 
     void StartBotRandomChat(Creature* bot, ChatChannelType channel);
+
+    // used for chat initiated on combat
+    void StartBotRandomChat(Creature* bot, ChatChannelType channel, Unit* attacker);
 }

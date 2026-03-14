@@ -421,28 +421,59 @@ namespace FSBChat
         ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
         ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
 
+        Unit* target = bot->GetVictim();
+        if (target && target->IsAlive())
+            ReplaceAll(msg, "{target}", target->GetName());
+
+        // Send to correct channel
         switch (channel)
         {
-        case ChatChannelType::General:
-            BotSendGeneralChat(bot, msg);
-            break;
+        case ChatChannelType::General:        BotSendGeneralChat(bot, msg); break;
+        case ChatChannelType::Trade:          BotSendTradeChat(bot, msg); break;
+        case ChatChannelType::LocalDefense:   BotSendLocalDefenseChat(bot, msg); break;
+        case ChatChannelType::LFG:            BotSendLFGChat(bot, msg); break;
+        case ChatChannelType::CombatDefense:  BotSendLocalDefenseChat(bot, msg); break;
+        default:                              BotSendGeneralChat(bot, msg); break;
+        }
+    }
 
-        case ChatChannelType::Trade:
-            BotSendTradeChat(bot, msg);
-            break;
+    void StartBotRandomChat(Creature* bot, ChatChannelType channel, Unit* attacker)
+    {
+        if (!bot)
+            return;
 
-        case ChatChannelType::LocalDefense:
-            BotSendLocalDefenseChat(bot, msg);
-            break;
+        RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
+        if (!line)
+            return;
 
-        case ChatChannelType::LFG:
-            BotSendLFGChat(bot, msg);
-            break;
+        std::string msg = line->text;
 
-        case ChatChannelType::Custom:
-        default:
-            BotSendGeneralChat(bot, msg);
-            break;
+        if (line->spellId)
+            ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
+
+        if (line->itemId)
+            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId));
+
+        ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
+        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
+
+        // Prefer attacker if provided
+        if (attacker && attacker->IsAlive())
+            ReplaceAll(msg, "{target}", attacker->GetName());
+        else if (Unit* v = bot->GetVictim())
+            ReplaceAll(msg, "{target}", v->GetName());
+        else
+            ReplaceAll(msg, "{target}", ""); // remove leftover tag
+
+        // Send to correct channel
+        switch (channel)
+        {
+        case ChatChannelType::General:        BotSendGeneralChat(bot, msg); break;
+        case ChatChannelType::Trade:          BotSendTradeChat(bot, msg); break;
+        case ChatChannelType::LocalDefense:   BotSendLocalDefenseChat(bot, msg); break;
+        case ChatChannelType::LFG:            BotSendLFGChat(bot, msg); break;
+        case ChatChannelType::CombatDefense:  BotSendLocalDefenseChat(bot, msg); break;
+        default:                              BotSendGeneralChat(bot, msg); break;
         }
     }
 
@@ -469,6 +500,69 @@ namespace FSBChat
         {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "Anyone have some {item} I can buy?" },
         {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "Giving some {item} for free, contact me!" },
         {    0, ChatChannelType::Trade,        Team::PANDARIA_NEUTRAL,  0,      0,      "Does anyone need {item} otherwise they go on auction..." },
+
+        // No zone - generic combat related messages
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Am being attacked, someone please help." },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is attacking me, someone please help." },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm under attack, need assistance!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is attacking me, requesting help!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Help! I'm being ambushed!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Under attack here, anyone nearby in {area}?" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is on me! Need backup!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Taking heavy hits, someone help!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I could use a hand over here in {area}!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} picked a fight with me!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Being attacked! Anyone available?" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Trouble here in {area}! Need support!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm taking damage, someone intervene!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is trying to kill me!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Assistance needed, I'm under attack!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Help defend me, I'm being targeted!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is hostile, requesting aid!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm in combat and need help!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Someone assist me, I'm being attacked!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is engaging me, need backup!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Under fire here in {area}, help!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm being overwhelmed, someone help!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Danger! I'm being attacked!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is after me, need assistance!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Help me fend this off!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm in trouble, someone help!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is attacking, requesting immediate aid!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Need defenders here, I'm under attack!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm being assaulted, help!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is hostile, need help now!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Anyone nearby? I'm being attacked!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I need backup immediately!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm taking hits, someone assist!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is trying to take me down!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Help! I'm being overwhelmed!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Under attack, requesting reinforcements!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is on me, need help fast!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm being targeted, someone help me in {area}!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Hostile contact! Need assistance!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is attacking, requesting backup!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Help me, I'm under attack!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm engaged in combat, need support!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Someone help me fight this off!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is attacking me, need defenders!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm being attacked, requesting aid!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Trouble here, I'm under attack!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is hostile, need help immediately!" },
+
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm in danger, someone help me!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Being attacked in {area}! Need backup now!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "{target} is engaging me, requesting assistance!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "Help! I'm in danger and need support!" },
+        { 0, ChatChannelType::CombatDefense, Team::PANDARIA_NEUTRAL, 0, 0, "I'm being attacked, defenders to me!" }
         
     };
 
