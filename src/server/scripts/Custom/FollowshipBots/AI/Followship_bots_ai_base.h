@@ -132,6 +132,7 @@ public:
 
     std::vector<Unit*> botLogicalGroup;
     std::vector<FSBSpellRuntime> botRuntimeSpells; // runtime for spells cooldowns
+    std::vector<Creature*> partyBots;
 
     struct FSBEventPayload
     {

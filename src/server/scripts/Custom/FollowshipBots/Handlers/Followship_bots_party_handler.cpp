@@ -34,6 +34,8 @@
 #include "WorldSession.h"
 
 #include "Followship_bots_mgr.h"
+
+#include "Followship_bots_events_handler.h"
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_pet_handler.h"
 
@@ -79,7 +81,7 @@ namespace FSBParty
 		return result;
 	}
 
-    void SendFakePartyUpdate(Player* player)
+    void SendFakePartyUpdate(Player* player, Creature* bot)
     {
         if (!player || !player->GetSession())
             return;
@@ -87,18 +89,11 @@ namespace FSBParty
         if (!player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || player->IsBeingTeleported())
             return;
 
-        auto activeBots = CollectActiveBots(player);
-
-        SendFakePartyUpdate(player, activeBots);
-    }
-
-    void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& activeBots)
-    {
-        if (!player || !player->GetSession())
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->GetAI());
+        if (!baseAI)
             return;
 
-        if (!player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || player->IsBeingTeleported())
-            return;
+        auto& activeBots = baseAI->partyBots;
 
         Group* realGroup = player->GetGroup();
 
@@ -197,6 +192,8 @@ namespace FSBParty
             if (bot && bot->IsInWorld())
                 safeBots.push_back(bot);
         }
+
+        baseAI->partyBots = safeBots;
 
         // ------------------------------------------------------------
 
@@ -306,8 +303,8 @@ namespace FSBParty
         player->SendDirectMessage(partyUpdate.Write());
 
         TC_LOG_DEBUG("scripts.fsb.party",
-            "FSB: Sent fake PartyUpdate to {} with {} members (including {} bots)",
-            player->GetName(), partyUpdate.PlayerList.size(), trimmedBots.size());
+            "FSB: SendFakePartyUpdate sent to player {} with {} members (including {} bots)",
+            player->GetName(), partyUpdate.PlayerList.size(), safeBots.size());
     }
 
     void SendBotMemberState(Player* player, Creature* bot)
@@ -327,19 +324,31 @@ namespace FSBParty
         if (!player->HaveAtClient(bot))
             return;
 
-        if (!player->isMoving())
-            return;
-
         WorldPackets::Party::PartyMemberFullState packet;
         packet.ForEnemy = false;
         packet.MemberGuid = bot->GetGUID();
 
         auto& stats = packet.MemberStats;
 
-        // Status
-        stats.Status = MEMBER_STATUS_ONLINE;
-        if (!bot->IsAlive())
-            stats.Status |= MEMBER_STATUS_DEAD;
+        // Status -- crashing the client for now
+        /*
+        if (!bot || !bot->IsInWorld())
+        {
+            stats.Status = MEMBER_STATUS_OFFLINE;
+        }
+        else if (bot->HasAura(SPELL_SPECIAL_GHOST))
+        {
+            stats.Status = MEMBER_STATUS_GHOST;
+        }
+        else if (!bot->IsAlive())
+        {
+            stats.Status = MEMBER_STATUS_DEAD;
+        }
+        else
+        {
+            stats.Status = MEMBER_STATUS_ONLINE;
+        }
+        */
 
         // Level
         stats.Level = bot->GetLevel();
@@ -350,7 +359,7 @@ namespace FSBParty
 
         // Power
         stats.PowerType = bot->GetPowerType();
-        stats.PowerDisplayID = 0;
+        //stats.PowerDisplayID = 0;
         stats.CurrentPower = bot->GetPower(bot->GetPowerType());
         stats.MaxPower = bot->GetMaxPower(bot->GetPowerType());
 
@@ -361,27 +370,13 @@ namespace FSBParty
         stats.PositionZ = bot->GetPositionZ();
 
         // Spec - bots don't have specs, use 0
-        stats.SpecID = 0;
+        //stats.SpecID = 0;
 
         // PartyType
         stats.PartyType[0] = GROUP_TYPE_NORMAL;
-        stats.PartyType[1] = 0;
+        //stats.PartyType[1] = 0;
 
-        //stats.Auras = GetBotAppliedAuras(bot);
-
-        // Old code Auras - send visible auras for the bot
-/*        for (AuraApplication const* aurApp : bot->GetVisibleAuras())
-        {
-            WorldPackets::Party::PartyMemberAuraStates& aura = stats.Auras.emplace_back();
-            aura.SpellID = aurApp->GetBase()->GetId();
-            aura.ActiveFlags = aurApp->GetEffectMask();
-            aura.Flags = aurApp->GetFlags();
-
-            if (aurApp->GetFlags() & AFLAG_SCALABLE)
-                for (AuraEffect const* aurEff : aurApp->GetBase()->GetAuraEffects())
-                    if (aurApp->HasEffect(aurEff->GetEffIndex()))
-                        aura.Points.push_back(float(aurEff->GetAmount()));
-        }*/
+        stats.Auras = GetBotAppliedAuras(bot);
 
         // Pet
         /*
@@ -418,26 +413,6 @@ namespace FSBParty
         player->SendDirectMessage(packet.Write());
     }
 
-    void SendAllBotMemberStates(Player* player, std::vector<Creature*> const& activeBots)
-    {
-        if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || !player->IsInWorld())
-            return;
-
-        for (Creature* bot : activeBots)
-        {
-            if (!bot || !bot->IsInWorld())
-                continue;
-
-            if (!player->HaveAtClient(bot))
-                continue;
-
-            if (player->GetMapId() != bot->GetMapId())
-                continue;
-
-            SendBotMemberState(player, bot);
-        }
-    }
-
     void SendClearFakeParty(Player* player)
     {
         if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || player->IsBeingTeleportedSeamlessly() || !player->IsInWorld())
@@ -460,7 +435,7 @@ namespace FSBParty
 
         player->SendDirectMessage(partyUpdate.Write());
 
-        TC_LOG_DEBUG("scripts.fsb.party", "FSB: Sent clear fake party to {}", player->GetName());
+        TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendClearFakeParty sent to player {}", player->GetName());
     }
 
     void PeriodicPartyNeededCheck(Creature* bot)
@@ -473,28 +448,19 @@ namespace FSBParty
             if (!owner || !owner->GetSession() || owner->IsBeingTeleportedNear() || owner->IsBeingTeleported() || owner->IsBeingTeleportedFar() || owner->IsBeingTeleportedSeamlessly() || !owner->IsInWorld())
                 return;
             // Build a single activeBots list for this owner
-            std::vector<Creature*> activeBots;
-
-            if (auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(owner))
-            {
-                for (auto const& botData : *botsPtr)
-                {
-                    if (botData.runtimeGuid.IsEmpty())
-                        continue;
-
-                    if (Creature* bot = ObjectAccessor::GetCreatureOrPetOrVehicle(*owner, botData.runtimeGuid))
-                    {
-                        if (bot->IsInWorld())
-                            activeBots.push_back(bot);
-                    }
-                }
-            }
+            std::vector<Creature*> activeBots = CollectActiveBots(owner);
 
             if (!activeBots.empty())
             {
+                auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->GetAI());
+                if (!baseAI)
+                    return;
+
+                baseAI->partyBots = activeBots;
+
                 // Use the same activeBots for both packets
-                SendFakePartyUpdate(owner, activeBots);
-                SendAllBotMemberStates(owner, activeBots);
+                SendFakePartyUpdate(owner, bot);
+                SendBotMemberState(owner, bot);
             }
             else
             {
@@ -520,7 +486,7 @@ namespace FSBParty
                 player->IsBeingTeleportedSeamlessly())
                 return;
 
-            FSBParty::SendFakePartyUpdate(player);
+            SendFakePartyUpdate(player);
         }
 
         // Also update for existing members who have bots
@@ -540,7 +506,7 @@ namespace FSBParty
 
                 auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
                 if (botsPtr && !botsPtr->empty())
-                    FSBParty::SendFakePartyUpdate(member);
+                    SendFakePartyUpdate(member);
             }
         }
     }
