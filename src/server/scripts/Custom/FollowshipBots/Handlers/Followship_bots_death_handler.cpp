@@ -20,8 +20,10 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Creature.h"
 #include "Log.h"
 #include "Map.h"
+#include "ScriptedCreature.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_config.h"
@@ -85,7 +87,7 @@ namespace FSBDeath
         // handle death with graveyard teleport
         if (!bot->GetMap()->IsDungeon())
         {
-            bot->AI()->DoAction(FSB_ACTION_TELEPORT_GRAVEYARD);
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_GENERIC_TELEPORT_GRAVEYARD, 4s, 6s);
             return;
         }
         else bot->AI()->DoAction(FSB_ACTION_TELEPORT_DUNGEON);
@@ -98,13 +100,13 @@ namespace FSBDeath
             return;
 
         bot->setDeathState(ALIVE);
-        bot->CastSpell(bot, SPELL_SPECIAL_GHOST);
         bot->SetHealth(1);
 
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-            
-        bot->GetMotionMaster()->MovePoint(2, botCorpse, false);
+
+        bot->GetMotionMaster()->Clear();
+        bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_CORPSE, botCorpse, false);
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Started the corpse run from graveyard.", bot->GetName());
 
     }

@@ -530,10 +530,6 @@ public:
                 events.ScheduleEvent(FSB_EVENT_SOULSTONE_RESSURECT, 4s, 6s);
                 break;
 
-            case FSB_ACTION_TELEPORT_GRAVEYARD:
-                events.ScheduleEvent(FSB_EVENT_TELEPORT_GRAVEYARD, 5s, 6s);
-                break;
-
             case FSB_ACTION_TELEPORT_DUNGEON:
                 events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 5s, 6s);
                 break;
@@ -648,7 +644,7 @@ public:
                     {
                         events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 4s, 6s);
                     } else
-                    me->AI()->DoAction(FSB_ACTION_TELEPORT_GRAVEYARD);
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_TELEPORT_GRAVEYARD, 4s, 6s);
                     break;
 
                 case FSB_EVENT_HIRED_TELEPORT_DUNGEON:
@@ -692,11 +688,6 @@ public:
 
                 case FSB_EVENT_SOULSTONE_RESSURECT:
                     FSBDeath::HandleDeathWithSoulstone(me, botHasSoulstone);
-                    break;
-
-                case FSB_EVENT_TELEPORT_GRAVEYARD:
-                    FSBTeleport::BotTeleport(me, BOT_DEATH);
-                    events.ScheduleEvent(FSB_EVENT_GRAVEYARD_RESSURECT, 2s);
                     break;
 
                 case FSB_EVENT_GRAVEYARD_RESSURECT:

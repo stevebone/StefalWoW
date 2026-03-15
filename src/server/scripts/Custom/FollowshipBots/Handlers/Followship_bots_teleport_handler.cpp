@@ -80,7 +80,8 @@ namespace FSBTeleport
             }
             else
             {
-                WorldSafeLocsEntry const* graveyard = sObjectMgr->GetClosestGraveyard(*bot, TEAM_ALLIANCE, bot);
+                Team team = FSBUtils::GetTeamFromFSBRace(bot);
+                WorldSafeLocsEntry const* graveyard = sObjectMgr->GetClosestGraveyard(*bot, team, bot);
 
                 if (graveyard)
                 {
@@ -100,6 +101,9 @@ namespace FSBTeleport
                 return false;
 
             if (!bot->IsAlive() || !player->IsAlive())
+                return false;
+
+            if (bot->HasAura(SPELL_SPECIAL_GHOST))
                 return false;
 
             if (FSBCombatUtils::IsCombatActive(bot))

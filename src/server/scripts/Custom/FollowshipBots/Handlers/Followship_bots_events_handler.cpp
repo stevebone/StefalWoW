@@ -32,6 +32,7 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_teleport_handler.h"
 
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_rogue.h"
@@ -95,6 +96,18 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         ScheduleBotEvent(FSB_EVENT_GENERIC_MAINTENANCE, 1s);
         break;
     }
+
+    case FSB_EVENT_GENERIC_TELEPORT_GRAVEYARD:
+    {
+        bot->CastSpell(bot, SPELL_SPECIAL_GHOST);
+        FSBTeleport::BotTeleport(bot, BOT_DEATH);
+        ScheduleBotEvent(FSB_EVENT_GENERIC_GRAVEYARD_RESSURECT, 2s);
+        break;
+    }
+
+    case FSB_EVENT_GENERIC_GRAVEYARD_RESSURECT:
+        FSBDeath::HandleDeathWithGraveyard(me, ai->botCorpsePos);
+        break;
 
     case FSB_EVENT_GENERIC_CHECK_HIRED_TIME:
     {

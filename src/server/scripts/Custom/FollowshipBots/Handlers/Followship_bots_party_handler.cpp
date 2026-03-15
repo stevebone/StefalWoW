@@ -99,7 +99,7 @@ namespace FSBParty
 
         if (activeBots.empty())
         {
-            if (!realGroup)
+            if (!realGroup || realGroup->GetMembersCount() == 1)
             {
                 // Player is solo ? send a clean "clear fake party"
                 SendClearFakeParty(player);
