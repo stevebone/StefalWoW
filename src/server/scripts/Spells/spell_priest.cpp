@@ -116,6 +116,7 @@ enum PriestSpells
     SPELL_PRIEST_ESSENCE_DEVOURER                   = 415479,
     SPELL_PRIEST_ESSENCE_DEVOURER_SHADOWFIEND_HEAL  = 415673,
     SPELL_PRIEST_ESSENCE_DEVOURER_MINDBENDER_HEAL   = 415676,
+    SPELL_PRIEST_EVANGELISM                         = 472433,
     SPELL_PRIEST_EXPIATION                          = 390832,
     SPELL_PRIEST_EXPIATION_DAMAGE                   = 390844,
     SPELL_PRIEST_FLASH_HEAL                         = 2061,
@@ -254,6 +255,7 @@ enum PriestSpells
     SPELL_PRIEST_UNFURLING_DARKNESS_DEBUFF          = 341291,
     SPELL_PRIEST_VAMPIRIC_EMBRACE_HEAL              = 15290,
     SPELL_PRIEST_VAMPIRIC_TOUCH                     = 34914,
+    SPELL_PRIEST_VOID_VOLLEY_DAMAGE                 = 1242189,
     SPELL_PRIEST_VOID_SHIELD                        = 199144,
     SPELL_PRIEST_VOID_SHIELD_EFFECT                 = 199145,
     SPELL_PRIEST_VOICE_OF_HARMONY                   = 390994,
@@ -638,8 +640,9 @@ class spell_pri_abyssal_reverie : public SpellScript
 };
 
 // 17 - Power Word: Shield
-// 139 - Renew
 // 2061 - Flash Heal
+// 200829 - Plea
+// 47750 - Penance
 // 194509 - Power Word: Radiance
 class spell_pri_atonement_effect : public SpellScript
 {
@@ -1958,32 +1961,40 @@ class spell_pri_eternal_sanctity : public AuraScript
     }
 };
 
-// 246287 - Evangelism
+// 472433 - Evangelism
 class spell_pri_evangelism : public SpellScript
 {
+public:
+    struct TriggerArgs
+    {
+        int32 EffectivenessPct = 100;
+    };
+
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_PRIEST_ATONEMENT_EFFECT });
+        return ValidateSpellInfo({ SPELL_PRIEST_POWER_WORD_RADIANCE });
     }
 
-    void HandleScriptEffect(SpellEffIndex /*effIndex*/) const
+    void HandleCast() const
+    {
+        GetSpell()->SetSpellValue({ SPELLVALUE_AURA_STACK, GetEffectInfo(EFFECT_0).CalcValue(GetCaster()) });
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/) const
     {
         Unit* caster = GetCaster();
         Unit* target = GetHitUnit();
-
-        Aura* atonementAura = target->GetAura(SPELL_PRIEST_ATONEMENT_EFFECT, caster->GetGUID());
-        if (!atonementAura)
-            return;
-
-        Milliseconds extraDuration = Seconds(GetEffectValue());
-
-        atonementAura->SetDuration(atonementAura->GetDuration() + extraDuration.count());
-        atonementAura->SetMaxDuration(atonementAura->GetDuration() + extraDuration.count());
+        caster->CastSpell(target, SPELL_PRIEST_POWER_WORD_RADIANCE, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_CAST_DIRECTLY | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CAST_TIME | TRIGGERED_IGNORE_POWER_COST
+                | TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD | TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .CustomArg = TriggerArgs{ .EffectivenessPct = GetEffectInfo(EFFECT_1).CalcValue(caster, &GetSpellValue()->EffectBasePoints[EFFECT_1], target) }
+        });
     }
 
     void Register() override
     {
-        OnEffectHitTarget += SpellEffectFn(spell_pri_evangelism::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        BeforeCast += SpellCastFn(spell_pri_evangelism::HandleCast);
+        OnEffectLaunchTarget += SpellEffectFn(spell_pri_evangelism::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };
 
@@ -3356,6 +3367,30 @@ class spell_pri_power_word_radiance : public SpellScript
     }
 
     std::vector<ObjectGuid> _visualTargets;
+};
+
+// 472433 - Evangelism (attached to 194509 - Power Word: Radiance)
+class spell_pri_power_word_radiance_evangelism : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellEffect({ { SPELL_PRIEST_EVANGELISM, EFFECT_1 } })
+            && sSpellMgr->AssertSpellInfo(SPELL_PRIEST_EVANGELISM, DIFFICULTY_NONE)->GetEffect(EFFECT_1).TargetA.GetTarget() == Targets();
+    }
+
+    void CalculateHealing(SpellEffectInfo const& /*effectInfo*/, Unit* /*victim*/, int32& /*healing*/, int32& /*flatMod*/, float& pctMod) const
+    {
+        spell_pri_evangelism::TriggerArgs const* evangelism = std::any_cast<spell_pri_evangelism::TriggerArgs>(&GetSpell()->m_customArg);
+        if (!evangelism)
+            return;
+
+        ApplyPct(pctMod, evangelism->EffectivenessPct);
+    }
+
+    void Register() override
+    {
+        CalcHealing += SpellCalcHealingFn(spell_pri_power_word_radiance_evangelism::CalculateHealing);
+    }
 };
 
 // 17 - Power Word: Shield
@@ -5175,6 +5210,70 @@ class spell_pri_voice_of_harmony : public AuraScript
     }
 };
 
+// 1242173 - Void Volley
+class spell_pri_void_volley : public SpellScript
+{
+    class BoltEvent : public BasicEvent
+    {
+    public:
+        static constexpr Milliseconds Period = 75ms;
+
+        explicit BoltEvent(Unit* caster, ObjectGuid target, ObjectGuid originalCastId, int32 count) :
+            _caster(caster), _target(target), _originalCastId(originalCastId), _count(count) { }
+
+        bool Execute(uint64 time, uint32) override
+        {
+            Unit* target = ObjectAccessor::GetUnit(*_caster, _target);
+            if (!target)
+                return true;
+
+            _caster->CastSpell(target, SPELL_PRIEST_VOID_VOLLEY_DAMAGE, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .OriginalCastId = _originalCastId
+            });
+
+            if (--_count)
+            {
+                _caster->m_Events.AddEvent(this, Milliseconds(time) + Period);
+                return false;
+            }
+            return true;
+        }
+
+    private:
+        Unit* _caster;
+        ObjectGuid _target;
+        ObjectGuid _originalCastId;
+        int32 _count;
+    };
+
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return ValidateSpellInfo({ SPELL_PRIEST_VOID_VOLLEY_DAMAGE })
+            && ValidateSpellEffect({ { spellInfo->Id, EFFECT_2 } });
+    }
+
+    void HandleEffectHit(SpellEffIndex /*effIndex*/) const
+    {
+        Unit* caster = GetCaster();
+        Unit* target = GetHitUnit();
+
+        caster->CastSpell(target, SPELL_PRIEST_VOID_VOLLEY_DAMAGE, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+
+        int32 bolts = target == GetExplTargetUnit() ? GetEffectValue() : GetEffectInfo(EFFECT_2).CalcValue(caster);
+        if (bolts > 1)
+            caster->m_Events.AddEventAtOffset(new BoltEvent(caster, target->GetGUID(), GetSpell()->m_originalCastId, bolts - 1), BoltEvent::Period);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_pri_void_volley::HandleEffectHit, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 // 205385 - Shadow Crash
 class spell_pri_whispering_shadows : public SpellScript
 {
@@ -5336,6 +5435,7 @@ void AddSC_priest_spell_scripts()
     RegisterSpellScriptWithArgs(spell_pri_power_surge_periodic, "spell_pri_power_surge_periodic_holy", SPELL_PRIEST_HALO_HOLY);
     RegisterSpellScriptWithArgs(spell_pri_power_surge_periodic, "spell_pri_power_surge_periodic_shadow", SPELL_PRIEST_HALO_SHADOW);
     RegisterSpellScript(spell_pri_power_word_radiance);
+    RegisterSpellScript(spell_pri_power_word_radiance_evangelism);
     RegisterSpellScript(spell_pri_power_word_shield);
     RegisterSpellScript(spell_pri_power_word_solace);
     RegisterSpellScript(spell_pri_prayer_of_mending_dummy);
@@ -5381,6 +5481,7 @@ void AddSC_priest_spell_scripts()
     RegisterSpellScript(spell_pri_vampiric_embrace_target);
     RegisterSpellScript(spell_pri_vampiric_touch);
     RegisterSpellScript(spell_pri_voice_of_harmony);
+    RegisterSpellScript(spell_pri_void_volley);
     RegisterSpellScript(spell_pri_whispering_shadows);
     RegisterSpellScript(spell_pri_whispering_shadows_effect);
 }

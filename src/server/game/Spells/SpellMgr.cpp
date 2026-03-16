@@ -4765,6 +4765,18 @@ void SpellMgr::LoadSpellInfoCorrections()
     // ENDOF BLACK ROOK HOLD SPELLS
 
     //
+    // EYE OF AZSHARA SPELLS
+    //
+
+    // Gaseous Bubbles
+    ApplySpellFix({ 193018 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Attributes |= SPELL_ATTR0_AURA_IS_DEBUFF;
+    });
+
+    // ENDOF EYE OF AZSHARA SPELLS
+
+    //
     // ANTORUS THE BURNING THRONE SPELLS
     //
 
@@ -5433,7 +5445,7 @@ void SpellMgr::LoadSpellInfoTargetCaps()
     // Odyn's Fury
     ApplySpellFix({ 385060, 385061, 385062 }, [](SpellInfo* spellInfo)
     {
-        spellInfo->_LoadSqrtTargetLimit(5, 0, 385059, EFFECT_5, {}, {});
+        spellInfo->_LoadSqrtTargetLimit(8, 0, 385059, EFFECT_5, {}, {});
     });
 
     // Flame Patch
@@ -5443,9 +5455,9 @@ void SpellMgr::LoadSpellInfoTargetCaps()
     });
 
     // Flamestrike
-    ApplySpellFix({ 2120 }, [](SpellInfo* spellInfo)
+    ApplySpellFix({ 2120, 1254851 }, [](SpellInfo* spellInfo)
     {
-        spellInfo->_LoadSqrtTargetLimit(8, 0, {}, EFFECT_2, {}, {});
+        spellInfo->_LoadSqrtTargetLimit(8, 0, {}, EFFECT_1, {}, {});
     });
 
     // Meteor
@@ -5476,6 +5488,12 @@ void SpellMgr::LoadSpellInfoTargetCaps()
     ApplySpellFix({ 400370 }, [](SpellInfo* spellInfo)
     {
         spellInfo->_LoadSqrtTargetLimit(5, 0, {}, EFFECT_1, {}, {});
+    });
+
+    // Rampaging Ruin
+    ApplySpellFix({ 1265579, 1265580, 1265581, 1265582 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_LoadSqrtTargetLimit(5, 0, 1265357, EFFECT_0, {}, {});
     });
 
     TC_LOG_INFO("server.loading", ">> Loaded SpellInfo target caps in {} ms", GetMSTimeDiffToNow(oldMSTime));

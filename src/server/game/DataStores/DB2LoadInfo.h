@@ -6181,6 +6181,21 @@ struct TraitCondLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 17, &TraitCondMeta::Instance, HOTFIX_SEL_TRAIT_COND };
 };
 
+struct TraitCondAccountElementLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[6] =
+    {
+        { .IsSigned = true, .Type = FT_LONG, .Name = "ElementValueInt" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "PlayerDataElementAccountID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "Comparison" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Unused1110" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "PlayerDataElementCharacterID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 6, &TraitCondAccountElementMeta::Instance, HOTFIX_SEL_TRAIT_COND_ACCOUNT_ELEMENT };
+};
+
 struct TraitCostLoadInfo
 {
     static constexpr DB2FieldMeta Fields[5] =
@@ -6445,19 +6460,21 @@ struct TraitSystemLoadInfo
 
 struct TraitTreeLoadInfo
 {
-    static constexpr DB2FieldMeta Fields[8] =
+    static constexpr DB2FieldMeta Fields[10] =
     {
+        { .IsSigned = false, .Type = FT_STRING, .Name = "TitleText" },
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = false, .Type = FT_INT, .Name = "TraitSystemID" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "Unused1000_1" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "BaseNodeGroup" },
         { .IsSigned = true, .Type = FT_INT, .Name = "FirstTraitNodeID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "PlayerConditionID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
-        { .IsSigned = false, .Type = FT_FLOAT, .Name = "Unused1000_2" },
-        { .IsSigned = false, .Type = FT_FLOAT, .Name = "Unused1000_3" },
+        { .IsSigned = false, .Type = FT_FLOAT, .Name = "MinZoom" },
+        { .IsSigned = false, .Type = FT_FLOAT, .Name = "MaxZoom" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "UiTextureKitID" },
     };
 
-    static constexpr DB2LoadInfo Instance{ Fields, 8, &TraitTreeMeta::Instance, HOTFIX_SEL_TRAIT_TREE };
+    static constexpr DB2LoadInfo Instance{ Fields, 10, &TraitTreeMeta::Instance, HOTFIX_SEL_TRAIT_TREE };
 };
 
 struct TraitTreeLoadoutLoadInfo
