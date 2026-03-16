@@ -67,6 +67,20 @@ void PetBattle::LoadPlayerTeam(Player* player, PetBattleTeamData& team)
         battlePet.Species = pet->PacketInfo.Species;
         battlePet.CreatureID = pet->PacketInfo.CreatureID;
         battlePet.DisplayID = pet->PacketInfo.DisplayID;
+
+        // Repair DisplayID if it was stored as 0 (missing creature_template at pet creation time)
+        if (battlePet.DisplayID == 0 && battlePet.CreatureID != 0)
+        {
+            if (CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(battlePet.CreatureID))
+                if (CreatureModel const* model = ct->GetRandomValidModel())
+                {
+                    battlePet.DisplayID = model->CreatureDisplayID;
+                    pet->PacketInfo.DisplayID = battlePet.DisplayID;
+                    TC_LOG_DEBUG("server.loading", "PetBattle: Repaired DisplayID for species {} (creature {}) -> {}",
+                        battlePet.Species, battlePet.CreatureID, battlePet.DisplayID);
+                }
+        }
+
         battlePet.Breed = pet->PacketInfo.Breed;
         battlePet.Level = pet->PacketInfo.Level;
         battlePet.Xp = pet->PacketInfo.Exp;

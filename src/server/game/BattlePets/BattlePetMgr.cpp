@@ -253,9 +253,15 @@ void BattlePetMgr::GetBaseStats(uint32 speciesId, uint16 breedId, int32& outPowe
 uint32 BattlePetMgr::SelectPetDisplay(BattlePetSpeciesEntry const* speciesEntry)
 {
     if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(speciesEntry->CreatureID))
+    {
         if (!speciesEntry->GetFlags().HasFlag(BattlePetSpeciesFlags::RandomDisplay))
             if (CreatureModel const* creatureModel = creatureTemplate->GetRandomValidModel())
                 return creatureModel->CreatureDisplayID;
+    }
+    else
+        TC_LOG_ERROR("misc", "BattlePetMgr::SelectPetDisplay: creature_template entry {} not found for species {}. "
+            "Battle pet will have DisplayID=0. Add the creature_template and creature_template_model entries.",
+            speciesEntry->CreatureID, speciesEntry->ID);
 
     return 0;
 }
