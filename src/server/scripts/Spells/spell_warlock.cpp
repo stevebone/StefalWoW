@@ -48,6 +48,7 @@
 #include "Creature.h"
 #include "GameObject.h"
 #include "GridNotifiersImpl.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "Pet.h"
 #include "Player.h"
