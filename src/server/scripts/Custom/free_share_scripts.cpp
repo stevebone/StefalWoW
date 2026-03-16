@@ -571,9 +571,9 @@ public:
             {
                 StaticTimeManager::SendTimeSync();
             }
-        }
 
-        timeCheckTimer = 0;
+            timeCheckTimer = 0;
+        }
     }
 };
 
