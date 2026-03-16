@@ -1000,6 +1000,53 @@ set(PLAYERBOT_GAMEPLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Movement/UnifiedMovementCoordinator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Movement/UnifiedMovementCoordinator.h
 
+    # BotMovement System (Controller, StuckDetector, StateMachine, Pathfinding, Validation)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementConfig.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementConfig.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementController.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementDefines.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/BotMovementManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/MovementMetrics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core/ValidationResult.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Detection/RecoveryStrategies.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Detection/RecoveryStrategies.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Detection/StuckDetector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Detection/StuckDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators/BotFollowMovementGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators/BotFollowMovementGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators/BotMovementGeneratorBase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators/BotMovementGeneratorBase.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators/BotPointMovementGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators/BotPointMovementGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Pathfinding/PathCache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Pathfinding/PathCache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Pathfinding/ValidatedPathGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Pathfinding/ValidatedPathGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/FallingMovementState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/FallingMovementState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/GroundMovementState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/GroundMovementState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/IdleState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/IdleState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/MovementState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/MovementState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/MovementStateMachine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/MovementStateMachine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/StuckState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/StuckState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/SwimmingMovementState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine/SwimmingMovementState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/CollisionValidator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/CollisionValidator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/GroundValidator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/GroundValidator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/LiquidValidator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/LiquidValidator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/PositionValidator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation/PositionValidator.h
+
     # Travel System
     ${CMAKE_CURRENT_SOURCE_DIR}/Travel/TravelRouteManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Travel/TravelRouteManager.h
@@ -1304,6 +1351,12 @@ set(PLAYERBOT_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/Lifecycle
     ${CMAKE_CURRENT_SOURCE_DIR}/Lifecycle/Instance
     ${CMAKE_CURRENT_SOURCE_DIR}/Movement
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Core
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Detection
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Generators
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Pathfinding
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/StateMachine
+    ${CMAKE_CURRENT_SOURCE_DIR}/Movement/BotMovement/Validation
     ${CMAKE_CURRENT_SOURCE_DIR}/Threading
     ${CMAKE_CURRENT_SOURCE_DIR}/AI/Coordination/Battleground
     ${CMAKE_CURRENT_SOURCE_DIR}/AI/Coordination/Battleground/Scripts

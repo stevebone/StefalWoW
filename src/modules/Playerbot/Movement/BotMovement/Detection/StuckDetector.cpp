@@ -129,6 +129,7 @@ void StuckDetector::RecordProgress(uint32 waypointIndex)
 void StuckDetector::Reset()
 {
     ClearStuck();
+    _positionHistory.clear();
     _consecutivePathFailures = 0;
     _consecutiveCollisions = 0;
     _lastProgressTime = _totalTimePassed;
