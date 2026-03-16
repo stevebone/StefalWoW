@@ -642,6 +642,35 @@ void BotAI::UpdateAI(uint32 diff)
     auto startTime = std::chrono::high_resolution_clock::now();
     _performanceMetrics.totalUpdates++;
 
+    // ========================================================================
+    // SOLO STRATEGY ACTIVATION - Once per bot after first login
+    // ========================================================================
+    // MUST run BEFORE throttle/budget/deathRecovery checks to ensure strategies
+    // get activated. Dead bots still need strategies so they can act once revived.
+    if (!_bot->GetGroup() && !_soloStrategiesActivated)
+    {
+        TC_LOG_INFO("module.playerbot.ai", "ACTIVATING SOLO STRATEGIES: Bot {} (not in group, first UpdateAI)", _bot->GetName());
+
+        ActivateStrategy("rest");
+        ActivateStrategy("solo_combat");
+
+        if (!_instanceOnlyMode)
+        {
+            ActivateStrategy("quest");
+            ActivateStrategy("grind");
+            ActivateStrategy("loot");
+            ActivateStrategy("solo");
+        }
+        else
+        {
+            TC_LOG_INFO("module.playerbot.ai", "Bot {} is JIT/Instance-Only - Skipping quest/grind/solo strategies", _bot->GetName());
+        }
+
+        _soloStrategiesActivated = true;
+
+        TC_LOG_INFO("module.playerbot.ai", "SOLO BOT ACTIVATION COMPLETE: Bot {} - {} strategies active", _bot->GetName(), _activeStrategies.size());
+    }
+
     // Only run normal AI if NOT in death recovery
     if (!isInDeathRecovery)
     {
@@ -714,39 +743,6 @@ void BotAI::UpdateAI(uint32 diff)
             // Jump directly to game systems update (Phase 6)
             goto bg_update_complete;
         }
-    }
-
-    // ========================================================================
-    // SOLO STRATEGY ACTIVATION - Once per bot after first login
-    // ========================================================================
-    // For bots not in a group, activate solo-relevant strategies on first UpdateAI() call
-    // This ensures solo bots have active strategies and can perform autonomous actions
-    // Group-related strategies (follow, group_combat) are activated in OnGroupJoined()
-    if (!_bot->GetGroup() && !_soloStrategiesActivated)
-    {
-        TC_LOG_INFO("module.playerbot.ai", "🎯 ACTIVATING SOLO STRATEGIES: Bot {} (not in group, first UpdateAI)", _bot->GetName());
-
-        // Activate all solo-relevant strategies in priority order:
-        ActivateStrategy("rest");
-        ActivateStrategy("solo_combat");
-
-        // CRITICAL FIX: Disable questing, grinding, looting and solo behavior for JIT/Instance bots
-        // They should only defend themselves (solo_combat) and rest while waiting for queues
-        if (!_instanceOnlyMode)
-        {
-            ActivateStrategy("quest");
-            ActivateStrategy("grind");  // Fallback when quests unavailable (activates via ShouldGrind check)
-            ActivateStrategy("loot");
-            ActivateStrategy("solo");
-        }
-        else
-        {
-            TC_LOG_INFO("module.playerbot.ai", "Bot {} is JIT/Instance-Only - Skipping quest/grind/solo strategies", _bot->GetName());
-        }
-
-        _soloStrategiesActivated = true;
-
-        TC_LOG_INFO("module.playerbot.ai", "✅ SOLO BOT ACTIVATION COMPLETE: Bot {} - {} strategies active", _bot->GetName(), _activeStrategies.size());
     }
 
     // PHASE 0 - Quick Win #3: Periodic group check REMOVED
