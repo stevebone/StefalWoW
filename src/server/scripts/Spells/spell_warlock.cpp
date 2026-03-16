@@ -3313,7 +3313,7 @@ class npc_pet_warlock_demonic_tyrant : public PetAI
 {
 public:
     npc_pet_warlock_demonic_tyrant(Creature* creature) : PetAI(creature) {}
-
+    /*
     void IsSummonedBy(WorldObject* o) override
     {
         if (!o)
@@ -3326,7 +3326,6 @@ public:
         // Demonic Consumption
         if (owner->HasAura(SPELL_WARLOCK_DEMONIC_CONSUMPTION))
         {
-            int counter = 0;
             // Find every valid Wild Imp (Live and not imploding)
             std::list<TempSummon*> summons;
             owner->GetAllMinionsByEntry(summons, 143622);
@@ -3344,7 +3343,6 @@ public:
 
                 amount += summon->GetPower(POWER_ENERGY) * 0.05f;
                 summon->DespawnOrUnsummon();
-                counter++;
             }
             //if (counter > 0)
                 //me->CastCustomSpell(SPELL_WARLOCK_DEMONIC_CONSUMPTION_BUFF, SPELLVALUE_BASE_POINT0, amount, me, true);
@@ -3353,7 +3351,7 @@ public:
         // Power other demons.
         //owner->CastSpell(owner, SPELL_WARLOCK_DEMONIC_POWER, true);
     }
-
+*/
     void UpdateAI(uint32 /*diff*/) override
     {
         Unit* owner = me->GetOwner();
