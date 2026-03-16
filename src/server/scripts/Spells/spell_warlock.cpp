@@ -24,6 +24,7 @@
 #include "AreaTriggerAI.h"
 #include "AreaTriggerTemplate.h"
 #include "Battleground.h"
+#include "DB2Stores.h"
 #include "SpellPackets.h"
 #include "ObjectMgr.h"
 #include "Object.h"
@@ -3152,7 +3153,11 @@ class spell_warlock_inquisitors_gaze : public SpellScript
         if (Unit* target = GetHitUnit())
         {
             int32 damage = (GetCaster()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask()) * 15 * 16) / 100;
-            GetCaster()->CastSpell(target, SPELL_INQUISITORS_GAZE, &damage);
+
+            CastSpellExtraArgs args;
+            args.AddSpellBP0(damage);
+
+            GetCaster()->CastSpell(target, SPELL_INQUISITORS_GAZE, args);
         }
     }
 
