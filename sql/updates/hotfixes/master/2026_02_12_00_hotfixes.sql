@@ -1,9 +1,32 @@
 --
-ALTER TABLE `trait_tree` ADD COLUMN `TitleText` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL FIRST;
-ALTER TABLE `trait_tree` CHANGE `Unused1000_1` `BaseNodeGroup` int NOT NULL DEFAULT 0 AFTER `TraitSystemID`;
-ALTER TABLE `trait_tree` CHANGE `Unused1000_2` `MinZoom` float NOT NULL DEFAULT 0 AFTER `Flags`;
-ALTER TABLE `trait_tree` CHANGE `Unused1000_3` `MaxZoom` float NOT NULL DEFAULT 0 AFTER `MinZoom`;
-ALTER TABLE `trait_tree` ADD COLUMN `UiTextureKitID` int NOT NULL DEFAULT 0 AFTER `MaxZoom`;
+DROP PROCEDURE IF EXISTS `add_trait_tree_columns`;
+DELIMITER //
+CREATE PROCEDURE `add_trait_tree_columns`()
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trait_tree' AND COLUMN_NAME = 'TitleText') THEN
+        ALTER TABLE `trait_tree` ADD COLUMN `TitleText` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL FIRST;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trait_tree' AND COLUMN_NAME = 'Unused1000_1') THEN
+        ALTER TABLE `trait_tree` CHANGE `Unused1000_1` `BaseNodeGroup` int NOT NULL DEFAULT 0 AFTER `TraitSystemID`;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trait_tree' AND COLUMN_NAME = 'Unused1000_2') THEN
+        ALTER TABLE `trait_tree` CHANGE `Unused1000_2` `MinZoom` float NOT NULL DEFAULT 0 AFTER `Flags`;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trait_tree' AND COLUMN_NAME = 'Unused1000_3') THEN
+        ALTER TABLE `trait_tree` CHANGE `Unused1000_3` `MaxZoom` float NOT NULL DEFAULT 0 AFTER `MinZoom`;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trait_tree' AND COLUMN_NAME = 'UiTextureKitID') THEN
+        ALTER TABLE `trait_tree` ADD COLUMN `UiTextureKitID` int NOT NULL DEFAULT 0 AFTER `MaxZoom`;
+    END IF;
+END //
+DELIMITER ;
+
+CALL `add_trait_tree_columns`();
+DROP PROCEDURE IF EXISTS `add_trait_tree_columns`;
 
 --
 -- Table structure for table `trait_tree_locale`
