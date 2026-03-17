@@ -189,10 +189,20 @@ public:
 
         void JustAppeared() override
         {
+            Unit* owner = me->GetOwner();
+            if (!owner)
+                return;
+
+            if (owner->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS) && me->GetEntry() == NPC_WARLOCK_DEMONIC_TYRANT1)
+                me->DespawnOrUnsummon();
+
+            if (!owner->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS) && me->GetEntry() == NPC_WARLOCK_DEMONIC_TYRANT2)
+                me->DespawnOrUnsummon();
+
             uint32 impCount = 0;
             uint32 dreadCount = 0;
 
-            if (Unit* owner = me->GetOwner())
+            if (owner)
             {
                 if (Aura* aura = owner->GetAura(SPELL_WARLOCK_WILD_IMP_COUNTER))
                     impCount = aura->GetStackAmount();

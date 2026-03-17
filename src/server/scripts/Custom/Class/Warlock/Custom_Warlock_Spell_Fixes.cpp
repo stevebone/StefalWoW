@@ -25,31 +25,67 @@
 #include "Spell.h"
 #include "SpellInfo.h"
 
+#include "Custom_Warlock_Defines.h"
+
  // 265187 - Summon Demonic Tyrant
-class spell_warlock_summon_demonic_tyrant : public SpellScriptLoader
+class spell_warlock_summon_demonic_tyrant : public SpellScript
 {
-public:
-    spell_warlock_summon_demonic_tyrant() : SpellScriptLoader("spell_warlock_summon_demonic_tyrant") { }
-
-    class spell_warlock_summon_demonic_tyrant_SpellScript : public SpellScript
+    void HandleBeforeCast()
     {
+        TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: BeforeCast fired - script IS attached");
+    }
 
-        void HandleBeforeHit(SpellMissInfo missInfo)
-        {
-            // Prevent EFFECT_0 from summoning
-            if (GetSpellInfo()->GetEffect(EFFECT_0).Effect == SPELL_EFFECT_SUMMON)
-                PreventHitEffect(EFFECT_0);
-        }
-
-        void Register() override
-        {
-            BeforeHit += BeforeSpellHitFn(spell_warlock_summon_demonic_tyrant_SpellScript::HandleBeforeHit);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
+    void HandleEffect0(SpellEffIndex effIndex)
     {
-        return new spell_warlock_summon_demonic_tyrant_SpellScript();
+        Unit* caster = GetCaster();
+        TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: HandleEffect0 fired. effIndex=%u, caster=%s, hasArmaments=%u",
+            uint32(effIndex),
+            caster ? caster->GetName().c_str() : "NULL",
+            caster ? uint32(caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS)) : 0);
+
+        if (!caster)
+            return;
+
+        if (caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS))
+        {
+            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: BLOCKING EFFECT_0 (normal summon)");
+            PreventHitEffect(effIndex);
+            PreventHitDefaultEffect(effIndex);
+        }
+        else
+        {
+            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: ALLOWING EFFECT_0 (normal summon)");
+        }
+    }
+
+    void HandleEffect3(SpellEffIndex effIndex)
+    {
+        Unit* caster = GetCaster();
+        TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: HandleEffect3 fired. effIndex=%u, caster=%s, hasArmaments=%u",
+            uint32(effIndex),
+            caster ? caster->GetName().c_str() : "NULL",
+            caster ? uint32(caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS)) : 0);
+
+        if (!caster)
+            return;
+
+        if (!caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS))
+        {
+            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: BLOCKING EFFECT_3 (empowered summon)");
+            PreventHitEffect(effIndex);
+            PreventHitDefaultEffect(effIndex);
+        }
+        else
+        {
+            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: ALLOWING EFFECT_3 (empowered summon)");
+        }
+    }
+
+    void Register() override
+    {
+        BeforeCast += SpellCastFn(spell_warlock_summon_demonic_tyrant::HandleBeforeCast);
+        OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_demonic_tyrant::HandleEffect0, EFFECT_0, SPELL_EFFECT_SUMMON);
+        OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_demonic_tyrant::HandleEffect3, EFFECT_3, SPELL_EFFECT_SUMMON);
     }
 };
 
