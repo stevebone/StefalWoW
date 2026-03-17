@@ -75,16 +75,6 @@ namespace WorldPackets
             ObjectGuid Banker;
         };
 
-        class AutoDepositAccountBank final : public ClientPacket
-        {
-        public:
-            explicit AutoDepositAccountBank(WorldPacket&& packet) : ClientPacket(CMSG_AUTO_DEPOSIT_ACCOUNT_BANK, std::move(packet)) { }
-
-            void Read() override;
-
-            ObjectGuid Banker;
-        };
-
         class BankerActivate final : public ClientPacket
         {
         public:
