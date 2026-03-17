@@ -277,4 +277,29 @@ namespace FSBCombat
 
         TC_LOG_DEBUG("scripts.ai.fsb", "FSB: {} switching to melee mode (OOM)", bot->GetName());
     }
+
+    void SetOwnerTapToVictim(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        if (!owner || !owner->IsInWorld())
+            return;
+
+        Unit* victim = bot->GetVictim();
+        if (!victim || !victim->IsAlive())
+            return;
+
+        Creature* mob = victim->ToCreature();
+        if (!mob)
+            return;
+
+        // If owner already has tap, do nothing
+        if (mob->isTappedBy(owner))
+            return;
+
+        // Otherwise, give owner tap
+        mob->SetTappedBy(owner);
+    }
 }

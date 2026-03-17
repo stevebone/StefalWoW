@@ -542,6 +542,7 @@ public:
         void UpdateAI(uint32 diff) override
         {
             FSBCombat::EvaluateAttackNeeded(me);
+            FSBCombat::SetOwnerTapToVictim(me);
             
             events.Update(diff);
             botEvents.Update(diff);
