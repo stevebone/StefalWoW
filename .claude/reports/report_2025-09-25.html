@@ -1,0 +1,55 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>PlayerBot Code Review Report - 2025-09-25</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { color: #333; }
+                .metric { 
+                    display: inline-block; 
+                    margin: 10px; 
+                    padding: 15px; 
+                    border: 1px solid #ddd; 
+                    border-radius: 5px; 
+                }
+                .critical { background-color: #ffcccc; }
+                .warning { background-color: #ffffcc; }
+                .success { background-color: #ccffcc; }
+                table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <h1>PlayerBot Code Review Report</h1>
+            <p>Generated: 2025-09-25 14:27:04</p>
+            
+            <h2>Overall Score: 84.0/100</h2>
+            
+            <div class="metrics">
+                <div class="metric">Quality: 85.0</div>
+                <div class="metric">Security: 90.0</div>
+                <div class="metric">Performance: 78.0</div>
+                <div class="metric">Trinity: 92.0</div>
+                <div class="metric">Coverage: 76.5%</div>
+            </div>
+            
+            <h2>Critical Issues</h2>
+            <ul>
+                <li class='critical'>Potential leak in Bot destructor</li>
+            </ul>
+            
+            <h2>Action Items</h2>
+            <table>
+                <tr><th>Priority</th><th>Action</th><th>Deadline</th></tr>
+                <tr><td>critical</td><td>Fix performance issue: Potential leak in Bot destructor</td><td>immediate</td></tr><tr><td>high</td><td>Refactor: Cyclomatic complexity: 15 in Bot::HandleCombat</td><td>this_week</td></tr>
+            </table>
+            
+            <h2>Recommendations</h2>
+            <ul>
+                <li>Increase test coverage to at least 80%</li><li>Review and update TrinityCore integration points</li>
+            </ul>
+        </body>
+        </html>
+        

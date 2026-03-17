@@ -1,0 +1,6 @@
+[submodule "src/modules/Playerbot/deps/phmap"]
+	path = src/modules/Playerbot/deps/phmap
+	url = https://github.com/greg7mdp/parallel-hashmap.git
+[submodule "src/modules/Playerbot/deps/tbb"]
+	path = src/modules/Playerbot/deps/tbb
+	url = https://github.com/oneapi-src/oneTBB.git

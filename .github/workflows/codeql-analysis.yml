@@ -1,0 +1,224 @@
+name: CodeQL Security Analysis
+
+on:
+  push:
+    branches:
+      - master
+      - playerbot-dev
+  pull_request:
+    branches:
+      - master
+      - playerbot-dev
+  schedule:
+    - cron: '0 4 * * 1'  # Weekly Monday 4 AM UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze C++ (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - cpp
+
+    steps:
+      - name: Free up disk space
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+
+          # Remove unnecessary large packages
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /opt/pipx
+          sudo rm -rf /opt/google
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /usr/share/az_*
+          sudo rm -rf /usr/share/gradle*
+          sudo rm -rf /usr/share/miniconda
+          sudo rm -rf /usr/share/sbt
+
+          # Clean apt cache
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+
+          echo "=== Disk space after cleanup ==="
+          df -h
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          # Custom queries for game server security
+          queries: +security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - 'dep/**'
+              - 'contrib/**'
+              - 'tests/**'
+            query-filters:
+              - exclude:
+                  problem.severity: recommendation
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -yq \
+            libboost-dev \
+            libboost-filesystem-dev \
+            libboost-locale-dev \
+            libboost-program-options-dev \
+            libboost-regex-dev \
+            libboost-thread-dev \
+            libssl-dev \
+            libreadline-dev \
+            zlib1g-dev \
+            libbz2-dev \
+            libmysqlclient-dev
+
+      - name: Configure CMake
+        env:
+          CMAKE_BUILD_TYPE: Debug
+          CC: /usr/bin/gcc-13
+          CXX: /usr/bin/g++-13
+        run: |
+          cmake -GNinja -S . -B build \
+            -DWITH_WARNINGS=0 \
+            -DWITH_WARNINGS_AS_ERRORS=0 \
+            -DTOOLS=0 \
+            -DSCRIPTS=static \
+            -DSERVERS=1 \
+            -DBUILD_PLAYERBOT=ON \
+            -DBUILD_TESTING=0 \
+            -DCMAKE_C_FLAGS_DEBUG="-DNDEBUG -g0" \
+            -DCMAKE_CXX_FLAGS_DEBUG="-DNDEBUG -g0"
+
+      - name: Build for CodeQL analysis
+        run: |
+          echo "=== Disk space before build ==="
+          df -h
+          # Use all available cores for faster build
+          cmake --build build --parallel $(nproc)
+          echo "=== Disk space after build ==="
+          df -h
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: true
+
+      - name: Upload SARIF results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif-${{ github.sha }}
+          path: ${{ github.workspace }}/**/*.sarif
+          retention-days: 30
+
+  # Additional security checks
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for hardcoded secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+  # Dependency vulnerability scanning
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+          comment-summary-in-pr: true
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This CodeQL security workflow provides enterprise-grade security analysis:
+#
+# 1. CodeQL Analysis (Weekly + PR/Push):
+#    - Deep C++ code analysis
+#    - Security-extended queries for vulnerabilities
+#    - SARIF report generation
+#
+# 2. Security Audit:
+#    - Trivy filesystem vulnerability scanning
+#    - TruffleHog secret detection
+#
+# 3. Dependency Review (PRs only):
+#    - License compliance checking
+#    - Vulnerability detection in dependencies
+#
+# Security findings appear in:
+# - GitHub Security tab
+# - PR comments (for dependency-review)
+# - SARIF artifact downloads
+#
+# Scheduled: Weekly Monday 4 AM UTC
+# ==============================================================================

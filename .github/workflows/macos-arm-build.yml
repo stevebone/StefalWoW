@@ -6,60 +6,107 @@ on:
 
 jobs:
   build:
+    name: Build (Apple Clang)
     runs-on: macos-14
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: Set reusable strings
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          echo "ccache-key-prefix=macos-arm64-${{ github.base_ref || github.ref_name }}" >> "$GITHUB_OUTPUT"
 
-    - name: Install/Update requirements
-      env:
-        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
-      run: |
-        brew update
-        brew uninstall openssl@1.1
-        for pkg in mysql openssl readline cmake boost coreutils ninja; do
-          brew ls --versions $pkg || brew install $pkg
-        done
-        brew config
+      - name: Install/Update requirements
+        env:
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+        run: |
+          brew update
+          brew uninstall openssl@1.1 || true
+          for pkg in mysql openssl readline cmake boost coreutils ninja icu4c ccache; do
+            brew ls --versions $pkg || brew install $pkg
+          done
+          brew config
+          # Add icu4c to pkg-config path for Boost.Locale
+          echo "PKG_CONFIG_PATH=$(brew --prefix icu4c)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
-    - name: Check some deps
-      run: |
-        mysql --version
-        openssl version
-        
-    - name: Print CPU info
-      run: |
-         echo "Cores: $(nproc), Arch: $(uname -p)"
-        
-    - name: Configure CMake
-      env:
-        CMAKE_BUILD_TYPE: Debug
-      run: >
-        cmake -GNinja -B ${{ steps.strings.outputs.build-output-dir }}
-        -DWITH_WARNINGS=1 -DWITH_WARNINGS_AS_ERRORS=1 -DWITH_COREDEBUG=0 -DUSE_COREPCH=1 -DUSE_SCRIPTPCH=1 -DTOOLS=1 -DSCRIPTS=static -DSERVERS=1 -DBUILD_TESTING=1
-        -DCMAKE_C_FLAGS_DEBUG="-DNDEBUG" -DCMAKE_CXX_FLAGS_DEBUG="-DNDEBUG"
-        -DCMAKE_INSTALL_PREFIX=check_install
-        -S ${{ github.workspace }}
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
 
-    - name: Build
-      run: |
-        cd ${{ steps.strings.outputs.build-output-dir }}
-        ninja
-        ninja install
-      
-    - name: Unit tests
-      run: |
-        cd ${{ steps.strings.outputs.build-output-dir }}
-        ninja test
-      
-    - name: Check binaries
-      run: |
-        cd ${{ github.workspace }}/check_install/bin
-        ./bnetserver --version
-        ./worldserver --version
+      - name: Check some deps
+        run: |
+          mysql --version
+          openssl version
+          ccache --version
+
+      - name: Print CPU info
+        run: |
+          echo "Cores: $(nproc), Arch: $(uname -p)"
+
+      - name: Restore ccache
+        id: ccache-restore
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ccache
+          key: ${{ steps.strings.outputs.ccache-key-prefix }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ steps.strings.outputs.ccache-key-prefix }}-${{ github.ref_name }}-
+            ${{ steps.strings.outputs.ccache-key-prefix }}-
+
+      - name: Configure CMake
+        env:
+          CMAKE_BUILD_TYPE: Debug
+          ICU_ROOT: /opt/homebrew/opt/icu4c
+        run: >
+          cmake -GNinja -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          -DWITH_WARNINGS=1
+          -DWITH_WARNINGS_AS_ERRORS=1
+          -DWITH_COREDEBUG=0
+          -DUSE_COREPCH=1
+          -DUSE_SCRIPTPCH=1
+          -DTOOLS=1
+          -DSCRIPTS=static
+          -DSERVERS=1
+          -DBUILD_TESTING=1
+          -DBUILD_PLAYERBOT=ON
+          -DCMAKE_C_FLAGS_DEBUG="-DNDEBUG"
+          -DCMAKE_CXX_FLAGS_DEBUG="-DNDEBUG"
+          -DCMAKE_INSTALL_PREFIX=check_install
+          -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/icu4c"
+          -S ${{ github.workspace }}
+
+      - name: Build
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          # Add ICU library path for Boost.Locale linking (-licudata, -licui18n, -licuuc)
+          export LIBRARY_PATH="/opt/homebrew/opt/icu4c/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
+          # Show ccache stats before build
+          ccache -z
+          ninja
+          ninja install
+          # Show ccache stats after build
+          ccache -s
+
+      - name: Run unit tests
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          ninja test
+
+      - name: Check binaries
+        run: |
+          cd ${{ github.workspace }}/check_install/bin
+          ./bnetserver --version
+          ./worldserver --version
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrinityCore-macOS-arm64-${{ github.sha }}
+          path: ${{ github.workspace }}/check_install/bin
+          retention-days: 7

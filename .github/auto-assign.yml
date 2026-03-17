@@ -1,0 +1,50 @@
+# Auto-assign Configuration for Pull Requests
+# This configuration automatically assigns reviewers and assignees to PRs
+
+# Add reviewers to PRs
+addReviewers: true
+
+# Add assignees to PRs
+addAssignees: true
+
+# Set to 'author' to assign the PR author as the assignee
+assignees:
+  - author
+
+# Number of reviewers to assign
+numberOfReviewers: 1
+
+# List of possible reviewers
+# Uncomment and add GitHub usernames when team grows
+# reviewers:
+#   - reviewer1
+#   - reviewer2
+
+# Review groups - assign reviewers from specific groups based on files changed
+# Uncomment and configure when team is established
+# reviewGroups:
+#   playerbotTeam:
+#     - playerbot-dev1
+#     - playerbot-dev2
+#   coreTeam:
+#     - core-dev1
+#     - core-dev2
+
+# Filter by PR author
+# Useful to exclude bots or specific users from auto-assignment
+filterLabels:
+  include: []
+  exclude:
+    - 'automated'
+    - 'upstream-sync'
+
+# Skip draft PRs
+skipDraft: true
+
+# Run only when the PR is opened
+runOnDraft: false
+
+# Use CODEOWNERS-style file pattern matching
+# Uncomment to enable file-based reviewer assignment
+# useReviewGroups: true
+# assignFromBothGroups: false

@@ -1,0 +1,25 @@
+{
+  "name": "periodic_crash_check",
+  "description": "Automatically check for pending crash analysis requests every 30 seconds",
+  "enabled": true,
+  "interval_seconds": 30,
+  "type": "background_task",
+  "action": {
+    "check_directory": ".claude/crash_analysis_queue/requests",
+    "pattern": "request_*.json",
+    "filter": {
+      "status": "pending",
+      "has_response": false
+    },
+    "on_match": {
+      "command": "/analyze-crash",
+      "args": ["${request_id}"],
+      "autonomous": true,
+      "no_interaction": true
+    }
+  },
+  "logging": {
+    "level": "info",
+    "file": ".claude/logs/crash_auto_check.log"
+  }
+}

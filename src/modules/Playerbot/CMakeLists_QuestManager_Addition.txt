@@ -1,0 +1,13 @@
+# CMakeLists.txt additions for BotQuestManager
+# Add these lines to the PLAYERBOT_SOURCES section in CMakeLists.txt
+
+    # Game System Integration - Quest Management
+    ${CMAKE_CURRENT_SOURCE_DIR}/Game/QuestManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Game/QuestManager.cpp
+
+    # Quest Configuration Extensions
+    ${CMAKE_CURRENT_SOURCE_DIR}/Config/PlayerbotQuestConfig.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Config/PlayerbotQuestConfig.cpp
+
+    # BotAI Quest Integration
+    ${CMAKE_CURRENT_SOURCE_DIR}/AI/BotAIQuestIntegration.h

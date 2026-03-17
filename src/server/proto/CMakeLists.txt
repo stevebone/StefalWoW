@@ -30,6 +30,11 @@ target_link_libraries(proto
     common
     protobuf)
 
+# Add /FS flag for Windows to enable synchronous PDB writes (prevents C1041 errors with parallel compilation)
+if(MSVC)
+  target_compile_options(proto PRIVATE /FS)
+endif()
+
 set_target_properties(proto
   PROPERTIES
     COMPILE_WARNING_AS_ERROR ${WITH_WARNINGS_AS_ERRORS}

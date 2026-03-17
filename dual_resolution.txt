@@ -1,0 +1,59 @@
+    // PHASE 5D: Thread-safe validation - handle both GameObjects and Creatures
+    WorldObject* targetObject = nullptr;
+    bool isCreature = targetGuid.IsCreature();
+
+    if (isCreature)
+    {
+        // Target is a Creature (e.g., invisible fire trigger)
+        Creature* creature = ObjectAccessor::GetCreature(*bot, targetGuid);
+        if (creature && creature->IsAlive())
+        {
+            targetObject = creature;
+            TC_LOG_ERROR("module.playerbot.quest", "Found nearest valid Creature {} at ({:.1f}, {:.1f}, {:.1f}) - distance {:.1f}yd ({} valid nearby)",
+                         creature->GetEntry(),
+                         creature->GetPositionX(), creature->GetPositionY(), creature->GetPositionZ(),
+                         nearestDistance, validObjectsFound);
+        }
+    }
+    else
+    {
+        // Target is a GameObject
+        auto snapshot = SpatialGridQueryHelpers::FindGameObjectByGuid(bot, targetGuid);
+        if (snapshot)
+        {
+            GameObject* gameObject = ObjectAccessor::GetGameObject(*bot, targetGuid);
+            if (gameObject)
+            {
+                targetObject = gameObject;
+                TC_LOG_ERROR("module.playerbot.quest", "Found nearest valid GameObject {} at ({:.1f}, {:.1f}, {:.1f}) - distance {:.1f}yd ({} valid nearby)",
+                             gameObject->GetEntry(),
+                             gameObject->GetPositionX(), gameObject->GetPositionY(), gameObject->GetPositionZ(),
+                             nearestDistance, validObjectsFound);
+            }
+        }
+    }
+
+    if (!targetObject)
+    {
+        TC_LOG_ERROR("module.playerbot.quest", "UseQuestItemOnTarget: No valid target (GameObject or Creature) {} found (scanned {} nearby objects, {} were valid but GUID resolution failed)",
+                     targetObjectId, nearbyObjects.size(), validObjectsFound);
+
+        // All targets might be despawned/used - navigate to objective area to wait for respawn
+        NavigateToObjective(ai, objective);
+        return;
+    }
+
+    // CRITICAL: Calculate SAFE distance from target based on type and damage radius
+    float damageRadius = 0.0f;
+    bool causesDamage = false;
+    float safeDistance = 10.0f; // Default safe distance
+
+    // For GameObjects, detect damage-causing types and their radius
+    GameObject* gameObject = targetObject->ToGameObject();
+    if (gameObject)
+    {
+        GameObjectTemplate const* goInfo = gameObject->GetGOInfo();
+        if (goInfo)
+        {
+            switch (goInfo->type)
+            {

@@ -1,0 +1,46 @@
+{
+  "request_id": "d1255f91",
+  "timestamp": "2025-10-31T12:34:57.206529",
+  "status": "pending",
+  "crash": {
+    "crash_id": "88f4727e07b2",
+    "timestamp": "2025-10-31T12:34:57.202384",
+    "exception_code": "C0000005",
+    "crash_location": "EventDispatcher.cpp:132",
+    "crash_function": "Playerbot::Events::EventDispatcher::UnsubscribeAll",
+    "error_message": "ACCESS_VIOLATION",
+    "call_stack": [
+      "> >::end",
+      "Playerbot::Events::EventDispatcher::UnsubscribeAll @ EventDispatcher.cpp:132",
+      "Playerbot::CombatStateManager::OnShutdown @ CombatStateManager.cpp:150",
+      "CombatStateManager",
+      "00007FF6204CE364  00000067CC3FF9A0  Playerbot::CombatStateManager::`scalar deleting destructor'",
+      "BotAI",
+      "00007FF620516F14  00000067CC3FFA00  Playerbot::PriestAI::`scalar deleting destructor'",
+      "BotSession",
+      ">::_Call_immediate",
+      "> >::Execute",
+      "Playerbot::Performance::WorkerThread::TryStealTask @ ThreadPool.cpp:395",
+      "Playerbot::Performance::WorkerThread::Run @ ThreadPool.cpp:257",
+      "std::invoke",
+      ">,0,1>"
+    ],
+    "crash_category": "UNKNOWN_PATTERN",
+    "severity": "LOW",
+    "is_bot_related": true,
+    "root_cause_hypothesis": "Bot-related crash in Playerbot::Events::EventDispatcher::UnsubscribeAll at EventDispatcher.cpp:132. Check bot state management and lifecycle.\n\nCDB Analysis: Failure category: NULL_CLASS_PTR_READ_c0000005_worldserver.exe!Playerbot::Events::EventDispatcher::UnsubscribeAll",
+    "fix_suggestions": [
+      "Add extensive debug logging around EventDispatcher.cpp:132",
+      "Review recent changes to Playerbot::Events::EventDispatcher::UnsubscribeAll",
+      "Check for related crashes in crash database"
+    ]
+  },
+  "context": {
+    "errors_before_crash": [],
+    "warnings_before_crash": [],
+    "server_log_context": [],
+    "playerbot_log_context": []
+  },
+  "request_type": "comprehensive_analysis",
+  "priority": "medium"
+}

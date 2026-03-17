@@ -1,0 +1,385 @@
+name: Documentation Validation
+
+on:
+  push:
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/workflows/docs-validation.yml'
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Create markdownlint config
+        run: |
+          cat > .markdownlint.json << 'EOF'
+          {
+            "default": true,
+            "MD013": false,
+            "MD033": false,
+            "MD041": false,
+            "MD024": {
+              "siblings_only": true
+            },
+            "MD007": {
+              "indent": 2
+            },
+            "MD029": {
+              "style": "ordered"
+            }
+          }
+          EOF
+
+      - name: Run markdownlint
+        run: |
+          markdownlint '**/*.md' \
+            --ignore 'node_modules/**' \
+            --ignore 'dep/**' \
+            --ignore 'contrib/**' \
+            --config .markdownlint.json || true
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: markdown-lint-results
+          path: .markdownlint.json
+          retention-days: 7
+
+  link-checker:
+    name: Check Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install link checker
+        run: npm install -g markdown-link-check
+
+      - name: Create link check config
+        run: |
+          cat > .markdown-link-check.json << 'EOF'
+          {
+            "ignorePatterns": [
+              {
+                "pattern": "^http://localhost"
+              },
+              {
+                "pattern": "^http://127\\.0\\.0\\.1"
+              },
+              {
+                "pattern": "^https://github.com/.*/blob/"
+              },
+              {
+                "pattern": "^https://github.com/.*/tree/"
+              }
+            ],
+            "timeout": "10s",
+            "retryOn429": true,
+            "retryCount": 3,
+            "fallbackRetryDelay": "30s",
+            "aliveStatusCodes": [200, 206]
+          }
+          EOF
+
+      - name: Check links in markdown files
+        run: |
+          find . -name '*.md' \
+            -not -path './node_modules/*' \
+            -not -path './dep/*' \
+            -not -path './contrib/*' \
+            -print0 | xargs -0 -n1 markdown-link-check --config .markdown-link-check.json || true
+
+  spell-check:
+    name: Spell Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install cspell
+        run: npm install -g cspell
+
+      - name: Create cspell config
+        run: |
+          cat > cspell.json << 'EOF'
+          {
+            "version": "0.2",
+            "language": "en",
+            "words": [
+              "trinitycore",
+              "playerbot",
+              "worldserver",
+              "bnetserver",
+              "authserver",
+              "mapserver",
+              "cmake",
+              "msvc",
+              "clang",
+              "ccache",
+              "cmake",
+              "ninja",
+              "mysql",
+              "mariadb",
+              "openssl",
+              "libssl",
+              "libcrypto",
+              "libboost",
+              "homebrew",
+              "vcpkg",
+              "conan",
+              "zlib",
+              "libbz2",
+              "libreadline",
+              "icu4c",
+              "ctest",
+              "gtest",
+              "catch2",
+              "dbc",
+              "db2",
+              "wotlk",
+              "cataclysm",
+              "pandaria",
+              "draenor",
+              "legion",
+              "shadowlands",
+              "dragonflight",
+              "azeroth",
+              "kalimdor",
+              "outland",
+              "northrend",
+              "npc",
+              "npcs",
+              "gameobject",
+              "gameobjects",
+              "spellid",
+              "questid",
+              "creatureid",
+              "itemid",
+              "guid",
+              "guids",
+              "aura",
+              "auras",
+              "mana",
+              "ragebar",
+              "healthbar",
+              "hotbar",
+              "cooldown",
+              "cooldowns",
+              "aggro",
+              "taunt",
+              "proc",
+              "procs",
+              "buffs",
+              "debuffs",
+              "healer",
+              "healers",
+              "dps",
+              "tanking",
+              "worldsafe",
+              "graveyard",
+              "graveyards",
+              "repop",
+              "resurrect",
+              "respawn"
+            ],
+            "ignorePaths": [
+              "node_modules/**",
+              "dep/**",
+              "contrib/**",
+              ".git/**",
+              "*.sql",
+              "*.cpp",
+              "*.h",
+              "*.hpp"
+            ],
+            "ignoreWords": [
+              "cmake",
+              "config"
+            ]
+          }
+          EOF
+
+      - name: Run spell check
+        run: |
+          cspell '**/*.md' \
+            --no-progress \
+            --show-suggestions || true
+
+  validate-claude-md:
+    name: Validate CLAUDE.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Check CLAUDE.md exists
+        run: |
+          if [ ! -f "CLAUDE.md" ]; then
+            echo "Warning: CLAUDE.md not found in repository root"
+            exit 0
+          fi
+
+          echo "CLAUDE.md found"
+
+          # Check minimum size
+          SIZE=$(wc -c < CLAUDE.md)
+          if [ "$SIZE" -lt 1000 ]; then
+            echo "Warning: CLAUDE.md is very small ($SIZE bytes)"
+          else
+            echo "CLAUDE.md size: $SIZE bytes"
+          fi
+
+          # Check for required sections
+          REQUIRED_SECTIONS=("Project Context" "Quality Requirements" "MANDATORY WORKFLOW")
+
+          for section in "${REQUIRED_SECTIONS[@]}"; do
+            if grep -q "$section" CLAUDE.md; then
+              echo "Found section: $section"
+            else
+              echo "Warning: Missing section: $section"
+            fi
+          done
+
+  generate-docs-report:
+    name: Generate Report
+    runs-on: ubuntu-latest
+    needs: [markdown-lint, link-checker, spell-check, validate-claude-md]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Generate documentation report
+        run: |
+          cat > docs_report.md << 'EOF'
+          # Documentation Validation Report
+
+          **Repository:** ${{ github.repository }}
+          **Commit:** ${{ github.sha }}
+          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          ## Validation Results
+
+          | Check | Status |
+          |-------|--------|
+          | Markdown Lint | ${{ needs.markdown-lint.result }} |
+          | Link Checker | ${{ needs.link-checker.result }} |
+          | Spell Check | ${{ needs.spell-check.result }} |
+          | CLAUDE.md Validation | ${{ needs.validate-claude-md.result }} |
+
+          ## Markdown Files Checked
+
+          $(find . -name '*.md' -not -path './node_modules/*' -not -path './dep/*' -not -path './contrib/*' | wc -l) files
+
+          ## Recommendations
+
+          - Fix any markdown formatting issues
+          - Update broken links
+          - Add missing words to spell check dictionary
+          - Ensure CLAUDE.md has all required sections
+
+          ---
+
+          _Generated by Documentation Validation Workflow_
+          EOF
+
+          cat docs_report.md
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-validation-report
+          path: docs_report.md
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `
+            ## Documentation Validation Results
+
+            | Check | Status |
+            |-------|--------|
+            | Markdown Lint | ${{ needs.markdown-lint.result == 'success' && '✅' || '⚠️' }} |
+            | Link Checker | ${{ needs.link-checker.result == 'success' && '✅' || '⚠️' }} |
+            | Spell Check | ${{ needs.spell-check.result == 'success' && '✅' || '⚠️' }} |
+            | CLAUDE.md | ${{ needs.validate-claude-md.result == 'success' && '✅' || '⚠️' }} |
+
+            For detailed results, check the workflow artifacts.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This documentation validation workflow provides:
+#
+# 1. Markdown Lint:
+#    - Style and formatting checks
+#    - Consistent markdown structure
+#
+# 2. Link Checker:
+#    - Validates internal and external links
+#    - Reports broken links
+#
+# 3. Spell Check:
+#    - Technical dictionary for game terms
+#    - TrinityCore-specific vocabulary
+#
+# 4. CLAUDE.md Validation:
+#    - Ensures AI guidance file exists
+#    - Checks for required sections
+#
+# Triggers:
+# - Push/PR affecting markdown files
+# - Manual workflow_dispatch
+#
+# All checks are non-blocking (continue-on-error) to provide feedback
+# without failing the entire workflow.
+# ==============================================================================

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayerBot Monitoring Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .metric-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .metric-icon {
+            font-size: 24px;
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .metric-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-good { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-critical { color: #ef4444; }
+        
+        .last-update {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 PlayerBot Monitoring Dashboard</h1>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">System Status</div>
+                    <div class="metric-icon">🖥️</div>
+                </div>
+                <div class="metric-value status-good">
+                    <span class="status-indicator status-good" style="background: #10b981;"></span>
+                    Online
+                </div>
+                <div class="metric-subtitle">Monitoring Active</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">CPU Usage</div>
+                    <div class="metric-icon">⚡</div>
+                </div>
+                <div class="metric-value" id="cpu-value">--</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="cpu-progress" style="background: #3b82f6;"></div>
+                </div>
+                <div class="metric-subtitle">Processor Load</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">Memory Usage</div>
+                    <div class="metric-icon">💾</div>
+                </div>
+                <div class="metric-value" id="memory-value">--</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="memory-progress" style="background: #10b981;"></div>
+                </div>
+                <div class="metric-subtitle" id="memory-subtitle">RAM Usage</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">Disk Usage</div>
+                    <div class="metric-icon">💿</div>
+                </div>
+                <div class="metric-value" id="disk-value">--</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="disk-progress" style="background: #f59e0b;"></div>
+                </div>
+                <div class="metric-subtitle">Storage</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">TrinityCore</div>
+                    <div class="metric-icon">🎮</div>
+                </div>
+                <div class="metric-value" id="trinity-status">--</div>
+                <div class="metric-subtitle" id="trinity-subtitle">Server Status</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">Processes</div>
+                    <div class="metric-icon">📊</div>
+                </div>
+                <div class="metric-value" id="process-count">--</div>
+                <div class="metric-subtitle">Active Processes</div>
+            </div>
+        </div>
+        
+        <div class="last-update" id="last-update">
+            Last updated: Loading...
+        </div>
+    </div>
+
+    <script>
+        function updateMetrics() {
+            fetch('./metrics.json')
+                .then(response => response.json())
+                .then(data => {
+                    // Update timestamp
+                    const timestamp = new Date(data.timestamp);
+                    document.getElementById('last-update').textContent = 
+                        `Last updated: ${timestamp.toLocaleString()}`;
+                    
+                    // Update CPU
+                    const cpuValue = data.cpu_usage || 0;
+                    document.getElementById('cpu-value').textContent = `${cpuValue}%`;
+                    document.getElementById('cpu-progress').style.width = `${cpuValue}%`;
+                    updateValueColor('cpu-value', cpuValue, 70, 85);
+                    
+                    // Update Memory
+                    const memValue = data.memory_usage || 0;
+                    const memUsed = data.memory_used_gb || 0;
+                    document.getElementById('memory-value').textContent = `${memValue}%`;
+                    document.getElementById('memory-subtitle').textContent = `${memUsed} GB Used`;
+                    document.getElementById('memory-progress').style.width = `${memValue}%`;
+                    updateValueColor('memory-value', memValue, 70, 85);
+                    
+                    // Update Disk
+                    const diskValue = data.disk_usage || 0;
+                    document.getElementById('disk-value').textContent = `${diskValue}%`;
+                    document.getElementById('disk-progress').style.width = `${diskValue}%`;
+                    updateValueColor('disk-value', diskValue, 80, 90);
+                    
+                    // Update Trinity
+                    const trinityRunning = data.trinity_running;
+                    const trinityElement = document.getElementById('trinity-status');
+                    if (trinityRunning) {
+                        trinityElement.innerHTML = '<span class="status-indicator" style="background: #10b981;"></span>Running';
+                        trinityElement.className = 'metric-value status-good';
+                        document.getElementById('trinity-subtitle').textContent = 
+                            `Memory: ${data.trinity_memory_mb || 0} MB`;
+                    } else {
+                        trinityElement.innerHTML = '<span class="status-indicator" style="background: #ef4444;"></span>Stopped';
+                        trinityElement.className = 'metric-value status-critical';
+                        document.getElementById('trinity-subtitle').textContent = 'Server Offline';
+                    }
+                    
+                    // Update process count
+                    document.getElementById('process-count').textContent = data.process_count || '--';
+                })
+                .catch(error => {
+                    console.warn('Could not load metrics:', error);
+                    document.getElementById('last-update').textContent = 
+                        'Last updated: Error loading data';
+                });
+        }
+        
+        function updateValueColor(elementId, value, warningThreshold, criticalThreshold) {
+            const element = document.getElementById(elementId);
+            element.className = 'metric-value';
+            
+            if (value >= criticalThreshold) {
+                element.classList.add('status-critical');
+            } else if (value >= warningThreshold) {
+                element.classList.add('status-warning');
+            } else {
+                element.classList.add('status-good');
+            }
+        }
+        
+        // Update metrics immediately and then every 5 seconds
+        updateMetrics();
+        setInterval(updateMetrics, 5000);
+    </script>
+</body>
+</html>

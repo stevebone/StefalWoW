@@ -1,0 +1,63 @@
+2025-09-25 12:04:30,074 - __main__ - INFO - Starting complete review in standard mode
+2025-09-25 12:04:30,075 - __main__ - INFO - Executing agent: playerbot-project-coordinator
+2025-09-25 12:04:30,076 - __main__ - INFO - Agent playerbot-project-coordinator completed successfully
+2025-09-25 12:04:30,076 - __main__ - INFO - Executing agent: trinity-integration-tester
+2025-09-25 12:04:30,077 - __main__ - INFO - Agent trinity-integration-tester completed successfully
+2025-09-25 12:04:30,077 - __main__ - INFO - Executing agent: code-quality-reviewer
+2025-09-25 12:04:30,078 - __main__ - INFO - Agent code-quality-reviewer completed successfully
+2025-09-25 12:04:30,078 - __main__ - INFO - Executing agent: security-auditor
+2025-09-25 12:04:30,079 - __main__ - INFO - Agent security-auditor completed successfully
+2025-09-25 12:04:30,080 - __main__ - INFO - Executing agent: performance-analyzer
+2025-09-25 12:04:30,080 - __main__ - INFO - Agent performance-analyzer completed successfully
+2025-09-25 12:04:30,081 - __main__ - INFO - Executing agent: cpp-architecture-optimizer
+2025-09-25 12:04:30,081 - __main__ - INFO - Agent cpp-architecture-optimizer completed successfully
+2025-09-25 12:04:30,081 - __main__ - INFO - Executing agent: enterprise-compliance-checker
+2025-09-25 12:04:30,082 - __main__ - INFO - Agent enterprise-compliance-checker completed successfully
+2025-09-25 12:04:30,082 - __main__ - INFO - Executing agent: automated-fix-agent
+2025-09-25 12:04:30,083 - __main__ - INFO - Agent automated-fix-agent completed successfully
+2025-09-25 12:04:30,084 - __main__ - INFO - Executing agent: test-automation-engineer
+2025-09-25 12:04:30,084 - __main__ - INFO - Agent test-automation-engineer completed successfully
+2025-09-25 12:04:30,085 - __main__ - INFO - Final report saved to C:\TrinityBots\TrinityCore\.claude\reports\final_report_2025-09-25.json
+2025-09-25 12:04:30,086 - __main__ - INFO - HTML report saved to C:\TrinityBots\TrinityCore\.claude\reports\report_2025-09-25.html
+2025-09-25 13:36:18,621 - __main__ - INFO - Starting complete review in standard mode
+2025-09-25 13:36:18,621 - __main__ - INFO - Executing agent: playerbot-project-coordinator
+2025-09-25 13:36:18,622 - __main__ - INFO - Agent playerbot-project-coordinator completed successfully
+2025-09-25 13:36:18,622 - __main__ - INFO - Executing agent: trinity-integration-tester
+2025-09-25 13:36:18,622 - __main__ - INFO - Agent trinity-integration-tester completed successfully
+2025-09-25 13:36:18,623 - __main__ - INFO - Executing agent: code-quality-reviewer
+2025-09-25 13:36:18,623 - __main__ - INFO - Agent code-quality-reviewer completed successfully
+2025-09-25 13:36:18,623 - __main__ - INFO - Executing agent: security-auditor
+2025-09-25 13:36:18,624 - __main__ - INFO - Agent security-auditor completed successfully
+2025-09-25 13:36:18,624 - __main__ - INFO - Executing agent: performance-analyzer
+2025-09-25 13:36:18,624 - __main__ - INFO - Agent performance-analyzer completed successfully
+2025-09-25 13:36:18,624 - __main__ - INFO - Executing agent: cpp-architecture-optimizer
+2025-09-25 13:36:18,625 - __main__ - INFO - Agent cpp-architecture-optimizer completed successfully
+2025-09-25 13:36:18,625 - __main__ - INFO - Executing agent: enterprise-compliance-checker
+2025-09-25 13:36:18,626 - __main__ - INFO - Agent enterprise-compliance-checker completed successfully
+2025-09-25 13:36:18,626 - __main__ - INFO - Executing agent: automated-fix-agent
+2025-09-25 13:36:18,626 - __main__ - INFO - Agent automated-fix-agent completed successfully
+2025-09-25 13:36:18,626 - __main__ - INFO - Executing agent: test-automation-engineer
+2025-09-25 13:36:18,627 - __main__ - INFO - Agent test-automation-engineer completed successfully
+2025-09-25 13:36:18,628 - __main__ - INFO - Final report saved to C:\TrinityBots\TrinityCore\.claude\reports\final_report_2025-09-25.json
+2025-09-25 13:36:18,628 - __main__ - INFO - HTML report saved to C:\TrinityBots\TrinityCore\.claude\reports\report_2025-09-25.html
+2025-09-25 14:27:04,106 - __main__ - INFO - Starting complete review in standard mode
+2025-09-25 14:27:04,106 - __main__ - INFO - Executing agent: playerbot-project-coordinator
+2025-09-25 14:27:04,107 - __main__ - INFO - Agent playerbot-project-coordinator completed successfully
+2025-09-25 14:27:04,107 - __main__ - INFO - Executing agent: trinity-integration-tester
+2025-09-25 14:27:04,108 - __main__ - INFO - Agent trinity-integration-tester completed successfully
+2025-09-25 14:27:04,108 - __main__ - INFO - Executing agent: code-quality-reviewer
+2025-09-25 14:27:04,108 - __main__ - INFO - Agent code-quality-reviewer completed successfully
+2025-09-25 14:27:04,108 - __main__ - INFO - Executing agent: security-auditor
+2025-09-25 14:27:04,109 - __main__ - INFO - Agent security-auditor completed successfully
+2025-09-25 14:27:04,109 - __main__ - INFO - Executing agent: performance-analyzer
+2025-09-25 14:27:04,109 - __main__ - INFO - Agent performance-analyzer completed successfully
+2025-09-25 14:27:04,110 - __main__ - INFO - Executing agent: cpp-architecture-optimizer
+2025-09-25 14:27:04,110 - __main__ - INFO - Agent cpp-architecture-optimizer completed successfully
+2025-09-25 14:27:04,110 - __main__ - INFO - Executing agent: enterprise-compliance-checker
+2025-09-25 14:27:04,111 - __main__ - INFO - Agent enterprise-compliance-checker completed successfully
+2025-09-25 14:27:04,111 - __main__ - INFO - Executing agent: automated-fix-agent
+2025-09-25 14:27:04,111 - __main__ - INFO - Agent automated-fix-agent completed successfully
+2025-09-25 14:27:04,112 - __main__ - INFO - Executing agent: test-automation-engineer
+2025-09-25 14:27:04,112 - __main__ - INFO - Agent test-automation-engineer completed successfully
+2025-09-25 14:27:04,113 - __main__ - INFO - Final report saved to C:\TrinityBots\TrinityCore\.claude\reports\final_report_2025-09-25.json
+2025-09-25 14:27:04,114 - __main__ - INFO - HTML report saved to C:\TrinityBots\TrinityCore\.claude\reports\report_2025-09-25.html

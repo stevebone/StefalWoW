@@ -349,6 +349,7 @@ class TC_GAME_API Group
         void ChangeMembersGroup(ObjectGuid guid, uint8 group);
         void SwapMembersGroups(ObjectGuid firstGuid, ObjectGuid secondGuid);
         void SetTargetIcon(uint8 symbol, ObjectGuid target, ObjectGuid changedBy);
+        ObjectGuid GetTargetIcon(uint8 symbol) const { return symbol < TARGET_ICONS_COUNT ? m_targetIcons[symbol] : ObjectGuid::Empty; }
         void SetGroupMemberFlag(ObjectGuid guid, bool apply, GroupMemberFlags flag);
         void RemoveUniqueGroupMemberFlag(GroupMemberFlags flag);
 
@@ -377,6 +378,13 @@ class TC_GAME_API Group
 
         void BroadcastPacket(WorldPacket const* packet, bool ignorePlayersInBGRaid, int group = -1, ObjectGuid ignoredPlayer = ObjectGuid::Empty) const;
         void BroadcastAddonMessagePacket(WorldPacket const* packet, const std::string& prefix, bool ignorePlayersInBGRaid, int group = -1, ObjectGuid ignore = ObjectGuid::Empty) const;
+
+#ifdef BUILD_PLAYERBOT
+        // Typed packet overload for playerbot packet sniffer
+        // Allows bots to access typed packet data before serialization
+        template<typename PacketType>
+        void BroadcastPacket(PacketType const& typedPacket, bool ignorePlayersInBGRaid, int group = -1, ObjectGuid ignoredPlayer = ObjectGuid::Empty) const;
+#endif
 
         void LinkMember(GroupReference* pRef);
         void DelinkMember(ObjectGuid guid);
@@ -464,4 +472,40 @@ class TC_GAME_API Group
         struct NoopGroupDeleter { void operator()(Group*) const { /*noop - not managed*/ } };
         Trinity::unique_trackable_ptr<Group> m_scriptRef;
 };
+
+#ifdef BUILD_PLAYERBOT
+// Template implementation for typed packet broadcasting
+// Must be in header for template instantiation
+
+#include "../Entities/Player/Player.h"
+#include "../../../../modules/Playerbot/Network/PlayerbotPacketSniffer.h"
+#include "../../../../modules/Playerbot/Core/PlayerBotHooks.h"
+
+template<typename PacketType>
+void Group::BroadcastPacket(PacketType const& typedPacket, bool ignorePlayersInBGRaid, int group, ObjectGuid ignoredPlayer) const
+{
+    // Notify playerbot packet sniffer for each bot member BEFORE serialization
+    for (GroupReference const& itr : GetMembers())
+    {
+        Player* player = itr.GetSource();
+        if (!player || player->GetGUID() == ignoredPlayer)
+            continue;
+
+        if (ignorePlayersInBGRaid && isBGGroup() && player->GetBattlegroundId() == GetGUID().GetCounter())
+            continue;
+
+        if (group != -1 && player->GetGroup() != this)
+            continue;
+
+        WorldSession* session = player->GetSession();
+        if (session && Playerbot::PlayerBotHooks::IsPlayerBot(player))
+            Playerbot::PlayerbotPacketSniffer::OnTypedPacket(session, typedPacket);
+    }
+
+    // Call existing BroadcastPacket with serialized packet
+    BroadcastPacket(typedPacket.Write(), ignorePlayersInBGRaid, group, ignoredPlayer);
+}
+
+#endif // BUILD_PLAYERBOT
+
 #endif

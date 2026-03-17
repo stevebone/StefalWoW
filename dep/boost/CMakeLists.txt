@@ -8,6 +8,26 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+# Use system Boost 1.89 when building with playerbot to avoid vcpkg conflicts
+# Skip custom FindSystemBoost on CI (GITHUB_ACTIONS env var) - use standard finding
+if(BUILD_PLAYERBOT AND NOT DEFINED ENV{GITHUB_ACTIONS})
+    message(STATUS "Using system Boost 1.89 for Playerbot compatibility")
+    include(${CMAKE_SOURCE_DIR}/cmake/FindSystemBoost.cmake)
+
+    # Create the boost interface target using system boost
+    add_library(boost INTERFACE)
+    target_link_libraries(boost INTERFACE ${Boost_LIBRARIES})
+    target_include_directories(boost INTERFACE ${Boost_INCLUDE_DIRS})
+    target_compile_definitions(boost
+        INTERFACE
+            BOOST_ALL_NO_LIB
+            BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+            BOOST_ASIO_NO_DEPRECATED
+            BOOST_BIND_NO_PLACEHOLDERS
+            BOOST_SYSTEM_USE_UTF8)
+    return()
+endif()
+
 set(BOOST_SEARCH_HINTS)
 if(WIN32)
   if(DEFINED ENV{BOOST_ROOT})
@@ -39,7 +59,7 @@ endif()
 
 if (WIN32)
   # On windows the requirements are higher according to the wiki.
-  set(BOOST_REQUIRED_VERSION 1.78)
+  set(BOOST_REQUIRED_VERSION 1.89)
 else()
   set(BOOST_REQUIRED_VERSION 1.74)
 endif()

@@ -428,7 +428,9 @@ LfgCompatibility LFGQueue::CheckCompatibility(GuidList check)
 
         LfgCompatibilityData data(LFG_COMPATIBLES_WITH_LESS_PLAYERS);
         data.roles = itQueue->second.roles;
-        LFGMgr::CheckGroupRoles(data.roles);
+        // FIX: Don't call CheckGroupRoles here - it modifies roles and breaks matching
+        // Role validation was already done when joining the queue (see comment at line 452)
+        // Preserving original flexible roles allows proper matching with other players
 
         UpdateBestCompatibleInQueue(itQueue, strGuids, data.roles);
         SetCompatibilityData(strGuids, data);

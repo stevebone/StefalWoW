@@ -80,6 +80,9 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_DEL_GAMEOBJECT_ADDON, "DELETE FROM gameobject_addon WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_SEL_GUILD_REWARDS_REQ_ACHIEVEMENTS, "SELECT AchievementRequired FROM guild_rewards_req_achievements WHERE ItemID = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_INS_CONDITION, "INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+
+    // Playerbot module statements
+    PrepareStatement(WORLD_SEL_QUEST_GIVER_SPAWNS, "SELECT c.guid, c.id, c.position_x, c.position_y, c.position_z, c.map, ct.faction, COALESCE(c.zoneId, 0) as zoneId FROM creature c INNER JOIN creature_template ct ON c.id = ct.entry WHERE ct.npcflag & 2 != 0", CONNECTION_SYNCH);
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)

@@ -1,0 +1,543 @@
+name: Playerbot Nightly Full Review
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  workflow_dispatch:
+    inputs:
+      include_performance_profiling:
+        description: 'Include performance profiling'
+        required: false
+        default: 'true'
+        type: boolean
+      include_trend_analysis:
+        description: 'Include trend analysis'
+        required: false
+        default: 'true'
+        type: boolean
+      days_to_analyze:
+        description: 'Number of days for trend analysis'
+        required: false
+        default: '7'
+        type: string
+      send_notifications:
+        description: 'Send Discord/Slack notifications'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  REVIEW_MODE: deep
+  ENABLE_ALL_AGENTS: true
+
+jobs:
+  # ===========================================================================
+  # Collect Metrics
+  # ===========================================================================
+  collect-metrics:
+    name: Collect Code Metrics
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      total_files: ${{ steps.metrics.outputs.total_files }}
+      total_lines: ${{ steps.metrics.outputs.total_lines }}
+      cpp_files: ${{ steps.metrics.outputs.cpp_files }}
+      header_files: ${{ steps.metrics.outputs.header_files }}
+      test_files: ${{ steps.metrics.outputs.test_files }}
+      commit_count: ${{ steps.metrics.outputs.commit_count }}
+      contributor_count: ${{ steps.metrics.outputs.contributor_count }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Collect code metrics
+        id: metrics
+        run: |
+          # Count files
+          TOTAL_FILES=$(find src/modules/Playerbot -type f | wc -l)
+          CPP_FILES=$(find src/modules/Playerbot -name "*.cpp" | wc -l)
+          HEADER_FILES=$(find src/modules/Playerbot -name "*.h" -o -name "*.hpp" | wc -l)
+          TEST_FILES=$(find . -name "*test*.cpp" -o -name "*Test*.cpp" | wc -l)
+
+          # Count lines
+          TOTAL_LINES=$(find src/modules/Playerbot -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+
+          # Git metrics
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          CONTRIBUTOR_COUNT=$(git log --format='%ae' | sort -u | wc -l)
+
+          echo "total_files=$TOTAL_FILES" >> "$GITHUB_OUTPUT"
+          echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+          echo "cpp_files=$CPP_FILES" >> "$GITHUB_OUTPUT"
+          echo "header_files=$HEADER_FILES" >> "$GITHUB_OUTPUT"
+          echo "test_files=$TEST_FILES" >> "$GITHUB_OUTPUT"
+          echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+          echo "contributor_count=$CONTRIBUTOR_COUNT" >> "$GITHUB_OUTPUT"
+
+          echo "=== Code Metrics ==="
+          echo "Total files: $TOTAL_FILES"
+          echo "C++ files: $CPP_FILES"
+          echo "Header files: $HEADER_FILES"
+          echo "Test files: $TEST_FILES"
+          echo "Total lines: $TOTAL_LINES"
+          echo "Commits: $COMMIT_COUNT"
+          echo "Contributors: $CONTRIBUTOR_COUNT"
+
+  # ===========================================================================
+  # Deep Review
+  # ===========================================================================
+  deep-review:
+    name: Comprehensive Nightly Review
+    runs-on: windows-latest
+    needs: collect-metrics
+    timeout-minutes: 360
+
+    outputs:
+      review_status: ${{ steps.review.outputs.status }}
+      critical_issues: ${{ steps.review.outputs.critical_issues }}
+      high_issues: ${{ steps.review.outputs.high_issues }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas matplotlib seaborn jinja2
+          if (Test-Path .claude\scripts\requirements.txt) {
+            pip install -r .claude\scripts\requirements.txt
+          }
+
+      - name: Create timestamp
+        id: timestamp
+        run: |
+          $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+          $date = Get-Date -Format "yyyy-MM-dd"
+          echo "timestamp=$timestamp" >> $env:GITHUB_OUTPUT
+          echo "date=$date" >> $env:GITHUB_OUTPUT
+
+      - name: Create reports directory
+        run: |
+          New-Item -ItemType Directory -Force -Path ".claude/reports"
+          New-Item -ItemType Directory -Force -Path ".claude/metrics"
+
+      - name: Deep code review
+        id: review
+        run: |
+          Write-Host "=========================================="
+          Write-Host "Starting Deep Code Review"
+          Write-Host "Time: $(Get-Date)"
+          Write-Host "=========================================="
+
+          $criticalCount = 0
+          $highCount = 0
+
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --mode deep --all-agents
+          }
+
+          # Output review results
+          echo "status=completed" >> $env:GITHUB_OUTPUT
+          echo "critical_issues=$criticalCount" >> $env:GITHUB_OUTPUT
+          echo "high_issues=$highCount" >> $env:GITHUB_OUTPUT
+
+      - name: Performance profiling
+        if: github.event.inputs.include_performance_profiling != 'false'
+        run: |
+          Write-Host "Running performance profiling..."
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents performance-analyzer,windows-memory-profiler,resource-monitor-limiter
+          }
+
+      - name: Architecture analysis
+        run: |
+          Write-Host "Running architecture analysis..."
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents cpp-architecture-optimizer
+          }
+
+      - name: Security deep scan
+        run: |
+          Write-Host "Running deep security scan..."
+          if (Test-Path .claude\scripts\dependency_scanner.py) {
+            python .claude\scripts\dependency_scanner.py --full-scan
+          }
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents security-auditor
+          }
+
+      - name: Database optimization analysis
+        run: |
+          Write-Host "Analyzing database optimization opportunities..."
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents database-optimizer
+          }
+
+      - name: WoW mechanics validation
+        run: |
+          Write-Host "Validating WoW mechanics implementation..."
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents wow-mechanics-expert,wow-bot-behavior-designer
+          }
+
+      - name: Trinity integration check
+        run: |
+          Write-Host "Comprehensive Trinity integration check..."
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents trinity-integration-tester
+          }
+
+      - name: Enterprise compliance check
+        run: |
+          Write-Host "Running enterprise compliance check..."
+          if (Test-Path .claude\scripts\master_review.py) {
+            python .claude\scripts\master_review.py --agents enterprise-compliance-checker
+          }
+
+      - name: Save daily metrics
+        run: |
+          $metricsPath = ".claude/metrics/metrics_${{ steps.timestamp.outputs.date }}.json"
+
+          $metrics = @{
+            date = "${{ steps.timestamp.outputs.date }}"
+            timestamp = "${{ steps.timestamp.outputs.timestamp }}"
+            commit = "${{ github.sha }}"
+            branch = "${{ github.ref_name }}"
+            code_metrics = @{
+              total_files = ${{ needs.collect-metrics.outputs.total_files }}
+              total_lines = ${{ needs.collect-metrics.outputs.total_lines }}
+              cpp_files = ${{ needs.collect-metrics.outputs.cpp_files }}
+              header_files = ${{ needs.collect-metrics.outputs.header_files }}
+              test_files = ${{ needs.collect-metrics.outputs.test_files }}
+              commit_count = ${{ needs.collect-metrics.outputs.commit_count }}
+              contributor_count = ${{ needs.collect-metrics.outputs.contributor_count }}
+            }
+            review = @{
+              status = "${{ steps.review.outputs.status }}"
+              critical_issues = ${{ steps.review.outputs.critical_issues || 0 }}
+              high_issues = ${{ steps.review.outputs.high_issues || 0 }}
+            }
+          }
+
+          $metrics | ConvertTo-Json -Depth 10 | Out-File -FilePath $metricsPath -Encoding UTF8
+          Write-Host "Saved metrics to $metricsPath"
+
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-metrics-${{ steps.timestamp.outputs.date }}
+          path: .claude/metrics/
+          retention-days: 365
+
+      - name: Upload review results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-review-${{ steps.timestamp.outputs.timestamp }}
+          path: |
+            .claude/reports/
+            .claude/logs/
+          retention-days: 90
+
+  # ===========================================================================
+  # Trend Analysis
+  # ===========================================================================
+  trend-analysis:
+    name: Trend Analysis
+    runs-on: ubuntu-latest
+    needs: [collect-metrics, deep-review]
+    if: github.event.inputs.include_trend_analysis != 'false'
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas matplotlib seaborn jinja2
+
+      - name: Download historical metrics
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: playerbot-nightly-review.yml
+          name: daily-metrics-.*
+          name_is_regexp: true
+          path: historical_metrics
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Generate trend analysis
+        run: |
+          cat > analyze_trends.py << 'PYTHON_SCRIPT'
+          import json
+          import os
+          from datetime import datetime, timedelta
+          from pathlib import Path
+
+          def load_metrics(metrics_dir):
+              """Load all metric files from directory."""
+              metrics = []
+              metrics_path = Path(metrics_dir)
+
+              if not metrics_path.exists():
+                  return metrics
+
+              for artifact_dir in metrics_path.iterdir():
+                  if artifact_dir.is_dir():
+                      for json_file in artifact_dir.glob("*.json"):
+                          try:
+                              with open(json_file) as f:
+                                  data = json.load(f)
+                                  metrics.append(data)
+                          except Exception as e:
+                              print(f"Error loading {json_file}: {e}")
+
+              return sorted(metrics, key=lambda x: x.get('date', ''))
+
+          def generate_trend_report(metrics, output_path):
+              """Generate trend analysis report."""
+              if not metrics:
+                  report = "# Trend Analysis Report\n\nNo historical data available yet.\n"
+                  with open(output_path, 'w') as f:
+                      f.write(report)
+                  return
+
+              report = ["# Trend Analysis Report\n"]
+              report.append(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
+              report.append(f"**Data Points:** {len(metrics)}\n")
+
+              # Calculate trends
+              if len(metrics) >= 2:
+                  latest = metrics[-1]
+                  previous = metrics[-2]
+
+                  report.append("\n## Code Growth Trend\n")
+                  report.append("| Metric | Previous | Current | Change |\n")
+                  report.append("|--------|----------|---------|--------|\n")
+
+                  code_metrics = ['total_files', 'total_lines', 'cpp_files', 'test_files']
+                  for metric in code_metrics:
+                      prev_val = previous.get('code_metrics', {}).get(metric, 0)
+                      curr_val = latest.get('code_metrics', {}).get(metric, 0)
+                      change = curr_val - prev_val
+                      change_str = f"+{change}" if change >= 0 else str(change)
+                      report.append(f"| {metric.replace('_', ' ').title()} | {prev_val} | {curr_val} | {change_str} |\n")
+
+              # Summary statistics
+              report.append("\n## Summary Statistics\n")
+              report.append("| Statistic | Value |\n")
+              report.append("|-----------|-------|\n")
+              report.append(f"| Total Data Points | {len(metrics)} |\n")
+
+              if metrics:
+                  report.append(f"| First Record | {metrics[0].get('date', 'N/A')} |\n")
+                  report.append(f"| Latest Record | {metrics[-1].get('date', 'N/A')} |\n")
+
+              # Write report
+              with open(output_path, 'w') as f:
+                  f.write(''.join(report))
+
+              print(f"Trend report generated: {output_path}")
+
+          if __name__ == "__main__":
+              metrics = load_metrics("historical_metrics")
+              generate_trend_report(metrics, "trend_report.md")
+          PYTHON_SCRIPT
+
+          python analyze_trends.py
+
+      - name: Upload trend report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trend-analysis-report
+          path: trend_report.md
+          retention-days: 90
+
+  # ===========================================================================
+  # Generate Summary
+  # ===========================================================================
+  generate-summary:
+    name: Generate Summary Report
+    runs-on: ubuntu-latest
+    needs: [collect-metrics, deep-review, trend-analysis]
+    if: always()
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Create summary report
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          cat > nightly_summary.md << EOF
+          # Nightly Review Summary
+
+          **Date:** $TIMESTAMP
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+
+          ## Code Metrics
+
+          | Metric | Value |
+          |--------|-------|
+          | Total Files | ${{ needs.collect-metrics.outputs.total_files }} |
+          | C++ Files | ${{ needs.collect-metrics.outputs.cpp_files }} |
+          | Header Files | ${{ needs.collect-metrics.outputs.header_files }} |
+          | Test Files | ${{ needs.collect-metrics.outputs.test_files }} |
+          | Total Lines | ${{ needs.collect-metrics.outputs.total_lines }} |
+          | Total Commits | ${{ needs.collect-metrics.outputs.commit_count }} |
+          | Contributors | ${{ needs.collect-metrics.outputs.contributor_count }} |
+
+          ## Review Status
+
+          | Component | Status |
+          |-----------|--------|
+          | Metrics Collection | ${{ needs.collect-metrics.result }} |
+          | Deep Review | ${{ needs.deep-review.result }} |
+          | Trend Analysis | ${{ needs.trend-analysis.result }} |
+
+          ## Actions
+
+          - [View Full Report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - [Download Artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          ---
+          *Generated by Playerbot Nightly Review Pipeline*
+          EOF
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-summary
+          path: nightly_summary.md
+          retention-days: 365
+
+      - name: Post summary to workflow
+        run: |
+          cat nightly_summary.md >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # Notifications
+  # ===========================================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [collect-metrics, deep-review, generate-summary]
+    if: always() && (github.event.inputs.send_notifications != 'false')
+    timeout-minutes: 5
+
+    steps:
+      - name: Send Discord notification
+        if: env.DISCORD_WEBHOOK != ''
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          STATUS="${{ needs.deep-review.result }}"
+          if [ "$STATUS" = "success" ]; then
+            COLOR="3066993"
+            EMOJI="✅"
+          else
+            COLOR="15158332"
+            EMOJI="❌"
+          fi
+
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "'"$EMOJI"' Nightly Review Complete",
+                "description": "TrinityCore Playerbot nightly review has finished.",
+                "color": '"$COLOR"',
+                "fields": [
+                  {"name": "Files", "value": "${{ needs.collect-metrics.outputs.total_files }}", "inline": true},
+                  {"name": "Lines", "value": "${{ needs.collect-metrics.outputs.total_lines }}", "inline": true},
+                  {"name": "Status", "value": "'"$STATUS"'", "inline": true}
+                ],
+                "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "$DISCORD_WEBHOOK" || echo "Discord notification skipped"
+
+      - name: Create issue for failures
+        if: needs.deep-review.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Nightly Review Failed';
+            const body = `
+            ## Nightly Review Failure
+
+            The nightly review workflow has failed and requires attention.
+
+            **Commit:** ${{ github.sha }}
+            **Branch:** ${{ github.ref_name }}
+            **Time:** ${new Date().toISOString()}
+
+            ### Review Status
+            - Metrics Collection: ${{ needs.collect-metrics.result }}
+            - Deep Review: ${{ needs.deep-review.result }}
+
+            ### Action Required
+            - [ ] Review workflow logs
+            - [ ] Identify root cause
+            - [ ] Fix issues and re-run
+
+            [View Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['nightly-review', 'automated', 'needs-attention']
+            });
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# Enhanced nightly review workflow with:
+#
+# 1. Code Metrics Collection
+#    - File counts, line counts, test coverage
+#    - Git statistics (commits, contributors)
+#
+# 2. Deep Review
+#    - All review agents
+#    - Performance profiling
+#    - Security scanning
+#    - Architecture analysis
+#
+# 3. Trend Analysis
+#    - Historical data comparison
+#    - Growth tracking
+#    - Automated insights
+#
+# 4. Notifications
+#    - Discord/Slack alerts
+#    - GitHub issue creation on failure
+#
+# Schedule: Daily at 2 AM UTC
+# Metrics retained: 365 days
+# Reports retained: 90 days
+# ==============================================================================

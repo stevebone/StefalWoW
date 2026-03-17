@@ -1,0 +1,15 @@
+COMPILATION ERRORS IN PlayerbotCommands.cpp
+
+The chat commands need to be rewritten to match actual PlayerBot APIs:
+
+ISSUES:
+1. BotSessionMgr doesn't have Instance() - uses instance() (lowercase)
+2. BotSessionMgr doesn't have GetPlayerBots(), RemoveAllBotsForPlayer(), RemoveBot(), GetTotalBotCount(), GetActiveBotCount()
+3. WorldSession doesn't have GetBotAI() method
+4. BotSpawner constructor is private - need to use sBotSpawner singleton
+5. BotSpawner::SpawnBot() signature doesn't match
+6. PlayerbotConfig access pattern is wrong - need sPlayerbotConfig
+
+REQUIRED: Complete API research before implementing commands.
+
+For now, using minimal stub to allow compilation.

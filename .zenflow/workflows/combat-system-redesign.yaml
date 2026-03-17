@@ -1,0 +1,217 @@
+# Zenflow Workflow: Combat System Redesign
+# Version: 1.0
+# Erstellt: 2025-01-26
+
+name: "Combat System Redesign"
+description: "Vollständige Überarbeitung des Bot-Kampfsystems mit Plugin-Architektur"
+
+# ============================================================================
+# PROJEKT-PHASEN
+# ============================================================================
+
+phases:
+  - id: analysis
+    name: "Analyse & Architektur"
+    tasks:
+      - id: current-state
+        name: "Ist-Analyse des aktuellen Systems"
+        tool: claude-code
+        prompt: |
+          Analysiere das aktuelle Combat-System in:
+          - src/modules/Playerbot/AI/Combat/
+          - src/modules/Playerbot/AI/ClassAI/
+          - src/modules/Playerbot/AI/Strategy/
+          
+          Erstelle einen Report mit:
+          1. Aktuelle Architektur (Diagramm)
+          2. Probleme und Schwachstellen
+          3. Performance-Hotspots
+          4. Duplikation/Redundanz
+          5. Erweiterbarkeits-Probleme
+        output: ".claude/analysis/COMBAT_CURRENT_STATE.md"
+        
+      - id: requirements
+        name: "Anforderungen definieren"
+        tool: zenflow-review
+        checklist:
+          - "Performance: < 1ms pro Bot-Update"
+          - "Erweiterbarkeit: Neue Klasse in < 1 Tag"
+          - "Wartbarkeit: Klare Trennung von Concerns"
+          - "Testbarkeit: Unit-Tests möglich"
+          - "Dokumentation: Jede API dokumentiert"
+          
+      - id: architecture
+        name: "Neue Architektur entwerfen"
+        tool: claude-code
+        prompt: |
+          Entwirf eine Plugin-basierte Combat-Architektur:
+          
+          Anforderungen:
+          - Modulares Plugin-System für Klassen-AI
+          - Gemeinsame Combat-Engine
+          - Spell-Priority-System
+          - Ressourcen-Management
+          - Event-basierte Kommunikation
+          
+          Liefere:
+          1. Architektur-Diagramm (Mermaid)
+          2. Interface-Definitionen
+          3. Datenfluss-Diagramm
+          4. Erweiterungs-Punkte
+        output: ".claude/analysis/COMBAT_NEW_ARCHITECTURE.md"
+
+  - id: design
+    name: "Detail-Design"
+    depends_on: [analysis]
+    tasks:
+      - id: plugin-interface
+        name: "Plugin-Interface Design"
+        tool: claude-code
+        prompt: |
+          Erstelle das Combat-Plugin-Interface:
+          
+          struct ICombatPlugin {
+            // Lifecycle
+            virtual void OnCombatStart()
+            virtual void OnCombatEnd()
+            virtual void OnUpdate(uint32 diff)
+            
+            // Decision Making
+            virtual SpellPriority GetSpellPriority(SpellInfo*)
+            virtual Unit* SelectTarget()
+            virtual CombatAction DecideAction()
+            
+            // Resources
+            virtual bool HasResources(SpellInfo*)
+            virtual void UpdateResources()
+          };
+          
+          Implementiere auch:
+          - PluginRegistry
+          - PluginLoader
+          - Event-System
+        output: "src/modules/Playerbot/AI/Combat/Plugin/"
+        
+      - id: spell-database
+        name: "Spell-Datenbank Design"
+        tool: claude-code
+        prompt: |
+          Erstelle ein effizientes Spell-Management-System:
+          
+          - SpellDatabase: Lädt Spell-Infos aus DB2/DBC
+          - SpellPriority: Priorisierung pro Klasse/Spec
+          - SpellConditions: Wann ist Spell nutzbar?
+          - SpellRotation: Optimale Reihenfolge
+          
+          Beachte:
+          - Caching für Performance
+          - Lazy Loading
+          - Hot-Reload für Development
+        output: "src/modules/Playerbot/AI/Spells/"
+
+  - id: implementation
+    name: "Implementierung"
+    depends_on: [design]
+    tasks:
+      - id: core-engine
+        name: "Combat Engine Core"
+        tool: claude-code
+        subtasks:
+          - "CombatEngine.h/cpp - Hauptlogik"
+          - "CombatState.h/cpp - Zustandsmanagement"
+          - "TargetSelector.h/cpp - Zielauswahl"
+          - "SpellCaster.h/cpp - Spell-Ausführung"
+          
+      - id: class-plugins
+        name: "Klassen-Plugins"
+        tool: claude-code
+        parallel: true
+        subtasks:
+          - "WarriorPlugin - Arms, Fury, Protection"
+          - "PaladinPlugin - Holy, Protection, Retribution"
+          - "HunterPlugin - BeastMastery, Marksmanship, Survival"
+          - "RoguePlugin - Assassination, Outlaw, Subtlety"
+          - "PriestPlugin - Discipline, Holy, Shadow"
+          - "ShamanPlugin - Elemental, Enhancement, Restoration"
+          - "MagePlugin - Arcane, Fire, Frost"
+          - "WarlockPlugin - Affliction, Demonology, Destruction"
+          - "MonkPlugin - Brewmaster, Mistweaver, Windwalker"
+          - "DruidPlugin - Balance, Feral, Guardian, Restoration"
+          - "DeathKnightPlugin - Blood, Frost, Unholy"
+          - "DemonHunterPlugin - Havoc, Vengeance"
+          - "EvokerPlugin - Devastation, Preservation, Augmentation"
+
+  - id: testing
+    name: "Testing"
+    depends_on: [implementation]
+    tasks:
+      - id: unit-tests
+        name: "Unit Tests"
+        tool: claude-code
+        prompt: "Erstelle Unit-Tests für alle Combat-Komponenten"
+        
+      - id: integration-tests
+        name: "Integration Tests"
+        tool: zenflow-test
+        scenarios:
+          - "5-Man Dungeon mit allen Rollen"
+          - "Raid-Boss mit komplexer Mechanik"
+          - "PvP Arena 2v2"
+          - "Open World Questing"
+
+  - id: documentation
+    name: "Dokumentation"
+    depends_on: [implementation]
+    tasks:
+      - id: api-docs
+        name: "API Dokumentation"
+        tool: claude-code
+        output: "docs/combat-system/"
+        
+      - id: plugin-guide
+        name: "Plugin-Entwickler-Guide"
+        tool: claude-code
+        output: "docs/plugin-development/"
+
+# ============================================================================
+# ZENFLOW REGELN FÜR DIESES PROJEKT
+# ============================================================================
+
+rules:
+  code-style:
+    - "C++20 Standard"
+    - "TrinityCore Naming Conventions"
+    - "RAII für Ressourcen"
+    - "Smart Pointers statt raw pointers"
+    - "Const-correctness"
+    
+  performance:
+    - "Keine Heap-Allokationen in Update-Loop"
+    - "Cache-friendly Datenstrukturen"
+    - "Batch-Processing wo möglich"
+    - "Lazy Evaluation"
+    
+  architecture:
+    - "Single Responsibility Principle"
+    - "Interface Segregation"
+    - "Dependency Injection"
+    - "Event-driven wo sinnvoll"
+
+# ============================================================================
+# CLAUDE CODE INTEGRATION
+# ============================================================================
+
+claude_code:
+  project_context:
+    - ".claude/CLAUDE.md"
+    - ".claude/analysis/*.md"
+    - "src/modules/Playerbot/AI/**/*.h"
+    
+  memory_files:
+    - ".claude/journal.txt"
+    - ".claude/decisions.md"
+    
+  output_directories:
+    - "src/modules/Playerbot/AI/Combat/Plugin/"
+    - "src/modules/Playerbot/AI/Spells/"
+    - "docs/"

@@ -1,0 +1,333 @@
+name: Upstream Sync
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # Weekly Sunday 3 AM UTC
+  workflow_dispatch:
+    inputs:
+      auto_merge:
+        description: 'Automatically merge if no conflicts'
+        required: false
+        default: false
+        type: boolean
+      create_pr:
+        description: 'Create PR for review instead of direct merge'
+        required: false
+        default: true
+        type: boolean
+      target_branch:
+        description: 'Branch to sync (default: master)'
+        required: false
+        default: 'master'
+        type: string
+
+env:
+  UPSTREAM_REPO: 'TrinityCore/TrinityCore'
+  UPSTREAM_BRANCH: 'master'
+
+jobs:
+  check-upstream:
+    name: Check for Upstream Updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      has_updates: ${{ steps.check.outputs.has_updates }}
+      commits_behind: ${{ steps.check.outputs.commits_behind }}
+      latest_commit: ${{ steps.check.outputs.latest_commit }}
+      changes_summary: ${{ steps.check.outputs.changes_summary }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "TrinityCore Sync Bot"
+          git config user.email "sync-bot@trinitycore.local"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git || true
+          git fetch upstream ${{ env.UPSTREAM_BRANCH }}
+
+      - name: Check for updates
+        id: check
+        run: |
+          TARGET_BRANCH="${{ github.event.inputs.target_branch || 'master' }}"
+
+          # Get commit counts
+          BEHIND=$(git rev-list --count HEAD..upstream/${{ env.UPSTREAM_BRANCH }})
+          AHEAD=$(git rev-list --count upstream/${{ env.UPSTREAM_BRANCH }}..HEAD)
+
+          echo "Local branch is $BEHIND commits behind and $AHEAD commits ahead of upstream"
+
+          if [ "$BEHIND" -gt 0 ]; then
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+            echo "commits_behind=$BEHIND" >> "$GITHUB_OUTPUT"
+
+            # Get latest upstream commit
+            LATEST=$(git rev-parse upstream/${{ env.UPSTREAM_BRANCH }})
+            echo "latest_commit=$LATEST" >> "$GITHUB_OUTPUT"
+
+            # Get summary of changes
+            SUMMARY=$(git log --oneline HEAD..upstream/${{ env.UPSTREAM_BRANCH }} | head -20)
+            echo "changes_summary<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$SUMMARY" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+
+            echo "Found $BEHIND new commits from upstream"
+          else
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+            echo "commits_behind=0" >> "$GITHUB_OUTPUT"
+            echo "Already up to date with upstream"
+          fi
+
+      - name: Generate detailed changelog
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          echo "# Upstream Changes Report" > upstream_changelog.md
+          echo "" >> upstream_changelog.md
+          echo "**Commits behind:** ${{ steps.check.outputs.commits_behind }}" >> upstream_changelog.md
+          echo "**Latest upstream commit:** ${{ steps.check.outputs.latest_commit }}" >> upstream_changelog.md
+          echo "" >> upstream_changelog.md
+          echo "## Recent Commits" >> upstream_changelog.md
+          echo "" >> upstream_changelog.md
+          git log --pretty=format:"- %h %s (%an)" HEAD..upstream/${{ env.UPSTREAM_BRANCH }} | head -50 >> upstream_changelog.md
+          echo "" >> upstream_changelog.md
+          echo "" >> upstream_changelog.md
+          echo "## Files Changed" >> upstream_changelog.md
+          echo "" >> upstream_changelog.md
+          echo "\`\`\`" >> upstream_changelog.md
+          git diff --stat HEAD..upstream/${{ env.UPSTREAM_BRANCH }} | head -100 >> upstream_changelog.md
+          echo "\`\`\`" >> upstream_changelog.md
+
+      - name: Upload changelog
+        if: steps.check.outputs.has_updates == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-changelog
+          path: upstream_changelog.md
+          retention-days: 30
+
+  sync-upstream:
+    name: Sync with Upstream
+    runs-on: ubuntu-latest
+    needs: check-upstream
+    if: needs.check-upstream.outputs.has_updates == 'true'
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "TrinityCore Sync Bot"
+          git config user.email "sync-bot@trinitycore.local"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git || true
+          git fetch upstream ${{ env.UPSTREAM_BRANCH }}
+
+      - name: Check for conflicts
+        id: conflicts
+        run: |
+          TARGET_BRANCH="${{ github.event.inputs.target_branch || 'master' }}"
+
+          # Try merge in test mode
+          if git merge-tree $(git merge-base HEAD upstream/${{ env.UPSTREAM_BRANCH }}) HEAD upstream/${{ env.UPSTREAM_BRANCH }} | grep -q "^<<<<<<<"; then
+            echo "has_conflicts=true" >> "$GITHUB_OUTPUT"
+            echo "Merge conflicts detected"
+          else
+            echo "has_conflicts=false" >> "$GITHUB_OUTPUT"
+            echo "No merge conflicts"
+          fi
+
+      - name: Create sync branch
+        id: branch
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH_NAME="upstream-sync-$TIMESTAMP"
+          echo "name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Attempt merge
+        id: merge
+        run: |
+          if git merge upstream/${{ env.UPSTREAM_BRANCH }} --no-edit -m "Merge upstream TrinityCore changes"; then
+            echo "merge_success=true" >> "$GITHUB_OUTPUT"
+            echo "Merge successful"
+          else
+            echo "merge_success=false" >> "$GITHUB_OUTPUT"
+            echo "Merge failed - manual resolution required"
+            git merge --abort || true
+          fi
+
+      - name: Push sync branch
+        if: steps.merge.outputs.merge_success == 'true'
+        run: |
+          git push origin ${{ steps.branch.outputs.name }}
+
+      - name: Create Pull Request
+        if: steps.merge.outputs.merge_success == 'true' && (github.event.inputs.create_pr == 'true' || github.event_name == 'schedule')
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.branch.outputs.name }}
+          base: ${{ github.event.inputs.target_branch || 'master' }}
+          title: "chore: Sync with upstream TrinityCore (${{ needs.check-upstream.outputs.commits_behind }} commits)"
+          body: |
+            ## Upstream Sync
+
+            This PR merges ${{ needs.check-upstream.outputs.commits_behind }} commits from upstream TrinityCore.
+
+            ### Changes Summary
+
+            ```
+            ${{ needs.check-upstream.outputs.changes_summary }}
+            ```
+
+            ### Review Checklist
+
+            - [ ] Review changes don't break Playerbot module
+            - [ ] Check for API changes that may affect bots
+            - [ ] Verify build passes on all platforms
+            - [ ] Run integration tests
+
+            ### Actions Required
+
+            1. Review the changes for potential conflicts with Playerbot
+            2. Test build locally if changes affect Playerbot code
+            3. Merge when satisfied with changes
+
+            ---
+
+            **Upstream repository:** ${{ env.UPSTREAM_REPO }}
+            **Latest commit:** ${{ needs.check-upstream.outputs.latest_commit }}
+
+            _This PR was automatically generated by the Upstream Sync workflow._
+          labels: |
+            upstream-sync
+            automated
+          draft: false
+
+      - name: Auto-merge if configured
+        if: |
+          steps.merge.outputs.merge_success == 'true' &&
+          github.event.inputs.auto_merge == 'true' &&
+          steps.conflicts.outputs.has_conflicts == 'false'
+        run: |
+          TARGET_BRANCH="${{ github.event.inputs.target_branch || 'master' }}"
+          git checkout "$TARGET_BRANCH"
+          git merge --no-edit ${{ steps.branch.outputs.name }}
+          git push origin "$TARGET_BRANCH"
+          echo "Auto-merged upstream changes to $TARGET_BRANCH"
+
+  notify-conflicts:
+    name: Notify on Conflicts
+    runs-on: ubuntu-latest
+    needs: [check-upstream, sync-upstream]
+    if: failure() || needs.check-upstream.outputs.has_updates == 'true'
+    timeout-minutes: 5
+
+    steps:
+      - name: Create issue for manual resolution
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Upstream Sync Failed - Manual Resolution Required';
+            const body = `
+            ## Upstream Sync Failure
+
+            The automatic upstream sync workflow has failed and requires manual intervention.
+
+            **Commits behind upstream:** ${{ needs.check-upstream.outputs.commits_behind }}
+            **Upstream repository:** ${{ env.UPSTREAM_REPO }}
+
+            ### Recent Upstream Changes
+
+            \`\`\`
+            ${{ needs.check-upstream.outputs.changes_summary }}
+            \`\`\`
+
+            ### Manual Resolution Steps
+
+            1. Fetch upstream changes:
+               \`\`\`bash
+               git remote add upstream https://github.com/TrinityCore/TrinityCore.git || true
+               git fetch upstream master
+               \`\`\`
+
+            2. Create a sync branch:
+               \`\`\`bash
+               git checkout -b upstream-sync-manual
+               git merge upstream/master
+               \`\`\`
+
+            3. Resolve conflicts, commit, and push:
+               \`\`\`bash
+               # Resolve conflicts in your editor
+               git add .
+               git commit -m "Merge upstream TrinityCore changes (manual resolution)"
+               git push origin upstream-sync-manual
+               \`\`\`
+
+            4. Create a PR from the sync branch
+
+            ---
+
+            [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['upstream-sync', 'manual-resolution', 'help-wanted']
+            });
+
+      - name: Summary
+        run: |
+          echo "Upstream sync workflow completed"
+          echo "Updates available: ${{ needs.check-upstream.outputs.has_updates }}"
+          echo "Commits behind: ${{ needs.check-upstream.outputs.commits_behind }}"
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This upstream sync workflow provides automated TrinityCore tracking:
+#
+# Features:
+# - Weekly check for upstream TrinityCore updates
+# - Automatic merge attempt with conflict detection
+# - PR creation for review when changes are available
+# - Issue creation when manual resolution is needed
+# - Detailed changelog generation
+#
+# Triggers:
+# - Weekly Sunday 3 AM UTC (scheduled)
+# - Manual workflow_dispatch with options
+#
+# Options:
+# - auto_merge: Directly merge if no conflicts
+# - create_pr: Create PR for review (default)
+# - target_branch: Branch to sync (default: master)
+#
+# Manual Trigger:
+#   gh workflow run upstream-sync.yml -f create_pr=true -f target_branch=master
+# ==============================================================================

@@ -1,0 +1,436 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+      draft:
+        description: 'Create as draft release'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  CMAKE_BUILD_TYPE: Release
+
+jobs:
+  # ===========================================================================
+  # Build for all platforms in parallel
+  # ===========================================================================
+  build-windows:
+    name: Build Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    env:
+      MYSQL_ROOT_DIR: C:/Program Files/MySQL/MySQL Server 8.0
+      OPENSSL_ROOT_DIR: C:/libs/openssl
+
+    outputs:
+      artifact-name: ${{ steps.artifact.outputs.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Get current OpenSSL version
+        id: openssl-info
+        run: |
+          $VersionsUrl = "https://api.github.com/repos/slproweb/opensslhashes/contents/win32_openssl_hashes.json"
+          $Headers = @{
+            Accept="application/vnd.github.raw+json"
+            Authorization="Bearer ${{ secrets.GITHUB_TOKEN }}"
+          }
+          $openSSL = (Invoke-RestMethod $VersionsUrl -Headers $Headers).files.PSObject.Properties |
+            Select-Object -ExpandProperty Value |
+            Where-Object { $_.arch -eq 'INTEL' } |
+            Where-Object { $_.bits -eq '64' } |
+            Where-Object { $_.light -eq $false } |
+            Where-Object { $_.installer  -eq 'exe' } |
+            Sort-Object -Descending @{ Expression = { [version]$_.basever } } |
+            Select-Object -First 1
+          [System.String]::Format("cache-key=openssl-{0}-win-{1}-{2}", $openSSL.basever, $openSSL.arch, $openSSL.bits) >> $env:GITHUB_OUTPUT
+          [System.String]::Format("url={0}", $openSSL.url) >> $env:GITHUB_OUTPUT
+
+      - name: Cache OpenSSL
+        id: cache-openssl
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.OPENSSL_ROOT_DIR }}
+          key: ${{ steps.openssl-info.outputs.cache-key }}
+
+      - name: Download and install OpenSSL
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
+        run: |
+          (New-Object System.Net.WebClient).DownloadFile("${{ steps.openssl-info.outputs.url }}", "${{ env.TEMP }}\openssl.exe")
+          Start-Process -Wait -FilePath "${{ env.TEMP }}\openssl.exe" "/SILENT","/SP-","/SUPPRESSMSGBOXES",/DIR=${{ env.OPENSSL_ROOT_DIR }}
+
+      - name: Download and install Boost
+        uses: MarkusJx/install-boost@v2
+        id: install-boost
+        with:
+          boost_version: 1.89.0
+          link: static
+          platform_version: 2022
+          toolset: msvc
+
+      - name: Initialize Visual Studio Environment
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
+      - name: Configure CMake
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+        run: |
+          cmake -GNinja -S . -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} `
+            -DWITH_WARNINGS=0 `
+            -DBUILD_PLAYERBOT=ON `
+            -DTOOLS=ON `
+            -DSCRIPTS=static
+
+      - name: Build
+        run: cmake --build build --config ${{ env.CMAKE_BUILD_TYPE }}
+
+      - name: Copy Dependencies
+        run: |
+          cd build/bin/${{ env.CMAKE_BUILD_TYPE }}
+          copy "${{ env.MYSQL_ROOT_DIR }}/lib/libmysql.dll" libmysql.dll
+          copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libssl-3-x64.dll" libssl-3-x64.dll
+          copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libcrypto-3-x64.dll" libcrypto-3-x64.dll
+          copy "${{ env.OPENSSL_ROOT_DIR }}/bin/legacy.dll" legacy.dll
+
+      - name: Create release package
+        id: artifact
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $artifactName = "TrinityCore-Playerbot-$version-Windows-x64"
+          echo "name=$artifactName" >> $env:GITHUB_OUTPUT
+
+          # Create package directory
+          New-Item -ItemType Directory -Force -Path "release/$artifactName"
+
+          # Copy binaries
+          Copy-Item -Path "build/bin/${{ env.CMAKE_BUILD_TYPE }}/*" -Destination "release/$artifactName/" -Recurse
+
+          # Create zip archive
+          Compress-Archive -Path "release/$artifactName" -DestinationPath "release/$artifactName.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: release/*.zip
+          retention-days: 30
+
+  build-linux:
+    name: Build Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    outputs:
+      artifact-name: ${{ steps.artifact.outputs.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -yq \
+            libboost-dev \
+            libboost-filesystem-dev \
+            libboost-locale-dev \
+            libboost-program-options-dev \
+            libboost-regex-dev \
+            libboost-thread-dev \
+            libssl-dev \
+            libreadline-dev \
+            zlib1g-dev \
+            libbz2-dev \
+            libmysqlclient-dev
+
+      - name: Configure CMake
+        env:
+          CC: /usr/bin/gcc-13
+          CXX: /usr/bin/g++-13
+        run: |
+          cmake -GNinja -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -DWITH_WARNINGS=0 \
+            -DBUILD_PLAYERBOT=ON \
+            -DTOOLS=1 \
+            -DSCRIPTS=static \
+            -DSERVERS=1 \
+            -DCMAKE_INSTALL_PREFIX=release/install
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Install
+        run: cmake --install build
+
+      - name: Create release package
+        id: artifact
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARTIFACT_NAME="TrinityCore-Playerbot-$VERSION-Linux-x64"
+          echo "name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+
+          cd release
+          mv install "$ARTIFACT_NAME"
+          tar -czvf "$ARTIFACT_NAME.tar.gz" "$ARTIFACT_NAME"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: release/*.tar.gz
+          retention-days: 30
+
+  build-macos:
+    name: Build macOS arm64
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    outputs:
+      artifact-name: ${{ steps.artifact.outputs.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        env:
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+        run: |
+          brew update
+          brew uninstall openssl@1.1 || true
+          for pkg in mysql openssl readline cmake boost coreutils ninja icu4c; do
+            brew ls --versions $pkg || brew install $pkg
+          done
+          echo "PKG_CONFIG_PATH=$(brew --prefix icu4c)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+
+      - name: Configure CMake
+        env:
+          ICU_ROOT: /opt/homebrew/opt/icu4c
+        run: |
+          cmake -GNinja -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -DWITH_WARNINGS=0 \
+            -DBUILD_PLAYERBOT=ON \
+            -DTOOLS=1 \
+            -DSCRIPTS=static \
+            -DSERVERS=1 \
+            -DCMAKE_INSTALL_PREFIX=release/install \
+            -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/icu4c"
+
+      - name: Build
+        run: |
+          export LIBRARY_PATH="/opt/homebrew/opt/icu4c/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
+          cmake --build build
+
+      - name: Install
+        run: cmake --install build
+
+      - name: Create release package
+        id: artifact
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARTIFACT_NAME="TrinityCore-Playerbot-$VERSION-macOS-arm64"
+          echo "name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+
+          cd release
+          mv install "$ARTIFACT_NAME"
+          tar -czvf "$ARTIFACT_NAME.tar.gz" "$ARTIFACT_NAME"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: release/*.tar.gz
+          retention-days: 30
+
+  # ===========================================================================
+  # Create GitHub Release
+  # ===========================================================================
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-macos]
+    timeout-minutes: 15
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log --oneline "$LAST_TAG"..HEAD | head -50)
+          else
+            COMMITS=$(git log --oneline -50)
+          fi
+
+          cat > release_notes.md << EOF
+          # TrinityCore with Playerbot Integration $VERSION
+
+          ## Downloads
+
+          | Platform | Architecture | File |
+          |----------|--------------|------|
+          | Windows | x64 | TrinityCore-Playerbot-$VERSION-Windows-x64.zip |
+          | Linux | x64 | TrinityCore-Playerbot-$VERSION-Linux-x64.tar.gz |
+          | macOS | arm64 | TrinityCore-Playerbot-$VERSION-macOS-arm64.tar.gz |
+
+          ## Features
+
+          This release includes the Playerbot module for AI-controlled player bots, enabling:
+          - Single-player MMORPG experience
+          - AI party members for dungeons and raids
+          - Configurable bot behavior and strategies
+
+          ## Requirements
+
+          - MySQL 8.0+
+          - TrinityCore compatible data files
+          - Platform-specific runtime libraries (included in Windows build)
+
+          ## Recent Changes
+
+          \`\`\`
+          $COMMITS
+          \`\`\`
+
+          ## Installation
+
+          1. Extract the archive for your platform
+          2. Configure worldserver.conf and bnetserver.conf
+          3. Set up the database using provided SQL files
+          4. Start bnetserver and worldserver
+
+          For detailed instructions, see the [documentation](../../wiki).
+
+          ---
+
+          **Build Information:**
+          - Commit: ${{ github.sha }}
+          - Branch: ${{ github.ref_name }}
+          - Build Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: TrinityCore Playerbot ${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          draft: ${{ github.event.inputs.draft || false }}
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+          files: |
+            artifacts/${{ needs.build-windows.outputs.artifact-name }}/*.zip
+            artifacts/${{ needs.build-linux.outputs.artifact-name }}/*.tar.gz
+            artifacts/${{ needs.build-macos.outputs.artifact-name }}/*.tar.gz
+          fail_on_unmatched_files: false
+
+      - name: Notify release success
+        run: |
+          echo "Release ${{ steps.version.outputs.version }} created successfully!"
+          echo "Downloads available for Windows x64, Linux x64, and macOS arm64"
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This release workflow provides automated multi-platform releases:
+#
+# Triggers:
+# - Push of version tags (v*)
+# - Manual workflow_dispatch with version input
+#
+# Builds:
+# - Windows x64 (MSVC 2022)
+# - Linux x64 (GCC 13)
+# - macOS arm64 (Apple Clang)
+#
+# Release includes:
+# - Pre-built binaries for all platforms
+# - Auto-generated release notes with recent commits
+# - Installation instructions
+#
+# Manual Release:
+#   gh workflow run release.yml -f version=v1.0.0 -f prerelease=false
+#
+# Tag Release:
+#   git tag v1.0.0 && git push origin v1.0.0
+# ==============================================================================

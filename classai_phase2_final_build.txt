@@ -1,0 +1,295 @@
+MSBuild-Version 17.14.18+a338add32 für .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule C:/Repositories/TrinityCore/dep/zlib/CMakeLists.txt
+  adler32.c
+  compress.c
+  crc32.c
+  deflate.c
+  infback.c
+  inffast.c
+  inflate.c
+  inftrees.c
+  trees.c
+  uncompr.c
+  zutil.c
+  zlib.vcxproj -> M:\WoWServer\dep\zlib\RelWithDebInfo\zlib.lib
+  Building Custom Rule C:/Repositories/TrinityCore/dep/recastnavigation/Detour/CMakeLists.txt
+  DetourAlloc.cpp
+  DetourAssert.cpp
+  DetourCommon.cpp
+  DetourNavMesh.cpp
+  DetourNavMeshBuilder.cpp
+  DetourNavMeshQuery.cpp
+  DetourNode.cpp
+  Detour.vcxproj -> M:\WoWServer\dep\recastnavigation\Detour\RelWithDebInfo\Detour.lib
+  Building Custom Rule C:/Repositories/TrinityCore/dep/argon2/CMakeLists.txt
+  argon2.c
+  blake2b.c
+  core.c
+  encoding.c
+  opt.c
+  thread.c
+  argon2.vcxproj -> M:\WoWServer\dep\argon2\RelWithDebInfo\argon2.lib
+  Building Custom Rule C:/Repositories/TrinityCore/src/genrev/CMakeLists.txt
+  Building Custom Rule C:/Repositories/TrinityCore/dep/fmt/CMakeLists.txt
+  format.cc
+  os.cc
+  fmt.vcxproj -> M:\WoWServer\dep\fmt\RelWithDebInfo\fmt.lib
+  Building Custom Rule C:/Repositories/TrinityCore/dep/g3dlite/CMakeLists.txt
+  cmake_pch.cxx
+  AABox.cpp
+  Any.cpp
+  AnyTableReader.cpp
+  BinaryFormat.cpp
+  BinaryInput.cpp
+  BinaryOutput.cpp
+  Box.cpp
+  Capsule.cpp
+  CollisionDetection.cpp
+  CoordinateFrame.cpp
+  Crypto.cpp
+  Cylinder.cpp
+  debugAssert.cpp
+  FileSystem.cpp
+  fileutils.cpp
+  format.cpp
+  g3dfnmatch.cpp
+  g3dmath.cpp
+  GThread.cpp
+  Line.cpp
+  LineSegment.cpp
+  Log.cpp
+  Matrix3.cpp
+  Matrix4.cpp
+  MemoryManager.cpp
+  PhysicsFrame.cpp
+  Plane.cpp
+  prompt.cpp
+  Quat.cpp
+  Random.cpp
+  Ray.cpp
+  RegistryUtil.cpp
+  Sphere.cpp
+  stringutils.cpp
+  System.cpp
+  TextInput.cpp
+  TextOutput.cpp
+  Triangle.cpp
+  uint128.cpp
+  UprightFrame.cpp
+  Vector2.cpp
+  Vector3.cpp
+  Vector4.cpp
+  g3dlib.vcxproj -> M:\WoWServer\dep\g3dlite\RelWithDebInfo\g3dlib.lib
+  Building Custom Rule C:/Repositories/TrinityCore/dep/openssl_ed25519/CMakeLists.txt
+  curve25519.c
+     Bibliothek "M:/WoWServer/dep/openssl_ed25519/RelWithDebInfo/openssl_ed25519.lib" und Objekt "M:/WoWServer/dep/openssl_ed25519/RelWithDebInfo/openssl_ed25519.exp" werden erstellt.
+  openssl_ed25519.vcxproj -> M:\WoWServer\bin\RelWithDebInfo\openssl_ed25519.dll
+  Der Befehl "pwsh.exe" ist entweder falsch geschrieben oder
+  konnte nicht gefunden werden.
+  Building Custom Rule C:/Repositories/TrinityCore/dep/SFMT/CMakeLists.txt
+  SFMT.c
+  sfmt.vcxproj -> M:\WoWServer\dep\SFMT\RelWithDebInfo\sfmt.lib
+  Building Custom Rule C:/Repositories/TrinityCore/src/common/CMakeLists.txt
+  cmake_pch.cxx
+  Banner.cpp
+  Common.cpp
+  GitRevision.cpp
+  BoundingIntervalHierarchy.cpp
+  DynamicTree.cpp
+  MMapFactory.cpp
+  MMapManager.cpp
+  VMapFactory.cpp
+  VMapManager2.cpp
+  MapDefines.cpp
+  MapTree.cpp
+  GameObjectModel.cpp
+  ModelInstance.cpp
+  WorldModel.cpp
+  BuiltInConfig.cpp
+  Config.cpp
+  AES.cpp
+  ARC4.cpp
+  Argon2Hash.cpp
+  BigNumber.cpp
+  CryptoRandom.cpp
+  Ed25519.cpp
+  OpenSSLCrypto.cpp
+  RSA.cpp
+  TOTP.cpp
+  SRP6.cpp
+  WorldPacketCrypt.cpp
+  DB2FileLoader.cpp
+  DB2FileSystemSource.cpp
+  DB2Meta.cpp
+  Errors.cpp
+  Base32.cpp
+  Base64.cpp
+  Appender.cpp
+  AppenderConsole.cpp
+  AppenderFile.cpp
+  Log.cpp
+  LogMessage.cpp
+  LogOperation.cpp
+  Logger.cpp
+  enuminfo_AppenderConsole.cpp
+  enuminfo_LogCommon.cpp
+  Metric.cpp
+  ProcessPriority.cpp
+  Timezone.cpp
+  EventMap.cpp
+  EventProcessor.cpp
+  Locales.cpp
+  Random.cpp
+  SFMTRand.cpp
+  StartProcess.cpp
+  StringFormat.cpp
+  TaskScheduler.cpp
+  Util.cpp
+  WheatyExceptionReport.cpp
+  ServiceWin32.cpp
+  common.vcxproj -> M:\WoWServer\src\common\RelWithDebInfo\common.lib
+  Building Custom Rule C:/Repositories/TrinityCore/src/server/database/CMakeLists.txt
+  cmake_pch.cxx
+  AdhocStatement.cpp
+  DatabaseEnv.cpp
+  DatabaseLoader.cpp
+  DatabaseWorkerPool.cpp
+  Field.cpp
+  FieldValueConverter.cpp
+  MySQLConnection.cpp
+  MySQLPreparedStatement.cpp
+  MySQLThreading.cpp
+  PreparedStatement.cpp
+  QueryCallback.cpp
+  QueryHolder.cpp
+  QueryResult.cpp
+  Transaction.cpp
+  CharacterDatabase.cpp
+  HotfixDatabase.cpp
+  LoginDatabase.cpp
+  PlayerbotsDatabase.cpp
+  WorldDatabase.cpp
+  AppenderDB.cpp
+  DBUpdater.cpp
+  UpdateFetcher.cpp
+  database.vcxproj -> M:\WoWServer\src\server\database\RelWithDebInfo\database.lib
+  Building Custom Rule C:/Repositories/TrinityCore/src/common/network/CMakeLists.txt
+  cmake_pch.cxx
+  IpAddress.cpp
+  IpNetwork.cpp
+  Resolver.cpp
+  BaseHttpSocket.cpp
+  HttpService.cpp
+  HttpSocket.cpp
+  HttpSslSocket.cpp
+  network.vcxproj -> M:\WoWServer\src\common\network\RelWithDebInfo\trinity_network.lib
+  Building Custom Rule C:/Repositories/TrinityCore/dep/protobuf/CMakeLists.txt
+  cmake_pch.cxx
+  importer.cc
+  parser.cc
+  descriptor.cc
+  descriptor.pb.cc
+  descriptor_database.cc
+  dynamic_message.cc
+  extension_set.cc
+  extension_set_heavy.cc
+  generated_message_reflection.cc
+  generated_message_util.cc
+  coded_stream.cc
+  gzip_stream.cc
+  printer.cc
+  strtod.cc
+  tokenizer.cc
+  zero_copy_stream.cc
+  zero_copy_stream_impl.cc
+  zero_copy_stream_impl_lite.cc
+  message.cc
+  message_lite.cc
+  reflection_ops.cc
+  repeated_field.cc
+  service.cc
+  common.cc
+  once.cc
+  stringprintf.cc
+  structurally_valid.cc
+  strutil.cc
+  substitute.cc
+  text_format.cc
+  unknown_field_set.cc
+  wire_format.cc
+  wire_format_lite.cc
+  atomicops_internals_x86_msvc.cc
+  protobuf.vcxproj -> M:\WoWServer\dep\protobuf\RelWithDebInfo\protobuf.lib
+  Building Custom Rule C:/Repositories/TrinityCore/src/server/proto/CMakeLists.txt
+  cmake_pch.cxx
+  ServiceBase.cpp
+  account_service.pb.cc
+  account_types.pb.cc
+  authentication_service.pb.cc
+  challenge_service.pb.cc
+  connection_service.pb.cc
+  content_handle_types.pb.cc
+  entity_types.pb.cc
+  ets_types.pb.cc
+  friends_service.pb.cc
+  friends_types.pb.cc
+  game_utilities_service.pb.cc
+  game_utilities_types.pb.cc
+  presence_listener.pb.cc
+  presence_service.pb.cc
+  profanity_filter_config.pb.cc
+  resource_service.pb.cc
+  role_types.pb.cc
+  rpc_config.pb.cc
+  rpc_types.pb.cc
+  semantic_version.pb.cc
+  block_list_listener.pb.cc
+  block_list_service.pb.cc
+  block_list_types.pb.cc
+  channel_id.pb.cc
+  channel_types.pb.cc
+  club_ban.pb.cc
+  club_invitation.pb.cc
+  club_listener.pb.cc
+  club_member.pb.cc
+  club_membership_listener.pb.cc
+  club_membership_service.pb.cc
+  club_membership_types.pb.cc
+  club_name_generator.pb.cc
+  club_notification.pb.cc
+  club_range_set.pb.cc
+  club_request.pb.cc
+  club_role.pb.cc
+  club_service.pb.cc
+  club_stream.pb.cc
+  club_types.pb.cc
+  notification_listener.pb.cc
+  whisper_listener.pb.cc
+  whisper_service.pb.cc
+  club_member_id.pb.cc
+  club_tag.pb.cc
+  club_type.pb.cc
+  game_account_handle.pb.cc
+  whisper_types.pb.cc
+  field_options.pb.cc
+  message_options.pb.cc
+  method_options.pb.cc
+  range.pb.cc
+  register_method_types.pb.cc
+  routing.pb.cc
+  service_options.pb.cc
+  Login.pb.cc
+  RealmList.pb.cc
+  attribute_types.pb.cc
+  embed_types.pb.cc
+  event_view_types.pb.cc
+C:\Repositories\TrinityCore\src\server\proto\Client\event_view_types.pb.cc(1,1): error C1041: Programmdatenbank "M:\WoWServer\src\server\proto\RelWithDebInfo\proto.pdb" kann nicht geöffnet werden; verwenden Sie /FS, wenn mehrere CL.EXE in dieselbe .PDB-Datei schreiben [M:\WoWServer\src\server\proto\proto.vcxproj]
+  (Quelldatei „C:/Repositories/TrinityCore/src/server/proto/Client/event_view_types.pb.cc“ wird kompiliert)
+  
+  Building Custom Rule C:/Repositories/TrinityCore/dep/gsoap/CMakeLists.txt
+  soapC.cpp
+  soapServer.cpp
+  stdsoap2.cpp
+  gsoap.vcxproj -> M:\WoWServer\dep\gsoap\RelWithDebInfo\gsoap.lib

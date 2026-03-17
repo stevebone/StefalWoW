@@ -570,12 +570,15 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         void AddUpdateObject(BaseEntity* obj)
         {
-            _updateObjects.insert(obj);
+            // Null check only - BaseEntity is forward declared, can't call methods here
+            if (obj)
+                _updateObjects.insert(obj);
         }
 
         void RemoveUpdateObject(BaseEntity* obj)
         {
-            _updateObjects.erase(obj);
+            if (obj)
+                _updateObjects.erase(obj);
         }
 
         size_t GetActiveNonPlayersCount() const

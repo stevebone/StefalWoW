@@ -27,6 +27,7 @@
 #include "GroupReference.h"
 #include "Hash.h"
 #include "ItemDefines.h"
+#include "IteratorPair.h"
 #include "ItemEnchantmentMgr.h"
 #include "MapReference.h"
 #include "PetDefines.h"
@@ -1466,6 +1467,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void SetBackpackSellJunkDisabled(bool disabled) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::BackpackSellJunkDisabled), disabled); }
         bool IsBankAutoSortDisabled() const { return m_activePlayerData->BankAutoSortDisabled; }
         void SetBankAutoSortDisabled(bool disabled) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::BankAutoSortDisabled), disabled); }
+        bool IsSortBagsRightToLeft() const { return m_activePlayerData->SortBagsRightToLeft; }
+        void SetSortBagsRightToLeft(bool enabled) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::SortBagsRightToLeft), enabled); }
+        bool IsInsertItemsLeftToRight() const { return m_activePlayerData->InsertItemsLeftToRight; }
+        void SetInsertItemsLeftToRight(bool enabled) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::InsertItemsLeftToRight), enabled); }
         EnumFlag<BagSlotFlags> GetBagSlotFlags(uint32 bagIndex) const { return static_cast<BagSlotFlags>(m_activePlayerData->BagSlotFlags[bagIndex]); }
         void SetBagSlotFlag(uint32 bagIndex, EnumFlag<BagSlotFlags> flags) { SetUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::BagSlotFlags, bagIndex), flags.AsUnderlyingType()); }
         void RemoveBagSlotFlag(uint32 bagIndex, EnumFlag<BagSlotFlags> flags) { RemoveUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::BagSlotFlags, bagIndex), flags.AsUnderlyingType()); }
@@ -1593,6 +1598,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         Player* GetTrader() const;
         TradeData* GetTradeData() const { return m_trade; }
         void TradeCancel(bool sendback);
+        void InitiateTrade(Player* trader); // PlayerBot integration: minimal core hook
 
         CinematicMgr* GetCinematicMgr() const { return _cinematicMgr.get(); }
 

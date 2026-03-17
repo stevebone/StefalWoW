@@ -3126,13 +3126,27 @@ void WorldObject::BuildUpdate(UpdateDataMapType& data_map)
 
 bool WorldObject::AddToObjectUpdate()
 {
-    GetMap()->AddUpdateObject(this);
+    // SAFETY CHECK: Validate Map pointer to prevent crash in AddUpdateObject
+    // Crash at Map.h:573 (hash set insert) could be caused by corrupted Map pointer
+    Map* map = GetMap();
+    if (!map)
+    {
+        TC_LOG_ERROR("misc", "WorldObject::AddToObjectUpdate called with null map for {}", GetGUID().ToString());
+        return false;
+    }
+    map->AddUpdateObject(this);
     return true;
 }
 
 void WorldObject::RemoveFromObjectUpdate()
 {
-    GetMap()->RemoveUpdateObject(this);
+    Map* map = GetMap();
+    if (!map)
+    {
+        TC_LOG_ERROR("misc", "WorldObject::RemoveFromObjectUpdate called with null map for {}", GetGUID().ToString());
+        return;
+    }
+    map->RemoveUpdateObject(this);
 }
 
 ObjectGuid WorldObject::GetTransGUID() const

@@ -22,9 +22,18 @@ target_link_libraries(tests
     game
     Catch2::Catch2)
 
+# Link playerbot module if enabled (for Phase5 tests)
+if(BUILD_PLAYERBOT)
+  target_link_libraries(tests PRIVATE playerbot)
+  target_compile_definitions(tests PRIVATE BUILD_PLAYERBOT=1)
+endif()
+
 target_include_directories(tests
   PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR})
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/src/modules/Playerbot
+    ${CMAKE_SOURCE_DIR}/src/modules/Playerbot/AI
+    ${CMAKE_SOURCE_DIR}/src/modules/Playerbot/AI/Decision)
 
 catch_discover_tests(tests)
 

@@ -1,14 +1,95 @@
+name: PR Labeler
+
 on:
   pull_request_target:
-    types: [opened]
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  pr_labeler:
+  label-pr:
+    name: Label Pull Request
     runs-on: ubuntu-latest
-    name: Pull Request Labeler
+    timeout-minutes: 5
+
     steps:
-    - name: Pull Request Labeler
-      id: pr-labeler
-      uses: TrinityCore/GitHub-Actions@pr-labeler-prod
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Label PR by files changed
+        uses: actions/labeler@v5
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: .github/labeler.yml
+          sync-labels: true
+
+  size-label:
+    name: PR Size Label
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Label PR by size
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size/XS'
+          xs_max_size: 10
+          s_label: 'size/S'
+          s_max_size: 100
+          m_label: 'size/M'
+          m_max_size: 500
+          l_label: 'size/L'
+          l_max_size: 1000
+          xl_label: 'size/XL'
+          fail_if_xl: false
+          message_if_xl: >
+            This PR is quite large (>1000 lines changed).
+            Consider breaking it into smaller, focused PRs for easier review.
+          files_to_ignore: |
+            "*.lock"
+            "*.sql"
+            "dep/**"
+            "contrib/**"
+
+  auto-assign:
+    name: Auto Assign Reviewers
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event.action == 'opened'
+
+    steps:
+      - name: Add reviewers based on files
+        uses: kentaro-m/auto-assign-action@v1
+        with:
+          configuration-path: .github/auto-assign.yml
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This PR labeler workflow provides:
+#
+# 1. File-based Labels:
+#    - Automatically labels PRs based on files changed
+#    - Uses .github/labeler.yml for configuration
+#
+# 2. Size Labels:
+#    - XS: 1-10 lines
+#    - S: 11-100 lines
+#    - M: 101-500 lines
+#    - L: 501-1000 lines
+#    - XL: 1000+ lines (with warning)
+#
+# 3. Auto-assign Reviewers:
+#    - Assigns reviewers based on CODEOWNERS-like rules
+#    - Uses .github/auto-assign.yml for configuration
+#
+# Configuration Files Required:
+# - .github/labeler.yml (file-to-label mappings)
+# - .github/auto-assign.yml (reviewer assignments)
+# ==============================================================================

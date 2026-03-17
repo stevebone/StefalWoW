@@ -1,0 +1,2170 @@
+MSBuild-Version 17.14.18+a338add32 für .NET Framework
+
+  zlib.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\zlib\Release\zlib.lib
+  Detour.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\recastnavigation\Detour\Release\Detour.lib
+  argon2.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\argon2\Release\argon2.lib
+  fmt.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\fmt\Release\fmt.lib
+  g3dlib.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\g3dlite\Release\g3dlib.lib
+  openssl_ed25519.vcxproj -> C:\TrinityBots\TrinityCore\build\bin\Release\openssl_ed25519.dll
+  sfmt.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\SFMT\Release\sfmt.lib
+  gsoap.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\gsoap\Release\gsoap.lib
+  protobuf.vcxproj -> C:\TrinityBots\TrinityCore\build\dep\protobuf\Release\protobuf.lib
+  common.vcxproj -> C:\TrinityBots\TrinityCore\build\src\common\Release\common.lib
+  database.vcxproj -> C:\TrinityBots\TrinityCore\build\src\server\database\Release\database.lib
+  network.vcxproj -> C:\TrinityBots\TrinityCore\build\src\common\network\Release\trinity_network.lib
+  proto.vcxproj -> C:\TrinityBots\TrinityCore\build\src\server\proto\Release\proto.lib
+  shared.vcxproj -> C:\TrinityBots\TrinityCore\build\src\server\shared\Release\shared.lib
+  modules-common.vcxproj -> C:\TrinityBots\TrinityCore\build\src\server\modules\Common\Release\modules-common.lib
+  playerbot.vcxproj -> C:\TrinityBots\TrinityCore\build\src\server\modules\Playerbot\Release\playerbot.lib
+  cmake_pch.cxx
+  cmake_pch.cxx
+  ScriptLoader.cpp
+  argus_script_loader.cpp
+  boss_garothi_worldbreaker.cpp
+  instance_antorus_the_burning_throne.cpp
+  BattlefieldTB.cpp
+  BattlefieldWG.cpp
+  battlefield_script_loader.cpp
+  arena_scripts_generic.cpp
+  battlegrounds_script_loader.cpp
+  alterac_valley.cpp
+  battleground_alterac_valley.cpp
+  boss_balinda.cpp
+  boss_drekthar.cpp
+  boss_galvangar.cpp
+  boss_vanndar.cpp
+  arathi_basin.cpp
+  battleground_arathi_basin.cpp
+  battleground_battle_for_gilneas.cpp
+  arena_blades_edge.cpp
+  arena_blades_edge_legion.cpp
+  arena_cage_of_carnage.cpp
+  arena_dalaran_sewers.cpp
+  battleground_deephaul_ravine.cpp
+  battleground_eye_of_the_storm.cpp
+  battleground_isle_of_conquest.cpp
+  boss_ioc_horde_alliance.cpp
+  isle_of_conquest.cpp
+  arena_maldraxxus_coliseum.cpp
+  arena_mugambala.cpp
+  arena_nagrand_arena.cpp
+  arena_ring_of_valor.cpp
+  arena_ruins_of_lordaeron.cpp
+  battleground_seething_shore.cpp
+  battleground_silvershard_mines.cpp
+  battleground_strand_of_the_ancients.cpp
+  strand_of_the_ancients.cpp
+  battleground_temple_of_kotmogu.cpp
+  arena_the_robodrome.cpp
+  CreatureAI.cpp
+  battleground_twin_peaks.cpp
+  CreatureAIRegistry.cpp
+  CreatureAISelector.cpp
+  AreaTriggerAI.cpp
+  CombatAI.cpp
+  ConversationAI.cpp
+  GameObjectAI.cpp
+  GuardAI.cpp
+  PassiveAI.cpp
+  PetAI.cpp
+  battleground_warsong_gulch.cpp
+  broken_isles_script_loader.cpp
+  ReactorAI.cpp
+  TotemAI.cpp
+  zone_dalaran_broken_isle.cpp
+  zone_mardum.cpp
+  zone_orderhall_warrior.cpp
+  UnitAI.cpp
+  UnitAICommon.cpp
+  enuminfo_UnitAICommon.cpp
+  PlayerAI.cpp
+  ScriptedCreature.cpp
+  ScriptedEscortAI.cpp
+  ScriptedFollowerAI.cpp
+  ScriptedGossip.cpp
+  SmartAI.cpp
+  SmartScript.cpp
+  boss_amalgam_of_souls.cpp
+  SmartScriptMgr.cpp
+  AccountMgr.cpp
+  BattlenetAccountMgr.cpp
+  RBAC.cpp
+  AchievementMgr.cpp
+  CriteriaHandler.cpp
+  AuctionHouseMgr.cpp
+  instance_black_rook_hold.cpp
+  boss_ymiron_the_fallen_king.cpp
+  instance_maw_of_souls.cpp
+  AuctionHouseBot.cpp
+  AuctionHouseBotBuyer.cpp
+  AuctionHouseBotSeller.cpp
+  enuminfo_AuctionHouseBot.cpp
+  BattlePetMgr.cpp
+  zone_orderhall_rogue.cpp
+  boss_guarm.cpp
+  Battlefield.cpp
+  instance_trial_of_valor.cpp
+  cs_account.cpp
+  cs_achievement.cpp
+  cs_ahbot.cpp
+  cs_arena.cpp
+  cs_ban.cpp
+  cs_battlenet_account.cpp
+  cs_bf.cpp
+  cs_cast.cpp
+  BattlefieldMgr.cpp
+  Arena.cpp
+  cs_character.cpp
+  ArenaScore.cpp
+  ArenaTeam.cpp
+  cs_cheat.cpp
+  ArenaTeamMgr.cpp
+  cs_debug.cpp
+  cs_deserter.cpp
+  Battleground.cpp
+  cs_disable.cpp
+  cs_event.cpp
+  cs_gm.cpp
+  cs_go.cpp
+  BattlegroundMgr.cpp
+  cs_gobject.cpp
+  cs_group.cpp
+  BattlegroundQueue.cpp
+  cs_guild.cpp
+  cs_honor.cpp
+  BattlegroundScore.cpp
+  cs_instance.cpp
+  cs_learn.cpp
+  BattlegroundScript.cpp
+  cs_lfg.cpp
+  cs_list.cpp
+  cs_lookup.cpp
+  enuminfo_ArenaTeam.cpp
+  cs_message.cpp
+  cs_misc.cpp
+  BlackMarketMgr.cpp
+  CharacterCache.cpp
+  cs_mmaps.cpp
+  cs_modify.cpp
+  CalendarMgr.cpp
+  Chat.cpp
+  HyperlinkTags.cpp
+  Hyperlinks.cpp
+  cs_npc.cpp
+  LanguageMgr.cpp
+  Channel.cpp
+  ChannelMgr.cpp
+  enuminfo_Channel.cpp
+  ChatCommand.cpp
+  ChatCommandArgs.cpp
+  cs_pet.cpp
+  ChatCommandHelpers.cpp
+  cs_quest.cpp
+  cs_rbac.cpp
+  cs_reload.cpp
+  ChatCommandTags.cpp
+  CombatManager.cpp
+  ThreatManager.cpp
+  cs_reset.cpp
+  cs_scene.cpp
+  cs_script_loader.cpp
+  ConditionMgr.cpp
+  cs_send.cpp
+  DisableMgr.cpp
+  cs_server.cpp
+  cs_tele.cpp
+  cs_ticket.cpp
+  DB2HotfixGenerator.cpp
+  DB2Stores.cpp
+  GameTables.cpp
+  M2Stores.cpp
+  LFG.cpp
+  cs_titles.cpp
+  LFGGroupData.cpp
+  LFGMgr.cpp
+  cs_wp.cpp
+  LFGPlayerData.cpp
+  custom_script_loader.cpp
+  LFGQueue.cpp
+  draenor_script_loader.cpp
+  zone_assault_on_the_dark_portal.cpp
+  zone_draenor_shadowmoon_valley.cpp
+  LFGScripts.cpp
+  AreaTrigger.cpp
+  zone_frostfire_ridge.cpp
+  AreaTriggerTemplate.cpp
+  auchindoun.cpp
+  Conversation.cpp
+  Corpse.cpp
+  instance_auchindoun.cpp
+  garrison_generic.cpp
+  dragon_isles_script_loader.cpp
+  Creature.cpp
+  zone_the_forbidden_reach.cpp
+  CreatureGroups.cpp
+  GossipDef.cpp
+  aberrus_the_shadowed_crucible.cpp
+  boss_kazzara_the_hellforged.cpp
+  TemporarySummon.cpp
+  Trainer.cpp
+  enuminfo_CreatureData.cpp
+  DynamicObject.cpp
+  GameObject.cpp
+  Item.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Chat\ChatCommands\ChatCommand.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  ItemBonusMgr.cpp
+  ItemEnchantmentMgr.cpp
+  (Quelldatei „../../../../src/server/game/Chat/ChatCommands/ChatCommand.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Chat\ChatCommands\ChatCommand.cpp(1,1):
+      Das System hat den Code 1455 zurückgegeben: Die Auslagerungsdatei ist zu klein, um diesen Vorgang durchzuführen.
+  
+      C:\TrinityBots\TrinityCore\src\server\game\Chat\ChatCommands\ChatCommand.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Chat\ChatCommands\ChatCommand.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Chat/ChatCommands/ChatCommand.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Chat\Chat.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Chat/Chat.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Chat\Chat.cpp(1,1):
+      Das System hat den Code 1455 zurückgegeben: Die Auslagerungsdatei ist zu klein, um diesen Vorgang durchzuführen.
+  
+      C:\TrinityBots\TrinityCore\src\server\game\Chat\Chat.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Chat\Chat.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Chat/Chat.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\Trainer.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Creature/Trainer.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\Trainer.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\Trainer.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\TemporarySummon.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Creature/TemporarySummon.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\TemporarySummon.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\TemporarySummon.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\Trainer.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Creature/Trainer.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\TemporarySummon.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Creature/TemporarySummon.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\enuminfo_CreatureData.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Creature/enuminfo_CreatureData.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\enuminfo_CreatureData.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\enuminfo_CreatureData.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\DynamicObject\DynamicObject.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/DynamicObject/DynamicObject.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\DynamicObject\DynamicObject.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\DynamicObject\DynamicObject.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Creature\enuminfo_CreatureData.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Creature/enuminfo_CreatureData.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\DynamicObject\DynamicObject.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/DynamicObject/DynamicObject.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Item.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/Item.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Item.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Item.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\GameObject\GameObject.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/GameObject/GameObject.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\GameObject\GameObject.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\GameObject\GameObject.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Item.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+C:\TrinityBots\TrinityCore\src\server\scripts\Commands\cs_honor.cpp(1,1): error C1083: Datei (Compilerzwischenstufe) kann nicht geöffnet werden: "c:\trinitybots\trinitycore\build\src\server\scripts\scripts.dir\release\cmake_pch.pch": Permission denied [C:\TrinityBots\TrinityCore\build\src\server\scripts\scripts.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/Item.cpp“ wird kompiliert)
+  
+  instance_aberrus_the_shadowed_crucible.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\GameObject\GameObject.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/GameObject/GameObject.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemBonusMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/ItemBonusMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemBonusMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemBonusMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemEnchantmentMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/ItemEnchantmentMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemEnchantmentMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemEnchantmentMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemBonusMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/ItemBonusMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemEnchantmentMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/ItemEnchantmentMgr.cpp“ wird kompiliert)
+  
+  ItemTemplate.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemTemplate.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/ItemTemplate.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemTemplate.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemTemplate.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\ItemTemplate.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/ItemTemplate.cpp“ wird kompiliert)
+  
+  enuminfo_ItemDefines.cpp
+  AzeriteEmpoweredItem.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\enuminfo_ItemDefines.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/enuminfo_ItemDefines.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\enuminfo_ItemDefines.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\enuminfo_ItemDefines.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\enuminfo_ItemDefines.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/enuminfo_ItemDefines.cpp“ wird kompiliert)
+  
+  AzeriteItem.cpp
+  Bag.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\AzeriteItem\AzeriteEmpoweredItem.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/AzeriteItem/AzeriteEmpoweredItem.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\AzeriteItem\AzeriteEmpoweredItem.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\AzeriteItem\AzeriteEmpoweredItem.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\AzeriteItem\AzeriteEmpoweredItem.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/AzeriteItem/AzeriteEmpoweredItem.cpp“ wird kompiliert)
+  
+  Object.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Container\Bag.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/Container/Bag.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Container\Bag.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Container\Bag.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Item\Container\Bag.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Item/Container/Bag.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Object.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Object.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Object.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Object.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Object.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Object.cpp“ wird kompiliert)
+  
+  ObjectGuid.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuid.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/ObjectGuid.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuid.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuid.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuid.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/ObjectGuid.cpp“ wird kompiliert)
+  
+  ObjectGuidSequenceGenerator.cpp
+  ObjectPosSelector.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuidSequenceGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/ObjectGuidSequenceGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuidSequenceGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuidSequenceGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\ObjectGuidSequenceGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/ObjectGuidSequenceGenerator.cpp“ wird kompiliert)
+  
+  Position.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Position.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Position.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Position.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Position.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Position.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Position.cpp“ wird kompiliert)
+  
+  SmoothPhasing.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\SmoothPhasing.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/SmoothPhasing.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\SmoothPhasing.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\SmoothPhasing.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\SmoothPhasing.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/SmoothPhasing.cpp“ wird kompiliert)
+  
+  UpdateData.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateData.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/UpdateData.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateData.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateData.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateData.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/UpdateData.cpp“ wird kompiliert)
+  
+  UpdateField.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateField.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/UpdateField.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateField.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateField.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateField.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/UpdateField.cpp“ wird kompiliert)
+  
+  UpdateFields.cpp
+  WowCSEntityDefinitions.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateFields.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/UpdateFields.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateFields.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateFields.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\WowCSEntityDefinitions.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/WowCSEntityDefinitions.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\WowCSEntityDefinitions.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\WowCSEntityDefinitions.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\UpdateFields.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/UpdateFields.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Object\Updates\WowCSEntityDefinitions.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Object/Updates/WowCSEntityDefinitions.cpp“ wird kompiliert)
+  
+  Pet.cpp
+  CinematicMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CinematicMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/CinematicMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CinematicMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CinematicMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CinematicMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/CinematicMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Pet\Pet.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Pet/Pet.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Pet\Pet.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Pet\Pet.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Pet\Pet.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Pet/Pet.cpp“ wird kompiliert)
+  
+  CollectionMgr.cpp
+  KillRewarder.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\KillRewarder.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/KillRewarder.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\KillRewarder.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\KillRewarder.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CollectionMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/CollectionMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CollectionMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CollectionMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\KillRewarder.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/KillRewarder.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\CollectionMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/CollectionMgr.cpp“ wird kompiliert)
+  
+  Player.cpp
+  PlayerTaxi.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\Player.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/Player.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\Player.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\Player.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\Player.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/Player.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\PlayerTaxi.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/PlayerTaxi.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\PlayerTaxi.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\PlayerTaxi.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\PlayerTaxi.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/PlayerTaxi.cpp“ wird kompiliert)
+  
+  RestMgr.cpp
+  SceneMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SceneMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/SceneMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SceneMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SceneMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SceneMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/SceneMgr.cpp“ wird kompiliert)
+  
+  SocialMgr.cpp
+  TradeData.cpp
+  SceneObject.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SocialMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/SocialMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SocialMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SocialMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\SceneObject\SceneObject.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/SceneObject/SceneObject.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\SceneObject\SceneObject.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\SceneObject\SceneObject.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Player\SocialMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Player/SocialMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\SceneObject\SceneObject.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/SceneObject/SceneObject.cpp“ wird kompiliert)
+  
+  TaxiPathGraph.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Taxi\TaxiPathGraph.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Taxi/TaxiPathGraph.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Taxi\TaxiPathGraph.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Taxi\TaxiPathGraph.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Taxi\TaxiPathGraph.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Taxi/TaxiPathGraph.cpp“ wird kompiliert)
+  
+  Totem.cpp
+  Transport.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Totem\Totem.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Totem/Totem.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Totem\Totem.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Totem\Totem.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Totem\Totem.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Totem/Totem.cpp“ wird kompiliert)
+  
+  CharmInfo.cpp
+  StatSystem.cpp
+  Unit.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Unit.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Unit/Unit.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Unit.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Unit.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Unit.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Unit/Unit.cpp“ wird kompiliert)
+  
+  Vignette.cpp
+  enuminfo_UnitDefines.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\enuminfo_UnitDefines.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Unit/enuminfo_UnitDefines.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\enuminfo_UnitDefines.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\enuminfo_UnitDefines.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Vignette.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Unit/Vignette.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Vignette.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Vignette.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\enuminfo_UnitDefines.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Unit/enuminfo_UnitDefines.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Unit\Vignette.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Unit/Vignette.cpp“ wird kompiliert)
+  
+  Vehicle.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Vehicle\Vehicle.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Vehicle/Vehicle.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Vehicle\Vehicle.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Entities\Vehicle\Vehicle.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Entities\Vehicle\Vehicle.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Entities/Vehicle/Vehicle.cpp“ wird kompiliert)
+  
+  GameEventMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Events/GameEventMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Events/GameEventMgr.cpp“ wird kompiliert)
+  
+  GameEventSender.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventSender.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Events/GameEventSender.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventSender.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventSender.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Events\GameEventSender.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Events/GameEventSender.cpp“ wird kompiliert)
+  
+  Garrison.cpp
+  GarrisonMap.cpp
+  GarrisonMgr.cpp
+  AreaTriggerDataStore.cpp
+  CharacterTemplateDataStore.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Garrison\GarrisonMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Garrison/GarrisonMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Garrison\GarrisonMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Garrison\GarrisonMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Garrison\GarrisonMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Garrison/GarrisonMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Globals\CharacterTemplateDataStore.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Globals/CharacterTemplateDataStore.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Globals\CharacterTemplateDataStore.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Globals\CharacterTemplateDataStore.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Globals\CharacterTemplateDataStore.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Globals/CharacterTemplateDataStore.cpp“ wird kompiliert)
+  
+  ConversationDataStore.cpp
+  ObjectAccessor.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Globals\ObjectAccessor.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Globals/ObjectAccessor.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Globals\ObjectAccessor.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Globals\ObjectAccessor.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Globals\ObjectAccessor.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Globals/ObjectAccessor.cpp“ wird kompiliert)
+  
+  ObjectMgr.cpp
+  GridStates.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Grids\GridStates.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/GridStates.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\GridStates.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\GridStates.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Grids\GridStates.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/GridStates.cpp“ wird kompiliert)
+  
+  NGrid.cpp
+  ObjectGridLoader.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Grids\NGrid.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/NGrid.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\NGrid.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\NGrid.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Grids\ObjectGridLoader.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/ObjectGridLoader.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\ObjectGridLoader.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\ObjectGridLoader.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Grids\NGrid.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/NGrid.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Grids\ObjectGridLoader.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/ObjectGridLoader.cpp“ wird kompiliert)
+  
+  GridNotifiers.cpp
+  Group.cpp
+  GroupInstanceReference.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Grids\Notifiers\GridNotifiers.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/Notifiers/GridNotifiers.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\Notifiers\GridNotifiers.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Grids\Notifiers\GridNotifiers.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupInstanceReference.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Groups/GroupInstanceReference.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupInstanceReference.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupInstanceReference.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Grids\Notifiers\GridNotifiers.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Grids/Notifiers/GridNotifiers.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupInstanceReference.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Groups/GroupInstanceReference.cpp“ wird kompiliert)
+  
+  GroupMgr.cpp
+  GroupReference.cpp
+  Guild.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Guilds\Guild.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Guilds/Guild.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Guilds\Guild.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Guilds\Guild.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Guilds\Guild.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Guilds/Guild.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Groups/GroupMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Groups\GroupMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Groups/GroupMgr.cpp“ wird kompiliert)
+  
+  GuildMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Guilds\GuildMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Guilds/GuildMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Guilds\GuildMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Guilds\GuildMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Guilds\GuildMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Guilds/GuildMgr.cpp“ wird kompiliert)
+  
+  AdventureJournalHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureJournalHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AdventureJournalHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureJournalHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureJournalHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureJournalHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AdventureJournalHandler.cpp“ wird kompiliert)
+  
+  AdventureMapHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureMapHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AdventureMapHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureMapHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureMapHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AdventureMapHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AdventureMapHandler.cpp“ wird kompiliert)
+  
+  ArtifactHandler.cpp
+  AuctionHouseHandler.cpp
+  AuthHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ArtifactHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ArtifactHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ArtifactHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ArtifactHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AuctionHouseHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AuctionHouseHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AuctionHouseHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AuctionHouseHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ArtifactHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ArtifactHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AuctionHouseHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AuctionHouseHandler.cpp“ wird kompiliert)
+  
+  AzeriteHandler.cpp
+  BankHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BankHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BankHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BankHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BankHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AzeriteHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AzeriteHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AzeriteHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\AzeriteHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BankHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BankHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\AzeriteHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/AzeriteHandler.cpp“ wird kompiliert)
+  
+  BattleGroundHandler.cpp
+  BattlePetHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattleGroundHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BattleGroundHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattleGroundHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattleGroundHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlePetHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BattlePetHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlePetHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlePetHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattleGroundHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BattleGroundHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlePetHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BattlePetHandler.cpp“ wird kompiliert)
+  
+  BattlenetHandler.cpp
+  BlackMarketHandler.cpp
+  CalendarHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlenetHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BattlenetHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlenetHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlenetHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CalendarHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CalendarHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CalendarHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CalendarHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\BattlenetHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/BattlenetHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CalendarHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CalendarHandler.cpp“ wird kompiliert)
+  
+  ChannelHandler.cpp
+  CharacterHandler.cpp
+  ChatHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CharacterHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CharacterHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CharacterHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CharacterHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ChannelHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ChannelHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ChannelHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ChannelHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CharacterHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CharacterHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ChannelHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ChannelHandler.cpp“ wird kompiliert)
+  
+  CollectionsHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CollectionsHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CollectionsHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CollectionsHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CollectionsHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CollectionsHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CollectionsHandler.cpp“ wird kompiliert)
+  
+  CombatHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CombatHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CombatHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CombatHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\CombatHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\CombatHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/CombatHandler.cpp“ wird kompiliert)
+  
+  DuelHandler.cpp
+  GarrisonHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\GarrisonHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/GarrisonHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\GarrisonHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\GarrisonHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\GarrisonHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/GarrisonHandler.cpp“ wird kompiliert)
+  
+  GroupHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\GroupHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/GroupHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\GroupHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\GroupHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\GroupHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/GroupHandler.cpp“ wird kompiliert)
+  
+  GuildHandler.cpp
+  HotfixHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\HotfixHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/HotfixHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\HotfixHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\HotfixHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\GuildHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/GuildHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\GuildHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\GuildHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\HotfixHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/HotfixHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\GuildHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/GuildHandler.cpp“ wird kompiliert)
+  
+  InspectHandler.cpp
+  ItemHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ItemHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ItemHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ItemHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ItemHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ItemHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ItemHandler.cpp“ wird kompiliert)
+  
+  LFGHandler.cpp
+  LootHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\LootHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/LootHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\LootHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\LootHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\LFGHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/LFGHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\LFGHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\LFGHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\LootHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/LootHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\LFGHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/LFGHandler.cpp“ wird kompiliert)
+  
+  MailHandler.cpp
+  MiscHandler.cpp
+  MovementHandler.cpp
+  NPCHandler.cpp
+  PetHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\PetHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/PetHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\PetHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\PetHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\MovementHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/MovementHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\MovementHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\MovementHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\PetHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/PetHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\MovementHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/MovementHandler.cpp“ wird kompiliert)
+  
+  PetitionsHandler.cpp
+  QueryHandler.cpp
+  QuestHandler.cpp
+  ScenarioHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\QuestHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/QuestHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\QuestHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\QuestHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\QuestHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/QuestHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ScenarioHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ScenarioHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ScenarioHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ScenarioHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ScenarioHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ScenarioHandler.cpp“ wird kompiliert)
+  
+  SceneHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SceneHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SceneHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SceneHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SceneHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SceneHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SceneHandler.cpp“ wird kompiliert)
+  
+  SkillHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SkillHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SkillHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SkillHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SkillHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SkillHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SkillHandler.cpp“ wird kompiliert)
+  
+  SocialHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SocialHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SocialHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SocialHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SocialHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SocialHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SocialHandler.cpp“ wird kompiliert)
+  
+  SpellHandler.cpp
+  TaxiHandler.cpp
+  TicketHandler.cpp
+  TokenHandler.cpp
+  ToyHandler.cpp
+  TradeHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SpellHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SpellHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SpellHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\SpellHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\SpellHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/SpellHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ToyHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ToyHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ToyHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\ToyHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\ToyHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/ToyHandler.cpp“ wird kompiliert)
+  
+  TraitHandler.cpp
+  TransmogrificationHandler.cpp
+  VehicleHandler.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\TransmogrificationHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/TransmogrificationHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\TransmogrificationHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\TransmogrificationHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\TransmogrificationHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/TransmogrificationHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\TraitHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/TraitHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\TraitHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Handlers\TraitHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Handlers\TraitHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Handlers/TraitHandler.cpp“ wird kompiliert)
+  
+  InstanceLockMgr.cpp
+  InstanceScript.cpp
+  InstanceScriptData.cpp
+  enuminfo_InstanceScript.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceLockMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Instances/InstanceLockMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceLockMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceLockMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceScriptData.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Instances/InstanceScriptData.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceScriptData.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceScriptData.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceLockMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Instances/InstanceLockMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Instances\InstanceScriptData.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Instances/InstanceScriptData.cpp“ wird kompiliert)
+  
+  Loot.cpp
+  LootItemStorage.cpp
+  LootMgr.cpp
+  Mail.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Loot\Loot.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Loot/Loot.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Loot\Loot.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Loot\Loot.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Loot\Loot.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Loot/Loot.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Mails\Mail.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Mails/Mail.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Mails\Mail.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Mails\Mail.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Mails\Mail.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Mails/Mail.cpp“ wird kompiliert)
+  
+  AreaBoundary.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Maps\AreaBoundary.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/AreaBoundary.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\AreaBoundary.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\AreaBoundary.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\AreaBoundary.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/AreaBoundary.cpp“ wird kompiliert)
+  
+  GridMap.cpp
+  Map.cpp
+  MapManager.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Maps\MapManager.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/MapManager.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\MapManager.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\MapManager.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\Map.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/Map.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\Map.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\Map.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\MapManager.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/MapManager.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\Map.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/Map.cpp“ wird kompiliert)
+  
+  MapReference.cpp
+  MapScripts.cpp
+  MapUpdater.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Maps\MapScripts.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/MapScripts.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\MapScripts.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\MapScripts.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\MapScripts.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/MapScripts.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\MapUpdater.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/MapUpdater.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\MapUpdater.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\MapUpdater.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\MapUpdater.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/MapUpdater.cpp“ wird kompiliert)
+  
+  TerrainMgr.cpp
+  TransportMgr.cpp
+  ZoneScript.cpp
+  enuminfo_SpawnData.cpp
+  CommonPredicates.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\CommonPredicates.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Miscellaneous/CommonPredicates.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\CommonPredicates.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\CommonPredicates.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\enuminfo_SpawnData.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/enuminfo_SpawnData.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\enuminfo_SpawnData.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Maps\enuminfo_SpawnData.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\CommonPredicates.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Miscellaneous/CommonPredicates.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Maps\enuminfo_SpawnData.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Maps/enuminfo_SpawnData.cpp“ wird kompiliert)
+  
+  enuminfo_RaceMask.cpp
+  enuminfo_SharedDefines.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_RaceMask.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Miscellaneous/enuminfo_RaceMask.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_RaceMask.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_RaceMask.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_RaceMask.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Miscellaneous/enuminfo_RaceMask.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_SharedDefines.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Miscellaneous/enuminfo_SharedDefines.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_SharedDefines.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_SharedDefines.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Miscellaneous\enuminfo_SharedDefines.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Miscellaneous/enuminfo_SharedDefines.cpp“ wird kompiliert)
+  
+  ModuleManager.cpp
+  AbstractFollower.cpp
+  MotionMaster.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Modules\ModuleManager.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Modules/ModuleManager.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Modules\ModuleManager.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Modules\ModuleManager.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Modules\ModuleManager.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Modules/ModuleManager.cpp“ wird kompiliert)
+  
+  MovementDefines.cpp
+  MovementGenerator.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementDefines.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementDefines.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementDefines.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementDefines.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementDefines.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementDefines.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerator.cpp“ wird kompiliert)
+  
+  PathGenerator.cpp
+  enuminfo_MovementDefines.cpp
+  ChaseMovementGenerator.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ChaseMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/ChaseMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ChaseMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ChaseMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\enuminfo_MovementDefines.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/enuminfo_MovementDefines.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\enuminfo_MovementDefines.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\enuminfo_MovementDefines.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ChaseMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/ChaseMovementGenerator.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\enuminfo_MovementDefines.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/enuminfo_MovementDefines.cpp“ wird kompiliert)
+  
+  ConfusedMovementGenerator.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ConfusedMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/ConfusedMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ConfusedMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ConfusedMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\ConfusedMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/ConfusedMovementGenerator.cpp“ wird kompiliert)
+  
+  FleeingMovementGenerator.cpp
+  FlightPathMovementGenerator.cpp
+  FollowMovementGenerator.cpp
+  FormationMovementGenerator.cpp
+  GenericMovementGenerator.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\FormationMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/FormationMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\FormationMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\FormationMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\GenericMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/GenericMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\GenericMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\GenericMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\FormationMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/FormationMovementGenerator.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\GenericMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/GenericMovementGenerator.cpp“ wird kompiliert)
+  
+  HomeMovementGenerator.cpp
+  IdleMovementGenerator.cpp
+  PointMovementGenerator.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\PointMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/PointMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\PointMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\PointMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\PointMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/PointMovementGenerator.cpp“ wird kompiliert)
+  
+  RandomMovementGenerator.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\RandomMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/RandomMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\RandomMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\RandomMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\RandomMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/RandomMovementGenerator.cpp“ wird kompiliert)
+  
+  SplineChainMovementGenerator.cpp
+  WaypointMovementGenerator.cpp
+  MoveSpline.cpp
+  MoveSplineInit.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MoveSpline.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/MoveSpline.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MoveSpline.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MoveSpline.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\WaypointMovementGenerator.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/WaypointMovementGenerator.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\WaypointMovementGenerator.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\WaypointMovementGenerator.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MoveSpline.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/MoveSpline.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\MovementGenerators\WaypointMovementGenerator.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/MovementGenerators/WaypointMovementGenerator.cpp“ wird kompiliert)
+  
+  MovementUtil.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MovementUtil.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/MovementUtil.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MovementUtil.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MovementUtil.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\MovementUtil.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/MovementUtil.cpp“ wird kompiliert)
+  
+  Spline.cpp
+  enuminfo_MoveSplineFlag.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\Spline.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/Spline.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\Spline.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\Spline.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\enuminfo_MoveSplineFlag.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/enuminfo_MoveSplineFlag.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\enuminfo_MoveSplineFlag.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\enuminfo_MoveSplineFlag.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\Spline.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/Spline.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Movement\Spline\enuminfo_MoveSplineFlag.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Movement/Spline/enuminfo_MoveSplineFlag.cpp“ wird kompiliert)
+  
+  WaypointManager.cpp
+  OutdoorPvP.cpp
+  OutdoorPvPMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvPMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/OutdoorPvP/OutdoorPvPMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvPMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvPMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvP.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/OutdoorPvP/OutdoorPvP.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvP.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvP.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvPMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/OutdoorPvP/OutdoorPvPMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\OutdoorPvP\OutdoorPvP.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/OutdoorPvP/OutdoorPvP.cpp“ wird kompiliert)
+  
+  PetitionMgr.cpp
+  PersonalPhaseTracker.cpp
+  PhaseShift.cpp
+  PhasingHandler.cpp
+  PoolMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Phasing\PhasingHandler.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Phasing/PhasingHandler.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Phasing\PhasingHandler.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Phasing\PhasingHandler.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Phasing\PersonalPhaseTracker.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Phasing/PersonalPhaseTracker.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Phasing\PersonalPhaseTracker.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Phasing\PersonalPhaseTracker.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Phasing\PhasingHandler.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Phasing/PhasingHandler.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Phasing\PersonalPhaseTracker.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Phasing/PersonalPhaseTracker.cpp“ wird kompiliert)
+  
+  QuestPools.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Pools\QuestPools.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Pools/QuestPools.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Pools\QuestPools.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Pools\QuestPools.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Pools\QuestPools.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Pools/QuestPools.cpp“ wird kompiliert)
+  
+  QuestDef.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Quests\QuestDef.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Quests/QuestDef.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Quests\QuestDef.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Quests\QuestDef.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Quests\QuestDef.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Quests/QuestDef.cpp“ wird kompiliert)
+  
+  QuestObjectiveCriteriaMgr.cpp
+  enuminfo_QuestDef.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Quests\enuminfo_QuestDef.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Quests/enuminfo_QuestDef.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Quests\enuminfo_QuestDef.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Quests\enuminfo_QuestDef.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Quests\enuminfo_QuestDef.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Quests/enuminfo_QuestDef.cpp“ wird kompiliert)
+  
+  ReputationMgr.cpp
+  InstanceScenario.cpp
+  Scenario.cpp
+  ScenarioMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Scenarios\ScenarioMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scenarios/ScenarioMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Scenarios\ScenarioMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Scenarios\ScenarioMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Reputation\ReputationMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Reputation/ReputationMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Reputation\ReputationMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Reputation\ReputationMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Scenarios\ScenarioMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scenarios/ScenarioMgr.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Reputation\ReputationMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Reputation/ReputationMgr.cpp“ wird kompiliert)
+  
+  ScriptMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scripting/ScriptMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scripting/ScriptMgr.cpp“ wird kompiliert)
+  
+  ScriptReloadMgr.cpp
+  ScriptSystem.cpp
+  ScriptActions.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptSystem.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scripting/ScriptSystem.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptSystem.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptSystem.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Scripting\v2\ScriptActions.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scripting/v2/ScriptActions.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Scripting\v2\ScriptActions.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Scripting\v2\ScriptActions.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Scripting\ScriptSystem.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scripting/ScriptSystem.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Scripting\v2\ScriptActions.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Scripting/v2/ScriptActions.cpp“ wird kompiliert)
+  
+  Packet.cpp
+  WorldSession.cpp
+  WorldSocket.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSession.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/WorldSession.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSession.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSession.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSession.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/WorldSession.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSocket.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/WorldSocket.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSocket.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSocket.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\WorldSocket.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/WorldSocket.cpp“ wird kompiliert)
+  
+  WorldSocketMgr.cpp
+  AchievementPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AchievementPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AchievementPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AchievementPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AchievementPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AchievementPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AchievementPackets.cpp“ wird kompiliert)
+  
+  AddonPackets.cpp
+  AdventureJournalPackets.cpp
+  AdventureMapPackets.cpp
+  AreaTriggerPackets.cpp
+  ArtifactPackets.cpp
+  AuctionHousePackets.cpp
+  AuthenticationPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AreaTriggerPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AreaTriggerPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AreaTriggerPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AreaTriggerPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AreaTriggerPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AreaTriggerPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AdventureMapPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AdventureMapPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AdventureMapPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AdventureMapPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AdventureMapPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AdventureMapPackets.cpp“ wird kompiliert)
+  
+  AzeritePackets.cpp
+  BankPackets.cpp
+  BattlePetPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AzeritePackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AzeritePackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AzeritePackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AzeritePackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\AzeritePackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/AzeritePackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlePetPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BattlePetPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlePetPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlePetPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlegroundPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BattlegroundPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlegroundPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlegroundPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlePetPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BattlePetPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlegroundPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BattlegroundPackets.cpp“ wird kompiliert)
+  
+  BattlegroundPackets.cpp
+  BattlenetPackets.cpp
+  BlackMarketPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BlackMarketPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BlackMarketPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BlackMarketPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BlackMarketPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlenetPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BattlenetPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlenetPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlenetPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BlackMarketPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BlackMarketPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\BattlenetPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/BattlenetPackets.cpp“ wird kompiliert)
+  
+  CalendarPackets.cpp
+  ChannelPackets.cpp
+  CharacterPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CharacterPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/CharacterPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CharacterPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CharacterPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChannelPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/ChannelPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChannelPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChannelPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CharacterPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/CharacterPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChannelPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/ChannelPackets.cpp“ wird kompiliert)
+  
+  ChatPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChatPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/ChatPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChatPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChatPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ChatPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/ChatPackets.cpp“ wird kompiliert)
+  
+  ClientConfigPackets.cpp
+  CollectionPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ClientConfigPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/ClientConfigPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ClientConfigPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ClientConfigPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\ClientConfigPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/ClientConfigPackets.cpp“ wird kompiliert)
+  
+  CombatLogPackets.cpp
+  CombatLogPacketsCommon.cpp
+  CombatPackets.cpp
+  CraftingPacketsCommon.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/CombatLogPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/CombatLogPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPacketsCommon.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/CombatLogPacketsCommon.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPacketsCommon.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPacketsCommon.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\CombatLogPacketsCommon.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/CombatLogPacketsCommon.cpp“ wird kompiliert)
+  
+  DuelPackets.cpp
+  EquipmentSetPackets.cpp
+  GameObjectPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\EquipmentSetPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/EquipmentSetPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\EquipmentSetPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\EquipmentSetPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\GameObjectPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/GameObjectPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\GameObjectPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\GameObjectPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\EquipmentSetPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/EquipmentSetPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\GameObjectPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/GameObjectPackets.cpp“ wird kompiliert)
+  
+  GarrisonPackets.cpp
+  GuildPackets.cpp
+  HotfixPackets.cpp
+  InspectPackets.cpp
+  InstancePackets.cpp
+  ItemPackets.cpp
+  ItemPacketsCommon.cpp
+  LFGPackets.cpp
+cl : befehlszeile  error D8040: Fehler beim Erstellen oder Kommunizieren mit dem untergeordneten Prozess. [C:\TrinityBots\TrinityCore\build\src\server\scripts\scripts.vcxproj]
+  LFGPacketsCommon.cpp
+  LootPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\LootPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/LootPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\LootPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\LootPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\LootPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/LootPackets.cpp“ wird kompiliert)
+  
+  MailPackets.cpp
+  MiscPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\MailPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/MailPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\MailPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\MailPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\MailPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/MailPackets.cpp“ wird kompiliert)
+  
+  MovementPackets.cpp
+  MythicPlusPacketsCommon.cpp
+  NPCPackets.cpp
+  PacketUtilities.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PacketUtilities.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/PacketUtilities.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PacketUtilities.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PacketUtilities.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PacketUtilities.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/PacketUtilities.cpp“ wird kompiliert)
+  
+  PartyPackets.cpp
+  PerksProgramPacketsCommon.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PerksProgramPacketsCommon.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/PerksProgramPacketsCommon.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PerksProgramPacketsCommon.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PerksProgramPacketsCommon.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\PerksProgramPacketsCommon.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/PerksProgramPacketsCommon.cpp“ wird kompiliert)
+  
+  PetPackets.cpp
+  PetitionPackets.cpp
+  QueryPackets.cpp
+  QuestPackets.cpp
+  ReferAFriendPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\QueryPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/QueryPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\QueryPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\QueryPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\QueryPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/QueryPackets.cpp“ wird kompiliert)
+  
+  ReputationPackets.cpp
+  ScenarioPackets.cpp
+  ScenePackets.cpp
+  SocialPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\SocialPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/SocialPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\SocialPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\SocialPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\SocialPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/SocialPackets.cpp“ wird kompiliert)
+  
+  SpellPackets.cpp
+  SystemPackets.cpp
+  TalentPackets.cpp
+  TaxiPackets.cpp
+  TicketPackets.cpp
+  TokenPackets.cpp
+  TotemPackets.cpp
+  ToyPackets.cpp
+  TradePackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TaxiPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/TaxiPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TaxiPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TaxiPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TaxiPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/TaxiPackets.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TradePackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/TradePackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TradePackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TradePackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TradePackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/TradePackets.cpp“ wird kompiliert)
+  
+  TraitPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TraitPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/TraitPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TraitPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TraitPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\TraitPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/TraitPackets.cpp“ wird kompiliert)
+  
+  TraitPacketsCommon.cpp
+  TransmogrificationPackets.cpp
+  VehiclePackets.cpp
+  VignettePackets.cpp
+  WardenPackets.cpp
+  WhoPackets.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\WhoPackets.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/WhoPackets.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\WhoPackets.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\WhoPackets.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Packets\WhoPackets.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Packets/WhoPackets.cpp“ wird kompiliert)
+  
+  WorldStatePackets.cpp
+  Opcodes.cpp
+  PacketLog.cpp
+  ClubMembershipService.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Server\Protocol\PacketLog.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Protocol/PacketLog.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Protocol\PacketLog.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Server\Protocol\PacketLog.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Server\Protocol\PacketLog.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Server/Protocol/PacketLog.cpp“ wird kompiliert)
+  
+  ClubService.cpp
+  ClubUtils.cpp
+  WorldserverGameUtilitiesService.cpp
+  WorldserverServiceDispatcher.cpp
+  SkillDiscovery.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Services\ClubUtils.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Services/ClubUtils.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Services\ClubUtils.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Services\ClubUtils.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Services\ClubUtils.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Services/ClubUtils.cpp“ wird kompiliert)
+  
+  SkillExtraItems.cpp
+  Spell.cpp
+  SpellEffects.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Skills\SkillExtraItems.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Skills/SkillExtraItems.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Skills\SkillExtraItems.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Skills\SkillExtraItems.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Skills\SkillExtraItems.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Skills/SkillExtraItems.cpp“ wird kompiliert)
+  
+  SpellHistory.cpp
+  SpellInfo.cpp
+  SpellMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/SpellMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/SpellMgr.cpp“ wird kompiliert)
+  
+  SpellScript.cpp
+  TraitMgr.cpp
+  SpellAuraEffects.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellScript.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/SpellScript.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellScript.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellScript.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Spells\TraitMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/TraitMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\TraitMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\TraitMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Spells\SpellScript.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/SpellScript.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Spells\TraitMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/TraitMgr.cpp“ wird kompiliert)
+  
+  SpellAuras.cpp
+  WhoListStorage.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Spells\Auras\SpellAuras.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/Auras/SpellAuras.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\Auras\SpellAuras.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Spells\Auras\SpellAuras.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Spells\Auras\SpellAuras.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Spells/Auras/SpellAuras.cpp“ wird kompiliert)
+  
+  SupportMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Support\SupportMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Support/SupportMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Support\SupportMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Support\SupportMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Support\SupportMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Support/SupportMgr.cpp“ wird kompiliert)
+  
+  ChatTextBuilder.cpp
+  CreatureTextMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Texts\ChatTextBuilder.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Texts/ChatTextBuilder.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Texts\ChatTextBuilder.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Texts\ChatTextBuilder.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Texts\ChatTextBuilder.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Texts/ChatTextBuilder.cpp“ wird kompiliert)
+  
+  GameTime.cpp
+  UpdateTime.cpp
+  WowTime.cpp
+  CharacterDatabaseCleaner.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Time\WowTime.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Time/WowTime.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Time\WowTime.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Time\WowTime.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Time\WowTime.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Time/WowTime.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\Time\GameTime.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Time/GameTime.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Time\GameTime.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Time\GameTime.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Time\GameTime.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Time/GameTime.cpp“ wird kompiliert)
+  
+  PlayerDump.cpp
+  Warden.cpp
+  WardenCheckMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Tools\PlayerDump.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Tools/PlayerDump.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Tools\PlayerDump.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Tools\PlayerDump.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Tools\PlayerDump.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Tools/PlayerDump.cpp“ wird kompiliert)
+  
+  WardenMac.cpp
+  WardenWin.cpp
+  enuminfo_WardenCheckMgr.cpp
+  Weather.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Weather\Weather.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Weather/Weather.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Weather\Weather.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Weather\Weather.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Weather\Weather.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Weather/Weather.cpp“ wird kompiliert)
+  
+  WeatherMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\Weather\WeatherMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Weather/WeatherMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\Weather\WeatherMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\Weather\WeatherMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\Weather\WeatherMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/Weather/WeatherMgr.cpp“ wird kompiliert)
+  
+  World.cpp
+  WorldStateMgr.cpp
+C:\TrinityBots\TrinityCore\src\server\game\World\World.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/World/World.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\World\World.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\World\World.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\World\WorldStates\WorldStateMgr.cpp(1,1): error C3859: Fehler beim Erstellen des virtuellen Speichers für PCH. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/World/WorldStates/WorldStateMgr.cpp“ wird kompiliert)
+      C:\TrinityBots\TrinityCore\src\server\game\World\WorldStates\WorldStateMgr.cpp(1,1):
+      PCH: Committen des Arbeitsspeichers über Dateizuordnung hinweg nicht möglich. 
+      C:\TrinityBots\TrinityCore\src\server\game\World\WorldStates\WorldStateMgr.cpp(1,1):
+      Weitere Informationen finden Sie unter https://aka.ms/pch-help.
+  
+C:\TrinityBots\TrinityCore\src\server\game\World\World.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/World/World.cpp“ wird kompiliert)
+  
+C:\TrinityBots\TrinityCore\src\server\game\World\WorldStates\WorldStateMgr.cpp(1,1): error C1076: Compilerlimit: Interne Heapgrenze erreicht. [C:\TrinityBots\TrinityCore\build\src\server\game\game.vcxproj]
+  (Quelldatei „../../../../src/server/game/World/WorldStates/WorldStateMgr.cpp“ wird kompiliert)
+  

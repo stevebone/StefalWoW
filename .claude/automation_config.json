@@ -1,0 +1,44 @@
+﻿{
+    "automation":  {
+                       "notifications":  {
+                                             "email":  {
+                                                           "smtp_port":  587,
+                                                           "smtp_server":  "smtp.project.com",
+                                                           "recipients":  [
+                                                                              "team@project.com"
+                                                                          ],
+                                                           "enabled":  false
+                                                       },
+                                             "slack":  {
+                                                           "channel":  "#playerbot-dev",
+                                                           "webhook_url":  "",
+                                                           "enabled":  false
+                                                       }
+                                         },
+                       "auto_fix":  {
+                                        "low":  false,
+                                        "critical":  true,
+                                        "medium":  false,
+                                        "high":  false
+                                    },
+                       "enabled":  true
+                   },
+    "claude_dir":  "C:\\TrinityBots\\TrinityCore\\.claude",
+    "project_root":  "C:\\TrinityBots\\TrinityCore",
+    "reporting":  {
+                      "dashboard_enabled":  true,
+                      "retention_days":  90,
+                      "formats":  [
+                                      "html",
+                                      "json",
+                                      "markdown"
+                                  ]
+                  },
+    "thresholds":  {
+                       "quality_score":  80,
+                       "performance_score":  75,
+                       "coverage_minimum":  70,
+                       "security_score":  90,
+                       "trinity_compatibility":  95
+                   }
+}

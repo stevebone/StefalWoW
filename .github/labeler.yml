@@ -1,0 +1,135 @@
+# PR Labeler Configuration
+# Labels are automatically applied based on files changed in the PR
+
+# Playerbot Module
+playerbot:
+  - changed-files:
+      - any-glob-to-any-file: 'src/modules/Playerbot/**'
+
+# AI System
+ai:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/Playerbot/AI/**'
+          - 'src/modules/Playerbot/**/AI*.cpp'
+          - 'src/modules/Playerbot/**/AI*.h'
+
+# Combat System
+combat:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/Playerbot/Combat/**'
+          - 'src/modules/Playerbot/**/Combat*.cpp'
+          - 'src/modules/Playerbot/**/Combat*.h'
+
+# Navigation/Pathfinding
+navigation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/Playerbot/Navigation/**'
+          - 'src/modules/Playerbot/Travel/**'
+          - 'src/modules/Playerbot/**/Path*.cpp'
+          - 'src/modules/Playerbot/**/Path*.h'
+
+# Social/Interaction Systems
+social:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/Playerbot/Social/**'
+          - 'src/modules/Playerbot/Interaction/**'
+
+# Database/SQL
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.sql'
+          - 'src/modules/Playerbot/**/Database*.cpp'
+          - 'src/modules/Playerbot/**/Database*.h'
+
+# Configuration
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/Playerbot/**/Config*.cpp'
+          - 'src/modules/Playerbot/**/Config*.h'
+          - '**/*.conf'
+          - '**/*.conf.dist'
+
+# Tests
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - '**/*test*.cpp'
+          - '**/*Test*.cpp'
+
+# Build System
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/CMakeLists.txt'
+          - '**/*.cmake'
+          - '.github/workflows/**'
+
+# CI/CD
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+# Documentation
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+          - '.claude/**'
+
+# Core Changes (requires extra review)
+core:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/server/game/**'
+          - 'src/server/scripts/**'
+          - 'src/common/**'
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'dep/**'
+          - '**/requirements.txt'
+          - '**/package.json'
+
+# Scripts
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/server/scripts/**'
+          - '**/*.py'
+          - '**/*.ps1'
+          - '**/*.sh'
+          - '**/*.bat'
+
+# Performance Critical
+performance:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/Playerbot/**/Perf*.cpp'
+          - 'src/modules/Playerbot/**/Perf*.h'
+          - 'src/modules/Playerbot/**/Cache*.cpp'
+          - 'src/modules/Playerbot/**/Cache*.h'
+
+# Security Sensitive
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/server/bnetserver/**'
+          - '**/*Auth*.cpp'
+          - '**/*Auth*.h'
+          - '**/*Security*.cpp'
+          - '**/*Security*.h'
+
+# Tools
+tools:
+  - changed-files:
+      - any-glob-to-any-file: 'src/tools/**'

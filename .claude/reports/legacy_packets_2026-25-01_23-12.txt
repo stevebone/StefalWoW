@@ -1,0 +1,357 @@
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Advanced\SocialManager.cpp:17:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Advanced\SocialManager.cpp:204:            WorldPackets::Chat::Chat packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Advanced\SocialManager.cpp:216:            WorldPackets::Chat::Chat packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Advanced\SocialManager.cpp:673:    WorldPackets::Chat::Chat packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Advanced\SocialManager.cpp:696:    WorldPackets::Chat::Chat packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\BaselineRotationManager.cpp:93:            // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\BaselineRotationManager.cpp:435:            // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\ClassAI.cpp:1061:            // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Character\BotCustomizationGenerator.cpp:61:::std::array<WorldPackets::Character::ChrCustomizationChoice, 250>
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Character\BotCustomizationGenerator.cpp:69:    ::std::array<WorldPackets::Character::ChrCustomizationChoice, 250> customizations{};
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Character\BotCustomizationGenerator.cpp:234:    ::std::array<WorldPackets::Character::ChrCustomizationChoice, 250> const& customizations)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Chat\BotChatCommandHandler.cpp:40:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Chat\BotChatCommandHandler.cpp:238:    WorldPacket data(SMSG_CHAT, 200);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Companion\BattlePetManager.cpp:821:        WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(static_cast<BattlePets::BattlePetSlot>(i));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Companion\BattlePetManager.cpp:1102:                WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(static_cast<BattlePets::BattlePetSlot>(i));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dragonriding\PlayerbotDragonridingScript.cpp:433:        WorldPackets::Spells::LearnedSpells learnedSpells;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dragonriding\PlayerbotDragonridingScript.cpp:436:        WorldPackets::Spells::LearnedSpellInfo& spell1 = learnedSpells.ClientLearnedSpellData.emplace_back();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dragonriding\PlayerbotDragonridingScript.cpp:439:        WorldPackets::Spells::LearnedSpellInfo& spell2 = learnedSpells.ClientLearnedSpellData.emplace_back();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dragonriding\PlayerbotDragonridingScript.cpp:446:            WorldPackets::Spells::LearnedSpellInfo& spell3 = learnedSpells.ClientLearnedSpellData.emplace_back();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dragonriding\PlayerbotDragonridingScript.cpp:455:            WorldPackets::Spells::LearnedSpellInfo& spell4 = learnedSpells.ClientLearnedSpellData.emplace_back();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dragonriding\PlayerbotDragonridingScript.cpp:582:        WorldPackets::Spells::UnlearnedSpells unlearnedSpells;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Dungeon\InstanceCoordination.cpp:20:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupEventHandler.cpp:449:            WorldPackets::Party::ReadyCheckResponseClient response;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupEventHandler.cpp:458:                WorldPackets::Party::ReadyCheckResponseClient response;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupInvitationHandler.cpp:15:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupInvitationHandler.cpp:52:bool GroupInvitationHandler::HandleInvitation(WorldPackets::Party::PartyInvite const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupInvitationHandler.cpp:427:    WorldPacket packet(CMSG_PARTY_INVITE_RESPONSE);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupInvitationHandler.cpp:441:    WorldPackets::Party::PartyInviteResponse response(::std::move(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupInvitationHandler.cpp:539:    WorldPacket packet(CMSG_PARTY_INVITE_RESPONSE);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Group\GroupInvitationHandler.cpp:554:    WorldPackets::Party::PartyInviteResponse response(::std::move(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Interaction\Core\GossipHandler.cpp:254:    void GossipHandler::HandleGossipPacket(::Player* bot, ::WorldPacket const& packet, InteractionType desiredType)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Interaction\Core\InteractionManager.cpp:858:    void InteractionManager::HandleVendorList(Player* bot, WorldPacket const& /*packet*/)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Interaction\Core\InteractionManager.cpp:872:    void InteractionManager::HandleTrainerList(Player* bot, WorldPacket const& /*packet*/)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Interaction\Core\InteractionManager.cpp:886:    void InteractionManager::HandleGossipMessage(Player* bot, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotCharacterCreator.cpp:239:    auto createInfo = ::std::make_shared<WorldPackets::Character::CharacterCreateInfo>();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotSpawner.cpp:1781:        auto createInfo = ::std::make_shared<WorldPackets::Character::CharacterCreateInfo>();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotSpawner.cpp:2052:        auto createInfo = ::std::make_shared<WorldPackets::Character::CharacterCreateInfo>();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotWorldEntry.cpp:761:    WorldPackets::Misc::SetTimeZoneInformation packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotWorldEntry.cpp:810:    WorldPackets::Character::LoginVerifyWorld packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotWorldEntry.cpp:817:    WorldPackets::ClientConfig::AccountDataTimes accountData;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotWorldEntry.cpp:823:    WorldPackets::Character::FeatureSystemStatus features;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotWorldEntry.cpp:838:    WorldPackets::Character::MOTD motd;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\BotWorldEntry.cpp:852:    WorldPackets::Misc::LoginSetTimeSpeed loginSetTimeSpeed;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:20:#include "MovementPackets.h"  // For WorldPackets::Movement::MoveTeleportAck
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:427:            // Construct WorldPacket with CMSG_MOVE_TELEPORT_ACK data
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:428:            WorldPacket data(CMSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:433:            WorldPackets::Movement::MoveTeleportAck ackPacket(::std::move(data));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:563:    // - QueuePacket() uses LockedQueue<WorldPacket*> with mutex (thread-safe)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:998:    // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:999:    WorldPacket repopPacket(CMSG_REPOP_REQUEST, 1);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:1233:    // We can't use the packet handler directly because WorldPackets::Misc::ReclaimCorpse has no default constructor
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:1707:        // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Lifecycle\DeathRecoveryManager.cpp:1708:        WorldPacket repopPacket(CMSG_REPOP_REQUEST, 1);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:23:void ParseTypedAuctionCommandResult(WorldSession* session, WorldPackets::AuctionHouse::AuctionCommandResult const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:48:void ParseTypedAuctionListBucketsResult(WorldSession* session, WorldPackets::AuctionHouse::AuctionListBucketsResult const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:71:void ParseTypedAuctionListItemsResult(WorldSession* session, WorldPackets::AuctionHouse::AuctionListItemsResult const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:93:void ParseTypedAuctionWonNotification(WorldSession* session, WorldPackets::AuctionHouse::AuctionWonNotification const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:121:void ParseTypedAuctionOutbidNotification(WorldSession* session, WorldPackets::AuctionHouse::AuctionOutbidNotification const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:145:void ParseTypedAuctionClosedNotification(WorldSession* session, WorldPackets::AuctionHouse::AuctionClosedNotification const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:178:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::AuctionHouse::AuctionCommandResult>(&ParseTypedAuctionCommandResult);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:181:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::AuctionHouse::AuctionListBucketsResult>(&ParseTypedAuctionListBucketsResult);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:182:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::AuctionHouse::AuctionListItemsResult>(&ParseTypedAuctionListItemsResult);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:185:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::AuctionHouse::AuctionWonNotification>(&ParseTypedAuctionWonNotification);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:186:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::AuctionHouse::AuctionOutbidNotification>(&ParseTypedAuctionOutbidNotification);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuctionPacket_Typed.cpp:187:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::AuctionHouse::AuctionClosedNotification>(&ParseTypedAuctionClosedNotification);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:15:void ParseTypedAuraUpdate(WorldSession* session, WorldPackets::Spells::AuraUpdate const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:44:void ParseTypedSetFlatSpellModifier(WorldSession* session, WorldPackets::Spells::SetSpellModifier const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:70:void ParseTypedSetPctSpellModifier(WorldSession* session, WorldPackets::Spells::SetSpellModifier const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:96:void ParseTypedDispelFailed(WorldSession* session, WorldPackets::Spells::DispelFailed const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:124:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::AuraUpdate>(&ParseTypedAuraUpdate);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:125:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::SetSpellModifier>(&ParseTypedSetFlatSpellModifier);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseAuraPacket_Typed.cpp:127:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::DispelFailed>(&ParseTypedDispelFailed);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:85:void ParseTypedBattlefieldStatusQueued(WorldSession* session, WorldPackets::Battleground::BattlefieldStatusQueued const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:165:void ParseTypedBattlefieldStatusNeedConfirmation(WorldSession* session, WorldPackets::Battleground::BattlefieldStatusNeedConfirmation const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:237:void ParseTypedBattlefieldStatusActive(WorldSession* session, WorldPackets::Battleground::BattlefieldStatusActive const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:287:void ParseTypedBattlefieldStatusFailed(WorldSession* session, WorldPackets::Battleground::BattlefieldStatusFailed const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:327:void ParseTypedBattlefieldStatusNone(WorldSession* session, WorldPackets::Battleground::BattlefieldStatusNone const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:364:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Battleground::BattlefieldStatusQueued>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:367:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Battleground::BattlefieldStatusNeedConfirmation>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:370:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Battleground::BattlefieldStatusActive>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:373:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Battleground::BattlefieldStatusFailed>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseBattlegroundPacket_Typed.cpp:376:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Battleground::BattlefieldStatusNone>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:31:void ParseTypedSpellStart(WorldSession* session, WorldPackets::Spells::SpellStart const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:62:void ParseTypedSpellGo(WorldSession* session, WorldPackets::Spells::SpellGo const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:91:void ParseTypedSpellFailure(WorldSession* session, WorldPackets::Spells::SpellFailure const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:122:void ParseTypedSpellFailedOther(WorldSession* session, WorldPackets::Spells::SpellFailedOther const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:152:void ParseTypedSpellEnergize(WorldSession* session, WorldPackets::CombatLog::SpellEnergizeLog const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:185:void ParseTypedSpellInterrupt(WorldSession* session, WorldPackets::CombatLog::SpellInterruptLog const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:211:void ParseTypedSpellDispel(WorldSession* session, WorldPackets::CombatLog::SpellDispellLog const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:247:void ParseTypedAttackStart(WorldSession* session, WorldPackets::Combat::AttackStart const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:271:void ParseTypedAttackStop(WorldSession* session, WorldPackets::Combat::SAttackStop const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:297:void ParseTypedAIReaction(WorldSession* session, WorldPackets::Combat::AIReaction const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:332:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::SpellStart>(&ParseTypedSpellStart);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:333:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::SpellGo>(&ParseTypedSpellGo);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:334:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::SpellFailure>(&ParseTypedSpellFailure);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:335:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::SpellFailedOther>(&ParseTypedSpellFailedOther);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:336:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::CombatLog::SpellEnergizeLog>(&ParseTypedSpellEnergize);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:337:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::CombatLog::SpellInterruptLog>(&ParseTypedSpellInterrupt);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:338:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::CombatLog::SpellDispellLog>(&ParseTypedSpellDispel);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:339:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Combat::AttackStart>(&ParseTypedAttackStart);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:340:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Combat::SAttackStop>(&ParseTypedAttackStop);  // WoW 11.2: SAttackStop is server packet
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCombatPacket_Typed.cpp:341:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Combat::AIReaction>(&ParseTypedAIReaction);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:16:void ParseTypedSpellCooldown(WorldSession* session, WorldPackets::Spells::SpellCooldown const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:43:void ParseTypedCooldownEvent(WorldSession* session, WorldPackets::Spells::CooldownEvent const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:68:void ParseTypedClearCooldown(WorldSession* session, WorldPackets::Spells::ClearCooldown const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:93:void ParseTypedClearCooldowns(WorldSession* session, WorldPackets::Spells::ClearCooldowns const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:121:void ParseTypedModifyCooldown(WorldSession* session, WorldPackets::Spells::ModifyCooldown const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:148:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::SpellCooldown>(&ParseTypedSpellCooldown);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:149:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::CooldownEvent>(&ParseTypedCooldownEvent);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:150:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::ClearCooldown>(&ParseTypedClearCooldown);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:151:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::ClearCooldowns>(&ParseTypedClearCooldowns);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseCooldownPacket_Typed.cpp:152:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Spells::ModifyCooldown>(&ParseTypedModifyCooldown);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:29:void ParseTypedReadyCheckStarted(WorldSession* session, WorldPackets::Party::ReadyCheckStarted const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:56:void ParseTypedReadyCheckResponse(WorldSession* session, WorldPackets::Party::ReadyCheckResponse const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:82:void ParseTypedReadyCheckCompleted(WorldSession* session, WorldPackets::Party::ReadyCheckCompleted const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:108:void ParseTypedRaidTargetUpdateSingle(WorldSession* session, WorldPackets::Party::SendRaidTargetUpdateSingle const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:135:void ParseTypedRaidTargetUpdateAll(WorldSession* session, WorldPackets::Party::SendRaidTargetUpdateAll const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:168:void ParseTypedGroupNewLeader(WorldSession* session, WorldPackets::Party::GroupNewLeader const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:197:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Party::ReadyCheckStarted>(&ParseTypedReadyCheckStarted);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:198:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Party::ReadyCheckResponse>(&ParseTypedReadyCheckResponse);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:199:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Party::ReadyCheckCompleted>(&ParseTypedReadyCheckCompleted);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:200:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Party::SendRaidTargetUpdateSingle>(&ParseTypedRaidTargetUpdateSingle);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:201:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Party::SendRaidTargetUpdateAll>(&ParseTypedRaidTargetUpdateAll);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_Typed.cpp:202:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Party::GroupNewLeader>(&ParseTypedGroupNewLeader);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_v2.cpp:12:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseGroupPacket_v2.cpp:30:void PlayerbotPacketSniffer::ParseGroupPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:23:void ParseTypedInstanceReset(WorldSession* session, WorldPackets::Instance::InstanceReset const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:46:void ParseTypedInstanceResetFailed(WorldSession* session, WorldPackets::Instance::InstanceResetFailed const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:70:void ParseTypedInstanceEncounterEngageUnit(WorldSession* session, WorldPackets::Instance::InstanceEncounterEngageUnit const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:94:void ParseTypedInstanceInfo(WorldSession* session, WorldPackets::Instance::InstanceInfo const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:133:void ParseTypedRaidGroupOnly(WorldSession* session, WorldPackets::Instance::RaidGroupOnly const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:155:void ParseTypedInstanceSaveCreated(WorldSession* session, WorldPackets::Instance::InstanceSaveCreated const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:181:void ParseTypedRaidInstanceMessage(WorldSession* session, WorldPackets::Instance::RaidInstanceMessage const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:208:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::InstanceReset>(&ParseTypedInstanceReset);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:209:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::InstanceResetFailed>(&ParseTypedInstanceResetFailed);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:212:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::InstanceEncounterEngageUnit>(&ParseTypedInstanceEncounterEngageUnit);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:215:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::InstanceInfo>(&ParseTypedInstanceInfo);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:218:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::RaidGroupOnly>(&ParseTypedRaidGroupOnly);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:221:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::InstanceSaveCreated>(&ParseTypedInstanceSaveCreated);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseInstancePacket_Typed.cpp:224:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Instance::RaidInstanceMessage>(&ParseTypedRaidInstanceMessage);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:79:void ParseTypedLFGQueueStatus(WorldSession* session, WorldPackets::LFG::LFGQueueStatus const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:158:void ParseTypedLFGProposalUpdate(WorldSession* session, WorldPackets::LFG::LFGProposalUpdate const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:241:void ParseTypedLFGUpdateStatus(WorldSession* session, WorldPackets::LFG::LFGUpdateStatus const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:304:void ParseTypedLFGJoinResult(WorldSession* session, WorldPackets::LFG::LFGJoinResult const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:345:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::LFG::LFGQueueStatus>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:349:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::LFG::LFGProposalUpdate>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:353:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::LFG::LFGUpdateStatus>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLFGPacket_Typed.cpp:357:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::LFG::LFGJoinResult>(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:25:void ParseTypedLootResponse(WorldSession* session, WorldPackets::Loot::LootResponse const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:51:void ParseTypedLootReleaseResponse(WorldSession* session, WorldPackets::Loot::LootReleaseResponse const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:77:void ParseTypedLootRemoved(WorldSession* session, WorldPackets::Loot::LootRemoved const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:103:void ParseTypedLootMoneyNotify(WorldSession* session, WorldPackets::Loot::LootMoneyNotify const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:129:void ParseTypedStartLootRoll(WorldSession* session, WorldPackets::Loot::StartLootRoll const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:155:void ParseTypedLootRoll(WorldSession* session, WorldPackets::Loot::LootRollBroadcast const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:180:void ParseTypedLootRollWon(WorldSession* session, WorldPackets::Loot::LootRollWon const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:206:void ParseTypedLootAllPassed(WorldSession* session, WorldPackets::Loot::LootAllPassed const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:232:void ParseTypedMasterLootCandidateList(WorldSession* session, WorldPackets::Loot::MasterLootCandidateList const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:258:void ParseTypedLootList(WorldSession* session, WorldPackets::Loot::LootList const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:278:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootResponse>(&ParseTypedLootResponse);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:279:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootReleaseResponse>(&ParseTypedLootReleaseResponse);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:280:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootRemoved>(&ParseTypedLootRemoved);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:281:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootMoneyNotify>(&ParseTypedLootMoneyNotify);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:282:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::StartLootRoll>(&ParseTypedStartLootRoll);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:283:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootRollBroadcast>(&ParseTypedLootRoll);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:284:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootRollWon>(&ParseTypedLootRollWon);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:285:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootAllPassed>(&ParseTypedLootAllPassed);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:286:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::MasterLootCandidateList>(&ParseTypedMasterLootCandidateList);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseLootPacket_Typed.cpp:287:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Loot::LootList>(&ParseTypedLootList);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:30:void ParseTypedGossipMessage(WorldSession* session, WorldPackets::NPC::GossipMessage const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:69:void ParseTypedGossipComplete(WorldSession* session, WorldPackets::NPC::GossipComplete const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:93:void ParseTypedVendorInventory(WorldSession* session, WorldPackets::NPC::VendorInventory const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:124:void ParseTypedTrainerList(WorldSession* session, WorldPackets::NPC::TrainerList const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:163:void ParseTypedTrainerBuyFailed(WorldSession* session, WorldPackets::NPC::TrainerBuyFailed const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:188:void ParseTypedNPCInteractionOpen(WorldSession* session, WorldPackets::NPC::NPCInteractionOpenResult const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:216:void ParseTypedPetitionShowList(WorldSession* session, WorldPackets::Petition::ServerPetitionShowList const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:243:void ParseTypedPetitionShowSignatures(WorldSession* session, WorldPackets::Petition::ServerPetitionShowSignatures const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:340:    WorldPackets::Petition::PetitionSignResults signResult;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:360:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::NPC::GossipMessage>(&ParseTypedGossipMessage);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:361:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::NPC::GossipComplete>(&ParseTypedGossipComplete);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:364:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::NPC::VendorInventory>(&ParseTypedVendorInventory);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:365:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::NPC::TrainerList>(&ParseTypedTrainerList);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:366:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::NPC::TrainerBuyFailed>(&ParseTypedTrainerBuyFailed);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:369:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::NPC::NPCInteractionOpenResult>(&ParseTypedNPCInteractionOpen);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:372:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Petition::ServerPetitionShowList>(&ParseTypedPetitionShowList);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseNPCPacket_Typed.cpp:373:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Petition::ServerPetitionShowSignatures>(&ParseTypedPetitionShowSignatures);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:26:void ParseTypedQuestGiverStatus(WorldSession* session, WorldPackets::Quest::QuestGiverStatus const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:51:void ParseTypedQuestGiverQuestListMessage(WorldSession* session, WorldPackets::Quest::QuestGiverQuestListMessage const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:77:void ParseTypedQuestGiverQuestDetails(WorldSession* session, WorldPackets::Quest::QuestGiverQuestDetails const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:103:void ParseTypedQuestGiverRequestItems(WorldSession* session, WorldPackets::Quest::QuestGiverRequestItems const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:129:void ParseTypedQuestGiverOfferRewardMessage(WorldSession* session, WorldPackets::Quest::QuestGiverOfferRewardMessage const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:155:void ParseTypedQuestGiverQuestComplete(WorldSession* session, WorldPackets::Quest::QuestGiverQuestComplete const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:184:void ParseTypedQuestGiverQuestFailed(WorldSession* session, WorldPackets::Quest::QuestGiverQuestFailed const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:210:void ParseTypedQuestUpdateAddCreditSimple(WorldSession* session, WorldPackets::Quest::QuestUpdateAddCreditSimple const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:236:void ParseTypedQuestUpdateAddCredit(WorldSession* session, WorldPackets::Quest::QuestUpdateAddCredit const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:262:void ParseTypedQuestUpdateComplete(WorldSession* session, WorldPackets::Quest::QuestUpdateComplete const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:290:void ParseTypedQuestUpdateFailedTimer(WorldSession* session, WorldPackets::Quest::QuestUpdateFailedTimer const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:316:void ParseTypedQuestConfirmAccept(WorldSession* session, WorldPackets::Quest::QuestConfirmAccept const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:342:void ParseTypedQuestPOIQueryResponse(WorldSession* session, WorldPackets::Query::QuestPOIQueryResponse const& packet)  // WoW 11.2: In Query namespace
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:374:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverStatus>(&ParseTypedQuestGiverStatus);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:375:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverQuestListMessage>(&ParseTypedQuestGiverQuestListMessage);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:376:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverQuestDetails>(&ParseTypedQuestGiverQuestDetails);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:377:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverRequestItems>(&ParseTypedQuestGiverRequestItems);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:378:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverOfferRewardMessage>(&ParseTypedQuestGiverOfferRewardMessage);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:379:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverQuestComplete>(&ParseTypedQuestGiverQuestComplete);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:380:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestGiverQuestFailed>(&ParseTypedQuestGiverQuestFailed);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:381:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestUpdateAddCreditSimple>(&ParseTypedQuestUpdateAddCreditSimple);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:382:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestUpdateAddCredit>(&ParseTypedQuestUpdateAddCredit);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:383:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestUpdateComplete>(&ParseTypedQuestUpdateComplete);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:385:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestUpdateFailedTimer>(&ParseTypedQuestUpdateFailedTimer);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:386:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Quest::QuestConfirmAccept>(&ParseTypedQuestConfirmAccept);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseQuestPacket_Typed.cpp:387:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Query::QuestPOIQueryResponse>(&ParseTypedQuestPOIQueryResponse);  // WoW 11.2: Moved to Query namespace
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseResourcePacket_Typed.cpp:27:void ParseTypedHealthUpdate(WorldSession* session, WorldPackets::Combat::HealthUpdate const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseResourcePacket_Typed.cpp:77:void ParseTypedPowerUpdate(WorldSession* session, WorldPackets::Combat::PowerUpdate const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseResourcePacket_Typed.cpp:144:void ParseTypedBreakTarget(WorldSession* session, WorldPackets::Combat::BreakTarget const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseResourcePacket_Typed.cpp:181:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Combat::HealthUpdate>(&ParseTypedHealthUpdate);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseResourcePacket_Typed.cpp:184:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Combat::PowerUpdate>(&ParseTypedPowerUpdate);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseResourcePacket_Typed.cpp:187:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Combat::BreakTarget>(&ParseTypedBreakTarget);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:25:void ParseTypedChat(WorldSession* session, WorldPackets::Chat::Chat const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:54:void ParseTypedEmote(WorldSession* session, WorldPackets::Chat::Emote const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:78:void ParseTypedTextEmote(WorldSession* session, WorldPackets::Chat::STextEmote const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:101:void ParseTypedGuildInvite(WorldSession* session, WorldPackets::Guild::GuildInvite const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:129:void ParseTypedGuildEvent(WorldSession* session, WorldPackets::Guild::GuildEventPresenceChange const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:159:void ParseTypedTradeStatus(WorldSession* session, WorldPackets::Trade::TradeStatus const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:186:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Chat::Chat>(&ParseTypedChat);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:189:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Chat::Emote>(&ParseTypedEmote);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:190:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Chat::STextEmote>(&ParseTypedTextEmote);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:193:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Guild::GuildInvite>(&ParseTypedGuildInvite);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:194:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Guild::GuildEventPresenceChange>(&ParseTypedGuildEvent);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\ParseSocialPacket_Typed.cpp:197:    PlayerbotPacketSniffer::RegisterTypedHandler<WorldPackets::Trade::TradeStatus>(&ParseTypedTradeStatus);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:12:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:76:void PlayerbotPacketSniffer::OnPacketSend(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:112:void PlayerbotPacketSniffer::RouteToCategory(PacketCategory category, WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:177:void PlayerbotPacketSniffer::ParseGroupPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:182:void PlayerbotPacketSniffer::ParseCombatPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:187:void PlayerbotPacketSniffer::ParseCooldownPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:192:void PlayerbotPacketSniffer::ParseLootPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:197:void PlayerbotPacketSniffer::ParseQuestPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:202:void PlayerbotPacketSniffer::ParseAuraPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:207:void PlayerbotPacketSniffer::ParseResourcePacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:212:void PlayerbotPacketSniffer::ParseSocialPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:217:void PlayerbotPacketSniffer::ParseAuctionPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:222:void PlayerbotPacketSniffer::ParseNPCPacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Network\PlayerbotPacketSniffer.cpp:227:void PlayerbotPacketSniffer::ParseInstancePacket(WorldSession* session, WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\PacketFilter.cpp:20:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\PacketFilter.cpp:156:    WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:37:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:40:using namespace WorldPackets::Spells;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:986:static void WriteSpellTargetData(ByteBuffer& buffer, WorldPackets::Spells::SpellTargetData const& targetData)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1001:    buffer << WorldPackets::Bits<1>(targetData.Unknown1127_2);  // CRITICAL: Added in patch 11.2.7 - 1 bit
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1002:    buffer << WorldPackets::OptionalInit(targetData.SrcLocation);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1003:    buffer << WorldPackets::OptionalInit(targetData.DstLocation);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1004:    buffer << WorldPackets::OptionalInit(targetData.Orientation);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1005:    buffer << WorldPackets::OptionalInit(targetData.MapID);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1006:    buffer << WorldPackets::SizedString::BitsSize<7>(targetData.Name);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1031:    buffer << WorldPackets::SizedString::Data(targetData.Name);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1037:static void WriteSpellCastRequest(ByteBuffer& buffer, WorldPackets::Spells::SpellCastRequest const& request)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1060:    buffer << WorldPackets::Size<uint32>(request.OptionalCurrencies);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1061:    buffer << WorldPackets::Size<uint32>(request.OptionalReagents);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1062:    buffer << WorldPackets::Size<uint32>(request.RemovedModifications);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1080:    buffer << WorldPackets::OptionalInit(request.MoveUpdate);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1081:    buffer << WorldPackets::BitsSize<2>(request.Weight);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1082:    buffer << WorldPackets::OptionalInit(request.CraftingOrderID);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1093:        buffer << WorldPackets::OptionalInit(reagent.Source);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1108:        buffer << WorldPackets::OptionalInit(mod.Source);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1122:        buffer << WorldPackets::Bits<2>(weight.Type);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1130:std::unique_ptr<WorldPacket> SpellPacketBuilder::BuildCastSpellPacketInternal(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1144:    // is defined in WorldPackets::Spells::SpellCastRequest and must be serialized
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1152:    auto packet = std::make_unique<WorldPacket>(CMSG_CAST_SPELL);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1155:    WorldPackets::Spells::SpellCastRequest castRequest;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1212:        castRequest.Target.DstLocation = WorldPackets::Spells::TargetLocation();
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1253:std::unique_ptr<WorldPacket> SpellPacketBuilder::BuildCastSpellPacketInternalGameObject(
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1268:    auto packet = std::make_unique<WorldPacket>(CMSG_CAST_SPELL);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1271:    WorldPackets::Spells::SpellCastRequest castRequest;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1335:std::unique_ptr<WorldPacket> SpellPacketBuilder::BuildCancelCastPacketInternal(Player* caster, uint32 spellId)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1340:    auto packet = std::make_unique<WorldPacket>(CMSG_CANCEL_CAST);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1351:std::unique_ptr<WorldPacket> SpellPacketBuilder::BuildCancelAuraPacketInternal(Player* caster, uint32 spellId)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1356:    auto packet = std::make_unique<WorldPacket>(CMSG_CANCEL_AURA);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1366:std::unique_ptr<WorldPacket> SpellPacketBuilder::BuildCancelChannelPacketInternal(Player* caster, uint32 spellId, int32 reason)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1371:    auto packet = std::make_unique<WorldPacket>(CMSG_CANCEL_CHANNELLING);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1382:std::unique_ptr<WorldPacket> SpellPacketBuilder::BuildCancelAutoRepeatPacketInternal(Player* caster)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Packets\SpellPacketBuilder.cpp:1387:    auto packet = std::make_unique<WorldPacket>(CMSG_CANCEL_AUTO_REPEAT_SPELL);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:63:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:142:void BotPacketRelay::RelayToGroupMembers(BotSession* botSession, WorldPacket const* packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:158:        // Create a copy of the packet (WorldPacket must be copied, not moved)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:159:        auto packetCopy = ::std::make_unique<WorldPacket>(*packet);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:223:void BotPacketRelay::RelayToPlayer(BotSession* botSession, WorldPacket const* packet, Player* targetPlayer)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:269:void BotPacketRelay::BroadcastToGroup(BotSession* botSession, WorldPacket const* packet, bool ignoreBot)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:336:bool BotPacketRelay::ShouldRelayPacket(WorldPacket const* packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:603:bool BotPacketRelay::SendPacketToPlayer(Player* player, WorldPacket const* packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketRelay.cpp:634:void BotPacketRelay::LogRelayEvent(Player* bot, WorldPacket const* packet, size_t recipients)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:16:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:47:    // Create WorldPacket with CMSG_QUEUED_MESSAGES_END opcode
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:48:    WorldPacket packet(CMSG_QUEUED_MESSAGES_END);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:50:    // Construct packet structure from WorldPacket
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:51:    WorldPackets::Auth::QueuedMessagesEnd queuedMessagesEnd(::std::move(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:52:    queuedMessagesEnd.Read();  // Extract data from WorldPacket
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:79:    // Create WorldPacket with CMSG_MOVE_INIT_ACTIVE_MOVER_COMPLETE opcode
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:80:    WorldPacket packet(CMSG_MOVE_INIT_ACTIVE_MOVER_COMPLETE);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:82:    // Construct packet structure from WorldPacket
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:83:    WorldPackets::Movement::MoveInitActiveMoverComplete moveInitComplete(::std::move(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:84:    moveInitComplete.Read();  // Extract data from WorldPacket
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:102:    // Create WorldPacket with CMSG_TIME_SYNC_RESPONSE opcode
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:103:    WorldPacket packet(CMSG_TIME_SYNC_RESPONSE);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:107:    // Construct packet structure from WorldPacket
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:108:    WorldPackets::Misc::TimeSyncResponse timeSyncResponse(::std::move(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotPacketSimulator.cpp:109:    timeSyncResponse.Read();  // Extract data from WorldPacket
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:13:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:46:#include "WorldSession.h"        // For WorldPackets exception types
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:500:            ::std::queue<::std::unique_ptr<WorldPacket>> empty1, empty2;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:541:void BotSession::SendPacket(WorldPacket const* packet, bool forced)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:578:            WorldPacket packetCopy(*packet);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:587:            WorldPackets::LFG::RideTicket ticket;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:659:                WorldPacket packetCopy(*packet);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:752:    auto packetCopy = ::std::make_unique<WorldPacket>(*packet);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:757:void BotSession::QueuePacket(WorldPacket&& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:764:    auto packetCopy = ::std::make_unique<WorldPacket>(::std::move(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:768:// Legacy compatibility method (deprecated - prefer QueuePacket(WorldPacket&&))
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:769:void BotSession::QueuePacketLegacy(WorldPacket* packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:778:    auto packetCopy = ::std::make_unique<WorldPacket>(*packet);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1078:                auto worldportPacket = ::std::make_unique<WorldPacket>(CMSG_WORLD_PORT_RESPONSE, 0);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1098:        WorldPacket* packet = nullptr;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1126:                QueueDeferredPacket(::std::unique_ptr<WorldPacket>(packet));
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1262:            catch (WorldPackets::InvalidHyperlinkException const& ihe)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1269:            catch (WorldPackets::PacketArrayMaxCapacityException const& pamce)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1525:    ::std::vector<::std::unique_ptr<WorldPacket>> incomingBatch;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1526:    ::std::vector<::std::unique_ptr<WorldPacket>> outgoingBatch;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1585:            // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1609:void BotSession::QueueDeferredPacket(::std::unique_ptr<WorldPacket> packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:1634:        ::std::unique_ptr<WorldPacket> packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:2203:void BotSession::HandleGroupInvitation(WorldPacket const& packet)
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotSession.cpp:2224:        WorldPacket packetCopy = packet;
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Session\BotWorldSessionMgr.cpp:842:                        bool Process(WorldPacket*) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Social\GuildBankManager.cpp:13:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Social\TradeManager.cpp:27:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Social\TradeSystem.cpp:38:#include "WorldPacket.h"
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:174:            bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:186:            bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:223:            bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:260:            bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:305:                    bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:370:            bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:423:        WorldPacket testPacket(0x1234, 4);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:429:        // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\BotSessionIntegrationTest.cpp:430:        WorldPacket queuePacket(0x5678, 4);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\PacketSpellCastingPerformanceTest.cpp:885:    // BotSession uses std::queue<std::unique_ptr<WorldPacket>> for packets
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\SocketCrashAnalyzer.cpp:115:                bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\SocketCrashAnalyzer.cpp:243:                    bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\SocketCrashAnalyzer.cpp:351:            WorldPacket testPacket(0x1234, 8);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\SocketCrashAnalyzer.cpp:357:            // TrinityCore 11.2: QueuePacket now takes WorldPacket&& instead of WorldPacket*
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\SocketCrashAnalyzer.cpp:358:            WorldPacket queuePacket(0x5678, 4);
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\SocketCrashAnalyzer.cpp:367:                bool Process(WorldPacket* packet) override { return false; } // Force error path
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\VirtualIsBotValidation.cpp:169:                bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\VirtualIsBotValidation.cpp:326:                            bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\WorldSessionIsBotTest.cpp:221:                bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\WorldSessionIsBotTest.cpp:280:                bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Tests\WorldSessionIsBotTest.cpp:292:                bool Process(WorldPacket* packet) override { return true; }
+C:\TrinityBots\TrinityCore\src\modules\Playerbot\Travel\TravelRouteManager.cpp:2462:                                WorldPackets::Movement::MoveUpdate moveUpdate;

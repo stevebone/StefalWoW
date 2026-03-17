@@ -30,6 +30,7 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "World.h"
+#include <limits>
 
 static constexpr Rates QualityToRate[MAX_ITEM_QUALITY] =
 {
@@ -154,7 +155,11 @@ uint32 LootStore::LoadLootTable()
 
         uint32 entry               = fields[0].GetUInt32();
         LootStoreItem::Type type   = static_cast<LootStoreItem::Type>(fields[1].GetInt8());
-        uint32 item                = fields[2].GetUInt32();
+        // Use GetUInt64 to handle databases with BIGINT item columns, skip invalid values
+        uint64 rawItem             = fields[2].GetUInt64();
+        if (rawItem > std::numeric_limits<uint32>::max())
+            continue;
+        uint32 item                = static_cast<uint32>(rawItem);
         float  chance              = fields[3].GetFloat();
         bool   needsquest          = fields[4].GetBool();
         uint16 lootmode            = fields[5].GetUInt16();

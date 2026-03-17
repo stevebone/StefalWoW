@@ -1,0 +1,51 @@
+==== PLAYERBOT MAP SPATIAL QUERIES AUDIT ====
+
+1. LINE OF SIGHT CHECKS (31 calls - CRITICAL)
+   Files: TargetSelector(6), TargetScanner(3), PositionManager(3), InterruptManager(2), Others(17)
+   API: bot->IsWithinLOSInMap(target)
+   Context: Combat targeting, spell casting validation
+
+2. HEIGHT DETECTION (21 calls - HIGH)
+   Files: PositionStrategyBase(10), PathfindingManager(3), LeaderFollowBehavior(2), Others(6)
+   API: map->GetHeight(phaseShift, x, y, z)
+   Context: Pathfinding, positioning, terrain analysis
+
+3. PATHFINDING (6 implementations - CRITICAL)
+   Files: PathfindingAdapter, PathfindingManager, LeaderFollowBehavior, CombatMovementStrategy
+   API: PathGenerator(bot); path.Calculate(destination)
+   Context: Movement path generation
+
+4. CREATURE GRID QUERIES (7 calls)
+   Files: QuestStrategy(3), LootStrategy(1), BehaviorAdaptation(1), ObjectiveTracker(1), CooldownStackingOptimizer(1)
+   API: bot->GetCreatureListWithEntryInGrid(creatures, entryId, radius)
+   Context: Quest objectives, loot, behavior analysis
+
+5. WATER/LIQUID DETECTION (9 calls)
+   Files: MovementValidator(2), LineOfSightManager(2), PathfindingManager(1), Others(4)
+   API: map->IsInWater(...), map->GetWaterLevel(...)
+   Context: Movement validation, water terrain
+
+6. GAME OBJECT QUERIES (2 calls)
+   Files: ObjectiveTracker(2)
+   API: bot->GetGameObjectListWithEntryInGrid(objects, entryId, radius)
+   Context: Quest objectives
+
+7. LIQUID STATUS (3 calls)
+   Files: NavMeshInterface(1), MovementValidator(2)
+   API: map->GetLiquidStatus(phaseShift, x, y, z)
+
+8. DIRECT MAP STORE ACCESS (12 calls)
+   Files: DoubleBufferedSpatialGrid(5), Action(1), Strategy(1), AdvancedBehaviorManager(1), Others(4)
+   API: map->GetPlayers(), GetCreatureBySpawnIdStore(), GetGameObjectBySpawnIdStore()
+   Context: Spatial grid population, object lookup
+
+9. NEAREST QUERIES (1 call)
+   Files: DungeonScript(1)
+   API: player->FindNearestCreature(entry, range)
+
+==== CRITICAL BOTTLENECKS ====
+1. TargetSelector - 6 LOS checks per target evaluation
+2. PositionStrategyBase - 10 height queries per position
+3. PathfindingAdapter - PathGenerator objects created frequently
+4. DoubleBufferedSpatialGrid - Full map iteration on updates
+

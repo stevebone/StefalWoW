@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "trinitycore": {
+      "command": "node",
+      "args": [
+        "C:\\TrinityBots\\trinitycore-mcp\\dist\\index.js"
+      ],
+      "env": {
+        "TRINITY_ROOT": "C:\\TrinityBots\\TrinityCore",
+        "TRINITY_DB_HOST": "localhost",
+        "TRINITY_DB_USER": "playerbot",
+        "TRINITY_DB_PASSWORD": "playerbot",
+        "TRINITY_DB_WORLD": "world",
+        "TRINITY_DB_AUTH": "auth",
+        "TRINITY_DB_CHARACTERS": "characters",
+        "DBC_PATH": "M:\\Wplayerbot\\data\\dbc\\enUS",
+        "DB2_PATH": "M:\\Wplayerbot\\data\\dbc\\enUS",
+        "GT_PATH": "M:\\Wplayerbot\\data\\gt",
+        "MCP_PORT": "3000"
+      }
+    }
+  }
+}

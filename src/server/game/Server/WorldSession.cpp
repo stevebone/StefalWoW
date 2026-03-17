@@ -107,7 +107,11 @@ bool WorldSessionFilter::Process(WorldPacket* packet)
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccountId, std::string&& battlenetAccountEmail,
     std::shared_ptr<WorldSocket>&& sock, AccountTypes sec, uint8 expansion, time_t mute_time, std::string&& os, Minutes timezoneOffset,
-    uint32 build, ClientBuild::VariantId clientBuildVariant, LocaleConstant locale, uint32 recruiter, bool isARecruiter) :
+    uint32 build, ClientBuild::VariantId clientBuildVariant, LocaleConstant locale, uint32 recruiter, bool isARecruiter
+#ifdef BUILD_PLAYERBOT
+    , bool is_bot
+#endif
+    ) :
     m_muteTime(mute_time),
     m_timeOutTime(0),
     AntiDOS(this),
@@ -150,6 +154,9 @@ WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccoun
     _calendarEventCreationCooldown(0),
     _battlePetMgr(std::make_unique<BattlePets::BattlePetMgr>(this)),
     _collectionMgr(std::make_unique<CollectionMgr>(this))
+#ifdef BUILD_PLAYERBOT
+    , _isBot(is_bot)
+#endif
 {
     if (m_Socket[CONNECTION_TYPE_REALM])
     {
@@ -157,6 +164,12 @@ WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccoun
         ResetTimeOutTime(false);
         LoginDatabase.PExecute("UPDATE account SET online = 1 WHERE id = {};", GetAccountId());     // One-time query
     }
+#ifdef BUILD_PLAYERBOT
+    else if (is_bot)
+    {
+        m_Address = "bot";
+    }
+#endif
 
     _instanceConnectKey.Raw = UI64LIT(0);
 }
@@ -173,7 +186,10 @@ WorldSession::~WorldSession()
     {
         if (m_Socket[i])
         {
-            m_Socket[i]->CloseSocket();
+#ifdef BUILD_PLAYERBOT
+            if (!IsBot())  // Bot sessions have nullptr sockets
+#endif
+                m_Socket[i]->CloseSocket();
             m_Socket[i].reset();
         }
     }
@@ -355,7 +371,12 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
     ///- Before we process anything:
     /// If necessary, kick the player because the client didn't send anything for too long
     /// (or they've been idling in character select)
+    /// Note: Bots don't have sockets, so skip idle check for them
+#ifdef BUILD_PLAYERBOT
+    if (!IsBot() && IsConnectionIdle() && !HasPermission(rbac::RBAC_PERM_IGNORE_IDLE_CONNECTION) && m_Socket[CONNECTION_TYPE_REALM])
+#else
     if (IsConnectionIdle() && !HasPermission(rbac::RBAC_PERM_IGNORE_IDLE_CONNECTION))
+#endif
         m_Socket[CONNECTION_TYPE_REALM]->CloseSocket();
 
     ///- Retrieve packets from the receive queue and call the appropriate handlers

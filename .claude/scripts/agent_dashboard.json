@@ -1,0 +1,310 @@
+{
+  "generated": "2025-09-25T11:23:10.384147",
+  "agents": {
+    "playerbot-project-coordinator": {
+      "workflows": [
+        "code-review"
+      ],
+      "schedule": null,
+      "priority": "HIGH",
+      "category": "Coordination"
+    },
+    "trinity-integration-tester": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "06:00",
+        "14:00"
+      ],
+      "priority": "CRITICAL",
+      "category": "Integration"
+    },
+    "code-quality-reviewer": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "07:00"
+      ],
+      "priority": "HIGH",
+      "category": "Quality"
+    },
+    "security-auditor": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "08:00"
+      ],
+      "priority": "CRITICAL",
+      "category": "Security"
+    },
+    "performance-analyzer": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "06:00",
+        "12:00"
+      ],
+      "priority": "HIGH",
+      "category": "Performance"
+    },
+    "cpp-architecture-optimizer": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "07:00"
+      ],
+      "priority": "MEDIUM",
+      "category": "Architecture"
+    },
+    "enterprise-compliance-checker": {
+      "workflows": [
+        "code-review"
+      ],
+      "schedule": null,
+      "priority": "MEDIUM",
+      "category": "Compliance"
+    },
+    "automated-fix-agent": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": "on-trigger",
+      "priority": "CRITICAL",
+      "category": "Automation"
+    },
+    "test-automation-engineer": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "06:00"
+      ],
+      "priority": "HIGH",
+      "category": "Testing"
+    },
+    "daily-report-generator": {
+      "workflows": [
+        "code-review",
+        "daily-checks"
+      ],
+      "schedule": [
+        "18:00"
+      ],
+      "priority": "HIGH",
+      "category": "Reporting"
+    },
+    "database-optimizer": {
+      "workflows": [
+        "daily-checks"
+      ],
+      "schedule": [
+        "14:00"
+      ],
+      "priority": "MEDIUM",
+      "category": "Database"
+    },
+    "resource-monitor-limiter": {
+      "workflows": [
+        "daily-checks"
+      ],
+      "schedule": [
+        "16:00"
+      ],
+      "priority": "MEDIUM",
+      "category": "Resources"
+    },
+    "windows-memory-profiler": {
+      "workflows": [
+        "daily-checks"
+      ],
+      "schedule": [
+        "12:00"
+      ],
+      "priority": "HIGH",
+      "category": "Memory"
+    },
+    "concurrency-threading-specialist": {
+      "workflows": [
+        "on-demand"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Threading"
+    },
+    "cpp-server-debugger": {
+      "workflows": [
+        "on-demand"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Debugging"
+    },
+    "bot-learning-system": {
+      "workflows": [
+        "gameplay-testing"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Gaming/AI"
+    },
+    "pvp-arena-tactician": {
+      "workflows": [
+        "gameplay-testing"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Gaming/PvP"
+    },
+    "wow-bot-behavior-designer": {
+      "workflows": [
+        "gameplay-testing"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Gaming/Behavior"
+    },
+    "wow-dungeon-raid-coordinator": {
+      "workflows": [
+        "gameplay-testing"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Gaming/PvE"
+    },
+    "wow-economy-manager": {
+      "workflows": [
+        "gameplay-testing"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Gaming/Economy"
+    },
+    "wow-mechanics-expert": {
+      "workflows": [
+        "gameplay-testing"
+      ],
+      "schedule": null,
+      "priority": "LOW",
+      "category": "Gaming/Combat"
+    }
+  },
+  "timeline": {
+    "06:00": [
+      "trinity-integration-tester",
+      "performance-analyzer",
+      "test-automation-engineer"
+    ],
+    "07:00": [
+      "code-quality-reviewer",
+      "cpp-architecture-optimizer"
+    ],
+    "08:00": [
+      "security-auditor"
+    ],
+    "12:00": [
+      "performance-analyzer",
+      "windows-memory-profiler"
+    ],
+    "14:00": [
+      "trinity-integration-tester",
+      "database-optimizer"
+    ],
+    "16:00": [
+      "resource-monitor-limiter"
+    ],
+    "18:00": [
+      "daily-report-generator"
+    ],
+    "on-trigger": [
+      "automated-fix-agent"
+    ]
+  },
+  "workflows": {
+    "code-review": [
+      "playerbot-project-coordinator",
+      "trinity-integration-tester",
+      "code-quality-reviewer",
+      "security-auditor",
+      "performance-analyzer",
+      "cpp-architecture-optimizer",
+      "enterprise-compliance-checker",
+      "automated-fix-agent",
+      "test-automation-engineer",
+      "daily-report-generator"
+    ],
+    "daily-checks": [
+      "trinity-integration-tester",
+      "code-quality-reviewer",
+      "security-auditor",
+      "performance-analyzer",
+      "cpp-architecture-optimizer",
+      "automated-fix-agent",
+      "test-automation-engineer",
+      "daily-report-generator",
+      "database-optimizer",
+      "resource-monitor-limiter",
+      "windows-memory-profiler"
+    ],
+    "on-demand": [
+      "concurrency-threading-specialist",
+      "cpp-server-debugger"
+    ],
+    "gameplay-testing": [
+      "bot-learning-system",
+      "pvp-arena-tactician",
+      "wow-bot-behavior-designer",
+      "wow-dungeon-raid-coordinator",
+      "wow-economy-manager",
+      "wow-mechanics-expert"
+    ]
+  },
+  "priorities": {
+    "CRITICAL": [
+      "trinity-integration-tester",
+      "security-auditor",
+      "automated-fix-agent"
+    ],
+    "HIGH": [
+      "playerbot-project-coordinator",
+      "code-quality-reviewer",
+      "performance-analyzer",
+      "test-automation-engineer",
+      "daily-report-generator",
+      "windows-memory-profiler"
+    ],
+    "MEDIUM": [
+      "cpp-architecture-optimizer",
+      "enterprise-compliance-checker",
+      "database-optimizer",
+      "resource-monitor-limiter"
+    ],
+    "LOW": [
+      "concurrency-threading-specialist",
+      "cpp-server-debugger",
+      "bot-learning-system",
+      "pvp-arena-tactician",
+      "wow-bot-behavior-designer",
+      "wow-dungeon-raid-coordinator",
+      "wow-economy-manager",
+      "wow-mechanics-expert"
+    ]
+  },
+  "statistics": {
+    "total": 21,
+    "scheduled": 11,
+    "active": 13,
+    "gaming": 6
+  }
+}

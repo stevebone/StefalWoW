@@ -1,0 +1,149 @@
+﻿{
+    "complexityMetrics":  {
+                              "timestamp":  "2025-10-17_23-06-34",
+                              "priestAICpp":  {
+                                                  "functionCount":  163,
+                                                  "ifStatements":  471,
+                                                  "loopStatements":  30,
+                                                  "estimatedComplexity":  674,
+                                                  "switchStatements":  10
+                                              }
+                          },
+    "compilationMetrics":  {
+                               "buildConfig":  "Release",
+                               "timestamp":  "2025-10-17_23-06-34",
+                               "platform":  "x64",
+                               "measurements":  {
+                                                    "compileTimeMin":  9.56,
+                                                    "compileTimeMax":  16.7,
+                                                    "runs":  3,
+                                                    "compileTimeAvg":  14.18
+                                                }
+                           },
+    "dependencyMetrics":  {
+                              "timestamp":  "2025-10-17_23-06-34",
+                              "priestAI":  {
+                                               "directIncludes":  [
+                                                                      "PriestAI.h",
+                                                                      "HolySpecialization.h",
+                                                                      "DisciplineSpecialization.h",
+                                                                      "ShadowSpecialization.h",
+                                                                      "Player.h",
+                                                                      "Unit.h",
+                                                                      "SpellMgr.h",
+                                                                      "SpellInfo.h",
+                                                                      "Map.h",
+                                                                      "Group.h",
+                                                                      "Item.h",
+                                                                      "MotionMaster.h",
+                                                                      "Log.h",
+                                                                      "ObjectAccessor.h",
+                                                                      "WorldSession.h",
+                                                                      "GridNotifiers.h",
+                                                                      "GridNotifiersImpl.h",
+                                                                      "Cell.h",
+                                                                      "CellImpl.h",
+                                                                      "../CooldownManager.h",
+                                                                      "Spell.h",
+                                                                      "../../../Movement/BotMovementUtil.h",
+                                                                      "SpellAuras.h",
+                                                                      "SpellDefines.h",
+                                                                      "../BaselineRotationManager.h",
+                                                                      "../../Combat/CombatBehaviorIntegration.h"
+                                                                  ],
+                                               "includeCount":  26
+                                           }
+                          },
+    "codeMetrics":  {
+                        "timestamp":  "2025-10-17_23-06-34",
+                        "files":  [
+                                      {
+                                          "lineCount":  354,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\PriestAI.h",
+                                          "type":  "header",
+                                          "sizeBytes":  11271
+                                      },
+                                      {
+                                          "lineCount":  3155,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\PriestAI.cpp",
+                                          "type":  "source",
+                                          "sizeBytes":  88918
+                                      },
+                                      {
+                                          "lineCount":  201,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\PriestSpecialization.h",
+                                          "type":  "header",
+                                          "sizeBytes":  6072
+                                      },
+                                      {
+                                          "lineCount":  665,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\PriestSpecialization.cpp",
+                                          "type":  "source",
+                                          "sizeBytes":  18804
+                                      },
+                                      {
+                                          "lineCount":  305,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\PriestAI_Specialization.cpp",
+                                          "type":  "source",
+                                          "sizeBytes":  9065
+                                      },
+                                      {
+                                          "lineCount":  164,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\DisciplineSpecialization.h",
+                                          "type":  "header",
+                                          "sizeBytes":  5145
+                                      },
+                                      {
+                                          "lineCount":  875,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\DisciplineSpecialization.cpp",
+                                          "type":  "source",
+                                          "sizeBytes":  22709
+                                      },
+                                      {
+                                          "lineCount":  197,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\HolySpecialization.h",
+                                          "type":  "header",
+                                          "sizeBytes":  6249
+                                      },
+                                      {
+                                          "lineCount":  892,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\HolySpecialization.cpp",
+                                          "type":  "source",
+                                          "sizeBytes":  23385
+                                      },
+                                      {
+                                          "lineCount":  214,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\ShadowSpecialization.h",
+                                          "type":  "header",
+                                          "sizeBytes":  6875
+                                      },
+                                      {
+                                          "lineCount":  942,
+                                          "path":  "src\\modules\\Playerbot\\AI\\ClassAI\\Priests\\ShadowSpecialization.cpp",
+                                          "type":  "source",
+                                          "sizeBytes":  23777
+                                      }
+                                  ],
+                        "totals":  {
+                                       "lineCount":  7964,
+                                       "sourceLines":  6834,
+                                       "fileCount":  11,
+                                       "headerLines":  1130
+                                   }
+                    },
+    "metadata":  {
+                     "gitCommit":  "82510c54c5b7a18454ee0da83a42b1701202dd19",
+                     "timestamp":  "2025-10-17_23-06-34",
+                     "week":  1,
+                     "status":  "BASELINE_BEFORE_REFACTORING",
+                     "target":  "PriestAI",
+                     "gitBranch":  "playerbot-dev",
+                     "phase":  "3A",
+                     "projectRoot":  "C:\\TrinityBots\\TrinityCore"
+                 },
+    "binaryMetrics":  {
+                          "playerbotLibSizeMB":  2561.18,
+                          "timestamp":  "2025-10-17_23-06-34",
+                          "playerbotLibSize":  2685588620
+                      }
+}

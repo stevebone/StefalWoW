@@ -1,0 +1,267 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "PlayerBot",
+    "type": "TrinityCore Module",
+    "language": "C++",
+    "root": "C:\\TrinityBots\\TrinityCore",
+    "source_dirs": [
+      "src/game/playerbot",
+      "src/game/AI",
+      "src/server/game"
+    ]
+  },
+  "automation": {
+    "enabled": true,
+    "schedule": {
+      "morning_check": "06:00",
+      "build_verification": "07:00",
+      "security_scan": "08:00",
+      "performance_check": "12:00",
+      "database_check": "14:00",
+      "full_review": "18:00"
+    },
+    "modes": {
+      "quick": {
+        "agents": ["playerbot-project-coordinator", "code-quality-reviewer", "daily-report-generator"],
+        "duration_minutes": 30,
+        "auto_fix": false
+      },
+      "standard": {
+        "agents": [
+          "playerbot-project-coordinator",
+          "trinity-integration-tester",
+          "code-quality-reviewer",
+          "security-auditor",
+          "automated-fix-agent",
+          "test-automation-engineer",
+          "daily-report-generator"
+        ],
+        "duration_minutes": 120,
+        "auto_fix": "critical_only"
+      },
+      "deep": {
+        "agents": "all",
+        "duration_minutes": 360,
+        "auto_fix": "all_possible"
+      }
+    }
+  },
+  "agents": {
+    "execution_order": [
+      "playerbot-project-coordinator",
+      "trinity-integration-tester",
+      "code-quality-reviewer",
+      "security-auditor",
+      "performance-analyzer",
+      "cpp-architecture-optimizer",
+      "enterprise-compliance-checker",
+      "automated-fix-agent",
+      "test-automation-engineer",
+      "daily-report-generator"
+    ],
+    "parallel_groups": [
+      ["code-quality-reviewer", "security-auditor", "performance-analyzer"],
+      ["database-optimizer", "resource-monitor-limiter"]
+    ],
+    "timeout_seconds": {
+      "default": 300,
+      "performance-analyzer": 1800,
+      "test-automation-engineer": 600
+    }
+  },
+  "quality_thresholds": {
+    "fail_on": {
+      "quality_score": 60,
+      "security_critical": 1,
+      "build_failure": true,
+      "test_failure_rate": 0.2
+    },
+    "warn_on": {
+      "quality_score": 80,
+      "security_high": 3,
+      "performance_score": 75,
+      "coverage_drop": 5
+    },
+    "targets": {
+      "quality_score": 90,
+      "security_score": 95,
+      "performance_score": 85,
+      "test_coverage": 80,
+      "documentation_coverage": 90,
+      "trinity_compatibility": 98
+    }
+  },
+  "auto_fix": {
+    "enabled": true,
+    "priorities": {
+      "critical": {
+        "auto_fix": true,
+        "require_review": false,
+        "max_wait_minutes": 0
+      },
+      "high": {
+        "auto_fix": true,
+        "require_review": true,
+        "max_wait_minutes": 60
+      },
+      "medium": {
+        "auto_fix": false,
+        "require_review": true,
+        "max_wait_minutes": 1440
+      },
+      "low": {
+        "auto_fix": false,
+        "require_review": false,
+        "max_wait_minutes": 10080
+      }
+    },
+    "patterns": {
+      "memory_leaks": {
+        "detection": "new\\s+\\w+\\[.*\\](?!.*delete\\[\\])",
+        "fix_strategy": "smart_pointer_conversion",
+        "auto_apply": true
+      },
+      "null_checks": {
+        "detection": "->\\w+\\(.*\\)(?!.*if.*\\()",
+        "fix_strategy": "add_null_guard",
+        "auto_apply": true
+      },
+      "sql_injection": {
+        "detection": "\".*'\\s*\\+.*userInput",
+        "fix_strategy": "prepared_statement",
+        "auto_apply": true
+      }
+    }
+  },
+  "notifications": {
+    "channels": {
+      "email": {
+        "enabled": false,
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "use_ssl": true,
+        "from": "playerbot@project.com",
+        "to": ["team@project.com"],
+        "on_events": ["critical_issue", "build_failure", "daily_report"]
+      },
+      "slack": {
+        "enabled": false,
+        "webhook_url": "https://hooks.slack.com/services/...",
+        "channel": "#playerbot-dev",
+        "on_events": ["critical_issue", "build_failure"],
+        "mention_on_critical": "@channel"
+      },
+      "discord": {
+        "enabled": false,
+        "webhook_url": "https://discord.com/api/webhooks/...",
+        "on_events": ["daily_report"]
+      }
+    },
+    "rules": {
+      "immediate": ["security_critical", "build_failure", "test_failure_50_percent"],
+      "hourly": ["security_high", "performance_degradation_20_percent"],
+      "daily": ["summary_report", "trend_analysis"]
+    }
+  },
+  "reporting": {
+    "formats": ["html", "markdown", "json"],
+    "output_directory": ".claude/reports",
+    "retention": {
+      "daily_reports": 90,
+      "weekly_summaries": 365,
+      "monthly_reports": 730,
+      "critical_incidents": -1
+    },
+    "dashboard": {
+      "enabled": true,
+      "port": 8080,
+      "auto_open": true,
+      "refresh_seconds": 60
+    }
+  },
+  "integrations": {
+    "git": {
+      "enabled": true,
+      "auto_commit_fixes": false,
+      "branch_prefix": "auto-fix/",
+      "commit_prefix": "[AUTO-FIX]"
+    },
+    "jira": {
+      "enabled": false,
+      "url": "https://jira.project.com",
+      "project_key": "PBOT",
+      "create_issues_for": ["critical", "high"]
+    },
+    "github": {
+      "enabled": false,
+      "repository": "organization/playerbot",
+      "create_issues": true,
+      "create_pr": false
+    }
+  },
+  "performance": {
+    "profiling": {
+      "enabled": true,
+      "tools": ["valgrind", "gprof", "perf"],
+      "frequency": "daily",
+      "duration_seconds": 300
+    },
+    "benchmarks": {
+      "bot_spawn_time_ms": 100,
+      "ai_update_time_ms": 50,
+      "memory_per_bot_mb": 10,
+      "cpu_per_bot_percent": 0.5
+    }
+  },
+  "testing": {
+    "frameworks": ["googletest", "catch2"],
+    "coverage_tools": ["gcov", "lcov"],
+    "test_categories": {
+      "unit": {
+        "timeout_seconds": 60,
+        "parallel": true
+      },
+      "integration": {
+        "timeout_seconds": 300,
+        "parallel": false
+      },
+      "performance": {
+        "timeout_seconds": 600,
+        "parallel": false
+      }
+    }
+  },
+  "trinity_specific": {
+    "version": "3.3.5a",
+    "worldserver_path": "C:\\TrinityBots\\Server\\bin\\worldserver.exe",
+    "database": {
+      "world": "trinity_world",
+      "characters": "trinity_characters",
+      "auth": "trinity_auth"
+    },
+    "compatibility_checks": [
+      "Player API",
+      "WorldSession hooks",
+      "Opcodes",
+      "Database schema",
+      "Script hooks"
+    ]
+  },
+  "enterprise_compliance": {
+    "standards": [
+      "ISO/IEC 25010",
+      "MISRA C++",
+      "CWE Top 25",
+      "CERT C++",
+      "OWASP"
+    ],
+    "documentation_required": [
+      "API documentation",
+      "Architecture diagrams",
+      "Deployment guide",
+      "Security assessment"
+    ],
+    "audit_frequency": "monthly"
+  }
+}

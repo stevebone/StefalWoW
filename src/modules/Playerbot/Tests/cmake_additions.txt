@@ -1,0 +1,80 @@
+# ============================================================================
+# COMPREHENSIVE TEST SUITE - 585+ TESTS
+# ============================================================================
+
+set(PLAYERBOT_COMPREHENSIVE_TEST_SOURCES
+    # Test Helpers and Utilities
+    TestHelpers.h
+
+    # Phase 3 Mock Framework
+    Phase3/Unit/CustomMain.cpp
+    Phase3/Unit/SimpleTest.cpp
+    Phase3/Unit/Mocks/MockFramework.cpp
+
+    # ClassAI Tests (585 tests across 39 specs)
+    ./ClassAI/DeathKnight/BloodDeathKnightTest.cpp
+    ./ClassAI/DeathKnight/FrostDeathKnightTest.cpp
+    ./ClassAI/DeathKnight/UnholyDeathKnightTest.cpp
+    ./ClassAI/DemonHunter/HavocDemonHunterTest.cpp
+    ./ClassAI/DemonHunter/VengeanceDemonHunterTest.cpp
+    ./ClassAI/Druid/BalanceDruidTest.cpp
+    ./ClassAI/Druid/FeralDruidTest.cpp
+    ./ClassAI/Druid/GuardianDruidTest.cpp
+    ./ClassAI/Druid/RestorationDruidTest.cpp
+    ./ClassAI/Evoker/AugmentationEvokerTest.cpp
+    ./ClassAI/Evoker/DevastationEvokerTest.cpp
+    ./ClassAI/Evoker/PreservationEvokerTest.cpp
+    ./ClassAI/Hunter/BeastMasteryHunterTest.cpp
+    ./ClassAI/Hunter/MarksmanshipHunterTest.cpp
+    ./ClassAI/Hunter/SurvivalHunterTest.cpp
+    ./ClassAI/Mage/ArcaneMageTest.cpp
+    ./ClassAI/Mage/FireMageTest.cpp
+    ./ClassAI/Mage/FrostMageTest.cpp
+    ./ClassAI/Monk/BrewmasterMonkTest.cpp
+    ./ClassAI/Monk/MistweaverMonkTest.cpp
+    ./ClassAI/Monk/WindwalkerMonkTest.cpp
+    ./ClassAI/Paladin/HolyPaladinTest.cpp
+    ./ClassAI/Paladin/ProtectionPaladinTest.cpp
+    ./ClassAI/Paladin/RetributionPaladinTest.cpp
+    ./ClassAI/Priest/DisciplinePriestTest.cpp
+    ./ClassAI/Priest/HolyPriestTest.cpp
+    ./ClassAI/Priest/ShadowPriestTest.cpp
+    ./ClassAI/Rogue/AssassinationRogueTest.cpp
+    ./ClassAI/Rogue/OutlawRogueTest.cpp
+    ./ClassAI/Rogue/SubtletyRogueTest.cpp
+    ./ClassAI/Shaman/ElementalShamanTest.cpp
+    ./ClassAI/Shaman/EnhancementShamanTest.cpp
+    ./ClassAI/Shaman/RestorationShamanTest.cpp
+    ./ClassAI/Warlock/AfflictionWarlockTest.cpp
+    ./ClassAI/Warlock/DemonologyWarlockTest.cpp
+    ./ClassAI/Warlock/DestructionWarlockTest.cpp
+    ./ClassAI/Warrior/ArmsWarriorTest.cpp
+    ./ClassAI/Warrior/FuryWarriorTest.cpp
+    ./ClassAI/Warrior/ProtectionWarriorTest.cpp
+
+    # Combat System Tests (40 tests)
+    ./Combat/CombatBehaviorIntegrationTest.cpp
+    ./Combat/CombatStateManagerTest.cpp
+    ./Combat/InterruptCoordinatorTest.cpp
+    ./Combat/TargetSelectorTest.cpp
+    ./Combat/ThreatCoordinatorTest.cpp
+    ./CombatAIIntegrationTest.cpp
+
+    # Lifecycle Tests (30 tests)
+    ./Lifecycle/BotCharacterCreatorTest.cpp
+    ./Lifecycle/BotSessionMgrTest.cpp
+    ./Lifecycle/BotSpawnOrchestratorTest.cpp
+    ./Lifecycle/DeathRecoveryManagerTest.cpp
+
+    # Integration Tests (40 tests)
+    ./BotSessionIntegrationTest.cpp
+    ./Combat/CombatBehaviorIntegrationTest.cpp
+    ./CombatAIIntegrationTest.cpp
+    ./Integration/DungeonSystemIntegrationTest.cpp
+    ./Integration/GroupSystemIntegrationTest.cpp
+    ./Integration/QuestSystemIntegrationTest.cpp
+    ./Integration/SocialSystemIntegrationTest.cpp
+    ./Phase2IntegrationTest.cpp
+)
+
+# Total test files: 70

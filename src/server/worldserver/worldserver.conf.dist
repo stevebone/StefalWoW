@@ -4475,3 +4475,81 @@ Followship.Bots.PowerRate = 1
 # Increase or decrease the bots damage
 # Values 0.1-2; Default: 1
 Followship.Bots.DamageRate = 1
+
+
+###################################################################################################
+# BOT MOVEMENT SYSTEM
+#
+#    BotMovement.Enable
+#        Description: Enable enhanced bot movement system with validation and stuck recovery.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+BotMovement.Enable = 1
+
+#
+#    BotMovement.ValidationLevel
+#        Description: Set the level of validation for bot movement.
+#                     0 = None (legacy mode, no validation)
+#                     1 = Basic (bounds + ground only)
+#                     2 = Standard (basic + collision)
+#                     3 = Strict (all checks including liquid and terrain hazards)
+#        Default:     2 - (Standard)
+
+BotMovement.ValidationLevel = 2
+
+#
+#    BotMovement.StuckDetection.PositionThreshold
+#        Description: Time in milliseconds without position change to consider bot stuck.
+#        Default:     3000 - (3 seconds)
+
+BotMovement.StuckDetection.PositionThreshold = 3000
+
+#
+#    BotMovement.StuckDetection.DistanceThreshold
+#        Description: Distance in yards below which bot is considered not moving.
+#        Default:     2.0
+
+BotMovement.StuckDetection.DistanceThreshold = 2.0
+
+#
+#    BotMovement.Recovery.MaxAttempts
+#        Description: Maximum recovery attempts before evade/reset.
+#                     Recovery attempts escalate from recalculating path to teleporting
+#                     to safe position and finally evading/resetting.
+#        Default:     5
+
+BotMovement.Recovery.MaxAttempts = 5
+
+#
+#    BotMovement.PathCache.Size
+#        Description: Number of paths to cache using LRU (Least Recently Used) eviction policy.
+#                     Larger cache improves performance but uses more memory.
+#                     Approximately 1KB per cached path.
+#        Default:     1000
+
+BotMovement.PathCache.Size = 1000
+
+#
+#    BotMovement.PathCache.TTL
+#        Description: Path cache time-to-live in seconds.
+#                     Paths older than this will be evicted and recalculated.
+#        Default:     60 - (1 minute)
+
+BotMovement.PathCache.TTL = 60
+
+#
+#    BotMovement.Debug.LogLevel
+#        Description: Set logging verbosity for bot movement system.
+#                     0 = Disabled (no logging)
+#                     1 = Errors only
+#                     2 = Warnings + Errors
+#                     3 = Info + Warnings + Errors
+#                     4 = Debug (verbose, includes all movement decisions)
+#        Default:     2 - (Warnings + Errors)
+
+BotMovement.Debug.LogLevel = 2
+
+#
+###################################################################################################
+

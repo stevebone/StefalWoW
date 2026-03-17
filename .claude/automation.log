@@ -1,0 +1,54 @@
+2025-09-25 12:00:02 [*] =
+2025-09-25 12:00:02 [INFO] Starting PlayerBot Daily Automation
+2025-09-25 12:00:02 [INFO] Check Type: critical
+2025-09-25 12:00:02 [INFO] Project Root: C:\TrinityBots\TrinityCore
+2025-09-25 12:00:02 [*] =
+2025-09-25 12:00:02 [INFO] Executing agent: security-auditor
+2025-09-25 12:00:02 [SUCCESS] Agent security-auditor completed successfully
+2025-09-25 12:00:02 [INFO] Executing agent: automated-fix-agent
+2025-09-25 12:00:02 [SUCCESS] Agent automated-fix-agent completed successfully
+2025-09-25 12:00:02 [SUCCESS] Report saved to C:\TrinityBots\TrinityCore\.claude\reports\daily_report_2025-09-25.html
+2025-09-25 12:00:02 [INFO] Sending email report
+2025-09-25 12:00:02 [WARNING] Email report would be sent (email disabled in demo)
+2025-09-25 12:00:02 [SUCCESS] Daily automation completed
+2025-09-25 12:00:02 [INFO] Report: C:\TrinityBots\TrinityCore\.claude\reports\daily_report_2025-09-25.html
+2025-09-25 12:04:29 [*] =
+2025-09-25 12:04:29 [INFO] Starting PlayerBot Daily Automation
+2025-09-25 12:04:29 [INFO] Check Type: full
+2025-09-25 12:04:29 [INFO] Project Root: C:\TrinityBots\TrinityCore
+2025-09-25 12:04:29 [*] =
+2025-09-25 12:04:29 [INFO] Starting complete code review
+2025-09-25 12:04:30 [SUCCESS] Daily automation completed
+2025-09-25 12:04:30 [INFO] Report: 
+2025-09-25 13:36:18 [INFO] ============================================================
+2025-09-25 13:36:18 [INFO] Starting PlayerBot Daily Automation
+2025-09-25 13:36:18 [INFO] Check Type: full
+2025-09-25 13:36:18 [INFO] Project Root: C:\TrinityBots\TrinityCore
+2025-09-25 13:36:18 [INFO] Auto-Fix: False
+2025-09-25 13:36:18 [INFO] ============================================================
+2025-09-25 13:36:18 [INFO] Starting complete code review
+2025-09-25 13:36:18 [INFO] Generating daily report
+2025-09-25 13:36:18 [ERROR] Fatal error during execution: Fehler beim Aufrufen der Methode, da [System.String] keine Methode mit dem Namen "ContainsKey" enthält.
+2025-09-25 14:27:04 [INFO] ============================================================
+2025-09-25 14:27:04 [INFO] Starting PlayerBot Daily Automation
+2025-09-25 14:27:04 [INFO] Check Type: full
+2025-09-25 14:27:04 [INFO] Project Root: C:\TrinityBots\TrinityCore
+2025-09-25 14:27:04 [INFO] Auto-Fix: False
+2025-09-25 14:27:04 [INFO] ============================================================
+2025-09-25 14:27:04 [INFO] Starting complete code review
+2025-09-25 14:27:04 [INFO] Generating daily report
+2025-09-25 14:27:04 [ERROR] Fatal error during execution: Fehler beim Aufrufen der Methode, da [System.String] keine Methode mit dem Namen "ContainsKey" enthält.
+2025-09-25 18:00:01 [INFO] ============================================================
+2025-09-25 18:00:01 [INFO] Starting PlayerBot Daily Automation
+2025-09-25 18:00:01 [INFO] Check Type: critical
+2025-09-25 18:00:02 [INFO] Auto-Fix: True
+2025-09-25 18:00:02 [INFO] ============================================================
+2025-09-25 18:00:02 [INFO] Starting security scan
+2025-09-25 18:00:02 [INFO] Executing agent: security-auditor
+2025-09-25 18:00:02 [SUCCESS] Agent security-auditor completed successfully
+2025-09-25 18:00:02 [INFO] Executing agent: automated-fix-agent
+2025-09-25 18:00:02 [SUCCESS] Agent automated-fix-agent completed successfully
+2025-09-25 18:00:02 [SUCCESS] Report saved to C:\TrinityBots\TrinityCore\.claude\reports\daily_report_2025-09-25.html
+2025-09-25 18:00:02 [INFO] Sending email report
+2025-09-25 18:00:02 [WARNING] Email report would be sent (email disabled in demo)
+2025-09-25 18:00:02 [INFO] Report: C:\TrinityBots\TrinityCore\.claude\reports\daily_report_2025-09-25.html

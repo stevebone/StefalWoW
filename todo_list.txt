@@ -1,0 +1,135 @@
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Account/BotAccountMgr.cpp:703:    // TODO: Implement database storage when BotDatabasePool is available
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/Actions/Action.cpp:89:    // TODO: Implement proper cooldown checking with TrinityCore API
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/Actions/Action.cpp:182:    // TODO: Implement proper SpellCastTargets when needed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/BotAI.cpp:431:    // TODO: Add social interactions (chat, emotes) when implemented
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/BotAI.cpp:695:    // TODO: Implement action execution from name
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/BotAI.cpp:702:    // TODO: Check if action is possible
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/BotAI.cpp:708:    // TODO: Get action priority
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/ActionPriority.cpp:348:    // TODO: Could analyze enemy spell to determine interrupt priority
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/ActionPriority.cpp:373:    // TODO: Implement threat calculation based on unit's role and current threat
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/CombatSpecializationTemplate_WoW112.h:243:        float hasteModifier = 1.0f; // TODO: Get from player stats
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/CooldownManager.cpp:715:    // TODO: Apply haste calculations and spell-specific GCD modifications
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/CooldownManager.cpp:765:    // TODO: Implement charge detection from spell data
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/CooldownManager.cpp:783:    // TODO: Apply various cooldown reduction effects
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/BloodSpecialization.cpp:366:    // TODO: Implement proper rune consumption via protected interface
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/BloodSpecialization.cpp:373:    // TODO: Implement proper rune counting via protected interface
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/BloodSpecialization.cpp:395:    // TODO: Add protected method for runic power generation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/BloodSpecialization.cpp:401:    // TODO: Add protected method for runic power spending
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/BloodSpecialization.cpp:458:    // TODO: Implement disease refresh logic via proper interface
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/BloodSpecialization.cpp:482:        // TODO: Add protected methods for death and decay tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DeathKnights/UnholySpecialization.cpp:1263:        // TODO: Implement threat reduction if needed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:155:// TODO: Implement advanced Demon Hunter functionality
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:160:    // TODO: Implement specialization detection
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:172:    // TODO: Implement metamorphosis exit logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:177:    // TODO: Implement metamorphosis decision logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:183:    // TODO: Implement Havoc metamorphosis
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:188:    // TODO: Implement Vengeance metamorphosis
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:193:    // TODO: Implement pain spending
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:198:    // TODO: Implement pain generation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:203:    // TODO: Implement pain checking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:209:    // TODO: Implement fury spending
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:214:    // TODO: Implement fury generation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:219:    // TODO: Implement fury checking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:225:    // TODO: Implement pain management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:230:    // TODO: Implement pain decay
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:235:    // TODO: Implement fury retrieval
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:241:    // TODO: Implement max fury retrieval
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:247:    // TODO: Implement Havoc rotation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:252:    // TODO: Implement Vengeance rotation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:257:    // TODO: Implement metamorphosis abilities
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:262:    // TODO: Implement Eye Beam casting
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:267:    // TODO: Implement Chaos Strike casting
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:272:    // TODO: Implement Blade Dance casting
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:277:    // TODO: Implement Demon's Bite casting
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:282:    // TODO: Implement Soul Cleave casting
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:287:    // TODO: Implement Shear casting
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:292:    // TODO: Implement AoE target gathering
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/DemonHunterAI.cpp:300:    // TODO: Re-enable refactored specialization classes once template issues are fixed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:61:    // TODO: Implement Havoc rotation logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:74:    // TODO: Implement buff management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:79:    // TODO: Implement cooldown tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:84:    // TODO: Implement ability availability checks
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:90:    // TODO: Implement combat start logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:96:    // TODO: Implement combat end logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:102:    // TODO: Implement resource checks
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:108:    // TODO: Implement resource consumption
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:113:    // TODO: Implement optimal positioning
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:119:    // TODO: Implement optimal range calculation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:126:    // TODO: Implement metamorphosis tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:131:    // TODO: Implement metamorphosis decision logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:137:    // TODO: Implement metamorphosis activation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:148:    // TODO: Implement soul fragment tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:153:    // TODO: Implement soul fragment consumption
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/HavocSpecialization_Enhanced.cpp:158:    // TODO: Implement soul fragment consumption logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:63:    // TODO: Implement Vengeance rotation logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:76:    // TODO: Implement buff management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:81:    // TODO: Implement cooldown tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:86:    // TODO: Implement ability availability checks
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:92:    // TODO: Implement combat start logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:98:    // TODO: Implement combat end logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:104:    // TODO: Implement resource checks
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:110:    // TODO: Implement resource consumption
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:115:    // TODO: Implement optimal positioning
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:121:    // TODO: Implement optimal range calculation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:128:    // TODO: Implement metamorphosis tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:133:    // TODO: Implement metamorphosis decision logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:139:    // TODO: Implement metamorphosis activation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:150:    // TODO: Implement soul fragment tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:155:    // TODO: Implement soul fragment consumption
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/DemonHunters/VengeanceSpecialization_Enhanced.cpp:160:    // TODO: Implement soul fragment consumption logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Druids/DruidAI.cpp:61:    // TODO: Re-enable refactored specialization classes once template issues are fixed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/BeastMasterySpecialization.cpp:1034:            // TODO: Implement pet feeding with appropriate food items
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:36:    // TODO: Implement combat systems initialization
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:246:    // TODO: Implement positioning logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:251:    // TODO: Implement shared abilities
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:256:    // TODO: Implement tracking management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:272:    // TODO: Implement combat aspect switching
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:282:    // TODO: Implement tank detection
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Hunters/HunterAI.cpp:288:    // TODO: Implement combat metrics logging
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Monks/MonkAI.cpp:50:    // TODO: Implement specialized monk combat rotation
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Monks/MonkAI.cpp:67:    // TODO: Implement monk buff management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Monks/MonkAI.cpp:73:    // TODO: Implement monk cooldown management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Monks/MonkAI.cpp:97:    return true; // TODO: Implement proper resource checking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Monks/MonkAI.cpp:103:    // TODO: Implement proper resource consumption
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Monks/MonkAI.h:416:                if (player) // TODO: Implement role detection
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Paladins/PaladinAI.cpp:184:    // TODO: Re-enable refactored specialization classes once template issues are fixed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Priests/PriestAI.cpp:198:    // CheckMajorCooldowns(); // TODO: Implement when needed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Priests/PriestAI_Specialization.cpp:78:    // TODO: Re-enable refactored specialization classes once template issues are fixed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Shamans/ShamanAI_Specialization.cpp:50:    // TODO: Re-enable refactored specialization classes once template issues are fixed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Warlocks/AfflictionWarlockRefactored.h:435:        // TODO: Implement multi-target DoT tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Warlocks/DestructionWarlockRefactored.h:384:            // TODO: Find secondary target CastSpell(HAVOC, target);
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/ClassAI/Warriors/WarriorAI.cpp:178:    // TODO: Re-enable refactored specialization classes once template issues are fixed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/Combat/CombatAIIntegrator.cpp:795:    // TODO: Implement looting system
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/Combat/PositionManager.cpp:880:    // TODO: Implement IsInAoEZone function
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/Combat/TargetSelector.cpp:707:        // TODO: Fix type_flags API - currently not available
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/Combat/ThreatAbilities.cpp:202:    // TODO: Filter by specialization if needed
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/EnhancedBotAI.cpp:540:    // TODO: Implement questing logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/EnhancedBotAI.cpp:545:    // TODO: Implement social interactions
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/AI/EnhancedBotAI.cpp:591:    // TODO: Implement looting logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Character/BotCharacterDistribution.cpp:220:    // TODO: Implement proper processing for gender preference weights
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Character/BotCharacterDistribution.cpp:234:        // TODO: Convert preference weights to male percentages
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupCoordination.cpp:568:    // TODO: Implement tank-specific threat management
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupCoordination.cpp:574:    // TODO: Implement healer coordination
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupCoordination.cpp:580:    // TODO: Implement DPS coordination
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupCoordination.cpp:586:    // TODO: Implement support coordination
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupFormation.cpp:553:    // TODO: Implement wedge formation algorithm
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupFormation.cpp:559:    // TODO: Implement diamond formation algorithm
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupFormation.cpp:565:    // TODO: Implement defensive square algorithm
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupFormation.cpp:571:    // TODO: Implement arrow formation algorithm
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupFormation.cpp:593:    // TODO: Implement collision resolution logic
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/GroupFormation.cpp:599:    // TODO: Implement flexibility adjustments
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/RoleAssignment.cpp:553:    uint8 playerSpec = 0; // TODO: Get actual spec when available
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/RoleAssignment.cpp:614:    // TODO: Implement gear scoring based on role appropriateness
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/RoleAssignment.cpp:636:    // TODO: Implement synergy calculation based on group composition
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/RoleAssignment.cpp:754:    // TODO: Implement gear analysis for role scoring
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Group/RoleAssignment.cpp:759:    // TODO: Update experience scores based on performance history
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotLifecycleMgr.cpp:422:    // TODO: Implement proper database access when PBDB statements are ready
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotLifecycleMgr.cpp:467:    // TODO: Insert event into database when PBDB statements are ready
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotLifecycleMgr.cpp:604:    // TODO: Cleanup database events when PBDB statements are ready
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotSpawner.cpp:599:                // TODO: Add level/race/class filtering when we have a proper query
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotSpawner.h:181:    mutable std::mutex _zoneMutex; // TODO: Replace with lock-free hash map
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotSpawner.h:185:    mutable std::mutex _botMutex; // TODO: Replace with concurrent hash map
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotSpawner.h:190:    mutable std::mutex _spawnQueueMutex; // TODO: Replace with lock-free queue
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Lifecycle/BotWorldEntry.cpp:40:    _metrics.memoryBeforeEntry = 0; // TODO: Implement memory tracking
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/PlayerbotModule.cpp:240:    // TODO: Unregister event hooks
+c:/TrinityBots/TrinityCore/src/modules/Playerbot/Session/BotSession.cpp:378:    // TODO: In future, we could create a BotSocket here and use it to initialize the session

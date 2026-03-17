@@ -48,6 +48,10 @@ if("${CMAKE_MAKE_PROGRAM}" MATCHES "MSBuild")
   target_compile_options(trinity-compile-option-interface
     INTERFACE
       /MP)
+  # Forces writes to the PDB file to be serialized through mspdbsrv.exe (/FS) - needed for Debug builds
+  target_compile_options(trinity-compile-option-interface
+    INTERFACE
+      $<$<CONFIG:Debug,RelWithDebInfo>:/FS>)
 else()
   # Forces writes to the PDB file to be serialized through mspdbsrv.exe (/FS)
   # Enable faster PDB generation in parallel builds by minimizing RPC calls to mspdbsrv.exe (/Zf)

@@ -32,6 +32,11 @@
 #include "World.h"
 #include <sstream>
 
+#ifdef BUILD_PLAYERBOT
+#include "Network/PlayerbotPacketSniffer.h"
+#include "Core/PlayerBotHooks.h"
+#endif
+
 #define CHARTER_DISPLAY_ID 16161
 #define GUILD_CHARTER_ITEM_ID 5863
 
@@ -147,6 +152,12 @@ void WorldSession::SendPetitionSigns(Petition const* petition, Player* sendTo)
         signaturePkt.Choice = 0;
         signaturesPacket.Signatures.push_back(signaturePkt);
     }
+
+#ifdef BUILD_PLAYERBOT
+    // Intercept typed packet for bots BEFORE serialization
+    if (Playerbot::PlayerBotHooks::IsPlayerBot(sendTo))
+        Playerbot::PlayerbotPacketSniffer::OnTypedPacket(sendTo->GetSession(), signaturesPacket);
+#endif
 
     sendTo->SendDirectMessage(signaturesPacket.Write());
 }

@@ -212,6 +212,14 @@ target_link_libraries(scripts
   PUBLIC
     game-interface)
 
+# Add Playerbot support if enabled
+if(BUILD_PLAYERBOT)
+  target_compile_definitions(scripts PRIVATE BUILD_PLAYERBOT=1)
+  target_include_directories(scripts PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/modules/Playerbot
+    ${CMAKE_SOURCE_DIR}/src/modules/Playerbot/Scripts)
+endif()
+
 set_target_properties(scripts
   PROPERTIES
     COMPILE_WARNING_AS_ERROR ${WITH_WARNINGS_AS_ERRORS}

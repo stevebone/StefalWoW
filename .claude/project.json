@@ -1,0 +1,28 @@
+{
+  "name": "TrinityCore Playerbot",
+  "description": "TrinityCore 11.2 Playerbot Module - Compilation Error Fixes",
+  "version": "1.0.0",
+  "build": {
+    "system": "cmake",
+    "directory": "build",
+    "config": "RelWithDebInfo",
+    "target": "worldserver",
+    "parallel_jobs": 8,
+    "timeout": 1800
+  },
+  "environment": {
+    "os": "windows",
+    "language": "german",
+    "compiler": "MSVC 14.44 (Visual Studio 2022 Enterprise)",
+    "cmake_version": "3.24+"
+  },
+  "repository": {
+    "branch": "playerbot-dev",
+    "remote": "origin"
+  },
+  "current_phase": "Remote Sync Complete",
+  "baseline": {
+    "commit": "a933e3dae4",
+    "description": "Remote branch with comprehensive orphaned null check fixes + CMake improvements"
+  }
+}

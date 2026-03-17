@@ -1,0 +1,257 @@
+name: Stale Issue Management
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Daily at 1 AM UTC
+  workflow_dispatch:
+    inputs:
+      debug_only:
+        description: 'Debug mode - only report, do not modify issues'
+        required: false
+        default: false
+        type: boolean
+      days_before_stale:
+        description: 'Days of inactivity before marking stale'
+        required: false
+        default: '60'
+        type: string
+      days_before_close:
+        description: 'Days after stale label before closing'
+        required: false
+        default: '14'
+        type: string
+
+jobs:
+  stale:
+    name: Manage Stale Issues and PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Stale Issue Handler
+        uses: actions/stale@v9
+        with:
+          # Authentication
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Timing configuration
+          days-before-stale: ${{ github.event.inputs.days_before_stale || 60 }}
+          days-before-close: ${{ github.event.inputs.days_before_close || 14 }}
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+
+          # Issue configuration
+          stale-issue-label: 'stale'
+          stale-issue-message: |
+            This issue has been automatically marked as **stale** because it has not had recent activity.
+
+            It will be closed in 14 days if no further activity occurs.
+
+            **To keep this issue open:**
+            - Add a comment with an update
+            - Remove the `stale` label
+            - Add the `pinned` label to prevent automatic closure
+
+            If you believe this issue is still relevant, please comment with your use case or any additional information.
+
+            Thank you for contributing to TrinityCore Playerbot!
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity.
+
+            If you still experience this issue or need this feature, please feel free to:
+            1. Open a new issue with updated information
+            2. Reference this issue in your new report
+
+            Thank you for your understanding!
+
+          # PR configuration
+          stale-pr-label: 'stale'
+          stale-pr-message: |
+            This pull request has been automatically marked as **stale** because it has not had recent activity.
+
+            It will be closed in 7 days if no further activity occurs.
+
+            **To keep this PR open:**
+            - Push new commits
+            - Add a comment with an update
+            - Remove the `stale` label
+            - Request a review
+
+            If you need more time to work on this, please comment to let us know!
+          close-pr-message: |
+            This pull request has been automatically closed due to inactivity.
+
+            If you would like to continue working on this:
+            1. Reopen the PR with updated changes
+            2. Open a new PR referencing this one
+
+            Thank you for your contribution!
+
+          # Labels that exempt from stale
+          exempt-issue-labels: |
+            pinned
+            security
+            critical
+            in-progress
+            waiting-for-release
+            upstream-sync
+            help-wanted
+          exempt-pr-labels: |
+            pinned
+            security
+            critical
+            in-progress
+            waiting-for-release
+            work-in-progress
+            do-not-close
+
+          # Labels that trigger immediate stale
+          only-labels: ''
+
+          # Exempt specific milestones
+          exempt-milestones: true
+          exempt-all-milestones: false
+
+          # Exempt assignees
+          exempt-assignees: ''
+          exempt-all-assignees: false
+
+          # Operation limits
+          operations-per-run: 100
+
+          # Remove stale label on activity
+          remove-stale-when-updated: true
+          remove-issue-stale-when-updated: true
+          remove-pr-stale-when-updated: true
+
+          # Delete branch on PR close
+          delete-branch: false
+
+          # Debug mode
+          debug-only: ${{ github.event.inputs.debug_only || false }}
+
+          # Ascending order to process oldest first
+          ascending: true
+
+          # Include draft PRs
+          include-only-assigned: false
+
+  cleanup-closed:
+    name: Cleanup Old Closed Issues
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Lock old closed issues
+        uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issues
+          issue-inactive-days: 365
+          issue-lock-reason: 'resolved'
+          issue-comment: |
+            This issue has been automatically locked because it has been closed for over a year.
+
+            Please open a new issue if you have a related problem or question.
+
+          # PRs
+          pr-inactive-days: 365
+          pr-lock-reason: 'resolved'
+          pr-comment: |
+            This pull request has been automatically locked because it has been closed for over a year.
+
+            Please open a new PR if you have related changes to propose.
+
+          # Limits
+          process-only: 'issues, prs'
+
+  generate-report:
+    name: Generate Stale Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Generate stale items report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'stale',
+              per_page: 100
+            });
+
+            const staleIssues = issues.filter(i => !i.pull_request);
+            const stalePRs = issues.filter(i => i.pull_request);
+
+            console.log('=== Stale Items Report ===');
+            console.log(`Stale Issues: ${staleIssues.length}`);
+            console.log(`Stale PRs: ${stalePRs.length}`);
+            console.log('');
+
+            if (staleIssues.length > 0) {
+              console.log('Stale Issues:');
+              staleIssues.forEach(i => {
+                console.log(`  #${i.number}: ${i.title}`);
+              });
+            }
+
+            if (stalePRs.length > 0) {
+              console.log('Stale PRs:');
+              stalePRs.forEach(p => {
+                console.log(`  #${p.number}: ${p.title}`);
+              });
+            }
+
+            // Get total open items
+            const { data: allOpen } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 1
+            });
+
+            console.log('');
+            console.log('=== Summary ===');
+            console.log(`Total stale: ${issues.length}`);
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This stale management workflow provides automated issue/PR cleanup:
+#
+# Issue Handling:
+# - Mark stale after 60 days of inactivity
+# - Close 14 days after stale label
+# - Warn with helpful message
+# - Exempt pinned, security, critical issues
+#
+# PR Handling:
+# - Mark stale after 30 days of inactivity
+# - Close 7 days after stale label
+# - Shorter timeline for PRs
+#
+# Cleanup:
+# - Lock issues/PRs closed for > 1 year
+# - Prevent necro-posting on old threads
+#
+# Exemptions:
+# - pinned, security, critical labels
+# - in-progress, help-wanted labels
+# - Assigned milestones
+#
+# Schedule: Daily at 1 AM UTC
+#
+# Manual Run:
+#   gh workflow run stale.yml -f debug_only=true -f days_before_stale=30
+# ==============================================================================

@@ -1,0 +1,432 @@
+name: Notifications
+
+on:
+  # Build status notifications
+  workflow_run:
+    workflows:
+      - "Windows x64"
+      - "Ubuntu x64"
+      - "macOS arm64"
+      - "CodeQL Security Analysis"
+      - "Release"
+    types:
+      - completed
+
+  # Release notifications
+  release:
+    types:
+      - published
+
+  # Note: repository_vulnerability_alert requires GitHub Advanced Security
+  # Uncomment when Advanced Security is enabled:
+  # repository_vulnerability_alert:
+  #   types:
+  #     - create
+
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      test_discord:
+        description: 'Send test notification to Discord'
+        required: false
+        default: false
+        type: boolean
+      test_slack:
+        description: 'Send test notification to Slack'
+        required: false
+        default: false
+        type: boolean
+      message:
+        description: 'Test message content'
+        required: false
+        default: 'This is a test notification from TrinityCore CI'
+        type: string
+
+env:
+  PROJECT_NAME: 'TrinityCore Playerbot'
+
+jobs:
+  # ===========================================================================
+  # Build Status Notifications
+  # ===========================================================================
+  notify-build-status:
+    name: Build Status Notification
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run'
+    timeout-minutes: 5
+
+    steps:
+      - name: Determine notification details
+        id: details
+        run: |
+          WORKFLOW="${{ github.event.workflow_run.name }}"
+          CONCLUSION="${{ github.event.workflow_run.conclusion }}"
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          RUN_URL="${{ github.event.workflow_run.html_url }}"
+          COMMIT="${{ github.event.workflow_run.head_sha }}"
+          ACTOR="${{ github.event.workflow_run.actor.login }}"
+
+          # Set emoji based on conclusion
+          case "$CONCLUSION" in
+            success)
+              EMOJI="✅"
+              COLOR="3066993"  # Green
+              SLACK_COLOR="good"
+              ;;
+            failure)
+              EMOJI="❌"
+              COLOR="15158332"  # Red
+              SLACK_COLOR="danger"
+              ;;
+            cancelled)
+              EMOJI="⚠️"
+              COLOR="15105570"  # Orange
+              SLACK_COLOR="warning"
+              ;;
+            *)
+              EMOJI="ℹ️"
+              COLOR="3447003"  # Blue
+              SLACK_COLOR="#439FE0"
+              ;;
+          esac
+
+          echo "workflow=$WORKFLOW" >> "$GITHUB_OUTPUT"
+          echo "conclusion=$CONCLUSION" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "run_url=$RUN_URL" >> "$GITHUB_OUTPUT"
+          echo "commit=${COMMIT:0:7}" >> "$GITHUB_OUTPUT"
+          echo "actor=$ACTOR" >> "$GITHUB_OUTPUT"
+          echo "emoji=$EMOJI" >> "$GITHUB_OUTPUT"
+          echo "color=$COLOR" >> "$GITHUB_OUTPUT"
+          echo "slack_color=$SLACK_COLOR" >> "$GITHUB_OUTPUT"
+
+      - name: Send Discord notification
+        if: env.DISCORD_WEBHOOK != ''
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "${{ steps.details.outputs.emoji }} ${{ steps.details.outputs.workflow }} - ${{ steps.details.outputs.conclusion }}",
+                "description": "Build completed for **${{ env.PROJECT_NAME }}**",
+                "color": ${{ steps.details.outputs.color }},
+                "fields": [
+                  {
+                    "name": "Branch",
+                    "value": "`${{ steps.details.outputs.branch }}`",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commit",
+                    "value": "`${{ steps.details.outputs.commit }}`",
+                    "inline": true
+                  },
+                  {
+                    "name": "Triggered by",
+                    "value": "${{ steps.details.outputs.actor }}",
+                    "inline": true
+                  }
+                ],
+                "url": "${{ steps.details.outputs.run_url }}",
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "$DISCORD_WEBHOOK" || echo "Discord webhook not configured or failed"
+
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK != ''
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "attachments": [{
+                "color": "${{ steps.details.outputs.slack_color }}",
+                "title": "${{ steps.details.outputs.emoji }} ${{ steps.details.outputs.workflow }} - ${{ steps.details.outputs.conclusion }}",
+                "title_link": "${{ steps.details.outputs.run_url }}",
+                "text": "Build completed for *${{ env.PROJECT_NAME }}*",
+                "fields": [
+                  {
+                    "title": "Branch",
+                    "value": "${{ steps.details.outputs.branch }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "${{ steps.details.outputs.commit }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Triggered by",
+                    "value": "${{ steps.details.outputs.actor }}",
+                    "short": true
+                  }
+                ],
+                "footer": "GitHub Actions",
+                "ts": '$(date +%s)'
+              }]
+            }' \
+            "$SLACK_WEBHOOK" || echo "Slack webhook not configured or failed"
+
+  # ===========================================================================
+  # Release Notifications
+  # ===========================================================================
+  notify-release:
+    name: Release Notification
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    timeout-minutes: 5
+
+    steps:
+      - name: Send Discord release notification
+        if: env.DISCORD_WEBHOOK != ''
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          RELEASE_NAME="${{ github.event.release.name }}"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          RELEASE_URL="${{ github.event.release.html_url }}"
+          RELEASE_BODY="${{ github.event.release.body }}"
+          IS_PRERELEASE="${{ github.event.release.prerelease }}"
+
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            EMOJI="🧪"
+            TITLE="Pre-Release"
+            COLOR="15105570"
+          else
+            EMOJI="🎉"
+            TITLE="New Release"
+            COLOR="3066993"
+          fi
+
+          # Truncate body for Discord
+          BODY_TRUNCATED=$(echo "$RELEASE_BODY" | head -c 500)
+
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "'"$EMOJI"' '"$TITLE"': '"$RELEASE_NAME"'",
+                "description": "'"${BODY_TRUNCATED//\"/\\\"}"'",
+                "color": '"$COLOR"',
+                "fields": [
+                  {
+                    "name": "Version",
+                    "value": "`'"$RELEASE_TAG"'`",
+                    "inline": true
+                  },
+                  {
+                    "name": "Downloads",
+                    "value": "[View Release]('"$RELEASE_URL"')",
+                    "inline": true
+                  }
+                ],
+                "url": "'"$RELEASE_URL"'",
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "$DISCORD_WEBHOOK" || echo "Discord webhook not configured or failed"
+
+      - name: Send Slack release notification
+        if: env.SLACK_WEBHOOK != ''
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          RELEASE_NAME="${{ github.event.release.name }}"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          RELEASE_URL="${{ github.event.release.html_url }}"
+          IS_PRERELEASE="${{ github.event.release.prerelease }}"
+
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            EMOJI="🧪"
+            COLOR="warning"
+          else
+            EMOJI="🎉"
+            COLOR="good"
+          fi
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "attachments": [{
+                "color": "'"$COLOR"'",
+                "title": "'"$EMOJI"' New Release: '"$RELEASE_NAME"'",
+                "title_link": "'"$RELEASE_URL"'",
+                "text": "Version '"$RELEASE_TAG"' is now available!",
+                "fields": [
+                  {
+                    "title": "Downloads",
+                    "value": "<'"$RELEASE_URL"'|View Release>",
+                    "short": true
+                  }
+                ],
+                "footer": "${{ env.PROJECT_NAME }}",
+                "ts": '$(date +%s)'
+              }]
+            }' \
+            "$SLACK_WEBHOOK" || echo "Slack webhook not configured or failed"
+
+  # ===========================================================================
+  # Security Alert Notifications
+  # ===========================================================================
+  # Note: This job requires GitHub Advanced Security to be enabled
+  # Uncomment when Advanced Security is available
+  # notify-security:
+  #   name: Security Alert Notification
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'repository_vulnerability_alert'
+  #   timeout-minutes: 5
+
+  #   steps:
+  #     - name: Send security alert
+  #       env:
+  #         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+  #         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  #       run: |
+  #         MESSAGE="🔒 **Security Alert**: A new vulnerability has been detected in ${{ env.PROJECT_NAME }}. Please review the Security tab for details."
+  #
+  #         # Discord
+  #         if [ -n "$DISCORD_WEBHOOK" ]; then
+  #           curl -H "Content-Type: application/json" \
+  #             -d '{
+  #               "embeds": [{
+  #                 "title": "🔒 Security Vulnerability Detected",
+  #                 "description": "A new vulnerability has been detected in **${{ env.PROJECT_NAME }}**.\n\nPlease review the Security tab immediately.",
+  #                 "color": 15158332,
+  #                 "url": "${{ github.server_url }}/${{ github.repository }}/security",
+  #                 "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+  #               }]
+  #             }' \
+  #             "$DISCORD_WEBHOOK" || echo "Discord notification failed"
+  #         fi
+  #
+  #         # Slack
+  #         if [ -n "$SLACK_WEBHOOK" ]; then
+  #           curl -X POST \
+  #             -H "Content-Type: application/json" \
+  #             -d '{
+  #               "attachments": [{
+  #                 "color": "danger",
+  #                 "title": "🔒 Security Vulnerability Detected",
+  #                 "title_link": "${{ github.server_url }}/${{ github.repository }}/security",
+  #                 "text": "A new vulnerability has been detected. Please review immediately.",
+  #                 "footer": "${{ env.PROJECT_NAME }}",
+  #                 "ts": '$(date +%s)'
+  #               }]
+  #             }' \
+  #             "$SLACK_WEBHOOK" || echo "Slack notification failed"
+  #         fi
+
+  # ===========================================================================
+  # Test Notifications
+  # ===========================================================================
+  test-notifications:
+    name: Test Notifications
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.test_discord == 'true' || github.event.inputs.test_slack == 'true')
+    timeout-minutes: 5
+
+    steps:
+      - name: Send test Discord notification
+        if: github.event.inputs.test_discord == 'true'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "Error: DISCORD_WEBHOOK secret not configured"
+            echo "Please add the webhook URL to repository secrets"
+            exit 1
+          fi
+
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🧪 Test Notification",
+                "description": "${{ github.event.inputs.message }}",
+                "color": 3447003,
+                "fields": [
+                  {
+                    "name": "Repository",
+                    "value": "${{ github.repository }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Triggered by",
+                    "value": "${{ github.actor }}",
+                    "inline": true
+                  }
+                ],
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }' \
+            "$DISCORD_WEBHOOK"
+
+          echo "Discord test notification sent successfully!"
+
+      - name: Send test Slack notification
+        if: github.event.inputs.test_slack == 'true'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK" ]; then
+            echo "Error: SLACK_WEBHOOK secret not configured"
+            echo "Please add the webhook URL to repository secrets"
+            exit 1
+          fi
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "attachments": [{
+                "color": "#439FE0",
+                "title": "🧪 Test Notification",
+                "text": "${{ github.event.inputs.message }}",
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Triggered by",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  }
+                ],
+                "ts": '$(date +%s)'
+              }]
+            }' \
+            "$SLACK_WEBHOOK"
+
+          echo "Slack test notification sent successfully!"
+
+# ==============================================================================
+# Summary
+# ==============================================================================
+# This notification workflow provides multi-channel alerts:
+#
+# Supported Channels:
+# - Discord (via webhook)
+# - Slack (via webhook)
+#
+# Notification Types:
+# 1. Build Status (success/failure/cancelled)
+# 2. Release Published
+# 3. Security Vulnerability Alerts
+#
+# Setup Instructions:
+#
+# 1. Discord:
+#    - Create a webhook in your Discord server (Server Settings > Integrations)
+#    - Add the webhook URL as a repository secret named DISCORD_WEBHOOK
+#
+# 2. Slack:
+#    - Create an incoming webhook in your Slack workspace
+#    - Add the webhook URL as a repository secret named SLACK_WEBHOOK
+#
+# Testing:
+#   gh workflow run notifications.yml -f test_discord=true -f message="Hello!"
+#
+# Note: Notifications are silently skipped if webhooks aren't configured.
+# ==============================================================================

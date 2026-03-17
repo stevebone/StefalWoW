@@ -25,6 +25,7 @@
 #include "Containers.h"
 #include "ObjectMgr.h"
 #include "Random.h"
+#include <limits>
 #include <sstream>
 
 AuctionBotSeller::AuctionBotSeller()
@@ -93,11 +94,12 @@ bool AuctionBotSeller::Initialize()
         {
             Field* fields = result->Fetch();
 
-            uint32 entry = fields[0].GetUInt32();
-            if (!entry)
+            // Use GetUInt64 to handle databases with BIGINT item columns
+            uint64 rawEntry = fields[0].GetUInt64();
+            if (!rawEntry || rawEntry > std::numeric_limits<uint32>::max())
                 continue;
 
-            lootItems.insert(entry);
+            lootItems.insert(static_cast<uint32>(rawEntry));
         } while (result->NextRow());
     }
 

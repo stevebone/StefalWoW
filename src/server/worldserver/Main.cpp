@@ -28,6 +28,7 @@
 #include "DatabaseLoader.h"
 #include "DeadlineTimer.h"
 #include "GitRevision.h"
+#include "Modules/ModuleManager.h"
 #include "InstanceLockMgr.h"
 #include "IoContext.h"
 #include "IpNetwork.h"
@@ -51,6 +52,9 @@
 #include "World.h"
 #include "WorldSocketMgr.h"
 #include "Util.h"
+#ifdef BUILD_PLAYERBOT
+#include "modules/Playerbot/PlayerbotModule.h"
+#endif
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <boost/asio/signal_set.hpp>
@@ -354,6 +358,15 @@ int main(int argc, char** argv)
     if (!sWorld->SetInitialWorldSettings())
         return 1;
 
+#ifdef BUILD_PLAYERBOT
+    // Initialize Playerbot Module after world is set up
+    if (!PlayerbotModule::Initialize())
+    {
+        TC_LOG_ERROR("server.worldserver", "Failed to initialize Playerbot Module");
+        // Continue startup even if playerbot fails to initialize
+    }
+#endif
+
     auto instanceLockMgrHandle = Trinity::make_unique_ptr_with_deleter<&InstanceLockMgr::Unload>(&sInstanceLockMgr);
 
     auto terrainMgrHandle = Trinity::make_unique_ptr_with_deleter<&TerrainMgr::UnloadAll>(&sTerrainMgr);
@@ -426,6 +439,9 @@ int main(int argc, char** argv)
 
     sScriptMgr->OnStartup();
 
+    // Initialize registered modules
+    ModuleManager::CallOnStartup();
+
     TC_LOG_INFO("server.worldserver", "{} (worldserver-daemon) ready...", GitRevision::GetFullVersion());
 
     // Launch CliRunnable thread
@@ -448,6 +464,11 @@ int main(int argc, char** argv)
     sLog->SetSynchronous();
 
     sScriptMgr->OnShutdown();
+
+#ifdef BUILD_PLAYERBOT
+    // Shutdown Playerbot Module
+    PlayerbotModule::Shutdown();
+#endif
 
     // set server offline
     LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = flag | {} WHERE id = '{}'", Trinity::Legacy::REALM_FLAG_OFFLINE, realmId);

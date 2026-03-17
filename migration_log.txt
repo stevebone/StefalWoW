@@ -1,0 +1,102 @@
+Starting lock-free migration...
+Base path: c:\TrinityBots\TrinityCore
+AI path: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI
+
+Found 79 C++ files to process
+
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\ClassAI.cpp:424: target = ObjectAccessor::GetUnit(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\ClassAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\ClassAI_Refactored.cpp:179: target = ObjectAccessor::GetUnit(*GetBot(), targetGuid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\ClassAI_Refactored.cpp:232: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\ClassAI_Refactored.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\CombatSpecializationBase.cpp:450: entity = ObjectAccessor::GetCreature(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\CombatSpecializationBase.cpp:500: entity = ObjectAccessor::GetCreature(*_bot, guid);
+  Replacing Cell::Visit in GetNearbyEnemies at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\CombatSpecializationBase.cpp
+  Replacing Cell::Visit in GetNearbyAllies at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\CombatSpecializationBase.cpp
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\CombatSpecializationBase.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp:273: Unit* target = ObjectAccessor::GetUnit(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp:399: Unit* target = ObjectAccessor::GetUnit(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp:453: Unit* target = ObjectAccessor::GetUnit(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp:544: Unit* target = ObjectAccessor::GetUnit(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp:569: Unit* target = ObjectAccessor::GetUnit(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp:825: Unit* target = ObjectAccessor::GetUnit(*_bot, guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\BotThreatManager.cpp
+[ERROR] Error processing c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Combat\InterruptAwareness.cpp: list index out of range
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\AoEDecisionManager.cpp:559: Unit* unit = ObjectAccessor::GetUnit(*_bot, guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\AoEDecisionManager.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\DefensiveBehaviorManager.cpp:632: target = ObjectAccessor::GetUnit(*_bot, targetGuid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\DefensiveBehaviorManager.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\DispelCoordinator.cpp:772: target = ObjectAccessor::GetUnit(*m_bot, m_currentAssignment.target);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\DispelCoordinator.cpp:856: enemy = ObjectAccessor::GetUnit(*m_bot, bestTarget.enemyGuid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\DispelCoordinator.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\InterruptRotationManager.cpp:360: caster = ObjectAccessor::GetUnit(*_bot, cast.casterGuid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\InterruptRotationManager.cpp:875: Unit* botUnit = ObjectAccessor::GetUnit(*_bot, bot.botGuid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\CombatBehaviors\InterruptRotationManager.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\LootStrategy.cpp:357: creature = ObjectAccessor::GetCreature(*bot, corpseGuid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\LootStrategy.cpp:457: object = ObjectAccessor::GetGameObject(*bot, objectGuid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\LootStrategy.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\QuestStrategy.cpp:949: targetObject = ObjectAccessor::GetGameObject(*bot, targetGuid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\QuestStrategy.cpp:1437: target = ObjectAccessor::GetUnit(*bot, targetGuid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\QuestStrategy.cpp:1541: gameObject = ObjectAccessor::GetGameObject(*bot, objectGuid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\Strategy\QuestStrategy.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\DeathKnights\DeathKnightAI.cpp:1588: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\DeathKnights\DeathKnightAI.cpp:1594: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\DeathKnights\DeathKnightAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\DemonHunters\DemonHunterAI.cpp:1110: entity = ObjectAccessor::GetCreature(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\DemonHunters\DemonHunterAI.cpp:1163: entity = ObjectAccessor::GetCreature(*_bot, guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\DemonHunters\DemonHunterAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Evokers\EvokerAI.cpp:975: entity = ObjectAccessor::GetCreature(*_bot, guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Evokers\EvokerAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Hunters\HunterAI.cpp:1168: entity = ObjectAccessor::GetCreature(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Hunters\HunterAI.cpp:1391: entity = ObjectAccessor::GetCreature(*_bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Hunters\HunterAI.cpp:1449: entity = ObjectAccessor::GetCreature(*_bot, guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Hunters\HunterAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp:985: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp:991: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp:1052: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp:1058: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp:1115: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp:1121: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Monks\MonkAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Paladins\PaladinAI.cpp:943: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Paladins\PaladinAI.cpp:949: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Paladins\PaladinAI.cpp:1002: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Paladins\PaladinAI.cpp:1008: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Paladins\PaladinAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Rogues\RogueAI.cpp:727: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Rogues\RogueAI.cpp:733: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Rogues\RogueAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:781: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:787: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1114: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1147: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1346: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1352: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1469: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1620: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1811: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1849: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1855: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1876: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1978: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:1984: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:2001: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:2078: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:2084: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp:2673: target = ObjectAccessor::GetUnit(*GetBot(), _currentTarget);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Shamans\ShamanAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Warlocks\WarlockAI.cpp:982: entity = ObjectAccessor::GetCreature(*bot, guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Warlocks\WarlockAI.cpp:1045: entity = ObjectAccessor::GetCreature(*bot, guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Warlocks\WarlockAI.cpp
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Warriors\WarriorAI.cpp:608: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+  Removing fallback at c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Warriors\WarriorAI.cpp:614: entity = ObjectAccessor::GetCreature(*GetBot(), guid);
+[OK] Migrated: c:\TrinityBots\TrinityCore\src\modules\Playerbot\AI\ClassAI\Warriors\WarriorAI.cpp
+
+============================================================
+Migration Complete!
+============================================================
+Files processed: 20
+Fallbacks removed: 64
+Lines changed: 212
+============================================================
+

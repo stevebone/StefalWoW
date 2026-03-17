@@ -41,6 +41,7 @@
 #include "Util.h"
 #include "Vehicle.h"
 #include "World.h"
+#include "../../../modules/Playerbot/Core/PlayerBotHooks.h"
 #include <sstream>
 
 class ChargeDropEvent : public BasicEvent
@@ -604,6 +605,10 @@ void Aura::_ApplyForTarget(Unit* target, Unit* caster, AuraApplication* auraApp)
             caster->GetSpellHistory()->StartCooldown(m_spellInfo, castItem ? castItem->GetEntry() : 0, nullptr, true);
         }
     }
+
+    // PLAYERBOT HOOK: Notify bots of aura application
+    if (Playerbot::PlayerBotHooks::OnAuraApplied)
+        Playerbot::PlayerBotHooks::OnAuraApplied(target, this, caster);
 }
 
 void Aura::_UnapplyForTarget(Unit* target, Unit* caster, AuraApplication* auraApp)
@@ -632,6 +637,10 @@ void Aura::_UnapplyForTarget(Unit* target, Unit* caster, AuraApplication* auraAp
     if (caster && GetSpellInfo()->IsCooldownStartedOnEvent())
         // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existed cases)
         caster->GetSpellHistory()->SendCooldownEvent(GetSpellInfo());
+
+    // PLAYERBOT HOOK: Notify bots of aura removal
+    if (Playerbot::PlayerBotHooks::OnAuraRemoved)
+        Playerbot::PlayerBotHooks::OnAuraRemoved(target, this);
 }
 
 // removes aura from all targets

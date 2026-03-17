@@ -21,6 +21,7 @@
 #include "Object.h"
 #include "CombatManager.h"
 #include "FlatSet.h"
+#include "IteratorPair.h"
 #include "SpellAuraDefines.h"
 #include "ThreatManager.h"
 #include "Timer.h"

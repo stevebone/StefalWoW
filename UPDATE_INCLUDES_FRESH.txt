@@ -1,0 +1,58 @@
+# PLAYERBOT - #include STATEMENT UPDATES - FRESH AUDIT 2025-10-17
+# ============================================================================
+# After running DELETE_DEAD_CODE_FRESH.bat and RENAME_FIXED_VERSIONS_FRESH.bat,
+# you MUST update all #include statements to reference the renamed files.
+#
+# Use Visual Studio "Replace in Files" (Ctrl+Shift+H) or equivalent tool.
+# ============================================================================
+
+## REPLACEMENT 1: InterruptCoordinatorFixed → InterruptCoordinator
+# ----------------------------------------------------------------------------
+# Find what:    #include "InterruptCoordinatorFixed.h"
+# Replace with: #include "InterruptCoordinator.h"
+# Look in:      src/modules/Playerbot (entire folder)
+# Match case:   YES
+# ----------------------------------------------------------------------------
+
+## REPLACEMENT 2: BaselineRotationManagerFixed → BaselineRotationManager
+# ----------------------------------------------------------------------------
+# Find what:    #include "BaselineRotationManagerFixed.cpp"
+# Replace with: #include "BaselineRotationManager.cpp"
+# Look in:      src/modules/Playerbot (entire folder)
+# Match case:   YES
+# ----------------------------------------------------------------------------
+
+## VERIFICATION STEPS
+# ============================================================================
+# After replacements:
+#
+# 1. Search for "Fixed" in all Playerbot files:
+#    - Find what: Fixed
+#    - Look in:   src/modules/Playerbot/**/*.cpp, *.h
+#    - Expected:  0 results (except comments/strings)
+#
+# 2. Rebuild project:
+#    > configure_release.bat
+#    > build_playerbot_and_worldserver_release.bat
+#
+# 3. Look for compilation errors related to missing includes
+#
+# 4. If errors occur, manually check the affected files
+# ============================================================================
+
+## ESTIMATED IMPACT
+# ============================================================================
+# Files likely affected: ~30-50 files
+# Build time: ~5-10 minutes (full rebuild)
+# Risk level: LOW (simple rename, no logic changes)
+# ============================================================================
+
+## ROLLBACK PROCEDURE (if needed)
+# ============================================================================
+# If compilation fails after updates:
+#
+# 1. Revert git changes:
+#    > git checkout src/modules/Playerbot
+#
+# 2. Start over with fresh audit approach
+# ============================================================================

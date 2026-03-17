@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Visual Studio Native Debugger Visualization (.natvis)
+
+    Provides beautiful, human-readable visualization of ThreadPool diagnostic structures
+    in the Visual Studio debugger.
+
+    Features:
+    - WorkerState enum displayed as readable text
+    - ThreadPool shows worker count, active threads, queued tasks
+    - WorkerDiagnostics shows current state, task count, performance metrics
+    - WaitLocation shows function name, line number, wait type
+    - LatencyHistogram shows p50/p95/p99 values
+    - StateTransition shows from->to state with timestamp
+
+    Installation:
+    1. Copy this file to: %USERPROFILE%\Documents\Visual Studio 2022\Visualizers\
+    2. Or place in project directory and it will be auto-detected
+    3. Restart Visual Studio if already running
+
+    Usage:
+    - Set breakpoint in ThreadPool code
+    - Hover over variables or add to Watch window
+    - Debugger will automatically use these visualizations
+-->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- WorkerState Enum Visualization -->
+  <Type Name="Playerbot::Performance::WorkerState">
+    <DisplayString Condition="(int)*this == 0">UNINITIALIZED</DisplayString>
+    <DisplayString Condition="(int)*this == 1">INITIALIZING</DisplayString>
+    <DisplayString Condition="(int)*this == 2">IDLE_SLEEPING</DisplayString>
+    <DisplayString Condition="(int)*this == 3">IDLE_SPINNING</DisplayString>
+    <DisplayString Condition="(int)*this == 4">STEALING</DisplayString>
+    <DisplayString Condition="(int)*this == 5">EXECUTING</DisplayString>
+    <DisplayString Condition="(int)*this == 6">WAITING_CONDITION</DisplayString>
+    <DisplayString Condition="(int)*this == 7">WAITING_MUTEX</DisplayString>
+    <DisplayString Condition="(int)*this == 8">WAITING_ATOMIC</DisplayString>
+    <DisplayString Condition="(int)*this == 9">SHUTTING_DOWN</DisplayString>
+    <DisplayString Condition="(int)*this == 10">TERMINATED</DisplayString>
+    <DisplayString>WorkerState({(int)*this})</DisplayString>
+  </Type>
+
+  <!-- TaskPriority Enum Visualization -->
+  <Type Name="Playerbot::Performance::TaskPriority">
+    <DisplayString Condition="(int)*this == 0">CRITICAL</DisplayString>
+    <DisplayString Condition="(int)*this == 1">HIGH</DisplayString>
+    <DisplayString Condition="(int)*this == 2">NORMAL</DisplayString>
+    <DisplayString Condition="(int)*this == 3">LOW</DisplayString>
+    <DisplayString>TaskPriority({(int)*this})</DisplayString>
+  </Type>
+
+  <!-- WaitType Enum Visualization -->
+  <Type Name="Playerbot::Performance::WaitType">
+    <DisplayString Condition="(int)*this == 0">NONE</DisplayString>
+    <DisplayString Condition="(int)*this == 1">CONDITION_VARIABLE</DisplayString>
+    <DisplayString Condition="(int)*this == 2">MUTEX</DisplayString>
+    <DisplayString Condition="(int)*this == 3">ATOMIC_WAIT</DisplayString>
+    <DisplayString Condition="(int)*this == 4">SLEEP</DisplayString>
+    <DisplayString Condition="(int)*this == 5">YIELD</DisplayString>
+    <DisplayString>WaitType({(int)*this})</DisplayString>
+  </Type>
+
+  <!-- ThreadPool Visualization -->
+  <Type Name="Playerbot::Performance::ThreadPool">
+    <DisplayString>ThreadPool [{_workers._Mypair._Myval2._Mylast - _workers._Mypair._Myval2._Myfirst} workers, {_activeThreads._Storage._Value} active, {GetQueuedTasks()} queued]</DisplayString>
+    <Expand>
+      <Item Name="[Worker Count]">_workers._Mypair._Myval2._Mylast - _workers._Mypair._Myval2._Myfirst</Item>
+      <Item Name="[Active Threads]">_activeThreads._Storage._Value</Item>
+      <Item Name="[Queued Tasks]">GetQueuedTasks()</Item>
+      <Item Name="[Shutdown]">_shutdown._Storage._Value</Item>
+      <Item Name="[Diagnostics Enabled]">_diagnosticsEnabled._Storage._Value</Item>
+      <ArrayItems>
+        <Size>_workers._Mypair._Myval2._Mylast - _workers._Mypair._Myval2._Myfirst</Size>
+        <ValuePointer>_workers._Mypair._Myval2._Myfirst</ValuePointer>
+      </ArrayItems>
+      <Item Name="[Configuration]">_config</Item>
+    </Expand>
+  </Type>
+
+  <!-- ThreadPoolConfig Visualization -->
+  <Type Name="Playerbot::Performance::ThreadPoolConfig">
+    <DisplayString>{numThreads} threads, queue={maxQueueSize}, steal={enableWorkStealing}, affinity={enableCpuAffinity}</DisplayString>
+    <Expand>
+      <Item Name="[Threads]">numThreads</Item>
+      <Item Name="[Max Queue Size]">maxQueueSize</Item>
+      <Item Name="[Work Stealing]">enableWorkStealing</Item>
+      <Item Name="[CPU Affinity]">enableCpuAffinity</Item>
+      <Item Name="[Max Steal Attempts]">maxStealAttempts</Item>
+      <Item Name="[Worker Sleep Time (ms)]">workerSleepTime.rep</Item>
+    </Expand>
+  </Type>
+
+  <!-- WorkerDiagnostics Visualization -->
+  <Type Name="Playerbot::Performance::WorkerDiagnostics">
+    <DisplayString>Worker [State={(Playerbot::Performance::WorkerState)currentState._Storage._Value}, Tasks={tasksExecuted._Storage._Value}, Steals={successfulSteals._Storage._Value}/{stealAttempts._Storage._Value}]</DisplayString>
+    <Expand>
+      <Item Name="[Current State]">(Playerbot::Performance::WorkerState)currentState._Storage._Value</Item>
+      <Item Name="[Tasks Executed]">tasksExecuted._Storage._Value</Item>
+      <Item Name="[Tasks Stolen]">tasksStolen._Storage._Value</Item>
+      <Item Name="[Steal Attempts]">stealAttempts._Storage._Value</Item>
+      <Item Name="[Successful Steals]">successfulSteals._Storage._Value</Item>
+      <Item Name="[Idle Time (μs)]">totalIdleTimeMicros._Storage._Value</Item>
+      <Item Name="[Execution Time (μs)]">totalExecutionTimeMicros._Storage._Value</Item>
+      <Item Name="[Current Wait]">currentWait</Item>
+      <ExpandedItem>stateTransitions</ExpandedItem>
+      <ExpandedItem>taskLatency</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- WaitLocation Visualization -->
+  <Type Name="Playerbot::Performance::WaitLocation">
+    <DisplayString Condition="function != 0">{function,sb}:{line} ({(Playerbot::Performance::WaitType)type})</DisplayString>
+    <DisplayString Condition="function == 0">No wait location</DisplayString>
+    <Expand>
+      <Item Name="[Function]">function,sb</Item>
+      <Item Name="[Line]">line</Item>
+      <Item Name="[Wait Type]">(Playerbot::Performance::WaitType)type</Item>
+      <Item Name="[Timeout (ms)]" Condition="timeoutMs._Has_value">timeoutMs._Value</Item>
+      <Item Name="[Start Time]">startTime</Item>
+    </Expand>
+  </Type>
+
+  <!-- StateTransition Visualization -->
+  <Type Name="Playerbot::Performance::StateTransition">
+    <DisplayString>{(Playerbot::Performance::WorkerState)fromState} → {(Playerbot::Performance::WorkerState)toState} [{timestamp.dur.rep / 1000000}ms]</DisplayString>
+    <Expand>
+      <Item Name="[From]">(Playerbot::Performance::WorkerState)fromState</Item>
+      <Item Name="[To]">(Playerbot::Performance::WorkerState)toState</Item>
+      <Item Name="[Timestamp]">timestamp</Item>
+      <Item Name="[Location]" Condition="location._Has_value">location._Value</Item>
+    </Expand>
+  </Type>
+
+  <!-- CircularBuffer<StateTransition> Visualization -->
+  <Type Name="Playerbot::Performance::CircularBuffer&lt;Playerbot::Performance::StateTransition,*&gt;">
+    <DisplayString>[{_size._Storage._Value}/{_capacity} transitions]</DisplayString>
+    <Expand>
+      <Item Name="[Size]">_size._Storage._Value</Item>
+      <Item Name="[Capacity]">_capacity</Item>
+      <ArrayItems>
+        <Size>_size._Storage._Value &lt; _capacity ? _size._Storage._Value : _capacity</Size>
+        <ValuePointer>_buffer</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- LatencyHistogram Visualization -->
+  <Type Name="Playerbot::Performance::LatencyHistogram&lt;*&gt;">
+    <DisplayString>Latency [Count={_count._Storage._Value}, Avg={GetStats().avgMicros}μs, p50={GetStats().p50Micros}μs, p95={GetStats().p95Micros}μs, p99={GetStats().p99Micros}μs]</DisplayString>
+    <Expand>
+      <Item Name="[Count]">_count._Storage._Value</Item>
+      <Item Name="[Sum (μs)]">_sum._Storage._Value</Item>
+      <Item Name="[Min (μs)]">_min._Storage._Value</Item>
+      <Item Name="[Max (μs)]">_max._Storage._Value</Item>
+      <ArrayItems Condition="_count._Storage._Value &gt; 0">
+        <Size>BucketCount</Size>
+        <ValuePointer>&amp;_buckets[0]._Storage._Value</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- DeadlockCheckResult Visualization -->
+  <Type Name="Playerbot::Performance::DeadlockCheckResult">
+    <DisplayString Condition="(int)severity == 0">No Issues</DisplayString>
+    <DisplayString Condition="(int)severity == 1">INFO: {description}</DisplayString>
+    <DisplayString Condition="(int)severity == 2">WARNING: {description}</DisplayString>
+    <DisplayString Condition="(int)severity == 3">ERROR: {description}</DisplayString>
+    <DisplayString Condition="(int)severity == 4">CRITICAL: {description}</DisplayString>
+    <DisplayString>Deadlock Check [{description}]</DisplayString>
+    <Expand>
+      <Item Name="[Severity]">(int)severity</Item>
+      <Item Name="[Description]">description</Item>
+      <Item Name="[Requires Dump]">requiresDump</Item>
+      <Item Name="[Requires Recovery]">requiresRecovery</Item>
+      <Item Name="[Total Queued Tasks]">totalQueuedTasks</Item>
+      <Item Name="[Completed Tasks]">completedTasks</Item>
+      <Item Name="[Throughput]">throughput</Item>
+      <ExpandedItem>workerIssues</ExpandedItem>
+      <ExpandedItem>details</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- DeadlockCheckResult::WorkerIssue Visualization -->
+  <Type Name="Playerbot::Performance::DeadlockCheckResult::WorkerIssue">
+    <DisplayString>Worker {workerId}: {(Playerbot::Performance::WorkerState)state} for {timeInState.rep}ms - {issue}</DisplayString>
+    <Expand>
+      <Item Name="[Worker ID]">workerId</Item>
+      <Item Name="[State]">(Playerbot::Performance::WorkerState)state</Item>
+      <Item Name="[Time in State (ms)]">timeInState.rep</Item>
+      <Item Name="[Issue]">issue</Item>
+    </Expand>
+  </Type>
+
+  <!-- MetricsSnapshot Visualization -->
+  <Type Name="Playerbot::Performance::MetricsSnapshot">
+    <DisplayString>Metrics [{totalWorkers} workers, {activeWorkers} active, {totalQueuedTasks} queued, {tasksPerSecond} tasks/s]</DisplayString>
+    <Expand>
+      <Item Name="[Timestamp]">wallTime</Item>
+      <Item Name="[Total Workers]">totalWorkers</Item>
+      <Item Name="[Active Workers]">activeWorkers</Item>
+      <Item Name="[Sleeping Workers]">sleepingWorkers</Item>
+      <Item Name="[Executing Workers]">executingWorkers</Item>
+      <Item Name="[Total Queued]">totalQueuedTasks</Item>
+      <Item Name="[Tasks/Second]">tasksPerSecond</Item>
+      <Item Name="[Avg Latency (μs)]">avgTaskLatencyMicros</Item>
+      <Item Name="[Steal Success Rate %]">stealSuccessRate</Item>
+      <Item Name="[Workers in Wait]">workersInWait</Item>
+    </Expand>
+  </Type>
+
+  <!-- std::optional Visualization for WaitLocation -->
+  <Type Name="std::optional&lt;Playerbot::Performance::WaitLocation&gt;">
+    <DisplayString Condition="_Has_value">Some: {_Value}</DisplayString>
+    <DisplayString Condition="!_Has_value">None</DisplayString>
+    <Expand>
+      <Item Name="[Value]" Condition="_Has_value">_Value</Item>
+    </Expand>
+  </Type>
+
+  <!-- std::atomic Visualization -->
+  <Type Name="std::atomic&lt;Playerbot::Performance::WorkerState&gt;">
+    <DisplayString>{(Playerbot::Performance::WorkerState)_Storage._Value}</DisplayString>
+  </Type>
+
+  <Type Name="std::atomic&lt;unsigned __int64&gt;">
+    <DisplayString>{_Storage._Value}</DisplayString>
+  </Type>
+
+  <Type Name="std::atomic&lt;unsigned int&gt;">
+    <DisplayString>{_Storage._Value}</DisplayString>
+  </Type>
+
+  <Type Name="std::atomic&lt;bool&gt;">
+    <DisplayString Condition="_Storage._Value">true</DisplayString>
+    <DisplayString Condition="!_Storage._Value">false</DisplayString>
+  </Type>
+
+  <!-- std::chrono::duration Visualization -->
+  <Type Name="std::chrono::duration&lt;__int64,std::ratio&lt;1,1000000000&gt; &gt;">
+    <DisplayString>{rep / 1000000}ms</DisplayString>
+  </Type>
+
+  <Type Name="std::chrono::duration&lt;__int64,std::ratio&lt;1,1000&gt; &gt;">
+    <DisplayString>{rep}ms</DisplayString>
+  </Type>
+
+  <Type Name="std::chrono::duration&lt;__int64,std::ratio&lt;1,1000000&gt; &gt;">
+    <DisplayString>{rep}μs</DisplayString>
+  </Type>
+
+  <!-- std::chrono::time_point Visualization -->
+  <Type Name="std::chrono::time_point&lt;*&gt;">
+    <DisplayString>{dur.rep / 1000000}ms since epoch</DisplayString>
+  </Type>
+
+</AutoVisualizer>

@@ -1,0 +1,44 @@
+{
+  "request_id": "459d457f",
+  "timestamp": "2025-10-31T11:05:55.183294",
+  "status": "pending",
+  "crash": {
+    "crash_id": "test_abc123",
+    "timestamp": "2025-10-31T11:05:55.183217",
+    "exception_code": "0xC0000005",
+    "crash_location": "Spell.cpp:603",
+    "crash_function": "Spell::HandleMoveTeleportAck",
+    "error_message": "Access violation reading location 0x00000000",
+    "call_stack": [
+      "Spell::HandleMoveTeleportAck+0x42",
+      "Player::BuildPlayerRepop+0x1A3",
+      "WorldSession::HandleMovementOpcodes+0x89",
+      "WorldSession::Update+0x234"
+    ],
+    "crash_category": "SPELL_TIMING",
+    "severity": "CRITICAL",
+    "is_bot_related": true,
+    "root_cause_hypothesis": "Bot death triggers HandleMoveTeleportAck immediately without delay, causing race condition",
+    "fix_suggestions": [
+      "Defer HandleMoveTeleportAck by 100ms using Player::m_Events",
+      "Validate player state before calling HandleMoveTeleportAck",
+      "Use DeathRecoveryManager to coordinate bot resurrection timing"
+    ]
+  },
+  "context": {
+    "errors_before_crash": [],
+    "warnings_before_crash": [],
+    "server_log_context": [
+      "[2025-10-31 12:30:00] Player 'TestBot' died",
+      "[2025-10-31 12:30:01] Executing BuildPlayerRepop for TestBot",
+      "[2025-10-31 12:30:01] CRASH: Access violation in Spell.cpp:603"
+    ],
+    "playerbot_log_context": [
+      "[Bot:TestBot] Death detected, state: DEAD",
+      "[Bot:TestBot] DeathRecoveryManager: Starting release spirit sequence",
+      "[Bot:TestBot] Attempting graveyard teleport"
+    ]
+  },
+  "request_type": "comprehensive_analysis",
+  "priority": "high"
+}

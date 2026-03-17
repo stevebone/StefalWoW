@@ -1,0 +1,234 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/mcp-config.schema.json",
+  "version": "1.0.0",
+  "description": "MCP Server Configuration for TrinityCore Playerbot Project",
+
+  "mcpServers": {
+    "github": {
+      "description": "GitHub integration for issue/PR management, CI/CD triggers, and repository operations",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "enabled": true,
+      "priority": "critical",
+      "capabilities": [
+        "create_issues",
+        "create_pull_requests",
+        "trigger_workflows",
+        "analyze_commits",
+        "manage_labels",
+        "review_code"
+      ]
+    },
+
+    "sequential-thinking": {
+      "description": "Structured problem-solving for complex architecture decisions and debugging",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "enabled": true,
+      "priority": "high",
+      "capabilities": [
+        "structured_reasoning",
+        "step_by_step_analysis",
+        "reflective_thinking",
+        "problem_decomposition"
+      ]
+    },
+
+    "filesystem": {
+      "description": "Secure file operations with access controls for Playerbot module",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\TrinityBots\\TrinityCore\\src\\modules\\Playerbot"
+      ],
+      "enabled": true,
+      "priority": "high",
+      "config": {
+        "allowed_paths": [
+          "src/modules/Playerbot/**",
+          ".claude/**",
+          "sql/custom/playerbot/**",
+          "docs/playerbot/**"
+        ],
+        "denied_paths": [
+          "src/server/game/Entities/Player/**",
+          "src/server/worldserver/**",
+          "src/common/Cryptography/**",
+          ".git/**"
+        ],
+        "audit_enabled": true,
+        "audit_log": ".claude/logs/filesystem_audit.log"
+      },
+      "capabilities": [
+        "read_files",
+        "write_files",
+        "list_directories",
+        "search_files",
+        "batch_operations"
+      ]
+    },
+
+    "trinity-database": {
+      "description": "MySQL database access for Trinity databases (auth, characters, world)",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/database-server"
+      ],
+      "env": {
+        "DB_TYPE": "mysql",
+        "DB_HOST": "${TRINITY_DB_HOST}",
+        "DB_PORT": "${TRINITY_DB_PORT}",
+        "DB_USER": "${TRINITY_DB_USER}",
+        "DB_PASSWORD": "${TRINITY_DB_PASSWORD}",
+        "DB_DATABASES": "${TRINITY_DB_AUTH},${TRINITY_DB_CHARACTERS},${TRINITY_DB_WORLD}"
+      },
+      "enabled": true,
+      "priority": "critical",
+      "config": {
+        "read_only": false,
+        "max_connections": 5,
+        "query_timeout": 30000,
+        "allowed_operations": [
+          "SELECT",
+          "INSERT",
+          "UPDATE",
+          "EXPLAIN",
+          "DESCRIBE",
+          "SHOW"
+        ],
+        "denied_operations": [
+          "DROP",
+          "TRUNCATE",
+          "DELETE FROM account",
+          "DELETE FROM auth"
+        ]
+      },
+      "capabilities": [
+        "execute_queries",
+        "schema_inspection",
+        "query_optimization",
+        "data_analysis",
+        "integrity_checks"
+      ]
+    },
+
+    "context7": {
+      "description": "Up-to-date library documentation and API references",
+      "command": "context7-mcp",
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      },
+      "enabled": true,
+      "priority": "medium",
+      "capabilities": [
+        "library_documentation",
+        "api_references",
+        "code_examples",
+        "version_tracking"
+      ]
+    },
+
+    "serena": {
+      "description": "Semantic code navigation and intelligent editing",
+      "command": "serena-mcp",
+      "env": {
+        "SERENA_AUTH_TOKEN": "${SERENA_AUTH_TOKEN}"
+      },
+      "enabled": true,
+      "priority": "high",
+      "config": {
+        "cache_ttl": 14400,
+        "enable_memories": true,
+        "memory_path": ".claude/memories"
+      },
+      "capabilities": [
+        "symbol_navigation",
+        "find_references",
+        "smart_editing",
+        "memory_system"
+      ]
+    },
+
+    "trinitycore": {
+      "description": "Custom TrinityCore-specific MCP for game data, DBC/DB2 files, GameTables, and API documentation",
+      "command": "node",
+      "args": [
+        "C:\\TrinityBots\\trinitycore-mcp\\dist\\index.js"
+      ],
+      "env": {
+        "TRINITY_ROOT": "${TRINITY_ROOT}",
+        "TRINITY_DB_HOST": "${TRINITY_DB_HOST}",
+        "TRINITY_DB_USER": "${TRINITY_DB_USER}",
+        "TRINITY_DB_PASSWORD": "${TRINITY_DB_PASSWORD}",
+        "TRINITY_DB_WORLD": "${TRINITY_DB_WORLD}",
+        "TRINITY_DB_AUTH": "${TRINITY_DB_AUTH}",
+        "TRINITY_DB_CHARACTERS": "${TRINITY_DB_CHARACTERS}",
+        "DBC_PATH": "${DBC_PATH}",
+        "DB2_PATH": "${DB2_PATH}",
+        "GT_PATH": "${GT_PATH}",
+        "MCP_PORT": "${TRINITY_MCP_PORT}"
+      },
+      "enabled": true,
+      "priority": "high",
+      "comment": "Now includes GameTable (GT) support for combat ratings, XP, stats calculations",
+      "capabilities": [
+        "dbc_db2_reading",
+        "gametable_queries",
+        "combat_rating_calculations",
+        "character_stat_calculations",
+        "xp_progression_data",
+        "spell_data_queries",
+        "item_data_queries",
+        "quest_data_queries",
+        "trinity_api_docs",
+        "opcode_documentation",
+        "packet_structure_info"
+      ]
+    }
+  },
+
+  "global_config": {
+    "timeout": 30000,
+    "retry_attempts": 3,
+    "retry_delay": 1000,
+    "max_concurrent_servers": 10,
+    "enable_logging": true,
+    "log_level": "info",
+    "log_path": ".claude/logs/mcp_servers.log"
+  },
+
+  "security": {
+    "enable_sandboxing": true,
+    "network_access": {
+      "allowed_domains": [
+        "github.com",
+        "api.github.com",
+        "localhost",
+        "127.0.0.1"
+      ],
+      "denied_domains": []
+    },
+    "file_access": {
+      "audit_all_writes": true,
+      "block_system_paths": true
+    }
+  },
+
+  "monitoring": {
+    "enabled": true,
+    "metrics_collection": true,
+    "health_check_interval": 60000,
+    "performance_tracking": true
+  }
+}

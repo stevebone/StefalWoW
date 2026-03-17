@@ -416,30 +416,65 @@ void WorldSession::HandleStandStateChangeOpcode(WorldPackets::Misc::StandStateCh
 
 void WorldSession::HandleReclaimCorpse(WorldPackets::Misc::ReclaimCorpse& /*packet*/)
 {
+    TC_LOG_ERROR("playerbot.death", "🔍 RECLAIM_CORPSE: {} - Handler called (IsAlive={}, deathState={})",
+        _player->GetName(), _player->IsAlive(), static_cast<int>(_player->getDeathState()));
+
     if (_player->IsAlive())
+    {
+        TC_LOG_ERROR("playerbot.death", "❌ RECLAIM_CORPSE: {} - FAILED: IsAlive check (player is alive)", _player->GetName());
         return;
+    }
 
     // do not allow corpse reclaim in arena
     if (_player->InArena())
+    {
+        TC_LOG_ERROR("playerbot.death", "❌ RECLAIM_CORPSE: {} - FAILED: InArena check", _player->GetName());
         return;
+    }
 
     // body not released yet
     if (!_player->HasPlayerFlag(PLAYER_FLAGS_GHOST))
+    {
+        TC_LOG_ERROR("playerbot.death", "❌ RECLAIM_CORPSE: {} - FAILED: No PLAYER_FLAGS_GHOST (body not released)", _player->GetName());
         return;
+    }
 
     Corpse* corpse = _player->GetCorpse();
     if (!corpse)
+    {
+        TC_LOG_ERROR("playerbot.death", "❌ RECLAIM_CORPSE: {} - FAILED: No corpse found (GetCorpse() returned nullptr)", _player->GetName());
         return;
+    }
+
+    TC_LOG_ERROR("playerbot.death", "🔍 RECLAIM_CORPSE: {} - Corpse found! GhostTime={}, CurrentTime={}, Delay={}",
+        _player->GetName(), corpse->GetGhostTime(), GameTime::GetGameTime(),
+        _player->GetCorpseReclaimDelay(corpse->GetType() == CORPSE_RESURRECTABLE_PVP));
 
     // prevent resurrect before 30-sec delay after body release not finished
     if (time_t(corpse->GetGhostTime() + _player->GetCorpseReclaimDelay(corpse->GetType() == CORPSE_RESURRECTABLE_PVP)) > time_t(GameTime::GetGameTime()))
+    {
+        TC_LOG_ERROR("playerbot.death", "❌ RECLAIM_CORPSE: {} - FAILED: Ghost time delay not expired (need to wait)", _player->GetName());
         return;
+    }
+
+    float distance = _player->GetDistance2d(corpse);
+    TC_LOG_ERROR("playerbot.death", "🔍 RECLAIM_CORPSE: {} - Distance to corpse: {:.2f}y (max: {}y)",
+        _player->GetName(), distance, CORPSE_RECLAIM_RADIUS);
 
     if (!corpse->IsWithinDistInMap(_player, CORPSE_RECLAIM_RADIUS, true))
+    {
+        TC_LOG_ERROR("playerbot.death", "❌ RECLAIM_CORPSE: {} - FAILED: Corpse too far ({:.2f}y > {}y)",
+            _player->GetName(), distance, CORPSE_RECLAIM_RADIUS);
         return;
+    }
+
+    TC_LOG_ERROR("playerbot.death", "✅ RECLAIM_CORPSE: {} - ALL CHECKS PASSED! Resurrecting...", _player->GetName());
 
     // resurrect
     _player->ResurrectPlayer(_player->InBattleground() ? 1.0f : 0.5f);
+
+    TC_LOG_ERROR("playerbot.death", "✅ RECLAIM_CORPSE: {} - ResurrectPlayer() called! IsAlive={}",
+        _player->GetName(), _player->IsAlive());
 
     // spawn bones
     _player->SpawnCorpseBones();

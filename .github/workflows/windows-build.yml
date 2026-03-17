@@ -1,0 +1,121 @@
+name: Windows x64
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build (MSVC 2022)
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    env:
+      CMAKE_BUILD_TYPE: RelWithDebInfo
+      MYSQL_ROOT_DIR: C:/Program Files/MySQL/MySQL Server 8.0
+      OPENSSL_ROOT_DIR: C:/libs/openssl
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+      - name: Get current OpenSSL version
+        id: openssl-info
+        run: |
+          $VersionsUrl = "https://api.github.com/repos/slproweb/opensslhashes/contents/win32_openssl_hashes.json"
+          $Headers = @{
+            Accept="application/vnd.github.raw+json"
+            Authorization="Bearer ${{ secrets.GITHUB_TOKEN }}"
+          }
+          $openSSL = (Invoke-RestMethod $VersionsUrl -Headers $Headers).files.PSObject.Properties |
+            Select-Object -ExpandProperty Value |
+            Where-Object { $_.arch -eq 'INTEL' } |
+            Where-Object { $_.bits -eq '64' } |
+            Where-Object { $_.light -eq $false } |
+            Where-Object { $_.installer  -eq 'exe' } |
+            Sort-Object -Descending @{ Expression = { [version]$_.basever } } |
+            Select-Object -First 1
+          [System.String]::Format("cache-key=openssl-{0}-win-{1}-{2}", $openSSL.basever, $openSSL.arch, $openSSL.bits) >> $env:GITHUB_OUTPUT
+          [System.String]::Format("url={0}", $openSSL.url) >> $env:GITHUB_OUTPUT
+
+      - name: Cache OpenSSL
+        id: cache-openssl
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.OPENSSL_ROOT_DIR }}
+          key: ${{ steps.openssl-info.outputs.cache-key }}
+
+      - name: Download and install OpenSSL 3.x
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
+        run: |
+          (New-Object System.Net.WebClient).DownloadFile("${{ steps.openssl-info.outputs.url }}", "${{ env.TEMP }}\openssl.exe")
+          Start-Process -Wait -FilePath "${{ env.TEMP }}\openssl.exe" "/SILENT","/SP-","/SUPPRESSMSGBOXES",/DIR=${{ env.OPENSSL_ROOT_DIR }}
+          & ${{ env.OPENSSL_ROOT_DIR }}/bin/openssl.exe version
+
+      - name: Download and install Boost
+        uses: MarkusJx/install-boost@v2
+        id: install-boost
+        with:
+          boost_version: 1.89.0
+          link: static
+          platform_version: 2022
+          toolset: msvc
+
+      - name: Initialize Visual Studio Environment
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
+      - name: Configure CMake
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+        run: >
+          cmake -GNinja -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }}
+          -DWITH_WARNINGS_AS_ERRORS=ON
+          -DBUILD_PLAYERBOT=ON
+          -DTOOLS=ON
+          -DBUILD_TESTING=1
+
+      - name: Build
+        run: |
+          $startTime = Get-Date
+          cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ env.CMAKE_BUILD_TYPE }}
+          $endTime = Get-Date
+          $duration = $endTime - $startTime
+          Write-Host "Build completed in $([math]::Round($duration.TotalMinutes, 2)) minutes"
+
+      - name: Run unit tests
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          ctest --output-on-failure --timeout 300
+
+      - name: Copy Dependencies
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}/bin/${{ env.CMAKE_BUILD_TYPE }}
+          copy "${{ env.MYSQL_ROOT_DIR }}/lib/libmysql.dll" libmysql.dll
+          copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libssl-3-x64.dll" libssl-3-x64.dll
+          copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libcrypto-3-x64.dll" libcrypto-3-x64.dll
+          copy "${{ env.OPENSSL_ROOT_DIR }}/bin/legacy.dll" legacy.dll
+
+      - name: Check binaries
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}/bin/${{ env.CMAKE_BUILD_TYPE }}
+          ./bnetserver --version
+          ./worldserver --version
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrinityCore-Windows-x64-${{ github.sha }}
+          path: ${{ steps.strings.outputs.build-output-dir }}/bin/${{ env.CMAKE_BUILD_TYPE }}
+          retention-days: 7

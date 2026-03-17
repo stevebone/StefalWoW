@@ -1,0 +1,8 @@
+MSBuild-Version 17.14.18+a338add32 für .NET Framework
+MSBUILD : error MSB1008: Es darf nur ein Projekt angegeben werden.
+    Vollständige Befehlszeile: „"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\amd64\MSBuild.exe" c:/TrinityBots/TrinityCore/build/src/server/modules/Playerbot/playerbot.vcxproj p:Configuration=RelWithDebInfo p:Platform=x64 m:8 v:minimal“
+  Switches, die von Antwortdateien angefügt werden:
+„“ stammt aus „C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\amd64\MSBuild.rsp“
+Schalter: p:Configuration=RelWithDebInfo
+
+Informationen zur Schaltersyntax erhalten Sie, wenn Sie "MSBuild -help" eingeben.

@@ -68,6 +68,7 @@
 #include "VMapManager.h"
 #include "World.h"
 #include "WorldSession.h"
+#include "../../modules/Playerbot/Core/PlayerBotHooks.h"
 #include <numeric>
 #include <sstream>
 
@@ -3583,6 +3584,13 @@ SpellCastResult Spell::prepare(SpellCastTargets const& targets, AuraEffect const
         if (!(_triggeredCastFlags & TRIGGERED_IGNORE_GCD))
             TriggerGlobalCooldown();
 
+        // PLAYERBOT HOOK: Notify bots of spell cast start (CRITICAL for interrupt coordination)
+        if (Playerbot::PlayerBotHooks::OnSpellCastStart)
+        {
+            Unit* target = m_targets.GetUnitTarget();
+            Playerbot::PlayerBotHooks::OnSpellCastStart(m_caster->ToUnit(), m_spellInfo, target);
+        }
+
         // Call CreatureAI hook OnSpellStart
         if (Creature* caster = m_caster->ToCreature())
             if (caster->IsAIEnabled())
@@ -4418,6 +4426,10 @@ void Spell::finish(SpellCastResult result)
     // Stop Attack for some spells
     if (m_spellInfo->HasAttribute(SPELL_ATTR0_CANCELS_AUTO_ATTACK_COMBAT))
         unitCaster->AttackStop();
+
+    // PLAYERBOT HOOK: Notify bots of successful spell cast completion
+    if (Playerbot::PlayerBotHooks::OnSpellCastSuccess)
+        Playerbot::PlayerBotHooks::OnSpellCastSuccess(unitCaster, m_spellInfo);
 }
 
 template<class T>
@@ -8399,6 +8411,14 @@ SpellEvent::~SpellEvent()
 {
     if (m_Spell->getState() != SPELL_STATE_FINISHED)
         m_Spell->cancel();
+
+
+    // BUGFIX: Clear spell mod taking spell before destruction to prevent assertion failure (Spell.cpp:603)
+    // When KillAllEvents() is called (logout, map change, instance reset), spell events are destroyed
+    // without going through the normal delayed handler that clears m_spellModTakingSpell.
+    // This causes ASSERT(m_caster->ToPlayer()->m_spellModTakingSpell != this) to fail in ~Spell()
+    if (m_Spell->GetCaster() && m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER)
+        m_Spell->GetCaster()->ToPlayer()->SetSpellModTakingSpell(m_Spell.get(), false);
 
     if (!m_Spell->IsDeletable())
     {

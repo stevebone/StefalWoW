@@ -1,0 +1,239 @@
+{
+  "version": "1.0.0",
+  "description": "Git Hooks Configuration for TrinityCore Playerbot Project",
+
+  "pre-commit": {
+    "enabled": true,
+    "description": "Pre-commit hook runs before each commit",
+    "checks": [
+      {
+        "name": "format",
+        "required": false,
+        "command": "echo 'Code format check (placeholder for clang-format)'",
+        "timeout": 60,
+        "description": "Check code formatting"
+      },
+      {
+        "name": "quality",
+        "required": true,
+        "command": "python .claude/scripts/master_review.py --mode quick --changed-only",
+        "timeout": 300,
+        "description": "Quick quality check on changed files"
+      },
+      {
+        "name": "security",
+        "required": false,
+        "command": "python .claude/scripts/dependency_scanner.py --quick",
+        "timeout": 120,
+        "description": "Quick security scan"
+      },
+      {
+        "name": "lint",
+        "required": false,
+        "command": "echo 'Linting check (placeholder for cppcheck)'",
+        "timeout": 90,
+        "description": "Static code analysis"
+      }
+    ],
+    "bypass_keyword": "[SKIP-HOOKS]",
+    "auto_stage_fixes": false,
+    "notes": [
+      "Use [SKIP-HOOKS] in commit message to bypass checks",
+      "Quality check is required and must pass",
+      "Format and security checks are optional"
+    ]
+  },
+
+  "pre-push": {
+    "enabled": true,
+    "description": "Pre-push hook runs before pushing to remote",
+    "checks": [
+      {
+        "name": "build",
+        "required": false,
+        "command": "echo 'Build verification (disabled by default - too slow)'",
+        "timeout": 600,
+        "description": "Verify project builds successfully"
+      },
+      {
+        "name": "tests",
+        "required": false,
+        "command": "echo 'Test execution (placeholder for when tests exist)'",
+        "timeout": 300,
+        "description": "Run test suite"
+      },
+      {
+        "name": "integration-check",
+        "required": false,
+        "command": "python .claude/scripts/master_review.py --agents trinity-integration-tester --quick",
+        "timeout": 180,
+        "description": "Quick TrinityCore integration check"
+      }
+    ],
+    "bypass_keyword": "[SKIP-PUSH-HOOKS]",
+    "notes": [
+      "Use [SKIP-PUSH-HOOKS] in latest commit message to bypass",
+      "Build check disabled by default (enable for critical branches)",
+      "Integration check ensures TrinityCore compatibility"
+    ]
+  },
+
+  "commit-msg": {
+    "enabled": true,
+    "description": "Commit-msg hook validates commit message format",
+    "rules": [
+      {
+        "type": "regex",
+        "pattern": "^(feat|fix|docs|refactor|perf|test|chore|style|build)\\:",
+        "message": "Commit message must follow conventional commits format (feat|fix|docs|refactor|perf|test|chore|style|build): message",
+        "enabled": true
+      },
+      {
+        "type": "regex",
+        "pattern": "^.{10,}",
+        "message": "Commit message must be at least 10 characters",
+        "enabled": true
+      },
+      {
+        "type": "regex",
+        "pattern": "^(?!.*\\bWIP\\b)",
+        "message": "Remove WIP marker before committing",
+        "enabled": false
+      }
+    ],
+    "bypass_keyword": "[SKIP-MSG-CHECK]",
+    "conventional_commits": {
+      "enabled": true,
+      "types": [
+        "feat: A new feature",
+        "fix: A bug fix",
+        "docs: Documentation changes",
+        "refactor: Code refactoring",
+        "perf: Performance improvements",
+        "test: Adding or updating tests",
+        "chore: Maintenance tasks",
+        "style: Code style changes (formatting)",
+        "build: Build system changes"
+      ]
+    },
+    "notes": [
+      "Use [SKIP-MSG-CHECK] in commit message to bypass validation",
+      "Conventional commits format enforced",
+      "Examples:",
+      "  feat: Add new bot spawning system",
+      "  fix: Resolve memory leak in BotAI",
+      "  docs: Update installation guide"
+    ]
+  },
+
+  "post-commit": {
+    "enabled": false,
+    "description": "Post-commit hook runs after successful commit",
+    "actions": [
+      {
+        "name": "notify",
+        "command": "echo 'Commit notification placeholder'",
+        "async": true
+      },
+      {
+        "name": "update-metrics",
+        "command": "echo 'Update commit metrics placeholder'",
+        "async": true
+      }
+    ],
+    "notes": [
+      "Disabled by default",
+      "Can be used for notifications or metrics"
+    ]
+  },
+
+  "pre-rebase": {
+    "enabled": false,
+    "description": "Pre-rebase hook runs before git rebase",
+    "checks": [
+      {
+        "name": "clean-working-directory",
+        "required": true,
+        "command": "git diff-index --quiet HEAD --",
+        "message": "Working directory must be clean before rebase"
+      }
+    ],
+    "notes": [
+      "Disabled by default",
+      "Ensures clean working directory before rebasing"
+    ]
+  },
+
+  "global_settings": {
+    "timeout_default": 300,
+    "retry_on_failure": false,
+    "log_execution": true,
+    "log_path": ".claude/logs/git_hooks.log",
+    "color_output": true,
+    "verbose": false
+  },
+
+  "bypass_instructions": {
+    "description": "How to bypass git hooks when necessary",
+    "methods": [
+      {
+        "method": "Keyword in commit message",
+        "examples": [
+          "git commit -m \"[SKIP-HOOKS] Emergency fix\"",
+          "git commit -m \"fix: urgent patch [SKIP-HOOKS]\"",
+          "git push  # Use [SKIP-PUSH-HOOKS] in last commit"
+        ]
+      },
+      {
+        "method": "Git command flag",
+        "examples": [
+          "git commit --no-verify -m \"message\"",
+          "git push --no-verify"
+        ]
+      },
+      {
+        "method": "Temporarily disable hooks",
+        "examples": [
+          "python .claude/scripts/git_hooks_manager.py uninstall",
+          "# Make your commits",
+          "python .claude/scripts/git_hooks_manager.py install"
+        ]
+      }
+    ],
+    "when_to_bypass": [
+      "Emergency hotfixes (use [SKIP-HOOKS])",
+      "Automated CI commits",
+      "Merge commits from trusted sources",
+      "Documentation-only changes (use chore: or docs:)"
+    ],
+    "when_not_to_bypass": [
+      "Regular feature development",
+      "Bug fixes",
+      "Code refactoring",
+      "Any code affecting bot behavior"
+    ]
+  },
+
+  "recommended_workflows": {
+    "feature_development": {
+      "description": "Normal feature development workflow",
+      "hooks_enabled": ["pre-commit", "commit-msg"],
+      "checks_enabled": ["quality", "security"],
+      "bypass_allowed": false
+    },
+    "hotfix": {
+      "description": "Emergency hotfix workflow",
+      "hooks_enabled": ["commit-msg"],
+      "checks_enabled": [],
+      "bypass_allowed": true,
+      "bypass_keyword": "[HOTFIX]"
+    },
+    "documentation": {
+      "description": "Documentation-only changes",
+      "hooks_enabled": ["commit-msg"],
+      "checks_enabled": [],
+      "bypass_allowed": true,
+      "note": "Use docs: prefix to skip code checks automatically"
+    }
+  }
+}

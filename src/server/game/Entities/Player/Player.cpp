@@ -143,6 +143,7 @@
 #include "WorldSession.h"
 #include "WorldStateMgr.h"
 #include "WorldStatePackets.h"
+#include "../../modules/Playerbot/Core/PlayerBotHooks.h"
 #include <boost/dynamic_bitset.hpp>
 #include <G3D/g3dmath.h>
 #include <sstream>
@@ -1172,6 +1173,10 @@ void Player::setDeathState(DeathState s)
 
         // reset all death criterias
         FailCriteria(CriteriaFailEvent::Death, 0);
+
+        // PLAYERBOT HOOK: Notify bots of death
+        if (Playerbot::PlayerBotHooks::OnPlayerDeath)
+            Playerbot::PlayerBotHooks::OnPlayerDeath(this);
     }
 
     Unit::setDeathState(s);
@@ -4443,6 +4448,10 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
             }
         }
     }
+
+    // PLAYERBOT HOOK: Notify bots of resurrection
+    if (Playerbot::PlayerBotHooks::OnPlayerResurrected)
+        Playerbot::PlayerBotHooks::OnPlayerResurrected(this);
 }
 
 void Player::KillPlayer()
@@ -13165,6 +13174,17 @@ void Player::TradeCancel(bool sendback)
     }
 }
 
+void Player::InitiateTrade(Player* trader)
+{
+    // PlayerBot integration: minimal core hook for trade initiation
+    // Pattern from TradeHandler.cpp:714-715
+    if (!trader || m_trade || trader->m_trade)
+        return;
+
+    m_trade = new TradeData(this, trader);
+    trader->m_trade = new TradeData(trader, this);
+}
+
 void Player::UpdateSoulboundTradeItems()
 {
     // also checks for garbage data
@@ -13994,7 +14014,20 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
         case GossipOptionNpc::None:
             break;
         case GossipOptionNpc::Vendor:
-            GetSession()->SendListInventory(guid);
+            PlayerTalkClass->SendCloseGossip();
+            // Send NIOR only; don't send VendorInventory in the same flush.
+            // The client's NIOR case 5 handler queues a UI event that sets
+            // PIM+48 = Merchant(5) and opens MerchantFrame. The frame then
+            // requests vendor data via CMSG_LIST_INVENTORY in a second round-trip,
+            // by which time PIM+48 is set and IsSellAllJunkEnabled works.
+            PlayerTalkClass->GetInteractionData().StartInteraction(guid, PlayerInteractionType::Vendor);
+            {
+                WorldPackets::NPC::NPCInteractionOpenResult npcInteraction;
+                npcInteraction.Npc = guid;
+                npcInteraction.InteractionType = PlayerInteractionType::Merchant;
+                npcInteraction.Success = true;
+                SendDirectMessage(npcInteraction.Write());
+            }
             break;
         case GossipOptionNpc::Taxinode:
             GetSession()->SendTaxiMenu(source->ToCreature());
@@ -24841,7 +24874,12 @@ void Player::SendInitialPacketsAfterAddToMap()
 
     GetSession()->SendLoadCUFProfiles();
 
-    CastSpell(this, 836, true);                             // LOGINEFFECT
+    // Skip LOGINEFFECT for bots - visual effect requires client rendering
+    // Bots don't send CMSG_CAST_SPELL ACKs, causing m_spellModTakingSpell assertion failures (Spell.cpp:603)
+#ifdef BUILD_PLAYERBOT
+    if (!GetSession()->IsBot())
+#endif
+        CastSpell(this, 836, true);                         // LOGINEFFECT
 
     // set some aura effects that send packet to player client after add player to map
     // SendMessageToSet not send it to player not it map, only for aura that not changed anything at re-apply

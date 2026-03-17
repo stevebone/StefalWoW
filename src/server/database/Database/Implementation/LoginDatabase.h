@@ -188,6 +188,10 @@ enum LoginDatabaseStatements : uint32
     LOGIN_DEL_BNET_PLAYER_DATA_FLAGS_ACCOUNT,
     LOGIN_INS_BNET_PLAYER_DATA_FLAGS_ACCOUNT,
 
+    // Playerbot module statements
+    LOGIN_SEL_BNET_ACCOUNT_EXISTS,              // SELECT ba.id FROM battlenet_accounts ba LEFT JOIN account a ON a.battlenet_account = ba.id WHERE ba.id = ? LIMIT 1
+    LOGIN_SEL_BOT_ACCOUNTS_ALL,                 // SELECT ba.id, ba.email, a.id as legacy_account_id FROM battlenet_accounts ba LEFT JOIN account a ON a.battlenet_account = ba.id WHERE ba.email LIKE '%#%' OR ba.email LIKE '%@playerbot.local' ORDER BY ba.email
+
     MAX_LOGINDATABASE_STATEMENTS
 };
 

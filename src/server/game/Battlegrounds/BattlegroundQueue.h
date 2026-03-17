@@ -121,6 +121,9 @@ class TC_GAME_API BattlegroundQueue
         SelectionPool m_SelectionPools[PVP_TEAMS_COUNT];
         uint32 GetPlayersInQueue(TeamId id);
 
+        // Count all queued players for a specific team and bracket (not just selection pool)
+        uint32 GetQueuedPlayersCount(TeamId teamId, BattlegroundBracketId bracketId) const;
+
         BattlegroundQueueTypeId GetQueueId() const { return m_queueId; }
     private:
 

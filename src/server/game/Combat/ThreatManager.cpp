@@ -27,6 +27,7 @@
 #include "SpellAuraEffects.h"
 #include "SpellMgr.h"
 #include "TemporarySummon.h"
+#include "../../modules/Playerbot/Core/PlayerBotHooks.h"
 #include <boost/heap/fibonacci_heap.hpp>
 
 const CompareThreatLessThan ThreatManager::CompareThreat;
@@ -39,12 +40,17 @@ void ThreatReference::AddThreat(float amount)
 {
     if (amount == 0.0f)
         return;
+    float oldThreat = _baseAmount;
     _baseAmount = std::max<float>(_baseAmount + amount, 0.0f);
     if (amount > 0.0f)
         HeapNotifyIncreased();
     else
         HeapNotifyDecreased();
     _mgr._needClientUpdate = true;
+
+    // PLAYERBOT HOOK: Notify bots of threat change
+    if (Playerbot::PlayerBotHooks::OnThreatChanged)
+        Playerbot::PlayerBotHooks::OnThreatChanged(_mgr.GetOwner(), _victim, oldThreat, _baseAmount);
 }
 
 void ThreatReference::ScaleThreat(float factor)
