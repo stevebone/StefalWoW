@@ -25,6 +25,7 @@
 #include "SpellScript.h"
 #include "Spell.h"
 #include "SpellInfo.h"
+#include "Unit.h"
 
 #include "Custom_Warlock_Defines.h"
 
