@@ -17,6 +17,8 @@
 
 // This is where scripts' loading functions should be declared:
 void AddSC_custom_shaman_totem_npcs();
+void AddSC_custom_warlock_spell_fixes();
+void AddSC_custom_warlock_demon_npcs();
 
 void AddSC_followship_bots();                // FSB main Script
 
@@ -29,6 +31,8 @@ void AddSC_followship_bots_commandscript();
 void AddCustomScripts()
 {
     AddSC_custom_shaman_totem_npcs();
+    AddSC_custom_warlock_spell_fixes();
+    AddSC_custom_warlock_demon_npcs();
 
     AddSC_followship_bots();
 

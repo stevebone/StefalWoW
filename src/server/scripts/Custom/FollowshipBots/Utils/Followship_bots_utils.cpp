@@ -1,3 +1,25 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <algorithm>
 #include <vector>
 
@@ -65,6 +87,43 @@ namespace FSBUtils
         default:
             TC_LOG_WARN("scripts.ai.fsb", "FSB Utils BotRaceToTC has no mapping for race {}", race);
             return RACE_NONE;
+        }
+    }
+
+    Team GetTeamFromFSBRace(Creature* bot)
+    {
+        if (!bot)
+        {
+            TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: bot pointer was null!");
+            return Team::PANDARIA_NEUTRAL;
+        }
+
+        FSB_Race race = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+
+        switch (race)
+        {
+            // Alliance races
+        case FSB_Race::Human:
+        case FSB_Race::Dwarf:
+        case FSB_Race::NightElf:
+        case FSB_Race::Gnome:
+        case FSB_Race::Draenei:
+        case FSB_Race::Worgen:
+        case FSB_Race::VoidElf:
+        case FSB_Race::Pandaren:
+            return Team::ALLIANCE;
+
+            // Pandaren can be neutral or faction-chosen later
+        //case FSB_Race::Pandaren:
+        //    TC_LOG_WARN("server", "GetTeamFromFSBRace: Pandaren bot has no faction assigned, defaulting to NEUTRAL.");
+        //    return Team::PANDARIA_NEUTRAL;
+
+            // No race / unknown
+        case FSB_Race::None:
+        default:
+            TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: Unknown or unsupported FSB race {} for bot {}. Defaulting to NEUTRAL.",
+                uint8(race), bot->GetName());
+            return Team::PANDARIA_NEUTRAL;
         }
     }
 
@@ -197,6 +256,30 @@ namespace FSBUtils
         );
 
         return result;
+    }
+
+    bool IsBotInTradeCity(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        uint32 zoneId = bot->GetZoneId();
+
+        switch (zoneId)
+        {
+        case 1519:  // Stormwind City
+        case 1537:  // Ironforge
+        case 1657:  // Darnassus
+        case 3557:  // The Exodar
+        case 1637:  // Orgrimmar
+        case 1638:  // Thunder Bluff
+        case 1497:  // Undercity
+        case 3487:  // Silvermoon City
+            return true;
+
+        default:
+            return false;
+        }
     }
 }
 

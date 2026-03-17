@@ -132,7 +132,7 @@ namespace WorldPackets
             uint32 Flags = 0;    ///< enum WarbandGroupFlags { Collapsed = 1 }
             int32 ContentSetID = 0;
             std::vector<WarbandGroupMember> Members;
-            std::string_view Name;
+            std::string Name;
         };
 
         class EnumCharactersResult final : public ServerPacket
@@ -417,7 +417,29 @@ namespace WorldPackets
             std::shared_ptr<CharCustomizeInfo> CustomizeInfo;
         };
 
-        /// @todo: CharCustomizeResult
+        class CharCustomizeSuccess final : public ServerPacket
+        {
+        public:
+            explicit CharCustomizeSuccess(CharCustomizeInfo const* customizeInfo);
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid CharGUID;
+            std::string CharName;
+            uint8 SexID = 0;
+            Array<ChrCustomizationChoice, 250> const& Customizations;
+        };
+
+        class CharCustomizeFailure final : public ServerPacket
+        {
+        public:
+            explicit CharCustomizeFailure() : ServerPacket(SMSG_CHAR_CUSTOMIZE_FAILURE, 1 + 16) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            ObjectGuid CharGUID;
+        };
 
         class CharRaceOrFactionChange final : public ClientPacket
         {
@@ -839,30 +861,6 @@ namespace WorldPackets
             uint32 FactionIndex = 0;
         };
 
-        class CharCustomizeSuccess final : public ServerPacket
-        {
-        public:
-            explicit CharCustomizeSuccess(CharCustomizeInfo const* customizeInfo);
-
-            WorldPacket const* Write() override;
-
-            ObjectGuid CharGUID;
-            std::string CharName;
-            uint8 SexID = 0;
-            Array<ChrCustomizationChoice, 250> const& Customizations;
-        };
-
-        class CharCustomizeFailure final : public ServerPacket
-        {
-        public:
-            explicit CharCustomizeFailure() : ServerPacket(SMSG_CHAR_CUSTOMIZE_FAILURE, 1 + 16) { }
-
-            WorldPacket const* Write() override;
-
-            uint32 Result = 0;
-            ObjectGuid CharGUID;
-        };
-
         class SetPlayerDeclinedNames final : public ClientPacket
         {
         public:
@@ -904,6 +902,33 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             int32 Error;
+        };
+
+        class SetupWarbandGroups final : public ClientPacket
+        {
+        public:
+            struct WarbandGroupSetupMember
+            {
+                uint32 WarbandScenePlacementID = 0;
+                int32 Type = 0;
+                int32 ContentSetID = 0;
+                ObjectGuid Guid;
+            };
+
+            struct WarbandGroupSetup
+            {
+                uint32 WarbandSceneID = 0;
+                uint32 Flags = 0;
+                int32 ContentSetID = 0;
+                std::vector<WarbandGroupSetupMember> Members;
+                std::string Name;
+            };
+
+            explicit SetupWarbandGroups(WorldPacket&& packet) : ClientPacket(CMSG_SETUP_WARBAND_GROUPS, std::move(packet)) { }
+
+            void Read() override;
+
+            std::vector<WarbandGroupSetup> Groups;
         };
     }
 }

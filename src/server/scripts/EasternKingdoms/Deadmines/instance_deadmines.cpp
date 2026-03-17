@@ -15,9 +15,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Creature.h"
 #include "ScriptMgr.h"
 #include "deadmines.h"
+#include "GameObject.h"
 #include "InstanceScript.h"
+#include "Map.h"
+#include "MotionMaster.h"
+#include "TemporarySummon.h"
 
 static constexpr ObjectData creatureData[] =
 {

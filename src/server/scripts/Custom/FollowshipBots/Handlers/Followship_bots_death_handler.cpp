@@ -1,5 +1,29 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "Creature.h"
 #include "Log.h"
 #include "Map.h"
+#include "ScriptedCreature.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_config.h"
@@ -63,7 +87,7 @@ namespace FSBDeath
         // handle death with graveyard teleport
         if (!bot->GetMap()->IsDungeon())
         {
-            bot->AI()->DoAction(FSB_ACTION_TELEPORT_GRAVEYARD);
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_GENERIC_TELEPORT_GRAVEYARD, 4s, 6s);
             return;
         }
         else bot->AI()->DoAction(FSB_ACTION_TELEPORT_DUNGEON);
@@ -76,13 +100,13 @@ namespace FSBDeath
             return;
 
         bot->setDeathState(ALIVE);
-        bot->CastSpell(bot, SPELL_SPECIAL_GHOST);
         bot->SetHealth(1);
 
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-            
-        bot->GetMotionMaster()->MovePoint(2, botCorpse, false);
+
+        bot->GetMotionMaster()->Clear();
+        bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_CORPSE, botCorpse, false);
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Started the corpse run from graveyard.", bot->GetName());
 
     }

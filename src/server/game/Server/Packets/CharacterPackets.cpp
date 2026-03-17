@@ -544,6 +544,38 @@ void CharCustomize::Read()
     SortCustomizations(CustomizeInfo->Customizations);
 }
 
+CharCustomizeSuccess::CharCustomizeSuccess(CharCustomizeInfo const* info)
+    : ServerPacket(SMSG_CHAR_CUSTOMIZE_SUCCESS, 16 + 1 + 1 + 1 + 1 + 1 + 1 + 1), Customizations(info->Customizations)
+{
+    CharGUID = info->CharGUID;
+    SexID = info->SexID;
+    CharName = info->CharName;
+}
+
+WorldPacket const* CharCustomizeSuccess::Write()
+{
+    _worldPacket << CharGUID;
+    _worldPacket << uint8(SexID);
+    _worldPacket << Size<uint32>(Customizations);
+    for (ChrCustomizationChoice customization : Customizations)
+        _worldPacket << customization;
+
+    _worldPacket << SizedString::BitsSize<6>(CharName);
+    _worldPacket.FlushBits();
+
+    _worldPacket << SizedString::Data(CharName);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* CharCustomizeFailure::Write()
+{
+    _worldPacket << uint32(Result);
+    _worldPacket << CharGUID;
+
+    return &_worldPacket;
+}
+
 void CharRaceOrFactionChange::Read()
 {
     RaceOrFactionChangeInfo = std::make_shared<CharRaceOrFactionChangeInfo>();
@@ -826,38 +858,6 @@ WorldPacket const* SetFactionVisible::Write()
     return &_worldPacket;
 }
 
-CharCustomizeSuccess::CharCustomizeSuccess(CharCustomizeInfo const* info)
-    : ServerPacket(SMSG_CHAR_CUSTOMIZE_SUCCESS, 16 + 1 + 1 + 1 + 1 + 1 + 1 + 1), Customizations(info->Customizations)
-{
-    CharGUID = info->CharGUID;
-    SexID = info->SexID;
-    CharName = info->CharName;
-}
-
-WorldPacket const* CharCustomizeSuccess::Write()
-{
-    _worldPacket << CharGUID;
-    _worldPacket << uint8(SexID);
-    _worldPacket << Size<uint32>(Customizations);
-    for (ChrCustomizationChoice customization : Customizations)
-        _worldPacket << customization;
-
-    _worldPacket << SizedString::BitsSize<6>(CharName);
-    _worldPacket.FlushBits();
-
-    _worldPacket << SizedString::Data(CharName);
-
-    return &_worldPacket;
-}
-
-WorldPacket const* CharCustomizeFailure::Write()
-{
-    _worldPacket << uint32(Result);
-    _worldPacket << CharGUID;
-
-    return &_worldPacket;
-}
-
 void SetPlayerDeclinedNames::Read()
 {
     _worldPacket >> Player;
@@ -888,5 +888,31 @@ WorldPacket const* PlayerSavePersonalEmblem::Write()
     _worldPacket << int32(Error);
 
     return &_worldPacket;
+}
+
+void SetupWarbandGroups::Read()
+{
+    _worldPacket >> Size<uint32>(Groups);
+    for (WarbandGroupSetup& group : Groups)
+    {
+        _worldPacket >> group.WarbandSceneID;
+        _worldPacket >> group.Flags;
+        _worldPacket >> group.ContentSetID;
+        _worldPacket >> Size<uint32>(group.Members);
+
+        for (WarbandGroupSetupMember& member : group.Members)
+        {
+            _worldPacket >> member.WarbandScenePlacementID;
+            _worldPacket >> member.Type;
+            _worldPacket >> member.ContentSetID;
+            if (member.Type == 0)
+                _worldPacket >> member.Guid;
+        }
+
+        _worldPacket >> SizedString::BitsSize<9>(group.Name);
+        _worldPacket.ResetBitPos();
+
+        _worldPacket >> SizedString::Data(group.Name);
+    }
 }
 }

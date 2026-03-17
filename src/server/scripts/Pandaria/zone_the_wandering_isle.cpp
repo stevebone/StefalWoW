@@ -19,9 +19,11 @@
 #include "Containers.h"
 #include "CreatureAI.h"
 #include "CreatureAIImpl.h" // for RAND()
+#include "DB2Stores.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "GridNotifiersImpl.h"
+#include "Log.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
@@ -29,10 +31,12 @@
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ScriptedFollowerAI.h"
+#include "ScriptedGossip.h"
 #include "SpellScript.h"
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
 #include "ThreatManager.h"
+#include "Vehicle.h"
 
 namespace Scripts::Pandaria::TheWanderingIsle
 {

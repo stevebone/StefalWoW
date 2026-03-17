@@ -78,6 +78,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('913', '900003', '-1'),
 ('913', '900004', '-1'),
 ('913', '900005', '-1'),
+('914', '900000', '-1'),
+('914', '900001', '-1'),
+('914', '900002', '-1'),
+('914', '900003', '-1'),
+('914', '900004', '-1'),
+('914', '900005', '-1'),
 ('915', '900000', '-1'),
 ('915', '900001', '-1'),
 ('915', '900002', '-1'),
@@ -236,7 +242,121 @@ INSERT INTO `creature_template_gossip` VALUES
 ('141508', '900002', '-1'),
 ('141508', '900003', '-1'),
 ('141508', '900004', '-1'),
-('141508', '900005', '-1');
+('141508', '900005', '-1'),
+('164939', '900000', '-1'),
+('164939', '900001', '-1'),
+('164939', '900002', '-1'),
+('164939', '900003', '-1'),
+('164939', '900004', '-1'),
+('164939', '900005', '-1'),
+('164940', '900000', '-1'),
+('164940', '900001', '-1'),
+('164940', '900002', '-1'),
+('164940', '900003', '-1'),
+('164940', '900004', '-1'),
+('164940', '900005', '-1'),
+('918', '900000', '-1'),
+('918', '900001', '-1'),
+('918', '900002', '-1'),
+('918', '900003', '-1'),
+('918', '900004', '-1'),
+('918', '900005', '-1'),
+('5495', '900000', '-1'),
+('5495', '900001', '-1'),
+('5495', '900002', '-1'),
+('5495', '900003', '-1'),
+('5495', '900004', '-1'),
+('5495', '900005', '-1'),
+('5506', '900000', '-1'),
+('5506', '900001', '-1'),
+('5506', '900002', '-1'),
+('5506', '900003', '-1'),
+('5506', '900004', '-1'),
+('5506', '900005', '-1'),
+('20407', '900000', '-1'),
+('20407', '900001', '-1'),
+('20407', '900002', '-1'),
+('20407', '900003', '-1'),
+('20407', '900004', '-1'),
+('20407', '900005', '-1'),
+('928', '900000', '-1'),
+('928', '900001', '-1'),
+('928', '900002', '-1'),
+('928', '900003', '-1'),
+('928', '900004', '-1'),
+('928', '900005', '-1'),
+('461', '900000', '-1'),
+('461', '900001', '-1'),
+('461', '900002', '-1'),
+('461', '900003', '-1'),
+('461', '900004', '-1'),
+('461', '900005', '-1'),
+('376', '900000', '-1'),
+('376', '900001', '-1'),
+('376', '900002', '-1'),
+('376', '900003', '-1'),
+('376', '900004', '-1'),
+('376', '900005', '-1'),
+('5505', '900000', '-1'),
+('5505', '900001', '-1'),
+('5505', '900002', '-1'),
+('5505', '900003', '-1'),
+('5505', '900004', '-1'),
+('5505', '900005', '-1'),
+('13283', '900000', '-1'),
+('13283', '900001', '-1'),
+('13283', '900002', '-1'),
+('13283', '900003', '-1'),
+('13283', '900004', '-1'),
+('13283', '900005', '-1'),
+('112912', '900000', '-1'),
+('112912', '900001', '-1'),
+('112912', '900002', '-1'),
+('112912', '900003', '-1'),
+('112912', '900004', '-1'),
+('112912', '900005', '-1'),
+
+('5489', '900000', '-1'),
+('5489', '900001', '-1'),
+('5489', '900002', '-1'),
+('5489', '900003', '-1'),
+('5489', '900004', '-1'),
+('5489', '900005', '-1'),
+
+('173819', '900000', '-1'),
+('173819', '900001', '-1'),
+('173819', '900002', '-1'),
+('173819', '900003', '-1'),
+('173819', '900004', '-1'),
+('173819', '900005', '-1'),
+
+('5484', '900000', '-1'),
+('5484', '900001', '-1'),
+('5484', '900002', '-1'),
+('5484', '900003', '-1'),
+('5484', '900004', '-1'),
+('5484', '900005', '-1'),
+
+('5492', '900000', '-1'),
+('5492', '900001', '-1'),
+('5492', '900002', '-1'),
+('5492', '900003', '-1'),
+('5492', '900004', '-1'),
+('5492', '900005', '-1'),
+
+('5491', '900000', '-1'),
+('5491', '900001', '-1'),
+('5491', '900002', '-1'),
+('5491', '900003', '-1'),
+('5491', '900004', '-1'),
+('5491', '900005', '-1'),
+
+('5516', '900000', '-1'),
+('5516', '900001', '-1'),
+('5516', '900002', '-1'),
+('5516', '900003', '-1'),
+('5516', '900004', '-1'),
+('5516', '900005', '-1');
 
 -- Goldshire trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 328; -- Zaldimar (Mage)
@@ -287,3 +407,24 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 
 -- Tinkertown trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 63238; -- Xi
+
+-- Stormwind trainers
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 461; -- Demisette Cloyce (Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 376; -- High Priestess Laurena (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 914; -- Ander Germaine (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 928; -- Lord Grayson Shadowbreaker (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 13283; -- Lord Tony Romano (Rogue)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 164939; -- Signilda Hardforge (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 164940; -- Kualiang Thunderfist (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5505; -- Theridran (Rogue)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 918; -- Osborne the Night Man (Rogue)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 20407; -- Farseer Umbrua (Shaman)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5506; -- Maldryn (Druid)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5495; -- Ursula Deline (Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 112912; -- Martin Ocejo (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5489;   -- Brother Joshua (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 173819; -- Reckful (Rogue)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5484;   -- Brother Benjamin (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5492;   -- Katherine the Pure (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5491;   -- Arthur the Faithful (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5516;   -- Ulfir Ironbeard (Hunter)

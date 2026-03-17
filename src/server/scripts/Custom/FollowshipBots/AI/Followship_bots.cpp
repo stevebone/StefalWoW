@@ -1,6 +1,24 @@
-// =========================================
-// TO-DO
-// =========================================
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "Log.h"
 #include "Map.h"
@@ -322,8 +340,11 @@ public:
             return true;
         }
 
-        void JustEngagedWith(Unit* /*who*/) override // Runs every time creature gets in combat
+        void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
         {
+            if(!botHired)
+                FSBChat::StartBotRandomChat(me, ChatChannelType::CombatDefense, who);
+
             TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustEngagedWith() triggered for bot: {}", me->GetName());
         }
 
@@ -509,10 +530,6 @@ public:
                 events.ScheduleEvent(FSB_EVENT_SOULSTONE_RESSURECT, 4s, 6s);
                 break;
 
-            case FSB_ACTION_TELEPORT_GRAVEYARD:
-                events.ScheduleEvent(FSB_EVENT_TELEPORT_GRAVEYARD, 5s, 6s);
-                break;
-
             case FSB_ACTION_TELEPORT_DUNGEON:
                 events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 5s, 6s);
                 break;
@@ -525,6 +542,7 @@ public:
         void UpdateAI(uint32 diff) override
         {
             FSBCombat::EvaluateAttackNeeded(me);
+            FSBCombat::SetOwnerTapToVictim(me);
             
             events.Update(diff);
             botEvents.Update(diff);
@@ -627,7 +645,7 @@ public:
                     {
                         events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 4s, 6s);
                     } else
-                    me->AI()->DoAction(FSB_ACTION_TELEPORT_GRAVEYARD);
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_TELEPORT_GRAVEYARD, 4s, 6s);
                     break;
 
                 case FSB_EVENT_HIRED_TELEPORT_DUNGEON:
@@ -671,11 +689,6 @@ public:
 
                 case FSB_EVENT_SOULSTONE_RESSURECT:
                     FSBDeath::HandleDeathWithSoulstone(me, botHasSoulstone);
-                    break;
-
-                case FSB_EVENT_TELEPORT_GRAVEYARD:
-                    FSBTeleport::BotTeleport(me, BOT_DEATH);
-                    events.ScheduleEvent(FSB_EVENT_GRAVEYARD_RESSURECT, 2s);
                     break;
 
                 case FSB_EVENT_GRAVEYARD_RESSURECT:
