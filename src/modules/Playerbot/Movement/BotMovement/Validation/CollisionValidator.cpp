@@ -19,6 +19,8 @@
 #include "Unit.h"
 #include "Map.h"
 #include "Position.h"
+#include "G3D/Vector3.h"
+#include "VMapFactory.h"
 #include "Models/ModelIgnoreFlags.h"
 #include "Log.h"
 #include <sstream>

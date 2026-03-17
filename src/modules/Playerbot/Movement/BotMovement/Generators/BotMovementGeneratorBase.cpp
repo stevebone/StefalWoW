@@ -23,6 +23,7 @@
 #include "CollisionValidator.h"
 #include "GroundValidator.h"
 #include "LiquidValidator.h"
+#include "Map.h"
 #include "PositionValidator.h"
 #include "Unit.h"
 #include "Log.h"

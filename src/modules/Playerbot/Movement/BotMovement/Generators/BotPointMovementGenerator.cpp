@@ -19,6 +19,8 @@
 #include "MoveSpline.h"
 #include "MoveSplineInit.h"
 #include "Unit.h"
+#include "Creature.h"
+#include "CreatureAI.h"
 #include "Log.h"
 #include <cmath>
 

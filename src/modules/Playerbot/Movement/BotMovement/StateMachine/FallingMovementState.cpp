@@ -20,6 +20,7 @@
 #include "LiquidValidator.h"
 #include "GroundValidator.h"
 #include "Unit.h"
+#include "Map.h"
 #include "Log.h"
 #include <cmath>
 

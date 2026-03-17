@@ -21,6 +21,7 @@
 #include "Unit.h"
 #include "Creature.h"
 #include "Player.h"
+#include "Map.h"
 #include "Log.h"
 #include <cmath>
 

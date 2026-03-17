@@ -23,6 +23,7 @@
 #include "FallingMovementState.h"
 #include "StuckState.h"
 #include "BotMovementController.h"
+#include "Map.h"
 #include "LiquidValidator.h"
 #include "GroundValidator.h"
 #include "Unit.h"

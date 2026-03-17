@@ -19,6 +19,7 @@
 #define TRINITY_PATHCACHE_H
 
 #include "Define.h"
+#include "Position.h"
 #include "PathGenerator.h"
 #include "MoveSplineInitArgs.h"
 #include <list>
