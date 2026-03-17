@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Log.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
 #include "Spell.h"

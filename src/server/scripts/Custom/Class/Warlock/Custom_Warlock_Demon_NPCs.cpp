@@ -256,6 +256,12 @@ public:
             if (!owner)
                 return;
 
+            uint32 spellId = SPELL_WARLOCK_TYRANT_DEMONFIRE;
+
+            // Burning Cleave is currently not working
+            //if (me->GetEntry() == NPC_WARLOCK_DEMONIC_TYRANT2)
+            //    spellId = SPELL_WARLOCK_TYRANT_BURNING_CLEAVE;
+
             if (!me->GetVictim())
             {
                 if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() != FOLLOW_MOTION_TYPE)
@@ -273,7 +279,7 @@ public:
             if (!target || !me->IsValidAttackTarget(target))
                 return;
 
-            me->CastSpell(target, SPELL_WARLOCK_TYRANT_DEMONFIRE,
+            me->CastSpell(target, spellId,
                 CastSpellExtraArgs(TRIGGERED_NONE)
                 .SetOriginalCaster(owner->GetGUID()));
         }
