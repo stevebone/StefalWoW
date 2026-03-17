@@ -251,7 +251,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // BattlePetAbilityEffect.db2
-    PrepareStatement(HOTFIX_SEL_BATTLE_PET_ABILITY_EFFECT, "SELECT ID, BattlePetAbilityTurnID, OrderIndex, Aura, BattlePetEffectPropertiesID, VisualID, "
+    PrepareStatement(HOTFIX_SEL_BATTLE_PET_ABILITY_EFFECT, "SELECT ID, BattlePetAbilityTurnID, OrderIndex, BattlePetEffectPropertiesID, AuraBattlePetAbilityID, BattlePetVisualID, "
         "Param1, Param2, Param3, Param4, Param5, Param6 FROM battle_pet_ability_effect WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_BATTLE_PET_ABILITY_EFFECT, "SELECT MAX(ID) + 1 FROM battle_pet_ability_effect", CONNECTION_SYNCH);
 

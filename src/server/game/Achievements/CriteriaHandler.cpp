@@ -39,6 +39,7 @@
 #include "MapUtils.h"
 #include "ObjectMgr.h"
 #include "PetBattleDefines.h"
+#include "PetBattleMgr.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "QuestMgr.h"
@@ -2168,8 +2169,34 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::BattlePetHealthPercentLessThan: // 79 NYI - use target battle pet here, the one we were just battling
-            return false;
+        case ModifierTreeType::BattlePetHealthPercentLessThan: // 79
+        {
+            // Check if any opponent pet has health below reqValue percent
+            if (PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(referencePlayer->GetGUID()))
+            {
+                uint8 playerTeam = battle->GetTeam(0).PlayerGUID == referencePlayer->GetGUID() ? 0 : 1;
+                uint8 opponentTeam = 1 - playerTeam;
+                PetBattles::PetBattleTeamData const& oppTeam = battle->GetTeam(opponentTeam);
+                bool found = false;
+                for (uint8 i = 0; i < oppTeam.PetCount; ++i)
+                {
+                    if (oppTeam.Pets[i].MaxHealth > 0)
+                    {
+                        uint32 healthPct = (oppTeam.Pets[i].Health * 100) / oppTeam.Pets[i].MaxHealth;
+                        if (healthPct < reqValue)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found)
+                    return false;
+            }
+            else
+                return false;
+            break;
+        }
         case ModifierTreeType::GuildGroupMemberCountEqualOrGreaterThan: // 80
         {
             uint32 guildMemberCount = 0;
@@ -2182,8 +2209,18 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::BattlePetOpponentCreatureId: // 81 NYI
-            return false;
+        case ModifierTreeType::BattlePetOpponentCreatureId: // 81
+        {
+            if (PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(referencePlayer->GetGUID()))
+            {
+                uint8 playerTeam = battle->GetTeam(0).PlayerGUID == referencePlayer->GetGUID() ? 0 : 1;
+                if (battle->GetOpponentCreatureID(playerTeam) != reqValue)
+                    return false;
+            }
+            else
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerScenarioStep: // 82
         {
             Scenario const* scenario = referencePlayer->GetScenario();
@@ -2212,10 +2249,19 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             if (referencePlayer->GetReputationMgr().GetReputation(1271) < int32(reqValue))
                 return false;
             break;
-        case ModifierTreeType::BattlePetQuality: // 89 NYI
-            return false;
+        case ModifierTreeType::BattlePetQuality: // 89
+        {
+            // Check if any slotted pet matches the required quality
+            bool found = false;
+            for (WorldPackets::BattlePet::BattlePetSlot const& slot : referencePlayer->GetSession()->GetBattlePetMgr()->GetSlots())
+                if (slot.Pet.Quality == reqValue)
+                    found = true;
+            if (!found)
+                return false;
+            break;
+        }
         case ModifierTreeType::BattlePetFightWasPVP: // 90
-            if (miscValue1 != PetBattles::PET_BATTLE_TYPE_PVP)
+            if (miscValue1 != PetBattles::PET_BATTLE_TYPE_PVP && miscValue1 != PetBattles::PET_BATTLE_TYPE_LFPB)
                 return false;
             break;
         case ModifierTreeType::BattlePetSpecies: // 91
@@ -2766,9 +2812,32 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::PetBattleLastAbility: // 153 NYI
-        case ModifierTreeType::PetBattleLastAbilityType: // 154 NYI
-            return false;
+        case ModifierTreeType::PetBattleLastAbility: // 153
+        {
+            if (PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(referencePlayer->GetGUID()))
+            {
+                uint8 playerTeam = battle->GetTeam(0).PlayerGUID == referencePlayer->GetGUID() ? 0 : 1;
+                if (battle->GetLastAbilityID(playerTeam) != reqValue)
+                    return false;
+            }
+            else
+                return false;
+            break;
+        }
+        case ModifierTreeType::PetBattleLastAbilityType: // 154
+        {
+            if (PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(referencePlayer->GetGUID()))
+            {
+                uint8 playerTeam = battle->GetTeam(0).PlayerGUID == referencePlayer->GetGUID() ? 0 : 1;
+                uint32 lastAbility = battle->GetLastAbilityID(playerTeam);
+                BattlePetAbilityEntry const* abilityEntry = lastAbility ? sBattlePetAbilityStore.LookupEntry(lastAbility) : nullptr;
+                if (!abilityEntry || abilityEntry->PetTypeEnum != int32(reqValue))
+                    return false;
+            }
+            else
+                return false;
+            break;
+        }
         case ModifierTreeType::BattlePetTeamWithAliveEqualOrGreaterThan: // 155
         {
             uint32 count = 0;

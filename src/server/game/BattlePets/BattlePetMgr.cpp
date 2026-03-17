@@ -99,6 +99,8 @@ void BattlePetMgr::Initialize()
         if (uint32 creatureId = battlePetSpecies->CreatureID)
             _battlePetSpeciesByCreature[creatureId] = battlePetSpecies;
 
+    TC_LOG_INFO("server.loading", ">> Loaded {} battle pet species with creature mappings from DB2.", _battlePetSpeciesByCreature.size());
+
     for (BattlePetBreedStateEntry const* battlePetBreedState : sBattlePetBreedStateStore)
         _battlePetBreedStates[battlePetBreedState->BattlePetBreedID][BattlePetState(battlePetBreedState->BattlePetStateID)] = battlePetBreedState->Value;
 
@@ -131,7 +133,11 @@ void BattlePetMgr::LoadAvailablePetBreeds()
             continue;
         }
 
-        // TODO: verify breed id (3 - 12 (male) or 3 - 22 (male and female)) if needed
+        if (breedId < 3 || breedId > 22)
+        {
+            TC_LOG_ERROR("sql.sql", "Invalid breed ID {} for species {} in `battle_pet_breeds`. Valid range is 3-22.", breedId, speciesId);
+            continue;
+        }
 
         _availableBreedsPerSpecies[speciesId].insert(breedId);
         ++count;
@@ -247,9 +253,15 @@ void BattlePetMgr::GetBaseStats(uint32 speciesId, uint16 breedId, int32& outPowe
 uint32 BattlePetMgr::SelectPetDisplay(BattlePetSpeciesEntry const* speciesEntry)
 {
     if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(speciesEntry->CreatureID))
+    {
         if (!speciesEntry->GetFlags().HasFlag(BattlePetSpeciesFlags::RandomDisplay))
             if (CreatureModel const* creatureModel = creatureTemplate->GetRandomValidModel())
                 return creatureModel->CreatureDisplayID;
+    }
+    else
+        TC_LOG_ERROR("misc", "BattlePetMgr::SelectPetDisplay: creature_template entry {} not found for species {}. "
+            "Battle pet will have DisplayID=0. Add the creature_template and creature_template_model entries.",
+            speciesEntry->CreatureID, speciesEntry->ID);
 
     return 0;
 }

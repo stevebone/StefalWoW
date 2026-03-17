@@ -114,9 +114,269 @@ void PetBattleMgr::Initialize()
     TC_LOG_INFO("server.loading", ">> Loaded {} breed quality entries, {} breed stat entries",
         uint32(_breedQualityMultipliers.size()), uint32(_breedBaseStats.size()));
 
+    // Build the BattlePetEffectPropertiesID -> action type mapping
+    BuildEffectActionMap();
+
+    // Build weather ability ID set using DB2 data (generic approach)
+    // Weather abilities are identified by:
+    // 1. Having effects with WEATHER_SET PropsID (effects that set weatherState on environment)
+    // 2. Having aura effects whose sub-abilities set weather state
+    // 3. Having BattlePetAbilityState entries that set weather-related states
+    {
+        // Step 1: Find PropsIDs classified as WEATHER_SET
+        std::unordered_set<uint16> weatherPropsIDs;
+        for (auto const& [propsID, action] : _effectActionMap)
+            if (action == PET_BATTLE_EFFECT_ACTION_WEATHER_SET)
+                weatherPropsIDs.insert(propsID);
+
+        // Step 2: Find abilities containing effects with weather PropsIDs (traces effect → turn → ability)
+        std::unordered_set<uint32> weatherTurnIDs;
+        for (BattlePetAbilityEffectEntry const* effect : sBattlePetAbilityEffectStore)
+            if (weatherPropsIDs.count(effect->BattlePetEffectPropertiesID))
+                weatherTurnIDs.insert(effect->BattlePetAbilityTurnID);
+
+        for (BattlePetAbilityTurnEntry const* turn : sBattlePetAbilityTurnStore)
+            if (weatherTurnIDs.count(turn->ID))
+                _weatherAbilityIDs.insert(turn->BattlePetAbilityID);
+
+        // Step 3: For found weather abilities, also collect their AuraBattlePetAbilityIDs
+        // (sub-abilities used as weather auras)
+        std::unordered_set<uint32> allWeatherTurnIDs;
+        for (BattlePetAbilityTurnEntry const* turn : sBattlePetAbilityTurnStore)
+            if (_weatherAbilityIDs.count(turn->BattlePetAbilityID))
+                allWeatherTurnIDs.insert(turn->ID);
+
+        for (BattlePetAbilityEffectEntry const* effect : sBattlePetAbilityEffectStore)
+            if (allWeatherTurnIDs.count(effect->BattlePetAbilityTurnID) && effect->AuraBattlePetAbilityID != 0)
+                _weatherAbilityIDs.insert(effect->AuraBattlePetAbilityID);
+
+        // Step 4: Reverse walk — find abilities whose AuraBattlePetAbilityID is in the weather set
+        // This catches parent abilities that apply weather auras but don't have WEATHER_SET effects directly
+        bool foundNew = true;
+        while (foundNew)
+        {
+            foundNew = false;
+            for (BattlePetAbilityEffectEntry const* effect : sBattlePetAbilityEffectStore)
+            {
+                if (effect->AuraBattlePetAbilityID == 0)
+                    continue;
+                if (!_weatherAbilityIDs.count(effect->AuraBattlePetAbilityID))
+                    continue;
+                // Find the parent ability of this effect
+                BattlePetAbilityTurnEntry const* turn = sBattlePetAbilityTurnStore.LookupEntry(effect->BattlePetAbilityTurnID);
+                if (!turn)
+                    continue;
+                if (_weatherAbilityIDs.insert(turn->BattlePetAbilityID).second)
+                    foundNew = true;
+            }
+        }
+
+        // Step 5: BattlePetAbilityState-based detection
+        // Build a map of abilityID → set of stateIDs from BattlePetAbilityState DB2
+        std::unordered_map<uint32, std::vector<std::pair<uint32, int32>>> abilityStates;
+        for (BattlePetAbilityStateEntry const* entry : sBattlePetAbilityStateStore)
+            abilityStates[entry->BattlePetAbilityID].push_back({ entry->BattlePetStateID, entry->Value });
+
+        // Diagnostic: log states for abilities already found as weather
+        for (uint32 abilID : _weatherAbilityIDs)
+        {
+            auto it = abilityStates.find(abilID);
+            if (it != abilityStates.end())
+            {
+                for (auto const& [stateID, value] : it->second)
+                    TC_LOG_INFO("server.loading", "  WeatherAbil {} has AbilityState: stateID={} value={}", abilID, stateID, value);
+            }
+        }
+
+        // Diagnostic: for abilities NOT found as weather, check if any share stateIDs with weather abilities
+        // This helps discover the weather state ID pattern
+        std::unordered_set<uint32> weatherStateIDs;
+        for (uint32 abilID : _weatherAbilityIDs)
+        {
+            auto it = abilityStates.find(abilID);
+            if (it != abilityStates.end())
+                for (auto const& [stateID, value] : it->second)
+                    weatherStateIDs.insert(stateID);
+        }
+
+        if (!weatherStateIDs.empty())
+        {
+            TC_LOG_INFO("server.loading", "  Weather abilities use state IDs:");
+            for (uint32 sid : weatherStateIDs)
+                TC_LOG_INFO("server.loading", "    stateID={}", sid);
+
+            // Find all abilities that also set these state IDs — potential additional weather abilities
+            for (auto const& [abilID, states] : abilityStates)
+            {
+                if (_weatherAbilityIDs.count(abilID))
+                    continue;
+                for (auto const& [stateID, value] : states)
+                {
+                    if (weatherStateIDs.count(stateID))
+                    {
+                        BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(abilID);
+                        TC_LOG_INFO("server.loading", "  Candidate weather ability via state: ID={} name={} stateID={} value={}",
+                            abilID, ability ? ability->Name.Str[LOCALE_enUS] : "???", stateID, value);
+                    }
+                }
+            }
+        }
+
+        // Diagnostic: dump all effects for a few known weather ability names to trace their effect chain
+        static constexpr std::string_view diagnosticNames[] = {
+            "Call Lightning", "Moonlight", "Sandstorm", "Acid Rain"
+        };
+        for (BattlePetAbilityEntry const* ability : sBattlePetAbilityStore)
+        {
+            if (!ability->Name.Str[LOCALE_enUS])
+                continue;
+            std::string_view name(ability->Name.Str[LOCALE_enUS]);
+            for (auto const& dname : diagnosticNames)
+            {
+                if (name == dname)
+                {
+                    TC_LOG_INFO("server.loading", "  DIAG ability '{}' ID={} flags={}", name, ability->ID, ability->Flags);
+                    // Walk turns and effects
+                    for (BattlePetAbilityTurnEntry const* turn : sBattlePetAbilityTurnStore)
+                    {
+                        if (turn->BattlePetAbilityID != ability->ID)
+                            continue;
+                        TC_LOG_INFO("server.loading", "    Turn ID={} order={} typeEnum={} eventEnum={}",
+                            turn->ID, turn->OrderIndex, turn->TurnTypeEnum, turn->EventTypeEnum);
+                        for (BattlePetAbilityEffectEntry const* effect : sBattlePetAbilityEffectStore)
+                        {
+                            if (effect->BattlePetAbilityTurnID != turn->ID)
+                                continue;
+                            auto actionIt = _effectActionMap.find(effect->BattlePetEffectPropertiesID);
+                            TC_LOG_INFO("server.loading", "      Effect ID={} propsID={} action={} auraAbilID={} params=[{},{},{},{},{},{}]",
+                                effect->ID, effect->BattlePetEffectPropertiesID,
+                                actionIt != _effectActionMap.end() ? uint16(actionIt->second) : 999,
+                                effect->AuraBattlePetAbilityID,
+                                effect->Param[0], effect->Param[1], effect->Param[2], effect->Param[3], effect->Param[4], effect->Param[5]);
+                        }
+                    }
+                    // Also log BattlePetAbilityState entries
+                    auto stIt = abilityStates.find(ability->ID);
+                    if (stIt != abilityStates.end())
+                        for (auto const& [stateID, value] : stIt->second)
+                            TC_LOG_INFO("server.loading", "    AbilityState: stateID={} value={}", stateID, value);
+                    else
+                        TC_LOG_INFO("server.loading", "    No AbilityState entries");
+
+                    break;
+                }
+            }
+        }
+
+        TC_LOG_INFO("server.loading", ">> Found {} weather ability IDs", uint32(_weatherAbilityIDs.size()));
+        for (uint32 abilID : _weatherAbilityIDs)
+        {
+            BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(abilID);
+            TC_LOG_INFO("server.loading", "  WeatherAbility: ID={} name={}", abilID,
+                ability ? ability->Name.Str[LOCALE_enUS] : "???");
+        }
+    }
+
     LoadNPCTeams();
 
     TC_LOG_INFO("server.loading", ">> Pet Battle system initialized");
+}
+
+void PetBattleMgr::BuildEffectActionMap()
+{
+    // Classify every BattlePetEffectProperties entry into an abstract action type
+    // based on its ParamLabel signatures and BattlePetVisualID.
+    // This runs once at startup so string comparisons are acceptable.
+
+    uint32 mappedCount = 0;
+    for (BattlePetEffectPropertiesEntry const* props : sBattlePetEffectPropertiesStore)
+    {
+        bool hasPoints = false, hasDuration = false, hasState = false;
+        bool hasChance = false, hasPercentage = false;
+        bool hasWeather = false, hasSwap = false, hasTrap = false;
+
+        for (uint8 i = 0; i < 6; ++i)
+        {
+            if (!props->ParamLabel[i] || !props->ParamLabel[i][0])
+                continue;
+            std::string_view label(props->ParamLabel[i]);
+            if (label == "Points") hasPoints = true;
+            else if (label == "Percentage") { hasPoints = true; hasPercentage = true; }
+            else if (label == "Duration") hasDuration = true;
+            else if (label == "weatherState" || label == "WeatherState" || label == "weatherAura" || label == "WeatherAura") hasWeather = true;
+            else if (label.find("State") != std::string_view::npos) hasState = true;
+            else if (label == "Chance") hasChance = true;
+            else if (label == "SwapIndex" || label == "Swap") hasSwap = true;
+            else if (label == "TrapAbility") hasTrap = true;
+        }
+
+        PetBattleAbilityEffectAction action;
+
+        if (hasWeather)
+            action = PET_BATTLE_EFFECT_ACTION_WEATHER_SET;
+        else if (hasSwap)
+            action = PET_BATTLE_EFFECT_ACTION_PET_SWAP;
+        else if (hasTrap)
+            action = PET_BATTLE_EFFECT_ACTION_CATCH;
+        else if (hasDuration && hasPoints && props->BattlePetVisualID == 38)
+            action = PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE;
+        else if (hasDuration && hasPoints && props->BattlePetVisualID != 38)
+            action = PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL;
+        else if (hasDuration)
+            action = PET_BATTLE_EFFECT_ACTION_APPLY_AURA;
+        else if (hasPoints && hasPercentage && props->BattlePetVisualID == 38)
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE_PERCENTAGE;
+        else if (hasPoints && hasPercentage)
+            action = PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE;
+        else if (hasPoints && props->BattlePetVisualID == 38)
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE;
+        else if (hasPoints)
+            action = PET_BATTLE_EFFECT_ACTION_HEAL;
+        else if (hasState)
+            action = PET_BATTLE_EFFECT_ACTION_SET_STATE;
+        else if (hasChance)
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE; // Conditional — evaluate at use site, fall through to damage
+        else
+            action = PET_BATTLE_EFFECT_ACTION_DAMAGE; // Safe fallback — default handler checks basePower
+
+        _effectActionMap[static_cast<uint16>(props->ID)] = action;
+        ++mappedCount;
+    }
+
+    // Log all mapped entries for debugging
+    {
+        std::map<uint16, uint32> usageCounts;
+        for (BattlePetAbilityEffectEntry const* entry : sBattlePetAbilityEffectStore)
+            usageCounts[entry->BattlePetEffectPropertiesID]++;
+
+        for (auto const& [propsID, action] : _effectActionMap)
+        {
+            BattlePetEffectPropertiesEntry const* props = sBattlePetEffectPropertiesStore.LookupEntry(propsID);
+            std::string labels;
+            if (props)
+                for (uint8 i = 0; i < 6; ++i)
+                    if (props->ParamLabel[i] && props->ParamLabel[i][0] != '\0')
+                        labels += Trinity::StringFormat("[{}]={} ", i, props->ParamLabel[i]);
+            TC_LOG_INFO("server.loading", "  EffectMap: PropsID={:3d} -> action={:2d} uses={:3d} visual={} labels: {}",
+                propsID, uint16(action), usageCounts.count(propsID) ? usageCounts[propsID] : 0,
+                props ? props->BattlePetVisualID : 0, labels);
+        }
+    }
+
+    TC_LOG_INFO("server.loading", ">> Mapped {} BattlePetEffectProperties entries to action types", mappedCount);
+}
+
+PetBattleAbilityEffectAction PetBattleMgr::GetEffectAction(uint16 propsID) const
+{
+    auto it = _effectActionMap.find(propsID);
+    if (it != _effectActionMap.end())
+        return it->second;
+    return PET_BATTLE_EFFECT_ACTION_DAMAGE; // Fallback for unmapped IDs
+}
+
+bool PetBattleMgr::IsWeatherAbility(uint32 abilityID) const
+{
+    return _weatherAbilityIDs.count(abilityID) > 0;
 }
 
 void PetBattleMgr::Update(uint32 diff)
@@ -133,6 +393,27 @@ void PetBattleMgr::Update(uint32 diff)
     // Clean up finished battles after iteration
     for (uint32 battleID : finishedBattles)
         RemoveBattle(battleID);
+
+    // Check PvP proposal timeout
+    if (_pendingProposal)
+    {
+        _pendingProposal->ProposalTime += diff;
+        if (_pendingProposal->ProposalTime >= PET_BATTLE_PVP_PROPOSAL_TIMEOUT)
+        {
+            // Timeout: notify both players, re-queue them
+            for (ObjectGuid const& guid : { _pendingProposal->Player1, _pendingProposal->Player2 })
+            {
+                if (Player* player = ObjectAccessor::FindPlayer(guid))
+                {
+                    WorldPackets::BattlePet::PetBattleQueueStatus timeoutStatus;
+                    timeoutStatus.Status = PET_BATTLE_QUEUE_STATUS_PROPOSAL_TIMED_OUT;
+                    player->SendDirectMessage(timeoutStatus.Write());
+                }
+                _pvpQueue.push_back({ guid, 0 });
+            }
+            _pendingProposal.reset();
+        }
+    }
 
     // Try to match PvP queue players periodically (every 5 seconds)
     _queueMatchTimer += diff;
@@ -551,12 +832,22 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
             {
                 battle->Start();
 
+                static constexpr float PET_BATTLE_PLAYER_DISTANCE = 5.0f;
                 WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
                 finalizeLocation.Location.LocationResult = PET_BATTLE_REQUEST_FAIL_OK;
-                finalizeLocation.Location.BattleOrigin = p1->GetPosition();
-                finalizeLocation.Location.BattleFacing = p1->GetAbsoluteAngle(p2);
-                finalizeLocation.Location.PlayerPositions[0] = p1->GetPosition();
-                finalizeLocation.Location.PlayerPositions[1] = p2->GetPosition();
+                Position pvpMidpoint;
+                pvpMidpoint.m_positionX = (p1->GetPositionX() + p2->GetPositionX()) / 2.0f;
+                pvpMidpoint.m_positionY = (p1->GetPositionY() + p2->GetPositionY()) / 2.0f;
+                pvpMidpoint.m_positionZ = (p1->GetPositionZ() + p2->GetPositionZ()) / 2.0f;
+                float pvpFacing = p1->GetAbsoluteAngle(p2);
+                finalizeLocation.Location.BattleOrigin = pvpMidpoint;
+                finalizeLocation.Location.BattleFacing = pvpFacing;
+                finalizeLocation.Location.PlayerPositions[0] = Position(pvpMidpoint.m_positionX - PET_BATTLE_PLAYER_DISTANCE * std::cos(pvpFacing),
+                                                                     pvpMidpoint.m_positionY - PET_BATTLE_PLAYER_DISTANCE * std::sin(pvpFacing),
+                                                                     p1->GetPositionZ());
+                finalizeLocation.Location.PlayerPositions[1] = Position(pvpMidpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(pvpFacing),
+                                                                     pvpMidpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(pvpFacing),
+                                                                     p2->GetPositionZ());
                 p1->SendDirectMessage(finalizeLocation.Write());
                 p2->SendDirectMessage(finalizeLocation.Write());
             }
@@ -600,6 +891,7 @@ void PetBattleMgr::TryMatchPlayers()
     _pendingProposal = std::make_unique<PvPMatchProposal>();
     _pendingProposal->Player1 = p1.PlayerGUID;
     _pendingProposal->Player2 = p2.PlayerGUID;
+    _pendingProposal->ProposalTime = 0;
 
     // Send matchmaking then proposal status to both players
     for (Player* matchPlayer : { player1, player2 })

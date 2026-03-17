@@ -124,7 +124,7 @@ struct PetBattlePetData
     // State values for the pet
     std::vector<std::pair<uint32, int32>> States;
 
-    void RecalculateEffectiveStats()
+    void RecalculateEffectiveStats(PetBattleWeatherType activeWeather = PET_BATTLE_WEATHER_NONE)
     {
         EffectivePower = Power;
         EffectiveSpeed = Speed;
@@ -162,6 +162,13 @@ struct PetBattlePetData
         // Flying passive: +50% speed while above 50% HP
         if (PetType == PET_TYPE_FLYING && Health > MaxHealth / 2)
             EffectiveSpeed = int32(EffectiveSpeed * (1.0f + PASSIVE_FLYING_SPEED_BONUS));
+
+        // Weather speed penalties (Elemental passive: ignores all weather effects)
+        if (PetType != PET_TYPE_ELEMENTAL)
+        {
+            if (activeWeather == PET_BATTLE_WEATHER_BLIZZARD || activeWeather == PET_BATTLE_WEATHER_MUD)
+                EffectiveSpeed = int32(EffectiveSpeed * 0.75f); // -25% speed
+        }
 
         if (EffectivePower < 1) EffectivePower = 1;
         if (EffectiveSpeed < 1) EffectiveSpeed = 1;
@@ -279,6 +286,11 @@ public:
     bool NeedsFrontPetSwap(uint8 teamIdx) const;
     void ClearNeedsFrontPetSwap(uint8 teamIdx) { if (teamIdx < MAX_PET_BATTLE_PLAYERS) _needsFrontPetSwap[teamIdx] = false; }
 
+    // Criteria helpers — last ability used per team (for ModifierTreeType::PetBattleLastAbility/Type)
+    uint32 GetLastAbilityID(uint8 teamIdx) const { return teamIdx < MAX_PET_BATTLE_PLAYERS ? _lastAbilityID[teamIdx] : 0; }
+    // Opponent creature ID for criteria evaluation
+    uint32 GetOpponentCreatureID(uint8 teamIdx) const;
+
 private:
     // DB2-driven ability effect chain
     void ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint32 abilityID);
@@ -339,6 +351,7 @@ private:
 
     float _trapFailBonus = 0.0f;    // +20% per failed trap attempt
     uint32 _finishDelayMs = 0;      // delay before sending FinalRound packet (ms)
+    std::array<uint32, MAX_PET_BATTLE_PLAYERS> _lastAbilityID = {}; // last ability used per team
 
     ObjectGuid _wildCreatureGUID;
     ObjectGuid _npcTrainerGUID;

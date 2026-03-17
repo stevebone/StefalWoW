@@ -16,7 +16,6 @@
  */
 
 #include "Creature.h"
-#include "BattlePetMgr.h"
 #include "BattlegroundMgr.h"
 #include "CellImpl.h"
 #include "CharmInfo.h"
@@ -1692,39 +1691,10 @@ void Creature::SelectWildBattlePetLevel()
     }
 }
 
-void Creature::TryMarkAsWildBattlePet()
-{
-    // If creature already has the wild battle pet flag from its template, just assign level
-    if (IsWildBattlePet())
-    {
-        SelectWildBattlePetLevel();
-        return;
-    }
-
-    // Check if this creature's entry has a matching BattlePetSpecies (DB2 link)
-    BattlePetSpeciesEntry const* species = BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(GetEntry());
-    if (!species)
-        return;
-
-    // Only mark capturable species as wild battle pets (excludes companions, boss pets, etc.)
-    if (!species->GetFlags().HasFlag(BattlePetSpeciesFlags::Capturable))
-        return;
-
-    // Species that can't battle should never be wild battle pets
-    if (species->GetFlags().HasFlag(BattlePetSpeciesFlags::CantBattle))
-        return;
-
-    // Roll chance — ~40% of eligible critters become wild battle pets, 60% stay regular
-    if (urand(1, 100) > WILD_BATTLE_PET_MARK_CHANCE)
-        return;
-
-    // Mark this creature as a wild battle pet
-    SetNpcFlag(UNIT_NPC_FLAG_WILD_BATTLE_PET);
-    SelectWildBattlePetLevel();
-
-    TC_LOG_DEBUG("entities.unit", "Creature {} (Entry: {}, SpawnID: {}) dynamically marked as wild battle pet (Species: {})",
-        GetName(), GetEntry(), GetSpawnId(), species->ID);
-}
+// Wild battle pet level is assigned at spawn/respawn for creatures that already have
+// UNIT_NPC_FLAG_WILD_BATTLE_PET in their creature_template npcflag.
+// Spawning wild battle pets requires proper spawn groups with type 14 (CREATURE_TYPE_WILD_PET)
+// creature entries — these are separate from type 8 critters.
 
 float Creature::GetHealthMod(CreatureClassifications classification)
 {
@@ -1997,7 +1967,7 @@ bool Creature::LoadFromDB(ObjectGuid::LowType spawnId, Map* map, bool addToMap, 
 
     SetSpawnHealth();
 
-    TryMarkAsWildBattlePet();
+    SelectWildBattlePetLevel();
 
     // checked at creature_template loading
     m_defaultMovementType = MovementGeneratorType(data->movementType);
@@ -2386,10 +2356,8 @@ void Creature::Respawn(bool force)
 
             SelectLevel();
 
-            // setDeathState(JUST_RESPAWNED) calls ReplaceAllNpcFlags from template,
-            // so TryMarkAsWildBattlePet must run AFTER to add the dynamic flag
             setDeathState(JUST_RESPAWNED);
-            TryMarkAsWildBattlePet();
+            SelectWildBattlePetLevel();
 
             CreatureModel display(GetNativeDisplayId(), GetNativeDisplayScale(), 1.0f);
             if (sObjectMgr->GetCreatureModelRandomGender(&display, GetCreatureTemplate()))
