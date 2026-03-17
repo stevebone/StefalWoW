@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `character_warband_groups`;
 CREATE TABLE IF NOT EXISTS `character_warband_groups` (
   `groupId` bigint unsigned NOT NULL AUTO_INCREMENT,
   `battlenetAccountId` int unsigned NOT NULL,
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `character_warband_groups` (
   KEY `idx_account` (`battlenetAccountId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS `character_warband_groups_members`;
 CREATE TABLE IF NOT EXISTS `character_warband_group_members` (
   `groupId` bigint unsigned NOT NULL,
   `memberIndex` tinyint unsigned NOT NULL,
