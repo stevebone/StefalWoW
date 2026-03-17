@@ -4233,6 +4233,10 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_WARBAND_MEMBER_BY_GUID);
+            stmt->setUInt64(0, guid);
+            trans->Append(stmt);
+
             sCharacterCache->DeleteCharacterCacheEntry(playerguid, name);
             break;
         }

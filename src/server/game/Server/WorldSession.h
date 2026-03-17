@@ -263,6 +263,7 @@ namespace WorldPackets
         class ReorderCharacters;
         class UndeleteCharacter;
         class PlayerLogin;
+        class SetupWarbandGroups;
         class LogoutRequest;
         class LogoutCancel;
         class LoadingScreenNotify;
@@ -1233,6 +1234,7 @@ class TC_GAME_API WorldSession
         void HandleCharEnumOpcode(WorldPackets::Character::EnumCharacters& /*enumCharacters*/);
         void HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCharacters& /*enumCharacters*/);
         void HandleCharDeleteOpcode(WorldPackets::Character::CharDelete& charDelete);
+        void HandleSetupWarbandGroups(WorldPackets::Character::SetupWarbandGroups& setupWarbandGroups);
         void HandleCharCreateOpcode(WorldPackets::Character::CreateCharacter& charCreate);
         void HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin& playerLogin);
 
