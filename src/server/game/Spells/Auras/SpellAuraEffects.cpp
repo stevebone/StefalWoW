@@ -2828,6 +2828,27 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
                 target->SetFlightCapabilityID(mountCapability->FlightCapabilityID, true);
                 target->CastSpell(target, mountCapability->ModSpellAuraID, this);
             }
+            // Private server: always enable flying for players with riding skills
+            if (Player* player = target->ToPlayer())
+            {
+                if (player->HasSpell(90265) || player->HasSpell(34091) || player->HasSpell(34090))
+                {
+                    target->SetCanFly(true);
+                    if (player->HasAura(404468)) // Steady Flight mode
+                    {
+                        target->SetCanAdvFly(false);
+                    }
+                    else // Skyriding mode (default)
+                    {
+                        target->SetCanAdvFly(true);
+                        target->SetCanDoubleJump(true);
+                        target->SetFlightCapabilityID(1, true);
+                        // Cast Vigor aura - required by CasterAuraSpell check for active abilities
+                        if (!player->HasAura(372773))
+                            player->CastSpell(player, 372773, true);
+                    }
+                }
+            }
         }
     }
     else
@@ -2850,7 +2871,13 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
             if (MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(GetAmount()))
                 target->RemoveAurasDueToSpell(mountCapability->ModSpellAuraID, target->GetGUID());
 
+        // Clear all flight flags on dismount
+        target->SetCanFly(false);
+        target->SetCanAdvFly(false);
+        target->SetCanDoubleJump(false);
         target->SetFlightCapabilityID(0, true);
+        // Remove Vigor aura on dismount
+        target->RemoveAura(372773);
     }
 }
 

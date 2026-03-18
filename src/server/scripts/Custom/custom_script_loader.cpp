@@ -17,9 +17,9 @@
 
 // This is where scripts' loading functions should be declared:
 
-//void AddSC_PrivateWork();
+void AddSC_PrivateWork();
 //void AddSC_custom_commandscript();
-void AddSC_dragonriding_spell_scripts();
+void AddSC_advanced_flying_spell_scripts();
 //ROLEPLAY FUNC
 void AddSC_free_share_scripts();
 void AddSC_CustomDisplayHandler();
@@ -32,9 +32,9 @@ void AddSC_toy_spell_scripts();
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
-    //AddSC_PrivateWork();
+    AddSC_PrivateWork();
     //AddSC_custom_commandscript();
-    AddSC_dragonriding_spell_scripts();
+    AddSC_advanced_flying_spell_scripts();
     AddSC_toy_spell_scripts();
     //ROLEPLAY FUNC
     AddSC_free_share_scripts();

@@ -19480,9 +19480,6 @@ void Player::_LoadAuras(PreparedQueryResult auraResult, PreparedQueryResult effe
         }
         while (auraResult->NextRow());
     }
-
-    // TODO: finish dragonriding - this forces old flight mode
-    //AddAura(404468, this);
 }
 
 void Player::_LoadGlyphAuras()
@@ -29003,16 +29000,8 @@ void Player::_LoadTraits(PreparedQueryResult configsResult, PreparedQueryResult 
                 }
             }
 
-            if (TraitMgr::ValidateConfig(traitConfig, this, false, true) != TraitMgr::LearnResult::Ok)
-            {
-                traitConfig.Entries.clear();
-                traitConfig.SubTrees.clear();
-                for (UF::TraitEntry const& grantedEntry : TraitMgr::GetGrantedTraitEntriesForConfig(traitConfig, this))
-                    traitConfig.Entries.emplace_back(grantedEntry);
-
-                // rebuild subtrees
-                TraitMgr::ValidateConfig(traitConfig, this, false, true);
-            }
+            // Skip clearing on validation failure - private server with level 90
+            TraitMgr::ValidateConfig(traitConfig, this, false, true);
 
             AddTraitConfig(traitConfig);
 
@@ -29829,6 +29818,15 @@ void Player::DeleteTraitConfig(int32 deletedConfigId)
     m_traitConfigStates[deletedConfigId] = PLAYERSPELL_REMOVED;
 }
 
+void Player::AddMoveImpulse(Position direction)
+{
+    WorldPackets::Movement::MoveAddImpulse impulse;
+    impulse.MoverGUID = GetGUID();
+    impulse.SequenceIndex = m_movementCounter++;
+    impulse.Direction = direction;
+    SendMessageToSet(impulse.Write(), true);
+}
+
 void Player::ApplyTraitConfig(int32 configId, bool apply)
 {
     UF::TraitConfig const* traitConfig = GetTraitConfig(configId);
@@ -29838,6 +29836,14 @@ void Player::ApplyTraitConfig(int32 configId, bool apply)
     for (UF::TraitEntry const& traitEntry : traitConfig->Entries)
         if (!apply || TraitMgr::CanApplyTraitNode(*traitConfig, traitEntry))
             ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+
+    // Apply hero talent (SubTree) entries - these are stored separately from regular entries
+    for (UF::TraitSubTreeCache const& subTree : traitConfig->SubTrees)
+    {
+        if (!apply || subTree.Active)
+            for (UF::TraitEntry const& traitEntry : subTree.Entries)
+                ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+    }
 }
 
 void Player::ApplyTraitEntry(int32 traitNodeEntryId, int32 rank, int32 grantedRanks, bool apply)
@@ -32081,15 +32087,6 @@ bool Player::TeleportToDigsiteInMap(uint32 mapId)
 
     return true;
 
-}
-
-void Player::AddMoveImpulse(Position direction)
-{
-    WorldPackets::Movement::MoveAddImpulse addImpulse = WorldPackets::Movement::MoveAddImpulse();
-    addImpulse.MoverGUID = GetGUID();
-    addImpulse.SequenceIndex = m_movementCounter++;
-    addImpulse.Direction = direction;
-    SendMessageToSet(addImpulse.Write(), true);
 }
 
 void Player::ShowNeutralPlayerFactionSelectUI()
