@@ -2,40 +2,51 @@
 
 -- Phase activation
 DELETE FROM `phase_area` WHERE `PhaseId` = 50001;
+DELETE FROM `phase_area` WHERE `PhaseId` = 50002;
+DELETE FROM `phase_area` WHERE `PhaseId` = 50003;
 DELETE FROM `phase_area` WHERE `PhaseId` = 169 AND `AreaId` IN (9, 24, 34, 59);
 INSERT INTO `phase_area` VALUES
 (9, 169, 'Northshire Valley - Kobold Camp Cleanup'),
-(9, 50001, 'Northshire Valley - Kobold Camp Cleanup');
+(24, 169, 'Northshire Valley - Kobold Camp Cleanup'),
+(34, 169, 'Northshire Valley - Kobold Camp Cleanup'),
+(59, 169, 'Northshire Valley - Garrick Padfoot');
 
 INSERT INTO `phase_area` VALUES
-(24, 169, 'Northshire Valley - Kobold Camp Cleanup'),
+(9, 50001, 'Northshire Valley - Kobold Camp Cleanup'),
 (24, 50001, 'Northshire Valley - Kobold Camp Cleanup'),
-(34, 169, 'Northshire Valley - Kobold Camp Cleanup'),
 (34, 50001, 'Northshire Valley - Kobold Camp Cleanup'),
 (59, 50001, 'Northshire Valley - Kobold Camp Cleanup');
 
-DELETE FROM `phase_area` WHERE `PhaseId` = 50002;
 INSERT INTO `phase_area` VALUES
-(59, 169, 'Northshire Valley - Garrick Padfoot'),
 (59, 50002, 'Northshire Valley - Garrick Padfoot'),
+(34, 50002, 'Northshire Valley - Garrick Padfoot'),
 (9, 50002, 'Northshire Valley - Garrick Padfoot');
 
+INSERT INTO `phase_area` VALUES
+(9, 50003, 'Northshire Valley - Report to Goldshire'),
+(24, 50003, 'Northshire Valley - Report to Goldshire'),
+(34, 50003, 'Northshire Valley - Report to Goldshire'),
+(59, 50003, 'Northshire Valley - Report to Goldshire');
+
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50001 AND `SourceEntry` = 9;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50001 AND `SourceEntry` = 24;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50001 AND `SourceEntry` = 34;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50001 AND `SourceEntry` = 59;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50002 AND `SourceEntry` = 9;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50002 AND `SourceEntry` = 59;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50001;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50002;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50003;
 INSERT INTO `conditions` VALUES
-('26', '50001', '9', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50001 if 6 IS NOT rewarded'),
-('26', '50001', '24', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50001 if 6 IS NOT rewarded'),
-('26', '50001', '34', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50001 if 6 IS NOT rewarded'),
-('26', '50001', '59', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50001 if 6 IS NOT rewarded'),
-('26', '50002', '9', '0', '0', '47', '0', '6', '64', '0', '', '0', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50002 if 6 IS rewarded'),
-('26', '50002', '59', '0', '0', '47', '0', '6', '64', '0', '', '0', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50002 if 6 IS rewarded'),
-('26', '50002', '9', '0', '0', '47', '0', '54', '64', '0', '', '1', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50002 if 54 IS NOT rewarded'),
-('26', '50002', '59', '0', '0', '47', '0', '54', '64', '0', '', '1', '0', '0', '', 'Kobold Camp Cleanup - Add phase 50002 if 54 IS NOT rewarded');
+('26', '50001', '9', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50001 if 6 IS NOT rewarded'),
+('26', '50001', '24', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50001 if 6 IS NOT rewarded'),
+('26', '50001', '34', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50001 if 6 IS NOT rewarded'),
+('26', '50001', '59', '0', '0', '47', '0', '6', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50001 if 6 IS NOT rewarded'),
+('26', '50002', '9', '0', '0', '47', '0', '6', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50002 if 6 IS rewarded'),
+('26', '50002', '34', '0', '0', '47', '0', '6', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50002 if 6 IS rewarded'),
+('26', '50002', '59', '0', '0', '47', '0', '6', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50002 if 6 IS rewarded'),
+('26', '50002', '9', '0', '0', '47', '0', '54', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50002 if 54 IS NOT rewarded'),
+('26', '50002', '34', '0', '0', '47', '0', '54', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50002 if 54 IS NOT rewarded'),
+('26', '50002', '59', '0', '0', '47', '0', '54', '64', '0', '', '1', '0', '0', '', 'Northshire - Add phase 50002 if 54 IS NOT rewarded'),
+('26', '50003', '9', '0', '0', '47', '0', '54', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50003 if 54 IS rewarded'),
+('26', '50003', '24', '0', '0', '47', '0', '54', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50003 if 54 IS rewarded'),
+('26', '50003', '34', '0', '0', '47', '0', '54', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50003 if 54 IS rewarded'),
+('26', '50003', '59', '0', '0', '47', '0', '54', '64', '0', '', '0', '0', '0', '', 'Northshire - Add phase 50003 if 54 IS rewarded');
 
 -- Quest: 6 Bounty on Garrick Padfoot
 -- Quest: 7 Kobold Camp Cleanup
@@ -73,7 +84,7 @@ INSERT INTO `conditions` VALUES
 UPDATE `creature` SET `position_x` = '-8888.920', `position_y` = '-279.9920', `position_z` = '80.35540', `orientation` = '5.433910' WHERE (`guid` = '279826'); -- Northshire Peasant position
 UPDATE `creature_template` SET `faction` = '12' WHERE (`entry` = '196'); -- Eagen faction fix
 UPDATE `creature_template_difficulty` SET `DifficultyID` = 0 WHERE `DifficultyID` != 0 AND `Entry` IN (6, 38, 62, 80, 103, 257, 299);
-UPDATE `creature_template_difficulty` SET `ContentTuningID` = 2 WHERE `ContentTuningID` != 2 AND `Entry` IN (6, 38, 62, 80, 103, 257, 299);
+UPDATE `creature_template_difficulty` SET `ContentTuningID` = 70 WHERE `ContentTuningID` != 70 AND `Entry` IN (6, 38, 62, 80, 103, 257, 299);
 UPDATE `creature_loot_template` SET `Chance` = 1 WHERE `Chance` < 1 AND `Entry` IN (6, 38, 62, 80, 103, 257, 299, 50039, 49874, 49871, 42937, 42938);
 
 -- Creature Spawns
@@ -141,6 +152,7 @@ UPDATE `quest_template_addon` SET `PrevQuestID` = '6' WHERE (`ID` = '31139');
 
 SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `id` IN (6, 38, 62, 80, 103, 257, 299, 823, 951, 9296) AND areaid IN (9, 24, 34, 59) AND `PhaseId` = 50001;
+DELETE FROM `creature` WHERE `areaid` IN (9, 24, 34, 59) AND `PhaseId` = 50003;
 INSERT INTO `creature` VALUES
 (@CGUID+1,'6','0','6170','9','0','0','50001','0','-1','0','1','-8772.91','-114.961','83.0156','0.0201845','300','0','0','100','0',NULL,NULL,NULL,NULL,'',NULL,'0'),
 (@CGUID+2,'6','0','6170','9','0','0','50001','0','-1','0','1','-8766.76','-117.605','83.5213','2.56215','300','0','0','100','0',NULL,NULL,NULL,NULL,'',NULL,'0'),
@@ -262,10 +274,35 @@ INSERT INTO `creature` VALUES
 (@CGUID+118,'299','0','6170','9','0','0','50001','0','-1','0','0','-8744.92','-221.37','88.656','1.78414','300','10','0','100','1',NULL,NULL,NULL,NULL,'',NULL,'0'),
 (@CGUID+119, '823', '0', '6170', '9', '0', '0', '50001', '0', '-1', '0', '1', '-8936.3', '-131.629', '82.2113', '5.90552', '300', '0', '0', '100', '0', NULL, '33280', '34816', NULL, '', NULL, '0'),
 (@CGUID+120, '951', '0', '6170', '24', '0', '0', '50001', '0', '-1', '0', '1', '-8879.75', '-182.926', '81.9399', '3.71863', '300', '0', '0', '100', '0', NULL, '32768', NULL, NULL, '', NULL, '0'),
-(@CGUID+121, '9296', '0', '6170', '9', '0', '0', '50001', '0', '-1', '0', '0', '-8852.242', '-214.983', '81.04672', '6.216281', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
+(@CGUID+121, '9296', '0', '6170', '9', '0', '0', '50001', '0', '-1', '0', '0', '-8852.242', '-214.983', '81.04672', '6.216281', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+122, '9296', '0', '6170', '59', '0', '0', '50003', '0', '-1', '0', '0', '-9004.3', '-308.414', '72.7995', '3.579', '300', '0', '0', '100', '0', NULL, '33280', NULL, NULL, '', NULL, '0'),
+(@CGUID+123, '823', '0', '6170', '34', '0', '0', '50003', '0', '-1', '0', '1', '-8681.73', '-117.491', '90.5722', '5.92986', '300', '0', '0', '100', '0', NULL, '33280', '34816', NULL, '', NULL, '0'),
+(@CGUID+124, '951', '0', '6170', '24', '0', '0', '50003', '0', '-1', '0', '1', '-8879.75', '-182.926', '81.9399', '3.71863', '300', '0', '0', '100', '0', NULL, '32768', NULL, NULL, '', NULL, '0');
 
-
-DELETE FROM `creature_addon` WHERE `guid` IN (900038, 900039, @CGUID+119);
+-- creature addons
+DELETE FROM `creature_addon` WHERE `guid` IN (900038, 900039, @CGUID+119, @CGUID+123);
 INSERT INTO `creature_addon` (`guid`, `StandState`) VALUES ('900038', '8');
 INSERT INTO `creature_addon` (`guid`, `StandState`) VALUES ('900039', '8');
 INSERT INTO `creature_addon` (`guid`, `auras`) VALUES (@CGUID+119, '');
+INSERT INTO `creature_addon` (`guid`, `auras`) VALUES (@CGUID+123, '');
+
+-- creature scripts
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_custom_stormwind_infantry' WHERE `Entry` = 49869; -- Stormwind Infantry
+UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (823, 951, 9296, 49871);
+
+UPDATE `creature` SET `ScriptName` = 'npc_custom_brother_paxton' WHERE `guid` = 279895;
+
+
+-- remove smart scripts
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 49869; -- Stormwind Infantry
+DELETE FROM `smart_scripts` WHERE  `entryorguid` IN (6, 38, 62, 80, 103, 257, 299, 823, 951, 9296, 50039, 50047, 49874, 49871, 49869, 42937, 42938, 42940) AND `id` IN (10000, 10001, 11000, 11001, 11002, 11003, 11004);
+UPDATE `smart_scripts` SET `event_param3` = '600000', `event_param4` = '1200000' WHERE (`entryorguid` = '62') and (`source_type` = '0') and (`id` = '0') and (`link` = '0'); -- Gug Fatcandle increase delay for frost armor
+
+-- creature text
+UPDATE `creature_text` SET `Text` = 'Time to join your friends, kissin\' the dirt!', `Probability` = '100' WHERE (`CreatureID` = '50039') and (`GroupID` = '0') and (`ID` = '1');
+DELETE FROM `creature_text` WHERE (`CreatureID` = '50039') and (`GroupID` = '1') and (`ID` = '0');
+DELETE FROM `creature_text` WHERE (`CreatureID` = '42937') and (`GroupID` = '1') and (`ID` = '0');
+DELETE FROM `creature_text` WHERE (`CreatureID` = '42937') and (`GroupID` = '2') and (`ID` = '0');
+DELETE FROM `creature_text` WHERE (`CreatureID` = '42937') and (`GroupID` = '3') and (`ID` = '0');
+UPDATE `creature_text` SET `Probability` = '100' WHERE (`CreatureID` = '42937') and (`GroupID` = '0') and (`ID` = '4');
+

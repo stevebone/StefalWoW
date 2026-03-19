@@ -5,7 +5,7 @@
 -- Starting Areas
 REPLACE INTO `hotfix_data` (`Id`, `UniqueId`, `TableHash`, `RecordId`, `Status`, `VerifiedBuild`) VALUES
 (800001, 800001, 4042326115, 50001, 1, -1), -- Start zone 1
-(800002, 800002, 4042326115, 50002, 1, -1); -- Start zone 2
+(800002, 800002, 4042326115, 50002, 1, -1), -- Start zone 2
 (800003, 800003, 4042326115, 50003, 1, -1); -- Start zone 2
 
 REPLACE INTO `phase` VALUES
