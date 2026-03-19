@@ -1578,12 +1578,24 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
         int32 envDmgDealMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT);
         if (envDmgDealMod != 0)
             rawDamage *= (1.0f + envDmgDealMod / 100.0f);
+
+        // Per-type weather damage bonus: only applies if ability type matches Mod_PetType_ID
+        int32 petTypeBonus = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_DAMAGE_DEALT_PCT);
+        int32 petTypeID = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_ID);
+        if (petTypeBonus != 0 && int32(abilityType) == petTypeID)
+            rawDamage *= (1.0f + petTypeBonus / 100.0f);
     }
     if (defender.PetType != PET_TYPE_ELEMENTAL)
     {
         int32 envDmgTakeMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_DAMAGE_TAKEN_PERCENT);
         if (envDmgTakeMod != 0)
             rawDamage *= (1.0f + envDmgTakeMod / 100.0f);
+
+        // Per-type weather damage taken: only applies if ability type matches Mod_PetType_ID
+        int32 petTypeTaken = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_DAMAGE_TAKEN_PCT);
+        int32 petTypeID = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_ID);
+        if (petTypeTaken != 0 && int32(abilityType) == petTypeID)
+            rawDamage *= (1.0f + petTypeTaken / 100.0f);
     }
 
     // Beast passive: +25% damage when below 50% HP
@@ -1611,6 +1623,14 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
     }
 
     int32 damage = std::max(1, int32(std::round(rawDamage)));
+
+    // Flat damage taken modifier from environment (e.g. Sandstorm damage shield)
+    if (defender.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 flatDmgTaken = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_ADD_FLAT_DAMAGE_TAKEN);
+        if (flatDmgTaken != 0)
+            damage = std::max(1, damage + flatDmgTaken);
+    }
 
     // Magic passive: cannot take more than 35% max HP in a single hit
     if (defender.PetType == PET_TYPE_MAGIC)
