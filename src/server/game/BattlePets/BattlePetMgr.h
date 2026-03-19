@@ -109,6 +109,7 @@ enum BattlePetState
     STATE_STAT_POWER                = 18,
     STATE_STAT_STAMINA              = 19,
     STATE_STAT_SPEED                = 20,
+    STATE_STAT_ACCURACY             = 22,
     STATE_MOD_DAMAGE_DEALT_PERCENT  = 23,
     STATE_MOD_DAMAGE_TAKEN_PERCENT  = 24,
     STATE_MOD_SPEED_PERCENT         = 25,

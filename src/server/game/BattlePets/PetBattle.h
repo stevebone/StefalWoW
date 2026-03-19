@@ -22,6 +22,7 @@
 #include "BattlePetMgr.h"
 #include "ObjectGuid.h"
 #include <array>
+#include <unordered_map>
 #include <vector>
 
 class Creature;
@@ -59,11 +60,18 @@ struct PetBattleAura
 struct PetBattleEnvironment
 {
     uint32 AbilityID = 0;
-    PetBattleWeatherType WeatherType = PET_BATTLE_WEATHER_NONE;
     int8 RemainingRounds = 0;
     uint8 CasterTeam = 0;
     uint32 AuraInstanceID = 0;   // Unique ID for the environment aura (sent to client)
     int32 CurrentRound = 0;      // Round when weather was applied
+    std::unordered_map<uint32, int32> States; // BattlePetState modifiers from DB2
+
+    bool IsActive() const { return AbilityID != 0 && AuraInstanceID != 0; }
+    int32 GetState(uint32 stateID) const
+    {
+        auto it = States.find(stateID);
+        return it != States.end() ? it->second : 0;
+    }
 };
 
 struct PetBattlePetData
@@ -124,7 +132,7 @@ struct PetBattlePetData
     // State values for the pet
     std::vector<std::pair<uint32, int32>> States;
 
-    void RecalculateEffectiveStats(PetBattleWeatherType activeWeather = PET_BATTLE_WEATHER_NONE)
+    void RecalculateEffectiveStats(std::unordered_map<uint32, int32> const* envStates = nullptr)
     {
         EffectivePower = Power;
         EffectiveSpeed = Speed;
@@ -163,11 +171,12 @@ struct PetBattlePetData
         if (PetType == PET_TYPE_FLYING && Health > MaxHealth / 2)
             EffectiveSpeed = int32(EffectiveSpeed * (1.0f + PASSIVE_FLYING_SPEED_BONUS));
 
-        // Weather speed penalties (Elemental passive: ignores all weather effects)
-        if (PetType != PET_TYPE_ELEMENTAL)
+        // Weather speed modifier from environment states (Elemental passive: ignores weather)
+        if (PetType != PET_TYPE_ELEMENTAL && envStates)
         {
-            if (activeWeather == PET_BATTLE_WEATHER_BLIZZARD || activeWeather == PET_BATTLE_WEATHER_MUD)
-                EffectiveSpeed = int32(EffectiveSpeed * 0.75f); // -25% speed
+            auto it = envStates->find(BattlePets::STATE_MOD_SPEED_PERCENT);
+            if (it != envStates->end() && it->second != 0)
+                EffectiveSpeed = int32(EffectiveSpeed * (1.0f + it->second / 100.0f));
         }
 
         if (EffectivePower < 1) EffectivePower = 1;
@@ -309,11 +318,10 @@ private:
     void RemoveAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID);
     void TickAuras();
 
-    // Environment/weather
-    void SetWeather(PetBattleWeatherType weatherType, uint32 abilityID, int8 duration, uint8 casterTeam);
+    // Environment/weather (state-driven from BattlePetAbilityState DB2)
+    void ApplyWeatherStates(uint32 abilityID);
+    void ClearWeatherStates();
     void TickWeather();
-    float GetWeatherDamageModifier(PetBattlePetType abilityType) const;
-    float GetWeatherHealingModifier() const;
 
     // Passive family abilities
     void ApplyPassiveRoundStart();
