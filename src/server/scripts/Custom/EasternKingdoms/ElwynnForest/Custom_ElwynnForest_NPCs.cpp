@@ -21,6 +21,7 @@
  */
 
 #include "Creature.h"
+#include "CreatureAIImpl.h"
 #include "MotionMaster.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
