@@ -1,23 +1,3 @@
--- Fix Existing Guids to make space for TC guids
-UPDATE `creature` SET `guid` = '11001000' WHERE (`guid` = '11000000');
-UPDATE `creature` SET `guid` = '11001001' WHERE (`guid` = '11000001');
-UPDATE `creature` SET `guid` = '11001002' WHERE (`guid` = '11000002');
-UPDATE `creature` SET `guid` = '11001003' WHERE (`guid` = '11000003');
-UPDATE `creature` SET `guid` = '11001004' WHERE (`guid` = '11000004');
-UPDATE `creature` SET `guid` = '11001005' WHERE (`guid` = '11000005');
-UPDATE `creature` SET `guid` = '11001006' WHERE (`guid` = '11000006');
-UPDATE `creature` SET `guid` = '11001007' WHERE (`guid` = '11000007');
-UPDATE `creature` SET `guid` = '11001008' WHERE (`guid` = '11000008');
-UPDATE `creature` SET `guid` = '11001009' WHERE (`guid` = '11000009');
-UPDATE `creature` SET `guid` = '11001010' WHERE (`guid` = '11000010');
-UPDATE `creature` SET `guid` = '11001011' WHERE (`guid` = '11000011');
-UPDATE `creature` SET `guid` = '11001012' WHERE (`guid` = '11000012');
-UPDATE `creature` SET `guid` = '11001013' WHERE (`guid` = '11000013');
-UPDATE `creature` SET `guid` = '11001014' WHERE (`guid` = '11000014');
-UPDATE `creature` SET `guid` = '11001015' WHERE (`guid` = '11000015');
-UPDATE `creature` SET `guid` = '11001016' WHERE (`guid` = '11000016');
-
--- TC Update Below
 SET @CGUID := 11000000;
 SET @NPCTEXTID := 610006;
 
