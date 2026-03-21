@@ -191,21 +191,9 @@ enum PetBattleAuraType : uint8
     PET_BATTLE_AURA_SLEEP       = 6,
 };
 
-// Weather/environment effect types
-enum PetBattleWeatherType : uint8
-{
-    PET_BATTLE_WEATHER_NONE         = 0,
-    PET_BATTLE_WEATHER_SUNNY        = 1,    // +25% healing
-    PET_BATTLE_WEATHER_MOONLIGHT    = 2,    // +25% healing, +10% magic damage
-    PET_BATTLE_WEATHER_RAIN         = 3,    // +25% aquatic damage
-    PET_BATTLE_WEATHER_SANDSTORM    = 4,    // Damage reduction shield, deals damage
-    PET_BATTLE_WEATHER_BLIZZARD     = 5,    // Deals frost damage, -25% speed
-    PET_BATTLE_WEATHER_MUD          = 6,    // -25% speed
-    PET_BATTLE_WEATHER_CLEANSING    = 7,    // removes all weather
-    PET_BATTLE_WEATHER_ARCANE       = 8,    // +25% magic damage
-    PET_BATTLE_WEATHER_LIGHTNING    = 9,    // +25% mechanical damage, deals damage
-    PET_BATTLE_WEATHER_SCORCHED     = 10,   // +25% dragonkin damage
-};
+// Weather effects are now fully state-driven from BattlePetAbilityState DB2 data.
+// Each weather ability defines its own modifiers (damage %, healing %, accuracy, speed)
+// via BattlePetAbilityState entries, stored on the environment slot at runtime.
 
 // DB2 effect property IDs - these correspond to BattlePetEffectPropertiesEntry::ID
 // The actual effect behavior is determined by the effect properties ID

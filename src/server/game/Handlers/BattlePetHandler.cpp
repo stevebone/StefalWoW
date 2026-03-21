@@ -205,7 +205,7 @@ static void BuildPetBattleEnviros(std::array<WorldPackets::BattlePet::PetBattleE
     for (uint8 i = 0; i < PetBattles::MAX_PET_BATTLE_ENVIRONMENTS; ++i)
     {
         PetBattles::PetBattleEnvironment const& env = battle->GetEnvironment(i);
-        if (env.WeatherType != PetBattles::PET_BATTLE_WEATHER_NONE && env.AuraInstanceID != 0)
+        if (env.IsActive())
         {
             WorldPackets::BattlePet::PetBattleAuraInfo auraInfo;
             auraInfo.AbilityID = env.AbilityID;

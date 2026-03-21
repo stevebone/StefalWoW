@@ -177,12 +177,13 @@ void PetBattleMgr::Initialize()
         for (BattlePetAbilityStateEntry const* entry : sBattlePetAbilityStateStore)
             abilityStates[entry->BattlePetAbilityID].push_back({ entry->BattlePetStateID, entry->Value });
 
-        // Diagnostic: log states for abilities already found as weather
+        // Store BattlePetAbilityState entries for weather abilities (used at runtime for modifiers)
         for (uint32 abilID : _weatherAbilityIDs)
         {
             auto it = abilityStates.find(abilID);
             if (it != abilityStates.end())
             {
+                _weatherAbilityStates[abilID] = it->second;
                 for (auto const& [stateID, value] : it->second)
                     TC_LOG_INFO("server.loading", "  WeatherAbil {} has AbilityState: stateID={} value={}", abilID, stateID, value);
             }
@@ -377,6 +378,12 @@ PetBattleAbilityEffectAction PetBattleMgr::GetEffectAction(uint16 propsID) const
 bool PetBattleMgr::IsWeatherAbility(uint32 abilityID) const
 {
     return _weatherAbilityIDs.count(abilityID) > 0;
+}
+
+std::vector<std::pair<uint32, int32>> const* PetBattleMgr::GetWeatherAbilityStates(uint32 abilityID) const
+{
+    auto it = _weatherAbilityStates.find(abilityID);
+    return it != _weatherAbilityStates.end() ? &it->second : nullptr;
 }
 
 void PetBattleMgr::Update(uint32 diff)

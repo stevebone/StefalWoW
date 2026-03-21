@@ -102,8 +102,9 @@ public:
     // Effect action mapping (DB2 PropsID -> abstract action type)
     PetBattleAbilityEffectAction GetEffectAction(uint16 propsID) const;
 
-    // Weather ability detection
+    // Weather ability detection and state lookup
     bool IsWeatherAbility(uint32 abilityID) const;
+    std::vector<std::pair<uint32, int32>> const* GetWeatherAbilityStates(uint32 abilityID) const;
 
     // PvP Queue
     void JoinQueue(ObjectGuid playerGUID);
@@ -140,6 +141,9 @@ private:
 
     // Weather ability IDs (abilities whose effects set weatherState on environment)
     std::unordered_set<uint32> _weatherAbilityIDs;
+
+    // Weather ability states: abilityID -> BattlePetAbilityState entries (stateID, value)
+    std::unordered_map<uint32, std::vector<std::pair<uint32, int32>>> _weatherAbilityStates;
 
     // PvP Queue
     std::vector<PvPQueueEntry> _pvpQueue;
