@@ -131,9 +131,9 @@ enum ItemBondingType
     BIND_QUEST                                  = 4,
     BIND_UNUSED_1                               = 5,
     BIND_UNUSED_2                               = 6,
-    BIND_WOW_ACCOUNT                            = 7, // Bind to Warband (WoW account scope)
-    BIND_BNET_ACCOUNT                           = 8, // Bind to Warband (Battle.net account scope)
-    BIND_BNET_ACCOUNT_UNTIL_EQUIPPED            = 9, // Bind to Warband until equipped, then becomes soulbound
+    BIND_WOW_ACCOUNT                            = 7,
+    BIND_BNET_ACCOUNT                           = 8,
+    BIND_BNET_ACCOUNT_UNTIL_EQUIPPED            = 9,
 };
 
 /* /// @todo: Requiring actual cases in which using (an) item isn't allowed while shapeshifted. Else, this flag would need an implementation.
@@ -146,7 +146,7 @@ enum ItemFieldFlags : uint32
     ITEM_FIELD_FLAG_TRANSLATED    = 0x00000002, // Item text will not read as garbage when player does not know the language
     ITEM_FIELD_FLAG_UNLOCKED      = 0x00000004, // Item had lock but can be opened now
     ITEM_FIELD_FLAG_WRAPPED       = 0x00000008, // Item is wrapped and contains another item
-    ITEM_FIELD_FLAG_CONVERTED_WARBOUND = 0x00000010, // BtWuE item has been equipped and converted to soulbound
+    ITEM_FIELD_FLAG_UNK2          = 0x00000010,
     ITEM_FIELD_FLAG_UNK3          = 0x00000020,
     ITEM_FIELD_FLAG_UNK4          = 0x00000040,
     ITEM_FIELD_FLAG_UNK5          = 0x00000080,

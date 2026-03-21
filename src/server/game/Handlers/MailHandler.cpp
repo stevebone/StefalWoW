@@ -163,7 +163,7 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& sendMail)
             if (Item* item = player->GetItemByGuid(att.ItemGUID))
             {
                 ItemTemplate const* itemProto = item->GetTemplate();
-                if (!itemProto || !(itemProto->HasFlag(ITEM_FLAG_IS_BOUND_TO_ACCOUNT) || item->IsWarbandBound()))
+                if (!itemProto || !itemProto->HasFlag(ITEM_FLAG_IS_BOUND_TO_ACCOUNT))
                 {
                     accountBound = false;
                     break;
@@ -215,9 +215,9 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& sendMail)
                 return;
             }
 
-            if ((item->IsBoundAccountWide() || item->IsWarbandBound()) && item->IsSoulBound() && player->GetSession()->GetAccountId() != receiverAccountId)
+            if (item->IsBoundAccountWide() && item->IsSoulBound() && player->GetSession()->GetAccountId() != receiverAccountId)
             {
-                if (!(item->IsBattlenetAccountBound() || item->IsWarbandBound()) || !player->GetSession()->GetBattlenetAccountId() || player->GetSession()->GetBattlenetAccountId() != receiverBnetAccountId)
+                if (!item->IsBattlenetAccountBound() || !player->GetSession()->GetBattlenetAccountId() || player->GetSession()->GetBattlenetAccountId() != receiverBnetAccountId)
                 {
                     player->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_NOT_SAME_ACCOUNT);
                     return;

@@ -11500,9 +11500,6 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
 
         if (pItem->GetBonding() == BIND_ON_ACQUIRE ||
             pItem->GetBonding() == BIND_QUEST ||
-            pItem->GetBonding() == BIND_WOW_ACCOUNT ||
-            pItem->GetBonding() == BIND_BNET_ACCOUNT ||
-            pItem->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED ||
             (pItem->GetBonding() == BIND_ON_EQUIP && IsBagPos(pos)))
             pItem->SetBinding(true);
 
@@ -11542,9 +11539,6 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
     {
         if (pItem2->GetBonding() == BIND_ON_ACQUIRE ||
             pItem2->GetBonding() == BIND_QUEST ||
-            pItem2->GetBonding() == BIND_WOW_ACCOUNT ||
-            pItem2->GetBonding() == BIND_BNET_ACCOUNT ||
-            pItem2->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED ||
             (pItem2->GetBonding() == BIND_ON_EQUIP && IsBagPos(pos)))
             pItem2->SetBinding(true);
 
@@ -11875,13 +11869,9 @@ void Player::VisualizeItem(uint8 slot, Item* pItem)
         return;
 
     // check also  BIND_ON_ACQUIRE and BIND_QUEST for .additem or .additemset case by GM (not binded at adding to inventory)
-    if (pItem->GetBonding() == BIND_ON_EQUIP || pItem->GetBonding() == BIND_ON_ACQUIRE || pItem->GetBonding() == BIND_QUEST
-        || pItem->GetBonding() == BIND_WOW_ACCOUNT || pItem->GetBonding() == BIND_BNET_ACCOUNT
-        || pItem->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
+    if (pItem->GetBonding() == BIND_ON_EQUIP || pItem->GetBonding() == BIND_ON_ACQUIRE || pItem->GetBonding() == BIND_QUEST)
     {
         pItem->SetBinding(true);
-        if (pItem->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
-            pItem->ConvertToSoulbound();
         if (IsInWorld())
             GetSession()->GetCollectionMgr()->AddItemAppearance(pItem);
     }
@@ -31489,9 +31479,7 @@ bool Player::ProcessItemCast(SpellCastRequest& castRequest, SpellCastTargets con
     }
 
     // check also  BIND_ON_ACQUIRE and BIND_QUEST for .additem or .additemset case by GM (not binded at adding to inventory)
-    if (item->GetBonding() == BIND_ON_USE || item->GetBonding() == BIND_ON_ACQUIRE || item->GetBonding() == BIND_QUEST
-        || item->GetBonding() == BIND_WOW_ACCOUNT || item->GetBonding() == BIND_BNET_ACCOUNT
-        || item->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
+    if (item->GetBonding() == BIND_ON_USE || item->GetBonding() == BIND_ON_ACQUIRE || item->GetBonding() == BIND_QUEST)
     {
         if (!item->IsSoulBound())
         {
