@@ -31439,11 +31439,7 @@ std::string Player::GetCharacterSelectOutfit() const
 
             uint32 itemModifiedAppearanceId = transmogOutfitSlot.ItemModifiedAppearanceID;
             if (!isTransmogDisplayed(static_cast<TransmogOutfitDisplayType>(*transmogOutfitSlot.AppearanceDisplayType)))
-                itemModifiedAppearanceId = m_activePlayerData->ViewedOutfit->Slots[slotInfo->SlotIndex].ItemModifiedAppearanceID;
-
-            uint32 spellItemEnchantmentId = transmogOutfitSlot.SpellItemEnchantmentID;
-            if (!isTransmogDisplayed(static_cast<TransmogOutfitDisplayType>(*transmogOutfitSlot.IllusionDisplayType)))
-                spellItemEnchantmentId = m_activePlayerData->ViewedOutfit->Slots[slotInfo->SlotIndex].SpellItemEnchantmentID;
+                itemModifiedAppearanceId = m_playerData->VisibleItems[i].ItemModifiedAppearanceID;
 
             InventoryType inventoryType = INVTYPE_NON_EQUIP;
             int32 displayId = 0;
@@ -31462,8 +31458,11 @@ std::string Player::GetCharacterSelectOutfit() const
                     displayId = itemAppearance->ItemDisplayInfoID;
             }
 
-            if (SpellItemEnchantmentEntry const* spellItemEnchantment = sSpellItemEnchantmentStore.LookupEntry(spellItemEnchantmentId))
+            if (SpellItemEnchantmentEntry const* spellItemEnchantment = sSpellItemEnchantmentStore.LookupEntry(transmogOutfitSlot.SpellItemEnchantmentID))
                 itemVisual = spellItemEnchantment->ItemVisual;
+
+            if (!isTransmogDisplayed(static_cast<TransmogOutfitDisplayType>(*transmogOutfitSlot.IllusionDisplayType)))
+                itemVisual = m_playerData->VisibleItems[i].ItemVisual;
 
             if (TransmogOutfitSlotInfoEntry const* secondarySlot = sTransmogOutfitSlotInfoStore.LookupEntry(slotInfo->Slot->SecondarySlotID))
             {
@@ -31473,7 +31472,7 @@ std::string Player::GetCharacterSelectOutfit() const
 
                     secondaryItemModifiedAppearanceId = secondaryTransmogOutfitSlot.ItemModifiedAppearanceID;
                     if (!isTransmogDisplayed(static_cast<TransmogOutfitDisplayType>(*secondaryTransmogOutfitSlot.AppearanceDisplayType)))
-                        secondaryItemModifiedAppearanceId = m_activePlayerData->ViewedOutfit->Slots[secondarySlotInfo->SlotIndex].ItemModifiedAppearanceID;
+                        secondaryItemModifiedAppearanceId = m_playerData->VisibleItems[i].SecondaryItemModifiedAppearanceID;
                 }
             }
 
