@@ -445,11 +445,12 @@ void PetBattle::ProcessRound()
     _needsFrontPetSwap.fill(false);
 
     // Recalculate effective stats for all living pets (includes passive bonuses, weather speed)
-    PetBattleWeatherType activeWeather = _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType;
+    auto const* envStates = _environments[PET_BATTLE_WEATHER_ENV_SLOT].IsActive()
+        ? &_environments[PET_BATTLE_WEATHER_ENV_SLOT].States : nullptr;
     for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
         for (uint8 p = 0; p < _teams[t].PetCount; ++p)
             if (_teams[t].Pets[p].IsAlive())
-                _teams[t].Pets[p].RecalculateEffectiveStats(activeWeather);
+                _teams[t].Pets[p].RecalculateEffectiveStats(envStates);
 
     // Apply passive round-start effects (Humanoid heal, Dragonkin reset, etc.)
     ApplyPassiveRoundStart();
@@ -953,6 +954,14 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
     int16 basePower = effect->Param[0];
     int16 accuracy = effect->Param[1];
 
+    // Weather accuracy modifier (Elemental passive: ignores weather)
+    if (accuracy > 0 && attacker.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envAccMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_STAT_ACCURACY);
+        if (envAccMod != 0)
+            accuracy = std::max(int16(0), int16(accuracy + envAccMod));
+    }
+
     // Check accuracy (if specified and > 0, roll for hit)
     if (accuracy > 0 && accuracy < 100)
     {
@@ -1043,7 +1052,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                     effect->ID, abilityID, weatherAuraAbilityID, auraDuration);
 
                 // Cancel existing weather on weather slot (PetbattleEnviros::Weather = 2, PBOID 8)
-                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID != 0 && _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID != 0)
+                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].IsActive())
                 {
                     PetBattleRoundEffect cancelEffect;
                     cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
@@ -1051,15 +1060,18 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                     cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
                     cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
                     _roundEffects.push_back(cancelEffect);
+                    ClearWeatherStates();
                 }
 
                 // Set up weather environment slot with the weather aura
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = weatherAuraAbilityID;
-                _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType = PET_BATTLE_WEATHER_NONE; // Gameplay mods come from SET_STATE effects
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = auraDuration;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = attackerTeam;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
+
+                // Load weather modifier states from BattlePetAbilityState DB2
+                ApplyWeatherStates(weatherAuraAbilityID);
 
                 // Emit AURA_APPLY targeting environment PBOID 8 (PetbattleEnviros::Weather)
                 PetBattleRoundEffect applyEffect;
@@ -1158,7 +1170,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_PERIODIC: effectID={} castAbility={} auraAbilityID={} duration={}",
                     effect->ID, abilityID, weatherAuraAbilityID, auraDuration);
 
-                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID != 0 && _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID != 0)
+                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].IsActive())
                 {
                     PetBattleRoundEffect cancelEffect;
                     cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
@@ -1166,14 +1178,17 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                     cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
                     cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
                     _roundEffects.push_back(cancelEffect);
+                    ClearWeatherStates();
                 }
 
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = weatherAuraAbilityID;
-                _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType = PET_BATTLE_WEATHER_NONE;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = auraDuration;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = attackerTeam;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
                 _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
+
+                // Load weather modifier states from BattlePetAbilityState DB2
+                ApplyWeatherStates(weatherAuraAbilityID);
 
                 PetBattleRoundEffect applyEffect;
                 applyEffect.AbilityEffectID = effect->ID;
@@ -1351,6 +1366,9 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
 
             TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={}",
                 effect->ID, stateID, stateValue);
+
+            // Store the state on the environment for gameplay use
+            _environments[PET_BATTLE_WEATHER_ENV_SLOT].States[stateID] = stateValue;
 
             // Emit SET_STATE targeting environment PBOID (slot 0)
             PetBattleRoundEffect roundEffect;
@@ -1554,9 +1572,31 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
     result.TypeMod = GetTypeEffectiveness(abilityType, PetBattlePetType(defender.PetType));
     rawDamage *= result.TypeMod;
 
-    // Weather damage modifier (Elemental passive: ignores all weather effects)
+    // Weather damage modifiers from environment states (Elemental passive: ignores weather)
     if (attacker.PetType != PET_TYPE_ELEMENTAL)
-        rawDamage *= (1.0f + GetWeatherDamageModifier(abilityType));
+    {
+        int32 envDmgDealMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT);
+        if (envDmgDealMod != 0)
+            rawDamage *= (1.0f + envDmgDealMod / 100.0f);
+
+        // Per-type weather damage bonus: only applies if ability type matches Mod_PetType_ID
+        int32 petTypeBonus = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_DAMAGE_DEALT_PCT);
+        int32 petTypeID = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_ID);
+        if (petTypeBonus != 0 && int32(abilityType) == petTypeID)
+            rawDamage *= (1.0f + petTypeBonus / 100.0f);
+    }
+    if (defender.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envDmgTakeMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_DAMAGE_TAKEN_PERCENT);
+        if (envDmgTakeMod != 0)
+            rawDamage *= (1.0f + envDmgTakeMod / 100.0f);
+
+        // Per-type weather damage taken: only applies if ability type matches Mod_PetType_ID
+        int32 petTypeTaken = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_DAMAGE_TAKEN_PCT);
+        int32 petTypeID = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_ID);
+        if (petTypeTaken != 0 && int32(abilityType) == petTypeID)
+            rawDamage *= (1.0f + petTypeTaken / 100.0f);
+    }
 
     // Beast passive: +25% damage when below 50% HP
     if (attacker.PetType == PET_TYPE_BEAST && attacker.Health <= attacker.MaxHealth / 2)
@@ -1584,6 +1624,14 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
 
     int32 damage = std::max(1, int32(std::round(rawDamage)));
 
+    // Flat damage taken modifier from environment (e.g. Sandstorm damage shield)
+    if (defender.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 flatDmgTaken = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_ADD_FLAT_DAMAGE_TAKEN);
+        if (flatDmgTaken != 0)
+            damage = std::max(1, damage + flatDmgTaken);
+    }
+
     // Magic passive: cannot take more than 35% max HP in a single hit
     if (defender.PetType == PET_TYPE_MAGIC)
         damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
@@ -1601,8 +1649,13 @@ int32 PetBattle::CalculateAbilityHealing(int32 healPower, int32 attackerPower, P
 {
     float rawHealing = healPower * (attackerPower / 20.0f);
 
-    // Weather healing modifier
-    rawHealing *= (1.0f + GetWeatherHealingModifier());
+    // Weather healing modifier from environment states (Elemental passive: ignores weather)
+    if (healer.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envHealMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_HEALING_DEALT_PERCENT);
+        if (envHealMod != 0)
+            rawHealing *= (1.0f + envHealMod / 100.0f);
+    }
 
     // State-based healing modifiers
     for (auto const& [stateID, stateValue] : healer.States)
@@ -1829,64 +1882,26 @@ void PetBattle::TickAuras()
 }
 
 // ============================================================================
-// Environment / Weather system
+// Environment / Weather system (state-driven from BattlePetAbilityState DB2)
 // ============================================================================
 
-void PetBattle::SetWeather(PetBattleWeatherType weatherType, uint32 abilityID, int8 duration, uint8 casterTeam)
+void PetBattle::ApplyWeatherStates(uint32 abilityID)
 {
-    if (weatherType == PET_BATTLE_WEATHER_CLEANSING)
+    // Load BattlePetAbilityState entries for this weather ability onto the environment
+    if (auto const* states = sPetBattleMgr->GetWeatherAbilityStates(abilityID))
     {
-        // Clear all weather — emit AURA_CANCEL for any active environment auras
-        for (uint8 i = 0; i < MAX_PET_BATTLE_ENVIRONMENTS; ++i)
+        for (auto const& [stateID, value] : *states)
         {
-            if (_environments[i].WeatherType != PET_BATTLE_WEATHER_NONE && _environments[i].AuraInstanceID != 0)
-            {
-                PetBattleRoundEffect cancelEffect;
-                cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
-                cancelEffect.TargetEnvSlot = static_cast<int8>(i);
-                cancelEffect.Param1 = _environments[i].AuraInstanceID;
-                cancelEffect.Param2 = _environments[i].AbilityID;
-                _roundEffects.push_back(cancelEffect);
-            }
-            _environments[i].WeatherType = PET_BATTLE_WEATHER_NONE;
-            _environments[i].AbilityID = 0;
-            _environments[i].RemainingRounds = 0;
-            _environments[i].AuraInstanceID = 0;
+            _environments[PET_BATTLE_WEATHER_ENV_SLOT].States[stateID] = value;
+            TC_LOG_DEBUG("server.loading", "PetBattle ApplyWeatherStates: abilityID={} stateID={} value={}",
+                abilityID, stateID, value);
         }
-        return;
     }
+}
 
-    // Cancel existing weather on weather slot (PetbattleEnviros::Weather = 2, PBOID 8)
-    if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType != PET_BATTLE_WEATHER_NONE && _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID != 0)
-    {
-        PetBattleRoundEffect cancelEffect;
-        cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
-        cancelEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
-        cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
-        cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
-        _roundEffects.push_back(cancelEffect);
-    }
-
-    // Weather slot (PetbattleEnviros::Weather = 2) is the shared battlefield weather
-    _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = abilityID;
-    _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType = weatherType;
-    _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = duration;
-    _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = casterTeam;
-    _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
-    _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
-
-    // Emit AURA_APPLY targeting environment PBOID 8 (EnvWeather)
-    PetBattleRoundEffect applyEffect;
-    applyEffect.AbilityEffectID = abilityID;
-    applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
-    applyEffect.SourceTeam = casterTeam;
-    applyEffect.SourcePet = _teams[casterTeam].FrontPetIndex;
-    applyEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
-    applyEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
-    applyEffect.Param2 = abilityID;
-    applyEffect.Param3 = duration;
-    applyEffect.Param4 = _currentRound;
-    _roundEffects.push_back(applyEffect);
+void PetBattle::ClearWeatherStates()
+{
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].States.clear();
 }
 
 void PetBattle::TickWeather()
@@ -1894,7 +1909,7 @@ void PetBattle::TickWeather()
     for (uint8 envSlot = 0; envSlot < MAX_PET_BATTLE_ENVIRONMENTS; ++envSlot)
     {
         PetBattleEnvironment& env = _environments[envSlot];
-        if (env.WeatherType == PET_BATTLE_WEATHER_NONE)
+        if (!env.IsActive())
             continue;
 
         // Emit AURA_CHANGE for environment aura (updates round counter in client)
@@ -1915,35 +1930,6 @@ void PetBattle::TickWeather()
 
         env.RemainingRounds--;
 
-        // Weather deals periodic damage/effects
-        if (env.WeatherType == PET_BATTLE_WEATHER_SANDSTORM ||
-            env.WeatherType == PET_BATTLE_WEATHER_BLIZZARD ||
-            env.WeatherType == PET_BATTLE_WEATHER_LIGHTNING)
-        {
-            for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
-            {
-                PetBattlePetData& frontPet = _teams[t].Pets[_teams[t].FrontPetIndex];
-                if (!frontPet.IsAlive())
-                    continue;
-
-                // Elemental passive: ignores all weather effects
-                if (frontPet.PetType == PET_TYPE_ELEMENTAL)
-                    continue;
-
-                int32 weatherDamage = std::max(1, frontPet.MaxHealth / 20); // 5% max HP per tick
-
-                frontPet.Health = std::max(0, frontPet.Health - weatherDamage);
-
-                PetBattleRoundEffect roundEffect;
-                roundEffect.AbilityEffectID = env.AbilityID;
-                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
-                roundEffect.TargetTeam = t;
-                roundEffect.TargetPet = _teams[t].FrontPetIndex;
-                roundEffect.Param1 = frontPet.Health;
-                _roundEffects.push_back(roundEffect);
-            }
-        }
-
         if (env.RemainingRounds <= 0)
         {
             // Emit AURA_CANCEL so client removes the weather icon
@@ -1956,46 +1942,11 @@ void PetBattle::TickWeather()
                 cancelEffect.Param2 = env.AbilityID;
                 _roundEffects.push_back(cancelEffect);
             }
-            env.WeatherType = PET_BATTLE_WEATHER_NONE;
             env.AbilityID = 0;
             env.AuraInstanceID = 0;
+            if (envSlot == PET_BATTLE_WEATHER_ENV_SLOT)
+                ClearWeatherStates();
         }
-    }
-}
-
-float PetBattle::GetWeatherDamageModifier(PetBattlePetType abilityType) const
-{
-    PetBattleWeatherType weather = _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType;
-
-    switch (weather)
-    {
-        case PET_BATTLE_WEATHER_RAIN:
-            return (abilityType == PET_TYPE_AQUATIC) ? 0.25f : 0.0f;
-        case PET_BATTLE_WEATHER_ARCANE:
-        case PET_BATTLE_WEATHER_MOONLIGHT:
-            return (abilityType == PET_TYPE_MAGIC) ? 0.25f : 0.0f;
-        case PET_BATTLE_WEATHER_LIGHTNING:
-            return (abilityType == PET_TYPE_MECHANICAL) ? 0.25f : 0.0f;
-        case PET_BATTLE_WEATHER_SCORCHED:
-            return (abilityType == PET_TYPE_DRAGONKIN) ? 0.25f : 0.0f;
-        case PET_BATTLE_WEATHER_SANDSTORM:
-            return -0.10f; // Sandstorm reduces all damage slightly
-        default:
-            return 0.0f;
-    }
-}
-
-float PetBattle::GetWeatherHealingModifier() const
-{
-    PetBattleWeatherType weather = _environments[PET_BATTLE_WEATHER_ENV_SLOT].WeatherType;
-
-    switch (weather)
-    {
-        case PET_BATTLE_WEATHER_SUNNY:
-        case PET_BATTLE_WEATHER_MOONLIGHT:
-            return 0.25f;
-        default:
-            return 0.0f;
     }
 }
 

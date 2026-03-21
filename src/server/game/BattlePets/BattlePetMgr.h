@@ -99,34 +99,57 @@ enum FlagsControlType
     FLAGS_CONTROL_TYPE_REMOVE       = 2
 };
 
-// taken from BattlePetState.db2 - it seems to store some initial values for battle pets
-// there are only values used in BattlePetSpeciesState.db2 and BattlePetBreedState.db2
-// TODO: expand this enum if needed
+// BattlePetState.db2 — LuaName-based IDs (verified via wago.tools/WoWDBDefs)
 enum BattlePetState
 {
-    STATE_MAX_HEALTH_BONUS          = 2,
-    STATE_INTERNAL_INITIAL_LEVEL    = 17,
-    STATE_STAT_POWER                = 18,
-    STATE_STAT_STAMINA              = 19,
-    STATE_STAT_SPEED                = 20,
-    STATE_MOD_DAMAGE_DEALT_PERCENT  = 23,
-    STATE_MOD_DAMAGE_TAKEN_PERCENT  = 24,
-    STATE_MOD_SPEED_PERCENT         = 25,
-    STATE_MOD_HEALING_DEALT_PERCENT = 26,
-    STATE_MOD_HEALING_TAKEN_PERCENT = 27,
-    STATE_GENDER                    = 78, // 1 - male, 2 - female
-    STATE_COSMETIC_WATER_BUBBLED    = 85,
-    STATE_SPECIAL_IS_COCKROACH      = 93,
-    STATE_COSMETIC_FLY_TIER         = 128,
-    STATE_COSMETIC_BIGGLESWORTH     = 144,
-    STATE_PASSIVE_ELITE             = 153,
-    STATE_PASSIVE_BOSS              = 162,
-    STATE_COSMETIC_TREASURE_GOBLIN  = 176,
+    STATE_IS_DEAD                       = 1,
+    STATE_MAX_HEALTH_BONUS              = 2,
+    STATE_INTERNAL_INITIAL_LEVEL        = 17,
+    STATE_STAT_POWER                    = 18,
+    STATE_STAT_STAMINA                  = 19,
+    STATE_STAT_SPEED                    = 20,
+    STATE_MECHANIC_IS_POISONED          = 21,
+    STATE_MECHANIC_IS_STUNNED           = 22,
+    STATE_MOD_DAMAGE_DEALT_PERCENT      = 23,
+    STATE_MOD_DAMAGE_TAKEN_PERCENT      = 24,
+    STATE_MOD_SPEED_PERCENT             = 25,
+    STATE_STAT_CRIT_CHANCE              = 40,
+    STATE_STAT_ACCURACY                 = 41,
+    STATE_WEATHER_BURNT_EARTH           = 53,
+    STATE_WEATHER_ARCANE_STORM          = 54,
+    STATE_WEATHER_MOONLIGHT             = 55,
+    STATE_WEATHER_DARKNESS              = 56,
+    STATE_WEATHER_SANDSTORM             = 57,
+    STATE_WEATHER_BLIZZARD              = 58,
+    STATE_WEATHER_MUD                   = 59,
+    STATE_WEATHER_RAIN                  = 60,
+    STATE_WEATHER_SUNLIGHT              = 61,
+    STATE_WEATHER_LIGHTNING_STORM       = 62,
+    STATE_WEATHER_WINDY                 = 63,
+    STATE_MOD_HEALING_DEALT_PERCENT     = 65,
+    STATE_MOD_HEALING_TAKEN_PERCENT     = 66,
+    STATE_ADD_FLAT_DAMAGE_TAKEN         = 71,
+    STATE_ADD_FLAT_DAMAGE_DEALT         = 72,
+    STATE_STAT_DODGE                    = 73,
+    STATE_GENDER                        = 78,
+    STATE_MECHANIC_IS_BLIND             = 82,
+    STATE_COSMETIC_WATER_BUBBLED        = 85,
+    STATE_MOD_PET_TYPE_DAMAGE_DEALT_PCT = 87,
+    STATE_MOD_PET_TYPE_DAMAGE_TAKEN_PCT = 88,
+    STATE_MOD_PET_TYPE_ID               = 89,
+    STATE_SPECIAL_IS_COCKROACH          = 93,
+    STATE_MOD_MAX_HEALTH_PERCENT        = 99,
+    STATE_COSMETIC_FLY_TIER             = 128,
+    STATE_SPECIAL_IS_CLEANSING          = 141,
+    STATE_COSMETIC_BIGGLESWORTH         = 144,
+    STATE_PASSIVE_ELITE                 = 153,
+    STATE_PASSIVE_BOSS                  = 162,
+    STATE_COSMETIC_TREASURE_GOBLIN      = 176,
     // these are not in BattlePetState.db2 but are used in BattlePetSpeciesState.db2
-    STATE_START_WITH_BUFF           = 183,
-    STATE_START_WITH_BUFF_2         = 184,
-    //
-    STATE_COSMETIC_SPECTRAL_BLUE    = 196
+    STATE_START_WITH_BUFF               = 183,
+    STATE_START_WITH_BUFF_2             = 184,
+    STATE_COSMETIC_SPECTRAL_BLUE        = 196,
+    STATE_WEATHER_TOXIC_GAS             = 316,
 };
 
 enum BattlePetSaveInfo
