@@ -21,8 +21,13 @@
  */
 
 #include "Creature.h"
+#include "CreatureAI.h"
 #include "CreatureAIImpl.h"
+#include "EventMap.h"
 #include "MotionMaster.h"
+#include "Player.h"
+#include "Position.h"
+#include "ObjectAccessor.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellAuras.h"
@@ -325,8 +330,237 @@ struct npc_custom_brother_paxton : public ScriptedAI
     }
 };
 
+struct npc_custom_eastvale_lumberjack : public ScriptedAI
+{
+    npc_custom_eastvale_lumberjack(Creature* creature) : ScriptedAI(creature) { }
+
+    Position HomePos;
+    EventMap events;
+    uint32 currentSpot = 0;
+
+    void Reset() override
+    {
+        HomePos = me->GetHomePosition();
+        me->SetWalk(true);
+        events.ScheduleEvent(EVENT_GO_TO_WORK_SPOT, std::chrono::milliseconds(urand(3000, 8000)));
+    }
+
+    void JustEnteredCombat(Unit* who) override
+    {
+        events.Reset();
+        me->GetMotionMaster()->Clear();
+        me->HandleEmoteCommand(EMOTE_STATE_NONE);
+
+        Creature* attacker = who->ToCreature();
+        Creature* marshall = me->FindNearestCreature(NPC_EASTVALE_MARSHAL_PETTERSON, 200.f);
+
+        if (attacker && attacker->GetEntry() == NPC_EASTVALE_PROWLER)
+        {
+            uint32 idx = urand(0, uint32(EastvalePanicLines.size() - 1));
+            me->Yell(EastvalePanicLines[idx], LANG_UNIVERSAL);
+            me->SetWalk(false);
+            if (marshall)
+            {
+                Position pos = marshall->GetPosition();
+                me->GetMotionMaster()->MovePoint(4, pos.GetPositionX() + frand(-2.f, 2.f), pos.GetPositionY() + frand(-2.f, 2.f), pos.GetPositionZ());
+            }
+        }
+    }
+
+    void JustExitedCombat() override
+    {
+        me->HandleEmoteCommand(EMOTE_STATE_NONE);
+        me->GetMotionMaster()->Clear();
+        me->SetWalk(true);
+        me->GetMotionMaster()->MoveTargetedHome();
+
+        // Restart routine after a short delay
+        events.ScheduleEvent(EVENT_IDLE, 5s);
+    }
+
+    void JustDied(Unit* /*killer*/) override // Runs once when creature dies
+    {
+        events.Reset();
+    }
+
+    void MovementInform(uint32 /*type*/, uint32 id) override
+    {
+        switch (id)
+        {
+        case 1:
+            events.ScheduleEvent(EVENT_CHOP_WOOD, 0s);
+            break;
+        case 2:
+            events.ScheduleEvent(EVENT_IDLE, 4s);
+            break;
+
+        case 3:
+        {
+            int8 outcome = urand(0, 1);
+            std::string request = "Hey boss, can we have a break please?";
+            me->Say(request, LANG_UNIVERSAL);
+
+            switch (outcome)
+            {
+            case 0:
+                events.ScheduleEvent(EVENT_BREAK_NOT_ALLOWED, 3s, 5s);
+                break;
+            case 1:
+                events.ScheduleEvent(EVENT_BREAK_ALLOWED, 3s, 5s);
+                break;
+            default:
+                break;
+            }
+            break;
+        }
+
+        case 4:
+        {
+            if (!me->getAttackers().empty())
+            {
+                Unit* victim = *me->getAttackers().begin();
+                if (victim)
+                {
+                    me->AI()->AttackStart(victim);
+
+                    if (Creature* marshall = me->FindNearestCreature(NPC_EASTVALE_MARSHAL_PETTERSON, 30.f))
+                        marshall->AI()->AttackStart(victim);
+                }
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (me->isDead())
+            return;
+
+        // Threat detection: wolves nearby
+        if (!me->IsInCombat())
+        {
+            Creature* wolf = me->FindNearestCreature(NPC_EASTVALE_PROWLER, 10.f);
+            if (wolf && !wolf->IsInCombat())
+            {
+                // Force wolf to attack this worker
+                wolf->AI()->AttackStart(me);
+
+                return;
+            }
+        }
+
+        events.Update(diff);
+
+        if (me->HasUnitState(UNIT_STATE_CASTING))
+            return;
+
+        while (uint32 eventId = events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case EVENT_GO_TO_WORK_SPOT:
+            {
+                currentSpot = urand(0, EastvaleWorkSpots.size() - 1);
+                me->GetMotionMaster()->MovePoint(1, EastvaleWorkSpots[currentSpot]);
+                break;
+            }
+
+            case EVENT_CHOP_WOOD:
+            {
+                me->SetFacingTo(EastvaleWorkSpots[currentSpot].GetOrientation());
+                me->HandleEmoteCommand(EMOTE_STATE_WORK_CHOPWOOD);
+
+                // Say something
+                if (!EastvaleLumberjackWorkLines.empty())
+                {
+                    uint32 idx = urand(0, uint32(EastvaleLumberjackWorkLines.size() - 1));
+                    me->Say(EastvaleLumberjackWorkLines[idx], LANG_UNIVERSAL);
+                }
+
+                events.ScheduleEvent(EVENT_RETURN_HOME, std::chrono::milliseconds(urand(28000, 45000)));
+                break;
+            }
+
+            case EVENT_RETURN_HOME:
+            {
+                me->HandleEmoteCommand(EMOTE_STATE_NONE);
+                me->GetMotionMaster()->MovePoint(2, HomePos);
+                break;
+            }
+
+            case EVENT_IDLE:
+            {
+                uint8 event = RAND(EVENT_GO_TO_WORK_SPOT, EVENT_GO_TO_SUPERVISOR, EVENT_GO_TO_WORK_SPOT);
+
+                events.ScheduleEvent(event, std::chrono::milliseconds(urand(30000, 45000)));
+                break;
+            }
+
+            case EVENT_GO_TO_SUPERVISOR:
+            {
+                uint32 supervisorEntry = 0;
+                if (me->GetEntry() == NPC_EASTVALE_PEASANT)
+                    supervisorEntry = NPC_EASTVALE_RAELEN;
+                else supervisorEntry = NPC_EASTVALE_PERRY;
+
+                Creature* supervisor = me->FindNearestCreature(supervisorEntry, 30.f);
+                if (supervisor)
+                {
+                    me->GetMotionMaster()->MoveCloserAndStop(3, supervisor, frand(3.f, 5.f));
+                }
+                else
+                {
+                    events.ScheduleEvent(EVENT_GO_TO_WORK_SPOT, 2s);
+                }
+                break;
+            }
+
+            case EVENT_BREAK_NOT_ALLOWED:
+            {
+                uint32 supervisorEntry = 0;
+                if (me->GetEntry() == NPC_EASTVALE_PEASANT)
+                    supervisorEntry = NPC_EASTVALE_RAELEN;
+                else supervisorEntry = NPC_EASTVALE_PERRY;
+
+                Creature* supervisor = me->FindNearestCreature(supervisorEntry, 10.f);
+                if (supervisor)
+                {
+                    if(supervisorEntry == NPC_EASTVALE_RAELEN)
+                        supervisor->Say("We need to get this wagon filled by the end of the day. So back to work with you. Chop, chop!", LANG_UNIVERSAL);
+                    else supervisor->Say("The big boss is here and we cannot be seen slacking!", LANG_UNIVERSAL);
+                    events.ScheduleEvent(EVENT_GO_TO_WORK_SPOT, 3s, 5s);
+                }
+                break;
+            }
+
+            case EVENT_BREAK_ALLOWED:
+            {
+                uint32 supervisorEntry = 0;
+                if (me->GetEntry() == NPC_EASTVALE_PEASANT)
+                    supervisorEntry = NPC_EASTVALE_RAELEN;
+                else supervisorEntry = NPC_EASTVALE_PERRY;
+
+                Creature* supervisor = me->FindNearestCreature(supervisorEntry, 10.f);
+                if (supervisor)
+                {
+                    if (supervisorEntry == NPC_EASTVALE_RAELEN)
+                        supervisor->Say("This better be the last one today!", LANG_UNIVERSAL);
+                    else supervisor->Say("Just a few moments, okay?", LANG_UNIVERSAL);
+                    events.ScheduleEvent(EVENT_RETURN_HOME, 3s, 5s);
+                }
+                break;
+            }
+            }
+        }
+    }
+};
+
 void AddSC_custom_elwynn_forest_npcs()
 {
     new npc_custom_stormwind_infantry();
     RegisterCreatureAI(npc_custom_brother_paxton);
+    RegisterCreatureAI(npc_custom_eastvale_lumberjack);
 }

@@ -20,7 +20,30 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-enum Custom_Player_Mailer_NPCs
+enum Custom_Player_Voucher_NPCs
 {
     NPC_MERISSA_STILWELL = 11940,
+    NPC_ORENTHIL_WHISPERWIND = 11942,
+    NPC_YORI_CRACKHELM = 11941,
+    NPC_JAELEIL = 16476,
+
+    NPC_MAGGA = 11943,
+    NPC_VORN_SKYSEER = 11944,
+    NPC_CLAIRE_WILLOWER = 11945,
+    NPC_MARSILLA_DAWNSTAR = 15493,
+};
+
+enum Custom_Player_Riding_NPCs
+{
+    NPC_RANDAL_HUNTER = 4732,
+    NPC_JARTSAM = 4753,
+    NPC_ULTHAM_IRONHORN = 4772,
+    NPC_BINJY_FEATHERWHISTLE = 7954,
+    NPC_AALUN = 20914,
+
+    NPC_KAR_STORMWSINGER = 3690,
+    NPC_XARTI = 7953,
+    NPC_KILDAR = 4752,
+    NPC_VELMA_WARNAM = 4773,
+    NPC_PERASCAMIN = 16280,
 };
