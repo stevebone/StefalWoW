@@ -126,7 +126,9 @@ enum HoggerEventData
     EVENT_CLAY_SPEAKS_TO_ANDROMATH = 8,
     EVENT_TELEPORT_BACK = 9,
     EVENT_CHECK_EAT_RANGE = 10,
-    EVENT_BLOODY_STRIKE = 11
+    EVENT_BLOODY_STRIKE = 11,
+    EVENT_RAGAMUFFIN_LEAVE1 = 12,
+    EVENT_RAGAMUFFIN_LEAVE2 = 13,
 };
 
 enum HoggerTextData
@@ -206,6 +208,12 @@ static const Position ragamuffinPositions[2] =
 {
     { -10127.00f, 651.0f, 36.05776f },
     { -10123.0f, 651.0f,  36.06887f }
+};
+
+// validated positions
+static const Position ragamuffinPositionsLeave[1] =
+{
+    { -10090.936523f, 592.084351f, 39.357849f }
 };
 
 /*######

@@ -580,6 +580,7 @@ struct npc_custom_hogger : public ScriptedAI
         _isEating = false;
 
         me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+        me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
         me->SetReactState(REACT_AGGRESSIVE);
         me->SetWalk(false);
     }
@@ -677,15 +678,21 @@ struct npc_custom_hogger : public ScriptedAI
             hammond->AI()->Talk(YELL_OPENING);
         }
         // summon ragamuffins and do text
-        if (TempSummon* ragamuffin1 = me->SummonCreature(NPC_RAGAMUFFIN, ragamuffinPositions[0], TEMPSUMMON_TIMED_DESPAWN, 5s))
+        if (TempSummon* ragamuffin1 = me->SummonCreature(NPC_RAGAMUFFIN, ragamuffinPositions[0], TEMPSUMMON_TIMED_DESPAWN, 10s))
         {
+            _ragamuffin1GUID = ragamuffin1->GetGUID();
             ragamuffin1->SetFacingToObject(GetHammond());
             ragamuffin1->AI()->Talk(SAY_CLAY);
+            ragamuffin1->SetWalk(false);
+            _events.ScheduleEvent(EVENT_RAGAMUFFIN_LEAVE1, 3s, 8s);            
         }
-        if (TempSummon* ragamuffin2 = me->SummonCreature(NPC_RAGAMUFFIN, ragamuffinPositions[1], TEMPSUMMON_TIMED_DESPAWN, 5s))
+        if (TempSummon* ragamuffin2 = me->SummonCreature(NPC_RAGAMUFFIN, ragamuffinPositions[1], TEMPSUMMON_TIMED_DESPAWN, 10s))
         {
+            _ragamuffin2GUID = ragamuffin2->GetGUID();
             ragamuffin2->SetFacingToObject(GetHammond());
             ragamuffin2->AI()->Talk(SAY_WOW);
+            ragamuffin2->SetWalk(false);
+            _events.ScheduleEvent(EVENT_RAGAMUFFIN_LEAVE2, 3s, 8s);
         }
     }
 
@@ -805,6 +812,16 @@ struct npc_custom_hogger : public ScriptedAI
         return me->GetMap()->GetCreature(_dumasGUID);
     }
 
+    Creature* GetRagamuffin1()
+    {
+        return me->GetMap()->GetCreature(_ragamuffin1GUID);
+    }
+
+    Creature* GetRagamuffin2()
+    {
+        return me->GetMap()->GetCreature(_ragamuffin2GUID);
+    }
+
     void UpdateAI(uint32 diff) override
     {
         if (!UpdateVictim() && !_endingSceneActive)
@@ -903,6 +920,22 @@ struct npc_custom_hogger : public ScriptedAI
                 }
                 break;
 
+            case EVENT_RAGAMUFFIN_LEAVE1:
+            {
+                if(GetRagamuffin1())
+                    GetRagamuffin1()->GetMotionMaster()->MovePoint(0, ragamuffinPositionsLeave[0], true);
+
+                break;
+            }
+
+            case EVENT_RAGAMUFFIN_LEAVE2:
+            {
+                if (GetRagamuffin2())
+                    GetRagamuffin2()->GetMotionMaster()->MovePoint(0, ragamuffinPositionsLeave[0], true);
+
+                break;
+            }
+
             default:
                 break;
             }
@@ -918,6 +951,8 @@ private:
     ObjectGuid _generalHammondGUID;
     ObjectGuid _andromathGUID;
     ObjectGuid _dumasGUID;
+    ObjectGuid _ragamuffin1GUID;
+    ObjectGuid _ragamuffin2GUID;
 };
 
 struct npc_custom_hogger_minion : public ScriptedAI
