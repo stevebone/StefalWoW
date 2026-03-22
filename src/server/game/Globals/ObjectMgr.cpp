@@ -9317,7 +9317,29 @@ void ObjectMgr::LoadCreatureOutfits()
             if (displayInfo > 0) // entry
             {
                 uint32 item_entry = static_cast<uint32>(displayInfo);
-                if (uint32 display = sDB2Manager.GetItemDisplayId(item_entry, appearancemodid))
+
+                if (appearancemodid == 0)
+                {
+                    for (ItemModifiedAppearanceEntry const* appearanceMod : sItemModifiedAppearanceStore)
+                    {
+                        if (appearanceMod->ItemID == item_entry && appearanceMod->OrderIndex == 0)
+                        {
+                            appearancemodid = appearanceMod->ItemAppearanceModifierID;
+                            break;
+                        }
+                    }
+                }
+
+                uint32 display = 0;
+                if (ItemModifiedAppearanceEntry const* modifiedAppearance = TransmogMgr::GetItemModifiedAppearance(item_entry, appearancemodid))
+                {
+                    if (ItemAppearanceEntry const* itemAppearance = sItemAppearanceStore.LookupEntry(modifiedAppearance->ItemAppearanceID))
+                    {
+                        display = itemAppearance->ItemDisplayInfoID;
+                    }
+                }
+
+                if (display)
                     co->outfitdisplays[slot] = display;
                 else
                 {
