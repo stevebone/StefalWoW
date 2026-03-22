@@ -5,7 +5,7 @@ TRUNCATE `updates`;
 TRUNCATE `updates_include`;
 
 INSERT INTO `updates_include` VALUES
-{'$/sql/custom/hotfixes', 'RELEASED'),
+('$/sql/custom/hotfixes', 'RELEASED'),
 ('$/sql/updates/hotfixes', 'RELEASED');
 
 -- world DB
@@ -13,7 +13,7 @@ TRUNCATE `updates`;
 TRUNCATE `updates_include`;
 
 INSERT INTO `updates_include` VALUES
-{'$/sql/custom/world', 'RELEASED'),
+('$/sql/custom/world', 'RELEASED'),
 ('$/sql/updates/world', 'RELEASED');
 
 
