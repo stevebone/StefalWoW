@@ -299,12 +299,21 @@ DELETE FROM `smart_scripts` WHERE  `entryorguid` IN (6, 38, 62, 80, 103, 257, 29
 UPDATE `smart_scripts` SET `event_param3` = '600000', `event_param4` = '1200000' WHERE (`entryorguid` = '62') and (`source_type` = '0') and (`id` = '0') and (`link` = '0'); -- Gug Fatcandle increase delay for frost armor
 
 -- creature text
-UPDATE `creature_text` SET `Text` = 'Time to join your friends, kissin\' the dirt!', `Probability` = '100' WHERE (`CreatureID` = '50039') and (`GroupID` = '0') and (`ID` = '1');
-DELETE FROM `creature_text` WHERE (`CreatureID` = '50039') and (`GroupID` = '1') and (`ID` = '0');
 DELETE FROM `creature_text` WHERE (`CreatureID` = '42937') and (`GroupID` = '1') and (`ID` = '0');
 DELETE FROM `creature_text` WHERE (`CreatureID` = '42937') and (`GroupID` = '2') and (`ID` = '0');
 DELETE FROM `creature_text` WHERE (`CreatureID` = '42937') and (`GroupID` = '3') and (`ID` = '0');
 UPDATE `creature_text` SET `Probability` = '100' WHERE (`CreatureID` = '42937') and (`GroupID` = '0') and (`ID` = '4');
+
+-- Goblin Assasins in Northshire
+DELETE FROM `creature_text` WHERE `CreatureID` = 50039;
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(50039, 0, 0, 'We\'ll kill anybody for the right price!', 12, 0, 100, 0, 0, 0, 0, 49837, 0, 'Goblin Assassin on Aggro'),
+(50039, 0, 1, 'Time to join your friends, kissin\' the dirt!', 12, 0, 100, 0, 0, 0, 0, 49838, 0, 'Goblin Assassin on Aggro'),
+(50039, 0, 2, 'DIE!!!', 12, 0, 100, 0, 0, 0, 0, 49839, 0, 'Goblin Assassin on Aggro'),
+(50039, 0, 3, 'We\'re gonna burn this place to the ground!', 12, 0, 100, 0, 0, 0, 0, 49840, 0, 'Goblin Assassin on Aggro');
+
+-- Update chance as its higher on retail
+UPDATE `smart_scripts` SET `event_chance`= 35 WHERE `entryorguid`= 50039 AND `event_type`= 4;
 
 -- Added an extra line for Garrick Padfoot
 DELETE FROM `creature_text` WHERE `CreatureID` = 103 AND `GroupID` = 1;
