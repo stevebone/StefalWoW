@@ -137,8 +137,6 @@ UPDATE `creature_text` SET `Probability` = '100' WHERE (`CreatureID` = '46943') 
 UPDATE `creature_text` SET `Type` = '14', `Language` = '0', `Probability` = '100', `Emote` = '396' WHERE (`CreatureID` = '65153') and (`GroupID` = '0') and (`ID` = '0');
 UPDATE `creature_text` SET `Type` = '12', `Language` = '0', `Probability` = '100', `Emote` = '396', `Duration` = '0' WHERE (`CreatureID` = '65153') and (`GroupID` = '13') and (`ID` = '0');
 
-
-
 -- Creature Spawns
 -- Remove no longer needed Hogger quest spawns
 DELETE FROM `creature` WHERE `guid` IN (280327, 280328, 280329, 280330, 280331);
