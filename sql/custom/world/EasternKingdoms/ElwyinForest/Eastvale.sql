@@ -85,6 +85,6 @@ INSERT INTO `creature_text` VALUES
 DELETE FROM `smart_scripts` WHERE  `entryorguid` IN (43, 118, 294, 471, 474, 476, 798, 799, 800, 801, 802, 958, 959, 1975, 5405, 6093, 11328, 12375, 12376) AND `id` IN (10000, 10001, 11000, 11001, 11002, 11003, 11004);
 DELETE FROM `smart_scripts` WHERE  `entryorguid` IN (313, 472, 4732) AND `id` IN (10000, 10001, 11000, 11001, 11002, 11003, 11004);
 
-DELETE FROM `smart_scripts` WHERE `entryorguid` = 472 WHERE id = 2;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 472 AND id = 2;
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`Difficulties`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`action_param7`,`action_param_string`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_param4`,`target_param_string`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 (472,0,2,0,'',4,0,50,0,0,0,0,0,0,'',1,0,0,0,0,0,0,0,NULL,1,0,0,0,0,NULL,0,0,0,0,'Fedfennel - On Aggro - Say Line 0 (No Repeat)');

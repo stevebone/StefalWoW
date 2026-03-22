@@ -73,7 +73,7 @@ UPDATE `gossip_menu_option` SET `VerifiedBuild`=65940 WHERE (`MenuID`=36405 AND 
 -- Playerchoice
 DELETE FROM `playerchoice` WHERE `ChoiceId`=974;
 INSERT INTO `playerchoice` (`ChoiceId`, `UiTextureKitId`, `SoundKitId`, `CloseSoundKitId`, `Duration`, `Question`, `PendingChoiceText`, `InfiniteRange`, `HideWarboardHeader`, `KeepOpenAfterChoice`, `ShowChoicesAsList`, `ForceDontShowChoicesAsList`, `VerifiedBuild`) VALUES
-(974, 263, 0, 0, NULL, 'Which story would you like to hear?', '', 0, 0, 0, 0, 0, 65940);
+(974, 263, 0, 0, 0, 'Which story would you like to hear?', '', 0, 0, 0, 0, 0, 65940);
 
 UPDATE `playerchoice` SET `InfiniteRange`=0, `HideWarboardHeader`=0, `KeepOpenAfterChoice`=0, `ShowChoicesAsList`=0, `ForceDontShowChoicesAsList`=0, `VerifiedBuild`=65940 WHERE `ChoiceId`=845;
 

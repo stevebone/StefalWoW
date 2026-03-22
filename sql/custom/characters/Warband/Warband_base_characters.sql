@@ -1,4 +1,10 @@
+-- Drop child table first
+DROP TABLE IF EXISTS `character_warband_group_members`;
+
+-- Then drop parent table
 DROP TABLE IF EXISTS `character_warband_groups`;
+
+-- Recreate parent
 CREATE TABLE IF NOT EXISTS `character_warband_groups` (
   `groupId` bigint unsigned NOT NULL AUTO_INCREMENT,
   `battlenetAccountId` int unsigned NOT NULL,
@@ -11,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `character_warband_groups` (
   KEY `idx_account` (`battlenetAccountId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DROP TABLE IF EXISTS `character_warband_groups_members`;
+-- Recreate child
 CREATE TABLE IF NOT EXISTS `character_warband_group_members` (
   `groupId` bigint unsigned NOT NULL,
   `memberIndex` tinyint unsigned NOT NULL,
@@ -21,5 +27,8 @@ CREATE TABLE IF NOT EXISTS `character_warband_group_members` (
   `contentSetId` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`groupId`, `memberIndex`),
   KEY `idx_guid` (`guid`),
-  CONSTRAINT `fk_warband_group_members_group` FOREIGN KEY (`groupId`) REFERENCES `character_warband_groups` (`groupId`) ON DELETE CASCADE
+  CONSTRAINT `fk_warband_group_members_group`
+    FOREIGN KEY (`groupId`)
+    REFERENCES `character_warband_groups` (`groupId`)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

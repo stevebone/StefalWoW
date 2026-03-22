@@ -67,3 +67,27 @@ END //
 DELIMITER ;
 CALL DropColumnIfExists();
 DROP PROCEDURE DropColumnIfExists;
+
+DELIMITER //
+
+CREATE PROCEDURE DropColumnIfExists()
+BEGIN
+    DECLARE column_exists INT DEFAULT 0;
+
+    -- Check if the column exists
+    SELECT COUNT(*) INTO column_exists 
+    FROM information_schema.columns 
+    WHERE table_schema = DATABASE() 
+      AND TABLE_NAME = 'creature_loot_template' 
+      AND COLUMN_NAME = 'Reference';
+
+    -- If the column exists, drop it
+    IF column_exists > 0 THEN
+        ALTER TABLE creature_loot_template DROP COLUMN Reference;
+    END IF;
+END //
+
+DELIMITER ;
+CALL DropColumnIfExists();
+
+DROP PROCEDURE DropColumnIfExists;
