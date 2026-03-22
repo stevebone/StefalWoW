@@ -778,7 +778,7 @@ void Roleplay::CreateCustomNpcFromPlayer(Player* player, std::string const& key)
                 // weird case with items that don't have appearancemod of 0, just pick first appearance in the list
                 for (ItemModifiedAppearanceEntry const* appearanceMod : sItemModifiedAppearanceStore)
                 {
-                    if (appearanceMod->ItemID == pItem->GetEntry() && appearanceMod->OrderIndex == 0) {
+                    if ((uint32)appearanceMod->ItemID == pItem->GetEntry() && appearanceMod->OrderIndex == 0) {
                         if (ItemAppearanceEntry const* itemAppearance = sItemAppearanceStore.LookupEntry(appearanceMod->ItemAppearanceID))
                             displayId = itemAppearance->ItemDisplayInfoID;
 

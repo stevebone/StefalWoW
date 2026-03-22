@@ -23,12 +23,8 @@ CreatureOutfit& CreatureOutfit::SetItemEntry(EquipmentSlots slot, uint32 item_en
     uint32 display = 0;
 
     if (ItemModifiedAppearanceEntry const* modifiedAppearance = TransmogMgr::GetItemModifiedAppearance(item_entry, appearancemodid))
-    {
         if (ItemAppearanceEntry const* itemAppearance = sItemAppearanceStore.LookupEntry(modifiedAppearance->ItemAppearanceID))
-        {
             display = itemAppearance->ItemDisplayInfoID;
-        }
-    }
 
     outfitdisplays[slot] = display;
     return *this;

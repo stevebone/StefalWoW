@@ -319,12 +319,8 @@ public:
         uint32 displayId = 0;
 
         if (ItemModifiedAppearanceEntry const* modifiedAppearance = TransmogMgr::GetItemModifiedAppearance(item->GetId(), modAppearanceId.value_or(0)))
-        {
             if (ItemAppearanceEntry const* itemAppearance = sItemAppearanceStore.LookupEntry(modifiedAppearance->ItemAppearanceID))
-            {
                 displayId = itemAppearance->ItemDisplayInfoID;
-            }
-        }
 
         sRoleplay->SetCustomNpcOutfitEquipmentSlot(name, variation, slot, displayId);
         handler->PSendSysMessage("Armor equipped to custom NPC %s, model variation '%u'!", name, variation);
