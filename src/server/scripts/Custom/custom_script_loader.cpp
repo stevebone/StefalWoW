@@ -17,9 +17,6 @@
 
 // This is where scripts' loading functions should be declared:
 
-// ================= Custom Per Zone Scripts ================ //
-void AddSC_custom_elwynn_forest_npcs();
-
 //void AddSC_PrivateWork();
 //void AddSC_custom_commandscript();
 void AddSC_advanced_flying_spell_scripts();
@@ -35,8 +32,6 @@ void AddSC_toy_spell_scripts();
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
-    AddSC_custom_elwynn_forest_npcs();
-
     //AddSC_PrivateWork();
     //AddSC_custom_commandscript();
     AddSC_advanced_flying_spell_scripts();
