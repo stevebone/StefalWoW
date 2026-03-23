@@ -1,0 +1,25 @@
+-- Check differences between column types/format between 2 given DBs
+-- Useful to check if expected format is the same between a repack DB vs TC native DB
+
+SELECT 
+    c1.TABLE_NAME,
+    c1.COLUMN_NAME,
+    c1.COLUMN_TYPE AS tc_type,
+    c2.COLUMN_TYPE AS fork_type,
+    c1.IS_NULLABLE AS tc_nullable,
+    c2.IS_NULLABLE AS fork_nullable,
+    c1.COLUMN_DEFAULT AS tc_default,
+    c2.COLUMN_DEFAULT AS fork_default
+FROM INFORMATION_SCHEMA.COLUMNS c1
+LEFT JOIN INFORMATION_SCHEMA.COLUMNS c2
+    ON c1.TABLE_NAME = c2.TABLE_NAME
+    AND c1.COLUMN_NAME = c2.COLUMN_NAME
+    AND c2.TABLE_SCHEMA = 'stefal_hotfixes'
+WHERE c1.TABLE_SCHEMA = 'retail_hotfixes'
+  AND (
+        c2.COLUMN_NAME IS NULL
+        OR c1.COLUMN_TYPE <> c2.COLUMN_TYPE
+        OR c1.IS_NULLABLE <> c2.IS_NULLABLE
+        OR c1.COLUMN_DEFAULT <> c2.COLUMN_DEFAULT
+      )
+ORDER BY c1.TABLE_NAME, c1.COLUMN_NAME;
