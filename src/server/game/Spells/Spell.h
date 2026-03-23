@@ -449,7 +449,6 @@ class TC_GAME_API Spell
         void EffectSendChatMessage();
         void EffectGrantBattlePetExperience();
         void EffectLearnTransmogIllusion();
-        void EffectEquipTransmogOutfit();
         void EffectModifyAuraStacks();
         void EffectModifyCooldown();
         void EffectModifyCooldowns();
@@ -465,6 +464,7 @@ class TC_GAME_API Spell
         void EffectSetPlayerDataElementCharacter();
         void EffectSetPlayerDataFlagAccount();
         void EffectSetPlayerDataFlagCharacter();
+        void EffectEquipTransmogOutfit();
 
         typedef std::unordered_set<Aura*> UsedSpellMods;
 
@@ -632,6 +632,14 @@ class TC_GAME_API Spell
 
             // SPELL_EFFECT_UPGRADE_HEIRLOOM
             uint32 ItemId;
+
+            // SPELL_EFFECT_EQUIP_TRANSMOG_OUTFIT
+            struct
+            {
+                uint32 EquipAction;
+                uint32 TransmogOutfitId;
+                uint32 SituationTrigger;
+            } EquipTransmogOutfit;
 
             struct
             {
