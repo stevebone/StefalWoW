@@ -44,9 +44,10 @@ UPDATE `quest_template_addon` SET `AllowableClasses` = '0' WHERE `ID` IN (1688, 
 UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (6089, 6122); -- remove AI name
 UPDATE `creature_template` SET `faction` = '31' WHERE (`entry` = '49540'); -- fix Stormwind Rat
 UPDATE `creature_template` SET `faction` = '12' WHERE `entry` IN (332); -- incorrect faction
+UPDATE `creature_template` SET `faction` = '80' WHERE `entry` IN (5566); -- incorrect faction
 
 -- Scripts
-DELETE FROM `smart_scripts` WHERE  `entryorguid` IN (332, 6089, 6122) AND `id` IN (10000, 10001, 11000, 11001, 11002, 11003, 11004);
+DELETE FROM `smart_scripts` WHERE  `entryorguid` IN (332, 6089, 6122) AND `id` IN (11000, 11001, 11002, 11003, 11004);
 
 -- Gameobjects
 DELETE FROM `gameobject` WHERE `id` IN (102414);

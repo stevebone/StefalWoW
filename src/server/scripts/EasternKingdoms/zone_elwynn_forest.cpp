@@ -35,50 +35,50 @@
 
 enum COG_Paths
 {
-    STORMWIND_PATH  = 644000,
-    GOLDSHIRE_PATH  = 644008,
-    WOODS_PATH      = 644016,
-    HOUSE_PATH      = 644024,
-    LISA_PATH       = 645600
+    STORMWIND_PATH = 644000,
+    GOLDSHIRE_PATH = 644008,
+    WOODS_PATH = 644016,
+    HOUSE_PATH = 644024,
+    LISA_PATH = 645600
 };
 
 enum COG_Waypoints
 {
-    STORMWIND_WAYPOINT  = 57,
-    GOLDSHIRE_WAYPOINT  = 32,
-    WOODS_WAYPOINT      = 22,
-    HOUSE_WAYPOINT      = 35,
-    LISA_WAYPOINT       = 4
+    STORMWIND_WAYPOINT = 57,
+    GOLDSHIRE_WAYPOINT = 32,
+    WOODS_WAYPOINT = 22,
+    HOUSE_WAYPOINT = 35,
+    LISA_WAYPOINT = 4
 };
 
 enum COG_Sounds
 {
-    BANSHEE_DEATH           = 1171,
-    BANSHEEPREAGGRO         = 1172,
-    CTHUN_YOU_WILL_DIE      = 8585,
-    CTHUN_DEATH_IS_CLOSE    = 8580,
-    HUMAN_FEMALE_EMOTE_CRY  = 6916,
-    GHOSTDEATH              = 3416
+    BANSHEE_DEATH = 1171,
+    BANSHEEPREAGGRO = 1172,
+    CTHUN_YOU_WILL_DIE = 8585,
+    CTHUN_DEATH_IS_CLOSE = 8580,
+    HUMAN_FEMALE_EMOTE_CRY = 6916,
+    GHOSTDEATH = 3416
 };
 
 enum COG_Creatures
 {
-    NPC_DANA    = 804,
+    NPC_DANA = 804,
     NPC_CAMERON = 805,
-    NPC_JOHN    = 806,
-    NPC_LISA    = 807,
-    NPC_AARON   = 810,
-    NPC_JOSE    = 811
+    NPC_JOHN = 806,
+    NPC_LISA = 807,
+    NPC_AARON = 810,
+    NPC_JOSE = 811
 };
 
 enum COG_Events
 {
-    EVENT_WP_START_GOLDSHIRE    = 1,
-    EVENT_WP_START_WOODS        = 2,
-    EVENT_WP_START_HOUSE        = 3,
-    EVENT_WP_START_LISA         = 4,
-    EVENT_PLAY_SOUNDS           = 5,
-    EVENT_BEGIN_EVENT           = 6
+    EVENT_WP_START_GOLDSHIRE = 1,
+    EVENT_WP_START_WOODS = 2,
+    EVENT_WP_START_HOUSE = 3,
+    EVENT_WP_START_LISA = 4,
+    EVENT_PLAY_SOUNDS = 5,
+    EVENT_BEGIN_EVENT = 6
 };
 
 enum COG_GameEvent
@@ -142,48 +142,48 @@ struct npc_cameron : public ScriptedAI
     {
         switch (pathId)
         {
-            case STORMWIND_PATH:
+        case STORMWIND_PATH:
+        {
+            if (waypointId == STORMWIND_WAYPOINT)
             {
-                if (waypointId == STORMWIND_WAYPOINT)
-                {
-                    me->GetMotionMaster()->MoveRandom(10.f);
-                    _events.ScheduleEvent(EVENT_WP_START_GOLDSHIRE, 11min);
-                }
+                me->GetMotionMaster()->MoveRandom(10.f);
+                _events.ScheduleEvent(EVENT_WP_START_GOLDSHIRE, 11min);
+            }
 
-                break;
-            }
-            case GOLDSHIRE_PATH:
+            break;
+        }
+        case GOLDSHIRE_PATH:
+        {
+            if (waypointId == GOLDSHIRE_WAYPOINT)
             {
-                if (waypointId == GOLDSHIRE_WAYPOINT)
-                {
-                    me->GetMotionMaster()->MoveRandom(10.f);
-                    _events.ScheduleEvent(EVENT_WP_START_WOODS, 15min);
-                }
-                break;
+                me->GetMotionMaster()->MoveRandom(10.f);
+                _events.ScheduleEvent(EVENT_WP_START_WOODS, 15min);
             }
-            case WOODS_PATH:
+            break;
+        }
+        case WOODS_PATH:
+        {
+            if (waypointId == WOODS_WAYPOINT)
             {
-                if (waypointId == WOODS_WAYPOINT)
-                {
-                    me->GetMotionMaster()->MoveRandom(10.f);
-                    _events.ScheduleEvent(EVENT_WP_START_HOUSE, 6min);
-                    _events.ScheduleEvent(EVENT_WP_START_LISA, 2s);
-                }
+                me->GetMotionMaster()->MoveRandom(10.f);
+                _events.ScheduleEvent(EVENT_WP_START_HOUSE, 6min);
+                _events.ScheduleEvent(EVENT_WP_START_LISA, 2s);
+            }
 
-                break;
-            }
-            case HOUSE_PATH:
+            break;
+        }
+        case HOUSE_PATH:
+        {
+            if (waypointId == HOUSE_WAYPOINT)
             {
-                if (waypointId == HOUSE_WAYPOINT)
-                {
-                    // Move childeren at last point
-                    MoveTheChildren();
+                // Move childeren at last point
+                MoveTheChildren();
 
-                    // After 30 seconds a random sound should play
-                    _events.ScheduleEvent(EVENT_PLAY_SOUNDS, 30s);
-                }
-                break;
+                // After 30 seconds a random sound should play
+                _events.ScheduleEvent(EVENT_PLAY_SOUNDS, 30s);
             }
+            break;
+        }
         }
     }
 
@@ -215,64 +215,64 @@ struct npc_cameron : public ScriptedAI
         {
             switch (eventId)
             {
-                case EVENT_WP_START_GOLDSHIRE:
-                    me->GetMotionMaster()->MovePath(GOLDSHIRE_PATH, false);
-                    break;
-                case EVENT_WP_START_WOODS:
-                    me->GetMotionMaster()->MovePath(WOODS_PATH, false);
-                    break;
-                case EVENT_WP_START_HOUSE:
-                    me->GetMotionMaster()->MovePath(HOUSE_PATH, false);
-                    break;
-                case EVENT_WP_START_LISA:
-                    for (ObjectGuid guid : _childrenGUIDs)
+            case EVENT_WP_START_GOLDSHIRE:
+                me->GetMotionMaster()->MovePath(GOLDSHIRE_PATH, false);
+                break;
+            case EVENT_WP_START_WOODS:
+                me->GetMotionMaster()->MovePath(WOODS_PATH, false);
+                break;
+            case EVENT_WP_START_HOUSE:
+                me->GetMotionMaster()->MovePath(HOUSE_PATH, false);
+                break;
+            case EVENT_WP_START_LISA:
+                for (ObjectGuid guid : _childrenGUIDs)
+                {
+                    if (Creature* child = ObjectAccessor::GetCreature(*me, guid))
                     {
-                        if (Creature* child = ObjectAccessor::GetCreature(*me, guid))
+                        if (child->GetEntry() == NPC_LISA)
                         {
-                            if (child->GetEntry() == NPC_LISA)
-                            {
-                                child->GetMotionMaster()->MovePath(LISA_PATH, false);
-                                break;
-                            }
+                            child->GetMotionMaster()->MovePath(LISA_PATH, false);
+                            break;
                         }
                     }
-                    break;
-                case EVENT_PLAY_SOUNDS:
-                    me->PlayDistanceSound(SoundPicker());
-                    break;
-                case EVENT_BEGIN_EVENT:
-                {
-                    _childrenGUIDs.clear();
-
-                    // Get all childeren's guid's.
-                    if (Creature* dana = me->FindNearestCreature(NPC_DANA, 25.0f))
-                        _childrenGUIDs.push_back(dana->GetGUID());
-
-                    if (Creature* john = me->FindNearestCreature(NPC_JOHN, 25.0f))
-                        _childrenGUIDs.push_back(john->GetGUID());
-
-                    if (Creature* lisa = me->FindNearestCreature(NPC_LISA, 25.0f))
-                        _childrenGUIDs.push_back(lisa->GetGUID());
-
-                    if (Creature* aaron = me->FindNearestCreature(NPC_AARON, 25.0f))
-                        _childrenGUIDs.push_back(aaron->GetGUID());
-
-                    if (Creature* jose = me->FindNearestCreature(NPC_JOSE, 25.0f))
-                        _childrenGUIDs.push_back(jose->GetGUID());
-
-                    // If Formation was disbanded, remake.
-                    if (!me->GetFormation()->IsFormed())
-                        for (ObjectGuid guid : _childrenGUIDs)
-                            if (Creature* child = ObjectAccessor::GetCreature(*me, guid))
-                                child->SearchFormation();
-
-                    // Start movement
-                    me->GetMotionMaster()->MovePath(STORMWIND_PATH, false);
-
-                    break;
                 }
-                default:
-                    break;
+                break;
+            case EVENT_PLAY_SOUNDS:
+                me->PlayDistanceSound(SoundPicker());
+                break;
+            case EVENT_BEGIN_EVENT:
+            {
+                _childrenGUIDs.clear();
+
+                // Get all childeren's guid's.
+                if (Creature* dana = me->FindNearestCreature(NPC_DANA, 25.0f))
+                    _childrenGUIDs.push_back(dana->GetGUID());
+
+                if (Creature* john = me->FindNearestCreature(NPC_JOHN, 25.0f))
+                    _childrenGUIDs.push_back(john->GetGUID());
+
+                if (Creature* lisa = me->FindNearestCreature(NPC_LISA, 25.0f))
+                    _childrenGUIDs.push_back(lisa->GetGUID());
+
+                if (Creature* aaron = me->FindNearestCreature(NPC_AARON, 25.0f))
+                    _childrenGUIDs.push_back(aaron->GetGUID());
+
+                if (Creature* jose = me->FindNearestCreature(NPC_JOSE, 25.0f))
+                    _childrenGUIDs.push_back(jose->GetGUID());
+
+                // If Formation was disbanded, remake.
+                if (!me->GetFormation()->IsFormed())
+                    for (ObjectGuid guid : _childrenGUIDs)
+                        if (Creature* child = ObjectAccessor::GetCreature(*me, guid))
+                            child->SearchFormation();
+
+                // Start movement
+                me->GetMotionMaster()->MovePath(STORMWIND_PATH, false);
+
+                break;
+            }
+            default:
+                break;
             }
         }
     }
@@ -285,32 +285,32 @@ private:
 
 enum AnUnlikelyInformantData
 {
-    QUEST_AN_UNLIKELY_INFORMANT         = 72405,
+    QUEST_AN_UNLIKELY_INFORMANT = 72405,
 
-    GOSSIP_MENU_SIGNAL_INFORMANT        = 30224,
-    GOSSIP_OPTION_SIGNAL_INFORMANT      = 0,
+    GOSSIP_MENU_SIGNAL_INFORMANT = 30224,
+    GOSSIP_OPTION_SIGNAL_INFORMANT = 0,
 
-    CONVO_AN_UNLIKELY_INFORMANT_HELLO   = 20340,
-    CONVO_AN_UNLIKELY_INFORMANT         = 20342,
+    CONVO_AN_UNLIKELY_INFORMANT_HELLO = 20340,
+    CONVO_AN_UNLIKELY_INFORMANT = 20342,
 
-    CONVO_LINE_VANESSA_TELEPORT         = 53702,
-    CONVO_LINE_VANESSA_MOVEMENT         = 52465,
-    CONVO_LINE_MATHIAS_QUEST_CREDIT     = 52466,
+    CONVO_LINE_VANESSA_TELEPORT = 53702,
+    CONVO_LINE_VANESSA_MOVEMENT = 52465,
+    CONVO_LINE_MATHIAS_QUEST_CREDIT = 52466,
 
-    CONVO_ACTOR_IDX_MATHIAS             = 0,
-    CONVO_ACTOR_IDX_VANESSA             = 1,
+    CONVO_ACTOR_IDX_MATHIAS = 0,
+    CONVO_ACTOR_IDX_VANESSA = 1,
 
-    NPC_MATHIAS_SHAW                    = 198896,
-    NPC_VANESSA_VANCLEEF                = 198883,
+    NPC_MATHIAS_SHAW = 198896,
+    NPC_VANESSA_VANCLEEF = 198883,
 
-    POINT_VANESSA_FINISH                = 1,
+    POINT_VANESSA_FINISH = 1,
 
-    DISPLAY_VANESSA_INVISIBLE           = 71887,
-    DISPLAY_VANESSA_VISIBLE             = 110980,
+    DISPLAY_VANESSA_INVISIBLE = 71887,
+    DISPLAY_VANESSA_VISIBLE = 110980,
 
-    SPELL_VANESSA_STEALTH               = 228928,
-    SPELL_VANESSA_TELEPORT_BEHIND       = 396357,
-    SPELL_VANESSA_CHEAP_SHOT            = 396359,
+    SPELL_VANESSA_STEALTH = 228928,
+    SPELL_VANESSA_TELEPORT_BEHIND = 396357,
+    SPELL_VANESSA_CHEAP_SHOT = 396359,
 };
 
 enum AnUnlikelyInformantEvents
@@ -324,40 +324,40 @@ enum AnUnlikelyInformantEvents
 
 enum WindowToThePastData
 {
-    GOSSIP_MENU_WINDOW_TO_THE_PAST      = 30224,
-    GOSSIP_OPTION_WINDOW_TO_THE_PAST    = 2,
+    GOSSIP_MENU_WINDOW_TO_THE_PAST = 30224,
+    GOSSIP_OPTION_WINDOW_TO_THE_PAST = 2,
 
-    SPELL_PLAY_ONYXIA_SCENE             = 402962
+    SPELL_PLAY_ONYXIA_SCENE = 402962
 };
 
 enum RottenOldMemoriesData
 {
-    QUEST_ROTTEN_OLD_MEMORIES   = 72409,
+    QUEST_ROTTEN_OLD_MEMORIES = 72409,
 
-    CONVO_ROTTEN_OLD_MEMORIES   = 20345
+    CONVO_ROTTEN_OLD_MEMORIES = 20345
 };
 
 enum TheNewClassingtonEstateData
 {
-    QUEST_THE_NEW_CLASSINGTON_ESTATE            = 72426,
+    QUEST_THE_NEW_CLASSINGTON_ESTATE = 72426,
 
-    CONVO_THE_NEW_CLASSINGTON_ESTATE            = 20387,
+    CONVO_THE_NEW_CLASSINGTON_ESTATE = 20387,
 
-    CONVO_LINE_VANESSA_START_WALK               = 52595,
-    CONVO_LINE_HANDLE_CLONE_FACING              = 52593,
+    CONVO_LINE_VANESSA_START_WALK = 52595,
+    CONVO_LINE_HANDLE_CLONE_FACING = 52593,
 
-    CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE  = 1,
-    CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE  = 2,
+    CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE = 1,
+    CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE = 2,
 
-    PATH_VANESSA_GOLDSHIRE_BASEMENT             = 15910640,
+    PATH_VANESSA_GOLDSHIRE_BASEMENT = 15910640,
 
-    SPELL_VANESSA_COSMETIC_VANISH               = 210194,
-    SPELL_VANESSA_STEALTH_DESPAWN               = 186810
+    SPELL_VANESSA_COSMETIC_VANISH = 210194,
+    SPELL_VANESSA_STEALTH_DESPAWN = 186810
 };
 
 enum ClassingtonEstateEvents
 {
-    EVENT_VANESSA_START_WALK        = 1,
+    EVENT_VANESSA_START_WALK = 1,
     EVENT_VANESSA_STEALTH_DESPAWN,
     EVENT_MATHIAS_SET_FACING,
     EVENT_VANESSA_SET_FACING
@@ -435,19 +435,19 @@ struct npc_vanessa_vancleef_human_heritage_lions_pride_inn_basement : public Scr
         {
             switch (eventId)
             {
-                case EVENT_VANESSA_CLONE_LEAN:
-                    me->SetVirtualItem(1, 0);
-                    me->SetNpcFlag(NPCFlags(UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_QUESTGIVER));
-                    me->SetFacingTo(4.47226f);
-                    me->HandleEmoteCommand(EMOTE_STATE_WALEAN02);
-                    break;
-                case EVENT_VANESSA_STEALTH_DESPAWN:
-                    me->CastSpell(nullptr, SPELL_VANESSA_COSMETIC_VANISH, true);
-                    me->CastSpell(nullptr, SPELL_VANESSA_STEALTH_DESPAWN, true);
-                    me->DespawnOrUnsummon(1s);
-                    break;
-                default:
-                    break;
+            case EVENT_VANESSA_CLONE_LEAN:
+                me->SetVirtualItem(1, 0);
+                me->SetNpcFlag(NPCFlags(UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_QUESTGIVER));
+                me->SetFacingTo(4.47226f);
+                me->HandleEmoteCommand(EMOTE_STATE_WALEAN02);
+                break;
+            case EVENT_VANESSA_STEALTH_DESPAWN:
+                me->CastSpell(nullptr, SPELL_VANESSA_COSMETIC_VANISH, true);
+                me->CastSpell(nullptr, SPELL_VANESSA_STEALTH_DESPAWN, true);
+                me->DespawnOrUnsummon(1s);
+                break;
+            default:
+                break;
             }
         }
     }
@@ -518,63 +518,63 @@ public:
 
         switch (_events.ExecuteEvent())
         {
-            case EVENT_VANESSA_TELEPORT:
-            {
-                Unit* privateObjectOwner = ObjectAccessor::GetUnit(*conversation, conversation->GetPrivateObjectOwner());
-                if (!privateObjectOwner)
-                    break;
-
-                Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA);
-                if (!vanessaClone)
-                    break;
-
-                vanessaClone->CastSpell(privateObjectOwner, SPELL_VANESSA_TELEPORT_BEHIND, true);
-                vanessaClone->CastSpell(privateObjectOwner, SPELL_VANESSA_CHEAP_SHOT, true);
-                vanessaClone->RemoveAurasDueToSpell(SPELL_VANESSA_STEALTH);
-                vanessaClone->SetEmoteState(EMOTE_STATE_READY1H);
+        case EVENT_VANESSA_TELEPORT:
+        {
+            Unit* privateObjectOwner = ObjectAccessor::GetUnit(*conversation, conversation->GetPrivateObjectOwner());
+            if (!privateObjectOwner)
                 break;
-            }
-            case EVENT_VANESSA_MOVE:
-            {
-                Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA);
-                if (!vanessaClone)
-                    break;
 
-                vanessaClone->SetWalk(true);
-                vanessaClone->SetEmoteState(EMOTE_STATE_NONE);
-                vanessaClone->GetMotionMaster()->MovePoint(POINT_VANESSA_FINISH, VanessaStaticPosition);
+            Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA);
+            if (!vanessaClone)
                 break;
-            }
-            case EVENT_MATHIAS_QUEST_CREDIT:
-            {
-                Unit* privateObjectOwner = ObjectAccessor::GetUnit(*conversation, conversation->GetPrivateObjectOwner());
-                if (!privateObjectOwner)
-                    break;
 
-                Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA);
-                if (!vanessaClone)
-                    break;
-
-                Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS);
-                if (!mathiasClone)
-                    break;
-
-                privateObjectOwner->ToPlayer()->KilledMonsterCredit(NPC_MATHIAS_SHAW);
-                vanessaClone->DespawnOrUnsummon();
-                mathiasClone->SetNpcFlag(NPCFlags(UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_QUESTGIVER));
+            vanessaClone->CastSpell(privateObjectOwner, SPELL_VANESSA_TELEPORT_BEHIND, true);
+            vanessaClone->CastSpell(privateObjectOwner, SPELL_VANESSA_CHEAP_SHOT, true);
+            vanessaClone->RemoveAurasDueToSpell(SPELL_VANESSA_STEALTH);
+            vanessaClone->SetEmoteState(EMOTE_STATE_READY1H);
+            break;
+        }
+        case EVENT_VANESSA_MOVE:
+        {
+            Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA);
+            if (!vanessaClone)
                 break;
-            }
-            case EVENT_MATHIAS_CLONE_DESPAWN:
-            {
-                Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS);
-                if (!mathiasClone)
-                    break;
 
-                mathiasClone->DespawnOrUnsummon();
+            vanessaClone->SetWalk(true);
+            vanessaClone->SetEmoteState(EMOTE_STATE_NONE);
+            vanessaClone->GetMotionMaster()->MovePoint(POINT_VANESSA_FINISH, VanessaStaticPosition);
+            break;
+        }
+        case EVENT_MATHIAS_QUEST_CREDIT:
+        {
+            Unit* privateObjectOwner = ObjectAccessor::GetUnit(*conversation, conversation->GetPrivateObjectOwner());
+            if (!privateObjectOwner)
                 break;
-            }
-            default:
+
+            Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA);
+            if (!vanessaClone)
                 break;
+
+            Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS);
+            if (!mathiasClone)
+                break;
+
+            privateObjectOwner->ToPlayer()->KilledMonsterCredit(NPC_MATHIAS_SHAW);
+            vanessaClone->DespawnOrUnsummon();
+            mathiasClone->SetNpcFlag(NPCFlags(UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_QUESTGIVER));
+            break;
+        }
+        case EVENT_MATHIAS_CLONE_DESPAWN:
+        {
+            Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS);
+            if (!mathiasClone)
+                break;
+
+            mathiasClone->DespawnOrUnsummon();
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -629,60 +629,60 @@ public:
 
         switch (_events.ExecuteEvent())
         {
-            case EVENT_VANESSA_START_WALK:
-            {
-                Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE);
-                if (!vanessaClone)
-                    break;
-
-                Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
-                if (!mathiasClone)
-                    break;
-
-                mathiasClone->SetFacingTo(mathiasClone->GetHomePosition().GetOrientation());
-                // @ToDo: use emote data of broadcast text
-                vanessaClone->SetEmoteState(EMOTE_STATE_NONE);
-                vanessaClone->GetMotionMaster()->MovePath(PATH_VANESSA_GOLDSHIRE_BASEMENT, false);
+        case EVENT_VANESSA_START_WALK:
+        {
+            Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE);
+            if (!vanessaClone)
                 break;
-            }
-            case EVENT_MATHIAS_SET_FACING:
-            {
-                Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE);
-                if (!vanessaClone)
-                    break;
 
-                Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
-                if (!mathiasClone)
-                    break;
-
-                vanessaClone->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
-                mathiasClone->SetFacingToObject(vanessaClone);
+            Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
+            if (!mathiasClone)
                 break;
-            }
-            case EVENT_VANESSA_SET_FACING:
-            {
-                Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE);
-                if (!vanessaClone)
-                    break;
 
-                Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
-                if (!mathiasClone)
-                    break;
+            mathiasClone->SetFacingTo(mathiasClone->GetHomePosition().GetOrientation());
+            // @ToDo: use emote data of broadcast text
+            vanessaClone->SetEmoteState(EMOTE_STATE_NONE);
+            vanessaClone->GetMotionMaster()->MovePath(PATH_VANESSA_GOLDSHIRE_BASEMENT, false);
+            break;
+        }
+        case EVENT_MATHIAS_SET_FACING:
+        {
+            Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE);
+            if (!vanessaClone)
+                break;
 
-                vanessaClone->SetFacingToObject(mathiasClone);
+            Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
+            if (!mathiasClone)
                 break;
-            }
-            case EVENT_MATHIAS_CLONE_DESPAWN:
-            {
-                Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
-                if (!mathiasClone)
-                    break;
 
-                mathiasClone->DespawnOrUnsummon();
+            vanessaClone->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
+            mathiasClone->SetFacingToObject(vanessaClone);
+            break;
+        }
+        case EVENT_VANESSA_SET_FACING:
+        {
+            Creature* vanessaClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_VANESSA_CLASSINGTON_ESTATE);
+            if (!vanessaClone)
                 break;
-            }
-            default:
+
+            Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
+            if (!mathiasClone)
                 break;
+
+            vanessaClone->SetFacingToObject(mathiasClone);
+            break;
+        }
+        case EVENT_MATHIAS_CLONE_DESPAWN:
+        {
+            Creature* mathiasClone = conversation->GetActorCreature(CONVO_ACTOR_IDX_MATHIAS_CLASSINGTON_ESTATE);
+            if (!mathiasClone)
+                break;
+
+            mathiasClone->DespawnOrUnsummon();
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -710,60 +710,12 @@ class spell_stealth_vanessa_human_heritage : public AuraScript
     }
 };
 
-enum Marshal_Dughan
-{
-    GOSSIP_MENU_MD = 11611,
-    GOSSIP_OPTION_MD = 0,
-
-    SPELL_STORMWIND_CHARGER = 78852
-};
-
-// 240 - Marshal Dughan
-struct npc_marshal_dughan : public ScriptedAI
-{
-    npc_marshal_dughan(Creature* creature) : ScriptedAI(creature) { }
-
-    bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
-    {
-        if (menuId == GOSSIP_MENU_MD && gossipListId == GOSSIP_OPTION_MD)
-        {
-            CloseGossipMenuFor(player);
-            player->CastSpell(nullptr, SPELL_STORMWIND_CHARGER, true);
-            return true;
-        }
-        return false;
-    }
-    
-};
-
-enum Stormwind_Charger
-{
-    PATH_GUARD_THOMAS = 1,
-
-    QUEST_FURTHER_CONCERNS = 35
-};
-
-struct npc_stormwind_charger : public ScriptedAI
-{
-    npc_stormwind_charger(Creature* creature) : ScriptedAI(creature) { }
-
-    void JustAppeared() override
-    {
-        me->SetSpeed(MOVE_RUN, 14.0f);
-        //me->SetControlled(true, UNIT_STATE_ROOT); // Optional: reapply root after movement starts
-        me->GetMotionMaster()->MovePath(PATH_GUARD_THOMAS, false);
-        me->DespawnOrUnsummon(90s);
-    }
-};
-
 void AddSC_elwynn_forest()
 {
     // Creature
     RegisterCreatureAI(npc_cameron);
     RegisterCreatureAI(npc_master_mathias_shaw_human_heritage_lions_pride_inn_basement);
     RegisterCreatureAI(npc_vanessa_vancleef_human_heritage_lions_pride_inn_basement);
-    RegisterCreatureAI(npc_marshal_dughan);
-    RegisterCreatureAI(npc_stormwind_charger);
 
     // Spells
     RegisterSpellScript(spell_stealth_vanessa_human_heritage);
