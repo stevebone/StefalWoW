@@ -6497,6 +6497,9 @@ void Spell::EffectCorpseLoot()
     if (!creature)
         return;
 
+    if (!creature->m_loot)
+        return;
+
     m_caster->ToPlayer()->SendLoot(*creature->m_loot);
     creature->RemoveUnitFlag(UNIT_FLAG_LOOTING);
 }
