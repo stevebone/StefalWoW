@@ -1,3 +1,8 @@
+-- Updates related to FSB
+-- Remove spawned hunter pets since they are now spell spawned by master
+-- Elwynn
+DELETE FROM `creature` WHERE `guid` = 280677;
+
 -- Trainers Stormwind
 -- 914/ander-germaine
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '864' WHERE (`Entry` = '914') and (`DifficultyID` = '0');
