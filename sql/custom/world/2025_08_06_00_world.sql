@@ -1,3 +1,4 @@
+
 -- Quest: 29772 Raucous Rousing
 -- Quest: 29774 Not In the Face!
 -- Quest: 29768 Missing Mallet
@@ -131,4 +132,3 @@ INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES ('13140',
 
 DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13140 AND `GossipOptionID` = 18503;
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`) VALUES ('13140', '18503', '0', '0', 'Shu, can you wake up Wuguo for me?', '54025', '0', '1');
-
