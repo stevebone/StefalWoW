@@ -77,6 +77,9 @@
 -- NPC: 42260 Stormwind Charger
 -- NPC: 46932 Hogger Minion
 -- NPC: 63014 Marcus Jensen
+-- NPC: 64330 Julia Stevens
+-- NPC: 64334 Fangs
+-- NPC: 64335 Slither
 
 -- Quest: 61 Shipment to Stormwind
 -- Quest: 123 The Collector
@@ -331,7 +334,7 @@ WHERE Entry IN (
 279,285,295,327,330,383,448,471,472,473,474,475,476,478,
 524,525,732,735,794,795,796,797,804,805,806,807,810,811,
 822,880,881,894,896,955,963,1922,5403,5406,6093,6121,6122,
-6774,6846,6866,6927,7381,7382,7384,7385,11940,42260,46932,63014
+6774,6846,6866,6927,7381,7382,7384,7385,11940,42260,46932,63014, 64330
 );
 INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScalingDeltaMin`,`LevelScalingDeltaMax`,`ContentTuningID`,`HealthScalingExpansion`,`HealthModifier`,`ManaModifier`,`ArmorModifier`,`DamageModifier`,`CreatureDifficultyID`,`TypeFlags`,`TypeFlags2`,`TypeFlags3`,`LootID`,`PickPocketLootID`,`SkinLootID`,`GoldMin`,`GoldMax`,`StaticFlags1`,`StaticFlags2`,`StaticFlags3`,`StaticFlags4`,`StaticFlags5`,`StaticFlags6`,`StaticFlags7`,`StaticFlags8`,`VerifiedBuild`) VALUES 
 (30,0,0,0,2,0,0.7,1,1,0.2,6,0,0,0,30,0,0,4,4,268435456,0,0,0,0,0,0,0,48999),
@@ -410,7 +413,15 @@ INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScaling
 (11940,0,0,0,2,0,0.7,1,1,0.2,8185,0,0,0,11940,0,0,0,0,268435456,0,0,0,0,0,0,0,48999),
 (42260,0,0,0,73,0,0.7,1,1,0.2,53361,2056,0,0,42260,0,0,0,0,268435456,0,0,0,0,0,0,0,48999),
 (46932,0,0,0,2,0,0.7,1,1,0.2,44566,0,0,0,46932,0,0,0,0,268435456,0,0,0,0,0,0,0,40000),
-(63014,0,0,0,2,0,0.7,1,1,0.2,56218,0,0,0,63014,0,0,0,0,268435456,0,0,0,0,0,0,0,48999);
+(63014,0,0,0,2,0,0.7,1,1,0.2,56218,0,0,0,63014,0,0,0,0,268435456,0,0,0,0,0,0,0,48999),
+(64330,0,0,0,6,0,1,1,1,1,57681,0,0,0,0,0,0,0,0,268435456,0,0,0,0,0,0,0,45338);
+
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` in (@CGUID+125, @CGUID+126, @CGUID+127);
+INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseUseFlags, PhaseId, PhaseGroup, terrainSwapMap, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, wander_distance, currentwaypoint, curHealthPct, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, ScriptName, StringId, VerifiedBuild) VALUES
+(@CGUID+125, '64330', '0', '12', '64', '0', '0', '0', '0', '-1', '0', '0', '-9876.47', '93.3568', '32.2103', '1.13412', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+126, '64334', '0', '12', '64', '0', '0', '0', '0', '-1', '0', '0', '-9878.2324', '94.2771', '32.1083', '0.248076', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+127, '64335', '0', '12', '64', '0', '0', '0', '0', '-1', '0', '0', '-9875.5087', '92.5506', '32.1671', '0.891647', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
 /*
 -- Query: SELECT Entry, ItemType, Item, Chance, QuestRequired, LootMode, GroupId, MinCount, MaxCount, Comment FROM stefal_world.creature_loot_template WHERE Entry IN (30,40,43,46,61,94,97,100,113,116,118,119,
