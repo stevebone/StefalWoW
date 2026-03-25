@@ -30164,6 +30164,7 @@ void Player::AddPetToUpdateFields(PetStable::PetInfo const& pet, PetSaveMode slo
     ufPet.ModifyValue(&UF::StablePetInfo::ExperienceLevel).SetValue(pet.Level);
     ufPet.ModifyValue(&UF::StablePetInfo::PetFlags).SetValue(flags);
     ufPet.ModifyValue(&UF::StablePetInfo::Name).SetValue(pet.Name);
+    ufPet.ModifyValue(&UF::StablePetInfo::Specialization).SetValue(pet.SpecializationId);
 }
 
 void Player::SetPetSlot(uint32 petNumber, PetSaveMode dstPetSlot)

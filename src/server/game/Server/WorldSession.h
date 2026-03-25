@@ -553,6 +553,7 @@ namespace WorldPackets
         class ShowTradeSkill;
         class ActivateSoulbind;
         class ChromieTimeSelectExpansion;
+        class RequestStoreFrontInfoUpdate;
     }
 
     namespace Movement
@@ -641,6 +642,7 @@ namespace WorldPackets
         class PetStopAttack;
         class PetSpellAutocast;
         class PetRename;
+        class SetPetSpecializationClient;
         class PetAction;
         class PetCancelAura;
         class PetSetAction;
@@ -1680,6 +1682,7 @@ class TC_GAME_API WorldSession
         void HandlePetAbandon(WorldPackets::Pet::PetAbandon& packet);
         void HandlePetAbandonByNumber(WorldPackets::Pet::PetAbandonByNumber const& petAbandonByNumber);
         void HandlePetRename(WorldPackets::Pet::PetRename& packet);
+        void HandleSetPetSpecialization(WorldPackets::Pet::SetPetSpecializationClient& packet);
         void HandlePetCancelAuraOpcode(WorldPackets::Spells::PetCancelAura& packet);
         void HandlePetSpellAutocastOpcode(WorldPackets::Pet::PetSpellAutocast& packet);
         void HandlePetCastSpellOpcode(WorldPackets::Spells::PetCastSpell& petCastSpell);
@@ -1843,6 +1846,7 @@ class TC_GAME_API WorldSession
         void HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags const& setCurrenctFlags);
         void HandleOverrideScreenFlash(WorldPackets::Misc::OverrideScreenFlash& overrideScreenFlash);
         void HandleChromieTimeSelectExpansion(WorldPackets::Misc::ChromieTimeSelectExpansion& chromieTimeSelectExpansion);
+        void HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet);
 
         // Commentator
         void HandleAccountNotificationAcknowledge(WorldPackets::Misc::AccountNotificationAcknowledge& packet);
