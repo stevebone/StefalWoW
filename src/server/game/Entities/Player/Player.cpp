@@ -12193,12 +12193,17 @@ void Player::SetVisibleItemSlot(uint8 slot, Item const* item)
             if (transmogSlotOption != TransmogOutfitSlotOption::None)
             {
                 // check if artifact override is active
-                TransmogOutfitSlotOption artifactOption = static_cast<TransmogOutfitSlotOption>(AsUnderlyingType(TransmogOutfitSlotOption::ArtifactSpecOne) + GetPrimarySpecializationEntry()->OrderIndex);
-                TransmogMgr::TransmogOutfitSlotAndOptionInfo const* artifactSlotInfo = TransmogMgr::GetSlotAndOption(EquipmentSlots(slot), artifactOption);
-                if (artifactSlotInfo && static_cast<TransmogOutfitDisplayType>(*m_activePlayerData->ViewedOutfit->Slots[artifactSlotInfo->SlotIndex].AppearanceDisplayType) == TransmogOutfitDisplayType::Assigned)
+                static constexpr int32 MaxArtifactSpecializations = AsUnderlyingType(TransmogOutfitSlotOption::ArtifactSpecFour) - AsUnderlyingType(TransmogOutfitSlotOption::ArtifactSpecOne) + 1;
+                int32 specIndex = GetPrimarySpecializationEntry()->OrderIndex;
+                if (specIndex >= 0 && specIndex < MaxArtifactSpecializations)
                 {
-                    transmogSlotOption = artifactOption;
-                    slotInfo = artifactSlotInfo;
+                    TransmogOutfitSlotOption artifactOption = static_cast<TransmogOutfitSlotOption>(AsUnderlyingType(TransmogOutfitSlotOption::ArtifactSpecOne) + specIndex);
+                    TransmogMgr::TransmogOutfitSlotAndOptionInfo const* artifactSlotInfo = TransmogMgr::GetSlotAndOption(EquipmentSlots(slot), artifactOption);
+                    if (artifactSlotInfo && static_cast<TransmogOutfitDisplayType>(*m_activePlayerData->ViewedOutfit->Slots[artifactSlotInfo->SlotIndex].AppearanceDisplayType) == TransmogOutfitDisplayType::Assigned)
+                    {
+                        transmogSlotOption = artifactOption;
+                        slotInfo = artifactSlotInfo;
+                    }
                 }
             }
 
