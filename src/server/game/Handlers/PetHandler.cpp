@@ -939,16 +939,8 @@ void WorldSession::HandleSetPetSpecialization(WorldPackets::Pet::SetPetSpecializ
 
 void WorldSession::HandleSetPetFavorite(WorldPackets::Pet::SetPetFavorite& packet)
 {
-    // Check if player has access to stable (either via StableMaster NPC or SPELL_AURA_OPEN_STABLE)
-    if (!_player->GetStableMaster().IsEmpty())
-    {
-        if (!CheckStableMaster(_player->GetStableMaster()))
-        {
-            SendPetStableResult(StableResult::NotStableMaster);
-            return;
-        }
-    }
-    else if (!_player->HasAuraType(SPELL_AURA_OPEN_STABLE) && !_player->IsGameMaster())
+    if ((!_player->GetStableMaster().IsEmpty() && !CheckStableMaster(_player->GetStableMaster()))
+        || (_player->GetStableMaster().IsEmpty() && !_player->HasAuraType(SPELL_AURA_OPEN_STABLE) && !_player->IsGameMaster()))
     {
         SendPetStableResult(StableResult::NotStableMaster);
         return;
@@ -961,28 +953,11 @@ void WorldSession::HandleSetPetFavorite(WorldPackets::Pet::SetPetFavorite& packe
         return;
     }
 
-    // Find the pet by slot index
-    // Slot indexing: 0-4 are active pets, 5+ are stabled pets
     PetStable::PetInfo* petInfo = nullptr;
-    uint32 petNumber = 0;
-
     if (packet.Slot < MAX_ACTIVE_PETS)
-    {
-        if (petStable->ActivePets[packet.Slot])
-        {
-            petInfo = &*petStable->ActivePets[packet.Slot];
-            petNumber = petInfo->PetNumber;
-        }
-    }
+        petInfo = petStable->ActivePets[packet.Slot] ? &*petStable->ActivePets[packet.Slot] : nullptr;
     else if (packet.Slot < MAX_ACTIVE_PETS + MAX_PET_STABLES)
-    {
-        uint32 stableIndex = packet.Slot - MAX_ACTIVE_PETS;
-        if (petStable->StabledPets[stableIndex])
-        {
-            petInfo = &*petStable->StabledPets[stableIndex];
-            petNumber = petInfo->PetNumber;
-        }
-    }
+        petInfo = petStable->StabledPets[packet.Slot - MAX_ACTIVE_PETS] ? &*petStable->StabledPets[packet.Slot - MAX_ACTIVE_PETS] : nullptr;
 
     if (!petInfo)
     {
@@ -990,35 +965,30 @@ void WorldSession::HandleSetPetFavorite(WorldPackets::Pet::SetPetFavorite& packe
         return;
     }
 
-    // Update the update fields if available
     if (_player->m_activePlayerData->PetStable.has_value())
     {
-        int32 ufIndex = _player->m_activePlayerData->PetStable->Pets.FindIndexIf([petNumber](UF::StablePetInfo const& p) {
-            return p.PetNumber == petNumber;
+        int32 ufIndex = _player->m_activePlayerData->PetStable->Pets.FindIndexIf([petInfo](UF::StablePetInfo const& p) {
+            return p.PetNumber == petInfo->PetNumber;
         });
 
         if (ufIndex >= 0)
         {
             auto ufStable = _player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PetStable, 0);
             auto ufPet = ufStable.ModifyValue(&UF::StableInfo::Pets, ufIndex);
-
-            // Toggle PET_STABLE_FAVORITE flag
+            auto flagsSetter = ufPet.ModifyValue(&UF::StablePetInfo::PetFlags);
             if (packet.Favorite)
-                _player->SetUpdateFieldFlagValue(ufPet.ModifyValue(&UF::StablePetInfo::PetFlags), PET_STABLE_FAVORITE);
+                _player->SetUpdateFieldFlagValue(flagsSetter, PET_STABLE_FAVORITE);
             else
-                _player->RemoveUpdateFieldFlagValue(ufPet.ModifyValue(&UF::StablePetInfo::PetFlags), PET_STABLE_FAVORITE);
+                _player->RemoveUpdateFieldFlagValue(flagsSetter, PET_STABLE_FAVORITE);
         }
     }
 
-    // Save to database
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_PET_FAVORITE);
     stmt->setBool(0, packet.Favorite);
-    stmt->setUInt32(1, petNumber);
+    stmt->setUInt32(1, petInfo->PetNumber);
     stmt->setUInt64(2, _player->GetGUID().GetCounter());
     CharacterDatabase.Execute(stmt);
 
-    // Update in-memory pet info
     petInfo->IsFavorite = packet.Favorite;
-
     SendPetStableResult(StableResult::FavoriteToggle);
 }

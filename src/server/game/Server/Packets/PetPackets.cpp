@@ -247,10 +247,7 @@ WorldPacket const* PetDismissSound::Write()
 
 void SetPetFavorite::Read()
 {
-    // I'm not sure if this is the correct code visually.
     _worldPacket >> Slot;
-    uint8 favoriteByte;
-    _worldPacket >> favoriteByte;
-    Favorite = (favoriteByte & 0x80) != 0;
+    _worldPacket >> Bits<1>(Favorite);
 }
 }

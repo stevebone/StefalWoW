@@ -328,8 +328,10 @@ namespace WorldPackets
         class SetPetFavorite final : public ClientPacket
         {
         public:
-            explicit SetPetFavorite(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_FAVORITE, std::move(packet)) {}
+            explicit SetPetFavorite(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_FAVORITE, std::move(packet)) { }
+
             void Read() override;
+
             uint8 Slot = 0;
             bool Favorite = false;
         };
