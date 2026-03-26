@@ -28483,6 +28483,22 @@ void Player::ResummonPetTemporaryUnSummonedIfAny()
     m_temporaryUnsummonedPetNumber = 0;
 }
 
+void Player::ResummonAnimalCompanionIfAny()
+{
+    if (GetPet() && GetAnimalCompanion().IsEmpty())
+    {
+        Unit::AuraEffectList const& animalCompanion = GetAuraEffectsByType(SPELL_AURA_ANIMAL_COMPANION);
+        for (AuraEffect const* aurEff : animalCompanion)
+        {
+            if (uint32 triggerSpell = aurEff->GetSpellEffectInfo().TriggerSpell)
+            {
+                if (sSpellMgr->GetSpellInfo(triggerSpell, DIFFICULTY_NONE))
+                    CastSpell(this, triggerSpell, true);
+            }
+        }
+    }
+}
+
 void Player::UnsummonBattlePetTemporaryIfAny(bool onFlyingMount /*= false*/)
 {
     Creature* battlepet = GetSummonedBattlePet();
