@@ -29087,8 +29087,16 @@ void Player::_LoadTraits(PreparedQueryResult configsResult, PreparedQueryResult 
                 }
             }
 
-            // Skip clearing on validation failure - private server with level 90
-            TraitMgr::ValidateConfig(traitConfig, this, false, true);
+            if (TraitMgr::ValidateConfig(traitConfig, this, false, true) != TraitMgr::LearnResult::Ok)
+            {
+                traitConfig.Entries.clear();
+                traitConfig.SubTrees.clear();
+                for (UF::TraitEntry const& grantedEntry : TraitMgr::GetGrantedTraitEntriesForConfig(traitConfig, this))
+                    traitConfig.Entries.emplace_back(grantedEntry);
+
+                // rebuild subtrees
+                TraitMgr::ValidateConfig(traitConfig, this, false, true);
+            }
 
             AddTraitConfig(traitConfig);
 
