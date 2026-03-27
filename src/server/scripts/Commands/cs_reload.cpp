@@ -603,6 +603,9 @@ public:
         sObjectMgr->InitializeQueriesData(QUERY_DATA_QUESTS);
         handler->SendGlobalGMSysMessage("DB table `quest_template` (quest definitions) reloaded.");
 
+        /// Re-link criteria trees to new quest objective pointers after reload
+        sCriteriaMgr->ReloadQuestObjectiveLinks();
+
         /// dependent also from `gameobject` but this table not reloaded anyway
         TC_LOG_INFO("misc", "Re-Loading GameObjects for quests...");
         sObjectMgr->LoadGameObjectForQuests();
