@@ -1,7 +1,9 @@
 -- Stormwind changes and updates
 
 -- NPC: 332 Master Mathias Shaw
+-- NPC: 352 Dungar Longdrink
 -- NPC: 914 Ander Germaine
+-- NPC: 1323 Osric Strang
 -- NPC: 1646 Baros Alexton
 -- NPC: 5566 Tannysa
 -- NPC: 6089 Harry Burlguard
@@ -13,15 +15,19 @@
 -- Quest: 1688 Surena Caledon
 -- Quest: 1861 Mirror Lake
 -- Quest: 2206 Snatch and Grab
+-- Quest: 6261 Dungar Longdrink
+-- Quest: 6285 Return to Lewis
 
 -- Reactivating old/deprecated quests in Stormwind
-DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (399, 1861, 1666, 1688, 2206);
+DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (399, 1861, 1666, 1688, 2206, 6261, 6285);
 
 -- Quest starters and enders
-DELETE FROM `creature_queststarter` WHERE `quest` IN (1666, 1688, 1861, 2206);
-DELETE FROM `creature_questender` WHERE `quest` IN (1666, 1688, 1861, 2206);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (1666, 1688, 1861, 2206, 6261, 6285);
+DELETE FROM `creature_questender` WHERE `quest` IN (1666, 1688, 1861, 2206, 6261, 6285);
 
 INSERT IGNORE INTO `creature_queststarter` VALUES
+(352, 6285, 0),
+(1323, 6261, 0),
 (332, 2206, 0),
 (1646, 399, 0),
 (6089, 1666, 0),
@@ -29,6 +35,8 @@ INSERT IGNORE INTO `creature_queststarter` VALUES
 (5497, 1861, 0);
 
 INSERT IGNORE INTO `creature_questender` VALUES
+(491, 6285, 0),
+(352, 6261, 0),
 (332, 2206, 0),
 (1646, 399, 0),
 (294, 1666, 0),
@@ -41,7 +49,7 @@ UPDATE `quest_template_addon` SET `AllowableClasses` = '0', `PrevQuestID` = '0' 
 UPDATE `quest_template` SET `ContentTuningID` = '73', `QuestSortID` = '12', `AllowableRaces` = '18446744073709551615', `Expansion` = '0', `RewardFactionID1` = '72', `RewardFactionValue1` = '1', `RewardFactionFlags` = '1' WHERE (`ID` = '1688');
 UPDATE `quest_template` SET `ContentTuningID` = '73', `QuestSortID` = '12', `AllowableRaces` = '18446744073709551615', `Expansion` = '0' WHERE `ID` IN (1861, 2206);
 UPDATE `quest_template_addon` SET `AllowableClasses` = '0' WHERE `ID` IN (1688, 1861, 2206);
-UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = '0' WHERE (`ID` = '399');
+UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = '0' WHERE `ID` IN (399, 6261, 6285);
 
 
 -- Gameobjects

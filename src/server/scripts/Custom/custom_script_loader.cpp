@@ -27,6 +27,7 @@ void AddSC_custom_warlock_demon_npcs();
 
 // ==================== Per Zone Scripts ====================== //
 void AddSC_custom_elwynn_forest_npcs();
+void AddSC_custom_westfall_npcs();
 
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
@@ -44,6 +45,7 @@ void AddCustomScripts()
     AddSC_custom_warlock_demon_npcs();
 
     AddSC_custom_elwynn_forest_npcs();
+    AddSC_custom_westfall_npcs();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();

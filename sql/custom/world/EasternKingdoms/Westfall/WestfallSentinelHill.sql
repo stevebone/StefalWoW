@@ -1,6 +1,8 @@
 -- Sentinel Hill changes and updates
 
 -- NPC: 234 Gryan Stoutmantle
+-- NPC: 491 Quartermaster Lewis
+-- NPC: 523 Thor
 -- NPC: 821 Captain Danuvin
 -- NPC: 878 Scout Galiaan
 -- NPC: 42575 Hope Saldean
@@ -13,6 +15,8 @@
 -- Quest: 14 The People's militia
 -- Quest: 102 Patrolling Westfall
 -- Quest: 153 Red Leather Bandanas
+-- Quest: 6181 A swift message
+-- Quest: 6281 Continue to Stormwind
 
 -- Quest: 65 The Defias Brotherhood
 -- Quest: 132 The Defias Brotherhood
@@ -25,13 +29,16 @@
 
 -- Reactivating old/deprecated quests in Sentinel Hill
 DELETE FROM `disables` WHERE (`sourceType` = '1') and `entry` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166);
+DELETE FROM `disables` WHERE (`sourceType` = '1') and `entry` IN (6181, 6281);
 
 -- Quest Templates
-UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = 0 WHERE `ID` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166);
+UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = 0, `AllowableRaces` = 18446744073709551615 WHERE `ID` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166, 6181, 6281);
 
 -- Creature Quest Relations
-DELETE FROM `creature_queststarter` WHERE `quest` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166, 6181, 6281);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
+('523', '6281', '0'),
+('491', '6181', '0'),
 ('821', '102', '0'),
 ('878', '153', '0'),
 ('234', '12', '0'),
@@ -45,8 +52,10 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('467', '155', '0'),
 ('234', '166', '0');
 
-DELETE FROM `creature_questender` WHERE `quest` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166);
+DELETE FROM `creature_questender` WHERE `quest` IN (12, 13, 14, 102, 153, 65, 132, 135, 141, 142, 155, 166, 6181,6281);
 INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES 
+('1323', '6281', '0'),
+('523', '6181', '0'),
 ('821', '102', '0'),
 ('878', '153', '0'),
 ('234', '12', '0'),
