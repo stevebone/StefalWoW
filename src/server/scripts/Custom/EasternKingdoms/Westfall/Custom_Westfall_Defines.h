@@ -24,15 +24,17 @@
 
 enum Custom_Westfall_Generic_NPCs
 {
-    NPC_NORTHSHIRE_WORG = 49871,
     NPC_WESTFALL_THUG = 42387,
     NPC_WESTFALL_Q26232_TRIGGER = 42562,
-    NPC_WESTFALL_Q26232_CREDIT = 42417
+    NPC_WESTFALL_Q26232_CREDIT = 42417,
+
+    NPC_WESTFALL_LIEUTENANT_HORATIO = 42308,
 };
 
 enum Custom_Westfall_Quests
 {
     QUEST_LOUS_PARTING_THOUGHTS = 26232,
+    QUEST_THE_DEFIAS_BROTHERHOOD_FINAL = 166,
 };
 
 enum Custom_Westfall_Spells
@@ -49,7 +51,7 @@ static Position const Q26232ThugPositions[4] =
     { -9860.42f, 1335.46f, 41.985f, 4.11f },
 };
 
-constexpr char SAY_FURLBROW_RETURN[] = "Hurry back to the Furlbrow's Cottage.";
+constexpr int SAY_FURLBROW_RETURN = 42446;
 
 enum Custom_Westfall_Q26232_TALK
 {

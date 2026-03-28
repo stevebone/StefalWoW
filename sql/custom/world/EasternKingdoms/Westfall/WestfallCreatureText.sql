@@ -667,7 +667,7 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 (900000, 0, 8, 'Verna keeps my spirits up… Light knows I need it.', 12, 0, 100, 0, 0, 0, 0, 0, 0, 'Farmer ambient'),
 (900000, 0, 9, 'Someday, Westfall will rise again. Mark my words.', 12, 0, 100, 0, 0, 0, 0, 0, 0, 'Farmer ambient');
 
--- creature texts for the new Furlbrows
+-- creature texts for the thugs in quest 26232
 DELETE FROM `creature_text` WHERE `CreatureID` IN (42387);
 INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
 ('42387', '1', '0', 'Did you... Did you meet her?', '12', '0', '100', '6', '0', '0', '0', '42439', '0', 'Вор'),
