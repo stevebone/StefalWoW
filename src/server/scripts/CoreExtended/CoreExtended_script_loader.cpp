@@ -18,7 +18,7 @@ void AddSC_zone_tirisfal_glades();
 void AddCoreExtendedScripts()
 {
     AddSC_zone_elwyn_forest();
-	AddSC_zone_westfall();
+    AddSC_zone_westfall();
 
     AddSC_zone_gilneas_city1();
     AddSC_duskwood_custom();

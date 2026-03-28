@@ -126,7 +126,7 @@ public:
             {
                 if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
                 {
-                    me->TextEmote(SAY_FURLBROW_RETURN, player, true);
+                    Talk(0, player);
                     player->KilledMonsterCredit(NPC_WESTFALL_Q26232_CREDIT, PlayerGUID);
                     player->RemoveAurasDueToSpell(SPELL_WESTFALL_DETECT_QUEST_INVIS_1);
                     player->CastSpell(player, SPELL_WESTFALL_DETECT_QUEST_INVIS_2);

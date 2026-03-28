@@ -60,5 +60,4 @@ enum Custom_Westfall_Q26232_TALK
     Q26232_SAY_CONGRATULATE = 4,
     Q26232_SAY_ASK_IDENTITY = 5,
     Q26232_SAY_DIE = 6,
-    
 };
