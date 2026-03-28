@@ -28,6 +28,7 @@
 #include "TemporarySummon.h"
 #include "Unit.h"
 #include "ObjectGuid.h"
+#include "MotionMaster.h"
 
 #include "Custom_Westfall_Defines.h"
 
