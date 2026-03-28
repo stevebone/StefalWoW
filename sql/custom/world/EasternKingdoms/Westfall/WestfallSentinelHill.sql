@@ -5,6 +5,8 @@
 -- NPC: 523 Thor
 -- NPC: 821 Captain Danuvin
 -- NPC: 878 Scout Galiaan
+-- NPC: 42384 Homeless Stormwind Citizen
+-- NPC: 42386 Homeless Stormwind Citizen (Female
 -- NPC: 42575 Hope Saldean
 -- NPC: 42635 Ripsnarl
 
@@ -17,6 +19,7 @@
 -- Quest: 153 Red Leather Bandanas
 -- Quest: 6181 A swift message
 -- Quest: 6281 Continue to Stormwind
+-- Quest: 26271 Feeding the hungry
 
 -- Quest: 65 The Defias Brotherhood
 -- Quest: 132 The Defias Brotherhood
@@ -68,3 +71,7 @@ INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('234', '142', '0'),
 ('234', '155', '0'),
 ('234', '166', '0');
+
+-- Quest: 26271 Feeding the hungry
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_hungry_hobo' WHERE (`entry` = '42384');
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_hungry_hobo' WHERE (`entry` = '42386');

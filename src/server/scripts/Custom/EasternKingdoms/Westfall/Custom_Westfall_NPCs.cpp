@@ -265,8 +265,97 @@ public:
     }
 };
 
+class npc_custom_hungry_hobo : public CreatureScript
+{
+public:
+    npc_custom_hungry_hobo() : CreatureScript("npc_custom_hungry_hobo") {}
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_hungry_hoboAI(creature);
+    }
+
+    struct npc_hungry_hoboAI : public ScriptedAI
+    {
+        npc_hungry_hoboAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint8 count;
+        uint32 Miam;
+
+        void Reset() override
+        {
+            count = 0;
+            Miam = 2000;
+        }
+
+        void Eat()
+        {
+            me->CastSpell(me, SPELL_WESTFALL_FULL_BELLY, true);
+            me->SetStandState(UNIT_STAND_STATE_SIT);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (Miam < diff)
+            {
+                if (Creature* stew = me->FindNearestCreature(NPC_WESTFALL_STEW, 10.0f, true))
+                {
+                    if (me->HasAura(SPELL_WESTFALL_FULL_BELLY) && count == 0)
+                        return;
+
+                    switch (count)
+                    {
+                    case 0:
+                    {
+                        static constexpr uint32 SPELL_SLEEP = 78677; // replace with real spell ID
+
+                        if (me->HasAura(SPELL_SLEEP))
+                        {
+                            // Creature is sleeping so we remove the aura
+                            me->RemoveAurasDueToSpell(SPELL_SLEEP);
+                        }
+                        me->SetStandState(UNIT_STAND_STATE_STAND);
+                        Miam = 1000;
+                        count++;
+                        break;
+                    }
+                    case 1:
+                    {
+                        Eat();
+                        Miam = 2000;
+                        me->SetStandState(UNIT_STAND_STATE_SIT);
+                        count++;
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (stew->ToTempSummon())
+                            if (WorldObject* player = stew->ToTempSummon()->GetSummoner())
+                                player->ToPlayer()->KilledMonsterCredit(42617);
+                        Miam = 25000;
+                        count++;
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+                else Miam = 3000;
+
+                if (!me->HasAura(SPELL_WESTFALL_FULL_BELLY))
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
+
+                if (count == 3)
+                    Reset();
+            }
+            else Miam -= diff;
+        }
+    };
+};
+
 void AddSC_custom_westfall_npcs()
 {
     new npc_custom_lous_parting_thoughts_trigger();
     new npc_custom_lous_parting_thoughts_thug();
+    new npc_custom_hungry_hobo();
 }

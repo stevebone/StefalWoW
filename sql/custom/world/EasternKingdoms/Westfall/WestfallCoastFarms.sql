@@ -54,7 +54,7 @@
 -- NPC: 1424 Master Digger
 -- NPC: 6250 Crawler
 -- NPC: 7024 Agent Kearnen
--- NPC: 42308 Lieutenant Horation
+-- NPC: 42308 Lieutenant Horatio
 -- NPC: 42342 Energized Harvest Reaper
 -- NPC: 42357 Hulking Goretusk
 -- NPC: 42383 Transient
