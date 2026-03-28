@@ -54,6 +54,7 @@
 -- NPC: 1424 Master Digger
 -- NPC: 6250 Crawler
 -- NPC: 7024 Agent Kearnen
+-- NPC: 17234 Trigger for Mortwake tower
 -- NPC: 42308 Lieutenant Horatio
 -- NPC: 42342 Energized Harvest Reaper
 -- NPC: 42357 Hulking Goretusk
@@ -67,6 +68,7 @@
 -- NPC: 42562 Thug Trigger
 -- NPC: 42653 Riverpaw Jango
 -- NPC: 42656 Mercenary
+-- NPC: 42662 Shadowy Figure
 -- NPC: 42669 Chasm Slime
 -- NPC: 42677 Moonbrook Thug
 -- NPC: 900000 copy of Farmer Furlbrow for phasing
@@ -86,6 +88,7 @@
 -- Quest: 26214 Hot On the Trail: Murlocs
 -- Quest: 26215 Meet Two-Shoed Lou
 -- Quest: 26232 Lou's Parting Thoughts
+-- Quest: 26290 Secrets of the tower
 
 -- Spell: 76633 Apply Quest Invis Zone 1 (Lou in Westfall)
 -- Spell: 79229 Detect Quest Invis 1 (same effect as the above)
@@ -168,6 +171,17 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_thug' WHERE (`entry` = '42387');
 DELETE FROM `creature` WHERE `ID` = 42387; -- thugs are spawned by script now
 
+-- Fixes and Scripts for Secrets of the tower 
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_agent_kearnen' WHERE `entry` = 7024;
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_elite_mercenary' WHERE `entry` = 42656;
+UPDATE `creature_template` SET `faction` = '35', `ScriptName` = 'npc_custom_trigger_mortwake_tower', `unit_flags` = '33555200', `flags_extra` = '128' WHERE (`entry` = '17234'); -- trigger npc
+UPDATE `creature_template` SET `VehicleId` = '1259' WHERE (`entry` = '42754'); -- vehicle id needed for the Oaf
+DELETE FROM `creature_template_addon` WHERE `entry` IN (42655, 42754, 42662); -- shdow auras
+INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES 
+('42662', '1', '48143 69676'),
+('42655', '1', '48143 69676'),
+('42754', '1', '48143 69676');
+
 DELETE FROM `creature_template` WHERE `entry` IN (900000, 900001, 900002);
 INSERT INTO creature_template (entry, KillCredit1, KillCredit2, name, femaleName, subname, TitleAlt, IconName, RequiredExpansion, VignetteID, faction, npcflag, speed_walk, speed_run, scale, Classification, dmgschool, BaseAttackTime, RangeAttackTime, BaseVariance, RangeVariance, unit_class, unit_flags, unit_flags2, unit_flags3, family, trainer_class, type, VehicleId, AIName, MovementType, ExperienceModifier, RacialLeader, movementId, WidgetSetID, WidgetSetUnitConditionID, RegenHealth, CreatureImmunitiesId, flags_extra, ScriptName, StringId, VerifiedBuild) VALUES
 ('900000', '0', '0', 'Farmer Furlbrow', '', '', NULL, NULL, '0', '0', '12', '2', '1', '1.14286', '1', '0', '0', '1500', '2000', '1', '1', '1', '537133824', '2048', '0', '0', '0', '7', '0', 'SmartAI', '0', '1', '0', '0', '0', '0', '1', '0', '66', '', NULL, '66384'),
@@ -243,7 +257,7 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 -- Creature spawns
 SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` in (@CGUID+128, @CGUID+129, @CGUID+130) OR `id` IN (900000, 900001, 900002);
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+131 AND @CGUID+306;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+131 AND @CGUID+307;
 INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseUseFlags, PhaseId, PhaseGroup, terrainSwapMap, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, wander_distance, currentwaypoint, curHealthPct, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, ScriptName, StringId, VerifiedBuild) VALUES
 (@CGUID+128, '900000', '0', '40', '916', '0', '0', '50004', '0', '-1', '0', '0', '-9845.67', '908.615', '30.2339', '1.25925', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+129, '900001', '0', '40', '916', '0', '0', '50004', '0', '-1', '0', '0', '-9846.88', '909.397', '30.2058', '0.529411', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
@@ -510,8 +524,8 @@ INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseU
 (@CGUID+303, '594', '0', '0', '0', '0', '0', '50006', '0', '-1', '0', '1', '-10960.5', '1496.29', '50.608', '0.687608', '120', '10', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+304, '594', '0', '0', '0', '0', '0', '50006', '0', '-1', '0', '1', '-10975.2', '1564.66', '45.6184', '5.68512', '120', '10', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+305, '594', '0', '0', '0', '0', '0', '50006', '0', '-1', '0', '1', '-10953.1', '1492.03', '43.7371', '0.803321', '120', '10', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
-(@CGUID+306, '594', '0', '0', '0', '0', '0', '50006', '0', '-1', '0', '1', '-10953.6', '1568.06', '47.0608', '3.14159', '120', '10', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0');
-
+(@CGUID+306, '594', '0', '0', '0', '0', '0', '50006', '0', '-1', '0', '1', '-10953.6', '1568.06', '47.0608', '3.14159', '120', '10', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+307, '17234', '0', '40', '5289', '0', '0', '0', '0', '-1', '0', '0', '-11135.7', '545.992', '70.3372', '0.24347', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
 -- Special Spawns for quests
 INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseUseFlags, PhaseId, PhaseGroup, terrainSwapMap, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, wander_distance, currentwaypoint, curHealthPct, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, ScriptName, StringId, VerifiedBuild) VALUES

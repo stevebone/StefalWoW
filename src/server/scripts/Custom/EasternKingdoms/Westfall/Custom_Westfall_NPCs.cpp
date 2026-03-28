@@ -25,12 +25,9 @@
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "Creature.h"
-#include "CreatureAI.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
 #include "ObjectGuid.h"
-#include "SpellInfo.h"
-#include "SpellMgr.h"
 
 #include "Custom_Westfall_Defines.h"
 
@@ -279,8 +276,8 @@ public:
     {
         npc_hungry_hoboAI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint8 count;
-        uint32 Miam;
+        uint8 count = 0;
+        uint32 Miam = 0;
 
         void Reset() override
         {
@@ -353,9 +350,360 @@ public:
     };
 };
 
+class npc_custom_agent_kearnen : public CreatureScript
+{
+public:
+    npc_custom_agent_kearnen() : CreatureScript("npc_custom_agent_kearnen") { }
+
+    struct npc_agent_kearnenAI : public ScriptedAI
+    {
+        npc_agent_kearnenAI(Creature* creature) : ScriptedAI(creature) { }
+
+        EventMap events;
+        ObjectGuid PlayerGUID;
+        std::queue<ObjectGuid> PendingTargets;
+
+        void Reset() override
+        {
+            events.Reset();
+            PlayerGUID.Clear();
+
+            std::queue<ObjectGuid> empty;
+            std::swap(PendingTargets, empty);
+        }
+
+        void Assist(Player* player, Creature* target)
+        {
+            if (!player || !target)
+                return;
+
+            PlayerGUID = player->GetGUID();
+            PendingTargets.push(target->GetGUID());
+            events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            events.Update(diff);
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case EVENT_KEARNEN_KILL_SHOT:
+                {
+                    if (PendingTargets.empty())
+                        break;
+
+                    ObjectGuid TargetGUID = PendingTargets.front();
+                    PendingTargets.pop();
+
+                    Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+
+                    if (target && target->IsAlive() && player)
+                    {
+                        me->SetFacingToObject(target);
+                        me->CastSpell(target, SPELL_WESTFALL_KILL_SHOT, true);
+                        Talk(0, player);
+                    }
+
+                    // If more targets remain, schedule again
+                    if (!PendingTargets.empty())
+                        events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+
+                    break;
+                }
+                }
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_agent_kearnenAI(creature);
+    }
+};
+
+class npc_custom_elite_mercenary : public CreatureScript
+{
+public:
+    npc_custom_elite_mercenary() : CreatureScript("npc_custom_elite_mercenary") { }
+
+    struct npc_elite_mercenaryAI : public ScriptedAI
+    {
+        npc_elite_mercenaryAI(Creature* creature) : ScriptedAI(creature) { }
+
+        bool AssistTriggered = false;
+
+        void Reset() override
+        {
+            AssistTriggered = false;
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            if (!who)
+                return;
+
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (AssistTriggered)
+                return;
+
+            if (player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            Creature* agent = me->FindNearestCreature(NPC_WESTFALL_KEARNEN, 150.0f, true);
+            if (!agent)
+                return;
+
+            if (auto* ai = CAST_AI(npc_custom_agent_kearnen::npc_agent_kearnenAI, agent->AI()))
+                ai->Assist(player, me);
+
+            AssistTriggered = true;
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_elite_mercenaryAI(creature);
+    }
+};
+
+
+class npc_custom_trigger_mortwake_tower : public CreatureScript
+{
+public:
+    npc_custom_trigger_mortwake_tower() : CreatureScript("npc_custom_trigger_mortwake_tower") {}
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_custom_trigger_mortwake_towerAI(creature);
+    }
+
+    struct npc_custom_trigger_mortwake_towerAI : public ScriptedAI
+    {
+        npc_custom_trigger_mortwake_towerAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint8 Phase = 0;
+        uint32 SummonTimer = 0;
+        ObjectGuid PlayerGUID;
+        ObjectGuid OafGUID;
+        ObjectGuid Helix3GUID;
+        ObjectGuid Shadowy3GUID;
+
+        bool bSumm = false;
+        bool bSumm1 = false;
+        bool bSumm2 = false;
+        bool bExit = false;
+        bool EventTriggered = false;   // prevents retriggering
+        bool EventRunning = false;     // allows UpdateAI to run the sequence
+
+        void Reset() override
+        {
+            Phase = 0;
+            SummonTimer = 2000;
+            bSumm = false;
+            bSumm1 = false;
+            bSumm2 = false;
+            bExit = false;
+
+            EventTriggered = false;   // prevents retriggering
+            EventRunning = false;     // allows UpdateAI to run the sequence
+        }
+
+        void StartEvent()
+        {
+            if (!bSumm)
+            {
+                if (!bSumm1)
+                {
+                    if (Creature* Shadowy3 = me->SummonCreature(NPC_WESTFALL_SHADOWY_FIGURE, -11138.659f, 545.20f, 70.30f, 0.19f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                    {
+                        Shadowy3GUID = Shadowy3->GetGUID();
+                        Shadowy3->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                        Shadowy3->SetWalk(true);
+                        Shadowy3->GetMotionMaster()->MovePoint(0, -11131.710f, 546.810f, 70.380f);
+                        bSumm1 = true;
+                    }
+                }
+
+                if (!bSumm2)
+                {
+                    if (Creature* oafVehicle = me->SummonCreature(NPC_WESTFALL_OAF_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                    {
+                        OafGUID = oafVehicle->GetGUID();
+                        oafVehicle->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+
+                        if (Creature* helix = me->SummonCreature(NPC_WESTFALL_HELIX_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                        {
+                            Helix3GUID = helix->GetGUID();
+                            helix->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+
+                            // Attach Helix to the Oaf
+                            helix->EnterVehicle(oafVehicle, 0);
+
+                            bSumm2 = true;
+                        }
+                    }
+                }
+
+                if (bSumm1 && bSumm2)
+                {
+                    bSumm = true;
+                    SummonTimer = 2000;
+                }
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            // 1. Detect player (only if event not triggered yet)
+            if (!EventTriggered)
+            {
+                if (Player* player = me->SelectNearestPlayer(30.0f))
+                {
+                    if (player->HasAura(SPELL_WESTFALL_POTION_SHROUDING) &&
+                        player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) == QUEST_STATUS_INCOMPLETE &&
+                        fabs(player->GetPositionZ() - me->GetPositionZ()) < 2.0f &&
+                        player->IsWithinDistInMap(me, 20.0f))
+                    {
+                        PlayerGUID = player->GetGUID();
+                        StartEvent();
+                        EventTriggered = true;
+                        EventRunning = true;
+                    }
+                }
+            }
+
+            if (EventRunning)
+            {
+                if (SummonTimer < diff)
+                {
+                    if (bSumm)
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                            if (Creature* oaf = ObjectAccessor::GetCreature(*me, OafGUID))
+                                if (Creature* Shadowy3 = ObjectAccessor::GetCreature(*me, Shadowy3GUID))
+                                {
+                                    Creature* Helix = ObjectAccessor::GetCreature(*me, Helix3GUID);
+                                    if (!Helix)
+                                        return;
+
+                                    switch (Phase)
+                                    {
+                                    case 0:
+                                    {
+                                        oaf->SetInFront(me);
+                                        SummonTimer = 1000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 1:
+                                    {
+                                        Helix->AI()->Talk(Q26232_SAY_HELIX_0);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 2:
+                                    {
+                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_0);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 3:
+                                    {
+                                        Helix->AI()->Talk(Q26232_SAY_HELIX_1);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 4:
+                                    {
+                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_1);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 5:
+                                    {
+                                        Helix->AI()->Talk(Q26232_SAY_HELIX_2);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 6:
+                                    {
+                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_2);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 7:
+                                    {
+                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_3);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 8:
+                                    {
+                                        Helix->AI()->Talk(Q26232_SAY_HELIX_3);
+                                        SummonTimer = 6000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 9:
+                                    {
+                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_4);
+                                        SummonTimer = 2000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 10:
+                                    {
+                                        player->CastSpell(player, SPELL_WESTFALL_Q26290_CREDIT, true);
+                                        SummonTimer = 1000;
+                                        Phase++;
+                                        break;
+                                    }
+                                    case 11:
+                                    {
+                                        if (!bExit)
+                                        {
+                                            Shadowy3->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
+                                            Shadowy3->DespawnOrUnsummon(1s);
+                                            oaf->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
+                                            Helix->DespawnOrUnsummon(1s);
+                                            oaf->DespawnOrUnsummon(1s);
+                                            bExit = true;
+                                            Reset();
+                                        }
+                                    }
+                                    break;
+                                    default:
+                                        break;
+                                    }
+                                }
+                    }
+                }
+                else SummonTimer -= diff;
+            }
+        }
+    };
+};
+
 void AddSC_custom_westfall_npcs()
 {
     new npc_custom_lous_parting_thoughts_trigger();
     new npc_custom_lous_parting_thoughts_thug();
     new npc_custom_hungry_hobo();
+    new npc_custom_agent_kearnen();
+    new npc_custom_elite_mercenary();
+    new npc_custom_trigger_mortwake_tower();
 }

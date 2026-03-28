@@ -677,3 +677,30 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 ('42387', '5', '0', 'See her face? Is it really...', '12', '0', '100', '6', '0', '0', '0', '42442', '0', 'Вор'),
 ('42387', '6', '0', 'DIE!', '12', '0', '100', '6', '0', '0', '0', '0', '0', 'Вор'),
 ('42387', '0', '0', 'Only one thing to do with a lousy, good-for-nothin eavesdropper.', '12', '0', '100', '6', '0', '0', '0', '0', '0', 'Вор');
+
+-- Creature text for Agent Kearnen
+DELETE FROM `creature_text` WHERE CreatureID = 7024;
+INSERT INTO creature_text
+(CreatureID, groupid, id, text, type, probability, emote, duration, sound, BroadcastTextId)
+VALUES
+(7024, 0, 0, 'Headshot!', 15, 100, 0, 0, 0, 42531),
+(7024, 0, 1, 'Easy peasy!', 15, 100, 0, 0, 0, 42534),
+(7024, 0, 2, 'Not a chance!', 15, 100, 0, 0, 0, 42533),
+(7024, 0, 3, 'Got him!', 15, 100, 0, 0, 0, 42535),
+(7024, 0, 4, 'I\'ve got your back, $n.', 15, 100, 0, 0, 0, 42531);
+
+-- Creature text for Secret Tower meeting event
+DELETE FROM `creature_text` WHERE CreatureID IN (42655, 42662); -- Helix / Shadowy figure
+INSERT INTO creature_text
+(CreatureID, groupid, id, text, type, probability, emote, duration, sound, BroadcastTextId)
+VALUES
+(42655, 0, 0, 'The gnolls have failed, mistress. ', 12, 100, 1, 0, 0, 42536),
+(42655, 1, 0, 'But mistress, the admiral is sti...', 12, 100, 1, 0, 0, 42538),
+(42655, 2, 0, 'Yes, mistress.', 12, 100, 1, 0, 0, 42540),
+(42655, 3, 0, 'Moonbrook, mistress?', 12, 100, 6, 0, 0, 42543),
+
+(42662, 0, 0, 'They provided the distraction I required. We continue as planned.', 12, 100, 1, 0, 0, 42537),
+(42662, 1, 0, 'We will free the admiral during the dawning.', 12, 100, 1, 0, 0, 42539),
+(42662, 2, 0, 'Judgment day is soon upon us, Helix.', 12, 100, 1, 0, 0, 42541),
+(42662, 3, 0, 'Call for the people. I wish to speak to them one last time before the dawning.', 12, 100, 1, 0, 0, 42542),
+(42662, 4, 0, 'Aye. Tonight.', 12, 100, 273, 0, 0, 42544);
