@@ -126,7 +126,7 @@ public:
             {
                 if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
                 {
-                    Talk(0, player);
+                    me->TextEmote(SAY_FURLBROW_RETURN);
                     player->KilledMonsterCredit(NPC_WESTFALL_Q26232_CREDIT, PlayerGUID);
                     player->RemoveAurasDueToSpell(SPELL_WESTFALL_DETECT_QUEST_INVIS_1);
                     player->CastSpell(player, SPELL_WESTFALL_DETECT_QUEST_INVIS_2);
@@ -197,8 +197,6 @@ public:
                     break;
 
                 case 8:
-                    EventLocked = true;
-
                     for (auto guid : ThugGUIDs)
                     {
                         if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
@@ -215,7 +213,8 @@ public:
                     if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
                         for (auto guid : ThugGUIDs)
                             if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
-                                thug->AI()->AttackStart(player);
+                                thug->EngageWithTarget(player);
+                    EventLocked = true;
                     PhaseTimer = 0;
                     break;
                 }

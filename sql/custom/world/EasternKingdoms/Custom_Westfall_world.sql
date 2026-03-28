@@ -20,7 +20,3 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 ('42387', '5', '0', 'See her face? Is it really...', '12', '0', '100', '6', '0', '0', '0', '42442', '0', 'Thugs'),
 ('42387', '6', '0', 'DIE!', '12', '0', '100', '6', '0', '0', '0', '42445', '0', 'Thugs'),
 ('42387', '0', '0', 'Only one thing to do with a lousy, good-for-nothin eavesdropper.', '12', '0', '100', '6', '0', '0', '0', '42444', '0', 'Thugs');
-
-DELETE FROM `creature_text` WHERE `CreatureID` IN (42562);
-INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
-('42562', '0', '0', 'Hurry back to the Furlbrow\'s Cottage.', '12', '0', '100', '0', '0', '0', '0', '42439', '0', 'Thugs Trigger');
