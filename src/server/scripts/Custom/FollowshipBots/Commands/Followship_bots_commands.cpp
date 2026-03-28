@@ -40,7 +40,7 @@ class followship_bots_commandscript : public CommandScript
 public:
     followship_bots_commandscript() : CommandScript("followship_bots_commandscript") { }
 
-    ChatCommandTable GetCommands() const override
+    std::span<ChatCommandBuilder const> GetCommands() const override
     {
         static ChatCommandTable fsbCommandTable =
         {
