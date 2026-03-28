@@ -15027,6 +15027,7 @@ void Player::AddQuestAndCheckCompletion(Quest const* quest, Object* questGiver)
                 e->OnQuestAccept(this, questGiver->ToCreature(), quest);
 #endif
 
+            sScriptMgr->OnQuestAccept(this, questGiver->ToCreature(), quest);
             questGiver->ToCreature()->AI()->OnQuestAccept(this, quest);
             break;
         case TYPEID_ITEM:
