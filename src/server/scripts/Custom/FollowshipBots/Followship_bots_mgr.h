@@ -48,7 +48,8 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 3595,     FSB_Class::Priest,          FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0},   // Shanda
     { 5484,     FSB_Class::Priest,          FSB_Race::Human,     0, FSB_ChatterType::Neutral,  GENDER_MALE,   0 }, // Brother Benjamin
     { 5489,     FSB_Class::Priest,          FSB_Race::Human,     0, FSB_ChatterType::Positive, GENDER_MALE,   0 }, // Brother Joshua
-    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0},    // Zalduun    
+    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0},    // Zalduun
+    { 49749,    FSB_Class::Priest,          FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },      // Priestess Cocoa Anderson
 
     // WARRIORS
     { 911,   FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },      // Llane Beshere
@@ -58,6 +59,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf, 15067, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },   // Alyissia
     { 16503, FSB_Class::Warrior,            FSB_Race::Draenei, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 },    // Kore
     { 46405, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 },      // Stockade Guard
+    { 49736, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 },      // Kallen Stanner
     { 50595, FSB_Class::Warrior,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_UNKNOWN, 0 },      // Stormwind Defender    
     { 112912, FSB_Class::Warrior,           FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 }, // Martin Ocejo
     { 164939,FSB_Class::Warrior,            FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 },      // Signilda Hardforge
@@ -69,6 +71,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 16500, FSB_Class::Mage,               FSB_Race::Draenei, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 },    // Valaatu
     { 37121, FSB_Class::Mage,               FSB_Race::Dwarf, 0, FSB_ChatterType::Neutral, GENDER_FEMALE, 0 },      // Teegli Merrowith
     { 43006, FSB_Class::Mage,               FSB_Race::NightElf, 0, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },   // Rhyanda
+    { 49760, FSB_Class::Mage,               FSB_Race::Human, 1263739, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },   // Zalna Wefhellt
 
     // PALADINS
     { 925, FSB_Class::Paladin,              FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 },      // Brother Sammuel
@@ -78,6 +81,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 5491,FSB_Class::Paladin,              FSB_Race::Human,     0, FSB_ChatterType::Negative, GENDER_MALE,   0 }, // Arthur the Faithful
     { 5492,FSB_Class::Paladin,              FSB_Race::Human,     0, FSB_ChatterType::Positive, GENDER_FEMALE, 0 }, // Katherine the Pure
     { 16501, FSB_Class::Paladin,            FSB_Race::Draenei, 408311, FSB_ChatterType::Positive, GENDER_MALE, 0 },    // Aurelon (Draenei)
+    { 49741,FSB_Class::Paladin,             FSB_Race::Human,   1269627, FSB_ChatterType::Positive, GENDER_FEMALE, 0 }, // Sister Darnhald
 
     // WARLOCKS
     { 459,   FSB_Class::Warlock,            FSB_Race::Human, 153252, FSB_ChatterType::Positive, GENDER_FEMALE, 0 },      // Drusilla la Salle
@@ -86,6 +90,7 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 5495, FSB_Class::Warlock,             FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 }, // Ursula Deline
     { 6373,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 },               // Dane Winslow
     { 6374,  FSB_Class::Warlock,            FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_FEMALE, 0 },      // Cylina Darkheart
+    { 49769,  FSB_Class::Warlock,           FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_FEMALE, 0 },      // Deborah Fain
 
     // DRUID
     { 3597,  FSB_Class::Druid,            FSB_Race::NightElf, 15067, FSB_ChatterType::Neutral, GENDER_MALE, 0 },   // Mardant
@@ -97,11 +102,13 @@ static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
     { 918, FSB_Class::Rogue,                FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 }, // Osborne the Night Man
     { 5505, FSB_Class::Rogue,               FSB_Race::NightElf, 0, FSB_ChatterType::Negative, GENDER_MALE, 0 }, // Theridran
     { 13283, FSB_Class::Rogue,              FSB_Race::Human, 0, FSB_ChatterType::Neutral, GENDER_MALE, 0 }, // Lord Tony Romano
+    { 49745, FSB_Class::Rogue,              FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 0 }, // Sern Hallows
     { 173819, FSB_Class::Rogue,             FSB_Race::Human,     0, FSB_ChatterType::Negative, GENDER_FEMALE, 0 }, // Reckful
 
     // HUNTER
     { 895,    FSB_Class::Hunter,            FSB_Race::Dwarf, 0, FSB_ChatterType::Negative, GENDER_MALE, 1125 /*Crag Boar Black*/},  //Thorgas Grimson
     { 5516,   FSB_Class::Hunter,            FSB_Race::Dwarf,     0, FSB_ChatterType::Neutral,  GENDER_MALE,   191979 /*Gristle*/}, // Ulfir Ironbeard
+    { 43011,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 44628 /*Golden Eagle*/},   // Lyndsay Hollister
     { 43278,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Negative, GENDER_FEMALE, 43292 /*Adele*/},   // Ashley
     { 46983,  FSB_Class::Hunter,            FSB_Race::Human, 0, FSB_ChatterType::Positive, GENDER_MALE, 46982 /*Sly*/},  //Benjamin Foxworthy
 

@@ -207,6 +207,12 @@ INSERT INTO `creature_template_gossip` VALUES
 ('46983', '900003', '-1'),
 ('46983', '900004', '-1'),
 ('46983', '900005', '-1'),
+('49741', '900000', '-1'),
+('49741', '900001', '-1'),
+('49741', '900002', '-1'),
+('49741', '900003', '-1'),
+('49741', '900004', '-1'),
+('49741', '900005', '-1'),
 ('50595', '900000', '-1'),
 ('50595', '900001', '-1'),
 ('50595', '900002', '-1'),
@@ -356,7 +362,50 @@ INSERT INTO `creature_template_gossip` VALUES
 ('5516', '900002', '-1'),
 ('5516', '900003', '-1'),
 ('5516', '900004', '-1'),
-('5516', '900005', '-1');
+('5516', '900005', '-1'),
+
+('49749', '900000', '-1'),
+('49749', '900001', '-1'),
+('49749', '900002', '-1'),
+('49749', '900003', '-1'),
+('49749', '900004', '-1'),
+('49749', '900005', '-1'),
+
+('49769', '900000', '-1'),
+('49769', '900001', '-1'),
+('49769', '900002', '-1'),
+('49769', '900003', '-1'),
+('49769', '900004', '-1'),
+('49769', '900005', '-1'),
+
+('49736', '900000', '-1'),
+('49736', '900001', '-1'),
+('49736', '900002', '-1'),
+('49736', '900003', '-1'),
+('49736', '900004', '-1'),
+('49736', '900005', '-1'),
+
+('43011', '900000', '-1'),
+('43011', '900001', '-1'),
+('43011', '900002', '-1'),
+('43011', '900003', '-1'),
+('43011', '900004', '-1'),
+('43011', '900005', '-1'),
+
+('49745', '900000', '-1'),
+('49745', '900001', '-1'),
+('49745', '900002', '-1'),
+('49745', '900003', '-1'),
+('49745', '900004', '-1'),
+('49745', '900005', '-1'),
+
+('49760', '900000', '-1'),
+('49760', '900001', '-1'),
+('49760', '900002', '-1'),
+('49760', '900003', '-1'),
+('49760', '900004', '-1'),
+('49760', '900005', '-1'),
+('49760', '900006', '-1');
 
 -- Goldshire trainers
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 328; -- Zaldimar (Mage)
@@ -428,3 +477,12 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5492;   -- Katherine the Pure (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5491;   -- Arthur the Faithful (Paladin)
 UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 5516;   -- Ulfir Ironbeard (Hunter)
+
+-- Westfall Trainers
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 49741; -- Sister Darnhald (Paladin)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 49736; -- Kallen Stanner (Warrior)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 49749; -- Priestess Cocoa Anderson (Priest)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 49769; -- Deborah Fain (Warlock)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 49760; -- Zalna Wefhellt (Mage)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 43011;   -- Lyndsay Hollister (Hunter)
+UPDATE `creature_template` SET `ScriptName` = 'npc_followship_bots' WHERE `Entry` = 49745; -- Sern Hallows (Rogue)

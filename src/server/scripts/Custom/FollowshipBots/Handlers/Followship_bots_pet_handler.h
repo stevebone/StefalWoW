@@ -32,6 +32,10 @@ enum FSB_PET_SPELLS
     SPELL_HUNTER_PET_AGILE_REFLEXES = 160011, //self
     SPELL_HUNTER_PET_MASTER_CALL = 53271, //self
     SPELL_HUNTER_PET_GROWL = 2649, //target
+    SPELL_HUNTER_PET_CLAW = 16827, //target
+
+    //BIRD OF PREY
+    SPELL_HUNTER_PET_TALON_REND = 263852, //target
 
     //FOX
     SPELL_HUNTER_PET_SCRATCH = 256337, //target
@@ -53,7 +57,7 @@ enum class FSB_PetFamily
     Boar,
     Fox,
     Hyena,
-    // add more as needed
+    BirdOfPrey,
 };
 
 static const std::unordered_map<uint32, FSB_PetFamily> CreatureFamilyMap =
@@ -73,6 +77,8 @@ static const std::unordered_map<uint32, FSB_PetFamily> CreatureFamilyMap =
     { 1125,  FSB_PetFamily::Boar },
 
     { 14228, FSB_PetFamily::Hyena },
+
+    { 44628,  FSB_PetFamily::BirdOfPrey },
 };
 
 static const std::unordered_map<FSB_PetFamily, std::vector<uint32>> CreatureFamilySpells =
@@ -83,6 +89,7 @@ static const std::unordered_map<FSB_PetFamily, std::vector<uint32>> CreatureFami
     //{ FSB_PetFamily::Bear, { 16810, 16811 } },
     { FSB_PetFamily::Boar, { SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_GORE, SPELL_HUNTER_PET_BRISTLE, SPELL_HUNTER_PET_MASTER_CALL } },
     { FSB_PetFamily::Hyena, { SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_INFECTED_BITE, SPELL_HUNTER_PET_RABIES, SPELL_HUNTER_PET_MASTER_CALL } },
+    { FSB_PetFamily::BirdOfPrey, { SPELL_HUNTER_PET_CLAW, SPELL_HUNTER_PET_TALON_REND, SPELL_HUNTER_PET_GROWL, SPELL_HUNTER_PET_MASTER_CALL} },
 };
 
 namespace FSBPet
