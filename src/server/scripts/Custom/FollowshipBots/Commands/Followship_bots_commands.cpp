@@ -294,11 +294,11 @@ public:
         }
 
         Creature* bot = target->ToCreature();
-        if (!bot || !bot->IsBot())
-        {
-            handler->SendSysMessage("Target is not a Followship bot.");
-            return false;
-        }
+        //if (!bot || !bot->IsBot())
+        //{
+        //    handler->SendSysMessage("Target is not a Followship bot.");
+        //    return false;
+        //}
 
         // --- Fetch bot metadata ---
         handler->PSendSysMessage("=== Followship Bot Cast Spell On Target ===");

@@ -208,10 +208,17 @@ namespace FSBUtils
         return false;
     }
 
-    Unit* FindCreatureByName(WorldObject* bot, std::string const& name, float range)
+    Unit* FindCreatureByName(WorldObject* bot, std::string name, float range)
     {
         if (!bot)
             return nullptr;
+
+        // Replace underscores with spaces
+        std::replace(name.begin(), name.end(), '_', ' ');
+
+        // Optional: lowercase for case-insensitive matching
+        std::string searchName = name;
+        std::transform(searchName.begin(), searchName.end(), searchName.begin(), ::tolower);
 
         std::list<WorldObject*> nearbyObjects;
 
@@ -228,7 +235,11 @@ namespace FSBUtils
             if (!c)
                 continue;
 
-            if (c->GetName() == name)
+            // Lowercase creature name for comparison
+            std::string creatureName = c->GetName();
+            std::transform(creatureName.begin(), creatureName.end(), creatureName.begin(), ::tolower);
+
+            if (creatureName == searchName)
                 return c;
         }
 

@@ -65,7 +65,7 @@ namespace FSBUtils
 
     bool BotIsHealerClass(Creature* bot);
 
-    Unit* FindCreatureByName(WorldObject* bot, std::string const& name, float range = 50.0f);
+    Unit* FindCreatureByName(WorldObject* bot, std::string name, float range = 50.0f);
     std::vector<Creature*> FindNearbyBots(Creature* center, float radius = 300.f);
 
     bool IsBotInTradeCity(Creature* bot);
