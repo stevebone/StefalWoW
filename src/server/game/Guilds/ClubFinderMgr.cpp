@@ -20,6 +20,7 @@
 #include "GameTime.h"
 #include "Log.h"
 #include "ObjectGuid.h"
+#include "Timer.h"
 #include "Util.h"
 
 ClubFinderMgr::ClubFinderMgr() = default;
