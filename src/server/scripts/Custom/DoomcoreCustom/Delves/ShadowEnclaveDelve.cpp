@@ -31,6 +31,7 @@
 #include "ReputationMgr.h"
 #include "InstanceScenario.h"
 #include "ScenarioMgr.h"
+#include "ScriptedCreature.h"
 #include "TemporarySummon.h"
 
 enum ShadowEnclaveData

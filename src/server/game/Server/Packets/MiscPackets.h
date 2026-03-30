@@ -1045,10 +1045,10 @@ namespace WorldPackets
             WarbandSceneCollectionContainer const* WarbandScenes = nullptr;
         };
 
-        class PerksProgramReqestPendingRewards final : public ClientPacket
+        class PerksProgramRequestPendingRewards final : public ClientPacket
         {
         public:
-            explicit PerksProgramReqestPendingRewards(WorldPacket&& packet) : ClientPacket(CMSG_PERKS_PROGRAM_REQUEST_PENDING_REWARDS, std::move(packet)) { }
+            explicit PerksProgramRequestPendingRewards(WorldPacket&& packet) : ClientPacket(CMSG_PERKS_PROGRAM_REQUEST_PENDING_REWARDS, std::move(packet)) { }
 
             void Read() override {}
         };

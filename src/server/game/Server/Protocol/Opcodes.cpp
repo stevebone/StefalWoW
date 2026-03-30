@@ -831,7 +831,7 @@ void OpcodeTable::InitializeClientOpcodes()
     DEFINE_HANDLER(CMSG_PERKS_PROGRAM_GET_RECENT_PURCHASES,                 STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramGetRecentPurchases);
     DEFINE_HANDLER(CMSG_PERKS_PROGRAM_ITEMS_REFRESHED,                      STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramItemsRefreshed);
     DEFINE_HANDLER(CMSG_PERKS_PROGRAM_REQUEST_CART_CHECKOUT,                STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramRequestCartCheckout);
-    DEFINE_HANDLER(CMSG_PERKS_PROGRAM_REQUEST_PENDING_REWARDS,              STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramReqestPendingRewards);
+    DEFINE_HANDLER(CMSG_PERKS_PROGRAM_REQUEST_PENDING_REWARDS,              STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramRequestPendingRewards);
     DEFINE_HANDLER(CMSG_PERKS_PROGRAM_REQUEST_PURCHASE,                     STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramRequestPurchase);
     DEFINE_HANDLER(CMSG_PERKS_PROGRAM_REQUEST_REFUND,                       STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramRequestRefund);
     DEFINE_HANDLER(CMSG_PERKS_PROGRAM_SET_FROZEN_VENDOR_ITEM,               STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandlePerksProgramSetFrozenVendorItem);

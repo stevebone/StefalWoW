@@ -560,7 +560,7 @@ namespace WorldPackets
         class RequestLatestSplashScreen;
         class QueryCountdownTimer;
         class SetCurrencyFlags;
-        class PerksProgramReqestPendingRewards;
+        class PerksProgramRequestPendingRewards;
     }
 
     namespace Movement
@@ -1892,7 +1892,7 @@ class TC_GAME_API WorldSession
         // Perks Program (Trading Post)
         void HandleRequestStoreFrontInfoUpdate(WorldPackets::PerksProgram::RequestStoreFrontInfoUpdate& packet);
         void HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& packet);
-        void HandlePerksProgramReqestPendingRewards(WorldPackets::Misc::PerksProgramReqestPendingRewards& packet);
+        void HandlePerksProgramRequestPendingRewards(WorldPackets::Misc::PerksProgramRequestPendingRewards& packet);
         void HandlePerksProgramGetRecentPurchases(WorldPackets::PerksProgram::PerksProgramGetRecentPurchases& packet);
         void HandlePerksProgramRequestPurchase(WorldPackets::PerksProgram::PerksProgramRequestPurchase& packet);
         void HandlePerksProgramRequestCartCheckout(WorldPackets::PerksProgram::PerksProgramRequestCartCheckout& packet);

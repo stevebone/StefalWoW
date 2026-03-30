@@ -111,7 +111,7 @@ void WorldSession::HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::P
     SendPerksProgramActivityUpdate();
 }
 
-void WorldSession::HandlePerksProgramReqestPendingRewards(WorldPackets::Misc::PerksProgramReqestPendingRewards& /*packet*/)
+void WorldSession::HandlePerksProgramRequestPendingRewards(WorldPackets::Misc::PerksProgramRequestPendingRewards& /*packet*/)
 {
     WorldPackets::PerksProgram::ResponsePerkPendingRewards response;
     response.PendingRewardCount = 0;
