@@ -4,9 +4,9 @@
  *
  * Scenario 3154 Steps (from DB2 ScenarioStep + sniff):
  * Step 0 (16032): Pursue Antenorian      ? First combat kill
- * Step 1 (16028): Destroy Void Focuses ×2 ? Void Focus (250266) death
- * Step 2 (16029): Stop Rituals ×3         ? Darkcaller deaths (3 unique)
- * Step 3 (16030): Slay Devoted ×3         ? Antenorian's Devoted (250275) deaths
+ * Step 1 (16028): Destroy Void Focuses 2 ? Void Focus (250266) death
+ * Step 2 (16029): Stop Rituals 3         ? Darkcaller deaths (3 unique)
+ * Step 3 (16030): Slay Devoted 3         ? Antenorian's Devoted (250275) deaths
  * Step 4 (16031): Slay Lord Antenorian    ? OnUnitDeath
  *
  * Flow:
@@ -20,6 +20,7 @@
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "DB2Stores.h"
+#include "EventMap.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "InstanceScript.h"
