@@ -25,7 +25,10 @@
 
 enum PerksProgramVendorData
 {
-    GOSSIP_MENU_PERKS_VENDOR    = 34391
+    GOSSIP_MENU_PERKS_VENDOR_0   = 34391, // NPC 219243 Teha (Dornogal)
+    GOSSIP_MENU_PERKS_VENDOR_1   = 30312, // NPC 185467 Wilder (Stormwind)
+    GOSSIP_MENU_PERKS_VENDOR_2   = 30315, // NPC 185468 Tawny (Stormwind)
+    GOSSIP_MENU_PERKS_VENDOR_3   = 34385, // NPC 219244 Andee (Dornogal)
 };
 
 class npc_perks_program_vendor : public CreatureScript
@@ -37,19 +40,28 @@ public:
     {
         npc_perks_program_vendorAI(Creature* creature) : ScriptedAI(creature) { }
 
-        bool OnGossipHello(Player* player) override
+        bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
         {
-            player->PrepareGossipMenu(me, GOSSIP_MENU_PERKS_VENDOR, true);
-            player->SendPreparedGossip(me);
-            return true;
-        }
+            switch (menuId)
+            {
+            case GOSSIP_MENU_PERKS_VENDOR_0:
+            case GOSSIP_MENU_PERKS_VENDOR_1:
+            case GOSSIP_MENU_PERKS_VENDOR_2:
+            case GOSSIP_MENU_PERKS_VENDOR_3:
+            {
+                if (gossipListId == 0)
+                {
+                    player->GetSession()->SendPerksProgramVendorList(me->GetGUID());
+                    CloseGossipMenuFor(player);
+                    return true;
+                }
+                return false;
+            }
 
-        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 /*gossipListId*/) override
-        {
-            player->GetSession()->SendPerksProgramVendorList(me->GetGUID());
-            CloseGossipMenuFor(player);
-
-            return true;
+            default:
+                return false;
+            }
+            return false;
         }
     };
 
