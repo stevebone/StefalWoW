@@ -70,10 +70,11 @@ enum ShadowEnclaveData
 };
 
 // Boss position (from sniff)
-static constexpr float ANTENORIAN_X = 127.458f;
-static constexpr float ANTENORIAN_Y = -56.413f;
-static constexpr float ANTENORIAN_Z = 215.583f;
-static constexpr float ANTENORIAN_O = 5.563f;
+// Not used for now
+//static constexpr float ANTENORIAN_X = 127.458f;
+//static constexpr float ANTENORIAN_Y = -56.413f;
+//static constexpr float ANTENORIAN_Z = 215.583f;
+//static constexpr float ANTENORIAN_O = 5.563f;
 
 // Loot chest positions (from sniff - marked as temporary spawns)
 static constexpr float CHEST1_X = 166.078f;

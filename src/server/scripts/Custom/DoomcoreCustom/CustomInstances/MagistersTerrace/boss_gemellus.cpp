@@ -4,7 +4,7 @@
  *
  * Mechanics:
  * - Triplicate: At 90% and 50% HP, creates 2 clones (Entry 239636). All share health via Synaptic Nexus.
- * - Neural Link: Links boss to a player — target takes 30% less damage, linked player takes 30% more for 7s.
+ * - Neural Link: Links boss to a player - target takes 30% less damage, linked player takes 30% more for 7s.
  * - Astral Grasp: At 100 energy, tentacle pulls players toward their respective Gemellus. Shadow damage.
  * - Cosmic Radiation: Damage to players pulled within grasp range.
  * - Void Secretions: Pool at player location.
@@ -246,7 +246,7 @@ struct npc_gemellus_clone : public ScriptedAI
         _events.ScheduleEvent(EVENT_VOID_SECRETIONS, 14s, 20s);
     }
 
-    void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
     {
         // Sync damage back to main boss
         if (InstanceScript* instance = me->GetInstanceScript())
