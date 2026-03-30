@@ -40,6 +40,8 @@ ByteBuffer& operator<<(ByteBuffer& data, CriteriaProgress const& criteria)
     data << criteria.Date;
     data << criteria.TimeFromStart;
     data << criteria.TimeFromCreate;
+    data << uint32(criteria.Unk1);
+    data << uint32(criteria.Unk2);
     data << OptionalInit(criteria.DynamicID);
     data.FlushBits();
 

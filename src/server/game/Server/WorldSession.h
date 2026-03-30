@@ -315,6 +315,20 @@ namespace WorldPackets
         class UpdateAADCStatus;
     }
 
+    namespace ClubFinder
+    {
+        class RequestPendingClubsList;
+        class RequestClubsData;
+        class RequestSubscribedClubPostingIDs;
+        class ApplicationResponse;
+        class ClubFinderPost;
+        class RequestClubsList;
+        class RequestMembershipToClub;
+        class GetApplicantsList;
+        class RespondToApplicant;
+        class WhisperApplicantRequest;
+    }
+
     namespace Collections
     {
         class CollectionItemSetFavorite;
@@ -325,6 +339,12 @@ namespace WorldPackets
         class AttackSwing;
         class AttackStop;
         class SetSheathed;
+    }
+
+    namespace Delve
+    {
+        class DelveTeleportOut;
+        class RequestPartyEligibilityForDelveTiers;
     }
 
     namespace Duel
@@ -540,6 +560,7 @@ namespace WorldPackets
         class RequestLatestSplashScreen;
         class QueryCountdownTimer;
         class SetCurrencyFlags;
+        class PerksProgramReqestPendingRewards;
     }
 
     namespace Movement
@@ -616,6 +637,18 @@ namespace WorldPackets
         class SetRestrictPingsToAssistants;
         class SendPingUnit;
         class SendPingWorldPoint;
+    }
+
+    namespace PerksProgram
+    {
+        class RequestStoreFrontInfoUpdate;
+        class PerksProgramStatusRequest;
+        class PerksProgramGetRecentPurchases;
+        class PerksProgramRequestPurchase;
+        class PerksProgramRequestCartCheckout;
+        class PerksProgramSetFrozenVendorItem;
+        class PerksProgramItemsRefreshed;
+        class PerksProgramRequestRefund;
     }
 
     namespace Pet
@@ -1457,6 +1490,18 @@ class TC_GAME_API WorldSession
         void HandleGuildChallengeUpdateRequest(WorldPackets::Guild::GuildChallengeUpdateRequest& packet);
         void HandleDeclineGuildInvites(WorldPackets::Guild::DeclineGuildInvites& packet);
 
+        // Club Finder
+        void HandleClubFinderRequestPendingClubsList(WorldPackets::ClubFinder::RequestPendingClubsList& packet);
+        void HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::RequestClubsData& packet);
+        void HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets::ClubFinder::RequestSubscribedClubPostingIDs& packet);
+        void HandleClubFinderApplicationResponse(WorldPackets::ClubFinder::ApplicationResponse& packet);
+        void HandleClubFinderPost(WorldPackets::ClubFinder::ClubFinderPost& packet);
+        void HandleClubFinderRequestClubsList(WorldPackets::ClubFinder::RequestClubsList& packet);
+        void HandleClubFinderRequestMembershipToClub(WorldPackets::ClubFinder::RequestMembershipToClub& packet);
+        void HandleClubFinderGetApplicantsList(WorldPackets::ClubFinder::GetApplicantsList& packet);
+        void HandleClubFinderRespondToApplicant(WorldPackets::ClubFinder::RespondToApplicant& packet);
+        void HandleClubFinderWhisperApplicantRequest(WorldPackets::ClubFinder::WhisperApplicantRequest& packet);
+
         void HandleDeclineNeighborhoodInvites(WorldPackets::Housing::DeclineNeighborhoodInvites const& declineNeighborhoodInvites);
 
         void HandleEnableTaxiNodeOpcode(WorldPackets::Taxi::EnableTaxiNode& enableTaxiNode);
@@ -1844,6 +1889,21 @@ class TC_GAME_API WorldSession
         void HandleCommerceTokenGetLog(WorldPackets::Token::CommerceTokenGetLog& updateListedAuctionableTokens);
         void HandleCommerceTokenGetMarketPrice(WorldPackets::Token::CommerceTokenGetMarketPrice& requestWowTokenMarketPrice);
 
+        // Perks Program (Trading Post)
+        void HandleRequestStoreFrontInfoUpdate(WorldPackets::PerksProgram::RequestStoreFrontInfoUpdate& packet);
+        void HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& packet);
+        void HandlePerksProgramReqestPendingRewards(WorldPackets::Misc::PerksProgramReqestPendingRewards& packet);
+        void HandlePerksProgramGetRecentPurchases(WorldPackets::PerksProgram::PerksProgramGetRecentPurchases& packet);
+        void HandlePerksProgramRequestPurchase(WorldPackets::PerksProgram::PerksProgramRequestPurchase& packet);
+        void HandlePerksProgramRequestCartCheckout(WorldPackets::PerksProgram::PerksProgramRequestCartCheckout& packet);
+        void HandlePerksProgramSetFrozenVendorItem(WorldPackets::PerksProgram::PerksProgramSetFrozenVendorItem& packet);
+        void HandlePerksProgramItemsRefreshed(WorldPackets::PerksProgram::PerksProgramItemsRefreshed& packet);
+        void HandlePerksProgramRequestRefund(WorldPackets::PerksProgram::PerksProgramRequestRefund& packet);
+        void SendPerksAnimToggleKillSwitch();
+        void SendPerksProgramCurrencyUpdate();
+        void SendPerksProgramActivityUpdate();
+        void SendPerksProgramVendorList(ObjectGuid vendorGuid);
+
         // Compact Unit Frames (4.x)
         void HandleSaveCUFProfiles(WorldPackets::Misc::SaveCUFProfiles& packet);
         void SendLoadCUFProfiles();
@@ -1891,6 +1951,10 @@ class TC_GAME_API WorldSession
 
         // Scenario
         void HandleQueryScenarioPOI(WorldPackets::Scenario::QueryScenarioPOI& queryScenarioPOI);
+
+        // Delves
+        void HandleDelveTeleportOut(WorldPackets::Delve::DelveTeleportOut& delveTeleportOut);
+        void HandleRequestPartyEligibilityForDelveTiers(WorldPackets::Delve::RequestPartyEligibilityForDelveTiers& request);
 
         // Azerite
         void HandleAzeriteEssenceUnlockMilestone(WorldPackets::Azerite::AzeriteEssenceUnlockMilestone& azeriteEssenceUnlockMilestone);

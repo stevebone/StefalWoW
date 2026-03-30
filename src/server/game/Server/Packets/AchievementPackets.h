@@ -47,6 +47,8 @@ namespace WorldPackets
             WowTime Date;
             Duration<Seconds> TimeFromStart;
             Duration<Seconds> TimeFromCreate;
+            uint32 Unk1 = 0;    // 12.0.1.66527: 8 extra bytes after TimeFromCreate (always 0 in sniff)
+            uint32 Unk2 = 0;
             Optional<uint64> DynamicID;
         };
 
