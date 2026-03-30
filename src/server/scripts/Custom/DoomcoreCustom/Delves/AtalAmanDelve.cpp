@@ -18,6 +18,7 @@
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "DB2Stores.h"
+#include "EventMap.h"
 #include "CriteriaHandler.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
