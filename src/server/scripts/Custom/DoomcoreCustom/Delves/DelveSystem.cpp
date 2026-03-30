@@ -26,6 +26,7 @@
 #include "NPCPackets.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "WorldSession.h"
 

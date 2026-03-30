@@ -4,7 +4,7 @@
  *
  * Scenario 3147 Steps:
  * Step 0 (16161): Speak to Fleek           ? OnGossipSelect
- * Step 1 (16163): Rescue Spiritpaw Cubs ×7 ? Cage GO interaction
+ * Step 1 (16163): Rescue Spiritpaw Cubs 7 ? Cage GO interaction
  * Step 2 (16007): Disrupt Ritual           ? Kill Consumption of Nalorakk
  * Step 3 (16008): Kill Spiritflayer Jin'Ma ? OnUnitDeath
  *
