@@ -12,8 +12,14 @@
 -- NPC: 56393 Mesmerized Onlooker
 -- NPC: 55015 Whitefeather Crane
 -- NPC: 57620 Whittler Dewei
+-- NPC: 57779 Huo
+-- NPC: 54787 Huo (spawned)
 -- NPC: 54135 Master Li Fei
 -- NPC: 54734 Master Li Fei (challenge npc)
+-- NPC: 54958 Huo (spawned)
+-- NPC: 57720 Ji Firepaw
+-- NPC: 57721 Aysa Cloudsinger
+-- NPC: 54786 Master Shang Xi
 
 -- Spell: 108786 Summon Stack of Reeds
 -- Spell: 108798 Jojo Headbash Stack of reeds impact
@@ -217,3 +223,172 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (109109, 'spell_fan_the_flames_throw_wood_and_all_blow_air');
 
 UPDATE `quest_template_addon` SET `ScriptName`= 'quest_29422_huo_the_spirit_of_fire', `NextQuestID`=29423 WHERE `ID` IN (29422);
+
+-- 29423 The Passion of Shen-zin Su
+SET @CGUID := 900000;
+
+DELETE FROM `creature` WHERE `guid` IN (450021, @CGUID+741, @CGUID+742);
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
+(@CGUID+741, 56479, 860, 5736, 5820, '0', '1323', 0, 0, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978), -- Legacy of Liu Lang (Area: Храм Пяти Рассветов - Difficulty: 0) CreateObject1 (Auras: 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop) - !!! already present in database !!!
+(@CGUID+742, 56479, 860, 5736, 5820, '0', '1324', 0, 0, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978); -- Legacy of Liu Lang (Area: Храм Пяти Рассветов - Difficulty: 0) CreateObject1 (Auras: 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop) - !!! already present in database !!!
+
+DELETE FROM `creature_addon` WHERE `guid` IN (450021, @CGUID+0, @CGUID+1);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(@CGUID+0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- Legacy of Liu Lang - 132376 - 
+(@CGUID+1, 0, 0, 0, 0, 0, 1, 0, 420, 2188, 0, 0, 5, '132376'); -- Legacy of Liu Lang - 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop - 
+
+DELETE FROM `creature_template_gossip` WHERE (`CreatureID`=54786 AND `MenuID`=13158);
+INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
+(54786, 13158, 64978); -- Master Shang Xi
+
+DELETE FROM `gossip_menu` WHERE (`MenuID`=13158 AND `TextID`=18536);
+INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES
+(13158, 18536, 64978); -- 54786 (Master Shang Xi)
+
+UPDATE `creature_template` SET `speed_run`=1.714285731315612792, `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `ScriptName`= 'npc_huo_follower' WHERE `entry`=54958; -- Huo
+UPDATE `creature` SET `ScriptName`= 'npc_chia_hui_autumnleaf', `StringId`= 'Chia_Hui_Talk_Event_Starter' WHERE `guid`=450386; 
+UPDATE `creature` SET `StringId`= 'Brewer_Lin_Talk_Event' WHERE `guid`=450387; 
+UPDATE `creature` SET `StringId`= 'Brewer_Zhen_Talk_Event' WHERE `guid`=450385; 
+UPDATE `creature` SET `ScriptName`= 'npc_shanxi_quest', `StringId`= 'ShanXi_Talk' WHERE `guid`=450020; 
+UPDATE `creature` SET `StringId`= 'Huo_Pre_Ignition' WHERE `guid`=450608; 
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (54958);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(54958, 0, 0, 0, 3, 0, 1, 0, 0, 0, 3300, 0, 0, '102630'); -- 54958 (Huo) - Благословение Хо
+
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x30000000, `VerifiedBuild`=64978 WHERE (`Entry`=54958 AND `DifficultyID` IN (0, 1)); -- 54958 (Huo) - CanSwim, Floating
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=61127 AND `DifficultyID` IN (0, 1)); -- 61127 (Ji Firepaw) - CanSwim
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=61126 AND `DifficultyID` IN (0, 1)); -- 61126 (Aysa Cloudsinger) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=57619 AND `DifficultyID`=0); -- 57619 (Cheng Dawnscrive) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=54786 AND `DifficultyID`=0); -- 54786 (Master Shang Xi) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000100, `VerifiedBuild`=64978 WHERE (`Entry`=57769 AND `DifficultyID`=0); -- 57769 (Шэнь-Цзынь Су) - Sessile, Floating
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=68986 AND `DifficultyID`=0); -- 68986 (Li the Tamer) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=66298 AND `DifficultyID`=0); -- 66298 (Green Dragon Turtle) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000100, `VerifiedBuild`=64978 WHERE (`Entry`=56479 AND `DifficultyID`=0); -- 56479 (Legacy of Liu Lang) - Sessile, Floating
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=57414 AND `DifficultyID`=0); -- 57414 (Temple Guard) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=65094 AND `DifficultyID`=0); -- 65094 (Priestess of the Dawn) - CanSwim
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (1323, 1324);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(5736, 1323, 'Cosmetic - Central Statue, Pre-Fire'),
+(5736, 1324, 'Cosmetic - Central Statue, Post-Fire');
+
+DELETE FROM `conditions` WHERE (`SourceGroup` IN (1323, 1324)) AND (`SourceEntry` = 5736);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 1323, 5736, 0, 0, 47, 0, 29423, 66, 0, '', 1, 0, 0, '', 'Allow phase 1323 if quest 29423 state not completed / not rewarded'),
+(26, 1324, 5736, 0, 0, 47, 0, 29423, 66, 0, '', 0, 0, 0, '', 'Allow phase 1324 if quest 29423 state completed / rewarded');
+
+DELETE FROM `creature_text` WHERE (`CreatureID` IN (54786, 60248, 60253, 61126, 61127));
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(54786, 0, 0, 'Welcome, Huo. The people have missed your warmth.', 12, 0, 100, 2, 0, 27788, 0, 60608, 0, 'Master Shang Xi to Player'),
+(60248, 0, 0, 'Is that... is that Huo?', 12, 0, 100, 25, 0, 0, 0, 59751, 0, 'Chia-hui Autumnleaf to Player'),
+(60253, 0, 0, 'It is! Well done, $p!', 12, 0, 100, 71, 0, 0, 0, 59752, 0, 'Brewer Lin to Player'),
+(54786, 1, 0, 'You have conquered every challenge I put before you, $n. You have found Huo and brought him safely to the temple.', 12, 0, 100, 1, 0, 27789, 0, 60600, 0, 'Master Shang Xi to Player'),
+(54786, 1, 1, 'Your training has paid off, young $c. You have found Huo and brought him safely to the temple.', 12, 0, 100, 1, 0, 0, 0, 55254, 0, 'Master Shang Xi to Player'),
+(54786, 2, 0, 'There is a much larger problem we face now, my students. Shen-zin Su is in pain. If we do not act, the very land on which we stand could die, and all of us with it.', 12, 0, 100, 1, 0, 27790, 0, 60601, 0, 'Master Shang Xi to Player'),
+(54786, 3, 0, 'We need to speak to Shen-zin Su and discover how to heal it. And to do that, we need the four elemental spirits returned. Huo was the first.', 12, 0, 100, 1, 0, 27791, 0, 60602, 0, 'Master Shang Xi to Player'),
+(54786, 4, 0, 'Ji, I''d like you to go to the Dai-Lo Farmstead in search of Wugou, the spirit of earth.', 12, 0, 100, 1, 0, 27792, 0, 60603, 0, 'Master Shang Xi to Player'),
+(54786, 5, 0, 'Aysa, I want you to go to the Singing Pools to find Shu, the spirit of water.', 12, 0, 100, 1, 0, 27793, 0, 60604, 0, 'Master Shang Xi to Player'),
+(54786, 6, 0, 'And $n, you shall be the hand that guides us all. Speak with me for a moment before you join Aysa at the Singing Pools to the east.', 12, 0, 100, 1, 0, 27794, 0, 60605, 0, 'Master Shang Xi to Player'),
+(61126, 0, 0, 'Yes master.', 12, 0, 100, 2, 0, 27406, 0, 0, 0, 'Aysa Cloudsinger to Player'),
+(61127, 0, 0, 'On it!', 12, 0, 100, 0, 0, 27306, 0, 60606, 0, 'Ji Firepaw to Player');
+
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (128700, 109178);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
+(128700, 'spell_summon_fire_spirit'),
+(109178, 'spell_despawn_fire_spirit');
+
+DELETE FROM `quest_template_addon` WHERE `ID`=29423;
+INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
+(29423, 0, 0, 0, 0, 29521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_29423_the_passion_of_shen_zin_su');
+
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7750, 7835);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
+(7750, 'at_talk_on_huo_follow_quest_29423'),
+(7835, 'at_enter_temple_quest_29423');
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112600);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112600, 0, 1, NULL, '61126 (Aysa Cloudsinger)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112600);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`) VALUES
+(6112600, 1, 969.36, 3601.2856, 196.06541, NULL),
+(6112600, 2, 966.3715, 3602.764, 196.47968, NULL);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112700);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112700, 0, 1, NULL, '61127 (Ji Firepaw)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112700);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`) VALUES
+(6112700, 1, 971.5566, 3607.8015, 195.71495, NULL),
+(6112700, 2, 966.1493, 3607.0894, 196.51373, NULL);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112701);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112701, 0, 2, NULL, '61127 (Ji Firepaw)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112701);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
+(6112701, 1, 966.149, 3607.09, 196.514, NULL, 0),
+(6112701, 2, 961.61, 3599.57, 196.419, NULL, 0),
+(6112701, 3, 959.528, 3596.13, 196.313, NULL, 0),
+(6112701, 4, 959.424, 3595.96, 196.351, NULL, 0),
+(6112701, 5, 958.788, 3594.9, 196.421, NULL, 0),
+(6112701, 6, 958.449, 3594.34, 196.443, NULL, 0),
+(6112701, 7, 957.81, 3593.28, 196.62, NULL, 0),
+(6112701, 8, 957.277, 3592.96, 196.604, NULL, 0),
+(6112701, 9, 956.45, 3592.46, 196.599, NULL, 0),
+(6112701, 10, 955.639, 3591.97, 195.728, NULL, 0),
+(6112701, 11, 954.285, 3591.15, 195.732, NULL, 0),
+(6112701, 12, 952.979, 3590.36, 195.712, NULL, 0),
+(6112701, 13, 952.261, 3589.92, 196.578, NULL, 0),
+(6112701, 14, 951.009, 3589.16, 196.59, NULL, 0),
+(6112701, 15, 949.507, 3588.25, 196.58, NULL, 0),
+(6112701, 16, 934.264, 3588.82, 196.584, NULL, 0),
+(6112701, 17, 931.479, 3590.6, 196.603, NULL, 0),
+(6112701, 18, 930.757, 3591.06, 195.712, NULL, 0),
+(6112701, 19, 929.668, 3591.75, 195.726, NULL, 0),
+(6112701, 20, 929.493, 3591.86, 195.731, NULL, 0),
+(6112701, 21, 928.146, 3592.72, 195.745, NULL, 0),
+(6112701, 22, 927.337, 3593.23, 196.657, NULL, 0),
+(6112701, 23, 925.967, 3594.1, 196.594, NULL, 0),
+(6112701, 24, 925.661, 3594.3, 196.569, NULL, 0),
+(6112701, 25, 923.749, 3595.65, 196.407, NULL, 0),
+(6112701, 26, 919.881, 3598.4, 196.619, NULL, 0),
+(6112701, 27, 918.112, 3599.65, 196.525, NULL, 0),
+(6112701, 28, 905.293, 3603.47, 193.129, NULL, 0),
+(6112701, 29, 896.877, 3604.32, 193.098, NULL, 0),
+(6112701, 30, 890.26, 3604.66, 192.259, NULL, 0),
+(6112701, 31, 880.778, 3605.35, 192.204, NULL, 0),
+(6112701, 32, 856.174, 3606.66, 173.901, NULL, 0);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112601);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112601, 0, 2, NULL, '61126 (Aysa Cloudsinger)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112601);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
+(6112601, 1, 966.372, 3602.76, 196.48, NULL, 0),
+(6112601, 2, 953.724, 3586.03, 196.605, NULL, 0),
+(6112601, 3, 946.795, 3581.76, 196.423, NULL, 0),
+(6112601, 4, 942.691, 3571.45, 193.022, NULL, 0),
+(6112601, 5, 940.927, 3558.86, 193.421, NULL, 0),
+(6112601, 6, 941.162, 3564.98, 193.024, NULL, 0),
+(6112601, 7, 941.02, 3559.48, 193.035, NULL, 0),
+(6112601, 8, 941.266, 3558.73, 193.41, NULL, 0),
+(6112601, 9, 940.927, 3558.86, 193.421, NULL, 0),
+(6112601, 10, 940.895, 3558.66, 193.421, NULL, 0),
+(6112601, 11, 940.85, 3556.92, 194.077, NULL, 0),
+(6112601, 12, 940.91, 3555.48, 194.04, NULL, 0),
+(6112601, 13, 940.902, 3555.33, 193.579, NULL, 0),
+(6112601, 14, 940.881, 3553.84, 193.611, NULL, 0),
+(6112601, 15, 941.021, 3552.36, 192.716, NULL, 0),
+(6112601, 16, 941.067, 3551.87, 192.735, NULL, 0),
+(6112601, 17, 941.796, 3544.16, 192.725, NULL, 0),
+(6112601, 18, 941.84, 3543.69, 192.839, NULL, 0),
+(6112601, 19, 942.205, 3532.94, 193.716, NULL, 0),
+(6112601, 20, 941.934, 3523.57, 192.076, NULL, 0),
+(6112601, 21, 941.339, 3500.11, 187.679, NULL, 0),
+(6112601, 22, 943.224, 3486.15, 187.695, NULL, 0);

@@ -1541,132 +1541,6 @@ enum ThePassionOfShenZinSu
     EVENT_AYSA_CLOUDSINGER_00 = 9
 };
 
-struct npc_huo_spawn_follower : public ScriptedAI
-{
-    npc_huo_spawn_follower(Creature* creature) : ScriptedAI(creature) { }
-
-    void OnQuestAccept(Player* player, Quest const* quest) override
-    {
-        if (quest->GetQuestId() == QUEST_THE_PASSION_OF_SHENZIN_SU)
-        {
-            // Cast the Blessing of Huo spell on the player
-            player->CastSpell(player, SPELL_BLESSING_OF_HUO, true);
-
-            if (Creature* summon = me->SummonCreature(NPC_HUO_FOLLOWER, 1257.89f, 3925.59f, 127.856f, 0.506145f, TEMPSUMMON_MANUAL_DESPAWN, 0s, player->GetGUID()))
-            {
-                // Make follower non - attackable and passive
-                summon->SetReactState(REACT_PASSIVE);
-                //summon->SetUninteractible(true);
-                summon->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
-
-                if (summon->AI())
-                {
-                    // Set the summoned creature to follow the player via FollowerAI
-                    if (FollowerAI* followerAI = dynamic_cast<FollowerAI*>(summon->AI()))
-                    {
-                        followerAI->StartFollow(player, QUEST_THE_PASSION_OF_SHENZIN_SU);
-                    }
-                }
-            }
-        }
-    }
-};
-
-struct npc_huo_follower : public FollowerAI
-{
-    npc_huo_follower(Creature* creature) : FollowerAI(creature) { }
-
-    EventMap events;
-    std::set<uint32> interactedEntries;
-
-    void IsSummonedBy(WorldObject* summoner) override
-    {
-        if (Player* player = summoner->ToPlayer())
-            StartFollow(player);
-    }
-
-    // Add quest completion logic or movement change later
-    void UpdateAI(uint32 diff) override
-    {
-        // Optional: call base class first
-        FollowerAI::UpdateAI(diff);
-
-        if (Player* player = GetLeaderForFollower())
-        {
-            // Define range check
-            float checkRange = 20.0f; // Adjust as needed
-
-            // Attempt to find the quest completion NPC by entry ID
-            Creature* completionNPC = me->FindNearestCreature(NPC_MASTER_SHANG_XI, checkRange, true);
-            if (completionNPC)
-            {
-                if (player->GetQuestStatus(QUEST_THE_PASSION_OF_SHENZIN_SU) == QUEST_STATUS_INCOMPLETE)
-                {
-                    player->KilledMonsterCredit(NPC_FIRE_SPIRIT_CREDIT);
-                    if (player->HasAura(SPELL_BLESSING_OF_HUO))
-                        player->RemoveAurasDueToSpell(SPELL_BLESSING_OF_HUO);
-
-                    // Follower moves
-                    me->GetMotionMaster()->Clear();
-                    me->GetMotionMaster()->MovePoint(0, 957.5355f, 3603.9404f, 197.1533f);
-                }
-
-            }
-        }
-
-        CheckForNearbyCreature(NPC_CHIA_HUI, 30.0f);
-        CheckForNearbyCreature(NPC_BREWER_LIN, 10.0f);
-
-    }
-
-
-    void CheckForNearbyCreature(uint32 entry, float range)
-    {
-        // Only do it once per entry
-        if (interactedEntries.contains(entry))
-            return;
-
-        std::list<Creature*> nearbyCreatures;
-        GetCreatureListWithEntryInGrid(nearbyCreatures, me, entry, range);
-
-        if (!nearbyCreatures.empty())
-        {
-            if (Player* player = GetLeaderForFollower())
-            {
-                Creature* talker = GetClosestCreatureWithEntry(me, entry, range);
-                if(talker)
-                {
-                    talker->AI()->Talk(SAY_NPC_HUO_NEARBY_00, player);
-                    interactedEntries.insert(entry); // Mark as done
-                }
-            }
-        }
-    }
-
-    void MovementInform(uint32 type, uint32 id) override
-    {
-        FollowerAI::MovementInform(type, id); // Base call
-
-        if (type == POINT_MOTION_TYPE && id == 0)
-        {
-            me->StopMoving(); // Kill leftover motion flags
-            me->GetMotionMaster()->Clear();
-
-            float x = 957.5355f;
-            float y = 3603.9404f;
-            float z = 197.1533f;
-            float o = 6.2444f;
-
-            me->NearTeleportTo(x, y, z, o);
-
-            me->SetEmoteState(EMOTE_STATE_STAND); // Idle stance
-            //me->SetOrientation(6.2444f);
-            me->DespawnOrUnsummon(120s); // Despawn after 120 sec
-        }
-    }
-
-};
-
 // Quest: 29776 morning-breeze-village
 // OnQuestAccept Master Shang casts 104396 on player
 struct npc_master_shang : public ScriptedAI
@@ -4442,12 +4316,7 @@ public:
 
     void OnLogin(Player* player, bool /*firstLogin*/) override
     {
-        // Check if player has the quest active
-        if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_PASSION_OF_SHENZIN_SU))
-        {
-            player->CastSpell(player, SPELL_SPAWN_SPIRIT_OF_FIRE);
-        }
-        else if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SOURCE_OF_LIVELIHOOD))
+        if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SOURCE_OF_LIVELIHOOD))
         {
             player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER);
         }
@@ -4474,8 +4343,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_summon);
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
-    RegisterCreatureAI(npc_huo_spawn_follower);
-    RegisterCreatureAI(npc_huo_follower);
     RegisterCreatureAI(npc_master_shang);
     RegisterCreatureAI(npc_balance_pole);
     RegisterCreatureAI(npc_tushui_monk_on_pole);

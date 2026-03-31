@@ -22,7 +22,6 @@
 
 #include "ScriptMgr.h"
 #include "SpellScript.h"
-#include "SpellAuraEffects.h"
 
 #include "Player.h"
 #include "Creature.h"
@@ -110,6 +109,44 @@ namespace Scripts::TheWanderingIsle::Spells
             AfterCast += SpellCastFn(spell_fan_the_flames::HandleAfterCast);
         }   
     };
+
+    // 128700
+    class spell_summon_fire_spirit : public SpellScript
+    {
+        void SelectTarget(WorldObject*& target)
+        {
+            Player* caster = GetCaster()->ToPlayer();
+            if (!caster)
+                return;
+
+            Creature* huo = caster->FindNearestCreatureWithOptions(15.0f, { .StringId = "Huo_Pre_Ignition", .IgnorePhases = true });
+
+            if (!huo)
+                return;
+
+            target = huo;
+        }
+
+        void Register() override
+        {
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_summon_fire_spirit::SelectTarget, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 109178
+    class spell_despawn_fire_spirit : public SpellScript
+    {
+        void HandleHitTarget(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* huo = GetHitUnit()->FindNearestCreature(Defines::Npcs::npc_huo_q29423, GetSpellInfo()->GetMaxRange(), true))
+                huo->ToCreature()->DespawnOrUnsummon();
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_despawn_fire_spirit::HandleHitTarget, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
 };
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -117,4 +154,6 @@ void AddSC_custom_the_wandering_isle_spells()
     using namespace Scripts::TheWanderingIsle::Spells;
     RegisterSpellScript(spell_fan_the_flames);
     RegisterSpellScript(spell_fan_the_flames_throw_wood_and_all_blow_air);
+    RegisterSpellScript(spell_summon_fire_spirit);
+    RegisterSpellScript(spell_despawn_fire_spirit);
 }

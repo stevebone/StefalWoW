@@ -33,19 +33,66 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 spell_fan_the_flames_credit = 109107;
     }
 
+    namespace SpellsQ29423
+    {
+        static constexpr uint32 spell_summon_spirit_of_fire = 128700;
+        static constexpr uint32 spell_despawn_spirit_of_fire = 109178;
+        static constexpr uint32 spell_summon_spirit_of_fire_on_relog = 102632;
+        static constexpr uint32 spell_start_talk_event = 116220;
+        static constexpr uint32 spell_fire_form = 109135;
+        static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
+    }
+
+    namespace TalksQ29423
+    {
+        static constexpr uint32 chia_hui_autumnleaf_talk = 0;
+        static constexpr uint32 brewer_lin_talk = 0;
+        static constexpr uint32 shanxi_talk_0 = 0;
+        static constexpr uint32 shanxi_talk_1 = 1;
+        static constexpr uint32 shanxi_talk_2 = 2;
+        static constexpr uint32 shanxi_talk_3 = 3;
+        static constexpr uint32 shanxi_talk_4 = 4;
+        static constexpr uint32 shanxi_talk_5 = 5;
+        static constexpr uint32 shanxi_talk_6 = 6;
+        static constexpr uint32 aysa_talk = 0;
+        static constexpr uint32 ji_talk = 0;
+    }
+
+    namespace PositionsQ29423
+    {
+        static constexpr Position aysaSpawnPos = { 992.00347900390625f, 3600.757080078125f, 193.11480712890625f, 3.087874650955200195f };
+        static constexpr Position jiSpawnPos = { 992.107666015625f, 3604.552978515625f, 193.1151580810546875f, 2.968008279800415039f };
+        static constexpr Position huoFirstPoint = { 955.1213f, 3604.0388f, 200.71686f, 6.249388f };
+        static constexpr Position huoSecondPoint = { 950.00757f, 3601.0044f, 203.8194f };
+    }
+
+    namespace PathQ29423
+    {
+        static constexpr uint32 aysa = 6112600;
+        static constexpr uint32 ji = 6112700;
+        static constexpr uint32 ji_away = 6112701;
+        static constexpr uint32 aysa_away = 6112601;
+    }
+
+    namespace EventsQ29423
+    {
+        static constexpr uint32 event_delivery_huo = 1;
+        static constexpr uint32 event_second_huo_position = 2;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
+        static constexpr uint32 credit_the_passion_of_shen_zin_su = 61128;
+        static constexpr uint32 npc_huo_q29423 = 54958;
+        static constexpr uint32 npc_aysa_q29423 = 61126;
+        static constexpr uint32 npc_ji_q29423 = 61127;
     }
 
     namespace Quests
     {
         static constexpr uint32 quest_huo_the_spirit_of_fire = 29422;
+        static constexpr uint32 quest_the_passion_of_shen_zin_su = 29423;
     }
 }
-
-enum Custom_TheWanderingIsle_Events
-{
-    THEWANDERINGISLE_EVENT_NONE = 0
-};
 

@@ -48,10 +48,34 @@ namespace Scripts::TheWanderingIsle::Quests
             }
         }
     };
+
+    // 29423
+    class quest_29423_the_passion_of_shen_zin_su : public QuestScript
+    {
+    public:
+        quest_29423_the_passion_of_shen_zin_su() : QuestScript("quest_29423_the_passion_of_shen_zin_su") {}
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus == QUEST_STATUS_NONE)
+            {
+                player->CastSpell(player, Defines::SpellsQ29423::spell_despawn_spirit_of_fire, true);
+                player->RemoveAurasDueToSpell(Defines::SpellsQ29423::spell_summon_spirit_of_fire);
+                player->RemoveAurasDueToSpell(Defines::SpellsQ29423::spell_summon_spirit_of_fire_on_relog);
+                PhasingHandler::OnConditionChange(player);
+            }
+            else if (newStatus == QUEST_STATUS_INCOMPLETE)
+            {
+                player->CastSpell(player, Defines::SpellsQ29423::spell_summon_spirit_of_fire, true);
+                PhasingHandler::OnConditionChange(player);
+            }
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_quests()
 {
     using namespace Scripts::TheWanderingIsle::Quests;
     new quest_29422_huo_the_spirit_of_fire();
+    new quest_29423_the_passion_of_shen_zin_su();
 }
