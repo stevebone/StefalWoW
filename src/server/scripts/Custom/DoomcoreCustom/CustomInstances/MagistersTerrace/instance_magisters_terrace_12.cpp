@@ -4,6 +4,7 @@
  */
 
 #include "ScriptMgr.h"
+#include "Creature.h"
 #include "CreatureAI.h"
 #include "GameObject.h"
 #include "InstanceScript.h"
