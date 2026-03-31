@@ -32,6 +32,7 @@
 #include "ReputationMgr.h"
 #include "InstanceScenario.h"
 #include "ScenarioMgr.h"
+#include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "TemporarySummon.h"
 
