@@ -6,6 +6,7 @@
 
 #include "Chat.h"
 #include "ChatCommand.h"
+#include "DB2Stores.h"
 #include "Define.h"
 #include "Player.h"
 #include "RBAC.h"
