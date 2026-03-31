@@ -1,0 +1,120 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ScriptMgr.h"
+#include "SpellScript.h"
+#include "SpellAuraEffects.h"
+
+#include "Player.h"
+#include "Creature.h"
+#include "ObjectAccessor.h"
+
+#include "EventProcessor.h"
+
+#include "Custom_TheWanderingIsle_Defines.h"
+
+namespace Scripts::TheWanderingIsle::Spells
+{
+    // 109090, 109095, 109105, 109109
+    class spell_fan_the_flames_throw_wood_and_all_blow_air : public SpellScript
+    {
+        void SelectTarget(WorldObject*& target)
+        {
+            Player* caster = GetCaster()->ToPlayer();
+            if (!caster)
+                return;
+
+            Creature* huo = caster->FindNearestCreatureWithOptions(10.0f, { .StringId = "Huo_Pre_Ignition" });
+
+            if (!huo)
+                return;
+
+            target = huo;
+        }
+
+        void Register() override
+        {
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_fan_the_flames_throw_wood_and_all_blow_air::SelectTarget, EFFECT_0, TARGET_UNIT_NEARBY_ENTRY);
+        }
+    };
+
+    // 102522
+    class spell_fan_the_flames : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Defines::SpellsQ29422::spell_fan_the_flames_throw_wood, Defines::SpellsQ29422::spell_fan_the_flames_blow_air,
+                Defines::SpellsQ29422::spell_fan_the_flames_blow_air_big, Defines::SpellsQ29422::spell_fan_the_flames_blow_air_bigger });
+        }
+
+        void HandleAfterCast()
+        {
+            Player* player = GetCaster()->ToPlayer();
+            if (!player)
+                return;
+
+            Creature* huo = player->FindNearestCreatureWithOptions(10.0f, { .StringId = "Huo_Pre_Ignition" });
+            if (!huo)
+                return;
+
+            auto schedule = [&](Milliseconds delay, uint32 spellId)
+                {
+                    player->m_Events.AddEvent(
+                        new LambdaBasicEvent([player, huo, spellId]()
+                            {
+                                if (player->IsInWorld() && huo->IsInWorld())
+                                    player->CastSpell(huo, spellId, true);
+                            }),
+                        player->m_Events.CalculateTime(delay)
+                    );
+                };
+
+            // Sequence
+            schedule(1s, Defines::SpellsQ29422::spell_fan_the_flames_throw_wood);
+            schedule(2s, Defines::SpellsQ29422::spell_fan_the_flames_blow_air);
+            schedule(3s, Defines::SpellsQ29422::spell_fan_the_flames_blow_air_big);
+            schedule(4s, Defines::SpellsQ29422::spell_fan_the_flames_blow_air_bigger);
+
+            // Final credit
+            player->m_Events.AddEvent(
+                new LambdaBasicEvent([player]()
+                    {
+                        if (player->IsInWorld())
+                            player->CastSpell(player, Defines::SpellsQ29422::spell_fan_the_flames_credit, true);
+                    }),
+                player->m_Events.CalculateTime(7s)
+            );
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_fan_the_flames::HandleAfterCast);
+        }   
+    };
+};
+
+void AddSC_custom_the_wandering_isle_spells()
+{
+    using namespace Scripts::TheWanderingIsle::Spells;
+    RegisterSpellScript(spell_fan_the_flames);
+    RegisterSpellScript(spell_fan_the_flames_throw_wood_and_all_blow_air);
+}
