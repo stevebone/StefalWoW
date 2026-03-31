@@ -11,6 +11,7 @@
 #include "RBAC.h"
 #include "Scenario.h"
 #include "ScriptMgr.h"
+#include "WorldSession.h"
 
 using namespace Trinity::ChatCommands;
 
