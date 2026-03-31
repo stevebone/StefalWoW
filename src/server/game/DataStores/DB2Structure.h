@@ -1534,6 +1534,19 @@ struct CurvePointEntry
     uint32 OrderIndex;
 };
 
+struct DelvesSeasonEntry
+{
+    uint32 ID;
+    int32 FactionID;
+};
+
+struct DelvesSeasonXSpellEntry
+{
+    uint32 ID;
+    int32 SpellID;
+    uint32 DelvesSeasonID;
+};
+
 struct DestructibleModelDataEntry
 {
     uint32 ID;
@@ -3238,6 +3251,107 @@ struct PerksActivityEntry
     int32 Priority;
 };
 
+struct PerksActivityThresholdEntry
+{
+    uint32 ID;
+    int32 PerksActivityCount;
+    int32 CurrencyAmount;
+    int32 Unknown;
+    uint32 ThresholdGroupID;
+};
+
+struct PerksActivityThresholdGroupEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Unknown;
+};
+
+struct PerksActivityXIntervalEntry
+{
+    uint32 ID;
+    int32 PerksActivityID;
+    uint32 IntervalID;
+};
+
+struct PerksActivityConditionEntry
+{
+    uint32 ID;
+    int32 PlayerConditionID;
+    int32 Field_002;
+    uint32 PerksActivityID;
+};
+
+struct PerksActivityTagEntry
+{
+    LocalizedString TagName;
+    uint32 ID;
+};
+
+struct PerksActivityXHolidaysEntry
+{
+    uint32 ID;
+    int32 HolidayID;
+    uint32 PerksActivityID;
+};
+
+struct PerksActivityXTagEntry
+{
+    uint32 ID;
+    int32 PerksActivityTagID;
+    uint32 PerksActivityID;
+};
+
+struct PerksUIThemeEntry
+{
+    uint32 ID;
+    int32 UiTextureKitID;
+    int32 Field_002;
+};
+
+struct PerksVendorCategoryEntry
+{
+    LocalizedString DisplayName;
+    uint32 ID;
+    int32 PerksVendorType;
+    int32 DefaultUIModelSceneID;
+};
+
+struct PerksVendorItemEntry
+{
+    uint32 ID;
+    int8  PerksVendorCategoryID;
+    int32 Field_002;
+    int32 ItemID;
+    int32 Field_004;
+    int32 CreatureDisplayInfoID;
+    int32 Cost;
+    int32 UiModelSceneID;
+    int32 UiGroupInfo;
+};
+
+struct PerksVendorItemUIGroupEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Priority;
+};
+
+struct PerksVendorItemUIInfoEntry
+{
+    uint32 ID;
+    int32 Field_001;
+    int32 CreatureDisplayInfoID;
+    int32 Field_003;
+};
+
+struct PerksVendorItemXIntervalEntry
+{
+    uint32 ID;
+    int32 PerksVendorItemID;
+    int32 PerksActivityThresholdID;
+};
+
 struct PhaseEntry
 {
     uint32 ID;
@@ -3251,6 +3365,25 @@ struct PhaseXPhaseGroupEntry
     uint32 ID;
     uint16 PhaseID;
     uint32 PhaseGroupID;
+};
+
+struct PlayerCompanionInfoEntry
+{
+    LocalizedString UnlockDescription;
+    uint32 ID;
+    int32 DelvesSeasonID;
+    int32 TraitTreeID;
+    int32 TraitNodeID_DPS;
+    int32 TraitNodeID_Heal;
+    int32 TraitSubTreeID_DPS;
+    int32 TraitSubTreeID_Heal;
+    int32 TraitSubTreeID_Tank;
+    int32 FactionID;
+    int32 CreatureDisplayInfoID;
+    int32 UiModelSceneID;
+    int32 Field_011;
+    int32 Field_012;
+    uint32 Field_014;
 };
 
 struct PlayerConditionEntry

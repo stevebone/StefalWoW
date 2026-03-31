@@ -1044,6 +1044,14 @@ namespace WorldPackets
             bool IsFullUpdate = false;
             WarbandSceneCollectionContainer const* WarbandScenes = nullptr;
         };
+
+        class PerksProgramRequestPendingRewards final : public ClientPacket
+        {
+        public:
+            explicit PerksProgramRequestPendingRewards(WorldPacket&& packet) : ClientPacket(CMSG_PERKS_PROGRAM_REQUEST_PENDING_REWARDS, std::move(packet)) { }
+
+            void Read() override {}
+        };
     }
 }
 

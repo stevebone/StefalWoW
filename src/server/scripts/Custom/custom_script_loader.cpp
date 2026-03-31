@@ -35,6 +35,29 @@ void AddSC_followship_bots();                // FSB main Script
 void AddSC_followship_bots_player();                // FSB Player Scripts
 void AddSC_followship_bots_commandscript();
 
+// ==================== Delves Scripts ======================= //
+void AddSC_delve_system();
+void AddSC_instance_atal_aman_delve();
+void AddSC_instance_shadow_enclave_delve();
+void AddSC_delve_commands();
+
+// ==================== Instance Scripts ===================== //
+// Magister's Terrace 12.0.1 (Map 2811)
+void AddSC_instance_magisters_terrace_12();
+void AddSC_boss_arcanotron_custos();
+void AddSC_boss_seranel_sunlash();
+void AddSC_boss_gemellus();
+void AddSC_boss_degentrius();
+void AddSC_npc_magister_umbric_mt();
+void AddSC_magisters_terrace_12_trash();
+
+// ==================== Creature Codex Scripts =============== //
+//void AddSC_creature_codex_sniffer();
+//void AddSC_creature_codex_commands();
+
+// ==================== Trading Post Scripts ================= //
+void AddSC_npc_perks_program_vendor();
+
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
@@ -52,4 +75,26 @@ void AddCustomScripts()
     AddSC_followship_bots();
     AddSC_followship_bots_player();
     AddSC_followship_bots_commandscript();
+
+    // Creature Codex
+    //AddSC_creature_codex_sniffer();
+    //AddSC_creature_codex_commands();
+
+    // Perks Program (Trading Post)
+    AddSC_npc_perks_program_vendor();
+
+    // Magister's Terrace 12.0.1 (Map 2811)
+    AddSC_instance_magisters_terrace_12();
+    AddSC_boss_arcanotron_custos();
+    AddSC_boss_seranel_sunlash();
+    AddSC_boss_gemellus();
+    AddSC_boss_degentrius();
+    AddSC_npc_magister_umbric_mt();
+    AddSC_magisters_terrace_12_trash();
+
+    // Delves
+    AddSC_delve_system();
+    AddSC_instance_atal_aman_delve();
+    AddSC_instance_shadow_enclave_delve();
+    AddSC_delve_commands();
 }

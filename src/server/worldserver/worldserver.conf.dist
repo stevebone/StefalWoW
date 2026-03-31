@@ -4475,3 +4475,31 @@ Followship.Bots.PowerRate = 1
 # Increase or decrease the bots damage
 # Values 0.1-2; Default: 1
 Followship.Bots.DamageRate = 1
+
+#    Season.MythicPlusDisplaySeasonID
+#        Description: Current Mythic+ display season ID from DisplaySeason.db2.
+#        Default:     34 - (Midnight Season 1)
+
+Season.MythicPlusDisplaySeasonID = 34
+
+#
+#    Season.MythicPlusMilestoneSeasonID
+#        Description: Current Mythic+ milestone season ID.
+#        Default:     117
+
+Season.MythicPlusMilestoneSeasonID = 117
+
+#
+#    Season.PvpSeasonID
+#        Description: Current PvP season ID.
+#        Default:     39
+
+Season.PvpSeasonID = 39
+
+#
+#    Season.WeeklyRewardChestsEnabled
+#        Description: Enable Great Vault weekly reward chests.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Season.WeeklyRewardChestsEnabled = 1

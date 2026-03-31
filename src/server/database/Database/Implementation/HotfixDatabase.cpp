@@ -582,6 +582,16 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_CURVE_POINT, "SELECT MAX(ID) + 1 FROM curve_point", CONNECTION_SYNCH);
 
+    // DelvesSeason.db2
+    PrepareStatement(HOTFIX_SEL_DELVES_SEASON, "SELECT ID, FactionID FROM delves_season"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_DELVES_SEASON, "SELECT MAX(ID) + 1 FROM delves_season", CONNECTION_SYNCH);
+
+    // DelvesSeasonXSpell.db2
+    PrepareStatement(HOTFIX_SEL_DELVES_SEASON_X_SPELL, "SELECT ID, SpellID, DelvesSeasonID FROM delves_season_x_spell"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_DELVES_SEASON_X_SPELL, "SELECT MAX(ID) + 1 FROM delves_season_x_spell", CONNECTION_SYNCH);
+
     // DestructibleModelData.db2
     PrepareStatement(HOTFIX_SEL_DESTRUCTIBLE_MODEL_DATA, "SELECT ID, State0ImpactEffectDoodadSet, State0AmbientDoodadSet, State1Wmo, "
         "State1DestructionDoodadSet, State1ImpactEffectDoodadSet, State1AmbientDoodadSet, State2Wmo, State2DestructionDoodadSet, "
@@ -1325,6 +1335,78 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_LOCALE_STMT(HOTFIX_SEL_PERKS_ACTIVITY, "SELECT ID, ActivityName_lang, Description_lang FROM perks_activity_locale"
         " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
+    // PerksActivityThreshold.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_THRESHOLD, "SELECT ID, PerksActivityCount, CurrencyAmount, Unknown, ThresholdGroupID "
+        "FROM perks_activity_threshold WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_ACTIVITY_THRESHOLD, "SELECT MAX(ID) + 1 FROM perks_activity_threshold", CONNECTION_SYNCH);
+
+    // PerksActivityThresholdGroup.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_THRESHOLD_GROUP, "SELECT Name, ID, Unknown "
+        "FROM perks_activity_threshold_group WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_ACTIVITY_THRESHOLD_GROUP, "SELECT MAX(ID) + 1 FROM perks_activity_threshold_group", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PERKS_ACTIVITY_THRESHOLD_GROUP, "SELECT ID, Name_lang FROM perks_activity_threshold_group_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
+    // PerksActivityXInterval.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_X_INTERVAL, "SELECT ID, PerksActivityID, IntervalID "
+        "FROM perks_activity_x_interval WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_ACTIVITY_X_INTERVAL, "SELECT MAX(ID) + 1 FROM perks_activity_x_interval", CONNECTION_SYNCH);
+
+    // PerksActivityCondition.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_CONDITION, "SELECT ID, PlayerConditionID, Field_002, PerksActivityID "
+        "FROM perks_activity_condition WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_ACTIVITY_CONDITION, "SELECT MAX(ID) + 1 FROM perks_activity_condition", CONNECTION_SYNCH);
+
+    // PerksActivityTag.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_TAG, "SELECT TagName, ID FROM perks_activity_tag"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_ACTIVITY_TAG, "SELECT MAX(ID) + 1 FROM perks_activity_tag", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PERKS_ACTIVITY_TAG, "SELECT ID, TagName_lang FROM perks_activity_tag_locale"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+
+    // PerksActivityXHolidays.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_X_HOLIDAYS, "SELECT HolidayID, PerksActivityID "
+        "FROM perks_activity_x_holidays WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+
+    // PerksActivityXTag.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_ACTIVITY_X_TAG, "SELECT ID, PerksActivityTagID, PerksActivityID "
+        "FROM perks_activity_x_tag WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_ACTIVITY_X_TAG, "SELECT MAX(ID) + 1 FROM perks_activity_x_tag", CONNECTION_SYNCH);
+
+    // PerksUITheme.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_UI_THEME, "SELECT ID, UiTextureKitID, Field_002 "
+        "FROM perks_ui_theme WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_UI_THEME, "SELECT MAX(ID) + 1 FROM perks_ui_theme", CONNECTION_SYNCH);
+
+    // PerksVendorCategory.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_VENDOR_CATEGORY, "SELECT DisplayName, ID, PerksVendorType, DefaultUIModelSceneID "
+        "FROM perks_vendor_category WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_VENDOR_CATEGORY, "SELECT MAX(ID) + 1 FROM perks_vendor_category", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PERKS_VENDOR_CATEGORY, "SELECT ID, DisplayName_lang FROM perks_vendor_category_locale"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+
+    // PerksVendorItem.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_VENDOR_ITEM, "SELECT ID, PerksVendorCategoryID, Field_002, ItemID, Field_004, "
+        "CreatureDisplayInfoID, Cost, UiModelSceneID, UiGroupInfo "
+        "FROM perks_vendor_item WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_VENDOR_ITEM, "SELECT MAX(ID) + 1 FROM perks_vendor_item", CONNECTION_SYNCH);
+
+    // PerksVendorItemUIGroup.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_VENDOR_ITEM_UI_GROUP, "SELECT Name, ID, Priority "
+        "FROM perks_vendor_item_ui_group WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_VENDOR_ITEM_UI_GROUP, "SELECT MAX(ID) + 1 FROM perks_vendor_item_ui_group", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PERKS_VENDOR_ITEM_UI_GROUP, "SELECT ID, Name_lang FROM perks_vendor_item_ui_group_locale"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+
+    // PerksVendorItemUIInfo.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_VENDOR_ITEM_UI_INFO, "SELECT ID, Field_001, CreatureDisplayInfoID, Field_003 "
+        "FROM perks_vendor_item_ui_info WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PERKS_VENDOR_ITEM_UI_INFO, "SELECT MAX(ID) + 1 FROM perks_vendor_item_ui_info", CONNECTION_SYNCH);
+
+    // PerksVendorItemXInterval.db2
+    PrepareStatement(HOTFIX_SEL_PERKS_VENDOR_ITEM_X_INTERVAL, "SELECT PerksVendorItemID, PerksActivityThresholdID "
+        "FROM perks_vendor_item_x_interval WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+
     // Phase.db2
     PrepareStatement(HOTFIX_SEL_PHASE, "SELECT ID, Flags FROM phase WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PHASE, "SELECT MAX(ID) + 1 FROM phase", CONNECTION_SYNCH);
@@ -1332,6 +1414,15 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // PhaseXPhaseGroup.db2
     PrepareStatement(HOTFIX_SEL_PHASE_X_PHASE_GROUP, "SELECT ID, PhaseID, PhaseGroupID FROM phase_x_phase_group WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PHASE_X_PHASE_GROUP, "SELECT MAX(ID) + 1 FROM phase_x_phase_group", CONNECTION_SYNCH);
+
+    // PlayerCompanionInfo.db2
+    PrepareStatement(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT UnlockDescription, ID, DelvesSeasonID, TraitTreeID, TraitNodeID_DPS, TraitNodeID_Heal, "
+        "TraitSubTreeID_DPS, TraitSubTreeID_Heal, TraitSubTreeID_Tank, FactionID, CreatureDisplayInfoID, UiModelSceneID, "
+        "Field_011, Field_012, Field_014 FROM player_companion_info"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT MAX(ID) + 1 FROM player_companion_info", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT ID, UnlockDescription_lang FROM player_companion_info_locale"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
 
     // PlayerCondition.db2
     PrepareStatement(HOTFIX_SEL_PLAYER_CONDITION, "SELECT ID, RaceMask, FailureDescription, MinLevel, MaxLevel, ClassMask, SkillLogic, LanguageID, "

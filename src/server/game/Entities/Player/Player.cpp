@@ -101,6 +101,7 @@
 #include "Pet.h"
 #include "PetPackets.h"
 #include "PoolMgr.h"
+#include "PerksProgramMgr.h"
 #include "PetitionMgr.h"
 #include "PhasingHandler.h"
 #include "PlayerChoice.h"
@@ -7078,6 +7079,201 @@ void Player::_SaveCurrency(CharacterDatabaseTransaction trans)
 
         itr->second.state = PLAYERCURRENCY_UNCHANGED;
     }
+}
+
+// ----------------------------------------------------------------
+//  Perks Program (Trading Post) - Load / Save / Modify
+// ----------------------------------------------------------------
+
+void Player::_LoadPerksCurrency(PreparedQueryResult result)
+{
+    if (result)
+    {
+        Field* fields = result->Fetch();
+        // currency field (index 0) is now ignored - we read from CurrencyID 2032 instead
+        _perksTotalEarned = fields[1].GetInt32();
+        _perksPurchasedCount = fields[2].GetInt32();
+    }
+
+    // Always sync PerksProgramCurrency updatefield from the real currency system (loaded by _LoadCurrency before this)
+    int32 realCurrency = static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER));
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PerksProgramCurrency), realCurrency);
+
+    TC_LOG_DEBUG("network", "_LoadPerksCurrency: currency={} (from CurrencyID 2032), totalEarned={}, purchasedCount={}", realCurrency, _perksTotalEarned, _perksPurchasedCount);
+}
+
+void Player::_LoadPerksPurchases(PreparedQueryResult result)
+{
+    _perksPurchases.clear();
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        PerksPurchaseEntry entry;
+        entry.VendorItemID = fields[0].GetInt32();
+        entry.PurchaseTime = fields[1].GetUInt32();
+        entry.Refundable = fields[2].GetUInt8();
+
+        _perksPurchases.push_back(entry);
+    } while (result->NextRow());
+}
+
+void Player::_LoadPerksFrozen(PreparedQueryResult result)
+{
+    _perksFrozenVendorItemID = 0;
+    if (!result)
+        return;
+
+    _perksFrozenVendorItemID = result->Fetch()[0].GetInt32();
+
+    // Set FrozenPerksVendorItem UpdateField with full item data from the manager
+    if (_perksFrozenVendorItemID != 0)
+    {
+        if (PerksProgramVendorItemData const* itemData = sPerksProgramMgr->GetVendorItem(_perksFrozenVendorItemID))
+            SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::FrozenPerksVendorItem), itemData->PacketData);
+    }
+}
+
+void Player::_SavePerksCurrency(CharacterDatabaseTransaction trans)
+{
+    if (!_perksCurrencyDirty)
+        return;
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PERKS_CURRENCY);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setInt32(1, _perksCurrency);
+    stmt->setInt32(2, _perksTotalEarned);
+    stmt->setInt32(3, _perksPurchasedCount);
+    trans->Append(stmt);
+
+    _perksCurrencyDirty = false;
+}
+
+void Player::_SavePerksFrozen(CharacterDatabaseTransaction trans)
+{
+    if (!_perksFrozenDirty)
+        return;
+
+    if (_perksFrozenVendorItemID != 0)
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PERKS_FROZEN);
+        stmt->setUInt64(0, GetGUID().GetCounter());
+        stmt->setInt32(1, _perksFrozenVendorItemID);
+        trans->Append(stmt);
+    }
+    else
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PERKS_FROZEN);
+        stmt->setUInt64(0, GetGUID().GetCounter());
+        trans->Append(stmt);
+    }
+
+    _perksFrozenDirty = false;
+}
+
+bool Player::ModifyPerksCurrency(int32 amount)
+{
+    int32 currentAmount = static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER));
+
+    if (amount < 0 && currentAmount < -amount)
+        return false;
+
+    // Use the core currency system - this updates character_currencies and sends SetCurrency to client
+    if (amount > 0)
+        AddCurrency(CURRENCY_TRADERS_TENDER, static_cast<uint32>(amount));
+    else
+        RemoveCurrency(CURRENCY_TRADERS_TENDER, -amount);
+
+    // Sync PerksProgramCurrency updatefield so the vendor UI reflects the change
+    int32 newAmount = static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER));
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PerksProgramCurrency), newAmount);
+
+    _perksCurrencyDirty = true;
+    return true;
+}
+
+void Player::AddPerksPurchase(int32 vendorItemID, uint32 purchaseTime)
+{
+    PerksPurchaseEntry entry;
+    entry.VendorItemID = vendorItemID;
+    entry.PurchaseTime = purchaseTime;
+    entry.Refundable = 1;
+    _perksPurchases.push_back(entry);
+
+    _perksPurchasedCount++;
+    _perksCurrencyDirty = true;
+
+    // Persist immediately
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_PERKS_PURCHASE);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setInt32(1, vendorItemID);
+    stmt->setUInt32(2, purchaseTime);
+    stmt->setUInt8(3, 1);
+    CharacterDatabase.Execute(stmt);
+}
+
+void Player::SetPerksFrozenVendorItem(int32 vendorItemID, WorldPackets::PerksProgram::PerksVendorItem const* itemData)
+{
+    _perksFrozenVendorItemID = vendorItemID;
+    _perksFrozenDirty = true;
+
+    // Update FrozenPerksVendorItem UpdateField
+    if (itemData)
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::FrozenPerksVendorItem), *itemData);
+    else
+    {
+        WorldPackets::PerksProgram::PerksVendorItem emptyItem;
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::FrozenPerksVendorItem), emptyItem);
+    }
+}
+
+void Player::_LoadPerksMilestones(PreparedQueryResult result)
+{
+    _completedPerksMilestones.clear();
+    if (!result)
+        return;
+
+    do
+    {
+        _completedPerksMilestones.insert(result->Fetch()[0].GetInt32());
+    } while (result->NextRow());
+}
+
+void Player::_SavePerksMilestones(CharacterDatabaseTransaction trans)
+{
+    if (_completedPerksMilestones.empty())
+        return;
+
+    // Replace the full set each save (small table, safe to do)
+    CharacterDatabasePreparedStatement* delStmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PERKS_MILESTONES);
+    delStmt->setUInt64(0, GetGUID().GetCounter());
+    trans->Append(delStmt);
+
+    for (int32 activityID : _completedPerksMilestones)
+    {
+        CharacterDatabasePreparedStatement* insStmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_PERKS_MILESTONE);
+        insStmt->setUInt64(0, GetGUID().GetCounter());
+        insStmt->setInt32(1, activityID);
+        trans->Append(insStmt);
+    }
+}
+
+void Player::AddPerksMilestone(int32 activityID)
+{
+    _completedPerksMilestones.insert(activityID);
+}
+
+bool Player::HasPerksMilestone(int32 activityID) const
+{
+    return _completedPerksMilestones.count(activityID) > 0;
+}
+
+std::vector<int32> Player::GetCompletedPerksMilestones() const
+{
+    return std::vector<int32>(_completedPerksMilestones.begin(), _completedPerksMilestones.end());
 }
 
 void Player::SendCurrencies() const
@@ -17950,6 +18146,33 @@ void Player::SetHomebind(WorldLocation const& loc, uint32 areaId)
     CharacterDatabase.Execute(stmt);
 }
 
+void Player::SetDelveData(int32 mapId, int32 spellId, uint64 lootHistoryInstanceId, int32 field10)
+{
+    // DelveData is an OptionalUpdateField with plain struct members.
+    // ModifyValue with dummy 0 constructs the optional if absent and marks it changed.
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::Field_0), mapId);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::Field_8), lootHistoryInstanceId);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::Field_10), field10);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::SpellID), spellId);
+}
+
+void Player::ClearDelveData()
+{
+    if (m_activePlayerData->DelveData.has_value())
+    {
+        RemoveOptionalUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+            .ModifyValue(&UF::ActivePlayerData::DelveData));
+    }
+}
+
 void Player::SendBindPointUpdate() const
 {
     WorldPackets::Misc::BindPointUpdate packet;
@@ -18304,6 +18527,10 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     _LoadGroup(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GROUP));
 
     _LoadCurrency(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CURRENCY));
+    _LoadPerksCurrency(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY));
+    _LoadPerksPurchases(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES));
+    _LoadPerksFrozen(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN));
+    _LoadPerksMilestones(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES));
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::LifetimeHonorableKills), fields.totalKills);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::TodayHonorableKills), fields.totalKills);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::YesterdayHonorableKills), fields.yesterdayKills);
@@ -20813,6 +21040,9 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     GetSession()->SaveTutorialsData(trans);                 // changed only while character in game
     _SaveInstanceTimeRestrictions(trans);
     _SaveCurrency(trans);
+    _SavePerksCurrency(trans);
+    _SavePerksFrozen(trans);
+    _SavePerksMilestones(trans);
     _SaveCUFProfiles(trans);
     _SavePlayerData(trans);
     _SaveCharacterBankTabSettings(trans);

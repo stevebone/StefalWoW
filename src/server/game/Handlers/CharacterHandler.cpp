@@ -366,6 +366,22 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt64(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS, stmt);
 
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_CURRENCY);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_PURCHASES);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_FROZEN);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_MILESTONES);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES, stmt);
+
     return res;
 }
 
@@ -1415,6 +1431,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     SendFeatureSystemStatus();
 
+    SendPerksAnimToggleKillSwitch();
+    SendPerksProgramActivityUpdate();
+
     // Send MOTD
     {
         WorldPackets::System::MOTD motd;
@@ -1424,10 +1443,14 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     SendSetTimeZoneInformation();
 
-    // Send PVPSeason
+    // Send Season Info (PVP + M+ + Great Vault)
     {
         WorldPackets::Battleground::SeasonInfo seasonInfo;
+        seasonInfo.MythicPlusDisplaySeasonID = sWorld->getIntConfig(CONFIG_MYTHIC_PLUS_DISPLAY_SEASON_ID);
+        seasonInfo.MythicPlusMilestoneSeasonID = sWorld->getIntConfig(CONFIG_MYTHIC_PLUS_MILESTONE_SEASON_ID);
         seasonInfo.PreviousArenaSeason = sWorld->getIntConfig(CONFIG_ARENA_SEASON_ID) - sWorld->getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS);
+        seasonInfo.PvpSeasonID = sWorld->getIntConfig(CONFIG_PVP_SEASON_ID);
+        seasonInfo.WeeklyRewardChestsEnabled = sWorld->getBoolConfig(CONFIG_WEEKLY_REWARD_CHESTS_ENABLED);
 
         if (sWorld->getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS))
             seasonInfo.CurrentArenaSeason = sWorld->getIntConfig(CONFIG_ARENA_SEASON_ID);
@@ -1736,6 +1759,7 @@ void WorldSession::SendFeatureSystemStatus()
     features.CommunitiesEnabled = true;
     features.BnetGroupsEnabled = false;
     features.CharacterCommunitiesEnabled = false;
+    features.ClubFinderEnabled = true;
     features.ClubPresenceAllowSubscribeAll = true;
     features.ClubPresenceUnsubscribeDelay = 60000;
 
@@ -1757,6 +1781,7 @@ void WorldSession::SendFeatureSystemStatus()
     features.IsChatMuted = !CanSpeak();
 
     features.SpeakForMeAllowed = false;
+    features.IsPlayerContentTrackingEnabled = true;
 
     for (World::GameRule const& gameRule : sWorld->GetGameRules())
     {
