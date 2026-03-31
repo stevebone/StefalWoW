@@ -28,6 +28,7 @@
 #include "Map.h"
 #include "MapManager.h"
 #include "MotionMaster.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "ReputationMgr.h"
 #include "InstanceScenario.h"
