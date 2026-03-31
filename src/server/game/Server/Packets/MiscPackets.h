@@ -1190,6 +1190,7 @@ namespace WorldPackets
 
             void Read() override;
 
+            ObjectGuid Guid;
             int32 ExpansionID = 0;
         };
 
