@@ -252,7 +252,7 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
             break;
         case CONDITION_WORLD_STATE:
         {
-            condMeets = sWorldStateMgr->GetValue(ConditionValue1, map) == int32(ConditionValue2);
+            condMeets = WorldStateMgr::GetValue(ConditionValue1, map) == int32(ConditionValue2);
             break;
         }
         case CONDITION_REALM_ACHIEVEMENT:
@@ -2560,7 +2560,7 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
         }
         case CONDITION_WORLD_STATE:
         {
-            if (!sWorldStateMgr->GetWorldStateTemplate(cond->ConditionValue1))
+            if (!WorldStateMgr::GetWorldStateTemplate(cond->ConditionValue1))
             {
                 TC_LOG_ERROR("sql.sql", "{} has non existing world state in value1 ({}), skipped.", *cond, cond->ConditionValue1);
                 return false;
@@ -3657,7 +3657,7 @@ int32 EvalSingleValue(ByteBuffer& buffer, Map const* map)
         case WorldStateExpressionValueType::WorldState:
         {
             int32 worldStateId = buffer.read<int32>();
-            value = sWorldStateMgr->GetValue(worldStateId, map);
+            value = WorldStateMgr::GetValue(worldStateId, map);
             break;
         }
         case WorldStateExpressionValueType::Function:
