@@ -1186,7 +1186,7 @@ namespace WorldPackets
         class ChromieTimeSelectExpansion final : public ClientPacket
         {
         public:
-            explicit ChromieTimeSelectExpansion(WorldPacket&& packet) : ClientPacket(CMSG_CHROMIE_TIME_SELECT_EXPANSION, std::move(packet)) { }
+            explicit ChromieTimeSelectExpansion(WorldPacket&& packet) : ClientPacket(CMSG_CHROMIE_TIME_SELECT_EXPANSION, std::move(packet)) {}
 
             void Read() override;
 
@@ -1196,9 +1196,21 @@ namespace WorldPackets
         class ChromieTimeSelectExpansionSuccess final : public ServerPacket
         {
         public:
-            ChromieTimeSelectExpansionSuccess() : ServerPacket(SMSG_CHROMIE_TIME_SELECT_EXPANSION_SUCCESS, 0) { }
+            ChromieTimeSelectExpansionSuccess() : ServerPacket(SMSG_CHROMIE_TIME_SELECT_EXPANSION_SUCCESS, 0) {}
 
             WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
+        class SetCtrOptions final : public ServerPacket
+        {
+        public:
+            SetCtrOptions() : ServerPacket(SMSG_SET_CTR_OPTIONS, 4 + 1 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            std::vector<uint32> ConditionalFlags;
+            uint8 FactionGroup = 0;
+            uint32 ChromieTimeExpansionMask = 0;
         };
 
         class RequestStoreFrontInfoUpdate final : public ClientPacket

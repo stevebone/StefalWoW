@@ -2395,7 +2395,13 @@ void Player::GiveLevel(uint8 level)
     if (level > oldLevel)
         UpdateCriteria(CriteriaType::GainLevels, level - oldLevel);
     if (IsMaxLevel())
+    {
         UpdateCriteria(CriteriaType::ReachMaxLevel);
+
+        // Blizzlike: clear Chromie Time when reaching max level
+        if (m_activePlayerData->UiChromieTimeExpansionID != 0)
+            SetChromieTime(0);
+    }
 
     PushQuests();
 
@@ -6565,6 +6571,55 @@ uint8 Player::GetFactionGroupForRace(uint8 race)
             return faction->FactionGroup;
 
     return 1;
+}
+
+void Player::SetChromieTime(int32 expansionId)
+{
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::UiChromieTimeExpansionID), expansionId);
+
+    uint32 expansionMask = expansionId > 0 ? (1u << expansionId) : 0;
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData)
+        .ModifyValue(&UF::PlayerData::CtrOptions)
+        .ModifyValue(&UF::CTROptions::ChromieTimeExpansionMask), expansionMask);
+
+    SetChromieTimeConditionalFlags(expansionId > 0);
+
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData)
+        .ModifyValue(&UF::PlayerData::CtrOptions)
+        .ModifyValue(&UF::CTROptions::FactionGroup),
+        GetFactionGroupForRace(GetRace()));
+
+    SendCtrOptions();
+    PhasingHandler::OnConditionChange(this);
+}
+
+void Player::SetChromieTimeConditionalFlags(bool enabled)
+{
+    // Read current flags, modify, and write back as a whole
+    std::vector<uint32> conditionalFlags(m_playerData->CtrOptions->ConditionalFlags.begin(),
+        m_playerData->CtrOptions->ConditionalFlags.end());
+
+    if (conditionalFlags.empty())
+        conditionalFlags.push_back(0);
+
+    if (enabled)
+        conditionalFlags[0] |= 1;
+    else
+        conditionalFlags[0] &= ~1u;
+
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData)
+        .ModifyValue(&UF::PlayerData::CtrOptions)
+        .ModifyValue(&UF::CTROptions::ConditionalFlags), std::move(conditionalFlags));
+}
+
+void Player::SendCtrOptions() const
+{
+    WorldPackets::Misc::SetCtrOptions ctrOptions;
+    ctrOptions.ConditionalFlags = m_playerData->CtrOptions->ConditionalFlags;
+    ctrOptions.FactionGroup = m_playerData->CtrOptions->FactionGroup;
+    ctrOptions.ChromieTimeExpansionMask = m_playerData->CtrOptions->ChromieTimeExpansionMask;
+    SendDirectMessage(ctrOptions.Write());
 }
 
 void Player::SetFactionForRace(uint8 race)
@@ -14511,6 +14566,7 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
         case GossipOptionNpc::GarrisonRecruitment: // NYI
             break;
         case GossipOptionNpc::ChromieTimeNpc:
+            handled = false;
             break;
         case GossipOptionNpc::RuneforgeLegendaryCrafting:
             PlayerTalkClass->SendCloseGossip();
@@ -18326,7 +18382,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         // "totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, "
         // "health, power1, power2, power3, power4, power5, power6, power7, power8, power9, power10, instance_id, activeTalentGroup, lootSpecId, exploredZones, knownTitles, actionBars, "
         // "raidDifficulty, legacyRaidDifficulty, fishingSteps, honor, honorLevel, honorRestState, honorRestBonus, numRespecs, "
-        // "personalTabardEmblemStyle, personalTabardEmblemColor, personalTabardBorderStyle, personalTabardBorderColor, personalTabardBackgroundColor, transmogOutfitEquippedId, transmogOutfitLocked "
+        // "personalTabardEmblemStyle, personalTabardEmblemColor, personalTabardBorderStyle, personalTabardBorderColor, personalTabardBackgroundColor, transmogOutfitEquippedId, transmogOutfitLocked, chromieTimeExpansionId "
         // "FROM characters c LEFT JOIN character_fishingsteps cfs ON c.guid = cfs.guid WHERE c.guid = ?", CONNECTION_ASYNC);
 
         ObjectGuid::LowType guid;
@@ -18406,6 +18462,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         int32 personalTabardBackgroundColor;
         int32 transmogOutfitEquippedId;
         bool transmogOutfitLocked;
+        uint8 chromieTimeExpansionId;
 
         explicit PlayerLoadData(Field const* fields)
         {
@@ -18489,6 +18546,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
             personalTabardBackgroundColor = fields[i++].GetInt32();
             transmogOutfitEquippedId = fields[i++].GetInt32();
             transmogOutfitLocked = fields[i++].GetBool();
+            chromieTimeExpansionId = fields[i++].GetUInt8();
         }
 
     } fields(result->Fetch());
@@ -18619,6 +18677,27 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     //Need to call it to initialize m_team (m_team can be calculated from race)
     //Other way is to saves m_team into characters table.
     SetFactionForRace(GetRace());
+
+    // Restore Chromie Time state from DB
+    if (fields.chromieTimeExpansionId > 0 && fields.chromieTimeExpansionId <= CURRENT_EXPANSION)
+    {
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+            .ModifyValue(&UF::ActivePlayerData::UiChromieTimeExpansionID),
+            int32(fields.chromieTimeExpansionId));
+
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData)
+            .ModifyValue(&UF::PlayerData::CtrOptions)
+            .ModifyValue(&UF::CTROptions::ChromieTimeExpansionMask),
+            uint32(1u << fields.chromieTimeExpansionId));
+
+        SetChromieTimeConditionalFlags(true);
+    }
+
+    // Always set FactionGroup on CtrOptions (needed for party sync and content tuning)
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData)
+        .ModifyValue(&UF::PlayerData::CtrOptions)
+        .ModifyValue(&UF::CTROptions::FactionGroup),
+        GetFactionGroupForRace(GetRace()));
 
     // load home bind and check in same time class/race pair, it used later for restore broken positions
     if (!_LoadHomeBind(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_HOME_BIND)))
@@ -20955,6 +21034,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
             stmt->setUInt32(index++, ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build));
         else
             stmt->setUInt32(index++, 0);
+        stmt->setUInt8(index++, uint8(m_activePlayerData->UiChromieTimeExpansionID));
 
         stmt->setInt32(index++, m_playerData->PersonalTabard->EmblemStyle);
         stmt->setInt32(index++, m_playerData->PersonalTabard->EmblemColor);
@@ -21108,6 +21188,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
             stmt->setUInt32(index++, ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build));
         else
             stmt->setUInt32(index++, 0);
+        stmt->setUInt8(index++, uint8(m_activePlayerData->UiChromieTimeExpansionID));
 
         stmt->setInt32(index++, m_playerData->PersonalTabard->EmblemStyle);
         stmt->setInt32(index++, m_playerData->PersonalTabard->EmblemColor);
@@ -25546,6 +25627,10 @@ void Player::SendInitialPacketsBeforeAddToMap()
     WorldPackets::Character::InitialSetup initialSetup;
     initialSetup.ServerExpansionLevel = sWorld->getIntConfig(CONFIG_EXPANSION);
     SendDirectMessage(initialSetup.Write());
+
+    // Send Chromie Time state to client on login
+    if (m_activePlayerData->UiChromieTimeExpansionID != 0)
+        SendCtrOptions();
 
     SetMovedUnit(this);
 }

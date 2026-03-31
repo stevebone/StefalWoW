@@ -212,16 +212,20 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         void UpdateNearbyPlayersInteractions() override;
 
         bool HasScalableLevels() const;
+        uint32 GetContentTuningIdForTarget(WorldObject const* target) const;
         void ApplyLevelScaling();
         uint8 GetLevelForTarget(WorldObject const* target) const override;
 
         uint64 GetMaxHealthByLevel(uint8 level) const;
+        uint64 GetMaxHealthByLevel(uint8 level, uint32 contentTuningId) const;
         float GetHealthMultiplierForTarget(WorldObject const* target) const override;
 
         float GetBaseDamageForLevel(uint8 level) const;
+        float GetBaseDamageForLevel(uint8 level, uint32 contentTuningId) const;
         float GetDamageMultiplierForTarget(WorldObject const* target) const override;
 
         float GetBaseArmorForLevel(uint8 level) const;
+        float GetBaseArmorForLevel(uint8 level, uint32 contentTuningId) const;
         float GetArmorMultiplierForTarget(WorldObject const* target) const override;
 
         bool IsInEvadeMode() const { return HasUnitState(UNIT_STATE_EVADE); }

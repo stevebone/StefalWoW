@@ -119,6 +119,7 @@ enum ConditionTypes
     CONDITION_PRIVATE_OBJECT           = 57,                   // 0                      0              0                  true if entity is private object
     CONDITION_STRING_ID                = 58,
     CONDITION_LABEL                    = 59,                   // Label                  0              0                  true if creature/gameobject has specified Label in CreatureLabel.db2/GameObjectLabel.db2
+    CONDITION_CHROMIE_TIME             = 60,                   // expansionId            0              0                  true if player has selected Chromie Time expansion (0 = any)
     CONDITION_MAX
 };
 
