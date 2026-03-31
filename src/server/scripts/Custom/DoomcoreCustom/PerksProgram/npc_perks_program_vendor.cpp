@@ -15,8 +15,10 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Creature.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
+#include "ScriptedCreature.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "PerksProgramMgr.h"
