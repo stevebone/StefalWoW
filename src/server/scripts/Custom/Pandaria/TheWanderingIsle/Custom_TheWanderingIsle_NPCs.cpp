@@ -27,6 +27,8 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
+#include "TemporarySummon.h"
+#include "Unit.h"
 
 
 #include "Custom_TheWanderingIsle_Defines.h"
@@ -220,6 +222,101 @@ namespace Scripts::TheWanderingIsle::Npcs
     private:
         TaskScheduler _scheduler;
     };
+
+    // 60250 - Cai
+    struct npc_cai : public ScriptedAI
+    {
+        npc_cai(Creature* creature) : ScriptedAI(creature) {}
+
+        void IsSummonedBy(WorldObject* summoner) override
+        {
+            Player* player = summoner->ToPlayer();
+            if (!player)
+                return;
+
+            me->GetMotionMaster()->MoveFollow(player, 2.0f, M_PI / 4);
+
+            _scheduler.Schedule(7s, [this](TaskContext /*task*/)
+                {
+                    me->AI()->Talk(Defines::TalksQ29521::CaiTalk0);
+                });
+            _scheduler.Schedule(21s, [this](TaskContext /*task*/)
+                {
+                    me->AI()->Talk(Defines::TalksQ29521::CaiTalk1);
+                });
+            _scheduler.Schedule(37s, [this](TaskContext /*task*/)
+                {
+                    me->AI()->Talk(Defines::TalksQ29521::CaiTalk2);
+                });
+            _scheduler.Schedule(45s, [this](TaskContext /*task*/)
+                {
+                    TempSummon* summon = me->ToTempSummon();
+                    if (!summon)
+                        return;
+
+                    Unit* summoner = summon->GetSummonerUnit();
+                    if (!summoner)
+                        return;
+
+                    me->GetMotionMaster()->MoveFleeing(summoner);
+                    me->DespawnOrUnsummon(3s);
+                });
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
+
+    // 60249 - Deng
+    struct npc_deng : public ScriptedAI
+    {
+        npc_deng(Creature* creature) : ScriptedAI(creature) {}
+
+        void IsSummonedBy(WorldObject* summoner) override
+        {
+            Player* player = summoner->ToPlayer();
+            if (!player)
+                return;
+
+            me->GetMotionMaster()->MoveFollow(player, 2.0f, M_PI / 2);
+
+            _scheduler.Schedule(14s, [this](TaskContext /*task*/)
+                {
+                    Talk(Defines::TalksQ29521::DengTalk0);
+                });
+            _scheduler.Schedule(29s, [this](TaskContext /*task*/)
+                {
+                    Talk(Defines::TalksQ29521::DengTalk1);
+                });
+            _scheduler.Schedule(45s, [this](TaskContext /*task*/)
+                {
+                    TempSummon* summon = me->ToTempSummon();
+                    if (!summon)
+                        return;
+
+                    Unit* summoner = summon->GetSummonerUnit();
+                    if (!summoner)
+                        return;
+
+                    Talk(Defines::TalksQ29521::DengTalk2);
+                    me->GetMotionMaster()->MoveFleeing(summoner);
+                    me->DespawnOrUnsummon(3s);
+                });
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -228,4 +325,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     RegisterCreatureAI(npc_huo_follower);
     RegisterCreatureAI(npc_chia_hui_autumnleaf);
     RegisterCreatureAI(npc_shanxi_quest);
+    RegisterCreatureAI(npc_deng);
+    RegisterCreatureAI(npc_cai);
 }

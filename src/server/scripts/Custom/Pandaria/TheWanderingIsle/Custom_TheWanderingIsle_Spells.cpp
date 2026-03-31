@@ -147,6 +147,34 @@ namespace Scripts::TheWanderingIsle::Spells
             OnEffectHitTarget += SpellEffectFn(spell_despawn_fire_spirit::HandleHitTarget, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
         }
     };
+
+    // 116190 - Summon Child 1
+    class spell_summon_child_1 : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(Defines::PositionsQ29521::CaiSpawnPos);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_child_1::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 116191 - Summon Child 2
+    class spell_summon_child_2 : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(Defines::PositionsQ29521::DengSpawnPos);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_child_2::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
 };
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -156,4 +184,6 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_fan_the_flames_throw_wood_and_all_blow_air);
     RegisterSpellScript(spell_summon_fire_spirit);
     RegisterSpellScript(spell_despawn_fire_spirit);
+    RegisterSpellScript(spell_summon_child_1);
+    RegisterSpellScript(spell_summon_child_2);
 }

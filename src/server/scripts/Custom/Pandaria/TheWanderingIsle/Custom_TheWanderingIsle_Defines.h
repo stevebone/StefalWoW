@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
 #include "Define.h"
 
@@ -43,6 +44,12 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
     }
 
+    namespace SpellsQ29521
+    {
+        static constexpr uint32 SummonChild1 = 116190;
+        static constexpr uint32 SummonChild2 = 116191;
+    }
+
     namespace TalksQ29423
     {
         static constexpr uint32 chia_hui_autumnleaf_talk = 0;
@@ -58,12 +65,31 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 ji_talk = 0;
     }
 
+    namespace TalksQ29521
+    {
+        // Singing Pools
+        static constexpr uint32 DengTalk0 = 0;
+        static constexpr uint32 DengTalk1 = 1;
+        static constexpr uint32 DengTalk2 = 2;
+        static constexpr uint32 CaiTalk0 = 0;
+        static constexpr uint32 CaiTalk1 = 1;
+        static constexpr uint32 CaiTalk2 = 2;
+        static constexpr uint32 CaiTalk3 = 3;
+    }
+
     namespace PositionsQ29423
     {
         static constexpr Position aysaSpawnPos = { 992.00347900390625f, 3600.757080078125f, 193.11480712890625f, 3.087874650955200195f };
         static constexpr Position jiSpawnPos = { 992.107666015625f, 3604.552978515625f, 193.1151580810546875f, 2.968008279800415039f };
         static constexpr Position huoFirstPoint = { 955.1213f, 3604.0388f, 200.71686f, 6.249388f };
         static constexpr Position huoSecondPoint = { 950.00757f, 3601.0044f, 203.8194f };
+    }
+
+    namespace PositionsQ29521
+    {
+        // Singing Pools
+        static constexpr Position CaiSpawnPos = { 934.0156f, 3513.154f, 188.1347f, 0.0f };
+        static constexpr Position DengSpawnPos = { 949.37f, 3510.0f, 187.7983f, 0.0f };
     }
 
     namespace PathQ29423
@@ -87,12 +113,31 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 npc_huo_q29423 = 54958;
         static constexpr uint32 npc_aysa_q29423 = 61126;
         static constexpr uint32 npc_ji_q29423 = 61127;
+        // Singing Pools
+        static constexpr uint32 Cai = 60250;
+        static constexpr uint32 Deng = 60249;
     }
 
     namespace Quests
     {
         static constexpr uint32 quest_huo_the_spirit_of_fire = 29422;
         static constexpr uint32 quest_the_passion_of_shen_zin_su = 29423;
-    }
+        static constexpr uint32 quest_the_singing_pools = 29521;
+    }    
+}
+
+namespace Scripts::TheWanderingIsle::PScripts
+{
+    class player_singing_pools_memory
+    {
+    public:
+        player_singing_pools_memory();
+        bool CanTrigger(Player* player);
+
+    private:
+        std::unordered_map<ObjectGuid, time_t> lastTrigger;
+    };
+
+    extern player_singing_pools_memory g_singingPoolsMemory;
 }
 

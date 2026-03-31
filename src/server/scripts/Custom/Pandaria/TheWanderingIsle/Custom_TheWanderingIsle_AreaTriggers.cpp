@@ -21,12 +21,15 @@
  */
 
 #include "Creature.h"
+#include "CreatureAI.h"
 #include "MotionMaster.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
 
 #include "Custom_TheWanderingIsle_Defines.h"
+
+using namespace Scripts::TheWanderingIsle::PScripts;
 
 namespace Scripts::TheWanderingIsle::ATScripts
 {
@@ -47,6 +50,24 @@ namespace Scripts::TheWanderingIsle::ATScripts
 
                 player->CastSpell(chia, Defines::SpellsQ29423::spell_start_talk_event);
             }
+            return true;
+        }
+    };    
+
+    // 7784
+    class at_the_singing_pools_children_summon : public AreaTriggerScript
+    {
+    public:
+        at_the_singing_pools_children_summon() : AreaTriggerScript("at_the_singing_pools_children_summon") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (!g_singingPoolsMemory.CanTrigger(player))
+                return false;
+
+            if (player->GetQuestStatus(Defines::Quests::quest_the_singing_pools) == QUEST_STATUS_COMPLETE)
+                player->CastSpell(player, Defines::SpellsQ29521::SummonChild1);
+
             return true;
         }
     };
@@ -104,4 +125,5 @@ void AddSC_custom_the_wandering_isle_at()
     using namespace Scripts::TheWanderingIsle::ATScripts;
     new at_talk_on_huo_follow_quest_29423();
     new at_enter_temple_quest_29423();
+    new at_the_singing_pools_children_summon();
 }
