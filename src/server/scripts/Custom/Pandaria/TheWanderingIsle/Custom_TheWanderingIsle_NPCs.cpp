@@ -26,10 +26,12 @@
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
+#include "Position.h"
 #include "ScriptedCreature.h"
 #include "SpellInfo.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
+#include "Vehicle.h"
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
@@ -475,10 +477,22 @@ namespace Scripts::TheWanderingIsle::Npcs
         void JustEnteredCombat(Unit* who) override
         {
             me->SetReactState(REACT_AGGRESSIVE);
-            //me->Attack(who, true);           // Actively set who to attack
             AttackStart(who);
 
             _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_throw_rock, 0s);
+        }
+
+        void MovementInform(uint32 type, uint32 pointId) override
+        {
+            if (type != EFFECT_MOTION_TYPE)
+                return;
+
+            if (pointId == EVENT_JUMP)
+            {
+                me->GetMotionMaster()->Clear();          // stop all movement
+                me->StopMoving();
+                me->KillSelf(false);
+            }
         }
 
         void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
@@ -495,7 +509,9 @@ namespace Scripts::TheWanderingIsle::Npcs
                 attacker->AttackStop();
                 me->ExitVehicle();
                 attacker->ToPlayer()->KilledMonsterCredit(Defines::Npcs::npc_monk_on_pole_1);
-                me->DespawnOrUnsummon(1s); // tempfix.
+                Position dest = me->GetNearPosition(3.0f, 0.0f);
+                me->GetMotionMaster()->MoveJump(EVENT_JUMP, dest, 10.0f, 10.0f);
+                me->DespawnOrUnsummon(5s);
             }
         }
 
