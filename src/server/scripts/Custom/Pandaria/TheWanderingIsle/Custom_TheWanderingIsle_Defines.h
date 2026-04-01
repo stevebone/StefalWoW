@@ -71,6 +71,11 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 spell_training_bell_exclusion_aura = 133381;
     }
 
+    namespace SpellsQ29677
+    {
+        static constexpr uint32 spell_serpent_strike = 128409;
+    }
+
     namespace TalksQ29423
     {
         static constexpr uint32 chia_hui_autumnleaf_talk = 0;
@@ -141,22 +146,27 @@ namespace Scripts::TheWanderingIsle::Defines
 
     namespace EventsQ29423
     {
-        static constexpr uint32 event_delivery_huo = 1;
-        static constexpr uint32 event_second_huo_position = 2;
+        static constexpr int8 event_delivery_huo = 1;
+        static constexpr int8 event_second_huo_position = 2;
     }
 
     namespace EventsQ29662
     {
-        static constexpr uint32 event_check_players = 1;
-        static constexpr uint32 event_cast_razor_beak = 2;
+        static constexpr int8 event_check_players = 1;
+        static constexpr int8 event_cast_razor_beak = 2;
     }
 
     namespace EventsQ29661Q29663
     {
-        static constexpr uint32 event_cast_throw_rock = 1;
-        static constexpr uint32 event_monk_switch_pole = 2;
-        static constexpr uint32 event_monk_despawn = 3;
-        static constexpr uint32 event_cast_transform = 4;
+        static constexpr int8 event_cast_throw_rock = 1;
+        static constexpr int8 event_monk_switch_pole = 2;
+        static constexpr int8 event_monk_despawn = 3;
+        static constexpr int8 event_cast_transform = 4;
+    }
+
+    namespace EventsQ29677
+    {
+        static constexpr int8 event_cast_serpent_strike = 1;
     }
 
     namespace Npcs
@@ -175,6 +185,12 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 npc_training_bell_pole = 55083;
         static constexpr uint32 npc_training_pole_1 = 54993;
         static constexpr uint32 npc_training_pole_2 = 57431;
+        static constexpr uint32 npc_fang_she = 55292;
+    }
+
+    namespace Objects
+    {
+        static constexpr uint32 go_ancient_clam = 209584;
     }
 
     namespace Quests
@@ -185,6 +201,7 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 quest_stronger_than_reeds = 29662;
         static constexpr uint32 quest_the_lesson_of_the_balanced_rock = 29663;
         static constexpr uint32 quest_the_lesson_of_the_dry_fur = 29661;
+        static constexpr uint32 quest_the_sun_pearl = 29677;
     }
 
     namespace Misc

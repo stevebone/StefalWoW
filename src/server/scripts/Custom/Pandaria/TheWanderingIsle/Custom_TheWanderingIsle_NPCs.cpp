@@ -23,6 +23,7 @@
 #include "Containers.h"
 #include "Creature.h"
 #include "EventMap.h"
+#include "GameObject.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
@@ -454,7 +455,7 @@ namespace Scripts::TheWanderingIsle::Npcs
     };
 
     // 55019 & 65468
-    struct npc_tushui_monk_on_pole : ScriptedAI
+    struct npc_tushui_monk_on_pole : public ScriptedAI
     {
         npc_tushui_monk_on_pole(Creature* creature) : ScriptedAI(creature) { }
 
@@ -599,7 +600,7 @@ namespace Scripts::TheWanderingIsle::Npcs
     };
 
     // 54993, 57431, 55083
-    struct npc_balance_pole : ScriptedAI
+    struct npc_balance_pole : public ScriptedAI
     {
         npc_balance_pole(Creature* creature) : ScriptedAI(creature)
         {
@@ -655,12 +656,65 @@ namespace Scripts::TheWanderingIsle::Npcs
         EventMap _events;
         ObjectGuid _passengerGuid;
     };
+
+    // 55292 - Fang-she
+    struct npc_fang_she : public ScriptedAI
+    {
+        npc_fang_she(Creature* creature) : ScriptedAI(creature) { }
+
+        EventMap events;
+
+        void Reset() override
+        {
+            events.Reset();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+                return;
+
+            events.Update(diff);
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                if (eventId == Defines::EventsQ29677::event_cast_serpent_strike)
+                {
+                    DoCastVictim(128409); // Fang-she's attack spell
+                    events.ScheduleEvent(Defines::EventsQ29677::event_cast_serpent_strike, 3s, 5s); // repeat
+                }
+            }
+        }
+
+        void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
+        {
+            me->EngageWithTarget(who);
+            events.ScheduleEvent(Defines::EventsQ29677::event_cast_serpent_strike, 3s, 5s);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            Player* player = killer->ToPlayer();
+            if (!player)
+                return;
+
+            // Only activate the pearl if the player has the quest
+            if (player->GetQuestStatus(Defines::Quests::quest_the_sun_pearl) == QUEST_STATUS_INCOMPLETE)
+            {
+                if (GameObject* pearl = me->FindNearestGameObject(Defines::Objects::go_ancient_clam, 20.0f))
+                {
+                    pearl->RemoveFlag(GO_FLAG_INTERACT_COND);
+                    pearl->SetDynamicFlag(GO_DYNFLAG_LO_ACTIVATE);
+                }
+            }
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
 {
     using namespace Scripts::TheWanderingIsle::Npcs;
-    RegisterCreatureAI(npc_huo_follower);
+    RegisterCreatureAI(Scripts::TheWanderingIsle::Npcs::npc_huo_follower);
     RegisterCreatureAI(npc_chia_hui_autumnleaf);
     RegisterCreatureAI(npc_shanxi_quest);
     RegisterCreatureAI(npc_deng);
@@ -669,4 +723,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     RegisterCreatureAI(npc_jojo_ironbrow_summon);
     RegisterCreatureAI(npc_tushui_monk_on_pole);
     RegisterCreatureAI(npc_balance_pole);
+    RegisterCreatureAI(npc_fang_she);
 }
