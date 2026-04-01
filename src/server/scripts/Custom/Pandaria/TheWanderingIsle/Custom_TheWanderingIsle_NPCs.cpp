@@ -42,7 +42,7 @@ namespace Scripts::Custom::TheWanderingIsle
     //54958
     struct npc_huo_follower : public ScriptedAI
     {
-        npc_huo_follower(Creature* creature) : ScriptedAI(creature) {}
+        npc_huo_follower(Creature* creature) : ScriptedAI(creature) { }
 
         void IsSummonedBy(WorldObject* summoner) override
         {
@@ -83,7 +83,10 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
             if (!player || !player->IsInWorld())
+            {
                 me->DespawnOrUnsummon();
+                return;
+            }
 
             _events.Update(diff);
             while (uint32 eventId = _events.ExecuteEvent())
@@ -115,7 +118,6 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     private:
         ObjectGuid _playerGuid;
-
         EventMap _events;
     };
 
@@ -715,7 +717,7 @@ namespace Scripts::Custom::TheWanderingIsle
 void AddSC_custom_the_wandering_isle_npcs()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
-    RegisterCreatureAI(npc_huo_follower);
+    RegisterCreatureAI(struct npc_huo_follower);
     RegisterCreatureAI(npc_chia_hui_autumnleaf);
     RegisterCreatureAI(npc_shanxi_quest);
     RegisterCreatureAI(npc_deng);
