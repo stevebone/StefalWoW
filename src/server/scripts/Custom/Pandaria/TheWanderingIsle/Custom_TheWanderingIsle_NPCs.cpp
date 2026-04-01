@@ -30,7 +30,6 @@
 #include "TemporarySummon.h"
 #include "Unit.h"
 
-
 #include "Custom_TheWanderingIsle_Defines.h"
 
 namespace Scripts::TheWanderingIsle::Npcs
@@ -317,6 +316,138 @@ namespace Scripts::TheWanderingIsle::Npcs
     private:
         TaskScheduler _scheduler;
     };
+
+
+    // 57638
+    struct npc_jojo_ironbrow_summon : public ScriptedAI
+    {
+        npc_jojo_ironbrow_summon(Creature* creature) : ScriptedAI(creature) {}
+
+        void IsSummonedBy(WorldObject* summoner) override
+        {
+            if (Player* player = summoner->ToPlayer())
+            {
+                _playerGuid = player->GetGUID();
+
+                me->SetAIAnimKitId(Defines::Misc::Jojo_AiAnimKitID);
+
+                _scheduler.Schedule(1s, [this, player](TaskContext /*task*/)
+                    {
+                        Talk(Defines::TalksQ29662::Jojo_Talk_0, player);
+                    });
+                _scheduler.Schedule(3s, [this](TaskContext /*task*/)
+                    {
+                        me->SetAIAnimKitId(0);
+                    });
+                _scheduler.Schedule(4s, [this](TaskContext /*task*/)
+                    {
+                        me->GetMotionMaster()->MovePoint(1, Defines::PositionsQ29662::JojoMovePoint);
+                    });
+                _scheduler.Schedule(6200ms, [this](TaskContext /*task*/)
+                    {
+                        me->CastSpell(me, Defines::SpellsQ29662::spell_jojo_headbash_reeds_cast);
+                    });
+                _scheduler.Schedule(8700ms, [this, player](TaskContext /*task*/)
+                    {
+                        me->RemoveAurasDueToSpell(Defines::SpellsQ29662::spell_jojo_headbash_stack_of_reeds_impact);
+                        Talk(Defines::TalksQ29662::Jojo_Talk_1, player);
+                    });
+                _scheduler.Schedule(14700ms, [this](TaskContext /*task*/)
+                    {
+                        me->GetMotionMaster()->MovePath(Defines::PathQ29662::path_jojo, false);
+                    });
+            }
+        }
+
+        void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+        {
+            if (pathId == Defines::PathQ29662::path_jojo)
+            {
+                me->DespawnOrUnsummon();
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        ObjectGuid _playerGuid;
+        TaskScheduler _scheduler;
+    };
+
+    // 55015 aggro on frog pool
+    struct npc_whitefeather_crane : public ScriptedAI
+    {
+        npc_whitefeather_crane(Creature* creature) : ScriptedAI(creature) {}
+
+        void Reset() override
+        {
+            _events.Reset();
+            _events.RescheduleEvent(Defines::EventsQ29662::event_check_players, 1s);
+        }
+
+        void EnterCombat()
+        {
+            _events.CancelEvent(Defines::EventsQ29662::event_check_players);
+            _events.RescheduleEvent(Defines::EventsQ29662::event_cast_razor_beak, 8s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (!UpdateVictim())
+            {
+                if (_events.ExecuteEvent() == Defines::EventsQ29662::event_check_players)
+                {
+                    if (Player* player = me->SelectNearestPlayer(10.0f))
+                    {
+                        if (player->IsAlive() && !player->IsGameMaster() && player->HasAura(Defines::SpellsQ29662::spell_curse_of_the_frog))
+                        {
+                            AttackStart(player);
+                            EnterCombat();
+                            return;
+                        }
+                    }
+                    _events.RescheduleEvent(Defines::EventsQ29662::event_check_players, 1s);
+                }
+                return;
+            }
+
+            if (Unit* victim = me->GetVictim())
+            {
+                if (!victim->HasAura(Defines::SpellsQ29662::spell_curse_of_the_frog))
+                {
+                    if (me->IsInCombat())
+                    {
+                        EnterEvadeMode();
+                        _events.RescheduleEvent(Defines::EventsQ29662::event_check_players, 1s);
+                    }
+                    return;
+                }
+            }
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Defines::EventsQ29662::event_cast_razor_beak:
+                    if (Unit* target = me->GetVictim())
+                    {
+                        DoCast(target, Defines::SpellsQ29662::spell_razor_beak);
+                    }
+                    _events.RescheduleEvent(Defines::EventsQ29662::event_cast_razor_beak, 8s);
+                    break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+    private:
+        EventMap _events;
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -327,4 +458,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     RegisterCreatureAI(npc_shanxi_quest);
     RegisterCreatureAI(npc_deng);
     RegisterCreatureAI(npc_cai);
+    RegisterCreatureAI(npc_whitefeather_crane);
+    RegisterCreatureAI(npc_jojo_ironbrow_summon);
 }

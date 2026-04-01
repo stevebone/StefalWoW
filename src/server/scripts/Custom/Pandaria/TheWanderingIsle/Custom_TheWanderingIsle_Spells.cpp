@@ -174,7 +174,58 @@ namespace Scripts::TheWanderingIsle::Spells
             OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_child_2::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
         }
     };
-};
+
+    // 108798 spell_jojo_headbash_stack_of_reeds_impact
+    class spell_jojo_headbash_filter : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            targets.remove_if([](WorldObject* target)
+                {
+                    if (target->GetEntry() != Defines::Npcs::npc_stack_of_reeds)
+                    {
+                        return true;
+                    }
+                    return false;
+                });
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_jojo_headbash_filter::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+        }
+    };
+
+    // 108786
+    class spell_summon_stack_of_reeds : public SpellScript
+    {
+
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(Defines::PositionsQ29662::StackOfReedsSpawnPoint);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_stack_of_reeds::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 108808
+    class spell_summon_jojo_ironbrow : public SpellScript
+    {
+
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(Defines::PositionsQ29662::JojoSpawnPoint);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_jojo_ironbrow::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+}
 
 void AddSC_custom_the_wandering_isle_spells()
 {
@@ -185,4 +236,7 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_despawn_fire_spirit);
     RegisterSpellScript(spell_summon_child_1);
     RegisterSpellScript(spell_summon_child_2);
+    RegisterSpellScript(spell_jojo_headbash_filter);
+    RegisterSpellScript(spell_summon_stack_of_reeds);
+    RegisterSpellScript(spell_summon_jojo_ironbrow);
 }

@@ -5,6 +5,7 @@
 -- NPC: 57638 Jojo Ironbrow (spell spawn first house)
 -- NPC: 55478 Jojo Ironbrow at farmstead
 -- NPC: 57669 Jojo Ironbrow (spell spawn farmstead)
+-- NPC: 55585 Jojo Ironbrow at Morning Breeze
 -- NPC: 64939 Lamplighter Sunny
 -- NPC: 55506 Raggis
 -- NPC: 65467 Mesmerized Onlooker
@@ -20,6 +21,7 @@
 -- NPC: 57720 Ji Firepaw
 -- NPC: 57721 Aysa Cloudsinger
 -- NPC: 54786 Master Shang Xi
+-- NPC: 57132 Wu-song Villager
 
 -- Spell: 108786 Summon Stack of Reeds
 -- Spell: 108798 Jojo Headbash Stack of reeds impact
@@ -426,9 +428,32 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (60249, 1, 0, 'I bet you''re really strong, huh?  You could probably kick that bridge right in half if you wanted to!', 12, 0, 100, 6, 0, 0, 0, 59879, 'Deng to Cai'),
 (60249, 2, 0, 'Bye!', 12, 0, 100, 3, 0, 0, 0, 59884, 'Deng to Cai');
 
-
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29661, 29663, 29662);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
 (29661, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (29663, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (29662, 0, 0, 0, 0, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
+
+-- Adding some creature text for Wo-son Villager
+DELETE FROM `creature_text` WHERE `creatureID` IN (57132);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('57132', '0', '0', 'I have had enough of this!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line'),
+('57132', '0', '1', 'Just... go away!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line'),
+('57132', '0', '2', 'You nasty... little creature!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line'),
+('57132', '0', '3', 'Get off of me!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57132);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57132);
+INSERT INTO `smart_scripts` VALUES
+('57132', '0', '0', '0', '', '0', '0', '100', '0', '20000', '20000', '40000', '65000', '0', '', '1', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Wu-song Villager - In Combat - Say Line 0');
+
+-- Fix Visibility and state addons for Jojos
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,55021);
+INSERT INTO `creature_template_addon` 
+(`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+('55021', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '82343');
+
+-- Fix invalid scripts
+UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
+UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450358') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');

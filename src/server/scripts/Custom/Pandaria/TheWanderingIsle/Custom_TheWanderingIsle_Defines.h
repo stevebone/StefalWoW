@@ -44,6 +44,15 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
     }
 
+    namespace SpellsQ29662
+    {
+        static constexpr uint32 spell_curse_of_the_frog = 102938;
+        static constexpr uint32 spell_razor_beak = 109088;
+
+        static constexpr uint32 spell_jojo_headbash_reeds_cast = 129272;
+        static constexpr uint32 spell_jojo_headbash_stack_of_reeds_impact = 108798;
+    }
+
     namespace SpellsQ29521
     {
         static constexpr uint32 SummonChild1 = 116190;
@@ -77,6 +86,12 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 CaiTalk3 = 3;
     }
 
+    namespace TalksQ29662
+    {
+        static constexpr uint32 Jojo_Talk_0 = 0;
+        static constexpr uint32 Jojo_Talk_1 = 1;
+    }
+
     namespace PositionsQ29423
     {
         static constexpr Position aysaSpawnPos = { 992.00347900390625f, 3600.757080078125f, 193.11480712890625f, 3.087874650955200195f };
@@ -92,6 +107,13 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr Position DengSpawnPos = { 949.37f, 3510.0f, 187.7983f, 0.0f };
     }
 
+    namespace PositionsQ29662
+    {
+        static constexpr Position JojoSpawnPoint = { 1039.49f, 3283.11f, 129.523f, 1.81514f };
+        static constexpr Position StackOfReedsSpawnPoint = { 1038.5538330078125f, 3286.385498046875f, 128.25982666015625f, 4.921828269958496093f };
+        static constexpr Position JojoMovePoint = { 1039.19f, 3284.26f, 129.3971f, 0.0f };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;
@@ -100,10 +122,21 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 aysa_away = 6112601;
     }
 
+    namespace PathQ29662
+    {
+        static constexpr uint32 path_jojo = 5763800;
+    }
+
     namespace EventsQ29423
     {
         static constexpr uint32 event_delivery_huo = 1;
         static constexpr uint32 event_second_huo_position = 2;
+    }
+
+    namespace EventsQ29662
+    {
+        static constexpr uint32 event_check_players = 1;
+        static constexpr uint32 event_cast_razor_beak = 2;
     }
 
     namespace Npcs
@@ -113,6 +146,7 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 npc_huo_q29423 = 54958;
         static constexpr uint32 npc_aysa_q29423 = 61126;
         static constexpr uint32 npc_ji_q29423 = 61127;
+        static constexpr uint32 npc_stack_of_reeds = 57636;
         // Singing Pools
         static constexpr uint32 Cai = 60250;
         static constexpr uint32 Deng = 60249;
@@ -123,7 +157,13 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 quest_huo_the_spirit_of_fire = 29422;
         static constexpr uint32 quest_the_passion_of_shen_zin_su = 29423;
         static constexpr uint32 quest_the_singing_pools = 29521;
-    }    
+        static constexpr uint32 quest_stronger_than_reeds = 29662;
+    }
+
+    namespace Misc
+    {
+        static constexpr uint16 Jojo_AiAnimKitID = 2935;
+    }
 }
 
 namespace Scripts::TheWanderingIsle::PScripts
