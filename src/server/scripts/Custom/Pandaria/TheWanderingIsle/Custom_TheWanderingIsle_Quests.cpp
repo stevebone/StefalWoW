@@ -26,7 +26,7 @@
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
-namespace Scripts::TheWanderingIsle::Quests
+namespace Scripts::Custom::TheWanderingIsle
 {
     // 29422
     class quest_29422_huo_the_spirit_of_fire : public QuestScript
@@ -59,14 +59,14 @@ namespace Scripts::TheWanderingIsle::Quests
         {
             if (newStatus == QUEST_STATUS_NONE)
             {
-                player->CastSpell(player, Defines::SpellsQ29423::spell_despawn_spirit_of_fire, true);
-                player->RemoveAurasDueToSpell(Defines::SpellsQ29423::spell_summon_spirit_of_fire);
-                player->RemoveAurasDueToSpell(Defines::SpellsQ29423::spell_summon_spirit_of_fire_on_relog);
+                player->CastSpell(player, SpellsQ29423::spell_despawn_spirit_of_fire, true);
+                player->RemoveAurasDueToSpell(SpellsQ29423::spell_summon_spirit_of_fire);
+                player->RemoveAurasDueToSpell(SpellsQ29423::spell_summon_spirit_of_fire_on_relog);
                 PhasingHandler::OnConditionChange(player);
             }
             else if (newStatus == QUEST_STATUS_INCOMPLETE)
             {
-                player->CastSpell(player, Defines::SpellsQ29423::spell_summon_spirit_of_fire, true);
+                player->CastSpell(player, SpellsQ29423::spell_summon_spirit_of_fire, true);
                 PhasingHandler::OnConditionChange(player);
             }
         }
@@ -75,7 +75,7 @@ namespace Scripts::TheWanderingIsle::Quests
 
 void AddSC_custom_the_wandering_isle_quests()
 {
-    using namespace Scripts::TheWanderingIsle::Quests;
+    using namespace Scripts::Custom::TheWanderingIsle;
     new quest_29422_huo_the_spirit_of_fire();
     new quest_29423_the_passion_of_shen_zin_su();
 }

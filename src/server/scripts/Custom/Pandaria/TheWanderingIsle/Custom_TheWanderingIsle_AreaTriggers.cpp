@@ -29,9 +29,9 @@
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
-using namespace Scripts::TheWanderingIsle::PScripts;
+using namespace Scripts::Custom::TheWanderingIsle;
 
-namespace Scripts::TheWanderingIsle::ATScripts
+namespace Scripts::Custom::TheWanderingIsle
 {
     // 7750
     class at_talk_on_huo_follow_quest_29423 : public AreaTriggerScript
@@ -41,14 +41,14 @@ namespace Scripts::TheWanderingIsle::ATScripts
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
         {
-            if (player->GetQuestStatus(Defines::Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_INCOMPLETE)
+            if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_INCOMPLETE)
             {
                 Creature* chia = player->FindNearestCreatureWithOptions(30.0f, { .StringId = "Chia_Hui_Talk_Event_Starter", .IgnorePhases = true });
 
                 if (!chia)
                     return false;
 
-                player->CastSpell(chia, Defines::SpellsQ29423::spell_start_talk_event);
+                player->CastSpell(chia, SpellsQ29423::spell_start_talk_event);
             }
             return true;
         }
@@ -65,8 +65,8 @@ namespace Scripts::TheWanderingIsle::ATScripts
             if (!g_singingPoolsMemory.CanTrigger(player))
                 return false;
 
-            if (player->GetQuestStatus(Defines::Quests::quest_the_singing_pools) == QUEST_STATUS_COMPLETE)
-                player->CastSpell(player, Defines::SpellsQ29521::SummonChild1);
+            if (player->GetQuestStatus(Quests::quest_the_singing_pools) == QUEST_STATUS_COMPLETE)
+                player->CastSpell(player, SpellsQ29521::SummonChild1);
 
             return true;
         }
@@ -80,40 +80,40 @@ namespace Scripts::TheWanderingIsle::ATScripts
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
         {
-            if (player->GetQuestStatus(Defines::Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_INCOMPLETE)
+            if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_INCOMPLETE)
             {
                 Creature* shanxi = player->FindNearestCreatureWithOptions(30.0f, { .StringId = "ShanXi_Talk", .IgnorePhases = true });
 
                 if (!shanxi)
                     return false;
 
-                shanxi->AI()->Talk(Defines::TalksQ29423::shanxi_talk_0);
+                shanxi->AI()->Talk(TalksQ29423::shanxi_talk_0);
 
-                player->KilledMonsterCredit(Defines::Npcs::credit_the_passion_of_shen_zin_su);
+                player->KilledMonsterCredit(Npcs::credit_the_passion_of_shen_zin_su);
 
-                TempSummon* aysa = player->SummonCreature(Defines::Npcs::npc_aysa_q29423, Defines::PositionsQ29423::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
-                TempSummon* ji = player->SummonCreature(Defines::Npcs::npc_ji_q29423, Defines::PositionsQ29423::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* aysa = player->SummonCreature(Npcs::npc_aysa_q29423, PositionsQ29423::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* ji = player->SummonCreature(Npcs::npc_ji_q29423, PositionsQ29423::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
 
                 if (!aysa || !ji)
                     return false;
 
                 aysa->SetSpeed(MOVE_WALK, 6.0f);
                 ji->SetSpeed(MOVE_WALK, 6.0f);
-                aysa->GetMotionMaster()->MovePath(Defines::PathQ29423::aysa, false);
-                ji->GetMotionMaster()->MovePath(Defines::PathQ29423::ji, false);
+                aysa->GetMotionMaster()->MovePath(PathQ29423::aysa, false);
+                ji->GetMotionMaster()->MovePath(PathQ29423::ji, false);
             }
-            else if (player->GetQuestStatus(Defines::Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_COMPLETE)
+            else if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_COMPLETE)
             {
-                TempSummon* aysa = player->SummonCreature(Defines::Npcs::npc_aysa_q29423, Defines::PositionsQ29423::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
-                TempSummon* ji = player->SummonCreature(Defines::Npcs::npc_ji_q29423, Defines::PositionsQ29423::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* aysa = player->SummonCreature(Npcs::npc_aysa_q29423, PositionsQ29423::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* ji = player->SummonCreature(Npcs::npc_ji_q29423, PositionsQ29423::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
 
                 if (!aysa || !ji)
                     return false;
 
                 aysa->SetSpeed(MOVE_WALK, 6.0f);
                 ji->SetSpeed(MOVE_WALK, 6.0f);
-                aysa->GetMotionMaster()->MovePath(Defines::PathQ29423::aysa, false);
-                ji->GetMotionMaster()->MovePath(Defines::PathQ29423::ji, false);
+                aysa->GetMotionMaster()->MovePath(PathQ29423::aysa, false);
+                ji->GetMotionMaster()->MovePath(PathQ29423::ji, false);
             }
             return true;
         }
@@ -129,7 +129,7 @@ namespace Scripts::TheWanderingIsle::ATScripts
         {
             if (player->IsAlive())
             {
-                player->AddAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura, player);
+                player->AddAura(SpellsQ29661Q29663::spell_training_bell_exclusion_aura, player);
                 return true;
             }
             return false;
@@ -139,7 +139,7 @@ namespace Scripts::TheWanderingIsle::ATScripts
         {
             if (player->IsAlive())
             {
-                player->RemoveAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
+                player->RemoveAura(SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
                 return true;
             }
             return false;
@@ -149,7 +149,7 @@ namespace Scripts::TheWanderingIsle::ATScripts
 
 void AddSC_custom_the_wandering_isle_at()
 {
-    using namespace Scripts::TheWanderingIsle::ATScripts;
+    using namespace Scripts::Custom::TheWanderingIsle;
     new at_talk_on_huo_follow_quest_29423();
     new at_enter_temple_quest_29423();
     new at_the_singing_pools_children_summon();

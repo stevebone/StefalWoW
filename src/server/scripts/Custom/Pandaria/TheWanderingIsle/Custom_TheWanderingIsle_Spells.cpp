@@ -30,7 +30,7 @@
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
-namespace Scripts::TheWanderingIsle::Spells
+namespace Scripts::Custom::TheWanderingIsle
 {
     // 109090, 109095, 109105, 109109
     class spell_fan_the_flames_throw_wood_and_all_blow_air : public SpellScript
@@ -60,8 +60,8 @@ namespace Scripts::TheWanderingIsle::Spells
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Defines::SpellsQ29422::spell_fan_the_flames_throw_wood, Defines::SpellsQ29422::spell_fan_the_flames_blow_air,
-                Defines::SpellsQ29422::spell_fan_the_flames_blow_air_big, Defines::SpellsQ29422::spell_fan_the_flames_blow_air_bigger });
+            return ValidateSpellInfo({ SpellsQ29422::spell_fan_the_flames_throw_wood, SpellsQ29422::spell_fan_the_flames_blow_air,
+                SpellsQ29422::spell_fan_the_flames_blow_air_big, SpellsQ29422::spell_fan_the_flames_blow_air_bigger });
         }
 
         void HandleAfterCast()
@@ -87,17 +87,17 @@ namespace Scripts::TheWanderingIsle::Spells
                 };
 
             // Sequence
-            schedule(1s, Defines::SpellsQ29422::spell_fan_the_flames_throw_wood);
-            schedule(2s, Defines::SpellsQ29422::spell_fan_the_flames_blow_air);
-            schedule(3s, Defines::SpellsQ29422::spell_fan_the_flames_blow_air_big);
-            schedule(4s, Defines::SpellsQ29422::spell_fan_the_flames_blow_air_bigger);
+            schedule(1s, SpellsQ29422::spell_fan_the_flames_throw_wood);
+            schedule(2s, SpellsQ29422::spell_fan_the_flames_blow_air);
+            schedule(3s, SpellsQ29422::spell_fan_the_flames_blow_air_big);
+            schedule(4s, SpellsQ29422::spell_fan_the_flames_blow_air_bigger);
 
             // Final credit
             player->m_Events.AddEvent(
                 new LambdaBasicEvent([player]()
                     {
                         if (player->IsInWorld())
-                            player->CastSpell(player, Defines::SpellsQ29422::spell_fan_the_flames_credit, true);
+                            player->CastSpell(player, SpellsQ29422::spell_fan_the_flames_credit, true);
                     }),
                 player->m_Events.CalculateTime(7s)
             );
@@ -137,7 +137,7 @@ namespace Scripts::TheWanderingIsle::Spells
     {
         void HandleHitTarget(SpellEffIndex /*effIndex*/)
         {
-            if (Unit* huo = GetHitUnit()->FindNearestCreature(Defines::Npcs::npc_huo_q29423, GetSpellInfo()->GetMaxRange(), true))
+            if (Unit* huo = GetHitUnit()->FindNearestCreature(Npcs::npc_huo_q29423, GetSpellInfo()->GetMaxRange(), true))
                 huo->ToCreature()->DespawnOrUnsummon();
         }
 
@@ -152,7 +152,7 @@ namespace Scripts::TheWanderingIsle::Spells
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(Defines::PositionsQ29521::CaiSpawnPos);
+            dest.Relocate(PositionsQ29521::CaiSpawnPos);
         }
 
         void Register() override
@@ -166,7 +166,7 @@ namespace Scripts::TheWanderingIsle::Spells
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(Defines::PositionsQ29521::DengSpawnPos);
+            dest.Relocate(PositionsQ29521::DengSpawnPos);
         }
 
         void Register() override
@@ -182,7 +182,7 @@ namespace Scripts::TheWanderingIsle::Spells
         {
             targets.remove_if([](WorldObject* target)
                 {
-                    if (target->GetEntry() != Defines::Npcs::npc_stack_of_reeds)
+                    if (target->GetEntry() != Npcs::npc_stack_of_reeds)
                     {
                         return true;
                     }
@@ -202,7 +202,7 @@ namespace Scripts::TheWanderingIsle::Spells
 
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(Defines::PositionsQ29662::StackOfReedsSpawnPoint);
+            dest.Relocate(PositionsQ29662::StackOfReedsSpawnPoint);
         }
 
         void Register() override
@@ -217,7 +217,7 @@ namespace Scripts::TheWanderingIsle::Spells
 
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(Defines::PositionsQ29662::JojoSpawnPoint);
+            dest.Relocate(PositionsQ29662::JojoSpawnPoint);
         }
 
         void Register() override
@@ -229,7 +229,7 @@ namespace Scripts::TheWanderingIsle::Spells
 
 void AddSC_custom_the_wandering_isle_spells()
 {
-    using namespace Scripts::TheWanderingIsle::Spells;
+    using namespace Scripts::Custom::TheWanderingIsle;
     RegisterSpellScript(spell_fan_the_flames);
     RegisterSpellScript(spell_fan_the_flames_throw_wood_and_all_blow_air);
     RegisterSpellScript(spell_summon_fire_spirit);

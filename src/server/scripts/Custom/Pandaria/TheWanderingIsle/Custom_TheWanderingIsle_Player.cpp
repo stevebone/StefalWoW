@@ -25,7 +25,7 @@
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
-namespace Scripts::TheWanderingIsle::PScripts
+namespace Scripts::Custom::TheWanderingIsle
 {
     // 102632 PlayerScript On Relog
     class player_quest_29423_summon_on_relog : public PlayerScript
@@ -35,10 +35,10 @@ namespace Scripts::TheWanderingIsle::PScripts
 
         void OnLogin(Player* player, bool /*loginFirst*/)
         {
-            if (player->GetQuestStatus(Defines::Quests::quest_the_passion_of_shen_zin_su) != QUEST_STATUS_INCOMPLETE)
+            if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) != QUEST_STATUS_INCOMPLETE)
                 return;
 
-            player->CastSpell(player, Defines::SpellsQ29423::spell_summon_spirit_of_fire_on_relog, true);
+            player->CastSpell(player, SpellsQ29423::spell_summon_spirit_of_fire_on_relog, true);
         }
     };
 
@@ -62,6 +62,6 @@ namespace Scripts::TheWanderingIsle::PScripts
 
 void AddSC_custom_the_wandering_isle_player()
 {
-    using namespace Scripts::TheWanderingIsle::PScripts;
+    using namespace Scripts::Custom::TheWanderingIsle;
     new player_quest_29423_summon_on_relog();
 }

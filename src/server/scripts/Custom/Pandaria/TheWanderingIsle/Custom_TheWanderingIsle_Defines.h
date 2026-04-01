@@ -23,7 +23,7 @@
 
 #include "Define.h"
 
-namespace Scripts::TheWanderingIsle::Defines
+namespace Scripts::Custom::TheWanderingIsle
 {
     namespace SpellsQ29422
     {
@@ -210,7 +210,7 @@ namespace Scripts::TheWanderingIsle::Defines
     }
 }
 
-namespace Scripts::TheWanderingIsle::PScripts
+namespace Scripts::Custom::TheWanderingIsle
 {
     class player_singing_pools_memory
     {

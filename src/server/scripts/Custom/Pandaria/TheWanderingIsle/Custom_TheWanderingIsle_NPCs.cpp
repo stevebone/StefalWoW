@@ -37,7 +37,7 @@
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
-namespace Scripts::TheWanderingIsle::Npcs
+namespace Scripts::Custom::TheWanderingIsle
 {
     //54958
     struct npc_huo_follower : public ScriptedAI
@@ -54,7 +54,7 @@ namespace Scripts::TheWanderingIsle::Npcs
                 me->SetSpeed(MOVE_RUN, 7.0f);
                 me->GetMotionMaster()->MoveFollow(player, 3.0f);
 
-                _events.RescheduleEvent(Defines::EventsQ29423::event_delivery_huo, 20s);
+                _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 20s);
             }
         }
 
@@ -67,13 +67,13 @@ namespace Scripts::TheWanderingIsle::Npcs
 
             if (pointId == 1)
             {
-                me->CastSpell(player, Defines::SpellsQ29423::spell_fire_form);
+                me->CastSpell(player, SpellsQ29423::spell_fire_form);
 
-                _events.RescheduleEvent(Defines::EventsQ29423::event_second_huo_position, 7s);
+                _events.RescheduleEvent(EventsQ29423::event_second_huo_position, 7s);
             }
             else if (pointId == 2)
             {
-                me->CastSpell(player, Defines::SpellsQ29423::spell_forcecast_fire_turn_in_statue_brazier_change);
+                me->CastSpell(player, SpellsQ29423::spell_forcecast_fire_turn_in_statue_brazier_change);
                 PhasingHandler::OnConditionChange(player);
                 me->DespawnOrUnsummon();
             }
@@ -90,7 +90,7 @@ namespace Scripts::TheWanderingIsle::Npcs
             {
                 switch (eventId)
                 {
-                case Defines::EventsQ29423::event_delivery_huo:
+                case EventsQ29423::event_delivery_huo:
                 {
                     Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
 
@@ -99,15 +99,15 @@ namespace Scripts::TheWanderingIsle::Npcs
                         me->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
                         me->SetFloating(true);
                         me->SetSpeed(MOVE_RUN, 3.0f);
-                        me->GetMotionMaster()->MovePoint(1, Defines::PositionsQ29423::huoFirstPoint, true, { 6.249388f });
+                        me->GetMotionMaster()->MovePoint(1, PositionsQ29423::huoFirstPoint, true, { 6.249388f });
                     }
                     else
-                        _events.RescheduleEvent(Defines::EventsQ29423::event_delivery_huo, 2s);
+                        _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 2s);
                     break;
                 }
-                case Defines::EventsQ29423::event_second_huo_position:
+                case EventsQ29423::event_second_huo_position:
                 {
-                    me->GetMotionMaster()->MovePoint(2, Defines::PositionsQ29423::huoSecondPoint);
+                    me->GetMotionMaster()->MovePoint(2, PositionsQ29423::huoSecondPoint);
                 }
                 }
             }
@@ -124,47 +124,47 @@ namespace Scripts::TheWanderingIsle::Npcs
 
         void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
         {
-            if (quest->GetQuestId() == Defines::Quests::quest_the_passion_of_shen_zin_su)
+            if (quest->GetQuestId() == Quests::quest_the_passion_of_shen_zin_su)
             {
-                Creature* ji = player->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Defines::Npcs::npc_ji_q29423, .IgnorePhases = true });
-                Creature* aysa = player->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Defines::Npcs::npc_aysa_q29423, .IgnorePhases = true });
+                Creature* ji = player->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Npcs::npc_ji_q29423, .IgnorePhases = true });
+                Creature* aysa = player->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Npcs::npc_aysa_q29423, .IgnorePhases = true });
 
                 if (!ji || !aysa)
                     return;
 
-                Talk(Defines::TalksQ29423::shanxi_talk_1, player);
+                Talk(TalksQ29423::shanxi_talk_1, player);
 
                 _scheduler.Schedule(10s, [this](TaskContext /*task*/)
                     {
-                        Talk(Defines::TalksQ29423::shanxi_talk_2);
+                        Talk(TalksQ29423::shanxi_talk_2);
                     });
                 _scheduler.Schedule(26s, [this](TaskContext /*task*/)
                     {
-                        Talk(Defines::TalksQ29423::shanxi_talk_3);
+                        Talk(TalksQ29423::shanxi_talk_3);
                     });
                 _scheduler.Schedule(40s, [this](TaskContext /*task*/)
                     {
-                        Talk(Defines::TalksQ29423::shanxi_talk_4);
+                        Talk(TalksQ29423::shanxi_talk_4);
                     });
                 _scheduler.Schedule(49s, [ji](TaskContext /*task*/)
                     {
-                        ji->AI()->Talk(Defines::TalksQ29423::ji_talk);
-                        ji->GetMotionMaster()->MovePath(Defines::PathQ29423::ji_away, false);
+                        ji->AI()->Talk(TalksQ29423::ji_talk);
+                        ji->GetMotionMaster()->MovePath(PathQ29423::ji_away, false);
                         ji->DespawnOrUnsummon(20s);
                     });
                 _scheduler.Schedule(52s, [this](TaskContext /*task*/)
                     {
-                        Talk(Defines::TalksQ29423::shanxi_talk_5);
+                        Talk(TalksQ29423::shanxi_talk_5);
                     });
                 _scheduler.Schedule(60s, [aysa](TaskContext /*task*/)
                     {
-                        aysa->AI()->Talk(Defines::TalksQ29423::aysa_talk);
-                        aysa->GetMotionMaster()->MovePath(Defines::PathQ29423::aysa_away, false);
+                        aysa->AI()->Talk(TalksQ29423::aysa_talk);
+                        aysa->GetMotionMaster()->MovePath(PathQ29423::aysa_away, false);
                         aysa->DespawnOrUnsummon(20s);
                     });
                 _scheduler.Schedule(63s, [this, player](TaskContext /*task*/)
                     {
-                        Talk(Defines::TalksQ29423::shanxi_talk_6, player);
+                        Talk(TalksQ29423::shanxi_talk_6, player);
                     });
             }
         }
@@ -184,7 +184,7 @@ namespace Scripts::TheWanderingIsle::Npcs
 
         void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
         {
-            if (spellInfo->Id != Defines::SpellsQ29423::spell_start_talk_event)
+            if (spellInfo->Id != SpellsQ29423::spell_start_talk_event)
                 return;
 
             if (Player* player = caster->ToPlayer())
@@ -199,7 +199,7 @@ namespace Scripts::TheWanderingIsle::Npcs
                 lin->SetFacingToObject(player);
                 zhen->SetFacingToObject(player);
 
-                me->AI()->Talk(Defines::TalksQ29423::chia_hui_autumnleaf_talk, player);
+                me->AI()->Talk(TalksQ29423::chia_hui_autumnleaf_talk, player);
 
                 _scheduler.Schedule(2s, [this, lin, zhen, player](TaskContext /*task*/)
                     {
@@ -207,7 +207,7 @@ namespace Scripts::TheWanderingIsle::Npcs
                         lin->SetFacingToObject(player);
                         zhen->SetFacingToObject(player);
 
-                        lin->AI()->Talk(Defines::TalksQ29423::brewer_lin_talk);
+                        lin->AI()->Talk(TalksQ29423::brewer_lin_talk);
                     });
                 _scheduler.Schedule(4s, [this, lin, zhen](TaskContext /*task*/)
                     {
@@ -242,15 +242,15 @@ namespace Scripts::TheWanderingIsle::Npcs
 
             _scheduler.Schedule(7s, [this](TaskContext /*task*/)
                 {
-                    me->AI()->Talk(Defines::TalksQ29521::CaiTalk0);
+                    me->AI()->Talk(TalksQ29521::CaiTalk0);
                 });
             _scheduler.Schedule(21s, [this](TaskContext /*task*/)
                 {
-                    me->AI()->Talk(Defines::TalksQ29521::CaiTalk1);
+                    me->AI()->Talk(TalksQ29521::CaiTalk1);
                 });
             _scheduler.Schedule(37s, [this](TaskContext /*task*/)
                 {
-                    me->AI()->Talk(Defines::TalksQ29521::CaiTalk2);
+                    me->AI()->Talk(TalksQ29521::CaiTalk2);
                 });
             _scheduler.Schedule(45s, [this](TaskContext /*task*/)
                 {
@@ -291,11 +291,11 @@ namespace Scripts::TheWanderingIsle::Npcs
 
             _scheduler.Schedule(14s, [this](TaskContext /*task*/)
                 {
-                    Talk(Defines::TalksQ29521::DengTalk0);
+                    Talk(TalksQ29521::DengTalk0);
                 });
             _scheduler.Schedule(29s, [this](TaskContext /*task*/)
                 {
-                    Talk(Defines::TalksQ29521::DengTalk1);
+                    Talk(TalksQ29521::DengTalk1);
                 });
             _scheduler.Schedule(45s, [this](TaskContext /*task*/)
                 {
@@ -307,7 +307,7 @@ namespace Scripts::TheWanderingIsle::Npcs
                     if (!summoner)
                         return;
 
-                    Talk(Defines::TalksQ29521::DengTalk2);
+                    Talk(TalksQ29521::DengTalk2);
                     me->GetMotionMaster()->MoveFleeing(summoner);
                     me->DespawnOrUnsummon(3s);
                 });
@@ -334,11 +334,11 @@ namespace Scripts::TheWanderingIsle::Npcs
             {
                 _playerGuid = player->GetGUID();
 
-                me->SetAIAnimKitId(Defines::Misc::Jojo_AiAnimKitID);
+                me->SetAIAnimKitId(Misc::Jojo_AiAnimKitID);
 
                 _scheduler.Schedule(1s, [this, player](TaskContext /*task*/)
                     {
-                        Talk(Defines::TalksQ29662::Jojo_Talk_0, player);
+                        Talk(TalksQ29662::Jojo_Talk_0, player);
                     });
                 _scheduler.Schedule(3s, [this](TaskContext /*task*/)
                     {
@@ -346,27 +346,27 @@ namespace Scripts::TheWanderingIsle::Npcs
                     });
                 _scheduler.Schedule(4s, [this](TaskContext /*task*/)
                     {
-                        me->GetMotionMaster()->MovePoint(1, Defines::PositionsQ29662::JojoMovePoint);
+                        me->GetMotionMaster()->MovePoint(1, PositionsQ29662::JojoMovePoint);
                     });
                 _scheduler.Schedule(6200ms, [this](TaskContext /*task*/)
                     {
-                        me->CastSpell(me, Defines::SpellsQ29662::spell_jojo_headbash_reeds_cast);
+                        me->CastSpell(me, SpellsQ29662::spell_jojo_headbash_reeds_cast);
                     });
                 _scheduler.Schedule(8700ms, [this, player](TaskContext /*task*/)
                     {
-                        me->RemoveAurasDueToSpell(Defines::SpellsQ29662::spell_jojo_headbash_stack_of_reeds_impact);
-                        Talk(Defines::TalksQ29662::Jojo_Talk_1, player);
+                        me->RemoveAurasDueToSpell(SpellsQ29662::spell_jojo_headbash_stack_of_reeds_impact);
+                        Talk(TalksQ29662::Jojo_Talk_1, player);
                     });
                 _scheduler.Schedule(14700ms, [this](TaskContext /*task*/)
                     {
-                        me->GetMotionMaster()->MovePath(Defines::PathQ29662::path_jojo, false);
+                        me->GetMotionMaster()->MovePath(PathQ29662::path_jojo, false);
                     });
             }
         }
 
         void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
         {
-            if (pathId == Defines::PathQ29662::path_jojo)
+            if (pathId == PathQ29662::path_jojo)
             {
                 me->DespawnOrUnsummon();
             }
@@ -390,13 +390,13 @@ namespace Scripts::TheWanderingIsle::Npcs
         void Reset() override
         {
             _events.Reset();
-            _events.RescheduleEvent(Defines::EventsQ29662::event_check_players, 1s);
+            _events.RescheduleEvent(EventsQ29662::event_check_players, 1s);
         }
 
         void EnterCombat()
         {
-            _events.CancelEvent(Defines::EventsQ29662::event_check_players);
-            _events.RescheduleEvent(Defines::EventsQ29662::event_cast_razor_beak, 8s);
+            _events.CancelEvent(EventsQ29662::event_check_players);
+            _events.RescheduleEvent(EventsQ29662::event_cast_razor_beak, 8s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -405,30 +405,30 @@ namespace Scripts::TheWanderingIsle::Npcs
 
             if (!UpdateVictim())
             {
-                if (_events.ExecuteEvent() == Defines::EventsQ29662::event_check_players)
+                if (_events.ExecuteEvent() == EventsQ29662::event_check_players)
                 {
                     if (Player* player = me->SelectNearestPlayer(10.0f))
                     {
-                        if (player->IsAlive() && !player->IsGameMaster() && player->HasAura(Defines::SpellsQ29662::spell_curse_of_the_frog))
+                        if (player->IsAlive() && !player->IsGameMaster() && player->HasAura(SpellsQ29662::spell_curse_of_the_frog))
                         {
                             AttackStart(player);
                             EnterCombat();
                             return;
                         }
                     }
-                    _events.RescheduleEvent(Defines::EventsQ29662::event_check_players, 1s);
+                    _events.RescheduleEvent(EventsQ29662::event_check_players, 1s);
                 }
                 return;
             }
 
             if (Unit* victim = me->GetVictim())
             {
-                if (!victim->HasAura(Defines::SpellsQ29662::spell_curse_of_the_frog))
+                if (!victim->HasAura(SpellsQ29662::spell_curse_of_the_frog))
                 {
                     if (me->IsInCombat())
                     {
                         EnterEvadeMode();
-                        _events.RescheduleEvent(Defines::EventsQ29662::event_check_players, 1s);
+                        _events.RescheduleEvent(EventsQ29662::event_check_players, 1s);
                     }
                     return;
                 }
@@ -438,12 +438,12 @@ namespace Scripts::TheWanderingIsle::Npcs
             {
                 switch (eventId)
                 {
-                case Defines::EventsQ29662::event_cast_razor_beak:
+                case EventsQ29662::event_cast_razor_beak:
                     if (Unit* target = me->GetVictim())
                     {
-                        DoCast(target, Defines::SpellsQ29662::spell_razor_beak);
+                        DoCast(target, SpellsQ29662::spell_razor_beak);
                     }
-                    _events.RescheduleEvent(Defines::EventsQ29662::event_cast_razor_beak, 8s);
+                    _events.RescheduleEvent(EventsQ29662::event_cast_razor_beak, 8s);
                     break;
                 }
             }
@@ -462,17 +462,17 @@ namespace Scripts::TheWanderingIsle::Npcs
         void Reset() override
         {
             _events.Reset();
-            _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_monk_switch_pole, 1s);
+            _events.ScheduleEvent(EventsQ29661Q29663::event_monk_switch_pole, 1s);
             me->RestoreFaction();
             me->SetReactState(REACT_DEFENSIVE);
         }
 
         void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
         {
-            if (spellInfo->Id == Defines::SpellsQ29661Q29663::spell_force_cast_ride_pole)
+            if (spellInfo->Id == SpellsQ29661Q29663::spell_force_cast_ride_pole)
             {
                 if (Unit* unitCaster = caster->ToUnit())
-                    DoCast(unitCaster, Defines::SpellsQ29661Q29663::spell_monk_ride_pole, true);
+                    DoCast(unitCaster, SpellsQ29661Q29663::spell_monk_ride_pole, true);
             }
         }
 
@@ -481,7 +481,7 @@ namespace Scripts::TheWanderingIsle::Npcs
             me->SetReactState(REACT_AGGRESSIVE);
             AttackStart(who);
 
-            _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_throw_rock, 0s);
+            _events.ScheduleEvent(EventsQ29661Q29663::event_cast_throw_rock, 0s);
         }
 
         void MovementInform(uint32 type, uint32 pointId) override
@@ -510,7 +510,7 @@ namespace Scripts::TheWanderingIsle::Npcs
                 me->AttackStop();
                 attacker->AttackStop();
                 me->ExitVehicle();
-                attacker->ToPlayer()->KilledMonsterCredit(Defines::Npcs::npc_monk_on_pole_1);
+                attacker->ToPlayer()->KilledMonsterCredit(Npcs::npc_monk_on_pole_1);
                 Position dest = me->GetNearPosition(3.0f, 0.0f);
                 me->GetMotionMaster()->MoveJump(EVENT_JUMP, dest, 10.0f, 10.0f);
                 me->DespawnOrUnsummon(5s);
@@ -534,18 +534,18 @@ namespace Scripts::TheWanderingIsle::Npcs
             {
                 switch (eventId)
                 {
-                case Defines::EventsQ29661Q29663::event_cast_throw_rock:
+                case EventsQ29661Q29663::event_cast_throw_rock:
                 {
                     if (victim && !me->IsWithinMeleeRange(victim))
-                        DoCast(victim, Defines::SpellsQ29661Q29663::spell_throw_rock);
+                        DoCast(victim, SpellsQ29661Q29663::spell_throw_rock);
                 }
-                _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_throw_rock, 2500ms);
+                _events.ScheduleEvent(EventsQ29661Q29663::event_cast_throw_rock, 2500ms);
                 break;
-                case Defines::EventsQ29661Q29663::event_monk_switch_pole:
+                case EventsQ29661Q29663::event_monk_switch_pole:
                     if (!me->IsInCombat())
                     {
                         SwitchPole();
-                        _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_monk_switch_pole, 15s, 30s);
+                        _events.ScheduleEvent(EventsQ29661Q29663::event_monk_switch_pole, 15s, 30s);
                     }
                     break;
                 }
@@ -559,8 +559,8 @@ namespace Scripts::TheWanderingIsle::Npcs
         void SwitchPole()
         {
             std::vector<Creature*> poles;
-            me->GetCreatureListWithEntryInGrid(poles, Defines::Npcs::npc_training_pole_1, 5.0f);
-            me->GetCreatureListWithEntryInGrid(poles, Defines::Npcs::npc_training_pole_1, 5.0f);
+            me->GetCreatureListWithEntryInGrid(poles, Npcs::npc_training_pole_1, 5.0f);
+            me->GetCreatureListWithEntryInGrid(poles, Npcs::npc_training_pole_1, 5.0f);
 
             if (poles.empty())
                 return;
@@ -572,9 +572,9 @@ namespace Scripts::TheWanderingIsle::Npcs
                 if (!me->IsWithinDist2d(pole, 5.0f))
                     continue;
 
-                if (!pole->HasAura(Defines::SpellsQ29661Q29663::spell_monk_ride_pole) && !pole->HasAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole))
+                if (!pole->HasAura(SpellsQ29661Q29663::spell_monk_ride_pole) && !pole->HasAura(SpellsQ29661Q29663::spell_ride_vehicle_pole))
                 {
-                    pole->CastSpell(me, Defines::SpellsQ29661Q29663::spell_force_cast_ride_pole, true);
+                    pole->CastSpell(me, SpellsQ29661Q29663::spell_force_cast_ride_pole, true);
                     break;
                 }
             }
@@ -614,14 +614,14 @@ namespace Scripts::TheWanderingIsle::Npcs
             {
                 _passengerGuid = passenger->GetGUID();
                 if (!apply)
-                    _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_transform, 1s);
+                    _events.ScheduleEvent(EventsQ29661Q29663::event_cast_transform, 1s);
                 else
                 {
-                    if (me->GetEntry() == Defines::Npcs::npc_training_bell_pole)
-                        DoCast(passenger, Defines::SpellsQ29661Q29663::spell_training_bell_force_cast_ride_vehicle, true);
+                    if (me->GetEntry() == Npcs::npc_training_bell_pole)
+                        DoCast(passenger, SpellsQ29661Q29663::spell_training_bell_force_cast_ride_vehicle, true);
 
-                    passenger->AddAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole, passenger);
-                    passenger->RemoveAurasDueToSpell(Defines::SpellsQ29661Q29663::spell_curse_of_the_frog);
+                    passenger->AddAura(SpellsQ29661Q29663::spell_ride_vehicle_pole, passenger);
+                    passenger->RemoveAurasDueToSpell(SpellsQ29661Q29663::spell_curse_of_the_frog);
                 }
             }
         }
@@ -634,18 +634,18 @@ namespace Scripts::TheWanderingIsle::Npcs
             {
                 switch (eventId)
                 {
-                case Defines::EventsQ29661Q29663::event_cast_transform:
+                case EventsQ29661Q29663::event_cast_transform:
                     // Transform is casted only when in frog pool
                     Unit* passenger = ObjectAccessor::GetUnit(*me, _passengerGuid);
 
-                    if (passenger->HasAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura))
-                        passenger->RemoveAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
+                    if (passenger->HasAura(SpellsQ29661Q29663::spell_training_bell_exclusion_aura))
+                        passenger->RemoveAura(SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
 
-                    if(passenger->HasAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole))
-                        passenger->RemoveAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole);
+                    if(passenger->HasAura(SpellsQ29661Q29663::spell_ride_vehicle_pole))
+                        passenger->RemoveAura(SpellsQ29661Q29663::spell_ride_vehicle_pole);
 
-                    if (passenger->HasAura(Defines::SpellsQ29661Q29663::spell_curse_of_the_frog))
-                        passenger->RemoveAura(Defines::SpellsQ29661Q29663::spell_curse_of_the_frog);
+                    if (passenger->HasAura(SpellsQ29661Q29663::spell_curse_of_the_frog))
+                        passenger->RemoveAura(SpellsQ29661Q29663::spell_curse_of_the_frog);
                     _passengerGuid.Clear(); // ? Clear after you've finished handling the passenger
                     break;
                 }
@@ -678,10 +678,10 @@ namespace Scripts::TheWanderingIsle::Npcs
 
             while (uint32 eventId = events.ExecuteEvent())
             {
-                if (eventId == Defines::EventsQ29677::event_cast_serpent_strike)
+                if (eventId == EventsQ29677::event_cast_serpent_strike)
                 {
                     DoCastVictim(128409); // Fang-she's attack spell
-                    events.ScheduleEvent(Defines::EventsQ29677::event_cast_serpent_strike, 3s, 5s); // repeat
+                    events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s); // repeat
                 }
             }
         }
@@ -689,7 +689,7 @@ namespace Scripts::TheWanderingIsle::Npcs
         void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
         {
             me->EngageWithTarget(who);
-            events.ScheduleEvent(Defines::EventsQ29677::event_cast_serpent_strike, 3s, 5s);
+            events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s);
         }
 
         void JustDied(Unit* killer) override
@@ -699,9 +699,9 @@ namespace Scripts::TheWanderingIsle::Npcs
                 return;
 
             // Only activate the pearl if the player has the quest
-            if (player->GetQuestStatus(Defines::Quests::quest_the_sun_pearl) == QUEST_STATUS_INCOMPLETE)
+            if (player->GetQuestStatus(Quests::quest_the_sun_pearl) == QUEST_STATUS_INCOMPLETE)
             {
-                if (GameObject* pearl = me->FindNearestGameObject(Defines::Objects::go_ancient_clam, 20.0f))
+                if (GameObject* pearl = me->FindNearestGameObject(Objects::go_ancient_clam, 20.0f))
                 {
                     pearl->RemoveFlag(GO_FLAG_INTERACT_COND);
                     pearl->SetDynamicFlag(GO_DYNFLAG_LO_ACTIVATE);
@@ -713,8 +713,8 @@ namespace Scripts::TheWanderingIsle::Npcs
 
 void AddSC_custom_the_wandering_isle_npcs()
 {
-    using namespace Scripts::TheWanderingIsle::Npcs;
-    RegisterCreatureAI(Scripts::TheWanderingIsle::Npcs::npc_huo_follower);
+    using namespace Scripts::Custom::TheWanderingIsle;
+    RegisterCreatureAI(npc_huo_follower);
     RegisterCreatureAI(npc_chia_hui_autumnleaf);
     RegisterCreatureAI(npc_shanxi_quest);
     RegisterCreatureAI(npc_deng);
