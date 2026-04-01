@@ -21,12 +21,11 @@
  */
 
 #include "ScriptMgr.h"
+#include "SpellInfo.h"
 #include "SpellScript.h"
-
 #include "Player.h"
 #include "Creature.h"
 #include "ObjectAccessor.h"
-
 #include "EventProcessor.h"
 
 #include "Custom_TheWanderingIsle_Defines.h"
