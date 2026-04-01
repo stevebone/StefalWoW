@@ -118,6 +118,33 @@ namespace Scripts::TheWanderingIsle::ATScripts
             return true;
         }
     };
+
+    // 8628
+    class at_singing_pools_training_bell : public AreaTriggerScript
+    {
+    public:
+        at_singing_pools_training_bell() : AreaTriggerScript("at_singing_pools_training_bell") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive())
+            {
+                player->AddAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura, player);
+                return true;
+            }
+            return false;
+        }
+
+        bool OnExit(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive())
+            {
+                player->RemoveAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
+                return true;
+            }
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
@@ -126,4 +153,5 @@ void AddSC_custom_the_wandering_isle_at()
     new at_talk_on_huo_follow_quest_29423();
     new at_enter_temple_quest_29423();
     new at_the_singing_pools_children_summon();
+    new at_singing_pools_training_bell();
 }

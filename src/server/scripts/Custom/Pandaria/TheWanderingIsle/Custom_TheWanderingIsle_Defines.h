@@ -59,6 +59,18 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 SummonChild2 = 116191;
     }
 
+    namespace SpellsQ29661Q29663
+    {
+        static constexpr uint32 spell_force_cast_ride_pole = 103031;
+        static constexpr uint32 spell_throw_rock = 109308;
+        static constexpr uint32 spell_monk_ride_pole = 103030;
+        static constexpr uint32 spell_ride_vehicle_pole = 102717;
+        static constexpr uint32 spell_training_bell_force_cast_ride_vehicle = 107050;
+        static constexpr uint32 spell_curse_of_the_frog = 102938;
+        static constexpr uint32 spell_training_bell_ride_vehicle = 107049;
+        static constexpr uint32 spell_training_bell_exclusion_aura = 133381;
+    }
+
     namespace TalksQ29423
     {
         static constexpr uint32 chia_hui_autumnleaf_talk = 0;
@@ -139,6 +151,14 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 event_cast_razor_beak = 2;
     }
 
+    namespace EventsQ29661Q29663
+    {
+        static constexpr uint32 event_cast_throw_rock = 1;
+        static constexpr uint32 event_monk_switch_pole = 2;
+        static constexpr uint32 event_monk_despawn = 3;
+        static constexpr uint32 event_cast_transform = 4;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -150,6 +170,11 @@ namespace Scripts::TheWanderingIsle::Defines
         // Singing Pools
         static constexpr uint32 Cai = 60250;
         static constexpr uint32 Deng = 60249;
+        static constexpr uint32 npc_monk_on_pole_1 = 55019;
+        static constexpr uint32 npc_monk_on_pole_2 = 65468; 
+        static constexpr uint32 npc_training_bell_pole = 55083;
+        static constexpr uint32 npc_training_pole_1 = 54993;
+        static constexpr uint32 npc_training_pole_2 = 57431;
     }
 
     namespace Quests
@@ -158,6 +183,8 @@ namespace Scripts::TheWanderingIsle::Defines
         static constexpr uint32 quest_the_passion_of_shen_zin_su = 29423;
         static constexpr uint32 quest_the_singing_pools = 29521;
         static constexpr uint32 quest_stronger_than_reeds = 29662;
+        static constexpr uint32 quest_the_lesson_of_the_balanced_rock = 29663;
+        static constexpr uint32 quest_the_lesson_of_the_dry_fur = 29661;
     }
 
     namespace Misc

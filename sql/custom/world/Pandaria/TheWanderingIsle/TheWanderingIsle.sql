@@ -22,6 +22,12 @@
 -- NPC: 57721 Aysa Cloudsinger
 -- NPC: 54786 Master Shang Xi
 -- NPC: 57132 Wu-song Villager
+-- NPC: 55019 Tushui Monk
+-- NPC: 65468 Tushui Monk
+-- NPC: 54993 Balance Pole
+-- NPC: 57431 Balance Pole
+-- NPC: 55083 Balance Pole
+-- NPC: 56869 Bunny landing impact
 
 -- Spell: 108786 Summon Stack of Reeds
 -- Spell: 108798 Jojo Headbash Stack of reeds impact
@@ -35,6 +41,9 @@
 -- Quest: 29422 Huo, the Spirit of Fire
 -- Quest: 29423 The Passion of Shen-zin Su
 -- Quest: 29521 The Singing Pools
+-- Quest: 29661 The Lesson of the Dry Fur
+-- Quest: 29663 The Lesson of the Balanced Rock
+-- Quest: 29676 Finding an Old Friend
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29768,29771);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0');
@@ -433,6 +442,57 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 (29661, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (29663, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (29662, 0, 0, 0, 0, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
+
+-- Quest: 29663 The Lesson of the Balanced Rock
+-- Quest: 29661 The Lesson of the Dry Fur
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29521, 29661, 29663, 29676);
+INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`) 
+VALUES 
+('29521', '0', '0', '0', '0', '29661', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
+('29661', '0', '0', '0', '29521', '29676', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
+('29663', '0', '0', '0', '29521', '29676', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
+('29676', '0', '0', '0', '29663', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_tushui_monk_on_pole' WHERE (`entry` = '55019');
+UPDATE `creature_template` SET `ScriptName` = 'npc_tushui_monk_on_pole', `KillCredit1` = '55019' WHERE (`entry` = '65468');
+UPDATE `creature_template` SET `ScriptName` = 'npc_balance_pole' WHERE `Entry` IN (54993, 57431, 55083);
+
+DELETE FROM `vehicle_template` WHERE `creatureId` IN (54993, 57431, 55083, 56869);
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `CustomFlags`) VALUES ('54993', '0', '0');
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `CustomFlags`) VALUES ('57431', '0', '0');
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `CustomFlags`) VALUES ('55083', '0', '0');
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `CustomFlags`) VALUES ('56869', '0', '0');
+
+UPDATE `creature_template` SET `unit_flags3` = '524288' WHERE (`entry` = '54993');
+UPDATE `creature_template` SET `unit_flags3` = '524288' WHERE (`entry` = '55083');
+UPDATE `creature_template` SET `unit_flags3` = '524288' WHERE (`entry` = '57431');
+
+UPDATE `creature_template` SET `npcflag` = '50331648' WHERE (`entry` = '54993');
+UPDATE `creature_template` SET `npcflag` = '50331648' WHERE (`entry` = '55083');
+UPDATE `creature_template` SET `npcflag` = '50331648' WHERE (`entry` = '57431');
+
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (55083, 57431,54993);
+INSERT INTO `npc_spellclick_spells` VALUES
+(54993, 102717, 1, 0),
+(55083, 102717, 1, 0),
+(57431, 102717, 1, 0);
+
+DELETE FROM `conditions` WHERE `SourceEntry` = 107049;
+insert  into `conditions`(`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) values 
+(13,1,107049,0,0,51,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny'),
+(17,0,107049,0,0,1,0,133381,0,0,1,30,0,'','Ride Vehicle when player has not aura'),
+(17,0,107049,0,0,29,0,56869,8,0,0,30,0,'','Ride Vehicle when bunny within 8y'),
+(13,1,107049,0,0,31,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny');
+
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (8628); -- training bell trigger
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES ('8628', 'at_singing_pools_training_bell');
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+743, @CGUID+744, @CGUID+745, @CGUID+746);
+INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseUseFlags, PhaseId, PhaseGroup, terrainSwapMap, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, wander_distance, currentwaypoint, curHealthPct, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, ScriptName, StringId, VerifiedBuild) VALUES
+(@CGUID+743, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '968.982', '3293.41', '117.685', '-0.50883', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0'),
+(@CGUID+744, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '941.046', '3299.72', '117.024', '-0.24147', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0'),
+(@CGUID+745, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '929.348', '3299.2', '117.429', '0.55515', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0'),
+(@CGUID+746, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '1011.65', '3299.14', '116.784', '3.13979', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0');
+
 
 -- Adding some creature text for Wo-son Villager
 DELETE FROM `creature_text` WHERE `creatureID` IN (57132);

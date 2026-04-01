@@ -27,6 +27,7 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
+#include "SpellInfo.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
 
@@ -448,6 +449,195 @@ namespace Scripts::TheWanderingIsle::Npcs
     private:
         EventMap _events;
     };
+
+    // 55019 & 65468
+    struct npc_tushui_monk_on_pole : ScriptedAI
+    {
+        npc_tushui_monk_on_pole(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_monk_switch_pole, 1s);
+            me->RestoreFaction();
+            me->SetReactState(REACT_DEFENSIVE);
+        }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Defines::SpellsQ29661Q29663::spell_force_cast_ride_pole)
+            {
+                if (Unit* unitCaster = caster->ToUnit())
+                    DoCast(unitCaster, Defines::SpellsQ29661Q29663::spell_monk_ride_pole, true);
+            }
+        }
+
+        void JustEnteredCombat(Unit* who) override
+        {
+            me->SetReactState(REACT_AGGRESSIVE);
+            //me->Attack(who, true);           // Actively set who to attack
+            AttackStart(who);
+
+            _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_throw_rock, 0s);
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (damage >= me->GetHealth())
+            {
+                damage = 0; // Prevent lethal damage
+                me->SetHealth(10);
+                _events.Reset();
+                me->RemoveAllAuras();
+                me->SetFaction(35);
+                me->SetUnitFlag(UnitFlags(UNIT_FLAG_CAN_SWIM | UNIT_FLAG_IMMUNE_TO_PC));
+                me->AttackStop();
+                attacker->AttackStop();
+                me->ExitVehicle();
+                attacker->ToPlayer()->KilledMonsterCredit(Defines::Npcs::npc_monk_on_pole_1);
+                me->DespawnOrUnsummon(1s); // tempfix.
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            Unit* victim = nullptr;
+            if (Unit* rawVictim = me->GetVictim())
+            {
+                if (rawVictim->IsVehicle() && rawVictim->GetVehicleKit()->GetPassenger(0))
+                    victim = rawVictim->GetVehicleKit()->GetPassenger(0);
+                else
+                    victim = rawVictim;
+            }
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Defines::EventsQ29661Q29663::event_cast_throw_rock:
+                {
+                    if (victim && !me->IsWithinMeleeRange(victim))
+                        DoCast(victim, Defines::SpellsQ29661Q29663::spell_throw_rock);
+                }
+                _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_throw_rock, 2500ms);
+                break;
+                case Defines::EventsQ29661Q29663::event_monk_switch_pole:
+                    if (!me->IsInCombat())
+                    {
+                        SwitchPole();
+                        _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_monk_switch_pole, 15s, 30s);
+                    }
+                    break;
+                }
+            }
+            AttackStart(victim);
+        }
+
+    private:
+        EventMap _events;
+
+        void SwitchPole()
+        {
+            std::vector<Creature*> poles;
+            me->GetCreatureListWithEntryInGrid(poles, Defines::Npcs::npc_training_pole_1, 5.0f);
+            me->GetCreatureListWithEntryInGrid(poles, Defines::Npcs::npc_training_pole_1, 5.0f);
+
+            if (poles.empty())
+                return;
+
+            Trinity::Containers::RandomShuffle(poles);
+
+            for (Creature* pole : poles)
+            {
+                if (!me->IsWithinDist2d(pole, 5.0f))
+                    continue;
+
+                if (!pole->HasAura(Defines::SpellsQ29661Q29663::spell_monk_ride_pole) && !pole->HasAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole))
+                {
+                    pole->CastSpell(me, Defines::SpellsQ29661Q29663::spell_force_cast_ride_pole, true);
+                    break;
+                }
+            }
+        }
+
+        void AttackStart(Unit* who) override
+        {
+            if (!who)
+                return;
+
+            // If the attacker is riding a pole, target the rider
+            if (who->IsVehicle() && who->GetVehicleKit())
+            {
+                if (Unit* rider = who->GetVehicleKit()->GetPassenger(0))
+                {
+                    me->Attack(rider, true);
+                    return;
+                }
+            }
+
+            me->Attack(who, true);
+        }
+    };
+
+    // 54993, 57431, 55083
+    struct npc_balance_pole : ScriptedAI
+    {
+        npc_balance_pole(Creature* creature) : ScriptedAI(creature)
+        {
+            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NON_ATTACKABLE_2);
+            me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK | UNIT_NPC_FLAG_PLAYER_VEHICLE);
+        }
+
+        void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+        {
+            if (passenger->GetTypeId() == TYPEID_PLAYER)
+            {
+                _passengerGuid = passenger->GetGUID();
+                if (!apply)
+                    _events.ScheduleEvent(Defines::EventsQ29661Q29663::event_cast_transform, 1s);
+                else
+                {
+                    if (me->GetEntry() == Defines::Npcs::npc_training_bell_pole)
+                        DoCast(passenger, Defines::SpellsQ29661Q29663::spell_training_bell_force_cast_ride_vehicle, true);
+
+                    passenger->AddAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole, passenger);
+                    passenger->RemoveAurasDueToSpell(Defines::SpellsQ29661Q29663::spell_curse_of_the_frog);
+                }
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Defines::EventsQ29661Q29663::event_cast_transform:
+                    // Transform is casted only when in frog pool
+                    Unit* passenger = ObjectAccessor::GetUnit(*me, _passengerGuid);
+
+                    if (passenger->HasAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura))
+                        passenger->RemoveAura(Defines::SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
+
+                    if(passenger->HasAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole))
+                        passenger->RemoveAura(Defines::SpellsQ29661Q29663::spell_ride_vehicle_pole);
+
+                    if (passenger->HasAura(Defines::SpellsQ29661Q29663::spell_curse_of_the_frog))
+                        passenger->RemoveAura(Defines::SpellsQ29661Q29663::spell_curse_of_the_frog);
+                    _passengerGuid.Clear(); // ? Clear after you've finished handling the passenger
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _passengerGuid;
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -460,4 +650,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     RegisterCreatureAI(npc_cai);
     RegisterCreatureAI(npc_whitefeather_crane);
     RegisterCreatureAI(npc_jojo_ironbrow_summon);
+    RegisterCreatureAI(npc_tushui_monk_on_pole);
+    RegisterCreatureAI(npc_balance_pole);
 }
