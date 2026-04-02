@@ -626,12 +626,13 @@ struct npc_scarlet_corpse : public ScriptedAI
 
         if (Creature* scarletCorpse = me->SummonCreature(49340, darnell->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN))
         {
-            player->KilledMonsterCredit(49340);
-            scarletCorpse->SetOwnerGUID(player->GetGUID());
-            // ????????????? ?????? ?? ?????? ???? (seat 0)
-            scarletCorpse->EnterVehicle(darnell, 0);
-            // ????????? ????, ???? ?? ????? ??? ????????/???????? 91935
-            scarletCorpse->CastSpell(darnell, 46598, true);
+            darnell->CastSpell(me, 91945, true); // kicking up
+            darnell->CastSpell(darnell, 91935, true); // bend over            
+
+            scarletCorpse->AddDelayedEvent(500, [scarletCorpse, darnell]() -> void
+            {
+                scarletCorpse->CastSpell(darnell, 60683, true);
+            });
         }
 
         me->DespawnOrUnsummon(100ms);
