@@ -25,6 +25,7 @@
 #include "DB2Stores.h"
 #include "MotionMaster.h"
 #include "Player.h"
+#include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
 
@@ -176,17 +177,19 @@ namespace Scripts::Custom::TheWanderingIsle
             if (!g_singingPoolsMemory.CanTrigger(player))
                 return false;
 
-            if (player->IsAlive() && areaTrigger->ID == AreaTriggers::areaTrigger_singing_pools_cart)
+            Creature* cartTender = player->FindNearestCreature(Npcs::npc_cart_tender, 30.0f);
+            if (!cartTender || !player->IsAlive())
+                return false;
+
+            switch (areaTrigger->ID)
             {
-                if (Creature* cartTender = GetClosestCreatureWithEntry(player, Npcs::npc_cart_tender, 30.0f))
-                    cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_0);
+            case AreaTriggers::areaTrigger_singing_pools_cart:
+                cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_0);
                 return true;
-            }
-            else if (player->IsAlive() && areaTrigger->ID == AreaTriggers::areaTrigger_farmstead_cart)
-            {
-                if (Creature* cartTender = GetClosestCreatureWithEntry(player, Npcs::npc_cart_tender, 30.0f))
-                    cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_1);
+            case AreaTriggers::areaTrigger_farmstead_cart:
+                cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_1);
                 return true;
+            default: return false;
             }
             return false;
         }
