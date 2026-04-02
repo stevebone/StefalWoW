@@ -998,7 +998,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         me->CastSpell(me, SpellsCartOx::spell_eject_passengers);
             }
 
-            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/)
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
             {
                 me->DespawnOrUnsummon(1s);
             }
@@ -1128,7 +1128,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 }
             }
 
-            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/)
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
             {
                 me->DespawnOrUnsummon(30s);
             }
