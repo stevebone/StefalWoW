@@ -20,14 +20,17 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ScriptMgr.h"
-#include "SpellInfo.h"
-#include "SpellScript.h"
-#include "Player.h"
 #include "Creature.h"
+#include "EventProcessor.h"
+#include "GameObject.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
-#include "EventProcessor.h"
+#include "Player.h"
+#include "SpellInfo.h"
+#include "ScriptMgr.h"
+#include "SpellAuraEffects.h"
+#include "SpellScript.h"
+#include "Unit.h"
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
