@@ -42,6 +42,19 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    // 103538 PlayerScript On Relog
+    class player_quest_29680_summon_on_relog : public PlayerScript
+    {
+    public:
+        player_quest_29680_summon_on_relog() : PlayerScript("player_quest_29680_summon_on_relog") {}
+
+        void OnLogin(Player* player, bool /*loginFirst*/)
+        {
+            if (player->IsInWorld() && player->IsActiveQuest(Quests::quest_the_source_of_livelihood))
+                player->CastSpell(player, SpellsQ29678Q29679::spell_summon_spirit_of_water, true);
+        }
+    };
+
     // adds a cooldown per player to the area trigger
     player_singing_pools_memory::player_singing_pools_memory() = default;
 
@@ -64,4 +77,5 @@ void AddSC_custom_the_wandering_isle_player()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
     new player_quest_29423_summon_on_relog();
+    new player_quest_29680_summon_on_relog();
 }

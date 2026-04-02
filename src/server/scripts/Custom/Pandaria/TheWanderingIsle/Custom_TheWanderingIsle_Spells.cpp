@@ -344,6 +344,36 @@ namespace Scripts::Custom::TheWanderingIsle
             OnEffectHit += SpellEffectFn(spell_jump_to_back_left::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
         }
     };
+
+    class spell_aysa_congrats_timer : public AuraScript
+    {
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (Creature* creature = target->FindNearestCreature(Npcs::npc_aysa_q29679, 70.0f, true))
+                    creature->AI()->Talk(0, target);
+        }
+
+        void Register() override
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_timer::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    class spell_aysa_congrats_trigger_aura : public AuraScript
+    {
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (Creature* creature = target->FindNearestCreature(Npcs::npc_aysa_q29679, 70.0f, true))
+                    creature->AI()->Talk(1, target);
+        }
+
+        void Register() override
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_trigger_aura::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -365,4 +395,6 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_jump_to_front_left);
     RegisterSpellScript(spell_jump_to_back_right);
     RegisterSpellScript(spell_jump_to_front_right);
+    RegisterSpellScript(spell_aysa_congrats_timer);
+    RegisterSpellScript(spell_aysa_congrats_trigger_aura);
 }

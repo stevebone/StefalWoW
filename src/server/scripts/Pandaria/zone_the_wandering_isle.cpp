@@ -1659,31 +1659,6 @@ struct npc_master_shang : public ScriptedAI
 // Spell: 103077 Rock Jump C -- this gets the scriptname
 // Spell: 103078 Forcecast Rock Jump C
 
-enum ShuJumpPositions
-{
-    JUMP_POSITION_1 = 0,
-    JUMP_POSITION_2 = 1,
-    JUMP_POSITION_3 = 2,
-    JUMP_POSITION_4 = 3
-};
-
-enum ShuData
-{
-    DATA_JUMP_POSITION = 1
-};
-
-enum BunnySpawnSlot : uint8
-{
-    BUNNY_SPAWN_SLOT_1 = 0,
-    BUNNY_SPAWN_SLOT_2 = 1,
-    BUNNY_SPAWN_SLOT_3 = 2,
-    BUNNY_SPAWN_SLOT_4 = 3,
-    BUNNY_SPAWN_SLOT_5 = 4,
-    BUNNY_SPAWN_SLOT_6 = 5,
-    BUNNY_SPAWN_SLOT_7 = 6,
-    MAX_SPAWN_SLOTS
-};
-
 
 
 
@@ -1700,51 +1675,8 @@ enum ANEWFRIEND
 
 };
 
-class spell_aysa_congrats_trigger_aura : public AuraScript
-{
-        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if (Unit* target = GetTarget())
-                if (Creature* creature = target->FindNearestCreature(NPC_AYSA_CLOUDSINGER_SHU, 70.0f, true))
-                    creature->AI()->Talk(1, target);
-        }
 
-        void Register() override
-        {
-            OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_trigger_aura::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-        }
-};
 
-class spell_aysa_congrats_timer : public AuraScript
-{
-        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if (Unit* target = GetTarget())
-                if (Creature* creature = target->FindNearestCreature(NPC_AYSA_CLOUDSINGER_SHU, 70.0f, true))
-                    creature->AI()->Talk(0, target);
-        }
-
-        void Register() override
-        {
-            OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_timer::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-        }
-};
-
-class quest_a_new_friend : public QuestScript
-{
-public:
-    quest_a_new_friend() : QuestScript("quest_a_new_friend") { }
-
-    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
-    {
-        if (newStatus == QUEST_STATUS_COMPLETE)
-        {
-            player->CastSpell(player, SPELL_AYSA_CONGRATS_TIMER);
-            player->CastSpell(player, SPELL_AYSA_CONGRATS_TRIGGER_AURA);
-            player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER);
-        }
-    }
-};
 
 //STEFAL TODO: add correct usage of the ropes spells
 enum TheSourceofOurLivelihood
@@ -3513,11 +3445,7 @@ public:
 
     void OnLogin(Player* player, bool /*firstLogin*/) override
     {
-        if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SOURCE_OF_LIVELIHOOD))
-        {
-            player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER);
-        }
-        else if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU))
+        if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU))
         {
             player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER_EARTH);
         }
@@ -3557,8 +3485,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_meditation_timer_bar);
     RegisterSpellScript(spell_flame_spout);
     
-    RegisterSpellScript(spell_aysa_congrats_trigger_aura);
-    RegisterSpellScript(spell_aysa_congrats_timer);
     RegisterSpellScript(spell_summon_ji_firepaw_temple);
     RegisterSpellScript(spell_monkey_wisdom_text);
     RegisterSpellScript(spell_ruk_ruk_ooksplosions);
@@ -3577,9 +3503,6 @@ void AddSC_zone_the_wandering_isle()
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_lorewalker_zan();
     new at_chamber_of_whispers();
-
-    // Quest Scripts
-    new quest_a_new_friend();
 
     // Player Scripts
     new OnLoginSpawnFollowers();

@@ -71,6 +71,23 @@ namespace Scripts::Custom::TheWanderingIsle
             }
         }
     };
+
+    // 29679
+    class quest_29679_a_new_friend : public QuestScript
+    {
+    public:
+        quest_29679_a_new_friend() : QuestScript("quest_29679_a_new_friend") { }
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus == QUEST_STATUS_COMPLETE)
+            {
+                player->CastSpell(player, SpellsQ29678Q29679::spell_aysa_congrats_timer);
+                player->CastSpell(player, SpellsQ29678Q29679::spell_aysa_congrats_trigger_aura);
+                player->CastSpell(player, SpellsQ29678Q29679::spell_summon_spirit_of_water);
+            }
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_quests()
@@ -78,4 +95,5 @@ void AddSC_custom_the_wandering_isle_quests()
     using namespace Scripts::Custom::TheWanderingIsle;
     new quest_29422_huo_the_spirit_of_fire();
     new quest_29423_the_passion_of_shen_zin_su();
+    new quest_29679_a_new_friend();
 }

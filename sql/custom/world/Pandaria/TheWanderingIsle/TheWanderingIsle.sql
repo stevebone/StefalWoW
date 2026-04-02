@@ -66,6 +66,7 @@
 -- Quest: 29677 The Sun Pearl 
 -- Quest: 29678 Shu, the Spirit of Water
 -- Quest: 29679 A new friend
+-- Quest: 29680 The Source of Our Livelihood
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29768,29771);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0');
@@ -553,14 +554,16 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_shu_playing' WHERE (`entry` =
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (60488);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('60488', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096 116695'); -- Water Spout Bunny at pool2 -- 80797 ????? 
+('60488', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '89304 116695'); -- Water Spout Bunny at pool2 -- 85096 or 80797 ????? 
+-- UPDATE `creature_template_addon` SET `auras` = '89304 116695' WHERE (`entry` = '60488');
 
 -- these flags disable gravity for the bunny so it can stay above water
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '60488') and (`DifficultyID` = '0');
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451090);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('451090', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'); -- Shu at pool2 -- 80797 ????? 
+('451090', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '89304'); -- Shu at pool2 -- 85096 or 80797 ????? 
+-- UPDATE `creature_addon` SET `auras` = '89304' WHERE (`guid` = '451090'); -- not sure if this is correct or one of the above
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (117033,117034,117035,117036);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117033', 'spell_jump_to_front_right');
@@ -576,6 +579,25 @@ INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
 ('6048800', '9', '1', '0', '', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '116696', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Burst'),
 ('6048800', '9', '2', '0', '', '0', '0', '100', '0', '0', '0', '3000', '3000', '0', '', '28', '116695', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Remove Aura'),
 ('6048800', '9', '3', '0', '', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Despawn');
+
+-- temp fix until quest accept works from auto completed quests and new offered quests
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29679, 29680;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29679', '0');
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29680', '0');
+
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29679,29680);
+INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
+('29679', '0', '0', '0', '29678', '29680', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29679_a_new_friend'),
+('29680', '0', '0', '0', '29679', '29769', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
+
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('128588', 'spell_aysa_congrats_trigger_aura');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('128589', 'spell_aysa_congrats_timer');
+
+DELETE FROM `creature_text` WHERE `CreatureID` = 54975;
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+('54975', '0', '0', 'I have to admit, that looked pretty fun!', '12', '0', '100', '0', '0', '27394', '0', '66056', '1', 'Aysa Cloudsinger - quest A new friend'),
+('54975', '1', '1', 'And it looks to me like you made a new friend.', '12', '0', '100', '0', '0', '27395', '0', '66057', '1', 'Aysa Cloudsinger - quest A new friend');
 
 -- Adding some creature text for Wo-son Villager
 DELETE FROM `creature_text` WHERE `creatureID` IN (57132);

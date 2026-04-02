@@ -104,6 +104,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_summon_water_spout = 116810;
         static constexpr uint32 spell_water_spout = 117063;
         static constexpr uint32 spell_forcecast_rock_jump_a = 103071;
+        static constexpr uint32 spell_aysa_congrats_timer = 128589;
+        static constexpr uint32 spell_aysa_congrats_trigger_aura = 128588;
+        static constexpr uint32 spell_summon_spirit_of_water = 103538;
+        static constexpr uint32 spell_water_spout_credit = 117054;
     }
 
     namespace TalksQ29423
@@ -279,6 +283,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_fang_she = 55292;
         static constexpr uint32 credit_shu_the_spirit_of_water = 57476;
         static constexpr uint32 npc_bunny_water_spout = 60488;
+        static constexpr uint32 npc_aysa_q29679 = 54975;
     }
 
     namespace Objects
@@ -300,6 +305,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_the_sun_pearl = 29677;
         static constexpr uint32 quest_shu_the_spirit_of_water = 29678;
         static constexpr uint32 quest_a_new_friend = 29679;
+        static constexpr uint32 quest_the_source_of_livelihood = 29680;
     }
 
     class player_singing_pools_memory
