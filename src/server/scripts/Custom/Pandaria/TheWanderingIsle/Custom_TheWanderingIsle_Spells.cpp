@@ -225,6 +225,125 @@ namespace Scripts::Custom::TheWanderingIsle
             OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_jojo_ironbrow::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
         }
     };
+
+    // 103069
+    class spell_rock_jump_a : public SpellScript
+    {
+        void HandleJumpDest(SpellEffIndex effIndex)
+        {
+            PreventHitDefaultEffect(effIndex);
+
+            if (Unit* caster = GetCaster())
+            {
+                if (caster->GetPositionZ() > 92.0f)
+                {
+                    caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29678::RockJumpFinal, 5.f, 5.f);
+                }
+                else
+                {
+                    if (GameObject* go = caster->FindNearestGameObject(Objects::go_rock_jump_b, 8.0f))
+                        caster->GetMotionMaster()->MoveJump(EVENT_JUMP, go->GetPosition(), 5.f, 5.f);
+                }
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_rock_jump_a::HandleJumpDest, EFFECT_0, SPELL_EFFECT_JUMP_DEST);
+        }
+    };
+
+    // 103070
+    class spell_rock_jump_b : public SpellScript
+    {
+        void HandleJumpDest(SpellEffIndex effIndex)
+        {
+            PreventHitDefaultEffect(effIndex);
+
+            if (Unit* caster = GetCaster())
+                if (GameObject* go = caster->FindNearestGameObject(Objects::go_rock_jump_c, 10.0f))
+                    caster->GetMotionMaster()->MoveJump(EVENT_JUMP, go->GetPosition(), 5.f, 5.f);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_rock_jump_b::HandleJumpDest, EFFECT_0, SPELL_EFFECT_JUMP_DEST);
+        }
+    };
+
+    // 103077
+    class spell_rock_jump_c : public SpellScript
+    {
+        void HandleJumpDest(SpellEffIndex effIndex)
+        {
+            PreventHitDefaultEffect(effIndex);
+
+            if (Unit* caster = GetCaster())
+                if (GameObject* go = caster->FindNearestGameObject(Objects::go_rock_jump_a, 10.0f))
+                    caster->GetMotionMaster()->MoveJump(EVENT_JUMP, go->GetPosition(), 5.f, 5.f);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_rock_jump_c::HandleJumpDest, EFFECT_0, SPELL_EFFECT_JUMP_DEST);
+        }
+    };
+
+    class spell_jump_to_front_right : public SpellScript
+    {
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToFrontRight, 12.f, 15.f);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_front_right::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    class spell_jump_to_front_left : public SpellScript
+    {
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToFrontLeft, 12.f, 15.f);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_front_left::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    class spell_jump_to_back_right : public SpellScript
+    {
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToBackRight, 12.f, 15.f);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_back_right::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    class spell_jump_to_back_left : public SpellScript
+    {
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToBackLeft, 12.f, 15.f);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_jump_to_back_left::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -239,4 +358,11 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_jojo_headbash_filter);
     RegisterSpellScript(spell_summon_stack_of_reeds);
     RegisterSpellScript(spell_summon_jojo_ironbrow);
+    RegisterSpellScript(spell_rock_jump_a);
+    RegisterSpellScript(spell_rock_jump_b);
+    RegisterSpellScript(spell_rock_jump_c);
+    RegisterSpellScript(spell_jump_to_back_left);
+    RegisterSpellScript(spell_jump_to_front_left);
+    RegisterSpellScript(spell_jump_to_back_right);
+    RegisterSpellScript(spell_jump_to_front_right);
 }

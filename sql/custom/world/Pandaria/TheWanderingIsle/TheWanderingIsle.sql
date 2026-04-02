@@ -32,6 +32,8 @@
 -- NPC: 54976 Barbed Ray
 -- NPC: 55020 Old Man Liang
 -- NPC: 54975 Aysa Cloudsinger
+-- NPC: 65493 Shu
+-- NPC: 60488 Bunny water spout summon
 
 -- GO: 209584 Ancient Clam
 
@@ -39,6 +41,17 @@
 -- Spell: 108798 Jojo Headbash Stack of reeds impact
 -- Spell: 108808 Summon Jojo Ironbrow
 -- Spell: 102522 Fan The Flames
+-- Spell: 103071 Forcecast Rock Jump A
+-- Spell: 103069 Rock Jump A -- this gets the scriptname
+-- Spell: 103070 Rock Jump B -- this gets the scriptname
+-- Spell: 103072 Forcecast Rock Jump B
+-- Spell: 103077 Rock Jump C -- this gets the scriptname
+-- Spell: 103078 Forcecast Rock Jump C
+-- Spell: 116810 Summon Bunny Water Spout -- I can't get this one to work so it is not used for now
+-- Spell: 117033 Shu Jump to front right
+-- Spell: 117034 Shu Jump to front left
+-- Spell: 117035 Shu Jump to back right
+-- Spell: 117036 Shu Jump to back left
 
 -- Quest: 29662 Stronger Than Reeds
 -- Quest: 29768 Missing Mallet
@@ -51,6 +64,8 @@
 -- Quest: 29663 The Lesson of the Balanced Rock
 -- Quest: 29676 Finding an Old Friend
 -- Quest: 29677 The Sun Pearl 
+-- Quest: 29678 Shu, the Spirit of Water
+-- Quest: 29679 A new friend
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29768,29771);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0');
@@ -418,7 +433,6 @@ DELETE FROM `creature_addon` WHERE `guid`=450772;
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 (450772, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49414'); -- Aysa Cloudsinger - 49414 - Generic Quest Invisibility 1 - !!! already present in database !!!
 
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x30000100, `VerifiedBuild`=64978 WHERE (`Entry`=54975 AND `DifficultyID`=0); -- 54975 (Aysa Cloudsinger) - Sessile, CanSwim, Floating
 UPDATE `creature_template_difficulty` SET `LevelScalingDeltaMin`=-3, `LevelScalingDeltaMax`=-3, `ContentTuningID`=1723, `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry` IN (60250, 60249) AND `DifficultyID`=0); -- 60250 (Cai) - CanSwim
 
 UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=54975; -- Aysa Cloudsinger
@@ -518,6 +532,51 @@ INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties,
     comment) VALUES 
 ('54976', '0', '0', '0', '', '0', '0', '100', '0', '3000', '5000', '6000', '8000', '0', '', '11', '128407', '0', '0', '0', '0', '0', '0', NULL, '2', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Every 6 - 8 seconds (3 - 5s initially) (IC) - Self: Cast spell  128407 on Victim');
 
+-- Quest: 29678 Shu The Spirit of Water
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (103069,103077,103070);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103069', 'spell_rock_jump_a');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103070', 'spell_rock_jump_b');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103077', 'spell_rock_jump_c');
+
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7783);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES ('7783', 'at_pools_of_reflection');
+
+-- Quest: 29679 A new Friend
+-- Object required for the pool of reflection
+SET @OGUID := 900000;
+DELETE FROM `gameobject` WHERE `guid` = @OGUID+69;
+INSERT INTO `gameobject` VALUES
+(@OGUID+69, '209585', '860', '5736', '5862', '0', '0', '0', '0', '-1', '1106.2', '2860.34', '92.189', '0.918553', '-0', '-0', '-0.4433', '-0.896374', '300', '255', '1', '', NULL, '0');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `unit_flags` = '33554944', `unit_flags2` = '2048' WHERE (`entry` = '60488');
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_playing' WHERE (`entry` = '65493');
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (60488);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('60488', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096 116695'); -- Water Spout Bunny at pool2 -- 80797 ????? 
+
+-- these flags disable gravity for the bunny so it can stay above water
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '60488') and (`DifficultyID` = '0');
+
+DELETE FROM `creature_addon` WHERE `guid` IN (451090);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('451090', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'); -- Shu at pool2 -- 80797 ????? 
+
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (117033,117034,117035,117036);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117033', 'spell_jump_to_front_right');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117034', 'spell_jump_to_front_left');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117035', 'spell_jump_to_back_right');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117036', 'spell_jump_to_back_left');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60488,6048800); -- 15880 was the original model but not working
+INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
+('60488', '0', '0', '1', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '3', '0', '21072', '0', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '', '0', '0', '0', '0', 'Water Spout - Just Spawned - Morph'),
+('60488', '0', '1', '0', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6048800', '2', '0', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '', '0', '0', '0', '0', 'Water Spout - Just Spawned - Run Script'),
+('6048800', '9', '0', '0', '', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '11', '117057', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Geyser Aura'),
+('6048800', '9', '1', '0', '', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '116696', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Burst'),
+('6048800', '9', '2', '0', '', '0', '0', '100', '0', '0', '0', '3000', '3000', '0', '', '28', '116695', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Remove Aura'),
+('6048800', '9', '3', '0', '', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Despawn');
+
 -- Adding some creature text for Wo-son Villager
 DELETE FROM `creature_text` WHERE `creatureID` IN (57132);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
@@ -538,7 +597,7 @@ INSERT INTO `creature_template_addon`
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
 ('55021', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '82343');
 
--- Fix Visibility for Old Man Liang and Aysa
+-- Fix Visibility for Old Man Liang and Aysa during Singing Pools quests
 UPDATE `creature_template_addon` SET `auras` = '0' WHERE (`entry` = '55020'); 
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451049,451022,450772,451092,451042,451091);

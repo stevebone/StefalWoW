@@ -25,6 +25,25 @@
 
 namespace Scripts::Custom::TheWanderingIsle
 {
+    namespace Misc
+    {
+        static constexpr uint16 Jojo_AiAnimKitID = 2935;
+        // Shu spawn water spout bunnies
+        static constexpr uint8 BUNNY_SPAWN_SLOT_0 = 0;
+        static constexpr uint8 BUNNY_SPAWN_SLOT_1 = 1;
+        static constexpr uint8 BUNNY_SPAWN_SLOT_2 = 2;
+        static constexpr uint8 BUNNY_SPAWN_SLOT_3 = 3;
+        static constexpr uint8 BUNNY_SPAWN_SLOT_4 = 4;
+        static constexpr uint8 BUNNY_SPAWN_SLOT_5 = 5;
+        static constexpr uint8 BUNNY_SPAWN_SLOT_6 = 6;
+        static constexpr uint8 BUNNY_SPAWN_MAX_SLOTS = 7;
+        static constexpr uint8 SHU_JUMP_POSITION_0 = 0;
+        static constexpr uint8 SHU_JUMP_POSITION_1 = 1;
+        static constexpr uint8 SHU_JUMP_POSITION_2 = 2;
+        static constexpr uint8 SHU_JUMP_POSITION_3 = 3;
+        static constexpr uint8 SHU_DATA_JUMP_POSITION = 1;
+    }
+
     namespace SpellsQ29422
     {
         static constexpr uint32 spell_fan_the_flames_throw_wood = 109090;
@@ -74,6 +93,17 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace SpellsQ29677
     {
         static constexpr uint32 spell_serpent_strike = 128409;
+    }
+
+    namespace SpellsQ29678Q29679
+    {
+        static constexpr uint32 spell_jump_front_right = 117033;
+        static constexpr uint32 spell_jump_front_left = 117034;
+        static constexpr uint32 spell_jump_back_right = 117035;
+        static constexpr uint32 spell_jump_back_left = 117036;
+        static constexpr uint32 spell_summon_water_spout = 116810;
+        static constexpr uint32 spell_water_spout = 117063;
+        static constexpr uint32 spell_forcecast_rock_jump_a = 103071;
     }
 
     namespace TalksQ29423
@@ -131,6 +161,60 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position JojoMovePoint = { 1039.19f, 3284.26f, 129.3971f, 0.0f };
     }
 
+    namespace PositionsQ29678
+    {
+        // Rock Jumping Quest
+        static constexpr Position RockJumpFinal = { 1077.019f, 2844.103f, 95.27103f };
+    }
+
+    namespace PositionsQ29679
+    {
+        static constexpr Position JumpToBackRight = { 1127.26f, 2859.8f, 97.2817f };
+        static constexpr Position JumpToBackLeft = { 1120.16f, 2882.66f, 96.345f };
+        static constexpr Position JumpToFrontLeft = { 1100.83f, 2881.36f, 94.0386f };
+        static constexpr Position JumpToFrontRight = { 1111.13f, 2850.21f, 94.6873f };
+
+        static constexpr Position ShuSpawnPositions[4][Misc::BUNNY_SPAWN_MAX_SLOTS] =
+        {
+            {
+                { 1117.516f, 2848.437f, 92.14017f },
+                { 1105.92f, 2853.432f, 92.14017f },
+                { 1105.231f, 2847.766f, 92.14017f },
+                { 1114.819f, 2844.094f, 92.14017f },
+                { 1110.618f, 2856.7f, 92.14017f },
+                { 1109.559f, 2843.255f, 92.14017f },
+                { 1116.04f, 2854.104f, 92.14017f }
+            },
+            {
+                { 1106.743f, 2879.544f, 92.14017f },
+                { 1105.793f, 2885.37f, 92.14017f },
+                { 1098.16f, 2874.628f, 92.14017f },
+                { 1104.28f, 2875.759f, 92.14017f },
+                { 1095.38f, 2885.097f, 92.14017f },
+                { 1100.078f, 2888.365f, 92.14017f },
+                { 1094.693f, 2879.431f, 92.14017f }
+            },
+            {
+                { 1132.911f, 2864.381f, 92.14017f },
+                { 1125.672f, 2851.84f, 92.14017f },
+                { 1121.057f, 2856.08f, 92.14017f },
+                { 1134.373f, 2858.654f, 92.14017f },
+                { 1126.556f, 2867.097f, 92.14017f },
+                { 1120.064f, 2863.003f, 92.14017f },
+                { 1131.856f, 2852.781f, 92.14017f }
+            },
+            {
+                { 1118.22f, 2875.427f, 92.14017f },
+                { 1113.274f, 2879.232f, 92.14017f },
+                { 1125.439f, 2887.632f, 92.14017f },
+                { 1118.766f, 2890.419f, 92.14017f },
+                { 1113.783f, 2886.404f, 92.14017f },
+                { 1123.7f, 2876.575f, 92.14017f },
+                { 1126.358f, 2881.005f, 92.14017f }
+            }
+        };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;
@@ -169,6 +253,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_cast_serpent_strike = 1;
     }
 
+    namespace EventsQ29679
+    {
+        static constexpr int8 event_cast_jump_spell = 1;
+        static constexpr int8 event_shu_set_orientation = 2;
+        static constexpr int8 event_shu_summon_water_spout = 3;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -186,11 +277,16 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_training_pole_1 = 54993;
         static constexpr uint32 npc_training_pole_2 = 57431;
         static constexpr uint32 npc_fang_she = 55292;
+        static constexpr uint32 credit_shu_the_spirit_of_water = 57476;
+        static constexpr uint32 npc_bunny_water_spout = 60488;
     }
 
     namespace Objects
     {
         static constexpr uint32 go_ancient_clam = 209584;
+        static constexpr uint32 go_rock_jump_a = 209575;
+        static constexpr uint32 go_rock_jump_b = 209576;
+        static constexpr uint32 go_rock_jump_c = 209577;
     }
 
     namespace Quests
@@ -202,11 +298,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_the_lesson_of_the_balanced_rock = 29663;
         static constexpr uint32 quest_the_lesson_of_the_dry_fur = 29661;
         static constexpr uint32 quest_the_sun_pearl = 29677;
-    }
-
-    namespace Misc
-    {
-        static constexpr uint16 Jojo_AiAnimKitID = 2935;
+        static constexpr uint32 quest_shu_the_spirit_of_water = 29678;
+        static constexpr uint32 quest_a_new_friend = 29679;
     }
 
     class player_singing_pools_memory

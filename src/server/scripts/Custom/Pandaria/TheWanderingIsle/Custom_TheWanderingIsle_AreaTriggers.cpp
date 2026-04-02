@@ -145,6 +145,23 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    // 7783
+    class at_pools_of_reflection : public AreaTriggerScript
+    {
+    public:
+        at_pools_of_reflection() : AreaTriggerScript("at_pools_of_reflection") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsInWorld() && player->GetQuestStatus(Quests::quest_shu_the_spirit_of_water) == QUEST_STATUS_INCOMPLETE)
+            {
+                player->KilledMonsterCredit(Npcs::credit_shu_the_spirit_of_water);
+                return true;
+            }
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
@@ -154,4 +171,5 @@ void AddSC_custom_the_wandering_isle_at()
     new at_enter_temple_quest_29423();
     new at_the_singing_pools_children_summon();
     new at_singing_pools_training_bell();
+    new at_pools_of_reflection();
 }

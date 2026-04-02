@@ -826,6 +826,131 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_fang_sheAI(creature);
         }
     };
+
+    class npc_shu_playing : public CreatureScript
+    {
+    public:
+        npc_shu_playing() : CreatureScript("npc_shu_playing") { }
+
+        struct npc_shu_playingAI : public ScriptedAI
+        {
+            npc_shu_playingAI(Creature* creature) : ScriptedAI(creature),
+                jumpPosition(1),
+                //spawnPosition(0),
+                positionBefore(1),
+                startAI(false) { }
+
+            void Initialize()
+            {
+                jumpPosition = 1;
+                positionBefore = 1;
+                startAI = true;
+            }
+
+            void Reset() override
+            {
+                events.Reset();
+                Initialize();
+            }
+
+            void MovementInform(uint32 type, uint32 id) override
+            {
+                if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP)
+                    events.ScheduleEvent(EventsQ29679::event_shu_set_orientation, 500ms);
+            }
+
+            uint32 GetData(uint32 id) const override
+            {
+                if (id == Misc::SHU_DATA_JUMP_POSITION)
+                    return jumpPosition;
+
+                return false;
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                if (startAI)
+                {
+                    events.ScheduleEvent(EventsQ29679::event_cast_jump_spell, 1s);
+                    startAI = false;
+                }
+
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsQ29679::event_cast_jump_spell:
+                        if (urand(0, 2) != 0)
+                            jumpPosition = urand(Misc::SHU_JUMP_POSITION_0, Misc::SHU_JUMP_POSITION_3);
+                        else
+                            jumpPosition = positionBefore;
+
+                        if (jumpPosition == positionBefore)
+                        {
+                            events.CancelEvent(EventsQ29679::event_shu_set_orientation);
+                            events.ScheduleEvent(EventsQ29679::event_shu_summon_water_spout, 1500ms);
+                        }
+                        else
+                        {
+                            DoCast(jumpSpells[jumpPosition]);
+                            positionBefore = jumpPosition;
+                        }
+                        break;
+                    case EventsQ29679::event_shu_set_orientation:
+                        switch (jumpPosition)
+                        {
+                        case Misc::SHU_JUMP_POSITION_0:
+                            me->SetFacingTo(1.32645f);
+                            break;
+                        case Misc::SHU_JUMP_POSITION_1:
+                            me->SetFacingTo(5.654867f);
+                            break;
+                        case Misc::SHU_JUMP_POSITION_2:
+                            me->SetFacingTo(2.338741f);
+                            break;
+                        case Misc::SHU_JUMP_POSITION_3:
+                            me->SetFacingTo(4.34587f);
+                            break;
+                        }
+                        events.ScheduleEvent(EventsQ29679::event_shu_summon_water_spout, 1500ms);
+                        break;
+                    case EventsQ29679::event_shu_summon_water_spout:
+                    {
+                        // Pick a random spawn slot within the current zone
+                        uint8 randomSlot = urand(0, Misc::BUNNY_SPAWN_MAX_SLOTS - 1);
+
+                        // Access the spawn position using zone and slot
+                        Position targetPos = PositionsQ29679::ShuSpawnPositions[jumpPosition][randomSlot];
+
+                        // Cast the summoning spell at the chosen location
+                        //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
+                        // Dynamic position spell casting summon not supported. we summon creature directly instead
+
+                        if (Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout, targetPos, TEMPSUMMON_MANUAL_DESPAWN))
+                            DoCast(SpellsQ29678Q29679::spell_water_spout);
+                        events.ScheduleEvent(EventsQ29679::event_cast_jump_spell, 6s);
+                        break;
+                    }
+                    }
+                }
+            }
+
+        private:
+            EventMap events;
+            uint32 jumpSpells[4] = { SpellsQ29678Q29679::spell_jump_front_right, SpellsQ29678Q29679::spell_jump_front_left, SpellsQ29678Q29679::spell_jump_back_right, SpellsQ29678Q29679::spell_jump_back_left };
+            uint8 jumpPosition;
+            //uint8 spawnPosition;
+            uint8 positionBefore;
+            bool startAI;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shu_playingAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -842,4 +967,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_tushui_monk_on_pole();
     new npc_balance_pole();
     new npc_fang_she();
+    new npc_shu_playing();
 }
