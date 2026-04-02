@@ -717,7 +717,8 @@ namespace Scripts::Custom::TheWanderingIsle
 void AddSC_custom_the_wandering_isle_npcs()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
-    RegisterCreatureAI(struct npc_huo_follower);
+
+    RegisterCreatureAI(npc_huo_follower);
     RegisterCreatureAI(npc_chia_hui_autumnleaf);
     RegisterCreatureAI(npc_shanxi_quest);
     RegisterCreatureAI(npc_deng);

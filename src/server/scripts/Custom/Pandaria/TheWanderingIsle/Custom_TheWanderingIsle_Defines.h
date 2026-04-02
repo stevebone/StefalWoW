@@ -208,10 +208,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr uint16 Jojo_AiAnimKitID = 2935;
     }
-}
 
-namespace Scripts::Custom::TheWanderingIsle
-{
     class player_singing_pools_memory
     {
     public:
