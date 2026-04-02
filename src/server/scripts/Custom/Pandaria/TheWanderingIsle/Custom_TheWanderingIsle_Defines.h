@@ -42,6 +42,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 SHU_JUMP_POSITION_2 = 2;
         static constexpr uint8 SHU_JUMP_POSITION_3 = 3;
         static constexpr uint8 SHU_DATA_JUMP_POSITION = 1;
+
+        // Shu at farmstead
+        static constexpr uint32 shu_farmstead_gossip_menu = 13140;
     }
 
     namespace SpellsQ29422
@@ -113,6 +116,16 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace SpellsQ29680
     {
         static constexpr uint32 spell_shu_splash = 107030;
+    }
+
+    namespace SpellsQ29744
+    {
+        static constexpr uint32 spell_water_spirit_laugh = 118035;
+        static constexpr uint32 spell_shu_watersplash_credit = 104023;
+        static constexpr uint32 spell_shu_watersplash = 118027;
+        static constexpr uint32 spell_shu_watersplash_wugou = 118034;
+        static constexpr uint32 spell_aura_sleep = 42386;
+        static constexpr uint32 spell_aura_invisibility = 80797; // 105889 ??
     }
 
     namespace SpellsCartOx
@@ -236,6 +249,18 @@ namespace Scripts::Custom::TheWanderingIsle
         };
     }
 
+    namespace PositionsQ29774
+    {
+        static constexpr Position ShuFarmsteadPlayPosition[5] =
+        {
+                { 670.978882f, 3131.201904f, 88.328094f },
+                { 679.594482f, 3131.564697f, 88.328094f },
+                { 678.705139f, 3140.990234f, 88.328094f },
+                { 673.825623f, 3143.905273f, 88.327415f },
+                { 670.607544f, 3137.363525f, 88.327415f }
+        };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;
@@ -253,6 +278,13 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr uint32 path_shu_follower = 5521300;
         static constexpr uint8 path_node_shu_remove = 4;
+    }
+
+    namespace PathQ29774
+    {
+        static constexpr uint32 path_shu_farmstead_1 = 5555800;
+        static constexpr uint32 path_shu_farmstead_2 = 5555801;
+        static constexpr uint32 path_shu_farmstead_3 = 5555802;
     }
 
     namespace PathOxCart
@@ -302,6 +334,15 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_shu_follower_check_player_quest = 2;
     }
 
+    namespace EventsQ29774
+    {
+        static constexpr int8 event_shu_farmstead_play = 1;
+        static constexpr int8 event_shu_farmstead_path_start_1 = 2;
+        static constexpr int8 event_shu_farmstead_path_start_2 = 3;
+        static constexpr int8 event_shu_farmstead_path_start_3 = 4;
+        static constexpr int8 event_shu_wakes_wugou = 5;
+    }
+
     namespace EventsOxCart
     {
         static constexpr int8 event_ox_cart_path_start = 1;
@@ -337,6 +378,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_ox = 57709;
 
         static constexpr uint32 npc_shu_follower = 55213;
+        static constexpr uint32 npc_bunny_water_spout_farmstead = 66941;
+        static constexpr uint32 credit_not_in_the_face_1 = 55548;
+        static constexpr uint32 credit_not_in_the_face_2 = 55547;
+        static constexpr uint32 npc_wugou_q29774 = 55539;
     }
 
     namespace Objects
@@ -359,6 +404,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_shu_the_spirit_of_water = 29678;
         static constexpr uint32 quest_a_new_friend = 29679;
         static constexpr uint32 quest_the_source_of_livelihood = 29680;
+        static constexpr uint32 quest_not_in_the_face = 29774;
     }
 
     namespace AreaTriggers

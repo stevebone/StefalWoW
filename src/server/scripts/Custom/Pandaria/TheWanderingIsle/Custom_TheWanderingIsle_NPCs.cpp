@@ -1144,6 +1144,203 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_shu_followerAI(creature);
         }
     };
+
+    // 55556
+    class npc_shu_at_farmstead : public CreatureScript
+    {
+    public:
+        npc_shu_at_farmstead() : CreatureScript("npc_shu_at_farmstead") { }
+
+        struct npc_shu_at_farmsteadAI : public ScriptedAI
+        {
+            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _path3Started(false), _npcFlagSet(false) {}
+
+            void Reset() override
+            {
+                _events.Reset();
+                _npcFlagSet = false;
+
+                me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+
+                if (!_path1Started && !_path2Started && !_path3Started)
+                {
+                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 0s);
+                }
+            }
+
+            bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+            {
+                _playerGuid = player->GetGUID();
+
+                if (menuId == Misc::shu_farmstead_gossip_menu && gossipListId == 0)
+                {
+                    CloseGossipMenuFor(player);
+                    player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
+                    me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                    _events.Reset();
+                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_1, 2s);
+                    return true;
+                }
+                return false;
+            }
+
+            uint32 CheckQuestTimer = 1000; // 1 second
+
+            void UpdateAI(uint32 diff) override
+            {
+                if (CheckQuestTimer <= diff)
+                {
+                    if (Player* player = me->SelectNearestPlayer(50.0f))
+                    {
+                        if (!_npcFlagSet && player->GetQuestStatus(Quests::quest_not_in_the_face) == QUEST_STATUS_INCOMPLETE)
+                        {
+                            if (me->GetNpcFlags() == 0)
+                            {
+                                me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+                                _npcFlagSet = true;
+                            }
+                        }
+                    }
+
+                    CheckQuestTimer = 1000; // reset
+                }
+                else
+                    CheckQuestTimer -= diff;
+
+
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsQ29774::event_shu_farmstead_path_start_1:
+                    {
+                        if (!_path1Started)
+                        {
+                            me->GetMotionMaster()->Clear();
+                            me->StopMoving();
+                            me->LoadPath(PathQ29774::path_shu_farmstead_1);
+                            me->GetMotionMaster()->MovePath(PathQ29774::path_shu_farmstead_1, false);
+                            _path1Started = true;
+                        }
+                        break;
+                    }
+                    case EventsQ29774::event_shu_farmstead_path_start_2:
+                    {
+                        if (!_path2Started)
+                        {
+                            me->StopMoving();
+                            me->GetMotionMaster()->Clear();
+                            me->LoadPath(PathQ29774::path_shu_farmstead_2);
+                            me->GetMotionMaster()->MovePath(PathQ29774::path_shu_farmstead_2, false);
+                            _path2Started = true;
+                        }
+                        break;
+                    }
+                    case EventsQ29774::event_shu_farmstead_path_start_3:
+                    {
+                        if (!_path3Started)
+                        {
+                            me->StopMoving();
+                            me->GetMotionMaster()->Clear();
+                            me->LoadPath(PathQ29774::path_shu_farmstead_3);
+                            me->GetMotionMaster()->MovePath(PathQ29774::path_shu_farmstead_3, false);
+                            _path3Started = true;
+                        }
+                        break;
+                    }
+                    case EventsQ29774::event_shu_wakes_wugou:
+                    {
+                        if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
+                        {
+                            wugou->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash);
+                            wugou->RemoveAura(SpellsQ29744::spell_aura_invisibility);
+                            wugou->RemoveAura(SpellsQ29744::spell_aura_sleep);
+                            wugou->SetStandState(UNIT_STAND_STATE_STAND);
+                            me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
+
+                            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                            if (!player)
+                                return;
+
+                            //me->CastSpell(player, SPELL_SHU_WATERSPLASH_CREDIT);
+                            player->KilledMonsterCredit(Npcs::credit_not_in_the_face_2);
+                            wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
+                            wugou->DespawnOrUnsummon(30s);
+                            _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_2, 3s);
+                        }
+                        break;
+                    }
+                    case EventsQ29774::event_shu_farmstead_play:
+                    {
+                        // Pick a random spawn slot within the current zone
+                        uint8 randomSlot = urand(0, 4);
+
+                        // Cast the summoning spell at the chosen location
+                        //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
+                        // Dynamic position spell casting summon not supported. we summon creature directly instead
+
+                        Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout_farmstead, PositionsQ29774::ShuFarmsteadPlayPosition[randomSlot], TEMPSUMMON_MANUAL_DESPAWN);
+                        if (bunny)
+                            DoCast(SpellsQ29678Q29679::spell_water_spout);
+                        _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 6s);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+
+                }
+            }
+
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+            {
+                switch (pathId)
+                {
+                case PathQ29774::path_shu_farmstead_1:
+                {
+                    me->StopMoving();
+                    me->GetMotionMaster()->Clear();
+
+                    if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
+                    {
+                        me->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash_wugou);
+                        me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
+                        _events.ScheduleEvent(EventsQ29774::event_shu_wakes_wugou, 3s);
+                    }
+                    break;
+                }
+                case PathQ29774::path_shu_farmstead_2:
+                {
+                    me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
+                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_3, 3s);
+                    break;
+                }
+                case PathQ29774::path_shu_farmstead_3:
+                {
+                    me->DespawnOrUnsummon(1s);
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+
+        private:
+            EventMap _events;
+            ObjectGuid _playerGuid;
+            bool _path1Started;
+            bool _path2Started;
+            bool _path3Started;
+            bool _npcFlagSet;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shu_at_farmsteadAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -1163,4 +1360,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_shu_playing();
     new npc_ox_cart();
     new npc_shu_follower();
+    new npc_shu_at_farmstead();
 }

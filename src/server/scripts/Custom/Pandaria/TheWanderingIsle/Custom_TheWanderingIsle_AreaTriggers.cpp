@@ -22,6 +22,7 @@
 
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "DB2Stores.h"
 #include "MotionMaster.h"
 #include "Player.h"
 #include "ScriptMgr.h"
