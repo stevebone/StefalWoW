@@ -110,6 +110,17 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_water_spout_credit = 117054;
     }
 
+    namespace SpellsQ29680
+    {
+        static constexpr uint32 spell_shu_splash = 107030;
+    }
+
+    namespace SpellsCartOx
+    {
+        static constexpr uint32 spell_force_vehicle_ride = 46598;
+        static constexpr uint32 spell_eject_passengers = 50630;
+    }
+
     namespace TalksQ29423
     {
         static constexpr uint32 chia_hui_autumnleaf_talk = 0;
@@ -141,6 +152,12 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr uint32 Jojo_Talk_0 = 0;
         static constexpr uint32 Jojo_Talk_1 = 1;
+    }
+
+    namespace TalksCartTender
+    {
+        static constexpr uint32 Cart_Tender_Talk_0 = 0;
+        static constexpr uint32 Cart_Tender_Talk_1 = 1;
     }
 
     namespace PositionsQ29423
@@ -232,6 +249,21 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 path_jojo = 5763800;
     }
 
+    namespace PathQ29680
+    {
+        static constexpr uint32 path_shu_follower = 5521300;
+        static constexpr uint8 path_node_shu_remove = 4;
+    }
+
+    namespace PathOxCart
+    {
+        static constexpr uint32 path_ox = 5720700;
+        static constexpr uint32 path_ox_farmstead = 5949800;
+        static constexpr uint32 path_cart = 5720800;
+        static constexpr uint32 path_cart_farmstead = 5949600;
+        static constexpr uint8 path_node_remove_passenger = 27;
+    }
+
     namespace EventsQ29423
     {
         static constexpr int8 event_delivery_huo = 1;
@@ -264,6 +296,17 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_shu_summon_water_spout = 3;
     }
 
+    namespace EventsQ29680
+    {
+        static constexpr int8 event_shu_follower_path_start = 1;
+        static constexpr int8 event_shu_follower_check_player_quest = 2;
+    }
+
+    namespace EventsOxCart
+    {
+        static constexpr int8 event_ox_cart_path_start = 1;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -284,6 +327,16 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 credit_shu_the_spirit_of_water = 57476;
         static constexpr uint32 npc_bunny_water_spout = 60488;
         static constexpr uint32 npc_aysa_q29679 = 54975;
+
+        static constexpr uint32 npc_cart_tender = 57712;
+        static constexpr uint32 npc_cart = 57710;
+        static constexpr uint32 npc_vehicle_cart = 57208;
+        static constexpr uint32 npc_vehicle_cart_farmstead = 59496;
+        static constexpr uint32 npc_vehicle_ox = 57207;
+        static constexpr uint32 npc_vehicle_ox_farmstead = 59498;
+        static constexpr uint32 npc_ox = 57709;
+
+        static constexpr uint32 npc_shu_follower = 55213;
     }
 
     namespace Objects
@@ -306,6 +359,12 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_shu_the_spirit_of_water = 29678;
         static constexpr uint32 quest_a_new_friend = 29679;
         static constexpr uint32 quest_the_source_of_livelihood = 29680;
+    }
+
+    namespace AreaTriggers
+    {
+        static constexpr uint32 areaTrigger_singing_pools_cart = 7258;
+        static constexpr uint32 areaTrigger_farmstead_cart = 7822;
     }
 
     class player_singing_pools_memory

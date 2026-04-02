@@ -162,6 +162,34 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    // 7258
+    // 7822
+    class at_cart_locations : public AreaTriggerScript
+    {
+    public:
+        at_cart_locations() : AreaTriggerScript("at_cart_locations") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (!g_singingPoolsMemory.CanTrigger(player))
+                return false;
+
+            if (player->IsAlive() && areaTrigger->ID == AreaTriggers::areaTrigger_singing_pools_cart)
+            {
+                if (Creature* cartTender = GetClosestCreatureWithEntry(player, Npcs::npc_cart_tender, 30.0f))
+                    cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_0);
+                return true;
+            }
+            else if (player->IsAlive() && areaTrigger->ID == AreaTriggers::areaTrigger_farmstead_cart)
+            {
+                if (Creature* cartTender = GetClosestCreatureWithEntry(player, Npcs::npc_cart_tender, 30.0f))
+                    cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_1);
+                return true;
+            }
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
@@ -172,4 +200,5 @@ void AddSC_custom_the_wandering_isle_at()
     new at_the_singing_pools_children_summon();
     new at_singing_pools_training_bell();
     new at_pools_of_reflection();
+    new at_cart_locations();
 }

@@ -951,6 +951,198 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_shu_playingAI(creature);
         }
     };
+
+    class npc_ox_cart : public CreatureScript
+    {
+    public:
+        npc_ox_cart() : CreatureScript("npc_ox_cart") { }
+
+        struct npc_ox_cartAI : public ScriptedAI
+        {
+            npc_ox_cartAI(Creature* creature) : ScriptedAI(creature), _passengerGuid() { }
+
+            void Reset() override
+            {
+                _events.Reset();
+
+                if (me->GetEntry() == Npcs::npc_vehicle_ox || me->GetEntry() == Npcs::npc_vehicle_ox_farmstead)
+                {
+                    me->SetReactState(REACT_PASSIVE);
+                    _events.ScheduleEvent(EventsOxCart::event_ox_cart_path_start, 1400ms); // Delay of 0.5 seconds
+                }
+            }
+
+            void IsSummonedBy(WorldObject* /*summoner*/) override
+            {
+                me->ToTempSummon()->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
+            }
+
+            void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+            {
+                if (apply && passenger->GetTypeId() == TYPEID_PLAYER)
+                {
+                    if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
+                    {
+                        _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
+                        me->CastSpell(passenger, SpellsCartOx::spell_force_vehicle_ride);
+                        _events.ScheduleEvent(EventsOxCart::event_ox_cart_path_start, 1800ms); // Delay
+                    }
+                }
+            }
+
+            void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+            {
+                if(nodeId == PathOxCart::path_node_remove_passenger)
+                    if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
+                        me->CastSpell(me, SpellsCartOx::spell_eject_passengers);
+            }
+
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/)
+            {
+                me->DespawnOrUnsummon(1s);
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsOxCart::event_ox_cart_path_start:
+                        if (me->GetEntry() == Npcs::npc_vehicle_cart)
+                        {
+                            me->LoadPath(PathOxCart::path_cart);
+                            me->GetMotionMaster()->MovePath(PathOxCart::path_cart, false);
+                        }
+                        else if (me->GetEntry() == Npcs::npc_vehicle_ox)
+                        {
+                            me->LoadPath(PathOxCart::path_ox);
+                            me->GetMotionMaster()->MovePath(PathOxCart::path_ox, false);
+                        }
+                        else if (me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
+                        {
+                            me->LoadPath(PathOxCart::path_cart_farmstead);
+                            me->GetMotionMaster()->MovePath(PathOxCart::path_cart_farmstead, false);
+                        }
+                        else if (me->GetEntry() == Npcs::npc_vehicle_ox_farmstead)
+                        {
+                            me->LoadPath(PathOxCart::path_ox_farmstead);
+                            me->GetMotionMaster()->MovePath(PathOxCart::path_ox_farmstead, false);
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+
+                }
+            }
+
+        private:
+            EventMap _events;
+            ObjectGuid _passengerGuid;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_ox_cartAI(creature);
+        }
+    };
+
+    class npc_shu_follower : public CreatureScript
+    {
+    public:
+        npc_shu_follower() : CreatureScript("npc_shu_follower") { }
+
+        struct npc_shu_followerAI : public ScriptedAI
+        {
+            npc_shu_followerAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _pathStarted(false) { }
+
+            void Reset() override
+            {
+                _events.Reset();
+                _pathStarted = false;
+
+                me->SetWalk(false);
+                me->CastSpell(me, SpellsQ29680::spell_shu_splash, true);
+
+                Unit* owner = me->GetOwner();
+                if (owner && owner->ToPlayer())
+                    _playerGuid = owner->ToPlayer()->GetGUID();
+
+                _events.ScheduleEvent(EventsQ29680::event_shu_follower_check_player_quest, 30s);
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsQ29680::event_shu_follower_path_start:
+                    {
+                        me->GetMotionMaster()->Clear();
+                        me->StopMoving();
+                        me->LoadPath(PathQ29680::path_shu_follower);
+                        me->GetMotionMaster()->MovePath(PathQ29680::path_shu_follower, false);
+                        _pathStarted = true;
+                    }
+                    break;
+                    case EventsQ29680::event_shu_follower_check_player_quest:
+                    {
+                        if (!_pathStarted)
+                        {
+                            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+
+                            if (player && player->GetQuestStatus(Quests::quest_the_source_of_livelihood) == QUEST_STATUS_REWARDED)
+                            {
+                                _events.ScheduleEvent(EventsQ29680::event_shu_follower_path_start, 0s);
+                            }
+                            else
+                                _events.ScheduleEvent(EventsQ29680::event_shu_follower_check_player_quest, 1s);
+                        }
+                    }
+                    break;
+                    default:
+                        break;
+                    }
+
+                }
+            }
+
+            void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (!player)
+                    return;
+
+                if (nodeId == PathQ29680::path_node_shu_remove)
+                {
+                    me->SetWalk(true);
+                    player->RemoveAurasDueToSpell(SpellsQ29678Q29679::spell_summon_spirit_of_water);
+                    player->CastSpell(player, 104018, true);
+                }
+            }
+
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/)
+            {
+                me->DespawnOrUnsummon(30s);
+            }
+
+        private:
+            EventMap _events;
+            ObjectGuid _playerGuid;
+            bool _pathStarted;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shu_followerAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -968,4 +1160,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_balance_pole();
     new npc_fang_she();
     new npc_shu_playing();
+    new npc_ox_cart();
+    new npc_shu_follower();
 }

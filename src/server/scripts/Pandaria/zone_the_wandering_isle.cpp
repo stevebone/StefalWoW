@@ -1718,123 +1718,9 @@ enum TheSourceofOurLivelihood
 
 };
 
-struct npc_ox_cart : public ScriptedAI
-{
-    npc_ox_cart(Creature* creature) : ScriptedAI(creature), _passengerGuid() { }
 
-    void Reset() override
-    {
-        _events.Reset();
 
-        if (me->GetEntry() == NPC_VEHICLE_OX || me->GetEntry() == NPC_VEHICLE_OX_FARMSTEAD)
-        {
-            me->SetReactState(REACT_PASSIVE);
-            _events.ScheduleEvent(EVENT_START_PATH, 1400ms); // Delay of 0.5 seconds
-        }
-    }
 
-    void IsSummonedBy(WorldObject* /*summoner*/) override
-    {
-        me->ToTempSummon()->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
-    }
-
-    void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
-    {
-        if (apply && passenger->GetTypeId() == TYPEID_PLAYER)
-        {
-            if (me->GetEntry() == NPC_VEHICLE_CART || me->GetEntry() == NPC_VEHICLE_CART_FARMSTEAD)
-            {
-                _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
-                me->CastSpell(passenger, SPELL_FORCE_VEHICLE_RIDE);
-                _events.ScheduleEvent(EVENT_START_PATH, 1800ms); // Delay
-            }
-        }
-    }
-
-    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
-    {
-            switch (nodeId)
-            {
-                case NODE_REMOVE_PASSENGER:
-                {
-                    if (me->GetEntry() == NPC_VEHICLE_CART || me->GetEntry() == NPC_VEHICLE_CART_FARMSTEAD)
-                        me->CastSpell(me, SPELL_EJECT_PASSENGERS);
-                    break;
-                }
-                case NODE_DESPAWN:
-                {
-                    me->DespawnOrUnsummon(1s);
-                    break;
-                }
-                default:
-                    break;
-            }
-    }
-
-    void UpdateAI(uint32 diff) override
-    {
-        _events.Update(diff);
-
-        while (uint32 eventId = _events.ExecuteEvent())
-        {
-            switch (eventId)
-            {
-            case EVENT_START_PATH:
-                if (me->GetEntry() == NPC_VEHICLE_CART)
-                {
-                    me->LoadPath(PATH_CART_VEHICLE);
-                    me->GetMotionMaster()->MovePath(PATH_CART_VEHICLE, false);
-                }
-                else if (me->GetEntry() == NPC_VEHICLE_OX)
-                {
-                    me->LoadPath(PATH_OX_VEHICLE);
-                    me->GetMotionMaster()->MovePath(PATH_OX_VEHICLE, false);
-                }
-                else if (me->GetEntry() == NPC_VEHICLE_CART_FARMSTEAD)
-                {
-                    me->LoadPath(PATH_CART_VEHICLE_FARMSTEAD);
-                    me->GetMotionMaster()->MovePath(PATH_CART_VEHICLE_FARMSTEAD, false);
-                }
-                else if (me->GetEntry() == NPC_VEHICLE_OX_FARMSTEAD)
-                {
-                    me->LoadPath(PATH_OX_VEHICLE_FARMSTEAD);
-                    me->GetMotionMaster()->MovePath(PATH_OX_VEHICLE_FARMSTEAD, false);
-                }
-                break;
-            default:
-                break;
-            }
-
-        }
-    }
-
-private:
-    EventMap _events;
-    ObjectGuid _passengerGuid;
-};
-
-class at_singing_pools_cart_location : public AreaTriggerScript
-{
-public:
-    at_singing_pools_cart_location() : AreaTriggerScript("at_singing_pools_cart_location") { }
-
-    bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
-    {
-        if (player->IsAlive() && areaTrigger->ID == AREA_CART_LOCATION_1)
-        {
-            if (Creature* cartTender = GetClosestCreatureWithEntry(player, NPC_CART_TENDER, 30.0f))
-                cartTender->AI()->Talk(SAY_CART_TENDER_00);
-            return true;
-        }
-        else if (player->IsAlive() && areaTrigger->ID == AREA_CART_LOCATION_2)
-        {
-            if (Creature* cartTender = GetClosestCreatureWithEntry(player, NPC_CART_TENDER, 30.0f))
-                cartTender->AI()->Talk(SAY_CART_TENDER_01);
-            return true;
-        }
-        return false;
-    }
-};
 
 enum ShuAtTheFarm
 {
@@ -1847,93 +1733,6 @@ enum ShuAtTheFarm
 
     EVENT_SHU_START_PATH = 1,
     EVENT_SHU_CHECK_QUEST_REWARDED = 2
-};
-
-struct npc_shu_follower : public ScriptedAI
-{
-    npc_shu_follower(Creature* creature) : ScriptedAI(creature), _playerGuid(), _pathStarted(false) { }
-
-    void Reset() override
-    {
-        _events.Reset();
-        _pathStarted = false;
-
-        me->SetWalk(false);
-        if (me->CastSpell(me, SPELL_SHU_SPLASH, true))
-            TC_LOG_DEBUG("scripts.ai", "Shu cast splash");
-
-        if (Unit* player = me->SelectNearestPlayer(10.0f))
-            _playerGuid = player->GetGUID();
-
-        _events.ScheduleEvent(EVENT_SHU_CHECK_QUEST_REWARDED, 1s);
-    }
-
-    void UpdateAI(uint32 diff) override
-    {
-        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-
-        _events.Update(diff);
-
-        while (uint32 eventId = _events.ExecuteEvent())
-        {
-            switch (eventId)
-            {
-            case EVENT_SHU_START_PATH:
-            {
-                me->GetMotionMaster()->Clear();
-                me->StopMoving();
-                me->LoadPath(PATH_SHU_AT_THE_FARM);
-                me->GetMotionMaster()->MovePath(PATH_SHU_AT_THE_FARM, false);
-                _pathStarted = true;
-            }
-            break;
-            case EVENT_SHU_CHECK_QUEST_REWARDED:
-            {
-                if (!_pathStarted)
-                {
-                    if (player && player->GetQuestStatus(QUEST_THE_SOURCE_OF_LIVELIHOOD) == QUEST_STATUS_REWARDED)
-                    {
-                        _events.ScheduleEvent(EVENT_SHU_START_PATH, 0s);
-                    }
-                    else
-                        _events.ScheduleEvent(EVENT_SHU_CHECK_QUEST_REWARDED, 1s);
-                }
-            }
-            break;
-            default:
-                break;
-            }
-
-        }
-    }
-
-    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
-    {
-        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-
-        switch (nodeId)
-        {
-        case NODE_SHU_RUN_DISABLE:
-        {
-           me->SetWalk(true);
-           player->RemoveAurasDueToSpell(SPELL_SUMMON_SPIRIT_OF_WATER);
-           player->CastSpell(player, 104018, true);
-           break;
-        }
-        case NODE_SHU_DESPAWN:
-        {
-            me->DespawnOrUnsummon(30s);
-            break;
-        }
-        default:
-            break;
-        }
-    }
- 
-private:
-    EventMap _events;
-    ObjectGuid _playerGuid;
-    bool _pathStarted;
 };
 
 enum ShuAtTheFarmsteadPool
@@ -3469,8 +3268,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
     RegisterCreatureAI(npc_master_shang);
-    RegisterCreatureAI(npc_ox_cart);
-    RegisterCreatureAI(npc_shu_follower);
     RegisterCreatureAI(npc_shu_at_farmstead);
     RegisterCreatureAI(npc_shu_wugou_follower);
     RegisterCreatureAI(npc_lorewalker_ruolin);
@@ -3499,7 +3296,6 @@ void AddSC_zone_the_wandering_isle()
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
-    new at_singing_pools_cart_location();
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_lorewalker_zan();
     new at_chamber_of_whispers();

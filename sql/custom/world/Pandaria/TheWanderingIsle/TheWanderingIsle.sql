@@ -33,7 +33,14 @@
 -- NPC: 55020 Old Man Liang
 -- NPC: 54975 Aysa Cloudsinger
 -- NPC: 65493 Shu
+-- NPC: 55213 Shu (spawned by spell)
 -- NPC: 60488 Bunny water spout summon
+-- NPC: 57207 Spawned Yak
+-- NPC: 57208 Spawned Cart
+-- NPC: 57709 Nourished Yak
+-- NPC: 57710 Cart
+-- NPC: 57712 Cart Tender
+-- NPC: 55539 Wugou
 
 -- GO: 209584 Ancient Clam
 
@@ -597,7 +604,29 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('128589', 's
 DELETE FROM `creature_text` WHERE `CreatureID` = 54975;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
 ('54975', '0', '0', 'I have to admit, that looked pretty fun!', '12', '0', '100', '0', '0', '27394', '0', '66056', '1', 'Aysa Cloudsinger - quest A new friend'),
-('54975', '1', '1', 'And it looks to me like you made a new friend.', '12', '0', '100', '0', '0', '27395', '0', '66057', '1', 'Aysa Cloudsinger - quest A new friend');
+('54975', '1', '0', 'And it looks to me like you made a new friend.', '12', '0', '100', '0', '0', '27395', '0', '66057', '1', 'Aysa Cloudsinger - quest A new friend');
+
+-- Quest: 29680 The Source of Our Livelihood
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_follower' WHERE `Entry` IN (55213);
+UPDATE `creature_template` SET `movementId` = '65' WHERE (`entry` = '55213');
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55213,55539);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('55213', '5521300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '103245'),
+('55539', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797 42386');
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5521300);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(5521300,1,0,'Spawned Shu quest');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (4);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
+('5521300', '0', '634.3', '3126.2', '88.7482'),
+('5521300', '1', '642.205', '3124.58', '89.3339'),
+('5521300', '2', '649.877', '3126.44', '89.808'),
+('5521300', '3', '655.521', '3131.44', '89.3411'),
+('5521300', '4', '660.047', '3135.83', '88.807'),
+('5521300', '5', '665.788', '3136.77', '87.8995');
 
 -- Adding some creature text for Wo-son Villager
 DELETE FROM `creature_text` WHERE `creatureID` IN (57132);
@@ -637,3 +666,112 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 -- Fix invalid scripts
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450358') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
+
+-- locations for cart and tender dude talk
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7258, 7822);
+INSERT INTO `areatrigger_scripts` VALUES
+(7258, 'at_cart_locations'),
+(7822, 'at_cart_locations');
+
+DELETE FROM `creature_text` WHERE `CreatureID` = 57712;
+INSERT INTO `creature_text` (`CreatureID`,`GroupID`,`ID`,`Text`,`Type`,`Language`,`Probability`,`Emote`,`Duration`,`Sound`,`BroadcastTextId`,`TextRange`,`comment`) VALUES 
+(57712,0,0,'Hello friend!  You\'re welcome to use my cart if you like.  It will take you to the Dai-Lo Farmstead.',12,0,100,3,0,0,56406,0,'Delivery Cart Tender to Player'),
+(57712,1,0,'Hello friend!  You\'re welcome to use my cart if you like.  It will take you to the Temple of Five Dawns.',12,0,100,3,0,0,56415,0,'Delivery Cart Tender to Player');
+
+-- Yak & cart & tender
+UPDATE `creature_template` SET `VehicleId` = '1944' WHERE (`entry` = '57208');
+UPDATE `creature_template` SET `movementId` = 132 WHERE `Entry` = 57207;
+UPDATE `creature_template` SET `ScriptName` = 'npc_ox_cart' WHERE `Entry` IN (57208,57207);
+
+DELETE FROM `vehicle_template` WHERE `creatureId` = 57208;
+INSERT INTO `vehicle_template` VALUES (57208, 0, NULL,0);
+
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (57710,59497);
+INSERT INTO `npc_spellclick_spells` VALUES
+('57710', '107784', '3', '0'),
+('57710', '115904', '1', '0'),
+('59497', '114453', '3', '0'),
+('59497', '115904', '1', '0');
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (57208,57207,57710,57709);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('57207', '5720700', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', ''), -- 
+('57208', '5720800', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '108692'),
+('57709', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '84886 94570'),
+('57710', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108692 94570 84886');
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5720700,5720800);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(5720700,1,0,'The Wandering Isle Cart & Ox'),
+(5720800,1,0,'The Wandering Isle Cart & Ox');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5720700,5720800);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
+(5720700, '0', '981.766', '2857.77', '88.7352'),
+(5720700, '1', '978.016', '2848.52', '87.2352'),
+(5720700, '2', '948.266', '2835.52', '87.2352'),
+(5720700, '3', '919.016', '2825.02', '87.2352'),
+(5720700, '4', '895.766', '2811.27', '86.9852'),
+(5720700, '5', '880.766', '2807.02', '83.9852'),
+(5720700, '6', '853.516', '2799.02', '83.7352'),
+(5720700, '7', '825.516', '2790.77', '78.7352'),
+(5720700, '8', '802.266', '2785.27', '76.7352'),
+(5720700, '9', '790.266', '2792.77', '75.7352'),
+(5720700, '10', '763.016', '2815.52', '76.2352'),
+(5720700, '11', '746.766', '2834.77', '75.7352'),
+(5720700, '12', '746.266', '2851.77', '75.9852'),
+(5720700, '13', '755.516', '2869.77', '75.2352'),
+(5720700, '14', '753.516', '2890.02', '74.9852'),
+(5720700, '15', '732.766', '2915.02', '74.7352'),
+(5720700, '16', '703.766', '2939.02', '74.7352'),
+(5720700, '17', '683.766', '2954.77', '75.2352'),
+(5720700, '18', '674.016', '2975.52', '74.9852'),
+(5720700, '19', '667.266', '2983.27', '75.2352'),
+(5720700, '20', '660.516', '2990.77', '79.9852'),
+(5720700, '21', '652.266', '2999.52', '74.9852'),
+(5720700, '22', '645.016', '3006.27', '74.7352'),
+(5720700, '23', '629.016', '3016.52', '75.4852'),
+(5720700, '24', '616.016', '3035.52', '76.7352'),
+(5720700, '25', '612.766', '3061.27', '80.4852'),
+(5720700, '26', '612.766', '3080.27', '84.4852'),
+(5720700, '27', '618.01', '3107.21', '87.5104'),
+(5720700, '28', '617.01', '3131.96', '87.7604'),
+(5720700, '29', '607.01', '3143.96', '88.0104'),
+(5720700, '30', '591.51', '3146.71', '88.0104'),
+(5720700, '31', '574.51', '3148.71', '87.0104'),
+(5720700, '32', '555.01', '3159.21', '78.0104'),
+(5720700, '33', '547.26', '3174.96', '77.5104'),
+(5720800, '0', '981.864', '2857.8', '88.8159'),
+(5720800, '1', '978.114', '2848.55', '87.3159'),
+(5720800, '2', '948.364', '2835.55', '87.3159'),
+(5720800, '3', '919.114', '2825.05', '87.3159'),
+(5720800, '4', '895.614', '2811.3', '87.0659'),
+(5720800, '5', '880.614', '2807.05', '83.8159'),
+(5720800, '6', '853.364', '2799.05', '83.8159'),
+(5720800, '7', '825.614', '2790.8', '78.5659'),
+(5720800, '8', '802.364', '2785.3', '76.8159'),
+(5720800, '9', '790.364', '2792.8', '75.8159'),
+(5720800, '10', '762.864', '2815.55', '76.0659'),
+(5720800, '11', '746.614', '2834.8', '75.8159'),
+(5720800, '12', '746.364', '2851.8', '76.0659'),
+(5720800, '13', '755.614', '2869.8', '75.3159'),
+(5720800, '14', '753.364', '2890.05', '75.0659'),
+(5720800, '15', '732.864', '2915.05', '74.5659'),
+(5720800, '16', '703.614', '2939.05', '74.5659'),
+(5720800, '17', '683.864', '2954.8', '75.3159'),
+(5720800, '18', '674.114', '2975.55', '75.0659'),
+(5720800, '19', '667.364', '2983.3', '75.3159'),
+(5720800, '20', '660.614', '2990.55', '79.8159'),
+(5720800, '21', '652.364', '2999.3', '75.0659'),
+(5720800, '22', '645.114', '3006.3', '74.8159'),
+(5720800, '23', '629.114', '3016.55', '75.3159'),
+(5720800, '24', '616.114', '3035.55', '76.5659'),
+(5720800, '25', '612.864', '3061.3', '80.5659'),
+(5720800, '26', '612.864', '3080.3', '84.3159'),
+(5720800, '27', '618.052', '3107.17', '87.5442'),
+(5720800, '28', '617.052', '3131.92', '87.7942'),
+(5720800, '29', '607.052', '3143.92', '87.7942'),
+(5720800, '30', '591.302', '3146.67', '88.0442'),
+(5720800, '31', '574.552', '3148.67', '87.0442'),
+(5720800, '32', '555.052', '3159.17', '78.0442'),
+(5720800, '33', '547.302', '3174.92', '77.2942');
