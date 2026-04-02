@@ -28,6 +28,12 @@
 -- NPC: 57431 Balance Pole
 -- NPC: 55083 Balance Pole
 -- NPC: 56869 Bunny landing impact
+-- NPC: 55292 Fang-she
+-- NPC: 54976 Barbed Ray
+-- NPC: 55020 Old Man Liang
+-- NPC: 54975 Aysa Cloudsinger
+
+-- GO: 209584 Ancient Clam
 
 -- Spell: 108786 Summon Stack of Reeds
 -- Spell: 108798 Jojo Headbash Stack of reeds impact
@@ -44,6 +50,7 @@
 -- Quest: 29661 The Lesson of the Dry Fur
 -- Quest: 29663 The Lesson of the Balanced Rock
 -- Quest: 29676 Finding an Old Friend
+-- Quest: 29677 The Sun Pearl 
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29768,29771);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0');
@@ -493,6 +500,23 @@ INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseU
 (@CGUID+745, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '929.348', '3299.2', '117.429', '0.55515', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0'),
 (@CGUID+746, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '1011.65', '3299.14', '116.784', '3.13979', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0');
 
+-- Quest: 29677 The Sun Pearl 
+UPDATE `creature_template` SET `ScriptName` = 'npc_fang_she' WHERE `entry` = 55292;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 54976;
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=(0x10000000 | 0x00000080 | 0x00040000) WHERE `entry` IN (54976, 55292); -- swim/aquatic/loot
+DELETE FROM `creature` WHERE `guid` IN ('451096', '451050', '451043'); -- remove duplicate Fang-She as not sure they are for different phases
+UPDATE `creature` SET `wander_distance` = 5 AND `MovementType` = 1 WHERE id IN (54976); -- Barbed Rays should be moving
+UPDATE `gameobject_template` SET `ContentTuningId` = 80 WHERE (`entry` = '209584');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 54976 AND `source_type` = 0;
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties,
+    event_type, event_phase_mask, event_chance, event_flags,
+    event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string,
+    action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string,
+    target_type, target_param1, target_param2, target_param3, target_param4, target_param_string,
+    target_x, target_y, target_z, target_o,
+    comment) VALUES 
+('54976', '0', '0', '0', '', '0', '0', '100', '0', '3000', '5000', '6000', '8000', '0', '', '11', '128407', '0', '0', '0', '0', '0', '0', NULL, '2', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Every 6 - 8 seconds (3 - 5s initially) (IC) - Self: Cast spell  128407 on Victim');
 
 -- Adding some creature text for Wo-son Villager
 DELETE FROM `creature_text` WHERE `creatureID` IN (57132);
@@ -513,6 +537,21 @@ INSERT INTO `creature_template_addon`
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
 ('55021', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '82343');
+
+-- Fix Visibility for Old Man Liang and Aysa
+UPDATE `creature_template_addon` SET `auras` = '0' WHERE (`entry` = '55020'); 
+
+DELETE FROM `creature_addon` WHERE `guid` IN (451049,451022,450772,451092,451042,451091);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+
+('451022', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'), -- Old Man Liang at his house
+('450772', '0', '0', '0', '1', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'), -- Aysa at the pool
+
+('451092', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'), -- Old Man Liang at the pool2
+('451091', '0', '0', '0', '1', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'), -- Aysa at the pool2
+
+('451049', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82358'), -- Old Man Liang at the tower
+('451042', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82358'); -- Aysa at the tower
 
 -- Fix invalid scripts
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
