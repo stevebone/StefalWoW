@@ -25,6 +25,7 @@
 #include "SpellScript.h"
 #include "Player.h"
 #include "Creature.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "EventProcessor.h"
 

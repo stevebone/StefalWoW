@@ -928,7 +928,8 @@ namespace Scripts::Custom::TheWanderingIsle
                         //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
                         // Dynamic position spell casting summon not supported. we summon creature directly instead
 
-                        if (Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout, targetPos, TEMPSUMMON_MANUAL_DESPAWN))
+                        Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout, targetPos, TEMPSUMMON_MANUAL_DESPAWN);
+                        if (bunny)
                             DoCast(SpellsQ29678Q29679::spell_water_spout);
                         events.ScheduleEvent(EventsQ29679::event_cast_jump_spell, 6s);
                         break;
