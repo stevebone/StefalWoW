@@ -40,85 +40,97 @@
 namespace Scripts::Custom::TheWanderingIsle
 {
     //54958
-    struct npc_huo_follower : public ScriptedAI
+    class npc_huo_follower : public CreatureScript
     {
-        npc_huo_follower(Creature* creature) : ScriptedAI(creature) { }
+    public:
+        npc_huo_follower() : CreatureScript("npc_huo_follower") { }
 
-        void IsSummonedBy(WorldObject* summoner) override
+        struct npc_huo_followerAI : public ScriptedAI
         {
-            if (Player* player = summoner->ToPlayer())
+            npc_huo_followerAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void IsSummonedBy(WorldObject* summoner) override
             {
-                _playerGuid = player->GetGUID();
-
-                me->SetFloating(false);
-                me->SetSpeed(MOVE_RUN, 7.0f);
-                me->GetMotionMaster()->MoveFollow(player, 3.0f);
-
-                _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 20s);
-            }
-        }
-
-        void MovementInform(uint32 type, uint32 pointId) override
-        {
-            if (type != POINT_MOTION_TYPE)
-                return;
-
-            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-
-            if (pointId == 1)
-            {
-                me->CastSpell(player, SpellsQ29423::spell_fire_form);
-
-                _events.RescheduleEvent(EventsQ29423::event_second_huo_position, 7s);
-            }
-            else if (pointId == 2)
-            {
-                me->CastSpell(player, SpellsQ29423::spell_forcecast_fire_turn_in_statue_brazier_change);
-                PhasingHandler::OnConditionChange(player);
-                me->DespawnOrUnsummon();
-            }
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
-            if (!player || !player->IsInWorld())
-            {
-                me->DespawnOrUnsummon();
-                return;
-            }
-
-            _events.Update(diff);
-            while (uint32 eventId = _events.ExecuteEvent())
-            {
-                switch (eventId)
+                if (Player* player = summoner->ToPlayer())
                 {
-                case EventsQ29423::event_delivery_huo:
-                {
-                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                    _playerGuid = player->GetGUID();
 
-                    if (player->GetDistance(973.311829f, 3603.419434f, 195.528030f) <= 7.0f)
+                    me->SetFloating(false);
+                    me->SetSpeed(MOVE_RUN, 7.0f);
+                    me->GetMotionMaster()->MoveFollow(player, 3.0f);
+
+                    _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 20s);
+                }
+            }
+
+            void MovementInform(uint32 type, uint32 pointId) override
+            {
+                if (type != POINT_MOTION_TYPE)
+                    return;
+
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+
+                if (pointId == 1)
+                {
+                    me->CastSpell(player, SpellsQ29423::spell_fire_form);
+
+                    _events.RescheduleEvent(EventsQ29423::event_second_huo_position, 7s);
+                }
+                else if (pointId == 2)
+                {
+                    me->CastSpell(player, SpellsQ29423::spell_forcecast_fire_turn_in_statue_brazier_change);
+                    PhasingHandler::OnConditionChange(player);
+                    me->DespawnOrUnsummon();
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (!player || !player->IsInWorld())
+                {
+                    me->DespawnOrUnsummon();
+                    return;
+                }
+
+                _events.Update(diff);
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
                     {
-                        me->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-                        me->SetFloating(true);
-                        me->SetSpeed(MOVE_RUN, 3.0f);
-                        me->GetMotionMaster()->MovePoint(1, PositionsQ29423::huoFirstPoint, true, { 6.249388f });
+                    case EventsQ29423::event_delivery_huo:
+                    {
+                        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+
+                        if (player->GetDistance(973.311829f, 3603.419434f, 195.528030f) <= 7.0f)
+                        {
+                            me->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
+                            me->SetFloating(true);
+                            me->SetSpeed(MOVE_RUN, 3.0f);
+                            me->GetMotionMaster()->MovePoint(1, PositionsQ29423::huoFirstPoint, true, { 6.249388f });
+                        }
+                        else
+                            _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 2s);
+                        break;
                     }
-                    else
-                        _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 2s);
-                    break;
-                }
-                case EventsQ29423::event_second_huo_position:
-                    me->GetMotionMaster()->MovePoint(2, PositionsQ29423::huoSecondPoint);
-                    break;
-                default:
-                    break;
+                    case EventsQ29423::event_second_huo_position:
+                        me->GetMotionMaster()->MovePoint(2, PositionsQ29423::huoSecondPoint);
+                        break;
+                    default:
+                        break;
+                    }
                 }
             }
+
+        private:
+            ObjectGuid _playerGuid;
+            EventMap _events;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_huo_followerAI(creature);
         }
-    private:
-        ObjectGuid _playerGuid;
-        EventMap _events;
     };
 
     struct npc_shanxi_quest : public ScriptedAI
@@ -661,55 +673,66 @@ namespace Scripts::Custom::TheWanderingIsle
     };
 
     // 55292 - Fang-she
-    struct npc_fang_she : public ScriptedAI
+    class npc_fang_she : public CreatureScript
     {
-        npc_fang_she(Creature* creature) : ScriptedAI(creature) { }
+    public:
+        npc_fang_she() : CreatureScript("npc_fang_she") { }
 
-        EventMap events;
-
-        void Reset() override
+        struct npc_fang_sheAI : public ScriptedAI
         {
-            events.Reset();
-        }
+            npc_fang_sheAI(Creature* creature) : ScriptedAI(creature) { }
 
-        void UpdateAI(uint32 diff) override
-        {
-            if (!UpdateVictim())
-                return;
+            EventMap events;
 
-            events.Update(diff);
-
-            while (uint32 eventId = events.ExecuteEvent())
+            void Reset() override
             {
-                if (eventId == EventsQ29677::event_cast_serpent_strike)
+                events.Reset();
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                if (!UpdateVictim())
+                    return;
+
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
                 {
-                    DoCastVictim(128409); // Fang-she's attack spell
-                    events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s); // repeat
+                    if (eventId == EventsQ29677::event_cast_serpent_strike)
+                    {
+                        DoCastVictim(128409); // Fang-she's attack spell
+                        events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s); // repeat
+                    }
                 }
             }
-        }
 
-        void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
-        {
-            me->EngageWithTarget(who);
-            events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s);
-        }
-
-        void JustDied(Unit* killer) override
-        {
-            Player* player = killer->ToPlayer();
-            if (!player)
-                return;
-
-            // Only activate the pearl if the player has the quest
-            if (player->GetQuestStatus(Quests::quest_the_sun_pearl) == QUEST_STATUS_INCOMPLETE)
+            void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
             {
-                if (GameObject* pearl = me->FindNearestGameObject(Objects::go_ancient_clam, 20.0f))
+                me->EngageWithTarget(who);
+                events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s);
+            }
+
+            void JustDied(Unit* killer) override
+            {
+                Player* player = killer->ToPlayer();
+                if (!player)
+                    return;
+
+                // Only activate the pearl if the player has the quest
+                if (player->GetQuestStatus(Quests::quest_the_sun_pearl) == QUEST_STATUS_INCOMPLETE)
                 {
-                    pearl->RemoveFlag(GO_FLAG_INTERACT_COND);
-                    pearl->SetDynamicFlag(GO_DYNFLAG_LO_ACTIVATE);
+                    if (GameObject* pearl = me->FindNearestGameObject(Objects::go_ancient_clam, 20.0f))
+                    {
+                        pearl->RemoveFlag(GO_FLAG_INTERACT_COND);
+                        pearl->SetDynamicFlag(GO_DYNFLAG_LO_ACTIVATE);
+                    }
                 }
             }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_fang_sheAI(creature);
         }
     };
 }
@@ -718,7 +741,7 @@ void AddSC_custom_the_wandering_isle_npcs()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
 
-    RegisterCreatureAI(npc_huo_follower);
+    new npc_huo_follower();
     RegisterCreatureAI(npc_chia_hui_autumnleaf);
     RegisterCreatureAI(npc_shanxi_quest);
     RegisterCreatureAI(npc_deng);
@@ -727,5 +750,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     RegisterCreatureAI(npc_jojo_ironbrow_summon);
     RegisterCreatureAI(npc_tushui_monk_on_pole);
     RegisterCreatureAI(npc_balance_pole);
-    RegisterCreatureAI(npc_fang_she);
+    new npc_fang_she();
 }
