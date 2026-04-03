@@ -17,7 +17,6 @@
 -- NPC: 53714 Training Target
 
 -- NPC: 55479 Gao Summerdraft
--- NPC: 55477 Ji Firepaw at the farm
 -- NPC: 55021 Jojo Ironbrow at first house
 -- NPC: 57638 Jojo Ironbrow (spell spawn first house)
 -- NPC: 55478 Jojo Ironbrow at farmstead
@@ -34,6 +33,8 @@
 -- NPC: 54734 Master Li Fei (challenge npc)
 -- NPC: 54958 Huo (spawned)
 -- NPC: 57720 Ji Firepaw
+-- NPC: 55477 Ji Firepaw at the farm
+-- NPC: 55694 Ji Firepaw towards Morning Breeze
 -- NPC: 57721 Aysa Cloudsinger
 -- NPC: 54786 Master Shang Xi
 -- NPC: 57132 Wu-song Villager
@@ -62,6 +63,8 @@
 -- NPC: 60916 Wugou spawn
 -- NPC: 55556 Shu at the Farmstead
 -- NPC: 55558 Shu spawn at the Farmstead
+-- NPC: 54786 Master Shang Xi at temple (451410)
+-- NPC: 55685 Uplifting Draft
 
 -- GO: 209584 Ancient Clam
 -- GO 209626 Break Gong
@@ -81,15 +84,16 @@
 -- Spell: 117034 Shu Jump to front left
 -- Spell: 117035 Shu Jump to back right
 -- Spell: 117036 Shu Jump to back left
+-- Spell: 49415 Generic Quest Invisibility 2
+-- Spell: 80797 Generic Quest Invisibility 5
+-- Spell: 104396 Uplifting Draft cast on player by Master Shang
 
--- Quest: 29662 Stronger Than Reeds
--- Quest: 29768 Missing Mallet
--- Quest: 29771 Stronger Than Wood
 -- Quest: 29421 Only the Worthy Shall Pass
 -- Quest: 29422 Huo, the Spirit of Fire
 -- Quest: 29423 The Passion of Shen-zin Su
 -- Quest: 29521 The Singing Pools
 -- Quest: 29661 The Lesson of the Dry Fur
+-- Quest: 29662 Stronger Than Reeds
 -- Quest: 29663 The Lesson of the Balanced Rock
 -- Quest: 29666 The Sting of Learning
 -- Quest: 29676 Finding an Old Friend
@@ -97,111 +101,72 @@
 -- Quest: 29678 Shu, the Spirit of Water
 -- Quest: 29679 A new friend
 -- Quest: 29680 The Source of Our Livelihood
--- Quest: 29774 Not In the Face!
--- Quest: 29772 Raucous Rousing
--- Quest: 29775 The Spirit and Body of Shen-zin Su
+-- Quest: 29768 Missing Mallet
 -- Quest: 29769 Rascals
 -- Quest: 29770 Still Good!
+-- Quest: 29771 Stronger Than Wood
+-- Quest: 29772 Raucous Rousing
+-- Quest: 29774 Not In the Face!
+-- Quest: 29775 The Spirit and Body of Shen-zin Su
+-- Quest: 29776 Morning Breeze Village
 
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29768,29771);
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0');
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55478', '29771', '0');
+-- Phases
+DELETE FROM `phase_area` WHERE `PhaseId` = 50007;
+DELETE FROM `phase_area` WHERE `PhaseId` = 169 AND `AreaId` = 5881;
+INSERT INTO `phase_area` VALUES
+(5881, 169, 'The Wandering Isle - Farmstead'),
+(5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29662, 29768, 29771);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
-(29662, 0, 0, 0, 0, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartQuest'),
-('29768', '0', '0', '0', '29769', '29772', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29771', '0', '0', '0', '29769', '29772', '-29768', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
+UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50007;
+INSERT INTO `conditions` VALUES
+('26', '50007', '5881', '0', '0', '47', '0', '29775', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Farmstead - Add phase 50007 if 29775 IS NOT rewarded');
+
+-- Quest Templates
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29776, 29662, 29768, 29771, 29423, 29521, 29661, 29663, 29676, 29666, 29677, 29678, 29679,29680, 29769, 29772,29774,29775);
+INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
+('29776', '0', '0', '104396', '29775', '29778', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29776 morning-breeze-village
+(29662, 0, 0, 0, 0, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartQuest'), 						-- Quest: 29662 Stronger Than Reeds
+('29768', '0', '0', '0', '29769', '29772', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29768 Missing Mallet
+('29771', '0', '0', '0', '29769', '29772', '-29768', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29771 Stronger Than Wood
+(29423, 0, 0, 0, 0, 29521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_29423_the_passion_of_shen_zin_su'), 	-- Quest: 29423 The Passion of Shen-zin Su
+('29521', '0', '0', '0', '0', '29661', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), 		-- Quest: 29521 The Singing Pools
+(29661, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''), 							-- Quest: 29661 The Lesson of the Dry Fur
+(29663, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),							 	-- Quest: 29663 The Lesson of the Balanced Rock
+('29676', '0', '0', '0', '29663', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), 		-- Quest: 29676 Finding an Old Friend
+('29666', '0', '0', '0', '29676', '29677', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),		-- Quest: 29666 The Sting of Learning
+('29677', '0', '0', '0', '29676', '29678', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),		-- Quest: 29677 The Sun Pearl 
+('29678', '0', '0', '0', '29677', '29679', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', ''),		-- Quest: 29678 Shu, the Spirit of Water
+('29679', '0', '0', '0', '29678', '29680', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29679_a_new_friend'), -- Quest: 29679 A new friend
+('29680', '0', '0', '0', '29679', '29769', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29680 The Source of Our Livelihood
+('29769', '0', '0', '0', '29680', '29768', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29769 Rascals
+('29772', '0', '0', '0', '29768', '29774', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29772 Raucous Rousing
+('29774', '0', '0', '0', '29772', '29775', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29774 Not In the Face!
+('29775', '0', '0', '0', '29774', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''); -- Quest: 29775 The Spirit and Body of Shen-zin Su
+
+UPDATE `quest_template_addon` SET `ScriptName`= 'quest_29422_huo_the_spirit_of_fire', `NextQuestID`=29423 WHERE `ID` IN (29422);
+
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29776, 29768, 29771);
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54786', '29776', '0'); -- Quest: 29776 morning-breeze-village
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0'); -- Quest: 29768 Missing Mallet
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55478', '29771', '0'); -- Quest: 29771 Stronger Than Wood
+
+-- temp fix until quest accept works from auto completed quests and new offered quests
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29679, 29680);
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29679', '0'); 
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29680', '0');
+
+
 
 DELETE FROM `smart_scripts` WHERE `entryorguid`=29662 AND `source_type`=5;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 (29662, 5, 0, 0, '', 50, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 108786, 0, 0, 0, 0, 0, 0, NULL, 7, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'On Quest 29662 Reward - Cast on Player - Summon Stack of Reeds');
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (108786, 108808, 108798);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
-(108786, 'spell_summon_stack_of_reeds'),
-(108808, 'spell_summon_jojo_ironbrow'),
-(108798, 'spell_jojo_headbash_filter');
 
--- Creature Texts
-DELETE FROM `creature_text` WHERE `creatureID` IN (57669,57638);
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-('57669', '0', '0', 'Our crafters build the finest wooden planks.  They would weather the most brutal of storms.  But they are as water before the storm of my crushing skull.', '12', '0', '100', '1', '0', '0', '56343', '0', 'Jojo Ironbrow to Player'),
-('57669', '1', '0', 'Nothing made by pandaren hands can withstand me.', '12', '0', '100', '2', '0', '0', '56344', '0', 'Jojo Ironbrow to Player'),
-('57638', '0', '0', 'The reeds of the Singing Pools are the hardest in all of the land, but they are as air before my mighty brow.', '12', '0', '100', '1', '0', '0', '56333', '0', 'Jojo Ironbrow to Player'),
-('57638', '1', '0', 'Many have tested my claim, and I yet stand proven.', '12', '0', '100', '2', '0', '0', '56334', '0', 'Jojo Ironbrow to Player');
 
--- Jojo Ironbrow Path
 
-DELETE FROM `waypoint_path` WHERE `PathId`=5763800;
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES 
-(5763800, 0, 2, NULL, 'Jojo Ironbow - 57638');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId`=5763800;
-INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`) VALUES 
-(5763800, 1, 1027.379, 3287.417, 126.2935),
-(5763800, 2, 1017.188, 3284.896, 122.1512),
-(5763800, 3, 1008.779, 3281.773, 126.0961),
-(5763800, 4, 1002.936, 3280.243, 129.183),
-(5763800, 5, 995.3472, 3277.767, 131.9249),
-(5763800, 6, 987.7708, 3274.967, 132.621),
-(5763800, 7, 980.6025, 3271.603, 132.3108),
-(5763800, 8, 972.566, 3266.958, 129.9221),
-(5763800, 9, 965.8785, 3262.287, 126.9234),
-(5763800, 10, 957.291, 3258.333, 124.2717),
-(5763800, 11, 954.6875, 3250.521, 123.0217),
-(5763800, 12, 956.0166, 3239.251, 119.8172),
-(5763800, 13, 958.2917, 3227.129, 119.1829),
-(5763800, 14, 961.0208, 3215.984, 118.8171),
-(5763800, 15, 965.2934, 3203.267, 119.1047),
-(5763800, 16, 968.9957, 3193.558, 119.7131),
-(5763800, 17, 965.625, 3186.459, 117.8083),
-(5763800, 18, 960.5972, 3180.624, 117.5583),
-(5763800, 19, 952.6045, 3169.271, 115.5682),
-(5763800, 20, 945.833, 3161.459, 115.3083),
-(5763800, 21, 938.7257, 3150.678, 116.1175),
-(5763800, 22, 930.743, 3137.845, 113.3987),
-(5763800, 23, 925.1771, 3127.699, 110.4666),
-(5763800, 24, 921.0226, 3119.696, 110.343),
-(5763800, 25, 917.9167, 3111.247, 110.0449),
-(5763800, 26, 916.8212, 3100.016, 108.6972),
-(5763800, 27, 918, 3090.027, 105.8014),
-(5763800, 28, 919.632, 3082.332, 102.7485),
-(5763800, 29, 922.191, 3071.392, 102.6767),
-(5763800, 30, 925.3594, 3059.755, 102.7432),
-(5763800, 31, 928.5191, 3048.86, 102.7789),
-(5763800, 32, 931.0364, 3042.571, 102.7266),
-(5763800, 33, 934.375, 3034.375, 102.8546),
-(5763800, 34, 937.5, 3030.209, 103.7299),
-(5763800, 35, 941.0504, 3025.699, 105.1759),
-(5763800, 36, 944.791, 3022.917, 105.7299),
-(5763800, 37, 958.5417, 3019.446, 105.591),
-(5763800, 38, 965.6684, 3015.705, 105.6983),
-(5763800, 39, 968.5799, 3009.252, 105.6935),
-(5763800, 40, 966.8698, 3002.406, 105.0397);
-
-DELETE FROM `npc_vendor` WHERE `entry`=57620;
-INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES
-(57620, 20, 39505, 0, 0, 1, 0, 0, 64978), -- Набор виртуозного начертателя
-(57620, 19, 20815, 0, 0, 1, 0, 0, 64978), -- Инструменты ювелира
-(57620, 18, 39354, 0, 0, 1, 0, 0, 64978), -- Тонкий пергамент
-(57620, 17, 6260, 0, 0, 1, 0, 0, 64978), -- Синяя краска
-(57620, 16, 2324, 0, 0, 1, 0, 0, 64978), -- Отбеливатель
-(57620, 15, 2604, 0, 0, 1, 0, 0, 64978), -- Красная краска
-(57620, 14, 6529, 0, 0, 1, 0, 0, 64978), -- Блесна
-(57620, 13, 4289, 0, 0, 1, 0, 0, 64978), -- Соль
-(57620, 12, 3371, 0, 0, 1, 0, 0, 64978), -- Хрустальная колба
-(57620, 11, 2880, 0, 0, 1, 0, 0, 64978), -- Слабый плавень
-(57620, 10, 2320, 0, 0, 1, 0, 0, 64978), -- Грубая нить
-(57620, 9, 30817, 0, 0, 1, 0, 0, 64978), -- Простая мука
-(57620, 8, 2678, 0, 0, 1, 0, 0, 64978), -- Пряные травы
-(57620, 7, 6217, 0, 0, 1, 0, 0, 64978), -- Медный жезл
-(57620, 6, 6256, 0, 0, 1, 0, 0, 64978), -- Удочка
-(57620, 5, 5956, 0, 0, 1, 0, 0, 64978), -- Кузнечный молот
-(57620, 4, 85663, 0, 0, 1, 0, 0, 64978), -- Лопата травника
-(57620, 3, 2901, 0, 0, 1, 0, 0, 64978), -- Шахтерская кирка
-(57620, 2, 7005, 0, 0, 1, 0, 0, 64978), -- Нож для снятия шкур
-(57620, 1, 4470, 0, 0, 1, 0, 0, 64978); -- Простая древесина
 
 -- Creature Templates
 
@@ -285,16 +250,6 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 
 (26, 632, 5849, 0, 0, 47, 0, 29422, 66, 0, '', 0, 0, 0, '', 'Allow phase 632 if quest 29422 state completed / rewarded');
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (102522, 109090, 109095, 109105, 109109);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
-(102522, 'spell_fan_the_flames'),
-(109090, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
-(109095, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
-(109105, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
-(109109, 'spell_fan_the_flames_throw_wood_and_all_blow_air');
-
-UPDATE `quest_template_addon` SET `ScriptName`= 'quest_29422_huo_the_spirit_of_fire', `NextQuestID`=29423 WHERE `ID` IN (29422);
-
 -- 29423 The Passion of Shen-zin Su
 SET @CGUID := 900000;
 
@@ -348,31 +303,6 @@ DELETE FROM `conditions` WHERE (`SourceGroup` IN (1323, 1324)) AND (`SourceEntry
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 1323, 5736, 0, 0, 47, 0, 29423, 66, 0, '', 1, 0, 0, '', 'Allow phase 1323 if quest 29423 state not completed / not rewarded'),
 (26, 1324, 5736, 0, 0, 47, 0, 29423, 66, 0, '', 0, 0, 0, '', 'Allow phase 1324 if quest 29423 state completed / rewarded');
-
-DELETE FROM `creature_text` WHERE (`CreatureID` IN (54786, 60248, 60253, 61126, 61127));
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-(54786, 0, 0, 'Welcome, Huo. The people have missed your warmth.', 12, 0, 100, 2, 0, 27788, 0, 60608, 0, 'Master Shang Xi to Player'),
-(60248, 0, 0, 'Is that... is that Huo?', 12, 0, 100, 25, 0, 0, 0, 59751, 0, 'Chia-hui Autumnleaf to Player'),
-(60253, 0, 0, 'It is! Well done, $p!', 12, 0, 100, 71, 0, 0, 0, 59752, 0, 'Brewer Lin to Player'),
-(54786, 1, 0, 'You have conquered every challenge I put before you, $n. You have found Huo and brought him safely to the temple.', 12, 0, 100, 1, 0, 27789, 0, 60600, 0, 'Master Shang Xi to Player'),
-(54786, 1, 1, 'Your training has paid off, young $c. You have found Huo and brought him safely to the temple.', 12, 0, 100, 1, 0, 0, 0, 55254, 0, 'Master Shang Xi to Player'),
-(54786, 2, 0, 'There is a much larger problem we face now, my students. Shen-zin Su is in pain. If we do not act, the very land on which we stand could die, and all of us with it.', 12, 0, 100, 1, 0, 27790, 0, 60601, 0, 'Master Shang Xi to Player'),
-(54786, 3, 0, 'We need to speak to Shen-zin Su and discover how to heal it. And to do that, we need the four elemental spirits returned. Huo was the first.', 12, 0, 100, 1, 0, 27791, 0, 60602, 0, 'Master Shang Xi to Player'),
-(54786, 4, 0, 'Ji, I''d like you to go to the Dai-Lo Farmstead in search of Wugou, the spirit of earth.', 12, 0, 100, 1, 0, 27792, 0, 60603, 0, 'Master Shang Xi to Player'),
-(54786, 5, 0, 'Aysa, I want you to go to the Singing Pools to find Shu, the spirit of water.', 12, 0, 100, 1, 0, 27793, 0, 60604, 0, 'Master Shang Xi to Player'),
-(54786, 6, 0, 'And $n, you shall be the hand that guides us all. Speak with me for a moment before you join Aysa at the Singing Pools to the east.', 12, 0, 100, 1, 0, 27794, 0, 60605, 0, 'Master Shang Xi to Player'),
-(61126, 0, 0, 'Yes master.', 12, 0, 100, 2, 0, 27406, 0, 0, 0, 'Aysa Cloudsinger to Player'),
-(61127, 0, 0, 'On it!', 12, 0, 100, 0, 0, 27306, 0, 60606, 0, 'Ji Firepaw to Player');
-
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (128700, 109178);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
-(128700, 'spell_summon_fire_spirit'),
-(109178, 'spell_despawn_fire_spirit');
-
-DELETE FROM `quest_template_addon` WHERE `ID`=29423;
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
-(29423, 0, 0, 0, 0, 29521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_29423_the_passion_of_shen_zin_su');
-
 
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (6112600);
@@ -473,37 +403,8 @@ UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_cai', `BaseAttackT
 UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_deng', `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=60249; -- Deng
 
 
-
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (116190, 116191);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
-(116190, 'spell_summon_child_1'),
-(116191, 'spell_summon_child_2');
-
-DELETE FROM `creature_text` WHERE (`CreatureID` IN (60250, 60249));
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `comment`) VALUES
-(60250, 0, 0, 'Hey there! Are you the one that brought back the fire spirit?', 12, 0, 100, 3, 0, 0, 0, 59875, 'Cai to Deng'),
-(60250, 1, 0, 'Of course he was hot! Don''t be dumb, Deng.', 12, 0, 100, 5, 0, 0, 0, 59877, 'Cai to Deng'),
-(60250, 2, 0, 'Nuh uh. Bet they could for sure kick you over that hill, though! Hah!', 12, 0, 100, 274, 0, 0, 0, 59880, 'Cai to Deng'),
-(60250, 3, 0, 'Okay bye.', 12, 0, 100, 3, 0, 0, 0, 59878, 'Cai to Deng'),
-(60249, 0, 0, 'Was he hot?  I bet he was hot!', 12, 0, 100, 6, 0, 0, 0, 59876, 'Deng to Cai'),
-(60249, 1, 0, 'I bet you''re really strong, huh?  You could probably kick that bridge right in half if you wanted to!', 12, 0, 100, 6, 0, 0, 0, 59879, 'Deng to Cai'),
-(60249, 2, 0, 'Bye!', 12, 0, 100, 3, 0, 0, 0, 59884, 'Deng to Cai');
-
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29661, 29663, 29662);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
-(29661, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
-(29663, 0, 0, 0, 29521, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
-(29662, 0, 0, 0, 0, 29676, -29661521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
-
 -- Quest: 29663 The Lesson of the Balanced Rock
 -- Quest: 29661 The Lesson of the Dry Fur
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29521, 29661, 29663, 29676);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`) 
-VALUES 
-('29521', '0', '0', '0', '0', '29661', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
-('29661', '0', '0', '0', '29521', '29676', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
-('29663', '0', '0', '0', '29521', '29676', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
-('29676', '0', '0', '0', '29663', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_tushui_monk_on_pole' WHERE (`entry` = '55019');
 UPDATE `creature_template` SET `ScriptName` = 'npc_tushui_monk_on_pole', `KillCredit1` = '55019' WHERE (`entry` = '65468');
@@ -544,11 +445,6 @@ INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseU
 (@CGUID+746, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '1011.65', '3299.14', '116.784', '3.13979', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0');
 
 -- Quest: 29677 The Sun Pearl 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29666, 29677, 29678);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`) VALUES
-('20666', '0', '0', '0', '29676', '29677', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
-('29677', '0', '0', '0', '29676', '29678', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
-('29678', '0', '0', '0', '29677', '29679', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0');
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_fang_she' WHERE `entry` = 55292;
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 54976; -- Barbed Ray
@@ -570,10 +466,7 @@ INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties,
 ('54976', '0', '0', '0', '', '0', '0', '100', '0', '3000', '5000', '6000', '8000', '0', '', '11', '128407', '0', '0', '0', '0', '0', '0', NULL, '2', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Every 6 - 8 seconds (3 - 5s initially) (IC) - Self: Cast spell  128407 on Victim');
 
 -- Quest: 29678 Shu The Spirit of Water
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (103069,103077,103070);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103069', 'spell_rock_jump_a');
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103070', 'spell_rock_jump_b');
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103077', 'spell_rock_jump_c');
+
 
 -- Quest: 29679 A new Friend
 -- Object required for the pool of reflection
@@ -598,11 +491,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 ('451090', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '89304'); -- Shu at pool2 -- 85096 or 80797 ????? 
 -- UPDATE `creature_addon` SET `auras` = '89304' WHERE (`guid` = '451090'); -- not sure if this is correct or one of the above
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (117033,117034,117035,117036);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117033', 'spell_jump_to_front_right');
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117034', 'spell_jump_to_front_left');
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117035', 'spell_jump_to_back_right');
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('117036', 'spell_jump_to_back_left');
+
 
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60488,6048800); -- 15880 was the original model but not working
 INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
@@ -613,24 +502,8 @@ INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
 ('6048800', '9', '2', '0', '', '0', '0', '100', '0', '0', '0', '3000', '3000', '0', '', '28', '116695', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Remove Aura'),
 ('6048800', '9', '3', '0', '', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Despawn');
 
--- temp fix until quest accept works from auto completed quests and new offered quests
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29679, 29680);
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29679', '0');
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54975', '29680', '0');
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29679,29680);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29679', '0', '0', '0', '29678', '29680', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29679_a_new_friend'),
-('29680', '0', '0', '0', '29679', '29769', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589);
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('128588', 'spell_aysa_congrats_trigger_aura');
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('128589', 'spell_aysa_congrats_timer');
-
-DELETE FROM `creature_text` WHERE `CreatureID` = 54975;
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
-('54975', '0', '0', 'I have to admit, that looked pretty fun!', '12', '0', '100', '0', '0', '27394', '0', '66056', '1', 'Aysa Cloudsinger - quest A new friend'),
-('54975', '1', '0', 'And it looks to me like you made a new friend.', '12', '0', '100', '0', '0', '27395', '0', '66057', '1', 'Aysa Cloudsinger - quest A new friend');
 
 -- Quest: 29680 The Source of Our Livelihood
 UPDATE `creature_template` SET `ScriptName` = 'npc_shu_follower' WHERE `Entry` IN (55213);
@@ -639,7 +512,14 @@ UPDATE `creature_template` SET `movementId` = '65' WHERE (`entry` = '55213');
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55213,55539);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55213', '5521300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '103245'),
-('55539', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797 42386');
+('55539', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797');
+
+DELETE FROM `creature_addon` WHERE `guid` IN (451176,451196);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('451176', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797 42386'), -- Wugou at Farmstead
+('451196', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797'); -- Shu at Farmstead
+-- ('451166', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797'); -- Ji at Farmstead
+
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (5521300);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
@@ -659,35 +539,6 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29769,29770);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29769', '0');
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55479', '29770', '0');
-
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29769);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29769', '0', '0', '0', '29680', '29768', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
-
-DELETE FROM `creature_text` WHERE `creatureID` IN (55477,55483,55504);
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-('55477', '0', '0', 'Wake... up... DANGIT!', '12', '0', '100', '15', '0', '27345', '60447', '0', 'Ji Firepaw'),
-('55477', '1', '0', 'This is ridiculous...', '12', '0', '100', '274', '0', '27346', '60448', '0', 'Ji Firepaw'),
-('55477', '2', '0', 'You sleep like a rock!', '12', '0', '100', '5', '0', '27347', '60449', '0', 'Ji Firepaw'),
-('55477', '3', '0', 'There\'s no way you\'ll sleep through THIS.', '12', '0', '100', '274', '0', '27348', '60450', '0', 'Ji Firepaw'),
-('55477', '4', '0', 'Seriously?', '12', '0', '100', '18', '0', '27349', '60451', '0', 'Ji Firepaw'),
-('55477', '5', '0', 'Why...', '12', '0', '100', '507', '0', '27350', '60452', '0', 'Ji Firepaw'),
-('55477', '6', '0', 'won\'t...', '12', '0', '100', '509', '0', '27351', '60453', '0', 'Ji Firepaw'),
-('55477', '7', '0', 'you...', '12', '0', '100', '507', '0', '27352', '60454', '0', 'Ji Firepaw'),
-('55477', '8', '0', 'just...', '12', '0', '100', '509', '0', '27353', '60455', '0', 'Ji Firepaw'),
-('55477', '9', '0', 'WAKE UP?!', '12', '0', '100', '22', '0', '27354', '60456', '0', 'Ji Firepaw'),
-('55477', '10', '0', 'I will break you, little rock man!', '12', '0', '100', '25', '0', '27355', '60457', '0', 'Ji Firepaw'),
-('55477', '11', '0', '%s sighs.', '16', '0', '100', '0', '0', '0', '55942', '0', 'Ji Firepaw to Player'),
-('55483', '0', '0', 'Gimme all your vegetables!', '12', '0', '100', '0', '0', '0', '54873', '0', 'Plump Virmen to Player'),
-('55483', '0', '1', 'AIIIIEEEEEEE!', '12', '0', '100', '0', '0', '0', '54874', '0', 'Plump Virmen to Player'),
-('55483', '0', '2', 'This virmen land!', '12', '0', '100', '0', '0', '0', '54876', '0', 'Plump Virmen to Player'),
-('55483', '0', '3', 'You no take carrot! You take turnip instead!', '12', '0', '100', '0', '0', '0', '54877', '0', 'Plump Virmen to Player'),
-('55483', '0', '4', 'We rowdy!', '12', '0', '100', '0', '0', '0', '54875', '0', 'Plump Virmen to Player'),
-('55504', '0', '0', 'Gimme all your vegetables!', '12', '0', '100', '0', '0', '0', '54873', '0', 'Plump Carrotcruncher to Player'),
-('55504', '0', '1', 'AIIIIEEEEEEE!', '12', '0', '100', '0', '0', '0', '54874', '0', 'Plump Carrotcruncher to Player'),
-('55504', '0', '2', 'This virmen land!', '12', '0', '100', '0', '0', '0', '54876', '0', 'Plump Carrotcruncher to Player'),
-('55504', '0', '3', 'You no take carrot! You take turnip instead!', '12', '0', '100', '0', '0', '0', '54877', '0', 'Plump Carrotcruncher to Player'),
-('55504', '0', '4', 'We rowdy!', '12', '0', '100', '0', '0', '0', '54875', '0', 'Plump Carrotcruncher to Player');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55477,55483,55504);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55477,5547700,55483,55504);
@@ -724,6 +575,34 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('5547700', '9', '17', '0', '0', '0', '100', '0', '20000', '20000', '1000', '1000', '0', '', '1', '10', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Talk'),
 ('5547700', '9', '18', '0', '0', '0', '100', '0', '13000', '13000', '1000', '1000', '0', '', '5', '20', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Play Emote');
 
+-- Condition for Ji at the farmstead SAY lines
+DELETE FROM `conditions`
+WHERE SourceTypeOrReferenceId = 22
+  AND SourceGroup = 5
+  AND SourceEntry = 55477
+  AND ConditionTypeOrReference = 9
+  AND ConditionValue1 = 29774;
+INSERT INTO `conditions` (
+    SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId,
+    ElseGroup, ConditionTypeOrReference, ConditionTarget,
+    ConditionValue1, ConditionValue2, ConditionValue3,
+    NegativeCondition, COMMENT
+) VALUES
+(
+    22,                -- CONDITION_SOURCE_TYPE_SMART_EVENT
+    5,                 -- SourceGroup (event id + 1)
+    55477,             -- entryorguid of your creature
+    0,                 -- smart_scripts.source_type
+    0,                 -- ElseGroup
+    9,                 -- CONDITION_QUESTTAKEN
+    0,                 -- ConditionTarget (player context)
+    29774,             -- Quest ID
+    0, 0,              -- unused
+    1,                 -- NEGATIVE: true when quest is NOT taken
+    'Ji: run SAI only if quest 29774 is NOT taken'
+);
+
+
 UPDATE `creature_template_difficulty` SET `LootID` = '55483', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '55483') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `LootID` = '55504', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '55504') and (`DifficultyID` = '0');
 
@@ -733,20 +612,10 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29774', '0');
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29775', '0');
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29772,29774,29775);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29772', '0', '0', '0', '29768', '29774', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29774', '0', '0', '0', '29772', '29775', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29775', '0', '0', '0', '29774', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
-
-DELETE FROM `creature_text` WHERE `creatureID` IN (55539);
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-('55539', '0', '0', '%s snorts loudly, and continues sleeping.', '16', '0', '100', '0', '0', '0', '54991', '0', 'Wugou to Player');
-
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55558,60916);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('55558', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105890'),
-('60916', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105889 42386');
+('55558', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105890'), -- shu spawn at farmstead
+('60916', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105889'); -- wugou spawn at farmstead
 
 DELETE FROM `gossip_menu` WHERE `MenuID` = 13140;
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES ('13140', '18503', '0');
@@ -866,7 +735,7 @@ UPDATE `creature_template` SET `AIName` = 'SmartAI', `unit_flags` = '33554944', 
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (66941);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('66941', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '116695'); -- Water Spout Bunny at farmstead -- not sure of the invis aura ????? 
+('66941', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797 116695'); -- Water Spout Bunny at farmstead -- not sure of the invis aura ????? 
 
 -- these flags disable gravity for the bunny so it can stay above water
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '66941') and (`DifficultyID` = '0');
@@ -880,20 +749,115 @@ INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
 ('6694100', '9', '2', '0', '', '0', '0', '100', '0', '0', '0', '3000', '3000', '0', '', '28', '116695', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Remove Aura'),
 ('6694100', '9', '3', '0', '', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Despawn');
 
+
+-- Quest: 29776 morning-breeze-village
+-- these flags disable gravity for the bunny so it can float above
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '55685') and (`DifficultyID` = '0');
+
+DELETE FROM `creature_addon` WHERE `guid` IN (451410);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('451410', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108900 49415 126160');
+
+UPDATE `creature` SET `ScriptName` = 'npc_shanxi_quest2' WHERE (`guid` = '451410');
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55685, 60917);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('55685', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '99385');
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('60917', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '49415');
+
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `VehicleId` = 1800 WHERE `Entry` IN (55685);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55694);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55685,55694,5569400);
+INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
+('55685', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '85', '46598', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Uplifting Draft - Just Spawned - Invoker Cast Ride Vehicle Hardcoded'),
+('55685', '0', '1', '0', '27', '0', '100', '0', '0', '0', '0', '0', '0', '', '53', '1', '5568500', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Uplifting Draft - Passenger Boarded - Start WP'),
+('55685', '0', '2', '3', '58', '0', '100', '0', '12', '5568500', '0', '0', '0', '', '11', '68576', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Uplifting Draft - WP Ended - Cast Eject All Passengers'),
+('55685', '0', '3', '4', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '104490', '2', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Uplifting Draft - WP Ended - Cast Forcecast Trigger Ji Air Plateau Departure'),
+('55685', '0', '4', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Uplifting Draft - WP Ended - Despawn'),
+('55694', '0', '0', '0', '8', '0', '100', '0', '104489', '0', '0', '0', '0', '', '80', '5569400', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On Spellhit - Run Script'),
+('55694', '0', '1', '0', '58', '0', '100', '0', '41', '5569400', '0', '0', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - WP Ended - Despawn'),
+('5569400', '9', '0', '0', '0', '0', '100', '0', '1500', '1500', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Talk'),
+('5569400', '9', '1', '0', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '53', '1', '5569400', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Start WP');
+
+DELETE FROM `vehicle_template` WHERE `creatureId` = 55685;
+INSERT INTO `vehicle_template` VALUES (55685, 0, NULL,0);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5568500,5569400);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(5568500,1,0,'Uplifting Draft at temple'),
+(5569400,1,0,'Ji Firepaw at temple - to Morning Breeze');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5568500,5569400);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
+(5568500, '0', '930.606', '3609.28', '201.169'),
+(5568500, '1', '938.901', '3615.79', '203.69'),
+(5568500, '2', '950.292', '3614.42', '204.503'),
+(5568500, '3', '960.127', '3607.95', '209.473'),
+(5568500, '4', '951.721', '3595.49', '218.821'),
+(5568500, '5', '941.727', '3596.61', '228.34'),
+(5568500, '6', '932.559', '3604.83', '235.312'),
+(5568500, '7', '939.153', '3613.67', '242.674'),
+(5568500, '8', '946.714', '3611.3', '250.339'),
+(5568500, '9', '948.613', '3602.81', '255.289'),
+(5568500, '10', '942.122', '3596.85', '257.268'),
+(5568500, '11', '933.01', '3600.14', '256.602'),
+(5568500, '12', '920.45', '3604.77', '254.173'),
+(5569400, '0', '919.644', '3631.51', '251.995'),
+(5569400, '1', '919.951', '3640.1', '252.143'),
+(5569400, '2', '911.599', '3653.28', '257.235'),
+(5569400, '3', '902.828', '3667.67', '268.916'),
+(5569400, '4', '896.158', '3678.36', '270.388'),
+(5569400, '5', '884.846', '3698.18', '256.11'),
+(5569400, '6', '873.531', '3716.29', '253.567'),
+(5569400, '7', '870.245', '3729.18', '255.122'),
+(5569400, '8', '872.625', '3741.65', '256.476'),
+(5569400, '9', '874.821', '3754.83', '256.496'),
+(5569400, '10', '873.896', '3771.67', '255.907'),
+(5569400, '11', '871.934', '3791.37', '251.174'),
+(5569400, '12', '871.807', '3815.84', '251.176'),
+(5569400, '13', '871.632', '3847.02', '248.486'),
+(5569400, '14', '876.247', '3875.8', '232.901'),
+(5569400, '15', '882.415', '3883.23', '232.847'),
+(5569400, '16', '884.998', '3894.71', '232.849'),
+(5569400, '17', '882.644', '3903.48', '232.862'),
+(5569400, '18', '872.936', '3912.66', '232.761'),
+(5569400, '19', '871.109', '3927.02', '233.243'),
+(5569400, '20', '871.368', '3946.04', '241.471'),
+(5569400, '21', '871.648', '3962.31', '244.601'),
+(5569400, '22', '871.74', '3983.4', '233.088'),
+(5569400, '23', '871.255', '4019.36', '215.244'),
+(5569400, '24', '873.498', '4039.44', '208.247'),
+(5569400, '25', '887.143', '4063.88', '198.264'),
+(5569400, '26', '897.17', '4083.92', '196.354'),
+(5569400, '27', '905.981', '4105.24', '196.067'),
+(5569400, '28', '913.248', '4119.95', '196.192'),
+(5569400, '29', '924.639', '4129.2', '196.442'),
+(5569400, '30', '939.283', '4134.46', '196.294'),
+(5569400, '31', '953.13', '4143.33', '196.794'),
+(5569400, '32', '963.005', '4155.36', '195.919'),
+(5569400, '33', '976.026', '4159.32', '196.884'),
+(5569400, '34', '993.514', '4155.73', '199.857'),
+(5569400, '35', '1010.64', '4153.78', '202.817'),
+(5569400, '36', '1026.41', '4152.24', '204.304'),
+(5569400, '37', '1044.77', '4154.79', '206.585'),
+(5569400, '38', '1062.83', '4159.12', '208.381'),
+(5569400, '39', '1081.43', '4163.41', '206.348'),
+(5569400, '40', '1096.34', '4167.47', '201.94'),
+(5569400, '41', '1107.83', '4168.79', '196.201');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 104489;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `Comment`) VALUES 
+(13, '1', '104489', '0', '0', '51', '0', '5', '55694', '0', '', '0', '0', '0', 'Trigger Ji Air Plateau Departure target Ji Firepaw');
+
 -- Quest: 29775 The Spirit and Body of Shen-zin Su
-UPDATE `creature_template` SET `ScriptName` = 'npc_shu_wugou_follower' WHERE `Entry` IN (55558,60916);
+-- UPDATE `creature_template` SET `ScriptName` = 'npc_shu_wugou_follower' WHERE `Entry` IN (55558,60916);
+UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (55558,60916);
 
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55477) AND `event_type` IN (19);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 ('55477', '0', '4', '0', '19', '0', '100', '0', '29775', '0', '0', '0', '0', '', '134', '104017', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Quest Accept - Invoker Cast Summon Spirits on player');
-
--- Adding some creature text for Wo-son Villager
-DELETE FROM `creature_text` WHERE `creatureID` IN (57132);
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-('57132', '0', '0', 'I have had enough of this!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line'),
-('57132', '0', '1', 'Just... go away!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line'),
-('57132', '0', '2', 'You nasty... little creature!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line'),
-('57132', '0', '3', 'Get off of me!', '12', '0', '100', '1', '0', '0', '0', '0', 'Wu-song Villager Random line');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57132);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57132);
@@ -927,24 +891,14 @@ UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' 
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450358') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 
 -- Yak & cart & tender
-DELETE FROM `creature_text` WHERE `CreatureID` = 57712;
-INSERT INTO `creature_text` (`CreatureID`,`GroupID`,`ID`,`Text`,`Type`,`Language`,`Probability`,`Emote`,`Duration`,`Sound`,`BroadcastTextId`,`TextRange`,`comment`) VALUES 
-(57712,0,0,'Hello friend!  You\'re welcome to use my cart if you like.  It will take you to the Dai-Lo Farmstead.',12,0,100,3,0,0,56406,0,'Delivery Cart Tender to Player'),
-(57712,1,0,'Hello friend!  You\'re welcome to use my cart if you like.  It will take you to the Temple of Five Dawns.',12,0,100,3,0,0,56415,0,'Delivery Cart Tender to Player');
 
 UPDATE `creature_template` SET `VehicleId` = '1944' WHERE (`entry` = '57208');
 UPDATE `creature_template` SET `movementId` = 132 WHERE `Entry` = 57207;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ox_cart' WHERE `Entry` IN (57208,57207);
 
+-- Singing Pools Cart
 DELETE FROM `vehicle_template` WHERE `creatureId` = 57208;
 INSERT INTO `vehicle_template` VALUES (57208, 0, NULL,0);
-
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (57710,59497);
-INSERT INTO `npc_spellclick_spells` VALUES
-('57710', '107784', '3', '0'),
-('57710', '115904', '1', '0'),
-('59497', '114453', '3', '0'),
-('59497', '115904', '1', '0');
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (57208,57207,57710,57709);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
@@ -953,81 +907,7 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('57709', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '84886 94570'),
 ('57710', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108692 94570 84886');
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (5720700,5720800);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(5720700,1,0,'The Wandering Isle Cart & Ox'),
-(5720800,1,0,'The Wandering Isle Cart & Ox');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5720700,5720800);
-INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
-(5720700, '0', '981.766', '2857.77', '88.7352'),
-(5720700, '1', '978.016', '2848.52', '87.2352'),
-(5720700, '2', '948.266', '2835.52', '87.2352'),
-(5720700, '3', '919.016', '2825.02', '87.2352'),
-(5720700, '4', '895.766', '2811.27', '86.9852'),
-(5720700, '5', '880.766', '2807.02', '83.9852'),
-(5720700, '6', '853.516', '2799.02', '83.7352'),
-(5720700, '7', '825.516', '2790.77', '78.7352'),
-(5720700, '8', '802.266', '2785.27', '76.7352'),
-(5720700, '9', '790.266', '2792.77', '75.7352'),
-(5720700, '10', '763.016', '2815.52', '76.2352'),
-(5720700, '11', '746.766', '2834.77', '75.7352'),
-(5720700, '12', '746.266', '2851.77', '75.9852'),
-(5720700, '13', '755.516', '2869.77', '75.2352'),
-(5720700, '14', '753.516', '2890.02', '74.9852'),
-(5720700, '15', '732.766', '2915.02', '74.7352'),
-(5720700, '16', '703.766', '2939.02', '74.7352'),
-(5720700, '17', '683.766', '2954.77', '75.2352'),
-(5720700, '18', '674.016', '2975.52', '74.9852'),
-(5720700, '19', '667.266', '2983.27', '75.2352'),
-(5720700, '20', '660.516', '2990.77', '79.9852'),
-(5720700, '21', '652.266', '2999.52', '74.9852'),
-(5720700, '22', '645.016', '3006.27', '74.7352'),
-(5720700, '23', '629.016', '3016.52', '75.4852'),
-(5720700, '24', '616.016', '3035.52', '76.7352'),
-(5720700, '25', '612.766', '3061.27', '80.4852'),
-(5720700, '26', '612.766', '3080.27', '84.4852'),
-(5720700, '27', '618.01', '3107.21', '87.5104'),
-(5720700, '28', '617.01', '3131.96', '87.7604'),
-(5720700, '29', '607.01', '3143.96', '88.0104'),
-(5720700, '30', '591.51', '3146.71', '88.0104'),
-(5720700, '31', '574.51', '3148.71', '87.0104'),
-(5720700, '32', '555.01', '3159.21', '78.0104'),
-(5720700, '33', '547.26', '3174.96', '77.5104'),
-(5720800, '0', '981.864', '2857.8', '88.8159'),
-(5720800, '1', '978.114', '2848.55', '87.3159'),
-(5720800, '2', '948.364', '2835.55', '87.3159'),
-(5720800, '3', '919.114', '2825.05', '87.3159'),
-(5720800, '4', '895.614', '2811.3', '87.0659'),
-(5720800, '5', '880.614', '2807.05', '83.8159'),
-(5720800, '6', '853.364', '2799.05', '83.8159'),
-(5720800, '7', '825.614', '2790.8', '78.5659'),
-(5720800, '8', '802.364', '2785.3', '76.8159'),
-(5720800, '9', '790.364', '2792.8', '75.8159'),
-(5720800, '10', '762.864', '2815.55', '76.0659'),
-(5720800, '11', '746.614', '2834.8', '75.8159'),
-(5720800, '12', '746.364', '2851.8', '76.0659'),
-(5720800, '13', '755.614', '2869.8', '75.3159'),
-(5720800, '14', '753.364', '2890.05', '75.0659'),
-(5720800, '15', '732.864', '2915.05', '74.5659'),
-(5720800, '16', '703.614', '2939.05', '74.5659'),
-(5720800, '17', '683.864', '2954.8', '75.3159'),
-(5720800, '18', '674.114', '2975.55', '75.0659'),
-(5720800, '19', '667.364', '2983.3', '75.3159'),
-(5720800, '20', '660.614', '2990.55', '79.8159'),
-(5720800, '21', '652.364', '2999.3', '75.0659'),
-(5720800, '22', '645.114', '3006.3', '74.8159'),
-(5720800, '23', '629.114', '3016.55', '75.3159'),
-(5720800, '24', '616.114', '3035.55', '76.5659'),
-(5720800, '25', '612.864', '3061.3', '80.5659'),
-(5720800, '26', '612.864', '3080.3', '84.3159'),
-(5720800, '27', '618.052', '3107.17', '87.5442'),
-(5720800, '28', '617.052', '3131.92', '87.7942'),
-(5720800, '29', '607.052', '3143.92', '87.7942'),
-(5720800, '30', '591.302', '3146.67', '88.0442'),
-(5720800, '31', '574.552', '3148.67', '87.0442'),
-(5720800, '32', '555.052', '3159.17', '78.0442'),
-(5720800, '33', '547.302', '3174.92', '77.2942');
 
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (59498,59496);
@@ -1040,86 +920,11 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('59498', '5949800', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- 
 ('59496', '5949600', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '108692');
 
+-- Farmstead Cart
 DELETE FROM `vehicle_template` WHERE `creatureId` = 59496;
 INSERT INTO `vehicle_template` VALUES (59496, 0, NULL,0);
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (5949600,5949800);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(5949600,1,0,'Spawned Cart at Farmstead'),
-(5949800,1,0,'Spawned Yak at Farmstead');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5949600,5949800);
-INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
-(5949600, '0', '581.87', '3153.32', '88.284'),
-(5949600, '1', '573.37', '3149.82', '86.534'),
-(5949600, '2', '557.87', '3157.07', '79.284'),
-(5949600, '3', '548.12', '3172.57', '77.534'),
-(5949600, '4', '545.12', '3197.32', '77.284'),
-(5949600, '5', '538.12', '3210.82', '76.284'),
-(5949600, '6', '517.87', '3225.07', '74.534'),
-(5949600, '7', '508.12', '3244.82', '76.534'),
-(5949600, '8', '507.87', '3265.32', '77.784'),
-(5949600, '9', '512.37', '3291.07', '74.534'),
-(5949600, '10', '519.87', '3315.07', '73.534'),
-(5949600, '11', '524.37', '3324.07', '77.784'),
-(5949600, '12', '527.37', '3328.82', '78.284'),
-(5949600, '13', '532.12', '3336.57', '73.784'),
-(5949600, '14', '543.37', '3355.82', '76.784'),
-(5949600, '15', '555.12', '3367.07', '78.534'),
-(5949600, '16', '568.12', '3375.82', '80.534'),
-(5949600, '17', '608.12', '3383.57', '87.034'),
-(5949600, '18', '634.87', '3392.07', '93.034'),
-(5949600, '19', '653.12', '3404.82', '99.034'),
-(5949600, '20', '675.62', '3427.32', '106.784'),
-(5949600, '21', '685.37', '3443.57', '112.034'),
-(5949600, '22', '694.12', '3467.57', '118.034'),
-(5949600, '23', '715.62', '3480.57', '121.534'),
-(5949600, '24', '741.87', '3492.32', '133.784'),
-(5949600, '25', '751.37', '3506.32', '137.784'),
-(5949600, '26', '756.12', '3525.32', '139.284'),
-(5949600, '27', '743.12', '3552.57', '140.534'),
-(5949600, '28', '741.62', '3572.57', '140.784'),
-(5949600, '29', '744.536', '3595.51', '140.547'),
-(5949600, '30', '739.739', '3604.48', '140.749'),
-(5949600, '31', '722.489', '3605.23', '140.749'),
-(5949600, '32', '703.989', '3600.98', '141.999'),
-(5949600, '33', '683.989', '3600.73', '145.999'),
-(5949600, '34', '659.739', '3602.23', '146.999'),
-(5949800, '0', '582.076', '3153.46', '88.2618'),
-(5949800, '1', '573.326', '3149.96', '86.7618'),
-(5949800, '2', '558.076', '3156.96', '79.2618'),
-(5949800, '3', '548.076', '3172.46', '77.5118'),
-(5949800, '4', '545.076', '3197.46', '77.5118'),
-(5949800, '5', '538.076', '3210.71', '76.5118'),
-(5949800, '6', '517.826', '3224.96', '74.5118'),
-(5949800, '7', '508.076', '3244.71', '76.5118'),
-(5949800, '8', '508.076', '3265.46', '77.7618'),
-(5949800, '9', '512.326', '3291.21', '74.5118'),
-(5949800, '10', '520.076', '3315.21', '73.5118'),
-(5949800, '11', '524.326', '3323.96', '77.7618'),
-(5949800, '12', '527.326', '3328.71', '78.2618'),
-(5949800, '13', '532.076', '3336.46', '73.7618'),
-(5949800, '14', '543.576', '3355.71', '76.7618'),
-(5949800, '15', '555.076', '3366.96', '78.5118'),
-(5949800, '16', '568.326', '3375.71', '80.5118'),
-(5949800, '17', '608.076', '3383.46', '87.0118'),
-(5949800, '18', '635.076', '3392.21', '93.2618'),
-(5949800, '19', '653.076', '3404.96', '99.0118'),
-(5949800, '20', '675.576', '3427.21', '106.762'),
-(5949800, '21', '685.326', '3443.71', '112.012'),
-(5949800, '22', '694.076', '3467.46', '118.012'),
-(5949800, '23', '715.576', '3480.71', '121.512'),
-(5949800, '24', '741.826', '3492.21', '133.762'),
-(5949800, '25', '751.326', '3506.46', '137.762'),
-(5949800, '26', '756.076', '3525.21', '139.262'),
-(5949800, '27', '743.076', '3552.71', '140.512'),
-(5949800, '28', '741.576', '3572.46', '140.762'),
-(5949800, '29', '744.536', '3595.51', '140.547'),
-(5949800, '30', '739.761', '3604.38', '140.749'),
-(5949800, '31', '722.511', '3605.13', '140.749'),
-(5949800, '32', '704.011', '3600.88', '141.999'),
-(5949800, '33', '684.011', '3600.88', '145.999'),
-(5949800, '34', '659.761', '3602.38', '146.999');
 
 
 -- Misc mobs fixes
@@ -1141,65 +946,6 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('55506', '0', '0', '0', '0', '0', '100', '0', '8000', '12000', '35000', '40000', '0', '', '11', '125383', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Raggis - Update IC - Cast Burrow');
 
 UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=54131 AND `DifficultyID`=0); -- 54131 (Fe-Feng Hozen) - CanSwim
-
--- Jojo at Farmstead
-DELETE FROM `waypoint_path` WHERE `PathId` IN (5766900);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(5766900,0,0,'Jojo Ironbrow (spell spawn farmstead)');
-
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5766900);
-INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
-(5766900, '0', '599.929', '3140.35', '88.2049', '0', '0'),
-(5766900, '1', '594.019', '3144.98', '87.8352', '0', '0'),
-(5766900, '2', '585.708', '3147.41', '87.8352', '0', '0'),
-(5766900, '3', '578.502', '3150.31', '87.6758', '0', '0'),
-(5766900, '4', '568.241', '3155.38', '84.0477', '0', '0'),
-(5766900, '5', '556.214', '3163.61', '77.2933', '0', '0'),
-(5766900, '6', '550.847', '3172.42', '77.0957', '0', '0'),
-(5766900, '7', '549.276', '3180.51', '77.0957', '0', '0'),
-(5766900, '8', '548.031', '3191.97', '77.0957', '0', '0'),
-(5766900, '9', '546.122', '3202.98', '76.5399', '0', '0'),
-(5766900, '10', '537.189', '3213.91', '75.7559', '0', '0'),
-(5766900, '11', '527.2', '3219.97', '74.6265', '0', '0'),
-(5766900, '12', '516.071', '3230.63', '74.093', '0', '0'),
-(5766900, '13', '511.005', '3245.36', '76.2209', '0', '0'),
-(5766900, '14', '510.042', '3258.1', '77.5846', '0', '0'),
-(5766900, '15', '511.365', '3274.88', '76.3656', '0', '0'),
-(5766900, '16', '515.174', '3293.1', '74.0391', '0', '0'),
-(5766900, '17', '517.49', '3302.16', '73.4592', '0', '0'),
-(5766900, '18', '522.252', '3313.48', '73.2886', '0', '0'),
-(5766900, '19', '524.229', '3319.17', '74.429', '0', '0'),
-(5766900, '20', '527.083', '3323.94', '77.9471', '0', '0'),
-(5766900, '21', '529.615', '3328.26', '77.2828', '0', '0'),
-(5766900, '22', '532.233', '3332.62', '73.9326', '0', '0'),
-(5766900, '23', '536.986', '3339.77', '74.2679', '0', '0'),
-(5766900, '24', '541.793', '3346.9', '75.5099', '0', '0'),
-(5766900, '25', '545.04', '3354.28', '76.3512', '0', '0'),
-(5766900, '26', '551.722', '3360.92', '77.6802', '0', '0'),
-(5766900, '27', '562.785', '3369.31', '79.3041', '0', '0'),
-(5766900, '28', '573.752', '3374.6', '81.1686', '0', '0'),
-(5766900, '29', '584.516', '3376.84', '83.0058', '0', '0'),
-(5766900, '30', '602.658', '3380.54', '86.0039', '0', '0'),
-(5766900, '31', '616.135', '3383.62', '88.2383', '0', '0'),
-(5766900, '32', '629.408', '3388.19', '91.4238', '0', '0'),
-(5766900, '33', '641.904', '3394.52', '94.8907', '0', '0'),
-(5766900, '34', '656.509', '3405.72', '99.4795', '0', '0'),
-(5766900, '35', '669.83', '3419.28', '104.06', '0', '0'),
-(5766900, '36', '680.092', '3431.23', '108.153', '0', '0'),
-(5766900, '37', '685.416', '3441.67', '111.014', '0', '0'),
-(5766900, '38', '689.628', '3453.92', '115.057', '0', '0'),
-(5766900, '39', '694.601', '3465.64', '117.579', '0', '0'),
-(5766900, '40', '705.93', '3473.97', '119.103', '0', '0'),
-(5766900, '41', '719.997', '3481.66', '123.177', '0', '0'),
-(5766900, '42', '730.43', '3485.82', '128.295', '0', '0'),
-(5766900, '43', '740.32', '3491.29', '132.969', '0', '0'),
-(5766900, '44', '747.703', '3497.73', '136.24', '0', '0'),
-(5766900, '45', '754.712', '3506.09', '137.961', '0', '0'),
-(5766900, '46', '762.233', '3509.7', '140.319', '0', '0'),
-(5766900, '47', '770.802', '3509.02', '140.395', '0', '0'),
-(5766900, '48', '781.087', '3506.4', '141.267', '0', '0'),
-(5766900, '49', '783.833', '3502.92', '141.293', '0', '0'),
-(5766900, '50', '782.533', '3499.91', '141.293', '0', '0');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57669);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57669,5766900);
@@ -1227,81 +973,7 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 -- Lamp Lighter needs waypoint movement
 UPDATE `creature` SET `zoneId` = '5736', `areaId` = '5881', `wander_distance` = '0', `MovementType` = '2' WHERE (`guid` = '451131');
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (6493900);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(6493900,0,0,'Lamplighter Sunny');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6493900);
-INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
-(6493900, '0', '612.982', '3096.65', '86.6167', '0', '0'),
-(6493900, '1', '612.482', '3088.15', '85.3667', '0', '0'),
-(6493900, '2', '610.982', '3079.9', '84.1167', '0', '0'),
-(6493900, '3', '611.232', '3067.15', '81.6167', '0', '0'),
-(6493900, '4', '611.482', '3050.65', '78.1167', '0', '0'),
-(6493900, '5', '612.732', '3041.15', '76.8667', '0', '0'),
-(6493900, '6', '619.232', '3025.4', '75.8667', '0', '0'),
-(6493900, '7', '624.71', '3015.89', '75.1487', '0', '7000'),
-(6493900, '8', '622.442', '3021.02', '75.5442', '0', '0'),
-(6493900, '9', '617.692', '3028.02', '76.0442', '0', '0'),
-(6493900, '10', '613.942', '3037.02', '76.7942', '0', '0'),
-(6493900, '11', '611.692', '3045.27', '77.5442', '0', '0'),
-(6493900, '12', '611.442', '3053.52', '79.0442', '0', '0'),
-(6493900, '13', '611.692', '3062.27', '80.5442', '0', '0'),
-(6493900, '14', '611.942', '3071.02', '82.2942', '0', '0'),
-(6493900, '15', '614.692', '3080.27', '84.0442', '0', '0'),
-(6493900, '16', '620.674', '3085.16', '85.9397', '0', '7000'),
-(6493900, '17', '619.254', '3091.48', '86.6491', '0', '0'),
-(6493900, '18', '618.004', '3101.98', '87.1491', '0', '0'),
-(6493900, '19', '616.504', '3112.48', '87.6491', '0', '0'),
-(6493900, '20', '615.004', '3123.23', '87.8991', '0', '0'),
-(6493900, '21', '617.004', '3137.73', '87.8991', '0', '0'),
-(6493900, '22', '618.335', '3147.79', '87.8586', '0', '7000'),
-(6493900, '23', '611.154', '3148.1', '88.101', '0', '0'),
-(6493900, '24', '601.904', '3149.35', '87.851', '0', '0'),
-(6493900, '25', '597.154', '3148.85', '87.851', '0', '0'),
-(6493900, '26', '592.472', '3143.41', '87.8434', '0', '7000'),
-(6493900, '27', '587.675', '3146.72', '88.0353', '0', '0'),
-(6493900, '28', '580.925', '3146.47', '87.7853', '0', '0'),
-(6493900, '29', '572.175', '3147.72', '86.5353', '0', '0'),
-(6493900, '30', '564.175', '3150.47', '83.0353', '0', '0'),
-(6493900, '31', '555.925', '3155.72', '78.7853', '0', '0'),
-(6493900, '32', '549.175', '3161.97', '77.5353', '0', '0'),
-(6493900, '33', '545.675', '3169.72', '77.2853', '0', '0'),
-(6493900, '34', '544.425', '3177.97', '77.2853', '0', '0'),
-(6493900, '35', '543.175', '3186.72', '77.2853', '0', '0'),
-(6493900, '36', '542.425', '3194.22', '77.5353', '0', '0'),
-(6493900, '37', '539.675', '3202.47', '77.0353', '0', '0'),
-(6493900, '38', '535.878', '3207.53', '76.2272', '0', '7000'),
-(6493900, '39', '522.16', '3220.36', '74.4621', '0', '0'),
-(6493900, '40', '514.915', '3231.21', '74.093', '0', '0'),
-(6493900, '41', '512.849', '3240.09', '75.0834', '0', '0'),
-(6493900, '42', '511.016', '3248.97', '76.8458', '0', '0'),
-(6493900, '43', '511.754', '3261.91', '77.5846', '2.98451', '12000'),
-(6493900, '44', '508.482', '3259.15', '77.6167', '0', '0'),
-(6493900, '45', '505.232', '3251.15', '77.3667', '0', '0'),
-(6493900, '46', '504.982', '3244.65', '76.3667', '0', '0'),
-(6493900, '47', '507.232', '3236.65', '75.1167', '0', '0'),
-(6493900, '48', '511.232', '3228.65', '74.3667', '0', '0'),
-(6493900, '49', '518.482', '3220.4', '74.6167', '0', '0'),
-(6493900, '50', '528.982', '3213.65', '75.8667', '0', '0'),
-(6493900, '51', '536.232', '3209.4', '76.3667', '0', '0'),
-(6493900, '52', '540.482', '3201.4', '76.8667', '0', '0'),
-(6493900, '53', '543.732', '3190.15', '77.1167', '0', '0'),
-(6493900, '54', '544.732', '3177.4', '77.1167', '0', '0'),
-(6493900, '55', '547.982', '3165.4', '77.1167', '0', '0'),
-(6493900, '56', '554.232', '3157.15', '77.8667', '0', '0'),
-(6493900, '57', '561.482', '3152.65', '81.1167', '0', '0'),
-(6493900, '58', '567.232', '3149.4', '84.3667', '0', '0'),
-(6493900, '59', '574.732', '3147.15', '87.3667', '0', '0'),
-(6493900, '60', '583.982', '3145.65', '87.8667', '0', '0'),
-(6493900, '61', '593.232', '3144.4', '87.8667', '0', '0'),
-(6493900, '62', '599.982', '3142.9', '88.1167', '0', '0'),
-(6493900, '63', '606.482', '3141.4', '87.8667', '0', '0'),
-(6493900, '64', '615.232', '3137.4', '87.8667', '0', '0'),
-(6493900, '65', '619.982', '3130.4', '87.8667', '0', '0'),
-(6493900, '66', '621.482', '3123.4', '87.8667', '0', '0'),
-(6493900, '67', '619.732', '3112.4', '87.8667', '0', '0'),
-(6493900, '68', '616.982', '3104.65', '87.3667', '0', '0');
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (53714); -- no longer having scripts
 
@@ -1379,6 +1051,13 @@ UPDATE `creature_template_difficulty` SET `SkinLootID` = 1 WHERE `entry` IN (
 54976 -- Barbed Ray
 );
 
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (57710,59497);
+INSERT INTO `npc_spellclick_spells` VALUES
+('57710', '107784', '3', '0'),
+('57710', '115904', '1', '0'),
+('59497', '114453', '3', '0'),
+('59497', '115904', '1', '0');
+
 -- Area Trigger Scripts
 
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835);
@@ -1391,6 +1070,57 @@ INSERT INTO `areatrigger_scripts` VALUES
 (7783, 'at_pools_of_reflection'),
 (8628, 'at_singing_pools_training_bell'),
 (7784, 'at_the_singing_pools_children_summon');
+
+-- Spell Scripts
+
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589, 117033,117034,117035,117036, 103069,103077,103070, 116190, 116191, 128700, 109178, 
+102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
+('128588', 'spell_aysa_congrats_trigger_aura'),
+('128589', 'spell_aysa_congrats_timer'),
+('117033', 'spell_jump_to_front_right'),
+('117034', 'spell_jump_to_front_left'),
+('117035', 'spell_jump_to_back_right'),
+('117036', 'spell_jump_to_back_left'),
+('103069', 'spell_rock_jump_a'),
+('103070', 'spell_rock_jump_b'),
+('103077', 'spell_rock_jump_c'),
+(116190, 'spell_summon_child_1'),
+(116191, 'spell_summon_child_2'),
+(128700, 'spell_summon_fire_spirit'),
+(109178, 'spell_despawn_fire_spirit'),
+(102522, 'spell_fan_the_flames'),
+(109090, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
+(109095, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
+(109105, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
+(109109, 'spell_fan_the_flames_throw_wood_and_all_blow_air'),
+(108786, 'spell_summon_stack_of_reeds'),
+(108808, 'spell_summon_jojo_ironbrow'),
+(108798, 'spell_jojo_headbash_filter'),
+(104450, 'spell_summon_ji_firepaw_temple');
+
+DELETE FROM `npc_vendor` WHERE `entry`=57620;
+INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES
+(57620, 20, 39505, 0, 0, 1, 0, 0, 64978), -- Набор виртуозного начертателя
+(57620, 19, 20815, 0, 0, 1, 0, 0, 64978), -- Инструменты ювелира
+(57620, 18, 39354, 0, 0, 1, 0, 0, 64978), -- Тонкий пергамент
+(57620, 17, 6260, 0, 0, 1, 0, 0, 64978), -- Синяя краска
+(57620, 16, 2324, 0, 0, 1, 0, 0, 64978), -- Отбеливатель
+(57620, 15, 2604, 0, 0, 1, 0, 0, 64978), -- Красная краска
+(57620, 14, 6529, 0, 0, 1, 0, 0, 64978), -- Блесна
+(57620, 13, 4289, 0, 0, 1, 0, 0, 64978), -- Соль
+(57620, 12, 3371, 0, 0, 1, 0, 0, 64978), -- Хрустальная колба
+(57620, 11, 2880, 0, 0, 1, 0, 0, 64978), -- Слабый плавень
+(57620, 10, 2320, 0, 0, 1, 0, 0, 64978), -- Грубая нить
+(57620, 9, 30817, 0, 0, 1, 0, 0, 64978), -- Простая мука
+(57620, 8, 2678, 0, 0, 1, 0, 0, 64978), -- Пряные травы
+(57620, 7, 6217, 0, 0, 1, 0, 0, 64978), -- Медный жезл
+(57620, 6, 6256, 0, 0, 1, 0, 0, 64978), -- Удочка
+(57620, 5, 5956, 0, 0, 1, 0, 0, 64978), -- Кузнечный молот
+(57620, 4, 85663, 0, 0, 1, 0, 0, 64978), -- Лопата травника
+(57620, 3, 2901, 0, 0, 1, 0, 0, 64978), -- Шахтерская кирка
+(57620, 2, 7005, 0, 0, 1, 0, 0, 64978), -- Нож для снятия шкур
+(57620, 1, 4470, 0, 0, 1, 0, 0, 64978); -- Простая древесина
 
 -- Loot Fixes
 UPDATE `creature_template_difficulty` SET `LootID` = '55483', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '55483') and (`DifficultyID` = '0');

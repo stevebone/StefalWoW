@@ -1192,7 +1192,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if (CheckQuestTimer <= diff)
                 {
-                    if (Player* player = me->SelectNearestPlayer(50.0f))
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
                     {
                         if (!_npcFlagSet && player->GetQuestStatus(Quests::quest_not_in_the_face) == QUEST_STATUS_INCOMPLETE)
                         {
@@ -1245,8 +1245,8 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                         {
                             wugou->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash, true);
-                            wugou->RemoveAura(SpellsQ29744::spell_aura_invisibility);
-                            wugou->RemoveAura(SpellsQ29744::spell_aura_sleep);
+                            wugou->RemoveAllAuras();
+                            me->RemoveAllAuras();
                             wugou->SetStandState(UNIT_STAND_STATE_STAND);
                             me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
 
@@ -1329,34 +1329,45 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // 55558 Shu
-    // 60916 Wugou
-    class npc_shu_wugou_follower : public CreatureScript
+    class npc_shanxi_quest2 : public CreatureScript
     {
     public:
-        npc_shu_wugou_follower() : CreatureScript("npc_shu_wugou_follower") { }
+        npc_shanxi_quest2() : CreatureScript("npc_shanxi_quest2") { }
 
-        struct npc_shu_wugou_followerAI : public ScriptedAI
+        struct npc_shanxi_questAI : public ScriptedAI
         {
-            npc_shu_wugou_followerAI(Creature* creature) : ScriptedAI(creature) { }
+            npc_shanxi_questAI(Creature* creature) : ScriptedAI(creature) {}
 
-            void Reset() override
+            void OnQuestReward(Player* /*player*/, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
             {
-                me->SetReactState(REACT_PASSIVE);
-                Unit* owner = me->GetOwner();
-                Player* player = owner->ToPlayer();
+                if (quest->GetQuestId() == Quests::quest_the_spirit_and_body_of_shenzinsu)
+                {
+                    Talk(TalksQ29775::shanxi_talk_7);
 
-                if (player)
-                    me->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, frand(0.f, 2.f * float(M_PI)));
-
-                if (me->HasAura(SpellsQ29744::spell_aura_sleep))
-                    me->RemoveAurasDueToSpell(SpellsQ29744::spell_aura_sleep);
+                    _scheduler.Schedule(3s, [this](TaskContext /*task*/)
+                        {
+                            Talk(TalksQ29775::shanxi_talk_8);
+                        });
+                    _scheduler.Schedule(6s, [this](TaskContext /*task*/)
+                        {
+                            Talk(TalksQ29775::shanxi_talk_9);
+                        });
+                }
             }
+
+            void UpdateAI(uint32 diff) override
+            {
+                _scheduler.Update(diff);
+            }
+
+
+        private:
+            TaskScheduler _scheduler;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
         {
-            return new npc_shu_wugou_followerAI(creature);
+            return new npc_shanxi_questAI(creature);
         }
     };
 }
@@ -1379,5 +1390,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_ox_cart();
     new npc_shu_follower();
     new npc_shu_at_farmstead();
-    new npc_shu_wugou_follower();
+    new npc_shanxi_quest2();
 }

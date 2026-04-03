@@ -379,6 +379,20 @@ namespace Scripts::Custom::TheWanderingIsle
             OnEffectRemove += AuraEffectRemoveFn(spell_aysa_congrats_trigger_aura::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
         }
     };
+
+    // 104450
+    class spell_summon_ji_firepaw_temple : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(PositionsQ29776::JiTempleSpireSpawn);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_ji_firepaw_temple::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -402,4 +416,5 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_jump_to_front_right);
     RegisterSpellScript(spell_aysa_congrats_timer);
     RegisterSpellScript(spell_aysa_congrats_trigger_aura);
+    RegisterSpellScript(spell_summon_ji_firepaw_temple);
 }

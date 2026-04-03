@@ -141,41 +141,48 @@ namespace Scripts::Custom::TheWanderingIsle
 
     namespace TalksQ29423
     {
-        static constexpr uint32 chia_hui_autumnleaf_talk = 0;
-        static constexpr uint32 brewer_lin_talk = 0;
-        static constexpr uint32 shanxi_talk_0 = 0;
-        static constexpr uint32 shanxi_talk_1 = 1;
-        static constexpr uint32 shanxi_talk_2 = 2;
-        static constexpr uint32 shanxi_talk_3 = 3;
-        static constexpr uint32 shanxi_talk_4 = 4;
-        static constexpr uint32 shanxi_talk_5 = 5;
-        static constexpr uint32 shanxi_talk_6 = 6;
-        static constexpr uint32 aysa_talk = 0;
-        static constexpr uint32 ji_talk = 0;
+        static constexpr int8 chia_hui_autumnleaf_talk = 0;
+        static constexpr int8 brewer_lin_talk = 0;
+        static constexpr int8 shanxi_talk_0 = 0;
+        static constexpr int8 shanxi_talk_1 = 1;
+        static constexpr int8 shanxi_talk_2 = 2;
+        static constexpr int8 shanxi_talk_3 = 3;
+        static constexpr int8 shanxi_talk_4 = 4;
+        static constexpr int8 shanxi_talk_5 = 5;
+        static constexpr int8 shanxi_talk_6 = 6;
+        static constexpr int8 aysa_talk = 0;
+        static constexpr int8 ji_talk = 0;
     }
 
     namespace TalksQ29521
     {
         // Singing Pools
-        static constexpr uint32 DengTalk0 = 0;
-        static constexpr uint32 DengTalk1 = 1;
-        static constexpr uint32 DengTalk2 = 2;
-        static constexpr uint32 CaiTalk0 = 0;
-        static constexpr uint32 CaiTalk1 = 1;
-        static constexpr uint32 CaiTalk2 = 2;
-        static constexpr uint32 CaiTalk3 = 3;
+        static constexpr int8 DengTalk0 = 0;
+        static constexpr int8 DengTalk1 = 1;
+        static constexpr int8 DengTalk2 = 2;
+        static constexpr int8 CaiTalk0 = 0;
+        static constexpr int8 CaiTalk1 = 1;
+        static constexpr int8 CaiTalk2 = 2;
+        static constexpr int8 CaiTalk3 = 3;
     }
 
     namespace TalksQ29662
     {
-        static constexpr uint32 Jojo_Talk_0 = 0;
-        static constexpr uint32 Jojo_Talk_1 = 1;
+        static constexpr int8 Jojo_Talk_0 = 0;
+        static constexpr int8 Jojo_Talk_1 = 1;
+    }
+
+    namespace TalksQ29775
+    {
+        static constexpr int8 shanxi_talk_7 = 7;
+        static constexpr int8 shanxi_talk_8 = 8;
+        static constexpr int8 shanxi_talk_9 = 9;
     }
 
     namespace TalksCartTender
     {
-        static constexpr uint32 Cart_Tender_Talk_0 = 0;
-        static constexpr uint32 Cart_Tender_Talk_1 = 1;
+        static constexpr int8 Cart_Tender_Talk_0 = 0;
+        static constexpr int8 Cart_Tender_Talk_1 = 1;
     }
 
     namespace PositionsQ29423
@@ -264,6 +271,11 @@ namespace Scripts::Custom::TheWanderingIsle
                 { 673.825623f, 3143.905273f, 88.327415f },
                 { 670.607544f, 3137.363525f, 88.327415f }
         };
+    }
+
+    namespace PositionsQ29776
+    {
+        static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
     }
 
     namespace PathQ29423
@@ -419,6 +431,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_the_source_of_livelihood = 29680;
         static constexpr uint32 quest_not_in_the_face = 29774;
         static constexpr uint32 quest_the_spirit_and_body_of_shenzinsu = 29775;
+        static constexpr uint32 quest_morning_breeze_village = 29776;
     }
 
     namespace AreaTriggers

@@ -1798,30 +1798,7 @@ enum SpellSummonJiAtTemple
 };
 
 
-class spell_summon_ji_firepaw_temple : public SpellScript
-{
-    void HandleLaunch(SpellEffIndex effIndex)
-    {
-        PreventHitDefaultEffect(effIndex);
-    }
 
-    void HandleSummon(SpellEffIndex /*effIndex*/)
-    {
-        PreventHitDefaultEffect(EFFECT_0);
-
-        if (Unit* caster = GetCaster())
-        {
-            // Use caster's current position after delay
-            caster->SummonCreature(NPC_JI_FIREPAW_AT_TEMPLE_SPIRE, 909.137f, 3610.38f, 252.092f, TEMPSUMMON_MANUAL_DESPAWN);
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectLaunch += SpellEffectFn(spell_summon_ji_firepaw_temple::HandleLaunch, EFFECT_0, SPELL_EFFECT_SUMMON);
-        OnEffectHit += SpellEffectFn(spell_summon_ji_firepaw_temple::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
-    }
-};
 
 enum AtTempleSpawnZhaoren
 {
@@ -2999,7 +2976,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_meditation_timer_bar);
     RegisterSpellScript(spell_flame_spout);
     
-    RegisterSpellScript(spell_summon_ji_firepaw_temple);
     RegisterSpellScript(spell_monkey_wisdom_text);
     RegisterSpellScript(spell_ruk_ruk_ooksplosions);
     RegisterSpellScript(spell_summon_worthy_of_passing);

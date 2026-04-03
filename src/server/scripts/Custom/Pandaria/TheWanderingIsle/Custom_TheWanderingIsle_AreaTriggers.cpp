@@ -203,9 +203,6 @@ namespace Scripts::Custom::TheWanderingIsle
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
         {
-            if (!g_singingPoolsMemory.CanTrigger(player))
-                return false;
-
             std::list<TempSummon*> summonShu;
             std::list<TempSummon*> summonWugou;
 
