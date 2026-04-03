@@ -55,6 +55,20 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    class player_quest_29775_summon_on_relog : public PlayerScript
+    {
+    public:
+        player_quest_29775_summon_on_relog() : PlayerScript("player_quest_29775_summon_on_relog") { }
+
+        void OnLogin(Player* player, bool /*firstLogin*/) override
+        {
+            if (player->IsInWorld() && player->IsActiveQuest(Quests::quest_the_spirit_and_body_of_shenzinsu))
+            {
+                player->CastSpell(player, SpellsQ29775::spell_summon_spirits_water_earth);
+            }
+        }
+    };
+
     // adds a cooldown per player to the area trigger
     player_singing_pools_memory::player_singing_pools_memory() = default;
 
@@ -78,4 +92,5 @@ void AddSC_custom_the_wandering_isle_player()
     using namespace Scripts::Custom::TheWanderingIsle;
     new player_quest_29423_summon_on_relog();
     new player_quest_29680_summon_on_relog();
+    new player_quest_29775_summon_on_relog();
 }

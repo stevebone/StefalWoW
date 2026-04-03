@@ -194,6 +194,53 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    // 7116
+    class at_temple_stairs_from_farmstead : public AreaTriggerScript
+    {
+    public:
+        at_temple_stairs_from_farmstead() : AreaTriggerScript("at_temple_stairs_from_farmstead") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (!g_singingPoolsMemory.CanTrigger(player))
+                return false;
+
+            std::list<TempSummon*> summonShu;
+            std::list<TempSummon*> summonWugou;
+
+            player->GetAllMinionsByEntry(summonShu, Npcs::npc_shu_q29775);
+            player->GetAllMinionsByEntry(summonWugou, Npcs::npc_wugou_q29775);
+
+            if (summonShu.empty() && summonWugou.empty())
+                return false;
+
+            for (TempSummon* shu : summonShu)
+            {
+                if (!shu || !shu->IsInWorld())
+                    continue;
+
+                for (TempSummon* wugou : summonWugou)
+                {
+                    if (!wugou || !wugou->IsInWorld())
+                        continue;
+
+                    wugou->GetMotionMaster()->Clear();
+                    wugou->GetMotionMaster()->MoveFollow(shu, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                    wugou->DespawnOrUnsummon(35s);
+                }
+
+                shu->GetMotionMaster()->Clear();
+                shu->LoadPath(PathQ29775::path_shu_temple_stairs);
+                shu->GetMotionMaster()->MovePath(PathQ29775::path_shu_temple_stairs, false);
+                shu->DespawnOrUnsummon(35s);
+
+                return true;
+            }
+
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
@@ -205,4 +252,5 @@ void AddSC_custom_the_wandering_isle_at()
     new at_singing_pools_training_bell();
     new at_pools_of_reflection();
     new at_cart_locations();
+    new at_temple_stairs_from_farmstead();
 }

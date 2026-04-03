@@ -373,10 +373,7 @@ DELETE FROM `quest_template_addon` WHERE `ID`=29423;
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
 (29423, 0, 0, 0, 0, 29521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_29423_the_passion_of_shen_zin_su');
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7750, 7835);
-INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
-(7750, 'at_talk_on_huo_follow_quest_29423'),
-(7835, 'at_enter_temple_quest_29423');
+
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (6112600);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
@@ -475,9 +472,7 @@ UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=54975; -- 
 UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_cai', `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=60250; -- Cai
 UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_deng', `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=60249; -- Deng
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7784);
-INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
-(7784, 'at_the_singing_pools_children_summon');
+
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (116190, 116191);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
@@ -541,8 +536,6 @@ insert  into `conditions`(`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,
 (17,0,107049,0,0,29,0,56869,8,0,0,30,0,'','Ride Vehicle when bunny within 8y'),
 (13,1,107049,0,0,31,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny');
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (8628); -- training bell trigger
-INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES ('8628', 'at_singing_pools_training_bell');
 DELETE FROM `creature` WHERE `guid` IN (@CGUID+743, @CGUID+744, @CGUID+745, @CGUID+746);
 INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseUseFlags, PhaseId, PhaseGroup, terrainSwapMap, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, wander_distance, currentwaypoint, curHealthPct, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, ScriptName, StringId, VerifiedBuild) VALUES
 (@CGUID+743, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '968.982', '3293.41', '117.685', '-0.50883', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0'),
@@ -581,9 +574,6 @@ DELETE FROM `spell_script_names` WHERE `spell_id` IN (103069,103077,103070);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103069', 'spell_rock_jump_a');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103070', 'spell_rock_jump_b');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES ('103077', 'spell_rock_jump_c');
-
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7783);
-INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES ('7783', 'at_pools_of_reflection');
 
 -- Quest: 29679 A new Friend
 -- Object required for the pool of reflection
@@ -755,8 +745,8 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55558,60916);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('55558', '8', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105890'),
-('60916', '8', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105889 42386');
+('55558', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105890'),
+('60916', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105889 42386');
 
 DELETE FROM `gossip_menu` WHERE `MenuID` = 13140;
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES ('13140', '18503', '0');
@@ -936,18 +926,12 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450358') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 
--- locations for cart and tender dude talk
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7258, 7822);
-INSERT INTO `areatrigger_scripts` VALUES
-(7258, 'at_cart_locations'),
-(7822, 'at_cart_locations');
-
+-- Yak & cart & tender
 DELETE FROM `creature_text` WHERE `CreatureID` = 57712;
 INSERT INTO `creature_text` (`CreatureID`,`GroupID`,`ID`,`Text`,`Type`,`Language`,`Probability`,`Emote`,`Duration`,`Sound`,`BroadcastTextId`,`TextRange`,`comment`) VALUES 
 (57712,0,0,'Hello friend!  You\'re welcome to use my cart if you like.  It will take you to the Dai-Lo Farmstead.',12,0,100,3,0,0,56406,0,'Delivery Cart Tender to Player'),
 (57712,1,0,'Hello friend!  You\'re welcome to use my cart if you like.  It will take you to the Temple of Five Dawns.',12,0,100,3,0,0,56415,0,'Delivery Cart Tender to Player');
 
--- Yak & cart & tender
 UPDATE `creature_template` SET `VehicleId` = '1944' WHERE (`entry` = '57208');
 UPDATE `creature_template` SET `movementId` = 132 WHERE `Entry` = 57207;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ox_cart' WHERE `Entry` IN (57208,57207);
@@ -1394,6 +1378,19 @@ UPDATE `creature_template_difficulty` SET `SkinLootID` = 1 WHERE `entry` IN (
 55292, -- Fang She
 54976 -- Barbed Ray
 );
+
+-- Area Trigger Scripts
+
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835);
+INSERT INTO `areatrigger_scripts` VALUES
+(7750, 'at_talk_on_huo_follow_quest_29423'),
+(7835, 'at_enter_temple_quest_29423'),
+(7116, 'at_temple_stairs_from_farmstead'),
+(7258, 'at_cart_locations'),
+(7822, 'at_cart_locations'),
+(7783, 'at_pools_of_reflection'),
+(8628, 'at_singing_pools_training_bell'),
+(7784, 'at_the_singing_pools_children_summon');
 
 -- Loot Fixes
 UPDATE `creature_template_difficulty` SET `LootID` = '55483', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '55483') and (`DifficultyID` = '0');

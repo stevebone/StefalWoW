@@ -1155,7 +1155,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         struct npc_shu_at_farmsteadAI : public ScriptedAI
         {
-            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _path3Started(false), _npcFlagSet(false) {}
+            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _npcFlagSet(false) {}
 
             void Reset() override
             {
@@ -1164,7 +1164,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 
-                if (!_path1Started && !_path2Started && !_path3Started)
+                if (!_path1Started && !_path2Started)
                 {
                     _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 0s);
                 }
@@ -1240,23 +1240,11 @@ namespace Scripts::Custom::TheWanderingIsle
                         }
                         break;
                     }
-                    case EventsQ29774::event_shu_farmstead_path_start_3:
-                    {
-                        if (!_path3Started)
-                        {
-                            me->StopMoving();
-                            me->GetMotionMaster()->Clear();
-                            me->LoadPath(PathQ29774::path_shu_farmstead_3);
-                            me->GetMotionMaster()->MovePath(PathQ29774::path_shu_farmstead_3, false);
-                            _path3Started = true;
-                        }
-                        break;
-                    }
                     case EventsQ29774::event_shu_wakes_wugou:
                     {
                         if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                         {
-                            wugou->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash);
+                            wugou->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash, true);
                             wugou->RemoveAura(SpellsQ29744::spell_aura_invisibility);
                             wugou->RemoveAura(SpellsQ29744::spell_aura_sleep);
                             wugou->SetStandState(UNIT_STAND_STATE_STAND);
@@ -1270,7 +1258,7 @@ namespace Scripts::Custom::TheWanderingIsle
                             player->KilledMonsterCredit(Npcs::credit_not_in_the_face_2);
                             wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
                             wugou->DespawnOrUnsummon(30s);
-                            _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_2, 3s);
+                            _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_2, 5s);
                         }
                         break;
                     }
@@ -1307,21 +1295,19 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                     {
-                        me->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash_wugou);
+                        me->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash_wugou, true);
                         me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
-                        _events.ScheduleEvent(EventsQ29774::event_shu_wakes_wugou, 3s);
+                        _events.ScheduleEvent(EventsQ29774::event_shu_wakes_wugou, 5s);
                     }
                     break;
                 }
                 case PathQ29774::path_shu_farmstead_2:
                 {
+                    me->StopMoving();
+                    me->GetMotionMaster()->Clear();
                     me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
-                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_3, 3s);
-                    break;
-                }
-                case PathQ29774::path_shu_farmstead_3:
-                {
-                    me->DespawnOrUnsummon(1s);
+                    me->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(30.0f));
+                    me->DespawnOrUnsummon(15s);
                     break;
                 }
                 default:
@@ -1334,13 +1320,43 @@ namespace Scripts::Custom::TheWanderingIsle
             ObjectGuid _playerGuid;
             bool _path1Started;
             bool _path2Started;
-            bool _path3Started;
             bool _npcFlagSet;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
         {
             return new npc_shu_at_farmsteadAI(creature);
+        }
+    };
+
+    // 55558 Shu
+    // 60916 Wugou
+    class npc_shu_wugou_follower : public CreatureScript
+    {
+    public:
+        npc_shu_wugou_follower() : CreatureScript("npc_shu_wugou_follower") { }
+
+        struct npc_shu_wugou_followerAI : public ScriptedAI
+        {
+            npc_shu_wugou_followerAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                me->SetReactState(REACT_PASSIVE);
+                Unit* owner = me->GetOwner();
+                Player* player = owner->ToPlayer();
+
+                if (player)
+                    me->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, frand(0.f, 2.f * float(M_PI)));
+
+                if (me->HasAura(SpellsQ29744::spell_aura_sleep))
+                    me->RemoveAurasDueToSpell(SpellsQ29744::spell_aura_sleep);
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shu_wugou_followerAI(creature);
         }
     };
 }
@@ -1363,4 +1379,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_ox_cart();
     new npc_shu_follower();
     new npc_shu_at_farmstead();
+    new npc_shu_wugou_follower();
 }

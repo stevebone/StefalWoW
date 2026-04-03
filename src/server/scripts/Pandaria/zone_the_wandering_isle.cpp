@@ -1787,77 +1787,7 @@ enum ShuWugouToTheTempleFollow
     AREA_TEMPLE_STAIRS_FROM_FARMSTEAD = 7116
 };
 
-struct npc_shu_wugou_follower : public ScriptedAI
-{
-    npc_shu_wugou_follower(Creature* creature) : ScriptedAI(creature), _playerGuid() { }
 
-    void Reset() override
-    {
-        //_events.Reset();
-
-        if (me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE)
-        {
-            Player* player = me->SelectNearestPlayer(5.0f);
-            _playerGuid = player->GetGUID();
-
-            me->GetMotionMaster()->Clear();
-            me->GetMotionMaster()->MoveFollow(player, 5.0f, 45.0f);
-        }
-
-        if (me->GetEntry() == NPC_WUGOU_SPAWNED_FOR_TEMPLE)
-        {
-            me->SetReactState(REACT_PASSIVE);
-            me->RemoveAura(SPELL_WUGOU_SLEEP);
-            //_events.ScheduleEvent(EVENT_START_PATH, 1400ms); // Delay of 0.5 seconds
-        }
-    }
-
-    uint32 checkTimer = 1000;
-    bool triggerActivated = false;
-
-    void UpdateAI(uint32 diff) override
-    {
-        if (triggerActivated)
-            return;
-
-        if (checkTimer <= diff && me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE)
-        {
-            if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
-            {
-                if (AreaTriggerEntry const* triggerEntry = sAreaTriggerStore.LookupEntry(AREA_TEMPLE_STAIRS_FROM_FARMSTEAD))
-                {
-                    if (player->IsInAreaTrigger(triggerEntry))
-                    {
-                        triggerActivated = true;
-
-                        //Creature* shu = GetClosestCreatureWithEntry(me, NPC_SHU_SPAWNED_FOR_TEMPLE, 10.0f);
-                        Creature* wugou = GetClosestCreatureWithEntry(me, NPC_WUGOU_SPAWNED_FOR_TEMPLE, 10.0f);
-
-                        if (me->GetEntry() == NPC_SHU_SPAWNED_FOR_TEMPLE && wugou)
-                        {
-                            wugou->DespawnOrUnsummon(30s);
-                            wugou->StopMoving();
-                            wugou->GetMotionMaster()->Clear();
-                            wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
-
-                            me->DespawnOrUnsummon(30s);
-                            me->StopMoving();
-                            me->GetMotionMaster()->Clear();
-                            me->GetMotionMaster()->MovePath(PATH_SHU_QUEST_29775_1, false);
-                        }
-                    }
-                }
-            }
-            checkTimer = 1000;
-        }
-        else
-            checkTimer -= diff;
-
-    }
-
-private:
-    ObjectGuid _playerGuid;
-};
 
 //104450/summon-ji-yuan
 enum SpellSummonJiAtTemple
@@ -3040,20 +2970,6 @@ private:
     uint8 _hitCount;
 };
 
-class OnLoginSpawnFollowers : public PlayerScript
-{
-public:
-    OnLoginSpawnFollowers() : PlayerScript("OnLoginSpawnFollowers") { }
-
-    void OnLogin(Player* player, bool /*firstLogin*/) override
-    {
-        if (player->IsInWorld() && player->IsActiveQuest(QUEST_THE_SPIRIT_AND_BODY_OF_SHENZINSU))
-        {
-            player->CastSpell(player, SPELL_SUMMON_SPIRIT_OF_WATER_EARTH);
-        }
-    }
-};
-
 void AddSC_zone_the_wandering_isle()
 {
 	using namespace Scripts::Pandaria::TheWanderingIsle;
@@ -3071,7 +2987,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
     RegisterCreatureAI(npc_master_shang);
-    RegisterCreatureAI(npc_shu_wugou_follower);
     RegisterCreatureAI(npc_lorewalker_ruolin);
     RegisterCreatureAI(npc_ruk_ruk);
     RegisterCreatureAI(npc_ruk_ruk_rocket);
@@ -3101,9 +3016,6 @@ void AddSC_zone_the_wandering_isle()
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_lorewalker_zan();
     new at_chamber_of_whispers();
-
-    // Player Scripts
-    new OnLoginSpawnFollowers();
 
     RegisterCreatureAI(npc_li_fei);
     RegisterSpellScript(spell_fire_crash);

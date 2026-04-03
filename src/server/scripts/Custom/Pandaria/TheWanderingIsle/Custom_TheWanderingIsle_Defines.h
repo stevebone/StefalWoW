@@ -128,6 +128,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_aura_invisibility = 80797; // 105889 ??
     }
 
+    namespace SpellsQ29775
+    {
+        static constexpr uint32 spell_summon_spirits_water_earth = 104017;
+    }
+
     namespace SpellsCartOx
     {
         static constexpr uint32 spell_force_vehicle_ride = 46598;
@@ -284,7 +289,11 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr uint32 path_shu_farmstead_1 = 5555800;
         static constexpr uint32 path_shu_farmstead_2 = 5555801;
-        static constexpr uint32 path_shu_farmstead_3 = 5555802;
+    }
+
+    namespace PathQ29775
+    {
+        static constexpr uint32 path_shu_temple_stairs = 5555802;
     }
 
     namespace PathOxCart
@@ -382,6 +391,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 credit_not_in_the_face_1 = 55548;
         static constexpr uint32 credit_not_in_the_face_2 = 55547;
         static constexpr uint32 npc_wugou_q29774 = 55539;
+
+        static constexpr uint32 npc_shu_q29775 = 55558;
+        static constexpr uint32 npc_wugou_q29775 = 60916;
+
     }
 
     namespace Objects
@@ -405,6 +418,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_a_new_friend = 29679;
         static constexpr uint32 quest_the_source_of_livelihood = 29680;
         static constexpr uint32 quest_not_in_the_face = 29774;
+        static constexpr uint32 quest_the_spirit_and_body_of_shenzinsu = 29775;
     }
 
     namespace AreaTriggers
