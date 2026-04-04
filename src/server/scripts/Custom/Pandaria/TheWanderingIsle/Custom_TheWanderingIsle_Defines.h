@@ -351,6 +351,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr int8 event_shu_follower_path_start = 1;
         static constexpr int8 event_shu_follower_check_player_quest = 2;
+        static constexpr int8 event_shu_singing_pools_check_player_vehicle = 3;
     }
 
     namespace EventsQ29774
@@ -360,6 +361,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_shu_farmstead_path_start_2 = 3;
         static constexpr int8 event_shu_farmstead_path_start_3 = 4;
         static constexpr int8 event_shu_wakes_wugou = 5;
+        static constexpr int8 event_shu_farmstead_check_player_vehicle = 6;
+        static constexpr int8 event_try_remove_wugou_sleep = 7;
     }
 
     namespace EventsOxCart

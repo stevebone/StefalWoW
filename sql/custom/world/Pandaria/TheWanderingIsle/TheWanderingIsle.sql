@@ -263,8 +263,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 
 DELETE FROM `creature_addon` WHERE `guid` IN (450021, @CGUID+0, @CGUID+1);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(@CGUID+0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- Legacy of Liu Lang - 132376 - 
-(@CGUID+1, 0, 0, 0, 0, 0, 1, 0, 420, 2188, 0, 0, 5, '132376'); -- Legacy of Liu Lang - 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop - 
+(@CGUID+741, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- Legacy of Liu Lang - 132376 - 
+(@CGUID+742, 0, 0, 0, 0, 0, 1, 0, 420, 2188, 0, 0, 5, '132376'); -- Legacy of Liu Lang - 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop - 
 
 DELETE FROM `creature_template_gossip` WHERE (`CreatureID`=54786 AND `MenuID`=13158);
 INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
@@ -618,7 +618,7 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55558,60916);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55558', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105890'), -- shu spawn at farmstead
-('60916', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105889'); -- wugou spawn at farmstead
+('60916', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '105889 42386'); -- wugou spawn at farmstead
 
 DELETE FROM `gossip_menu` WHERE `MenuID` = 13140;
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES ('13140', '18503', '0');

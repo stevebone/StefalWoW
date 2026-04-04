@@ -399,7 +399,13 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionsQ29774::WugouSpawnPosition);
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            if (caster && caster->ToPlayer()->IsActiveQuest(Quests::quest_not_in_the_face))
+                dest.Relocate(PositionsQ29774::WugouSpawnPosition);
+            else dest.Relocate(caster->GetRandomNearPosition(5.f));
         }
 
         void Register() override

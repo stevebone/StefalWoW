@@ -1075,6 +1075,9 @@ namespace Scripts::Custom::TheWanderingIsle
                     _playerGuid = owner->ToPlayer()->GetGUID();
 
                 _events.ScheduleEvent(EventsQ29680::event_shu_follower_check_player_quest, 30s);
+
+                if (owner && owner->ToPlayer()->IsActiveQuest(Quests::quest_the_source_of_livelihood))
+                    _events.ScheduleEvent(EventsQ29680::event_shu_singing_pools_check_player_vehicle, 1s);
             }
 
             void UpdateAI(uint32 diff) override
@@ -1092,8 +1095,8 @@ namespace Scripts::Custom::TheWanderingIsle
                         me->LoadPath(PathQ29680::path_shu_follower);
                         me->GetMotionMaster()->MovePath(PathQ29680::path_shu_follower, false);
                         _pathStarted = true;
+                        break;
                     }
-                    break;
                     case EventsQ29680::event_shu_follower_check_player_quest:
                     {
                         if (!_pathStarted)
@@ -1107,8 +1110,27 @@ namespace Scripts::Custom::TheWanderingIsle
                             else
                                 _events.ScheduleEvent(EventsQ29680::event_shu_follower_check_player_quest, 1s);
                         }
+                        break;
                     }
-                    break;
+                    case EventsQ29680::event_shu_singing_pools_check_player_vehicle:
+                    {
+                        if (me->GetVehicle())
+                            break;
+
+                        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                        if (!player)
+                            break;
+
+                        Vehicle* veh = player->GetVehicle();
+                        if (!veh || !veh->IsVehicleInUse())
+                        {
+                            _events.ScheduleEvent(EventsQ29680::event_shu_singing_pools_check_player_vehicle, 500ms);
+                            break;
+                        }
+
+                        me->EnterVehicle(veh->GetBase(), -1);
+                        break;
+                    }
                     default:
                         break;
                     }
@@ -1176,10 +1198,10 @@ namespace Scripts::Custom::TheWanderingIsle
                     CloseGossipMenuFor(player);
                     //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
                     //player->CastSpell(player, 105891);
-                    player->CastSpell(player, SpellsQ29774::spell_summon_spirits_water_earth);
-                    me->DespawnOrUnsummon();
                     if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_farmstead, 70.0f))
                         wugou->DespawnOrUnsummon();
+                    me->DespawnOrUnsummon();
+                    player->CastSpell(player, SpellsQ29774::spell_summon_spirits_water_earth);
                     return true;
                 }
                 return false;
@@ -1263,7 +1285,15 @@ namespace Scripts::Custom::TheWanderingIsle
                 _path1Started = false;
                 _path2Started = false;
                 _events.Reset();
-                _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_1, 0s);
+                _playerGuid = me->GetOwnerGUID();
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player && player->IsActiveQuest(Quests::quest_not_in_the_face))
+                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_1, 0s);
+                else
+                {
+                    _events.ScheduleEvent(EventsQ29774::event_try_remove_wugou_sleep, 200ms);
+                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_check_player_vehicle, 1s);
+                }
             }
 
             void UpdateAI(uint32 diff) override
@@ -1302,7 +1332,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                         {
-                            wugou->CastSpell(wugou, SpellsQ29774::spell_shu_watersplash_wugou, true);
+                            me->CastSpell(wugou, SpellsQ29774::spell_shu_watersplash_wugou);
+                            wugou->CastSpell(me, SpellsQ29774::spell_shu_watersplash);
                             wugou->RemoveAllAuras();
                             me->RemoveAllAuras();
                             wugou->SetStandState(UNIT_STAND_STATE_STAND);
@@ -1318,6 +1349,40 @@ namespace Scripts::Custom::TheWanderingIsle
                             wugou->DespawnOrUnsummon(30s);
                             _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_2, 5s);
                         }
+                        break;
+                    }
+                    case EventsQ29774::event_shu_farmstead_check_player_vehicle:
+                    {
+                        if (me->GetVehicle())
+                            break;
+
+                        Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                        if (!player)
+                            break;
+
+                        Vehicle* veh = player->GetVehicle();
+                        if (!veh || !veh->IsVehicleInUse())
+                        {
+                            _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_check_player_vehicle, 500ms);
+                            break;
+                        }
+
+                        me->EnterVehicle(veh->GetBase(), -1);
+                        break;
+                    }
+                    case EventsQ29774::event_try_remove_wugou_sleep:
+                    {
+                        if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 20.0f))
+                        {
+                            if (wugou->GetOwnerGUID() == _playerGuid)
+                            {
+                                wugou->RemoveAllAuras();
+                                break;
+                            }
+                        }
+
+                        // If not found yet, try again shortly
+                        _events.ScheduleEvent(EventsQ29774::event_try_remove_wugou_sleep, 200ms);
                         break;
                     }
                     default:
@@ -1338,7 +1403,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                     {
-                        me->CastSpell(wugou, SpellsQ29774::spell_shu_watersplash);
+                        
                         me->CastSpell(me, SpellsQ29774::spell_water_spirit_laugh);
                         _events.ScheduleEvent(EventsQ29774::event_shu_wakes_wugou, 5s);
                     }
