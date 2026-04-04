@@ -118,7 +118,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_shu_splash = 107030;
     }
 
-    namespace SpellsQ29744
+    namespace SpellsQ29774
     {
         static constexpr uint32 spell_water_spirit_laugh = 118035;
         static constexpr uint32 spell_shu_watersplash_credit = 104023;
@@ -126,10 +126,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_shu_watersplash_wugou = 118034;
         static constexpr uint32 spell_aura_sleep = 42386;
         static constexpr uint32 spell_aura_invisibility = 80797; // 105889 ??
-    }
-
-    namespace SpellsQ29775
-    {
         static constexpr uint32 spell_summon_spirits_water_earth = 104017;
     }
 
@@ -271,6 +267,8 @@ namespace Scripts::Custom::TheWanderingIsle
                 { 673.825623f, 3143.905273f, 88.327415f },
                 { 670.607544f, 3137.363525f, 88.327415f }
         };
+
+        static constexpr Position WugouSpawnPosition = { 631.479f, 3140.7f,	87.8357f, 3.05745f };
     }
 
     namespace PositionsQ29776
@@ -402,7 +400,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_bunny_water_spout_farmstead = 66941;
         static constexpr uint32 credit_not_in_the_face_1 = 55548;
         static constexpr uint32 credit_not_in_the_face_2 = 55547;
-        static constexpr uint32 npc_wugou_q29774 = 55539;
+        static constexpr uint32 npc_wugou_q29774 = 60916;
+        static constexpr uint32 npc_wugou_farmstead = 55539;
 
         static constexpr uint32 npc_shu_q29775 = 55558;
         static constexpr uint32 npc_wugou_q29775 = 60916;

@@ -64,7 +64,7 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (player->IsInWorld() && player->IsActiveQuest(Quests::quest_the_spirit_and_body_of_shenzinsu))
             {
-                player->CastSpell(player, SpellsQ29775::spell_summon_spirits_water_earth);
+                player->CastSpell(player, SpellsQ29774::spell_summon_spirits_water_earth);
             }
         }
     };

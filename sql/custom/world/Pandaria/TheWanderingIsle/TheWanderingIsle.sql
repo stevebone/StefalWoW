@@ -63,11 +63,12 @@
 -- NPC: 60916 Wugou spawn
 -- NPC: 55556 Shu at the Farmstead
 -- NPC: 55558 Shu spawn at the Farmstead
+-- NPC: 56377 Shu spawn
 -- NPC: 54786 Master Shang Xi at temple (451410)
 -- NPC: 55685 Uplifting Draft
 
 -- GO: 209584 Ancient Clam
--- GO 209626 Break Gong
+-- GO: 209626 Break Gong
 
 -- Spell: 108786 Summon Stack of Reeds
 -- Spell: 108798 Jojo Headbash Stack of reeds impact
@@ -118,6 +119,8 @@ INSERT INTO `phase_area` VALUES
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
 UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
+UPDATE `gameobject` SET `PhaseId` = '50007' WHERE (`guid` = '300209'); -- Gong at Farmstead needs to be in the same phase as Ji otherwise quest credit via SET DATA SAI fails
+
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50007;
 INSERT INTO `conditions` VALUES
@@ -621,11 +624,12 @@ DELETE FROM `gossip_menu` WHERE `MenuID` = 13140;
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES ('13140', '18503', '0');
 
 DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13140 AND `GossipOptionID` = 18503;
-INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`) VALUES 
-('13140', '18503', '0', '0', 'Shu, can you wake up Wuguo for me?', '54025', '0', '1');
+INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `SpellID`) VALUES 
+('13140', '18503', '0', '0', 'Shu, can you wake up Wuguo for me?', '54025', '0', '1', 104017);
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (55556,55558);
-UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead' WHERE `Entry` = 55556;
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_pool' WHERE `Entry` = 55556;
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_play' WHERE `Entry` = 55558;
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (5555800, 5555801,5555802);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
@@ -1097,7 +1101,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (108786, 'spell_summon_stack_of_reeds'),
 (108808, 'spell_summon_jojo_ironbrow'),
 (108798, 'spell_jojo_headbash_filter'),
-(104450, 'spell_summon_ji_firepaw_temple');
+(104450, 'spell_summon_ji_firepaw_temple'),
+(118036, 'spell_summon_spirit_of_earth');
 
 DELETE FROM `npc_vendor` WHERE `entry`=57620;
 INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES

@@ -1148,14 +1148,14 @@ namespace Scripts::Custom::TheWanderingIsle
     };
 
     // 55556
-    class npc_shu_at_farmstead : public CreatureScript
+    class npc_shu_at_farmstead_pool : public CreatureScript
     {
     public:
-        npc_shu_at_farmstead() : CreatureScript("npc_shu_at_farmstead") { }
+        npc_shu_at_farmstead_pool() : CreatureScript("npc_shu_at_farmstead_pool") { }
 
-        struct npc_shu_at_farmsteadAI : public ScriptedAI
+        struct npc_shu_at_farmstead_poolAI : public ScriptedAI
         {
-            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _npcFlagSet(false) {}
+            npc_shu_at_farmstead_poolAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _npcFlagSet(false) {}
 
             void Reset() override
             {
@@ -1164,10 +1164,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 
-                if (!_path1Started && !_path2Started)
-                {
-                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 0s);
-                }
+                _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 0s);
             }
 
             bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
@@ -1177,10 +1174,12 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (menuId == Misc::shu_farmstead_gossip_menu && gossipListId == 0)
                 {
                     CloseGossipMenuFor(player);
-                    player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
-                    me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-                    _events.Reset();
-                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_1, 2s);
+                    //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
+                    //player->CastSpell(player, 105891);
+                    player->CastSpell(player, SpellsQ29774::spell_summon_spirits_water_earth);
+                    me->DespawnOrUnsummon();
+                    if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_farmstead, 70.0f))
+                        wugou->DespawnOrUnsummon();
                     return true;
                 }
                 return false;
@@ -1192,11 +1191,11 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if (CheckQuestTimer <= diff)
                 {
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                    if (Player* player = me->SelectNearestPlayer(50.0f))
                     {
                         if (!_npcFlagSet && player->GetQuestStatus(Quests::quest_not_in_the_face) == QUEST_STATUS_INCOMPLETE)
                         {
-                            if (me->GetNpcFlags() == 0)
+                            if (!me->HasNpcFlag(UNIT_NPC_FLAG_GOSSIP))
                             {
                                 me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                                 _npcFlagSet = true;
@@ -1210,6 +1209,65 @@ namespace Scripts::Custom::TheWanderingIsle
                     CheckQuestTimer -= diff;
 
 
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsQ29774::event_shu_farmstead_play:
+                    {
+                        // Pick a random spawn slot within the current zone
+                        uint8 randomSlot = urand(0, 4);
+
+                        // Cast the summoning spell at the chosen location
+                        //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
+                        // Dynamic position spell casting summon not supported. we summon creature directly instead
+
+                        Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout_farmstead, PositionsQ29774::ShuFarmsteadPlayPosition[randomSlot], TEMPSUMMON_MANUAL_DESPAWN);
+                        if (bunny)
+                            DoCast(SpellsQ29678Q29679::spell_water_spout);
+                        _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 6s);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+
+                }
+            }
+        private:
+            EventMap _events;
+            ObjectGuid _playerGuid;
+            bool _npcFlagSet;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shu_at_farmstead_poolAI(creature);
+        }
+    };
+
+    // 55558
+    class npc_shu_at_farmstead_play : public CreatureScript
+    {
+    public:
+        npc_shu_at_farmstead_play() : CreatureScript("npc_shu_at_farmstead_play") { }
+
+        struct npc_shu_at_farmsteadAI : public ScriptedAI
+        {
+            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _npcFlagSet(false) {}
+
+            void Reset() override
+            {
+                _path1Started = false;
+                _path2Started = false;
+                _events.Reset();
+                _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_1, 0s);
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
                 _events.Update(diff);
 
                 while (uint32 eventId = _events.ExecuteEvent())
@@ -1244,37 +1302,22 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                         {
-                            wugou->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash, true);
+                            wugou->CastSpell(wugou, SpellsQ29774::spell_shu_watersplash_wugou, true);
                             wugou->RemoveAllAuras();
                             me->RemoveAllAuras();
                             wugou->SetStandState(UNIT_STAND_STATE_STAND);
-                            me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
+                            me->CastSpell(me, SpellsQ29774::spell_water_spirit_laugh);
 
                             Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
                             if (!player)
                                 return;
 
-                            //me->CastSpell(player, SPELL_SHU_WATERSPLASH_CREDIT);
-                            player->KilledMonsterCredit(Npcs::credit_not_in_the_face_2);
+                            me->CastSpell(player, SpellsQ29774::spell_shu_watersplash_credit);
+                            //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_2);
                             wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
                             wugou->DespawnOrUnsummon(30s);
                             _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_2, 5s);
                         }
-                        break;
-                    }
-                    case EventsQ29774::event_shu_farmstead_play:
-                    {
-                        // Pick a random spawn slot within the current zone
-                        uint8 randomSlot = urand(0, 4);
-
-                        // Cast the summoning spell at the chosen location
-                        //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
-                        // Dynamic position spell casting summon not supported. we summon creature directly instead
-
-                        Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout_farmstead, PositionsQ29774::ShuFarmsteadPlayPosition[randomSlot], TEMPSUMMON_MANUAL_DESPAWN);
-                        if (bunny)
-                            DoCast(SpellsQ29678Q29679::spell_water_spout);
-                        _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 6s);
                         break;
                     }
                     default:
@@ -1295,8 +1338,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
                     {
-                        me->CastSpell(wugou, SpellsQ29744::spell_shu_watersplash_wugou, true);
-                        me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
+                        me->CastSpell(wugou, SpellsQ29774::spell_shu_watersplash);
+                        me->CastSpell(me, SpellsQ29774::spell_water_spirit_laugh);
                         _events.ScheduleEvent(EventsQ29774::event_shu_wakes_wugou, 5s);
                     }
                     break;
@@ -1305,7 +1348,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     me->StopMoving();
                     me->GetMotionMaster()->Clear();
-                    me->CastSpell(me, SpellsQ29744::spell_water_spirit_laugh);
+                    me->CastSpell(me, SpellsQ29774::spell_water_spirit_laugh);
                     me->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(30.0f));
                     me->DespawnOrUnsummon(15s);
                     break;
@@ -1389,6 +1432,7 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_shu_playing();
     new npc_ox_cart();
     new npc_shu_follower();
-    new npc_shu_at_farmstead();
+    new npc_shu_at_farmstead_pool();
+    new npc_shu_at_farmstead_play();
     new npc_shanxi_quest2();
 }

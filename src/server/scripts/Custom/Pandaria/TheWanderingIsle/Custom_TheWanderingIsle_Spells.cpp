@@ -393,6 +393,20 @@ namespace Scripts::Custom::TheWanderingIsle
             OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_ji_firepaw_temple::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
         }
     };
+
+    // 118036
+    class spell_summon_spirit_of_earth : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(PositionsQ29774::WugouSpawnPosition);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_spirit_of_earth::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -417,4 +431,5 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_aysa_congrats_timer);
     RegisterSpellScript(spell_aysa_congrats_trigger_aura);
     RegisterSpellScript(spell_summon_ji_firepaw_temple);
+    RegisterSpellScript(spell_summon_spirit_of_earth);
 }
