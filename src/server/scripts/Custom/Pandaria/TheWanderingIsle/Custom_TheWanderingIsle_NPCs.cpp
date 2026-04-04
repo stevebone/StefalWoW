@@ -1299,7 +1299,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         struct npc_shu_at_farmsteadAI : public ScriptedAI
         {
-            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false), _npcFlagSet(false) {}
+            npc_shu_at_farmsteadAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _path1Started(false), _path2Started(false) {}
 
             void Reset() override
             {
@@ -1351,7 +1351,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
                     case EventsQ29774::event_shu_wakes_wugou:
                     {
-                        if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
+                        Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f);
+                        if (wugou)
                         {
                             me->CastSpell(wugou, SpellsQ29774::spell_shu_watersplash_wugou);
                             wugou->CastSpell(me, SpellsQ29774::spell_shu_watersplash);
@@ -1449,7 +1450,6 @@ namespace Scripts::Custom::TheWanderingIsle
             ObjectGuid _playerGuid;
             bool _path1Started;
             bool _path2Started;
-            bool _npcFlagSet;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
