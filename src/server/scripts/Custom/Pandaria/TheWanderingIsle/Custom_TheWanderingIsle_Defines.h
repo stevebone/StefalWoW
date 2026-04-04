@@ -133,6 +133,8 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr uint32 spell_force_vehicle_ride = 46598;
         static constexpr uint32 spell_eject_passengers = 50630;
+        //static constexpr uint32 spell_rope_left = 108627;
+        //static constexpr uint32 spell_rope_right = 108691;
     }
 
     namespace TalksQ29423
@@ -368,6 +370,7 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace EventsOxCart
     {
         static constexpr int8 event_ox_cart_path_start = 1;
+        //static constexpr int8 event_ox_cart_ropes = 2;
     }
 
     namespace Npcs

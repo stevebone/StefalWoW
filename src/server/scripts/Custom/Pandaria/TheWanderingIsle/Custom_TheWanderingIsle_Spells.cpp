@@ -413,6 +413,50 @@ namespace Scripts::Custom::TheWanderingIsle
             OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_spirit_of_earth::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
         }
     };
+
+    // left 108627
+    // right 108691
+    // Can't get the ropes to target correctly :(
+    /*
+    class spell_cart_ropes : public SpellScript
+    {
+        void SelectTargetDest(WorldObject*& target)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Creature* yak1 = caster->FindNearestCreature(Npcs::npc_vehicle_ox, 10.f);
+            Creature* yak2 = caster->FindNearestCreature(Npcs::npc_vehicle_ox_farmstead, 10.f);
+
+            Unit* yak = nullptr;
+            if (yak1)
+                yak = yak1;
+            else if (yak2)
+                yak = yak2;
+
+            if (!yak)
+                return;
+
+            target = yak;
+        }
+
+        void SelectTargetSource(WorldObject*& target)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            target = caster;
+        }
+
+        void Register() override
+        {
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_cart_ropes::SelectTargetSource, EFFECT_0, TARGET_DEST_CASTER);
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_cart_ropes::SelectTargetDest, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+        }
+    };
+    */
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -438,4 +482,5 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_aysa_congrats_trigger_aura);
     RegisterSpellScript(spell_summon_ji_firepaw_temple);
     RegisterSpellScript(spell_summon_spirit_of_earth);
+    //RegisterSpellScript(spell_cart_ropes);
 }

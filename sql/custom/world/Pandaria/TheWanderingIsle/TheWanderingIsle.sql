@@ -1078,7 +1078,7 @@ INSERT INTO `areatrigger_scripts` VALUES
 -- Spell Scripts
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589, 117033,117034,117035,117036, 103069,103077,103070, 116190, 116191, 128700, 109178, 
-102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450);
+102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 ('128588', 'spell_aysa_congrats_trigger_aura'),
 ('128589', 'spell_aysa_congrats_timer'),
@@ -1102,6 +1102,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (108808, 'spell_summon_jojo_ironbrow'),
 (108798, 'spell_jojo_headbash_filter'),
 (104450, 'spell_summon_ji_firepaw_temple'),
+-- (108627, 'spell_cart_ropes'),
+-- (108691, 'spell_cart_ropes'),
 (118036, 'spell_summon_spirit_of_earth');
 
 DELETE FROM `npc_vendor` WHERE `entry`=57620;

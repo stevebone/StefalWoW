@@ -971,6 +971,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (me->GetEntry() == Npcs::npc_vehicle_ox || me->GetEntry() == Npcs::npc_vehicle_ox_farmstead)
                 {
                     me->SetReactState(REACT_PASSIVE);
+                    //_events.ScheduleEvent(EventsOxCart::event_ox_cart_ropes, 500ms);
                     _events.ScheduleEvent(EventsOxCart::event_ox_cart_path_start, 1400ms); // Delay of 0.5 seconds
                 }
             }
@@ -1013,6 +1014,26 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
+                        /*
+                    case EventsOxCart::event_ox_cart_ropes:
+                    {
+                        Unit* yak = nullptr;
+                        if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
+                        {
+                            if (Unit* yak1 = me->FindNearestCreature(Npcs::npc_vehicle_ox, 10.f))
+                                yak = yak1;
+                            else if (Unit* yak2 = me->FindNearestCreature(Npcs::npc_vehicle_ox_farmstead, 10.f))
+                                yak = yak2;
+
+                            if (yak)
+                            {
+                                me->CastSpell(yak, SpellsCartOx::spell_rope_left);
+                                me->CastSpell(yak, SpellsCartOx::spell_rope_right);
+                            }
+                            
+                        }
+                        break;
+                    }*/
                     case EventsOxCart::event_ox_cart_path_start:
                         if (me->GetEntry() == Npcs::npc_vehicle_cart)
                         {
