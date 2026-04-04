@@ -7432,7 +7432,7 @@ uint32 Player::GetCurrencyMaxQuantity(CurrencyTypesEntry const* currency, bool o
 
     uint32 maxQuantity = currency->MaxQty;
     if (currency->MaxQtyWorldStateID)
-        maxQuantity = sWorldStateMgr->GetValue(currency->MaxQtyWorldStateID, GetMap());
+        maxQuantity = WorldStateMgr::GetValue(currency->MaxQtyWorldStateID, GetMap());
 
     uint32 increasedCap = 0;
     if (currency->GetFlags().HasFlag(CurrencyTypesFlags::DynamicMaximum))
@@ -7720,7 +7720,7 @@ void Player::UpdateHostileAreaState(AreaTableEntry const* area)
     {
         if (area)
         {
-            if (InBattleground() || area->GetFlags().HasFlag(AreaFlags::CombatZone) || (area->PvpCombatWorldStateID != -1 && sWorldStateMgr->GetValue(area->PvpCombatWorldStateID, GetMap()) != 0))
+            if (InBattleground() || area->GetFlags().HasFlag(AreaFlags::CombatZone) || (area->PvpCombatWorldStateID != -1 && WorldStateMgr::GetValue(area->PvpCombatWorldStateID, GetMap()) != 0))
                 pvpInfo.IsInHostileArea = true;
             else if (IsWarModeLocalActive() || (area->GetFlags().HasFlag(AreaFlags::EnemiesPvPFlagged)))
             {
@@ -9236,9 +9236,7 @@ void Player::SendUpdateWorldState(uint32 variable, uint32 value, bool hidden /*=
     SendDirectMessage(worldstate.Write());
 }
 
-// TODO - InitWorldStates should NOT always send the same states
-//        Some should keep the same value between different zoneIds and areaIds on the same map
-void Player::SendInitWorldStates(uint32 zoneId, uint32 areaId)
+void Player::SendInitWorldStates(uint32 zoneId, uint32 areaId) const
 {
     uint32 mapId = GetMapId();
 
@@ -9249,7 +9247,7 @@ void Player::SendInitWorldStates(uint32 zoneId, uint32 areaId)
     packet.AreaID = zoneId;
     packet.SubareaID = areaId;
 
-    sWorldStateMgr->FillInitialWorldStates(packet, GetMap(), areaId);
+    WorldStateMgr::FillInitialWorldStates(packet, GetMap(), areaId);
 
     SendDirectMessage(packet.Write());
 }
@@ -22639,7 +22637,7 @@ void Player::SendRemoveControlBar() const
     SendDirectMessage(packet.Write());
 }
 
-uint32 Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier const* mod, Spell const* spell)
+int32 Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier const* mod, Spell const* spell)
 {
     if (!mod || !spellInfo)
         return 0;
@@ -22686,8 +22684,7 @@ uint32 Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier co
     return spellInfo->IsAffectedBySpellMod(mod);
 }
 
-template <class T>
-void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell* spell, T base, int32* flat, float* pct) const
+void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell* spell, double base, int32* flat, float* pct) const
 {
     ASSERT(flat && pct);
 
@@ -22751,7 +22748,7 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
                 if (!IsAffectedBySpellmod(spellInfo, mod, spell))
                     continue;
 
-                if (base < T(10000) && static_cast<SpellModifierByClassMask*>(mod)->value <= -100)
+                if (base < 10000.0 && static_cast<SpellModifierByClassMask*>(mod)->value <= -100)
                 {
                     modInstantSpell = mod;
                     break;
@@ -22765,7 +22762,7 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
                     if (!IsAffectedBySpellmod(spellInfo, mod, spell))
                         continue;
 
-                    if (base < T(10000) && static_cast<SpellPctModifierByLabel*>(mod)->value.ModifierValue <= -1.0f)
+                    if (base < 10000.0 && static_cast<SpellPctModifierByLabel*>(mod)->value.ModifierValue <= -1.0f)
                     {
                         modInstantSpell = mod;
                         break;
@@ -22826,7 +22823,7 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
 
     for (SpellModifier* mod : spellModTypeRange(SPELLMOD_FLAT))
     {
-        uint32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
+        int32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
         if (!applyCount)
             continue;
 
@@ -22840,7 +22837,7 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
 
     for (SpellModifier* mod : spellModTypeRange(SPELLMOD_LABEL_FLAT))
     {
-        uint32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
+        int32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
         if (!applyCount)
             continue;
 
@@ -22854,12 +22851,12 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
 
     for (SpellModifier* mod : spellModTypeRange(SPELLMOD_PCT))
     {
-        uint32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
+        int32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
         if (!applyCount)
             continue;
 
         // skip percent mods for null basevalue (most important for spell mods with charges)
-        if (base + *flat == T(0))
+        if (base + *flat == 0)
             continue;
 
         int32 value = static_cast<SpellModifierByClassMask*>(mod)->value;
@@ -22869,22 +22866,22 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
         // special case (skip > 10sec spell casts for instant cast setting)
         if (op == SpellModOp::ChangeCastTime)
         {
-            if (base >= T(10000) && value <= -100)
+            if (base >= 10000.0 && value <= -100)
                 continue;
         }
 
-        *pct *= std::pow(1.0f + CalculatePct(1.0f, value), applyCount);
+        *pct *= std::pow(1.0f + CalculatePct(1.0f, value), float(applyCount));
         Player::ApplyModToSpell(mod, spell);
     }
 
     for (SpellModifier* mod : spellModTypeRange(SPELLMOD_LABEL_PCT))
     {
-        uint32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
+        int32 applyCount = IsAffectedBySpellmod(spellInfo, mod, spell);
         if (!applyCount)
             continue;
 
         // skip percent mods for null basevalue (most important for spell mods with charges)
-        if (base + *flat == T(0))
+        if (base + *flat == 0)
             continue;
 
         float value = static_cast<SpellPctModifierByLabel*>(mod)->value.ModifierValue;
@@ -22894,19 +22891,14 @@ void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell*
         // special case (skip > 10sec spell casts for instant cast setting)
         if (op == SpellModOp::ChangeCastTime)
         {
-            if (base >= T(10000) && value <= -1.0f)
+            if (base >= 10000.0 && value <= -1.0f)
                 continue;
         }
 
-        *pct *= std::pow(value, applyCount);
+        *pct *= std::pow(value, float(applyCount));
         Player::ApplyModToSpell(mod, spell);
     }
 }
-
-template TC_GAME_API void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell* spell, int32 base, int32* flat, float* pct) const;
-template TC_GAME_API void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell* spell, uint32 base, int32* flat, float* pct) const;
-template TC_GAME_API void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell* spell, float base, int32* flat, float* pct) const;
-template TC_GAME_API void Player::GetSpellModValues(SpellInfo const* spellInfo, SpellModOp op, Spell* spell, double base, int32* flat, float* pct) const;
 
 template <class T>
 void Player::ApplySpellMod(SpellInfo const* spellInfo, SpellModOp op, T& basevalue, Spell* spell /*= nullptr*/) const
@@ -22914,9 +22906,9 @@ void Player::ApplySpellMod(SpellInfo const* spellInfo, SpellModOp op, T& baseval
     float totalmul = 1.0f;
     int32 totalflat = 0;
 
-    GetSpellModValues(spellInfo, op, spell, basevalue, &totalflat, &totalmul);
+    this->GetSpellModValues(spellInfo, op, spell, basevalue, &totalflat, &totalmul);
 
-    basevalue = T(double(basevalue + totalflat) * totalmul);
+    basevalue = T((double(basevalue) + totalflat) * totalmul);
 }
 
 template TC_GAME_API void Player::ApplySpellMod(SpellInfo const* spellInfo, SpellModOp op, int32& basevalue, Spell* spell) const;
