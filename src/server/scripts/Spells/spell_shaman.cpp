@@ -1322,20 +1322,12 @@ class spell_sha_hailstorm : public AuraScript
     void CalcCleaveMod(AuraEffect const* aurEff, SpellModifier*& spellMod) const
     {
         if (!spellMod)
-        {
-            SpellModifierByClassMask* mod = new SpellModifierByClassMask(GetAura());
-            mod->op = SpellModOp::ChainTargets;
-            mod->type = SPELLMOD_FLAT;
-            mod->spellId = GetId();
-            mod->mask = { 0x80000000, 0x00000000, 0x00000000, 0x00000000 };
-
-            spellMod = mod;
-        }
+            spellMod = new SpellFlatModifierByClassMask(SpellModOp::ChainTargets, GetId(), GetAura(), { 0x80000000, 0x00000000, 0x00000000, 0x00000000 });
 
         if (AuraEffect const* hailstormPassive = GetUnitOwner()->GetAuraEffect(SPELL_SHAMAN_HAILSTORM_TALENT, EFFECT_0))
         {
             int32 targetCap = hailstormPassive->GetAmount() / aurEff->GetBaseAmount();
-            static_cast<SpellModifierByClassMask*>(spellMod)->value = std::min<int32>(targetCap, GetStackAmount()) + 1;
+            static_cast<SpellFlatModifierByClassMask*>(spellMod)->value = std::min<int32>(targetCap, GetStackAmount()) + 1;
         }
     }
 
