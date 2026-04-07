@@ -161,6 +161,7 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { .Name = "Private Object",            .HasConditionValue1 = false, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
     { .Name = "String ID",                 .HasConditionValue1 = false, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 =  true },
     { .Name = "Label",                     .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
+    { .Name = "Chromie Time",              .HasConditionValue1 = true,  .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
 };
 
 ConditionSourceInfo::ConditionSourceInfo(WorldObject const* target0, WorldObject const* target1, WorldObject const* target2) :
@@ -251,7 +252,7 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
             break;
         case CONDITION_WORLD_STATE:
         {
-            condMeets = sWorldStateMgr->GetValue(ConditionValue1, map) == int32(ConditionValue2);
+            condMeets = WorldStateMgr::GetValue(ConditionValue1, map) == int32(ConditionValue2);
             break;
         }
         case CONDITION_REALM_ACHIEVEMENT:
@@ -680,6 +681,18 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
                 condMeets = go->HasLabel(ConditionValue1);
             break;
         }
+        case CONDITION_CHROMIE_TIME:
+        {
+            if (Player const* player = object->ToPlayer())
+            {
+                int32 currentExpansion = player->m_activePlayerData->UiChromieTimeExpansionID;
+                if (ConditionValue1 == 0)
+                    condMeets = currentExpansion != 0; // any Chromie Time
+                else
+                    condMeets = currentExpansion == int32(ConditionValue1); // specific expansion
+            }
+            break;
+        }
         default:
             break;
     }
@@ -900,6 +913,9 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             break;
         case CONDITION_LABEL:
             mask |= GRID_MAP_TYPE_MASK_CREATURE | GRID_MAP_TYPE_MASK_GAMEOBJECT;
+            break;
+        case CONDITION_CHROMIE_TIME:
+            mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         default:
             ABORT_MSG("Condition::GetSearcherTypeMaskForCondition - missing condition handling!");
@@ -2544,7 +2560,7 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
         }
         case CONDITION_WORLD_STATE:
         {
-            if (!sWorldStateMgr->GetWorldStateTemplate(cond->ConditionValue1))
+            if (!WorldStateMgr::GetWorldStateTemplate(cond->ConditionValue1))
             {
                 TC_LOG_ERROR("sql.sql", "{} has non existing world state in value1 ({}), skipped.", *cond, cond->ConditionValue1);
                 return false;
@@ -2665,6 +2681,13 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
         case CONDITION_PRIVATE_OBJECT:
         case CONDITION_STRING_ID:
         case CONDITION_LABEL:
+            break;
+        case CONDITION_CHROMIE_TIME:
+            if (cond->ConditionValue1 > CURRENT_EXPANSION)
+            {
+                TC_LOG_ERROR("sql.sql", "{} has invalid expansion in value1 ({}), skipped.", *cond, cond->ConditionValue1);
+                return false;
+            }
             break;
         case CONDITION_DIFFICULTY_ID:
             if (!sDifficultyStore.LookupEntry(cond->ConditionValue1))
@@ -3634,7 +3657,7 @@ int32 EvalSingleValue(ByteBuffer& buffer, Map const* map)
         case WorldStateExpressionValueType::WorldState:
         {
             int32 worldStateId = buffer.read<int32>();
-            value = sWorldStateMgr->GetValue(worldStateId, map);
+            value = WorldStateMgr::GetValue(worldStateId, map);
             break;
         }
         case WorldStateExpressionValueType::Function:

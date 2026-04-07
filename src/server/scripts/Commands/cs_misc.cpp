@@ -115,6 +115,7 @@ public:
             { "unstuck",          HandleUnstuckCommand,          rbac::RBAC_PERM_COMMAND_UNSTUCK,          Console::Yes },
             { "wchange",          HandleChangeWeather,           rbac::RBAC_PERM_COMMAND_WCHANGE,          Console::No },
             { "mailbox",          HandleMailBoxCommand,          rbac::RBAC_PERM_COMMAND_MAILBOX,          Console::No },
+            { "chromietime",      HandleChromieTimeCommand,      rbac::RBAC_PERM_COMMAND_MAILBOX,          Console::No },
         };
         return commandTable;
     }
@@ -2528,6 +2529,35 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
 
         handler->GetSession()->SendShowMailBox(player->GetGUID());
+        return true;
+    }
+
+    static bool HandleChromieTimeCommand(ChatHandler* handler, Optional<int32> expansionIdArg)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage("No player selected.");
+            return false;
+        }
+
+        if (!expansionIdArg)
+        {
+            int32 currentExp = target->m_activePlayerData->UiChromieTimeExpansionID;
+            handler->PSendSysMessage("Chromie Time for %s: expansion %d", target->GetName().c_str(), currentExp);
+            return true;
+        }
+
+        int32 expansionId = *expansionIdArg;
+        if (expansionId < 0 || expansionId > CURRENT_EXPANSION)
+        {
+            handler->PSendSysMessage("Invalid expansion ID (0-%d).", CURRENT_EXPANSION);
+            return false;
+        }
+
+        target->SetChromieTime(expansionId);
+
+        handler->PSendSysMessage("Chromie Time for %s set to expansion %d.", target->GetName().c_str(), expansionId);
         return true;
     }
 };

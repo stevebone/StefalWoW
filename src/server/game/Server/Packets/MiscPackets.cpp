@@ -945,7 +945,20 @@ WorldPacket const* WorldPackets::Misc::ActivateSoulbindFailed::Write()
 
 void ChromieTimeSelectExpansion::Read()
 {
+    _worldPacket >> Guid;
     _worldPacket >> ExpansionID;
+}
+
+WorldPacket const* SetCtrOptions::Write()
+{
+    _worldPacket << uint32(ConditionalFlags.size());
+    _worldPacket.FlushBits();
+    _worldPacket << uint8(FactionGroup);
+    _worldPacket << uint32(ChromieTimeExpansionMask);
+    for (uint32 flag : ConditionalFlags)
+        _worldPacket << uint32(flag);
+
+    return &_worldPacket;
 }
 
 void RequestStoreFrontInfoUpdate::Read()

@@ -1357,16 +1357,14 @@ void WorldSession::HandleChromieTimeSelectExpansion(WorldPackets::Misc::ChromieT
 
     int32 expansionId = chromieTimeSelectExpansion.ExpansionID;
 
-    // ExpansionID 0 means clearing Chromie Time selection
     if (expansionId < 0 || expansionId > CURRENT_EXPANSION)
         return;
 
-    // Set the UiChromieTimeExpansionID update field on ActivePlayerData
-    player->SetUpdateFieldValue(player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::UiChromieTimeExpansionID), expansionId);
+    // Blizzlike: only available for levels 10-70 (below max level)
+    if (player->GetLevel() < 10 || player->IsMaxLevel())
+        return;
 
-    // Set the ChromieTimeExpansionMask on PlayerData::CtrOptions
-    uint32 expansionMask = expansionId > 0 ? (1u << expansionId) : 0;
-    player->SetUpdateFieldValue(player->m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::CtrOptions).ModifyValue(&UF::CTROptions::ChromieTimeExpansionMask), expansionMask);
+    player->SetChromieTime(expansionId);
 
     // Send success response
     player->SendDirectMessage(WorldPackets::Misc::ChromieTimeSelectExpansionSuccess().Write());
