@@ -232,8 +232,8 @@ namespace Scripts::Custom::TirisfalGlades
 
                 if (!player->IsInWorld() ||
                     player->isDead() ||
-                    player->GetQuestStatus(QUEST_THE_SHADOW_GRAVE) == QUEST_STATUS_NONE ||
-                    player->GetQuestStatus(QUEST_THE_SHADOW_GRAVE) == QUEST_STATUS_FAILED)
+                    player->GetQuestStatus(Quests::quest_the_shadow_grave) == QUEST_STATUS_NONE ||
+                    player->GetQuestStatus(Quests::quest_the_shadow_grave) == QUEST_STATUS_FAILED)
                 {
                     me->DespawnOrUnsummon();
                     return false;
