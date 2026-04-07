@@ -30,6 +30,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
+#include "Vehicle.h"
 
 #include "Custom_TirisfalGlades_Defines.h"
 
