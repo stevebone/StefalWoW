@@ -1423,7 +1423,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     me->StopMoving();
                     me->GetMotionMaster()->Clear();
 
-                    if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f))
+                    Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f);
+                    if (wugou)
                     {
                         
                         me->CastSpell(me, SpellsQ29774::spell_water_spirit_laugh);
