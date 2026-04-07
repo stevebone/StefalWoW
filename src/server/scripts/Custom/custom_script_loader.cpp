@@ -32,6 +32,8 @@ void AddSC_custom_the_wandering_isle_npcs();
 void AddSC_custom_the_wandering_isle_player();
 void AddSC_custom_the_wandering_isle_quests();
 void AddSC_custom_the_wandering_isle_spells();
+void AddSC_custom_tirisfal_glades_npcs();
+void AddSC_custom_tirisfal_glades_player();
 void AddSC_custom_westfall_npcs();
 void AddSC_custom_westfall_player();
 
@@ -79,6 +81,8 @@ void AddCustomScripts()
     AddSC_custom_the_wandering_isle_player();
     AddSC_custom_the_wandering_isle_quests();
     AddSC_custom_the_wandering_isle_spells();
+    AddSC_custom_tirisfal_glades_npcs();
+    AddSC_custom_tirisfal_glades_player();
     AddSC_custom_westfall_npcs();
     AddSC_custom_westfall_player();
 
