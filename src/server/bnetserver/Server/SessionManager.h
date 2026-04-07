@@ -32,6 +32,8 @@ namespace Battlenet
     {
     };
 
+    class SessionManager;
+
     struct SessionManagerTraits
     {
         using Self = SessionManager;
