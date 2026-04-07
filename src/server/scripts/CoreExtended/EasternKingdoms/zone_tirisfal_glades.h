@@ -141,14 +141,3 @@ namespace Scripts::Custom::TirisfalGlades
     }
 }
 
-enum Custom_Deathknell_Quests
-{
-    QUEST_FRESH_OUT_OF_THE_GRAVE = 24959, // on reward Darnell is summoned
-    QUEST_RECRUITMENT = 26800, // on reward Darnell is despawned
-    QUEST_THE_SHADOW_GRAVE = 28608, // on complete Darnell despawns
-    QUEST_THOSE_THAT_COULDNT_BE_SAVED = 26799,
-    QUEST_CARETAKER_CAICE = 28652,
-    QUEST_THE_WAKENING = 24960, // on reward Darnell is summoned
-    QUEST_BEYOND_THE_GRAVES = 25089, 
-};
-
