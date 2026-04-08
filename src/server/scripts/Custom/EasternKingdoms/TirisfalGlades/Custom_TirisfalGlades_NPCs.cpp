@@ -95,9 +95,6 @@ namespace Scripts::Custom::TirisfalGlades
                 }
 
                 Talk(TalksDarnell0::talk_darnell_hello, player);
-
-                if (player && player->IsActiveQuest(Quests::quest_the_shadow_grave))
-                    events.ScheduleEvent(EventsDarnell0::event_darnell_way_to_grave, 3s, 5s);
             }
 
             // -------------------------
@@ -112,8 +109,9 @@ namespace Scripts::Custom::TirisfalGlades
                 {
                 case Misc::point_darnell_grave_entrance: // reached entrance
                 {
-                    Talk(TalksDarnell0::talk_darnell_this_way);
-                    events.ScheduleEvent(EventsDarnell0::event_darnell_downstairs_1, 2s, 3s);
+                    waitingAtGraveEntrance = true;
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                    me->SetFacingToObject(player);
                     break;
                 }
 
@@ -147,7 +145,9 @@ namespace Scripts::Custom::TirisfalGlades
 
                 case Misc::point_darnell_grave_center:
                 {
+                    events.ScheduleEvent(EventsDarnell0::event_darnell_ask_player_for_help, 30s);
                     Talk(TalksDarnell0::talk_darnell_supplies_loc_1);
+                    me->SetWalk(true);
                     me->GetMotionMaster()->MovePoint(
                         Misc::point_darnell_grave_supplies_1,
                         PositionsQ28608::pos_darnell_supplies[urand(0, 3)]
@@ -161,23 +161,22 @@ namespace Scripts::Custom::TirisfalGlades
                     if (!player)
                         return;
 
+                    if (suppliesFound)
+                        return;
+
                     Talk(TalksDarnell0::talk_darnell_hmm);
 
-                    scheduler.Schedule(3s, [this](TaskContext /*task*/)
+                    scheduler.Schedule(5s, [this](TaskContext /*task*/)
                         {
                             Talk(TalksDarnell0::talk_darnell_nope);
                         });
 
-                    scheduler.Schedule(6s, [this, player](TaskContext /*task*/)
-                        {
-                            Talk(TalksDarnell0::talk_darnell_ask_player, player);
-                        });
-
-                    scheduler.Schedule(9s, [this](TaskContext /*task*/)
+                    scheduler.Schedule(7s, [this](TaskContext /*task*/)
                         {
                             Talk(TalksDarnell0::talk_darnell_supplies_loc_2);
                         });
 
+                    events.ScheduleEvent(EventsDarnell0::event_darnell_supplies_loop, 9s);
                     break;
                 }
                 }
@@ -200,14 +199,39 @@ namespace Scripts::Custom::TirisfalGlades
                     events.ScheduleEvent(EventsDarnell0::event_darnell_despawn, 3s);
                 }
 
+                if (player->IsActiveQuest(Quests::quest_the_shadow_grave) && !suppliesFound)
+                {
+                    if (me->IsInDist(PositionsQ28608::pos_darnell_grave_entrance, 5.f) && !DarnellFollowMe && !waitingAtGraveEntrance)
+                    {
+                        DarnellFollowMe = true;
+                        me->GetMotionMaster()->Clear();
+                        Talk(TalksDarnell0::talk_darnell_to_grave, player);
+                        me->GetMotionMaster()->MovePoint(Misc::point_darnell_grave_entrance, PositionsQ28608::pos_darnell_grave_entrance);
+                    }
+
+                    if (me->IsWithinDist(player, 3.f) && !DarnellThisWay && waitingAtGraveEntrance)
+                    {
+                        DarnellThisWay = true;
+                        Talk(TalksDarnell0::talk_darnell_this_way);
+                        events.ScheduleEvent(EventsDarnell0::event_darnell_downstairs_1, 1s);
+                    }
+                }
+
                 while (uint32 eventId = events.ExecuteEvent())
                 {
                     switch (eventId)
                     {
-                    case EventsDarnell0::event_darnell_way_to_grave:
+                    case EventsDarnell0::event_darnell_supplies_loop:
                     {
-                        Talk(TalksDarnell0::talk_darnell_to_grave, player);
-                        me->GetMotionMaster()->MovePoint(Misc::point_darnell_grave_entrance, PositionsQ28608::pos_darnell_grave_entrance);
+                        me->GetMotionMaster()->MovePoint(
+                            Misc::point_darnell_grave_supplies_1,
+                            PositionsQ28608::pos_darnell_supplies[urand(0, 3)]
+                        );
+                        break;
+                    }
+                    case EventsDarnell0::event_darnell_ask_player_for_help:
+                    {
+                        Talk(TalksDarnell0::talk_darnell_ask_player, player);
                         break;
                     }
                     case EventsDarnell0::event_darnell_downstairs_1:
@@ -218,6 +242,7 @@ namespace Scripts::Custom::TirisfalGlades
                     case EventsDarnell0::event_darnell_despawn:
                     {
                         Talk(TalksDarnell0::talk_darnell_joke);
+                        me->GetMotionMaster()->Clear();
                         me->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
                         me->DespawnOrUnsummon(20s);
                         break;
@@ -247,6 +272,9 @@ namespace Scripts::Custom::TirisfalGlades
             ObjectGuid PlayerGUID;
             TaskScheduler scheduler;
             bool suppliesFound = false;
+            bool waitingAtGraveEntrance = false;
+            bool DarnellFollowMe = false;
+            bool DarnellThisWay = false;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
@@ -256,8 +284,6 @@ namespace Scripts::Custom::TirisfalGlades
     };
 
     // Darnell 49337
-    // For Recruitment quest we need to spawn a normal version of Darnell
-    // Otherwise the Ride vehicle spell DOES NOT WORK.
     class npc_custom_darnell : public CreatureScript
     {
     public:
@@ -268,8 +294,6 @@ namespace Scripts::Custom::TirisfalGlades
             npc_custom_darnellAI(Creature* creature) : ScriptedAI(creature)
             {
                 me->SetReactState(REACT_PASSIVE);
-                if (!me->HasUnitFlag(UNIT_FLAG_PLAYER_CONTROLLED))
-                    isClone = true;
             }
 
             void Reset() override
@@ -277,26 +301,17 @@ namespace Scripts::Custom::TirisfalGlades
                 // --- Resolve player safely ---
                 Player* player = nullptr;
 
-                if (!isClone)
+                if (Unit* owner = me->GetOwner())
                 {
-                    // First try: owner
-                    if (Unit* owner = me->GetOwner())
-                    {
-                        player = owner->ToPlayer();
-                        if (player)
-                            PlayerGUID = player->GetGUID();
-                    }
+                    player = owner->ToPlayer();
+                    if (player)
+                        PlayerGUID = player->GetGUID();
                 }
 
-                if (isClone)
+                // Fallback: nearest player
+                if (!player)
                 {
-                    // Try to resolve player from stored GUID first
-                    if (!PlayerGUID.IsEmpty())
-                        player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-
-                    // Fallback: nearest player
-                    if (!player)
-                        player = me->SelectNearestPlayer(10.f);
+                    player = me->SelectNearestPlayer(10.f);
 
                     if (player)
                         PlayerGUID = player->GetGUID();
@@ -305,64 +320,19 @@ namespace Scripts::Custom::TirisfalGlades
                 if (!player)
                     return; // Still no player? Abort safely.
 
-                // --- Quest: The Wakening ---
-                if (player->GetQuestStatus(Quests::quest_the_wakening) == QUEST_STATUS_COMPLETE)
-                    events.ScheduleEvent(EventsDarnell::event_darnell_way_to_deathknell, 5s);
-
                 // --- Quest: Recruitment ---
                 if (player->IsActiveQuest(Quests::quest_recruitment))
                 {
-                    // If this is the original summoned Darnell ? replace with clone
-                    if (!isClone)
-                    {
-                        Creature* clone = me->SummonCreature(
-                            Npcs::npc_darnell_1,
-                            player->GetRandomNearPosition(3.f)
-                        );
-
-                        if (clone)
-                        {
-                            // Pass player GUID to clone AI
-                            clone->AI()->SetData(0, player->GetGUID().GetCounter());
-
-                            me->DespawnOrUnsummon(100ms);
-                            return;
-                        }
-                    }
-
-                    // If clone ? follow player
+                    me->SetPrivateObjectOwner(ObjectGuid::Empty);
                     events.ScheduleEvent(EventsDarnell::event_darnell_return_to_player, 1s);
                 }
 
+                // --- Quest: Beyond The Graves ---
                 if (player->IsActiveQuest(Quests::quest_beyond_the_graves))
-                {
-                    // If Darnell is already in Deathknell skip walk
-                    if (me->GetAreaId() == Misc::area_deathknell)
-                    {
-                        arrivedDeathknellGate = true;
-                        arrivedDeathknell = true;
-                        wayToDeathknell = true;
-                        me->GetMotionMaster()->Clear();
-                        events.ScheduleEvent(EventsDarnell::event_darnell_return_to_player, 1s);
-                    }
-
-                     // If player is still around the graves get Darnell directly to gate
-                    else if (me->GetAreaId() == Misc::area_deathknell_graves)
-                    {
-                        wayToDeathknell = true;
-                        me->GetMotionMaster()->MovePoint(5, PositionsQ25089::pos_darnell_at_gate);
-                    }
-
-                }
+                    events.ScheduleEvent(EventsDarnell::event_darnell_check_walk_to_deathknell, 3s);
 
                 // --- Greeting ---
                 Talk(TalksDarnell::talk_darnell_hello, player);
-            }
-
-            void SetData(uint32 id, uint32 value) override
-            {
-                if (id == 0)
-                    PlayerGUID = ObjectGuid::Create<HighGuid::Player>(value);
             }
 
             void PassengerBoarded(Unit* passenger, int8 /*seatId*/, bool apply) override
@@ -375,34 +345,26 @@ namespace Scripts::Custom::TirisfalGlades
                         corpse->CastSpell(corpse, SpellsQ26800::spell_feign_death);
 
                         // Despawn after a few seconds
-                        corpse->DespawnOrUnsummon(30s);
+                        corpse->DespawnOrUnsummon(20s);
                     }
                 }
             }
 
             void UpdateAI(uint32 diff) override
             {
-                Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                if (!player || !player->IsInWorld())
-                {
-                    me->DespawnOrUnsummon();
+                if (!CheckPlayerValid())
                     return;
-                }
 
                 events.Update(diff);
 
                 if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
                 {
-                    if (player->IsActiveQuest(Quests::quest_beyond_the_graves) && !wayToDeathknell)
-                    {
-                        wayToDeathknell = true;
-                        Talk(TalksDarnell::talk_darnell_to_deathknell);
-                        me->GetMotionMaster()->Clear();
-                        me->GetMotionMaster()->MovePoint(3, PositionsQ25089::pos_darnell_to_deathknell_1);
-                    }
+                    // Check need to start walk
+                    if (player && player->IsActiveQuest(Quests::quest_beyond_the_graves) && !wayToDeathknell)
+                        events.ScheduleEvent(EventsDarnell::event_darnell_check_walk_to_deathknell, 1s);
 
                     // Check Deathknell
-                    if (!arrivedDeathknell && arrivedDeathknellGate)
+                    if (!arrivedSaltain && !arrivedDeathknell && arrivedDeathknellGate)
                     {
                         Creature* bunny = me->FindNearestCreature(Npcs::npc_gate_bunny, 10.f);
                         if (bunny)
@@ -456,9 +418,38 @@ namespace Scripts::Custom::TirisfalGlades
                 {
                     switch (eventId)
                     {
-                    case EventsDarnell::event_darnell_way_to_deathknell:
+                    case EventsDarnell::event_darnell_check_walk_to_deathknell:
                     {
+                        if (wayToDeathknell)
+                            return;
+
+                        Creature* caice = me->FindNearestCreature(Npcs::npc_caretaker_caice, 10.f);
+
+                        // If Darnell is already in Deathknell skip walk
+                        if (me->GetAreaId() == Misc::area_deathknell)
+                        {
+                            arrivedDeathknellGate = true;
+                            arrivedDeathknell = true;
+                            wayToDeathknell = true;
+                        }
+
+                        else if (caice && me->IsWithinDist(caice, 5.f))
+                        {
+                            wayToDeathknell = true;
+                            me->GetMotionMaster()->Clear();
+                            me->GetMotionMaster()->MovePoint(3, PositionsQ25089::pos_darnell_to_deathknell_1);
+                        }
+
+                        // If player is still around the graves get Darnell directly to gate
+                        else if (me->GetAreaId() == Misc::area_deathknell_graves)
+                        {
+                            wayToDeathknell = true;
+                            me->GetMotionMaster()->Clear();
+                            me->GetMotionMaster()->MovePoint(5, PositionsQ25089::pos_darnell_at_gate);
+                        }
+
                         Talk(TalksDarnell::talk_darnell_to_deathknell); // I know the way to Deathknell. Come with me!
+
                         break;
                     }
 
@@ -476,10 +467,6 @@ namespace Scripts::Custom::TirisfalGlades
                                 me->CastSpell(me, SpellsQ26800::spell_darnell_slumped_over, true);
                             corpse->RemoveAllAuras();
                             corpse->CastSpell(me, SpellsMisc::spell_ride_vehicle, true);
-
-                            Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                            if (player)
-                                player->KilledMonsterCredit(Npcs::npc_scarlet_corpse);
                         }
 
                         events.ScheduleEvent(EventsDarnell::event_darnell_return_to_player, 1s);
@@ -551,6 +538,22 @@ namespace Scripts::Custom::TirisfalGlades
 
                 if (id == 5)
                     arrivedDeathknellGate = true;
+            }
+
+            bool CheckPlayerValid()
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                if (!player) return false;
+
+                if (!player->IsInWorld() ||
+                    player->isDead() ||
+                    (player->GetQuestStatus(Quests::quest_beyond_the_graves) == QUEST_STATUS_REWARDED &&
+                    player->GetQuestStatus(Quests::quest_recruitment) == QUEST_STATUS_NONE))
+                {
+                    me->DespawnOrUnsummon();
+                    return false;
+                }
+                return true;
             }
 
         private:

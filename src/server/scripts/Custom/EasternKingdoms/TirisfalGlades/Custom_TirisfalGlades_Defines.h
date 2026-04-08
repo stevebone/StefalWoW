@@ -70,18 +70,19 @@ namespace Scripts::Custom::TirisfalGlades
 
     namespace EventsDarnell0
     {
-        static constexpr int8 event_darnell_way_to_grave = 1;
+        static constexpr int8 event_darnell_ask_player_for_help = 1;
         static constexpr int8 event_darnell_downstairs_1 = 2;
-        static constexpr int8 event_darnell_despawn = 4;
+        static constexpr int8 event_darnell_despawn = 3;
+        static constexpr int8 event_darnell_supplies_loop = 4;
         
     }
 
     namespace EventsDarnell
     {
-        static constexpr int8 event_darnell_way_to_deathknell = 1;
-        static constexpr int8 event_darnell_corpse_pickup = 2;
-        static constexpr int8 event_darnell_return_to_player = 3;
-        static constexpr int8 event_darnell_start_corpses_quest = 4;
+        static constexpr int8 event_darnell_corpse_pickup = 1;
+        static constexpr int8 event_darnell_return_to_player = 2;
+        static constexpr int8 event_darnell_start_corpses_quest = 3;
+        static constexpr int8 event_darnell_check_walk_to_deathknell = 4;
     }
 
     namespace TalksDarnell0
@@ -129,6 +130,7 @@ namespace Scripts::Custom::TirisfalGlades
         static constexpr uint32 npc_scarlet_corpse = 49340;
         static constexpr uint32 npc_saltain = 1740;
         static constexpr uint32 npc_gate_bunny = 41200;
+        static constexpr uint32 npc_caretaker_caice = 2307;
     }
 
     namespace Quests
