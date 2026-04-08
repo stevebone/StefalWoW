@@ -8413,7 +8413,9 @@ MountCapabilityEntry const* Unit::GetMountCapability(uint32 mountType) const
         {
             if (mountCapability->Flags & MOUNT_CAPABILITY_FLAG_GROUND && !(mountFlags.HasFlag(AreaMountFlags::AllowGroundMounts)))
                 continue;
-            if (mountCapability->Flags & MOUNT_CAPABILITY_FLAG_FLYING && !(mountFlags.HasFlag(AreaMountFlags::AllowFlyingMounts)))
+            // Allow flying everywhere for players (private server - area flags incomplete in DB2)
+            if (mountCapability->Flags & MOUNT_CAPABILITY_FLAG_FLYING && !(mountFlags.HasFlag(AreaMountFlags::AllowFlyingMounts))
+                && GetTypeId() != TYPEID_PLAYER)
                 continue;
             if (mountCapability->Flags & MOUNT_CAPABILITY_FLAG_FLOAT && !(mountFlags.HasFlag(AreaMountFlags::AllowSurfaceSwimmingMounts)))
                 continue;
@@ -14517,4 +14519,127 @@ bool Unit::IsPlayerOrBot() const
             return c->IsBot();
 
     return false;
+}
+
+//WowCommunity
+
+void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
+{
+    if (driveCapabilityId && !sDriveCapabilityStore.HasRecord(driveCapabilityId))
+        return;
+
+    if (GetDriveCapabilityID() == driveCapabilityId)
+        return;
+
+    SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::DriveCapabilityID), driveCapabilityId);
+
+    if (driveCapabilityId)
+        AddExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_DRIVE);
+    else
+        RemoveExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_DRIVE | MOVEMENTFLAG3_DRIVING_FORWARD);
+
+    if (!clientUpdate)
+        return;
+
+    if (Player* playerMover = GetPlayerMovingMe())
+    {
+        if (driveCapabilityId)
+        {
+            WorldPackets::Movement::MoveSetCanDrive packet;
+            packet.MoverGUID = GetGUID();
+            packet.SequenceIndex = m_movementCounter++;
+            packet.DriveCapabilityRecID = driveCapabilityId;
+            playerMover->SendDirectMessage(packet.Write());
+        }
+        else
+        {
+            WorldPackets::Movement::MoveUnsetCanDrive packet;
+            packet.MoverGUID = GetGUID();
+            packet.SequenceIndex = m_movementCounter++;
+            playerMover->SendDirectMessage(packet.Write());
+        }
+
+        WorldPackets::Movement::MoveUpdate moveUpdate;
+        moveUpdate.Status = &m_movementInfo;
+        SendMessageToSet(moveUpdate.Write(), playerMover);
+    }
+}
+
+void Unit::SendApplyInertia(int32 movementInertiaID, uint32 lifetimeMs)
+{
+    if (Player* playerMover = GetPlayerMovingMe())
+    {
+        WorldPackets::Movement::MoveApplyInertia applyInertia;
+        applyInertia.MoverGUID = GetGUID();
+        applyInertia.SequenceIndex = m_movementCounter++;
+        applyInertia.MovementInertiaID = movementInertiaID;
+        applyInertia.LifetimeMs = lifetimeMs;
+        playerMover->SendDirectMessage(applyInertia.Write());
+    }
+}
+
+void Unit::SendRemoveInertia(int32 movementInertiaID)
+{
+    if (Player* playerMover = GetPlayerMovingMe())
+    {
+        WorldPackets::Movement::MoveRemoveInertia removeInertia;
+        removeInertia.MoverGUID = GetGUID();
+        removeInertia.SequenceIndex = m_movementCounter++;
+        removeInertia.MovementInertiaID = movementInertiaID;
+        playerMover->SendDirectMessage(removeInertia.Write());
+    }
+}
+
+void Unit::SendAddImpulse(Position const& direction)
+{
+    if (Player* playerMover = GetPlayerMovingMe())
+    {
+        WorldPackets::Movement::MoveAddImpulse addImpulse;
+        addImpulse.MoverGUID = GetGUID();
+        addImpulse.SequenceIndex = m_movementCounter++;
+        addImpulse.Direction = direction;
+        playerMover->SendDirectMessage(addImpulse.Write());
+    }
+}
+
+void Unit::CalculateAdvFlyingSpeeds()
+{
+    FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
+    if (!flightCapabilityEntry)
+        flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(1);
+
+    ASSERT(flightCapabilityEntry, "Wrong default value for flightCapabilityID");
+
+    //   m_advFlyingSpeed[ADV_FLYING_ADD_IMPULSE_MAX_SPEED] = flightCapabilityEntry->AddImpulseMaxSpeed * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_ADD_IMPULSE_MAX_SPEED);
+     //  m_advFlyingSpeed[ADV_FLYING_AIR_FRICTION] = flightCapabilityEntry->AirFriction * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_AIR_FRICTION);
+     //  m_advFlyingSpeed[ADV_FLYING_BANKING_RATE_MIN] = flightCapabilityEntry->BankingRateMin * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_BANKING_RATE);
+     //  m_advFlyingSpeed[ADV_FLYING_BANKING_RATE_MAX] = flightCapabilityEntry->BankingRateMax * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_BANKING_RATE);
+    m_advFlyingSpeed[ADV_FLYING_DOUBLE_JUMP_VEL_MOD] = flightCapabilityEntry->DoubleJumpVelMod;
+    m_advFlyingSpeed[ADV_FLYING_GLIDE_START_MIN_HEIGHT] = flightCapabilityEntry->GlideStartMinHeight;
+    m_advFlyingSpeed[ADV_FLYING_LAUNCH_SPEED_COEFFICIENT] = flightCapabilityEntry->LaunchSpeedCoefficient;
+    //   m_advFlyingSpeed[SPELL_AURA_ADV_FLY_MOD_LIFT_COEF ] = flightCapabilityEntry->LiftCoefficient * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_LIFT_COEF);
+     //  m_advFlyingSpeed[ADV_FLYING_MAX_VEL] = flightCapabilityEntry->MaxVel * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_MAX_VEL);
+      // m_advFlyingSpeed[ADV_FLYING_OVER_MAX_DECELERATION] = flightCapabilityEntry->OverMaxDeceleration * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_OVER_MAX_DECELERATION);
+     //  m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_DOWN_MIN] = flightCapabilityEntry->PitchingRateDownMin * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_DOWN);
+     //  m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_DOWN_MAX] = flightCapabilityEntry->PitchingRateDownMax * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_DOWN);
+    //   m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_UP_MIN] = flightCapabilityEntry->PitchingRateUpMin * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_UP);
+    //   m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_UP_MAX] = flightCapabilityEntry->PitchingRateUpMax * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_UP);
+    m_advFlyingSpeed[ADV_FLYING_SURFACE_FRICTION] = flightCapabilityEntry->SurfaceFriction;
+    //  m_advFlyingSpeed[ADV_FLYING_TURN_VELOCITY_THRESHOLD_MIN] = flightCapabilityEntry->TurnVelocityThresholdMin;
+    //  m_advFlyingSpeed[ADV_FLYING_TURN_VELOCITY_THRESHOLD_MAX] = flightCapabilityEntry->TurnVelocityThresholdMax;
+}
+
+float Unit::GetAdvFlyingVelocity() const
+{
+    Optional<MovementInfo::AdvFlying> const& advFlying = m_movementInfo.advFlying;
+    if (!advFlying)
+        return .0f;
+
+    return std::sqrt(advFlying->forwardVelocity * advFlying->forwardVelocity + advFlying->upVelocity * advFlying->upVelocity);
+}
+
+bool Unit::IsInAir() const
+{
+    float ground = GetFloorZ();
+    return (G3D::fuzzyGt(GetPositionZ(), ground + GetHoverOffset() + GROUND_HEIGHT_TOLERANCE) || G3D::fuzzyLt(GetPositionZ(), ground - GROUND_HEIGHT_TOLERANCE)); // Can be underground too, prevent the falling
 }

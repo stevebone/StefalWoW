@@ -101,6 +101,8 @@ TC_GAME_API extern DB2Storage<DelvesSeasonEntry>                    sDelvesSeaso
 TC_GAME_API extern DB2Storage<DelvesSeasonXSpellEntry>              sDelvesSeasonXSpellStore;
 TC_GAME_API extern DB2Storage<DestructibleModelDataEntry>           sDestructibleModelDataStore;
 TC_GAME_API extern DB2Storage<DifficultyEntry>                      sDifficultyStore;
+TC_GAME_API extern DB2Storage<DriveCapabilityEntry>                 sDriveCapabilityStore;
+TC_GAME_API extern DB2Storage<DriveCapabilityTierEntry>             sDriveCapabilityTierStore;
 TC_GAME_API extern DB2Storage<DungeonEncounterEntry>                sDungeonEncounterStore;
 TC_GAME_API extern DB2Storage<DurabilityCostsEntry>                 sDurabilityCostsStore;
 TC_GAME_API extern DB2Storage<DurabilityQualityEntry>               sDurabilityQualityStore;

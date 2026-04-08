@@ -1095,6 +1095,7 @@ class TC_GAME_API Unit : public WorldObject
         bool isTargetableForAttack(bool checkFakeDeath = true) const;
 
         bool IsInWater() const;
+        bool IsInAir() const;
         bool IsUnderWater() const;
         bool IsOnOceanFloor() const;
         bool isInAccessiblePlaceFor(Creature const* c) const;
@@ -1711,6 +1712,7 @@ class TC_GAME_API Unit : public WorldObject
         float GetAdvFlyingSpeedMax(AdvFlyingRateTypeRange speedType) const { return m_advFlyingSpeed[speedType + 1]; }
         void UpdateAdvFlyingSpeed(AdvFlyingRateTypeSingle speedType, bool clientUpdate);
         void UpdateAdvFlyingSpeed(AdvFlyingRateTypeRange speedType, bool clientUpdate);
+        void CalculateAdvFlyingSpeeds();
 
         void FollowerAdded(AbstractFollower* f);
         void FollowerRemoved(AbstractFollower* f);
@@ -1875,6 +1877,15 @@ class TC_GAME_API Unit : public WorldObject
         std::string GetDebugInfo() const override;
 
         UF::UpdateField<UF::UnitData, int32(WowCS::EntityFragment::CGObject), TYPEID_UNIT> m_unitData;
+
+        //WowCommunity
+        void SendApplyInertia(int32 movementInertiaID, uint32 lifetimeMs);
+        void SendRemoveInertia(int32 movementInertiaID);
+        void SendAddImpulse(Position const& direction);
+        int32 GetDriveCapabilityID() const { return m_unitData->DriveCapabilityID; }
+        void SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate);
+        float GetAdvFlyingVelocity() const;
+        //WowCommunity
 
         bool IsPlayerOrBot() const;
 

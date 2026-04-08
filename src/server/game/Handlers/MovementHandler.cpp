@@ -887,3 +887,77 @@ void WorldSession::ComputeNewClockDelta()
         _player->SetTransportServerTime(int32(_timeSyncClockDelta));
     }
 }
+
+//WowCommunity
+void WorldSession::HandleMoveApplyInertiaAck(WorldPackets::Movement::MoveApplyInertiaAck& moveApplyInertiaAck)
+{
+    Unit* mover = _player->m_unitMovedByMe;
+    ASSERT(mover != nullptr);
+    _player->ValidateMovementInfo(&moveApplyInertiaAck.Ack.Status);
+
+    if (moveApplyInertiaAck.Ack.Status.guid != mover->GetGUID())
+    {
+        TC_LOG_ERROR("network", "HandleMoveApplyInertiaAck: guid error, expected {}, got {}",
+            mover->GetGUID().ToString(), moveApplyInertiaAck.Ack.Status.guid.ToString());
+        return;
+    }
+
+    moveApplyInertiaAck.Ack.Status.time = AdjustClientMovementTime(moveApplyInertiaAck.Ack.Status.time);
+
+    WorldPackets::Movement::MoveUpdateApplyInertia updateApplyInertia;
+    updateApplyInertia.Status = &moveApplyInertiaAck.Ack.Status;
+    updateApplyInertia.MovementInertiaID = moveApplyInertiaAck.MovementInertiaID;
+    updateApplyInertia.LifetimeMs = moveApplyInertiaAck.LifetimeMs;
+    mover->SendMessageToSet(updateApplyInertia.Write(), false);
+}
+
+void WorldSession::HandleMoveRemoveInertiaAck(WorldPackets::Movement::MoveRemoveInertiaAck& moveRemoveInertiaAck)
+{
+    Unit* mover = _player->m_unitMovedByMe;
+    ASSERT(mover != nullptr);
+    _player->ValidateMovementInfo(&moveRemoveInertiaAck.Ack.Status);
+
+    if (moveRemoveInertiaAck.Ack.Status.guid != mover->GetGUID())
+    {
+        TC_LOG_ERROR("network", "HandleMoveRemoveInertiaAck: guid error, expected {}, got {}",
+            mover->GetGUID().ToString(), moveRemoveInertiaAck.Ack.Status.guid.ToString());
+        return;
+    }
+
+    moveRemoveInertiaAck.Ack.Status.time = AdjustClientMovementTime(moveRemoveInertiaAck.Ack.Status.time);
+
+    WorldPackets::Movement::MoveUpdateRemoveInertia updateRemoveInertia;
+    updateRemoveInertia.Status = &moveRemoveInertiaAck.Ack.Status;
+    updateRemoveInertia.MovementInertiaID = moveRemoveInertiaAck.MovementInertiaID;
+    mover->SendMessageToSet(updateRemoveInertia.Write(), false);
+}
+
+void WorldSession::HandleMoveAddImpulseAck(WorldPackets::Movement::MoveAddImpulseAck& moveAddImpulseAck)
+{
+    Unit* mover = _player->m_unitMovedByMe;
+    ASSERT(mover != nullptr);
+    _player->ValidateMovementInfo(&moveAddImpulseAck.Ack.Status);
+
+    if (moveAddImpulseAck.Ack.Status.guid != mover->GetGUID())
+    {
+        TC_LOG_ERROR("network", "HandleMoveAddImpulseAck: guid error, expected {}, got {}",
+            mover->GetGUID().ToString(), moveAddImpulseAck.Ack.Status.guid.ToString());
+        return;
+    }
+
+    moveAddImpulseAck.Ack.Status.time = AdjustClientMovementTime(moveAddImpulseAck.Ack.Status.time);
+
+    WorldPackets::Movement::MoveUpdateAddImpulse updateAddImpulse;
+    updateAddImpulse.Status = &moveAddImpulseAck.Ack.Status;
+    mover->SendMessageToSet(updateAddImpulse.Write(), false);
+}
+
+void WorldSession::HandleMoveSetCanDriveAck(WorldPackets::Movement::MoveSetCanDriveAck& moveSetCanDriveAck)
+{
+    _player->ValidateMovementInfo(&moveSetCanDriveAck.Ack.Status);
+}
+
+void WorldSession::HandleMoveStartDriveForward(WorldPackets::Movement::MoveStartDriveForward& moveStartDriveForward)
+{
+    HandleMovementOpcode(CMSG_MOVE_START_DRIVE_FORWARD, moveStartDriveForward.Status);
+}

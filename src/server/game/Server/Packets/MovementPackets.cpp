@@ -1198,4 +1198,122 @@ void MoveInitActiveMoverComplete::Read()
 {
     _worldPacket >> Ticks;
 }
+
+//WowCommunity
+WorldPacket const* MoveApplyInertia::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+    _worldPacket << int32(MovementInertiaID);
+    _worldPacket << LifetimeMs;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveRemoveInertia::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+    _worldPacket << int32(MovementInertiaID);
+
+    return &_worldPacket;
+}
+
+void MoveApplyInertiaAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> MovementInertiaID;
+    _worldPacket >> LifetimeMs;
+}
+
+void MoveRemoveInertiaAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> MovementInertiaID;
+}
+
+WorldPacket const* MoveUpdateApplyInertia::Write()
+{
+    _worldPacket << *Status;
+    _worldPacket << int32(MovementInertiaID);
+    _worldPacket << LifetimeMs;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveUpdateRemoveInertia::Write()
+{
+    _worldPacket << *Status;
+    _worldPacket << int32(MovementInertiaID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveAddImpulse::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+    _worldPacket << Direction;
+
+    return &_worldPacket;
+}
+
+void MoveAddImpulseAck::Read()
+{
+    _worldPacket >> Ack;
+}
+
+WorldPacket const* MoveUpdateAddImpulse::Write()
+{
+    _worldPacket << *Status;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveSetCanDrive::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+    _worldPacket << int32(DriveCapabilityRecID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveUnsetCanDrive::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+
+    return &_worldPacket;
+}
+
+void MoveSetCanDriveAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> DriveCapabilityRecID;
+}
+
+void MoveStartDriveForward::Read()
+{
+    _worldPacket >> Status;
+}
+
+WorldPacket const* AdjustSplineDuration::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << Scale;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds::Write()
+{
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << float(Speed);
+    _worldPacket << float(MaxSpeed);
+
+    return &_worldPacket;
+}
+//WoWCommunity
+
 }

@@ -1801,6 +1801,46 @@ struct DifficultyLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 15, &DifficultyMeta::Instance, HOTFIX_SEL_DIFFICULTY };
 };
 
+struct DriveCapabilityLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[17] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "ForwardAcceleration" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "BackwardMaxSpeed" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "IdleFriction" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "BackwardAcceleration" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_5" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_6" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_7" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_8" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_9" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_10" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_11" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_12" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_13" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_14" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_15" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Field_16" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 17, &DriveCapabilityMeta::Instance, HOTFIX_SEL_DRIVE_CAPABILITY };
+};
+
+struct DriveCapabilityTierLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "Acceleration" },
+        {.IsSigned = false, .Type = FT_FLOAT, .Name = "MaxSpeed" },
+        {.IsSigned = false, .Type = FT_INT, .Name = "DriveCapabilityID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "OrderIndex" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &DriveCapabilityTierMeta::Instance, HOTFIX_SEL_DRIVE_CAPABILITY_TIER };
+};
+
 struct DungeonEncounterLoadInfo
 {
     static constexpr DB2FieldMeta Fields[11] =

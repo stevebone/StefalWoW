@@ -756,6 +756,188 @@ namespace WorldPackets
             uint32 Ticks = 0;
         };
 
+        //WowCommunity
+        // ============================================================
+        // Dragonriding / Inertia / Impulse / Drive
+        // ============================================================
+
+        class MoveApplyInertia final : public ServerPacket
+        {
+        public:
+            explicit MoveApplyInertia() : ServerPacket(SMSG_MOVE_APPLY_INERTIA, 16 + 4 + 4 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+            int32 MovementInertiaID = 0;
+            uint32 LifetimeMs = 0;
+        };
+
+        class MoveRemoveInertia final : public ServerPacket
+        {
+        public:
+            explicit MoveRemoveInertia() : ServerPacket(SMSG_MOVE_REMOVE_INERTIA, 16 + 4 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+            int32 MovementInertiaID = 0;
+        };
+
+        class MoveApplyInertiaAck final : public ClientPacket
+        {
+        public:
+            explicit MoveApplyInertiaAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_APPLY_INERTIA_ACK, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementAck Ack;
+            int32 MovementInertiaID = 0;
+            uint32 LifetimeMs = 0;
+        };
+
+        class MoveRemoveInertiaAck final : public ClientPacket
+        {
+        public:
+            explicit MoveRemoveInertiaAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_REMOVE_INERTIA_ACK, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementAck Ack;
+            int32 MovementInertiaID = 0;
+        };
+
+        class MoveUpdateApplyInertia final : public ServerPacket
+        {
+        public:
+            explicit MoveUpdateApplyInertia() : ServerPacket(SMSG_MOVE_UPDATE_APPLY_INERTIA) {}
+
+            WorldPacket const* Write() override;
+
+            MovementInfo* Status = nullptr;
+            int32 MovementInertiaID = 0;
+            uint32 LifetimeMs = 0;
+        };
+
+        class MoveUpdateRemoveInertia final : public ServerPacket
+        {
+        public:
+            explicit MoveUpdateRemoveInertia() : ServerPacket(SMSG_MOVE_UPDATE_REMOVE_INERTIA) {}
+
+            WorldPacket const* Write() override;
+
+            MovementInfo* Status = nullptr;
+            int32 MovementInertiaID = 0;
+        };
+
+        class MoveAddImpulse final : public ServerPacket
+        {
+        public:
+            explicit MoveAddImpulse() : ServerPacket(SMSG_MOVE_ADD_IMPULSE, 16 + 4 + 12) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+            TaggedPosition<Position::XYZ> Direction;
+        };
+
+        class MoveAddImpulseAck final : public ClientPacket
+        {
+        public:
+            explicit MoveAddImpulseAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_ADD_IMPULSE_ACK, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementAck Ack;
+        };
+
+        class MoveUpdateAddImpulse final : public ServerPacket
+        {
+        public:
+            explicit MoveUpdateAddImpulse() : ServerPacket(SMSG_MOVE_UPDATE_ADD_IMPULSE) {}
+
+            WorldPacket const* Write() override;
+
+            MovementInfo* Status = nullptr;
+        };
+
+        class MoveSetCanDrive final : public ServerPacket
+        {
+        public:
+            explicit MoveSetCanDrive() : ServerPacket(SMSG_MOVE_SET_CAN_DRIVE, 16 + 4 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+            int32 DriveCapabilityRecID = 0;
+        };
+
+        class MoveUnsetCanDrive final : public ServerPacket
+        {
+        public:
+            explicit MoveUnsetCanDrive() : ServerPacket(SMSG_MOVE_UNSET_CAN_DRIVE, 16 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+        };
+
+        class MoveSetCanDriveAck final : public ClientPacket
+        {
+        public:
+            explicit MoveSetCanDriveAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_SET_CAN_DRIVE_ACK, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementAck Ack;
+            int32 DriveCapabilityRecID = 0;
+        };
+
+        class MoveStartDriveForward final : public ClientPacket
+        {
+        public:
+            explicit MoveStartDriveForward(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_START_DRIVE_FORWARD, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementInfo Status;
+        };
+
+        class AdjustSplineDuration final : public ServerPacket
+        {
+        public:
+            explicit AdjustSplineDuration() : ServerPacket(SMSG_ADJUST_SPLINE_DURATION, 16 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            float Scale = 1.0f;
+        };
+
+        class SetAdvFlyingMinMaxSpeeds final : public ServerPacket
+        {
+        public:
+            SetAdvFlyingMinMaxSpeeds(OpcodeServer opcode, uint32 sequenceIndex, float speed, float maxSpeed) : ServerPacket(opcode, 4 + 4 + 4)
+            {
+                SequenceIndex = sequenceIndex;
+                Speed = speed;
+                MaxSpeed = maxSpeed;
+            }
+
+            WorldPacket const* Write() override;
+
+            uint32 SequenceIndex;
+            float Speed;
+            float MaxSpeed;
+        };
+
+        //WowCommunity
+
         ByteBuffer& operator>>(ByteBuffer& data, MovementAck& ack);
     }
 }
