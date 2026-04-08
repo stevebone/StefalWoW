@@ -560,7 +560,6 @@ namespace Scripts::Custom::TirisfalGlades
             EventMap events;
             ObjectGuid CorpseGUID;
             ObjectGuid PlayerGUID;
-            bool isClone = false;
             bool arrivedDeathknell = false;
             bool arrivedSaltain = false;
             bool corpseQuest = false;
