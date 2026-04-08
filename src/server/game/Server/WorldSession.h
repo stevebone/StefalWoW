@@ -581,6 +581,13 @@ namespace WorldPackets
         class MoveApplyMovementForceAck;
         class MoveRemoveMovementForceAck;
         class MoveInitActiveMoverComplete;
+        // StefalWoW
+        class MoveApplyInertiaAck;
+        class MoveRemoveInertiaAck;
+        class MoveAddImpulseAck;
+        class MoveSetCanDriveAck;
+        class MoveStartDriveForward;
+        // StefalWoW
     }
 
     namespace NPC
@@ -1339,6 +1346,15 @@ class TC_GAME_API WorldSession
         void HandleMoveApplyMovementForceAck(WorldPackets::Movement::MoveApplyMovementForceAck& moveApplyMovementForceAck);
         void HandleMoveRemoveMovementForceAck(WorldPackets::Movement::MoveRemoveMovementForceAck& moveRemoveMovementForceAck);
         void HandleMoveSetModMovementForceMagnitudeAck(WorldPackets::Movement::MovementSpeedAck& setModMovementForceMagnitudeAck);
+
+        // StefalWoW
+        // Dragonriding / Inertia / Impulse / Drive
+        void HandleMoveApplyInertiaAck(WorldPackets::Movement::MoveApplyInertiaAck& moveApplyInertiaAck);
+        void HandleMoveRemoveInertiaAck(WorldPackets::Movement::MoveRemoveInertiaAck& moveRemoveInertiaAck);
+        void HandleMoveAddImpulseAck(WorldPackets::Movement::MoveAddImpulseAck& moveAddImpulseAck);
+        void HandleMoveSetCanDriveAck(WorldPackets::Movement::MoveSetCanDriveAck& moveSetCanDriveAck);
+        void HandleMoveStartDriveForward(WorldPackets::Movement::MoveStartDriveForward& moveStartDriveForward);
+        // StefalWoW
 
         void HandleRepopRequest(WorldPackets::Misc::RepopRequest& packet);
         void HandleAutostoreLootItemOpcode(WorldPackets::Loot::LootItem& packet);

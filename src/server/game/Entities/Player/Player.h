@@ -29,6 +29,7 @@
 #include "ItemDefines.h"
 #include "ItemEnchantmentMgr.h"
 #include "MapReference.h"
+#include "Opcodes.h"
 #include "PetDefines.h"
 #include "PlayerTaxi.h"
 #include "QuestDef.h"
@@ -412,6 +413,14 @@ enum ReputationSource
 #define ACTION_BUTTON_ACTION(X) (uint64(X) & 0x00FFFFFFFFFFFFFF)
 #define ACTION_BUTTON_TYPE(X)   ((uint64(X) & 0xFF00000000000000) >> 56)
 #define MAX_ACTION_BUTTON_ACTION_VALUE UI64LIT(0xFFFFFFFFFFFFFF)
+
+// StefalWoW
+enum DragonRidingSpells
+{
+    SPELL_DYNAMIC_FLIGHT = 406095,
+    SPELL_DRAGONRIDER_ENERGY = 372771
+};
+// StefalWoW
 
 struct ActionButton
 {
@@ -2071,6 +2080,15 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void ApplyTraitEntryChanges(int32 editedConfigId, WorldPackets::Traits::TraitConfig const& newConfig, bool applyTraits, bool consumeCurrencies);
         void RenameTraitConfig(int32 editedConfigId, std::string&& newName);
         void DeleteTraitConfig(int32 deletedConfigId);
+        void AddMoveImpulse(Position direction);
+        // StefalWoW
+        void InitAdvFlying();
+        void SendAdvFlyingSpeed(OpcodeServer opcode, AdvFlyingRateTypeSingle speedType, std::optional<AdvFlyingRateTypeSingle> maxSpeedType = {});
+        void UpdateDynamicFlight(bool apply = false);
+        bool IsInAlliance() const { return m_team == ALLIANCE; }
+        bool IsInHorde() const { return m_team == HORDE; }
+        void InitAdvancedFly();
+        // StefalWoW
         void ApplyTraitConfig(int32 configId, bool apply);
         void ApplyTraitEntry(int32 traitNodeEntryId, int32 rank, int32 grantedRanks, bool apply);
         void SetActiveCombatTraitConfigID(int32 traitConfigId) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::ActiveCombatTraitConfigID), traitConfigId); }

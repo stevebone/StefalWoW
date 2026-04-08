@@ -65,6 +65,9 @@ void AddSC_magisters_terrace_12_trash();
 // ==================== Trading Post Scripts ================= //
 void AddSC_npc_perks_program_vendor();
 
+// ==================== Spells Scripts ======================= //
+void AddSC_advanced_flying_spell_scripts();
+
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
@@ -111,4 +114,6 @@ void AddCustomScripts()
     AddSC_instance_atal_aman_delve();
     AddSC_instance_shadow_enclave_delve();
     AddSC_delve_commands();
+
+    AddSC_advanced_flying_spell_scripts();
 }

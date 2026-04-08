@@ -1593,6 +1593,36 @@ struct DifficultyEntry
     int32 Unknown1105;
 };
 
+struct DriveCapabilityEntry
+{
+    uint32 ID;
+    float ForwardAcceleration;              // DB2 field 1 ? v28[0]
+    float BackwardMaxSpeed;                 // DB2 field 2 ? v28[10], used at offset 312 (backward max speed)
+    float IdleFriction;                     // DB2 field 3 ? v28[12], used at offset 320 (friction when not driving)
+    float BackwardAcceleration;             // DB2 field 4 ? v28[11], used at offset 316 (backward accel)
+    float Field_5;                          // DB2 field 5 ? v28[13]
+    float Field_6;                          // DB2 field 6 ? v28[16]
+    float Field_7;                          // DB2 field 7 ? v28[14]
+    float Field_8;                          // DB2 field 8 ? v28[17]
+    float Field_9;                          // DB2 field 9 ? v28[18]
+    float Field_10;                         // DB2 field 10 ? v28[19]
+    float Field_11;                         // DB2 field 11 ? v28[1]
+    float Field_12;                         // DB2 field 12 ? v28[2]
+    float Field_13;                         // DB2 field 13 ? v28[3]
+    float Field_14;                         // DB2 field 14 ? v28[4]
+    float Field_15;                         // DB2 field 15 ? v28[5]
+    float Field_16;                         // DB2 field 16 ? v28[6]
+};
+
+struct DriveCapabilityTierEntry
+{
+    uint32 ID;
+    float Acceleration;                     // Tier acceleration rate
+    float MaxSpeed;                         // Tier max speed threshold
+    int32 DriveCapabilityID;                // Parent DriveCapability
+    int32 OrderIndex;                       // Tier order
+};
+
 struct DungeonEncounterEntry
 {
     LocalizedString Name;

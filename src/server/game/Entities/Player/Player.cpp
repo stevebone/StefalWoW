@@ -1726,6 +1726,19 @@ void Player::Regenerate(Powers power)
         addvalue += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_POWER_REGEN, power) * ((power != POWER_ENERGY) ? m_regenTimerCount : m_regenTimer) / (5 * IN_MILLISECONDS);
     }
 
+    // Vigor regen scales with forward velocity during advanced flying
+    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasExtraMovementFlag2(MOVEMENTFLAG3_ADV_FLYING) && m_movementInfo.advFlying)
+    {
+        if (FlightCapabilityEntry const* flightCapability = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID()))
+        {
+            if (flightCapability->VigorRegenMaxVelCoefficient > 0.0f && flightCapability->MaxVel > 0.0f)
+            {
+                float velocityPct = std::min(m_movementInfo.advFlying->forwardVelocity / flightCapability->MaxVel, 1.0f);
+                addvalue *= 1.0f + velocityPct * flightCapability->VigorRegenMaxVelCoefficient;
+            }
+        }
+    }
+
     int32 minPower = powerType->MinPower;
     int32 maxPower = GetMaxPower(power);
 
@@ -19376,9 +19389,6 @@ void Player::_LoadAuras(PreparedQueryResult auraResult, PreparedQueryResult effe
         }
         while (auraResult->NextRow());
     }
-
-    // TODO: finish dragonriding - this forces old flight mode
-    AddAura(404468, this);
 }
 
 void Player::_LoadGlyphAuras()
@@ -25393,6 +25403,17 @@ void Player::SendInitialPacketsAfterAddToMap()
             ClearQuestSharingInfo();
     }
 
+    // StefalWoW
+    // Dragonriding
+    if (HasAura(SPELL_DYNAMIC_FLIGHT))
+    {
+        if (GetPower(POWER_ALTERNATE_MOUNT) < 3)
+            SetPower(POWER_ALTERNATE_MOUNT, 3);
+
+        AddAura(SPELL_DRAGONRIDER_ENERGY, this);
+    }
+    // StefalWoW
+
     GetSceneMgr().TriggerDelayedScenes();
 }
 
@@ -29632,6 +29653,14 @@ void Player::ApplyTraitConfig(int32 configId, bool apply)
     for (UF::TraitEntry const& traitEntry : traitConfig->Entries)
         if (!apply || TraitMgr::CanApplyTraitNode(*traitConfig, traitEntry))
             ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+
+    // Apply hero talent (SubTree) entries - these are stored separately from regular entries
+    for (UF::TraitSubTreeCache const& subTree : traitConfig->SubTrees)
+    {
+        if (!apply || subTree.Active)
+            for (UF::TraitEntry const& traitEntry : subTree.Entries)
+                ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+    }
 }
 
 void Player::ApplyTraitEntry(int32 traitNodeEntryId, int32 rank, int32 grantedRanks, bool apply)
@@ -32114,4 +32143,81 @@ bool Player::CanExecutePendingSpellCastRequest()
         return false;
 
     return true;
+}
+
+void Player::AddMoveImpulse(Position direction)
+{
+    WorldPackets::Movement::MoveAddImpulse impulse;
+    impulse.MoverGUID = GetGUID();
+    impulse.SequenceIndex = m_movementCounter++;
+    impulse.Direction = direction;
+    SendMessageToSet(impulse.Write(), true);
+}
+
+void Player::InitAdvFlying()
+{
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION, ADV_FLYING_AIR_FRICTION);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_MAX_VEL, ADV_FLYING_MAX_VEL);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT, ADV_FLYING_LIFT_COEFFICIENT);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_DOUBLE_JUMP_VEL_MOD, ADV_FLYING_DOUBLE_JUMP_VEL_MOD);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_GLIDE_START_MIN_HEIGHT, ADV_FLYING_GLIDE_START_MIN_HEIGHT);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED, ADV_FLYING_ADD_IMPULSE_MAX_SPEED);
+    //// SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE, ADV_FLYING_BANKING_RATE_MIN, ADV_FLYING_BANKING_RATE_MAX);
+   //  SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN, ADV_FLYING_PITCHING_RATE_DOWN_MIN, ADV_FLYING_PITCHING_RATE_DOWN_MAX);
+    // SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP, ADV_FLYING_PITCHING_RATE_UP_MIN, ADV_FLYING_PITCHING_RATE_UP_MAX);
+    // SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_TURN_VELOCITY_THRESHOLD, ADV_FLYING_TURN_VELOCITY_THRESHOLD_MIN, ADV_FLYING_TURN_VELOCITY_THRESHOLD_MAX);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_SURFACE_FRICTION, ADV_FLYING_SURFACE_FRICTION);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION, ADV_FLYING_OVER_MAX_DECELERATION);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_LAUNCH_SPEED_COEFFICIENT, ADV_FLYING_LAUNCH_SPEED_COEFFICIENT);
+}
+
+void Player::SendAdvFlyingSpeed(OpcodeServer opcode, AdvFlyingRateTypeSingle speedType, std::optional<AdvFlyingRateTypeSingle> maxSpeedType)
+{
+    if (maxSpeedType.has_value() && maxSpeedType.value() != AdvFlyingRateTypeSingle(0))
+        SendDirectMessage(WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds(opcode, m_movementCounter++, GetAdvFlyingSpeed(speedType), GetAdvFlyingSpeed(maxSpeedType.value())).Write());
+    else
+    {
+        WorldPackets::Movement::SetAdvFlyingSpeed packet(opcode);
+        packet.MoverGUID = GetGUID();
+        packet.SequenceIndex = m_movementCounter++;
+        packet.Speed = GetAdvFlyingSpeed(speedType);
+        SendDirectMessage(packet.Write());
+    }
+}
+
+void Player::UpdateDynamicFlight(bool apply)
+{
+    if (apply)
+    {
+        if (!HasAuraType(SPELL_AURA_ADV_FLYING))
+            AddAura(SPELL_DYNAMIC_FLIGHT, this);
+    }
+    else
+    {
+        if (HasAuraType(SPELL_AURA_ADV_FLYING))
+            RemoveAura(SPELL_DYNAMIC_FLIGHT);
+    }
+}
+
+void Player::InitAdvancedFly()
+{
+    FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
+    if (!flightCapabilityEntry)
+        return;
+
+    std::vector<std::tuple<OpcodeServer, float, Optional<float>>> advFlyValues = {
+        { SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION,                flightCapabilityEntry->AirFriction,                 {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_MAX_VEL,                     flightCapabilityEntry->MaxVel,                      {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT,            flightCapabilityEntry->LiftCoefficient,             {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_DOUBLE_JUMP_VEL_MOD,         flightCapabilityEntry->DoubleJumpVelMod,            {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_GLIDE_START_MIN_HEIGHT,      flightCapabilityEntry->GlideStartMinHeight,         {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED,       flightCapabilityEntry->AddImpulseMaxSpeed,          {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE,                flightCapabilityEntry->BankingRateMin,              flightCapabilityEntry->BankingRateMax               },
+        { SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN,          flightCapabilityEntry->PitchingRateDownMin,         flightCapabilityEntry->PitchingRateDownMax          },
+        { SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP,            flightCapabilityEntry->PitchingRateUpMin,           flightCapabilityEntry->PitchingRateUpMax            },
+        { SMSG_MOVE_SET_ADV_FLYING_TURN_VELOCITY_THRESHOLD,     flightCapabilityEntry->TurnVelocityThresholdMin,    flightCapabilityEntry->TurnVelocityThresholdMax     },
+        { SMSG_MOVE_SET_ADV_FLYING_SURFACE_FRICTION,            flightCapabilityEntry->SurfaceFriction,             {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION,       flightCapabilityEntry->OverMaxDeceleration,         {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_LAUNCH_SPEED_COEFFICIENT,    flightCapabilityEntry->LaunchSpeedCoefficient,      {}                                                  },
+    };
 }
