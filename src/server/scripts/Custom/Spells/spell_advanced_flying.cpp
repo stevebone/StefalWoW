@@ -7,6 +7,7 @@
  * Without Vigor aura, client AND server block the cast.
  */
 
+#include "DB2Stores.h"
 #include "ScriptMgr.h"
 #include "Player.h"
 #include "SpellScript.h"
