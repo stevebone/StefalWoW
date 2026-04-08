@@ -12,6 +12,7 @@
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 #include "Unit.h"
+#include <G3D/g3dmath.h>
 
 static constexpr float THRILL_OF_THE_SKIES_MIN_VELOCITY = 40.f;
 
