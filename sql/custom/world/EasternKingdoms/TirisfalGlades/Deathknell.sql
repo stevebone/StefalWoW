@@ -1,13 +1,21 @@
 -- Tirisfal Glades Deathknell changes and updates
 
 -- NPC: 1740 Deathguard Saltain
+-- NPC: 2307 Caretaker Caice
 -- NPC: 41200 Deathknell Gate bunny
+-- NPC: 49129 Arthura
 -- NPC: 49141 Darnell 0
 -- NPC: 49337 Darnell 1
 -- NPC: 49340 Scarlet Corpse
+-- NPC: 50372 Aradne
 
 -- Quest: 24959 Fresh out of the grave
+-- Quest: 24960 The Wakening
+-- Quest: 25089 Beyond the Graves
 -- Quest: 26800 Recruitment
+-- Quest: 26799 Those that couldnt be saved
+-- Quest: 28608 The Shadow grave
+-- Quest: 28652 Caretaker Caice
 
 -- Creature Templates
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_custom_scarlet_corpse' WHERE (`entry` = '49340');

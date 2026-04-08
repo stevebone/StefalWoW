@@ -1799,44 +1799,6 @@ enum SpellSummonJiAtTemple
 
 
 
-
-enum AtTempleSpawnZhaoren
-{
-    NPC_AT_TEMPLE_ZHAOREN = 64554
-};
-
-//Area Trigger 8276
-class at_temple_of_five_dawns_summon_zhaoren : public AreaTriggerScript
-{
-public:
-    at_temple_of_five_dawns_summon_zhaoren() : AreaTriggerScript("at_temple_of_five_dawns_summon_zhaoren") { }
-
-    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
-    {
-        if (player->IsAlive())
-        {
-                Position const pos = { 750.5781f, 4262.676f, 323.0713f, 5.042483f };
-
-                if (Creature* Zhao = player->SummonCreature(NPC_AT_TEMPLE_ZHAOREN, pos, TEMPSUMMON_TIMED_DESPAWN, 5min))
-                {
-                    Zhao->setActive(true);
-                    Zhao->SetFarVisible(true);
-                    Zhao->SetCanFly(true);
-                    Zhao->StopMoving();
-                    Zhao->GetMotionMaster()->Clear();
-                    Zhao->SetWalk(false);
-                    Zhao->SetSpeed(MOVE_RUN, 5.0f);
-                    Zhao->SetSpeed(MOVE_FLIGHT, 5.0f);
-                    Zhao->LoadPath(15);
-                    Zhao->GetMotionMaster()->MovePath(15, false);
-                }
-
-                return true;
-        }
-        return false;
-    }
-};
-
 enum TheLorewalkerStory
 {
     NPC_LOREWALKER_ZAN = 64885,
@@ -2989,7 +2951,7 @@ void AddSC_zone_the_wandering_isle()
     new at_min_dimwind_captured();
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
-    new at_temple_of_five_dawns_summon_zhaoren();
+    
     new at_lorewalker_zan();
     new at_chamber_of_whispers();
 

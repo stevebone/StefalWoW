@@ -66,6 +66,7 @@
 -- NPC: 56377 Shu spawn
 -- NPC: 54786 Master Shang Xi at temple (451410)
 -- NPC: 55685 Uplifting Draft
+-- NPC: 64554 Zhao-Ren <The Onyx Serpent> - in the sky
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -1043,6 +1044,19 @@ UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '34033')
 UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '34103') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '962300') and (`source_type` = '9') and (`id` = '4') and (`link` = '0');
 
+-- NPC: 64554 Zhao-Ren <The Onyx Serpent>
+-- Area: 8276 Temple Spire spawn Zhao-ren
+DELETE FROM `creature_template_addon` WHERE `entry` IN (64554);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('64554', '6455400', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '5', '');
+
+-- delete duplicate Zhaoren spawns
+DELETE FROM `creature` WHERE `id` = 64554;
+
+UPDATE `creature_template` SET `movementType` = 2, `movementId` = 106, `speed_walk` = '4', `speed_run` = '6' WHERE `Entry` = 64554;
+
+-- these flags disable gravity for Zhao so it can fly above
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912', `StaticFlags5` = 5 WHERE (`Entry` = '64554') and (`DifficultyID` = '0');
 
 -- Skinning loot fix
 DELETE FROM `skinning_loot_template` WHERE `Entry` = 1;
@@ -1064,7 +1078,7 @@ INSERT INTO `npc_spellclick_spells` VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
@@ -1073,7 +1087,8 @@ INSERT INTO `areatrigger_scripts` VALUES
 (7822, 'at_cart_locations'),
 (7783, 'at_pools_of_reflection'),
 (8628, 'at_singing_pools_training_bell'),
-(7784, 'at_the_singing_pools_children_summon');
+(7784, 'at_the_singing_pools_children_summon'),
+(8276, 'at_temple_of_five_dawns_summon_zhaoren');
 
 -- Spell Scripts
 

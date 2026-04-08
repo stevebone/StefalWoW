@@ -238,11 +238,43 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    //Area Trigger 8276
+    class at_temple_of_five_dawns_summon_zhaoren : public AreaTriggerScript
+    {
+    public:
+        at_temple_of_five_dawns_summon_zhaoren() : AreaTriggerScript("at_temple_of_five_dawns_summon_zhaoren") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive())
+            {
+                Creature* Zhao = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, PositionsQ29776::ZhaoSkySpawn, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                if (Zhao)
+                {
+                    Zhao->setActive(true);
+                    Zhao->SetFarVisible(true);
+                    Zhao->SetCanFly(true);
+                    Zhao->StopMoving();
+                    Zhao->GetMotionMaster()->Clear();
+                    Zhao->SetWalk(false);
+                    Zhao->SetSpeed(MOVE_RUN, 7.0f);
+                    Zhao->SetSpeed(MOVE_FLIGHT, 7.0f);
+                    Zhao->LoadPath(PathZhaoren::path_zhaoren_at_temple);
+                    Zhao->GetMotionMaster()->MovePath(PathZhaoren::path_zhaoren_at_temple, false);
+                }
+
+                return true;
+            }
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
+
     new at_talk_on_huo_follow_quest_29423();
     new at_enter_temple_quest_29423();
     new at_the_singing_pools_children_summon();
@@ -250,4 +282,5 @@ void AddSC_custom_the_wandering_isle_at()
     new at_pools_of_reflection();
     new at_cart_locations();
     new at_temple_stairs_from_farmstead();
+    new at_temple_of_five_dawns_summon_zhaoren();
 }

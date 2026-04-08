@@ -276,6 +276,7 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace PositionsQ29776
     {
         static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
+        static constexpr Position ZhaoSkySpawn = { 750.5781f, 4262.676f, 323.0713f, 5.042483f };
     }
 
     namespace PathQ29423
@@ -315,6 +316,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 path_cart = 5720800;
         static constexpr uint32 path_cart_farmstead = 5949600;
         static constexpr uint8 path_node_remove_passenger = 27;
+    }
+
+    namespace PathZhaoren
+    {
+        static constexpr uint32 path_zhaoren_at_temple = 6455400;
     }
 
     namespace EventsQ29423
@@ -411,6 +417,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
         static constexpr uint32 npc_shu_q29775 = 55558;
         static constexpr uint32 npc_wugou_q29775 = 60916;
+
+        static constexpr uint32 npc_zhaoren_flying_temple_spire = 64554;
 
     }
 
