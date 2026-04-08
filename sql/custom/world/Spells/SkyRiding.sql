@@ -8,7 +8,8 @@ DELETE FROM spell_script_names WHERE ScriptName IN (
     'spell_switch_flight',
     'spell_af_skyward_ascent',
     'spell_af_surge_forward',
-    'spell_af_whirling_surge'
+    'spell_af_whirling_surge',
+	'spell_dragonriding_launch_boost'
 );
 
 INSERT INTO spell_script_names (spell_id, ScriptName) VALUES
@@ -17,4 +18,5 @@ INSERT INTO spell_script_names (spell_id, ScriptName) VALUES
     (372610, 'spell_af_skyward_ascent'),
     (386451, 'spell_af_skyward_ascent'),
     (372608, 'spell_af_surge_forward'),
-    (361584, 'spell_af_whirling_surge');
+    (361584, 'spell_af_whirling_surge'),
+	(392752, 'spell_dragonriding_launch_boost');

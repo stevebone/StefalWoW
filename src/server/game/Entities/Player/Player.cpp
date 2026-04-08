@@ -1726,6 +1726,19 @@ void Player::Regenerate(Powers power)
         addvalue += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_POWER_REGEN, power) * ((power != POWER_ENERGY) ? m_regenTimerCount : m_regenTimer) / (5 * IN_MILLISECONDS);
     }
 
+    // Vigor regen scales with forward velocity during advanced flying
+    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasExtraMovementFlag2(MOVEMENTFLAG3_ADV_FLYING) && m_movementInfo.advFlying)
+    {
+        if (FlightCapabilityEntry const* flightCapability = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID()))
+        {
+            if (flightCapability->VigorRegenMaxVelCoefficient > 0.0f && flightCapability->MaxVel > 0.0f)
+            {
+                float velocityPct = std::min(m_movementInfo.advFlying->forwardVelocity / flightCapability->MaxVel, 1.0f);
+                addvalue *= 1.0f + velocityPct * flightCapability->VigorRegenMaxVelCoefficient;
+            }
+        }
+    }
+
     int32 minPower = powerType->MinPower;
     int32 maxPower = GetMaxPower(power);
 
