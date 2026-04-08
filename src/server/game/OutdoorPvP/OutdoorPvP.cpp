@@ -63,7 +63,12 @@ OutdoorPvP::~OutdoorPvP() = default;
 
 void OutdoorPvP::HandlePlayerEnterZone(Player* player, uint32 /*zone*/)
 {
-    m_players[player->GetTeamId()].insert(player->GetGUID());
+    // Neutral players (e.g., Pandaren who haven't chosen a faction) cannot participate in PvP
+    TeamId teamId = player->GetTeamId();
+    if (teamId == TEAM_NEUTRAL)
+        return;
+
+    m_players[teamId].insert(player->GetGUID());
 }
 
 void OutdoorPvP::HandlePlayerLeaveZone(Player* player, uint32 /*zone*/)
@@ -71,7 +76,13 @@ void OutdoorPvP::HandlePlayerLeaveZone(Player* player, uint32 /*zone*/)
     // remove the world state information from the player (we can't keep everyone up to date, so leave out those who are not in the concerning zones)
     if (!player->GetSession()->PlayerLogout())
         SendRemoveWorldStates(player);
-    m_players[player->GetTeamId()].erase(player->GetGUID());
+
+    // Neutral players (e.g., Pandaren who haven't chosen a faction) are not tracked
+    TeamId teamId = player->GetTeamId();
+    if (teamId == TEAM_NEUTRAL)
+        return;
+
+    m_players[teamId].erase(player->GetGUID());
     TC_LOG_DEBUG("outdoorpvp", "Player {} left an outdoorpvp zone", player->GetName());
 }
 
@@ -174,7 +185,12 @@ void OutdoorPvP::RegisterZone(uint32 zoneId)
 
 bool OutdoorPvP::HasPlayer(Player const* player) const
 {
-    GuidSet const& plSet = m_players[player->GetTeamId()];
+    // Neutral players (e.g., Pandaren who haven't chosen a faction) are not tracked in PvP zones
+    TeamId teamId = player->GetTeamId();
+    if (teamId == TEAM_NEUTRAL)
+        return false;
+
+    GuidSet const& plSet = m_players[teamId];
     return plSet.find(player->GetGUID()) != plSet.end();
 }
 
