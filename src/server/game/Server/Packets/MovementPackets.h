@@ -756,7 +756,7 @@ namespace WorldPackets
             uint32 Ticks = 0;
         };
 
-        //WowCommunity
+        // StefalWoW
         // ============================================================
         // Dragonriding / Inertia / Impulse / Drive
         // ============================================================
@@ -936,7 +936,7 @@ namespace WorldPackets
             float MaxSpeed;
         };
 
-        //WowCommunity
+        // StefalWoW
 
         ByteBuffer& operator>>(ByteBuffer& data, MovementAck& ack);
     }

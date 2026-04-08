@@ -14521,7 +14521,7 @@ bool Unit::IsPlayerOrBot() const
     return false;
 }
 
-//WowCommunity
+// StefalWoW
 
 void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
 {
@@ -14610,23 +14610,10 @@ void Unit::CalculateAdvFlyingSpeeds()
 
     ASSERT(flightCapabilityEntry, "Wrong default value for flightCapabilityID");
 
-    //   m_advFlyingSpeed[ADV_FLYING_ADD_IMPULSE_MAX_SPEED] = flightCapabilityEntry->AddImpulseMaxSpeed * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_ADD_IMPULSE_MAX_SPEED);
-     //  m_advFlyingSpeed[ADV_FLYING_AIR_FRICTION] = flightCapabilityEntry->AirFriction * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_AIR_FRICTION);
-     //  m_advFlyingSpeed[ADV_FLYING_BANKING_RATE_MIN] = flightCapabilityEntry->BankingRateMin * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_BANKING_RATE);
-     //  m_advFlyingSpeed[ADV_FLYING_BANKING_RATE_MAX] = flightCapabilityEntry->BankingRateMax * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_BANKING_RATE);
     m_advFlyingSpeed[ADV_FLYING_DOUBLE_JUMP_VEL_MOD] = flightCapabilityEntry->DoubleJumpVelMod;
     m_advFlyingSpeed[ADV_FLYING_GLIDE_START_MIN_HEIGHT] = flightCapabilityEntry->GlideStartMinHeight;
     m_advFlyingSpeed[ADV_FLYING_LAUNCH_SPEED_COEFFICIENT] = flightCapabilityEntry->LaunchSpeedCoefficient;
-    //   m_advFlyingSpeed[SPELL_AURA_ADV_FLY_MOD_LIFT_COEF ] = flightCapabilityEntry->LiftCoefficient * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_LIFT_COEF);
-     //  m_advFlyingSpeed[ADV_FLYING_MAX_VEL] = flightCapabilityEntry->MaxVel * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_MAX_VEL);
-      // m_advFlyingSpeed[ADV_FLYING_OVER_MAX_DECELERATION] = flightCapabilityEntry->OverMaxDeceleration * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_OVER_MAX_DECELERATION);
-     //  m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_DOWN_MIN] = flightCapabilityEntry->PitchingRateDownMin * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_DOWN);
-     //  m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_DOWN_MAX] = flightCapabilityEntry->PitchingRateDownMax * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_DOWN);
-    //   m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_UP_MIN] = flightCapabilityEntry->PitchingRateUpMin * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_UP);
-    //   m_advFlyingSpeed[ADV_FLYING_PITCHING_RATE_UP_MAX] = flightCapabilityEntry->PitchingRateUpMax * GetTotalAuraPercent(SPELL_AURA_ADV_FLY_MOD_PITCHING_RATE_UP);
     m_advFlyingSpeed[ADV_FLYING_SURFACE_FRICTION] = flightCapabilityEntry->SurfaceFriction;
-    //  m_advFlyingSpeed[ADV_FLYING_TURN_VELOCITY_THRESHOLD_MIN] = flightCapabilityEntry->TurnVelocityThresholdMin;
-    //  m_advFlyingSpeed[ADV_FLYING_TURN_VELOCITY_THRESHOLD_MAX] = flightCapabilityEntry->TurnVelocityThresholdMax;
 }
 
 float Unit::GetAdvFlyingVelocity() const
@@ -14643,3 +14630,4 @@ bool Unit::IsInAir() const
     float ground = GetFloorZ();
     return (G3D::fuzzyGt(GetPositionZ(), ground + GetHoverOffset() + GROUND_HEIGHT_TOLERANCE) || G3D::fuzzyLt(GetPositionZ(), ground - GROUND_HEIGHT_TOLERANCE)); // Can be underground too, prevent the falling
 }
+// StefalWoW

@@ -1878,16 +1878,16 @@ class TC_GAME_API Unit : public WorldObject
 
         UF::UpdateField<UF::UnitData, int32(WowCS::EntityFragment::CGObject), TYPEID_UNIT> m_unitData;
 
-        //WowCommunity
+        // StefalWoW
         void SendApplyInertia(int32 movementInertiaID, uint32 lifetimeMs);
         void SendRemoveInertia(int32 movementInertiaID);
         void SendAddImpulse(Position const& direction);
         int32 GetDriveCapabilityID() const { return m_unitData->DriveCapabilityID; }
         void SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate);
         float GetAdvFlyingVelocity() const;
-        //WowCommunity
 
         bool IsPlayerOrBot() const;
+        // StefalWoW
 
     protected:
         explicit Unit (bool isWorldObject);

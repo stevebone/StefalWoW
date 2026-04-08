@@ -25390,7 +25390,7 @@ void Player::SendInitialPacketsAfterAddToMap()
             ClearQuestSharingInfo();
     }
 
-    // WowCommunity
+    // StefalWoW
     // Dragonriding
     if (HasAura(SPELL_DYNAMIC_FLIGHT))
     {
@@ -25398,8 +25398,8 @@ void Player::SendInitialPacketsAfterAddToMap()
             SetPower(POWER_ALTERNATE_MOUNT, 3);
 
         AddAura(SPELL_DRAGONRIDER_ENERGY, this);
-        // WowCommunity
     }
+    // StefalWoW
 
     GetSceneMgr().TriggerDelayedScenes();
 }

@@ -1199,7 +1199,7 @@ void MoveInitActiveMoverComplete::Read()
     _worldPacket >> Ticks;
 }
 
-//WowCommunity
+// StefalWoW
 WorldPacket const* MoveApplyInertia::Write()
 {
     _worldPacket << MoverGUID;
@@ -1314,6 +1314,6 @@ WorldPacket const* WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds::Write()
 
     return &_worldPacket;
 }
-//WoWCommunity
+// StefalWoW
 
 }

@@ -888,7 +888,7 @@ void WorldSession::ComputeNewClockDelta()
     }
 }
 
-//WowCommunity
+// StefalWoW
 void WorldSession::HandleMoveApplyInertiaAck(WorldPackets::Movement::MoveApplyInertiaAck& moveApplyInertiaAck)
 {
     Unit* mover = _player->m_unitMovedByMe;
@@ -961,3 +961,4 @@ void WorldSession::HandleMoveStartDriveForward(WorldPackets::Movement::MoveStart
 {
     HandleMovementOpcode(CMSG_MOVE_START_DRIVE_FORWARD, moveStartDriveForward.Status);
 }
+// StefalWoW
