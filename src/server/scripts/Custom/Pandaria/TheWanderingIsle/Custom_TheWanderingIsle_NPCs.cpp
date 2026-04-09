@@ -1500,6 +1500,189 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_shanxi_questAI(creature);
         }
     };
+
+    class npc_lorewalker_ruolin : public CreatureScript
+    {
+    public:
+        npc_lorewalker_ruolin() : CreatureScript("npc_lorewalker_ruolin") { }
+
+        struct npc_lorewalker_ruolinAI : public ScriptedAI
+        {
+            npc_lorewalker_ruolinAI(Creature* creature) : ScriptedAI(creature), dialogueIndex(0) { }
+
+            void Reset() override
+            {
+                                
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsLorewalker::event_start_dialogue:
+                    {
+                        // safety: ensure index in range
+                        if (dialogueIndex >= dialogueSequence.size())
+                        {
+                            StoryInProgress = false;
+                            break;
+                        }
+
+                        const LorewalkerDialogueEntry& entry = dialogueSequence[dialogueIndex];
+
+                        if (Creature* speaker = GetClosestCreatureWithEntry(me, entry.npcEntry, 20.0f))
+                            speaker->AI()->Talk(entry.talkId);
+
+                        // prepare for next step
+                        ++dialogueIndex;
+
+                        if (entry.isFinal)
+                        {
+                            StoryInProgress = false;
+                            // optionally reset events or schedule a cooldown
+                            events.Reset();
+                        }
+                        else
+                        {
+                            // schedule next dialogue step using the entry delay
+                            events.ScheduleEvent(EventsLorewalker::event_start_dialogue, entry.delay);
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+            }
+
+            void StartLorewalkerStory()
+            {
+                if (StoryInProgress)
+                    return;
+
+                events.Reset();
+                dialogueIndex = 0;
+                StoryInProgress = true;
+                me->CastSpell(me, SpellsMisc::spell_ruolin_singing);
+                me->HandleEmoteCommand(EMOTE_ONESHOT_YES);
+                events.ScheduleEvent(EventsLorewalker::event_start_dialogue, 30s);
+            }
+
+        private:
+            EventMap events;
+            size_t dialogueIndex;
+            bool StoryInProgress = false;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_lorewalker_ruolinAI(creature);
+        }
+    };
+
+    const std::vector<LorewalkerDialogueEntry> dialogueSequence =
+    {
+        { Npcs::npc_lorewalker_amai, 39, 4s },
+        { Npcs::npc_lorewalker_amai, 0, 4s },
+        { Npcs::npc_lorewalker_hao, 0, 3s },
+        { Npcs::npc_lorewalker_amai, 1, 4s },
+        { Npcs::npc_lorewalker_nan, 0, 3s },
+        { Npcs::npc_lorewalker_amai, 2, 4s },
+        { Npcs::npc_lorewalker_amai, 3, 4s },
+        { Npcs::npc_lorewalker_amai, 4, 4s },
+        { Npcs::npc_lorewalker_yin, 0, 3s },
+        { Npcs::npc_lorewalker_amai, 5, 4s },
+        { Npcs::npc_lorewalker_amai, 6, 4s },
+        { Npcs::npc_lorewalker_amai, 7, 4s },
+        { Npcs::npc_lorewalker_hao, 1, 3s },
+        { Npcs::npc_lorewalker_amai, 8, 4s },
+        { Npcs::npc_lorewalker_nan, 1, 3s },
+        { Npcs::npc_lorewalker_hao, 2, 3s },
+        { Npcs::npc_lorewalker_amai, 9, 4s },
+        { Npcs::npc_lorewalker_hao, 3, 3s },
+        { Npcs::npc_lorewalker_amai, 10, 4s },
+        { Npcs::npc_lorewalker_amai, 11, 4s },
+        { Npcs::npc_lorewalker_nan, 2, 3s },
+        { Npcs::npc_lorewalker_hao, 4, 3s },
+        { Npcs::npc_lorewalker_amai, 12, 4s },
+        { Npcs::npc_lorewalker_amai, 13, 4s },
+        { Npcs::npc_lorewalker_hao, 5, 3s },
+        { Npcs::npc_lorewalker_nan, 3, 3s },
+        { Npcs::npc_lorewalker_amai, 14, 4s },
+        { Npcs::npc_lorewalker_amai, 15, 4s },
+        { Npcs::npc_lorewalker_yin, 1, 3s },
+        { Npcs::npc_lorewalker_amai, 16, 4s },
+        { Npcs::npc_lorewalker_amai, 17, 4s },
+        { Npcs::npc_lorewalker_yin, 2, 3s },
+        { Npcs::npc_lorewalker_amai, 18, 4s },
+        { Npcs::npc_lorewalker_amai, 19, 4s },
+        { Npcs::npc_lorewalker_nan, 4, 3s },
+        { Npcs::npc_lorewalker_amai, 20, 4s },
+        { Npcs::npc_lorewalker_hao, 6, 3s },
+        { Npcs::npc_lorewalker_amai, 21, 4s },
+        { Npcs::npc_lorewalker_yin, 3, 3s },
+        { Npcs::npc_lorewalker_amai, 22, 4s },
+        { Npcs::npc_lorewalker_nan, 5, 3s },
+        { Npcs::npc_lorewalker_amai, 23, 4s },
+        { Npcs::npc_lorewalker_hao, 7, 3s },
+        { Npcs::npc_lorewalker_nan, 6, 3s },
+        { Npcs::npc_lorewalker_hao, 8, 3s },
+        { Npcs::npc_lorewalker_yin, 4, 3s },
+        { Npcs::npc_lorewalker_amai, 24, 4s },
+        { Npcs::npc_lorewalker_amai, 25, 4s },
+        { Npcs::npc_lorewalker_amai, 26, 4s },
+        { Npcs::npc_lorewalker_amai, 27, 4s },
+        { Npcs::npc_lorewalker_amai, 28, 4s },
+        { Npcs::npc_lorewalker_amai, 29, 4s },
+        { Npcs::npc_lorewalker_amai, 30, 4s },
+        { Npcs::npc_lorewalker_amai, 31, 4s },
+        { Npcs::npc_lorewalker_hao, 9, 3s },
+        { Npcs::npc_lorewalker_nan, 7, 3s },
+        { Npcs::npc_lorewalker_amai, 32, 4s },
+        { Npcs::npc_lorewalker_hao, 10, 3s },
+        { Npcs::npc_lorewalker_amai, 33, 4s },
+        { Npcs::npc_lorewalker_amai, 34, 4s },
+        { Npcs::npc_lorewalker_yin, 5, 3s },
+        { Npcs::npc_lorewalker_amai, 35, 4s },
+        { Npcs::npc_lorewalker_amai, 36, 4s },
+        { Npcs::npc_lorewalker_amai, 37, 4s },
+        { Npcs::npc_lorewalker_amai, 38, 5s, true }
+    };
+
+    // Area Trigger 8287
+    class at_lorewalker_zan : public AreaTriggerScript
+    {
+    public:
+        at_lorewalker_zan() : AreaTriggerScript("at_lorewalker_zan") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive())
+            {
+                Creature* zan = GetClosestCreatureWithEntry(player, Npcs::npc_lorewalker_zan, 30.0f);
+                if (zan)
+                {
+                    zan->AI()->Talk(TalksLorewalker::lorewalker_zan_0, player);
+
+                    Creature* ruolin = zan->FindNearestCreatureWithOptions(100.f, { .CreatureId = Npcs::npc_lorewalker_ruolin, .IgnorePhases = true });
+                    if (ruolin)
+                    {
+                        auto* ai = CAST_AI(npc_lorewalker_ruolin::npc_lorewalker_ruolinAI, ruolin->AI());
+                        if (ai)
+                            ai->StartLorewalkerStory();
+
+                    }
+                }
+
+                return true;
+            }
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -1522,4 +1705,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_shu_at_farmstead_pool();
     new npc_shu_at_farmstead_play();
     new npc_shanxi_quest2();
+    new npc_lorewalker_ruolin();
+    new at_lorewalker_zan();
 }

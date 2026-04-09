@@ -1799,191 +1799,15 @@ enum SpellSummonJiAtTemple
 
 
 
-enum TheLorewalkerStory
-{
-    NPC_LOREWALKER_ZAN = 64885,
-    NPC_LOREWALKER_RUOLIN = 64876,
-    NPC_LOREWALKER_AMAI = 64875,
-    NPC_LOREWALKER_HAO = 64881,
-    NPC_LOREWALKER_NAN = 64880,
-    NPC_LOREWALKER_YIN = 64879,
-
-    EVENT_LOREWALKER_CHECK_PLAYER = 1,
-    EVENT_LOREWALKER_START = 2,
-    EVENT_START_DIALOGUE = 3,
-
-    SPELL_RUOLIN_SINGING = 126804
-};
-
-// Area Trigger 8287
-class at_lorewalker_zan : public AreaTriggerScript
-{
-public:
-    at_lorewalker_zan() : AreaTriggerScript("at_lorewalker_zan") { }
-
-    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
-    {
-        if (player->IsAlive())
-        {
-            if (Creature* zan = GetClosestCreatureWithEntry(player, NPC_LOREWALKER_ZAN, 30.0f))
-            {
-                zan->AI()->Talk(0, player);
-            }
-
-            return true;
-        }
-        return false;
-    }
-};
-
-struct DialogueEntry
-{
-    uint32 npcEntry;
-    uint8 talkId;
-    std::chrono::milliseconds delay;
-    bool isFinal = false;
-};
-
-std::vector<DialogueEntry> dialogueSequence = {
-    {NPC_LOREWALKER_AMAI, 39, 4s},
-    {NPC_LOREWALKER_AMAI, 0, 4s},
-    {NPC_LOREWALKER_HAO, 0, 3s},
-    {NPC_LOREWALKER_AMAI, 1, 4s},
-    {NPC_LOREWALKER_NAN, 0, 3s},
-    {NPC_LOREWALKER_AMAI, 2, 4s},
-    {NPC_LOREWALKER_AMAI, 3, 4s},
-    {NPC_LOREWALKER_AMAI, 4, 4s},
-    {NPC_LOREWALKER_YIN, 0, 3s},
-    {NPC_LOREWALKER_AMAI, 5, 4s},
-    {NPC_LOREWALKER_AMAI, 6, 4s},
-    {NPC_LOREWALKER_AMAI, 7, 4s},
-    {NPC_LOREWALKER_HAO, 1, 3s},
-    {NPC_LOREWALKER_AMAI, 8, 4s},
-    {NPC_LOREWALKER_NAN, 1, 3s},
-    {NPC_LOREWALKER_HAO, 2, 3s},
-    {NPC_LOREWALKER_AMAI, 9, 4s},
-    {NPC_LOREWALKER_HAO, 3, 3s},
-    {NPC_LOREWALKER_AMAI, 10, 4s},
-    {NPC_LOREWALKER_AMAI, 11, 4s},
-    {NPC_LOREWALKER_NAN, 2, 3s},
-    {NPC_LOREWALKER_HAO, 4, 3s},
-    {NPC_LOREWALKER_AMAI, 12, 4s},
-    {NPC_LOREWALKER_AMAI, 13, 4s},
-    {NPC_LOREWALKER_HAO, 5, 3s},
-    {NPC_LOREWALKER_NAN, 3, 3s},
-    {NPC_LOREWALKER_AMAI, 14, 4s},
-    {NPC_LOREWALKER_AMAI, 15, 4s},
-    {NPC_LOREWALKER_YIN, 1, 3s},
-    {NPC_LOREWALKER_AMAI, 16, 4s},
-    {NPC_LOREWALKER_AMAI, 17, 4s},
-    {NPC_LOREWALKER_YIN, 2, 3s},
-    {NPC_LOREWALKER_AMAI, 18, 4s},
-    {NPC_LOREWALKER_AMAI, 19, 4s},
-    {NPC_LOREWALKER_NAN, 4, 3s},
-    {NPC_LOREWALKER_AMAI, 20, 4s},
-    {NPC_LOREWALKER_HAO, 6, 3s},
-    {NPC_LOREWALKER_AMAI, 21, 4s},
-    {NPC_LOREWALKER_YIN, 3, 3s},
-    {NPC_LOREWALKER_AMAI, 22, 4s},
-    {NPC_LOREWALKER_NAN, 5, 3s},
-    {NPC_LOREWALKER_AMAI, 23, 4s},
-    {NPC_LOREWALKER_HAO, 7, 3s},
-    {NPC_LOREWALKER_NAN, 6, 3s},
-    {NPC_LOREWALKER_HAO, 8, 3s},
-    {NPC_LOREWALKER_YIN, 4, 3s},
-    {NPC_LOREWALKER_AMAI, 24, 4s},
-    {NPC_LOREWALKER_AMAI, 25, 4s},
-    {NPC_LOREWALKER_AMAI, 26, 4s},
-    {NPC_LOREWALKER_AMAI, 27, 4s},
-    {NPC_LOREWALKER_AMAI, 28, 4s},
-    {NPC_LOREWALKER_AMAI, 29, 4s},
-    {NPC_LOREWALKER_AMAI, 30, 4s},
-    {NPC_LOREWALKER_AMAI, 31, 4s},
-    {NPC_LOREWALKER_HAO, 9, 3s},
-    {NPC_LOREWALKER_NAN, 7, 3s},
-    {NPC_LOREWALKER_AMAI, 32, 4s},
-    {NPC_LOREWALKER_HAO, 10, 3s},
-    {NPC_LOREWALKER_AMAI, 33, 4s},
-    {NPC_LOREWALKER_AMAI, 34, 4s},
-    {NPC_LOREWALKER_YIN, 5, 3s},
-    {NPC_LOREWALKER_AMAI, 35, 4s},
-    {NPC_LOREWALKER_AMAI, 36, 4s},
-    {NPC_LOREWALKER_AMAI, 37, 4s},
-    {NPC_LOREWALKER_AMAI, 38, 5s, true}
-};
-
-struct npc_lorewalker_ruolin : public ScriptedAI
-{
-    npc_lorewalker_ruolin(Creature* creature) : ScriptedAI(creature), _playerGuid(), _dialogueIndex(0) { }
-
-    void Reset() override
-    {
-        _dialogueIndex = 0;
-        _events.Reset();
-        _events.ScheduleEvent(EVENT_LOREWALKER_CHECK_PLAYER, 10s);
-    }
 
 
-    void UpdateAI(uint32 diff) override
-    {
-        _events.Update(diff);
 
-        while (uint32 eventId = _events.ExecuteEvent())
-        {
-            switch (eventId)
-            {
-            case EVENT_LOREWALKER_CHECK_PLAYER:
-            {
-                Player* player = me->SelectNearestPlayer(30.0f);
-                if (player)
-                {
-                    _playerGuid = player->GetGUID();
-                    _events.ScheduleEvent(EVENT_LOREWALKER_START, 0s);
-                }
-                else
-                    _events.ScheduleEvent(EVENT_LOREWALKER_CHECK_PLAYER, 10s);
-                break;
-            }
 
-            case EVENT_LOREWALKER_START:
-            {
-                me->CastSpell(me, SPELL_RUOLIN_SINGING);
-                me->HandleEmoteCommand(EMOTE_ONESHOT_YES);
-                _events.ScheduleEvent(EVENT_START_DIALOGUE, 3s);
-                break;
-            }
 
-            case EVENT_START_DIALOGUE:
-            {
-                if (_dialogueIndex >= dialogueSequence.size())
-                {
-                    _dialogueIndex = 0; // Reset for next loop
-                    _events.ScheduleEvent(EVENT_LOREWALKER_CHECK_PLAYER, 20s);
-                    break;
-                }
 
-                const DialogueEntry& entry = dialogueSequence[_dialogueIndex];
-                if (Creature* speaker = GetClosestCreatureWithEntry(me, entry.npcEntry, 20.0f))
-                    speaker->AI()->Talk(entry.talkId);
 
-                ++_dialogueIndex;
-                if (entry.isFinal)
-                    _events.ScheduleEvent(EVENT_LOREWALKER_CHECK_PLAYER, 20s);
-                else
-                    _events.ScheduleEvent(EVENT_START_DIALOGUE, entry.delay);
-                break;
-            }
-            default:
-                break;
-            }
-        }
-    }
 
-private:
-    ObjectGuid _playerGuid;
-    EventMap _events;
-    size_t _dialogueIndex;
-};
+
 
 enum MonkeyWisdomTexts
 {
@@ -2926,7 +2750,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
     RegisterCreatureAI(npc_master_shang);
-    RegisterCreatureAI(npc_lorewalker_ruolin);
     RegisterCreatureAI(npc_ruk_ruk);
     RegisterCreatureAI(npc_ruk_ruk_rocket);
     RegisterCreatureAI(npc_zhaoren);
@@ -2952,7 +2775,7 @@ void AddSC_zone_the_wandering_isle()
     new at_cave_of_meditation();
     new at_inside_of_cave_of_meditation();
     
-    new at_lorewalker_zan();
+    
     new at_chamber_of_whispers();
 
     RegisterCreatureAI(npc_li_fei);

@@ -21,7 +21,11 @@
  */
 #pragma once
 
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
 #include "Define.h"
+#include <vector>
+#include <chrono>
 
 namespace Scripts::Custom::TheWanderingIsle
 {
@@ -45,6 +49,11 @@ namespace Scripts::Custom::TheWanderingIsle
 
         // Shu at farmstead
         static constexpr uint32 shu_farmstead_gossip_menu = 13140;
+    }
+
+    namespace SpellsMisc
+    {
+        static constexpr uint32 spell_ruolin_singing = 126804;
     }
 
     namespace SpellsQ29422
@@ -181,6 +190,11 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr int8 Cart_Tender_Talk_0 = 0;
         static constexpr int8 Cart_Tender_Talk_1 = 1;
+    }
+
+    namespace TalksLorewalker
+    {
+        static constexpr int8 lorewalker_zan_0 = 0;
     }
 
     namespace PositionsQ29423
@@ -379,6 +393,14 @@ namespace Scripts::Custom::TheWanderingIsle
         //static constexpr int8 event_ox_cart_ropes = 2;
     }
 
+    namespace EventsLorewalker
+    {
+        static constexpr uint32 event_lorewalker_check_player = 1;
+        static constexpr uint32 event_lorewalker_start = 2;
+        static constexpr uint32 event_start_dialogue = 3;
+
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -419,6 +441,15 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_wugou_q29775 = 60916;
 
         static constexpr uint32 npc_zhaoren_flying_temple_spire = 64554;
+
+        // Lorewalker Story
+        static constexpr uint32 npc_lorewalker_zan = 64885;
+        static constexpr uint32 npc_lorewalker_ruolin = 64876;
+        static constexpr uint32 npc_lorewalker_amai = 64875;
+        static constexpr uint32 npc_lorewalker_hao = 64881;
+        static constexpr uint32 npc_lorewalker_nan = 64880;
+        static constexpr uint32 npc_lorewalker_yin = 64879;
+
 
     }
 
@@ -464,5 +495,14 @@ namespace Scripts::Custom::TheWanderingIsle
     };
 
     extern player_singing_pools_memory g_singingPoolsMemory;
-}
 
+    struct LorewalkerDialogueEntry
+    {
+        uint32 npcEntry;
+        uint8 talkId;
+        std::chrono::milliseconds delay;
+        bool isFinal = false;
+    };
+
+    extern const std::vector<LorewalkerDialogueEntry> dialogueSequence;
+}

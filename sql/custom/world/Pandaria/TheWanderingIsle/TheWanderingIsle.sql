@@ -67,6 +67,12 @@
 -- NPC: 54786 Master Shang Xi at temple (451410)
 -- NPC: 55685 Uplifting Draft
 -- NPC: 64554 Zhao-Ren <The Onyx Serpent> - in the sky
+-- NPC: 64885 Lorewalker Zan
+-- NPC: 64876 Lorewalker Ruolin
+-- NPC: 64875 Lorewalker Amai
+-- NPC: 64879 Yin
+-- NPC: 64880 Nan
+-- NPC: 64881 Hao
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -1058,6 +1064,8 @@ UPDATE `creature_template` SET `movementType` = 2, `movementId` = 106, `speed_wa
 -- these flags disable gravity for Zhao so it can fly above
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912', `StaticFlags5` = 5 WHERE (`Entry` = '64554') and (`DifficultyID` = '0');
 
+UPDATE `creature_template` SET `ScriptName` = 'npc_lorewalker_ruolin' WHERE `Entry` = 64876;
+
 -- Skinning loot fix
 DELETE FROM `skinning_loot_template` WHERE `Entry` = 1;
 INSERT INTO `skinning_loot_template` VALUES
@@ -1078,7 +1086,7 @@ INSERT INTO `npc_spellclick_spells` VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
@@ -1088,7 +1096,8 @@ INSERT INTO `areatrigger_scripts` VALUES
 (7783, 'at_pools_of_reflection'),
 (8628, 'at_singing_pools_training_bell'),
 (7784, 'at_the_singing_pools_children_summon'),
-(8276, 'at_temple_of_five_dawns_summon_zhaoren');
+(8276, 'at_temple_of_five_dawns_summon_zhaoren'),
+(8287, 'at_lorewalker_zan');
 
 -- Spell Scripts
 
