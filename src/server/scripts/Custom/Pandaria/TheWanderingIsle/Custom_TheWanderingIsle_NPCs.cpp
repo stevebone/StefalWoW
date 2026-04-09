@@ -1849,6 +1849,130 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_ruk_ruk_rocketAI(creature);
         }
     };
+
+    // 55744 Aysa outside chambers of whispers
+    class npc_aysa_outside_chambers_of_whispers : public CreatureScript
+    {
+    public:
+        npc_aysa_outside_chambers_of_whispers() : CreatureScript("npc_aysa_outside_chambers_of_whispers") { }
+
+        struct npc_aysaAI : public ScriptedAI
+        {
+            npc_aysaAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                events.Reset();
+                Unit* owner = me->GetOwner();
+                if (owner && owner->ToPlayer())
+                    PlayerGUID = owner->ToPlayer()->GetGUID();
+
+                events.ScheduleEvent(EventsZhaorenEvent::event_aysa_outside_chambers_init, 1s);
+            }
+
+            void MovementInform(uint32 type, uint32 id) override
+            {
+                if (type != POINT_MOTION_TYPE)
+                    return;
+
+                if (id == 1) // reached player
+                {
+                    Talk(TalksZhaorenEvent::aysa_chamber_of_whispers_1);
+                    events.ScheduleEvent(EventsZhaorenEvent::event_aysa_outside_chambers_move1, 3s);
+                }
+
+                if (id == 2) // reached outside entrance
+                {
+                    events.ScheduleEvent(EventsZhaorenEvent::event_aysa_outside_chambers_move2, 25s);
+                }
+
+                if (id == 3) // reached half way chamber
+                {
+                    Talk(TalksZhaorenEvent::aysa_chamber_of_whispers_2);
+                    events.ScheduleEvent(EventsZhaorenEvent::event_aysa_inside_chambers_move_dafeng, 10s);
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsZhaorenEvent::event_aysa_outside_chambers_init:
+                    {
+                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                        if (!player)
+                        {
+                            player = me->SelectNearestPlayer(10.f);
+                            if (!player)
+                                return;
+                        }
+                        Talk(TalksZhaorenEvent::aysa_chamber_of_whispers_0);
+                        me->GetMotionMaster()->MovePoint(1, player->GetRandomNearPosition(3.f));
+                        break;
+                    }
+                        
+                    case EventsZhaorenEvent::event_aysa_outside_chambers_move1:
+                    {
+                        me->GetMotionMaster()->MovePoint(2, PositionsZhaorenEvent::AysaOutsideChamber);
+                        break;
+                    }
+
+                    case EventsZhaorenEvent::event_aysa_outside_chambers_move2:
+                    {
+                        std::list<Creature*> list;
+                        GetCreatureListWithEntryInGrid(list, me, Npcs::npc_chamber_winds, 100.0f);
+
+                        for (Creature* creature : list)
+                        {
+                            if (creature)
+                            {
+                                creature->SetRespawnTime(5);
+                                creature->DespawnOrUnsummon();
+                            }
+                        }
+                        me->GetMotionMaster()->MovePoint(3, PositionsZhaorenEvent::AysaInsideChamber);
+                        break;
+                    }
+
+                    case EventsZhaorenEvent::event_aysa_inside_chambers_move_dafeng:
+                    {
+                        Creature* aysaDafeng = me->FindNearestCreatureWithOptions(100.f, { .CreatureId = Npcs::npc_aysa_q29785, .IgnorePhases = true });
+                        if (aysaDafeng)
+                        {
+                            std::list<Creature*> list;
+                            GetCreatureListWithEntryInGrid(list, me, Npcs::npc_chamber_winds, 100.0f);
+
+                            for (Creature* creature : list)
+                            {
+                                if (creature)
+                                {
+                                    creature->SetRespawnTime(5);
+                                    creature->DespawnOrUnsummon();
+                                }
+                            }
+
+                            me->GetMotionMaster()->MovePoint(4, aysaDafeng->GetPosition());
+                            me->DespawnOrUnsummon(25s);
+                        }
+                    }
+                    }
+                }
+            }
+
+        private:
+            EventMap events;
+            ObjectGuid PlayerGUID;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_aysaAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -1875,4 +1999,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new at_lorewalker_zan();
     new npc_ruk_ruk();
     new npc_ruk_ruk_rocket();
+    new npc_aysa_outside_chambers_of_whispers();
 }

@@ -49,6 +49,11 @@ namespace Scripts::Custom::TheWanderingIsle
 
         // Shu at farmstead
         static constexpr uint32 shu_farmstead_gossip_menu = 13140;
+
+        // Zhaoren Event
+        static constexpr uint8 ZHAO_PHASE_FLYING = 1;
+        static constexpr uint8 ZHAO_PHASE_GROUNDED = 2;
+        static constexpr uint8 ZHAO_PHASE_STAY_IN_CENTER = 3;
     }
 
     namespace SpellsMisc
@@ -156,6 +161,11 @@ namespace Scripts::Custom::TheWanderingIsle
         //static constexpr uint32 spell_rope_right = 108691;
     }
 
+    namespace SpellsZhaorenEvent
+    {
+        static constexpr uint32 spell_summon_aysa_outside_chambers = 104593;
+    }
+
     namespace TalksQ29423
     {
         static constexpr int8 chia_hui_autumnleaf_talk = 0;
@@ -205,6 +215,13 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace TalksLorewalker
     {
         static constexpr int8 lorewalker_zan_0 = 0;
+    }
+
+    namespace TalksZhaorenEvent
+    {
+        static constexpr int8 aysa_chamber_of_whispers_0 = 0;
+        static constexpr int8 aysa_chamber_of_whispers_1 = 1;
+        static constexpr int8 aysa_chamber_of_whispers_2 = 2;
     }
 
     namespace PositionsQ29423
@@ -301,6 +318,12 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
         static constexpr Position ZhaoSkySpawn = { 750.5781f, 4262.676f, 323.0713f, 5.042483f };
+    }
+
+    namespace PositionsZhaorenEvent
+    {
+        static constexpr Position AysaOutsideChamber = { 644.8831f, 4227.2998f, 202.909271f, 2.4453f };
+        static constexpr Position AysaInsideChamber = { 599.9302f, 4267.8554f, 206.552856f, 2.4319f };
     }
 
     namespace PathQ29423
@@ -417,6 +440,14 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 event_rukruk_rocket_fire = 3;
     }
 
+    namespace EventsZhaorenEvent
+    {
+        static constexpr uint32 event_aysa_outside_chambers_init = 1;
+        static constexpr uint32 event_aysa_outside_chambers_move1 = 2;
+        static constexpr uint32 event_aysa_outside_chambers_move2 = 3;
+        static constexpr uint32 event_aysa_inside_chambers_move_dafeng = 4;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -465,6 +496,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_lorewalker_hao = 64881;
         static constexpr uint32 npc_lorewalker_nan = 64880;
         static constexpr uint32 npc_lorewalker_yin = 64879;
+
+        // Zhaoren Event
+        static constexpr uint32 credit_da_feng_the_spirit_of_air = 55666;
+        static constexpr uint32 npc_aysa_q29785 = 55595;
+        static constexpr uint32 npc_dafeng_q29785 = 55592;
+        static constexpr uint32 npc_aysa_outside_chambers = 55744;
+        static constexpr uint32 npc_chamber_winds = 55665;
     }
 
     namespace Objects
@@ -490,6 +528,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_not_in_the_face = 29774;
         static constexpr uint32 quest_the_spirit_and_body_of_shenzinsu = 29775;
         static constexpr uint32 quest_morning_breeze_village = 29776;
+        static constexpr uint32 quest_da_feng_the_spirit_of_air = 29785;
+        static constexpr uint32 quest_battle_for_the_skies = 29786;
     }
 
     namespace AreaTriggers

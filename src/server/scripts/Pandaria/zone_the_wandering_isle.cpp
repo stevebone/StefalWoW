@@ -1794,13 +1794,11 @@ enum ShuWugouToTheTempleFollow
 
 enum ChamberOfWhispers
 {
-    QUEST_DAFENG_THE_SPIRIT_OF_AIR = 29785,
-    QUEST_BATTLE_FOR_THE_SKIES = 29786,
 
-    QUEST_29785_KILLCREDIT = 55666,
 
-    NPC_DAFENG_CHAMBER_WHISPERS = 55592,
-    NPC_AYSA_CHAMBER_WHISPERS = 55595,
+
+
+
     NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS = 64505,
     NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS = 64506,
     NPC_ZHAOREN = 55786,
@@ -1810,52 +1808,7 @@ enum ChamberOfWhispers
     PHASE_CHAMBER_OF_ASPECTS = 524
 };
 
-class at_chamber_of_whispers : public AreaTriggerScript
-{
-public:
-    at_chamber_of_whispers() : AreaTriggerScript("at_chamber_of_whispers") { }
 
-    bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
-    {
-        if (player->IsAlive() && player->IsActiveQuest(QUEST_DAFENG_THE_SPIRIT_OF_AIR))
-        {
-            Creature* dafeng = GetClosestCreatureWithEntry(player, NPC_DAFENG_CHAMBER_WHISPERS, 20.0f);
-            Creature* aysha = GetClosestCreatureWithEntry(player, NPC_AYSA_CHAMBER_WHISPERS, 20.0f);
-
-            PhasingHandler::AddPhase(player, PHASE_CHAMBER_OF_ASPECTS, true);
-
-            if(dafeng)
-                PhasingHandler::AddPhase(dafeng, PHASE_CHAMBER_OF_ASPECTS, true);
-
-            if (aysha)
-            {
-                PhasingHandler::AddPhase(aysha, PHASE_CHAMBER_OF_ASPECTS, true);
-                aysha->AI()->Talk(0);
-            }
-
-            player->KilledMonsterCredit(QUEST_29785_KILLCREDIT);
-
-
-
-            return true;
-        }
-        return false;
-    }
-
-    bool OnExit(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
-    {
-        if (player->IsAlive() && player->IsActiveQuest(QUEST_BATTLE_FOR_THE_SKIES))
-        {
-            Creature* ji = player->SummonCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, { 691.354f,	4152.99f,	197.629f, 0.59088f }, TEMPSUMMON_MANUAL_DESPAWN);
-            Creature* aysa = player->SummonCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, { 715.858f, 4165.51f, 196.064f, 5.85696f }, TEMPSUMMON_MANUAL_DESPAWN);
-
-            if(ji && aysa)
-                player->SummonCreature(NPC_ZHAOREN, { 713.917f,	4168.13f,	213.846f,	2.70526f }, TEMPSUMMON_MANUAL_DESPAWN);
-            return true;
-        }
-        return false;
-    }
-};
 
 enum ZhaorenEvents
 {
@@ -1885,7 +1838,7 @@ enum ZhaorenPhases
 
 enum ZhaorenMisc
 {
-    ZHAOREN_PATH = 16,
+    ZHAOREN_PATH = 5578600,
     NPC_DAFENG = 64532,
     NPC_FIREWORK = 64507,
     NPC_DEAD_ZHAOREN = 55874,
@@ -1918,22 +1871,22 @@ private:
     void Reset() override
     {
         events.Reset();
-        //me->SetReactState(REACT_PASSIVE);
         me->setActive(true);
         me->SetReactState(REACT_AGGRESSIVE);
         phase = 0;
         _sweepScheduled = false;
+    }
 
+    void JustEngagedWith(Unit* /*who*/) override
+    {
         if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
         {
-            //creature->AI()->SetData(DATA_EVADE, DATA_EVADE);
             ji->SetReactState(REACT_AGGRESSIVE);
             ji->AI()->AttackStart(me);
         }
 
         if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
         {
-            //creature->AI()->SetData(DATA_EVADE, DATA_EVADE);
             aysa->SetReactState(REACT_AGGRESSIVE);
             aysa->AI()->AttackStart(me);
         }
@@ -1947,10 +1900,7 @@ private:
         }
         me->GetMotionMaster()->Clear();
         me->GetMotionMaster()->MovePoint(0, ZhaoPos[0].GetPositionX(), ZhaoPos[0].GetPositionY(), ZhaoPos[0].GetPositionZ());
-    }
 
-    void JustEngagedWith(Unit* /*who*/) override
-    {
         me->GetMotionMaster()->MovePath(ZHAOREN_PATH, true);
         events.SetPhase(PHASE_FLYING);
         events.ScheduleEvent(EVENT_LIGHTNING, 5s);
@@ -1995,21 +1945,10 @@ private:
 
     void JustDied(Unit* /*killer*/) override
     {
-        //DoCastAOE(SPELL_FORCECAST_SUMMON_SHANG, true);
-
-        Position const shangPos = { 711.335f, 4178.049f, 197.845f };
-        Position const deadPos = { 723.163f, 4163.799f, 196.341f };
-
-        if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-            ji->DespawnOrUnsummon(1s);
-        if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-            aysa->DespawnOrUnsummon(1s);
         if (Creature* creature = me->FindNearestCreature(NPC_DAFENG, me->GetVisibilityRange(), true))
             creature->AI()->SetData(DATA_ZHAOREN_DEATH, DATA_ZHAOREN_DEATH);
 
-        me->SummonCreature(NPC_MASTER_SHANG_CHAMBER_OF_WHISPERS, shangPos, TEMPSUMMON_TIMED_DESPAWN, 5min);
-        me->SummonCreature(NPC_DEAD_ZHAOREN, deadPos, TEMPSUMMON_TIMED_DESPAWN, 5min);
-        me->DespawnOrUnsummon(1s);
+        me->DespawnOrUnsummon(3s);
     }
 
     void UpdateAI(uint32 diff) override
@@ -2521,7 +2460,7 @@ void AddSC_zone_the_wandering_isle()
     new at_inside_of_cave_of_meditation();
     
     
-    new at_chamber_of_whispers();
+    
 
     RegisterCreatureAI(npc_li_fei);
     RegisterSpellScript(spell_fire_crash);

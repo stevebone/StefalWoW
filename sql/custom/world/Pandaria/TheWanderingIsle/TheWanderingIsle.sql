@@ -86,6 +86,18 @@
 -- NPC: 57623 Shen Stonecarver
 -- NPC: 65558 Ji Firepaw (with player)
 -- NPC: 55595 Aysa at Morning Breeze
+-- NPC: 65559 Vision of Zhao-Ren
+-- NPC: 55650 Shang Xi's Hot Air Balloon
+-- NPC: 55592 Dafeng Spirit of Air
+-- NPC: 65560 Dafeng spawn ??
+-- NPC: 64532 Dafeng spawn (quest accept)
+-- NPC: 55595 Aysa with Dafeng
+-- NPC: 64543 Aysa spawn  (quest accept)
+-- NPC: 55786 Zhaoren
+-- NPC: 64507 Firework Launcher
+-- NPC: 64505 Ji at Zhaoren
+-- NPC: 64506 Aysha at Zhaoren
+-- NPC: 55874 Dead Zhaoren
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -136,6 +148,7 @@
 -- Quest: 29779 The direct solution
 -- Quest: 29780 Do no evil
 -- Quest: 29781 Monkey Advisory warning
+-- Quest: 29786 Battle for the skies
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` = 50007;
@@ -1105,7 +1118,7 @@ INSERT INTO `npc_spellclick_spells` VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
@@ -1116,7 +1129,9 @@ INSERT INTO `areatrigger_scripts` VALUES
 (8628, 'at_singing_pools_training_bell'),
 (7784, 'at_the_singing_pools_children_summon'),
 (8276, 'at_temple_of_five_dawns_summon_zhaoren'),
-(8287, 'at_lorewalker_zan');
+(8287, 'at_lorewalker_zan'),
+(7037, 'at_chamber_of_whispers'),
+(7041, 'at_chamber_of_whispers_outside');
 
 -- Spell Scripts
 

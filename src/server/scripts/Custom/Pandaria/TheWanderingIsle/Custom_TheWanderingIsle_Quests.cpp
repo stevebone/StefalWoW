@@ -88,6 +88,45 @@ namespace Scripts::Custom::TheWanderingIsle
             }
         }
     };
+
+    // 29785
+    class quest_29785_dafeng_the_spririt_of_air : public QuestScript
+    {
+    public:
+        quest_29785_dafeng_the_spririt_of_air() : QuestScript("quest_29785_dafeng_the_spririt_of_air") {}
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus == QUEST_STATUS_REWARDED)
+                PhasingHandler::OnConditionChange(player, true);
+        }
+    };
+
+    // 29786
+    class quest_29786_battle_for_the_skies : public QuestScript
+    {
+    public:
+        quest_29786_battle_for_the_skies() : QuestScript("quest_29786_battle_for_the_skies") {}
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus == QUEST_STATUS_INCOMPLETE)
+            {
+                PhasingHandler::OnConditionChange(player, true);
+
+                Creature* dafeng = player->FindNearestCreature(Npcs::npc_dafeng_q29785, 10.f);
+                if (dafeng)
+                    dafeng->DespawnOrUnsummon(2s);
+
+                Creature* aysa = player->FindNearestCreature(Npcs::npc_aysa_q29785, 10.f);
+                if (aysa)
+                    aysa->DespawnOrUnsummon(2s);
+            }
+
+            if(newStatus == QUEST_STATUS_COMPLETE)
+                PhasingHandler::OnConditionChange(player, true);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_quests()
@@ -96,4 +135,6 @@ void AddSC_custom_the_wandering_isle_quests()
     new quest_29422_huo_the_spirit_of_fire();
     new quest_29423_the_passion_of_shen_zin_su();
     new quest_29679_a_new_friend();
+    new quest_29785_dafeng_the_spririt_of_air();
+    new quest_29786_battle_for_the_skies();
 }

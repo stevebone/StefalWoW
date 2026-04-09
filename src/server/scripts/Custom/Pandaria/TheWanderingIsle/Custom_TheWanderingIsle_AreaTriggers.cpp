@@ -269,6 +269,50 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    // 7041
+    class at_chamber_of_whispers_outside : public AreaTriggerScript
+    {
+    public:
+        at_chamber_of_whispers_outside() : AreaTriggerScript("at_chamber_of_whispers_outside") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive() && player->IsActiveQuest(Quests::quest_da_feng_the_spirit_of_air))
+            {
+                if (player->GetQuestStatus(Quests::quest_da_feng_the_spirit_of_air) != QUEST_STATUS_INCOMPLETE)
+                    return false;
+
+                player->CastSpell(player, SpellsZhaorenEvent::spell_summon_aysa_outside_chambers, true);
+
+                return true;
+            }
+            return false;
+        }
+    };
+
+    // 7037
+    class at_chamber_of_whispers : public AreaTriggerScript
+    {
+    public:
+        at_chamber_of_whispers() : AreaTriggerScript("at_chamber_of_whispers") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive() && player->IsActiveQuest(Quests::quest_da_feng_the_spirit_of_air))
+            {
+                Creature* aysha = GetClosestCreatureWithEntry(player, Npcs::npc_aysa_q29785, 20.0f);
+
+                if (aysha)
+                    aysha->AI()->Talk(TalksZhaorenEvent::aysa_chamber_of_whispers_0);
+
+                player->KilledMonsterCredit(Npcs::credit_da_feng_the_spirit_of_air);
+
+                return true;
+            }
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
@@ -283,4 +327,6 @@ void AddSC_custom_the_wandering_isle_at()
     new at_cart_locations();
     new at_temple_stairs_from_farmstead();
     new at_temple_of_five_dawns_summon_zhaoren();
+    new at_chamber_of_whispers_outside();
+    new at_chamber_of_whispers();
 }

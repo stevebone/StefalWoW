@@ -164,3 +164,13 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('64881', '8', '0', 'Oh. Well, forget it then.', '12', '0', '100', '1', '0', '0', '65653', '0', 'Hao to Lorewalker Amai'),
 ('64881', '9', '0', 'What?', '12', '0', '100', '1', '0', '0', '65655', '0', 'Hao to Lorewalker Amai'),
 ('64881', '10', '0', 'That\'s un-possible!', '12', '0', '100', '1', '0', '0', '65657', '0', 'Hao to Lorewalker Amai');
+
+DELETE FROM `creature_text` WHERE `creatureID` IN (55595,64506,55744);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('55595', '0', '0', 'Dafeng! What\'s wrong? Why are you hiding back here?', '12', '0', '100', '1', '0', '27403', '54362', '0', 'Aysa Cloudsinger to Player'),
+('64506', '0', '0', 'That\'s the way to do it!', '12', '0', '100', '0', '0', '27380', '64766', '0', 'Aysa Cloudsinger to Zhao-Ren'),
+('64506', '1', '0', 'You\'ve done it!  Now quickly, lets attack it while it\'s grounded.', '12', '0', '100', '0', '0', '27381', '64767', '0', 'Aysa Cloudsinger to Zhao-Ren'),
+('64506', '2', '0', 'It\'s down!  Let\'s finish it off.', '12', '0', '100', '0', '0', '27382', '64768', '0', 'Aysa Cloudsinger to Zhao-Ren'),
+('55744', '0', '0', 'Wait!', '12', '0', '100', '5', '0', '27400', '54355', '0', 'Aysa Cloudsinger to Player'),
+('55744', '1', '0', 'We need to wait for the winds to settle, then make a break for the cover of the far hallway.', '12', '0', '100', '1', '0', '27401', '54356', '0', 'Aysa Cloudsinger to Player'),
+('55744', '2', '0', 'Wait for another opening. I\'ll meet you on the far side.', '12', '0', '100', '1', '0', '27402', '54357', '0', 'Aysa Cloudsinger to Player');
