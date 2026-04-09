@@ -138,6 +138,16 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_summon_spirits_water_earth = 104017;
     }
 
+    namespace SpellsRukRuk
+    {
+        static constexpr uint32 spell_ookslosions_triggered = 125885;
+        static constexpr uint32 spell_aim = 125609;
+        static constexpr uint32 spell_ookslosions = 125699;
+        static constexpr uint32 spell_aim_visual = 26079;
+        static constexpr uint32 spell_rocket_explosion_visual = 125612;
+        static constexpr uint32 spell_rocket_explosion_damage = 125619;
+    }
+
     namespace SpellsCartOx
     {
         static constexpr uint32 spell_force_vehicle_ride = 46598;
@@ -398,7 +408,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 event_lorewalker_check_player = 1;
         static constexpr uint32 event_lorewalker_start = 2;
         static constexpr uint32 event_start_dialogue = 3;
+    }
 
+    namespace EventsRukRuk
+    {
+        static constexpr uint32 event_rukruk_cast_aim = 1;
+        static constexpr uint32 event_rukruk_cast_ooksplosions = 2;
+        static constexpr uint32 event_rukruk_rocket_fire = 3;
     }
 
     namespace Npcs
@@ -449,8 +465,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_lorewalker_hao = 64881;
         static constexpr uint32 npc_lorewalker_nan = 64880;
         static constexpr uint32 npc_lorewalker_yin = 64879;
-
-
     }
 
     namespace Objects
@@ -482,6 +496,18 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr uint32 areaTrigger_singing_pools_cart = 7258;
         static constexpr uint32 areaTrigger_farmstead_cart = 7822;
+    }
+
+    namespace MonkeyWisdomTexts
+    {
+        static constexpr uint32 text_monkey_wisdom_1 = 54073;
+        static constexpr uint32 text_monkey_wisdom_2 = 54074;
+        static constexpr uint32 text_monkey_wisdom_3 = 54075;
+        static constexpr uint32 text_monkey_wisdom_4 = 54076;
+        static constexpr uint32 text_monkey_wisdom_5 = 54077;
+        static constexpr uint32 text_monkey_wisdom_6 = 54078;
+        static constexpr uint32 text_monkey_wisdom_7 = 54079;
+        static constexpr uint32 text_monkey_wisdom_8 = 54080;
     }
 
     class player_singing_pools_memory

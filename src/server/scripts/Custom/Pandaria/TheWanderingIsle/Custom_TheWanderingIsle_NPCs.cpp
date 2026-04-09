@@ -1510,11 +1510,6 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             npc_lorewalker_ruolinAI(Creature* creature) : ScriptedAI(creature), dialogueIndex(0) { }
 
-            void Reset() override
-            {
-                                
-            }
-
             void UpdateAI(uint32 diff) override
             {
                 events.Update(diff);
@@ -1683,6 +1678,177 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    class npc_ruk_ruk : public CreatureScript
+    {
+    public:
+        npc_ruk_ruk() : CreatureScript("npc_ruk_ruk") { }
+
+        struct npc_ruk_rukAI : public ScriptedAI
+        {
+            npc_ruk_rukAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                events.Reset();
+            }
+
+            void JustEngagedWith(Unit* /*who*/) override
+            {
+                events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_aim, 10s);
+                events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_ooksplosions, 30s);
+            }
+
+            Position GetRocketTargetPos() const
+            {
+                return pos;
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                if (!UpdateVictim())
+                    return;
+
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsRukRuk::event_rukruk_cast_aim:
+                        if (me->HasUnitState(UNIT_STATE_CASTING))
+                        {
+                            events.RescheduleEvent(EventsRukRuk::event_rukruk_cast_aim, 1s);
+                            break;
+                        }
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random))
+                        {
+                            me->SetFacingToObject(target);
+                            CalculateSpellVisual(target);
+                            DoCast(target, SpellsRukRuk::spell_aim);
+                            events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_aim, 15s, 25s);
+                        }
+                        break;
+                    case EventsRukRuk::event_rukruk_cast_ooksplosions:
+                        if (me->HasUnitState(UNIT_STATE_CASTING))
+                        {
+                            events.RescheduleEvent(EventsRukRuk::event_rukruk_cast_ooksplosions, 1s);
+                            break;
+                        }
+                        DoCast(SpellsRukRuk::spell_ookslosions);
+                        events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_ooksplosions, 25s, 35s);
+                        break;
+                    }
+                }
+                me->DoMeleeAttackIfReady();
+            }
+
+        private:
+            EventMap events;
+            Position pos;
+
+            void CalculateSpellVisual(Unit* target)
+            {
+                float ori = me->GetOrientation();
+                float z = me->GetPositionZ();
+                float targetDist = target->GetExactDist(me->GetPosition());
+
+                for (int radius = 1; ; radius++)
+                {
+                    if (radius <= ceilf(targetDist))
+                    {
+                        float x = me->GetPositionX() + radius * cos(ori);
+                        float y = me->GetPositionY() + radius * sin(ori);
+                        me->UpdateGroundPositionZ(x, y, z);
+                        pos = { x, y, z };
+                        me->SendPlaySpellVisual(pos, SpellsRukRuk::spell_aim_visual, 0, 0, 0.0f, false, 2.0f);
+                    }
+                    else
+                        break;
+                }
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_ruk_rukAI(creature);
+        }
+    };
+
+    class npc_ruk_ruk_rocket : public CreatureScript
+    {
+    public:
+        npc_ruk_ruk_rocket() : CreatureScript("npc_ruk_ruk_rocket") { }
+
+        struct npc_ruk_ruk_rocketAI : public ScriptedAI
+        {
+            npc_ruk_ruk_rocketAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                me->SetDisplayFromModel(0);
+                events.ScheduleEvent(EventsRukRuk::event_rukruk_rocket_fire, 500ms);
+            }
+
+            void IsSummonedBy(WorldObject* summonerWO) override
+            {
+                if (Creature* summoner = summonerWO->ToCreature())
+                {
+                    if (auto* rukRukAI = CAST_AI(npc_ruk_ruk::npc_ruk_rukAI, summoner->AI()))
+                    {
+                        rocketTargetPos = rukRukAI->GetRocketTargetPos();
+
+                        if (me->GetExactDist2d(rocketTargetPos) > 30.0f)
+                            RecalculateTargetPos();
+                    }
+                }
+            }
+
+            void MovementInform(uint32 /*type*/, uint32 id) override
+            {
+                if (id == 1)
+                {
+                    DoCast(SpellsRukRuk::spell_rocket_explosion_visual);
+                    DoCast(SpellsRukRuk::spell_rocket_explosion_damage);
+                    me->DespawnOrUnsummon(1s);
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsRukRuk::event_rukruk_rocket_fire:
+                        me->GetMotionMaster()->MovePoint(1, rocketTargetPos);
+                        break;
+                    }
+                }
+            }
+
+            void RecalculateTargetPos()
+            {
+                float ori = me->GetOrientation();
+                float x = me->GetPositionX() + 30 * cos(ori);
+                float y = me->GetPositionY() + 30 * sin(ori);
+                float z = me->GetPositionZ();
+                me->UpdateGroundPositionZ(x, y, z);
+                rocketTargetPos = { x, y, z };
+            }
+
+        private:
+            EventMap events;
+            Position rocketTargetPos;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_ruk_ruk_rocketAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -1707,4 +1873,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_shanxi_quest2();
     new npc_lorewalker_ruolin();
     new at_lorewalker_zan();
+    new npc_ruk_ruk();
+    new npc_ruk_ruk_rocket();
 }

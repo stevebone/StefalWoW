@@ -1,12 +1,14 @@
 -- The Wandering Isle Creature Texts
 
 -- Jojos
-DELETE FROM `creature_text` WHERE `creatureID` IN (57669,57638);
+DELETE FROM `creature_text` WHERE `creatureID` IN (57669,57638,57670);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 ('57669', '0', '0', 'Our crafters build the finest wooden planks.  They would weather the most brutal of storms.  But they are as water before the storm of my crushing skull.', '12', '0', '100', '1', '0', '0', '56343', '0', 'Jojo Ironbrow to Player'),
 ('57669', '1', '0', 'Nothing made by pandaren hands can withstand me.', '12', '0', '100', '2', '0', '0', '56344', '0', 'Jojo Ironbrow to Player'),
 ('57638', '0', '0', 'The reeds of the Singing Pools are the hardest in all of the land, but they are as air before my mighty brow.', '12', '0', '100', '1', '0', '0', '56333', '0', 'Jojo Ironbrow to Player'),
-('57638', '1', '0', 'Many have tested my claim, and I yet stand proven.', '12', '0', '100', '2', '0', '0', '56334', '0', 'Jojo Ironbrow to Player');
+('57638', '1', '0', 'Many have tested my claim, and I yet stand proven.', '12', '0', '100', '2', '0', '0', '56334', '0', 'Jojo Ironbrow to Player'),
+('57670', '0', '0', 'These are the densest stones across all of Shen-zin Su, yet they are as nothing before my mighty head.', '12', '0', '100', '1', '0', '0', '56355', '0', 'Jojo Ironbrow to Player'),
+('57670', '1', '0', 'Any who yet doubt my strength are simply foolish.', '12', '0', '100', '2', '0', '0', '56356', '0', 'Jojo Ironbrow to Player');
 
 -- Huo Spirit of fire quest
 DELETE FROM `creature_text` WHERE (`CreatureID` IN (54786, 60248, 60253, 61126, 61127));

@@ -15,6 +15,12 @@
 -- NPC: 53704 Corsac Fox
 -- NPC: 57164 Fe-Feng Leaper
 -- NPC: 53714 Training Target
+-- NPC: 55601 Fe-feng Wiseman
+-- NPC: 55632 Fe-Feng Ruffian
+-- NPC: 57465 Fe-Feng Ruffian
+-- NPC: 57466 Fe-Feng Firethief
+-- NPC: 55634 Ruk-Ruk
+-- NPC: 64322 Ruk-Ruk's rocket
 
 -- NPC: 55479 Gao Summerdraft
 -- NPC: 55021 Jojo Ironbrow at first house
@@ -73,6 +79,13 @@
 -- NPC: 64879 Yin
 -- NPC: 64880 Nan
 -- NPC: 64881 Hao
+-- NPC: 55588 Elder Shaopai at Morning Breeze
+-- NPC: 55583 Ji Firepaw at Morning Breeze
+-- NPC: 55585 Jojo at Morning Breeze
+-- NPC: 57670 Jojo spawn at Morning Breeze
+-- NPC: 57623 Shen Stonecarver
+-- NPC: 65558 Ji Firepaw (with player)
+-- NPC: 55595 Aysa at Morning Breeze
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -117,6 +130,12 @@
 -- Quest: 29774 Not In the Face!
 -- Quest: 29775 The Spirit and Body of Shen-zin Su
 -- Quest: 29776 Morning Breeze Village
+-- Quest: 29777 Tools of the enemy
+-- Quest: 29778 Rewritten wisdoms
+-- Quest: 29783 Stronger than stone
+-- Quest: 29779 The direct solution
+-- Quest: 29780 Do no evil
+-- Quest: 29781 Monkey Advisory warning
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` = 50007;
@@ -1102,7 +1121,7 @@ INSERT INTO `areatrigger_scripts` VALUES
 -- Spell Scripts
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589, 117033,117034,117035,117036, 103069,103077,103070, 116190, 116191, 128700, 109178, 
-102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691);
+102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 ('128588', 'spell_aysa_congrats_trigger_aura'),
 ('128589', 'spell_aysa_congrats_timer'),
@@ -1128,7 +1147,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (104450, 'spell_summon_ji_firepaw_temple'),
 -- (108627, 'spell_cart_ropes'),
 -- (108691, 'spell_cart_ropes'),
-(118036, 'spell_summon_spirit_of_earth');
+(118036, 'spell_summon_spirit_of_earth'),
+(104126, 'spell_monkey_wisdom_text'),
+(125699, 'spell_ruk_ruk_ooksplosions');
 
 DELETE FROM `npc_vendor` WHERE `entry`=57620;
 INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES

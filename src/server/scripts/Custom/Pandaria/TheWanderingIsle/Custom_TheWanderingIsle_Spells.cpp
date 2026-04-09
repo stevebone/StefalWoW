@@ -21,6 +21,7 @@
  */
 
 #include "Creature.h"
+#include "DB2Stores.h"
 #include "EventProcessor.h"
 #include "GameObject.h"
 #include "MotionMaster.h"
@@ -457,6 +458,67 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
     */
+
+    // Spell 104126 Monkey Wisdom
+    class spell_monkey_wisdom_text : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            if (!sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_1) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_2) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_3) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_4) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_5) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_6) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_7) ||
+                !sBroadcastTextStore.LookupEntry(MonkeyWisdomTexts::text_monkey_wisdom_8))
+                return false;
+
+            return true;
+        }
+
+        bool Load() override
+        {
+            return GetCaster()->GetTypeId() == TYPEID_PLAYER;
+        }
+
+        void HandleScript(SpellEffIndex /*effIndex*/)
+        {
+            uint32 randomText = urand(0, 7);
+
+            GetCaster()->Talk(MonkeyWisdomTexts::text_monkey_wisdom_1 + randomText, CHAT_MSG_RAID_BOSS_WHISPER, 0.0f, GetHitPlayer());
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_monkey_wisdom_text::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
+
+    // 125699
+    class spell_ruk_ruk_ooksplosions : public AuraScript
+    {
+        void HandleEffectPeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            float radius = caster->GetBoundingRadius();
+            float x, y, z;
+            caster->GetClosePoint(x, y, z, radius, frand(0.0f, 3.0f), frand(0.0f, 2 * float(M_PI)));
+
+            Position pos(x, y, z);
+            CastSpellTargetArg target(pos);
+
+            caster->CastSpell(target, SpellsRukRuk::spell_ookslosions_triggered, true);
+        }
+
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_ruk_ruk_ooksplosions::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -483,4 +545,6 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_summon_ji_firepaw_temple);
     RegisterSpellScript(spell_summon_spirit_of_earth);
     //RegisterSpellScript(spell_cart_ropes);
+    RegisterSpellScript(spell_monkey_wisdom_text);
+    RegisterSpellScript(spell_ruk_ruk_ooksplosions);
 }
