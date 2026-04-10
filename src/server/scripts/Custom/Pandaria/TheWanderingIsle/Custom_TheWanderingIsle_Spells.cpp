@@ -519,6 +519,20 @@ namespace Scripts::Custom::TheWanderingIsle
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_ruk_ruk_ooksplosions::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
         }
     };
+
+    // 105333 - Summon Master Shang Q29787
+    class spell_summon_worthy_of_passing : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(PositionsQ29787::MasterShangSpawn);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_worthy_of_passing::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -547,4 +561,5 @@ void AddSC_custom_the_wandering_isle_spells()
     //RegisterSpellScript(spell_cart_ropes);
     RegisterSpellScript(spell_monkey_wisdom_text);
     RegisterSpellScript(spell_ruk_ruk_ooksplosions);
+    RegisterSpellScript(spell_summon_worthy_of_passing);
 }

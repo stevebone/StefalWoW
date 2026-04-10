@@ -340,6 +340,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position ZhaoPos = { 723.163f, 4163.8f, 204.999f };
     }
 
+    namespace PositionsQ29787
+    {
+        static constexpr Position MasterShangSpawn = { 711.335f, 4178.049f, 197.845f };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;

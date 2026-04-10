@@ -1840,32 +1840,6 @@ enum SpellSummonShangWorthyOfPassing
     NPC_SHANG_WORTHY_OF_PASSING = 56159
 };
 
-class spell_summon_worthy_of_passing : public SpellScript
-{
-    void HandleLaunch(SpellEffIndex effIndex)
-    {
-        PreventHitDefaultEffect(effIndex);
-    }
-
-    void HandleSummon(SpellEffIndex /*effIndex*/)
-    {
-        PreventHitDefaultEffect(EFFECT_0);
-
-        if (Unit* caster = GetCaster())
-        {
-
-            Position const shangPos = { 711.335f, 4178.049f, 197.845f };
-            caster->SummonCreature(NPC_SHANG_WORTHY_OF_PASSING, shangPos, TEMPSUMMON_MANUAL_DESPAWN);
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectLaunch += SpellEffectFn(spell_summon_worthy_of_passing::HandleLaunch, EFFECT_0, SPELL_EFFECT_SUMMON);
-        OnEffectHit += SpellEffectFn(spell_summon_worthy_of_passing::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
-    }
-};
-
 enum EventHotAirBalloon
 {
     SPELL_AISUMMON_HOT_AIR_BALLOON = 128815, // this spell script
@@ -2228,10 +2202,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_ride_drake);
     RegisterSpellScript(spell_meditation_timer_bar);
     RegisterSpellScript(spell_flame_spout);
-    
-    
-    
-    RegisterSpellScript(spell_summon_worthy_of_passing);
 	
 	new at_singing_pools_transform_frog();
     new at_singing_pools_transform_base<Spells::CurseOfTheSkunk>("at_singing_pools_transform_skunk");

@@ -174,3 +174,12 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('55744', '0', '0', 'Wait!', '12', '0', '100', '5', '0', '27400', '54355', '0', 'Aysa Cloudsinger to Player'),
 ('55744', '1', '0', 'We need to wait for the winds to settle, then make a break for the cover of the far hallway.', '12', '0', '100', '1', '0', '27401', '54356', '0', 'Aysa Cloudsinger to Player'),
 ('55744', '2', '0', 'Wait for another opening. I\'ll meet you on the far side.', '12', '0', '100', '1', '0', '27402', '54357', '0', 'Aysa Cloudsinger to Player');
+
+DELETE FROM `creature_text` WHERE `creatureID` IN (56159,55672);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('56159', '0', '0', 'Come child. We have one final journey to take together before your training is complete.', '12', '0', '100', '1', '0', '27797', '55520', '0', 'Master Shang Xi to Player'),
+('56159', '1', '0', 'Beyond the Elders\' Path lies the Wood of Staves, a sacred place that only the worthy may enter.', '12', '0', '100', '1', '0', '27800', '55521', '0', 'Master Shang Xi to Player'),
+('56159', '2', '0', 'Of the many ways to prove your worth, I require the simplest of you now. I must know that you will fight for our people. I must know that you can keep them safe.', '12', '0', '100', '1', '0', '27801', '55522', '0', 'Master Shang Xi to Player'),
+('56159', '3', '0', 'Defeat the Guardian of the Elders, and we may pass.', '12', '0', '100', '1', '0', '27802', '55523', '0', 'Master Shang Xi to Player'),
+('56159', '4', '0', 'You\'ve become strong indeed, child. This is good. You will need that strength soon.', '12', '0', '100', '1', '0', '27803', '56484', '0', 'Master Shang Xi to Player'),
+('55672', '0', '0', 'And here we are. Help me with a couple small tasks while I prepare, if you would.', '12', '0', '100', '1', '0', '27805', '56485', '0', 'Master Shang Xi to Player');

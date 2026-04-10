@@ -98,6 +98,10 @@
 -- NPC: 64505 Ji at Zhaoren
 -- NPC: 64506 Aysha at Zhaoren
 -- NPC: 55874 Dead Zhaoren
+-- NPC: 55586 Master Shang Xi - Zhaoren dead phase
+-- NPC: 56159 Master Shang (spawned for quest 29787)
+-- NPC: 55672 Master Shang for the forest quests
+-- NPC: 56274 Guardian of the Elders
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -149,6 +153,7 @@
 -- Quest: 29780 Do no evil
 -- Quest: 29781 Monkey Advisory warning
 -- Quest: 29786 Battle for the skies
+-- Quest: 29787 Worthy Of Passing
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` = 50007;
@@ -1136,7 +1141,7 @@ INSERT INTO `areatrigger_scripts` VALUES
 -- Spell Scripts
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589, 117033,117034,117035,117036, 103069,103077,103070, 116190, 116191, 128700, 109178, 
-102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699);
+102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699, 105333);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 ('128588', 'spell_aysa_congrats_trigger_aura'),
 ('128589', 'spell_aysa_congrats_timer'),
@@ -1164,7 +1169,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 -- (108691, 'spell_cart_ropes'),
 (118036, 'spell_summon_spirit_of_earth'),
 (104126, 'spell_monkey_wisdom_text'),
-(125699, 'spell_ruk_ruk_ooksplosions');
+(125699, 'spell_ruk_ruk_ooksplosions'),
+(105333, 'spell_summon_worthy_of_passing');
 
 DELETE FROM `npc_vendor` WHERE `entry`=57620;
 INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES
