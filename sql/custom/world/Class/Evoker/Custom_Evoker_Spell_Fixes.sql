@@ -72,3 +72,12 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (369536, 'spell_evo_soar'),
 (351239 , 'spell_evo_cosmic_visage');
 
+-- Remove no longer valid scripts
+-- Call of Ysera spell itself no longer exists, the talent now adds passive auras and no longer related to 361195
+-- Snapfire no longer exists and no longer needed for Firestorm.
+-- Permeating Chill talent got removed and proc added in passive aura.
+DELETE FROM `spell_script_names` WHERE (`spell_id` = '361195') and (`ScriptName` = 'spell_evo_call_of_ysera');
+DELETE FROM `spell_script_names` WHERE (`spell_id` = '368847') and (`ScriptName` = 'spell_evo_snapfire');
+DELETE FROM `spell_script_names` WHERE (`spell_id` = '369374') and (`ScriptName` = 'spell_evo_snapfire_bonus_damage');
+DELETE FROM `spell_script_names` WHERE (`spell_id` = '381773') and (`ScriptName` = 'spell_evo_permeating_chill');
+
