@@ -1376,7 +1376,7 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
         SetSemaphoreTeleportNear(false);
         //setup delayed teleport flag
         SetDelayedTeleportFlag(IsCanDelayTeleport());
-        SetSemaphoreTeleportFar(true);
+        //SetSemaphoreTeleportFar(true);
         //if teleport spell is cast in Unit::Update() func
         //then we need to delay it until update process will be finished
         if (IsHasDelayedTeleport())
@@ -1387,6 +1387,8 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
             m_teleportSpellId = teleportSpellId;
             return true;
         }
+
+        SetSemaphoreTeleportFar(true);
 
         SetSelection(ObjectGuid::Empty);
 
@@ -29655,12 +29657,12 @@ void Player::ApplyTraitConfig(int32 configId, bool apply)
             ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
 
     // Apply hero talent (SubTree) entries - these are stored separately from regular entries
-    for (UF::TraitSubTreeCache const& subTree : traitConfig->SubTrees)
-    {
-        if (!apply || subTree.Active)
-            for (UF::TraitEntry const& traitEntry : subTree.Entries)
-                ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
-    }
+    //for (UF::TraitSubTreeCache const& subTree : traitConfig->SubTrees)
+    //{
+    //    if (!apply || subTree.Active)
+    //        for (UF::TraitEntry const& traitEntry : subTree.Entries)
+    //            ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+    //}
 }
 
 void Player::ApplyTraitEntry(int32 traitNodeEntryId, int32 rank, int32 grantedRanks, bool apply)
