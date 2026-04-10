@@ -2118,7 +2118,7 @@ class spell_warl_drain_life : public AuraScript
         return _caster != nullptr;
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         if (!_caster)
             return;
@@ -2703,7 +2703,7 @@ public:
             {
                 auto effect = aura->GetEffect(0);
 
-                if (roll_chance_i(effect->GetBaseAmount()))
+                if (roll_chance(effect->GetBaseAmount()))
                     caster->CastSpell(caster, SPELL_WARLOCK_CALL_DREADSTALKERS_SUMMON, true);
             }
         }
@@ -2854,7 +2854,7 @@ public:
             Unit* caster = GetCaster();
             if (!caster)
                 return false;
-            if (eventInfo.GetSpellInfo() && (eventInfo.GetSpellInfo()->Id == SPELL_WARLOCK_DEMONBOLT || eventInfo.GetSpellInfo()->Id == SPELL_WARLOCK_SHADOW_BOLT) && roll_chance_i(20))
+            if (eventInfo.GetSpellInfo() && (eventInfo.GetSpellInfo()->Id == SPELL_WARLOCK_DEMONBOLT || eventInfo.GetSpellInfo()->Id == SPELL_WARLOCK_SHADOW_BOLT) && roll_chance(20))
                 caster->CastSpell(caster, SPELL_WARLOCK_DEMONIC_CALLING_TRIGGER, true);
             return false;
         }
@@ -2967,7 +2967,7 @@ public:
             if (caster->HasAura(SPELL_WARLOCK_IMPENDING_DOOM))
                 caster->CastSpell(GetTarget(), SPELL_WARLOCK_WILD_IMP_SUMMON, true);
 
-            if (caster->HasAura(SPELL_WARLOCK_DOOM_DOUBLED) && roll_chance_i(25))
+            if (caster->HasAura(SPELL_WARLOCK_DOOM_DOUBLED) && roll_chance(25))
                 GetEffect(EFFECT_0)->SetAmount(aurEff->GetAmount() * 2);
         }
 
@@ -3052,7 +3052,7 @@ public:
             if (!caster)
                 return;
 
-            if (roll_chance_i(GetSpellInfo()->GetEffect(EFFECT_0).BasePoints))
+            if (roll_chance(GetSpellInfo()->GetEffect(EFFECT_0).BasePoints))
                 caster->CastSpell(caster, SPELL_WARLOCK_SOUL_CONDUIT_REFUND, CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(refund));
         }
 

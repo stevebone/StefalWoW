@@ -76,7 +76,7 @@ public:
         void JustEnteredCombat(Unit* /*who*/) override
         {
             // 30% chance to play a sound
-            if (roll_chance_i(30))
+            if (roll_chance(30))
             {
                 static constexpr uint32 impSounds[] = {
                     55202, 55203, 55204, 55205, 55206, 55207, 55208, 55209, 55210

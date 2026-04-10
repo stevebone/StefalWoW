@@ -474,12 +474,8 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     {
         baseAI->botHasSoulstone = true;
 
-        if (roll_chance_i(30))
-        {
+        if (roll_chance(30))
             bot->CastSpell(bot, SPELL_SHAMAN_GHOST_WOLF, false);
-        }
-
-
     }
 
     // Initial Flags and States
