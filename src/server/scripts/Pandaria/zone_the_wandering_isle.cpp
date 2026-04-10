@@ -1819,234 +1819,19 @@ enum ZhaorenEvents
     EVENT_RESUME_WP = 5
 };
 
-enum ZhaorenSpells
-{
-    SPELL_LIGHTNING_POOL = 126006,
-    SPELL_STUNNED_BY_FIREWORKS = 125992,
-    SPELL_SERPENT_SWEEP = 125990,
-    SPELL_FORCECAST_SUMMON_SHANG = 128808,
-    SPELL_OVERPACKED_FIREWORK = 104855,
-    SPELL_FIREWORK_INACTIVE = 125964
-};
-
-enum ZhaorenPhases
-{
-    PHASE_FLYING = 1,
-    PHASE_GROUNDED = 2,
-    PHASE_STAY_IN_CENTER = 3
-};
-
 enum ZhaorenMisc
 {
-    ZHAOREN_PATH = 5578600,
-    NPC_DAFENG = 64532,
-    NPC_FIREWORK = 64507,
+    
+    
+    
     NPC_DEAD_ZHAOREN = 55874,
     NPC_MASTER_SHANG_CHAMBER_OF_WHISPERS = 55586,
-    DATA_1 = 1,
-    DATA_COMBAT = 2,
-    DATA_AYSA_TALK_3 = 3,
-    DATA_PHASE_OOC = 4,
-    DATA_ZHAOREN_DEATH = 5,
-    DATA_EVADE = 6
+    
 };
 
-Position ZhaoPos[] =
-{
-    {699.134f, 4170.06f, 216.06f}, // Center
-};
-
-//55786
-struct npc_zhaoren : public ScriptedAI
-{
-    npc_zhaoren(Creature* creature) : ScriptedAI(creature), phase(0), _sweepScheduled(false) { }
-
-    Position const pos = { 723.163f, 4163.8f, 204.999f };
-
-private:
-    uint8 phase;
-    bool _sweepScheduled;
-    EventMap events;
-
-    void Reset() override
-    {
-        events.Reset();
-        me->setActive(true);
-        me->SetReactState(REACT_AGGRESSIVE);
-        phase = 0;
-        _sweepScheduled = false;
-    }
-
-    void JustEngagedWith(Unit* /*who*/) override
-    {
-        if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-        {
-            ji->SetReactState(REACT_AGGRESSIVE);
-            ji->AI()->AttackStart(me);
-        }
-
-        if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-        {
-            aysa->SetReactState(REACT_AGGRESSIVE);
-            aysa->AI()->AttackStart(me);
-        }
-
-        std::list<Creature*> fireworks;
-        me->GetCreatureListWithEntryInGrid(fireworks, NPC_FIREWORK, me->GetVisibilityRange());
-        for (std::list<Creature*>::iterator itr = fireworks.begin(); itr != fireworks.end(); ++itr)
-        {
-            (*itr)->RemoveAura(SPELL_FIREWORK_INACTIVE);
-            (*itr)->AI()->SetData(DATA_1, DATA_1);
-        }
-        me->GetMotionMaster()->Clear();
-        me->GetMotionMaster()->MovePoint(0, ZhaoPos[0].GetPositionX(), ZhaoPos[0].GetPositionY(), ZhaoPos[0].GetPositionZ());
-
-        me->GetMotionMaster()->MovePath(ZHAOREN_PATH, true);
-        events.SetPhase(PHASE_FLYING);
-        events.ScheduleEvent(EVENT_LIGHTNING, 5s);
-    }
-
-    void SpellHit(WorldObject* caster, SpellInfo const* spell) override
-    {
-        if (spell->Id == SPELL_OVERPACKED_FIREWORK)
-        {
-            if (!me->IsInCombat())
-            {
-                if (Unit* target = caster->ToUnit())
-                {
-                    me->Attack(target, true);
-                }
-            }
-        }
-    }
-
-    void MovementInform(uint32 type, uint32 id) override
-    {
-        if (type == POINT_MOTION_TYPE && id == EVENT_MOVE_CENTER)
-            events.ScheduleEvent(EVENT_STUN, 0s);
-    }
-
-    void KilledUnit(Unit* who) override
-    {
-        if (who->IsPlayer())
-        {
-            if (me->GetThreatManager().IsThreatListEmpty(true))
-            {
-                if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                    ji->DespawnOrUnsummon(5s);
-                if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                    aysa->DespawnOrUnsummon(5s);
-                me->DespawnOrUnsummon(10s);
-
-            }
-        }
-    }
 
 
-    void JustDied(Unit* /*killer*/) override
-    {
-        if (Creature* creature = me->FindNearestCreature(NPC_DAFENG, me->GetVisibilityRange(), true))
-            creature->AI()->SetData(DATA_ZHAOREN_DEATH, DATA_ZHAOREN_DEATH);
 
-        me->DespawnOrUnsummon(3s);
-    }
-
-    void UpdateAI(uint32 diff) override
-    {
-        events.Update(diff);
-        if (phase == 0 && HealthBelowPct(85))
-        {
-            phase++;
-            if (Creature* creature = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                creature->AI()->SetData(DATA_1, DATA_1);
-        }
-        if (phase == 1 && HealthBelowPct(75))
-        {
-            phase++;
-            events.SetPhase(PHASE_GROUNDED);
-            events.CancelEvent(EVENT_LIGHTNING);
-            events.ScheduleEvent(EVENT_MOVE_CENTER, 0s);
-        }
-        if (phase == 2 && HealthBelowPct(25))
-        {
-            phase++;
-            events.SetPhase(PHASE_STAY_IN_CENTER);
-            events.CancelEvent(EVENT_LIGHTNING);
-            events.ScheduleEvent(EVENT_MOVE_CENTER, 0s);
-        }
-        while (uint32 eventId = events.ExecuteEvent())
-        {
-            switch (eventId)
-            {
-            case EVENT_LIGHTNING:
-            {
-                auto const& threatList = me->GetThreatManager().GetUnsortedThreatList();
-                if (threatList.begin() != threatList.end())
-                {
-                    for (ThreatReference const* ref : threatList)
-                    {
-                        if (Unit* target = ref->GetVictim())
-                        {
-                            if (target->IsPlayer())
-                                DoCast(target, SPELL_LIGHTNING_POOL);
-                        }
-                    }
-
-                    events.ScheduleEvent(EVENT_LIGHTNING, events.IsInPhase(PHASE_FLYING) ? 5s : 3500ms);
-
-                    if (!_sweepScheduled && events.IsInPhase(PHASE_STAY_IN_CENTER))
-                    {
-                        events.ScheduleEvent(EVENT_SWEEP, 15s, 0, PHASE_STAY_IN_CENTER);
-                        _sweepScheduled = true;
-                    }
-                }
-                else
-                {
-                    if (Creature* ji = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                        ji->DespawnOrUnsummon(5s);
-                    if (Creature* aysa = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                        aysa->DespawnOrUnsummon(5s);
-                    me->DespawnOrUnsummon(10s);
-                }
-                break;
-            }
-            case EVENT_MOVE_CENTER:
-                me->GetMotionMaster()->MovePoint(EVENT_MOVE_CENTER, pos);
-                break;
-
-            case EVENT_STUN:
-                DoCast(SPELL_STUNNED_BY_FIREWORKS);
-                events.ScheduleEvent(EVENT_SWEEP, 12s);
-                if (Creature* creature = me->FindNearestCreature(NPC_AYSA_CLOUDSINGER_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                {
-                    if (phase == 2)
-                        creature->AI()->SetData(DATA_COMBAT, DATA_COMBAT);
-                    else if (phase == 3)
-                        creature->AI()->SetData(DATA_AYSA_TALK_3, DATA_AYSA_TALK_3);
-                }
-                if (Creature* creature = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                    creature->AI()->SetData(DATA_COMBAT, DATA_COMBAT);
-                break;
-
-            case EVENT_SWEEP:
-                events.CancelEvent(EVENT_LIGHTNING);
-                DoCast(SPELL_SERPENT_SWEEP);
-                _sweepScheduled = false;
-                events.ScheduleEvent(EVENT_LIGHTNING, 3500ms, 0, PHASE_STAY_IN_CENTER);
-                events.ScheduleEvent(EVENT_RESUME_WP, 5s, 0, PHASE_GROUNDED);
-                if (events.IsInPhase(PHASE_GROUNDED))
-                    if (Creature* creature = me->FindNearestCreature(NPC_JI_FIREPAW_CHAMBER_OF_WHISPERS, me->GetVisibilityRange(), true))
-                        creature->AI()->SetData(DATA_PHASE_OOC, DATA_PHASE_OOC);
-                break;
-            case EVENT_RESUME_WP:
-                me->GetMotionMaster()->MovePath(ZHAOREN_PATH, true);
-                events.SetPhase(PHASE_FLYING);
-                events.ScheduleEvent(EVENT_LIGHTNING, 5s);
-                break;
-            }
-        }
-    }
-};
 
 enum SpellSummonShangWorthyOfPassing
 {
@@ -2436,7 +2221,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
     RegisterCreatureAI(npc_master_shang);
-    RegisterCreatureAI(npc_zhaoren);
     RegisterCreatureAI(npc_hot_air_balloon_from_spell);
     RegisterCreatureAI(npc_shenzinsu);
     

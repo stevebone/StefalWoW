@@ -1973,6 +1973,206 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_aysaAI(creature);
         }
     };
+
+    class npc_zhaoren : public CreatureScript
+    {
+    public:
+        npc_zhaoren() : CreatureScript("npc_zhaoren") { }
+
+        //55786
+        struct npc_zhaorenAI : public ScriptedAI
+        {
+            npc_zhaorenAI(Creature* creature) : ScriptedAI(creature), phase(0), sweepScheduled(false) { }
+
+        private:
+            uint8 phase;
+            bool sweepScheduled;
+            EventMap events;
+            ObjectGuid JiGUID;
+            ObjectGuid AysaGUID;
+
+            void Reset() override
+            {
+                events.Reset();
+                me->setActive(true);
+                me->SetReactState(REACT_AGGRESSIVE);
+                phase = 0;
+                sweepScheduled = false;
+            }
+
+            void JustEngagedWith(Unit* /*who*/) override
+            {
+                if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, me->GetVisibilityRange(), true))
+                {
+                    ji->SetReactState(REACT_AGGRESSIVE);
+                    ji->AI()->AttackStart(me);
+                    JiGUID = ji->GetGUID();
+                }
+
+                if (Creature* aysa = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
+                {
+                    aysa->SetReactState(REACT_AGGRESSIVE);
+                    aysa->AI()->AttackStart(me);
+                    AysaGUID = aysa->GetGUID();
+                }
+
+                std::list<Creature*> fireworks;
+                me->GetCreatureListWithEntryInGrid(fireworks, Npcs::npc_firework_launcher, me->GetVisibilityRange());
+                for (std::list<Creature*>::iterator itr = fireworks.begin(); itr != fireworks.end(); ++itr)
+                {
+                    (*itr)->RemoveAura(SpellsZhaorenEvent::spell_firework_inactive);
+                    (*itr)->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
+                }
+                me->GetMotionMaster()->Clear();
+                //me->GetMotionMaster()->MovePoint(0, PositionsZhaorenEvent::ZhaoCenter);
+
+                me->GetMotionMaster()->MovePath(PathZhaorenEvent::path_zhaoren_at_chamber, true);
+                events.SetPhase(Misc::ZHAO_PHASE_FLYING);
+                events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_lightning, 5s);
+            }
+
+            void SpellHit(WorldObject* caster, SpellInfo const* spell) override
+            {
+                if (spell->Id == SpellsZhaorenEvent::spell_overpacked_firework)
+                    if (!me->IsInCombat())
+                        if (Unit* target = caster->ToUnit())
+                            me->Attack(target, true);
+            }
+
+            void MovementInform(uint32 type, uint32 id) override
+            {
+                if (type == POINT_MOTION_TYPE && id == 1)
+                    events.ScheduleEvent(EventsZhaorenEvent::event_zhao_state_stun, 0s);
+            }
+
+            void KilledUnit(Unit* who) override
+            {
+                if (who->IsPlayer())
+                {
+                    if (me->GetThreatManager().IsThreatListEmpty(true))
+                    {
+                        if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
+                            ji->DespawnOrUnsummon(5s);
+
+                        if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
+                            aysa->DespawnOrUnsummon(5s);
+                        me->DespawnOrUnsummon(10s);
+
+                    }
+                }
+            }
+
+
+            void JustDied(Unit* /*killer*/) override
+            {
+                if (Creature* dafeng = me->FindNearestCreature(Npcs::npc_dafeng_q29786, me->GetVisibilityRange(), true))
+                    dafeng->AI()->SetData(Misc::DATA_ZHAOREN_DEATH, Misc::DATA_ZHAOREN_DEATH);
+
+                me->DespawnOrUnsummon(4s);
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+                if (phase == 0 && HealthBelowPct(85))
+                {
+                    phase++;
+                    if (Creature* aysha = ObjectAccessor::GetCreature(*me, AysaGUID))
+                        aysha->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
+                }
+                if (phase == Misc::ZHAO_PHASE_FLYING && HealthBelowPct(75))
+                {
+                    phase++;
+                    events.SetPhase(Misc::ZHAO_PHASE_GROUNDED);
+                    events.CancelEvent(EventsZhaorenEvent::event_zhao_cast_lightning);
+                    events.ScheduleEvent(EventsZhaorenEvent::event_zhao_move_center, 0s);
+                }
+                if (phase == Misc::ZHAO_PHASE_GROUNDED && HealthBelowPct(25))
+                {
+                    phase++;
+                    events.SetPhase(Misc::ZHAO_PHASE_STAY_IN_CENTER);
+                    events.CancelEvent(EventsZhaorenEvent::event_zhao_cast_lightning);
+                    events.ScheduleEvent(EventsZhaorenEvent::event_zhao_move_center, 0s);
+                }
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsZhaorenEvent::event_zhao_cast_lightning:
+                    {
+                        auto const& threatList = me->GetThreatManager().GetUnsortedThreatList();
+                        if (threatList.begin() != threatList.end())
+                        {
+                            for (ThreatReference const* ref : threatList)
+                            {
+                                if (Unit* target = ref->GetVictim())
+                                {
+                                    if (target->IsPlayer())
+                                        DoCast(target, SpellsZhaorenEvent::spell_lightning_pool);
+                                }
+                            }
+
+                            events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_lightning, events.IsInPhase(Misc::ZHAO_PHASE_FLYING) ? 5s : 3500ms);
+
+                            if (!sweepScheduled && events.IsInPhase(Misc::ZHAO_PHASE_STAY_IN_CENTER))
+                            {
+                                events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_sweep, 15s, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
+                                sweepScheduled = true;
+                            }
+                        }
+                        else
+                        {
+                            if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
+                                ji->DespawnOrUnsummon(5s);
+                            if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
+                                aysa->DespawnOrUnsummon(5s);
+                            me->DespawnOrUnsummon(10s);
+                        }
+                        break;
+                    }
+                    case EventsZhaorenEvent::event_zhao_move_center:
+                        me->GetMotionMaster()->MovePoint(1, PositionsZhaorenEvent::ZhaoPos);
+                        break;
+
+                    case EventsZhaorenEvent::event_zhao_state_stun:
+                        DoCast(SpellsZhaorenEvent::spell_stunned_by_fireworks);
+                        events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_sweep, 12s);
+                        if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
+                        {
+                            if (phase == Misc::ZHAO_PHASE_GROUNDED)
+                                aysa->AI()->SetData(Misc::DATA_COMBAT, Misc::DATA_COMBAT);
+                            else if (phase == Misc::ZHAO_PHASE_STAY_IN_CENTER)
+                                aysa->AI()->SetData(Misc::DATA_AYSA_TALK_3, Misc::DATA_AYSA_TALK_3);
+                        }
+                        if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
+                            ji->AI()->SetData(Misc::DATA_COMBAT, Misc::DATA_COMBAT);
+                        break;
+
+                    case EventsZhaorenEvent::event_zhao_cast_sweep:
+                        events.CancelEvent(EventsZhaorenEvent::event_zhao_cast_lightning);
+                        DoCast(SpellsZhaorenEvent::spell_serpent_sweep);
+                        sweepScheduled = false;
+                        events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_lightning, 3500ms, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
+                        events.ScheduleEvent(EventsZhaorenEvent::event_zhao_resume_path, 5s, 0, Misc::ZHAO_PHASE_GROUNDED);
+                        if (events.IsInPhase(Misc::ZHAO_PHASE_GROUNDED))
+                            if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
+                                ji->AI()->SetData(Misc::DATA_PHASE_OOC, Misc::DATA_PHASE_OOC);
+                        break;
+                    case EventsZhaorenEvent::event_zhao_resume_path:
+                        me->GetMotionMaster()->MovePath(PathZhaorenEvent::path_zhaoren_at_chamber, true);
+                        events.SetPhase(Misc::ZHAO_PHASE_FLYING);
+                        events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_lightning, 5s);
+                        break;
+                    }
+                }
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_zhaorenAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -2000,4 +2200,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_ruk_ruk();
     new npc_ruk_ruk_rocket();
     new npc_aysa_outside_chambers_of_whispers();
+    new npc_zhaoren();
 }

@@ -54,6 +54,12 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 ZHAO_PHASE_FLYING = 1;
         static constexpr uint8 ZHAO_PHASE_GROUNDED = 2;
         static constexpr uint8 ZHAO_PHASE_STAY_IN_CENTER = 3;
+        static constexpr uint8 EVENT_DATA_1 = 1;
+        static constexpr uint8 DATA_COMBAT = 2;
+        static constexpr uint8 DATA_AYSA_TALK_3 = 3;
+        static constexpr uint8 DATA_PHASE_OOC = 4;
+        static constexpr uint8 DATA_ZHAOREN_DEATH = 5;
+        static constexpr uint8 DATA_EVADE = 6;
     }
 
     namespace SpellsMisc
@@ -164,6 +170,12 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace SpellsZhaorenEvent
     {
         static constexpr uint32 spell_summon_aysa_outside_chambers = 104593;
+        static constexpr uint32 spell_lightning_pool = 126006;
+        static constexpr uint32 spell_stunned_by_fireworks = 125992;
+        static constexpr uint32 spell_serpent_sweep = 125990;
+        static constexpr uint32 spell_forcecast_summon_shang = 128808;
+        static constexpr uint32 spell_overpacked_firework = 104855;
+        static constexpr uint32 spell_firework_inactive = 125964;
     }
 
     namespace TalksQ29423
@@ -324,6 +336,8 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         static constexpr Position AysaOutsideChamber = { 644.8831f, 4227.2998f, 202.909271f, 2.4453f };
         static constexpr Position AysaInsideChamber = { 599.9302f, 4267.8554f, 206.552856f, 2.4319f };
+        static constexpr Position ZhaoCenter = { 699.134f, 4170.06f, 216.06f };
+        static constexpr Position ZhaoPos = { 723.163f, 4163.8f, 204.999f };
     }
 
     namespace PathQ29423
@@ -368,6 +382,11 @@ namespace Scripts::Custom::TheWanderingIsle
     namespace PathZhaoren
     {
         static constexpr uint32 path_zhaoren_at_temple = 6455400;
+    }
+
+    namespace PathZhaorenEvent
+    {
+        static constexpr uint32 path_zhaoren_at_chamber = 5578600;
     }
 
     namespace EventsQ29423
@@ -428,24 +447,29 @@ namespace Scripts::Custom::TheWanderingIsle
 
     namespace EventsLorewalker
     {
-        static constexpr uint32 event_lorewalker_check_player = 1;
-        static constexpr uint32 event_lorewalker_start = 2;
-        static constexpr uint32 event_start_dialogue = 3;
+        static constexpr uint8 event_lorewalker_check_player = 1;
+        static constexpr uint8 event_lorewalker_start = 2;
+        static constexpr uint8 event_start_dialogue = 3;
     }
 
     namespace EventsRukRuk
     {
-        static constexpr uint32 event_rukruk_cast_aim = 1;
-        static constexpr uint32 event_rukruk_cast_ooksplosions = 2;
-        static constexpr uint32 event_rukruk_rocket_fire = 3;
+        static constexpr uint8 event_rukruk_cast_aim = 1;
+        static constexpr uint8 event_rukruk_cast_ooksplosions = 2;
+        static constexpr uint8 event_rukruk_rocket_fire = 3;
     }
 
     namespace EventsZhaorenEvent
     {
-        static constexpr uint32 event_aysa_outside_chambers_init = 1;
-        static constexpr uint32 event_aysa_outside_chambers_move1 = 2;
-        static constexpr uint32 event_aysa_outside_chambers_move2 = 3;
-        static constexpr uint32 event_aysa_inside_chambers_move_dafeng = 4;
+        static constexpr uint8 event_aysa_outside_chambers_init = 1;
+        static constexpr uint8 event_aysa_outside_chambers_move1 = 2;
+        static constexpr uint8 event_aysa_outside_chambers_move2 = 3;
+        static constexpr uint8 event_aysa_inside_chambers_move_dafeng = 4;
+        static constexpr uint8 event_zhao_cast_lightning = 5;
+        static constexpr uint8 event_zhao_move_center = 6;
+        static constexpr uint8 event_zhao_state_stun = 7;
+        static constexpr uint8 event_zhao_cast_sweep = 8;
+        static constexpr uint8 event_zhao_resume_path = 9;
     }
 
     namespace Npcs
@@ -503,6 +527,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_dafeng_q29785 = 55592;
         static constexpr uint32 npc_aysa_outside_chambers = 55744;
         static constexpr uint32 npc_chamber_winds = 55665;
+        static constexpr uint32 npc_ji_q29786 = 64505; // at the fight with Zhao
+        static constexpr uint32 npc_aysa_q29786 = 64506; // at the fight with Zhao
+        static constexpr uint32 npc_dafeng_q29786 = 64532;
+        static constexpr uint32 npc_firework_launcher = 64507;
     }
 
     namespace Objects
