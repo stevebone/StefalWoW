@@ -2266,6 +2266,112 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_firework_launcherAI(creature);
         }
     };
+
+    // 56159
+    class npc_master_shang_q29787 : public CreatureScript
+    {
+    public:
+        npc_master_shang_q29787() : CreatureScript("npc_master_shang_q29787") { }
+
+        struct npc_master_shangAI : public ScriptedAI
+        {
+            npc_master_shangAI(Creature* c) : ScriptedAI(c) { }
+
+            void Reset() override
+            {
+                events.Reset();
+
+                PlayerGUID = me->SelectNearestPlayer(5.f)->GetGUID();
+
+                Creature* shang_q29786 = me->FindNearestCreature(Npcs::npc_shang_q29786, 5.f);
+                if (shang_q29786)
+                    shang_q29786->DespawnOrUnsummon();
+
+                events.ScheduleEvent(EventsQ29787::event_shang_talk_0, 2s);
+                events.ScheduleEvent(EventsQ29787::event_shang_path_0, 3s);
+            }
+
+            void MovementInform(uint32 /*type*/, uint32 pointId) override
+            {
+                switch (pointId)
+                {
+                case 7: me->SetWalk(true); Talk(TalksQ29787::shang_talk_1); break;
+                case 8: Talk(TalksQ29787::shang_talk_2); break;
+                case 9: Talk(TalksQ29787::shang_talk_3); break;
+                case 12: me->SetFacingTo(5.48033f); break;
+                }
+            }
+
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+            {
+                if (pathId == PathQ29787::path_zhang_1)
+                {
+                    me->SetFacingTo(4.53786f);
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                    if (player)
+                    {
+                        player->RemoveAurasDueToSpell(SpellsQ29787::spell_summon_shang_q29787);
+                        PhasingHandler::AddPhase(player, 1527, true);
+                    }
+
+
+                    me->DespawnOrUnsummon();
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                if (!guardianDead)
+                {
+                    Creature* guardian = me->FindNearestCreature(Npcs::npc_guardian_q29787, 20.f, false);
+                    if (guardian && !guardian->IsAlive())
+                    {
+                        guardianDead = true;
+                        GameObject* wall = me->FindNearestGameObject(Objects::go_spirit_wall, 50.f, true);
+                        if (wall)
+                        {
+                            wall->SetRespawnTime(60);
+                            wall->DespawnOrUnsummon();
+                        }
+
+                        events.ScheduleEvent(EventsQ29787::event_shang_talk_4, 2s);
+                    }
+
+                }
+
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsQ29787::event_shang_talk_0:
+                        Talk(TalksQ29787::shang_talk_0);
+                        break;
+
+                    case EventsQ29787::event_shang_path_0:
+                        me->GetMotionMaster()->MovePath(PathQ29787::path_zhang_0, false);
+                        break;
+
+                    case EventsQ29787::event_shang_talk_4:
+                        Talk(TalksQ29787::shang_talk_4);
+                        me->GetMotionMaster()->MovePath(PathQ29787::path_zhang_1, false);
+                        break;
+                    }
+                }
+            }
+
+        private:
+            EventMap events;
+            ObjectGuid PlayerGUID;
+            bool guardianDead = false;
+        };
+
+        CreatureAI* GetAI(Creature* c) const override
+        {
+            return new npc_master_shangAI(c);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -2295,4 +2401,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_aysa_outside_chambers_of_whispers();
     new npc_zhaoren();
     new npc_firework_launcher();
+    new npc_master_shang_q29787();
 }

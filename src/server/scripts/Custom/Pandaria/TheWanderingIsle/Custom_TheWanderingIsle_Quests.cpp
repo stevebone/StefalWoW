@@ -127,6 +127,19 @@ namespace Scripts::Custom::TheWanderingIsle
                 PhasingHandler::OnConditionChange(player, true);
         }
     };
+
+    // 29787
+    class quest_29787_worthy_of_passing : public QuestScript
+    {
+    public:
+        quest_29787_worthy_of_passing() : QuestScript("quest_29787_worthy_of_passing") {}
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus == QUEST_STATUS_REWARDED)
+                PhasingHandler::OnConditionChange(player, true);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_quests()
@@ -137,4 +150,5 @@ void AddSC_custom_the_wandering_isle_quests()
     new quest_29679_a_new_friend();
     new quest_29785_dafeng_the_spririt_of_air();
     new quest_29786_battle_for_the_skies();
+    new quest_29787_worthy_of_passing();
 }

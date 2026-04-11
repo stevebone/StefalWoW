@@ -185,6 +185,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_aicast_overpacked_fireworkd = 125970;
     }
 
+    namespace SpellsQ29787
+    {
+        static constexpr uint32 spell_summon_shang_q29787 = 105333;
+    }
+
     namespace TalksQ29423
     {
         static constexpr int8 chia_hui_autumnleaf_talk = 0;
@@ -241,6 +246,15 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 aysa_chamber_of_whispers_0 = 0;
         static constexpr int8 aysa_chamber_of_whispers_1 = 1;
         static constexpr int8 aysa_chamber_of_whispers_2 = 2;
+    }
+
+    namespace TalksQ29787
+    {
+        static constexpr int8 shang_talk_0 = 0;
+        static constexpr int8 shang_talk_1 = 1;
+        static constexpr int8 shang_talk_2 = 2;
+        static constexpr int8 shang_talk_3 = 3;
+        static constexpr int8 shang_talk_4 = 4;
     }
 
     namespace PositionsQ29423
@@ -401,6 +415,12 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 path_zhaoren_at_chamber = 5578600;
     }
 
+    namespace PathQ29787
+    {
+        static constexpr uint32 path_zhang_0 = 5615900;
+        static constexpr uint32 path_zhang_1 = 5615901;
+    }
+
     namespace EventsQ29423
     {
         static constexpr int8 event_delivery_huo = 1;
@@ -486,6 +506,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 event_firework_launcher_periodic_ping = 2;
     }
 
+    namespace EventsQ29787
+    {
+        static constexpr uint8 event_shang_talk_0 = 1;
+        static constexpr uint8 event_shang_path_0 = 2;
+        static constexpr uint8 event_shang_talk_4 = 3;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -545,6 +572,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_aysa_q29786 = 64506; // at the fight with Zhao
         static constexpr uint32 npc_dafeng_q29786 = 64532;
         static constexpr uint32 npc_firework_launcher = 64507;
+        static constexpr uint32 npc_shang_q29786 = 55586;
+
+        // Q 29787
+        static constexpr uint32 npc_guardian_q29787 = 56274;
     }
 
     namespace Objects
@@ -553,6 +584,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 go_rock_jump_a = 209575;
         static constexpr uint32 go_rock_jump_b = 209576;
         static constexpr uint32 go_rock_jump_c = 209577;
+        static constexpr uint32 go_spirit_wall = 209922;
     }
 
     namespace Quests
