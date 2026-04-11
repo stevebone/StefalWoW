@@ -30,6 +30,7 @@
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "ecodome_aldani.h"
+#include <queue>
 
 enum AzhiccarSpells
 {
