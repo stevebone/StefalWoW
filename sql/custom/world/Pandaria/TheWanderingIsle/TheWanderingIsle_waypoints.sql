@@ -449,3 +449,17 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) 
 ('5615901', '4', '867.433', '4436.09', '236.839'),
 ('5615901', '5', '873.683', '4448.59', '239.839'),
 ('5615901', '6', '874.108', '4459.63', '241.189');
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5668600);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(5668600,0,0,'Master Shang In forest spawn - Quest accept 29790');
+
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5668600);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
+('5668600', '0', '871.057', '4460.55', '241.45'),
+('5668600', '1', '868.007', '4464.84', '241.665'),
+('5668600', '2', '869.679', '4467.75', '241.748'),
+('5668600', '3', '872.245', '4467.27', '241.643'),
+('5668600', '4', '872.793', '4465.13', '241.417'),
+('5668600', '5', '874.205', '4464.75', '241.382');

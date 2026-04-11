@@ -21,6 +21,7 @@
 -- NPC: 57466 Fe-Feng Firethief
 -- NPC: 55634 Ruk-Ruk
 -- NPC: 64322 Ruk-Ruk's rocket
+-- NPC: 55640 Thornbranch Scamp
 
 -- NPC: 55479 Gao Summerdraft
 -- NPC: 55021 Jojo Ironbrow at first house
@@ -102,6 +103,7 @@
 -- NPC: 56159 Master Shang (spawned for quest 29787)
 -- NPC: 55672 Master Shang for the forest quests
 -- NPC: 56274 Guardian of the Elders
+-- NPC: 56686 Another Shang in the forest (spawn)
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -154,6 +156,9 @@
 -- Quest: 29781 Monkey Advisory warning
 -- Quest: 29786 Battle for the skies
 -- Quest: 29787 Worthy Of Passing
+-- Quest: 29789 Small but significant
+-- Quest: 29788 Unwelcome nature
+-- Quest: 29790 Passing Wisdom
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` = 50007;

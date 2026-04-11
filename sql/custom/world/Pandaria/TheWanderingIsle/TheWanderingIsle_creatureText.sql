@@ -183,3 +183,12 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56159', '3', '0', 'Defeat the Guardian of the Elders, and we may pass.', '12', '0', '100', '1', '0', '27802', '55523', '0', 'Master Shang Xi to Player'),
 ('56159', '4', '0', 'You\'ve become strong indeed, child. This is good. You will need that strength soon.', '12', '0', '100', '1', '0', '27803', '56484', '0', 'Master Shang Xi to Player'),
 ('55672', '0', '0', 'And here we are. Help me with a couple small tasks while I prepare, if you would.', '12', '0', '100', '1', '0', '27805', '56485', '0', 'Master Shang Xi to Player');
+
+DELETE FROM `creature_text` WHERE `creatureID` IN (56686);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('56686', '0', '0', 'For 3,000 years, we have passed the knowledge of our people down. Elder to youth. Master to student.', '12', '0', '100', '1', '0', '27807', '55528', '0', 'Master Shang Xi to Player'),
+('56686', '1', '0', 'Every elder reaches the day where he must pass on and plant his stave with the staves of his ancestors. Today is the day when my staff joins these woods.', '12', '0', '100', '1', '0', '27808', '55529', '0', 'Master Shang Xi to Player'),
+('56686', '2', '0', '$p, our people have lived the wholes of their lives on this great turtle, Shen-zin Su, but not in hundreds of years has anyone spoken to him.', '12', '0', '100', '1', '0', '27809', '55530', '0', 'Master Shang Xi to Player'),
+('56686', '3', '0', 'Now Shen-zin Su is ill, and we are all in danger. With the help of the elements, you will break the silence. You will speak to him.', '12', '0', '100', '1', '0', '27810', '55531', '0', 'Master Shang Xi to Player'),
+('56686', '4', '0', 'Aysa and Ji have retrieved the spirits and brought them here. You are to go with them, speak to the great Shen-zin Su, and do what must be done to save our people.', '12', '0', '100', '1', '0', '27811', '55532', '0', 'Master Shang Xi to Player'),
+('56686', '5', '0', 'You\'ve come far, my young student. I see within you a great hero. I leave the fate of this land to you.', '12', '0', '100', '396', '0', '27812', '55533', '0', 'Master Shang Xi to Player');

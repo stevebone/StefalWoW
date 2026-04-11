@@ -2020,8 +2020,9 @@ namespace Scripts::Custom::TheWanderingIsle
                 me->GetCreatureListWithEntryInGrid(fireworks, Npcs::npc_firework_launcher, me->GetVisibilityRange());
                 for (std::list<Creature*>::iterator itr = fireworks.begin(); itr != fireworks.end(); ++itr)
                 {
-                    (*itr)->RemoveAura(SpellsZhaorenEvent::spell_firework_inactive);
-                    (*itr)->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
+                    //(*itr)->RemoveAura(SpellsZhaorenEvent::spell_firework_inactive);
+                    //(*itr)->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
+                    (*itr)->Respawn(true);
                 }
                 me->GetMotionMaster()->Clear();
                 //me->GetMotionMaster()->MovePoint(0, PositionsZhaorenEvent::ZhaoCenter);

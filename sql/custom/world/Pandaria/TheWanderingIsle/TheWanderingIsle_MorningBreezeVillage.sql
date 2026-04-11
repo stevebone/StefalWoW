@@ -8,6 +8,9 @@
 -- Quest: 29785 Dafeng-the-spirit-of-air
 -- Quest: 29786 Battle for the skies
 -- Quest: 29787 Worthy Of Passing
+-- Quest: 29789 Small but significant
+-- Quest: 29788 Unwelcome nature
+-- Quest: 29790 Passing Wisdom
 
 -- NPC: 57623 Shen Stonecarver
 -- NPC: 55588 Elder Shaopai at Morning Breeze
@@ -38,8 +41,11 @@
 -- NPC: 56159 Master Shang (spawned for quest 29787)
 -- NPC: 55672 Master Shang for the forest quests
 -- NPC: 56274 Guardian of the Elders
+-- NPC: 56686 Another Shang in the forest (spawn)
+-- NPC: 55640 Thornbranch Scamp
 
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29777,29778,29783,29779,29780,29781,29785,29786,29787);
+
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
 ('55588', '29777', '0'),
 ('55583', '29778', '0'),
@@ -49,7 +55,10 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('55583', '29781', '0'),
 ('55595', '29785', '0'),
 ('55595', '29786', '0'),
-('55586', '29787', '0');
+('55586', '29787', '0'),
+('55672', '29788', '0'),
+('55672', '29789', '0'),
+('55672', '29790', '0');
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29777,29778,29783);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
@@ -75,6 +84,12 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29787);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
 ('29787', '0', '0', '105333', '29786', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
+
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29788, 29789, 29790);
+INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
+('29788', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('29789', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('29790', '0', '0', '106623', '29788', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 -- Scripts for Jojo and monkeys
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57670,65467,56394,56393);
@@ -143,8 +158,12 @@ UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55672') and (`DifficultyID` = '0');
 
 -- Fe-Feng Firethief stolen cannons aura
-DELETE FROM `creature_template_addon` WHERE `entry` = 55633;
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55633, 55672, 56159, 55586, 56686);
+INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55672, 1, '108900 126160');
+INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55586, 1, '108900 126160');
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES ('55633', '1', '127932');
+INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES ('56159', '1', '105329');
+INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `auras`) VALUES (56686, 8, 1, '108900 126160');
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451477,451621);
 INSERT INTO `creature_addon` (`guid`, `AnimTier`, `VisFlags`, `SheathState`, `auras`) VALUES ('451477', '2', '1', '1', '78718 121801 81312'); -- NPC: 55595 Aysa at Morning Breeze
@@ -157,7 +176,8 @@ INSERT INTO `phase_area` VALUES
 (5886, 524, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 524, 'The Wandering Isle - Zhao-Ren Dragon Area'),
 (5829, 536, 'The Wandering Isle - Zhao-Ren Dragon Area'),
-(5886, 536, 'The Wandering Isle - Chamber of Whispers');
+(5886, 536, 'The Wandering Isle - Chamber of Whispers'),
+(5859, 536, 'The Wandering Isle - Path of Elders');
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
@@ -165,8 +185,8 @@ WHERE `SourceTypeOrReferenceId` = 26
 
 -- Phase 1836: before 29786
 INSERT INTO `conditions` VALUES
-(26, 1836, 5886, 0, 0, 47, 0, 29786, 75, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded'),
-(26, 1836, 5829, 0, 0, 47, 0, 29786, 75, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded');
+(26, 1836, 5886, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded'),
+(26, 1836, 5829, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded');
 
 -- Phase 524: after 29785 but before 29786
 INSERT INTO `conditions` VALUES
@@ -185,8 +205,8 @@ INSERT INTO `conditions` VALUES
 
 -- Phase 536: after 29786
 INSERT INTO `conditions` VALUES
-(26, 536, 5829, 0, 0, 47, 0, 29787, 74, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 in progress or complete or rewarded'),
-(26, 536, 5886, 0, 0, 47, 0, 29787, 74, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 in progress or complete or rewarded');
+(26, 536, 5829, 0, 0, 47, 0, 29787, 74, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 NOT in progress or complete or rewarded'),
+(26, 536, 5886, 0, 0, 47, 0, 29787, 74, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 NOT in progress or complete or rewarded');
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55650,65560,64507,64505,64506,55874);
 INSERT INTO `creature_template_addon` (`entry`, `AnimTier`, `VisFlags`, `SheathState`, `visibilityDistanceType`, `auras`) VALUES ('55650', '3', '1', '0', 3, '82358'); -- Shang Xi's Hot Air Balloon
@@ -266,9 +286,49 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('56274', '0', '0', '0', '0', '0', '100', '0', '8000', '12000', '8000', '12000', '0', '', '11', '125218', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Guardian of the Elders - Update IC - Cast Pounce'),
 ('56274', '0', '1', '2', '6', '0', '100', '0', '0', '0', '0', '0', '0', '', '45', '1', '1', '0', '0', '0', '0', '9', '56159', '0', '50', '0', '0', '0', '0', 'Guardian of the Elders - On Death - Set Data'),
 ('56274', '0', '2', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '45', '1', '1', '0', '0', '0', '0', '15', '209922', '0', '50', '0', '0', '0', '0', 'Guardian of the Elders - On Death - Set Data'),
-('209922', '1', '0', '0', '38', '0', '100', '0', '1', '1', '0', '0', '0', '', '41', '1000', '20000', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Spirit Wall - On Data Set - Despawn'),
-('55672', '0', '0', '0', '19', '0', '100', '0', '29790', '0', '0', '0', '0', '', '85', '106623', '2', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Accepted Quest - Invoker Cast Summon Master Shang Xi'),
-('55672', '0', '1', '0', '20', '0', '100', '0', '29787', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Reward Quest - Master Shang Xi Talk');
+('209922', '1', '0', '0', '38', '0', '100', '0', '1', '1', '0', '0', '0', '', '41', '1000', '20000', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Spirit Wall - On Data Set - Despawn');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55640,56686);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55640,56686,5668600,5668601,5668602,5668603);
+INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
+('55640', '0', '0', '0', '0', '0', '100', '0', '3000', '6000', '15000', '20000', '0', '', '11', '109126', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Thornbranch Scamp - Update IC - Cast Mirror Images'),
+('56686', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668600', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Just Spawned - Run Script'),
+('56686', '0', '1', '2', '40', '0', '100', '0', '0', '5668600', '0', '0', '0', '', '54', '10000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Pause WP'),
+('56686', '0', '2', '3', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '0.699036', 'Master Shang - WP Reached - Set Orientation'),
+('56686', '0', '3', '4', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '5', '396', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Play Emote'),
+('56686', '0', '4', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668601', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Run Script'),
+('56686', '0', '5', '6', '40', '0', '100', '0', '4', '5668600', '0', '0', '0', '', '54', '15000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Pause WP'),
+('56686', '0', '6', '7', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '4.8168', 'Master Shang - WP Reached - Set Orientation'),
+('56686', '0', '7', '8', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '4', '33098', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Play Sound'),
+('56686', '0', '8', '9', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '56913', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Cast CSA Dummy Effect Self'),
+('56686', '0', '9', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '1', '3', '3500', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Talk'),
+('56686', '0', '10', '11', '52', '0', '100', '0', '3', '56686', '0', '0', '0', '', '28', '126160', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Text Over - Remove Aura'),
+('56686', '0', '11', '12', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '128850', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Text Over - Cast Forcecast Summon Walking Stick, Blossoming'),
+('56686', '0', '12', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668602', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Text Over - Run Script'),
+('56686', '0', '13', '14', '58', '0', '100', '0', '5', '5668600', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '4.29266', 'Master Shang - WP Ended - Set Orientation'),
+('56686', '0', '14', '15', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '1', '4', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Ended - Talk'),
+('56686', '0', '15', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668603', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Ended - Run Script'),
+('5668600', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '4', '33097', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Sound'),
+('5668600', '9', '1', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
+('5668600', '9', '2', '0', '0', '0', '100', '0', '6500', '6500', '1000', '1000', '0', '', '5', '396', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
+('5668600', '9', '3', '0', '0', '0', '100', '0', '5500', '5500', '1000', '1000', '0', '', '1', '1', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
+('5668600', '9', '4', '0', '0', '0', '100', '0', '6500', '6500', '1000', '1000', '0', '', '136', '0', '1', '5', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Set Movement Speed'),
+('5668600', '9', '5', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '53', '0', '5668600', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Start WP'),
+('5668601', '9', '0', '0', '0', '0', '100', '0', '6000', '6000', '1000', '1000', '0', '', '1', '2', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
+('5668602', '9', '0', '0', '0', '0', '100', '0', '4000', '4000', '1000', '1000', '0', '', '5', '25', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
+('5668602', '9', '1', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '5', '25', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
+('5668603', '9', '0', '0', '0', '0', '100', '0', '8000', '8000', '1000', '1000', '0', '', '5', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
+('5668603', '9', '1', '0', '0', '0', '100', '0', '7000', '7000', '1000', '1000', '0', '', '1', '5', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
+('5668603', '9', '2', '0', '0', '0', '100', '0', '5500', '5500', '1000', '1000', '0', '', '90', '8', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Set Bytes1'),
+('5668603', '9', '3', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '11', '128851', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Master Shang Spirit Transform'),
+('5668603', '9', '4', '0', '0', '0', '100', '0', '1500', '1500', '1000', '1000', '0', '', '11', '109336', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Trigger Walking Stick Blossom'),
+('5668603', '9', '5', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '106625', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Planting Stave Credit'),
+('5668603', '9', '6', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Despawn');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55672);
+INSERT INTO `smart_scripts` VALUES
+('55672', '0', '0', '0', '', '19', '0', '100', '0', '29790', '0', '0', '0', '0', '', '41', '1000', '30000', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Accepted Quest - Invoker Cast Summon Master Shang Xi'),
+('55672', '0', '1', '0', '', '20', '0', '100', '0', '29787', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Reward Quest - Master Shang Xi Talk');
 
 DELETE FROM `creature_loot_template` WHERE `entry` IN (55601);
 INSERT INTO `creature_loot_template` (Entry, ItemType, Item, Chance, QuestRequired, LootMode, GroupId, MinCount, MaxCount, Comment) VALUES
