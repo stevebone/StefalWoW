@@ -224,10 +224,13 @@ UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568);
 
 UPDATE `creature` SET `wander_distance` = '50', `MovementType`=1 WHERE (`guid` = '451589');
 UPDATE `creature_template` SET `ScriptName` = 'npc_zhaoren' WHERE `Entry` = 55786;
+UPDATE `creature_template` SET `ScriptName` = 'npc_firework_launcher' WHERE `Entry` = 64507;
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_outside_chambers_of_whispers' WHERE `Entry` = 55744;
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55592,55595,64506,64505,64507,64532,64543);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55592,55595,64506,64505,64507,6450700,64532,6453200,64543,6454300) AND `source_type` IN (0,9);
+UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 64507; -- remove the launcher SAI
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55592,55595,64506,64505,64532,64543);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55592,55595,64506,64505,64532,6453200,64543,6454300, 64507, 6450700) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 ('55592', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '48', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Dafeng - on Respawn - Set Active'),
 ('55595', '0', '0', '0', '19', '0', '100', '0', '29786', '0', '0', '0', '0', '', '85', '126059', '2', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Accepted Quest - Invoker Cast Summon Aysa'),
@@ -239,16 +242,6 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('64506', '0', '2', '0', '38', '0', '100', '0', '3', '3', '0', '0', '0', '', '1', '2', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Talk'),
 ('64506', '0', '3', '0', '38', '0', '100', '0', '2', '2', '0', '0', '0', '', '49', '0', '0', '0', '0', '0', '0', '11', '55786', '30', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Start Attack'),
 ('64506', '0', '4', '0', '60', '2', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '117312', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update - Cast Combat Roll'),
-('64507', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '22', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Respawn - Set Event Phase 1'),
-('64507', '0', '1', '2', '8', '1', '100', '0', '125961', '0', '0', '0', '0', '', '11', '125970', '2', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Spellhit - Cast AICast Overpacked Firework'),
-('64507', '0', '2', '3', '61', '1', '100', '0', '0', '0', '0', '0', '0', '', '117', '2538', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Spellhit - Play Oneshot AnimKit'),
-('64507', '0', '3', '4', '61', '1', '100', '0', '0', '0', '0', '0', '0', '', '11', '125964', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Spellhit - Cast Firework Launcher Inactive'),
-('64507', '0', '4', '5', '61', '1', '100', '0', '0', '0', '0', '0', '0', '', '11', '104080', '0', '0', '0', '0', '0', '10', '451613', '64505', '0', '0', '0', '0', '0', 'Firework Launcher - On Spellhit - Set Data'),
-('64507', '0', '5', '6', '61', '1', '100', '0', '0', '0', '0', '0', '0', '', '80', '6450700', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Spellhit - Run Script'),
-('64507', '0', '6', '0', '61', '1', '100', '0', '0', '0', '0', '0', '0', '', '22', '2', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Spellhit - Set Event Phase 2'),
-('64507', '0', '7', '0', '60', '2', '100', '0', '5000', '5000', '5000', '5000', '0', '', '11', '104080', '0', '0', '0', '0', '0', '10', '451613', '64505', '0', '0', '0', '0', '0', 'Firework Launcher - Update - Cast Firework Launcher Inactive'),
-('64507', '0', '8', '0', '38', '0', '100', '0', '1', '1', '0', '0', '0', '', '22', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - On Data Set - Set Event Phase 1'),
-('6450700', '9', '0', '0', '0', '0', '100', '0', '21000', '21000', '1000', '1000', '0', '', '22', '1', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Firework Launcher - Set Event Phase 1'),
 ('64532', '0', '1', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6453200', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Dafeng - Just Spawned - Run Script'),
 ('64532', '0', '2', '0', '38', '0', '100', '0', '5', '5', '0', '0', '0', '', '69', '1', '0', '0', '0', '0', '0', '8', '0', '0', '0', '709.238', '4177.15', '198.796', '0', 'Dafeng - On Data Set - Move to Pos'),
 ('64543', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6454300', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Just Spawned - Run Script'),

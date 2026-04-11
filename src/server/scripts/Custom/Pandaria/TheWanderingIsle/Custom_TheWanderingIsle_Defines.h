@@ -60,6 +60,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 DATA_PHASE_OOC = 4;
         static constexpr uint8 DATA_ZHAOREN_DEATH = 5;
         static constexpr uint8 DATA_EVADE = 6;
+        static constexpr uint8 LAUNCHER_STATE_NONE = 0;
+        static constexpr uint8 LAUNCHER_STATE_READY = 1;
+        static constexpr uint8 LAUNCHER_STATE_USED = 2;
+        static constexpr uint8 LAUNCHER_STATE_RECHARGING = 3;
+
     }
 
     namespace SpellsMisc
@@ -176,6 +181,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_forcecast_summon_shang = 128808;
         static constexpr uint32 spell_overpacked_firework = 104855;
         static constexpr uint32 spell_firework_inactive = 125964;
+        static constexpr uint32 spell_overpacked_firework_launcher_ping = 125961;
+        static constexpr uint32 spell_aicast_overpacked_fireworkd = 125970;
     }
 
     namespace TalksQ29423
@@ -475,6 +482,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 event_zhao_state_stun = 7;
         static constexpr uint8 event_zhao_cast_sweep = 8;
         static constexpr uint8 event_zhao_resume_path = 9;
+        static constexpr uint8 event_firework_launcher_recharge = 1;
+        static constexpr uint8 event_firework_launcher_periodic_ping = 2;
     }
 
     namespace Npcs

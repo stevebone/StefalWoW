@@ -1974,12 +1974,12 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    //55786
     class npc_zhaoren : public CreatureScript
     {
     public:
         npc_zhaoren() : CreatureScript("npc_zhaoren") { }
 
-        //55786
         struct npc_zhaorenAI : public ScriptedAI
         {
             npc_zhaorenAI(Creature* creature) : ScriptedAI(creature), phase(0), sweepScheduled(false) { }
@@ -2016,17 +2016,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     AysaGUID = aysa->GetGUID();
                 }
 
-                std::list<Creature*> fireworks;
-                me->GetCreatureListWithEntryInGrid(fireworks, Npcs::npc_firework_launcher, me->GetVisibilityRange());
-                for (std::list<Creature*>::iterator itr = fireworks.begin(); itr != fireworks.end(); ++itr)
-                {
-                    //(*itr)->RemoveAura(SpellsZhaorenEvent::spell_firework_inactive);
-                    //(*itr)->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
-                    (*itr)->Respawn(true);
-                }
                 me->GetMotionMaster()->Clear();
-                //me->GetMotionMaster()->MovePoint(0, PositionsZhaorenEvent::ZhaoCenter);
-
                 me->GetMotionMaster()->MovePath(PathZhaorenEvent::path_zhaoren_at_chamber, true);
                 events.SetPhase(Misc::ZHAO_PHASE_FLYING);
                 events.ScheduleEvent(EventsZhaorenEvent::event_zhao_cast_lightning, 5s);
@@ -2062,7 +2052,6 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
                 }
             }
-
 
             void JustDied(Unit* /*killer*/) override
             {
@@ -2174,6 +2163,109 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_zhaorenAI(creature);
         }
     };
+
+    // 64507
+    class npc_firework_launcher : public CreatureScript
+    {
+    public:
+        npc_firework_launcher() : CreatureScript("npc_firework_launcher") { }
+
+        struct npc_firework_launcherAI : public ScriptedAI
+        {
+            npc_firework_launcherAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                state = Misc::LAUNCHER_STATE_READY;
+                me->RemoveAurasDueToSpell(SpellsZhaorenEvent::spell_firework_inactive);
+                events.Reset();
+            }
+
+            // Player clicks launcher ? cast 125961 on launcher
+            void OnSpellClick(Unit* clicker, bool) override
+            {
+                clicker->CastSpell(me, SpellsZhaorenEvent::spell_overpacked_firework_launcher_ping, true);
+            }
+
+            // Launcher is hit by 125961
+            void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+            {
+                if (spellInfo->Id == SpellsZhaorenEvent::spell_overpacked_firework_launcher_ping &&
+                    state == Misc::LAUNCHER_STATE_READY)
+                {
+                    Unit* player = caster->ToUnit();
+                    if (!player)
+                        return;
+
+                    // Cast 125970 on player (matches SAI)
+                    me->CastSpell(player, SpellsZhaorenEvent::spell_aicast_overpacked_fireworkd, true);
+
+                    // Play animation
+                    me->PlayOneShotAnimKitId(2538);
+
+                    // Apply inactive aura
+                    me->CastSpell(me, SpellsZhaorenEvent::spell_firework_inactive, true);
+
+                    // Ping Ji Firepaw
+                    if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, 30.f))
+                        me->CastSpell(ji, 104080, true);
+
+                    // Enter USED state
+                    state = Misc::LAUNCHER_STATE_USED;
+
+                    // Periodic Ji pings every 5s
+                    events.ScheduleEvent(EventsZhaorenEvent::event_firework_launcher_periodic_ping, 5s);
+
+                    // Recharge after 21s
+                    events.ScheduleEvent(EventsZhaorenEvent::event_firework_launcher_recharge, 21s);
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsZhaorenEvent::event_firework_launcher_periodic_ping:
+                    {
+                        if (state == Misc::LAUNCHER_STATE_USED)
+                        {
+                            if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, 30.f))
+                                me->CastSpell(ji, 104080, true);
+
+                            events.ScheduleEvent(eventId, 5s);
+                        }
+                        break;
+                    }
+
+                    case EventsZhaorenEvent::event_firework_launcher_recharge:
+                    {
+                        state = Misc::LAUNCHER_STATE_READY;
+                        me->RemoveAurasDueToSpell(SpellsZhaorenEvent::spell_firework_inactive);
+                        break;
+                    }
+                    }
+                }
+            }
+
+            bool CanBeUsed() const
+            {
+                return state == Misc::LAUNCHER_STATE_READY;
+            }
+
+        private:
+            uint8 state = Misc::LAUNCHER_STATE_NONE;
+            EventMap events;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_firework_launcherAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -2202,4 +2294,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_ruk_ruk_rocket();
     new npc_aysa_outside_chambers_of_whispers();
     new npc_zhaoren();
+    new npc_firework_launcher();
 }
