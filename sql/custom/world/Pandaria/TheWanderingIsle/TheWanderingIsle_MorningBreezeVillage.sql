@@ -170,7 +170,7 @@ DELETE FROM `creature_addon` WHERE `guid` IN (451477,451621);
 INSERT INTO `creature_addon` (`guid`, `AnimTier`, `VisFlags`, `SheathState`, `auras`) VALUES ('451477', '2', '1', '1', '78718 121801 81312'); -- NPC: 55595 Aysa at Morning Breeze
 INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`) VALUES ('451621', '8', '1'); -- NPC: 55595 Aysa at ZhaoRen
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527, 1429) OR `AreaId` IN (5736);
 INSERT INTO `phase_area` VALUES
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
@@ -181,11 +181,17 @@ INSERT INTO `phase_area` VALUES
 (5859, 536, 'The Wandering Isle - Path of Elders'),
 (5832, 536, 'The Wandering Isle - The Wood of Staves'),
 (5859, 1527, 'The Wandering Isle - Path of Elders'),
-(5832, 1527, 'The Wandering Isle - The Wood of Staves');
+(5832, 1527, 'The Wandering Isle - The Wood of Staves'),
+(5736, 1429, 'The Wandering Isle - The Wandering Isle'), -- Zhaoren fly by
+(5736, 169, 'The Wandering Isle - The Wandering Isle'); -- Generic phase to show regular mobs during phase changes
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1836, 524, 536, 1527);
+  AND `SourceGroup` IN (1836, 524, 536, 1527, 1429);
+  
+  -- Phase 1429: during 29776 -- Zhao-Ren fly by
+INSERT INTO `conditions` VALUES
+(26, 1429, 0, 0, 0, 47, 0, 29776, 10, 0, '', 0, 0, 0, '', 'Phase 1429 active if 29776 IS in progress or complete');
 
 -- Phase 1836: before 29786
 INSERT INTO `conditions` VALUES

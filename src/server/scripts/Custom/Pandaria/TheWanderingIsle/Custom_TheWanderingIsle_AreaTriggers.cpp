@@ -24,6 +24,7 @@
 #include "CreatureAI.h"
 #include "DB2Stores.h"
 #include "MotionMaster.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
@@ -239,7 +240,9 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    //Area Trigger 8276
+    // Area Trigger 8276
+    // Zhaoren Temple Spire bridge Flyby
+    // Player needs to have quest 29776 and phase 1429
     class at_temple_of_five_dawns_summon_zhaoren : public AreaTriggerScript
     {
     public:
@@ -247,9 +250,14 @@ namespace Scripts::Custom::TheWanderingIsle
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
         {
-            if (player->IsAlive())
+            if (player->IsAlive() && player->IsActiveQuest(Quests::quest_morning_breeze_village))
             {
-                Creature* Zhao = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, PositionsQ29776::ZhaoSkySpawn, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                Creature* zhaoSpawn = player->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_zhaoren_flying_temple_spire, .PrivateObjectOwnerGuid = player->GetGUID() });
+                if (zhaoSpawn)
+                    return false;
+
+                TempSummon* Zhao = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, PositionsQ29776::ZhaoSkySpawn, TEMPSUMMON_TIMED_DESPAWN, 240s,
+                    0, 0, player->GetGUID());
                 if (Zhao)
                 {
                     Zhao->setActive(true);
@@ -260,6 +268,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     Zhao->SetWalk(false);
                     Zhao->SetSpeed(MOVE_RUN, 7.0f);
                     Zhao->SetSpeed(MOVE_FLIGHT, 7.0f);
+                    PhasingHandler::AddPhase(Zhao, 1429, true);
                     Zhao->LoadPath(PathZhaoren::path_zhaoren_at_temple);
                     Zhao->GetMotionMaster()->MovePath(PathZhaoren::path_zhaoren_at_temple, false);
                 }
