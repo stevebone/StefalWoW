@@ -234,6 +234,7 @@ Player::Player(WorldSession* session) : Unit(true), m_sceneMgr(this)
     m_MirrorTimer.fill(DISABLED_MIRROR_TIMER);
     m_MirrorTimerFlags = UNDERWATER_NONE;
     m_MirrorTimerFlagsLast = UNDERWATER_NONE;
+    memset(_disabledMirrorTimers, 0, sizeof(_disabledMirrorTimers));
 
     m_hostileReferenceCheckTimer = 0;
     m_drunkTimer = 0;
@@ -748,6 +749,14 @@ void Player::HandleDrowning(uint32 time_diff)
     // In water
     if (m_MirrorTimerFlags & UNDERWATER_INWATER)
     {
+        // Methods to disable breath timer in scripts
+        if (IsMirrorTimerDisabled(BREATH_TIMER))
+        {
+            // Keep timer at full so the client shows no bar
+            m_MirrorTimer[BREATH_TIMER] = getMaxTimer(BREATH_TIMER);
+            return;
+        }
+
         // Breath timer not activated - activate it
         if (m_MirrorTimer[BREATH_TIMER] == DISABLED_MIRROR_TIMER)
         {
@@ -783,6 +792,14 @@ void Player::HandleDrowning(uint32 time_diff)
     // In dark water
     if (m_MirrorTimerFlags & UNDERWATER_INDARKWATER)
     {
+        // Methods to disable fatigue in scripts
+        if (IsMirrorTimerDisabled(FATIGUE_TIMER))
+        {
+            // Keep timer at full so the client shows no bar
+            m_MirrorTimer[FATIGUE_TIMER] = getMaxTimer(FATIGUE_TIMER);
+            return;
+        }
+
         // Fatigue timer not activated - activate it
         if (m_MirrorTimer[FATIGUE_TIMER] == DISABLED_MIRROR_TIMER)
         {
@@ -820,6 +837,14 @@ void Player::HandleDrowning(uint32 time_diff)
 
     if (m_MirrorTimerFlags & (UNDERWATER_INLAVA /*| UNDERWATER_INSLIME*/) && !(_lastLiquid && _lastLiquid->SpellID))
     {
+        // Methods to disable fire in scripts
+        if (IsMirrorTimerDisabled(FIRE_TIMER))
+        {
+            // Keep timer at full so the client shows no bar
+            m_MirrorTimer[FIRE_TIMER] = getMaxTimer(FIRE_TIMER);
+            return;
+        }
+
         // Breath timer not activated - activate it
         if (m_MirrorTimer[FIRE_TIMER] == DISABLED_MIRROR_TIMER)
             m_MirrorTimer[FIRE_TIMER] = getMaxTimer(FIRE_TIMER);
@@ -31860,4 +31885,21 @@ bool Player::CanExecutePendingSpellCastRequest()
         return false;
 
     return true;
+}
+
+void Player::DisableMirrorTimer(MirrorTimerType type)
+{
+    if (type < MAX_TIMERS)
+        _disabledMirrorTimers[type] = true;
+}
+
+void Player::EnableMirrorTimer(MirrorTimerType type)
+{
+    if (type < MAX_TIMERS)
+        _disabledMirrorTimers[type] = false;
+}
+
+bool Player::IsMirrorTimerDisabled(MirrorTimerType type) const
+{
+    return type < MAX_TIMERS && _disabledMirrorTimers[type];
 }
