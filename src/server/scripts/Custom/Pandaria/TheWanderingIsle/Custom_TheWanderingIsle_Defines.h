@@ -366,6 +366,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position MasterShangSpawn = { 711.335f, 4178.049f, 197.845f };
     }
 
+    namespace PositionsBalloonEvent
+    {
+        static constexpr Position BalloonArrivalControllerSpawn = { 904.059f, 4561.99f, 231.053f };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;
@@ -513,6 +518,12 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 event_shang_talk_4 = 3;
     }
 
+    namespace EventsBalloonEvent
+    {
+        static constexpr uint8 event_aysa_jump_in = 1;
+        static constexpr uint8 event_spawn_balloon = 2;
+    }
+
     namespace Npcs
     {
         static constexpr uint32 npc_huo_q29422 = 57779;
@@ -576,6 +587,16 @@ namespace Scripts::Custom::TheWanderingIsle
 
         // Q 29787
         static constexpr uint32 npc_guardian_q29787 = 56274;
+
+        // Balloon ride event
+        static constexpr uint32 npc_balloon_arrival_controller = 56679;
+        static constexpr uint32 npc_aysa_q29790 = 56662;
+        static constexpr uint32 npc_ji_q29790 = 56663;
+        static constexpr uint32 npc_aysa_q29791 = 56661;
+        static constexpr uint32 npc_ji_q29791 = 56660;
+        static constexpr uint32 npc_balloon_q29791 = 55918;
+        static constexpr uint32 npc_balloon_spawned = 55649;
+        static constexpr uint32 credit_the_suffering_of_shenzinsu_1 = 56378;
     }
 
     namespace Objects
@@ -604,6 +625,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_morning_breeze_village = 29776;
         static constexpr uint32 quest_da_feng_the_spirit_of_air = 29785;
         static constexpr uint32 quest_battle_for_the_skies = 29786;
+        static constexpr uint32 quest_passing_wisdom = 29790;
+        static constexpr uint32 quest_suffering_of_shenzinsu = 29791;
     }
 
     namespace AreaTriggers

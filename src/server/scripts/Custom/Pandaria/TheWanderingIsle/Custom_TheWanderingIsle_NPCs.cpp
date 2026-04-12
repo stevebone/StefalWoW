@@ -2372,6 +2372,125 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_master_shangAI(c);
         }
     };
+
+    // 55918 & 55649
+    // seat 1 85299
+    // seat 2 1217471
+    class npc_shang_xi_hot_air_balloon : public CreatureScript
+    {
+    public:
+        npc_shang_xi_hot_air_balloon() : CreatureScript("npc_shang_xi_hot_air_balloon") { }
+
+        struct npc_shang_xi_hot_air_balloonAI : public ScriptedAI
+        {
+            npc_shang_xi_hot_air_balloonAI(Creature* creature) : ScriptedAI(creature)
+            {
+                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+                me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+            }
+
+            void Reset() override
+            {
+                events.Reset();
+            }
+
+            void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+            {
+                if (apply && me->GetEntry() == Npcs::npc_balloon_q29791)
+                {
+                    if (passenger->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        PlayerGUID = passenger->GetGUID();
+                        events.ScheduleEvent(EventsBalloonEvent::event_aysa_jump_in, 2s);
+                    }
+                }
+
+                if (apply && me->GetEntry() == Npcs::npc_balloon_spawned)
+                {
+                    if (passenger->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        passenger->ToPlayer()->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_1);
+
+                        // Get GUIDs of Aysa and Ji when player is in
+                        Vehicle* vehicle = me->GetVehicleKit();
+                        Unit* Aysa = vehicle->GetPassenger(1);
+                        if (Aysa)
+                            AysaGUID = Aysa->GetGUID();
+
+                        Unit* Ji = vehicle->GetPassenger(2);
+                        if (Ji)
+                            JiGUID = Ji->GetGUID();
+
+                        passenger->ToPlayer()->DisableMirrorTimer(FATIGUE_TIMER);
+                        PhasingHandler::OnConditionChange(passenger, true);
+                    }
+                }
+            }
+
+            void MovementInform(uint32 /*type*/, uint32 pointId) override
+            {
+                if (me->GetEntry() == Npcs::npc_balloon_spawned)
+                {
+                    switch (pointId)
+                    {
+                    default:
+                        break;
+                    }
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsBalloonEvent::event_aysa_jump_in:
+                    {
+                        Creature* Aysa = me->FindNearestCreature(Npcs::npc_aysa_q29790, 10.f);
+                        if (Aysa)
+                        {
+                            Vehicle* vehicle = me->GetVehicleKit();
+                            Aysa->EnterVehicle(vehicle->GetBase(), 1);
+                            events.ScheduleEvent(EventsBalloonEvent::event_spawn_balloon, 2s);
+                        }
+                        break;
+                    }
+
+                    case EventsBalloonEvent::event_spawn_balloon:
+                    {
+                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                        Creature* spawnedBalloon = player->SummonCreature(Npcs::npc_balloon_spawned, player->GetPosition());
+                        if (spawnedBalloon)
+                        {
+                            BalloonGUID = spawnedBalloon->GetGUID();
+                            Vehicle* vehicle = spawnedBalloon->GetVehicleKit();
+                            player->EnterVehicle(vehicle->GetBase(), -1);
+                            spawnedBalloon->LoadPath(5564900);
+                            spawnedBalloon->GetMotionMaster()->MovePath(5564900, false);
+                        }
+                        break;
+                    }
+                    
+                    }
+                }
+            }
+
+        private:
+            ObjectGuid  PlayerGUID;
+            ObjectGuid  JiGUID;
+            ObjectGuid  AysaGUID;
+            ObjectGuid  BalloonGUID;
+            EventMap    events;
+        };
+
+        CreatureAI* GetAI(Creature* c) const override
+        {
+            return new npc_shang_xi_hot_air_balloonAI(c);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -2402,4 +2521,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_zhaoren();
     new npc_firework_launcher();
     new npc_master_shang_q29787();
+    new npc_shang_xi_hot_air_balloon();
 }

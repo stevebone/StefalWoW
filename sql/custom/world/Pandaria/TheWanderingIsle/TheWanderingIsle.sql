@@ -1129,7 +1129,7 @@ INSERT INTO `npc_spellclick_spells` VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
@@ -1142,7 +1142,8 @@ INSERT INTO `areatrigger_scripts` VALUES
 (8276, 'at_temple_of_five_dawns_summon_zhaoren'),
 (8287, 'at_lorewalker_zan'),
 (7037, 'at_chamber_of_whispers'),
-(7041, 'at_chamber_of_whispers_outside');
+(7041, 'at_chamber_of_whispers_outside'),
+(7106, 'at_balloon_intro_q29790');
 
 -- Spell Scripts
 

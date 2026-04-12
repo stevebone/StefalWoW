@@ -46,7 +46,7 @@
 -- NPC: 57799 Spawned Thornbranch
 
 
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790,29791);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
 ('55588', '29777', '0'),
 ('55583', '29778', '0'),
@@ -59,7 +59,8 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('55586', '29787', '0'),
 ('55672', '29788', '0'),
 ('55672', '29789', '0'),
-('55672', '29790', '0');
+('55672', '29790', '0'),
+(56662, 29791, 0);
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29777,29778,29783);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
@@ -86,11 +87,12 @@ DELETE FROM `quest_template_addon` WHERE `ID` IN (29787);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
 ('29787', '0', '0', '105333', '29786', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29787_worthy_of_passing');
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29788, 29789, 29790);
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29788, 29789, 29790, 29791);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
 ('29788', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29789', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29790', '0', '0', '106623', '29788', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
+('29790', '0', '0', '106623', '29788', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791'),
+('29791', '0', '0', '0', '29790', '29792', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791');
 
 -- Scripts for Jojo and monkeys
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57670,65467,56394,56393);
@@ -183,11 +185,12 @@ INSERT INTO `phase_area` VALUES
 (5859, 1527, 'The Wandering Isle - Path of Elders'),
 (5832, 1527, 'The Wandering Isle - The Wood of Staves'),
 (5736, 1429, 'The Wandering Isle - The Wandering Isle'), -- Zhaoren fly by
+(5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
 (5736, 169, 'The Wandering Isle - The Wandering Isle'); -- Generic phase to show regular mobs during phase changes
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1836, 524, 536, 1527, 1429);
+  AND `SourceGroup` IN (1836, 524, 536, 1527, 1429, 1885);
   
   -- Phase 1429: during 29776 -- Zhao-Ren fly by
 INSERT INTO `conditions` VALUES
@@ -210,9 +213,15 @@ INSERT INTO `conditions` VALUES
 INSERT INTO `conditions` VALUES
 (26, 536, 0, 0, 0, 47, 0, 29787, 64, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 NOT rewarded');
   
-  -- Phase 1527: after 29787
+-- Phase 1527: after 29787
 INSERT INTO `conditions` VALUES
 (26, 1527, 0, 0, 0, 47, 0, 29787, 64, 0, '', 0, 0, 0, '', 'Phase 1527 active if 29787 IS rewarded');
+(26, 1527, 0, 0, 0, 47, 0, 29790, 64, 0, '', 1, 0, 0, '', 'Phase 1527 active if 29790 NOT rewarded');
+
+-- Phase 1885: during 29790
+INSERT INTO `conditions` VALUES
+(26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
+(26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55650,65560,64507,64505,64506,55874);
 INSERT INTO `creature_template_addon` (`entry`, `AnimTier`, `VisFlags`, `SheathState`, `visibilityDistanceType`, `auras`) VALUES ('55650', '3', '1', '0', 3, '82358'); -- Shang Xi's Hot Air Balloon
@@ -388,11 +397,49 @@ WHERE `guid` IN (
 
 -- NPC: 55918 Balloon - stationary
 -- NPC: 55649 Balloon - spawned by 105002 Summon hot air Balloon
+-- NPC: 56660 Ji on the balloon
 -- NPC: 56661 Aysa - spawned by 106636
 -- NPC: 56662 Aysa - stationary
 -- NPC: 56663 Ji - stationary
+-- NPC: 56679 Balloon arrival controller
 -- NPC: 40789 Generic controller
 -- NPC: 65105 Shu stationary
 -- NPC: 65102 Dafeng stationary
 -- NPC: 65104 Wugou stationary
 -- NPC: 65107 Huo stationary
+-- NPC: 56012 Elder Shaopai
+
+UPDATE `creature` SET `PhaseId` = 1885 WHERE `guid` IN (451656,451644,451654,451635,451638,451715,451652,451634);
+
+UPDATE `creature_template` SET `VehicleId` = '1820', `ScriptName` = 'npc_shang_xi_hot_air_balloon' WHERE (`entry` = '55649');
+UPDATE `creature_template` SET `VehicleId` = '1887', `ScriptName` = 'npc_shang_xi_hot_air_balloon' WHERE (`entry` = '55918');
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55649, 55918, 56661, 56662,56663);
+INSERT INTO `creature_template_addon` VALUES
+('55649', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('55918', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '3', ''),
+('56661', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '63313'),
+('56662', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('56663', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '46598 49414');
+
+
+DELETE FROM `vehicle_template` WHERE `creatureId` IN (55649, 55918);
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`) VALUES ('55649', '10000');
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`) VALUES ('55918', '0');
+
+DELETE FROM `vehicle_template_accessory` WHERE `entry` IN (55918,55649);
+INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`, `RideSpellID`) VALUES 
+('55649', '56661', '1', '1', 'Aysa on the balloon', '8', '0', '46598'),
+('55649', '56660', '2', '1', 'Ji on the balloon', '8', '0', '46598'),
+('55649', '65107', '3', '1', 'Huo on the balloon', '8', '0', '46598'),
+('55649', '65102', '4', '1', 'Dafeng on the balloon', '8', '0', '46598'),
+('55918', '56663', '2', '1', 'Ji on the balloon', '8', '0', '46598'),
+('55918', '65107', '3', '1', 'Huo on the balloon', '8', '0', '46598');
+
+
+
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55649, 55918);
+INSERT INTO `creature_template_difficulty` VALUES
+('55649', '0', '0', '0', '80', '4', '30', '1', '1', '1', '29385', '1073741824', '0', '0', '0', '0', '0', '0', '0', '805306368', '0', '262144', '0', '0', '0', '0', '0', '56647'),
+('55918', '0', '0', '0', '80', '4', '30', '1', '1', '1', '28878', '1610612736', '6', '0', '0', '0', '0', '0', '0', '805306624', '0', '33816576', '0', '0', '0', '0', '0', '56647');
+

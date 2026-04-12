@@ -140,6 +140,28 @@ namespace Scripts::Custom::TheWanderingIsle
                 PhasingHandler::OnConditionChange(player, true);
         }
     };
+
+    // 29790 & 29791
+    class quest_29790_passing_wisdom_29791 : public QuestScript
+    {
+    public:
+        quest_29790_passing_wisdom_29791() : QuestScript("quest_29790_passing_wisdom_29791") {}
+
+        void OnQuestStatusChange(Player* player, Quest const* quest, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if(quest->GetQuestId() == Quests::quest_passing_wisdom)
+                if (newStatus == QUEST_STATUS_COMPLETE)
+                    PhasingHandler::OnConditionChange(player, true);
+
+            if(quest->GetQuestId() == Quests::quest_suffering_of_shenzinsu)
+                if (newStatus == QUEST_STATUS_INCOMPLETE)
+                {
+                    Creature* balloon = player->FindNearestCreatureWithOptions(20.f, { .CreatureId = Npcs::npc_balloon_q29791, .IgnorePhases = true } );
+                    if(balloon)
+                        balloon->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                }
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_quests()
@@ -151,4 +173,5 @@ void AddSC_custom_the_wandering_isle_quests()
     new quest_29785_dafeng_the_spririt_of_air();
     new quest_29786_battle_for_the_skies();
     new quest_29787_worthy_of_passing();
+    new quest_29790_passing_wisdom_29791();
 }

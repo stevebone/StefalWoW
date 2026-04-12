@@ -322,6 +322,108 @@ namespace Scripts::Custom::TheWanderingIsle
             return false;
         }
     };
+
+    class BalloonIntroEvent_Ji : public BasicEvent
+    {
+    public:
+        BalloonIntroEvent_Ji(Creature* controller, ObjectGuid creatureGuid)
+            : _controller(controller), _creatureGuid(creatureGuid) { }
+
+        bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+        {
+            if (Creature* ji = ObjectAccessor::GetCreature(*_controller, _creatureGuid))
+                ji->AI()->Talk(0); // Ji's line
+
+            return true;
+        }
+
+    private:
+        Creature* _controller;
+        ObjectGuid _creatureGuid;
+    };
+
+    class BalloonIntroEvent_AysaReply : public BasicEvent
+    {
+    public:
+        BalloonIntroEvent_AysaReply(Creature* controller, ObjectGuid creatureGuid)
+            : _controller(controller), _creatureGuid(creatureGuid) { }
+
+        bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+        {
+            if (Creature* aysa = ObjectAccessor::GetCreature(*_controller, _creatureGuid))
+                aysa->AI()->Talk(1); // Aysa's reply
+
+            return true;
+        }
+
+    private:
+        Creature* _controller;
+        ObjectGuid _creatureGuid;
+    };
+
+    class BalloonIntroEvent_AysaHopIn : public BasicEvent
+    {
+    public:
+        BalloonIntroEvent_AysaHopIn(Creature* controller, ObjectGuid creatureGuid)
+            : _controller(controller), _creatureGuid(creatureGuid) { }
+
+        bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+        {
+            if (Creature* aysa = ObjectAccessor::GetCreature(*_controller, _creatureGuid))
+                aysa->AI()->Talk(2); // Aysa's reply
+
+            return true;
+        }
+
+    private:
+        Creature* _controller;
+        ObjectGuid _creatureGuid;
+    };
+
+    // 7106 - Balloon Intro Trigger
+    // Player needs to have quest 29790 and phase 1885
+    class at_balloon_intro_q29790 : public AreaTriggerScript
+    {
+    public:
+        at_balloon_intro_q29790() : AreaTriggerScript("at_balloon_intro_q29790") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/) override
+        {
+            // Check if player has active quest
+            if (!player->IsActiveQuest(Quests::quest_passing_wisdom))
+                return false;
+
+            // Check if controller already exists (conversation already triggered)
+            if (player->FindNearestCreature(Npcs::npc_balloon_arrival_controller, 30.0f))
+                return false;
+
+            // Spawn controller as a marker
+            Creature* controller = player->SummonCreature(Npcs::npc_balloon_arrival_controller, PositionsBalloonEvent::BalloonArrivalControllerSpawn);
+            if (controller)
+            {
+                // Find Aysa and Ji
+                Creature* aysa = player->FindNearestCreature(Npcs::npc_aysa_q29790, 30.0f);
+                Creature* ji = player->FindNearestCreature(Npcs::npc_ji_q29790, 30.0f);
+                if (aysa && ji)
+                {
+                    aysa->AI()->Talk(0, player); // Aysa first line
+
+                    // Schedule Ji's line
+                    controller->m_Events.AddEvent(new BalloonIntroEvent_Ji(controller, ji->GetGUID()), controller->m_Events.CalculateTime(6s));
+
+                    // Schedule Aysa's reply after Ji finishes
+                    controller->m_Events.AddEvent(new BalloonIntroEvent_AysaReply(controller, aysa->GetGUID()), controller->m_Events.CalculateTime(12s));
+
+                    // Aysa hop in
+                    controller->m_Events.AddEvent(new BalloonIntroEvent_AysaHopIn(controller, aysa->GetGUID()), controller->m_Events.CalculateTime(17s));
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_at()
@@ -338,4 +440,5 @@ void AddSC_custom_the_wandering_isle_at()
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_chamber_of_whispers_outside();
     new at_chamber_of_whispers();
+    new at_balloon_intro_q29790();
 }

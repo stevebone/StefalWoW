@@ -192,3 +192,31 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56686', '3', '0', 'Now Shen-zin Su is ill, and we are all in danger. With the help of the elements, you will break the silence. You will speak to him.', '12', '0', '100', '1', '0', '27810', '55531', '0', 'Master Shang Xi to Player'),
 ('56686', '4', '0', 'Aysa and Ji have retrieved the spirits and brought them here. You are to go with them, speak to the great Shen-zin Su, and do what must be done to save our people.', '12', '0', '100', '1', '0', '27811', '55532', '0', 'Master Shang Xi to Player'),
 ('56686', '5', '0', 'You\'ve come far, my young student. I see within you a great hero. I leave the fate of this land to you.', '12', '0', '100', '396', '0', '27812', '55533', '0', 'Master Shang Xi to Player');
+
+DELETE FROM `creature_text` WHERE `creatureID` IN (56662, 56663);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('56662', '0', '0', 'We\'re ready to go whenever you are, $n.', '12', '0', '100', '1', '0', '27428', '55549', '0', 'Aysa Cloudsinger to Player'),
+('56662', '1', '0', 'Don\'t listen to him.  We\'ve got work to do.', '12', '0', '100', '1', '0', '27430', '55553', '0', 'Aysa Cloudsinger to Player'),
+('56662', '2', '0', 'Hop in.', '12', '0', '100', '1', '0', '27429', '55551', '0', 'Aysa Cloudsinger to Player'),
+('56663', '0', '0', 'Or if you want to wander the woods a while, Aysa and I can hang out here.  You know... just the two of us.', '12', '0', '100', '1', '0', '27296', '55552', '0', 'Ji Firepaw to Player');
+
+DELETE FROM `creature_text` WHERE `creatureID` IN (56660, 56661);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('56660', '0', '0', '$p, where\'s Master Shang?', '12', '0', '100', '6', '0', '27297', '0', '55554', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56660', '1', '0', 'Bah, let a pandaren hope, would you?  I\'m going to miss the old man.', '12', '0', '100', '1', '0', '27298', '0', '55556', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56660', '2', '0', 'When am I not respectful?  You hurt me, Aysa.', '12', '0', '100', '6', '0', '27299', '0', '55561', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56660', '3', '0', 'A thorn?  And I left my tweezers at home.', '12', '0', '100', '6', '0', '27300', '0', '55574', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56660', '4', '0', 'How could such a thing cause pain to something so large?', '12', '0', '100', '6', '0', '27301', '0', '55575', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56660', '5', '0', 'Are you seeing what I\'m seeing?!  Is that a boat?!', '12', '0', '100', '5', '0', '27302', '0', '55577', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56660', '6', '0', 'And those aren\'t pandaren down there.  They\'ve got no fur.', '12', '0', '100', '1', '0', '27303', '0', '55579', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('56661', '0', '0', '...Ji, they were in the Wood of Staves.  You know where Master Shang is now.', '12', '0', '100', '1', '0', '27431', '0', '55555', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '1', '0', 'Ji, be respectful when we speak to Shen-zin Su.', '12', '0', '100', '1', '0', '27432', '0', '55560', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '2', '0', 'I might if you embarrass us.', '12', '0', '100', '1', '0', '27433', '0', '55562', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '3', '0', 'Shen-zin Su, we are the descendants of Liu Lang.  We\'ve sensed your pain, and we want to help.', '14', '0', '100', '1', '0', '27434', '0', '55563', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '4', '0', 'What ails you Shen-zin Su?  What can we do?', '14', '0', '100', '6', '0', '27435', '0', '55564', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '5', '0', 'Of course, Shen-zin Su!  But your shell is large, and I do not know where this thorn could be.', '14', '0', '100', '1', '0', '27436', '0', '55571', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '6', '0', 'We will find it, and we will remove it.  You have our word!', '14', '0', '100', '1', '0', '27437', '0', '55573', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '7', '0', 'We\'ll know soon enough.', '12', '0', '100', '1', '0', '27438', '0', '55576', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '8', '0', 'It is a boat... a whole airship!  That\'s a bigger thorn than I was expecting.', '12', '0', '100', '1', '0', '27439', '0', '55578', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '9', '0', 'Someone has crashed into our island.  Removing this thorn may be more complicated than we thought.', '12', '0', '100', '1', '0', '27440', '0', '55581', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56661', '10', '0', 'We should let Elder Shaopai know and then plan our next move.', '12', '0', '100', '1', '0', '27441', '0', '55582', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon');
