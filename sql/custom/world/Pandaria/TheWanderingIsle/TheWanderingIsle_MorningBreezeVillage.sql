@@ -43,6 +43,7 @@
 -- NPC: 56274 Guardian of the Elders
 -- NPC: 56686 Another Shang in the forest (spawn)
 -- NPC: 55640 Thornbranch Scamp
+-- NPC: 57799 Spawned Thornbranch
 
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790);
@@ -261,15 +262,16 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 56159; -- remove the Shang SAI
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (56274,55672);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56159,5615900,56274,209922,55672);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (56274);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56159,5615900,56274,209922);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 ('56274', '0', '0', '0', '0', '0', '100', '0', '8000', '12000', '8000', '12000', '0', '', '11', '125218', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Guardian of the Elders - Update IC - Cast Pounce');
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55640,56686);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55640,56686,5668600,5668601,5668602,5668603);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55640,56686,57799);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55640,56686,5668600,5668601,5668602,5668603,57799);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 ('55640', '0', '0', '0', '0', '0', '100', '0', '3000', '6000', '15000', '20000', '0', '', '11', '109126', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Thornbranch Scamp - Update IC - Cast Mirror Images'),
+('57799', '0', '0', '0', '63', '0', '100', '0', '0', '0', '0', '0', '0', '', '20', '0', '0', '0', '0', '0', '0', '21', '30', '0', '0', '0', '0', '0', '0', 'Thornbranch Scamp - On Respawn - Attack nearest player'),
 ('56686', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668600', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Just Spawned - Run Script'),
 ('56686', '0', '1', '2', '40', '0', '100', '0', '0', '5668600', '0', '0', '0', '', '54', '10000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Pause WP'),
 ('56686', '0', '2', '3', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '0.699036', 'Master Shang - WP Reached - Set Orientation'),
@@ -303,6 +305,7 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('5668603', '9', '5', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '106625', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Planting Stave Credit'),
 ('5668603', '9', '6', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Despawn');
 
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55672);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55672);
 INSERT INTO `smart_scripts` VALUES
 ('55672', '0', '0', '0', '', '19', '0', '100', '0', '29790', '0', '0', '0', '0', '', '41', '1000', '30000', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Accepted Quest - Invoker Cast Summon Master Shang Xi'),
@@ -374,3 +377,16 @@ WHERE `guid` IN (
     300793, 300488, 300650, 300792, 300490, 300562, 300790, 300489,
     300561, 300649
 ); -- duplicate spawns or maybe for another phase????
+
+-- Balloon Event
+
+-- NPC: 55918 Balloon - stationary
+-- NPC: 55649 Balloon - spawned by 105002 Summon hot air Balloon
+-- NPC: 56661 Aysa - spawned by 106636
+-- NPC: 56662 Aysa - stationary
+-- NPC: 56663 Ji - stationary
+-- NPC: 40789 Generic controller
+-- NPC: 65105 Shu stationary
+-- NPC: 65102 Dafeng stationary
+-- NPC: 65104 Wugou stationary
+-- NPC: 65107 Huo stationary

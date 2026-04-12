@@ -22,6 +22,7 @@
 -- NPC: 55634 Ruk-Ruk
 -- NPC: 64322 Ruk-Ruk's rocket
 -- NPC: 55640 Thornbranch Scamp
+-- NPC: 57799 Spawned Thornbranch
 
 -- NPC: 55479 Gao Summerdraft
 -- NPC: 55021 Jojo Ironbrow at first house
