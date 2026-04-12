@@ -1467,6 +1467,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
             return true;
         }
 
+        void DisableMirrorTimer(MirrorTimerType type);
+        void EnableMirrorTimer(MirrorTimerType type);
+        bool IsMirrorTimerDisabled(MirrorTimerType type) const;
+
     public:
         void UpdateAverageItemLevelTotal();
         void UpdateAverageItemLevelEquipped();
@@ -3397,6 +3401,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         std::array<std::unique_ptr<CUFProfile>, MAX_CUF_PROFILES> _CUFProfiles;
 
     private:
+        bool _disabledMirrorTimers[MAX_TIMERS];
+
         // internal common parts for CanStore/StoreItem functions
         InventoryResult CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool swap, Item* pSrcItem) const;
         InventoryResult CanStoreItem_InBag(uint8 bag, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool merge, bool non_specialized, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const;
