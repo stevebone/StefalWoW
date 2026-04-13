@@ -15,24 +15,28 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AreaTrigger.h"
-#include "AreaTriggerDataStore.h"
 #include "CellImpl.h"
 #include "Containers.h"
 #include "CreatureAI.h"
 #include "CreatureAIImpl.h" // for RAND()
+#include "DB2Stores.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "GridNotifiersImpl.h"
+#include "Log.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "ScriptedFollowerAI.h"
+#include "ScriptedGossip.h"
 #include "SpellScript.h"
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
+#include "ThreatManager.h"
+#include "Vehicle.h"
 
 namespace Scripts::Pandaria::TheWanderingIsle
 {
@@ -1494,10 +1498,342 @@ class spell_flying_shadow_kick : public SpellScript
 };
 }
 
+
+
+
+enum EventHotAirBalloon
+{
+    SPELL_AISUMMON_HOT_AIR_BALLOON = 128815, // this spell script
+    SPELL_SUMMON_HOT_AIR_BALLOON = 105002, 
+
+    NPC_HOT_AIR_BALLOON = 55918,
+    NPC_HOT_AIR_BALLOON_FROM_SPELL = 55649,
+    NPC_AYSA_AT_BALLOON_SPAWN = 56661,
+    NPC_AYSA_AT_BALLOON = 56662,
+
+    NODE_DESPAWN = 33,
+};
+
+enum ShenZinShuBunnySpells
+{
+    SPELL_TRIGGER_WITH_ANIM_0 = 114898,
+    SPELL_TRIGGER = 106759,
+    SPELL_TRIGGER_WITH_ANIM_1 = 118571,
+    SPELL_TRIGGER_WITH_TURN = 118572
+};
+
+enum ShenZinShuBunnyTexts
+{
+    TEXT_1 = 55550,
+    TEXT_2 = 55568,
+    TEXT_3 = 55569,
+    TEXT_4 = 55570,
+    TEXT_5 = 55572,
+    TEXT_6 = 63407
+};
+
+struct npc_hot_air_balloon_from_spell : public ScriptedAI
+{
+    npc_hot_air_balloon_from_spell(Creature* creature) : ScriptedAI(creature), _passengerGuid() { }
+
+    void IsSummonedBy(WorldObject* summoner) override
+    {
+        _passengerGuid = summoner->GetGUID(); // Store for later use (e.g., for eject)
+        TC_LOG_DEBUG("scripts.ai", "Balloon summoned by GUID: {}", _passengerGuid.ToString());
+
+        summoner->CastSpell(me, 46598, true);
+
+        if (Creature* balloon = GetClosestCreatureWithEntry(me, NPC_HOT_AIR_BALLOON, 10.0f))
+        {
+            TC_LOG_DEBUG("scripts.ai", "We have found balloon");
+            balloon->DespawnOrUnsummon(0s, 30s);
+        }
+        else TC_LOG_DEBUG("scripts.ai", "We have NOT found balloon");
+
+        if (Creature* aysha = GetClosestCreatureWithEntry(me, NPC_AYSA_AT_BALLOON, 20.0f))
+        {
+            TC_LOG_DEBUG("scripts.ai", "We have found npc aysa");
+            aysha->DespawnOrUnsummon(0s, 30s);
+        }
+        else TC_LOG_DEBUG("scripts.ai", "We have NOT found aysha");
+
+        me->SetSpeed(MOVE_RUN, 3.0f);
+
+        me->LoadPath(23);
+        me->GetMotionMaster()->MovePath(23, false);
+    }
+
+    void Reset() override
+    {
+        _events.Reset();
+        Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+        if (player)
+            TC_LOG_DEBUG("scripts.ai", "We have a player in RESET");
+
+        TC_LOG_DEBUG("scripts.ai", "We are now in RESET");
+
+
+
+
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+    {
+        switch (nodeId)
+        {
+        case 0:
+        {
+            me->SetSpeed(MOVE_RUN, 9.0f);
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 1);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+                if (Creature* ji = Ji->ToCreature())
+                    ji->AI()->SetData(2, 1);
+            }
+            break;
+        }
+        case 1:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 2);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+                if (Creature* ji = Ji->ToCreature())
+                    ji->AI()->SetData(2, 2);
+            }
+            break;
+        }
+        case 3:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 3);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+            }
+            break;
+        }
+        case 4:
+        {
+            Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (player)
+            {
+                player->CastSpell(player, 114898, true);
+                TC_LOG_DEBUG("scripts.ai", "Reached node 4 - cast spell");
+            }
+
+            Creature* turtle = GetClosestCreatureWithEntry(me, 56676, 100.0f);
+            if (turtle)
+            {
+                me->CastSpell(turtle, 114898, true);
+                TC_LOG_DEBUG("scripts.ai", "Reached node 4 - cast 1st spell on turtle");
+
+                me->CastSpell(turtle, 106759, true);
+                TC_LOG_DEBUG("scripts.ai", "Reached node 4 - cast 2nd spell on turtle");
+            }
+            break;
+        }
+        case 5:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 4);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+            }
+
+            Creature* turtle = GetClosestCreatureWithEntry(me, 56676, 100.0f);
+            if (turtle)
+            {
+                me->CastSpell(turtle, 118571, true);
+                TC_LOG_DEBUG("scripts.ai", "Reached node 5 - cast 3rd spell on turtle");
+
+                me->CastSpell(turtle, 118571, true);
+                TC_LOG_DEBUG("scripts.ai", "Reached node 5 - cast 4th spell on turtle");
+            }
+            break;
+        }
+        case 8:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 5);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+                if (Creature* ji = Ji->ToCreature())
+                    ji->AI()->SetData(2, 5);
+            }
+            break;
+        }
+        case 11:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 7);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+                if (Creature* ji = Ji->ToCreature())
+                    ji->AI()->SetData(2, 7);
+            }
+            break;
+        }
+        case 13:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 8);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+                if (Creature* ji = Ji->ToCreature())
+                    ji->AI()->SetData(2, 8);
+            }
+            break;
+        }
+        case 17:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(2, 9);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+            }
+            break;
+        }
+        case 20:
+        {
+            //Player* player = ObjectAccessor::GetPlayer(*me, _passengerGuid);
+            if (Vehicle* vehicle = me->GetVehicleKit()) // assuming 'me' is your vehicle creature
+            {
+                Unit* Aysa = vehicle->GetPassenger(1);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Aysa->ToCreature()->GetEntry());
+                if (Creature* aisa = Aysa->ToCreature())
+                    aisa->AI()->SetData(3, 1);
+
+                Unit* Ji = vehicle->GetPassenger(2);
+                TC_LOG_DEBUG("scripts.ai", "We have passenger {}", Ji->ToCreature()->GetEntry());
+            }
+            break;
+        }
+        case NODE_DESPAWN:
+        {
+            me->DespawnOrUnsummon(1s);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+private:
+    EventMap _events;
+    ObjectGuid _passengerGuid;
+};
+
+struct npc_shenzinsu : public ScriptedAI
+{
+    npc_shenzinsu(Creature* creature) : ScriptedAI(creature) { }
+
+    void Initialize()
+    {
+        _hitCount = 0;
+    }
+
+    void Reset() override
+    {
+        Initialize();
+        me->setActive(true);
+    }
+
+    void SpellHit(WorldObject* caster, SpellInfo const* spell) override
+    {
+        switch (spell->Id)
+        {
+        case SPELL_TRIGGER_WITH_ANIM_0:
+            me->Talk(TEXT_1, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
+            me->PlayDirectSound(27822, caster->ToPlayer());
+            break;
+        case SPELL_TRIGGER:
+            me->Talk(TEXT_2, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
+            me->PlayDirectSound(27823, caster->ToPlayer());
+            break;
+        case SPELL_TRIGGER_WITH_ANIM_1:
+            if (_hitCount == 0)
+            {
+                me->Talk(TEXT_3, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
+                me->PlayDirectSound(27824, caster->ToPlayer());
+                _hitCount++;
+            }
+            else if (_hitCount == 1)
+            {
+                me->Talk(TEXT_4, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
+                me->PlayDirectSound(27825, caster->ToPlayer());
+                _hitCount++;
+            }
+            else if (_hitCount == 2)
+            {
+                me->Talk(TEXT_6, CHAT_MSG_MONSTER_SAY, 350.0f, caster);
+                me->PlayDirectSound(27827, caster->ToPlayer());
+                _hitCount = 0;
+            }
+            break;
+        case SPELL_TRIGGER_WITH_TURN:
+            me->Talk(TEXT_5, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
+            me->PlayDirectSound(27826, caster->ToPlayer());
+            break;
+        }
+    }
+
+private:
+    uint8 _hitCount;
+};
+
 void AddSC_zone_the_wandering_isle()
 {
-    using namespace Scripts::Pandaria::TheWanderingIsle;
-
+	using namespace Scripts::Pandaria::TheWanderingIsle;
+	
     RegisterCreatureAI(npc_tushui_huojin_trainee);
     RegisterCreatureAI(npc_huojin_trainee);
     RegisterCreatureAI(npc_tushui_leading_trainee);
@@ -1510,25 +1846,31 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_summon);
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
-
+    RegisterCreatureAI(npc_hot_air_balloon_from_spell);
+    RegisterCreatureAI(npc_shenzinsu);
+    
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
     RegisterSpellScript(spell_meditation_timer_bar);
     RegisterSpellScript(spell_flame_spout);
-
-    new at_min_dimwind_captured();
-    new at_cave_of_meditation();
-    new at_inside_of_cave_of_meditation();
-
-    new at_singing_pools_transform_frog();
+	
+	new at_singing_pools_transform_frog();
     new at_singing_pools_transform_base<Spells::CurseOfTheSkunk>("at_singing_pools_transform_skunk");
     new at_singing_pools_transform_base<Spells::CurseOfTheCrocodile>("at_singing_pools_transform_crocodile");
     new at_singing_pools_transform_base<Spells::CurseOfTheCrane>("at_singing_pools_transform_crane");
     new at_singing_pools_transform_base<Spells::CurseOfTheTurtle>("at_singing_pools_transform_turtle");
+
+    new at_min_dimwind_captured();
+    new at_cave_of_meditation();
+    new at_inside_of_cave_of_meditation();
+    
+    
+    
 
     RegisterCreatureAI(npc_li_fei);
     RegisterSpellScript(spell_fire_crash);
     RegisterCreatureAI(npc_li_fei_combat);
     RegisterSpellScript(spell_feet_of_fury);
     RegisterSpellScript(spell_flying_shadow_kick);
+
 }

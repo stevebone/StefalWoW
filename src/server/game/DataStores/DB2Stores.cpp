@@ -130,8 +130,12 @@ DB2Storage<CurrencyContainerEntry>              sCurrencyContainerStore("Currenc
 DB2Storage<CurrencyTypesEntry>                  sCurrencyTypesStore("CurrencyTypes.db2", &CurrencyTypesLoadInfo::Instance);
 DB2Storage<CurveEntry>                          sCurveStore("Curve.db2", &CurveLoadInfo::Instance);
 DB2Storage<CurvePointEntry>                     sCurvePointStore("CurvePoint.db2", &CurvePointLoadInfo::Instance);
+DB2Storage<DelvesSeasonEntry>                   sDelvesSeasonStore("DelvesSeason.db2", &DelvesSeasonLoadInfo::Instance);
+DB2Storage<DelvesSeasonXSpellEntry>             sDelvesSeasonXSpellStore("DelvesSeasonXSpell.db2", &DelvesSeasonXSpellLoadInfo::Instance);
 DB2Storage<DestructibleModelDataEntry>          sDestructibleModelDataStore("DestructibleModelData.db2", &DestructibleModelDataLoadInfo::Instance);
 DB2Storage<DifficultyEntry>                     sDifficultyStore("Difficulty.db2", &DifficultyLoadInfo::Instance);
+DB2Storage<DriveCapabilityEntry>                sDriveCapabilityStore("DriveCapability.db2", &DriveCapabilityLoadInfo::Instance);
+DB2Storage<DriveCapabilityTierEntry>            sDriveCapabilityTierStore("DriveCapabilityTier.db2", &DriveCapabilityTierLoadInfo::Instance);
 DB2Storage<DungeonEncounterEntry>               sDungeonEncounterStore("DungeonEncounter.db2", &DungeonEncounterLoadInfo::Instance);
 DB2Storage<DurabilityCostsEntry>                sDurabilityCostsStore("DurabilityCosts.db2", &DurabilityCostsLoadInfo::Instance);
 DB2Storage<DurabilityQualityEntry>              sDurabilityQualityStore("DurabilityQuality.db2", &DurabilityQualityLoadInfo::Instance);
@@ -261,8 +265,22 @@ DB2Storage<PathEntry>                           sPathStore("Path.db2", &PathLoad
 DB2Storage<PathNodeEntry>                       sPathNodeStore("PathNode.db2", &PathNodeLoadInfo::Instance);
 DB2Storage<PathPropertyEntry>                   sPathPropertyStore("PathProperty.db2", &PathPropertyLoadInfo::Instance);
 DB2Storage<PerksActivityEntry>                  sPerksActivityStore("PerksActivity.db2", &PerksActivityLoadInfo::Instance);
+DB2Storage<PerksActivityThresholdEntry>         sPerksActivityThresholdStore("PerksActivityThreshold.db2", &PerksActivityThresholdLoadInfo::Instance);
+DB2Storage<PerksActivityThresholdGroupEntry>    sPerksActivityThresholdGroupStore("PerksActivityThresholdGroup.db2", &PerksActivityThresholdGroupLoadInfo::Instance);
+DB2Storage<PerksActivityXIntervalEntry>         sPerksActivityXIntervalStore("PerksActivityXInterval.db2", &PerksActivityXIntervalLoadInfo::Instance);
+DB2Storage<PerksActivityConditionEntry>         sPerksActivityConditionStore("PerksActivityCondition.db2", &PerksActivityConditionLoadInfo::Instance);
+DB2Storage<PerksActivityTagEntry>               sPerksActivityTagStore("PerksActivityTag.db2", &PerksActivityTagLoadInfo::Instance);
+DB2Storage<PerksActivityXHolidaysEntry>         sPerksActivityXHolidaysStore("PerksActivityXHolidays.db2", &PerksActivityXHolidaysLoadInfo::Instance);
+DB2Storage<PerksActivityXTagEntry>              sPerksActivityXTagStore("PerksActivityXTag.db2", &PerksActivityXTagLoadInfo::Instance);
+DB2Storage<PerksUIThemeEntry>                   sPerksUIThemeStore("PerksUITheme.db2", &PerksUIThemeLoadInfo::Instance);
+DB2Storage<PerksVendorCategoryEntry>            sPerksVendorCategoryStore("PerksVendorCategory.db2", &PerksVendorCategoryLoadInfo::Instance);
+DB2Storage<PerksVendorItemEntry>                sPerksVendorItemStore("PerksVendorItem.db2", &PerksVendorItemLoadInfo::Instance);
+DB2Storage<PerksVendorItemUIGroupEntry>         sPerksVendorItemUIGroupStore("PerksVendorItemUIGroup.db2", &PerksVendorItemUIGroupLoadInfo::Instance);
+DB2Storage<PerksVendorItemUIInfoEntry>          sPerksVendorItemUIInfoStore("PerksVendorItemUIInfo.db2", &PerksVendorItemUIInfoLoadInfo::Instance);
+DB2Storage<PerksVendorItemXIntervalEntry>       sPerksVendorItemXIntervalStore("PerksVendorItemXInterval.db2", &PerksVendorItemXIntervalLoadInfo::Instance);
 DB2Storage<PhaseEntry>                          sPhaseStore("Phase.db2", &PhaseLoadInfo::Instance);
 DB2Storage<PhaseXPhaseGroupEntry>               sPhaseXPhaseGroupStore("PhaseXPhaseGroup.db2", &PhaseXPhaseGroupLoadInfo::Instance);
+DB2Storage<PlayerCompanionInfoEntry>            sPlayerCompanionInfoStore("PlayerCompanionInfo.db2", &PlayerCompanionInfoLoadInfo::Instance);
 DB2Storage<PlayerConditionEntry>                sPlayerConditionStore("PlayerCondition.db2", &PlayerConditionLoadInfo::Instance);
 DB2Storage<PlayerDataElementAccountEntry>       sPlayerDataElementAccountStore("PlayerDataElementAccount.db2", &PlayerDataElementAccountLoadInfo::Instance);
 DB2Storage<PlayerDataElementCharacterEntry>     sPlayerDataElementCharacterStore("PlayerDataElementCharacter.db2", &PlayerDataElementCharacterLoadInfo::Instance);
@@ -404,6 +422,14 @@ DB2Storage<VehicleEntry>                        sVehicleStore("Vehicle.db2", &Ve
 DB2Storage<VehicleSeatEntry>                    sVehicleSeatStore("VehicleSeat.db2", &VehicleSeatLoadInfo::Instance);
 DB2Storage<VignetteEntry>                       sVignetteStore("Vignette.db2", &VignetteLoadInfo::Instance);
 DB2Storage<WarbandSceneEntry>                   sWarbandSceneStore("WarbandScene.db2", &WarbandSceneLoadInfo::Instance);
+DB2Storage<WarbandScenePlacementEntry>          sWarbandScenePlacementStore("WarbandScenePlacement.db2", &WarbandScenePlacementLoadInfo::Instance);
+DB2Storage<WarbandSceneAnimationEntry>          sWarbandSceneAnimationStore("WarbandSceneAnimation.db2", &WarbandSceneAnimationLoadInfo::Instance);
+DB2Storage<WarbandSceneAnimChrSpecEntry>        sWarbandSceneAnimChrSpecStore("WarbandSceneAnimChrSpec.db2", &WarbandSceneAnimChrSpecLoadInfo::Instance);
+DB2Storage<WarbandScenePlacementFilterReqEntry> sWarbandScenePlacementFilterReqStore("WarbandScenePlacementFilterReq.db2", &WarbandScenePlacementFilterReqLoadInfo::Instance);
+DB2Storage<WarbandScenePlacementOptionEntry>    sWarbandScenePlacementOptionStore("WarbandScenePlacementOption.db2", &WarbandScenePlacementOptionLoadInfo::Instance);
+DB2Storage<WarbandScenePlcmntAnimOverrideEntry> sWarbandScenePlcmntAnimOverrideStore("WarbandScenePlcmntAnimOverride.db2", &WarbandScenePlcmntAnimOverrideLoadInfo::Instance);
+DB2Storage<WarbandPlacementDisplayInfoEntry>    sWarbandPlacementDisplayInfoStore("WarbandPlacementDisplayInfo.db2", &WarbandPlacementDisplayInfoLoadInfo::Instance);
+DB2Storage<WarbandSceneSourceInfoEntry>         sWarbandSceneSourceInfoStore("WarbandSceneSourceInfo.db2", &WarbandSceneSourceInfoLoadInfo::Instance);
 DB2Storage<WMOAreaTableEntry>                   sWMOAreaTableStore("WMOAreaTable.db2", &WmoAreaTableLoadInfo::Instance);
 DB2Storage<WorldEffectEntry>                    sWorldEffectStore("WorldEffect.db2", &WorldEffectLoadInfo::Instance);
 DB2Storage<WorldMapOverlayEntry>                sWorldMapOverlayStore("WorldMapOverlay.db2", &WorldMapOverlayLoadInfo::Instance);
@@ -548,6 +574,7 @@ namespace
     std::unordered_set<int32> _uiMapPhases;
     WMOAreaTableLookupContainer _wmoAreaTableLookup;
     std::unordered_map<uint32, std::unordered_set<uint32>> _pvpStatIdsByMap;
+    std::unordered_map<int32, std::vector<WarbandScenePlacementEntry const*>> _warbandScenePlacementsByScene;
 }
 
 static void LoadDB2(std::bitset<TOTAL_LOCALES>& availableDb2Locales, std::vector<std::string>& errlist, StorageMap& stores, DB2StorageBase* storage, std::string const& db2Path,
@@ -762,8 +789,12 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sCurrencyTypesStore);
     LOAD_DB2(sCurveStore);
     LOAD_DB2(sCurvePointStore);
+    LOAD_DB2(sDelvesSeasonStore);
+    LOAD_DB2(sDelvesSeasonXSpellStore);
     LOAD_DB2(sDestructibleModelDataStore);
     LOAD_DB2(sDifficultyStore);
+    LOAD_DB2(sDriveCapabilityStore);
+    LOAD_DB2(sDriveCapabilityTierStore);
     LOAD_DB2(sDungeonEncounterStore);
     LOAD_DB2(sDurabilityCostsStore);
     LOAD_DB2(sDurabilityQualityStore);
@@ -893,8 +924,22 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sPathNodeStore);
     LOAD_DB2(sPathPropertyStore);
     LOAD_DB2(sPerksActivityStore);
+    LOAD_DB2(sPerksActivityThresholdStore);
+    LOAD_DB2(sPerksActivityThresholdGroupStore);
+    LOAD_DB2(sPerksActivityXIntervalStore);
+    LOAD_DB2(sPerksActivityConditionStore);
+    LOAD_DB2(sPerksActivityTagStore);
+    LOAD_DB2(sPerksActivityXHolidaysStore);
+    LOAD_DB2(sPerksActivityXTagStore);
+    LOAD_DB2(sPerksUIThemeStore);
+    LOAD_DB2(sPerksVendorCategoryStore);
+    LOAD_DB2(sPerksVendorItemStore);
+    LOAD_DB2(sPerksVendorItemUIGroupStore);
+    LOAD_DB2(sPerksVendorItemUIInfoStore);
+    LOAD_DB2(sPerksVendorItemXIntervalStore);
     LOAD_DB2(sPhaseStore);
     LOAD_DB2(sPhaseXPhaseGroupStore);
+    LOAD_DB2(sPlayerCompanionInfoStore);
     LOAD_DB2(sPlayerConditionStore);
     LOAD_DB2(sPlayerDataElementAccountStore);
     LOAD_DB2(sPlayerDataElementCharacterStore);
@@ -1036,6 +1081,14 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sVehicleSeatStore);
     LOAD_DB2(sVignetteStore);
     LOAD_DB2(sWarbandSceneStore);
+    LOAD_DB2(sWarbandScenePlacementStore);
+    LOAD_DB2(sWarbandSceneAnimationStore);
+    LOAD_DB2(sWarbandSceneAnimChrSpecStore);
+    LOAD_DB2(sWarbandScenePlacementFilterReqStore);
+    LOAD_DB2(sWarbandScenePlacementOptionStore);
+    LOAD_DB2(sWarbandScenePlcmntAnimOverrideStore);
+    LOAD_DB2(sWarbandPlacementDisplayInfoStore);
+    LOAD_DB2(sWarbandSceneSourceInfoStore);
     LOAD_DB2(sWMOAreaTableStore);
     LOAD_DB2(sWorldEffectStore);
     LOAD_DB2(sWorldMapOverlayStore);
@@ -1708,6 +1761,9 @@ void DB2Manager::IndexLoadedStores()
 
     for (PVPStatEntry const* pvpStat : sPVPStatStore)
         _pvpStatIdsByMap[pvpStat->MapID].insert(pvpStat->ID);
+
+    for (WarbandScenePlacementEntry const* placement : sWarbandScenePlacementStore)
+        _warbandScenePlacementsByScene[placement->WarbandSceneID].push_back(placement);
 
     TC_LOG_INFO("server.loading", ">> Indexed DB2 data stores in {} ms", GetMSTimeDiffToNow(oldMSTime));
 }
@@ -3424,6 +3480,11 @@ WMOAreaTableEntry const* DB2Manager::GetWMOAreaTable(int32 rootId, int32 adtId, 
 std::unordered_set<uint32> const* DB2Manager::GetPVPStatIDsForMap(uint32 mapId) const
 {
     return Trinity::Containers::MapGetValuePtr(_pvpStatIdsByMap, mapId);
+}
+
+std::vector<WarbandScenePlacementEntry const*> const* DB2Manager::GetWarbandScenePlacements(uint32 warbandSceneId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_warbandScenePlacementsByScene, static_cast<int32>(warbandSceneId));
 }
 
 bool ChrClassesXPowerTypesEntryComparator::Compare(ChrClassesXPowerTypesEntry const* left, ChrClassesXPowerTypesEntry const* right)

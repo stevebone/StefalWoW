@@ -39,6 +39,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include <zlib.h>
+#include "Config.h"
 
 #pragma pack(push, 1)
 
@@ -418,7 +419,11 @@ WorldSocket::ReadDataHandlerResult WorldSocket::ReadDataHandler()
 
             if (!opcodeTable[opcode])
             {
-                TC_LOG_ERROR("network.opcode", "WorldSocket::ReadDataHandler: No defined handler for opcode {} sent by {}", GetOpcodeNameForLogging(opcode), _worldSession->GetPlayerInfo());
+                if (sWorld->getBoolConfig(CONFIG_LOG_UNHANDLED_OPCODES))
+                {
+                    TC_LOG_ERROR("network.opcode", "WorldSocket::ReadDataHandler: No defined handler for opcode {} sent by {}", GetOpcodeNameForLogging(opcode), _worldSession->GetPlayerInfo());
+                }
+
                 break;
             }
 

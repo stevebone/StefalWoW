@@ -2826,7 +2826,28 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
             if (MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(GetAmountAsInt()))
             {
                 target->SetFlightCapabilityID(mountCapability->FlightCapabilityID, true);
+                target->SetDriveCapabilityID(mountCapability->DriveCapabilityID, false);
                 target->CastSpell(target, mountCapability->ModSpellAuraID, this);
+            }
+
+            // Private server: always enable flying for players with riding skills
+            if (Player* player = target->ToPlayer())
+            {
+                if (player->HasSpell(90265) || player->HasSpell(34091) || player->HasSpell(34090))
+                {
+                    target->SetCanFly(true);
+                    if (player->HasAura(404468)) // Steady Flight mode
+                        target->SetCanAdvFly(false);
+                    else // Skyriding mode (default)
+                    {
+                        target->SetCanAdvFly(true);
+                        target->SetCanDoubleJump(true);
+                        target->SetFlightCapabilityID(1, true);
+                        // Cast Vigor aura - required by CasterAuraSpell check for active abilities
+                        if (!player->HasAura(372773))
+                            player->CastSpell(player, 372773, true);
+                    }
+                }
             }
         }
     }
@@ -2850,8 +2871,20 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
             if (MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(GetAmountAsInt()))
                 target->RemoveAurasDueToSpell(mountCapability->ModSpellAuraID, target->GetGUID());
 
+        // Clear all flight flags on dismount
+        target->SetCanFly(false);
+        target->SetCanAdvFly(false);
+        target->SetCanDoubleJump(false);
         target->SetFlightCapabilityID(0, true);
+        target->SetDriveCapabilityID(0, true);
+        // Remove Vigor aura on dismount
+        target->RemoveAura(372773);
     }
+
+    // Dragonriding updates
+    if (target->GetTypeId() == TYPEID_PLAYER && (mode & AURA_EFFECT_HANDLE_REAL))
+        if (GetMiscValue() == 32158 && GetMiscValueB() == 229) // Dragon mounts
+            target->ToPlayer()->UpdateDynamicFlight(apply);
 }
 
 void AuraEffect::HandleAuraAllowFlight(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -2981,13 +3014,19 @@ void AuraEffect::HandleAuraCanTurnWhileFalling(AuraApplication const* aurApp, ui
 
 void AuraEffect::HandleModAdvFlying(AuraApplication const* aurApp, uint8 mode, bool apply) const
 {
-    if (!(mode & AURA_EFFECT_HANDLE_SEND_FOR_CLIENT_MASK))
+    if (!(mode & AURA_EFFECT_HANDLE_REAL))
         return;
 
-    Unit* target = aurApp->GetTarget();
-    target->SetCanDoubleJump(apply || target->HasAura(SPELL_DH_DOUBLE_JUMP));
-    target->SetCanFly(apply);
-    target->SetCanAdvFly(apply);
+    Player* player = aurApp->GetTarget()->ToPlayer();
+    if (!player)
+        return;
+
+    player->SetCanDoubleJump(apply || player->HasAura(SPELL_DH_DOUBLE_JUMP));
+    player->SetCanFly(apply);
+    player->SetCanAdvFly(apply);
+
+    if (apply)
+        player->InitAdvFlying();
 }
 
 void AuraEffect::HandleIgnoreMovementForces(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -6698,6 +6737,36 @@ void AuraEffect::HandleAuraActAsControlZone(AuraApplication const* aurApp, uint8
 
     if (GameObject* controlZone = auraOwner->SummonGameObject(gameobjectTemplate->entry, auraOwner->GetPosition(), QuaternionData::fromEulerAnglesZYX(aurApp->GetTarget()->GetOrientation(), 0.f, 0.f), 24h, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN))
         controlZone->SetSpellId(GetSpellInfo()->Id);
+}
+
+void AuraEffect::HandleAdvFlyModSpeed(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
+{
+    if (!(mode & AURA_EFFECT_HANDLE_REAL))
+        return;
+
+    Player* player = aurApp->GetTarget()->ToPlayer();
+    if (!player)
+        return;
+
+    player->CalculateAdvFlyingSpeeds();
+
+    static std::unordered_map<AuraType, std::tuple<OpcodeServer, AdvFlyingRateTypeSingle, std::optional<AdvFlyingRateTypeSingle>>> advFlyMap;
+    if (advFlyMap.empty())
+    {
+        using TupleType = std::tuple<OpcodeServer, AdvFlyingRateTypeSingle, std::optional<AdvFlyingRateTypeSingle>>;
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_LIFT_COEF] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT, AdvFlyingRateTypeSingle(ADV_FLYING_LIFT_COEFFICIENT), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_MAX_VEL] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_MAX_VEL, AdvFlyingRateTypeSingle(ADV_FLYING_MAX_VEL), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_AIR_FRICTION] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION, AdvFlyingRateTypeSingle(ADV_FLYING_AIR_FRICTION), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_ADD_IMPULSE_MAX_SPEED] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED, AdvFlyingRateTypeSingle(ADV_FLYING_ADD_IMPULSE_MAX_SPEED), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_BANKING_RATE] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN, AdvFlyingRateTypeSingle(ADV_FLYING_BANKING_RATE), std::optional<AdvFlyingRateTypeSingle>(AdvFlyingRateTypeSingle(ADV_FLYING_PITCHING_RATE_DOWN)) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_DOWN] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP, AdvFlyingRateTypeSingle(ADV_FLYING_PITCHING_RATE_UP), std::optional<AdvFlyingRateTypeSingle>(AdvFlyingRateTypeSingle(ADV_FLYING_PITCHING_RATE_UP)) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_UP] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION, AdvFlyingRateTypeSingle(ADV_FLYING_OVER_MAX_DECELERATION), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
+        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_OVER_MAX_DECELERATION] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE, AdvFlyingRateTypeSingle(ADV_FLYING_BANKING_RATE), std::optional<AdvFlyingRateTypeSingle>(AdvFlyingRateTypeSingle(ADV_FLYING_BANKING_RATE)) };
+    }
+
+    auto [opcode, speedType, speedTypeMax] = advFlyMap[GetSpellEffectInfo().ApplyAuraName];
+
+    player->SendAdvFlyingSpeed(opcode, speedType, speedTypeMax);
 }
 
 template TC_GAME_API void AuraEffect::GetTargetList(std::list<Unit*>&) const;

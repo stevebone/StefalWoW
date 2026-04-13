@@ -247,6 +247,8 @@ class TC_GAME_API CreatureAI : public UnitAI
         static bool IsInBounds(CreatureBoundary const& boundary, Position const* who);
         bool IsInBoundary(Position const* who = nullptr) const;
 
+        virtual int32 GetBotSpellPower() const { return 0; }
+
     protected:
         void EngagementStart(Unit* who);
         void EngagementOver();

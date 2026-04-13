@@ -29,6 +29,7 @@
 #include "ItemDefines.h"
 #include "ItemEnchantmentMgr.h"
 #include "MapReference.h"
+#include "Opcodes.h"
 #include "PetDefines.h"
 #include "PlayerTaxi.h"
 #include "QuestDef.h"
@@ -134,6 +135,11 @@ namespace WorldPackets
     {
         struct TraitConfig;
         struct TraitEntry;
+    }
+
+    namespace PerksProgram
+    {
+        struct PerksVendorItem;
     }
 
     namespace Transmogrification
@@ -407,6 +413,14 @@ enum ReputationSource
 #define ACTION_BUTTON_ACTION(X) (uint64(X) & 0x00FFFFFFFFFFFFFF)
 #define ACTION_BUTTON_TYPE(X)   ((uint64(X) & 0xFF00000000000000) >> 56)
 #define MAX_ACTION_BUTTON_ACTION_VALUE UI64LIT(0xFFFFFFFFFFFFFF)
+
+// StefalWoW
+enum DragonRidingSpells
+{
+    SPELL_DYNAMIC_FLIGHT = 406095,
+    SPELL_DRAGONRIDER_ENERGY = 372771
+};
+// StefalWoW
 
 struct ActionButton
 {
@@ -1024,6 +1038,10 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_DATA_ELEMENTS,
     PLAYER_LOGIN_QUERY_LOAD_DATA_FLAGS,
     PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS,
+    PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY,
+    PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES,
+    PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN,
+    PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -1908,6 +1926,26 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         bool HasEnoughMoney(int64 amount) const{ return (amount < 0) || HasEnoughMoney(uint64(amount)); }
         void SetMoney(uint64 value);
 
+        // Perks Program (Trading Post)
+        struct PerksPurchaseEntry
+        {
+            int32 VendorItemID = 0;
+            uint32 PurchaseTime = 0;
+            uint8 Refundable = 1;
+        };
+
+        int32 GetPerksCurrency() const { return static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER)); }
+        int32 GetPerksTotalEarned() const { return _perksTotalEarned; }
+        int32 GetPerksPurchasedCount() const { return _perksPurchasedCount; }
+        int32 GetPerksFrozenVendorItemID() const { return _perksFrozenVendorItemID; }
+        std::vector<PerksPurchaseEntry> const& GetPerksPurchases() const { return _perksPurchases; }
+        bool ModifyPerksCurrency(int32 amount);
+        void AddPerksPurchase(int32 vendorItemID, uint32 purchaseTime);
+        void SetPerksFrozenVendorItem(int32 vendorItemID, WorldPackets::PerksProgram::PerksVendorItem const* itemData = nullptr);
+        void AddPerksMilestone(int32 activityID);
+        bool HasPerksMilestone(int32 activityID) const;
+        std::vector<int32> GetCompletedPerksMilestones() const;
+
         RewardedQuestSet const& getRewardedQuests() const { return m_RewardedQuests; }
         QuestStatusMap& getQuestStatusMap() { return m_QuestStatus; }
 
@@ -2055,6 +2093,15 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void ApplyTraitEntryChanges(int32 editedConfigId, WorldPackets::Traits::TraitConfig const& newConfig, bool applyTraits, bool consumeCurrencies);
         void RenameTraitConfig(int32 editedConfigId, std::string&& newName);
         void DeleteTraitConfig(int32 deletedConfigId);
+        void AddMoveImpulse(Position direction);
+        // StefalWoW
+        void InitAdvFlying();
+        void SendAdvFlyingSpeed(OpcodeServer opcode, AdvFlyingRateTypeSingle speedType, std::optional<AdvFlyingRateTypeSingle> maxSpeedType = {});
+        void UpdateDynamicFlight(bool apply = false);
+        bool IsInAlliance() const { return m_team == ALLIANCE; }
+        bool IsInHorde() const { return m_team == HORDE; }
+        void InitAdvancedFly();
+        // StefalWoW
         void ApplyTraitConfig(int32 configId, bool apply);
         void ApplyTraitEntry(int32 traitNodeEntryId, int32 rank, int32 grantedRanks, bool apply);
         void SetActiveCombatTraitConfigID(int32 traitConfigId) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::ActiveCombatTraitConfigID), traitConfigId); }
@@ -2688,6 +2735,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void SendBindPointUpdate() const;
         void SendPlayerBound(ObjectGuid const& binderGuid, uint32 areaId) const;
 
+        // Delve UpdateField (DelveData on ActivePlayerData)
+        void SetDelveData(int32 mapId, int32 spellId, uint64 lootHistoryInstanceId = 0, int32 field10 = 0);
+        void ClearDelveData();
+
         // Homebind coordinates
         WorldLocation m_homebind;
         uint16 m_homebindAreaId;
@@ -3160,6 +3211,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadInstanceTimeRestrictions(PreparedQueryResult result);
         void _LoadPetStable(uint32 summonedPetNumber, PreparedQueryResult result);
         void _LoadCurrency(PreparedQueryResult result);
+        void _LoadPerksCurrency(PreparedQueryResult result);
+        void _LoadPerksPurchases(PreparedQueryResult result);
+        void _LoadPerksFrozen(PreparedQueryResult result);
+        void _LoadPerksMilestones(PreparedQueryResult result);
         void _LoadCUFProfiles(PreparedQueryResult result);
         void _LoadPlayerData(PreparedQueryResult elementsResult, PreparedQueryResult flagsResult);
         void _LoadCharacterBankTabSettings(PreparedQueryResult result);
@@ -3190,6 +3245,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveStats(CharacterDatabaseTransaction trans) const;
         void _SaveInstanceTimeRestrictions(CharacterDatabaseTransaction trans);
         void _SaveCurrency(CharacterDatabaseTransaction trans);
+        void _SavePerksCurrency(CharacterDatabaseTransaction trans);
+        void _SavePerksFrozen(CharacterDatabaseTransaction trans);
+        void _SavePerksMilestones(CharacterDatabaseTransaction trans);
         void _SaveCUFProfiles(CharacterDatabaseTransaction trans);
         void _SavePlayerData(CharacterDatabaseTransaction trans);
         void _SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) const;
@@ -3224,6 +3282,17 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         uint32 m_currentBuybackSlot;
 
         PlayerCurrenciesMap _currencyStorage;
+
+        // Perks Program (Trading Post)
+        int32 _perksCurrency = 0;
+        int32 _perksTotalEarned = 0;
+        int32 _perksPurchasedCount = 0;
+        int32 _perksFrozenVendorItemID = 0;
+        bool _perksCurrencyDirty = false;
+        bool _perksFrozenDirty = false;
+
+        std::vector<PerksPurchaseEntry> _perksPurchases;
+        std::unordered_set<int32> _completedPerksMilestones;
 
         std::vector<Item*> m_itemUpdateQueue;
         bool m_itemUpdateQueueBlocked;

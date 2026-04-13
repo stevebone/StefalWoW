@@ -1,0 +1,113 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "Followship_bots_spells_handler.h"
+
+constexpr auto FSB_GOSSIP_ITEM_PRIEST_INFO = "Hey, I am a priest from Stormwind in search for work and adventure. I charge gold for my services...";
+
+extern std::vector<FSBSpellDefinition> PriestSpellsTable;
+
+enum FSB_PRIEST_BUFF_SPELLS
+{
+    SPELL_PRIEST_POWER_WORD_FORTITUDE = 13864, // 21562
+    SPELL_PRIEST_POWER_WORD_SHIELD = 22187, // cooldown: 8s
+};
+
+enum FSB_PRIEST_SPECIAL_SPELLS
+{
+    SPELL_PRIEST_RESURRECTION = 2006,
+    SPELL_PRIEST_SHADOWFORM = 16592, //232698
+    SPELL_PRIEST_PURIFY = 527, // cooldown 8s
+    SPELL_PRIEST_DISPEL_MAGIC = 528,
+
+    SPELL_PRIEST_SPIRIT_REDEMPTION = 292055,
+};
+
+enum FSB_PRIEST_HEAL_SPELLS
+{
+    SPELL_PRIEST_FLASH_HEAL = 2061, //27608,
+    SPELL_PRIEST_PRAYER_OF_MENDING = 33076, // heal targets, cooldown: 12s
+    SPELL_PRIEST_PRAYER_HEALING = 596,
+    SPELL_PRIEST_RENEW = 139, //34423, //22168
+    SPELL_PRIEST_HEAL = 2060, //69963,
+    SPELL_PRIEST_DESPERATE_PRAYER = 19236, // 290109 self heal, < 10% hp, cooldown: 90s
+    SPELL_PRIEST_POWER_WORD_RADIANCE = 194509,
+    SPELL_PRIEST_DIVINE_HYMN = 64843,
+    SPELL_PRIEST_HOLY_WORD_SANCTIFY = 34861,
+    SPELL_PRIEST_HOLY_WORD_SERENITY = 2050,
+
+    SPELL_PRIEST_HOLY_WORD_CHASTISE = 88625, // damage
+
+    SPELL_PRIEST_GUARDIAN_SPIRIT = 47788,
+    SPELL_PRIEST_PAIN_SUPPRESSION = 33206,
+};
+
+enum FSB_PRIEST_COMBAT_SPELLS
+{
+    // Disc/Holy
+    SPELL_PRIEST_SMITE = 585, //220120,
+    SPELL_PRIEST_HOLY_FIRE = 14914, //273770,
+    SPELL_PRIEST_HOLY_NOVA = 132157,
+
+    SPELL_PRIEST_PENANCE = 47540, //196998 // cooldown: 9s
+    SPELL_PRIEST_PLEA = 200829,
+    SPELL_PRIEST_ULTIMATE_PENITENCE = 421453,
+    SPELL_PRIEST_POWER_WORD_BARRIER = 62618,
+    SPELL_PRIEST_POWER_INFUSION = 10060, // buff
+
+    // Shadow
+    SPELL_PRIEST_MIND_BLAST = 8092, //314801, cooldown: 9s
+    SPELL_PRIEST_SHADOW_WORD_PAIN = 589, //222074,
+    SPELL_PRIEST_SHADOW_WORD_DEATH = 32379,
+    
+    
+    SPELL_PRIEST_PSYCHIC_SCREAM = 8122, // self, cooldown: 45s
+    SPELL_PRIEST_DEVOURING_PLAGUE = 138490, // cooldown: 10s
+
+    SPELL_PRIEST_VAMPIRIC_TOUCH = 34914, //65490, // ,
+    SPELL_PRIEST_MIND_FLAY = 15407, //35507,
+    SPELL_PRIEST_TENTACLE_SLAM = 1227280,
+    SPELL_PRIEST_VOID_TORRENT = 263165,
+    SPELL_PRIEST_VOIDFORM = 228260,
+    SPELL_PRIEST_SILENCE = 15487,
+    SPELL_PRIEST_SHADOWFIEND = 132603,
+
+
+    SPELL_PRIEST_DISPERSION = 47585, // self buff
+    SPELL_PRIEST_VAMPIRIC_EMBRACE = 15286,
+};
+
+enum FSB_PRIEST_MISC_SPELLS
+{
+    SPELL_PRIEST_DRINK_CONJURED_CRYSTAL_WATER = 22734
+};
+
+
+namespace FSBPriest
+{
+    bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown);
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup);
+
+    bool BotHasPainSuppression(Creature* bot);
+}

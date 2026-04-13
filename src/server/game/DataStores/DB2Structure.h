@@ -1534,6 +1534,19 @@ struct CurvePointEntry
     uint32 OrderIndex;
 };
 
+struct DelvesSeasonEntry
+{
+    uint32 ID;
+    int32 FactionID;
+};
+
+struct DelvesSeasonXSpellEntry
+{
+    uint32 ID;
+    int32 SpellID;
+    uint32 DelvesSeasonID;
+};
+
 struct DestructibleModelDataEntry
 {
     uint32 ID;
@@ -1578,6 +1591,36 @@ struct DifficultyEntry
     uint32 GroupSizeDmgCurveID;
     uint32 GroupSizeSpellPointsCurveID;
     int32 Unknown1105;
+};
+
+struct DriveCapabilityEntry
+{
+    uint32 ID;
+    float ForwardAcceleration;              // DB2 field 1 ? v28[0]
+    float BackwardMaxSpeed;                 // DB2 field 2 ? v28[10], used at offset 312 (backward max speed)
+    float IdleFriction;                     // DB2 field 3 ? v28[12], used at offset 320 (friction when not driving)
+    float BackwardAcceleration;             // DB2 field 4 ? v28[11], used at offset 316 (backward accel)
+    float Field_5;                          // DB2 field 5 ? v28[13]
+    float Field_6;                          // DB2 field 6 ? v28[16]
+    float Field_7;                          // DB2 field 7 ? v28[14]
+    float Field_8;                          // DB2 field 8 ? v28[17]
+    float Field_9;                          // DB2 field 9 ? v28[18]
+    float Field_10;                         // DB2 field 10 ? v28[19]
+    float Field_11;                         // DB2 field 11 ? v28[1]
+    float Field_12;                         // DB2 field 12 ? v28[2]
+    float Field_13;                         // DB2 field 13 ? v28[3]
+    float Field_14;                         // DB2 field 14 ? v28[4]
+    float Field_15;                         // DB2 field 15 ? v28[5]
+    float Field_16;                         // DB2 field 16 ? v28[6]
+};
+
+struct DriveCapabilityTierEntry
+{
+    uint32 ID;
+    float Acceleration;                     // Tier acceleration rate
+    float MaxSpeed;                         // Tier max speed threshold
+    int32 DriveCapabilityID;                // Parent DriveCapability
+    int32 OrderIndex;                       // Tier order
 };
 
 struct DungeonEncounterEntry
@@ -3238,6 +3281,107 @@ struct PerksActivityEntry
     int32 Priority;
 };
 
+struct PerksActivityThresholdEntry
+{
+    uint32 ID;
+    int32 PerksActivityCount;
+    int32 CurrencyAmount;
+    int32 Unknown;
+    uint32 ThresholdGroupID;
+};
+
+struct PerksActivityThresholdGroupEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Unknown;
+};
+
+struct PerksActivityXIntervalEntry
+{
+    uint32 ID;
+    int32 PerksActivityID;
+    uint32 IntervalID;
+};
+
+struct PerksActivityConditionEntry
+{
+    uint32 ID;
+    int32 PlayerConditionID;
+    int32 Field_002;
+    uint32 PerksActivityID;
+};
+
+struct PerksActivityTagEntry
+{
+    LocalizedString TagName;
+    uint32 ID;
+};
+
+struct PerksActivityXHolidaysEntry
+{
+    uint32 ID;
+    int32 HolidayID;
+    uint32 PerksActivityID;
+};
+
+struct PerksActivityXTagEntry
+{
+    uint32 ID;
+    int32 PerksActivityTagID;
+    uint32 PerksActivityID;
+};
+
+struct PerksUIThemeEntry
+{
+    uint32 ID;
+    int32 UiTextureKitID;
+    int32 Field_002;
+};
+
+struct PerksVendorCategoryEntry
+{
+    LocalizedString DisplayName;
+    uint32 ID;
+    int32 PerksVendorType;
+    int32 DefaultUIModelSceneID;
+};
+
+struct PerksVendorItemEntry
+{
+    uint32 ID;
+    int8  PerksVendorCategoryID;
+    int32 Field_002;
+    int32 ItemID;
+    int32 Field_004;
+    int32 CreatureDisplayInfoID;
+    int32 Cost;
+    int32 UiModelSceneID;
+    int32 UiGroupInfo;
+};
+
+struct PerksVendorItemUIGroupEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Priority;
+};
+
+struct PerksVendorItemUIInfoEntry
+{
+    uint32 ID;
+    int32 Field_001;
+    int32 CreatureDisplayInfoID;
+    int32 Field_003;
+};
+
+struct PerksVendorItemXIntervalEntry
+{
+    uint32 ID;
+    int32 PerksVendorItemID;
+    int32 PerksActivityThresholdID;
+};
+
 struct PhaseEntry
 {
     uint32 ID;
@@ -3251,6 +3395,25 @@ struct PhaseXPhaseGroupEntry
     uint32 ID;
     uint16 PhaseID;
     uint32 PhaseGroupID;
+};
+
+struct PlayerCompanionInfoEntry
+{
+    LocalizedString UnlockDescription;
+    uint32 ID;
+    int32 DelvesSeasonID;
+    int32 TraitTreeID;
+    int32 TraitNodeID_DPS;
+    int32 TraitNodeID_Heal;
+    int32 TraitSubTreeID_DPS;
+    int32 TraitSubTreeID_Heal;
+    int32 TraitSubTreeID_Tank;
+    int32 FactionID;
+    int32 CreatureDisplayInfoID;
+    int32 UiModelSceneID;
+    int32 Field_011;
+    int32 Field_012;
+    uint32 Field_014;
 };
 
 struct PlayerConditionEntry
@@ -5080,6 +5243,87 @@ struct WarbandSceneEntry
     int32 DefaultScenePriority;
 
     EnumFlag<WarbandSceneFlags> GetFlags() const { return static_cast<WarbandSceneFlags>(Flags); }
+};
+
+struct WarbandScenePlacementEntry
+{
+    DBCPosition3D Position;
+    uint32 ID;
+    uint32 WarbandSceneID;
+    int32 SlotType;
+    float Rotation;
+    float Scale;
+    uint32 Field_11_0_0_54210_004;
+    uint32 Field_11_0_0_54210_005;
+    int32 SlotID;
+    int32 Field_11_1_0_58221_009;
+    int32 Field_12_0_0_63534_008;
+};
+
+struct WarbandSceneAnimationEntry
+{
+    uint32 ID;
+    int32 SpellVisualKitID;
+    int32 Event;
+    int32 AnimKitID;
+    int32 Field_11_0_0_54210_003;
+    float TimeIsh;
+    uint8 Field_11_0_0_54935_005;
+    uint8 Field_11_0_0_55000_006;
+    int8 Field_11_1_0_58221_008;
+    std::array<int32, 2> Field_11_0_0_54210_005;
+};
+
+struct WarbandSceneAnimChrSpecEntry
+{
+    uint32 ID;
+    int32 WarbandSceneAnimationID;
+    int32 ChrSpecializationID;
+};
+
+struct WarbandScenePlacementFilterReqEntry
+{
+    uint32 ID;
+    int64 Field_11_1_0_58221_000;
+    uint16 Field_11_1_0_58221_002;
+    int8 Field_11_1_0_58221_005;
+    std::array<int32, 2> Field_11_1_0_58221_003;
+};
+
+struct WarbandScenePlacementOptionEntry
+{
+    DBCPosition3D Position;
+    uint32 ID;
+    uint32 WarbandScenePlacementID;
+    float Orientation;
+    float Scale;
+    int32 Field_11_1_0_58221_005;
+    int32 Field_11_1_0_58221_006;
+};
+
+struct WarbandScenePlcmntAnimOverrideEntry
+{
+    uint32 ID;
+    int32 Field_11_0_0_54210_000;
+    int32 WarbandSceneAnimationID;
+};
+
+struct WarbandPlacementDisplayInfoEntry
+{
+    uint32 ID;
+    uint32 WarbandScenePlacementID;
+    int32 Field_11_2_0_61476_001;
+    int32 Field_11_2_0_61476_002;
+    int32 Field_11_2_0_61476_003;
+    int32 Field_11_2_0_61476_004;
+};
+
+struct WarbandSceneSourceInfoEntry
+{
+    LocalizedString SourceDescription;
+    uint32 ID;
+    uint32 WarbandSceneID;
+    int8 SourceType;
 };
 
 struct WMOAreaTableEntry

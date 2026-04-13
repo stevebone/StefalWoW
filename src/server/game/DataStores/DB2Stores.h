@@ -97,8 +97,12 @@ TC_GAME_API extern DB2Storage<CriteriaEntry>                        sCriteriaSto
 TC_GAME_API extern DB2Storage<CriteriaTreeEntry>                    sCriteriaTreeStore;
 TC_GAME_API extern DB2Storage<CurrencyTypesEntry>                   sCurrencyTypesStore;
 TC_GAME_API extern DB2Storage<CurveEntry>                           sCurveStore;
+TC_GAME_API extern DB2Storage<DelvesSeasonEntry>                    sDelvesSeasonStore;
+TC_GAME_API extern DB2Storage<DelvesSeasonXSpellEntry>              sDelvesSeasonXSpellStore;
 TC_GAME_API extern DB2Storage<DestructibleModelDataEntry>           sDestructibleModelDataStore;
 TC_GAME_API extern DB2Storage<DifficultyEntry>                      sDifficultyStore;
+TC_GAME_API extern DB2Storage<DriveCapabilityEntry>                 sDriveCapabilityStore;
+TC_GAME_API extern DB2Storage<DriveCapabilityTierEntry>             sDriveCapabilityTierStore;
 TC_GAME_API extern DB2Storage<DungeonEncounterEntry>                sDungeonEncounterStore;
 TC_GAME_API extern DB2Storage<DurabilityCostsEntry>                 sDurabilityCostsStore;
 TC_GAME_API extern DB2Storage<DurabilityQualityEntry>               sDurabilityQualityStore;
@@ -203,7 +207,21 @@ TC_GAME_API extern DB2Storage<MythicPlusSeasonEntry>                sMythicPlusS
 TC_GAME_API extern DB2Storage<OverrideSpellDataEntry>               sOverrideSpellDataStore;
 TC_GAME_API extern DB2Storage<ParagonReputationEntry>               sParagonReputationStore;
 TC_GAME_API extern DB2Storage<PerksActivityEntry>                   sPerksActivityStore;
+TC_GAME_API extern DB2Storage<PerksActivityThresholdEntry>          sPerksActivityThresholdStore;
+TC_GAME_API extern DB2Storage<PerksActivityThresholdGroupEntry>     sPerksActivityThresholdGroupStore;
+TC_GAME_API extern DB2Storage<PerksActivityXIntervalEntry>          sPerksActivityXIntervalStore;
+TC_GAME_API extern DB2Storage<PerksActivityConditionEntry>          sPerksActivityConditionStore;
+TC_GAME_API extern DB2Storage<PerksActivityTagEntry>                sPerksActivityTagStore;
+TC_GAME_API extern DB2Storage<PerksActivityXHolidaysEntry>          sPerksActivityXHolidaysStore;
+TC_GAME_API extern DB2Storage<PerksActivityXTagEntry>               sPerksActivityXTagStore;
+TC_GAME_API extern DB2Storage<PerksUIThemeEntry>                    sPerksUIThemeStore;
+TC_GAME_API extern DB2Storage<PerksVendorCategoryEntry>             sPerksVendorCategoryStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemEntry>                 sPerksVendorItemStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemUIGroupEntry>          sPerksVendorItemUIGroupStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemUIInfoEntry>           sPerksVendorItemUIInfoStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemXIntervalEntry>        sPerksVendorItemXIntervalStore;
 TC_GAME_API extern DB2Storage<PhaseEntry>                           sPhaseStore;
+TC_GAME_API extern DB2Storage<PlayerCompanionInfoEntry>             sPlayerCompanionInfoStore;
 TC_GAME_API extern DB2Storage<PlayerConditionEntry>                 sPlayerConditionStore;
 TC_GAME_API extern DB2Storage<PlayerDataElementAccountEntry>        sPlayerDataElementAccountStore;
 TC_GAME_API extern DB2Storage<PlayerDataElementCharacterEntry>      sPlayerDataElementCharacterStore;
@@ -325,6 +343,14 @@ TC_GAME_API extern DB2Storage<VehicleEntry>                         sVehicleStor
 TC_GAME_API extern DB2Storage<VehicleSeatEntry>                     sVehicleSeatStore;
 TC_GAME_API extern DB2Storage<VignetteEntry>                        sVignetteStore;
 TC_GAME_API extern DB2Storage<WarbandSceneEntry>                    sWarbandSceneStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementEntry>           sWarbandScenePlacementStore;
+TC_GAME_API extern DB2Storage<WarbandSceneAnimationEntry>           sWarbandSceneAnimationStore;
+TC_GAME_API extern DB2Storage<WarbandSceneAnimChrSpecEntry>         sWarbandSceneAnimChrSpecStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementFilterReqEntry>  sWarbandScenePlacementFilterReqStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementOptionEntry>     sWarbandScenePlacementOptionStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlcmntAnimOverrideEntry>  sWarbandScenePlcmntAnimOverrideStore;
+TC_GAME_API extern DB2Storage<WarbandPlacementDisplayInfoEntry>     sWarbandPlacementDisplayInfoStore;
+TC_GAME_API extern DB2Storage<WarbandSceneSourceInfoEntry>          sWarbandSceneSourceInfoStore;
 TC_GAME_API extern DB2Storage<WorldEffectEntry>                     sWorldEffectStore;
 TC_GAME_API extern DB2Storage<WorldMapOverlayEntry>                 sWorldMapOverlayStore;
 TC_GAME_API extern DB2Storage<WorldStateExpressionEntry>            sWorldStateExpressionStore;
@@ -558,6 +584,7 @@ public:
     bool IsUiMapPhase(uint32 phaseId) const;
     WMOAreaTableEntry const* GetWMOAreaTable(int32 rootId, int32 adtId, int32 groupId) const;
     std::unordered_set<uint32> const* GetPVPStatIDsForMap(uint32 mapId) const;
+    std::vector<WarbandScenePlacementEntry const*> const* GetWarbandScenePlacements(uint32 warbandSceneId) const;
 
 private:
     friend class DB2HotfixGeneratorBase;

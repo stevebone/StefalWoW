@@ -132,7 +132,7 @@ namespace WorldPackets
             uint32 Flags = 0;    ///< enum WarbandGroupFlags { Collapsed = 1 }
             int32 ContentSetID = 0;
             std::vector<WarbandGroupMember> Members;
-            std::string_view Name;
+            std::string Name;
         };
 
         class EnumCharactersResult final : public ServerPacket
@@ -902,6 +902,33 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             int32 Error;
+        };
+
+        class SetupWarbandGroups final : public ClientPacket
+        {
+        public:
+            struct WarbandGroupSetupMember
+            {
+                uint32 WarbandScenePlacementID = 0;
+                int32 Type = 0;
+                int32 ContentSetID = 0;
+                ObjectGuid Guid;
+            };
+
+            struct WarbandGroupSetup
+            {
+                uint32 WarbandSceneID = 0;
+                uint32 Flags = 0;
+                int32 ContentSetID = 0;
+                std::vector<WarbandGroupSetupMember> Members;
+                std::string Name;
+            };
+
+            explicit SetupWarbandGroups(WorldPacket&& packet) : ClientPacket(CMSG_SETUP_WARBAND_GROUPS, std::move(packet)) { }
+
+            void Read() override;
+
+            std::vector<WarbandGroupSetup> Groups;
         };
     }
 }

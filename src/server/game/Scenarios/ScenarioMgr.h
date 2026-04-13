@@ -59,6 +59,7 @@ enum ScenarioType
     SCENARIO_TYPE_SCENARIO          = 0,
     SCENARIO_TYPE_CHALLENGE_MODE    = 1,
     SCENARIO_TYPE_SOLO              = 2,
+    SCENARIO_TYPE_DELVE             = 8,
     SCENARIO_TYPE_DUNGEON           = 10,
 };
 

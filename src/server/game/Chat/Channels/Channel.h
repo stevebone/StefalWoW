@@ -19,6 +19,7 @@
 #define _CHANNEL_H
 
 #include "Common.h"
+#include "Creature.h"
 #include "ObjectGuid.h"
 #include <ctime>
 #include <map>
@@ -227,6 +228,9 @@ class TC_GAME_API Channel
         void JoinNotify(Player const* player);
         void LeaveNotify(Player const* player);
         void SetOwnership(bool ownership) { _ownershipEnabled = ownership; }
+
+        //FSB
+        void SendBotMessage(Creature* sender, std::string const& msg);
 
     private:
         template <class Builder>

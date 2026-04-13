@@ -37,6 +37,22 @@ struct PerksVendorItem
     Timestamp<> AvailableUntil;
     bool Disabled = false;
     bool DoesNotExpire = false;
+
+    bool operator!=(PerksVendorItem const& right) const
+    {
+        return VendorItemID != right.VendorItemID
+            || MountID != right.MountID
+            || BattlePetSpeciesID != right.BattlePetSpeciesID
+            || TransmogSetID != right.TransmogSetID
+            || ItemModifiedAppearanceID != right.ItemModifiedAppearanceID
+            || TransmogIllusionID != right.TransmogIllusionID
+            || ToyID != right.ToyID
+            || WarbandSceneID != right.WarbandSceneID
+            || Price != right.Price
+            || OriginalPrice != right.OriginalPrice
+            || Disabled != right.Disabled
+            || DoesNotExpire != right.DoesNotExpire;
+    }
 };
 
 ByteBuffer& operator<<(ByteBuffer& data, PerksVendorItem const& perksVendorItem);

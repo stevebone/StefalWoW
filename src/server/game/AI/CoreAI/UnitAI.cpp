@@ -141,7 +141,7 @@ SpellCastResult UnitAI::DoCast(uint32 spellId)
                 DefaultTargetSelector targetSelectorInner(me, range, false, true, -(int32)spellId);
                 auto targetSelector = [&](Unit const* candidate) -> bool
                 {
-                    if (!candidate->IsPlayer())
+                    if (!candidate->IsPlayerOrBot())
                     {
                         if (spellInfo->HasAttribute(SPELL_ATTR3_ONLY_ON_PLAYER))
                             return false;

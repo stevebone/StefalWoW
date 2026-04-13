@@ -1,0 +1,12 @@
+-- checks table consistency between 2 similar database
+-- say a repack DB vs TC DB
+
+SELECT 
+    t1.TABLE_NAME AS tc_table,
+    t2.TABLE_NAME AS fork_table
+FROM INFORMATION_SCHEMA.TABLES t1
+LEFT JOIN INFORMATION_SCHEMA.TABLES t2
+    ON t1.TABLE_NAME = t2.TABLE_NAME
+    AND t2.TABLE_SCHEMA = 'fork_hotfixes'
+WHERE t1.TABLE_SCHEMA = 'tc_hotfixes'
+  AND t2.TABLE_NAME IS NULL;

@@ -366,6 +366,22 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt64(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS, stmt);
 
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_CURRENCY);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_PURCHASES);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_FROZEN);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_MILESTONES);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES, stmt);
+
     return res;
 }
 
@@ -376,6 +392,8 @@ public:
     {
         CHARACTERS,
         CUSTOMIZATIONS,
+        WARBAND_GROUPS,
+        WARBAND_GROUP_MEMBERS,
 
         MAX
     };
@@ -385,9 +403,10 @@ public:
         SetSize(MAX);
     }
 
-    bool Initialize(uint32 accountId, bool withDeclinedNames, bool isDeletedCharacters)
+    bool Initialize(uint32 accountId, uint32 battlenetAccountId, bool withDeclinedNames, bool isDeletedCharacters)
     {
         _isDeletedCharacters = isDeletedCharacters;
+        _battlenetAccountId = battlenetAccountId;
 
         constexpr CharacterDatabaseStatements statements[2][3] =
         {
@@ -404,13 +423,26 @@ public:
         stmt->setUInt32(0, accountId);
         result &= SetPreparedQuery(CUSTOMIZATIONS, stmt);
 
+        if (!isDeletedCharacters)
+        {
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_GROUPS);
+            stmt->setUInt32(0, battlenetAccountId);
+            result &= SetPreparedQuery(WARBAND_GROUPS, stmt);
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_GROUP_MEMBERS);
+            stmt->setUInt32(0, battlenetAccountId);
+            result &= SetPreparedQuery(WARBAND_GROUP_MEMBERS, stmt);
+        }
+
         return result;
     }
 
     bool IsDeletedCharacters() const { return _isDeletedCharacters; }
+    uint32 GetBattlenetAccountId() const { return _battlenetAccountId; }
 
 private:
     bool _isDeletedCharacters = false;
+    uint32 _battlenetAccountId = 0;
 };
 
 void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
@@ -491,6 +523,113 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         charEnum.RaceUnlockData.push_back(raceUnlock);
     }
 
+    if (!charEnum.IsDeletedCharacters)
+    {
+        EnumCharactersQueryHolder const& enumHolder = static_cast<EnumCharactersQueryHolder const&>(holder);
+
+        // Load existing warband groups from DB
+        std::unordered_map<uint64, WorldPackets::Character::WarbandGroup*> groupsByDbId;
+        if (PreparedQueryResult groupResult = holder.GetPreparedResult(EnumCharactersQueryHolder::WARBAND_GROUPS))
+        {
+            do
+            {
+                Field* fields = groupResult->Fetch();
+                WorldPackets::Character::WarbandGroup& group = charEnum.WarbandGroups.emplace_back();
+                group.GroupID = fields[0].GetUInt64();
+                group.OrderIndex = fields[1].GetUInt8();
+                group.WarbandSceneID = fields[2].GetUInt32();
+                group.Flags = fields[3].GetUInt32();
+                group.ContentSetID = fields[4].GetInt32();
+                group.Name = fields[5].GetString();
+                groupsByDbId[group.GroupID] = &group;
+            } while (groupResult->NextRow());
+        }
+
+        if (PreparedQueryResult memberResult = holder.GetPreparedResult(EnumCharactersQueryHolder::WARBAND_GROUP_MEMBERS))
+        {
+            do
+            {
+                Field* fields = memberResult->Fetch();
+                uint64 groupId = fields[0].GetUInt64();
+                auto it = groupsByDbId.find(groupId);
+                if (it == groupsByDbId.end())
+                    continue;
+
+                WorldPackets::Character::WarbandGroupMember member;
+                // fields[1] is memberIndex - used for ordering, implicit from vector position
+                member.Guid = ObjectGuid::Create<HighGuid::Player>(fields[2].GetUInt64());
+                member.WarbandScenePlacementID = fields[3].GetUInt32();
+                member.Type = fields[4].GetInt32();
+                member.ContentSetID = fields[5].GetInt32();
+                it->second->Members.push_back(member);
+            } while (memberResult->NextRow());
+        }
+
+        // If no warband groups exist and we have characters, create a default group
+        if (charEnum.WarbandGroups.empty() && !charEnum.Characters.empty())
+        {
+            // Use the first available warband scene (ID 1 = default "Campfire" scene)
+            uint32 defaultSceneId = 0;
+            for (WarbandSceneEntry const* scene : sWarbandSceneStore)
+            {
+                defaultSceneId = scene->ID;
+                break;
+            }
+
+            if (defaultSceneId != 0)
+            {
+                WorldPackets::Character::WarbandGroup& defaultGroup = charEnum.WarbandGroups.emplace_back();
+                defaultGroup.OrderIndex = 0;
+                defaultGroup.WarbandSceneID = defaultSceneId;
+                defaultGroup.Flags = 0;
+                defaultGroup.ContentSetID = 0;
+
+                // Get valid placement IDs for this scene (only character slots, type 0)
+                std::vector<uint32> characterPlacementIds;
+                if (std::vector<WarbandScenePlacementEntry const*> const* placements = sDB2Manager.GetWarbandScenePlacements(defaultSceneId))
+                {
+                    for (WarbandScenePlacementEntry const* placement : *placements)
+                    {
+                        if (placement->SlotType == 0) // Character slot
+                            characterPlacementIds.push_back(placement->ID);
+                    }
+                }
+
+                // Assign up to 4 characters (or as many as we have placement slots)
+                uint32 maxMembers = std::min<uint32>(static_cast<uint32>(charEnum.Characters.size()), static_cast<uint32>(characterPlacementIds.size()));
+                for (uint32 i = 0; i < maxMembers; ++i)
+                {
+                    WorldPackets::Character::WarbandGroupMember member;
+                    member.Guid = charEnum.Characters[i].Basic.Guid;
+                    member.WarbandScenePlacementID = characterPlacementIds[i];
+                    member.Type = 0; // Character
+                    member.ContentSetID = 0;
+                    defaultGroup.Members.push_back(member);
+                }
+
+                // Persist the default group asynchronously
+                CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+
+                CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
+                stmt->setUInt64(0, 0); // AUTO_INCREMENT - will be assigned by DB
+                stmt->setUInt32(1, enumHolder.GetBattlenetAccountId());
+                stmt->setUInt8(2, 0); // orderIndex
+                stmt->setUInt32(3, defaultSceneId);
+                stmt->setUInt32(4, 0); // flags
+                stmt->setInt32(5, 0); // contentSetId
+                stmt->setString(6, std::string());
+                trans->Append(stmt);
+
+                CharacterDatabase.CommitTransaction(trans);
+
+                // We need the auto-generated groupId for subsequent member inserts.
+                // Since we can't get LAST_INSERT_ID in an async transaction easily,
+                // we'll set a temporary GroupID of 0 in the packet (client doesn't send it back).
+                // The members will be properly persisted when the client sends CMSG_SETUP_WARBAND_GROUPS.
+            }
+        }
+    }
+
     SendPacket(charEnum.Write());
 
     if (!charEnum.IsDeletedCharacters)
@@ -505,7 +644,7 @@ void WorldSession::HandleCharEnumOpcode(WorldPackets::Character::EnumCharacters&
 
     /// get all the data necessary for loading all characters (along with their pets) on the account
     std::shared_ptr<EnumCharactersQueryHolder> holder = std::make_shared<EnumCharactersQueryHolder>();
-    if (!holder->Initialize(GetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), false))
+    if (!holder->Initialize(GetAccountId(), GetBattlenetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), false))
     {
         HandleCharEnum(*holder);
         return;
@@ -521,7 +660,7 @@ void WorldSession::HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCha
 {
     /// get all the data necessary for loading all undeleted characters (along with their pets) on the account
     std::shared_ptr<EnumCharactersQueryHolder> holder = std::make_shared<EnumCharactersQueryHolder>();
-    if (!holder->Initialize(GetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), true))
+    if (!holder->Initialize(GetAccountId(), GetBattlenetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), true))
     {
         HandleCharEnum(*holder);
         return;
@@ -531,6 +670,95 @@ void WorldSession::HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCha
     {
         HandleCharEnum(static_cast<EnumCharactersQueryHolder const&>(result));
     });
+}
+
+void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarbandGroups& setupWarbandGroups)
+{
+    uint32 battlenetAccountId = GetBattlenetAccountId();
+
+    // Validate: max 20 groups (retail 11.1+)
+    if (setupWarbandGroups.Groups.size() > 20)
+    {
+        TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent {} groups, max is 20",
+            battlenetAccountId, setupWarbandGroups.Groups.size());
+        return;
+    }
+
+    for (auto const& group : setupWarbandGroups.Groups)
+    {
+        // Validate scene ID
+        if (group.WarbandSceneID != 0 && !sWarbandSceneStore.LookupEntry(group.WarbandSceneID))
+        {
+            TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent invalid WarbandSceneID {}",
+                battlenetAccountId, group.WarbandSceneID);
+            return;
+        }
+
+        // Validate member GUIDs
+        for (auto const& member : group.Members)
+        {
+            if (member.Type == 0 && !member.Guid.IsEmpty())
+            {
+                if (_legitCharacters.find(member.Guid) == _legitCharacters.end())
+                {
+                    TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent invalid character GUID {}",
+                        battlenetAccountId, member.Guid.ToString());
+                    return;
+                }
+            }
+        }
+
+        // Validate name length
+        if (group.Name.size() > 128)
+        {
+            TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent group name too long ({})",
+                battlenetAccountId, group.Name.size());
+            return;
+        }
+    }
+
+    // Delete all existing groups for this account (cascade deletes members)
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_WARBAND_GROUPS_BY_ACCOUNT);
+    stmt->setUInt32(0, battlenetAccountId);
+    trans->Append(stmt);
+
+    // Insert new groups and members
+    for (uint8 groupIdx = 0; groupIdx < setupWarbandGroups.Groups.size(); ++groupIdx)
+    {
+        auto const& group = setupWarbandGroups.Groups[groupIdx];
+
+        // Use a predictable groupId: battlenetAccountId * 100 + groupIdx
+        // This avoids needing LAST_INSERT_ID across multiple inserts in same transaction
+        uint64 groupId = static_cast<uint64>(battlenetAccountId) * 100 + groupIdx;
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
+        stmt->setUInt64(0, groupId);
+        stmt->setUInt32(1, battlenetAccountId);
+        stmt->setUInt8(2, groupIdx);
+        stmt->setUInt32(3, group.WarbandSceneID);
+        stmt->setUInt32(4, group.Flags);
+        stmt->setInt32(5, group.ContentSetID);
+        stmt->setString(6, group.Name);
+        trans->Append(stmt);
+
+        for (uint8 memberIdx = 0; memberIdx < group.Members.size(); ++memberIdx)
+        {
+            auto const& member = group.Members[memberIdx];
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
+            stmt->setUInt64(0, groupId);
+            stmt->setUInt8(1, memberIdx);
+            stmt->setUInt64(2, member.Guid.GetCounter());
+            stmt->setUInt32(3, member.WarbandScenePlacementID);
+            stmt->setInt32(4, member.Type);
+            stmt->setInt32(5, member.ContentSetID);
+            trans->Append(stmt);
+        }
+    }
+
+    CharacterDatabase.CommitTransaction(trans);
 }
 
 bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req, Races race, Classes playerClass,
@@ -1203,6 +1431,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     SendFeatureSystemStatus();
 
+    SendPerksAnimToggleKillSwitch();
+    SendPerksProgramActivityUpdate();
+
     // Send MOTD
     {
         WorldPackets::System::MOTD motd;
@@ -1212,10 +1443,14 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     SendSetTimeZoneInformation();
 
-    // Send PVPSeason
+    // Send Season Info (PVP + M+ + Great Vault)
     {
         WorldPackets::Battleground::SeasonInfo seasonInfo;
+        seasonInfo.MythicPlusDisplaySeasonID = sWorld->getIntConfig(CONFIG_MYTHIC_PLUS_DISPLAY_SEASON_ID);
+        seasonInfo.MythicPlusMilestoneSeasonID = sWorld->getIntConfig(CONFIG_MYTHIC_PLUS_MILESTONE_SEASON_ID);
         seasonInfo.PreviousArenaSeason = sWorld->getIntConfig(CONFIG_ARENA_SEASON_ID) - sWorld->getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS);
+        seasonInfo.PvpSeasonID = sWorld->getIntConfig(CONFIG_PVP_SEASON_ID);
+        seasonInfo.WeeklyRewardChestsEnabled = sWorld->getBoolConfig(CONFIG_WEEKLY_REWARD_CHESTS_ENABLED);
 
         if (sWorld->getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS))
             seasonInfo.CurrentArenaSeason = sWorld->getIntConfig(CONFIG_ARENA_SEASON_ID);
@@ -1524,6 +1759,7 @@ void WorldSession::SendFeatureSystemStatus()
     features.CommunitiesEnabled = true;
     features.BnetGroupsEnabled = false;
     features.CharacterCommunitiesEnabled = false;
+    features.ClubFinderEnabled = true;
     features.ClubPresenceAllowSubscribeAll = true;
     features.ClubPresenceUnsubscribeDelay = 60000;
 
@@ -1545,6 +1781,7 @@ void WorldSession::SendFeatureSystemStatus()
     features.IsChatMuted = !CanSpeak();
 
     features.SpeakForMeAllowed = false;
+    features.IsPlayerContentTrackingEnabled = true;
 
     for (World::GameRule const& gameRule : sWorld->GetGameRules())
     {

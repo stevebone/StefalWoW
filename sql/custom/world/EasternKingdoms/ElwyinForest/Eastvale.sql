@@ -1,0 +1,63 @@
+-- Eastvale Logging Camp changes and updates
+
+-- NPC: 43 Mine Spider
+-- NPC: 118 Prowler
+-- NPC: 294 Marshal Haggard
+-- NPC: 313 Theocritus
+-- NPC: 471 Mother Fang
+-- NPC: 472 Fedfennel
+-- NPC: 474 Rogue Wizzard
+-- NPC: 476 Kobold Geomancer
+-- NPC: 798 Solomon
+-- NPC: 799 Kevin
+-- NPC: 800 Kyle
+-- NPC: 801 Eric
+-- NPC: 802 Jay
+-- NPC: 958 Dawn Brightstar
+-- NPC: 959 Morley Eberlein
+-- NPC: 1975 Eastvale Lumberjack
+-- NPC: 4732 Randal Hunter
+-- NPC: 5405 Pinto
+-- NPC: 6093 Dead-Tooth Jack
+-- NPC: 11328 Eastvale Peasant
+-- NPC: 12375 Chestnut Mare
+-- NPC: 12376 Brown Horse
+
+-- Quest: 39 Deliver Thomas' Report
+-- Quest: 94 A Watchful Eye
+-- Quest: 1667 Dead-tooth Jack
+-- Quest: 14079 Learn to Ride in Elwynn Forest
+
+-- Reactivating old/deprecated quests in Eastvale
+DELETE FROM `disables` WHERE `entry` = 39 AND `sourceType` = 1; -- quest source
+DELETE FROM `disables` WHERE `entry` = 94 AND `sourceType` = 1; -- quest source
+DELETE FROM `disables` WHERE `entry` = 1667 AND `sourceType` = 1; -- quest source
+DELETE FROM `disables` WHERE (`sourceType` = '1') and (`entry` = '14079');
+
+-- Quest starters and enders
+DELETE FROM `creature_queststarter` WHERE `quest` IN (39, 94, 1667);
+DELETE FROM `creature_questender` WHERE `quest` IN (39, 1667);
+DELETE FROM `gameobject_questender` WHERE `quest` IN (94);
+
+INSERT IGNORE INTO `creature_queststarter` VALUES
+(261, 39, 0),
+(313, 94, 0),
+(294, 1667, 0);
+
+INSERT IGNORE INTO `creature_questender` VALUES
+(240, 39, 0),
+(294, 1667, 0);
+
+INSERT IGNORE INTO `gameobject_questender` VALUES
+(31, 94, 0);
+
+-- Quest Templates
+UPDATE `quest_template` SET `ContentTuningID` = '73', `QuestSortID` = '12', `RewardFactionID1` = '72', `RewardFactionValue1` = '1', `RewardFactionFlags` = '1', `AllowableRaces` = '18446744073709551615', `Expansion` = '0' WHERE (`ID` = '1667');
+UPDATE `quest_template_addon` SET `AllowableClasses` = '0' WHERE (`ID` = '1667');
+UPDATE `quest_template` SET `ContentTuningID` = '73', `RewardNextQuest` = '0', `Expansion` = '0' WHERE (`ID` = '39');
+UPDATE `quest_template` SET `RewardFactionID1` = '72', `Expansion` = '0', `AllowableRaces` = 18446744073709551615, `QuestSortID` = '12' WHERE (`ID` = '14079');
+UPDATE `quest_template` SET `ContentTuningID` = '73', `Expansion` = '0', `AllowableRaces` = '18446744073709551615' WHERE (`ID` = '94');
+
+-- Creature Templates
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_eastvale_lumberjack' WHERE `entry` = 1975;
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_eastvale_lumberjack' WHERE `entry` = 11328;

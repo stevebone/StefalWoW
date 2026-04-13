@@ -1451,6 +1451,8 @@ struct GameObjectData : public SpawnData
     uint32 animprogress = 0;
     GOState goState = GO_STATE_ACTIVE;
     uint32 artKit = 0;
+    uint32 zoneId = 0;
+    uint32 areaId = 0;
 };
 
 enum class GameObjectActions : uint32

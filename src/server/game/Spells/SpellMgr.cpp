@@ -3353,6 +3353,11 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
                 const_cast<SpellInfo&>(spellInfo).AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
     }
 
+    // Dragonriding flight style auras - applied fresh on login, do not save
+    for (uint32 spellId : { 404464u, 404468u, 372773u })
+        for (SpellInfo const& spellInfo : _GetSpellInfo(spellId))
+            const_cast<SpellInfo&>(spellInfo).AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
+
     TC_LOG_INFO("server.loading", ">> Loaded SpellInfo custom attributes in {} ms", GetMSTimeDiffToNow(oldMSTime));
 }
 
@@ -3386,6 +3391,12 @@ inline void ApplySpellEffectFix(SpellInfo* spellInfo, SpellEffIndex effectIndex,
 void SpellMgr::LoadSpellInfoCorrections()
 {
     uint32 oldMSTime = getMSTime();
+
+    // Range fixes for summon spells
+    ApplySpellFix({ 105002 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(5); // 40 yards
+        });
 
     // Some spells have no amplitude set
     {
@@ -5201,12 +5212,6 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->AttributesEx4 |= SPELL_ATTR4_AURA_IS_BUFF;
     });
 
-    // TODO: temporary, remove with dragonriding
-    ApplySpellFix({ 404468 }, [](SpellInfo* spellInfo)
-    {
-        spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
-    });
-
     // Sigil of Flame
     ApplySpellFix({ 204598 }, [](SpellInfo* spellInfo)
     {
@@ -5221,6 +5226,24 @@ void SpellMgr::LoadSpellInfoCorrections()
     {
         spellInfo->AttributesEx &= ~SPELL_ATTR1_IS_CHANNELLED;
     });
+
+    // Dragonriding Thrill of the Skies visual
+    ApplySpellFix({ 373404 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(21); // Infinite
+        });
+
+    // Dragonrider Energy
+    ApplySpellFix({ 372773 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->AuraInterruptFlags = SpellAuraInterruptFlags::None;
+        });
+
+    // Racing
+    ApplySpellFix({ 377560, 395101, 409880 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->AuraInterruptFlags |= SpellAuraInterruptFlags::LeaveWorld;
+        });
 
     for (SpellInfo const& s : mSpellInfoMap)
     {

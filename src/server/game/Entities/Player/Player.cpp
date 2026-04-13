@@ -101,6 +101,7 @@
 #include "Pet.h"
 #include "PetPackets.h"
 #include "PoolMgr.h"
+#include "PerksProgramMgr.h"
 #include "PetitionMgr.h"
 #include "PhasingHandler.h"
 #include "PlayerChoice.h"
@@ -1715,6 +1716,19 @@ void Player::Regenerate(Powers power)
         addvalue *= GetTotalAuraMultiplierByMiscValue(SPELL_AURA_MOD_POWER_REGEN_PERCENT, power);
 
         addvalue += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_POWER_REGEN, power) * ((power != POWER_ENERGY) ? m_regenTimerCount : m_regenTimer) / (5 * IN_MILLISECONDS);
+    }
+
+    // Vigor regen scales with forward velocity during advanced flying
+    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasExtraMovementFlag2(MOVEMENTFLAG3_ADV_FLYING) && m_movementInfo.advFlying)
+    {
+        if (FlightCapabilityEntry const* flightCapability = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID()))
+        {
+            if (flightCapability->VigorRegenMaxVelCoefficient > 0.0f && flightCapability->MaxVel > 0.0f)
+            {
+                float velocityPct = std::min(m_movementInfo.advFlying->forwardVelocity / flightCapability->MaxVel, 1.0f);
+                addvalue *= 1.0f + velocityPct * flightCapability->VigorRegenMaxVelCoefficient;
+            }
+        }
     }
 
     int32 minPower = powerType->MinPower;
@@ -4238,6 +4252,10 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             trans->Append(stmt);
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS);
+            stmt->setUInt64(0, guid);
+            trans->Append(stmt);
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_WARBAND_MEMBER_BY_GUID);
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
@@ -7066,6 +7084,201 @@ void Player::_SaveCurrency(CharacterDatabaseTransaction trans)
 
         itr->second.state = PLAYERCURRENCY_UNCHANGED;
     }
+}
+
+// ----------------------------------------------------------------
+//  Perks Program (Trading Post) - Load / Save / Modify
+// ----------------------------------------------------------------
+
+void Player::_LoadPerksCurrency(PreparedQueryResult result)
+{
+    if (result)
+    {
+        Field* fields = result->Fetch();
+        // currency field (index 0) is now ignored - we read from CurrencyID 2032 instead
+        _perksTotalEarned = fields[1].GetInt32();
+        _perksPurchasedCount = fields[2].GetInt32();
+    }
+
+    // Always sync PerksProgramCurrency updatefield from the real currency system (loaded by _LoadCurrency before this)
+    int32 realCurrency = static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER));
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PerksProgramCurrency), realCurrency);
+
+    TC_LOG_DEBUG("network", "_LoadPerksCurrency: currency={} (from CurrencyID 2032), totalEarned={}, purchasedCount={}", realCurrency, _perksTotalEarned, _perksPurchasedCount);
+}
+
+void Player::_LoadPerksPurchases(PreparedQueryResult result)
+{
+    _perksPurchases.clear();
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        PerksPurchaseEntry entry;
+        entry.VendorItemID = fields[0].GetInt32();
+        entry.PurchaseTime = fields[1].GetUInt32();
+        entry.Refundable = fields[2].GetUInt8();
+
+        _perksPurchases.push_back(entry);
+    } while (result->NextRow());
+}
+
+void Player::_LoadPerksFrozen(PreparedQueryResult result)
+{
+    _perksFrozenVendorItemID = 0;
+    if (!result)
+        return;
+
+    _perksFrozenVendorItemID = result->Fetch()[0].GetInt32();
+
+    // Set FrozenPerksVendorItem UpdateField with full item data from the manager
+    if (_perksFrozenVendorItemID != 0)
+    {
+        if (PerksProgramVendorItemData const* itemData = sPerksProgramMgr->GetVendorItem(_perksFrozenVendorItemID))
+            SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::FrozenPerksVendorItem), itemData->PacketData);
+    }
+}
+
+void Player::_SavePerksCurrency(CharacterDatabaseTransaction trans)
+{
+    if (!_perksCurrencyDirty)
+        return;
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PERKS_CURRENCY);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setInt32(1, _perksCurrency);
+    stmt->setInt32(2, _perksTotalEarned);
+    stmt->setInt32(3, _perksPurchasedCount);
+    trans->Append(stmt);
+
+    _perksCurrencyDirty = false;
+}
+
+void Player::_SavePerksFrozen(CharacterDatabaseTransaction trans)
+{
+    if (!_perksFrozenDirty)
+        return;
+
+    if (_perksFrozenVendorItemID != 0)
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PERKS_FROZEN);
+        stmt->setUInt64(0, GetGUID().GetCounter());
+        stmt->setInt32(1, _perksFrozenVendorItemID);
+        trans->Append(stmt);
+    }
+    else
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PERKS_FROZEN);
+        stmt->setUInt64(0, GetGUID().GetCounter());
+        trans->Append(stmt);
+    }
+
+    _perksFrozenDirty = false;
+}
+
+bool Player::ModifyPerksCurrency(int32 amount)
+{
+    int32 currentAmount = static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER));
+
+    if (amount < 0 && currentAmount < -amount)
+        return false;
+
+    // Use the core currency system - this updates character_currencies and sends SetCurrency to client
+    if (amount > 0)
+        AddCurrency(CURRENCY_TRADERS_TENDER, static_cast<uint32>(amount));
+    else
+        RemoveCurrency(CURRENCY_TRADERS_TENDER, -amount);
+
+    // Sync PerksProgramCurrency updatefield so the vendor UI reflects the change
+    int32 newAmount = static_cast<int32>(GetCurrencyQuantity(CURRENCY_TRADERS_TENDER));
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PerksProgramCurrency), newAmount);
+
+    _perksCurrencyDirty = true;
+    return true;
+}
+
+void Player::AddPerksPurchase(int32 vendorItemID, uint32 purchaseTime)
+{
+    PerksPurchaseEntry entry;
+    entry.VendorItemID = vendorItemID;
+    entry.PurchaseTime = purchaseTime;
+    entry.Refundable = 1;
+    _perksPurchases.push_back(entry);
+
+    _perksPurchasedCount++;
+    _perksCurrencyDirty = true;
+
+    // Persist immediately
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_PERKS_PURCHASE);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setInt32(1, vendorItemID);
+    stmt->setUInt32(2, purchaseTime);
+    stmt->setUInt8(3, 1);
+    CharacterDatabase.Execute(stmt);
+}
+
+void Player::SetPerksFrozenVendorItem(int32 vendorItemID, WorldPackets::PerksProgram::PerksVendorItem const* itemData)
+{
+    _perksFrozenVendorItemID = vendorItemID;
+    _perksFrozenDirty = true;
+
+    // Update FrozenPerksVendorItem UpdateField
+    if (itemData)
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::FrozenPerksVendorItem), *itemData);
+    else
+    {
+        WorldPackets::PerksProgram::PerksVendorItem emptyItem;
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::FrozenPerksVendorItem), emptyItem);
+    }
+}
+
+void Player::_LoadPerksMilestones(PreparedQueryResult result)
+{
+    _completedPerksMilestones.clear();
+    if (!result)
+        return;
+
+    do
+    {
+        _completedPerksMilestones.insert(result->Fetch()[0].GetInt32());
+    } while (result->NextRow());
+}
+
+void Player::_SavePerksMilestones(CharacterDatabaseTransaction trans)
+{
+    if (_completedPerksMilestones.empty())
+        return;
+
+    // Replace the full set each save (small table, safe to do)
+    CharacterDatabasePreparedStatement* delStmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PERKS_MILESTONES);
+    delStmt->setUInt64(0, GetGUID().GetCounter());
+    trans->Append(delStmt);
+
+    for (int32 activityID : _completedPerksMilestones)
+    {
+        CharacterDatabasePreparedStatement* insStmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_PERKS_MILESTONE);
+        insStmt->setUInt64(0, GetGUID().GetCounter());
+        insStmt->setInt32(1, activityID);
+        trans->Append(insStmt);
+    }
+}
+
+void Player::AddPerksMilestone(int32 activityID)
+{
+    _completedPerksMilestones.insert(activityID);
+}
+
+bool Player::HasPerksMilestone(int32 activityID) const
+{
+    return _completedPerksMilestones.count(activityID) > 0;
+}
+
+std::vector<int32> Player::GetCompletedPerksMilestones() const
+{
+    return std::vector<int32>(_completedPerksMilestones.begin(), _completedPerksMilestones.end());
 }
 
 void Player::SendCurrencies() const
@@ -11493,6 +11706,9 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
 
         if (pItem->GetBonding() == BIND_ON_ACQUIRE ||
             pItem->GetBonding() == BIND_QUEST ||
+            pItem->GetBonding() == BIND_WOW_ACCOUNT ||
+            pItem->GetBonding() == BIND_BNET_ACCOUNT ||
+            pItem->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED ||
             (pItem->GetBonding() == BIND_ON_EQUIP && IsBagPos(pos)))
             pItem->SetBinding(true);
 
@@ -11532,6 +11748,9 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
     {
         if (pItem2->GetBonding() == BIND_ON_ACQUIRE ||
             pItem2->GetBonding() == BIND_QUEST ||
+            pItem2->GetBonding() == BIND_WOW_ACCOUNT ||
+            pItem2->GetBonding() == BIND_BNET_ACCOUNT ||
+            pItem2->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED ||
             (pItem2->GetBonding() == BIND_ON_EQUIP && IsBagPos(pos)))
             pItem2->SetBinding(true);
 
@@ -11954,9 +12173,13 @@ void Player::VisualizeItem(uint8 slot, Item* pItem)
         return;
 
     // check also  BIND_ON_ACQUIRE and BIND_QUEST for .additem or .additemset case by GM (not binded at adding to inventory)
-    if (pItem->GetBonding() == BIND_ON_EQUIP || pItem->GetBonding() == BIND_ON_ACQUIRE || pItem->GetBonding() == BIND_QUEST)
+    if (pItem->GetBonding() == BIND_ON_EQUIP || pItem->GetBonding() == BIND_ON_ACQUIRE || pItem->GetBonding() == BIND_QUEST
+        || pItem->GetBonding() == BIND_WOW_ACCOUNT || pItem->GetBonding() == BIND_BNET_ACCOUNT
+        || pItem->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
     {
         pItem->SetBinding(true);
+        if (pItem->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
+            pItem->ConvertToSoulbound();
         if (IsInWorld())
             GetSession()->GetCollectionMgr()->AddItemAppearance(pItem);
     }
@@ -17926,6 +18149,33 @@ void Player::SetHomebind(WorldLocation const& loc, uint32 areaId)
     CharacterDatabase.Execute(stmt);
 }
 
+void Player::SetDelveData(int32 mapId, int32 spellId, uint64 lootHistoryInstanceId, int32 field10)
+{
+    // DelveData is an OptionalUpdateField with plain struct members.
+    // ModifyValue with dummy 0 constructs the optional if absent and marks it changed.
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::Field_0), mapId);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::Field_8), lootHistoryInstanceId);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::Field_10), field10);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
+        .ModifyValue(&UF::DelveData::SpellID), spellId);
+}
+
+void Player::ClearDelveData()
+{
+    if (m_activePlayerData->DelveData.has_value())
+    {
+        RemoveOptionalUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
+            .ModifyValue(&UF::ActivePlayerData::DelveData));
+    }
+}
+
 void Player::SendBindPointUpdate() const
 {
     WorldPackets::Misc::BindPointUpdate packet;
@@ -18280,6 +18530,10 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     _LoadGroup(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GROUP));
 
     _LoadCurrency(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CURRENCY));
+    _LoadPerksCurrency(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY));
+    _LoadPerksPurchases(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES));
+    _LoadPerksFrozen(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN));
+    _LoadPerksMilestones(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES));
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::LifetimeHonorableKills), fields.totalKills);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::TodayHonorableKills), fields.totalKills);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::YesterdayHonorableKills), fields.yesterdayKills);
@@ -19127,9 +19381,6 @@ void Player::_LoadAuras(PreparedQueryResult auraResult, PreparedQueryResult effe
         }
         while (auraResult->NextRow());
     }
-
-    // TODO: finish dragonriding - this forces old flight mode
-    AddAura(404468, this);
 }
 
 void Player::_LoadGlyphAuras()
@@ -20789,6 +21040,9 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     GetSession()->SaveTutorialsData(trans);                 // changed only while character in game
     _SaveInstanceTimeRestrictions(trans);
     _SaveCurrency(trans);
+    _SavePerksCurrency(trans);
+    _SavePerksFrozen(trans);
+    _SavePerksMilestones(trans);
     _SaveCUFProfiles(trans);
     _SavePlayerData(trans);
     _SaveCharacterBankTabSettings(trans);
@@ -25141,6 +25395,17 @@ void Player::SendInitialPacketsAfterAddToMap()
             ClearQuestSharingInfo();
     }
 
+    // StefalWoW
+    // Dragonriding
+    if (HasAura(SPELL_DYNAMIC_FLIGHT))
+    {
+        if (GetPower(POWER_ALTERNATE_MOUNT) < 3)
+            SetPower(POWER_ALTERNATE_MOUNT, 3);
+
+        AddAura(SPELL_DRAGONRIDER_ENERGY, this);
+    }
+    // StefalWoW
+
     GetSceneMgr().TriggerDelayedScenes();
 }
 
@@ -29380,6 +29645,14 @@ void Player::ApplyTraitConfig(int32 configId, bool apply)
     for (UF::TraitEntry const& traitEntry : traitConfig->Entries)
         if (!apply || TraitMgr::CanApplyTraitNode(*traitConfig, traitEntry))
             ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+
+    // Apply hero talent (SubTree) entries - these are stored separately from regular entries
+    //for (UF::TraitSubTreeCache const& subTree : traitConfig->SubTrees)
+    //{
+    //    if (!apply || subTree.Active)
+    //        for (UF::TraitEntry const& traitEntry : subTree.Entries)
+    //            ApplyTraitEntry(traitEntry.TraitNodeEntryID, traitEntry.Rank, traitEntry.GrantedRanks, apply);
+    //}
 }
 
 void Player::ApplyTraitEntry(int32 traitNodeEntryId, int32 rank, int32 grantedRanks, bool apply)
@@ -31816,7 +32089,9 @@ bool Player::ProcessItemCast(SpellCastRequest& castRequest, SpellCastTargets con
     }
 
     // check also  BIND_ON_ACQUIRE and BIND_QUEST for .additem or .additemset case by GM (not binded at adding to inventory)
-    if (item->GetBonding() == BIND_ON_USE || item->GetBonding() == BIND_ON_ACQUIRE || item->GetBonding() == BIND_QUEST)
+    if (item->GetBonding() == BIND_ON_USE || item->GetBonding() == BIND_ON_ACQUIRE || item->GetBonding() == BIND_QUEST
+        || item->GetBonding() == BIND_WOW_ACCOUNT || item->GetBonding() == BIND_BNET_ACCOUNT
+        || item->GetBonding() == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
     {
         if (!item->IsSoulBound())
         {
@@ -31860,4 +32135,81 @@ bool Player::CanExecutePendingSpellCastRequest()
         return false;
 
     return true;
+}
+
+void Player::AddMoveImpulse(Position direction)
+{
+    WorldPackets::Movement::MoveAddImpulse impulse;
+    impulse.MoverGUID = GetGUID();
+    impulse.SequenceIndex = m_movementCounter++;
+    impulse.Direction = direction;
+    SendMessageToSet(impulse.Write(), true);
+}
+
+void Player::InitAdvFlying()
+{
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION, ADV_FLYING_AIR_FRICTION);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_MAX_VEL, ADV_FLYING_MAX_VEL);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT, ADV_FLYING_LIFT_COEFFICIENT);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_DOUBLE_JUMP_VEL_MOD, ADV_FLYING_DOUBLE_JUMP_VEL_MOD);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_GLIDE_START_MIN_HEIGHT, ADV_FLYING_GLIDE_START_MIN_HEIGHT);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED, ADV_FLYING_ADD_IMPULSE_MAX_SPEED);
+    //// SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE, ADV_FLYING_BANKING_RATE_MIN, ADV_FLYING_BANKING_RATE_MAX);
+   //  SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN, ADV_FLYING_PITCHING_RATE_DOWN_MIN, ADV_FLYING_PITCHING_RATE_DOWN_MAX);
+    // SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP, ADV_FLYING_PITCHING_RATE_UP_MIN, ADV_FLYING_PITCHING_RATE_UP_MAX);
+    // SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_TURN_VELOCITY_THRESHOLD, ADV_FLYING_TURN_VELOCITY_THRESHOLD_MIN, ADV_FLYING_TURN_VELOCITY_THRESHOLD_MAX);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_SURFACE_FRICTION, ADV_FLYING_SURFACE_FRICTION);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION, ADV_FLYING_OVER_MAX_DECELERATION);
+    SendAdvFlyingSpeed(SMSG_MOVE_SET_ADV_FLYING_LAUNCH_SPEED_COEFFICIENT, ADV_FLYING_LAUNCH_SPEED_COEFFICIENT);
+}
+
+void Player::SendAdvFlyingSpeed(OpcodeServer opcode, AdvFlyingRateTypeSingle speedType, std::optional<AdvFlyingRateTypeSingle> maxSpeedType)
+{
+    if (maxSpeedType.has_value() && maxSpeedType.value() != AdvFlyingRateTypeSingle(0))
+        SendDirectMessage(WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds(opcode, m_movementCounter++, GetAdvFlyingSpeed(speedType), GetAdvFlyingSpeed(maxSpeedType.value())).Write());
+    else
+    {
+        WorldPackets::Movement::SetAdvFlyingSpeed packet(opcode);
+        packet.MoverGUID = GetGUID();
+        packet.SequenceIndex = m_movementCounter++;
+        packet.Speed = GetAdvFlyingSpeed(speedType);
+        SendDirectMessage(packet.Write());
+    }
+}
+
+void Player::UpdateDynamicFlight(bool apply)
+{
+    if (apply)
+    {
+        if (!HasAuraType(SPELL_AURA_ADV_FLYING))
+            AddAura(SPELL_DYNAMIC_FLIGHT, this);
+    }
+    else
+    {
+        if (HasAuraType(SPELL_AURA_ADV_FLYING))
+            RemoveAura(SPELL_DYNAMIC_FLIGHT);
+    }
+}
+
+void Player::InitAdvancedFly()
+{
+    FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
+    if (!flightCapabilityEntry)
+        return;
+
+    std::vector<std::tuple<OpcodeServer, float, Optional<float>>> advFlyValues = {
+        { SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION,                flightCapabilityEntry->AirFriction,                 {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_MAX_VEL,                     flightCapabilityEntry->MaxVel,                      {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT,            flightCapabilityEntry->LiftCoefficient,             {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_DOUBLE_JUMP_VEL_MOD,         flightCapabilityEntry->DoubleJumpVelMod,            {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_GLIDE_START_MIN_HEIGHT,      flightCapabilityEntry->GlideStartMinHeight,         {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED,       flightCapabilityEntry->AddImpulseMaxSpeed,          {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE,                flightCapabilityEntry->BankingRateMin,              flightCapabilityEntry->BankingRateMax               },
+        { SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN,          flightCapabilityEntry->PitchingRateDownMin,         flightCapabilityEntry->PitchingRateDownMax          },
+        { SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP,            flightCapabilityEntry->PitchingRateUpMin,           flightCapabilityEntry->PitchingRateUpMax            },
+        { SMSG_MOVE_SET_ADV_FLYING_TURN_VELOCITY_THRESHOLD,     flightCapabilityEntry->TurnVelocityThresholdMin,    flightCapabilityEntry->TurnVelocityThresholdMax     },
+        { SMSG_MOVE_SET_ADV_FLYING_SURFACE_FRICTION,            flightCapabilityEntry->SurfaceFriction,             {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION,       flightCapabilityEntry->OverMaxDeceleration,         {}                                                  },
+        { SMSG_MOVE_SET_ADV_FLYING_LAUNCH_SPEED_COEFFICIENT,    flightCapabilityEntry->LaunchSpeedCoefficient,      {}                                                  },
+    };
 }
