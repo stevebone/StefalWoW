@@ -211,12 +211,9 @@ Player::Player(WorldSession* session) : Unit(true), m_sceneMgr(this)
 
     m_atLoginFlags = AT_LOGIN_NONE;
 
-    mSemaphoreTeleport_Near = false;
-    mSemaphoreTeleport_Far = false;
-
     m_DelayedOperations = 0;
     m_bCanDelayTeleport = false;
-    m_bHasDelayedTeleport = false;
+    m_teleport_state = TeleportState::NotTeleporting;
     m_teleport_options = TELE_TO_NONE;
     m_teleportSpellId = 0;
     m_newWorldCounter = 0;
@@ -1122,8 +1119,11 @@ void Player::Update(uint32 p_time)
 
     //we should execute delayed teleports only for alive(!) players
     //because we don't want player's ghost teleported from graveyard
-    if (IsHasDelayedTeleport() && IsAlive())
+    if ((GetTeleportState() == TeleportState::DelayedTeleport || GetTeleportState() == TeleportState::DelayedWorldPort) && IsAlive())
+    {
+        SetTeleportState(TeleportState::NotTeleporting); // skip state check inside TeleportTo
         TeleportTo(m_teleport_dest, m_teleport_options, m_teleportSpellId);
+    }
 }
 
 void Player::Heartbeat()
@@ -1250,6 +1250,9 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
         return false;
     }
 
+    if (GetTeleportState() != TeleportState::NotTeleporting)
+        return false;
+
     // preparing unsummon pet if lost (we must get pet before teleportation or will not find it later)
     Pet* pet = GetPet();
 
@@ -1301,15 +1304,12 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
 
     if (GetMapId() == teleportLocation.Location.GetMapId() && (!teleportLocation.InstanceId || GetInstanceId() == teleportLocation.InstanceId))
     {
-        //lets reset far teleport flag if it wasn't reset during chained teleport
-        SetSemaphoreTeleportFar(false);
-        //setup delayed teleport flag
-        SetDelayedTeleportFlag(IsCanDelayTeleport());
+        SetTeleportState(TeleportState::Initiated);
         //if teleport spell is cast in Unit::Update() func
         //then we need to delay it until update process will be finished
-        if (IsHasDelayedTeleport())
+        if (IsCanDelayTeleport())
         {
-            SetSemaphoreTeleportNear(true);
+            SetTeleportState(TeleportState::DelayedTeleport);
             //lets save teleport destination for player
             m_teleport_dest = teleportLocation;
             m_teleport_options = options;
@@ -1338,16 +1338,13 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
 
         // code for finish transfer called in WorldSession::HandleMovementOpcodes()
         // at client packet CMSG_MOVE_TELEPORT_ACK
-        SetSemaphoreTeleportNear(true);
+        SetTeleportState(TeleportState::WaitingForTeleportAck);
         // near teleport, triggering send CMSG_MOVE_TELEPORT_ACK from client at landing
         if (!GetSession()->PlayerLogout())
             SendTeleportPacket(m_teleport_dest);
     }
     else
     {
-        if (IsBeingTeleportedFar())
-            return false;
-
         if (GetClass() == CLASS_DEATH_KNIGHT && GetMapId() == 609 && !IsGameMaster() && !HasSpell(50977))
         {
             SendTransferAborted(teleportLocation.Location.GetMapId(), TRANSFER_ABORT_UNIQUE_MESSAGE, 1);
@@ -1372,16 +1369,13 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
             !((oldmap->GetEntry()->CosmeticParentMapID != -1) ^ (oldmap->GetEntry()->CosmeticParentMapID != mEntry->CosmeticParentMapID))))
             options &= ~TELE_TO_SEAMLESS;
 
-        //lets reset near teleport flag if it wasn't reset during chained teleports
-        SetSemaphoreTeleportNear(false);
-        //setup delayed teleport flag
-        SetDelayedTeleportFlag(IsCanDelayTeleport());
-        SetSemaphoreTeleportFar(true);
+        SetTeleportState(TeleportState::Initiated);
         //if teleport spell is cast in Unit::Update() func
         //then we need to delay it until update process will be finished
-        if (IsHasDelayedTeleport())
+        if (IsCanDelayTeleport())
         {
             //lets save teleport destination for player
+            SetTeleportState(TeleportState::DelayedWorldPort);
             m_teleport_dest = teleportLocation;
             m_teleport_options = options;
             m_teleportSpellId = teleportSpellId;
@@ -1467,6 +1461,8 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
         // if the player is saved before worldportack (at logout for example)
         // this will be used instead of the current location in SaveToDB
 
+        SetTeleportState(TeleportState::WaitingForSuspendTokenResponse);
+
         if (!GetSession()->PlayerLogout())
         {
             ++m_newWorldCounter;
@@ -1476,10 +1472,6 @@ bool Player::TeleportTo(TeleportLocation const& teleportLocation, TeleportToOpti
             suspendToken.Reason = options & TELE_TO_SEAMLESS ? 2 : 1;
             SendDirectMessage(suspendToken.Write());
         }
-
-        // move packet sent by client always after far teleport
-        // code for finish transfer to new map called in WorldSession::HandleMoveWorldportAckOpcode at client packet
-        SetSemaphoreTeleportFar(true);
     }
     return true;
 }
