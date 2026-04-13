@@ -597,6 +597,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_balloon_q29791 = 55918;
         static constexpr uint32 npc_balloon_spawned = 55649;
         static constexpr uint32 credit_the_suffering_of_shenzinsu_1 = 56378;
+        static constexpr uint32 npc_shenzinsu_q29791 = 56676;
     }
 
     namespace Objects

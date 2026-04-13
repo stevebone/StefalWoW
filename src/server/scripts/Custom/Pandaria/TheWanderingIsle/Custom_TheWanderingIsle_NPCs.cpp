@@ -2374,8 +2374,6 @@ namespace Scripts::Custom::TheWanderingIsle
     };
 
     // 55918 & 55649
-    // seat 1 85299
-    // seat 2 1217471
     class npc_shang_xi_hot_air_balloon : public CreatureScript
     {
     public:
@@ -2392,6 +2390,10 @@ namespace Scripts::Custom::TheWanderingIsle
             void Reset() override
             {
                 events.Reset();
+                me->SetCanFly(true);
+                me->SetWalk(false);
+                me->SetSpeed(MOVE_RUN, 1.0f);
+                me->SetSpeed(MOVE_FLIGHT, 1.0f);
             }
 
             void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
@@ -2410,29 +2412,126 @@ namespace Scripts::Custom::TheWanderingIsle
                     if (passenger->GetTypeId() == TYPEID_PLAYER)
                     {
                         passenger->ToPlayer()->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_1);
-
-                        // Get GUIDs of Aysa and Ji when player is in
-                        Vehicle* vehicle = me->GetVehicleKit();
-                        Unit* Aysa = vehicle->GetPassenger(1);
-                        if (Aysa)
-                            AysaGUID = Aysa->GetGUID();
-
-                        Unit* Ji = vehicle->GetPassenger(2);
-                        if (Ji)
-                            JiGUID = Ji->GetGUID();
-
                         passenger->ToPlayer()->DisableMirrorTimer(FATIGUE_TIMER);
                         PhasingHandler::OnConditionChange(passenger, true);
+                    }
+
+                    else
+                    {
+                        // Get GUIDs of Aysa and Ji when they board in
+                        if (Creature* creature = passenger->ToCreature())
+                        {
+                            if(creature->GetEntry() == Npcs::npc_aysa_q29791)
+                                AysaGUID = creature->GetGUID();
+
+                            if (creature->GetEntry() == Npcs::npc_ji_q29791)
+                                JiGUID = creature->GetGUID();
+                        }
                     }
                 }
             }
 
-            void MovementInform(uint32 /*type*/, uint32 pointId) override
+            void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
                 if (me->GetEntry() == Npcs::npc_balloon_spawned)
                 {
-                    switch (pointId)
+                    Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID);
+                    Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID);
+
+                    switch (nodeId)
                     {
+                    case 0:
+                    {
+                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                        if (!player || !aysa || !ji)
+                            break;
+
+                        scheduler.Schedule(2s, [ji, player](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(0, player);
+                            });
+
+                        scheduler.Schedule(5s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(0);
+                            });
+
+                        scheduler.Schedule(10s, [ji](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(1);
+                            });
+
+                        break;
+                    }
+
+                    case 1:
+                    {
+                        me->SetSpeed(MOVE_RUN, 2.0f);
+                        me->SetSpeed(MOVE_FLIGHT, 2.0f);
+
+                        if (!aysa || !ji)
+                            break;
+
+                        scheduler.Schedule(1s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(1);
+                            });
+
+                        scheduler.Schedule(5s, [ji](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(2);
+                            });
+
+                        scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(2);
+                            });
+
+                        break;
+                    }
+
+                    case 3:
+                    {
+                        Creature* shenzinsu = me->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_shenzinsu_q29791, .IgnorePhases = true });
+                        if (!shenzinsu || !aysa)
+                            break;
+
+                        aysa->CastSpell(shenzinsu, 114888, true);
+
+                        scheduler.Schedule(7s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(3);
+                            });
+
+                        break;
+                    }
+
+                    case 4:
+                    {
+                        Creature* shenzinsu = me->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_shenzinsu_q29791, .IgnorePhases = true });
+                        if (shenzinsu)
+                        {
+                            me->CastSpell(shenzinsu, 114898, true);
+                            me->CastSpell(shenzinsu, 106759, true);
+
+                            scheduler.Schedule(2s, [shenzinsu](TaskContext /*task*/)
+                                {
+                                    shenzinsu->AI()->Talk(0);
+                                });
+
+                            scheduler.Schedule(7s, [shenzinsu](TaskContext /*task*/)
+                                {
+                                    shenzinsu->AI()->Talk(1);
+                                });
+
+                        }
+                        break;
+                    }
+
+                    case 5:
+                    {
+                        break;
+                    }
                     default:
                         break;
                     }
@@ -2442,6 +2541,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void UpdateAI(uint32 diff) override
             {
                 events.Update(diff);
+                scheduler.Update(diff);
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -2484,6 +2584,7 @@ namespace Scripts::Custom::TheWanderingIsle
             ObjectGuid  AysaGUID;
             ObjectGuid  BalloonGUID;
             EventMap    events;
+            TaskScheduler scheduler;
         };
 
         CreatureAI* GetAI(Creature* c) const override

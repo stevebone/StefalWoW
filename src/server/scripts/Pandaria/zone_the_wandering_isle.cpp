@@ -1543,17 +1543,6 @@ struct npc_hot_air_balloon_from_spell : public ScriptedAI
 
         summoner->CastSpell(me, 46598, true);
 
-/*        if (Creature* aysa = GetClosestCreatureWithEntry(me, NPC_AYSA_AT_BALLOON_SPAWN, 20.0f))
-        {
-            TC_LOG_DEBUG("scripts.ai", "We have found Aysa spawned from spell");
-            if (aysa->AI()->DoCast(me, 63313))
-                TC_LOG_DEBUG("scripts.ai", "We have AI Aysa spell cast on balloon");
-            else if(aysa->CastSpell(me, 63313, true))
-                TC_LOG_DEBUG("scripts.ai", "We have Aysa spell cast on balloon");
-            else
-                me->CastSpell(aysa, 106617, true);
-        }*/
-
         if (Creature* balloon = GetClosestCreatureWithEntry(me, NPC_HOT_AIR_BALLOON, 10.0f))
         {
             TC_LOG_DEBUG("scripts.ai", "We have found balloon");
