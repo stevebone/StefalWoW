@@ -238,7 +238,6 @@ Player::Player(WorldSession* session) : Unit(true), m_sceneMgr(this)
     m_MirrorTimer.fill(DISABLED_MIRROR_TIMER);
     m_MirrorTimerFlags = UNDERWATER_NONE;
     m_MirrorTimerFlagsLast = UNDERWATER_NONE;
-    memset(_disabledMirrorTimers, 0, sizeof(_disabledMirrorTimers));
 
     m_hostileReferenceCheckTimer = 0;
     m_drunkTimer = 0;
@@ -788,14 +787,6 @@ void Player::HandleDrowning(uint32 time_diff)
     // In dark water
     if (m_MirrorTimerFlags & UNDERWATER_INDARKWATER)
     {
-        // Custom: disable fatigue if requested (balloon ride, scripted events, etc.)
-        if (IsMirrorTimerDisabled(FATIGUE_TIMER))
-        {
-            // Keep timer at full so the client shows no bar
-            m_MirrorTimer[FATIGUE_TIMER] = getMaxTimer(FATIGUE_TIMER);
-            return;
-        }
-
         // Fatigue timer not activated - activate it
         if (m_MirrorTimer[FATIGUE_TIMER] == DISABLED_MIRROR_TIMER)
         {
@@ -32231,21 +32222,4 @@ void Player::InitAdvancedFly()
         { SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION,       flightCapabilityEntry->OverMaxDeceleration,         {}                                                  },
         { SMSG_MOVE_SET_ADV_FLYING_LAUNCH_SPEED_COEFFICIENT,    flightCapabilityEntry->LaunchSpeedCoefficient,      {}                                                  },
     };
-}
-
-void Player::DisableMirrorTimer(MirrorTimerType type)
-{
-    if (type < MAX_TIMERS)
-        _disabledMirrorTimers[type] = true;
-}
-
-void Player::EnableMirrorTimer(MirrorTimerType type)
-{
-    if (type < MAX_TIMERS)
-        _disabledMirrorTimers[type] = false;
-}
-
-bool Player::IsMirrorTimerDisabled(MirrorTimerType type) const
-{
-    return type < MAX_TIMERS && _disabledMirrorTimers[type];
 }
