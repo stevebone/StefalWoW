@@ -1772,63 +1772,7 @@ private:
     ObjectGuid _passengerGuid;
 };
 
-struct npc_shenzinsu : public ScriptedAI
-{
-    npc_shenzinsu(Creature* creature) : ScriptedAI(creature) { }
 
-    void Initialize()
-    {
-        _hitCount = 0;
-    }
-
-    void Reset() override
-    {
-        Initialize();
-        me->setActive(true);
-    }
-
-    void SpellHit(WorldObject* caster, SpellInfo const* spell) override
-    {
-        switch (spell->Id)
-        {
-        case SPELL_TRIGGER_WITH_ANIM_0:
-            me->Talk(TEXT_1, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
-            me->PlayDirectSound(27822, caster->ToPlayer());
-            break;
-        case SPELL_TRIGGER:
-            me->Talk(TEXT_2, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
-            me->PlayDirectSound(27823, caster->ToPlayer());
-            break;
-        case SPELL_TRIGGER_WITH_ANIM_1:
-            if (_hitCount == 0)
-            {
-                me->Talk(TEXT_3, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
-                me->PlayDirectSound(27824, caster->ToPlayer());
-                _hitCount++;
-            }
-            else if (_hitCount == 1)
-            {
-                me->Talk(TEXT_4, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
-                me->PlayDirectSound(27825, caster->ToPlayer());
-                _hitCount++;
-            }
-            else if (_hitCount == 2)
-            {
-                me->Talk(TEXT_6, CHAT_MSG_MONSTER_SAY, 350.0f, caster);
-                me->PlayDirectSound(27827, caster->ToPlayer());
-                _hitCount = 0;
-            }
-            break;
-        case SPELL_TRIGGER_WITH_TURN:
-            me->Talk(TEXT_5, CHAT_MSG_MONSTER_SAY, 300.0f, caster);
-            me->PlayDirectSound(27826, caster->ToPlayer());
-            break;
-        }
-    }
-
-private:
-    uint8 _hitCount;
-};
 
 void AddSC_zone_the_wandering_isle()
 {
@@ -1847,7 +1791,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
     RegisterCreatureAI(npc_hot_air_balloon_from_spell);
-    RegisterCreatureAI(npc_shenzinsu);
     
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);

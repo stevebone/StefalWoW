@@ -409,18 +409,21 @@ WHERE `guid` IN (
 -- NPC: 65107 Huo stationary
 -- NPC: 56012 Elder Shaopai
 
-UPDATE `creature` SET `PhaseId` = 1885 WHERE `guid` IN (451656,451644,451654,451635,451638,451715,451652,451634);
+DELETE FROM `creature` WHERE `guid` IN (451635, 451634); -- Ji and huo are spawned by the vehicle
+UPDATE `creature` SET `PhaseId` = 1885 WHERE `guid` IN (451656,451644,451654,451638,451715,451652);
 
 UPDATE `creature_template` SET `VehicleId` = '1820', `ScriptName` = 'npc_shang_xi_hot_air_balloon' WHERE (`entry` = '55649');
 UPDATE `creature_template` SET `VehicleId` = '1887', `ScriptName` = 'npc_shang_xi_hot_air_balloon' WHERE (`entry` = '55918');
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55649, 55918, 56661, 56662,56663);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55649, 55918, 56661, 56662,56663, 56676);
 INSERT INTO `creature_template_addon` VALUES
-('55649', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', ''),
-('55918', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '3', ''),
+('55649', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', ''), -- Spawned Balloon
+('55918', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '3', ''), -- Balloon
 ('56661', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '63313'),
 ('56662', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
-('56663', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '46598 49414');
+('56663', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '46598 49414'),
+('56676', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '4', ''); -- Shen-zin Su
+
 
 
 DELETE FROM `vehicle_template` WHERE `creatureId` IN (55649, 55918);
@@ -433,7 +436,7 @@ INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`,
 ('55649', '56660', '2', '1', 'Ji on the balloon', '8', '0', '46598'),
 ('55649', '65107', '3', '1', 'Huo on the balloon', '8', '0', '46598'),
 ('55649', '65102', '4', '1', 'Dafeng on the balloon', '8', '0', '46598'),
-('55918', '56663', '2', '1', 'Ji on the balloon', '8', '0', '46598'),
+('55918', '56663', '1', '1', 'Ji on the balloon', '8', '0', '46598'),
 ('55918', '65107', '3', '1', 'Huo on the balloon', '8', '0', '46598');
 
 
@@ -443,3 +446,8 @@ INSERT INTO `creature_template_difficulty` VALUES
 ('55649', '0', '0', '0', '80', '4', '30', '1', '1', '1', '29385', '1073741824', '0', '0', '0', '0', '0', '0', '0', '805306368', '0', '262144', '0', '0', '0', '0', '0', '56647'),
 ('55918', '0', '0', '0', '80', '4', '30', '1', '1', '1', '28878', '1610612736', '6', '0', '0', '0', '0', '0', '0', '805306624', '0', '33816576', '0', '0', '0', '0', '0', '56647');
 
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (55649, 55918);
+INSERT INTO `npc_spellclick_spells` (npc_entry, spell_id, cast_flags, user_type) VALUES
+('55649', '46598', '0', '0'),
+('55918', '46598', '0', '0'),
+('55918', '56685', '1', '0');

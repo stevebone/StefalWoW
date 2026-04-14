@@ -2373,6 +2373,24 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    enum ShenZinShuBunnySpells
+    {
+        SPELL_TRIGGER_WITH_ANIM_0 = 114898,
+        SPELL_TRIGGER = 106759,
+        SPELL_TRIGGER_WITH_ANIM_1 = 118571,
+        SPELL_TRIGGER_WITH_TURN = 118572
+    };
+
+    enum ShenZinShuBunnyTexts
+    {
+        TEXT_1 = 55550,
+        TEXT_2 = 55568,
+        TEXT_3 = 55569,
+        TEXT_4 = 55570,
+        TEXT_5 = 55572,
+        TEXT_6 = 63407
+    };
+
     // 55918 & 55649
     class npc_shang_xi_hot_air_balloon : public CreatureScript
     {
@@ -2384,7 +2402,9 @@ namespace Scripts::Custom::TheWanderingIsle
             npc_shang_xi_hot_air_balloonAI(Creature* creature) : ScriptedAI(creature)
             {
                 me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+                //me->SetNpcFlag(UNIT_NPC_FLAG_PLAYER_VEHICLE);
                 me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                //me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
             }
 
             void Reset() override
@@ -2392,8 +2412,8 @@ namespace Scripts::Custom::TheWanderingIsle
                 events.Reset();
                 me->SetCanFly(true);
                 me->SetWalk(false);
-                me->SetSpeed(MOVE_RUN, 1.0f);
-                me->SetSpeed(MOVE_FLIGHT, 1.0f);
+                me->SetSpeed(MOVE_RUN, 3.0f);
+                me->SetSpeed(MOVE_FLIGHT, 3.0f);
             }
 
             void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
@@ -2413,6 +2433,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         passenger->ToPlayer()->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_1);
                         //passenger->ToPlayer()->DisableMirrorTimer(FATIGUE_TIMER);
+                        PlayerGUID = passenger->GetGUID();
                         PhasingHandler::OnConditionChange(passenger, true);
                     }
 
@@ -2435,17 +2456,16 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if (me->GetEntry() == Npcs::npc_balloon_spawned)
                 {
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
                     Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID);
                     Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID);
+                    if (!aysa || !ji || !player)
+                        return;
 
                     switch (nodeId)
                     {
                     case 0:
                     {
-                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                        if (!player || !aysa || !ji)
-                            break;
-
                         scheduler.Schedule(2s, [ji, player](TaskContext /*task*/)
                             {
                                 ji->AI()->Talk(0, player);
@@ -2466,11 +2486,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 1:
                     {
-                        me->SetSpeed(MOVE_RUN, 2.0f);
-                        me->SetSpeed(MOVE_FLIGHT, 2.0f);
-
-                        if (!aysa || !ji)
-                            break;
+                        me->SetSpeed(MOVE_RUN, 4.0f);
+                        me->SetSpeed(MOVE_FLIGHT, 4.0f);
 
                         scheduler.Schedule(1s, [aysa](TaskContext /*task*/)
                             {
@@ -2482,7 +2499,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 ji->AI()->Talk(2);
                             });
 
-                        scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(10s, [aysa](TaskContext /*task*/)
                             {
                                 aysa->AI()->Talk(2);
                             });
@@ -2492,15 +2509,14 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 3:
                     {
-                        Creature* shenzinsu = me->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_shenzinsu_q29791, .IgnorePhases = true });
-                        if (!shenzinsu || !aysa)
-                            break;
-
-                        aysa->CastSpell(shenzinsu, 114888, true);
-
-                        scheduler.Schedule(7s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
                             {
                                 aysa->AI()->Talk(3);
+                            });
+
+                        scheduler.Schedule(18s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(4);
                             });
 
                         break;
@@ -2508,33 +2524,141 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 4:
                     {
-                        Creature* shenzinsu = me->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_shenzinsu_q29791, .IgnorePhases = true });
+                        Creature* shenzinsu = me->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_shenzinsu_bunny, .IgnorePhases = true });
                         if (shenzinsu)
                         {
-                            me->CastSpell(shenzinsu, 114898, true);
-                            me->CastSpell(shenzinsu, 106759, true);
-
-                            scheduler.Schedule(2s, [shenzinsu](TaskContext /*task*/)
+                            shenzinsu->setActive(true);
+                            scheduler.Schedule(0s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->AI()->Talk(0);
+                                    shenzinsu->Talk(TEXT_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    me->PlayDirectSound(27822, player);
                                 });
 
-                            scheduler.Schedule(7s, [shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(16s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->AI()->Talk(1);
+                                    shenzinsu->Talk(TEXT_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    me->PlayDirectSound(27823, player);
                                 });
 
+                            scheduler.Schedule(30s, [this, player, shenzinsu](TaskContext /*task*/)
+                                {
+                                    shenzinsu->Talk(TEXT_3, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    me->PlayDirectSound(27824, player);
+                                });
+
+                            scheduler.Schedule(48s, [this, player, shenzinsu](TaskContext /*task*/)
+                                {
+                                    shenzinsu->Talk(TEXT_4, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    me->PlayDirectSound(27825, player);
+                                });
+
+                            scheduler.Schedule(55s, [aysa](TaskContext /*task*/)
+                                {
+                                    aysa->AI()->Talk(5);
+                                });
+
+                            scheduler.Schedule(70s, [this, player, shenzinsu](TaskContext /*task*/)
+                                {
+                                    shenzinsu->Talk(TEXT_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    me->PlayDirectSound(27826, player);
+                                });
+
+                            scheduler.Schedule(85s, [aysa](TaskContext /*task*/)
+                                {
+                                    aysa->AI()->Talk(6);
+                                });
+
+                            scheduler.Schedule(95s, [this, player, shenzinsu](TaskContext /*task*/)
+                                {
+                                    shenzinsu->Talk(TEXT_6, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    me->PlayDirectSound(27827, player);
+                                });
                         }
                         break;
                     }
 
                     case 5:
                     {
+                        me->SetSpeed(MOVE_RUN, 7.0f);
+                        me->SetSpeed(MOVE_FLIGHT, 7.0f);
+                        break;
+                    }
+
+                    case 8:
+                    {
+                        scheduler.Schedule(1s, [ji](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(3);
+                            });
+
+                        scheduler.Schedule(8s, [ji](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(4);
+                            });
+
+                        scheduler.Schedule(15s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(7);
+                            });
+
+                        break;
+                    }
+
+                    case 11:
+                    {
+                        scheduler.Schedule(1s, [ji](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(5);
+                            });
+
+                        scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(8);
+                            });
+                        break;
+
+                        scheduler.Schedule(26s, [ji](TaskContext /*task*/)
+                            {
+                                ji->AI()->Talk(6);
+                            });
+
+                        scheduler.Schedule(37s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(9);
+                            });
+                        break;
+                    }
+
+                    case 17:
+                    {
+                        scheduler.Schedule(5s, [aysa](TaskContext /*task*/)
+                            {
+                                aysa->AI()->Talk(10);
+                            });
+                        player->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_2);
                         break;
                     }
                     default:
                         break;
                     }
+                }
+            }
+
+            void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+            {
+                if (pathId == 5564900)
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                    if (player)
+                    {
+                        me->CastSpell(player, SpellsBalloonEvent::spell_eject_passenger_1, true);
+
+                        scheduler.Schedule(2s, [this, player](TaskContext /*task*/)
+                            {
+                                me->CastSpell(player, SpellsBalloonEvent::spell_parachute, true);
+                            });
+                    }
+                    me->DespawnOrUnsummon(30s);
                 }
             }
 
@@ -2552,8 +2676,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         Creature* Aysa = me->FindNearestCreature(Npcs::npc_aysa_q29790, 10.f);
                         if (Aysa)
                         {
-                            Vehicle* vehicle = me->GetVehicleKit();
-                            Aysa->EnterVehicle(vehicle->GetBase(), 1);
+                            Aysa->CastSpell(me, SpellsCartOx::spell_force_vehicle_ride, true);
                             events.ScheduleEvent(EventsBalloonEvent::event_spawn_balloon, 2s);
                         }
                         break;
@@ -2562,7 +2685,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     case EventsBalloonEvent::event_spawn_balloon:
                     {
                         Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                        Creature* spawnedBalloon = player->SummonCreature(Npcs::npc_balloon_spawned, player->GetPosition());
+                        Creature* spawnedBalloon = player->SummonCreature(Npcs::npc_balloon_spawned, me->GetPosition());
                         if (spawnedBalloon)
                         {
                             BalloonGUID = spawnedBalloon->GetGUID();

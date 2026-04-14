@@ -24,6 +24,7 @@
 #include "CreatureAI.h"
 #include "DB2Stores.h"
 #include "MotionMaster.h"
+#include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"

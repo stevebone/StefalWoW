@@ -190,6 +190,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_summon_shang_q29787 = 105333;
     }
 
+    namespace SpellsBalloonEvent
+    {
+        static constexpr uint32 spell_credit_speak_with_shenzinsu = 105010;
+        static constexpr uint32 spell_eject_passenger_1 = 60603;
+        static constexpr uint32 spell_parachute = 45472;
+    }
+
     namespace TalksQ29423
     {
         static constexpr int8 chia_hui_autumnleaf_talk = 0;
@@ -597,7 +604,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_balloon_q29791 = 55918;
         static constexpr uint32 npc_balloon_spawned = 55649;
         static constexpr uint32 credit_the_suffering_of_shenzinsu_1 = 56378;
-        static constexpr uint32 npc_shenzinsu_q29791 = 56676;
+        static constexpr uint32 credit_the_suffering_of_shenzinsu_2 = 55939;
+        static constexpr uint32 npc_shenzinsu_bunny = 56676;
     }
 
     namespace Objects

@@ -200,7 +200,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56662', '2', '0', 'Hop in.', '12', '0', '100', '1', '0', '27429', '55551', '0', 'Aysa Cloudsinger to Player'),
 ('56663', '0', '0', 'Or if you want to wander the woods a while, Aysa and I can hang out here.  You know... just the two of us.', '12', '0', '100', '1', '0', '27296', '55552', '0', 'Ji Firepaw to Player');
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (56660, 56661);
+DELETE FROM `creature_text` WHERE `creatureID` IN (56660, 56661, 56676);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 ('56660', '0', '0', '$p, where\'s Master Shang?', '12', '0', '100', '6', '0', '27297', '0', '55554', '0', 'Ji Firepaw to Aysa Cloudsinger'),
 ('56660', '1', '0', 'Bah, let a pandaren hope, would you?  I\'m going to miss the old man.', '12', '0', '100', '1', '0', '27298', '0', '55556', '0', 'Ji Firepaw to Aysa Cloudsinger'),
@@ -219,4 +219,11 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56661', '7', '0', 'We\'ll know soon enough.', '12', '0', '100', '1', '0', '27438', '0', '55576', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
 ('56661', '8', '0', 'It is a boat... a whole airship!  That\'s a bigger thorn than I was expecting.', '12', '0', '100', '1', '0', '27439', '0', '55578', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
 ('56661', '9', '0', 'Someone has crashed into our island.  Removing this thorn may be more complicated than we thought.', '12', '0', '100', '1', '0', '27440', '0', '55581', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
-('56661', '10', '0', 'We should let Elder Shaopai know and then plan our next move.', '12', '0', '100', '1', '0', '27441', '0', '55582', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon');
+('56661', '10', '0', 'We should let Elder Shaopai know and then plan our next move.', '12', '0', '100', '1', '0', '27441', '0', '55582', '0', 'Aysa Cloudsinger to Shang Xi\'s Hot Air Balloon'),
+('56676', '0', '0', 'I am in pain, but it warms my heart that Liu Lang\'s grandchildren have not forgotten me.', '12', '0', '100', '0', '0', '27822', '0', '55550', '0', 'Shen-zin Su to Player'),
+('56676', '1', '0', 'There is a thorn in my side.  I cannot remove it.', '12', '0', '100', '0', '0', '27823', '0', '55568', '0', 'Shen-zin Su to Player'),
+('56676', '2', '0', 'The pain is unbearable, and I can no longer swim straight.', '12', '0', '100', '0', '0', '27824', '0', '55569', '0', 'Shen-zin Su to Player'),
+('56676', '3', '0', 'Please grandchildren, can you remove this thorn?  I cannot do so on my own.', '12', '0', '100', '0', '0', '27825', '0', '55570', '0', 'Shen-zin Su to Player'),
+('56676', '4', '0', 'It is in the forest where your feet do not walk.  Continue along the mountains and you will find it.', '12', '0', '100', '0', '0', '27826', '0', '55572', '0', 'Shen-zin Su to Player'),
+('56676', '5', '0', 'Thank you, grandchildren.', '12', '0', '100', '0', '0', '27827', '0', '63407', '0', 'Shen-zin Su to Player');
+
