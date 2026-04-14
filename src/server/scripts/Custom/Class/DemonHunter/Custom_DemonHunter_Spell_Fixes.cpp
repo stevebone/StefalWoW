@@ -36,6 +36,7 @@
 #include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
+#include "TemporarySummon.h"
 
 #include "Containers.h"
 #include "Cell.h"
