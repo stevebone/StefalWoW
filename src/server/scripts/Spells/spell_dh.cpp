@@ -70,6 +70,7 @@ enum DemonHunterSpells
     SPELL_DH_CONSUME_SOUL_HAVOC_DEMON              = 228556,
     SPELL_DH_CONSUME_SOUL_HAVOC_LESSER             = 228542,
     SPELL_DH_CONSUME_SOUL_HAVOC_SHATTERED          = 228540,
+    SPELL_DH_CONSUME_SOUL_SPAWN                    = 1223448,
     SPELL_DH_CONSUME_SOUL_VENGEANCE_DEMON          = 210050,
     SPELL_DH_CONSUME_SOUL_VENGEANCE_LESSER         = 208014,
     SPELL_DH_CONSUME_SOUL_VENGEANCE_SHATTERED      = 210047,
@@ -135,6 +136,12 @@ enum DemonHunterSpells
     SPELL_DH_GLIDE_DURATION                        = 197154,
     SPELL_DH_GLIDE_KNOCKBACK                       = 196353,
     SPELL_DH_HAVOC_MASTERY                         = 185164,
+    SPELL_DH_HUNGERING_SLASH_PASSIVE               = 1239519,
+    SPELL_DH_HUNGERING_SLASH_OVERRIDE              = 1239525,
+    SPELL_DH_HUNGERING_SLASH                       = 1239123,
+    SPELL_DH_HUNGERING_SLASH_DAMAGE                = 1239127,
+    SPELL_DH_HUNGERING_SLASH_FURY                  = 1239507,
+    SPELL_DH_HUNGERING_SLASH_VOIDSTEP              = 1223157,
     SPELL_DH_ILLIDANS_GRASP                        = 205630,
     SPELL_DH_ILLIDANS_GRASP_DAMAGE                 = 208618,
     SPELL_DH_ILLIDANS_GRASP_JUMP_DEST              = 208175,
@@ -246,8 +253,13 @@ enum DemonHunterSpells
     SPELL_DH_VENGEFUL_RETREAT_TRIGGER              = 198793,
     SPELL_DH_VOIDBLADE_CHARGE                      = 1241285,
     SPELL_DH_VOIDBLADE_DAMAGE                      = 1245414,
+    SPELL_DH_VOIDFALL_PASSIVE                      = 1253304,
+    SPELL_DH_VOIDFALL_STACK                        = 1256301,
+    SPELL_DH_VOIDFALL_METEOR_VENGEANCE             = 1256303,
+    SPELL_DH_VOIDFALL_METEOR_HAVOC                 = 1256304,
     SPELL_DH_VOIDGLARE_BOON_ENERGIZE               = 1241922,
     SPELL_DH_VOIDGLARE_BOON_TALENT                 = 1240202,
+    SPELL_DH_VOIDSTEP_DAMAGE                       = 1239526,
     SPELL_DH_VOID_RAY_DAMAGE                       = 1213649,
     SPELL_DH_WAVE_OF_DEBILITATION_TALENT           = 452403,
     SPELL_DH_WAVE_OF_DEBILITATION_SLOW             = 453263,
@@ -576,15 +588,33 @@ class spell_dh_consume_energize : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo ({ SPELL_DH_CONSUME_ENERGIZE });
+        return ValidateSpellInfo({ SPELL_DH_CONSUME_ENERGIZE, SPELL_DH_CONSUME_SOUL_SPAWN, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT,
+            SPELL_DH_VOIDFALL_STACK, SPELL_DH_VOIDFALL_METEOR_VENGEANCE, SPELL_DH_VOIDFALL_METEOR_HAVOC });
     }
 
     void HandleAfterCast() const
     {
-        GetCaster()->CastSpell(GetCaster(), SPELL_DH_CONSUME_ENERGIZE, CastSpellExtraArgsInit{
+        Unit* caster = GetCaster();
+        Unit* target = GetExplTargetUnit();
+
+        caster->CastSpell(caster, SPELL_DH_CONSUME_ENERGIZE, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = GetSpell()
         });
+
+        if (target)
+        {
+            // 1223448 - lesser soul fragment (left)
+            target->CastSpell(caster, SPELL_DH_CONSUME_SOUL_SPAWN, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = GetSpell()
+                });
+            // 1223445 - lesser soul fragment (right)
+            target->CastSpell(caster, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = GetSpell()
+                });
+        }
     }
 
     void Register() override
@@ -2089,9 +2119,55 @@ struct at_dh_shattered_souls : public AreaTriggerAI
 {
     using AreaTriggerAI::AreaTriggerAI;
 
+    uint32 _spawnDelay = 500;
+
+    void OnUpdate(uint32 diff) override
+    {
+        if (!_spawnDelay)
+            return;
+
+        if (_spawnDelay > diff)
+        {
+            _spawnDelay -= diff;
+            return;
+        }
+
+        _spawnDelay = 0;
+
+        // Check if caster is already inside now that delay expired
+        if (Unit* caster = at->GetCaster())
+            if (at->GetInsideUnits().count(caster->GetGUID()))
+                Collect(caster);
+    }
+
     void OnUnitEnter(Unit* unit) override
     {
+        if (_spawnDelay)
+            return;
+
+        Collect(unit);
+    }
+
+    void Collect(Unit* unit)
+    {
         unit->CastSpell(at->GetPosition(), SpellId, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_PASSIVE) && !unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+            unit->CastSpell(unit, SPELL_DH_VOID_METAMORPHOSIS_COUNTER,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && unit->HasAura(SPELL_DH_COLLAPSING_STAR_PASSIVE))
+            unit->CastSpell(unit, SPELL_DH_COLLAPSING_STAR_COUNTER,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && unit->HasAura(SPELL_DH_EMPTINESS_PASSIVE))
+            unit->CastSpell(unit, SPELL_DH_EMPTINESS_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (Aura* fos = unit->GetAura(SPELL_DH_FEAST_OF_SOULS_PASSIVE))
+            if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
+                script->AddStack(unit);
+
         at->Remove();
     }
 
@@ -2486,7 +2562,7 @@ class spell_dh_vengeful_retreat_damage : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_DH_VENGEFUL_BONDS });
+        return ValidateSpellInfo({ SPELL_DH_VENGEFUL_BONDS, SPELL_DH_HUNGERING_SLASH_VOIDSTEP, SPELL_DH_VOIDSTEP_DAMAGE });
     }
 
     void HandleVengefulBonds(std::list<WorldObject*>& targets)
@@ -2495,9 +2571,26 @@ class spell_dh_vengeful_retreat_damage : public SpellScript
             targets.clear();
     }
 
+    void HandleVoidstep() const
+    {
+        Unit* caster = GetCaster();
+
+        // Consume the "temporary charge" (Evasive Action aura) immediately upon cast 
+        // to prevent the player from multi-casting Vengeful Retreat infinitely!
+        caster->RemoveAurasDueToSpell(444929);
+
+        if (!caster->HasAura(SPELL_DH_HUNGERING_SLASH_VOIDSTEP))
+            return;
+
+        caster->CastSpell(caster, SPELL_DH_VOIDSTEP_DAMAGE,
+            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        caster->RemoveAurasDueToSpell(SPELL_DH_HUNGERING_SLASH_VOIDSTEP);
+    }
+
     void Register() override
     {
         OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_dh_vengeful_retreat_damage::HandleVengefulBonds, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+        AfterCast += SpellCastFn(spell_dh_vengeful_retreat_damage::HandleVoidstep);
     }
 };
 
@@ -2531,7 +2624,7 @@ class spell_dh_voidblade : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_DH_VOIDBLADE_CHARGE, SPELL_DH_VOIDBLADE_DAMAGE });
+        return ValidateSpellInfo({ SPELL_DH_VOIDBLADE_CHARGE, SPELL_DH_VOIDBLADE_DAMAGE, SPELL_DH_HUNGERING_SLASH_PASSIVE, SPELL_DH_HUNGERING_SLASH_OVERRIDE });
     }
 
     void HandleCharge(SpellEffIndex /*effIndex*/) const
@@ -2543,9 +2636,18 @@ class spell_dh_voidblade : public SpellScript
         });
     }
 
+    void HandleAfterCast() const
+    {
+        Unit* caster = GetCaster();
+        if (caster->HasAura(SPELL_DH_HUNGERING_SLASH_PASSIVE))
+            caster->CastSpell(caster, SPELL_DH_HUNGERING_SLASH_OVERRIDE,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_dh_voidblade::HandleCharge, EFFECT_0, SPELL_EFFECT_DUMMY);
+        AfterCast += SpellCastFn(spell_dh_voidblade::HandleAfterCast);
     }
 };
 
@@ -2596,29 +2698,6 @@ class spell_dh_voidglare_boon : public AuraScript
     void Register() override
     {
         AfterEffectRemove += AuraEffectRemoveFn(spell_dh_voidglare_boon::HandleEffectRemove, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
-    }
-};
-
-// 473728 - Void Ray
-class spell_dh_void_ray : public AuraScript
-{
-    bool Validate(SpellInfo const* /*spellInfo*/) override
-    {
-        return ValidateSpellInfo({ SPELL_DH_VOID_RAY_DAMAGE });
-    }
-
-    void HandleEffectPeriodic(AuraEffect const* aurEff) const
-    {
-        if (Unit* caster = GetCaster())
-            caster->CastSpell(nullptr, SPELL_DH_VOID_RAY_DAMAGE, CastSpellExtraArgsInit{
-                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-                .TriggeringAura = aurEff
-            });
-    }
-
-    void Register() override
-    {
-        OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_void_ray::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
     }
 };
 
@@ -2738,7 +2817,6 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_voidblade);
     RegisterSpellScript(spell_dh_voidblade_charge);
     RegisterSpellScript(spell_dh_voidglare_boon);
-    RegisterSpellScript(spell_dh_void_ray);
     RegisterSpellScript(spell_dh_wave_of_debilitation);
 
     RegisterAreaTriggerAI(areatrigger_dh_darkness);
