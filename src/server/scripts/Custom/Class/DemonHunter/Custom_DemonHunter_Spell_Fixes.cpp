@@ -32,6 +32,7 @@
 #include "ObjectAccessor.h"
 #include "Object.h"
 #include "Position.h"
+#include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 
@@ -2650,6 +2651,15 @@ namespace Scripts::Custom::DemonHunter
     // 203783 - Shear proc
     class spell_dh_shear_proc : public AuraScript
     {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::spell_dh_shattered_soul_lesser_right,
+                Spells::spell_dh_shattered_soul_lesser_left,
+                Spells::spell_dh_shatter_the_souls,
+                Spells::spell_dh_felblade,
+                Spells::spell_dh_shear });
+        }
+
         void OnProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
         {
             PreventDefaultAction();
@@ -2658,28 +2668,48 @@ namespace Scripts::Custom::DemonHunter
             if (!caster || !eventInfo.GetSpellInfo())
                 return;
 
-            int32 procChance = 100;
+            SpellInfo const* spell = eventInfo.GetSpellInfo();
 
-            // Shear cast ? 15% + Shatter the Souls bonus
-            if (eventInfo.GetSpellInfo()->Id == Spells::spell_dh_shear)
+            // ============================================================
+            // EFFECT 1: Soul Fragment proc (Shear only)
+            // ============================================================
+            if (spell->Id == Spells::spell_dh_shear)
             {
-                procChance = 15;
+                int32 soulChance = 15; // base Shear chance
 
-                // Shatter the Souls bonus
-                if (AuraEffect* shatterEff = caster->GetAuraEffect(Spells::spell_dh_shatter_the_souls, EFFECT_0))
-                    procChance += shatterEff->GetAmount();
+                // Shatter the Souls bonus (only below 50% HP)
+                if (caster->HealthBelowPct(50))
+                {
+                    if (AuraEffect* shatterEff = caster->GetAuraEffect(Spells::spell_dh_shatter_the_souls, EFFECT_0))
+                        soulChance += shatterEff->GetAmount(); // +5% per rank
+                }
+
+                if (roll_chance(soulChance))
+                {
+                    // Spawn a Lesser Soul Fragment (retail-accurate)
+                    ShatterLesserSoulFragment(*this, eventInfo);
+                }
             }
 
-            // Only attempt reset if Felblade is on cooldown
+            // ============================================================
+            // EFFECT 2: Felblade cooldown reset
+            // ============================================================
             if (caster->GetSpellHistory()->HasCooldown(Spells::spell_dh_felblade))
             {
-                // Shear passive aura contains the proc chance in EFFECT_3
+                // Passive aura stores the Felblade reset chance in EFFECT_3
                 AuraEffect* shearEff = caster->GetAuraEffect(Spells::spell_dh_shear_passive, EFFECT_3);
-                int32 chance = shearEff ? shearEff->GetAmount() : 0;
+                int32 resetChance = shearEff ? shearEff->GetAmount() : 0;
 
-                if (roll_chance(chance))
+                if (roll_chance(resetChance))
                     caster->GetSpellHistory()->ResetCooldown(Spells::spell_dh_felblade);
             }
+        }
+
+        static void ShatterLesserSoulFragment(AuraScript const&, ProcEventInfo const& procEvent)
+        {
+            procEvent.GetActionTarget()->CastSpell(procEvent.GetActor(),
+                Trinity::Containers::SelectRandomContainerElement(std::array{ Spells::spell_dh_shattered_soul_lesser_right, Spells::spell_dh_shattered_soul_lesser_left }),
+                TRIGGERED_DONT_REPORT_CAST_ERROR);
         }
 
         void Register() override

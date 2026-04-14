@@ -327,4 +327,5 @@ REPLACE INTO `areatrigger_scripts` VALUES (9695, 'at_dh_mana_rift');
 REPLACE INTO `areatrigger_scripts` VALUES (6482, 'at_dh_demonic_trample');
 
 DELETE FROM `areatrigger_create_properties` WHERE `ScriptName` IN ('at_dh_demonic_trample');
-INSERT INTO `areatrigger_create_properties` VALUES (6482, 1, 11107, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'at_dh_demonic_trample', 40120);
+INSERT INTO `areatrigger_create_properties` (id, IsCustom, AreaTriggerId, IsAreatriggerCustom, ScriptName, VerifiedBuild) VALUES 
+(6482, 1, 11107, 1, 'at_dh_demonic_trample', 40120);
