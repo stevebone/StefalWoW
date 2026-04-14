@@ -286,7 +286,7 @@ struct at_waycrest_manor_organ_missiles : AreaTriggerAI
 
     void OnCreate(Spell const* /*creatingSpell*/) override
     {
-        _scheduler.Schedule(100ms, 300ms, [this](TaskContext task)
+        _scheduler.Schedule(100ms, 300ms, [this](TaskContext& task)
         {
             if (Unit* caster = at->GetCaster())
                 caster->CastSpell(at->GetPosition(), SPELL_ORGAN_MISSILES, TRIGGERED_IGNORE_CAST_IN_PROGRESS);

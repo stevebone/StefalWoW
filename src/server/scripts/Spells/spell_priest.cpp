@@ -1474,7 +1474,7 @@ struct areatrigger_pri_divine_star : AreaTriggerAI
 
     void ReturnToCaster()
     {
-        _scheduler.Schedule(0ms, [this](TaskContext task)
+        _scheduler.Schedule(0ms, [this](TaskContext& task)
         {
             Unit* caster = at->GetCaster();
             if (!caster)
@@ -1858,7 +1858,7 @@ struct areatrigger_pri_entropic_rift : public AreaTriggerAI
         caster->CastSpell(caster, SPELL_PRIEST_ENTROPIC_RIFT_PERIODIC, args);
 
         UpdateMovement();
-        _scheduler.Schedule(500ms, [this](TaskContext task)
+        _scheduler.Schedule(500ms, [this](TaskContext& task)
         {
             UpdateMovement();
             task.Repeat(500ms);
