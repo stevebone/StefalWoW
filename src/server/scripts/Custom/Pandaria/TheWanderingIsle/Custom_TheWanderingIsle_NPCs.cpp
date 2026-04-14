@@ -2314,7 +2314,6 @@ namespace Scripts::Custom::TheWanderingIsle
                         PhasingHandler::AddPhase(player, 1527, true);
                     }
 
-
                     me->DespawnOrUnsummon();
                 }
             }
@@ -2373,24 +2372,6 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    enum ShenZinShuBunnySpells
-    {
-        SPELL_TRIGGER_WITH_ANIM_0 = 114898,
-        SPELL_TRIGGER = 106759,
-        SPELL_TRIGGER_WITH_ANIM_1 = 118571,
-        SPELL_TRIGGER_WITH_TURN = 118572
-    };
-
-    enum ShenZinShuBunnyTexts
-    {
-        TEXT_1 = 55550,
-        TEXT_2 = 55568,
-        TEXT_3 = 55569,
-        TEXT_4 = 55570,
-        TEXT_5 = 55572,
-        TEXT_6 = 63407
-    };
-
     // 55918 & 55649
     class npc_shang_xi_hot_air_balloon : public CreatureScript
     {
@@ -2402,9 +2383,7 @@ namespace Scripts::Custom::TheWanderingIsle
             npc_shang_xi_hot_air_balloonAI(Creature* creature) : ScriptedAI(creature)
             {
                 me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
-                //me->SetNpcFlag(UNIT_NPC_FLAG_PLAYER_VEHICLE);
                 me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-                //me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
             }
 
             void Reset() override
@@ -2489,10 +2468,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         me->SetSpeed(MOVE_RUN, 4.0f);
                         me->SetSpeed(MOVE_FLIGHT, 4.0f);
 
-                        scheduler.Schedule(1s, [aysa](TaskContext /*task*/)
-                            {
-                                aysa->AI()->Talk(1);
-                            });
+                        aysa->AI()->Talk(1);
 
                         scheduler.Schedule(5s, [ji](TaskContext /*task*/)
                             {
@@ -2528,49 +2504,46 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (shenzinsu)
                         {
                             shenzinsu->setActive(true);
-                            scheduler.Schedule(0s, [this, player, shenzinsu](TaskContext /*task*/)
-                                {
-                                    shenzinsu->Talk(TEXT_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                                    me->PlayDirectSound(27822, player);
-                                });
+                            shenzinsu->Talk(Misc::shenzinsu_bunny_text_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                            me->PlayDirectSound(27822, player);
 
                             scheduler.Schedule(16s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->Talk(TEXT_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27823, player);
                                 });
 
                             scheduler.Schedule(30s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->Talk(TEXT_3, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_3, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27824, player);
                                 });
 
                             scheduler.Schedule(48s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->Talk(TEXT_4, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_4, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27825, player);
                                 });
 
-                            scheduler.Schedule(55s, [aysa](TaskContext /*task*/)
+                            scheduler.Schedule(63s, [aysa](TaskContext /*task*/)
                                 {
                                     aysa->AI()->Talk(5);
                                 });
 
-                            scheduler.Schedule(70s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(75s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->Talk(TEXT_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27826, player);
                                 });
 
-                            scheduler.Schedule(85s, [aysa](TaskContext /*task*/)
+                            scheduler.Schedule(90s, [aysa](TaskContext /*task*/)
                                 {
                                     aysa->AI()->Talk(6);
                                 });
 
-                            scheduler.Schedule(95s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(105s, [this, player, shenzinsu](TaskContext /*task*/)
                                 {
-                                    shenzinsu->Talk(TEXT_6, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_6, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27827, player);
                                 });
                         }
@@ -2586,10 +2559,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 8:
                     {
-                        scheduler.Schedule(1s, [ji](TaskContext /*task*/)
-                            {
-                                ji->AI()->Talk(3);
-                            });
+                        ji->AI()->Talk(3);
 
                         scheduler.Schedule(8s, [ji](TaskContext /*task*/)
                             {
@@ -2606,16 +2576,12 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 11:
                     {
-                        scheduler.Schedule(1s, [ji](TaskContext /*task*/)
-                            {
-                                ji->AI()->Talk(5);
-                            });
+                        ji->AI()->Talk(5);
 
                         scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
                             {
                                 aysa->AI()->Talk(8);
                             });
-                        break;
 
                         scheduler.Schedule(26s, [ji](TaskContext /*task*/)
                             {
@@ -2651,12 +2617,9 @@ namespace Scripts::Custom::TheWanderingIsle
                     Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
                     if (player)
                     {
+                        //player->EnableMirrorTimer(FATIGUE_TIMER);
                         me->CastSpell(player, SpellsBalloonEvent::spell_eject_passenger_1, true);
-
-                        scheduler.Schedule(2s, [this, player](TaskContext /*task*/)
-                            {
-                                me->CastSpell(player, SpellsBalloonEvent::spell_parachute, true);
-                            });
+                        me->CastSpell(player, SpellsBalloonEvent::spell_parachute, true);
                     }
                     me->DespawnOrUnsummon(30s);
                 }

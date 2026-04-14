@@ -65,11 +65,25 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 LAUNCHER_STATE_USED = 2;
         static constexpr uint8 LAUNCHER_STATE_RECHARGING = 3;
 
+        // Balloon Ride Event
+        static constexpr uint32 shenzinsu_bunny_text_1 = 55550;
+        static constexpr uint32 shenzinsu_bunny_text_2 = 55568;
+        static constexpr uint32 shenzinsu_bunny_text_3 = 55569;
+        static constexpr uint32 shenzinsu_bunny_text_4 = 55570;
+        static constexpr uint32 shenzinsu_bunny_text_5 = 55572;
+        static constexpr uint32 shenzinsu_bunny_text_6 = 63407;
     }
 
     namespace SpellsMisc
     {
         static constexpr uint32 spell_ruolin_singing = 126804;
+
+        // Shenzinsu turtle spells - not working
+        // Just for later reference
+        static constexpr uint32 spell_trigger_with_anim_0 = 114898;
+        static constexpr uint32 spell_trigger = 106759;
+        static constexpr uint32 spell_trigger_with_anim_1 = 118571;
+        static constexpr uint32 spell_trigger_with_turn = 118572;
     }
 
     namespace SpellsQ29422
