@@ -998,6 +998,7 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit const* excludeCasterChannel
         if (damagetype != NODAMAGE && damagetype != SELF_DAMAGE && victim->HasAuraType(SPELL_AURA_SCHOOL_ABSORB_OVERKILL))
         {
             AuraEffectVector vAbsorbOverkill = CopyAuraEffectList(victim->GetAuraEffectsByType(SPELL_AURA_SCHOOL_ABSORB_OVERKILL));
+            std::ranges::stable_sort(vAbsorbOverkill, Trinity::AbsorbAuraOrderPred());
             DamageInfo damageInfo = DamageInfo(attacker, victim, damageTaken, spellProto, damageSchoolMask, damagetype,
                 cleanDamage ? cleanDamage->attackType : BASE_ATTACK);
             for (AuraEffect* absorbAurEff : vAbsorbOverkill)
@@ -1011,7 +1012,12 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit const* excludeCasterChannel
                     continue;
 
                 // cannot absorb over limit
-                if (damageTaken >= victim->CountPctFromMaxHealth(100 + absorbAurEff->GetMiscValueB()))
+                if (absorbAurEff->GetAmount() > 0)
+                {
+                    if (damageTaken > absorbAurEff->GetAmount())
+                        continue;
+                }
+                else if (damageTaken >= victim->GetMaxHealth() * 2)
                     continue;
 
                 // absorb all damage by default
@@ -1891,7 +1897,7 @@ void Unit::HandleEmoteCommand(Emote emoteId, Player* target /*=nullptr*/, Trinit
     // We're going to call functions which can modify content of the list during iteration over it's elements
     // Let's copy the list so we can prevent iterator invalidation
     AuraEffectVector vSchoolAbsorbCopy = CopyAuraEffectList(damageInfo.GetVictim()->GetAuraEffectsByType(SPELL_AURA_SCHOOL_ABSORB));
-    std::sort(vSchoolAbsorbCopy.begin(), vSchoolAbsorbCopy.end(), Trinity::AbsorbAuraOrderPred());
+    std::ranges::stable_sort(vSchoolAbsorbCopy, Trinity::AbsorbAuraOrderPred());
 
     // absorb without mana cost
     for (auto itr = vSchoolAbsorbCopy.begin(); (itr != vSchoolAbsorbCopy.end()) && (damageInfo.GetDamage() > 0); ++itr)
@@ -2104,6 +2110,7 @@ void Unit::HandleEmoteCommand(Emote emoteId, Player* target /*=nullptr*/, Trinit
         return;
 
     AuraEffectVector vHealAbsorb = CopyAuraEffectList(healInfo.GetTarget()->GetAuraEffectsByType(SPELL_AURA_SCHOOL_HEAL_ABSORB));
+    std::ranges::stable_sort(vHealAbsorb, Trinity::AbsorbAuraOrderPred());
     for (auto i = vHealAbsorb.begin(); i != vHealAbsorb.end() && healInfo.GetHeal() > 0; ++i)
     {
         AuraEffect* absorbAurEff = *i;
@@ -3338,13 +3345,12 @@ bool Unit::IsOnOceanFloor() const
 
 void Unit::ProcessPositionDataChanged(PositionFullTerrainStatus const& data)
 {
-    ZLiquidStatus oldLiquidStatus = GetLiquidStatus();
     WorldObject::ProcessPositionDataChanged(data);
-    ProcessTerrainStatusUpdate(oldLiquidStatus, data.liquidInfo);
+    UpdateLiquidStatusOnPositionChange(data.liquidInfo);
     SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::CurrentAreaID), data.areaId);
 }
 
-void Unit::ProcessTerrainStatusUpdate(ZLiquidStatus oldLiquidStatus, Optional<LiquidData> const& newLiquidData)
+void Unit::UpdateLiquidStatusOnPositionChange(Optional<LiquidData> const& newLiquidData)
 {
     if (!IsControlledByPlayer())
         return;
@@ -3363,18 +3369,14 @@ void Unit::ProcessTerrainStatusUpdate(ZLiquidStatus oldLiquidStatus, Optional<Li
     {
         if (_lastLiquid && _lastLiquid->SpellID)
             RemoveAurasDueToSpell(_lastLiquid->SpellID);
-        Player* player = GetCharmerOrOwnerPlayerOrPlayerItself();
 
         // Set _lastLiquid before casting liquid spell to avoid infinite loops
         _lastLiquid = curLiquid;
 
+        Player* player = GetCharmerOrOwnerPlayerOrPlayerItself();
         if (curLiquid && curLiquid->SpellID && (!player || !player->IsGameMaster()))
             CastSpell(this, curLiquid->SpellID, true);
     }
-
-    // mount capability depends on liquid state change
-    if (oldLiquidStatus != GetLiquidStatus())
-        UpdateMountCapability();
 }
 
 void Unit::DeMorph()
