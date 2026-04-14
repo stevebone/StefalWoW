@@ -357,7 +357,7 @@ namespace Scripts::Custom::DemonHunter
             return false;
         }
 
-        void Register()
+        void Register() override
         {
             DoCheckProc += AuraCheckProcFn(spell_dh_blade_turning::CheckProc);
         }
@@ -423,7 +423,7 @@ namespace Scripts::Custom::DemonHunter
             caster->CastSpell(caster, Spells::spell_dh_chaos_cleave_proc, CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(damage));
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectProc += AuraEffectProcFn(spell_dh_chaos_cleave::OnProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
         }
@@ -457,7 +457,7 @@ namespace Scripts::Custom::DemonHunter
             caster->CastSpell(nullptr, Spells::spell_dh_chaos_strike_energize, true);
         }
 
-        void Register()
+        void Register() override
         {
             BeforeCast += SpellCastFn(spell_dh_chaos_strike_energize::HandleCast);
         }
@@ -712,7 +712,7 @@ namespace Scripts::Custom::DemonHunter
             caster->CastSpell(caster, spellToCast, true);
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectHit += SpellEffectFn(spell_dh_consume_soul_missile::HandleHit, EFFECT_1, SPELL_EFFECT_TRIGGER_MISSILE);
         }
@@ -778,7 +778,7 @@ namespace Scripts::Custom::DemonHunter
                 absorbAmount = dmgInfo.GetDamage();
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectAbsorb += AuraEffectAbsorbFn(spell_dh_darkness_absorb::OnAbsorb, EFFECT_0);
             DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dh_darkness_absorb::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
@@ -840,7 +840,7 @@ namespace Scripts::Custom::DemonHunter
                 caster->CastSpell(caster, Spells::spell_dh_blur, false);
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectProc += AuraEffectProcFn(spell_dh_desperate_instincts::OnProc, EFFECT_0, SPELL_AURA_TRIGGER_SPELL_ON_HEALTH_PCT);
         }
@@ -1298,7 +1298,7 @@ namespace Scripts::Custom::DemonHunter
             caster->CastSpell(caster, Spells::spell_dh_fel_devastation_dmg, true);
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_fel_devastation_damage::PeriodicTick, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
         }
@@ -1353,7 +1353,7 @@ namespace Scripts::Custom::DemonHunter
             SetHitDamage(GetHitDamage() + target->CountPctFromMaxHealth(pct));
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectHitTarget += SpellEffectFn(spell_dh_fel_lance::HandleHit, EFFECT_1, SPELL_EFFECT_DUMMY);
         }
@@ -1905,7 +1905,7 @@ namespace Scripts::Custom::DemonHunter
             }
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectProc += AuraEffectProcFn(spell_dh_intimidated::OnProc, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN);
         }
@@ -2397,7 +2397,7 @@ namespace Scripts::Custom::DemonHunter
             caster->ModifyPower(POWER_FURY, aurEff->GetAmount() / 10.f);
         }
 
-        void Register()
+        void Register() override
         {
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_prepared::PeriodicTick, EFFECT_0, SPELL_AURA_MOD_POWER_REGEN);
         }
