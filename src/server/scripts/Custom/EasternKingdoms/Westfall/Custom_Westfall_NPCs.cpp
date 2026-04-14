@@ -30,6 +30,8 @@
 #include "ObjectGuid.h"
 #include "MotionMaster.h"
 
+#include <queue>
+
 #include "Custom_Westfall_Defines.h"
 
  /*######
