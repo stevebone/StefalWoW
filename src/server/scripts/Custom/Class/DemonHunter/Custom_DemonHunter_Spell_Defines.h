@@ -263,7 +263,7 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_the_hunt_damage = 1246169;
         static constexpr uint32 spell_dh_voidstep_damage = 1239526;
         static constexpr uint32 spell_dh_vengeful_retreat_damage = 198813;
-        static constexpr uint32 spell_dh_vengeful_retreat_trigger = 198793,
+        static constexpr uint32 spell_dh_vengeful_retreat_trigger = 198793;
 
         static constexpr uint32 spell_dh_emptiness_passive = 1242492;
         static constexpr uint32 spell_dh_emptiness_buff = 1242504;

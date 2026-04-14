@@ -45,6 +45,68 @@
 
 namespace Scripts::Custom::DemonHunter
 {
+    class spell_dh_feast_of_souls_tracker : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::spell_dh_feast_of_souls_buff });
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            GetTarget()->RemoveAura(Spells::spell_dh_feast_of_souls_buff);
+        }
+
+    public:
+        void AddStack(Unit* unit)
+        {
+            Player* player = unit ? unit->ToPlayer() : nullptr;
+            if (!player)
+                return;
+
+            // Compute effective duration: 10s base + Sweet Suffering flat modifier
+            int32 stackDuration = 10000;
+            if (SpellInfo const* buffInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_feast_of_souls_buff, DIFFICULTY_NONE))
+                player->ApplySpellMod(buffInfo, SpellModOp::Duration, stackDuration);
+            stackDuration = std::max(stackDuration, 1000);
+
+            if (Aura* buff = player->GetAura(Spells::spell_dh_feast_of_souls_buff))
+            {
+                buff->SetStackAmount(std::min<uint8>(buff->GetStackAmount() + 1, 20));
+                buff->SetMaxDuration(stackDuration);
+                buff->SetDuration(stackDuration);
+            }
+            else
+            {
+                player->CastSpell(player, Spells::spell_dh_feast_of_souls_buff,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+                if (Aura* buff = player->GetAura(Spells::spell_dh_feast_of_souls_buff))
+                {
+                    buff->SetMaxDuration(stackDuration);
+                    buff->SetDuration(stackDuration);
+                }
+            }
+
+            player->m_Events.AddEventAtOffset([playerGUID = player->GetGUID()]()
+                {
+                    if (Player* p = ObjectAccessor::FindConnectedPlayer(playerGUID))
+                        if (Aura* buff = p->GetAura(Spells::spell_dh_feast_of_souls_buff))
+                        {
+                            uint8 stacks = buff->GetStackAmount();
+                            if (stacks <= 1)
+                                p->RemoveAura(Spells::spell_dh_feast_of_souls_buff);
+                            else
+                                buff->SetStackAmount(stacks - 1);
+                        }
+                }, Milliseconds(stackDuration));
+        }
+
+        void Register() override
+        {
+            AfterEffectRemove += AuraEffectRemoveFn(spell_dh_feast_of_souls_tracker::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
     // Helpers
     static void CollectSoulFragments(Unit* caster, uint32 maxCount, Spell const* triggeringSpell = nullptr)
     {
@@ -77,6 +139,40 @@ namespace Scripts::Custom::DemonHunter
             ++collected;
         }
     }
+
+    // 1253304 - Voidfall passive: Consume hit has 35% chance to grant a stack of 1256301 (max 3)
+    class spell_dh_voidfall_passive : public AuraScript
+    {
+        uint32 _meteorCount = 0;
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::spell_dh_voidfall_stack });
+        }
+
+        static bool CheckProc(AuraScript const& script, ProcEventInfo const& eventInfo)
+        {
+            if (!eventInfo.GetSpellInfo())
+                return false;
+            int32 chance = static_cast<spell_dh_voidfall_passive const&>(script).GetEffect(EFFECT_2)->GetAmount();
+            return roll_chance(chance);
+        }
+
+        void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
+        {
+            GetTarget()->CastSpell(GetTarget(), Spells::spell_dh_voidfall_stack,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+
+    public:
+        uint32 IncrementMeteorCount() { return ++_meteorCount; }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_dh_voidfall_passive::CheckProc);
+            OnEffectProc += AuraEffectProcFn(spell_dh_voidfall_passive::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
 
     class event_dh_dark_matter_meteor : public BasicEvent
     {
@@ -364,6 +460,151 @@ namespace Scripts::Custom::DemonHunter
         void Register()
         {
             BeforeCast += SpellCastFn(spell_dh_chaos_strike_energize::HandleCast);
+        }
+    };
+
+    // 1217607 - Void Metamorphosis (active buff)
+    class spell_dh_void_metamorphosis_buff : public AuraScript
+    {
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            SetMaxDuration(-1);
+            SetDuration(-1);
+
+            Unit* target = GetTarget();
+            target->RemoveAura(Spells::spell_dh_void_metamorphosis_counter);
+
+            if (target->HasAura(Spells::spell_dh_mass_acceleration_passive))
+            {
+                int32 stacks = 0;
+
+                if (AuraEffect* eff = target->GetAuraEffect(Spells::spell_dh_mass_acceleration_passive, EFFECT_0))
+                    stacks = eff->GetAmount();
+
+                for (int32 i = 0; i < stacks; ++i)
+                {
+                    target->CastSpell(
+                        target,
+                        Spells::spell_dh_voidfall_stack,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                    );
+                }
+
+                target->GetSpellHistory()->ResetCooldown(Spells::spell_dh_reap, true);
+            }
+
+            if (target->HasAura(Spells::spell_dh_dark_matter_passive))
+                _darkMatterReady = true;
+
+            if (target->HasAura(Spells::spell_dh_midnight_soul_erupt))
+            {
+                int32 fragments = 0;
+
+                if (AuraEffect* eff = target->GetAuraEffect(Spells::spell_dh_midnight_soul_erupt, EFFECT_0))
+                    fragments = eff->GetAmount();
+
+                for (int32 i = 0; i < fragments; ++i)
+                {
+                    target->CastSpell(
+                        target,
+                        Spells::spell_dh_consume_soul_spawn,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                    );
+                }
+
+                target->CastSpell(
+                    target,
+                    Spells::spell_dh_collapsing_star_override,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                );
+            }
+        }
+
+
+        bool _darkMatterReady = false;
+        float _drainAmount = 10.0f;
+
+    public:
+        bool ConsumeDarkMatter()
+        {
+            if (!_darkMatterReady)
+                return false;
+            _darkMatterReady = false;
+            return true;
+        }
+
+    private:
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* target = GetTarget();
+
+            if (target->HasAura(Spells::spell_dh_void_ray))
+                return;
+
+            // Sniff: 20 Fury/sec base, +2.5/sec per tick (EFFECT_10 BP=25 / 10)
+            // Collapsing Star channel reduces drain by 70%
+            float drain = _drainAmount;
+            if (target->FindCurrentSpellBySpellId(Spells::spell_dh_collapsing_star))
+                drain *= 0.3f;
+            target->ModifyPower(POWER_FURY, -int32(drain));
+            _drainAmount += 1.5f;
+
+            if (target->GetPower(POWER_FURY) <= 0)
+            {
+                target->SetPower(POWER_FURY, 0);
+                Remove();
+            }
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+
+            if (target->HasAura(Spells::spell_dh_rolling_torment_passive))
+            {
+                uint32 unusedFragments = uint32(target->GetAreaTriggers(Spells::spell_dh_soul_fragment_devourer).size());
+
+                if (Aura const* csCounter = target->GetAura(Spells::spell_dh_collapsing_star_counter))
+                    unusedFragments += uint32(csCounter->GetStackAmount());
+
+                if (unusedFragments > 0)
+                {
+                    int32 furyPerFragment = 0;
+
+                    if (AuraEffect* eff = target->GetAuraEffect(Spells::spell_dh_rolling_torment_passive, EFFECT_0))
+                        furyPerFragment = eff->GetAmount();
+
+                    target->ModifyPower(POWER_FURY, furyPerFragment * int32(unusedFragments));
+
+                    for (uint32 i = 0; i < unusedFragments; ++i)
+                    {
+                        target->CastSpell(
+                            target,
+                            Spells::spell_dh_rolling_torment_buff,
+                            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                        );
+                    }
+                }
+            }
+
+            target->RemoveAura(Spells::spell_dh_void_metamorphosis_counter);
+            target->RemoveAura(Spells::spell_dh_collapsing_star_counter);
+            target->RemoveAura(Spells::spell_dh_collapsing_star_override);
+            target->RemoveAura(Spells::spell_dh_emptiness_buff);
+        }
+
+        void PreventBreakableCC(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+        {
+            PreventDefaultAction();
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_dh_void_metamorphosis_buff::HandleApply, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_void_metamorphosis_buff::HandlePeriodic, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_dh_void_metamorphosis_buff::HandleRemove, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            OnEffectProc += AuraEffectProcFn(spell_dh_void_metamorphosis_buff::PreventBreakableCC, EFFECT_11, SPELL_AURA_TRANSFORM);
+            OnEffectProc += AuraEffectProcFn(spell_dh_void_metamorphosis_buff::PreventBreakableCC, EFFECT_12, SPELL_AURA_TRANSFORM);
         }
     };
 
@@ -733,13 +974,13 @@ namespace Scripts::Custom::DemonHunter
     {
         float _appliedHaste = 0.0f;
 
-        void HandleCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+        void HandleCalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& canBeRecalculated)
         {
             amount = 0;
             canBeRecalculated = false;
         }
 
-        void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* target = GetTarget();
             float newHaste = 0.25f * float(GetStackAmount());
@@ -934,68 +1175,6 @@ namespace Scripts::Custom::DemonHunter
         void Register() override
         {
             DoCheckProc += AuraCheckProcFn(spell_dh_eye_of_leotheras::HandleProc);
-        }
-    };
-
-    class spell_dh_feast_of_souls_tracker : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_feast_of_souls_buff });
-        }
-
-        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            GetTarget()->RemoveAura(Spells::spell_dh_feast_of_souls_buff);
-        }
-
-    public:
-        void AddStack(Unit* unit)
-        {
-            Player* player = unit ? unit->ToPlayer() : nullptr;
-            if (!player)
-                return;
-
-            // Compute effective duration: 10s base + Sweet Suffering flat modifier
-            int32 stackDuration = 10000;
-            if (SpellInfo const* buffInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_feast_of_souls_buff, DIFFICULTY_NONE))
-                player->ApplySpellMod(buffInfo, SpellModOp::Duration, stackDuration);
-            stackDuration = std::max(stackDuration, 1000);
-
-            if (Aura* buff = player->GetAura(Spells::spell_dh_feast_of_souls_buff))
-            {
-                buff->SetStackAmount(std::min<uint8>(buff->GetStackAmount() + 1, 20));
-                buff->SetMaxDuration(stackDuration);
-                buff->SetDuration(stackDuration);
-            }
-            else
-            {
-                player->CastSpell(player, Spells::spell_dh_feast_of_souls_buff,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-                if (Aura* buff = player->GetAura(Spells::spell_dh_feast_of_souls_buff))
-                {
-                    buff->SetMaxDuration(stackDuration);
-                    buff->SetDuration(stackDuration);
-                }
-            }
-
-            player->m_Events.AddEventAtOffset([playerGUID = player->GetGUID()]()
-                {
-                    if (Player* p = ObjectAccessor::FindConnectedPlayer(playerGUID))
-                        if (Aura* buff = p->GetAura(Spells::spell_dh_feast_of_souls_buff))
-                        {
-                            uint8 stacks = buff->GetStackAmount();
-                            if (stacks <= 1)
-                                p->RemoveAura(Spells::spell_dh_feast_of_souls_buff);
-                            else
-                                buff->SetStackAmount(stacks - 1);
-                        }
-                }, Milliseconds(stackDuration));
-        }
-
-        void Register() override
-        {
-            AfterEffectRemove += AuraEffectRemoveFn(spell_dh_feast_of_souls_tracker::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
         }
     };
 
@@ -2800,7 +2979,7 @@ namespace Scripts::Custom::DemonHunter
         int32 m_ExtraSpellCost{};
         float m_Modifier = 1.0f;
 
-        void HandleBeforeCast()
+        void HandleOnCast()
         {
             // Compute the modifier once per cast
             m_Modifier = ((float)m_ExtraSpellCost + 300.0f) / 600.0f;
@@ -2836,7 +3015,7 @@ namespace Scripts::Custom::DemonHunter
 
         void Register() override
         {
-            BeforeCast += SpellCastFn(spell_dh_soul_cleave_damage::BeforeCast);
+            BeforeCast += SpellCastFn(spell_dh_soul_cleave_damage::HandleOnCast);
             OnEffectHitTarget += SpellEffectFn(spell_dh_soul_cleave_damage::HandleDamage,
                 EFFECT_1, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
         }
@@ -3302,151 +3481,6 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 1217607 - Void Metamorphosis (active buff)
-    class spell_dh_void_metamorphosis_buff : public AuraScript
-    {
-        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            SetMaxDuration(-1);
-            SetDuration(-1);
-
-            Unit* target = GetTarget();
-            target->RemoveAura(Spells::spell_dh_void_metamorphosis_counter);
-
-            if (target->HasAura(Spells::spell_dh_mass_acceleration_passive))
-            {
-                int32 stacks = 0;
-
-                if (AuraEffect* eff = target->GetAuraEffect(Spells::spell_dh_mass_acceleration_passive, EFFECT_0))
-                    stacks = eff->GetAmount();
-
-                for (int32 i = 0; i < stacks; ++i)
-                {
-                    target->CastSpell(
-                        target,
-                        Spells::spell_dh_voidfall_stack,
-                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
-                    );
-                }
-
-                target->GetSpellHistory()->ResetCooldown(Spells::spell_dh_reap, true);
-            }
-
-            if (target->HasAura(Spells::spell_dh_dark_matter_passive))
-                _darkMatterReady = true;
-
-            if (target->HasAura(Spells::spell_dh_midnight_soul_erupt))
-            {
-                int32 fragments = 0;
-
-                if (AuraEffect* eff = target->GetAuraEffect(Spells::spell_dh_midnight_soul_erupt, EFFECT_0))
-                    fragments = eff->GetAmount();
-
-                for (int32 i = 0; i < fragments; ++i)
-                {
-                    target->CastSpell(
-                        target,
-                        Spells::spell_dh_consume_soul_spawn,
-                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
-                    );
-                }
-
-                target->CastSpell(
-                    target,
-                    Spells::spell_dh_collapsing_star_override,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
-                );
-            }
-        }
-
-
-        bool _darkMatterReady = false;
-        float _drainAmount = 10.0f;
-
-    public:
-        bool ConsumeDarkMatter()
-        {
-            if (!_darkMatterReady)
-                return false;
-            _darkMatterReady = false;
-            return true;
-        }
-
-    private:
-        void HandlePeriodic(AuraEffect const* /*aurEff*/)
-        {
-            Unit* target = GetTarget();
-
-            if (target->HasAura(Spells::spell_dh_void_ray))
-                return;
-
-            // Sniff: 20 Fury/sec base, +2.5/sec per tick (EFFECT_10 BP=25 / 10)
-            // Collapsing Star channel reduces drain by 70%
-            float drain = _drainAmount;
-            if (target->FindCurrentSpellBySpellId(Spells::spell_dh_collapsing_star))
-                drain *= 0.3f;
-            target->ModifyPower(POWER_FURY, -int32(drain));
-            _drainAmount += 1.5f;
-
-            if (target->GetPower(POWER_FURY) <= 0)
-            {
-                target->SetPower(POWER_FURY, 0);
-                Remove();
-            }
-        }
-
-        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            Unit* target = GetTarget();
-
-            if (target->HasAura(Spells::spell_dh_rolling_torment_passive))
-            {
-                uint32 unusedFragments = uint32(target->GetAreaTriggers(Spells::spell_dh_soul_fragment_devourer).size());
-
-                if (Aura const* csCounter = target->GetAura(Spells::spell_dh_collapsing_star_counter))
-                    unusedFragments += uint32(csCounter->GetStackAmount());
-
-                if (unusedFragments > 0)
-                {
-                    int32 furyPerFragment = 0;
-
-                    if (AuraEffect* eff = target->GetAuraEffect(Spells::spell_dh_rolling_torment_passive, EFFECT_0))
-                        furyPerFragment = eff->GetAmount();
-
-                    target->ModifyPower(POWER_FURY, furyPerFragment * int32(unusedFragments));
-
-                    for (uint32 i = 0; i < unusedFragments; ++i)
-                    {
-                        target->CastSpell(
-                            target,
-                            Spells::spell_dh_rolling_torment_buff,
-                            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
-                        );
-                    }
-                }
-            }
-
-            target->RemoveAura(Spells::spell_dh_void_metamorphosis_counter);
-            target->RemoveAura(Spells::spell_dh_collapsing_star_counter);
-            target->RemoveAura(Spells::spell_dh_collapsing_star_override);
-            target->RemoveAura(Spells::spell_dh_emptiness_buff);
-        }
-
-        void PreventBreakableCC(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
-        {
-            PreventDefaultAction();
-        }
-
-        void Register() override
-        {
-            AfterEffectApply += AuraEffectApplyFn(spell_dh_void_metamorphosis_buff::HandleApply, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
-            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_void_metamorphosis_buff::HandlePeriodic, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY);
-            AfterEffectRemove += AuraEffectRemoveFn(spell_dh_void_metamorphosis_buff::HandleRemove, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
-            OnEffectProc += AuraEffectProcFn(spell_dh_void_metamorphosis_buff::PreventBreakableCC, EFFECT_11, SPELL_AURA_TRANSFORM);
-            OnEffectProc += AuraEffectProcFn(spell_dh_void_metamorphosis_buff::PreventBreakableCC, EFFECT_12, SPELL_AURA_TRANSFORM);
-        }
-    };
-
     // 1225789 - Void Metamorphosis (stack counter)
     class spell_dh_void_metamorphosis_counter : public AuraScript
     {
@@ -3471,40 +3505,6 @@ namespace Scripts::Custom::DemonHunter
         {
             AfterEffectApply += AuraEffectApplyFn(spell_dh_void_metamorphosis_counter::HandleApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAPPLY);
             AfterEffectRemove += AuraEffectRemoveFn(spell_dh_void_metamorphosis_counter::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-        }
-    };
-
-    // 1253304 - Voidfall passive: Consume hit has 35% chance to grant a stack of 1256301 (max 3)
-    class spell_dh_voidfall_passive : public AuraScript
-    {
-        uint32 _meteorCount = 0;
-
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_voidfall_stack });
-        }
-
-        static bool CheckProc(AuraScript const& script, ProcEventInfo const& eventInfo)
-        {
-            if (!eventInfo.GetSpellInfo())
-                return false;
-            int32 chance = static_cast<spell_dh_voidfall_passive const&>(script).GetEffect(EFFECT_2)->GetAmount();
-            return roll_chance(chance);
-        }
-
-        void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
-        {
-            GetTarget()->CastSpell(GetTarget(), Spells::spell_dh_voidfall_stack,
-                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-        }
-
-    public:
-        uint32 IncrementMeteorCount() { return ++_meteorCount; }
-
-        void Register() override
-        {
-            DoCheckProc += AuraCheckProcFn(spell_dh_voidfall_passive::CheckProc);
-            OnEffectProc += AuraEffectProcFn(spell_dh_voidfall_passive::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
         }
     };
 
@@ -3560,9 +3560,109 @@ namespace Scripts::Custom::DemonHunter
             }
         }
     };
+
+    // 209693 - Shattered Souls, 209788 - Shattered Souls and 1223412 - Soul Fragment
+// Id - 3680, 6659 and 36671
+    template<uint32 SpellId>
+    struct at_dh_shattered_souls : public AreaTriggerAI
+    {
+        using AreaTriggerAI::AreaTriggerAI;
+
+        uint32 _spawnDelay = 500;
+
+        void OnUpdate(uint32 diff) override
+        {
+            if (!_spawnDelay)
+                return;
+
+            if (_spawnDelay > diff)
+            {
+                _spawnDelay -= diff;
+                return;
+            }
+
+            _spawnDelay = 0;
+
+            // Check if caster is already inside now that delay expired
+            if (Unit* caster = at->GetCaster())
+                if (at->GetInsideUnits().count(caster->GetGUID()))
+                    Collect(caster);
+        }
+
+        void OnUnitEnter(Unit* unit) override
+        {
+            if (_spawnDelay)
+                return;
+
+            Collect(unit);
+        }
+
+        void Collect(Unit* unit)
+        {
+            unit->CastSpell(at->GetPosition(), SpellId,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+            if (unit->HasAura(Spells::spell_dh_void_metamorphosis_passive) &&
+                !unit->HasAura(Spells::spell_dh_void_metamorphosis_buff))
+            {
+                unit->CastSpell(unit, Spells::spell_dh_void_metamorphosis_counter,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            }
+
+            if (unit->HasAura(Spells::spell_dh_void_metamorphosis_buff) &&
+                unit->HasAura(Spells::spell_dh_collapsing_star_passive))
+            {
+                unit->CastSpell(unit, Spells::spell_dh_collapsing_star_counter,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            }
+
+            if (unit->HasAura(Spells::spell_dh_void_metamorphosis_buff) &&
+                unit->HasAura(Spells::spell_dh_emptiness_passive))
+            {
+                unit->CastSpell(unit, Spells::spell_dh_emptiness_buff,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            }
+
+            if (Aura* fos = unit->GetAura(Spells::spell_dh_feast_of_souls_passive))
+                if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
+                    script->AddStack(unit);
+
+            at->Remove();
+        }
+
+        void OnInitialize() override
+        {
+            if (Unit* caster = at->GetCaster())
+            {
+                if (caster->HasAura(Spells::spell_dh_shattered_souls_vengeance))
+                    caster->CastSpell(caster, Spells::spell_dh_soul_fragment_counter,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+                else if (caster->HasAura(Spells::spell_dh_shattered_souls_devourer))
+                    caster->CastSpell(caster, Spells::spell_dh_soul_fragments_devourer_counter,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            }
+        }
+
+        void OnRemove() override
+        {
+            if (Unit* caster = at->GetCaster())
+            {
+                caster->RemoveAuraFromStack(Spells::spell_dh_soul_fragment_counter);
+                caster->RemoveAuraFromStack(Spells::spell_dh_soul_fragments_devourer_counter);
+            }
+        }
+    };
+
+    using at_dh_shattered_souls_devourer = at_dh_shattered_souls<Spells::spell_dh_consume_soul_devourer>;
+    using at_dh_shattered_souls_havoc_demon = at_dh_shattered_souls<Spells::spell_dh_consume_soul_havoc_demon>;
+    using at_dh_shattered_souls_havoc_lesser = at_dh_shattered_souls<Spells::spell_dh_consume_soul_havoc_lesser>;
+    using at_dh_shattered_souls_havoc_shattered = at_dh_shattered_souls<Spells::spell_dh_consume_soul_havoc_shattered>;
+    using at_dh_shattered_souls_vengeance_demon = at_dh_shattered_souls<Spells::spell_dh_consume_soul_vengeance_demon>;
+    using at_dh_shattered_souls_vengeance_lesser = at_dh_shattered_souls<Spells::spell_dh_consume_soul_vengeance_lesser>;
+    using at_dh_shattered_souls_vengeance_shattered = at_dh_shattered_souls<Spells::spell_dh_consume_soul_vengeance_shattered>;
 }
 
-void AddSC_custom_evoker_spell_fixes()
+void AddSC_custom_demonhunter_spell_fixes()
 {
     using namespace Scripts::Custom::DemonHunter;
 
@@ -3641,4 +3741,11 @@ void AddSC_custom_evoker_spell_fixes()
 
     RegisterAreaTriggerAI(at_dh_demonic_trample);
     RegisterAreaTriggerAI(at_dh_mana_rift);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_devourer);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_havoc_demon);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_havoc_lesser);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_havoc_shattered);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_vengeance_demon);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_vengeance_lesser);
+    RegisterAreaTriggerAI(at_dh_shattered_souls_vengeance_shattered);
 }

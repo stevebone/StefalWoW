@@ -21,6 +21,7 @@
 void AddSC_custom_player_mails();
 
 // ==================== Class Scripts ========================= //
+void AddSC_custom_demonhunter_spell_fixes();
 void AddSC_custom_evoker_spell_fixes();
 void AddSC_custom_shaman_totem_npcs();
 void AddSC_custom_warlock_spell_fixes();
@@ -75,6 +76,7 @@ void AddCustomScripts()
 {
     AddSC_custom_player_mails();
 
+    AddSC_custom_demonhunter_spell_fixes();
     AddSC_custom_evoker_spell_fixes();
     AddSC_custom_shaman_totem_npcs();
     AddSC_custom_warlock_spell_fixes();

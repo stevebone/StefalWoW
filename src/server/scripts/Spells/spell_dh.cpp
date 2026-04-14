@@ -61,6 +61,12 @@ enum DemonHunterSpells
     SPELL_DH_CHAOS_THEORY_CRIT                     = 390195,
     SPELL_DH_CHAOTIC_TRANSFORMATION                = 388112,
     SPELL_DH_CHARRED_WARBLADES_HEAL                = 213011,
+    SPELL_DH_COLLAPSING_STAR_PASSIVE               = 1221167,
+    SPELL_DH_COLLAPSING_STAR_COUNTER               = 1227702,
+    SPELL_DH_COLLAPSING_STAR                       = 1221150,
+    SPELL_DH_COLLAPSING_STAR_DAMAGE                = 1221162,
+    SPELL_DH_COLLAPSING_STAR_OVERRIDE              = 1221171,
+    SPELL_DH_COLLAPSING_STAR_FRAGMENTS             = 1240204,
     SPELL_DH_COLLECTIVE_ANGUISH                    = 390152,
     SPELL_DH_COLLECTIVE_ANGUISH_EYE_BEAM           = 391057,
     SPELL_DH_COLLECTIVE_ANGUISH_EYE_BEAM_DAMAGE    = 391058,
@@ -261,6 +267,11 @@ enum DemonHunterSpells
     SPELL_DH_VOIDGLARE_BOON_TALENT                 = 1240202,
     SPELL_DH_VOIDSTEP_DAMAGE                       = 1239526,
     SPELL_DH_VOID_RAY_DAMAGE                       = 1213649,
+    SPELL_DH_VOID_METAMORPHOSIS_PASSIVE            = 471306,
+    SPELL_DH_VOID_METAMORPHOSIS_COUNTER            = 1225789,
+    SPELL_DH_VOID_METAMORPHOSIS_ACTIVE             = 1217605,
+    SPELL_DH_VOID_METAMORPHOSIS_BUFF               = 1217607,
+    SPELL_DH_CAN_METAMORPHOSIS                     = 1213809,
     SPELL_DH_WAVE_OF_DEBILITATION_TALENT           = 452403,
     SPELL_DH_WAVE_OF_DEBILITATION_SLOW             = 453263,
 };
@@ -2112,94 +2123,6 @@ private:
     uint32 _triggeredSpellIdDemon;
 };
 
-// 209693 - Shattered Souls, 209788 - Shattered Souls and 1223412 - Soul Fragment
-// Id - 3680, 6659 and 36671
-template<uint32 SpellId>
-struct at_dh_shattered_souls : public AreaTriggerAI
-{
-    using AreaTriggerAI::AreaTriggerAI;
-
-    uint32 _spawnDelay = 500;
-
-    void OnUpdate(uint32 diff) override
-    {
-        if (!_spawnDelay)
-            return;
-
-        if (_spawnDelay > diff)
-        {
-            _spawnDelay -= diff;
-            return;
-        }
-
-        _spawnDelay = 0;
-
-        // Check if caster is already inside now that delay expired
-        if (Unit* caster = at->GetCaster())
-            if (at->GetInsideUnits().count(caster->GetGUID()))
-                Collect(caster);
-    }
-
-    void OnUnitEnter(Unit* unit) override
-    {
-        if (_spawnDelay)
-            return;
-
-        Collect(unit);
-    }
-
-    void Collect(Unit* unit)
-    {
-        unit->CastSpell(at->GetPosition(), SpellId, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-
-        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_PASSIVE) && !unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
-            unit->CastSpell(unit, SPELL_DH_VOID_METAMORPHOSIS_COUNTER,
-                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-
-        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && unit->HasAura(SPELL_DH_COLLAPSING_STAR_PASSIVE))
-            unit->CastSpell(unit, SPELL_DH_COLLAPSING_STAR_COUNTER,
-                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-
-        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && unit->HasAura(SPELL_DH_EMPTINESS_PASSIVE))
-            unit->CastSpell(unit, SPELL_DH_EMPTINESS_BUFF,
-                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-
-        if (Aura* fos = unit->GetAura(SPELL_DH_FEAST_OF_SOULS_PASSIVE))
-            if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
-                script->AddStack(unit);
-
-        at->Remove();
-    }
-
-    void OnInitialize() override
-    {
-        if (Unit* caster = at->GetCaster())
-        {
-            if (caster->HasAura(SPELL_DH_SHATTERED_SOULS_VENGEANCE))
-                caster->CastSpell(caster, SPELL_DH_SOUL_FRAGMENT_COUNTER, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-            else if (caster->HasAura(SPELL_DH_SHATTERED_SOULS_DEVOURER))
-                caster->CastSpell(caster, SPELL_DH_SOUL_FRAGMENTS_DEVOURER_COUNTER, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-        }
-    }
-
-    void OnRemove() override
-    {
-        if (Unit* caster = at->GetCaster())
-        {
-            caster->RemoveAuraFromStack(SPELL_DH_SOUL_FRAGMENT_COUNTER);
-            caster->RemoveAuraFromStack(SPELL_DH_SOUL_FRAGMENTS_DEVOURER_COUNTER);
-        }
-    }
-};
-
-using at_dh_shattered_souls_devourer = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_DEVOURER>;
-using at_dh_shattered_souls_havoc_demon = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_HAVOC_DEMON>;
-using at_dh_shattered_souls_havoc_lesser = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_HAVOC_LESSER>;
-using at_dh_shattered_souls_havoc_shattered = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_HAVOC_SHATTERED>;
-using at_dh_shattered_souls_vengeance_demon = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_VENGEANCE_DEMON>;
-using at_dh_shattered_souls_vengeance_lesser = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_VENGEANCE_LESSER>;
-using at_dh_shattered_souls_vengeance_shattered = at_dh_shattered_souls<SPELL_DH_CONSUME_SOUL_VENGEANCE_SHATTERED>;
-
 // 1234796 - Shift
 class spell_dh_shift : public SpellScript
 {
@@ -2794,13 +2717,6 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScriptWithArgs(spell_dh_shattered_souls_trigger, "spell_dh_shattered_souls_vengeance_trigger_lesser", SPELL_DH_SHATTERED_SOUL, 0);
     RegisterSpellScript(spell_dh_shattered_souls_devourer);
     RegisterSpellScript(spell_dh_shattered_souls_devourer_dummy);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_devourer);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_havoc_demon);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_havoc_lesser);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_havoc_shattered);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_vengeance_demon);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_vengeance_lesser);
-    RegisterAreaTriggerAI(at_dh_shattered_souls_vengeance_shattered);
     RegisterSpellScript(spell_dh_shift);
     RegisterSpellScript(spell_dh_sigil_of_chains);
     RegisterSpellScript(spell_dh_sigil_of_flame);
