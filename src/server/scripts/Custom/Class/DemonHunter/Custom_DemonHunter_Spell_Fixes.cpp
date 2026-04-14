@@ -27,6 +27,7 @@
 #include "Unit.h"
 #include "Player.h"
 #include "Creature.h"
+#include "Map.h"
 #include "MotionMaster.h"
 #include "MovementGenerator.h"
 #include "ObjectAccessor.h"
