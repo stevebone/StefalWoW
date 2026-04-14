@@ -2412,7 +2412,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     if (passenger->GetTypeId() == TYPEID_PLAYER)
                     {
                         passenger->ToPlayer()->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_1);
-                        passenger->ToPlayer()->DisableMirrorTimer(FATIGUE_TIMER);
+                        //passenger->ToPlayer()->DisableMirrorTimer(FATIGUE_TIMER);
                         PhasingHandler::OnConditionChange(passenger, true);
                     }
 
