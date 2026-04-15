@@ -105,6 +105,19 @@
 -- NPC: 55672 Master Shang for the forest quests
 -- NPC: 56274 Guardian of the Elders
 -- NPC: 56686 Another Shang in the forest (spawn)
+-- NPC: 55918 Balloon - stationary
+-- NPC: 55649 Balloon - spawned by 105002 Summon hot air Balloon
+-- NPC: 56660 Ji on the balloon
+-- NPC: 56661 Aysa - spawned by 106636
+-- NPC: 56662 Aysa - stationary
+-- NPC: 56663 Ji - stationary
+-- NPC: 56679 Balloon arrival controller
+-- NPC: 40789 Generic controller
+-- NPC: 65105 Shu stationary
+-- NPC: 65102 Dafeng stationary
+-- NPC: 65104 Wugou stationary
+-- NPC: 65107 Huo stationary
+-- NPC: 56012 Elder Shaopai
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
