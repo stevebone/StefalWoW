@@ -43,9 +43,6 @@ DELETE FROM `creature_addon` WHERE `guid` IN (451410);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('451410', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108900 49415 126160'); -- Shang 2
 
-INSERT INTO `creature_addons` (guid, VisFlags, SheathState, auras) VALUES
-(452374, 1, 1, 80797);
-
 UPDATE `creature` SET `PhaseId` = 1027 WHERE `guid` IN (451408); -- Huo
 UPDATE `creature` SET `PhaseId` = 1028, `MovementType` = 2 WHERE `guid` IN (451409); -- Shu
 UPDATE `creature` SET `PhaseId` = 1029 WHERE `guid` IN (451411); -- Wugou

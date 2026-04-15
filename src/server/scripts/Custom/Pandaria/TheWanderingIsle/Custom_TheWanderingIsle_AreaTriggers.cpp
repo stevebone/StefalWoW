@@ -23,6 +23,7 @@
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "DB2Stores.h"
+#include "GameObject.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
@@ -503,7 +504,6 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 300))
                     return false;
 
-                Creature* hermit = GetClosestCreatureWithEntry(player, Npcs::npc_wei_palerage, 50.0f);
                 Creature* korga = GetClosestCreatureWithEntry(player, Npcs::npc_korga_hut, 50.0f);
 
                 if (korga)
