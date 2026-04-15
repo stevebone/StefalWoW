@@ -4281,7 +4281,7 @@ struct npc_warl_dimensional_rift_unstable_tear : public ScriptedAI
 
             initialized = true;
 
-            scheduler.Schedule(250ms, [this, targetGuid, ownerGuid, counter = 0](TaskContext context) mutable
+            scheduler.Schedule(250ms, [this, targetGuid, ownerGuid, counter = 0](TaskContext& context) mutable
                 {
                     if (counter >= 22)
                         return;
@@ -4368,7 +4368,7 @@ struct npc_warl_dimensional_rift_shadowy_tear : public ScriptedAI
 
             initialized = true;
 
-            scheduler.Schedule(2000ms, [this, targetGuid, ownerGuid, counter = 0](TaskContext context) mutable
+            scheduler.Schedule(2000ms, [this, targetGuid, ownerGuid, counter = 0](TaskContext& context) mutable
                 {
                     if (counter >= 7)
                         return;

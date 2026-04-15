@@ -157,35 +157,35 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     Talk(TalksQ29423::shanxi_talk_1, player);
 
-                    _scheduler.Schedule(10s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(10s, [this](TaskContext const&)
                         {
                             Talk(TalksQ29423::shanxi_talk_2);
                         });
-                    _scheduler.Schedule(26s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(26s, [this](TaskContext const&)
                         {
                             Talk(TalksQ29423::shanxi_talk_3);
                         });
-                    _scheduler.Schedule(40s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(40s, [this](TaskContext const&)
                         {
                             Talk(TalksQ29423::shanxi_talk_4);
                         });
-                    _scheduler.Schedule(49s, [ji](TaskContext /*task*/)
+                    _scheduler.Schedule(49s, [ji](TaskContext const&)
                         {
                             ji->AI()->Talk(TalksQ29423::ji_talk);
                             ji->GetMotionMaster()->MovePath(PathQ29423::ji_away, false);
                             ji->DespawnOrUnsummon(20s);
                         });
-                    _scheduler.Schedule(52s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(52s, [this](TaskContext const&)
                         {
                             Talk(TalksQ29423::shanxi_talk_5);
                         });
-                    _scheduler.Schedule(60s, [aysa](TaskContext /*task*/)
+                    _scheduler.Schedule(60s, [aysa](TaskContext const&)
                         {
                             aysa->AI()->Talk(TalksQ29423::aysa_talk);
                             aysa->GetMotionMaster()->MovePath(PathQ29423::aysa_away, false);
                             aysa->DespawnOrUnsummon(20s);
                         });
-                    _scheduler.Schedule(63s, [this, player](TaskContext /*task*/)
+                    _scheduler.Schedule(63s, [this, player](TaskContext const&)
                         {
                             Talk(TalksQ29423::shanxi_talk_6, player);
                         });
@@ -235,7 +235,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     me->AI()->Talk(TalksQ29423::chia_hui_autumnleaf_talk, player);
 
-                    _scheduler.Schedule(2s, [this, lin, zhen, player](TaskContext /*task*/)
+                    _scheduler.Schedule(2s, [this, lin, zhen, player](TaskContext const&)
                         {
                             me->SetFacingToObject(player);
                             lin->SetFacingToObject(player);
@@ -243,7 +243,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                             lin->AI()->Talk(TalksQ29423::brewer_lin_talk);
                         });
-                    _scheduler.Schedule(4s, [this, lin, zhen](TaskContext /*task*/)
+                    _scheduler.Schedule(4s, [this, lin, zhen](TaskContext const&)
                         {
                             me->SetFacingTo(2.381570f);
                             lin->SetFacingTo(5.455640f);
@@ -285,19 +285,19 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 me->GetMotionMaster()->MoveFollow(player, 2.0f, M_PI / 4);
 
-                _scheduler.Schedule(7s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(7s, [this](TaskContext const&)
                     {
                         me->AI()->Talk(TalksQ29521::CaiTalk0);
                     });
-                _scheduler.Schedule(21s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(21s, [this](TaskContext const&)
                     {
                         me->AI()->Talk(TalksQ29521::CaiTalk1);
                     });
-                _scheduler.Schedule(37s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(37s, [this](TaskContext const&)
                     {
                         me->AI()->Talk(TalksQ29521::CaiTalk2);
                     });
-                _scheduler.Schedule(45s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(45s, [this](TaskContext const&)
                     {
                         TempSummon* summon = me->ToTempSummon();
                         if (!summon)
@@ -345,15 +345,15 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 me->GetMotionMaster()->MoveFollow(player, 2.0f, M_PI / 2);
 
-                _scheduler.Schedule(14s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(14s, [this](TaskContext const&)
                     {
                         Talk(TalksQ29521::DengTalk0);
                     });
-                _scheduler.Schedule(29s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(29s, [this](TaskContext const&)
                     {
                         Talk(TalksQ29521::DengTalk1);
                     });
-                _scheduler.Schedule(45s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(45s, [this](TaskContext const&)
                     {
                         TempSummon* summon = me->ToTempSummon();
                         if (!summon)
@@ -403,28 +403,28 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     me->SetAIAnimKitId(Misc::Jojo_AiAnimKitID);
 
-                    _scheduler.Schedule(1s, [this, player](TaskContext /*task*/)
+                    _scheduler.Schedule(1s, [this, player](TaskContext const&)
                         {
                             Talk(TalksQ29662::Jojo_Talk_0, player);
                         });
-                    _scheduler.Schedule(3s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(3s, [this](TaskContext const&)
                         {
                             me->SetAIAnimKitId(0);
                         });
-                    _scheduler.Schedule(4s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(4s, [this](TaskContext const&)
                         {
                             me->GetMotionMaster()->MovePoint(1, PositionsQ29662::JojoMovePoint);
                         });
-                    _scheduler.Schedule(6200ms, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(6200ms, [this](TaskContext const&)
                         {
                             me->CastSpell(me, SpellsQ29662::spell_jojo_headbash_reeds_cast);
                         });
-                    _scheduler.Schedule(8700ms, [this, player](TaskContext /*task*/)
+                    _scheduler.Schedule(8700ms, [this, player](TaskContext const&)
                         {
                             me->RemoveAurasDueToSpell(SpellsQ29662::spell_jojo_headbash_stack_of_reeds_impact);
                             Talk(TalksQ29662::Jojo_Talk_1, player);
                         });
-                    _scheduler.Schedule(14700ms, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(14700ms, [this](TaskContext const&)
                         {
                             me->GetMotionMaster()->MovePath(PathQ29662::path_jojo, false);
                         });
@@ -1474,11 +1474,11 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     Talk(TalksQ29775::shanxi_talk_7);
 
-                    _scheduler.Schedule(3s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(3s, [this](TaskContext const&)
                         {
                             Talk(TalksQ29775::shanxi_talk_8);
                         });
-                    _scheduler.Schedule(6s, [this](TaskContext /*task*/)
+                    _scheduler.Schedule(6s, [this](TaskContext const&)
                         {
                             Talk(TalksQ29775::shanxi_talk_9);
                         });
@@ -2445,17 +2445,17 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                     case 0:
                     {
-                        scheduler.Schedule(2s, [ji, player](TaskContext /*task*/)
+                        scheduler.Schedule(2s, [ji, player](TaskContext const&)
                             {
                                 ji->AI()->Talk(0, player);
                             });
 
-                        scheduler.Schedule(5s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(5s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(0);
                             });
 
-                        scheduler.Schedule(10s, [ji](TaskContext /*task*/)
+                        scheduler.Schedule(10s, [ji](TaskContext const&)
                             {
                                 ji->AI()->Talk(1);
                             });
@@ -2470,12 +2470,12 @@ namespace Scripts::Custom::TheWanderingIsle
 
                         aysa->AI()->Talk(1);
 
-                        scheduler.Schedule(5s, [ji](TaskContext /*task*/)
+                        scheduler.Schedule(5s, [ji](TaskContext const&)
                             {
                                 ji->AI()->Talk(2);
                             });
 
-                        scheduler.Schedule(10s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(10s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(2);
                             });
@@ -2485,12 +2485,12 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 3:
                     {
-                        scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(8s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(3);
                             });
 
-                        scheduler.Schedule(18s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(18s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(4);
                             });
@@ -2507,41 +2507,41 @@ namespace Scripts::Custom::TheWanderingIsle
                             shenzinsu->Talk(Misc::shenzinsu_bunny_text_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
                             me->PlayDirectSound(27822, player);
 
-                            scheduler.Schedule(16s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(16s, [this, player, shenzinsu](TaskContext const&)
                                 {
                                     shenzinsu->Talk(Misc::shenzinsu_bunny_text_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27823, player);
                                 });
 
-                            scheduler.Schedule(30s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(30s, [this, player, shenzinsu](TaskContext const&)
                                 {
                                     shenzinsu->Talk(Misc::shenzinsu_bunny_text_3, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27824, player);
                                 });
 
-                            scheduler.Schedule(48s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(48s, [this, player, shenzinsu](TaskContext const&)
                                 {
                                     shenzinsu->Talk(Misc::shenzinsu_bunny_text_4, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27825, player);
                                 });
 
-                            scheduler.Schedule(63s, [aysa](TaskContext /*task*/)
+                            scheduler.Schedule(63s, [aysa](TaskContext const&)
                                 {
                                     aysa->AI()->Talk(5);
                                 });
 
-                            scheduler.Schedule(75s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(75s, [this, player, shenzinsu](TaskContext const&)
                                 {
                                     shenzinsu->Talk(Misc::shenzinsu_bunny_text_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27826, player);
                                 });
 
-                            scheduler.Schedule(90s, [aysa](TaskContext /*task*/)
+                            scheduler.Schedule(90s, [aysa](TaskContext const&)
                                 {
                                     aysa->AI()->Talk(6);
                                 });
 
-                            scheduler.Schedule(105s, [this, player, shenzinsu](TaskContext /*task*/)
+                            scheduler.Schedule(100s, [this, player, shenzinsu](TaskContext const&)
                                 {
                                     shenzinsu->Talk(Misc::shenzinsu_bunny_text_6, CHAT_MSG_MONSTER_SAY, 500.f, player);
                                     me->PlayDirectSound(27827, player);
@@ -2552,8 +2552,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 5:
                     {
-                        me->SetSpeed(MOVE_RUN, 7.0f);
-                        me->SetSpeed(MOVE_FLIGHT, 7.0f);
+                        me->SetSpeed(MOVE_RUN, 9.0f);
+                        me->SetSpeed(MOVE_FLIGHT, 9.0f);
                         break;
                     }
 
@@ -2561,12 +2561,12 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         ji->AI()->Talk(3);
 
-                        scheduler.Schedule(8s, [ji](TaskContext /*task*/)
+                        scheduler.Schedule(8s, [ji](TaskContext const&)
                             {
                                 ji->AI()->Talk(4);
                             });
 
-                        scheduler.Schedule(15s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(15s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(7);
                             });
@@ -2578,17 +2578,17 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         ji->AI()->Talk(5);
 
-                        scheduler.Schedule(8s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(8s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(8);
                             });
 
-                        scheduler.Schedule(26s, [ji](TaskContext /*task*/)
+                        scheduler.Schedule(26s, [ji](TaskContext const&)
                             {
                                 ji->AI()->Talk(6);
                             });
 
-                        scheduler.Schedule(37s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(37s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(9);
                             });
@@ -2597,7 +2597,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case 17:
                     {
-                        scheduler.Schedule(5s, [aysa](TaskContext /*task*/)
+                        scheduler.Schedule(5s, [aysa](TaskContext const&)
                             {
                                 aysa->AI()->Talk(10);
                             });

@@ -166,12 +166,12 @@ namespace Scripts::Custom::TirisfalGlades
 
                     Talk(TalksDarnell0::talk_darnell_hmm);
 
-                    scheduler.Schedule(5s, [this](TaskContext /*task*/)
+                    scheduler.Schedule(5s, [this](TaskContext const&)
                         {
                             Talk(TalksDarnell0::talk_darnell_nope);
                         });
 
-                    scheduler.Schedule(7s, [this](TaskContext /*task*/)
+                    scheduler.Schedule(7s, [this](TaskContext const&)
                         {
                             Talk(TalksDarnell0::talk_darnell_supplies_loc_2);
                         });
