@@ -2678,6 +2678,261 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_shang_xi_hot_air_balloonAI(c);
         }
     };
+
+    // 56159
+    class npc_aysa_mandori_village : public CreatureScript
+    {
+    public:
+        npc_aysa_mandori_village() : CreatureScript("npc_aysa_mandori_village") { }
+
+        struct npc_aysaAI : public ScriptedAI
+        {
+            npc_aysaAI(Creature* c) : ScriptedAI(c) { }
+
+            void Reset() override
+            {
+                events.Reset();
+            }
+
+            void MovementInform(uint32 /*type*/, uint32 pointId) override
+            {
+                switch (pointId)
+                {
+                case 1:
+                    me->GetMotionMaster()->MovePoint(2, PositionsQ29792::Aysha_point_2);
+                    break;
+                case 2:
+                    me->GetMotionMaster()->MovePoint(3, PositionsQ29792::Aysha_point_3);
+                    break;
+                case 3:
+                    me->GetMotionMaster()->MovePoint(4, PositionsQ29792::Aysha_point_4);
+                    break;
+                case 4:
+                    me->GetMotionMaster()->MovePoint(5, PositionsQ29792::Aysha_point_5);
+                    break;
+                case 5:
+                    events.ScheduleEvent(2, 2s);
+                    break;
+                case 6:
+                {
+                    scheduler.Schedule(2s, [this](TaskContext const&)
+                        {
+                            Talk(1);
+                        });
+
+                    scheduler.Schedule(4s, [this](TaskContext const&)
+                        {
+                            Talk(2);
+                        });
+
+                    Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29792, 20.f);
+                    Creature* jojo = me->FindNearestCreature(Npcs::npc_jojo_q29792, 20.f);
+
+                    if (ji && jojo)
+                    {
+                        scheduler.Schedule(4s, [ji](TaskContext const&)
+                            {
+                                ji->GetMotionMaster()->MovePoint(7, PositionsQ29792::Ji_point_gate);
+                            });
+
+                        scheduler.Schedule(6s, [ji](TaskContext const&)
+                            {
+                                ji->AI()->Talk(0);
+                            });
+
+                        scheduler.Schedule(10s, [ji](TaskContext const&)
+                            {
+                                ji->AI()->Talk(1);
+                            });
+
+                        scheduler.Schedule(12s, [this, ji](TaskContext const&)
+                            {
+                                me->SetWalk(false);
+                                ji->SetWalk(false);
+                                me->GetMotionMaster()->MovePoint(8, PositionsQ29792::Aysa_point_gate_back);
+                                ji->GetMotionMaster()->MovePoint(9, PositionsQ29792::Ji_point_gate_back);
+                            });
+
+                        scheduler.Schedule(14s, [jojo](TaskContext const&)
+                            {
+                                jojo->GetMotionMaster()->MovePoint(10, PositionsQ29792::Jojo_point_gate);
+                            });
+
+                        scheduler.Schedule(17s, [this, ji, jojo](TaskContext const&)
+                            {
+                                GameObject* door = jojo->FindNearestGameObject(Objects::go_forest_door2, 30.f);
+                                if (door)
+                                {
+                                    jojo->SetOrientation(3.085f);
+                                    ji->SetOrientation(3.085f);
+                                    me->SetOrientation(3.085f);
+
+                                    jojo->CastSpell(jojo, 129297, true);
+                                }
+                                
+                            });
+
+                        scheduler.Schedule(19s, [this](TaskContext const&)
+                            {
+                                GameObject* door = me->FindNearestGameObject(Objects::go_forest_door2, 30.f);
+                                if (door)
+                                {
+                                    door->SetGoState(GO_STATE_ACTIVE);
+                                }
+                            });
+
+                        scheduler.Schedule(21s, [this](TaskContext const&)
+                            {
+                                Player* player = ObjectAccessor::GetPlayer(*me, PlayerGuid);
+                                if (player)
+                                    player->KilledMonsterCredit(Npcs::credit_forest_door_two);
+                            });
+
+                        scheduler.Schedule(23s, [this, ji, jojo](TaskContext const&)
+                            {
+                                ji->GetMotionMaster()->Clear();
+                                jojo->GetMotionMaster()->Clear();
+                                me->GetMotionMaster()->MovePoint(11, PositionsQ29792::ForlornHut);
+                            });
+
+                        scheduler.Schedule(25s, [this, ji, jojo](TaskContext const&)
+                            {
+                                ji->GetMotionMaster()->MoveFollow(me, 3.f, M_PI / 4);
+                                jojo->GetMotionMaster()->MoveFollow(me, 3.f, -M_PI / 4);
+                            });
+
+                        scheduler.Schedule(26s, [ji](TaskContext const&)
+                            {
+                                ji->AI()->Talk(2);
+                            });
+                    }
+                    break;
+                }
+                }
+            }
+
+            void SetData(uint32 type, uint32 value) override
+            {
+                if (type == 1 && value == 1)
+                {
+                    events.ScheduleEvent(1, 3s);
+                }
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+                scheduler.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case 1:
+                    {
+                        Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29792, 20.f);
+                        Creature* jojo = me->FindNearestCreature(Npcs::npc_jojo_q29792, 20.f);
+
+                        if (ji && jojo)
+                        {
+                            ji->GetMotionMaster()->MoveFollow(me, 3.f, M_PI / 4);
+                            jojo->GetMotionMaster()->MoveFollow(me, 3.f, -M_PI / 4);
+                            me->GetMotionMaster()->MovePoint(1, PositionsQ29792::Aysha_point_1);
+                        }
+                        break;
+                    }
+                    case 2:
+                    {
+                        Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29792, 20.f);
+                        Creature* jojo = me->FindNearestCreature(Npcs::npc_jojo_q29792, 20.f);
+
+                        me->SetWalk(true);
+                        if (ji && jojo)
+                        {
+                            ji->GetMotionMaster()->Clear();
+                            ji->SetWalk(true);
+                            jojo->GetMotionMaster()->Clear();
+
+                        }
+                        me->GetMotionMaster()->MovePoint(6, PositionsQ29792::Aysha_point_gate);
+                    }
+                    }
+                }
+            }
+
+            void SetGUID(ObjectGuid const& guid, int32 type) override
+            {
+                if (type == 1)
+                    PlayerGuid = guid;
+            }
+
+        private:
+            EventMap events;
+            TaskScheduler scheduler;
+            ObjectGuid PlayerGuid;
+        };
+
+        CreatureAI* GetAI(Creature* c) const override
+        {
+            return new npc_aysaAI(c);
+        }
+    };
+
+    // 60042 Korga in the forbidden forest
+    class npc_korga_hut : public CreatureScript
+    {
+    public:
+        npc_korga_hut() : CreatureScript("npc_korga_hut") { }
+
+        struct npc_korga_hutAI : public ScriptedAI
+        {
+            npc_korga_hutAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void SetData(uint32 type, uint32 value) override
+            {
+                if (type == 1 && value == 1)
+                {
+                    StartDialogue();
+                }
+            }
+
+            void StartDialogue()
+            {
+                scheduler.Schedule(5s, [this](TaskContext const&)
+                    {
+                        Talk(0);
+                    });
+
+                Creature* hermit = me->FindNearestCreature(Npcs::npc_wei_palerage, 10.f);
+                if (hermit)
+                {
+                    scheduler.Schedule(10s, [hermit](TaskContext const&)
+                        {
+                            hermit->AI()->Talk(0);
+                        });
+                }
+
+                scheduler.Schedule(20s, [this](TaskContext const&)
+                    {
+                        Talk(1);
+                    });
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                //events.Update(diff);
+                scheduler.Update(diff);
+            }
+
+        private:
+            TaskScheduler scheduler;
+        };
+
+        CreatureAI* GetAI(Creature* c) const override
+        {
+            return new npc_korga_hutAI(c);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -2709,4 +2964,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_firework_launcher();
     new npc_master_shang_q29787();
     new npc_shang_xi_hot_air_balloon();
+    new npc_aysa_mandori_village();
+    new npc_korga_hut();
 }

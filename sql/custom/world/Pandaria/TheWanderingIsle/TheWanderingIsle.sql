@@ -821,18 +821,13 @@ INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
 -- these flags disable gravity for the bunny so it can float above
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '55685') and (`DifficultyID` = '0');
 
-DELETE FROM `creature_addon` WHERE `guid` IN (451410);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('451410', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108900 49415 126160');
+
 
 UPDATE `creature` SET `ScriptName` = 'npc_shanxi_quest2' WHERE (`guid` = '451410');
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55685, 60917);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55685);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55685', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '99385');
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('60917', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '49415');
-
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI', `VehicleId` = 1800 WHERE `Entry` IN (55685);
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55694);

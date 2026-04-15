@@ -31,6 +31,7 @@ void AddSC_custom_warlock_demon_npcs();
 void AddSC_custom_elwynn_forest_npcs();
 void AddSC_custom_the_wandering_isle_at();
 void AddSC_custom_the_wandering_isle_npcs();
+void AddSC_custom_the_wandering_isle_objects();
 void AddSC_custom_the_wandering_isle_player();
 void AddSC_custom_the_wandering_isle_quests();
 void AddSC_custom_the_wandering_isle_spells();
@@ -85,6 +86,7 @@ void AddCustomScripts()
     AddSC_custom_elwynn_forest_npcs();
     AddSC_custom_the_wandering_isle_at();
     AddSC_custom_the_wandering_isle_npcs();
+    AddSC_custom_the_wandering_isle_objects();
     AddSC_custom_the_wandering_isle_player();
     AddSC_custom_the_wandering_isle_quests();
     AddSC_custom_the_wandering_isle_spells();

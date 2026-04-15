@@ -607,3 +607,13 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ,O
 ('6508700', '52', '695.352', '3474.27', '118.268', '0', '0'),
 ('6508700', '53', '688.497', '3464.87', '117.334', '0', '0'),
 ('6508700', '54', '685.965', '3457.29', '115.264', '0', '0');
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6091800);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(6091800,0,0,'The Wandering Isle - Shu at the Temple');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6091800);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ,Orientation,Delay) values
+('6091800', '1', '929.076', '3599.67', '195.45', '0', '0'),
+('6091800', '2', '928.651', '3606.64', '195.315', '0', '0'),
+('6091800', '3', '929.307', '3609.62', '195.381', '0', '0');

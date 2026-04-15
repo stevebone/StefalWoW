@@ -84,6 +84,14 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_trigger = 106759;
         static constexpr uint32 spell_trigger_with_anim_1 = 118571;
         static constexpr uint32 spell_trigger_with_turn = 118572;
+
+        // Mandori Village - not working
+        // Just for later reference
+        static constexpr uint32 spell_trigger_mandori_gate_npcs = 115345;
+        static constexpr uint32 spell_summon_hermit_hut_npcs = 115491;
+        static constexpr uint32 spell_csa_area_trigger_dummy_timer_aura_self = 115644;
+        static constexpr uint32 spell_mandori_gate_entrance_credit = 115442;
+        static constexpr uint32 spell_pei_wu_gate_entrance_credit = 115443;
     }
 
     namespace SpellsQ29422
@@ -392,6 +400,23 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position BalloonArrivalControllerSpawn = { 904.059f, 4561.99f, 231.053f };
     }
 
+    namespace PositionsQ29792
+    {
+        static constexpr Position Aysha_point_1 = { 659.1265f, 3602.2268f, 146.8527f };
+        static constexpr Position Aysha_point_2 = { 630.4346f, 3629.0419f, 134.3486f };
+        static constexpr Position Aysha_point_3 = { 608.2857f, 3624.8295f, 122.1815f };
+        static constexpr Position Aysha_point_4 = { 594.3450f, 3584.2138f, 98.6662f };
+        static constexpr Position Aysha_point_5 = { 572.1107f, 3582.7983f, 94.9156f };
+
+        static constexpr Position Aysha_point_gate = { 567.9053f, 3585.1166f, 94.6662f };
+        static constexpr Position Ji_point_gate = { 567.7111f, 3582.3249f, 94.7847f };
+        static constexpr Position Aysa_point_gate_back = { 573.6115f, 3586.9646f, 94.6854f };
+        static constexpr Position Ji_point_gate_back = { 573.9601f, 3577.0935f, 95.0039f };
+        static constexpr Position Jojo_point_gate = { 567.7102f, 3583.4360f, 94.7208f };
+
+        static constexpr Position ForlornHut = { 424.717f, 3635.59f, 92.7838f };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;
@@ -620,6 +645,15 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 credit_the_suffering_of_shenzinsu_1 = 56378;
         static constexpr uint32 credit_the_suffering_of_shenzinsu_2 = 55939;
         static constexpr uint32 npc_shenzinsu_bunny = 56676;
+
+        // Mandori Village
+        static constexpr uint32 npc_aysa_q29792 = 59962;
+        static constexpr uint32 npc_ji_q29792 = 59960;
+        static constexpr uint32 npc_jojo_q29792 = 59963;
+        static constexpr uint32 credit_forest_door_one = 59946;
+        static constexpr uint32 credit_forest_door_two = 59947;
+        static constexpr uint32 npc_wei_palerage = 55943;
+        static constexpr uint32 npc_korga_hut = 60042;
     }
 
     namespace Objects
@@ -629,6 +663,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 go_rock_jump_b = 209576;
         static constexpr uint32 go_rock_jump_c = 209577;
         static constexpr uint32 go_spirit_wall = 209922;
+        static constexpr uint32 go_forest_door = 210965;
+        static constexpr uint32 go_forest_door2 = 210964;
     }
 
     namespace Quests
@@ -650,6 +686,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_battle_for_the_skies = 29786;
         static constexpr uint32 quest_passing_wisdom = 29790;
         static constexpr uint32 quest_suffering_of_shenzinsu = 29791;
+        static constexpr uint32 quest_bidden_to_greatness = 29792;
     }
 
     namespace AreaTriggers

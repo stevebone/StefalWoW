@@ -227,3 +227,16 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56676', '4', '0', 'It is in the forest where your feet do not walk.  Continue along the mountains and you will find it.', '12', '0', '100', '0', '0', '27826', '0', '55572', '0', 'Shen-zin Su to Player'),
 ('56676', '5', '0', 'Thank you, grandchildren.', '12', '0', '100', '0', '0', '27827', '0', '63407', '0', 'Shen-zin Su to Player');
 
+DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`,`BroadcastTextId`, `TextRange`, `comment`) VALUES
+('59962', '0', '0', '$n\'s here. Let\'s go.', '12', '0', '100', '432', '0', '27420', 0, '59481', '0', 'Aysa Cloudsinger to Player'),
+('59962', '1', '0', 'Wha...', '12', '0', '100', '0', '0', '27421', 0, '59495', '0', 'Aysa Cloudsinger to Player'),
+('59962', '2', '0', 'The gate is jammed.', '12', '0', '100', '274', '0', '27422', 0, '59511', '0', 'Aysa Cloudsinger to Player'),
+('59960', '0', '0', 'Let me try.', '12', '0', '100', '5', '0', '27339', 0, '59513', '0', 'Ji to Aysa'),
+('59960', '1', '0', 'Did they prop this door up against a boulder?  It won\'t budge!', '12', '0', '100', '5', '0', '27340', 0, '59515', '0', 'Ji to Aysa'),
+('59960', '2', '0', 'Well done, Jojo!', '12', '0', '100', '5', '0', '27341', 0, '59521', '0', 'Ji to Jojo'),
+('60042', '0', '0', 'Wei, are these friends of yours?', '12', '0', '100', '6', '0', '28120', '0', '54956', '0', 'Korga Strongmane to Player'),
+('60042', '1', '0', 'Korga Strongmane, once prisoner of the Alliance, now free and woefully unarmed tauren. Good to meet you, pandaren.', '12', '0', '100', '66', '0', '28121', '0', '59555', '0', 'Korga Strongmane to Player'),
+('60042', '2', '0', 'Gladly, my new friend. Our engineer is still in the wilds though - we\'ll need to rescue him first.', '12', '0', '100', '1', '0', '28122', '0', '59585', '0', 'Korga Strongmane to Player'),
+('55943', '0', '0', 'Never met them before in my life. Pandaren don\'t really come in any bad flavors though.', '12', '0', '100', '0', '0', '28090', '0', '59554', '0', 'Wei Palerage to Player');
+

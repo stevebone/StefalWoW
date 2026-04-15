@@ -1,6 +1,3 @@
--- Quest: 29792 Bidden to Greatness
-
--- NPC: 55943 Wei Palerage
 -- NPC: 56012 Elder Shaopai at temple
 -- NPC: 57622 Lien-Hua
 -- NPC: 65047 Yi
@@ -10,21 +7,22 @@
 -- NPC: 65053 Bai Hua
 -- NPC: 65073 Naira Watergarden
 -- NPC: 65087 Trader Feng
+-- NPC: 59960 Ji at the Gate
+-- NPC: 59962 Aysa at the Gate
+-- NPC: 59963 Jojo at the Gate
 
+DELETE FROM `phase_area` WHERE `PhaseId` IN (878);
+INSERT INTO `phase_area` VALUES
+(5736, 878, 'The Wandering Isle - The Wandering Isle'); -- Mandori Village
 
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29792);
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
-('56012', '29792', '0');
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
+INSERT INTO `conditions` VALUES
+('26', '878', '0', '0', '0', '47', '0', '29792', '10', '0', '', '0', '0', '0', '', 'The Wandering Isle Mandori Village - Add phase 878 if 29792 IS in progress'),
+('26', '878', '0', '0', '0', '47', '0', '29792', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Mandori Village - Add phase 878 if 29792 IS NOT rewarded');
 
-DELETE FROM `creature_questender` WHERE `quest` IN (29792);
-INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES 
-('55943', '29792', '0');
+UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_mandori_village' WHERE `entry` = 59962;
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29792);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29792', '0', '0', '0', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
-
-DELETE FROM `creature_template_addon` WHERE `entry` IN (57622, 65052, 56012, 55943, 65053, 65050, 65049, 65047,65073, 65087);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (57622, 65052, 56012, 55943, 65053, 65050, 65049, 65047,65073, 65087, 59960, 59963, 59962);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55943', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '110846'),
 ('56012', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '60921'),
@@ -35,9 +33,13 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('65047', '6504700', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('65073', '0', '0', '0', '1', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('57622', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
-('65087', '6508700', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '');
+('65087', '6508700', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('59960', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('59962', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('59963', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '115672');
 
 UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (65053,65047,65049,65087);
+UPDATE `creature` SET `PhaseId` = 878 WHERE `id` IN (59960, 59963, 59962);
 
 
 DELETE FROM `npc_vendor` WHERE `entry` IN (57622, 65047, 65049, 65050, 65052, 65053, 65087);
@@ -115,6 +117,26 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `
 ('65087', '5', '4540', '0', '0', '0', '1', NULL, '0', '0', '63906'),
 ('65087', '6', '5042', '0', '0', '0', '1', NULL, '0', '0', '63906');
 
+-- Gameobject templates
+UPDATE `gameobject_template` SET `Data2` = '30000', `ScriptName` = 'go_210965_forest_door' WHERE `entry` = 210965;
 
 
+DELETE FROM `gameobject_template_addon` WHERE `entry` IN (210964, 210965, 211282,211283);
+INSERT INTO `gameobject_template_addon` (entry, faction, flags, mingold, maxgold, artkit0, artkit1, artkit2, artkit3, artkit4, WorldEffectID, AIAnimKitID) VALUES
+('210964', '114', '32', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
+('211283', '114', '32', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
+('210965', '114', '32', '0', '0', '0', '0', '0', '0', '0', '0', '0'),
+('211282', '114', '32', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+
+DELETE FROM `gameobject_addon` WHERE `guid` IN (300383, 300683, 300374, 300690);
+INSERT INTO `gameobject_addon` (guid, parent_rotation0, parent_rotation1, parent_rotation2, parent_rotation3, invisibilityType, invisibilityValue, WorldEffectID, AIAnimKitID) VALUES
+('300383', '0', '0', '0', '1', '37', '100', '0', '0'),
+('300683', '0', '0', '0', '1', '36', '100', '0', '0'),
+('300374', '0', '0', '0', '1', '35', '100', '0', '0'),
+('300690', '0', '0', '0', '1', '34', '100', '0', '0');
+
+-- Area Trigger Scripts
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7710);
+INSERT INTO `areatrigger_scripts` VALUES
+(7710, 'at_mandori_village_7710');
 
