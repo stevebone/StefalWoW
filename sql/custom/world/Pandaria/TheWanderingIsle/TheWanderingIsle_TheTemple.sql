@@ -1,3 +1,8 @@
+-- NPC: 53705 Pangolin
+-- NPC: 55946 Pei-wu tiger
+-- NPC: 56172 Ash moth
+-- NPC: 56174 Tiger cub
+
 -- NPC: 54786 Shang 1/2 temple
 -- NPC: 55944 Delora Lionheart
 -- NPC: 56013 Spirit of Master Shang

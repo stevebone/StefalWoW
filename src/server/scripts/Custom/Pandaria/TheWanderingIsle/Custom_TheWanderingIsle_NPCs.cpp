@@ -2808,6 +2808,21 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
                     break;
                 }
+
+                case 11:
+                {
+                    Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29792, 20.f);
+                    Creature* jojo = me->FindNearestCreature(Npcs::npc_jojo_q29792, 20.f);
+                    if (ji)
+                        ji->DespawnOrUnsummon(60s);
+
+                    if (jojo)
+                        jojo->DespawnOrUnsummon(60s);
+
+                    me->DespawnOrUnsummon(60s);
+
+                    break;
+                }
                 }
             }
 
