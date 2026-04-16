@@ -149,6 +149,36 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    // Area Trigger 8287
+    class at_lorewalker_zan : public AreaTriggerScript
+    {
+    public:
+        at_lorewalker_zan() : AreaTriggerScript("at_lorewalker_zan") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->IsAlive())
+            {
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                    return false;
+
+                Creature* zan = GetClosestCreatureWithEntry(player, Npcs::npc_lorewalker_zan, 30.0f);
+                if (zan)
+                {
+                    zan->AI()->Talk(TalksLorewalker::lorewalker_zan_0, player);
+
+                    Creature* ruolin = zan->FindNearestCreatureWithOptions(100.f, { .CreatureId = Npcs::npc_lorewalker_ruolin, .IgnorePhases = true });
+                    if (ruolin)
+                        ruolin->AI()->SetData(1, 1);
+                }
+
+                return true;
+            }
+            return false;
+        }
+    };
+
     // 8628
     class at_singing_pools_training_bell : public AreaTriggerScript
     {
@@ -184,7 +214,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
         {
-            if (player->IsInWorld() && player->GetQuestStatus(Quests::quest_shu_the_spirit_of_water) == QUEST_STATUS_INCOMPLETE)
+            if (player->IsAlive() && player->GetQuestStatus(Quests::quest_shu_the_spirit_of_water) == QUEST_STATUS_INCOMPLETE)
             {
                 player->KilledMonsterCredit(Npcs::credit_shu_the_spirit_of_water);
                 return true;
@@ -202,7 +232,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
         {
-            if (!g_singingPoolsMemory.CanTrigger(player))
+            // add cooldown of 2min to prevent spam talk
+            if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 120))
                 return false;
 
             Creature* cartTender = player->FindNearestCreature(Npcs::npc_cart_tender, 30.0f);
@@ -312,10 +343,14 @@ namespace Scripts::Custom::TheWanderingIsle
     public:
         at_chamber_of_whispers_outside() : AreaTriggerScript("at_chamber_of_whispers_outside") { }
 
-        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
         {
             if (player->IsAlive() && player->IsActiveQuest(Quests::quest_da_feng_the_spirit_of_air))
             {
+                // add cooldown of 2min to prevent spam summon
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 120))
+                    return false;
+
                 if (player->GetQuestStatus(Quests::quest_da_feng_the_spirit_of_air) != QUEST_STATUS_INCOMPLETE)
                     return false;
 
@@ -528,6 +563,7 @@ void AddSC_custom_the_wandering_isle_at()
     new at_cart_locations();
     new at_temple_stairs_from_farmstead();
     new at_temple_of_five_dawns_summon_zhaoren();
+    new at_lorewalker_zan();
     new at_chamber_of_whispers_outside();
     new at_chamber_of_whispers();
     new at_balloon_intro_q29790();

@@ -68,23 +68,6 @@ namespace Scripts::Custom::TheWanderingIsle
             }
         }
     };
-
-    // adds a cooldown per player to the area trigger
-    player_singing_pools_memory::player_singing_pools_memory() = default;
-
-    bool player_singing_pools_memory::CanTrigger(Player* player)
-    {
-        time_t now = time(nullptr);
-        auto& t = lastTrigger[player->GetGUID()];
-
-        if (now - t < 120)
-            return false;
-
-        t = now;
-        return true;
-    }
-
-    player_singing_pools_memory g_singingPoolsMemory;
 }
 
 void AddSC_custom_the_wandering_isle_player()

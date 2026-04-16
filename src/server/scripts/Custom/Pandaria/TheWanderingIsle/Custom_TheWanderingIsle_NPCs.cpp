@@ -1510,6 +1510,12 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             npc_lorewalker_ruolinAI(Creature* creature) : ScriptedAI(creature), dialogueIndex(0) { }
 
+            void SetData(uint32 id, uint32 value) override
+            {
+                if (id == 1 && value == 1)
+                    StartLorewalkerStory();
+            }
+
             void UpdateAI(uint32 diff) override
             {
                 events.Update(diff);
@@ -1646,37 +1652,6 @@ namespace Scripts::Custom::TheWanderingIsle
         { Npcs::npc_lorewalker_amai, 36, 4s },
         { Npcs::npc_lorewalker_amai, 37, 4s },
         { Npcs::npc_lorewalker_amai, 38, 5s, true }
-    };
-
-    // Area Trigger 8287
-    class at_lorewalker_zan : public AreaTriggerScript
-    {
-    public:
-        at_lorewalker_zan() : AreaTriggerScript("at_lorewalker_zan") { }
-
-        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
-        {
-            if (player->IsAlive())
-            {
-                Creature* zan = GetClosestCreatureWithEntry(player, Npcs::npc_lorewalker_zan, 30.0f);
-                if (zan)
-                {
-                    zan->AI()->Talk(TalksLorewalker::lorewalker_zan_0, player);
-
-                    Creature* ruolin = zan->FindNearestCreatureWithOptions(100.f, { .CreatureId = Npcs::npc_lorewalker_ruolin, .IgnorePhases = true });
-                    if (ruolin)
-                    {
-                        auto* ai = CAST_AI(npc_lorewalker_ruolin::npc_lorewalker_ruolinAI, ruolin->AI());
-                        if (ai)
-                            ai->StartLorewalkerStory();
-
-                    }
-                }
-
-                return true;
-            }
-            return false;
-        }
     };
 
     class npc_ruk_ruk : public CreatureScript
@@ -2971,7 +2946,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_shu_at_farmstead_play();
     new npc_shanxi_quest2();
     new npc_lorewalker_ruolin();
-    new at_lorewalker_zan();
     new npc_ruk_ruk();
     new npc_ruk_ruk_rocket();
     new npc_aysa_outside_chambers_of_whispers();

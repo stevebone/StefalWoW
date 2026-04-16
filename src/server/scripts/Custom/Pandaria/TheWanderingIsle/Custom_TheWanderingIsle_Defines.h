@@ -707,18 +707,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 text_monkey_wisdom_8 = 54080;
     }
 
-    class player_singing_pools_memory
-    {
-    public:
-        player_singing_pools_memory();
-        bool CanTrigger(Player* player);
-
-    private:
-        std::unordered_map<ObjectGuid, time_t> lastTrigger;
-    };
-
-    extern player_singing_pools_memory g_singingPoolsMemory;
-
     struct LorewalkerDialogueEntry
     {
         uint32 npcEntry;
