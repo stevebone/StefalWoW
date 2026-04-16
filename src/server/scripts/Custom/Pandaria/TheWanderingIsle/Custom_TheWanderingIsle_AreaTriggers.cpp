@@ -90,9 +90,10 @@ namespace Scripts::Custom::TheWanderingIsle
     public:
         at_the_singing_pools_children_summon() : AreaTriggerScript("at_the_singing_pools_children_summon") {}
 
-        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
         {
-            if (!g_singingPoolsMemory.CanTrigger(player))
+            // add cooldown of 45s to prevent spam talk
+            if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
                 return false;
 
             if (player->GetQuestStatus(Quests::quest_the_singing_pools) == QUEST_STATUS_COMPLETE)
