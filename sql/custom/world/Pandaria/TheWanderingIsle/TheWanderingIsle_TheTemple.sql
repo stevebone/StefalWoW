@@ -1,32 +1,50 @@
--- NPC: 53705 Pangolin
--- NPC: 55946 Pei-wu tiger
--- NPC: 56172 Ash moth
--- NPC: 56174 Tiger cub
 
 -- NPC: 54786 Shang 1/2 temple
 -- NPC: 55944 Delora Lionheart
 -- NPC: 56013 Spirit of Master Shang
 -- NPC: 57720 Ji temple
+-- NPC: 60570 Ji final act
 -- NPC: 57721 Aysa temple
+-- NPC: 60566 Aysa final act
 -- NPC: 60917 Huo temple
 -- NPC: 60918 Shu temple
 -- NPC: 60919 Wugou temple
 -- NPC: 60920 Dafeng temple
 -- NPC: 64593 Korga
+-- NPC: 56013 Spirit of Master Shang
 
 -- Quest: 29792 Bidden to Greatness
+-- Quest: 30987 Joining the Alliance
+-- Quest: 31012 Joining the Horde
+-- Quest: 31013 The Horde way
+-- Quest: 31450 A new fate
 
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29792);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29792, 31450, 30987, 31012, 31013);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
-('56012', '29792', '0');
+(56012, 29792, 0),
+(56013, 31450, 0),
+(60570, 31012, 0),
+(60566, 30987, 0),
+(39605, 31013, 0); -- Garrosh Hellscream
 
-DELETE FROM `creature_questender` WHERE `quest` IN (29792);
+DELETE FROM `creature_questender` WHERE `quest` IN (29792, 31450, 30987, 31012, 31013);
 INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES 
-('55943', '29792', '0');
+('55943', '29792', '0'),
+(60570, 31450, 0),
+(60566, 31450, 0),
+(39605, 31012, 0), -- Garrosh Hellscream
+(39605, 31013, 0), -- Garrosh Hellscream
+(62092, 31013, 0), -- Garrosh Hellscream
+(29611, 30987, 0), -- King Varian Wrynn
+(107574, 30987, 0); -- Anduin Wrynn
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29792);
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29792, 31450, 30987, 31012, 31013);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29792', '0', '0', '0', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
+('29792', '0', '0', '0', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('31450', '0', '0', '0', '29800', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('30987', '0', '0', '0', '31450', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('31012', '0', '0', '0', '31450', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('31013', '0', '0', '0', '31012', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 -- Creature Templates
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55944, 57720, 57721, 64593, 56013, 60919, 60918, 60920, 60917, 54786);

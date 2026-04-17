@@ -59,14 +59,14 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (newStatus == QUEST_STATUS_NONE)
             {
-                player->CastSpell(player, SpellsQ29423::spell_despawn_spirit_of_fire, true);
-                player->RemoveAurasDueToSpell(SpellsQ29423::spell_summon_spirit_of_fire);
-                player->RemoveAurasDueToSpell(SpellsQ29423::spell_summon_spirit_of_fire_on_relog);
+                player->CastSpell(player, Spells::spell_despawn_spirit_of_fire, true);
+                player->RemoveAurasDueToSpell(Spells::spell_summon_spirit_of_fire);
+                player->RemoveAurasDueToSpell(Spells::spell_summon_spirit_of_fire_on_relog);
                 PhasingHandler::OnConditionChange(player);
             }
             else if (newStatus == QUEST_STATUS_INCOMPLETE)
             {
-                player->CastSpell(player, SpellsQ29423::spell_summon_spirit_of_fire, true);
+                player->CastSpell(player, Spells::spell_summon_spirit_of_fire, true);
                 PhasingHandler::OnConditionChange(player);
             }
         }
@@ -82,9 +82,9 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (newStatus == QUEST_STATUS_COMPLETE)
             {
-                player->CastSpell(player, SpellsQ29678Q29679::spell_aysa_congrats_timer);
-                player->CastSpell(player, SpellsQ29678Q29679::spell_aysa_congrats_trigger_aura);
-                player->CastSpell(player, SpellsQ29678Q29679::spell_summon_spirit_of_water);
+                player->CastSpell(player, Spells::spell_aysa_congrats_timer);
+                player->CastSpell(player, Spells::spell_aysa_congrats_trigger_aura);
+                player->CastSpell(player, Spells::spell_summon_spirit_of_water);
             }
         }
     };

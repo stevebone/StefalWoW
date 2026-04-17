@@ -101,57 +101,16 @@ namespace Scripts::Custom::TheWanderingIsle
 
     namespace Spells
     {
-        static constexpr uint32 spell_summon_ji_at_forlorn_hut = 117973;
+        // Singing Pools
+        static constexpr uint32 SummonChild1 = 116190;
+        static constexpr uint32 SummonChild2 = 116191;
 
-        // None left behind
-        static constexpr uint32 spell_injured_sailor_feign_death = 108806;
-        static constexpr uint32 spell_rescue_sailor = 129341;
-        static constexpr uint32 spell_rescue_sailor_male = 105520;
-        static constexpr uint32 spell_rescue_sailor_female = 129340;
-        static constexpr uint32 spell_cancel_rescue_injured_sailor = 117987;
-    }
-
-    namespace PositionSpells
-    {
-        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
-    }
-
-    namespace SpellsQ29422
-    {
-        static constexpr uint32 spell_fan_the_flames_throw_wood = 109090;
-        static constexpr uint32 spell_fan_the_flames_blow_air = 109095;
-        static constexpr uint32 spell_fan_the_flames_blow_air_big = 109105;
-        static constexpr uint32 spell_fan_the_flames_blow_air_bigger = 109109;
-        static constexpr uint32 spell_fan_the_flames_credit = 109107;
-    }
-
-    namespace SpellsQ29423
-    {
-        static constexpr uint32 spell_summon_spirit_of_fire = 128700;
-        static constexpr uint32 spell_despawn_spirit_of_fire = 109178;
-        static constexpr uint32 spell_summon_spirit_of_fire_on_relog = 102632;
-        static constexpr uint32 spell_start_talk_event = 116220;
-        static constexpr uint32 spell_fire_form = 109135;
-        static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
-    }
-
-    namespace SpellsQ29662
-    {
-        static constexpr uint32 spell_curse_of_the_frog = 102938;
         static constexpr uint32 spell_razor_beak = 109088;
+        static constexpr uint32 spell_serpent_strike = 128409;
 
         static constexpr uint32 spell_jojo_headbash_reeds_cast = 129272;
         static constexpr uint32 spell_jojo_headbash_stack_of_reeds_impact = 108798;
-    }
 
-    namespace SpellsQ29521
-    {
-        static constexpr uint32 SummonChild1 = 116190;
-        static constexpr uint32 SummonChild2 = 116191;
-    }
-
-    namespace SpellsQ29661Q29663
-    {
         static constexpr uint32 spell_force_cast_ride_pole = 103031;
         static constexpr uint32 spell_throw_rock = 109308;
         static constexpr uint32 spell_monk_ride_pole = 103030;
@@ -160,15 +119,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_curse_of_the_frog = 102938;
         static constexpr uint32 spell_training_bell_ride_vehicle = 107049;
         static constexpr uint32 spell_training_bell_exclusion_aura = 133381;
-    }
 
-    namespace SpellsQ29677
-    {
-        static constexpr uint32 spell_serpent_strike = 128409;
-    }
-
-    namespace SpellsQ29678Q29679
-    {
         static constexpr uint32 spell_jump_front_right = 117033;
         static constexpr uint32 spell_jump_front_left = 117034;
         static constexpr uint32 spell_jump_back_right = 117035;
@@ -180,15 +131,24 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_aysa_congrats_trigger_aura = 128588;
         static constexpr uint32 spell_summon_spirit_of_water = 103538;
         static constexpr uint32 spell_water_spout_credit = 117054;
-    }
 
-    namespace SpellsQ29680
-    {
+        // 29422 Huo, the Spirit of Fire
+        static constexpr uint32 spell_fan_the_flames_throw_wood = 109090;
+        static constexpr uint32 spell_fan_the_flames_blow_air = 109095;
+        static constexpr uint32 spell_fan_the_flames_blow_air_big = 109105;
+        static constexpr uint32 spell_fan_the_flames_blow_air_bigger = 109109;
+        static constexpr uint32 spell_fan_the_flames_credit = 109107;
+
+        // 29423 The Passion of Shen-zin Su
+        static constexpr uint32 spell_summon_spirit_of_fire = 128700;
+        static constexpr uint32 spell_despawn_spirit_of_fire = 109178;
+        static constexpr uint32 spell_summon_spirit_of_fire_on_relog = 102632;
+        static constexpr uint32 spell_start_talk_event = 116220;
+        static constexpr uint32 spell_fire_form = 109135;
+        static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
+
+        // Dai-Lo Farmstead
         static constexpr uint32 spell_shu_splash = 107030;
-    }
-
-    namespace SpellsQ29774
-    {
         static constexpr uint32 spell_water_spirit_laugh = 118035;
         static constexpr uint32 spell_shu_watersplash_credit = 104023;
         static constexpr uint32 spell_shu_watersplash = 118027;
@@ -196,16 +156,68 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_aura_sleep = 42386;
         static constexpr uint32 spell_aura_invisibility = 80797; // 105889 ??
         static constexpr uint32 spell_summon_spirits_water_earth = 104017;
-    }
 
-    namespace SpellsRukRuk
-    {
+        // RukRuk
         static constexpr uint32 spell_ookslosions_triggered = 125885;
         static constexpr uint32 spell_aim = 125609;
         static constexpr uint32 spell_ookslosions = 125699;
         static constexpr uint32 spell_aim_visual = 26079;
         static constexpr uint32 spell_rocket_explosion_visual = 125612;
         static constexpr uint32 spell_rocket_explosion_damage = 125619;
+
+        // Forlorn Hut in the Forbidden forest
+        static constexpr uint32 spell_summon_ji_at_forlorn_hut = 117973;
+
+        // None left behind
+        static constexpr uint32 spell_injured_sailor_feign_death = 108806;
+        static constexpr uint32 spell_rescue_sailor = 129341;
+        static constexpr uint32 spell_rescue_sailor_male = 105520;
+        static constexpr uint32 spell_rescue_sailor_female = 129340;
+        static constexpr uint32 spell_cancel_rescue_injured_sailor = 117987;
+
+        // Vordraka boss fight
+        static constexpr uint32 spell_aysa_tempered_fury = 117275;
+        static constexpr uint32 spell_aysa_combat_roll = 117312;
+        static constexpr uint32 spell_forcecast_summon_aysa_after_fight = 117499;
+        static constexpr uint32 spell_vordraka_deep_sea_smash = 117287;
+        static constexpr uint32 spell_vordraka_rupture = 117456;
+        static constexpr uint32 spell_vordraka_summon_aggressor = 117403;
+        static constexpr uint32 spell_vordraka_death_invis = 117555;
+        static constexpr uint32 spell_vordraka_see_death_invis = 117491;
+
+        // Explosion
+        static constexpr uint32 spell_forcecast_summon_ji_after_fight = 117600;
+        static constexpr uint32 spell_summon_ji_after_vordraka_fight = 117597;
+        static constexpr uint32 spell_forcecast_trigger_blackout = 117610;
+        static constexpr uint32 spell_trigger_blackout = 106037;
+
+        // Healing of Shenzinsu
+        static constexpr uint32 spell_turtle_healed_phase_update = 118232;
+        static constexpr uint32 spell_turtle_healed_phase_timer = 118233;
+        static constexpr uint32 spell_healing_shenzinsu = 117783;
+        static constexpr uint32 spell_healing_shenzinsu_credit = 108898;
+        static constexpr uint32 spell_druid_wound_heal = 117932;
+        static constexpr uint32 spell_priest_wound_heal = 117784;
+    }
+
+    namespace Data
+    {
+        // Vordraka boss fight
+        static constexpr int8 data_aysa_vordraka_fight_talk_1 = 1;
+        static constexpr int8 data_aysa_vordraka_fight_talk_2 = 2;
+        static constexpr int8 data_vordraka_summon_aggressors = 3;
+        static constexpr int8 data_vordraka_death = 4;
+
+        // Healing of Shenzinsu
+        static constexpr int8 data_healer_active = 1;
+        static constexpr int8 data_healer_died = 2;
+        static constexpr uint32 worldstate_healers_active = 6488;
+    }
+
+    namespace PositionSpells
+    {
+        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
+        static constexpr Position pos_spell_117597 = { 229.9426f, 4006.6967f, 87.2537f, 3.3859f };
     }
 
     namespace SpellsCartOx
@@ -256,18 +268,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 ji_talk = 0;
     }
 
-    namespace TalksQ29521
-    {
-        // Singing Pools
-        static constexpr int8 DengTalk0 = 0;
-        static constexpr int8 DengTalk1 = 1;
-        static constexpr int8 DengTalk2 = 2;
-        static constexpr int8 CaiTalk0 = 0;
-        static constexpr int8 CaiTalk1 = 1;
-        static constexpr int8 CaiTalk2 = 2;
-        static constexpr int8 CaiTalk3 = 3;
-    }
-
     namespace TalksQ29662
     {
         static constexpr int8 Jojo_Talk_0 = 0;
@@ -281,31 +281,42 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 shanxi_talk_9 = 9;
     }
 
-    namespace TalksCartTender
+    namespace Talks
     {
+        // Singing Pools Children
+        static constexpr int8 DengTalk0 = 0;
+        static constexpr int8 DengTalk1 = 1;
+        static constexpr int8 DengTalk2 = 2;
+        static constexpr int8 CaiTalk0 = 0;
+        static constexpr int8 CaiTalk1 = 1;
+        static constexpr int8 CaiTalk2 = 2;
+        static constexpr int8 CaiTalk3 = 3;
+
+        // Cart Tender
         static constexpr int8 Cart_Tender_Talk_0 = 0;
         static constexpr int8 Cart_Tender_Talk_1 = 1;
-    }
 
-    namespace TalksLorewalker
-    {
+        // Lorewalker Event
         static constexpr int8 lorewalker_zan_0 = 0;
-    }
 
-    namespace TalksZhaorenEvent
-    {
+        // Aysa outside chamber of whispers
         static constexpr int8 aysa_chamber_of_whispers_0 = 0;
         static constexpr int8 aysa_chamber_of_whispers_1 = 1;
         static constexpr int8 aysa_chamber_of_whispers_2 = 2;
-    }
 
-    namespace TalksQ29787
-    {
+        // 29787 Worthy of passing
         static constexpr int8 shang_talk_0 = 0;
         static constexpr int8 shang_talk_1 = 1;
         static constexpr int8 shang_talk_2 = 2;
         static constexpr int8 shang_talk_3 = 3;
         static constexpr int8 shang_talk_4 = 4;
+
+        // Aysa Vordraka boss fight
+        static constexpr int8 aysa_vordraka_boss_0 = 0;
+        static constexpr int8 aysa_vordraka_boss_1 = 1;
+        static constexpr int8 aysa_vordraka_boss_2 = 2;
+        static constexpr int8 aysa_vordraka_boss_3 = 3;
+        static constexpr int8 aysa_vordraka_boss_4 = 4;
     }
 
     namespace PositionsQ29423
@@ -439,6 +450,17 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position ForlornHut = { 424.717f, 3635.59f, 92.7838f };
     }
 
+    namespace Positions
+    {
+        // Wreck Explosion
+        static constexpr Position JiDeckMove = { 231.112f, 3985.74f, 86.4415f };
+        static constexpr Position JiDeckJump1 = { 230.404f, 3975.61f, 87.7406f };
+        static constexpr Position JiDeckJump2 = { 231.49f, 3946.6f, 61.091f };
+        static constexpr Position AysaDeckMove = { 233.022f, 3985.45f, 86.7175f };
+        static constexpr Position AysaDeckJump1 = { 232.002f, 3974.86f, 87.766f };
+        static constexpr Position AysaDeckJump2 = { 239.453f, 3942.2f, 62.5987f };
+    }
+
     namespace PathQ29423
     {
         static constexpr uint32 aysa = 6112600;
@@ -564,8 +586,16 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 event_rukruk_rocket_fire = 3;
     }
 
-    namespace EventsZhaorenEvent
+    namespace EventsQ29787
     {
+        static constexpr uint8 event_shang_talk_0 = 1;
+        static constexpr uint8 event_shang_path_0 = 2;
+        static constexpr uint8 event_shang_talk_4 = 3;
+    }
+
+    namespace Events
+    {
+        // Zhao-ren battle
         static constexpr uint8 event_aysa_outside_chambers_init = 1;
         static constexpr uint8 event_aysa_outside_chambers_move1 = 2;
         static constexpr uint8 event_aysa_outside_chambers_move2 = 3;
@@ -577,19 +607,22 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 event_zhao_resume_path = 9;
         static constexpr uint8 event_firework_launcher_recharge = 1;
         static constexpr uint8 event_firework_launcher_periodic_ping = 2;
-    }
 
-    namespace EventsQ29787
-    {
-        static constexpr uint8 event_shang_talk_0 = 1;
-        static constexpr uint8 event_shang_path_0 = 2;
-        static constexpr uint8 event_shang_talk_4 = 3;
-    }
-
-    namespace EventsBalloonEvent
-    {
+        // Balloon ride
         static constexpr uint8 event_aysa_jump_in = 1;
         static constexpr uint8 event_spawn_balloon = 2;
+
+        // Vordraka boss fight
+        static constexpr uint8 event_aysa_cast_tempered_fury = 1;
+        static constexpr uint8 event_aysa_cast_combat_roll = 2;
+        static constexpr uint8 event_aysa_update_phases = 3;
+        static constexpr uint8 event_vordraka_cast_smash = 1;
+        static constexpr uint8 event_vordraka_cast_rupture = 2;
+        static constexpr uint8 event_vordraka_cast_summon = 3;
+
+        // Wreck explosion
+        static constexpr uint8 event_aysa_explosion_intro_talk = 1;
+        static constexpr uint8 event_aysa_explosion_leave_deck = 2;
     }
 
     namespace Npcs
@@ -680,6 +713,14 @@ namespace Scripts::Custom::TheWanderingIsle
         // Forbidden Forest
         static constexpr uint32 npc_rescued_sailor = 56236;
         static constexpr uint32 npc_injured_rescued_sailor = 55999;
+        static constexpr uint32 npc_vordraka = 56009;
+        static constexpr uint32 npc_deepscale_aggressor = 60685;
+        static constexpr uint32 npc_aysa_vordraka_fight = 56416;
+        static constexpr uint32 npc_ji_after_vordraka_fight = 60741;
+        static constexpr uint32 npc_healer_alliance_priest = 60877;
+        static constexpr uint32 npc_healer_horde_druid = 60770;
+        static constexpr uint32 npc_healer_alliance_priest2 = 60878;
+        static constexpr uint32 npc_healer_horde_druid2 = 60834;
     }
 
     namespace Objects
@@ -715,6 +756,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_bidden_to_greatness = 29792;
         static constexpr uint32 quest_wrecking_the_wreck = 30589;
         static constexpr uint32 quest_none_left_behind = 29794;
+        static constexpr uint32 quest_an_ancient_evil = 29798;
+        static constexpr uint32 quest_risking_it_all = 30767;
+        static constexpr uint32 quest_the_healing_of_shenzinsu = 29799;
     }
 
     namespace AreaTriggers

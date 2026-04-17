@@ -227,7 +227,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56676', '4', '0', 'It is in the forest where your feet do not walk.  Continue along the mountains and you will find it.', '12', '0', '100', '0', '0', '27826', '0', '55572', '0', 'Shen-zin Su to Player'),
 ('56676', '5', '0', 'Thank you, grandchildren.', '12', '0', '100', '0', '0', '27827', '0', '63407', '0', 'Shen-zin Su to Player');
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943, 60900, 56236, 56416);
+DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943, 60900, 56236, 56416, 60729, 60741, 60770,60877,60834,60878);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`,`BroadcastTextId`, `TextRange`, `comment`) VALUES
 ('59962', '0', '0', '$n\'s here. Let\'s go.', '12', '0', '100', '432', '0', '27420', 0, '59481', '0', 'Aysa Cloudsinger to Player'),
 ('59962', '1', '0', 'Wha...', '12', '0', '100', '0', '0', '27421', 0, '59495', '0', 'Aysa Cloudsinger to Player'),
@@ -253,4 +253,47 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56416', '1', '0', 'Get clear when it raises its weapon, it\'s even stronger than it looks.', '12', '0', '100', '0', '0', '27385', '0', '64849', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
 ('56416', '2', '0', 'It\'s calling allies!  I\'ll keep him busy while you handle them.', '12', '0', '100', '0', '0', '27386', '0', '64850', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
 ('56416', '3', '0', 'We\'re wearing him down.  Keep it up!', '12', '0', '100', '0', '0', '27387', '0', '64852', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
-('56416', '4', '0', 'I don\'t know what I would have done without you.  It\'s good that you came.', '12', '0', '100', '0', '0', '27388', '0', '64853', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare');
+('56416', '4', '0', 'I don\'t know what I would have done without you.  It\'s good that you came.', '12', '0', '100', '0', '0', '27388', '0', '64853', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
+('60729', '0', '0', 'Ji may kill Shen-zin Su if we let him go through with this! Come with me, $p, quickly!', '12', '0', '100', '5', '0', '27412', '0', '55140', '0', 'Aysa Cloudsinger to Player'),
+('60729', '1', '0', 'Ji, stop! This is reckless and stupid.', '12', '0', '100', '5', '0', '27413', '0', '60188', '0', 'Aysa Cloudsinger to Player'),
+('60729', '2', '0', 'If you stop this, then maybe we can come up with one.', '12', '0', '100', '274', '0', '27414', '0', '60190', '0', 'Aysa Cloudsinger to Player'),
+('60729', '3', '0', 'Doing THIS risks everything!', '12', '0', '100', '5', '0', '27415', '0', '60192', '0', 'Aysa Cloudsinger to Player'),
+('60729', '4', '0', 'Ji... if this is what you must do, I will not stop you, but we could lose everything. I hope you\'re right.', '12', '0', '100', '1', '0', '27416', '0', '60194', '0', 'Aysa Cloudsinger to Player'),
+('60729', '5', '0', 'Aysa sighs.', '16', '0', '100', '274', '0', '0', '0', '60211', '0', 'Aysa Cloudsinger to Player'),
+('60741', '0', '0', 'Aysa, this is our only option. We blow the ship free, then we heal his wound. We have no other solution.', '12', '0', '100', '1', '0', '27329', '0', '60189', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('60741', '1', '0', 'So we just wait until we think of something? Shen-zin Su is dying! Doing nothing risks everything!', '12', '0', '100', '6', '0', '27330', '0', '60191', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('60741', '2', '0', 'I\'d rather die knowing that at least we tried.', '12', '0', '100', '1', '0', '27331', '0', '60193', '0', 'Ji Firepaw to Aysa Cloudsinger'),
+('60770', '0', '0', 'Thank you for the help. I\'ll go help with the wound.', '12', '0', '100', '396', '0', '0', '0', '60248', '0', 'Horde Druid to Player'),
+('60770', '0', '1', 'I\'m heading to the wound. Try to keep these beasts off of me.', '12', '0', '100', '396', '0', '0', '0', '60342', '0', 'Horde Druid to Player'),
+('60770', '0', '2', 'You\'re a life-saver. I\'ll do everything I can to heal the wound.', '12', '0', '100', '396', '0', '0', '0', '60343', '0', 'Horde Druid to Player'),
+('60770', '0', '3', 'I thought I was done for. Thank you!', '12', '0', '100', '396', '0', '0', '0', '60344', '0', 'Horde Druid to Player'),
+('60770', '0', '4', 'If all pandaren are like you, I think you may have made some new allies!', '12', '0', '100', '396', '0', '0', '0', '60345', '0', 'Horde Druid to Player'),
+('60770', '0', '5', 'You handle the beasts, we\'ll handle the wound.', '12', '0', '100', '396', '0', '0', '0', '60346', '0', 'Horde Druid to Player'),
+('60770', '0', '6', 'Keep these creatures off of us while we perform our healing.', '12', '0', '100', '396', '0', '0', '0', '60347', '0', 'Horde Druid to Player'),
+('60770', '0', '7', 'I\'d stand with you any day.', '12', '0', '100', '396', '0', '0', '0', '60348', '0', 'Horde Druid to Player'),
+('60834', '0', '0', 'Thank you for the help. I\'ll go help with the wound.', '12', '0', '100', '396', '0', '0', '0', '60248', '0', 'Horde Druid to 60848'),
+('60834', '0', '1', 'I\'m heading to the wound. Try to keep these beasts off of me.', '12', '0', '100', '396', '0', '0', '0', '60342', '0', 'Horde Druid to 60848'),
+('60834', '0', '2', 'You\'re a life-saver. I\'ll do everything I can to heal the wound.', '12', '0', '100', '396', '0', '0', '0', '60343', '0', 'Horde Druid to 60848'),
+('60834', '0', '3', 'I thought I was done for. Thank you!', '12', '0', '100', '396', '0', '0', '0', '60344', '0', 'Horde Druid to 60848'),
+('60834', '0', '4', 'If all pandaren are like you, I think you may have made some new allies!', '12', '0', '100', '396', '0', '0', '0', '60345', '0', 'Horde Druid to 60848'),
+('60834', '0', '5', 'You handle the beasts, we\'ll handle the wound.', '12', '0', '100', '396', '0', '0', '0', '60346', '0', 'Horde Druid to 60848'),
+('60834', '0', '6', 'Keep these creatures off of us while we perform our healing.', '12', '0', '100', '396', '0', '0', '0', '60347', '0', 'Horde Druid to 60848'),
+('60834', '0', '7', 'I\'d stand with you any day.', '12', '0', '100', '396', '0', '0', '0', '60348', '0', 'Horde Druid to 60848'),
+('60877', '0', '0', 'Thank you for the help. I\'ll go help with the wound.', '12', '0', '100', '396', '0', '0', '0', '60248', '0', 'Alliance Priest to Player'),
+('60877', '0', '1', 'I\'m heading to the wound. Try to keep these beasts off of me.', '12', '0', '100', '396', '0', '0', '0', '60342', '0', 'Alliance Priest to Player'),
+('60877', '0', '2', 'You\'re a life-saver. I\'ll do everything I can to heal the wound.', '12', '0', '100', '396', '0', '0', '0', '60343', '0', 'Alliance Priest to Player'),
+('60877', '0', '3', 'I thought I was done for. Thank you!', '12', '0', '100', '396', '0', '0', '0', '60344', '0', 'Alliance Priest to Player'),
+('60877', '0', '4', 'If all pandaren are like you, I think you may have made some new allies!', '12', '0', '100', '396', '0', '0', '0', '60345', '0', 'Alliance Priest to Player'),
+('60877', '0', '5', 'You handle the beasts, we\'ll handle the wound.', '12', '0', '100', '396', '0', '0', '0', '60346', '0', 'Alliance Priest to Player'),
+('60877', '0', '6', 'Keep these creatures off of us while we perform our healing.', '12', '0', '100', '396', '0', '0', '0', '60347', '0', 'Alliance Priest to Player'),
+('60877', '0', '7', 'I\'d stand with you any day.', '12', '0', '100', '396', '0', '0', '0', '60348', '0', 'Alliance Priest to Player'),
+('60878', '0', '0', 'Thank you for the help. I\'ll go help with the wound.', '12', '0', '100', '396', '0', '0', '0', '60248', '0', 'Alliance Priest to 60848'),
+('60878', '0', '1', 'I\'m heading to the wound. Try to keep these beasts off of me.', '12', '0', '100', '396', '0', '0', '0', '60342', '0', 'Alliance Priest to 60848'),
+('60878', '0', '2', 'You\'re a life-saver. I\'ll do everything I can to heal the wound.', '12', '0', '100', '396', '0', '0', '0', '60343', '0', 'Alliance Priest to 60848'),
+('60878', '0', '3', 'I thought I was done for. Thank you!', '12', '0', '100', '396', '0', '0', '0', '60344', '0', 'Alliance Priest to 60848'),
+('60878', '0', '4', 'If all pandaren are like you, I think you may have made some new allies!', '12', '0', '100', '396', '0', '0', '0', '60345', '0', 'Alliance Priest to 60848'),
+('60878', '0', '5', 'You handle the beasts, we\'ll handle the wound.', '12', '0', '100', '396', '0', '0', '0', '60346', '0', 'Alliance Priest to 60848'),
+('60878', '0', '6', 'Keep these creatures off of us while we perform our healing.', '12', '0', '100', '396', '0', '0', '0', '60347', '0', 'Alliance Priest to 60848'),
+('60878', '0', '7', 'I\'d stand with you any day.', '12', '0', '100', '396', '0', '0', '0', '60348', '0', 'Alliance Priest to 60848');
+
+

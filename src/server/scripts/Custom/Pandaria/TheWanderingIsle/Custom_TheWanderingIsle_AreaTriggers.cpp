@@ -79,7 +79,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (!chia)
                     return false;
 
-                player->CastSpell(chia, SpellsQ29423::spell_start_talk_event);
+                player->CastSpell(chia, Spells::spell_start_talk_event);
             }
             return true;
         }
@@ -98,7 +98,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 return false;
 
             if (player->GetQuestStatus(Quests::quest_the_singing_pools) == QUEST_STATUS_COMPLETE)
-                player->CastSpell(player, SpellsQ29521::SummonChild1);
+                player->CastSpell(player, Spells::SummonChild1);
 
             return true;
         }
@@ -168,7 +168,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 Creature* zan = GetClosestCreatureWithEntry(player, Npcs::npc_lorewalker_zan, 30.0f);
                 if (zan)
                 {
-                    zan->AI()->Talk(TalksLorewalker::lorewalker_zan_0, player);
+                    zan->AI()->Talk(Talks::lorewalker_zan_0, player);
 
                     Creature* ruolin = zan->FindNearestCreatureWithOptions(100.f, { .CreatureId = Npcs::npc_lorewalker_ruolin, .IgnorePhases = true });
                     if (ruolin)
@@ -191,7 +191,7 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (player->IsAlive())
             {
-                player->AddAura(SpellsQ29661Q29663::spell_training_bell_exclusion_aura, player);
+                player->AddAura(Spells::spell_training_bell_exclusion_aura, player);
                 return true;
             }
             return false;
@@ -201,7 +201,7 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (player->IsAlive())
             {
-                player->RemoveAura(SpellsQ29661Q29663::spell_training_bell_exclusion_aura);
+                player->RemoveAura(Spells::spell_training_bell_exclusion_aura);
                 return true;
             }
             return false;
@@ -245,10 +245,10 @@ namespace Scripts::Custom::TheWanderingIsle
             switch (areaTrigger->ID)
             {
             case AreaTriggers::areaTrigger_singing_pools_cart:
-                cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_0);
+                cartTender->AI()->Talk(Talks::Cart_Tender_Talk_0);
                 return true;
             case AreaTriggers::areaTrigger_farmstead_cart:
-                cartTender->AI()->Talk(TalksCartTender::Cart_Tender_Talk_1);
+                cartTender->AI()->Talk(Talks::Cart_Tender_Talk_1);
                 return true;
             default: return false;
             }
@@ -377,7 +377,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 Creature* aysha = GetClosestCreatureWithEntry(player, Npcs::npc_aysa_q29785, 20.0f);
 
                 if (aysha)
-                    aysha->AI()->Talk(TalksZhaorenEvent::aysa_chamber_of_whispers_0);
+                    aysha->AI()->Talk(Talks::aysa_chamber_of_whispers_0);
 
                 player->KilledMonsterCredit(Npcs::credit_da_feng_the_spirit_of_air);
 

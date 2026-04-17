@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 
@@ -38,7 +39,7 @@ namespace Scripts::Custom::TheWanderingIsle
             if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) != QUEST_STATUS_INCOMPLETE)
                 return;
 
-            player->CastSpell(player, SpellsQ29423::spell_summon_spirit_of_fire_on_relog, true);
+            player->CastSpell(player, Spells::spell_summon_spirit_of_fire_on_relog, true);
         }
     };
 
@@ -51,7 +52,7 @@ namespace Scripts::Custom::TheWanderingIsle
         void OnLogin(Player* player, bool /*loginFirst*/)
         {
             if (player->IsInWorld() && player->IsActiveQuest(Quests::quest_the_source_of_livelihood))
-                player->CastSpell(player, SpellsQ29678Q29679::spell_summon_spirit_of_water, true);
+                player->CastSpell(player, Spells::spell_summon_spirit_of_water, true);
         }
     };
 
@@ -64,7 +65,30 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (player->IsInWorld() && player->IsActiveQuest(Quests::quest_the_spirit_and_body_of_shenzinsu))
             {
-                player->CastSpell(player, SpellsQ29774::spell_summon_spirits_water_earth);
+                player->CastSpell(player, Spells::spell_summon_spirits_water_earth);
+            }
+        }
+    };
+
+    class player_swapMap_on_relog : public PlayerScript
+    {
+    public:
+        player_swapMap_on_relog() : PlayerScript("player_swapMap_on_relog") {}
+
+        void OnMapChanged(Player* player)
+        {
+            if (player->GetMapId() == 860)
+            {
+                QuestStatus risking = player->GetQuestStatus(Quests::quest_risking_it_all);
+                QuestStatus healing = player->GetQuestStatus(Quests::quest_the_healing_of_shenzinsu);
+
+                bool beforeHeal = risking == QUEST_STATUS_COMPLETE || risking == QUEST_STATUS_REWARDED;
+                bool afterHeal = healing == QUEST_STATUS_REWARDED;
+
+                if(afterHeal)
+                    PhasingHandler::AddVisibleMapId(player, 976);
+                else if(beforeHeal && !afterHeal)
+                    PhasingHandler::AddVisibleMapId(player, 975);
             }
         }
     };
@@ -73,7 +97,9 @@ namespace Scripts::Custom::TheWanderingIsle
 void AddSC_custom_the_wandering_isle_player()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
+
     new player_quest_29423_summon_on_relog();
     new player_quest_29680_summon_on_relog();
     new player_quest_29775_summon_on_relog();
+    new player_swapMap_on_relog();
 }

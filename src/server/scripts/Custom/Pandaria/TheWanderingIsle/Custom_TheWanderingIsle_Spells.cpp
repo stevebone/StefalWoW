@@ -33,6 +33,7 @@
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "Unit.h"
+#include "WorldStateMgr.h"
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
@@ -66,8 +67,8 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ SpellsQ29422::spell_fan_the_flames_throw_wood, SpellsQ29422::spell_fan_the_flames_blow_air,
-                SpellsQ29422::spell_fan_the_flames_blow_air_big, SpellsQ29422::spell_fan_the_flames_blow_air_bigger });
+            return ValidateSpellInfo({ Spells::spell_fan_the_flames_throw_wood, Spells::spell_fan_the_flames_blow_air,
+                Spells::spell_fan_the_flames_blow_air_big, Spells::spell_fan_the_flames_blow_air_bigger });
         }
 
         void HandleAfterCast()
@@ -93,17 +94,17 @@ namespace Scripts::Custom::TheWanderingIsle
                 };
 
             // Sequence
-            schedule(1s, SpellsQ29422::spell_fan_the_flames_throw_wood);
-            schedule(2s, SpellsQ29422::spell_fan_the_flames_blow_air);
-            schedule(3s, SpellsQ29422::spell_fan_the_flames_blow_air_big);
-            schedule(4s, SpellsQ29422::spell_fan_the_flames_blow_air_bigger);
+            schedule(1s, Spells::spell_fan_the_flames_throw_wood);
+            schedule(2s, Spells::spell_fan_the_flames_blow_air);
+            schedule(3s, Spells::spell_fan_the_flames_blow_air_big);
+            schedule(4s, Spells::spell_fan_the_flames_blow_air_bigger);
 
             // Final credit
             player->m_Events.AddEvent(
                 new LambdaBasicEvent([player]()
                     {
                         if (player->IsInWorld())
-                            player->CastSpell(player, SpellsQ29422::spell_fan_the_flames_credit, true);
+                            player->CastSpell(player, Spells::spell_fan_the_flames_credit, true);
                     }),
                 player->m_Events.CalculateTime(7s)
             );
@@ -511,7 +512,7 @@ namespace Scripts::Custom::TheWanderingIsle
             Position pos(x, y, z);
             CastSpellTargetArg target(pos);
 
-            caster->CastSpell(target, SpellsRukRuk::spell_ookslosions_triggered, true);
+            caster->CastSpell(target, Spells::spell_ookslosions_triggered, true);
         }
 
         void Register() override
@@ -608,6 +609,79 @@ namespace Scripts::Custom::TheWanderingIsle
             );
         }
     };
+
+    // 117597 - Summon Ji at wreck explosion
+    class spell_summon_ji_wreck_explosion : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(PositionSpells::pos_spell_117597);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_ji_wreck_explosion::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 118233
+    class spell_turtle_healed_phase_timer : public AuraScript
+    {
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (target->IsPlayer())
+                    target->CastSpell(GetTarget(), Spells::spell_turtle_healed_phase_update, true);
+        }
+
+        void Register() override
+        {
+            AfterEffectRemove += AuraEffectRemoveFn(spell_turtle_healed_phase_timer::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // 117783
+    class spell_healing_shenzin_su : public AuraScript
+    {
+        void HandleEffectPeriodic(AuraEffect const* /*aurEff*/)
+        {
+            if (Unit* target = GetTarget())
+            {
+                Player* player = target->ToPlayer();
+                if (!player)
+                    return;
+
+
+                uint32 healers = WorldStateMgr::GetValue(Data::worldstate_healers_active, player->GetMap());
+
+                target->ModifyPower(POWER_ALTERNATE_POWER, healers);
+
+                if (target->GetPowerPct(POWER_ALTERNATE_POWER) >= 100)
+                {
+                    target->CastSpell(GetTarget(), Spells::spell_healing_shenzinsu_credit, true);
+                    target->RemoveAura(GetId());
+                }
+            }
+        }
+
+        void HandleEffectApply(AuraEffect const*, AuraEffectHandleModes)
+        {
+            if (Unit* target = GetTarget())
+            {
+                if (Player* player = target->ToPlayer())
+                {
+                    player->SetMaxPower(POWER_ALTERNATE_POWER, 100);
+                    player->SetPower(POWER_ALTERNATE_POWER, 0);
+                }
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_healing_shenzin_su::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_healing_shenzin_su::HandleEffectPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -641,4 +715,7 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_summon_ji_forlorn_hut);
     RegisterSpellScript(spell_rescue_injured_sailor);
     RegisterSpellScript(aura_injured_sailor_feign_death);
+    RegisterSpellScript(spell_summon_ji_wreck_explosion);
+    RegisterSpellScript(spell_turtle_healed_phase_timer);
+    RegisterSpellScript(spell_healing_shenzin_su);
 }
