@@ -227,7 +227,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56676', '4', '0', 'It is in the forest where your feet do not walk.  Continue along the mountains and you will find it.', '12', '0', '100', '0', '0', '27826', '0', '55572', '0', 'Shen-zin Su to Player'),
 ('56676', '5', '0', 'Thank you, grandchildren.', '12', '0', '100', '0', '0', '27827', '0', '63407', '0', 'Shen-zin Su to Player');
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943);
+DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943, 60900, 56236, 56416);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`,`BroadcastTextId`, `TextRange`, `comment`) VALUES
 ('59962', '0', '0', '$n\'s here. Let\'s go.', '12', '0', '100', '432', '0', '27420', 0, '59481', '0', 'Aysa Cloudsinger to Player'),
 ('59962', '1', '0', 'Wha...', '12', '0', '100', '0', '0', '27421', 0, '59495', '0', 'Aysa Cloudsinger to Player'),
@@ -235,8 +235,22 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('59960', '0', '0', 'Let me try.', '12', '0', '100', '5', '0', '27339', 0, '59513', '0', 'Ji to Aysa'),
 ('59960', '1', '0', 'Did they prop this door up against a boulder?  It won\'t budge!', '12', '0', '100', '5', '0', '27340', 0, '59515', '0', 'Ji to Aysa'),
 ('59960', '2', '0', 'Well done, Jojo!', '12', '0', '100', '5', '0', '27341', 0, '59521', '0', 'Ji to Jojo'),
+('59960', '3', '0', 'We need to dislodge that ship, Korga.  If we help your crewmates, can you help us?', '12', '0', '100', '1', '0', '27333', '0', '59584', '0', 'Ji Firepaw to Player'),
+('59960', '4', '0', 'Well, we\'ve got a master person-finder here, eh $p?  We\'re on it.', '12', '0', '100', '1', '0', '27334', '0', '59586', '0', 'Ji Firepaw to Player'),
 ('60042', '0', '0', 'Wei, are these friends of yours?', '12', '0', '100', '6', '0', '28120', '0', '54956', '0', 'Korga Strongmane to Player'),
 ('60042', '1', '0', 'Korga Strongmane, once prisoner of the Alliance, now free and woefully unarmed tauren. Good to meet you, pandaren.', '12', '0', '100', '66', '0', '28121', '0', '59555', '0', 'Korga Strongmane to Player'),
-('60042', '2', '0', 'Gladly, my new friend. Our engineer is still in the wilds though - we\'ll need to rescue him first.', '12', '0', '100', '1', '0', '28122', '0', '59585', '0', 'Korga Strongmane to Player'),
-('55943', '0', '0', 'Never met them before in my life. Pandaren don\'t really come in any bad flavors though.', '12', '0', '100', '0', '0', '28090', '0', '59554', '0', 'Wei Palerage to Player');
-
+('60042', '2', '0', 'Gladly, my new friend. Our engineer is still in the wilds though - we\'ll need to rescue him first.', '12', '0', '100', '1', '0', '28122', '0', '59585', '0', 'Korga Strongmane to Ji'),
+('55943', '0', '0', 'Never met them before in my life. Pandaren don\'t really come in any bad flavors though.', '12', '0', '100', '0', '0', '28090', '0', '59554', '0', 'Wei Palerage to Player'),
+('60900', '0', '0', 'Let\'s go find this engineer.  Maybe getting this thorn removed won\'t be as hard as we thought.', '12', '0', '100', '396', '0', '27335', '0', '60379', '0', 'Ji Firepaw to Korga'),
+('56236', '0', '0', 'I... I am in your debt.', '12', '0', '100', '0', '0', '0', '0', '55139', '0', 'Injured Sailor to Player'),
+('56236', '0', '1', 'I\'m... alive?  Thank you... thank you so much!', '12', '0', '100', '18', '0', '0', '0', '63840', '0', 'Injured Sailor to Player'),
+('56236', '0', '2', 'I can... I can barely breathe.  I\'m alive thanks to you.', '12', '0', '100', '18', '0', '0', '0', '64337', '0', 'Injured Sailor to Player'),
+('56236', '0', '3', 'I\'m alive thanks only to you... I won\'t forget this.', '12', '0', '100', '18', '0', '0', '0', '64342', '0', 'Injured Sailor to Player'),
+('56236', '0', '4', 'I thought that was it... I thought I was going to die.  Thank you, stranger.', '12', '0', '100', '18', '0', '0', '0', '64344', '0', 'Injured Sailor to Player'),
+('56236', '0', '5', 'I owe you my life.', '12', '0', '100', '2', '0', '0', '0', '64348', '0', 'Injured Sailor to Player'),
+('56236', '0', '6', 'Thank you for the timely rescue, hero.', '12', '0', '100', '2', '0', '0', '0', '64355', '0', 'Injured Sailor to Player'),
+('56416', '0', '0', 'Thank Shen-zin Su that you\'re here.  I could use your help!', '12', '0', '100', '0', '0', '27384', '0', '64848', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
+('56416', '1', '0', 'Get clear when it raises its weapon, it\'s even stronger than it looks.', '12', '0', '100', '0', '0', '27385', '0', '64849', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
+('56416', '2', '0', 'It\'s calling allies!  I\'ll keep him busy while you handle them.', '12', '0', '100', '0', '0', '27386', '0', '64850', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
+('56416', '3', '0', 'We\'re wearing him down.  Keep it up!', '12', '0', '100', '0', '0', '27387', '0', '64852', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare'),
+('56416', '4', '0', 'I don\'t know what I would have done without you.  It\'s good that you came.', '12', '0', '100', '0', '0', '27388', '0', '64853', '0', 'Aysa Cloudsinger to Vordraka, the Deep Sea Nightmare');

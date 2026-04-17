@@ -1,5 +1,34 @@
 -- Wandering Isle fixes and changes
 
+-- Phase: 524 Zhaoren battle
+-- Phase: 536 Zhaoren dead
+-- Phase: 543 Crashed Ship Boss Fight
+-- Phase: 544 Crashed Ship Healing
+-- Phase: 545 Crashed Ship Healed
+-- Phase: 592/593/594/595/596/597/598 Cosmetic class weapon racks
+-- Phase: 878 Cosmetic - Mandori Village Gate Spawns
+-- Phase: 879 Cosmetic - Pei-Wu Forest Gate Spawns
+-- Phase: 903 Cosmetic Forlorn Hut npcs
+-- Phase: 993 Crashed Ship Cinematic
+-- Phase: 1027 Cosmetic - Fire Spirit Rescued
+-- Phase: 1028 Cosmetic - Water Spirit Rescued
+-- Phase: 1029 Cosmetic - Earth Spirit Rescued
+-- Phase: 1030 Cosmetic - Air Spirit Rescued
+-- Phase: 1323	"Cosmetic - Central Statue, Pre-Fire"
+-- Phase: 1324	"Cosmetic - Central Statue, Post-Fire"
+-- Phase: 1325	"Cosmetic - Central Statue, Post-Water"
+-- Phase: 1326	"Cosmetic - Central Statue, Post-Earth"
+-- Phase: 1327	"Cosmetic - Central Statue, Post-Air"
+-- Phase: 1429 Zhaoren flyby
+-- Phase: 1430 Zhaoren plateau
+-- Phase: 1510 Cosmetic Mallet Object/Quest
+-- Phase: 1526 Master Shang zhaoren battle completed
+-- Phase: 1527 Master Shang graveyard
+-- Phase: 1714 Cosmetic Jade Tiger Pillar
+-- Phase: 1835 Cosmetic Forest Horde Camp
+-- Phase: 1836 Cosmetic Chamber of winds
+-- Phase: 1885 Cosmetic Balloon ride npcs
+
 -- NPC: 54130 Amberleaf Scamp
 -- NPC: 54131 Fe-Feng Hozen
 -- NPC: 57164 Fe-Feng Leaper
@@ -139,6 +168,7 @@
 -- Spell: 117036 Shu Jump to back left
 -- Spell: 49415 Generic Quest Invisibility 2
 -- Spell: 80797 Generic Quest Invisibility 5
+-- Spell: 89521 Detect Quest Invis 5
 -- Spell: 104396 Uplifting Draft cast on player by Master Shang
 
 -- Quest: 29421 Only the Worthy Shall Pass

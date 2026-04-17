@@ -87,11 +87,33 @@ namespace Scripts::Custom::TheWanderingIsle
 
         // Mandori Village - not working
         // Just for later reference
+        // Blizz is using the trigger spell at the gate to summon the 3 npcs
+        // The summoned NPCs are the ones doing the escort quest and not the phased npcs at the gate
         static constexpr uint32 spell_trigger_mandori_gate_npcs = 115345;
+        static constexpr uint32 spell_summon_ji_mandori_gate = 115494;
+        static constexpr uint32 spell_summon_jojo_mandori_gate = 115495;
+        static constexpr uint32 spell_summon_aysa_mandori_gate = 115493;
         static constexpr uint32 spell_summon_hermit_hut_npcs = 115491;
         static constexpr uint32 spell_csa_area_trigger_dummy_timer_aura_self = 115644;
         static constexpr uint32 spell_mandori_gate_entrance_credit = 115442;
         static constexpr uint32 spell_pei_wu_gate_entrance_credit = 115443;
+    }
+
+    namespace Spells
+    {
+        static constexpr uint32 spell_summon_ji_at_forlorn_hut = 117973;
+
+        // None left behind
+        static constexpr uint32 spell_injured_sailor_feign_death = 108806;
+        static constexpr uint32 spell_rescue_sailor = 129341;
+        static constexpr uint32 spell_rescue_sailor_male = 105520;
+        static constexpr uint32 spell_rescue_sailor_female = 129340;
+        static constexpr uint32 spell_cancel_rescue_injured_sailor = 117987;
+    }
+
+    namespace PositionSpells
+    {
+        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
     }
 
     namespace SpellsQ29422
@@ -654,6 +676,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 credit_forest_door_two = 59947;
         static constexpr uint32 npc_wei_palerage = 55943;
         static constexpr uint32 npc_korga_hut = 60042;
+
+        // Forbidden Forest
+        static constexpr uint32 npc_rescued_sailor = 56236;
+        static constexpr uint32 npc_injured_rescued_sailor = 55999;
     }
 
     namespace Objects
@@ -687,6 +713,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_passing_wisdom = 29790;
         static constexpr uint32 quest_suffering_of_shenzinsu = 29791;
         static constexpr uint32 quest_bidden_to_greatness = 29792;
+        static constexpr uint32 quest_wrecking_the_wreck = 30589;
+        static constexpr uint32 quest_none_left_behind = 29794;
     }
 
     namespace AreaTriggers

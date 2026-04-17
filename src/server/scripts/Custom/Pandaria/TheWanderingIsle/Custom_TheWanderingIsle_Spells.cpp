@@ -533,11 +533,87 @@ namespace Scripts::Custom::TheWanderingIsle
             OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_worthy_of_passing::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
         }
     };
+
+    // 117973 - Summon Ji at Forlorn hut
+    class spell_summon_ji_forlorn_hut : public SpellScript
+    {
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(PositionSpells::pos_spell_117973);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_ji_forlorn_hut::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 129341
+    class spell_rescue_injured_sailor : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo(
+                {
+                    Spells::spell_rescue_sailor_female,
+                    Spells::spell_rescue_sailor_male
+                });
+        }
+
+        bool Load() override
+        {
+            return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
+        }
+
+        void HandleGenderSelect(SpellEffIndex /*effIndex*/)
+        {
+            Player* player = GetCaster()->ToPlayer();
+            if (!player)
+                return;
+
+            uint32 spellId = (player->GetGender() == GENDER_MALE)
+                ? Spells::spell_rescue_sailor_male
+                : Spells::spell_rescue_sailor_female;
+
+            player->CastSpell(player, spellId, true);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_rescue_injured_sailor::HandleGenderSelect, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    // 108806
+    class aura_injured_sailor_feign_death : public AuraScript
+    {
+        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            // Retail behavior: fake death + low HP
+            target->SetUnitFlag(UNIT_FLAG_PREVENT_EMOTES_FROM_CHAT_TEXT);
+            target->SetUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
+        }
+
+        void Register() override
+        {
+            OnEffectApply += AuraEffectApplyFn(
+                aura_injured_sailor_feign_death::OnApply,
+                EFFECT_0,
+                SPELL_AURA_DUMMY,
+                AURA_EFFECT_HANDLE_REAL
+            );
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
+
     RegisterSpellScript(spell_fan_the_flames);
     RegisterSpellScript(spell_fan_the_flames_throw_wood_and_all_blow_air);
     RegisterSpellScript(spell_summon_fire_spirit);
@@ -562,4 +638,7 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_monkey_wisdom_text);
     RegisterSpellScript(spell_ruk_ruk_ooksplosions);
     RegisterSpellScript(spell_summon_worthy_of_passing);
+    RegisterSpellScript(spell_summon_ji_forlorn_hut);
+    RegisterSpellScript(spell_rescue_injured_sailor);
+    RegisterSpellScript(aura_injured_sailor_feign_death);
 }

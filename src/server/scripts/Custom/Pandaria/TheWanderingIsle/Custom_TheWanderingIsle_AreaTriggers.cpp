@@ -32,6 +32,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
+#include "Vehicle.h"
 
 #include "Custom_TheWanderingIsle_Defines.h"
 
@@ -543,9 +544,48 @@ namespace Scripts::Custom::TheWanderingIsle
                 Creature* korga = GetClosestCreatureWithEntry(player, Npcs::npc_korga_hut, 50.0f);
 
                 if (korga)
+                {
                     korga->AI()->SetData(1, 1);
+                    korga->AI()->SetGUID(player->GetGUID(), 1);
+                }
 
                 return true;
+            }
+            return false;
+        }
+    };
+
+    // 7087
+    class at_wreck_of_the_skyseeker_injured_sailor : public AreaTriggerScript
+    {
+    public:
+        at_wreck_of_the_skyseeker_injured_sailor() : AreaTriggerScript("at_wreck_of_the_skyseeker_injured_sailor") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (player->IsAlive() && player->IsVehicle() && player->GetQuestStatus(Quests::quest_none_left_behind) == QUEST_STATUS_INCOMPLETE)
+            {
+                Vehicle* veh = player->GetVehicleKit();
+                if (veh)
+                {
+                    Unit* sailor = veh->GetPassenger(0);
+                    if (sailor)
+                    {
+                        sailor->SetWalk(true);
+                        sailor->CastSpell(player, Spells::spell_cancel_rescue_injured_sailor, true);
+                        sailor->SetStandState(UNIT_STAND_STATE_STAND);
+                        sailor->ToCreature()->AI()->Talk(0);
+                        player->KilledMonsterCredit(Npcs::npc_injured_rescued_sailor);
+
+                        Creature* controller = sailor->FindNearestCreature(56476, 50.f);
+                        if (controller)
+                            sailor->GetMotionMaster()->MovePoint(1, controller->GetRandomNearPosition(5.f));
+
+                        sailor->ToCreature()->DespawnOrUnsummon(30s);
+                    }
+
+                    return true;
+                }
             }
             return false;
         }
@@ -570,5 +610,6 @@ void AddSC_custom_the_wandering_isle_at()
     new at_balloon_intro_q29790();
     new at_mandori_village_7710();
     new at_forlorn_hut_7714();
+    new at_wreck_of_the_skyseeker_injured_sailor();
 
 }

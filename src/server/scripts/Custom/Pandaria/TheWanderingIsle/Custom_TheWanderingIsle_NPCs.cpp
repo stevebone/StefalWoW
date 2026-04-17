@@ -2878,12 +2878,24 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             npc_korga_hutAI(Creature* creature) : ScriptedAI(creature) { }
 
+            void OnQuestAccept(Player* player, Quest const* quest) override
+            {
+                if (quest->GetQuestId() == Quests::quest_wrecking_the_wreck)
+                    PhasingHandler::OnConditionChange(player, true);
+            }
+
             void SetData(uint32 type, uint32 value) override
             {
                 if (type == 1 && value == 1)
                 {
                     StartDialogue();
                 }
+            }
+
+            void SetGUID(ObjectGuid const& guid, int32 type) override
+            {
+                if (type == 1)
+                    PlayerGUID = guid;
             }
 
             void StartDialogue()
@@ -2906,6 +2918,32 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         Talk(1);
                     });
+
+                Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29792, 20.f);
+                if (ji)
+                {
+                    scheduler.Schedule(30s, [ji](TaskContext const&)
+                        {
+                            ji->AI()->Talk(3);
+                        });
+                }
+
+                scheduler.Schedule(40s, [this](TaskContext const&)
+                    {
+                        Talk(2);
+                    });
+
+                if (ji)
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                    if (!player)
+                        return;
+
+                    scheduler.Schedule(50s, [ji, player](TaskContext const&)
+                        {
+                            ji->AI()->Talk(4, player);
+                        });
+                }
             }
 
             void UpdateAI(uint32 diff) override
@@ -2916,11 +2954,75 @@ namespace Scripts::Custom::TheWanderingIsle
 
         private:
             TaskScheduler scheduler;
+            ObjectGuid PlayerGUID;
         };
 
         CreatureAI* GetAI(Creature* c) const override
         {
             return new npc_korga_hutAI(c);
+        }
+    };
+
+    // 55999
+    class npc_injured_sailor_55999 : public CreatureScript
+    {
+    public:
+        npc_injured_sailor_55999() : CreatureScript("npc_injured_sailor_55999") { }
+
+        struct npc_injured_sailor_55999AI : public ScriptedAI
+        {
+            npc_injured_sailor_55999AI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                // Make sure it's clickable
+                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+
+                // Set HP to 5-10%
+                uint32 pct = urand(5, 10);
+                me->SetHealth(me->CountPctFromMaxHealth(pct));
+            }
+
+            void OnSpellClick(Unit* clicker, bool) override
+            {
+                Player* player = clicker->ToPlayer();
+                if (!player)
+                    return;
+
+                if (!player->IsActiveQuest(Quests::quest_none_left_behind))
+                    return;
+
+                Vehicle* veh = player->GetVehicleKit();
+                if (veh)
+                {
+                    Unit* sailor = veh->GetPassenger(0);
+                    if (sailor)
+                        return;
+                }
+
+                Creature* sailor = player->SummonCreature(Npcs::npc_rescued_sailor, player->GetPosition());
+                if (sailor)
+                {
+                    scheduler.Schedule(400ms, [sailor, player](TaskContext const&)
+                        {
+                            sailor->CastSpell(player, SpellsCartOx::spell_force_vehicle_ride, true);
+                        });
+                }
+                me->DespawnOrUnsummon(500ms);
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                scheduler.Update(diff);
+            }
+
+        private:
+            TaskScheduler scheduler;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_injured_sailor_55999AI(creature);
         }
     };
 }
@@ -2955,4 +3057,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_shang_xi_hot_air_balloon();
     new npc_aysa_mandori_village();
     new npc_korga_hut();
+    new npc_injured_sailor_55999();
 }
