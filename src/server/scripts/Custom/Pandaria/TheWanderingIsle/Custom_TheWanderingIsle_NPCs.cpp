@@ -24,6 +24,7 @@
 #include "Creature.h"
 #include "EventMap.h"
 #include "GameObject.h"
+#include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
@@ -3714,7 +3715,7 @@ namespace Scripts::Custom::TheWanderingIsle
             // -------------------------
             void JustEnteredCombat(Unit* /*attacker*/) override
             {
-                if(state = STATE_HEALING)
+                if(state == STATE_HEALING)
                     StopHealing();
 
                 state = STATE_COMBAT;
