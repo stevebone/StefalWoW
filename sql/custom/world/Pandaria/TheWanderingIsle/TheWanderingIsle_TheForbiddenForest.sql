@@ -31,6 +31,7 @@
 -- (55940, 55942, 55999, 56362, 56476, 56236, 60897, 60900, 56416, 55943, 55944, 60042, 60055, 67186, 67185, 60895)
 -- NPC: 60729 Aysa at the explosion
 -- NPC: 60741 Ji at the explosion
+-- NPC: 56417 Aysa after explosion?
 -- NPC: 56418 Ji after Vordraka
 -- NPC: 57739 Ji After healed Shenzinsu
 -- NPC: 56013 Spirit of Master Shang
@@ -38,6 +39,11 @@
 -- NPC: 60878 Alliance Priest
 -- NPC: 60770 Horde Druid
 -- NPC: 60834 Horde Druid
+-- NPC: 60851 Delora Lionheart (during healing)
+-- NPC: 60852 Korga (during healing)
+-- NPC: 57317 Skyseeker Sailor (during healing)
+-- NPC: 60854 Escaped Horde Crewman (during healing)
+-- (60729, 60741, 56417, 56418, 57739, 56013, 60877, 60878, 60770, 60834, 60851, 60852, 57317, 60854)
 
 -- Spells: 117600 Summon Ji Cinematic Intro
 -- Spells: 117499 Summon Aysa Cinematic Intro
@@ -95,7 +101,7 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('29795', '0', '0', '0', '29792', '30589', '-30591', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('30589', '0', '0', '117973', '30591', '30590', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29793', '0', '0', '0', '30589', '29796', '-29793', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29796', '0', '0', '0', '89521', '29793', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('29796', '0', '0', '89521', '29793', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29794', '0', '0', '0', '29796', '29798', '-29665', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29797', '0', '0', '0', '29796', '29798', '-29665', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('30590', '0', '0', '0', '30589', '29796', '-29793', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
@@ -125,11 +131,11 @@ INSERT INTO `conditions` VALUES
 ('26', '903', '0', '0', '0', '47', '0', '30589', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 903 if 30589 IS NOT in progress or complete or rewarded'),
 ('26', '993', '0', '0', '0', '47', '0', '29798', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 29798 IS complete or rewarded'),
 ('26', '993', '0', '0', '0', '47', '0', '30767', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 30767 IS NOT complete or rewarded'),
-('26', '544', '0', '0', '0', '47', '0', '29798', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29798 IS in complete or rewarded'),
+('26', '544', '0', '0', '0', '47', '0', '30767', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 30767 IS in complete or rewarded'),
 ('26', '544', '0', '0', '0', '47', '0', '29799', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29799 IS NOT rewarded'),
 ('26', '545', '0', '0', '0', '47', '0', '29799', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29799 IS rewarded'),
 ('26', '1835', '0', '0', '0', '47', '0', '30589', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 30589 IS rewarded'),
-('26', '1835', '0', '0', '0', '47', '0', '29798', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 29798 IS NOT rewarded');
+('26', '1835', '0', '0', '0', '47', '0', '29798', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 29798 IS NOT in progress or complete or rewarded');
 
 -- Creature Templates
 UPDATE `creature_template` SET `ScriptName` = 'npc_korga_hut' WHERE `entry` = 60042;
@@ -137,9 +143,10 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_injured_sailor_55999', `Regen
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_vordraka_fight' WHERE `entry` = 56416;
 UPDATE `creature_template` SET `ScriptName` = 'npc_vordraka' WHERE `entry` = 56009;
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_explosion' WHERE `entry` = 60729;
+UPDATE `creature_template` SET `ScriptName` = 'npc_shenzin_su_healer' WHERE `entry` IN (60877, 60878, 60770, 60834);
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55943, 60042, 67186, 55942, 55944, 60055, 60900, 67185, 55999, 56236, 60897, 56362, 56416, 56476, 60895, 55940,
-60858, 60780, 56360, 60722, 56007, 56008, 60685, 56009);
+60858, 60780, 56360, 60722, 56007, 56008, 60685, 56009, 60729, 60741, 56417, 56418, 57739, 56013, 60877, 60878, 60770, 60834, 60851, 60852, 57317, 60854);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, 
 `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55943', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '110846'),
@@ -165,7 +172,22 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('60685', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('60722', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '96733'),
 ('60780', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
-('60858', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '');
+('60858', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('56013', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
+('56417', '0', '0', '0', '0', '0', '0', '1', '0', '27', '0', '0', '0', '0', ''),
+('56418', '0', '0', '0', '0', '0', '0', '1', '0', '510', '0', '0', '0', '0', ''),
+('57317', '0', '0', '0', '0', '0', '0', '1', '0', '333', '0', '0', '0', '0', ''),
+('57739', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+('60729', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '117496'),
+('60741', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '117598'),
+('60770', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '117950'),
+('60834', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '46598'),
+('60851', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '131501'),
+('60852', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '131502'),
+('60854', '0', '0', '0', '0', '0', '0', '1', '0', '425', '0', '0', '0', '0', ''),
+('60877', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '117950'),
+('60878', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '46598');
+
 
 UPDATE `creature` SET `PhaseId` = 543, `spawntimesecs` = '360' WHERE `id` IN (56009);
 UPDATE `creature` SET `PhaseId` = 0, `PhaseGroup` = 680 WHERE `id` IN (56416);
@@ -183,8 +205,10 @@ UPDATE `creature` SET `PhaseId` = 544, `ScriptName` = 'npc_healers_active_bunny'
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452061, 452110, 452062, 452099, 452114, 452105, 452117, 452351, 452355, 452101, 452111, 452112, 452248, 452229, 452265, 452250,
 452252,452254, 452196, 452210, 452268, 452283, 452273, 452253, 452224, 452195, 452266, 452267, 452219, 452237, 452263, 452277, 452211, 452225, 452244, 452262, 452279, 452264); -- duplicate spawns
 DELETE FROM `creature` WHERE `map` = 860 AND `id` IN (56236); -- wrong spawns as the sailors are spawned from quest
+DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452202, 452245, 452189, 452201, 452149, 452143, 452151, 452141, 452158); -- event adds are now spawned from script
 
 UPDATE `gameobject` SET `PhaseId` = 1835 WHERE `id` IN (209793);
+UPDATE `gameobject` SET `PhaseId` = 993 WHERE `guid` IN (300834);
 
 DELETE FROM `npc_vendor` WHERE `entry` IN (67185, 67186);
 INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `type`, BonusListIDs, PlayerConditionID, IgnoreFiltering, VerifiedBuild) VALUES
@@ -206,9 +230,14 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `
 ('67185', '7', '90659', '0', '0', '0', '1', NULL, '0', '0', '63906'),
 ('67185', '8', '90660', '0', '0', '0', '1', NULL, '0', '0', '63906');
 
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (55999);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (55999, 60770, 60877, 60878, 60834);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
-('55999', '129340', '1', '0');
+(55999, 129340, 1, 0),
+(60770, 56685, 1, 0),
+(60877, 56685, 1, 0),
+(60834, 56685, 1, 0),
+(60878, 56685, 1, 0);
+
 
 -- Scripts
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7714, 7087);
@@ -226,11 +255,14 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (117783, 'spell_healing_shenzin_su');
 
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000) AND `source_type` IN (0, 9);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 60851, 57317, 60852, 60854, 60858, 56417, 55940);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000, 60851, 57317, 60852, 60854, 60858, 56417, 55940) AND `source_type` IN (0, 9);
 INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, event_type, event_phase_mask, event_chance, event_flags,  event_param1, event_param2, 
 event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, 
 action_param6, target_type, target_param1, target_param2, target_param3, target_x, target_y, target_z, target_o, comment) VALUES
+('55940', '0', '0', '1', '19', '0', '100', '0', '29798', '0', '0', '0', '0', '', '44', '543', '1', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Quest Accepted - Add Phase'),
+('55940', '0', '1', '2', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '44', '993', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Quest Accepted - Remove Phase'),
+('55940', '0', '2', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '44', '1835', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Quest Accepted - Remove Phase'),
 ('60900', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6090000', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Just Spawned - Run Script'),
 ('60900', '0', '1', '2', '40', '0', '100', '0', '2', '6090000', '0', '0', '0', '', '54', '3000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On WP Reached - Pause WP'),
 ('60900', '0', '2', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '97', '15', '15', '0', '0', '0', '0', '1', '0', '0', '0', '424.019', '3676.25', '78.6968', '0', 'Ji Firepaw - On WP Reached - Jump to Pos'),
@@ -239,4 +271,16 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 ('60900', '0', '5', '6', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '44', '1835', '1', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On WP Ended - Add Phase'),
 ('60900', '0', '6', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On WP Ended - Despawn'),
 ('6090000', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Talk'),
-('6090000', '9', '1', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '53', '1', '6090000', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Start WP');
+('6090000', '9', '1', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '53', '1', '6090000', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Start WP'),
+('60851', '0', '0', '0', '10', '0', '100', '0', '1', '10', '240000', '300000', '0', '', '84', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Delora Lionheart - OOC LOS - Talk'),
+('60851', '0', '1', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128440', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Delora Lionheart - Update IC - Cast Piercing Strikes'),
+('60851', '0', '2', '0', '0', '0', '100', '0', '2000', '5000', '2000', '5000', '0', '', '11', '128513', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Delora Lionheart - Update IC - Cast Strike'),
+('57317', '0', '0', '0', '0', '0', '100', '0', '3000', '5000', '3000', '5000', '0', '', '11', '128440', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Skyseeker Sailor - Update IC - Cast Piercing Strikes'),
+('60852', '0', '0', '0', '10', '0', '100', '0', '1', '10', '240000', '300000', '0', '', '84', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Korga Strongmane - OOC LOS - Talk'),
+('60852', '0', '1', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128515', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Korga Strongmane - Update IC - Cast Lightning Bolt'),
+('60854', '0', '0', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128510', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Escaped Horde Crewman - Update IC - Cast Double Thrust'),
+('60858', '0', '0', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128533', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+('56417', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '8', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Respawn - Set React State'),
+('56417', '0', '1', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '5', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update OOC - Start Attack'),
+('56417', '0', '2', '0', '0', '0', '100', '0', '2000', '4000', '2000', '4000', '0', '', '11', '117275', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update IC - Cast Tempered Fury'),
+('56417', '0', '3', '0', '0', '0', '100', '0', '5000', '8000', '10000', '15000', '0', '', '11', '117401', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update IC - Cast Spinning Crane Kick');

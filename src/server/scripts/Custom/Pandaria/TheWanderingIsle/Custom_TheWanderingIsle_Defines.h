@@ -74,33 +74,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 shenzinsu_bunny_text_6 = 63407;
     }
 
-    namespace SpellsMisc
-    {
-        static constexpr uint32 spell_ruolin_singing = 126804;
-
-        // Shenzinsu turtle spells - not working
-        // Just for later reference
-        static constexpr uint32 spell_trigger_with_anim_0 = 114898;
-        static constexpr uint32 spell_trigger = 106759;
-        static constexpr uint32 spell_trigger_with_anim_1 = 118571;
-        static constexpr uint32 spell_trigger_with_turn = 118572;
-
-        // Mandori Village - not working
-        // Just for later reference
-        // Blizz is using the trigger spell at the gate to summon the 3 npcs
-        // The summoned NPCs are the ones doing the escort quest and not the phased npcs at the gate
-        static constexpr uint32 spell_trigger_mandori_gate_npcs = 115345;
-        static constexpr uint32 spell_summon_ji_mandori_gate = 115494;
-        static constexpr uint32 spell_summon_jojo_mandori_gate = 115495;
-        static constexpr uint32 spell_summon_aysa_mandori_gate = 115493;
-        static constexpr uint32 spell_summon_hermit_hut_npcs = 115491;
-        static constexpr uint32 spell_csa_area_trigger_dummy_timer_aura_self = 115644;
-        static constexpr uint32 spell_mandori_gate_entrance_credit = 115442;
-        static constexpr uint32 spell_pei_wu_gate_entrance_credit = 115443;
-    }
-
     namespace Spells
     {
+        // Lorewalker Story
+        static constexpr uint32 spell_ruolin_singing = 126804;
+
         // Singing Pools
         static constexpr uint32 SummonChild1 = 116190;
         static constexpr uint32 SummonChild2 = 116191;
@@ -198,6 +176,36 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_healing_shenzinsu_credit = 108898;
         static constexpr uint32 spell_druid_wound_heal = 117932;
         static constexpr uint32 spell_priest_wound_heal = 117784;
+        static constexpr uint32 spell_alliance_priest_smite = 117935;
+        static constexpr uint32 spell_alliance_priest_greater_heal = 117933;
+        static constexpr uint32 spell_horde_druid_wrath = 117767;
+        static constexpr uint32 spell_horde_druid_healing_touch = 117765;
+        static constexpr uint32 spell_fighting_healer_rescued_aura = 117950;
+
+        // Talking to Shenzinsu turtle spells - not working
+        // Just for later reference
+        static constexpr uint32 spell_trigger_with_anim_0 = 114898;
+        static constexpr uint32 spell_trigger = 106759;
+        static constexpr uint32 spell_trigger_with_anim_1 = 118571;
+        static constexpr uint32 spell_trigger_with_turn = 118572;
+
+        // Mandori Village - not working
+        // Just for later reference
+        // Blizz is using the trigger spell at the gate to summon the 3 npcs
+        // The summoned NPCs are the ones doing the escort quest and not the phased npcs at the gate
+        static constexpr uint32 spell_trigger_mandori_gate_npcs = 115345;
+        static constexpr uint32 spell_summon_ji_mandori_gate = 115494;
+        static constexpr uint32 spell_summon_jojo_mandori_gate = 115495;
+        static constexpr uint32 spell_summon_aysa_mandori_gate = 115493;
+        static constexpr uint32 spell_summon_hermit_hut_npcs = 115491;
+        static constexpr uint32 spell_csa_area_trigger_dummy_timer_aura_self = 115644;
+        static constexpr uint32 spell_mandori_gate_entrance_credit = 115442;
+        static constexpr uint32 spell_pei_wu_gate_entrance_credit = 115443;
+
+        static constexpr uint32 spell_force_vehicle_ride = 46598;
+        static constexpr uint32 spell_eject_passengers = 50630;
+        //static constexpr uint32 spell_rope_left = 108627;
+        //static constexpr uint32 spell_rope_right = 108691;
     }
 
     namespace Data
@@ -212,20 +220,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 data_healer_active = 1;
         static constexpr int8 data_healer_died = 2;
         static constexpr uint32 worldstate_healers_active = 6488;
-    }
-
-    namespace PositionSpells
-    {
-        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
-        static constexpr Position pos_spell_117597 = { 229.9426f, 4006.6967f, 87.2537f, 3.3859f };
-    }
-
-    namespace SpellsCartOx
-    {
-        static constexpr uint32 spell_force_vehicle_ride = 46598;
-        static constexpr uint32 spell_eject_passengers = 50630;
-        //static constexpr uint32 spell_rope_left = 108627;
-        //static constexpr uint32 spell_rope_right = 108691;
     }
 
     namespace SpellsZhaorenEvent
@@ -395,9 +389,19 @@ namespace Scripts::Custom::TheWanderingIsle
         };
     }
 
-    namespace PositionsQ29774
+    namespace Positions
     {
-        static constexpr Position ShuFarmsteadPlayPosition[5] =
+        // Spell Positions
+        static constexpr Position WugouSpawn = { 631.479f, 3140.7f,	87.8357f, 3.05745f };
+        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
+        static constexpr Position pos_spell_117597 = { 229.9426f, 4006.6967f, 87.2537f, 3.3859f };
+        static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
+
+        // Temple
+        static constexpr Position ZhaoSkySpawn = { 750.5781f, 4262.676f, 323.0713f, 5.042483f }; // Zhaoren spawn point for Temple flyby
+
+        // Dai-Lo Farmstead
+        static constexpr Position ShuFarmsteadPlay[5] =
         {
                 { 670.978882f, 3131.201904f, 88.328094f },
                 { 679.594482f, 3131.564697f, 88.328094f },
@@ -406,31 +410,43 @@ namespace Scripts::Custom::TheWanderingIsle
                 { 670.607544f, 3137.363525f, 88.327415f }
         };
 
-        static constexpr Position WugouSpawnPosition = { 631.479f, 3140.7f,	87.8357f, 3.05745f };
-    }
-
-    namespace PositionsQ29776
-    {
-        static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
-        static constexpr Position ZhaoSkySpawn = { 750.5781f, 4262.676f, 323.0713f, 5.042483f };
-    }
-
-    namespace PositionsZhaorenEvent
-    {
+        // Zhao-ren Chamber of Whispers
         static constexpr Position AysaOutsideChamber = { 644.8831f, 4227.2998f, 202.909271f, 2.4453f };
         static constexpr Position AysaInsideChamber = { 599.9302f, 4267.8554f, 206.552856f, 2.4319f };
         static constexpr Position ZhaoCenter = { 699.134f, 4170.06f, 216.06f };
         static constexpr Position ZhaoPos = { 723.163f, 4163.8f, 204.999f };
+
+        // Balloon Ride event
+        static constexpr Position BalloonArrivalControllerSpawn = { 904.059f, 4561.99f, 231.053f };
+
+        // Wreck Explosion
+        static constexpr Position JiDeckMove = { 231.112f, 3985.74f, 86.4415f };
+        static constexpr Position JiDeckJump1 = { 230.404f, 3975.61f, 87.7406f };
+        static constexpr Position JiDeckJump2 = { 231.49f, 3946.6f, 61.091f };
+        static constexpr Position AysaDeckMove = { 233.022f, 3985.45f, 86.7175f };
+        static constexpr Position AysaDeckJump1 = { 232.002f, 3974.86f, 87.766f };
+        static constexpr Position AysaDeckJump2 = { 239.453f, 3942.2f, 62.5987f };
+
+        // Healing Shenzinsu event
+        static constexpr Position ShenzinsuHealerSpots[5] =
+        {
+            { 230.9681f, 3961.6079f, 59.6684f },
+            { 235.9752f, 3960.1010f, 60.4301f },
+            { 244.5514f, 3957.5493f, 62.2980f },
+            { 253.4969f, 3957.4597f, 64.0818f },
+            { 261.8049f, 3954.3000f, 67.4468f }
+        };
+
+        static constexpr Position Ravager_Spawn_1 = { 215.764f, 3950.22f, 71.3403f, 6.07209f }; 
+        static constexpr Position Ravager_Jump_1 = { 234.4787f, 3957.618f, 60.7057f, 0.0167851f };
+        static constexpr Position Ravager_Spawn_2 = { 288.583f, 3939.21f, 86.5738f, 2.65644f };
+        static constexpr Position Ravager_Jump_2 = { 261.967f, 3950.88f, 68.3229f, 4.53972f };
+
     }
 
     namespace PositionsQ29787
     {
         static constexpr Position MasterShangSpawn = { 711.335f, 4178.049f, 197.845f };
-    }
-
-    namespace PositionsBalloonEvent
-    {
-        static constexpr Position BalloonArrivalControllerSpawn = { 904.059f, 4561.99f, 231.053f };
     }
 
     namespace PositionsQ29792
@@ -450,16 +466,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position ForlornHut = { 424.717f, 3635.59f, 92.7838f };
     }
 
-    namespace Positions
-    {
-        // Wreck Explosion
-        static constexpr Position JiDeckMove = { 231.112f, 3985.74f, 86.4415f };
-        static constexpr Position JiDeckJump1 = { 230.404f, 3975.61f, 87.7406f };
-        static constexpr Position JiDeckJump2 = { 231.49f, 3946.6f, 61.091f };
-        static constexpr Position AysaDeckMove = { 233.022f, 3985.45f, 86.7175f };
-        static constexpr Position AysaDeckJump1 = { 232.002f, 3974.86f, 87.766f };
-        static constexpr Position AysaDeckJump2 = { 239.453f, 3942.2f, 62.5987f };
-    }
 
     namespace PathQ29423
     {
@@ -522,41 +528,40 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_second_huo_position = 2;
     }
 
-    namespace EventsQ29662
+    namespace EventsQ29787
     {
-        static constexpr int8 event_check_players = 1;
-        static constexpr int8 event_cast_razor_beak = 2;
+        static constexpr int8 event_shang_talk_0 = 1;
+        static constexpr int8 event_shang_path_0 = 2;
+        static constexpr int8 event_shang_talk_4 = 3;
     }
 
-    namespace EventsQ29661Q29663
+    namespace Events
     {
+        // Singing Pools
+        static constexpr int8 event_shu_follower_path_start = 1;
+        static constexpr int8 event_shu_follower_check_player_quest = 2;
+        static constexpr int8 event_shu_singing_pools_check_player_vehicle = 3;
+
+        static constexpr int8 event_cast_jump_spell = 1;
+        static constexpr int8 event_shu_set_orientation = 2;
+        static constexpr int8 event_shu_summon_water_spout = 3;
+
         static constexpr int8 event_cast_throw_rock = 1;
         static constexpr int8 event_monk_switch_pole = 2;
         static constexpr int8 event_monk_despawn = 3;
         static constexpr int8 event_cast_transform = 4;
-    }
 
-    namespace EventsQ29677
-    {
         static constexpr int8 event_cast_serpent_strike = 1;
-    }
+        static constexpr int8 event_check_players = 1;
+        static constexpr int8 event_cast_razor_beak = 2;
+        static constexpr int8 event_ox_cart_path_start = 1;
 
-    namespace EventsQ29679
-    {
-        static constexpr int8 event_cast_jump_spell = 1;
-        static constexpr int8 event_shu_set_orientation = 2;
-        static constexpr int8 event_shu_summon_water_spout = 3;
-    }
+        // Lorewalker story
+        static constexpr int8 event_lorewalker_check_player = 1;
+        static constexpr int8 event_lorewalker_start = 2;
+        static constexpr int8 event_start_dialogue = 3;
 
-    namespace EventsQ29680
-    {
-        static constexpr int8 event_shu_follower_path_start = 1;
-        static constexpr int8 event_shu_follower_check_player_quest = 2;
-        static constexpr int8 event_shu_singing_pools_check_player_vehicle = 3;
-    }
-
-    namespace EventsQ29774
-    {
+        // Dai-Lo farmstead
         static constexpr int8 event_shu_farmstead_play = 1;
         static constexpr int8 event_shu_farmstead_path_start_1 = 2;
         static constexpr int8 event_shu_farmstead_path_start_2 = 3;
@@ -564,65 +569,44 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_shu_wakes_wugou = 5;
         static constexpr int8 event_shu_farmstead_check_player_vehicle = 6;
         static constexpr int8 event_try_remove_wugou_sleep = 7;
-    }
 
-    namespace EventsOxCart
-    {
-        static constexpr int8 event_ox_cart_path_start = 1;
-        //static constexpr int8 event_ox_cart_ropes = 2;
-    }
+        // Rukruk
+        static constexpr int8 event_rukruk_cast_aim = 1;
+        static constexpr int8 event_rukruk_cast_ooksplosions = 2;
+        static constexpr int8 event_rukruk_rocket_fire = 3;
 
-    namespace EventsLorewalker
-    {
-        static constexpr uint8 event_lorewalker_check_player = 1;
-        static constexpr uint8 event_lorewalker_start = 2;
-        static constexpr uint8 event_start_dialogue = 3;
-    }
-
-    namespace EventsRukRuk
-    {
-        static constexpr uint8 event_rukruk_cast_aim = 1;
-        static constexpr uint8 event_rukruk_cast_ooksplosions = 2;
-        static constexpr uint8 event_rukruk_rocket_fire = 3;
-    }
-
-    namespace EventsQ29787
-    {
-        static constexpr uint8 event_shang_talk_0 = 1;
-        static constexpr uint8 event_shang_path_0 = 2;
-        static constexpr uint8 event_shang_talk_4 = 3;
-    }
-
-    namespace Events
-    {
         // Zhao-ren battle
-        static constexpr uint8 event_aysa_outside_chambers_init = 1;
-        static constexpr uint8 event_aysa_outside_chambers_move1 = 2;
-        static constexpr uint8 event_aysa_outside_chambers_move2 = 3;
-        static constexpr uint8 event_aysa_inside_chambers_move_dafeng = 4;
-        static constexpr uint8 event_zhao_cast_lightning = 5;
-        static constexpr uint8 event_zhao_move_center = 6;
-        static constexpr uint8 event_zhao_state_stun = 7;
-        static constexpr uint8 event_zhao_cast_sweep = 8;
-        static constexpr uint8 event_zhao_resume_path = 9;
-        static constexpr uint8 event_firework_launcher_recharge = 1;
-        static constexpr uint8 event_firework_launcher_periodic_ping = 2;
+        static constexpr int8 event_aysa_outside_chambers_init = 1;
+        static constexpr int8 event_aysa_outside_chambers_move1 = 2;
+        static constexpr int8 event_aysa_outside_chambers_move2 = 3;
+        static constexpr int8 event_aysa_inside_chambers_move_dafeng = 4;
+        static constexpr int8 event_zhao_cast_lightning = 5;
+        static constexpr int8 event_zhao_move_center = 6;
+        static constexpr int8 event_zhao_state_stun = 7;
+        static constexpr int8 event_zhao_cast_sweep = 8;
+        static constexpr int8 event_zhao_resume_path = 9;
+        static constexpr int8 event_firework_launcher_recharge = 1;
+        static constexpr int8 event_firework_launcher_periodic_ping = 2;
 
         // Balloon ride
-        static constexpr uint8 event_aysa_jump_in = 1;
-        static constexpr uint8 event_spawn_balloon = 2;
+        static constexpr int8 event_aysa_jump_in = 1;
+        static constexpr int8 event_spawn_balloon = 2;
 
         // Vordraka boss fight
-        static constexpr uint8 event_aysa_cast_tempered_fury = 1;
-        static constexpr uint8 event_aysa_cast_combat_roll = 2;
-        static constexpr uint8 event_aysa_update_phases = 3;
-        static constexpr uint8 event_vordraka_cast_smash = 1;
-        static constexpr uint8 event_vordraka_cast_rupture = 2;
-        static constexpr uint8 event_vordraka_cast_summon = 3;
+        static constexpr int8 event_aysa_cast_tempered_fury = 1;
+        static constexpr int8 event_aysa_cast_combat_roll = 2;
+        static constexpr int8 event_aysa_update_phases = 3;
+        static constexpr int8 event_vordraka_cast_smash = 1;
+        static constexpr int8 event_vordraka_cast_rupture = 2;
+        static constexpr int8 event_vordraka_cast_summon = 3;
 
         // Wreck explosion
-        static constexpr uint8 event_aysa_explosion_intro_talk = 1;
-        static constexpr uint8 event_aysa_explosion_leave_deck = 2;
+        static constexpr int8 event_aysa_explosion_intro_talk = 1;
+        static constexpr int8 event_aysa_explosion_leave_deck = 2;
+
+        // Healing of Shenzinsu
+        static constexpr int8 event_healing_bunny_spawn_adds = 1;
+        static constexpr int8 event_healing_bunny_ji_yell = 2;
     }
 
     namespace Npcs
@@ -721,6 +705,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_healer_horde_druid = 60770;
         static constexpr uint32 npc_healer_alliance_priest2 = 60878;
         static constexpr uint32 npc_healer_horde_druid2 = 60834;
+        static constexpr uint32 npc_spawned_deepscale_ravager = 60780;
+        static constexpr uint32 npc_spawned_deepscale_fleshripper = 60858;
+        static constexpr uint32 npc_ji_during_healing = 56418;
     }
 
     namespace Objects

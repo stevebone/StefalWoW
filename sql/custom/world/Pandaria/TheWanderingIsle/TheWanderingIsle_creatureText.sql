@@ -227,7 +227,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56676', '4', '0', 'It is in the forest where your feet do not walk.  Continue along the mountains and you will find it.', '12', '0', '100', '0', '0', '27826', '0', '55572', '0', 'Shen-zin Su to Player'),
 ('56676', '5', '0', 'Thank you, grandchildren.', '12', '0', '100', '0', '0', '27827', '0', '63407', '0', 'Shen-zin Su to Player');
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943, 60900, 56236, 56416, 60729, 60741, 60770,60877,60834,60878);
+DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943, 60900, 56236, 56416, 60729, 60741, 60770,60877,60834,60878,56418,60851,60852);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`,`BroadcastTextId`, `TextRange`, `comment`) VALUES
 ('59962', '0', '0', '$n\'s here. Let\'s go.', '12', '0', '100', '432', '0', '27420', 0, '59481', '0', 'Aysa Cloudsinger to Player'),
 ('59962', '1', '0', 'Wha...', '12', '0', '100', '0', '0', '27421', 0, '59495', '0', 'Aysa Cloudsinger to Player'),
@@ -294,6 +294,12 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('60878', '0', '4', 'If all pandaren are like you, I think you may have made some new allies!', '12', '0', '100', '396', '0', '0', '0', '60345', '0', 'Alliance Priest to 60848'),
 ('60878', '0', '5', 'You handle the beasts, we\'ll handle the wound.', '12', '0', '100', '396', '0', '0', '0', '60346', '0', 'Alliance Priest to 60848'),
 ('60878', '0', '6', 'Keep these creatures off of us while we perform our healing.', '12', '0', '100', '396', '0', '0', '0', '60347', '0', 'Alliance Priest to 60848'),
-('60878', '0', '7', 'I\'d stand with you any day.', '12', '0', '100', '396', '0', '0', '0', '60348', '0', 'Alliance Priest to 60848');
+('60878', '0', '7', 'I\'d stand with you any day.', '12', '0', '100', '396', '0', '0', '0', '60348', '0', 'Alliance Priest to 60848'),
+('56418', '0', '0', 'There are healers under some of the wreckage!  Get them free.', '14', '0', '100', '0', '0', '27285', '0', '66060', '0', 'Ji Firepaw'),
+('56418', '0', '1', 'Find the healers and get them free of the fight.  We need them here at the wound!', '14', '0', '100', '0', '0', '27286', '0', '66061', '0', 'Ji Firepaw'),
+('56418', '0', '2', 'Stay close and keep these healers safe.  Our lives depend on it.', '14', '0', '100', '0', '0', '27287', '0', '66062', '0', 'Ji Firepaw'),
+('56418', '0', '3', 'If we lose the healers, Shen-zin Su dies, and all of us with him!  Keep them safe.', '14', '0', '100', '0', '0', '27288', '0', '66063', '0', 'Ji Firepaw'),
+('60851', '0', '0', 'We\'ll cover this front. You keep my priests safe.', '12', '0', '100', '396', '0', '27503', '0', '59720', '0', 'Delora Lionheart to Player'),
+('60852', '0', '0', 'We stand by your side, friend.  This battle is not yours alone.', '12', '0', '100', '6', '0', '28119', '0', '59719', '0', 'Korga Strongmane to Player');
 
 

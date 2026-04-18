@@ -75,7 +75,7 @@ namespace Scripts::Custom::TheWanderingIsle
     public:
         player_swapMap_on_relog() : PlayerScript("player_swapMap_on_relog") {}
 
-        void OnMapChanged(Player* player)
+        void OnLogin(Player* player, bool /*firstLogin*/) override
         {
             if (player->GetMapId() == 860)
             {

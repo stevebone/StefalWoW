@@ -469,13 +469,13 @@ namespace Scripts::Custom::TheWanderingIsle
             void Reset() override
             {
                 _events.Reset();
-                _events.RescheduleEvent(EventsQ29662::event_check_players, 1s);
+                _events.RescheduleEvent(Events::event_check_players, 1s);
             }
 
             void EnterCombat()
             {
-                _events.CancelEvent(EventsQ29662::event_check_players);
-                _events.RescheduleEvent(EventsQ29662::event_cast_razor_beak, 8s);
+                _events.CancelEvent(Events::event_check_players);
+                _events.RescheduleEvent(Events::event_cast_razor_beak, 8s);
             }
 
             void UpdateAI(uint32 diff) override
@@ -484,7 +484,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 if (!UpdateVictim())
                 {
-                    if (_events.ExecuteEvent() == EventsQ29662::event_check_players)
+                    if (_events.ExecuteEvent() == Events::event_check_players)
                     {
                         if (Player* player = me->SelectNearestPlayer(10.0f))
                         {
@@ -495,7 +495,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 return;
                             }
                         }
-                        _events.RescheduleEvent(EventsQ29662::event_check_players, 1s);
+                        _events.RescheduleEvent(Events::event_check_players, 1s);
                     }
                     return;
                 }
@@ -507,7 +507,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (me->IsInCombat())
                         {
                             EnterEvadeMode();
-                            _events.RescheduleEvent(EventsQ29662::event_check_players, 1s);
+                            _events.RescheduleEvent(Events::event_check_players, 1s);
                         }
                         return;
                     }
@@ -517,12 +517,12 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29662::event_cast_razor_beak:
+                    case Events::event_cast_razor_beak:
                         if (Unit* target = me->GetVictim())
                         {
                             DoCast(target, Spells::spell_razor_beak);
                         }
-                        _events.RescheduleEvent(EventsQ29662::event_cast_razor_beak, 8s);
+                        _events.RescheduleEvent(Events::event_cast_razor_beak, 8s);
                         break;
                     }
                 }
@@ -553,7 +553,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void Reset() override
             {
                 _events.Reset();
-                _events.ScheduleEvent(EventsQ29661Q29663::event_monk_switch_pole, 1s);
+                _events.ScheduleEvent(Events::event_monk_switch_pole, 1s);
                 me->RestoreFaction();
                 me->SetReactState(REACT_DEFENSIVE);
             }
@@ -572,7 +572,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 me->SetReactState(REACT_AGGRESSIVE);
                 AttackStart(who);
 
-                _events.ScheduleEvent(EventsQ29661Q29663::event_cast_throw_rock, 0s);
+                _events.ScheduleEvent(Events::event_cast_throw_rock, 0s);
             }
 
             void MovementInform(uint32 type, uint32 pointId) override
@@ -625,18 +625,18 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29661Q29663::event_cast_throw_rock:
+                    case Events::event_cast_throw_rock:
                     {
                         if (victim && !me->IsWithinMeleeRange(victim))
                             DoCast(victim, Spells::spell_throw_rock);
                     }
-                    _events.ScheduleEvent(EventsQ29661Q29663::event_cast_throw_rock, 2500ms);
+                    _events.ScheduleEvent(Events::event_cast_throw_rock, 2500ms);
                     break;
-                    case EventsQ29661Q29663::event_monk_switch_pole:
+                    case Events::event_monk_switch_pole:
                         if (!me->IsInCombat())
                         {
                             SwitchPole();
-                            _events.ScheduleEvent(EventsQ29661Q29663::event_monk_switch_pole, 15s, 30s);
+                            _events.ScheduleEvent(Events::event_monk_switch_pole, 15s, 30s);
                         }
                         break;
                     }
@@ -716,7 +716,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     _passengerGuid = passenger->GetGUID();
                     if (!apply)
-                        _events.ScheduleEvent(EventsQ29661Q29663::event_cast_transform, 1s);
+                        _events.ScheduleEvent(Events::event_cast_transform, 1s);
                     else
                     {
                         if (me->GetEntry() == Npcs::npc_training_bell_pole)
@@ -736,7 +736,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29661Q29663::event_cast_transform:
+                    case Events::event_cast_transform:
                         // Transform is casted only when in frog pool
                         Unit* passenger = ObjectAccessor::GetUnit(*me, _passengerGuid);
 
@@ -792,10 +792,10 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
-                    if (eventId == EventsQ29677::event_cast_serpent_strike)
+                    if (eventId == Events::event_cast_serpent_strike)
                     {
                         DoCastVictim(128409); // Fang-she's attack spell
-                        events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s); // repeat
+                        events.ScheduleEvent(Events::event_cast_serpent_strike, 3s, 5s); // repeat
                     }
                 }
             }
@@ -803,7 +803,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
             {
                 me->EngageWithTarget(who);
-                events.ScheduleEvent(EventsQ29677::event_cast_serpent_strike, 3s, 5s);
+                events.ScheduleEvent(Events::event_cast_serpent_strike, 3s, 5s);
             }
 
             void JustDied(Unit* killer) override
@@ -859,7 +859,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void MovementInform(uint32 type, uint32 id) override
             {
                 if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP)
-                    events.ScheduleEvent(EventsQ29679::event_shu_set_orientation, 500ms);
+                    events.ScheduleEvent(Events::event_shu_set_orientation, 500ms);
             }
 
             uint32 GetData(uint32 id) const override
@@ -874,7 +874,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if (startAI)
                 {
-                    events.ScheduleEvent(EventsQ29679::event_cast_jump_spell, 1s);
+                    events.ScheduleEvent(Events::event_cast_jump_spell, 1s);
                     startAI = false;
                 }
 
@@ -884,7 +884,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29679::event_cast_jump_spell:
+                    case Events::event_cast_jump_spell:
                         if (urand(0, 2) != 0)
                             jumpPosition = urand(Misc::SHU_JUMP_POSITION_0, Misc::SHU_JUMP_POSITION_3);
                         else
@@ -892,8 +892,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                         if (jumpPosition == positionBefore)
                         {
-                            events.CancelEvent(EventsQ29679::event_shu_set_orientation);
-                            events.ScheduleEvent(EventsQ29679::event_shu_summon_water_spout, 1500ms);
+                            events.CancelEvent(Events::event_shu_set_orientation);
+                            events.ScheduleEvent(Events::event_shu_summon_water_spout, 1500ms);
                         }
                         else
                         {
@@ -901,7 +901,7 @@ namespace Scripts::Custom::TheWanderingIsle
                             positionBefore = jumpPosition;
                         }
                         break;
-                    case EventsQ29679::event_shu_set_orientation:
+                    case Events::event_shu_set_orientation:
                         switch (jumpPosition)
                         {
                         case Misc::SHU_JUMP_POSITION_0:
@@ -917,9 +917,9 @@ namespace Scripts::Custom::TheWanderingIsle
                             me->SetFacingTo(4.34587f);
                             break;
                         }
-                        events.ScheduleEvent(EventsQ29679::event_shu_summon_water_spout, 1500ms);
+                        events.ScheduleEvent(Events::event_shu_summon_water_spout, 1500ms);
                         break;
-                    case EventsQ29679::event_shu_summon_water_spout:
+                    case Events::event_shu_summon_water_spout:
                     {
                         // Pick a random spawn slot within the current zone
                         uint8 randomSlot = urand(0, Misc::BUNNY_SPAWN_MAX_SLOTS - 1);
@@ -934,7 +934,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout, targetPos, TEMPSUMMON_MANUAL_DESPAWN);
                         if (bunny)
                             DoCast(Spells::spell_water_spout);
-                        events.ScheduleEvent(EventsQ29679::event_cast_jump_spell, 6s);
+                        events.ScheduleEvent(Events::event_cast_jump_spell, 6s);
                         break;
                     }
                     }
@@ -973,7 +973,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     me->SetReactState(REACT_PASSIVE);
                     //_events.ScheduleEvent(EventsOxCart::event_ox_cart_ropes, 500ms);
-                    _events.ScheduleEvent(EventsOxCart::event_ox_cart_path_start, 1400ms); // Delay of 0.5 seconds
+                    _events.ScheduleEvent(Events::event_ox_cart_path_start, 1400ms); // Delay of 0.5 seconds
                 }
             }
 
@@ -989,8 +989,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
                     {
                         _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
-                        me->CastSpell(passenger, SpellsCartOx::spell_force_vehicle_ride);
-                        _events.ScheduleEvent(EventsOxCart::event_ox_cart_path_start, 1800ms); // Delay
+                        me->CastSpell(passenger, Spells::spell_force_vehicle_ride);
+                        _events.ScheduleEvent(Events::event_ox_cart_path_start, 1800ms); // Delay
                     }
                 }
             }
@@ -999,7 +999,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if(nodeId == PathOxCart::path_node_remove_passenger)
                     if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
-                        me->CastSpell(me, SpellsCartOx::spell_eject_passengers);
+                        me->CastSpell(me, Spells::spell_eject_passengers);
             }
 
             void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
@@ -1035,7 +1035,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         }
                         break;
                     }*/
-                    case EventsOxCart::event_ox_cart_path_start:
+                    case Events::event_ox_cart_path_start:
                         if (me->GetEntry() == Npcs::npc_vehicle_cart)
                         {
                             me->LoadPath(PathOxCart::path_cart);
@@ -1096,10 +1096,10 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (owner && owner->ToPlayer())
                     _playerGuid = owner->ToPlayer()->GetGUID();
 
-                _events.ScheduleEvent(EventsQ29680::event_shu_follower_check_player_quest, 30s);
+                _events.ScheduleEvent(Events::event_shu_follower_check_player_quest, 30s);
 
                 if (owner && owner->ToPlayer()->IsActiveQuest(Quests::quest_the_source_of_livelihood))
-                    _events.ScheduleEvent(EventsQ29680::event_shu_singing_pools_check_player_vehicle, 1s);
+                    _events.ScheduleEvent(Events::event_shu_singing_pools_check_player_vehicle, 1s);
             }
 
             void UpdateAI(uint32 diff) override
@@ -1110,7 +1110,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29680::event_shu_follower_path_start:
+                    case Events::event_shu_follower_path_start:
                     {
                         me->GetMotionMaster()->Clear();
                         me->StopMoving();
@@ -1119,7 +1119,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         _pathStarted = true;
                         break;
                     }
-                    case EventsQ29680::event_shu_follower_check_player_quest:
+                    case Events::event_shu_follower_check_player_quest:
                     {
                         if (!_pathStarted)
                         {
@@ -1127,14 +1127,14 @@ namespace Scripts::Custom::TheWanderingIsle
 
                             if (player && player->GetQuestStatus(Quests::quest_the_source_of_livelihood) == QUEST_STATUS_REWARDED)
                             {
-                                _events.ScheduleEvent(EventsQ29680::event_shu_follower_path_start, 0s);
+                                _events.ScheduleEvent(Events::event_shu_follower_path_start, 0s);
                             }
                             else
-                                _events.ScheduleEvent(EventsQ29680::event_shu_follower_check_player_quest, 1s);
+                                _events.ScheduleEvent(Events::event_shu_follower_check_player_quest, 1s);
                         }
                         break;
                     }
-                    case EventsQ29680::event_shu_singing_pools_check_player_vehicle:
+                    case Events::event_shu_singing_pools_check_player_vehicle:
                     {
                         if (me->GetVehicle())
                             break;
@@ -1146,7 +1146,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         Vehicle* veh = player->GetVehicle();
                         if (!veh || !veh->IsVehicleInUse())
                         {
-                            _events.ScheduleEvent(EventsQ29680::event_shu_singing_pools_check_player_vehicle, 500ms);
+                            _events.ScheduleEvent(Events::event_shu_singing_pools_check_player_vehicle, 500ms);
                             break;
                         }
 
@@ -1208,7 +1208,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 
-                _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 0s);
+                _events.ScheduleEvent(Events::event_shu_farmstead_play, 0s);
             }
 
             bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
@@ -1259,7 +1259,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29774::event_shu_farmstead_play:
+                    case Events::event_shu_farmstead_play:
                     {
                         // Pick a random spawn slot within the current zone
                         uint8 randomSlot = urand(0, 4);
@@ -1268,10 +1268,10 @@ namespace Scripts::Custom::TheWanderingIsle
                         //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
                         // Dynamic position spell casting summon not supported. we summon creature directly instead
 
-                        Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout_farmstead, PositionsQ29774::ShuFarmsteadPlayPosition[randomSlot], TEMPSUMMON_MANUAL_DESPAWN);
+                        Creature* bunny = me->SummonCreature(Npcs::npc_bunny_water_spout_farmstead, Positions::ShuFarmsteadPlay[randomSlot], TEMPSUMMON_MANUAL_DESPAWN);
                         if (bunny)
                             DoCast(Spells::spell_water_spout);
-                        _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_play, 6s);
+                        _events.ScheduleEvent(Events::event_shu_farmstead_play, 6s);
                         break;
                     }
                     default:
@@ -1310,11 +1310,11 @@ namespace Scripts::Custom::TheWanderingIsle
                 _playerGuid = me->GetOwnerGUID();
                 Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
                 if (player && player->IsActiveQuest(Quests::quest_not_in_the_face))
-                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_1, 0s);
+                    _events.ScheduleEvent(Events::event_shu_farmstead_path_start_1, 0s);
                 else
                 {
-                    _events.ScheduleEvent(EventsQ29774::event_try_remove_wugou_sleep, 200ms);
-                    _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_check_player_vehicle, 1s);
+                    _events.ScheduleEvent(Events::event_try_remove_wugou_sleep, 200ms);
+                    _events.ScheduleEvent(Events::event_shu_farmstead_check_player_vehicle, 1s);
                 }
             }
 
@@ -1326,7 +1326,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29774::event_shu_farmstead_path_start_1:
+                    case Events::event_shu_farmstead_path_start_1:
                     {
                         if (!_path1Started)
                         {
@@ -1338,7 +1338,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         }
                         break;
                     }
-                    case EventsQ29774::event_shu_farmstead_path_start_2:
+                    case Events::event_shu_farmstead_path_start_2:
                     {
                         if (!_path2Started)
                         {
@@ -1350,7 +1350,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         }
                         break;
                     }
-                    case EventsQ29774::event_shu_wakes_wugou:
+                    case Events::event_shu_wakes_wugou:
                     {
                         Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 30.0f);
                         if (wugou)
@@ -1370,11 +1370,11 @@ namespace Scripts::Custom::TheWanderingIsle
                             //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_2);
                             wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
                             wugou->DespawnOrUnsummon(30s);
-                            _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_path_start_2, 5s);
+                            _events.ScheduleEvent(Events::event_shu_farmstead_path_start_2, 5s);
                         }
                         break;
                     }
-                    case EventsQ29774::event_shu_farmstead_check_player_vehicle:
+                    case Events::event_shu_farmstead_check_player_vehicle:
                     {
                         if (me->GetVehicle())
                             break;
@@ -1386,14 +1386,14 @@ namespace Scripts::Custom::TheWanderingIsle
                         Vehicle* veh = player->GetVehicle();
                         if (!veh || !veh->IsVehicleInUse())
                         {
-                            _events.ScheduleEvent(EventsQ29774::event_shu_farmstead_check_player_vehicle, 500ms);
+                            _events.ScheduleEvent(Events::event_shu_farmstead_check_player_vehicle, 500ms);
                             break;
                         }
 
                         me->EnterVehicle(veh->GetBase(), -1);
                         break;
                     }
-                    case EventsQ29774::event_try_remove_wugou_sleep:
+                    case Events::event_try_remove_wugou_sleep:
                     {
                         if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_q29774, 20.0f))
                         {
@@ -1405,7 +1405,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         }
 
                         // If not found yet, try again shortly
-                        _events.ScheduleEvent(EventsQ29774::event_try_remove_wugou_sleep, 200ms);
+                        _events.ScheduleEvent(Events::event_try_remove_wugou_sleep, 200ms);
                         break;
                     }
                     default:
@@ -1429,7 +1429,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         
                         me->CastSpell(me, Spells::spell_water_spirit_laugh);
-                        _events.ScheduleEvent(EventsQ29774::event_shu_wakes_wugou, 5s);
+                        _events.ScheduleEvent(Events::event_shu_wakes_wugou, 5s);
                     }
                     break;
                 }
@@ -1525,7 +1525,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsLorewalker::event_start_dialogue:
+                    case Events::event_start_dialogue:
                     {
                         // safety: ensure index in range
                         if (dialogueIndex >= dialogueSequence.size())
@@ -1551,7 +1551,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         else
                         {
                             // schedule next dialogue step using the entry delay
-                            events.ScheduleEvent(EventsLorewalker::event_start_dialogue, entry.delay);
+                            events.ScheduleEvent(Events::event_start_dialogue, entry.delay);
                         }
                         break;
                     }
@@ -1569,9 +1569,9 @@ namespace Scripts::Custom::TheWanderingIsle
                 events.Reset();
                 dialogueIndex = 0;
                 StoryInProgress = true;
-                me->CastSpell(me, SpellsMisc::spell_ruolin_singing);
+                me->CastSpell(me, Spells::spell_ruolin_singing);
                 me->HandleEmoteCommand(EMOTE_ONESHOT_YES);
-                events.ScheduleEvent(EventsLorewalker::event_start_dialogue, 30s);
+                events.ScheduleEvent(Events::event_start_dialogue, 30s);
             }
 
         private:
@@ -1671,8 +1671,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
             void JustEngagedWith(Unit* /*who*/) override
             {
-                events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_aim, 10s);
-                events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_ooksplosions, 30s);
+                events.ScheduleEvent(Events::event_rukruk_cast_aim, 10s);
+                events.ScheduleEvent(Events::event_rukruk_cast_ooksplosions, 30s);
             }
 
             Position GetRocketTargetPos() const
@@ -1691,10 +1691,10 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsRukRuk::event_rukruk_cast_aim:
+                    case Events::event_rukruk_cast_aim:
                         if (me->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            events.RescheduleEvent(EventsRukRuk::event_rukruk_cast_aim, 1s);
+                            events.RescheduleEvent(Events::event_rukruk_cast_aim, 1s);
                             break;
                         }
                         if (Unit* target = SelectTarget(SelectTargetMethod::Random))
@@ -1702,17 +1702,17 @@ namespace Scripts::Custom::TheWanderingIsle
                             me->SetFacingToObject(target);
                             CalculateSpellVisual(target);
                             DoCast(target, Spells::spell_aim);
-                            events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_aim, 15s, 25s);
+                            events.ScheduleEvent(Events::event_rukruk_cast_aim, 15s, 25s);
                         }
                         break;
-                    case EventsRukRuk::event_rukruk_cast_ooksplosions:
+                    case Events::event_rukruk_cast_ooksplosions:
                         if (me->HasUnitState(UNIT_STATE_CASTING))
                         {
-                            events.RescheduleEvent(EventsRukRuk::event_rukruk_cast_ooksplosions, 1s);
+                            events.RescheduleEvent(Events::event_rukruk_cast_ooksplosions, 1s);
                             break;
                         }
                         DoCast(Spells::spell_ookslosions);
-                        events.ScheduleEvent(EventsRukRuk::event_rukruk_cast_ooksplosions, 25s, 35s);
+                        events.ScheduleEvent(Events::event_rukruk_cast_ooksplosions, 25s, 35s);
                         break;
                     }
                 }
@@ -1763,7 +1763,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void Reset() override
             {
                 me->SetDisplayFromModel(0);
-                events.ScheduleEvent(EventsRukRuk::event_rukruk_rocket_fire, 500ms);
+                events.ScheduleEvent(Events::event_rukruk_rocket_fire, 500ms);
             }
 
             void IsSummonedBy(WorldObject* summonerWO) override
@@ -1798,7 +1798,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsRukRuk::event_rukruk_rocket_fire:
+                    case Events::event_rukruk_rocket_fire:
                         me->GetMotionMaster()->MovePoint(1, rocketTargetPos);
                         break;
                     }
@@ -1893,7 +1893,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         
                     case Events::event_aysa_outside_chambers_move1:
                     {
-                        me->GetMotionMaster()->MovePoint(2, PositionsZhaorenEvent::AysaOutsideChamber);
+                        me->GetMotionMaster()->MovePoint(2, Positions::AysaOutsideChamber);
                         break;
                     }
 
@@ -1910,7 +1910,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 creature->DespawnOrUnsummon();
                             }
                         }
-                        me->GetMotionMaster()->MovePoint(3, PositionsZhaorenEvent::AysaInsideChamber);
+                        me->GetMotionMaster()->MovePoint(3, Positions::AysaInsideChamber);
                         break;
                     }
 
@@ -2097,7 +2097,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         break;
                     }
                     case Events::event_zhao_move_center:
-                        me->GetMotionMaster()->MovePoint(1, PositionsZhaorenEvent::ZhaoPos);
+                        me->GetMotionMaster()->MovePoint(1, Positions::ZhaoPos);
                         break;
 
                     case Events::event_zhao_state_stun:
@@ -2615,7 +2615,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         Creature* Aysa = me->FindNearestCreature(Npcs::npc_aysa_q29790, 10.f);
                         if (Aysa)
                         {
-                            Aysa->CastSpell(me, SpellsCartOx::spell_force_vehicle_ride, true);
+                            Aysa->CastSpell(me, Spells::spell_force_vehicle_ride, true);
                             events.ScheduleEvent(Events::event_spawn_balloon, 2s);
                         }
                         break;
@@ -3006,7 +3006,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     scheduler.Schedule(400ms, [sailor, player](TaskContext const&)
                         {
-                            sailor->CastSpell(player, SpellsCartOx::spell_force_vehicle_ride, true);
+                            sailor->CastSpell(player, Spells::spell_force_vehicle_ride, true);
                         });
                 }
                 me->DespawnOrUnsummon(500ms);
@@ -3037,7 +3037,7 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             npc_aysa_vordraka_fightAI(Creature* creature) : ScriptedAI(creature) {}
 
-            void Reset()
+            void Reset() override
             {
                 me->SetReactState(REACT_DEFENSIVE);
             }
@@ -3326,7 +3326,7 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             npc_aysa_explosionAI(Creature* creature) : ScriptedAI(creature) {}
 
-            void Reset()
+            void Reset() override
             {
                 me->SetReactState(REACT_DEFENSIVE);
                 events.ScheduleEvent(Events::event_aysa_explosion_intro_talk, 1s);
@@ -3467,7 +3467,7 @@ namespace Scripts::Custom::TheWanderingIsle
                             Talk(4);
                         });
 
-                    scheduler.Schedule(54s, [this](TaskContext const&)
+                    scheduler.Schedule(57s, [this](TaskContext const&)
                         {
                             Talk(5);
 
@@ -3497,9 +3497,12 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             npc_healers_active_bunnyAI(Creature* creature) : ScriptedAI(creature) { }
 
-            void Reset()
+            void Reset() override
             {
+                events.Reset();
                 _healersActive = 0;
+                events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 5s);
+                events.ScheduleEvent(Events::event_healing_bunny_ji_yell, 45s);
             }
 
             uint32 updateTimer = 2000; // update every 2 seconds
@@ -3525,15 +3528,70 @@ namespace Scripts::Custom::TheWanderingIsle
                             ++_healersActive;
 
                     WorldStateMgr::SetValue(Data::worldstate_healers_active, _healersActive, false, map);
-
                     updateTimer = 2000;
+                    Map::PlayerList const& playerList = me->GetMap()->GetPlayers();
+                    if (playerList.empty())
+                        return;
+
+                    for (Map::PlayerList::const_iterator itr = playerList.begin(); itr != playerList.end(); ++itr)
+                        if (Player* player = itr->GetSource())
+                            if (player->GetAreaId() == me->GetAreaId())
+                                player->SendUpdateWorldState(Data::worldstate_healers_active, _healersActive);
                 }
                 else
                     updateTimer -= diff;
+
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case Events::event_healing_bunny_ji_yell:
+                    {
+                        Creature* ji = me->FindNearestCreature(Npcs::npc_ji_during_healing, 100.f);
+                        if (ji)
+                            ji->AI()->Talk(0);
+
+                        events.ScheduleEvent(Events::event_healing_bunny_ji_yell, 45s, 60s);
+                        break;
+                    }
+                    case Events::event_healing_bunny_spawn_adds:
+                    {
+                        Creature* spawnAdd1 = ObjectAccessor::GetCreature(*me, add1);
+                        Creature* spawnAdd2 = ObjectAccessor::GetCreature(*me, add2);
+                        if (!spawnAdd1 || (spawnAdd1 && !spawnAdd1->IsAlive()))
+                        {
+                            Creature* newAdd1 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
+                                Positions::Ravager_Spawn_1, TEMPSUMMON_CORPSE_DESPAWN);
+
+                            add1 = newAdd1->GetGUID();
+                            newAdd1->SetReactState(REACT_AGGRESSIVE);
+                            newAdd1->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_1);
+                        }
+
+                        if (!spawnAdd2 || (spawnAdd2 && !spawnAdd2->IsAlive()))
+                        {
+                            Creature* newAdd2 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
+                                Positions::Ravager_Spawn_2, TEMPSUMMON_CORPSE_DESPAWN);
+
+                            add2 = newAdd2->GetGUID();
+                            newAdd2->SetReactState(REACT_AGGRESSIVE);
+                            newAdd2->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_2);
+                        }
+
+                        events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 15s);
+                        break;
+                    }
+                    }
+                }
             }
 
         private:
+            EventMap events;
             uint8 _healersActive = 0;
+            ObjectGuid add1;
+            ObjectGuid add2;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
@@ -3541,6 +3599,184 @@ namespace Scripts::Custom::TheWanderingIsle
             return new npc_healers_active_bunnyAI(creature);
         }
     };
+
+    enum HealerState
+    {
+        STATE_IDLE,
+        STATE_MOVING_TO_WOUND,
+        STATE_HEALING,
+        STATE_COMBAT
+    };
+
+    class npc_shenzin_su_healer : public CreatureScript
+    {
+    public:
+        npc_shenzin_su_healer() : CreatureScript("npc_shenzin_su_healer") { }
+
+        struct npc_shenzin_su_healerAI : public ScriptedAI
+        {
+            npc_shenzin_su_healerAI(Creature* creature) : ScriptedAI(creature) { }
+
+            HealerState state = STATE_IDLE;
+            uint32 checkTimer = 1000;
+            uint32 combatTimer = 2000;
+            uint32 healSpell = 0;
+            uint32 combatSpell1 = 0;
+            uint32 combatSpell2 = 0;
+
+            void Reset() override
+            {
+                state = STATE_IDLE;
+                InitSpells();
+                me->SetReactState(REACT_AGGRESSIVE);
+                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+            }
+
+            void InitSpells()
+            {
+                switch (me->GetEntry())
+                {
+                case Npcs::npc_healer_alliance_priest:
+                case Npcs::npc_healer_alliance_priest2:
+                    healSpell = Spells::spell_priest_wound_heal;
+                    combatSpell1 = Spells::spell_alliance_priest_smite;
+                    combatSpell2 = Spells::spell_alliance_priest_greater_heal;
+                    break;
+
+                case Npcs::npc_healer_horde_druid:
+                case Npcs::npc_healer_horde_druid2:
+                    healSpell = Spells::spell_druid_wound_heal;
+                    combatSpell1 = Spells::spell_horde_druid_wrath;
+                    combatSpell2 = Spells::spell_horde_druid_healing_touch;
+                    break;
+                }
+            }
+
+            // -------------------------
+            // SPELL CLICK ? START EVENT
+            // -------------------------
+            void OnSpellClick(Unit* clicker, bool) override
+            {
+                Player* player = clicker->ToPlayer();
+                if (!player)
+                    return;
+
+                if (!player->IsActiveQuest(Quests::quest_the_healing_of_shenzinsu))
+                    return;
+
+                if (state != STATE_IDLE)
+                    return;
+
+                Talk(0, player); // healer line 0
+                me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+                MoveToRandomWoundSpot();
+            }
+
+            void MoveToRandomWoundSpot()
+            {
+                state = STATE_MOVING_TO_WOUND;
+                me->GetMotionMaster()->MovePoint(1, GetRandomWoundPosition());
+            }
+
+            Position GetRandomWoundPosition()
+            {
+                uint8 randomSlot = urand(0, 4);
+
+                float x, y, z;
+                me->GetRandomPoint(Positions::ShenzinsuHealerSpots[randomSlot], 3.f, x, y, z);
+                return { x, y, z, 0.f };
+            }
+
+            void MovementInform(uint32 type, uint32 id) override
+            {
+                if (type == POINT_MOTION_TYPE && id == 1)
+                    StartHealing();
+            }
+
+            // -------------------------
+            // HEALING LOOP
+            // -------------------------
+            void StartHealing()
+            {
+                state = STATE_HEALING;
+                me->SetReactState(REACT_PASSIVE);
+                me->CastSpell(me, healSpell, false);
+            }
+
+            void StopHealing()
+            {
+                me->InterruptNonMeleeSpells(true);
+                me->RemoveAurasDueToSpell(healSpell);
+            }
+
+            // -------------------------
+            // COMBAT LOOP
+            // -------------------------
+            void JustEnteredCombat(Unit* /*attacker*/) override
+            {
+                if(state = STATE_HEALING)
+                    StopHealing();
+
+                state = STATE_COMBAT;
+                me->SetReactState(REACT_AGGRESSIVE);
+            }
+
+            void JustExitedCombat() override
+            {
+                // Resume healing
+                if(!me->HasNpcFlag(UNIT_NPC_FLAG_SPELLCLICK) || !me->HasAura(Spells::spell_fighting_healer_rescued_aura))
+                    MoveToRandomWoundSpot();
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                // Healing state: ensure channel stays active
+                if (state == STATE_HEALING)
+                {
+                    if (checkTimer <= diff)
+                    {
+                        if (!me->HasAura(healSpell))
+                            me->CastSpell(me, healSpell, false);
+
+                        checkTimer = 1000;
+                    }
+                    else
+                        checkTimer -= diff;
+
+                    return;
+                }
+
+                // Combat state: cast combat spells
+                if (state == STATE_COMBAT)
+                {
+                    if (!UpdateVictim())
+                        return;
+
+                    if (combatTimer <= diff)
+                    {
+                        if(me->GetHealthPct() <= 35)
+                            me->CastSpell(me, combatSpell2, false);
+                        
+                        else
+                            me->CastSpell(me->GetVictim(), combatSpell1, false);
+
+                        combatTimer = 2000;
+                    }
+                    else
+                        combatTimer -= diff;
+
+                    me->DoMeleeAttackIfReady();
+                    return;
+                }
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shenzin_su_healerAI(creature);
+        }
+    };
+
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -3578,4 +3814,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_vordraka();
     new npc_aysa_explosion();
     new npc_healers_active_bunny();
+    new npc_shenzin_su_healer();
 }

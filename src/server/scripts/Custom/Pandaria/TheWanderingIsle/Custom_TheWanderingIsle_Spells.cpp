@@ -387,7 +387,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionsQ29776::JiTempleSpireSpawn);
+            dest.Relocate(Positions::JiTempleSpireSpawn);
         }
 
         void Register() override
@@ -406,7 +406,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 return;
 
             if (caster && caster->ToPlayer()->IsActiveQuest(Quests::quest_not_in_the_face))
-                dest.Relocate(PositionsQ29774::WugouSpawnPosition);
+                dest.Relocate(Positions::WugouSpawn);
             else dest.Relocate(caster->GetRandomNearPosition(5.f));
         }
 
@@ -540,7 +540,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionSpells::pos_spell_117973);
+            dest.Relocate(Positions::pos_spell_117973);
         }
 
         void Register() override
@@ -615,7 +615,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionSpells::pos_spell_117597);
+            dest.Relocate(Positions::pos_spell_117597);
         }
 
         void Register() override

@@ -316,7 +316,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (zhaoSpawn)
                     return false;
 
-                TempSummon* Zhao = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, PositionsQ29776::ZhaoSkySpawn, TEMPSUMMON_TIMED_DESPAWN, 240s,
+                TempSummon* Zhao = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, Positions::ZhaoSkySpawn, TEMPSUMMON_TIMED_DESPAWN, 240s,
                     0, 0, player->GetGUID());
                 if (Zhao)
                 {
@@ -462,7 +462,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 return false;
 
             // Spawn controller as a marker
-            Creature* controller = player->SummonCreature(Npcs::npc_balloon_arrival_controller, PositionsBalloonEvent::BalloonArrivalControllerSpawn);
+            Creature* controller = player->SummonCreature(Npcs::npc_balloon_arrival_controller, Positions::BalloonArrivalControllerSpawn);
             if (controller)
             {
                 // Find Aysa and Ji
