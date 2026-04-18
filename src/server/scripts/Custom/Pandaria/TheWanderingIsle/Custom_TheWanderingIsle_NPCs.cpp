@@ -22,6 +22,7 @@
 
 #include "Containers.h"
 #include "Creature.h"
+#include "CreatureAIImpl.h"
 #include "EventMap.h"
 #include "GameObject.h"
 #include "Map.h"
@@ -3561,6 +3562,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         Creature* spawnAdd1 = ObjectAccessor::GetCreature(*me, add1);
                         Creature* spawnAdd2 = ObjectAccessor::GetCreature(*me, add2);
+                        Creature* spawnAdd3 = ObjectAccessor::GetCreature(*me, add3);
                         if (!spawnAdd1 || (spawnAdd1 && !spawnAdd1->IsAlive()))
                         {
                             Creature* newAdd1 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
@@ -3581,6 +3583,16 @@ namespace Scripts::Custom::TheWanderingIsle
                             newAdd2->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_2);
                         }
 
+                        if (!spawnAdd3 || (spawnAdd3 && !spawnAdd3->IsAlive()))
+                        {
+                            Creature* newAdd3 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
+                                Positions::Ravager_Spawn_3, TEMPSUMMON_CORPSE_DESPAWN);
+
+                            add3 = newAdd3->GetGUID();
+                            newAdd3->SetReactState(REACT_AGGRESSIVE);
+                            newAdd3->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_3);
+                        }
+
                         events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 15s);
                         break;
                     }
@@ -3593,6 +3605,7 @@ namespace Scripts::Custom::TheWanderingIsle
             uint8 _healersActive = 0;
             ObjectGuid add1;
             ObjectGuid add2;
+            ObjectGuid add3;
         };
 
         CreatureAI* GetAI(Creature* creature) const override

@@ -441,6 +441,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position Ravager_Jump_1 = { 234.4787f, 3957.618f, 60.7057f, 0.0167851f };
         static constexpr Position Ravager_Spawn_2 = { 288.583f, 3939.21f, 86.5738f, 2.65644f };
         static constexpr Position Ravager_Jump_2 = { 261.967f, 3950.88f, 68.3229f, 4.53972f };
+        static constexpr Position Ravager_Spawn_3 = { 290.049f, 3816.24f, 86.1669f, 1.66562f };
+        static constexpr Position Ravager_Jump_3 = { 270.879f, 3831.84f, 75.9501f, 1.63337f };
 
     }
 
