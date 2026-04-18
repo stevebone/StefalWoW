@@ -44,6 +44,9 @@
 -- NPC: 57317 Skyseeker Sailor (during healing)
 -- NPC: 60854 Escaped Horde Crewman (during healing)
 -- (60729, 60741, 56417, 56418, 57739, 56013, 60877, 60878, 60770, 60834, 60851, 60852, 57317, 60854)
+-- NPC: 60853 Makael Bay (during healing)
+-- NPC: 60873 Skyseeker Sailor (during healing)
+-- NPC: 56419 Jojo (during healing)
 
 -- Spells: 117600 Summon Ji Cinematic Intro
 -- Spells: 117499 Summon Aysa Cinematic Intro
@@ -198,14 +201,14 @@ UPDATE `creature` SET `PhaseId` = '0', `PhaseGroup` = '641' WHERE (`guid` = '451
 UPDATE `creature` SET `PhaseId` = 544, `terrainSwapMap` = 975 WHERE id IN (60780, 60858, 57317, 56417, 56418, 56419, 60851, 60853, 60854, 60877, 60878, 60873, 60770, 60834, 60852, 60874);
 UPDATE `creature` SET `PhaseId` = 545, `terrainSwapMap` = 976 WHERE id IN (60895, 60888, 60896, 60898, 60894, 60893, 60892, 60891, 60890, 60889, 60722, 57743, 57741, 57739);
 UPDATE `creature` SET `PhaseId` = 545, `terrainSwapMap` = 976 WHERE guid IN (452340);
-UPDATE `creature` SET `PhaseId` = 0, `PhaseGroup` = 641, `terrainSwapMap` = -1 WHERE `guid` IN (451725, 451731, 4001703);
+UPDATE `creature` SET `PhaseId` = 0, `PhaseGroup` = 641, `terrainSwapMap` = -1 WHERE `guid` IN (451725, 451731, 4001703, 451746);
 UPDATE `creature` SET `PhaseId` = 169, `terrainSwapMap` = -1 WHERE `guid` IN (451858, 451860, 451965, 451979);
 UPDATE `creature` SET `PhaseId` = 544, `ScriptName` = 'npc_healers_active_bunny' WHERE (`guid` = '452176');
 
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452061, 452110, 452062, 452099, 452114, 452105, 452117, 452351, 452355, 452101, 452111, 452112, 452248, 452229, 452265, 452250,
 452252,452254, 452196, 452210, 452268, 452283, 452273, 452253, 452224, 452195, 452266, 452267, 452219, 452237, 452263, 452277, 452211, 452225, 452244, 452262, 452279, 452264); -- duplicate spawns
 DELETE FROM `creature` WHERE `map` = 860 AND `id` IN (56236); -- wrong spawns as the sailors are spawned from quest
-DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452202, 452245, 452189, 452201, 452149, 452143, 452151, 452141, 452158); -- event adds are now spawned from script
+DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452202, 452245, 452189, 452201, 452149, 452143, 452151, 452141, 452158, 452235, 452208); -- event adds are now spawned from script
 
 UPDATE `gameobject` SET `PhaseId` = 1835 WHERE `id` IN (209793);
 UPDATE `gameobject` SET `PhaseId` = 993 WHERE `guid` IN (300834);
@@ -255,8 +258,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (117783, 'spell_healing_shenzin_su');
 
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 60851, 57317, 60852, 60854, 60858, 56417, 55940);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000, 60851, 57317, 60852, 60854, 60858, 56417, 55940) AND `source_type` IN (0, 9);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 60851, 57317, 60852, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000, 60851, 57317, 60852, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780) AND `source_type` IN (0, 9);
 INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, event_type, event_phase_mask, event_chance, event_flags,  event_param1, event_param2, 
 event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, 
 action_param6, target_type, target_param1, target_param2, target_param3, target_x, target_y, target_z, target_o, comment) VALUES
@@ -279,8 +282,19 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 ('60852', '0', '0', '0', '10', '0', '100', '0', '1', '10', '240000', '300000', '0', '', '84', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Korga Strongmane - OOC LOS - Talk'),
 ('60852', '0', '1', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128515', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Korga Strongmane - Update IC - Cast Lightning Bolt'),
 ('60854', '0', '0', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128510', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Escaped Horde Crewman - Update IC - Cast Double Thrust'),
+('60854', '0', '1', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Escaped Horde Crewman - Update OOC - Start Attack'),
 ('60858', '0', '0', '0', '0', '0', '100', '0', '5000', '8000', '5000', '8000', '0', '', '11', '128533', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+('60858', '0', '1', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Deepscale Fleshripper - Update OOC - Start Attack'),
 ('56417', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '8', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Respawn - Set React State'),
 ('56417', '0', '1', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '5', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update OOC - Start Attack'),
 ('56417', '0', '2', '0', '0', '0', '100', '0', '2000', '4000', '2000', '4000', '0', '', '11', '117275', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update IC - Cast Tempered Fury'),
-('56417', '0', '3', '0', '0', '0', '100', '0', '5000', '8000', '10000', '15000', '0', '', '11', '117401', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update IC - Cast Spinning Crane Kick');
+('56417', '0', '3', '0', '0', '0', '100', '0', '5000', '8000', '10000', '15000', '0', '', '11', '117401', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update IC - Cast Spinning Crane Kick'),
+('60853', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '21', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Makael Bay - On Respawn - Disable Combat Movement'),
+('60853', '0', '1', '0', '0', '0', '100', '0', '1000', '1200', '1000', '1200', '0', '', '11', '107115', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Makael Bay - Update IC - Cast Throw Dynamite'),
+('60853', '0', '2', '0', '9', '0', '100', '0', '0', '5', '8000', '12000', '0', '', '11', '128526', '1', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Makael Bay - On Target In Range - Cast Saw Blade'),
+('60873', '0', '0', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Skyseeker Sailor - Update OOC - Start Attack'),
+('60780', '0', '0', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Deepscale Ravager - Update OOC - Start Attack'),
+('56419', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '8', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Respawn - Set React State'),
+('56419', '0', '1', '0', '9', '0', '50', '0', '5', '30', '5000', '10000', '0', '', '11', '81574', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Target In Range - Cast Charge'),
+('56419', '0', '2', '0', '0', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '11', '120383', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Update IC - Cast Pillar Strike'),
+('56419', '0', '3', '0', '0', '0', '100', '0', '5000', '8000', '8000', '12000', '0', '', '11', '120372', '1', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Update IC - Cast Pillar Sweep');
