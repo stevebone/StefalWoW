@@ -801,6 +801,7 @@ namespace WorldPackets
             bool KeepOpenAfterChoice = false;
             bool ShowChoicesAsList = false;
             bool ForceDontShowChoicesAsList = false;
+            bool RequiresSelection = false;
         };
 
         class ChoiceResponse final : public ClientPacket
