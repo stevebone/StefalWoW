@@ -85,9 +85,10 @@ namespace Creatures
     static constexpr uint32 CartVehicleFarmstead = 59496;
     static constexpr uint32 CartVehicleForest = 57740;
 
-    static constexpr uint32 YakSingingPools = 57709;
-    static constexpr uint32 YakFarmstead = 59499;
-    static constexpr uint32 YakForest = 57743;
+    // For reference only can be removed if needed
+    //static constexpr uint32 YakSingingPools = 57709;
+    //static constexpr uint32 YakFarmstead = 59499;
+    //static constexpr uint32 YakForest = 57743;
 
     static constexpr uint32 YakVehicleSingingPools = 57207;
     static constexpr uint32 YakVehicleFarmstead = 59498;
