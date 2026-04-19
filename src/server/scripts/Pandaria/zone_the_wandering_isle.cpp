@@ -38,6 +38,12 @@ namespace Scripts::Pandaria::TheWanderingIsle
 {
 namespace Spells
 {
+    // Generic Vehicle Spells
+    static constexpr uint32 ForceVehicleRide = 46598;
+    static constexpr uint32 EjectPassengers = 50630;
+    static constexpr uint32 OxCartRopeLeft = 108627; // Cart on Yak
+    static constexpr uint32 OxCartRopeRight = 108691; // Yak on Cart
+
     // Singing Pools
     static constexpr uint32 CurseOfTheFrog = 102938;
     static constexpr uint32 CurseOfTheSkunk = 102939;
@@ -60,17 +66,58 @@ namespace Spells
 namespace Quests
 {
     static constexpr uint32 OnlyTheWorthyShallPass = 29421;
+    static constexpr uint32 TheSourceOfLivelihood = 29680;
+    static constexpr uint32 TheSpiritAndBodyOfShenzinsu = 29775;
+    static constexpr uint32 NewAllies = 29800;
 }
 
 namespace Creatures
 {
     static constexpr uint32 MasterLiFei = 54135;
     static constexpr uint32 MasterLiFeiCombat = 54734;
+
+    // Yak and Cart
+    static constexpr uint32 CartSingingPools = 57710;
+    static constexpr uint32 CartFarmstead = 59497;
+    static constexpr uint32 CartForest = 57741;
+
+    static constexpr uint32 CartVehicleSingingPools = 57208;
+    static constexpr uint32 CartVehicleFarmstead = 59496;
+    static constexpr uint32 CartVehicleForest = 57740;
+
+    static constexpr uint32 YakSingingPools = 57709;
+    static constexpr uint32 YakFarmstead = 59499;
+    static constexpr uint32 YakForest = 57743;
+
+    static constexpr uint32 YakVehicleSingingPools = 57207;
+    static constexpr uint32 YakVehicleFarmstead = 59498;
+    static constexpr uint32 YakVehicleForest = 57742;
 }
 
 namespace Talks
 {
     static constexpr uint32 LiFeiDefeat = 0;
+}
+
+namespace Paths
+{
+    // Yak and Cart
+    static constexpr uint32 YakSingingPools = 5720700;
+    static constexpr uint32 YakFarmstead = 5949800;
+    static constexpr uint32 YakForest = 5774200;
+    static constexpr uint32 CartSingingPools = 5720800;
+    static constexpr uint32 CartFarmstead = 5949600;
+    static constexpr uint32 CartForest = 5774000;
+
+    static constexpr int8 NodeCartRemovePassenger = 28;
+    static constexpr int8 NodeForestCartRemovePassenger = 34;
+}
+
+namespace Events
+{
+    // Yak and Cart
+    static constexpr int8 YakCartPathStart = 1;
+    static constexpr int8 YakCartRopes = 2;
 }
 
 enum TraineeMisc
@@ -1492,6 +1539,139 @@ class spell_flying_shadow_kick : public SpellScript
         OnEffectHitTarget += SpellEffectFn(spell_flying_shadow_kick::HandleHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
+
+struct npc_yak_cart : public ScriptedAI
+{
+    npc_yak_cart(Creature* creature) : ScriptedAI(creature), _passengerGuid()
+    {
+        Initialize();
+    }
+
+    void Initialize()
+    {
+        switch (me->GetEntry())
+        {
+        case Creatures::YakVehicleSingingPools:
+            _pathId = Paths::YakSingingPools;
+            break;
+        case Creatures::YakVehicleFarmstead:
+            _pathId = Paths::YakFarmstead;
+            break;
+        case Creatures::YakVehicleForest:
+            _pathId = Paths::YakForest;
+            break;
+        case Creatures::CartVehicleSingingPools:
+            _isCart = true;
+            _pathId = Paths::CartSingingPools;
+            _ejectNodeId = Paths::NodeCartRemovePassenger;
+            _creditNPC = Creatures::CartSingingPools;
+            _questId = Quests::TheSourceOfLivelihood;
+            _yakNPC = Creatures::YakVehicleSingingPools;
+            break;
+        case Creatures::CartVehicleFarmstead:
+            _isCart = true;
+            _pathId = Paths::CartFarmstead;
+            _ejectNodeId = Paths::NodeCartRemovePassenger;
+            _creditNPC = Creatures::CartFarmstead;
+            _questId = Quests::TheSpiritAndBodyOfShenzinsu;
+            _yakNPC = Creatures::YakVehicleFarmstead;
+            break;
+        case Creatures::CartVehicleForest:
+            _isCart = true;
+            _pathId = Paths::CartForest;
+            _ejectNodeId = Paths::NodeForestCartRemovePassenger;
+            _creditNPC = Creatures::CartForest;
+            _questId = Quests::NewAllies;
+            _yakNPC = Creatures::YakVehicleForest;
+            break;
+        default:
+            break;
+        }
+
+        me->SetPrivateObjectOwner(ObjectGuid::Empty); // Needed otherwise FindCreature does not work
+        me->SetReactState(REACT_PASSIVE);
+    }
+
+    void Reset() override
+    {
+        _events.Reset();
+        Initialize();
+
+        if (!_isCart)
+            _events.ScheduleEvent(Events::YakCartPathStart, 1400ms); // Delay
+    }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+    {
+        Player* player = passenger->ToPlayer();
+        if (apply && player)
+        {
+            if (_isCart)
+            {
+                _passengerGuid = player->GetGUID(); // Store for later use (e.g., for eject)
+                me->CastSpell(player, Spells::ForceVehicleRide);
+                _events.ScheduleEvent(Events::YakCartPathStart, 1800ms); // Delay
+
+                if (player->hasQuest(_questId))
+                    player->KilledMonsterCredit(_creditNPC, _passengerGuid);
+
+                // Rope spells are currently broken and need fixing :(
+                //_events.ScheduleEvent(Events::event_ox_cart_ropes, 1s);
+            }
+        }
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+    {
+        if (_isCart && nodeId == _ejectNodeId)
+            me->CastSpell(me, Spells::EjectPassengers);
+    }
+
+    void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
+    {
+        me->DespawnOrUnsummon(1s);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+            case Events::YakCartRopes:
+            {
+                Unit* yak = me->FindNearestCreatureWithOptions(10.f, { .CreatureId = _yakNPC, .IgnorePhases = true });
+                if (yak)
+                {
+                    me->CastSpell(yak, Spells::OxCartRopeLeft);
+                    yak->CastSpell(me, Spells::OxCartRopeRight);
+                }
+                break;
+            }
+
+            case Events::YakCartPathStart:
+                me->LoadPath(_pathId);
+                me->GetMotionMaster()->MovePath(_pathId, false);
+                break;
+            default:
+                break;
+            }
+
+        }
+    }
+
+private:
+    EventMap _events;
+    ObjectGuid _passengerGuid;
+    uint32 _creditNPC = 0;
+    uint32 _yakNPC = 0;
+    uint32 _questId = 0;
+    uint32 _pathId = 0;
+    uint8 _ejectNodeId = 0;
+    bool _isCart = false;
+};
 }
 
 void AddSC_zone_the_wandering_isle()
@@ -1510,6 +1690,7 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_aysa_cloudsinger_summon);
     RegisterCreatureAI(npc_aysa_cloudsinger_cave_of_meditation);
     RegisterCreatureAI(npc_master_li_fei_summon);
+    RegisterCreatureAI(npc_yak_cart);
 
     RegisterSpellScript(spell_force_summoner_to_ride_vehicle);
     RegisterSpellScript(spell_ride_drake);
