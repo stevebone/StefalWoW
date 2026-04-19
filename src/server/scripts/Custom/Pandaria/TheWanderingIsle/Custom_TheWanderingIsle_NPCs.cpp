@@ -965,43 +965,94 @@ namespace Scripts::Custom::TheWanderingIsle
 
         struct npc_ox_cartAI : public ScriptedAI
         {
-            npc_ox_cartAI(Creature* creature) : ScriptedAI(creature), _passengerGuid() { }
+            npc_ox_cartAI(Creature* creature) : ScriptedAI(creature), _passengerGuid()
+            {
+                Initialize();
+            }
+
+            void Initialize()
+            {
+                switch (me->GetEntry())
+                {
+                case Npcs::npc_vehicle_ox:
+                    _pathId = Paths::path_ox;
+                    break;
+                case Npcs::npc_vehicle_ox_farmstead:
+                    _pathId = Paths::path_ox_farmstead;
+                    break;
+                case Npcs::npc_vehicle_ox_forest:
+                    _pathId = Paths::path_ox_forest;
+                    break;
+                case Npcs::npc_vehicle_cart:
+                    _isCart = true;
+                    _pathId = Paths::path_cart;
+                    _ejectNodeId = Paths::path_node_cart_remove_passenger;
+                    _creditNPC = Npcs::npc_cart;
+                    _questId = Quests::quest_the_source_of_livelihood;
+                    _yakNPC = Npcs::npc_vehicle_ox;
+                    break;
+                case Npcs::npc_vehicle_cart_farmstead:
+                    _isCart = true;
+                    _pathId = Paths::path_cart_farmstead;
+                    _ejectNodeId = Paths::path_node_cart_remove_passenger;
+                    _creditNPC = Npcs::npc_cart_farmstead;
+                    _questId = Quests::quest_the_spirit_and_body_of_shenzinsu;
+                    _yakNPC = Npcs::npc_vehicle_ox_farmstead;
+                    break;
+                case Npcs::npc_vehicle_cart_forest:
+                    _isCart = true;
+                    _pathId = Paths::path_cart_forest;
+                    _ejectNodeId = Paths::path_node_cart_forest_remove_passenger;
+                    _creditNPC = Npcs::npc_cart_forest;
+                    _questId = Quests::quest_new_allies;
+                    _yakNPC = Npcs::npc_vehicle_ox_forest;
+                    break;
+                default:
+                    break;
+                }
+
+                me->SetPrivateObjectOwner(ObjectGuid::Empty); // Needed otherwise FindCreature does not work
+                me->SetReactState(REACT_PASSIVE);
+            }
 
             void Reset() override
             {
                 _events.Reset();
+                Initialize();
 
-                if (me->GetEntry() == Npcs::npc_vehicle_ox || me->GetEntry() == Npcs::npc_vehicle_ox_farmstead)
-                {
-                    me->SetReactState(REACT_PASSIVE);
-                    //_events.ScheduleEvent(EventsOxCart::event_ox_cart_ropes, 500ms);
-                    _events.ScheduleEvent(Events::event_ox_cart_path_start, 1400ms); // Delay of 0.5 seconds
-                }
+                if(!_isCart)
+                    _events.ScheduleEvent(Events::event_ox_cart_path_start, 1400ms); // Delay
             }
 
             void IsSummonedBy(WorldObject* /*summoner*/) override
             {
-                me->ToTempSummon()->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
+                //me->ToTempSummon()->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
             }
 
             void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
             {
-                if (apply && passenger->GetTypeId() == TYPEID_PLAYER)
+                Player* player = passenger->ToPlayer();
+                if (apply && player)
                 {
-                    if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
+                    if (_isCart)
                     {
-                        _passengerGuid = passenger->GetGUID(); // Store for later use (e.g., for eject)
-                        me->CastSpell(passenger, Spells::spell_force_vehicle_ride);
+                        _passengerGuid = player->GetGUID(); // Store for later use (e.g., for eject)
+                        me->CastSpell(player, Spells::spell_force_vehicle_ride);
                         _events.ScheduleEvent(Events::event_ox_cart_path_start, 1800ms); // Delay
+
+                        if (player->hasQuest(_questId))
+                            player->KilledMonsterCredit(_creditNPC, _passengerGuid);
+
+                        // Rope spells are currently broken and need fixing :(
+                        //_events.ScheduleEvent(Events::event_ox_cart_ropes, 1s);
                     }
                 }
             }
 
             void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
-                if(nodeId == Paths::path_node_remove_passenger)
-                    if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
-                        me->CastSpell(me, Spells::spell_eject_passengers);
+                if (_isCart && nodeId == _ejectNodeId)
+                    me->CastSpell(me, Spells::spell_eject_passengers);
             }
 
             void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
@@ -1017,47 +1068,20 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                        /*
-                    case EventsOxCart::event_ox_cart_ropes:
+                    case Events::event_ox_cart_ropes:
                     {
-                        Unit* yak = nullptr;
-                        if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
+                        Unit* yak = me->FindNearestCreatureWithOptions(10.f, { .CreatureId = _yakNPC, .IgnorePhases = true } );
+                        if (yak)
                         {
-                            if (Unit* yak1 = me->FindNearestCreature(Npcs::npc_vehicle_ox, 10.f))
-                                yak = yak1;
-                            else if (Unit* yak2 = me->FindNearestCreature(Npcs::npc_vehicle_ox_farmstead, 10.f))
-                                yak = yak2;
-
-                            if (yak)
-                            {
-                                me->CastSpell(yak, SpellsCartOx::spell_rope_left);
-                                me->CastSpell(yak, SpellsCartOx::spell_rope_right);
-                            }
-                            
+                            me->CastSpell(yak, Spells::spell_rope_left);
+                            yak->CastSpell(me, Spells::spell_rope_right);
                         }
                         break;
-                    }*/
+                    }
+
                     case Events::event_ox_cart_path_start:
-                        if (me->GetEntry() == Npcs::npc_vehicle_cart)
-                        {
-                            me->LoadPath(Paths::path_cart);
-                            me->GetMotionMaster()->MovePath(Paths::path_cart, false);
-                        }
-                        else if (me->GetEntry() == Npcs::npc_vehicle_ox)
-                        {
-                            me->LoadPath(Paths::path_ox);
-                            me->GetMotionMaster()->MovePath(Paths::path_ox, false);
-                        }
-                        else if (me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
-                        {
-                            me->LoadPath(Paths::path_cart_farmstead);
-                            me->GetMotionMaster()->MovePath(Paths::path_cart_farmstead, false);
-                        }
-                        else if (me->GetEntry() == Npcs::npc_vehicle_ox_farmstead)
-                        {
-                            me->LoadPath(Paths::path_ox_farmstead);
-                            me->GetMotionMaster()->MovePath(Paths::path_ox_farmstead, false);
-                        }
+                        me->LoadPath(_pathId);
+                        me->GetMotionMaster()->MovePath(_pathId, false);
                         break;
                     default:
                         break;
@@ -1069,6 +1093,12 @@ namespace Scripts::Custom::TheWanderingIsle
         private:
             EventMap _events;
             ObjectGuid _passengerGuid;
+            uint32 _creditNPC = 0;
+            uint32 _yakNPC = 0;
+            uint32 _questId = 0;
+            uint32 _pathId = 0;
+            uint8 _ejectNodeId = 0;
+            bool _isCart = false;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
@@ -2002,7 +2032,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
             void SpellHit(WorldObject* caster, SpellInfo const* spell) override
             {
-                if (spell->Id == SpellsZhaorenEvent::spell_overpacked_firework)
+                if (spell->Id == Spells::spell_overpacked_firework)
                     if (!me->IsInCombat())
                         if (Unit* target = caster->ToUnit())
                             me->Attack(target, true);
@@ -2076,7 +2106,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 if (Unit* target = ref->GetVictim())
                                 {
                                     if (target->IsPlayer())
-                                        DoCast(target, SpellsZhaorenEvent::spell_lightning_pool);
+                                        DoCast(target, Spells::spell_lightning_pool);
                                 }
                             }
 
@@ -2103,7 +2133,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         break;
 
                     case Events::event_zhao_state_stun:
-                        DoCast(SpellsZhaorenEvent::spell_stunned_by_fireworks);
+                        DoCast(Spells::spell_stunned_by_fireworks);
                         events.ScheduleEvent(Events::event_zhao_cast_sweep, 12s);
                         if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
                         {
@@ -2118,7 +2148,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                     case Events::event_zhao_cast_sweep:
                         events.CancelEvent(Events::event_zhao_cast_lightning);
-                        DoCast(SpellsZhaorenEvent::spell_serpent_sweep);
+                        DoCast(Spells::spell_serpent_sweep);
                         sweepScheduled = false;
                         events.ScheduleEvent(Events::event_zhao_cast_lightning, 3500ms, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
                         events.ScheduleEvent(Events::event_zhao_resume_path, 5s, 0, Misc::ZHAO_PHASE_GROUNDED);
@@ -2155,20 +2185,20 @@ namespace Scripts::Custom::TheWanderingIsle
             void Reset() override
             {
                 state = Misc::LAUNCHER_STATE_READY;
-                me->RemoveAurasDueToSpell(SpellsZhaorenEvent::spell_firework_inactive);
+                me->RemoveAurasDueToSpell(Spells::spell_firework_inactive);
                 events.Reset();
             }
 
             // Player clicks launcher ? cast 125961 on launcher
             void OnSpellClick(Unit* clicker, bool) override
             {
-                clicker->CastSpell(me, SpellsZhaorenEvent::spell_overpacked_firework_launcher_ping, true);
+                clicker->CastSpell(me, Spells::spell_overpacked_firework_launcher_ping, true);
             }
 
             // Launcher is hit by 125961
             void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
             {
-                if (spellInfo->Id == SpellsZhaorenEvent::spell_overpacked_firework_launcher_ping &&
+                if (spellInfo->Id == Spells::spell_overpacked_firework_launcher_ping &&
                     state == Misc::LAUNCHER_STATE_READY)
                 {
                     Unit* player = caster->ToUnit();
@@ -2176,13 +2206,13 @@ namespace Scripts::Custom::TheWanderingIsle
                         return;
 
                     // Cast 125970 on player (matches SAI)
-                    me->CastSpell(player, SpellsZhaorenEvent::spell_aicast_overpacked_fireworkd, true);
+                    me->CastSpell(player, Spells::spell_aicast_overpacked_fireworkd, true);
 
                     // Play animation
                     me->PlayOneShotAnimKitId(2538);
 
                     // Apply inactive aura
-                    me->CastSpell(me, SpellsZhaorenEvent::spell_firework_inactive, true);
+                    me->CastSpell(me, Spells::spell_firework_inactive, true);
 
                     // Ping Ji Firepaw
                     if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, 30.f))
@@ -2222,7 +2252,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     case Events::event_firework_launcher_recharge:
                     {
                         state = Misc::LAUNCHER_STATE_READY;
-                        me->RemoveAurasDueToSpell(SpellsZhaorenEvent::spell_firework_inactive);
+                        me->RemoveAurasDueToSpell(Spells::spell_firework_inactive);
                         break;
                     }
                     }
@@ -2596,8 +2626,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     if (player)
                     {
                         //player->EnableMirrorTimer(FATIGUE_TIMER);
-                        me->CastSpell(player, SpellsBalloonEvent::spell_eject_passenger_1, true);
-                        me->CastSpell(player, SpellsBalloonEvent::spell_parachute, true);
+                        me->CastSpell(player, Spells::spell_eject_passenger_1, true);
+                        me->CastSpell(player, Spells::spell_parachute, true);
                     }
                     me->DespawnOrUnsummon(30s);
                 }
@@ -3110,7 +3140,12 @@ namespace Scripts::Custom::TheWanderingIsle
             void OnQuestAccept(Player* player, Quest const* quest) override
             {
                 if (quest->GetQuestId() == Quests::quest_risking_it_all)
+                {
+                    // remove this so player no longer sees Jojo at camp
+                    player->RemoveAurasDueToSpell(Spells::spell_invisibility_detection_quest_5);
+
                     DoCast(player, Spells::spell_forcecast_summon_aysa_after_fight, true);
+                }
             }
 
             void UpdateAI(uint32 diff) override
@@ -3562,7 +3597,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                         for (Map::PlayerList::const_iterator itr = playerList.begin(); itr != playerList.end(); ++itr)
                             if (Player* player = itr->GetSource())
-                                if (player->GetAreaId() == me->GetAreaId())
+                                if (player->GetAreaId() == me->GetAreaId() && player->IsActiveQuest(Quests::quest_the_healing_of_shenzinsu))
                                     player->CastSpell(player, Spells::spell_shenzinsu_pain_shake, true);
 
                         events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s, 60s);

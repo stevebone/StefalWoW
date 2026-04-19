@@ -135,6 +135,17 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_aura_invisibility = 80797; // 105889 ??
         static constexpr uint32 spell_summon_spirits_water_earth = 104017;
 
+        // Zhao-ren battle
+        static constexpr uint32 spell_summon_aysa_outside_chambers = 104593;
+        static constexpr uint32 spell_lightning_pool = 126006;
+        static constexpr uint32 spell_stunned_by_fireworks = 125992;
+        static constexpr uint32 spell_serpent_sweep = 125990;
+        static constexpr uint32 spell_forcecast_summon_shang = 128808;
+        static constexpr uint32 spell_overpacked_firework = 104855;
+        static constexpr uint32 spell_firework_inactive = 125964;
+        static constexpr uint32 spell_overpacked_firework_launcher_ping = 125961;
+        static constexpr uint32 spell_aicast_overpacked_fireworkd = 125970;
+
         // RukRuk
         static constexpr uint32 spell_ookslosions_triggered = 125885;
         static constexpr uint32 spell_aim = 125609;
@@ -142,6 +153,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_aim_visual = 26079;
         static constexpr uint32 spell_rocket_explosion_visual = 125612;
         static constexpr uint32 spell_rocket_explosion_damage = 125619;
+
+        // Balloon Ride
+        static constexpr uint32 spell_credit_speak_with_shenzinsu = 105010;
+        static constexpr uint32 spell_eject_passenger_1 = 60603;
+        static constexpr uint32 spell_parachute = 45472;
 
         // Forlorn Hut in the Forbidden forest
         static constexpr uint32 spell_summon_ji_at_forlorn_hut = 117973;
@@ -205,11 +221,22 @@ namespace Scripts::Custom::TheWanderingIsle
 
         static constexpr uint32 spell_force_vehicle_ride = 46598;
         static constexpr uint32 spell_eject_passengers = 50630;
-        //static constexpr uint32 spell_rope_left = 108627;
-        //static constexpr uint32 spell_rope_right = 108691;
+        static constexpr uint32 spell_rope_left = 108627; // Cart on Yak
+        static constexpr uint32 spell_rope_right = 108691; // Yak on Cart
 
         // Quest Invis
+        static constexpr uint32 spell_generic_quest_invisibility_detection_1 = 49416;
+        static constexpr uint32 spell_generic_quest_invisibility_detection_2 = 49417;
         static constexpr uint32 spell_invisibility_detection_quest_5 = 89521;
+        static constexpr uint32 spell_generic_quest_invisibility_detection_6 = 94567;
+        static constexpr uint32 spell_generic_quest_invisibility_detection_9 = 94570;
+
+        static constexpr uint32 spell_generic_quest_invisibility_1 = 49414;
+        static constexpr uint32 spell_generic_quest_invisibility_2 = 49415;
+        static constexpr uint32 spell_generic_quest_invisibility_6 = 82358;
+
+        static constexpr uint32 spell_ox_cart_invisibility = 108887;
+        static constexpr uint32 spell_cancel_ox_cart_invisibility = 108888;
     }
 
     namespace Data
@@ -226,29 +253,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 worldstate_healers_active = 6488;
     }
 
-    namespace SpellsZhaorenEvent
-    {
-        static constexpr uint32 spell_summon_aysa_outside_chambers = 104593;
-        static constexpr uint32 spell_lightning_pool = 126006;
-        static constexpr uint32 spell_stunned_by_fireworks = 125992;
-        static constexpr uint32 spell_serpent_sweep = 125990;
-        static constexpr uint32 spell_forcecast_summon_shang = 128808;
-        static constexpr uint32 spell_overpacked_firework = 104855;
-        static constexpr uint32 spell_firework_inactive = 125964;
-        static constexpr uint32 spell_overpacked_firework_launcher_ping = 125961;
-        static constexpr uint32 spell_aicast_overpacked_fireworkd = 125970;
-    }
-
     namespace SpellsQ29787
     {
         static constexpr uint32 spell_summon_shang_q29787 = 105333;
-    }
-
-    namespace SpellsBalloonEvent
-    {
-        static constexpr uint32 spell_credit_speak_with_shenzinsu = 105010;
-        static constexpr uint32 spell_eject_passenger_1 = 60603;
-        static constexpr uint32 spell_parachute = 45472;
     }
 
     namespace TalksQ29423
@@ -505,9 +512,12 @@ namespace Scripts::Custom::TheWanderingIsle
         // Ox and Cart
         static constexpr uint32 path_ox = 5720700;
         static constexpr uint32 path_ox_farmstead = 5949800;
+        static constexpr uint32 path_ox_forest = 5774200;
         static constexpr uint32 path_cart = 5720800;
         static constexpr uint32 path_cart_farmstead = 5949600;
-        static constexpr uint8 path_node_remove_passenger = 27;
+        static constexpr uint32 path_cart_forest = 5774000;
+        static constexpr int8 path_node_cart_remove_passenger = 27;
+        static constexpr int8 path_node_cart_forest_remove_passenger = 34;
     }
 
 
@@ -534,7 +544,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_cast_serpent_strike = 1;
         static constexpr int8 event_check_players = 1;
         static constexpr int8 event_cast_razor_beak = 2;
+
+        // Ox Cart
         static constexpr int8 event_ox_cart_path_start = 1;
+        static constexpr int8 event_ox_cart_ropes = 2;
 
         // Lorewalker story
         static constexpr int8 event_lorewalker_check_player = 1;
@@ -619,13 +632,23 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_bunny_water_spout = 60488;
         static constexpr uint32 npc_aysa_q29679 = 54975;
 
+        // Ox and carts
         static constexpr uint32 npc_cart_tender = 57712;
+
         static constexpr uint32 npc_cart = 57710;
+        static constexpr uint32 npc_cart_farmstead = 59497;
+        static constexpr uint32 npc_cart_forest = 57741;
+
         static constexpr uint32 npc_vehicle_cart = 57208;
         static constexpr uint32 npc_vehicle_cart_farmstead = 59496;
+        static constexpr uint32 npc_vehicle_cart_forest = 57740;
+
+        static constexpr uint32 npc_ox = 57709;
+        static constexpr uint32 npc_ox_forest = 57743;
+
         static constexpr uint32 npc_vehicle_ox = 57207;
         static constexpr uint32 npc_vehicle_ox_farmstead = 59498;
-        static constexpr uint32 npc_ox = 57709;
+        static constexpr uint32 npc_vehicle_ox_forest = 57742;
 
         static constexpr uint32 npc_shu_follower = 55213;
         static constexpr uint32 npc_bunny_water_spout_farmstead = 66941;
@@ -659,7 +682,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_firework_launcher = 64507;
         static constexpr uint32 npc_shang_q29786 = 55586;
 
-        // Q 29787
+        // 29787 Worthy of Passing
         static constexpr uint32 npc_guardian_q29787 = 56274;
 
         // Balloon ride event
@@ -740,6 +763,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_an_ancient_evil = 29798;
         static constexpr uint32 quest_risking_it_all = 30767;
         static constexpr uint32 quest_the_healing_of_shenzinsu = 29799;
+        static constexpr uint32 quest_new_allies = 29800;
     }
 
     namespace AreaTriggers

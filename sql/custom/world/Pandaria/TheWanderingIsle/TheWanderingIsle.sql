@@ -994,8 +994,8 @@ INSERT INTO `vehicle_template` VALUES (57208, 0, NULL,0);
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (57208,57207,57710,57709);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('57207', '5720700', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', ''), -- 
-('57208', '5720800', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '108692'),
+('57207', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', ''),
+('57208', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '108692'),
 ('57709', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '84886 94570'),
 ('57710', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108692 94570 84886');
 

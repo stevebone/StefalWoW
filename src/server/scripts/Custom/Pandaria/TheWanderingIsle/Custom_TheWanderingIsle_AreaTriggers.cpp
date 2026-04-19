@@ -356,7 +356,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (player->GetQuestStatus(Quests::quest_da_feng_the_spirit_of_air) != QUEST_STATUS_INCOMPLETE)
                     return false;
 
-                player->CastSpell(player, SpellsZhaorenEvent::spell_summon_aysa_outside_chambers, true);
+                player->CastSpell(player, Spells::spell_summon_aysa_outside_chambers, true);
 
                 return true;
             }
