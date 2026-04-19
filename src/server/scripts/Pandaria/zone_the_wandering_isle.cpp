@@ -42,7 +42,6 @@ namespace Spells
     static constexpr uint32 ForceVehicleRide = 46598;
     static constexpr uint32 EjectPassengers = 50630;
     static constexpr uint32 OxCartRopeLeft = 108627; // Cart on Yak
-    static constexpr uint32 OxCartRopeRight = 108691; // Yak on Cart
 
     // Singing Pools
     static constexpr uint32 CurseOfTheFrog = 102938;
@@ -84,11 +83,6 @@ namespace Creatures
     static constexpr uint32 CartVehicleSingingPools = 57208;
     static constexpr uint32 CartVehicleFarmstead = 59496;
     static constexpr uint32 CartVehicleForest = 57740;
-
-    // For reference only can be removed if needed
-    //static constexpr uint32 YakSingingPools = 57709;
-    //static constexpr uint32 YakFarmstead = 59499;
-    //static constexpr uint32 YakForest = 57743;
 
     static constexpr uint32 YakVehicleSingingPools = 57207;
     static constexpr uint32 YakVehicleFarmstead = 59498;
@@ -1617,7 +1611,7 @@ struct npc_yak_cart : public ScriptedAI
                     player->KilledMonsterCredit(_creditNPC, _passengerGuid);
 
                 // Rope spells are currently broken and need fixing :(
-                //_events.ScheduleEvent(Events::event_ox_cart_ropes, 1s);
+                _events.ScheduleEvent(Events::YakCartRopes, 1s);
             }
         }
     }
@@ -1646,8 +1640,8 @@ struct npc_yak_cart : public ScriptedAI
                 Unit* yak = me->FindNearestCreatureWithOptions(10.f, { .CreatureId = _yakNPC, .IgnorePhases = true });
                 if (yak)
                 {
+                    // Live uses only 1 rope
                     me->CastSpell(yak, Spells::OxCartRopeLeft);
-                    yak->CastSpell(me, Spells::OxCartRopeRight);
                 }
                 break;
             }

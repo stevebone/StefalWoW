@@ -340,3 +340,22 @@ INSERT INTO `creature_template_difficulty` VALUES
 (57741, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26235, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 256, 0, 0, 0, 0, 0, 56647),
 (57742, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26231, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57743, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26229, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=108627;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 108627, 0, 0, 51, 0, 5, 57207, 0, '', 0, 0, 0, '', 'Ox Cart Rope Left can only hit Nourished Yak'),
+(13, 1, 108627, 0, 1, 51, 0, 5, 59498, 0, '', 0, 0, 0, '', 'Ox Cart Rope Left can only hit Nourished Yak'),
+(13, 1, 108627, 0, 2, 51, 0, 5, 57742, 0, '', 0, 0, 0, '', 'Ox Cart Rope Left can only hit Nourished Yak');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=108691;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 108691, 0, 0, 51, 0, 5, 57208, 0, '', 0, 0, 0, '', 'Ox Cart Rope Right can only hit Delivery Cart'),
+(13, 1, 108691, 0, 1, 51, 0, 5, 59496, 0, '', 0, 0, 0, '', 'Ox Cart Rope Right can only hit Delivery Cart'),
+(13, 1, 108691, 0, 2, 51, 0, 5, 57740, 0, '', 0, 0, 0, '', 'Ox Cart Rope Right can only hit Delivery Cart');
+
+-- Rope spell conditions
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=108627;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 108627, 0, 0, 51, 0, 5, 57207, 0, '', 0, 0, 0, '', 'Ox Cart Rope Left can only hit Nourished Yak'),
+(13, 1, 108627, 0, 1, 51, 0, 5, 59498, 0, '', 0, 0, 0, '', 'Ox Cart Rope Left can only hit Nourished Yak'),
+(13, 1, 108627, 0, 2, 51, 0, 5, 57742, 0, '', 0, 0, 0, '', 'Ox Cart Rope Left can only hit Nourished Yak');
