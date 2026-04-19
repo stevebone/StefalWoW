@@ -65,7 +65,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     me->SetSpeed(MOVE_RUN, 7.0f);
                     me->GetMotionMaster()->MoveFollow(player, 3.0f);
 
-                    _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 20s);
+                    _events.RescheduleEvent(Events::event_delivery_huo, 20s);
                 }
             }
 
@@ -80,7 +80,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     me->CastSpell(player, Spells::spell_fire_form);
 
-                    _events.RescheduleEvent(EventsQ29423::event_second_huo_position, 7s);
+                    _events.RescheduleEvent(Events::event_second_huo_position, 7s);
                 }
                 else if (pointId == 2)
                 {
@@ -104,7 +104,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29423::event_delivery_huo:
+                    case Events::event_delivery_huo:
                     {
                         Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
 
@@ -116,10 +116,10 @@ namespace Scripts::Custom::TheWanderingIsle
                             me->GetMotionMaster()->MovePoint(1, PositionsQ29423::huoFirstPoint, true, { 6.249388f });
                         }
                         else
-                            _events.RescheduleEvent(EventsQ29423::event_delivery_huo, 2s);
+                            _events.RescheduleEvent(Events::event_delivery_huo, 2s);
                         break;
                     }
-                    case EventsQ29423::event_second_huo_position:
+                    case Events::event_second_huo_position:
                         me->GetMotionMaster()->MovePoint(2, PositionsQ29423::huoSecondPoint);
                         break;
                     default:
@@ -175,7 +175,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     _scheduler.Schedule(49s, [ji](TaskContext const&)
                         {
                             ji->AI()->Talk(TalksQ29423::ji_talk);
-                            ji->GetMotionMaster()->MovePath(PathQ29423::ji_away, false);
+                            ji->GetMotionMaster()->MovePath(Paths::ji_away, false);
                             ji->DespawnOrUnsummon(20s);
                         });
                     _scheduler.Schedule(52s, [this](TaskContext const&)
@@ -185,7 +185,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     _scheduler.Schedule(60s, [aysa](TaskContext const&)
                         {
                             aysa->AI()->Talk(TalksQ29423::aysa_talk);
-                            aysa->GetMotionMaster()->MovePath(PathQ29423::aysa_away, false);
+                            aysa->GetMotionMaster()->MovePath(Paths::aysa_away, false);
                             aysa->DespawnOrUnsummon(20s);
                         });
                     _scheduler.Schedule(63s, [this, player](TaskContext const&)
@@ -429,14 +429,14 @@ namespace Scripts::Custom::TheWanderingIsle
                         });
                     _scheduler.Schedule(14700ms, [this](TaskContext const&)
                         {
-                            me->GetMotionMaster()->MovePath(PathQ29662::path_jojo, false);
+                            me->GetMotionMaster()->MovePath(Paths::path_jojo_q29662, false);
                         });
                 }
             }
 
             void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
             {
-                if (pathId == PathQ29662::path_jojo)
+                if (pathId == Paths::path_jojo_q29662)
                 {
                     me->DespawnOrUnsummon();
                 }
@@ -999,7 +999,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
             void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
-                if(nodeId == PathOxCart::path_node_remove_passenger)
+                if(nodeId == Paths::path_node_remove_passenger)
                     if (me->GetEntry() == Npcs::npc_vehicle_cart || me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
                         me->CastSpell(me, Spells::spell_eject_passengers);
             }
@@ -1040,23 +1040,23 @@ namespace Scripts::Custom::TheWanderingIsle
                     case Events::event_ox_cart_path_start:
                         if (me->GetEntry() == Npcs::npc_vehicle_cart)
                         {
-                            me->LoadPath(PathOxCart::path_cart);
-                            me->GetMotionMaster()->MovePath(PathOxCart::path_cart, false);
+                            me->LoadPath(Paths::path_cart);
+                            me->GetMotionMaster()->MovePath(Paths::path_cart, false);
                         }
                         else if (me->GetEntry() == Npcs::npc_vehicle_ox)
                         {
-                            me->LoadPath(PathOxCart::path_ox);
-                            me->GetMotionMaster()->MovePath(PathOxCart::path_ox, false);
+                            me->LoadPath(Paths::path_ox);
+                            me->GetMotionMaster()->MovePath(Paths::path_ox, false);
                         }
                         else if (me->GetEntry() == Npcs::npc_vehicle_cart_farmstead)
                         {
-                            me->LoadPath(PathOxCart::path_cart_farmstead);
-                            me->GetMotionMaster()->MovePath(PathOxCart::path_cart_farmstead, false);
+                            me->LoadPath(Paths::path_cart_farmstead);
+                            me->GetMotionMaster()->MovePath(Paths::path_cart_farmstead, false);
                         }
                         else if (me->GetEntry() == Npcs::npc_vehicle_ox_farmstead)
                         {
-                            me->LoadPath(PathOxCart::path_ox_farmstead);
-                            me->GetMotionMaster()->MovePath(PathOxCart::path_ox_farmstead, false);
+                            me->LoadPath(Paths::path_ox_farmstead);
+                            me->GetMotionMaster()->MovePath(Paths::path_ox_farmstead, false);
                         }
                         break;
                     default:
@@ -1116,8 +1116,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         me->GetMotionMaster()->Clear();
                         me->StopMoving();
-                        me->LoadPath(PathQ29680::path_shu_follower);
-                        me->GetMotionMaster()->MovePath(PathQ29680::path_shu_follower, false);
+                        me->LoadPath(Paths::path_shu_follower);
+                        me->GetMotionMaster()->MovePath(Paths::path_shu_follower, false);
                         _pathStarted = true;
                         break;
                     }
@@ -1168,7 +1168,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (!player)
                     return;
 
-                if (nodeId == PathQ29680::path_node_shu_remove)
+                if (nodeId == Paths::path_node_shu_remove)
                 {
                     me->SetWalk(true);
                     player->RemoveAurasDueToSpell(Spells::spell_summon_spirit_of_water);
@@ -1334,8 +1334,8 @@ namespace Scripts::Custom::TheWanderingIsle
                         {
                             me->GetMotionMaster()->Clear();
                             me->StopMoving();
-                            me->LoadPath(PathQ29774::path_shu_farmstead_1);
-                            me->GetMotionMaster()->MovePath(PathQ29774::path_shu_farmstead_1, false);
+                            me->LoadPath(Paths::path_shu_farmstead_1);
+                            me->GetMotionMaster()->MovePath(Paths::path_shu_farmstead_1, false);
                             _path1Started = true;
                         }
                         break;
@@ -1346,8 +1346,8 @@ namespace Scripts::Custom::TheWanderingIsle
                         {
                             me->StopMoving();
                             me->GetMotionMaster()->Clear();
-                            me->LoadPath(PathQ29774::path_shu_farmstead_2);
-                            me->GetMotionMaster()->MovePath(PathQ29774::path_shu_farmstead_2, false);
+                            me->LoadPath(Paths::path_shu_farmstead_2);
+                            me->GetMotionMaster()->MovePath(Paths::path_shu_farmstead_2, false);
                             _path2Started = true;
                         }
                         break;
@@ -1421,7 +1421,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 switch (pathId)
                 {
-                case PathQ29774::path_shu_farmstead_1:
+                case Paths::path_shu_farmstead_1:
                 {
                     me->StopMoving();
                     me->GetMotionMaster()->Clear();
@@ -1435,7 +1435,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
                     break;
                 }
-                case PathQ29774::path_shu_farmstead_2:
+                case Paths::path_shu_farmstead_2:
                 {
                     me->StopMoving();
                     me->GetMotionMaster()->Clear();
@@ -1995,7 +1995,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 }
 
                 me->GetMotionMaster()->Clear();
-                me->GetMotionMaster()->MovePath(PathZhaorenEvent::path_zhaoren_at_chamber, true);
+                me->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_chamber, true);
                 events.SetPhase(Misc::ZHAO_PHASE_FLYING);
                 events.ScheduleEvent(Events::event_zhao_cast_lightning, 5s);
             }
@@ -2127,7 +2127,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 ji->AI()->SetData(Misc::DATA_PHASE_OOC, Misc::DATA_PHASE_OOC);
                         break;
                     case Events::event_zhao_resume_path:
-                        me->GetMotionMaster()->MovePath(PathZhaorenEvent::path_zhaoren_at_chamber, true);
+                        me->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_chamber, true);
                         events.SetPhase(Misc::ZHAO_PHASE_FLYING);
                         events.ScheduleEvent(Events::event_zhao_cast_lightning, 5s);
                         break;
@@ -2265,8 +2265,8 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (shang_q29786)
                     shang_q29786->DespawnOrUnsummon();
 
-                events.ScheduleEvent(EventsQ29787::event_shang_talk_0, 2s);
-                events.ScheduleEvent(EventsQ29787::event_shang_path_0, 3s);
+                events.ScheduleEvent(Events::event_shang_talk_0, 2s);
+                events.ScheduleEvent(Events::event_shang_path_0, 3s);
             }
 
             void MovementInform(uint32 /*type*/, uint32 pointId) override
@@ -2282,7 +2282,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
             void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
             {
-                if (pathId == PathQ29787::path_zhang_1)
+                if (pathId == Paths::path_zhang_1)
                 {
                     me->SetFacingTo(4.53786f);
                     Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
@@ -2311,7 +2311,7 @@ namespace Scripts::Custom::TheWanderingIsle
                             wall->DespawnOrUnsummon();
                         }
 
-                        events.ScheduleEvent(EventsQ29787::event_shang_talk_4, 2s);
+                        events.ScheduleEvent(Events::event_shang_talk_4, 2s);
                     }
 
                 }
@@ -2322,17 +2322,17 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     switch (eventId)
                     {
-                    case EventsQ29787::event_shang_talk_0:
+                    case Events::event_shang_talk_0:
                         Talk(Talks::shang_talk_0);
                         break;
 
-                    case EventsQ29787::event_shang_path_0:
-                        me->GetMotionMaster()->MovePath(PathQ29787::path_zhang_0, false);
+                    case Events::event_shang_path_0:
+                        me->GetMotionMaster()->MovePath(Paths::path_zhang_0, false);
                         break;
 
-                    case EventsQ29787::event_shang_talk_4:
+                    case Events::event_shang_talk_4:
                         Talk(Talks::shang_talk_4);
-                        me->GetMotionMaster()->MovePath(PathQ29787::path_zhang_1, false);
+                        me->GetMotionMaster()->MovePath(Paths::path_zhang_1, false);
                         break;
                     }
                 }
@@ -3645,11 +3645,15 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         Creature* ji = me->FindNearestCreature(Npcs::npc_ji_during_healing, 100.f);
                         if (ji)
+                        {
+                            ji->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
                             ji->AI()->Talk(0);
+                        }
 
                         events.ScheduleEvent(Events::event_healing_bunny_ji_yell, 45s, 60s);
                         break;
                     }
+
                     case Events::event_healing_bunny_spawn_adds:
                     {
                         Creature* spawnAdd1 = ObjectAccessor::GetCreature(*me, add1);

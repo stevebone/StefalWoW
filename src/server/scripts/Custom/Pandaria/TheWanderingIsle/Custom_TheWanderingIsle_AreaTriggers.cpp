@@ -131,8 +131,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 aysa->SetSpeed(MOVE_WALK, 6.0f);
                 ji->SetSpeed(MOVE_WALK, 6.0f);
-                aysa->GetMotionMaster()->MovePath(PathQ29423::aysa, false);
-                ji->GetMotionMaster()->MovePath(PathQ29423::ji, false);
+                aysa->GetMotionMaster()->MovePath(Paths::aysa, false);
+                ji->GetMotionMaster()->MovePath(Paths::ji, false);
             }
             else if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_COMPLETE)
             {
@@ -144,8 +144,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 aysa->SetSpeed(MOVE_WALK, 6.0f);
                 ji->SetSpeed(MOVE_WALK, 6.0f);
-                aysa->GetMotionMaster()->MovePath(PathQ29423::aysa, false);
-                ji->GetMotionMaster()->MovePath(PathQ29423::ji, false);
+                aysa->GetMotionMaster()->MovePath(Paths::aysa, false);
+                ji->GetMotionMaster()->MovePath(Paths::ji, false);
             }
             return true;
         }
@@ -289,8 +289,8 @@ namespace Scripts::Custom::TheWanderingIsle
                 }
 
                 shu->GetMotionMaster()->Clear();
-                shu->LoadPath(PathQ29775::path_shu_temple_stairs);
-                shu->GetMotionMaster()->MovePath(PathQ29775::path_shu_temple_stairs, false);
+                shu->LoadPath(Paths::path_shu_temple_stairs);
+                shu->GetMotionMaster()->MovePath(Paths::path_shu_temple_stairs, false);
                 shu->DespawnOrUnsummon(35s);
 
                 return true;
@@ -329,8 +329,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     Zhao->SetSpeed(MOVE_RUN, 7.0f);
                     Zhao->SetSpeed(MOVE_FLIGHT, 7.0f);
                     PhasingHandler::AddPhase(Zhao, 1429, true);
-                    Zhao->LoadPath(PathZhaoren::path_zhaoren_at_temple);
-                    Zhao->GetMotionMaster()->MovePath(PathZhaoren::path_zhaoren_at_temple, false);
+                    Zhao->LoadPath(Paths::path_zhaoren_at_temple);
+                    Zhao->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_temple, false);
                 }
 
                 return true;

@@ -181,6 +181,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_horde_druid_wrath = 117767;
         static constexpr uint32 spell_horde_druid_healing_touch = 117765;
         static constexpr uint32 spell_fighting_healer_rescued_aura = 117950;
+        static constexpr uint32 spell_shenzinsu_pain_shake = 117969;
 
         // Talking to Shenzinsu turtle spells - not working
         // Just for later reference
@@ -206,6 +207,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_eject_passengers = 50630;
         //static constexpr uint32 spell_rope_left = 108627;
         //static constexpr uint32 spell_rope_right = 108691;
+
+        // Quest Invis
+        static constexpr uint32 spell_invisibility_detection_quest_5 = 89521;
     }
 
     namespace Data
@@ -468,39 +472,37 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position ForlornHut = { 424.717f, 3635.59f, 92.7838f };
     }
 
-
-    namespace PathQ29423
+    namespace Paths
     {
+        // Jojo Quests
+        static constexpr uint32 path_jojo_q29662 = 5763800;
+
+        // 29423 The Passion of Shen - zin Su
         static constexpr uint32 aysa = 6112600;
         static constexpr uint32 ji = 6112700;
         static constexpr uint32 ji_away = 6112701;
         static constexpr uint32 aysa_away = 6112601;
-    }
 
-    namespace PathQ29662
-    {
-        static constexpr uint32 path_jojo = 5763800;
-    }
-
-    namespace PathQ29680
-    {
+        // 29680 The Source of Our Livelihood
         static constexpr uint32 path_shu_follower = 5521300;
         static constexpr uint8 path_node_shu_remove = 4;
-    }
 
-    namespace PathQ29774
-    {
+        // 29774 Not In the Face!
         static constexpr uint32 path_shu_farmstead_1 = 5555800;
         static constexpr uint32 path_shu_farmstead_2 = 5555801;
-    }
 
-    namespace PathQ29775
-    {
+        // 29775 The Spirit and Body of Shen-zin Su
         static constexpr uint32 path_shu_temple_stairs = 5555802;
-    }
 
-    namespace PathOxCart
-    {
+        // 29787 Worthy of Passing
+        static constexpr uint32 path_zhang_0 = 5615900;
+        static constexpr uint32 path_zhang_1 = 5615901;
+
+        // Zhao-ren
+        static constexpr uint32 path_zhaoren_at_chamber = 5578600;
+        static constexpr uint32 path_zhaoren_at_temple = 6455400;
+
+        // Ox and Cart
         static constexpr uint32 path_ox = 5720700;
         static constexpr uint32 path_ox_farmstead = 5949800;
         static constexpr uint32 path_cart = 5720800;
@@ -508,37 +510,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 path_node_remove_passenger = 27;
     }
 
-    namespace PathZhaoren
-    {
-        static constexpr uint32 path_zhaoren_at_temple = 6455400;
-    }
-
-    namespace PathZhaorenEvent
-    {
-        static constexpr uint32 path_zhaoren_at_chamber = 5578600;
-    }
-
-    namespace PathQ29787
-    {
-        static constexpr uint32 path_zhang_0 = 5615900;
-        static constexpr uint32 path_zhang_1 = 5615901;
-    }
-
-    namespace EventsQ29423
-    {
-        static constexpr int8 event_delivery_huo = 1;
-        static constexpr int8 event_second_huo_position = 2;
-    }
-
-    namespace EventsQ29787
-    {
-        static constexpr int8 event_shang_talk_0 = 1;
-        static constexpr int8 event_shang_path_0 = 2;
-        static constexpr int8 event_shang_talk_4 = 3;
-    }
 
     namespace Events
     {
+        // 29423 The Passion of Shen - zin Su
+        static constexpr int8 event_delivery_huo = 1;
+        static constexpr int8 event_second_huo_position = 2;
+
         // Singing Pools
         static constexpr int8 event_shu_follower_path_start = 1;
         static constexpr int8 event_shu_follower_check_player_quest = 2;
@@ -571,6 +549,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_shu_wakes_wugou = 5;
         static constexpr int8 event_shu_farmstead_check_player_vehicle = 6;
         static constexpr int8 event_try_remove_wugou_sleep = 7;
+
+        // 29787 Worthy of Passing
+        static constexpr int8 event_shang_talk_0 = 1;
+        static constexpr int8 event_shang_path_0 = 2;
+        static constexpr int8 event_shang_talk_4 = 3;
 
         // Rukruk
         static constexpr int8 event_rukruk_cast_aim = 1;
@@ -612,6 +595,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_healing_bunny_korga_combat = 3;
         static constexpr int8 event_healing_bunny_delora_combat = 4;
         static constexpr int8 event_healing_bunny_jojo_combat = 5;
+        static constexpr int8 event_shenzinsu_pain_shake = 6;
     }
 
     namespace Npcs
