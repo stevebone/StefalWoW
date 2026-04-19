@@ -3505,6 +3505,10 @@ namespace Scripts::Custom::TheWanderingIsle
                 _healersActive = 0;
                 events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 5s);
                 events.ScheduleEvent(Events::event_healing_bunny_ji_yell, 45s);
+                events.ScheduleEvent(Events::event_healing_bunny_korga_combat, 5s);
+                events.ScheduleEvent(Events::event_healing_bunny_jojo_combat, 5s);
+                events.ScheduleEvent(Events::event_healing_bunny_delora_combat, 5s);
+                events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s);
             }
 
             uint32 updateTimer = 2000; // update every 2 seconds
@@ -3544,11 +3548,99 @@ namespace Scripts::Custom::TheWanderingIsle
                     updateTimer -= diff;
 
                 events.Update(diff);
+                scheduler.Update(diff);
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
                     switch (eventId)
                     {
+                    case Events::event_shenzinsu_pain_shake:
+                    {
+                        Map::PlayerList const& playerList = me->GetMap()->GetPlayers();
+                        if (playerList.empty())
+                            return;
+
+                        for (Map::PlayerList::const_iterator itr = playerList.begin(); itr != playerList.end(); ++itr)
+                            if (Player* player = itr->GetSource())
+                                if (player->GetAreaId() == me->GetAreaId())
+                                    player->CastSpell(player, Spells::spell_shenzinsu_pain_shake, true);
+
+                        events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s, 60s);
+                        break;
+                    }
+
+                    case Events::event_healing_bunny_korga_combat:
+                    {
+                        Creature* korga = me->FindNearestCreature(Npcs::npc_korga_during_healing, 200.f, true);
+                        if (korga)
+                        {
+                            Creature* hordeCrewman = korga->FindNearestCreature(Npcs::npc_horde_crewman, 30.f, true);
+                            if (hordeCrewman)
+                            {
+                                hordeCrewman->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                                hordeCrewman->GetMotionMaster()->MoveFollow(korga, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                            }
+
+                            scheduler.Schedule(5s, [korga](TaskContext const&)
+                                {
+                                    Unit* target = korga->SelectNearestTarget(20.f);
+                                    if (target)
+                                        korga->EngageWithTarget(target);
+                                });
+
+                            if (roll_chance(10))
+                            {
+                                korga->AI()->Talk(0);
+                            }
+                        }
+
+                        events.ScheduleEvent(Events::event_healing_bunny_korga_combat, 35s, 45s);
+                        break;
+                    }
+
+                    case Events::event_healing_bunny_delora_combat:
+                    {
+                        Creature* delora = me->FindNearestCreature(Npcs::npc_delora_during_healing, 200.f, true);
+                        if (delora)
+                        {
+                            Creature* deloraCrewman = delora->FindNearestCreature(Npcs::npc_delora_crewman, 30.f, true);
+                            if (deloraCrewman)
+                                deloraCrewman->GetMotionMaster()->MoveFollow(delora, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+
+                            scheduler.Schedule(5s, [delora](TaskContext const&)
+                                {
+                                    Unit* target = delora->SelectNearestTarget(20.f);
+                                    if (target)
+                                        delora->EngageWithTarget(target);
+                                });
+
+                            if (roll_chance(10))
+                            {
+                                delora->AI()->Talk(0);
+                            }
+                        }
+
+                        events.ScheduleEvent(Events::event_healing_bunny_delora_combat, 35s, 45s);
+                        break;
+                    }
+
+                    case Events::event_healing_bunny_jojo_combat:
+                    {
+                        Creature* jojo = me->FindNearestCreature(Npcs::npc_jojo_during_healing, 200.f, true);
+                        if (jojo)
+                        {
+                            scheduler.Schedule(5s, [jojo](TaskContext const&)
+                                {
+                                    Unit* target = jojo->SelectNearestTarget(20.f);
+                                    if (target)
+                                        jojo->EngageWithTarget(target);
+                                });
+                        }
+
+                        events.ScheduleEvent(Events::event_healing_bunny_jojo_combat, 35s, 45s);
+                        break;
+                    }
+
                     case Events::event_healing_bunny_ji_yell:
                     {
                         Creature* ji = me->FindNearestCreature(Npcs::npc_ji_during_healing, 100.f);
@@ -3566,7 +3658,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (!spawnAdd1 || (spawnAdd1 && !spawnAdd1->IsAlive()))
                         {
                             Creature* newAdd1 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
-                                Positions::Ravager_Spawn_1, TEMPSUMMON_CORPSE_DESPAWN);
+                                Positions::Ravager_Spawn_1, TEMPSUMMON_DEAD_DESPAWN);
 
                             add1 = newAdd1->GetGUID();
                             newAdd1->SetReactState(REACT_AGGRESSIVE);
@@ -3576,7 +3668,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (!spawnAdd2 || (spawnAdd2 && !spawnAdd2->IsAlive()))
                         {
                             Creature* newAdd2 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
-                                Positions::Ravager_Spawn_2, TEMPSUMMON_CORPSE_DESPAWN);
+                                Positions::Ravager_Spawn_2, TEMPSUMMON_DEAD_DESPAWN);
 
                             add2 = newAdd2->GetGUID();
                             newAdd2->SetReactState(REACT_AGGRESSIVE);
@@ -3586,7 +3678,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (!spawnAdd3 || (spawnAdd3 && !spawnAdd3->IsAlive()))
                         {
                             Creature* newAdd3 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
-                                Positions::Ravager_Spawn_3, TEMPSUMMON_CORPSE_DESPAWN);
+                                Positions::Ravager_Spawn_3, TEMPSUMMON_DEAD_DESPAWN);
 
                             add3 = newAdd3->GetGUID();
                             newAdd3->SetReactState(REACT_AGGRESSIVE);
@@ -3602,6 +3694,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         private:
             EventMap events;
+            TaskScheduler scheduler;
             uint8 _healersActive = 0;
             ObjectGuid add1;
             ObjectGuid add2;
@@ -3675,7 +3768,9 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (!player)
                     return;
 
-                if (!player->IsActiveQuest(Quests::quest_the_healing_of_shenzinsu))
+                QuestStatus qStatus = player->GetQuestStatus(Quests::quest_the_healing_of_shenzinsu);
+
+                if (qStatus != QUEST_STATUS_INCOMPLETE)
                     return;
 
                 if (state != STATE_IDLE)
@@ -3738,7 +3833,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void JustExitedCombat() override
             {
                 // Resume healing
-                if(!me->HasNpcFlag(UNIT_NPC_FLAG_SPELLCLICK) || !me->HasAura(Spells::spell_fighting_healer_rescued_aura))
+                if(!me->HasNpcFlag(UNIT_NPC_FLAG_SPELLCLICK))
                     MoveToRandomWoundSpot();
             }
 

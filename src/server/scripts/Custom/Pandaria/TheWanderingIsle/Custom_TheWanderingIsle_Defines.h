@@ -609,6 +609,9 @@ namespace Scripts::Custom::TheWanderingIsle
         // Healing of Shenzinsu
         static constexpr int8 event_healing_bunny_spawn_adds = 1;
         static constexpr int8 event_healing_bunny_ji_yell = 2;
+        static constexpr int8 event_healing_bunny_korga_combat = 3;
+        static constexpr int8 event_healing_bunny_delora_combat = 4;
+        static constexpr int8 event_healing_bunny_jojo_combat = 5;
     }
 
     namespace Npcs
@@ -710,6 +713,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_spawned_deepscale_ravager = 60780;
         static constexpr uint32 npc_spawned_deepscale_fleshripper = 60858;
         static constexpr uint32 npc_ji_during_healing = 56418;
+        static constexpr uint32 npc_korga_during_healing = 60852;
+        static constexpr uint32 npc_horde_crewman = 60854;
+        static constexpr uint32 npc_delora_crewman = 57317;
+        static constexpr uint32 npc_delora_during_healing = 60851;
+        static constexpr uint32 npc_jojo_during_healing = 56419;
     }
 
     namespace Objects
