@@ -6,6 +6,7 @@
 -- Phase: 544 Crashed Ship Healing
 -- Phase: 545 Crashed Ship Healed
 -- Phase: 592/593/594/595/596/597/598 Cosmetic class weapon racks
+-- Phase: 630 Cosmetic - Cart Driver Freed
 -- Phase: 878 Cosmetic - Mandori Village Gate Spawns
 -- Phase: 879 Cosmetic - Pei-Wu Forest Gate Spawns
 -- Phase: 903 Cosmetic Forlorn Hut npcs
