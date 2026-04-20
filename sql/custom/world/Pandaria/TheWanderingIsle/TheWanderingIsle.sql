@@ -23,6 +23,8 @@
 -- Phase: 1429 Zhaoren flyby
 -- Phase: 1430 Zhaoren plateau
 -- Phase: 1510 Cosmetic Mallet Object/Quest
+-- Phase: 1518 "Cosmetic - Master Shang Xi, Air Village"
+-- Phase: 1519 "Cosmetic - Elder Shaopai, Air Village"
 -- Phase: 1526 Master Shang zhaoren battle completed
 -- Phase: 1527 Master Shang graveyard
 -- Phase: 1714 Cosmetic Jade Tiger Pillar

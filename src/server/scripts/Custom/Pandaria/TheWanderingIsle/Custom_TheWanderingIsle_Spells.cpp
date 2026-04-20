@@ -682,6 +682,23 @@ namespace Scripts::Custom::TheWanderingIsle
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_healing_shenzin_su::HandleEffectPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
         }
     };
+
+    // 108897 - Pandaren Faction Choice
+    class spell_pandaren_faction_choice : public SpellScript
+    {
+
+        void HandleScriptEffect(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+                if (caster->IsPlayer())
+                    caster->ToPlayer()->ShowNeutralPlayerFactionSelectUI();
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_pandaren_faction_choice::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -718,4 +735,5 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_summon_ji_wreck_explosion);
     RegisterSpellScript(spell_turtle_healed_phase_timer);
     RegisterSpellScript(spell_healing_shenzin_su);
+    RegisterSpellScript(spell_pandaren_faction_choice);
 }

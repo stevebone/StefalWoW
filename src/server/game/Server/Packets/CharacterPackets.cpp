@@ -915,7 +915,6 @@ void SetupWarbandGroups::Read()
         _worldPacket >> SizedString::Data(group.Name);
     }
 }
-}
 
 WorldPacket const* NeutralPlayerFactionSelectResult::Write()
 {
@@ -925,3 +924,6 @@ WorldPacket const* NeutralPlayerFactionSelectResult::Write()
 
     return &_worldPacket;
 }
+}
+
+

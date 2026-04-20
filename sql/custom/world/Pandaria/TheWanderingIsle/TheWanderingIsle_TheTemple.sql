@@ -1,4 +1,3 @@
-
 -- NPC: 54786 Shang 1/2 temple
 -- NPC: 55944 Delora Lionheart
 -- NPC: 56013 Spirit of Master Shang
@@ -71,3 +70,6 @@ UPDATE `creature` SET `PhaseId` = 1028, `MovementType` = 2 WHERE `guid` IN (4514
 UPDATE `creature` SET `PhaseId` = 1029 WHERE `guid` IN (451411); -- Wugou
 UPDATE `creature` SET `PhaseId` = 1030 WHERE `guid` IN (451828); -- Dafeng
 
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (108897);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
+(108897, 'spell_pandaren_faction_choice');
