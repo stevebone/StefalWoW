@@ -1259,7 +1259,7 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
         _player->GetSession()->SendPacket(result.Write());
         return;
     }
-    
+
     if (selectFaction.FactionChoice > JOIN_ALLIANCE)
     {
         TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) sent invalid faction choice: {}",
@@ -1278,7 +1278,7 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
     {
         TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) already has faction (race: {}), rejecting faction selection",
             _player->GetName(), _player->GetGUID().ToString(), _player->GetRace());
-        
+
         // Send error result to client
         WorldPackets::Character::NeutralPlayerFactionSelectResult result;
         result.Success = false;
