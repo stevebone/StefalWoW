@@ -1540,7 +1540,7 @@ struct CartData
     uint32 Entry = 0;
     uint32 PathId = 0;
     bool IsCart = false;
-    Optional<int8> EjectNodeId;
+    Optional<uint8> EjectNodeId;
     Optional<uint32> CreditNPC;
     Optional<uint32> QuestId;
     Optional<uint32> YakNPC;
