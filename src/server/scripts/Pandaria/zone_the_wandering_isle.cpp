@@ -1680,7 +1680,7 @@ struct npc_yak_cart : public ScriptedAI
 private:
     EventMap _events;
     ObjectGuid _passengerGuid;
-    CartData const& _data;
+    CartData _data;
 };
 }
 
