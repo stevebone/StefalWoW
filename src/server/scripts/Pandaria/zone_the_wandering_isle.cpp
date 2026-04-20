@@ -1540,46 +1540,58 @@ struct CartData
     uint32 Entry = 0;
     uint32 PathId = 0;
     bool IsCart = false;
-    std::optional<uint8> EjectNodeId;
-    std::optional<uint32> CreditNPC;
-    std::optional<uint32> QuestId;
-    std::optional<uint32> YakNPC;
+    Optional<int8> EjectNodeId;
+    Optional<uint32> CreditNPC;
+    Optional<uint32> QuestId;
+    Optional<uint32> YakNPC;
 };
 
 static constexpr CartData CartDataTable[] =
 {
     // Yaks
-    { Creatures::YakVehicleSingingPools, Paths::YakSingingPools, false },
-    { Creatures::YakVehicleFarmstead,    Paths::YakFarmstead,    false },
-    { Creatures::YakVehicleForest,       Paths::YakForest,       false },
+    {
+        .Entry = Creatures::YakVehicleSingingPools,
+        .PathId = Paths::YakSingingPools,
+        .IsCart = false
+    },
+    {
+        .Entry = Creatures::YakVehicleFarmstead,
+        .PathId = Paths::YakFarmstead,
+        .IsCart = false
+    },
+    {
+        .Entry = Creatures::YakVehicleForest,
+        .PathId = Paths::YakForest,
+        .IsCart = false
+    },
 
     // Carts
     {
-        Creatures::CartVehicleSingingPools,
-        Paths::CartSingingPools,
-        true,
-        Paths::NodeCartRemovePassenger,
-        Creatures::CartSingingPools,
-        Quests::TheSourceOfLivelihood,
-        Creatures::YakVehicleSingingPools
+        .Entry = Creatures::CartVehicleSingingPools,
+        .PathId = Paths::CartSingingPools,
+        .IsCart = true,
+        .EjectNodeId = Paths::NodeCartRemovePassenger,
+        .CreditNPC = Creatures::CartSingingPools,
+        .QuestId = Quests::TheSourceOfLivelihood,
+        .YakNPC = Creatures::YakVehicleSingingPools
     },
     {
-        Creatures::CartVehicleFarmstead,
-        Paths::CartFarmstead,
-        true,
-        Paths::NodeCartRemovePassenger,
-        Creatures::CartFarmstead,
-        Quests::TheSpiritAndBodyOfShenzinsu,
-        Creatures::YakVehicleFarmstead
+        .Entry = Creatures::CartVehicleFarmstead,
+        .PathId = Paths::CartFarmstead,
+        .IsCart = true,
+        .EjectNodeId = Paths::NodeCartRemovePassenger,
+        .CreditNPC = Creatures::CartFarmstead,
+        .QuestId = Quests::TheSpiritAndBodyOfShenzinsu,
+        .YakNPC = Creatures::YakVehicleFarmstead
     },
     {
-        Creatures::CartVehicleForest,
-        Paths::CartForest,
-        true,
-        Paths::NodeForestCartRemovePassenger,
-        Creatures::CartForest,
-        Quests::NewAllies,
-        Creatures::YakVehicleForest
+        .Entry = Creatures::CartVehicleForest,
+        .PathId = Paths::CartForest,
+        .IsCart = true,
+        .EjectNodeId = Paths::NodeForestCartRemovePassenger,
+        .CreditNPC = Creatures::CartForest,
+        .QuestId = Quests::NewAllies,
+        .YakNPC = Creatures::YakVehicleForest
     }
 };
 
@@ -1589,8 +1601,7 @@ static CartData const& GetCartData(uint32 entry)
         if (data.Entry == entry)
             return data;
 
-    static constexpr CartData Empty{};
-    return Empty;
+    return {};
 }
 
 struct npc_yak_cart : public ScriptedAI
@@ -1648,23 +1659,20 @@ struct npc_yak_cart : public ScriptedAI
     {
         _events.Update(diff);
 
-        if (uint32 eventId = _events.ExecuteEvent())
+        while (uint32 eventId = _events.ExecuteEvent())
         {
-            if (eventId == Events::YakCartRopes)
+            switch (eventId)
             {
+            case Events::YakCartRopes:
                 if (_data.YakNPC)
-                {
                     if (Unit* yak = me->FindNearestCreatureWithOptions(10.f,
                         { .CreatureId = *_data.YakNPC, .IgnorePhases = true }))
-                    {
                         me->CastSpell(yak, Spells::OxCartRopeLeft);
-                    }
-                }
-            }
-            else if (eventId == Events::YakCartPathStart)
-            {
+                break;
+            case Events::YakCartPathStart:
                 me->LoadPath(_data.PathId);
                 me->GetMotionMaster()->MovePath(_data.PathId, false);
+                break;
             }
         }
     }
