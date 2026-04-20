@@ -2101,7 +2101,6 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         bool IsInAlliance() const { return m_team == ALLIANCE; }
         bool IsInHorde() const { return m_team == HORDE; }
         void InitAdvancedFly();
-
         void ShowNeutralPlayerFactionSelectUI();
         // StefalWoW
         void ApplyTraitConfig(int32 configId, bool apply);

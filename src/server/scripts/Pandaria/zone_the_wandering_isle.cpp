@@ -1472,26 +1472,26 @@ namespace Scripts::Pandaria::TheWanderingIsle
         }
     };
 
-    // 108936 - Flying Shadow Kick
-    class spell_flying_shadow_kick : public SpellScript
+// 108936 - Flying Shadow Kick
+class spell_flying_shadow_kick : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::FlyingShadowKickJump });
-        }
+        return ValidateSpellInfo({ Spells::FlyingShadowKickJump });
+    }
 
-        void HandleHitTarget(SpellEffIndex /*effIndex*/)
-        {
-            GetCaster()->CastSpell(GetHitUnit(), Spells::FlyingShadowKickJump, CastSpellExtraArgsInit{
-                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-                });
-        }
+    void HandleHitTarget(SpellEffIndex /*effIndex*/)
+    {
+        GetCaster()->CastSpell(GetHitUnit(), Spells::FlyingShadowKickJump, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+        });
+    }
 
-        void Register() override
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_flying_shadow_kick::HandleHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
-        }
-    };
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_flying_shadow_kick::HandleHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
 }
 
 void AddSC_zone_the_wandering_isle()

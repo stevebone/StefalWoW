@@ -47,6 +47,7 @@
 #include "ObjectMgr.h"
 #include "OutdoorPvP.h"
 #include "Player.h"
+#include "ReputationMgr.h"
 #include "RestMgr.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
@@ -1230,31 +1231,112 @@ void WorldSession::HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags c
 
 void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction)
 {
+    if (!_player)
+        return;
+
     enum FactionSelection
     {
         JOIN_HORDE = 0,
         JOIN_ALLIANCE = 1
     };
 
+    TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) attempting to select faction: {}",
+        _player ? _player->GetName() : "<null>",
+        _player ? _player->GetGUID().ToString() : "<null>",
+        selectFaction.FactionChoice);
+
     if (_player->GetRace() != RACE_PANDAREN_NEUTRAL)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) is not neutral pandaren (race: {}), rejecting faction selection",
+            _player ? _player->GetName() : "<null>",
+            _player ? _player->GetGUID().ToString() : "<null>",
+            _player ? _player->GetRace() : 0);
+
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player ? _player->GetRace() : 0;
+        _player->GetSession()->SendPacket(result.Write());
         return;
+    }
+
+    if (selectFaction.FactionChoice > JOIN_ALLIANCE)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) sent invalid faction choice: {}",
+            _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
+
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player->GetRace();
+        _player->GetSession()->SendPacket(result.Write());
+        return;
+    }
+
+    // Additional validation: check if player already has a faction (shouldn't happen but safety check)
+    if (_player->GetRace() == RACE_PANDAREN_ALLIANCE || _player->GetRace() == RACE_PANDAREN_HORDE)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) already has faction (race: {}), rejecting faction selection",
+            _player->GetName(), _player->GetGUID().ToString(), _player->GetRace());
+
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player->GetRace();
+        _player->GetSession()->SendPacket(result.Write());
+        return;
+    }
 
     if (selectFaction.FactionChoice == JOIN_ALLIANCE)
     {
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) joining Alliance",
+            _player->GetName(), _player->GetGUID().ToString());
+
         _player->SetRace(RACE_PANDAREN_ALLIANCE);
         _player->SetFactionForRace(RACE_PANDAREN_ALLIANCE);
         _player->SaveToDB();
         _player->LearnSpell(668, false);            // Language Common
         _player->LearnSpell(108130, false);         // Language Pandaren Alliance
         _player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
+
+        // Need to send reputation update to client. They are set by the faction change but not visible until relog.
+
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Alliance",
+            _player->GetName(), _player->GetGUID().ToString());
+
+        // Send success result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = true;
+        result.NewRaceID = RACE_PANDAREN_ALLIANCE;
+        _player->GetSession()->SendPacket(result.Write());
     }
     else if (selectFaction.FactionChoice == JOIN_HORDE)
     {
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) joining Horde",
+            _player->GetName(), _player->GetGUID().ToString());
+
         _player->SetRace(RACE_PANDAREN_HORDE);
         _player->SetFactionForRace(RACE_PANDAREN_HORDE);
         _player->SaveToDB();
         _player->LearnSpell(669, false);            // Language Orcish
         _player->LearnSpell(108131, false);         // Language Pandaren Horde
         _player->CastSpell(_player, 113245, true);  // Faction Choice Trigger Spell: Horde
+
+        // Need to send reputation update to client. They are set by the faction change but not visible until relog.
+
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Horde",
+            _player->GetName(), _player->GetGUID().ToString());
+
+        // Send success result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = true;
+        result.NewRaceID = RACE_PANDAREN_HORDE;
+        _player->GetSession()->SendPacket(result.Write());
+    }
+    else
+    {
+        // This should never happen due to validation above, but safety check
+        TC_LOG_ERROR("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) reached unexpected faction choice: {}",
+            _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
     }
 }
