@@ -225,8 +225,7 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // 7258
-    // 7822
+    // 7258 // 7822 // 7265
     class at_cart_locations : public AreaTriggerScript
     {
     public:
@@ -244,10 +243,11 @@ namespace Scripts::Custom::TheWanderingIsle
 
             switch (areaTrigger->ID)
             {
-            case AreaTriggers::areaTrigger_singing_pools_cart:
+            case AreaTriggers::singing_pools_cart:
                 cartTender->AI()->Talk(Talks::Cart_Tender_Talk_0);
                 return true;
-            case AreaTriggers::areaTrigger_farmstead_cart:
+            case AreaTriggers::forbidden_forest_cart:
+            case AreaTriggers::farmstead_cart:
                 cartTender->AI()->Talk(Talks::Cart_Tender_Talk_1);
                 return true;
             default: return false;
