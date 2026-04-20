@@ -1535,54 +1535,73 @@ class spell_flying_shadow_kick : public SpellScript
     }
 };
 
+struct CartData
+{
+    uint32 Entry = 0;
+    uint32 PathId = 0;
+    bool IsCart = false;
+    std::optional<uint8> EjectNodeId;
+    std::optional<uint32> CreditNPC;
+    std::optional<uint32> QuestId;
+    std::optional<uint32> YakNPC;
+};
+
+static constexpr CartData CartDataTable[] =
+{
+    // Yaks
+    { Creatures::YakVehicleSingingPools, Paths::YakSingingPools, false },
+    { Creatures::YakVehicleFarmstead,    Paths::YakFarmstead,    false },
+    { Creatures::YakVehicleForest,       Paths::YakForest,       false },
+
+    // Carts
+    {
+        Creatures::CartVehicleSingingPools,
+        Paths::CartSingingPools,
+        true,
+        Paths::NodeCartRemovePassenger,
+        Creatures::CartSingingPools,
+        Quests::TheSourceOfLivelihood,
+        Creatures::YakVehicleSingingPools
+    },
+    {
+        Creatures::CartVehicleFarmstead,
+        Paths::CartFarmstead,
+        true,
+        Paths::NodeCartRemovePassenger,
+        Creatures::CartFarmstead,
+        Quests::TheSpiritAndBodyOfShenzinsu,
+        Creatures::YakVehicleFarmstead
+    },
+    {
+        Creatures::CartVehicleForest,
+        Paths::CartForest,
+        true,
+        Paths::NodeForestCartRemovePassenger,
+        Creatures::CartForest,
+        Quests::NewAllies,
+        Creatures::YakVehicleForest
+    }
+};
+
+static CartData const& GetCartData(uint32 entry)
+{
+    for (CartData const& data : CartDataTable)
+        if (data.Entry == entry)
+            return data;
+
+    static constexpr CartData Empty{};
+    return Empty;
+}
+
 struct npc_yak_cart : public ScriptedAI
 {
-    npc_yak_cart(Creature* creature) : ScriptedAI(creature), _passengerGuid()
+    npc_yak_cart(Creature* creature) : ScriptedAI(creature), _passengerGuid(), _data(GetCartData(creature->GetEntry()))
     {
         Initialize();
     }
 
     void Initialize()
     {
-        switch (me->GetEntry())
-        {
-        case Creatures::YakVehicleSingingPools:
-            _pathId = Paths::YakSingingPools;
-            break;
-        case Creatures::YakVehicleFarmstead:
-            _pathId = Paths::YakFarmstead;
-            break;
-        case Creatures::YakVehicleForest:
-            _pathId = Paths::YakForest;
-            break;
-        case Creatures::CartVehicleSingingPools:
-            _isCart = true;
-            _pathId = Paths::CartSingingPools;
-            _ejectNodeId = Paths::NodeCartRemovePassenger;
-            _creditNPC = Creatures::CartSingingPools;
-            _questId = Quests::TheSourceOfLivelihood;
-            _yakNPC = Creatures::YakVehicleSingingPools;
-            break;
-        case Creatures::CartVehicleFarmstead:
-            _isCart = true;
-            _pathId = Paths::CartFarmstead;
-            _ejectNodeId = Paths::NodeCartRemovePassenger;
-            _creditNPC = Creatures::CartFarmstead;
-            _questId = Quests::TheSpiritAndBodyOfShenzinsu;
-            _yakNPC = Creatures::YakVehicleFarmstead;
-            break;
-        case Creatures::CartVehicleForest:
-            _isCart = true;
-            _pathId = Paths::CartForest;
-            _ejectNodeId = Paths::NodeForestCartRemovePassenger;
-            _creditNPC = Creatures::CartForest;
-            _questId = Quests::NewAllies;
-            _yakNPC = Creatures::YakVehicleForest;
-            break;
-        default:
-            break;
-        }
-
         me->SetPrivateObjectOwner(ObjectGuid::Empty); // Needed otherwise FindCreature does not work
         me->SetReactState(REACT_PASSIVE);
     }
@@ -1592,33 +1611,31 @@ struct npc_yak_cart : public ScriptedAI
         _events.Reset();
         Initialize();
 
-        if (!_isCart)
-            _events.ScheduleEvent(Events::YakCartPathStart, 1400ms); // Delay
+        if (!_data.IsCart)
+            _events.ScheduleEvent(Events::YakCartPathStart, 1400ms); // Only yaks start moving on reset
     }
 
     void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
     {
-        Player* player = passenger->ToPlayer();
-        if (apply && player)
-        {
-            if (_isCart)
-            {
-                _passengerGuid = player->GetGUID(); // Store for later use (e.g., for eject)
-                me->CastSpell(player, Spells::ForceVehicleRide);
-                _events.ScheduleEvent(Events::YakCartPathStart, 1800ms); // Delay
+        Player* player = passenger ? passenger->ToPlayer() : nullptr;
 
-                if (player->hasQuest(_questId))
-                    player->KilledMonsterCredit(_creditNPC, _passengerGuid);
+        if (!apply || !player || !_data.IsCart)
+            return;
 
-                // Rope spells are currently broken and need fixing :(
-                _events.ScheduleEvent(Events::YakCartRopes, 1s);
-            }
-        }
+        _passengerGuid = player->GetGUID();
+
+        me->CastSpell(player, Spells::ForceVehicleRide);
+
+        _events.ScheduleEvent(Events::YakCartPathStart, 1800ms);
+        _events.ScheduleEvent(Events::YakCartRopes, 1s);
+
+        if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)
+            player->KilledMonsterCredit(*_data.CreditNPC, _passengerGuid);
     }
 
     void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
     {
-        if (_isCart && nodeId == _ejectNodeId)
+        if (_data.IsCart && _data.EjectNodeId && nodeId == *_data.EjectNodeId)
             me->CastSpell(me, Spells::EjectPassengers);
     }
 
@@ -1631,41 +1648,31 @@ struct npc_yak_cart : public ScriptedAI
     {
         _events.Update(diff);
 
-        while (uint32 eventId = _events.ExecuteEvent())
+        if (uint32 eventId = _events.ExecuteEvent())
         {
-            switch (eventId)
+            if (eventId == Events::YakCartRopes)
             {
-            case Events::YakCartRopes:
-            {
-                Unit* yak = me->FindNearestCreatureWithOptions(10.f, { .CreatureId = _yakNPC, .IgnorePhases = true });
-                if (yak)
+                if (_data.YakNPC)
                 {
-                    // Live uses only 1 rope
-                    me->CastSpell(yak, Spells::OxCartRopeLeft);
+                    if (Unit* yak = me->FindNearestCreatureWithOptions(10.f,
+                        { .CreatureId = *_data.YakNPC, .IgnorePhases = true }))
+                    {
+                        me->CastSpell(yak, Spells::OxCartRopeLeft);
+                    }
                 }
-                break;
             }
-
-            case Events::YakCartPathStart:
-                me->LoadPath(_pathId);
-                me->GetMotionMaster()->MovePath(_pathId, false);
-                break;
-            default:
-                break;
+            else if (eventId == Events::YakCartPathStart)
+            {
+                me->LoadPath(_data.PathId);
+                me->GetMotionMaster()->MovePath(_data.PathId, false);
             }
-
         }
     }
 
 private:
     EventMap _events;
     ObjectGuid _passengerGuid;
-    uint32 _creditNPC = 0;
-    uint32 _yakNPC = 0;
-    uint32 _questId = 0;
-    uint32 _pathId = 0;
-    uint8 _ejectNodeId = 0;
-    bool _isCart = false;
+    CartData const& _data;
 };
 }
 
