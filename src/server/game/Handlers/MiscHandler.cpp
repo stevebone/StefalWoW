@@ -1250,6 +1250,22 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
         return;
     }
 
+    // Validate faction choice
+    if (selectFaction.FactionChoice > JOIN_HORDE)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) sent invalid faction choice: {}", 
+            _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
+        return;
+    }
+
+    // Additional validation: check if player already has a faction (shouldn't happen but safety check)
+    if (_player->GetRace() == RACE_PANDAREN_ALLIANCE || _player->GetRace() == RACE_PANDAREN_HORDE)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) already has faction (race: {}), rejecting faction selection", 
+            _player->GetName(), _player->GetGUID().ToString(), _player->GetRace());
+        return;
+    }
+
     if (selectFaction.FactionChoice == JOIN_ALLIANCE)
     {
         TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) joining Alliance", 
@@ -1279,5 +1295,11 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
         
         TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Horde", 
             _player->GetName(), _player->GetGUID().ToString());
+    }
+    else
+    {
+        // This should never happen due to validation above, but safety check
+        TC_LOG_ERROR("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) reached unexpected faction choice: {}", 
+            _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
     }
 }
