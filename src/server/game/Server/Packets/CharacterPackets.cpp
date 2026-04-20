@@ -899,5 +899,3 @@ WorldPacket const* NeutralPlayerFactionSelectResult::Write()
     return &_worldPacket;
 }
 }
-
-

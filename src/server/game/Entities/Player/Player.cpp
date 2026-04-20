@@ -31885,3 +31885,9 @@ bool Player::CanExecutePendingSpellCastRequest()
 
     return true;
 }
+
+void Player::ShowNeutralPlayerFactionSelectUI()
+{
+    WorldPackets::Misc::FactionSelectUI packet;
+    GetSession()->SendPacket(packet.Write());
+}

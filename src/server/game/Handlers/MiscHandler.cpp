@@ -1227,3 +1227,34 @@ void WorldSession::HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags c
 {
     _player->SetCurrencyFlagsFromClient(setCurrenctFlags.CurrencyID, setCurrenctFlags.Flags);
 }
+
+void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction)
+{
+    enum FactionSelection
+    {
+        JOIN_HORDE = 0,
+        JOIN_ALLIANCE = 1
+    };
+
+    if (_player->GetRace() != RACE_PANDAREN_NEUTRAL)
+        return;
+
+    if (selectFaction.FactionChoice == JOIN_ALLIANCE)
+    {
+        _player->SetRace(RACE_PANDAREN_ALLIANCE);
+        _player->SetFactionForRace(RACE_PANDAREN_ALLIANCE);
+        _player->SaveToDB();
+        _player->LearnSpell(668, false);            // Language Common
+        _player->LearnSpell(108130, false);         // Language Pandaren Alliance
+        _player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
+    }
+    else if (selectFaction.FactionChoice == JOIN_HORDE)
+    {
+        _player->SetRace(RACE_PANDAREN_HORDE);
+        _player->SetFactionForRace(RACE_PANDAREN_HORDE);
+        _player->SaveToDB();
+        _player->LearnSpell(669, false);            // Language Orcish
+        _player->LearnSpell(108131, false);         // Language Pandaren Horde
+        _player->CastSpell(_player, 113245, true);  // Faction Choice Trigger Spell: Horde
+    }
+}
