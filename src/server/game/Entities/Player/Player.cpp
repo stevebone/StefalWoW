@@ -32236,3 +32236,9 @@ void Player::InitAdvancedFly()
         { SMSG_MOVE_SET_ADV_FLYING_LAUNCH_SPEED_COEFFICIENT,    flightCapabilityEntry->LaunchSpeedCoefficient,      {}                                                  },
     };
 }
+
+void Player::ShowNeutralPlayerFactionSelectUI()
+{
+    WorldPackets::Misc::FactionSelectUI packet;
+    GetSession()->SendPacket(packet.Write());
+}

@@ -561,6 +561,7 @@ namespace WorldPackets
         class QueryCountdownTimer;
         class SetCurrencyFlags;
         class PerksProgramRequestPendingRewards;
+        class FactionSelect;
     }
 
     namespace Movement
@@ -1880,6 +1881,7 @@ class TC_GAME_API WorldSession
         void HandleKeyboundOverride(WorldPackets::Spells::KeyboundOverride& keyboundOverride);
         void HandleQueryCountdownTimer(WorldPackets::Misc::QueryCountdownTimer& queryCountdownTimer);
         void HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags const& setCurrenctFlags);
+        void HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction);
 
         // Adventure Journal
         void HandleAdventureJournalOpenQuest(WorldPackets::AdventureJournal::AdventureJournalOpenQuest& openQuest);
