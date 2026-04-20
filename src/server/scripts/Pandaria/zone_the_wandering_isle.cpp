@@ -1595,7 +1595,7 @@ static constexpr CartData CartDataTable[] =
     }
 };
 
-static CartData const& GetCartData(uint32 entry)
+static CartData GetCartData(uint32 entry)
 {
     for (CartData const& data : CartDataTable)
         if (data.Entry == entry)
