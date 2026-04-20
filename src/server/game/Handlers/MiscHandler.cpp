@@ -47,6 +47,7 @@
 #include "ObjectMgr.h"
 #include "OutdoorPvP.h"
 #include "Player.h"
+#include "ReputationMgr.h"
 #include "RestMgr.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
@@ -1230,6 +1231,9 @@ void WorldSession::HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags c
 
 void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction)
 {
+    if (!_player)
+        return;
+
     enum FactionSelection
     {
         JOIN_HORDE = 0,
@@ -1247,14 +1251,25 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
             _player ? _player->GetName() : "<null>", 
             _player ? _player->GetGUID().ToString() : "<null>", 
             _player ? _player->GetRace() : 0);
+        
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player ? _player->GetRace() : 0;
+        _player->GetSession()->SendPacket(result.Write());
         return;
     }
-
-    // Validate faction choice
-    if (selectFaction.FactionChoice > JOIN_HORDE)
+    
+    if (selectFaction.FactionChoice > JOIN_ALLIANCE)
     {
         TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) sent invalid faction choice: {}", 
             _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
+        
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player->GetRace();
+        _player->GetSession()->SendPacket(result.Write());
         return;
     }
 
@@ -1263,6 +1278,12 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
     {
         TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) already has faction (race: {}), rejecting faction selection", 
             _player->GetName(), _player->GetGUID().ToString(), _player->GetRace());
+        
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player->GetRace();
+        _player->GetSession()->SendPacket(result.Write());
         return;
     }
 
@@ -1277,9 +1298,17 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
         _player->LearnSpell(668, false);            // Language Common
         _player->LearnSpell(108130, false);         // Language Pandaren Alliance
         _player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
+
+        // Need to send reputation update to client. They are set by the faction change but not visible until relog.
         
         TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Alliance", 
             _player->GetName(), _player->GetGUID().ToString());
+        
+        // Send success result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = true;
+        result.NewRaceID = RACE_PANDAREN_ALLIANCE;
+        _player->GetSession()->SendPacket(result.Write());
     }
     else if (selectFaction.FactionChoice == JOIN_HORDE)
     {
@@ -1293,8 +1322,16 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
         _player->LearnSpell(108131, false);         // Language Pandaren Horde
         _player->CastSpell(_player, 113245, true);  // Faction Choice Trigger Spell: Horde
         
+        // Need to send reputation update to client. They are set by the faction change but not visible until relog.
+        
         TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Horde", 
             _player->GetName(), _player->GetGUID().ToString());
+        
+        // Send success result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = true;
+        result.NewRaceID = RACE_PANDAREN_HORDE;
+        _player->GetSession()->SendPacket(result.Write());
     }
     else
     {
