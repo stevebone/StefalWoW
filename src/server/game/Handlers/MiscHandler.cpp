@@ -1236,25 +1236,48 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
         JOIN_ALLIANCE = 1
     };
 
+    TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) attempting to select faction: {}", 
+        _player ? _player->GetName() : "<null>", 
+        _player ? _player->GetGUID().ToString() : "<null>", 
+        selectFaction.FactionChoice);
+
     if (_player->GetRace() != RACE_PANDAREN_NEUTRAL)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) is not neutral pandaren (race: {}), rejecting faction selection", 
+            _player ? _player->GetName() : "<null>", 
+            _player ? _player->GetGUID().ToString() : "<null>", 
+            _player ? _player->GetRace() : 0);
         return;
+    }
 
     if (selectFaction.FactionChoice == JOIN_ALLIANCE)
     {
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) joining Alliance", 
+            _player->GetName(), _player->GetGUID().ToString());
+        
         _player->SetRace(RACE_PANDAREN_ALLIANCE);
         _player->SetFactionForRace(RACE_PANDAREN_ALLIANCE);
         _player->SaveToDB();
         _player->LearnSpell(668, false);            // Language Common
         _player->LearnSpell(108130, false);         // Language Pandaren Alliance
         _player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
+        
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Alliance", 
+            _player->GetName(), _player->GetGUID().ToString());
     }
     else if (selectFaction.FactionChoice == JOIN_HORDE)
     {
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) joining Horde", 
+            _player->GetName(), _player->GetGUID().ToString());
+        
         _player->SetRace(RACE_PANDAREN_HORDE);
         _player->SetFactionForRace(RACE_PANDAREN_HORDE);
         _player->SaveToDB();
         _player->LearnSpell(669, false);            // Language Orcish
         _player->LearnSpell(108131, false);         // Language Pandaren Horde
         _player->CastSpell(_player, 113245, true);  // Faction Choice Trigger Spell: Horde
+        
+        TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined Horde", 
+            _player->GetName(), _player->GetGUID().ToString());
     }
 }
