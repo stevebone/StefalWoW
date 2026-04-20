@@ -889,4 +889,15 @@ WorldPacket const* PlayerSavePersonalEmblem::Write()
 
     return &_worldPacket;
 }
+
+WorldPacket const* NeutralPlayerFactionSelectResult::Write()
+{
+    _worldPacket << NewRaceID;
+    _worldPacket >> Bits<1>(Success);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
 }
+}
+
+
