@@ -1873,7 +1873,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
 
         static bool IsValidGender(uint8 Gender) { return Gender <= GENDER_FEMALE; }
         static bool IsValidClass(uint8 Class) { return ((1 << (Class - 1)) & CLASSMASK_ALL_PLAYABLE) != 0; }
-        static bool IsValidRace(uint8 Race) { return Trinity::RaceMask<uint64>{ RACEMASK_ALL_PLAYABLE }.HasRace(Race); }
+        static bool IsValidRace(uint8 Race) { return RACEMASK_ALL_PLAYABLE.HasRace(Race); }
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
