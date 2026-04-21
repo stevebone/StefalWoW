@@ -47,9 +47,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 SHU_JUMP_POSITION_3 = 3;
         static constexpr uint8 SHU_DATA_JUMP_POSITION = 1;
 
-        // Shu at farmstead
-        static constexpr uint32 shu_farmstead_gossip_menu = 13140;
-
         // Zhaoren Event
         static constexpr uint8 ZHAO_PHASE_FLYING = 1;
         static constexpr uint8 ZHAO_PHASE_GROUNDED = 2;
@@ -121,9 +118,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_summon_spirit_of_fire = 128700;
         static constexpr uint32 spell_despawn_spirit_of_fire = 109178;
         static constexpr uint32 spell_summon_spirit_of_fire_on_relog = 102632;
+        static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
         static constexpr uint32 spell_start_talk_event = 116220;
         static constexpr uint32 spell_fire_form = 109135;
-        static constexpr uint32 spell_forcecast_fire_turn_in_statue_brazier_change = 106665;
 
         // Dai-Lo Farmstead
         static constexpr uint32 spell_shu_splash = 107030;
@@ -190,6 +187,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_turtle_healed_phase_timer = 118233;
         static constexpr uint32 spell_healing_shenzinsu = 117783;
         static constexpr uint32 spell_healing_shenzinsu_credit = 108898;
+        static constexpr uint32 spell_pandaren_faction_choice = 108897;
         static constexpr uint32 spell_druid_wound_heal = 117932;
         static constexpr uint32 spell_priest_wound_heal = 117784;
         static constexpr uint32 spell_alliance_priest_smite = 117935;
@@ -198,6 +196,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_horde_druid_healing_touch = 117765;
         static constexpr uint32 spell_fighting_healer_rescued_aura = 117950;
         static constexpr uint32 spell_shenzinsu_pain_shake = 117969;
+
+        // Temple faction choice
+        static constexpr uint32 spell_balloon_exit_movie = 132212;
 
         // Talking to Shenzinsu turtle spells - not working
         // Just for later reference
@@ -725,6 +726,11 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_delora_crewman = 57317;
         static constexpr uint32 npc_delora_during_healing = 60851;
         static constexpr uint32 npc_jojo_during_healing = 56419;
+        static constexpr uint32 npc_korga_strongmane_q29800 = 60888;
+        static constexpr uint32 npc_delora_lionheart_q29800 = 60889;
+        static constexpr uint32 npc_spirit_of_master_shang_xi_q31450 = 56013;
+        static constexpr uint32 npc_aysa_cloudsinger_q31450 = 57721;
+        static constexpr uint32 npc_ji_firepaw_q31450 = 57720;
     }
 
     namespace Objects
@@ -758,18 +764,26 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 quest_passing_wisdom = 29790;
         static constexpr uint32 quest_suffering_of_shenzinsu = 29791;
         static constexpr uint32 quest_bidden_to_greatness = 29792;
+        static constexpr uint32 quest_new_allies = 29800;
+        static constexpr uint32 quest_a_new_fate = 31450;
         static constexpr uint32 quest_wrecking_the_wreck = 30589;
         static constexpr uint32 quest_none_left_behind = 29794;
         static constexpr uint32 quest_an_ancient_evil = 29798;
         static constexpr uint32 quest_risking_it_all = 30767;
         static constexpr uint32 quest_the_healing_of_shenzinsu = 29799;
-        static constexpr uint32 quest_new_allies = 29800;
     }
 
     namespace AreaTriggers
     {
-        static constexpr uint32 areaTrigger_singing_pools_cart = 7258;
-        static constexpr uint32 areaTrigger_farmstead_cart = 7822;
+        static constexpr uint32 singing_pools_cart = 7258;
+        static constexpr uint32 farmstead_cart = 7822;
+        static constexpr uint32 forbidden_forest_cart = 7265;
+    }
+
+    namespace Gossip
+    {
+        static constexpr uint32 shu_farmstead_gossip_menu = 13140;
+        static constexpr uint32 gossip_pandaren_faction_choice = 13726;
     }
 
     namespace MonkeyWisdomTexts

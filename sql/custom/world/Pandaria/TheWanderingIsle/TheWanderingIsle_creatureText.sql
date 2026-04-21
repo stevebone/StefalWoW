@@ -302,4 +302,30 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('60851', '0', '0', 'We\'ll cover this front. You keep my priests safe.', '12', '0', '100', '396', '0', '27503', '0', '59720', '0', 'Delora Lionheart to Player'),
 ('60852', '0', '0', 'We stand by your side, friend.  This battle is not yours alone.', '12', '0', '100', '6', '0', '28119', '0', '59719', '0', 'Korga Strongmane to Player');
 
+-- ============================================
+-- Creature Text for New Allies Quest
+-- ============================================
 
+DELETE FROM creature_text WHERE creatureid IN (60888, 60889);
+INSERT INTO creature_text (creatureid,groupid,id,TEXT,TYPE,LANGUAGE,probability,emote,duration,COMMENT,sound,BroadcastTextId) VALUES
+-- Koga Strongmane dialogue
+(60888, 0, 0, 'I bear your presence only as a kindness to our new allies. Don\'t push me, human.', 12, 0, 100, 0, 0, 'Koga Strongmane - New Allies Quest', 0, 60359),
+
+-- Delora Lionheart dialogue  
+(60889, 0, 0, 'Stand down, tauren, before I put you back in chains.', 12, 0, 100, 396, 0, 'Delora Lionheart - New Allies Quest', 0, 60623);
+
+-- ============================================
+-- A New Fate Quest (31450) - Creature Text Inserts
+-- ============================================
+
+DELETE FROM creature_text WHERE creatureid IN (56013, 57721, 57720);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`,`BroadcastTextId`, `TextRange`, `comment`) VALUES
+-- Spirit of Master Shang Xi dialogue
+('56013', '0', '0', 'You\'ve all accomplished a great thing in saving Shen-zin Su. You do us all proud.', '12', '0', '100', '1', '0', '27784', '0', '60632', '0', 'Spirit of Master Shang Xi to Player'),
+('56013', '1', '0', 'It seems your journeys are not done. These new allies of ours come from a broken world that could use our help.', '12', '0', '100', '1', '0', '27785', '0', '60633', '0', 'Spirit of Master Shang Xi to Player'),
+('56013', '2', '0', 'What of you, Ji? Will you join the Horde in their journey back?', '12', '0', '100', '6', '0', '27786', '0', '60629', '0', 'Spirit of Master Shang Xi to Player'),
+('56013', '3', '0', 'And you, my young student? Where will you go?', '12', '0', '100', '6', '0', '27787', '0', '60631', '0', 'Spirit of Master Shang Xi to Player'),
+-- Ji Firepaw dialogue
+('57720', '0', '0', 'Yes... perhaps that is for the best. I like what I\'ve seen of them, and it sounds as though their world could use my help.', '12', '0', '100', '273', '0', '27305', '0', '60630', '0', 'Ji Firepaw to Player'),
+-- Aysa Cloudsinger dialogue
+('57721', '0', '0', 'Master Shang Xi, I would like to accompany the Alliance back to their home.', '12', '0', '100', '1', '0', '27405', '0', '60628', '0', 'Aysa Cloudsinger to Player');

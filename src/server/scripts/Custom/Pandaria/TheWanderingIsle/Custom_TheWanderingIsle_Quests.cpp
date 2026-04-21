@@ -162,6 +162,50 @@ namespace Scripts::Custom::TheWanderingIsle
                 }
         }
     };
+
+    // 29800 - New Allies
+    class quest_29800_new_allies : public QuestScript
+    {
+    public:
+        quest_29800_new_allies() : QuestScript("quest_29800_new_allies") {}
+
+        void OnQuestStatusChange(Player* player, Quest const* quest, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            // Only trigger when quest is accepted (incomplete status)
+            if (quest->GetQuestId() != Quests::quest_new_allies || newStatus != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            // Find Korga and Delora NPCs
+            Creature* korga = player->FindNearestCreature(Npcs::npc_korga_strongmane_q29800, 100.0f);
+            Creature* delora = player->FindNearestCreature(Npcs::npc_delora_lionheart_q29800, 100.0f);
+
+            if (!korga || !delora)
+                return;
+
+            // Start conversation after 5 seconds using EventMap
+            korga->m_Events.AddEventAtOffset([korga, delora]()
+            {
+                if (korga && korga->IsAlive())
+                {
+                    korga->AI()->Talk(0, delora);
+                }
+            }, std::chrono::milliseconds(5000));
+            
+            // Delora responds 7 seconds after Korga speaks (12s after quest accept)
+            delora->m_Events.AddEventAtOffset([delora, korga]()
+            {
+                if (delora && delora->IsAlive())
+                    delora->AI()->Talk(0, korga);
+            }, std::chrono::milliseconds(12000));
+            
+            // Korga makes rude emote 5 seconds after Delora speaks (17s after quest accept)
+            korga->m_Events.AddEventAtOffset([korga]()
+            {
+                if (korga && korga->IsAlive())
+                    korga->HandleEmoteCommand(EMOTE_ONESHOT_RUDE);
+            }, std::chrono::milliseconds(17000));
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_quests()
@@ -174,4 +218,5 @@ void AddSC_custom_the_wandering_isle_quests()
     new quest_29786_battle_for_the_skies();
     new quest_29787_worthy_of_passing();
     new quest_29790_passing_wisdom_29791();
+    new quest_29800_new_allies();
 }

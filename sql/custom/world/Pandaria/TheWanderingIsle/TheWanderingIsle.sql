@@ -1170,13 +1170,14 @@ INSERT INTO `npc_spellclick_spells` VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106, 7265);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
 (7116, 'at_temple_stairs_from_farmstead'),
 (7258, 'at_cart_locations'),
 (7822, 'at_cart_locations'),
+(7265, 'at_cart_locations'),
 (7783, 'at_pools_of_reflection'),
 (8628, 'at_singing_pools_training_bell'),
 (7784, 'at_the_singing_pools_children_summon'),

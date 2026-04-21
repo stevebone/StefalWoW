@@ -44,6 +44,9 @@
 -- NPC: 60853 Makael Bay (during healing)
 -- NPC: 60873 Skyseeker Sailor (during healing)
 -- NPC: 56419 Jojo (during healing)
+------------------------
+-- NPC: 60889 Delora (after healing)
+-- NPC: 60888 Korga (after healing)
 
 -- Spells: 117600 Summon Ji Cinematic Intro
 -- Spells: 117499 Summon Aysa Cinematic Intro
@@ -109,7 +112,7 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('29798', '0', '0', '0', '29665', '30767', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('30767', '0', '0', '0', '29798', '29799', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29799', '0', '0', '0', '30767', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29800', '0', '0', '0', '29799', '31450', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
+('29800', '0', '0', '0', '29799', '31450', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29800_new_allies');
 
 DELETE FROM `world_state` WHERE `ID` = 6488;
 INSERT INTO `world_state` (`ID`, `DefaultValue`, `MapIDs`, `AreaIDs`, `Comment`) VALUES ('6488', '0', '860', '5833', 'The Wandering Isle - Healing Shen-zin Su healers active');
@@ -134,6 +137,7 @@ INSERT INTO `conditions` VALUES
 ('26', '544', '0', '0', '0', '47', '0', '30767', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 30767 IS in complete or rewarded'),
 ('26', '544', '0', '0', '0', '47', '0', '29799', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29799 IS NOT rewarded'),
 ('26', '545', '0', '0', '0', '47', '0', '29799', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29799 IS rewarded'),
+('26', '545', '0', '0', '0', '47', '0', '29800', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29800 IS NOT rewarded'),
 ('26', '1835', '0', '0', '0', '47', '0', '30589', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 30589 IS rewarded'),
 ('26', '1835', '0', '0', '0', '47', '0', '29798', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 29798 IS NOT in progress or complete or rewarded');
 

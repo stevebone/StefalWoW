@@ -699,6 +699,42 @@ namespace Scripts::Custom::TheWanderingIsle
             OnEffectHit += SpellEffectFn(spell_pandaren_faction_choice::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
         }
     };
+
+    // 113244 // 113245
+    class spell_faction_choice_trigger : public AuraScript
+    {
+        void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+            {
+                if (target->IsPlayer())
+                {
+                    uint32 spellId = aurEff->GetAmount(); // BasePoints = spell ID
+                    target->CastSpell(target, spellId, true);
+                }
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_faction_choice_trigger::OnRemove, EFFECT_0, SPELL_AURA_SCREEN_EFFECT, AURA_EFFECT_HANDLE_REAL);
+        }            
+    };
+
+    class spell_balloon_exit_timer : public AuraScript
+    {
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (target->IsPlayer())
+                    target->CastSpell(target, Spells::spell_balloon_exit_movie, true);
+        }
+
+        void Register() override
+        {
+            OnEffectRemove += AuraEffectRemoveFn(spell_balloon_exit_timer::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_spells()
@@ -736,4 +772,6 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_turtle_healed_phase_timer);
     RegisterSpellScript(spell_healing_shenzin_su);
     RegisterSpellScript(spell_pandaren_faction_choice);
+    RegisterSpellScript(spell_faction_choice_trigger);
+    RegisterSpellScript(spell_balloon_exit_timer);
 }

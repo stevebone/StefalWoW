@@ -1,16 +1,15 @@
 -- NPC: 54786 Shang 1/2 temple
 -- NPC: 55944 Delora Lionheart
 -- NPC: 56013 Spirit of Master Shang
--- NPC: 57720 Ji temple
+-- NPC: 57720 Ji temple faction choice
 -- NPC: 60570 Ji final act
--- NPC: 57721 Aysa temple
+-- NPC: 57721 Aysa temple faction choice
 -- NPC: 60566 Aysa final act
 -- NPC: 60917 Huo temple
 -- NPC: 60918 Shu temple
 -- NPC: 60919 Wugou temple
 -- NPC: 60920 Dafeng temple
 -- NPC: 64593 Korga
--- NPC: 56013 Spirit of Master Shang
 
 -- Quest: 29792 Bidden to Greatness
 -- Quest: 30987 Joining the Alliance
@@ -46,6 +45,8 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('31013', '0', '0', '0', '31012', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 -- Creature Templates
+UPDATE creature_template SET ScriptName = 'npc_spirit_of_master_shang_xi_q31450' WHERE entry = 56013;
+
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55944, 57720, 57721, 64593, 56013, 60919, 60918, 60920, 60917, 54786);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55944', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'),
@@ -59,6 +60,17 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('60917', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('54786', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108900 49414 126160'); -- for Shang 1
 
+DELETE FROM `creature_template_gossip` WHERE `CreatureID` IN (56013, 57720, 57721);
+INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
+('56013', '13726', '47936'),
+('57720', '14670', '47936'),
+('57721', '14671', '47936');
+
+DELETE FROM `gossip_menu_option` WHERE `MenuID` IN (13726);
+INSERT INTO `gossip_menu_option` VALUES
+('13726', '36586', '0', '0', 'I\'m ready to decide.', '60279', '0', '0', '0', '0', NULL, '0', '0', NULL, '0', NULL, NULL, '61967');
+
+
 
 -- Creature
 DELETE FROM `creature_addon` WHERE `guid` IN (451410);
@@ -70,6 +82,8 @@ UPDATE `creature` SET `PhaseId` = 1028, `MovementType` = 2 WHERE `guid` IN (4514
 UPDATE `creature` SET `PhaseId` = 1029 WHERE `guid` IN (451411); -- Wugou
 UPDATE `creature` SET `PhaseId` = 1030 WHERE `guid` IN (451828); -- Dafeng
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (108897);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (108897, 113244, 113245);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
-(108897, 'spell_pandaren_faction_choice');
+(108897, 'spell_pandaren_faction_choice'),
+(113244, 'spell_faction_choice_trigger'),
+(113245, 'spell_faction_choice_trigger');

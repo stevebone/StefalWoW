@@ -1247,7 +1247,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 _playerGuid = player->GetGUID();
 
-                if (menuId == Misc::shu_farmstead_gossip_menu && gossipListId == 0)
+                if (menuId == Gossip::shu_farmstead_gossip_menu && gossipListId == 0)
                 {
                     CloseGossipMenuFor(player);
                     //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
@@ -3925,6 +3925,102 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    // 56013 - Spirit of Master Shang Xi
+    class npc_spirit_of_master_shang_xi_q31450 : public CreatureScript
+    {
+    public:
+        npc_spirit_of_master_shang_xi_q31450() : CreatureScript("npc_spirit_of_master_shang_xi_q31450") {}
+
+        struct npc_spirit_of_master_shang_xi_q31450AI : public ScriptedAI
+        {
+            npc_spirit_of_master_shang_xi_q31450AI(Creature* creature) : ScriptedAI(creature) { }
+
+            void OnQuestAccept(Player* player, Quest const* quest) override
+            {
+                // Only handle quest 31450 - A New Fate
+                if (quest->GetQuestId() != Quests::quest_a_new_fate)
+                    return;
+
+                // Start conversation sequence after 3 seconds
+                me->m_Events.AddEventAtOffset([this, player]()
+                    {
+                        if (me && me->IsAlive())
+                        {
+                            // Spirit of Master Shang Xi speaks first (line 0)
+                            Talk(0, player);
+
+                            // Spirit of Master Shang Xi second line (line 1) after 4 seconds
+                            me->m_Events.AddEventAtOffset([this, player]()
+                                {
+                                    if (me && me->IsAlive())
+                                        Talk(1, player);
+                                }, std::chrono::seconds(9));
+
+                            // Aysa responds after 8 seconds
+                            Creature* aysa = player->FindNearestCreature(Npcs::npc_aysa_cloudsinger_q31450, 100.0f);
+                            if (aysa && aysa->IsAlive())
+                            {
+                                aysa->m_Events.AddEventAtOffset([aysa, this]()
+                                    {
+                                        aysa->AI()->Talk(0, me);
+                                    }, std::chrono::seconds(20));
+                            }
+
+                            // Spirit of Master Shang Xi third line (line 2) after 8 seconds
+                            me->m_Events.AddEventAtOffset([this, player]()
+                                {
+                                    if (me && me->IsAlive())
+                                        Talk(2, player);
+                                }, std::chrono::seconds(28));
+
+                            // Ji responds after 8 seconds
+                            Creature* ji = player->FindNearestCreature(Npcs::npc_ji_firepaw_q31450, 100.0f);
+                            if (ji && ji->IsAlive())
+                            {
+                                ji->m_Events.AddEventAtOffset([ji, this]()
+                                    {
+                                        ji->AI()->Talk(0, me);
+                                    }, std::chrono::seconds(35));
+                            }
+
+                            // Spirit of Master Shang Xi final line (line 3) after 20 seconds
+                            me->m_Events.AddEventAtOffset([this, player]()
+                                {
+                                    if (me && me->IsAlive())
+                                    {
+                                        Talk(3, player);
+
+                                        // Show gossip menu after final line
+                                        player->PlayerTalkClass->ClearMenus();
+                                        InitGossipMenuFor(player, Gossip::gossip_pandaren_faction_choice);
+                                        SendGossipMenuFor(player, Gossip::gossip_pandaren_faction_choice, me->GetGUID());
+                                    }
+                                }, std::chrono::seconds(45));
+                        }
+                    }, std::chrono::milliseconds(3000));
+            }
+
+            bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+            {
+                if (gossipListId == 0) // Faction choice option
+                {
+                    player->PlayerTalkClass->ClearMenus();
+                    player->PlayerTalkClass->SendCloseGossip();
+
+                    // Cast pandaren faction choice spell
+                    player->CastSpell(player, Spells::spell_pandaren_faction_choice, true);
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_spirit_of_master_shang_xi_q31450AI(creature);
+        }        
+    };
+
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -3963,4 +4059,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_aysa_explosion();
     new npc_healers_active_bunny();
     new npc_shenzin_su_healer();
+    new npc_spirit_of_master_shang_xi_q31450();
 }
