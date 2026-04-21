@@ -416,50 +416,6 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // left 108627
-    // right 108691
-    // Can't get the ropes to target correctly :(
-    /*
-    class spell_cart_ropes : public SpellScript
-    {
-        void SelectTargetDest(WorldObject*& target)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            Creature* yak1 = caster->FindNearestCreature(Npcs::npc_vehicle_ox, 10.f);
-            Creature* yak2 = caster->FindNearestCreature(Npcs::npc_vehicle_ox_farmstead, 10.f);
-
-            Unit* yak = nullptr;
-            if (yak1)
-                yak = yak1;
-            else if (yak2)
-                yak = yak2;
-
-            if (!yak)
-                return;
-
-            target = yak;
-        }
-
-        void SelectTargetSource(WorldObject*& target)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            target = caster;
-        }
-
-        void Register() override
-        {
-            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_cart_ropes::SelectTargetSource, EFFECT_0, TARGET_DEST_CASTER);
-            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_cart_ropes::SelectTargetDest, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
-        }
-    };
-    */
-
     // Spell 104126 Monkey Wisdom
     class spell_monkey_wisdom_text : public SpellScript
     {
@@ -705,14 +661,10 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void HandleEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes)
         {
-            if (Unit* target = GetTarget())
+            if (Aura* aura = aurEff->GetBase())
             {
-                if (Aura* aura = aurEff->GetBase())
-                {
-                    // Set custom duration (5 minutes = 300000 ms)
-                    aura->SetDuration(45000);
-                    aura->SetMaxDuration(45000);
-                }
+                aura->SetDuration(45000);
+                aura->SetMaxDuration(45000);
             }
         }
 
@@ -775,7 +727,6 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_aysa_congrats_trigger_aura);
     RegisterSpellScript(spell_summon_ji_firepaw_temple);
     RegisterSpellScript(spell_summon_spirit_of_earth);
-    //RegisterSpellScript(spell_cart_ropes);
     RegisterSpellScript(spell_monkey_wisdom_text);
     RegisterSpellScript(spell_ruk_ruk_ooksplosions);
     RegisterSpellScript(spell_summon_worthy_of_passing);
