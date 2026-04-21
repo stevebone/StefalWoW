@@ -66,6 +66,10 @@ INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`)
 ('57720', '14670', '47936'),
 ('57721', '14671', '47936');
 
+DELETE FROM `gossip_menu` WHERE `MenuID` IN (13726);
+INSERT INTO `gossip_menu` VALUES 
+(13726, 19723, 61967);
+
 DELETE FROM `gossip_menu_option` WHERE `MenuID` IN (13726);
 INSERT INTO `gossip_menu_option` VALUES
 ('13726', '36586', '0', '0', 'I\'m ready to decide.', '60279', '0', '0', '0', '0', NULL, '0', '0', NULL, '0', NULL, NULL, '61967');
@@ -82,8 +86,15 @@ UPDATE `creature` SET `PhaseId` = 1028, `MovementType` = 2 WHERE `guid` IN (4514
 UPDATE `creature` SET `PhaseId` = 1029 WHERE `guid` IN (451411); -- Wugou
 UPDATE `creature` SET `PhaseId` = 1030 WHERE `guid` IN (451828); -- Dafeng
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (108897, 113244, 113245);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (108897, 113244, 113245, 130422, 132211);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 (108897, 'spell_pandaren_faction_choice'),
 (113244, 'spell_faction_choice_trigger'),
-(113245, 'spell_faction_choice_trigger');
+(113245, 'spell_faction_choice_trigger'),
+(130422, 'spell_balloon_exit_timer'),
+(132211, 'spell_balloon_exit_timer');
+
+DELETE FROM `spell_target_position` WHERE `ID` IN (116957);
+INSERT INTO `spell_target_position` VALUES
+('116957', '0', 0, '0', '-9128.09', '388.54', '91.163', '0', 0),
+('116957', '1', 0, '0', '-9128.09', '388.54', '91.163', '0', 0);

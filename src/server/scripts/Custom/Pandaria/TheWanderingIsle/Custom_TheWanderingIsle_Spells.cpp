@@ -703,6 +703,19 @@ namespace Scripts::Custom::TheWanderingIsle
     // 113244 // 113245
     class spell_faction_choice_trigger : public AuraScript
     {
+        void HandleEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes)
+        {
+            if (Unit* target = GetTarget())
+            {
+                if (Aura* aura = aurEff->GetBase())
+                {
+                    // Set custom duration (5 minutes = 300000 ms)
+                    aura->SetDuration(45000);
+                    aura->SetMaxDuration(45000);
+                }
+            }
+        }
+
         void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
         {
             if (Unit* target = GetTarget())
@@ -717,6 +730,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         void Register() override
         {
+            OnEffectApply += AuraEffectApplyFn(spell_faction_choice_trigger::HandleEffectApply, EFFECT_0, SPELL_AURA_SCREEN_EFFECT, AURA_EFFECT_HANDLE_REAL);
             OnEffectRemove += AuraEffectRemoveFn(spell_faction_choice_trigger::OnRemove, EFFECT_0, SPELL_AURA_SCREEN_EFFECT, AURA_EFFECT_HANDLE_REAL);
         }            
     };
