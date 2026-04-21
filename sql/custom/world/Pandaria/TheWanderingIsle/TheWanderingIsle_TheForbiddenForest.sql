@@ -114,8 +114,10 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('29799', '0', '0', '0', '30767', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29800', '0', '0', '0', '29799', '31450', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29800_new_allies');
 
-DELETE FROM `world_state` WHERE `ID` = 6488;
-INSERT INTO `world_state` (`ID`, `DefaultValue`, `MapIDs`, `AreaIDs`, `Comment`) VALUES ('6488', '0', '860', '5833', 'The Wandering Isle - Healing Shen-zin Su healers active');
+DELETE FROM `world_state` WHERE `ID` IN (6488, 6489);
+INSERT INTO `world_state` (`ID`, `DefaultValue`, `MapIDs`, `AreaIDs`, `Comment`) VALUES 
+('6488', '0', '860', '5833', 'The Wandering Isle - Healing Shen-zin Su healers active'),
+('6489', '1', '860', '5833', 'The Wandering Isle - Healing Shen-zin Su healers enabled');
 
 DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545);
 INSERT INTO `phase_area` VALUES
@@ -261,17 +263,3 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 ('56419', '0', '2', '0', '0', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '11', '120383', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Update IC - Cast Pillar Strike'),
 ('56419', '0', '3', '0', '0', '0', '100', '0', '5000', '8000', '8000', '12000', '0', '', '11', '120372', '1', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Update IC - Cast Pillar Sweep');
 
--- ========================================
--- Yak & Cart at the Wreck of the Skyseeker
--- ========================================
-UPDATE `creature_template` SET `ScriptName` = 'npc_ox_cart' WHERE `entry` IN (57740, 57742);
-
-UPDATE `creature_template` SET `VehicleId` = 1944 WHERE `entry` = 57740;
-
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (57741);
-INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
-(57741, 108933, 3, 0),
-(57741, 115904, 1, 0);
-
-DELETE FROM `vehicle_template` WHERE `creatureId` = 57740;
-INSERT INTO `vehicle_template` VALUES (57740, 10000, NULL,0);

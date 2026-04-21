@@ -234,6 +234,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
         static constexpr uint32 spell_generic_quest_invisibility_1 = 49414;
         static constexpr uint32 spell_generic_quest_invisibility_2 = 49415;
+        static constexpr uint32 spell_generic_quest_invisibility_4 = 82343;
+        static constexpr uint32 spell_generic_quest_invisibility_5 = 80797;
         static constexpr uint32 spell_generic_quest_invisibility_6 = 82358;
 
         static constexpr uint32 spell_ox_cart_invisibility = 108887;
