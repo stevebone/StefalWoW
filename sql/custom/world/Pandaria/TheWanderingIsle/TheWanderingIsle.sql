@@ -214,6 +214,24 @@ INSERT INTO `phase_area` VALUES
 (5881, 169, 'The Wandering Isle - Farmstead'),
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
+DELETE FROM `phase_area` WHERE `PhaseId` IN (1027, 1028, 1029, 1030);
+INSERT INTO `phase_area` VALUES
+-- Temple of Five Dawns
+(5820, 1027, 'Temple of Five Dawns - after quest 29521 completed or rewarded - see Fire spirit'),
+(5820, 1028, 'Temple of Five Dawns - after quest 29775 completed or rewarded - see Water spirit'),
+(5820, 1029, 'Temple of Five Dawns - after quest 29776 completed or rewarded - see Earth spirit'),
+(5820, 1030, 'Temple of Five Dawns - after quest 29791 completed or rewarded - see Air spirit');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (1027, 1028, 1029, 1030);
+INSERT INTO `conditions` VALUES
+(26, 1027, 5820, 0, 0, 28, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 complete'),
+(26, 1027, 5820, 0, 1, 8, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 rewarded'),
+(26, 1028, 5820, 0, 0, 28, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1028 when Quest 29775 complete'),
+(26, 1028, 5820, 0, 1, 8, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1028 when Quest 29775 rewarded'),
+(26, 1029, 5820, 0, 0, 8, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1029 when Quest 29775 rewarded'), -- phase not updated automatically (delayed add in SAI)
+(26, 1030, 5820, 0, 0, 28, 0, 29791, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1030 when Quest 29791 complete'),
+(26, 1030, 5820, 0, 1, 8, 0, 29791, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1030 when Quest 29791 rewarded');
+
 UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
 UPDATE `gameobject` SET `PhaseId` = '50007' WHERE (`guid` = '300209'); -- Gong at Farmstead needs to be in the same phase as Ji otherwise quest credit via SET DATA SAI fails
 
