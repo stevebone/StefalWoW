@@ -17799,7 +17799,7 @@ void Player::_LoadTransmogOutfits(PreparedQueryResult setsResult, PreparedQueryR
 
             WorldPackets::Transmogrification::TransmogOutfitDataInfo outfitInfo;
             outfitInfo.SetType = transmogOutfitEntry->GetSetType();
-            outfitInfo.Name = fields.name().GetString();
+            outfitInfo.Name = fields.name().GetStringView();
             outfitInfo.Icon = fields.icon().GetUInt32();
             outfitInfo.SituationsEnabled = fields.situationsEnabled().GetBool();
 
