@@ -156,6 +156,8 @@ struct RaceMask
         return { .RawValue = raceBit >= 0 && uint32(raceBit) < sizeof(T) * 8 ? (T(1) << raceBit) : T(0) };
     }
 
+    constexpr bool operator==(RaceMask const&) const = default;
+
     constexpr bool IsEmpty() const { return RawValue == T(0); }
 
     constexpr RaceMask operator&(RaceMask right) const { return { RawValue & right.RawValue }; }
@@ -185,6 +187,8 @@ struct RaceMask<std::array<T, N>>
             result.RawValue[raceBit / (sizeof(T) * 8)] = T(1) << (raceBit % (sizeof(T) * 8));
         return result;
     }
+
+    constexpr bool operator==(RaceMask const&) const = default;
 
     constexpr bool IsEmpty() const
     {
@@ -219,6 +223,9 @@ struct RaceMask<std::array<T, N>>
     }
 };
 }
+
+template <typename T>
+inline constexpr Trinity::RaceMask<T> RACEMASK_ALL_v = ~Trinity::RaceMask<T>{};
 
 template <typename T>
 inline constexpr Trinity::RaceMask<T> RACEMASK_ALL_PLAYABLE_v =
@@ -278,6 +285,7 @@ inline constexpr Trinity::RaceMask<T> RACEMASK_ALLIANCE_v =
 template <typename T>
 inline constexpr Trinity::RaceMask<T> RACEMASK_HORDE_v = RACEMASK_ALL_PLAYABLE_v<T> & ~(RACEMASK_NEUTRAL_v<T> | RACEMASK_ALLIANCE_v<T>);
 
+inline constexpr Trinity::RaceMask<uint64> RACEMASK_ALL = RACEMASK_ALL_v<uint64>;
 inline constexpr Trinity::RaceMask<uint64> RACEMASK_ALL_PLAYABLE = RACEMASK_ALL_PLAYABLE_v<uint64>;
 inline constexpr Trinity::RaceMask<uint64> RACEMASK_NEUTRAL = RACEMASK_NEUTRAL_v<uint64>;
 inline constexpr Trinity::RaceMask<uint64> RACEMASK_ALLIANCE = RACEMASK_ALLIANCE_v<uint64>;

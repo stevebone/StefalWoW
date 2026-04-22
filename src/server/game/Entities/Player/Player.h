@@ -3060,7 +3060,6 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void UpdateTransmogOutfitSituations(uint32 id, bool situationsEnabled, std::span<WorldPackets::Transmogrification::TransmogOutfitSituationInfo const> situations);
         void UpdateTransmogOutfitSlots(uint32 id, std::span<WorldPackets::Transmogrification::TransmogOutfitSlotData const> slots);
         void EquipTransmogOutfit(uint32 id, TransmogSituationTrigger trigger, Optional<bool> locked);
-        std::string GetCharacterSelectOutfit() const;
 
         std::string GetDebugInfo() const override;
 
@@ -3184,6 +3183,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveStoredAuraTeleportLocations(CharacterDatabaseTransaction trans);
         void _SaveEquipmentSets(CharacterDatabaseTransaction trans);
         void _SaveTransmogOutfits(CharacterDatabaseTransaction trans);
+        void _SaveCharacterSelectOutfit(CharacterDatabaseTransaction trans) const;
         void _SaveBGData(CharacterDatabaseTransaction trans);
         void _SaveGlyphs(CharacterDatabaseTransaction trans) const;
         void _SaveTalents(CharacterDatabaseTransaction trans);
