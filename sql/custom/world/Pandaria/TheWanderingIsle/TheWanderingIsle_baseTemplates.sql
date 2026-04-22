@@ -279,6 +279,7 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `M
 (3, 56234, 73.7535, 1, 1, 1, 'Smooth Scale'),
 (3, 3168, 12.847, 1, 1, 1, 'Chipped Scale'),
 (3, 54634, 72.5179, 1, 1, 1, 'Shredded Flipper'),
+(3, 54633, 27.6282, 1, 1, 1, 'Shattered Jaws'),
 -- Humanoids
 (4, 2589, 77.5519, 1, 1, 1, 'Linen Cloth'),
 (4, 774, 9.41698, 1, 1, 1, 'Malachite'),
@@ -335,3 +336,9 @@ VALUES
 (56007, 0, 74296, 100, 1, 1, 0, 1, 1, 'Stolen Carrot'),
 (56007, 0, 74615, 100, 1, 1, 0, 1, 1, 'Paint Soaked Brush'),
 (60780, 0, 74615, 100, 1, 1, 0, 1, 1, 'Paint Soaked Brush');
+
+-- Skinning loot fix
+DELETE FROM `skinning_loot_template` WHERE `Entry` = 1;
+INSERT INTO `skinning_loot_template` VALUES
+('1', '0', '2318', '70', '0', '1', '1', '1', '3', 'Starting Zones'),
+('1', '0', '2934', '75', '0', '1', '1', '1', '4', 'Starting Zones');
