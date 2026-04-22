@@ -214,23 +214,46 @@ INSERT INTO `phase_area` VALUES
 (5881, 169, 'The Wandering Isle - Farmstead'),
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (1027, 1028, 1029, 1030);
-INSERT INTO `phase_area` VALUES
+DELETE FROM `phase_area` WHERE `PhaseId` IN (1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+-- THE WANDERING ISLE
+(5736, 1323, 'The Wandering Isle - before quest 29423 rewarded'),
+(5736, 1324, 'The Wandering Isle - after quest 29423 rewarded and before quest 29679 rewarded'),
+(5736, 1325, 'The Wandering Isle - after quest 29679 rewarded and before quest 29775 rewarded'),
+(5736, 1326, 'The Wandering Isle - after quest 29775 rewarded and before quest 29787 taken'),
+(5736, 1327, 'The Wandering Isle - quest 29787 taken, complete or rewarded'),
+
 -- Temple of Five Dawns
 (5820, 1027, 'Temple of Five Dawns - after quest 29521 completed or rewarded - see Fire spirit'),
 (5820, 1028, 'Temple of Five Dawns - after quest 29775 completed or rewarded - see Water spirit'),
 (5820, 1029, 'Temple of Five Dawns - after quest 29776 completed or rewarded - see Earth spirit'),
 (5820, 1030, 'Temple of Five Dawns - after quest 29791 completed or rewarded - see Air spirit');
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (1027, 1028, 1029, 1030);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
 INSERT INTO `conditions` VALUES
+-- Spirits Phases
 (26, 1027, 5820, 0, 0, 28, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 complete'),
 (26, 1027, 5820, 0, 1, 8, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 rewarded'),
 (26, 1028, 5820, 0, 0, 28, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1028 when Quest 29775 complete'),
 (26, 1028, 5820, 0, 1, 8, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1028 when Quest 29775 rewarded'),
 (26, 1029, 5820, 0, 0, 8, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1029 when Quest 29775 rewarded'), -- phase not updated automatically (delayed add in SAI)
 (26, 1030, 5820, 0, 0, 28, 0, 29791, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1030 when Quest 29791 complete'),
-(26, 1030, 5820, 0, 1, 8, 0, 29791, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1030 when Quest 29791 rewarded');
+(26, 1030, 5820, 0, 1, 8, 0, 29791, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1030 when Quest 29791 rewarded'),
+
+-- Phases General
+(26, 1323, 5736, 0, 0, 8, 0, 29423, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1323 when Quest 29423 not rewarded'),
+(26, 1324, 5736, 0, 0, 8, 0, 29423, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1324 when Quest 29423 rewarded'),
+(26, 1324, 5736, 0, 0, 8, 0, 29679, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1324 when Quest 29679 not rewarded'),
+(26, 1325, 5736, 0, 0, 8, 0, 29679, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1325 when Quest 29679 rewarded'),
+(26, 1325, 5736, 0, 0, 8, 0, 29775, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1325 when Quest 29775 not rewarded'),
+(26, 1326, 5736, 0, 0, 8, 0, 29775, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1326 when Quest 29775 rewarded'),
+(26, 1326, 5736, 0, 0, 9, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1326 when Quest 29787 not taken'),
+(26, 1326, 5736, 0, 0, 28, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1326 when Quest 29787 not complete'),
+(26, 1326, 5736, 0, 0, 8, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1326 when Quest 29787 not rewarded'),
+(26, 1327, 5736, 0, 0, 9, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 taken'),
+(26, 1327, 5736, 0, 1, 28, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 complete'),
+(26, 1327, 5736, 0, 2, 8, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 rewarded');
+
 
 UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
 UPDATE `gameobject` SET `PhaseId` = '50007' WHERE (`guid` = '300209'); -- Gong at Farmstead needs to be in the same phase as Ji otherwise quest credit via SET DATA SAI fails
@@ -368,26 +391,6 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (26, 632, 5849, 0, 0, 47, 0, 29422, 66, 0, '', 0, 0, 0, '', 'Allow phase 632 if quest 29422 state completed / rewarded');
 
 -- 29423 The Passion of Shen-zin Su
-SET @CGUID := 900000;
-
-DELETE FROM `creature` WHERE `guid` IN (450021, @CGUID+741, @CGUID+742);
-INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
-(@CGUID+741, 56479, 860, 5736, 5820, '0', '1323', 0, 0, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978), -- Legacy of Liu Lang (Area: Храм Пяти Рассветов - Difficulty: 0) CreateObject1 (Auras: 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop) - !!! already present in database !!!
-(@CGUID+742, 56479, 860, 5736, 5820, '0', '1324', 0, 0, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978); -- Legacy of Liu Lang (Area: Храм Пяти Рассветов - Difficulty: 0) CreateObject1 (Auras: 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop) - !!! already present in database !!!
-
-DELETE FROM `creature_addon` WHERE `guid` IN (450021, @CGUID+0, @CGUID+1);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(@CGUID+741, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- Legacy of Liu Lang - 132376 - 
-(@CGUID+742, 0, 0, 0, 0, 0, 1, 0, 420, 2188, 0, 0, 5, '132376'); -- Legacy of Liu Lang - 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop - 
-
-DELETE FROM `creature_template_gossip` WHERE (`CreatureID`=54786 AND `MenuID`=13158);
-INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
-(54786, 13158, 64978); -- Master Shang Xi
-
-DELETE FROM `gossip_menu` WHERE (`MenuID`=13158 AND `TextID`=18536);
-INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES
-(13158, 18536, 64978); -- 54786 (Master Shang Xi)
-
 UPDATE `creature_template` SET `speed_run`=1.714285731315612792, `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `ScriptName`= 'npc_huo_follower' WHERE `entry`=54958; -- Huo
 UPDATE `creature` SET `ScriptName`= 'npc_chia_hui_autumnleaf', `StringId`= 'Chia_Hui_Talk_Event_Starter' WHERE `guid`=450386; 
 UPDATE `creature` SET `StringId`= 'Brewer_Lin_Talk_Event' WHERE `guid`=450387; 
@@ -554,6 +557,7 @@ insert  into `conditions`(`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,
 (17,0,107049,0,0,29,0,56869,8,0,0,30,0,'','Ride Vehicle when bunny within 8y'),
 (13,1,107049,0,0,31,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny');
 
+SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` IN (@CGUID+743, @CGUID+744, @CGUID+745, @CGUID+746);
 INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseUseFlags, PhaseId, PhaseGroup, terrainSwapMap, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, wander_distance, currentwaypoint, curHealthPct, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, ScriptName, StringId, VerifiedBuild) VALUES
 (@CGUID+743, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '968.982', '3293.41', '117.685', '-0.50883', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0'),

@@ -49,6 +49,14 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('31013', '0', '0', '0', '31012', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 -- Creature Templates
+DELETE FROM `creature_template_gossip` WHERE (`CreatureID`=54786 AND `MenuID`=13158);
+INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
+(54786, 13158, 64978); -- Master Shang Xi
+
+DELETE FROM `gossip_menu` WHERE (`MenuID`=13158 AND `TextID`=18536);
+INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES
+(13158, 18536, 64978); -- 54786 (Master Shang Xi)
+
 UPDATE creature_template SET ScriptName = 'npc_spirit_of_master_shang_xi_q31450' WHERE entry = 56013;
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55944, 57720, 57721, 64593, 56013, 60919, 60918, 60920, 60917, 54786, 57722);
@@ -82,6 +90,24 @@ UPDATE `creature` SET `PhaseId` = 1027 WHERE `guid` IN (451408); -- Huo
 UPDATE `creature` SET `PhaseId` = 1028, `MovementType` = 2 WHERE `guid` IN (451409); -- Shu
 UPDATE `creature` SET `PhaseId` = 1029 WHERE `guid` IN (451411); -- Wugou
 UPDATE `creature` SET `PhaseId` = 1030 WHERE `guid` IN (451828); -- Dafeng
+
+-- Liu Kang statue
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` IN (450021, @CGUID+741, @CGUID+742, @CGUID+747, @CGUID+748, @CGUID+749);
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
+(@CGUID+741, 56479, 860, 5736, 5820, '0', '1323', 0, 39406, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978), -- Legacy of Liu Lang (Area: Храм Пяти Рассветов - Difficulty: 0) CreateObject1 (Auras: 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop) - !!! already present in database !!!
+(@CGUID+742, 56479, 860, 5736, 5820, '0', '1324', 0, 39406, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978), -- Legacy of Liu Lang (Area: Храм Пяти Рассветов - Difficulty: 0) CreateObject1 (Auras: 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop) - !!! already present in database !!!
+(@CGUID+747, 56479, 860, 5736, 5820, '0', '1325', 0, 39406, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978),
+(@CGUID+748, 56479, 860, 5736, 5820, '0', '1326', 0, 39406, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978),
+(@CGUID+749, 56479, 860, 5736, 5820, '0', '1327', 0, 39406, 0, 942.28125, 3604.515625, 196.01605224609375, 6.248278617858886718, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 64978);
+
+DELETE FROM `creature_addon` WHERE `guid` IN (450021, @CGUID+741, @CGUID+742, @CGUID+747, @CGUID+748, @CGUID+749);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(@CGUID+741, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- Legacy of Liu Lang - 132376 - 
+(@CGUID+742, 0, 0, 0, 0, 0, 1, 0, 420, 2188, 0, 0, 5, '132376'), -- Legacy of Liu Lang - 132376 - GO_PA_TurtleShrine_01_Spell2_FireLoop - 
+(@CGUID+747, 0, 0, 0, 0, 0, 1, 0, 0, 2139, 0, 0, 5, ''),
+(@CGUID+748, 0, 0, 0, 0, 0, 1, 0, 0, 1546, 0, 0, 5, '132377'),
+(@CGUID+749, 0, 0, 0, 0, 0, 1, 0, 0, 1546, 0, 0, 5, '132378');
 
 -- Faction choice event
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (108897, 113244, 113245, 130422, 132211);
