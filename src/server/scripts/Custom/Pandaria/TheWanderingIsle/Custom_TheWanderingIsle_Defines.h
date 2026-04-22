@@ -327,21 +327,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 aysa_vordraka_boss_4 = 4;
     }
 
-    namespace PositionsQ29423
-    {
-        static constexpr Position aysaSpawnPos = { 992.00347900390625f, 3600.757080078125f, 193.11480712890625f, 3.087874650955200195f };
-        static constexpr Position jiSpawnPos = { 992.107666015625f, 3604.552978515625f, 193.1151580810546875f, 2.968008279800415039f };
-        static constexpr Position huoFirstPoint = { 955.1213f, 3604.0388f, 200.71686f, 6.249388f };
-        static constexpr Position huoSecondPoint = { 950.00757f, 3601.0044f, 203.8194f };
-    }
-
-    namespace PositionsQ29521
-    {
-        // Singing Pools
-        static constexpr Position CaiSpawnPos = { 934.0156f, 3513.154f, 188.1347f, 0.0f };
-        static constexpr Position DengSpawnPos = { 949.37f, 3510.0f, 187.7983f, 0.0f };
-    }
-
     namespace PositionsQ29662
     {
         static constexpr Position JojoSpawnPoint = { 1039.49f, 3283.11f, 129.523f, 1.81514f };
@@ -349,14 +334,45 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position JojoMovePoint = { 1039.19f, 3284.26f, 129.3971f, 0.0f };
     }
 
-    namespace PositionsQ29678
+    namespace Positions
     {
-        // Rock Jumping Quest
-        static constexpr Position RockJumpFinal = { 1077.019f, 2844.103f, 95.27103f };
-    }
+        // Spell Positions
+        // Singing Pools
+        static constexpr Position CaiSpawnPos = { 934.0156f, 3513.154f, 188.1347f, 0.0f };
+        static constexpr Position DengSpawnPos = { 949.37f, 3510.0f, 187.7983f, 0.0f };
 
-    namespace PositionsQ29679
-    {
+        static constexpr Position WugouSpawn = { 631.479f, 3140.7f,	87.8357f, 3.05745f };
+        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
+        static constexpr Position pos_spell_117597 = { 229.9426f, 4006.6967f, 87.2537f, 3.3859f };
+        static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
+
+        static constexpr Position SummonAggressorSpawn[15] =
+        {
+            { 313.9983f, 3973.418f, 86.55342f },
+            { 249.4063f, 3972.389f, 75.72471f },
+            { 316.1406f, 3979.06f, 85.13287f },
+            { 252.6632f, 4008.125f, 78.23856f },
+            { 266.5712f, 4014.581f, 79.36336f },
+            { 269.8854f, 4017.54f, 79.76926f },
+            { 271.9392f, 4018.929f, 79.99733f },
+            { 309.474f, 3964.438f, 87.50405f },
+            { 247.1337f, 3968.642f, 75.44573f },
+            { 292.3837f, 3925.203f, 87.69834f },
+            { 254.1892f, 3982.678f, 71.8816f },
+            { 276.5608f, 4034.241f, 75.90926f },
+            { 287.4236f, 3935.447f, 85.55875f },
+            { 256.0226f, 3963.012f, 74.87388f },
+            { 301.6267f, 3923.195f, 87.80573f }
+        };
+
+        // Huo the spirit of fire Q29423
+        static constexpr Position aysaSpawnPos = { 992.00347900390625f, 3600.757080078125f, 193.11480712890625f, 3.087874650955200195f };
+        static constexpr Position jiSpawnPos = { 992.107666015625f, 3604.552978515625f, 193.1151580810546875f, 2.968008279800415039f };
+        static constexpr Position huoFirstPoint = { 955.1213f, 3604.0388f, 200.71686f, 6.249388f };
+        static constexpr Position huoSecondPoint = { 950.00757f, 3601.0044f, 203.8194f };
+
+        // Singing Pools
+        // Shu at the Singing Pools playing Q29679
         static constexpr Position JumpToBackRight = { 1127.26f, 2859.8f, 97.2817f };
         static constexpr Position JumpToBackLeft = { 1120.16f, 2882.66f, 96.345f };
         static constexpr Position JumpToFrontLeft = { 1100.83f, 2881.36f, 94.0386f };
@@ -401,15 +417,9 @@ namespace Scripts::Custom::TheWanderingIsle
                 { 1126.358f, 2881.005f, 92.14017f }
             }
         };
-    }
 
-    namespace Positions
-    {
-        // Spell Positions
-        static constexpr Position WugouSpawn = { 631.479f, 3140.7f,	87.8357f, 3.05745f };
-        static constexpr Position pos_spell_117973 = { 424.717f, 3635.59f, 92.7838f, 2.49844f };
-        static constexpr Position pos_spell_117597 = { 229.9426f, 4006.6967f, 87.2537f, 3.3859f };
-        static constexpr Position JiTempleSpireSpawn = { 909.137f, 3610.38f, 252.092f };
+        // Rock Jumping Quest 29678
+        static constexpr Position RockJumpFinal = { 1077.019f, 2844.103f, 95.27103f };
 
         // Temple
         static constexpr Position ZhaoSkySpawn = { 750.5781f, 4262.676f, 323.0713f, 5.042483f }; // Zhaoren spawn point for Temple flyby

@@ -159,7 +159,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionsQ29521::CaiSpawnPos);
+            dest.Relocate(Positions::CaiSpawnPos);
         }
 
         void Register() override
@@ -173,7 +173,7 @@ namespace Scripts::Custom::TheWanderingIsle
     {
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionsQ29521::DengSpawnPos);
+            dest.Relocate(Positions::DengSpawnPos);
         }
 
         void Register() override
@@ -244,7 +244,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if (caster->GetPositionZ() > 92.0f)
                 {
-                    caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29678::RockJumpFinal, 5.f, 5.f);
+                    caster->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::RockJumpFinal, 5.f, 5.f);
                 }
                 else
                 {
@@ -301,7 +301,7 @@ namespace Scripts::Custom::TheWanderingIsle
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
             if (Unit* caster = GetCaster())
-                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToFrontRight, 12.f, 15.f);
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::JumpToFrontRight, 12.f, 15.f);
         }
 
         void Register() override
@@ -315,7 +315,7 @@ namespace Scripts::Custom::TheWanderingIsle
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
             if (Unit* caster = GetCaster())
-                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToFrontLeft, 12.f, 15.f);
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::JumpToFrontLeft, 12.f, 15.f);
         }
 
         void Register() override
@@ -329,7 +329,7 @@ namespace Scripts::Custom::TheWanderingIsle
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
             if (Unit* caster = GetCaster())
-                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToBackRight, 12.f, 15.f);
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::JumpToBackRight, 12.f, 15.f);
         }
 
         void Register() override
@@ -343,7 +343,7 @@ namespace Scripts::Custom::TheWanderingIsle
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
             if (Unit* caster = GetCaster())
-                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, PositionsQ29679::JumpToBackLeft, 12.f, 15.f);
+                caster->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::JumpToBackLeft, 12.f, 15.f);
         }
 
         void Register() override
@@ -566,6 +566,35 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    // 117400
+    class spell_summon_deep_sea_aggressor : public SpellScript
+    {
+        void HandleBeforeCast()
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            SpellEffectInfo const& effect = GetSpellInfo()->GetEffect(EFFECT_0);
+            uint32 entry = effect.MiscValue;
+            uint32 propertiesId = effect.MiscValueB;
+            int32 duration = GetSpellInfo()->GetDuration();
+
+            if (SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(propertiesId))
+            {
+                Position spawnPos = Positions::SummonAggressorSpawn[urand(0, 14)];
+                Creature* summon = caster->SummonCreature(entry, spawnPos, TEMPSUMMON_TIMED_DESPAWN, 5s);
+                if (summon)
+                    summon->SetOwnerGUID(caster->GetGUID());
+            }
+        }
+
+        void Register() override
+        {
+            BeforeCast += SpellCastFn(spell_summon_deep_sea_aggressor::HandleBeforeCast);
+        }
+    };
+
     // 117597 - Summon Ji at wreck explosion
     class spell_summon_ji_wreck_explosion : public SpellScript
     {
@@ -733,6 +762,7 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_summon_ji_forlorn_hut);
     RegisterSpellScript(spell_rescue_injured_sailor);
     RegisterSpellScript(aura_injured_sailor_feign_death);
+    RegisterSpellScript(spell_summon_deep_sea_aggressor);
     RegisterSpellScript(spell_summon_ji_wreck_explosion);
     RegisterSpellScript(spell_turtle_healed_phase_timer);
     RegisterSpellScript(spell_healing_shenzin_su);
