@@ -223,12 +223,15 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 60851, 57317, 60852, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780, 56007, 56008,
-56174, 56360, 55946, 53705, 56172);
+56174, 56360, 55946, 53705, 56172, 60685);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000, 60851, 57317, 60852, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780, 57739,
-56007, 56008, 56174, 56360, 55946, 53705, 56172) AND `source_type` IN (0, 9);
+56007, 56008, 56174, 56360, 55946, 53705, 56172, 60685) AND `source_type` IN (0, 9);
 INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, event_type, event_phase_mask, event_chance, event_flags,  event_param1, event_param2, 
 event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, 
 action_param6, target_type, target_param1, target_param2, target_param3, target_x, target_y, target_z, target_o, comment) VALUES
+(60685, 0, 0, 1, 54, 0, 100, 0, 0, 0, 0, 0, 0, , 117, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Agressor - Just Spawned - Disable Evade'),
+(60685, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, , 11, 117407, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Agressor - Just Spawned - Cast Aggresive Leap'),
+(60685, 0, 2, 0, 31, 0, 100, 0, 117407, 0, 0, 0, 0, , 49, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Agressor - On Spellhit Target - Start Attack'),
 (56172, 0, 0, 0, 0, 0, 100, 0, 5000, 8000, 8000, 12000, 0, '', 11, 128429, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ash Moth - Update IC - Cast Horn'),
 (53705, 0, 0, 0, 0, 0, 100, 0, 5000, 8000, 8000, 12000, 0, '', 11, 128406, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Pangolin - Update IC - Cast Hardened Shell'),
 (55946, 0, 0, 0, 0, 0, 100, 0, 5000, 8000, 8000, 12000, 0, '', 11, 128510, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Pei-Wu Tiger - Update IC - Cast Tiger Pounce'),
@@ -274,13 +277,15 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 ('56419', '0', '2', '0', '0', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '11', '120383', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Update IC - Cast Pillar Strike'),
 ('56419', '0', '3', '0', '0', '0', '100', '0', '5000', '8000', '8000', '12000', '0', '', '11', '120372', '1', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Update IC - Cast Pillar Sweep');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60888, 60889);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60888, 60889, 60685);
 INSERT INTO `creature_template_difficulty` VALUES
+(60685, 0, 0, 0, 80, 4, 0.5, 1, 1, 1, 20951, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 256, 0, 0, 0, 0, 0, 56647),
 (60888, 0, 0, 0, 80, 4, 5, 1, 1, 0.01, 20592, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60889, 0, 0, 0, 80, 4, 5, 1, 1, 0.2, 20590, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (60888, 60889);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (60888, 60889, 60685);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+(60685, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60888, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60889, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
