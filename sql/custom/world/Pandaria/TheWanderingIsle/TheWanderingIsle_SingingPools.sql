@@ -19,9 +19,11 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('54975', '29680', '0');
 
 -- Creature Templates
-DELETE FROM `creature_template_addon` WHERE `entry` IN (60249, 60250, 57620, 55022, 57636, 57638, 60488);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (60249, 60250, 57620, 55022, 57636, 57638, 60488, 65468, 55019);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, 
 `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+(55019, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(65468, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60488, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, '89304, 116695'),
 (57636, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (57638, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2935, 0, 0, 0, ''),
@@ -30,13 +32,15 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 (60249, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Deng
 (60250, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''); -- Cai
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60250, 60249, 54975, 55021, 56393, 56394, 57620, 65467, 55022, 57636, 57638, 60488);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60250, 60249, 54975, 55021, 56393, 56394, 57620, 65467, 55022, 57636, 57638, 60488, 65468, 55019);
 INSERT INTO `creature_template_difficulty` VALUES
+(55019, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30461, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(65468, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59128, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60488, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 21288, 1024, 0, 0, 0, 0, 0, 700, 1500, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57636, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26326, 1610612752, 6, 0, 0, 0, 0, 700, 1500, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57638, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26322, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55022, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30456, 0, 0, 0, 55022, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
-(54975, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30538, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647), 
+(54975, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30538, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), 
 (60249, 0, -3, -3, 1723, 11, 1, 1, 1, 1, 21699, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60250, 0, -3, -3, 1723, 11, 1, 1, 1, 1, 21697, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55021, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30457, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -259,7 +263,7 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (6045700);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(6045700,1,0,'The Wandering Isle - Vision of Young Liang');
+(6045700,0,0,'The Wandering Isle - Vision of Young Liang');
 
 DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6045700);
 INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
@@ -302,8 +306,8 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, 
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (5502200, 5502201);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(5502200,1,0,'The Wandering Isle - Steam Fiend'),
-(5502201,1,0,'The Wandering Isle - Steam Fiend');
+(5502200,0,0,'The Wandering Isle - Steam Fiend'),
+(5502201,0,0,'The Wandering Isle - Steam Fiend');
 
 DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5502200, 5502201);
 INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
