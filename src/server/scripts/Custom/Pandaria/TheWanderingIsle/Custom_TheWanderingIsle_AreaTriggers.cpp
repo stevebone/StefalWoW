@@ -123,8 +123,8 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 player->KilledMonsterCredit(Npcs::credit_the_passion_of_shen_zin_su);
 
-                TempSummon* aysa = player->SummonCreature(Npcs::npc_aysa_q29423, PositionsQ29423::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
-                TempSummon* ji = player->SummonCreature(Npcs::npc_ji_q29423, PositionsQ29423::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* aysa = player->SummonCreature(Npcs::npc_aysa_q29423, Positions::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* ji = player->SummonCreature(Npcs::npc_ji_q29423, Positions::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
 
                 if (!aysa || !ji)
                     return false;
@@ -136,8 +136,8 @@ namespace Scripts::Custom::TheWanderingIsle
             }
             else if (player->GetQuestStatus(Quests::quest_the_passion_of_shen_zin_su) == QUEST_STATUS_COMPLETE)
             {
-                TempSummon* aysa = player->SummonCreature(Npcs::npc_aysa_q29423, PositionsQ29423::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
-                TempSummon* ji = player->SummonCreature(Npcs::npc_ji_q29423, PositionsQ29423::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* aysa = player->SummonCreature(Npcs::npc_aysa_q29423, Positions::aysaSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
+                TempSummon* ji = player->SummonCreature(Npcs::npc_ji_q29423, Positions::jiSpawnPos, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player->GetGUID());
 
                 if (!aysa || !ji)
                     return false;

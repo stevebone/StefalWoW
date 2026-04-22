@@ -113,14 +113,14 @@ namespace Scripts::Custom::TheWanderingIsle
                             me->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
                             me->SetFloating(true);
                             me->SetSpeed(MOVE_RUN, 3.0f);
-                            me->GetMotionMaster()->MovePoint(1, PositionsQ29423::huoFirstPoint, true, { 6.249388f });
+                            me->GetMotionMaster()->MovePoint(1, Positions::huoFirstPoint, true, { 6.249388f });
                         }
                         else
                             _events.RescheduleEvent(Events::event_delivery_huo, 2s);
                         break;
                     }
                     case Events::event_second_huo_position:
-                        me->GetMotionMaster()->MovePoint(2, PositionsQ29423::huoSecondPoint);
+                        me->GetMotionMaster()->MovePoint(2, Positions::huoSecondPoint);
                         break;
                     default:
                         break;
@@ -927,7 +927,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         uint8 randomSlot = urand(0, Misc::BUNNY_SPAWN_MAX_SLOTS - 1);
 
                         // Access the spawn position using zone and slot
-                        Position targetPos = PositionsQ29679::ShuSpawnPositions[jumpPosition][randomSlot];
+                        Position targetPos = Positions::ShuSpawnPositions[jumpPosition][randomSlot];
 
                         // Cast the summoning spell at the chosen location
                         //me->CastSpell(Position(targetPos), SPELL_SUMMON_WATER_SPOUT, true);
@@ -3989,11 +3989,6 @@ namespace Scripts::Custom::TheWanderingIsle
                                     if (me && me->IsAlive())
                                     {
                                         Talk(3, player);
-
-                                        // Show gossip menu after final line
-                                        player->PlayerTalkClass->ClearMenus();
-                                        InitGossipMenuFor(player, Gossip::gossip_pandaren_faction_choice);
-                                        SendGossipMenuFor(player, Gossip::gossip_pandaren_faction_choice, me->GetGUID());
                                     }
                                 }, std::chrono::seconds(45));
                         }

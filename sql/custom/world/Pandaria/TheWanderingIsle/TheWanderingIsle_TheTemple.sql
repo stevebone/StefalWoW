@@ -113,6 +113,10 @@ INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`)
 ('57720', '14670', '47936'),
 ('57721', '14671', '47936');
 
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND `ConditionValue1` = 31450;
+INSERT INTO `conditions` VALUES
+(15, 13726, 0, 0, 0, 47, 0, 31450, 8, 0, '', 0, 0, 0, '', 'Player for which gossip text is shown has quest 31450 in progress');
+
 -- Quest: 29776 morning-breeze-village
 -- Master Shang casts Uplifting draft on the player
 -- Ji spawns on the spire balcony and paths to the village
