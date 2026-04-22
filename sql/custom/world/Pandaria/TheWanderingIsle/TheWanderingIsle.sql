@@ -10,6 +10,7 @@
 -- Phase: 878 Cosmetic - Mandori Village Gate Spawns
 -- Phase: 879 Cosmetic - Pei-Wu Forest Gate Spawns
 -- Phase: 903 Cosmetic Forlorn Hut npcs
+-- Phase: 964 Aysa's vision
 -- Phase: 993 Crashed Ship Cinematic
 -- Phase: 1027 Cosmetic - Fire Spirit Rescued
 -- Phase: 1028 Cosmetic - Water Spirit Rescued
@@ -214,8 +215,12 @@ INSERT INTO `phase_area` VALUES
 (5881, 169, 'The Wandering Isle - Farmstead'),
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+-- The Singing Pools
+(5826, 964, 'The Singing Pools - after quest 29663 complete and before quest 29676 rewarded'),
+-- Liang's Retreat
+(5860, 964, 'Liang''s Retreat - after quest 29663 complete and before quest 29676 rewarded'),
 -- THE WANDERING ISLE
 (5736, 1323, 'The Wandering Isle - before quest 29423 rewarded'),
 (5736, 1324, 'The Wandering Isle - after quest 29423 rewarded and before quest 29679 rewarded'),
@@ -229,8 +234,11 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5820, 1029, 'Temple of Five Dawns - after quest 29776 completed or rewarded - see Earth spirit'),
 (5820, 1030, 'Temple of Five Dawns - after quest 29791 completed or rewarded - see Air spirit');
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
 INSERT INTO `conditions` VALUES
+(26, 964, 0, 0, 0, 28, 0, 29663, 0, 0, '', 0, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29663 complete'), -- phase not updated automatically (added to SAI)
+(26, 964, 0, 0, 1, 8, 0, 29663, 0, 0, '', 0, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29663 rewarded'),
+(26, 964, 0, 0, 1, 8, 0, 29676, 0, 0, '', 1, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29676 not rewarded'),
 -- Spirits Phases
 (26, 1027, 5820, 0, 0, 28, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 complete'),
 (26, 1027, 5820, 0, 1, 8, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 rewarded'),
