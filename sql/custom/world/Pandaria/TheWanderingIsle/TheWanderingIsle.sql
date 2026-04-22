@@ -151,6 +151,8 @@
 -- NPC: 65104 Wugou stationary
 -- NPC: 65107 Huo stationary
 -- NPC: 56012 Elder Shaopai
+-- NPC: 55022 Steam fiend
+-- NPC: 57621 Teamaster Ren
 
 -- GO: 209584 Ancient Clam
 -- GO: 209626 Break Gong
@@ -294,24 +296,6 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55
 
 
 
-
-
--- Creature Templates
-
-UPDATE `creature_template` SET `npcflag`=4289 WHERE `entry`=57620; -- Whittler Dewei
-UPDATE `creature_template` SET `ScriptName`= 'npc_whitefeather_crane', `unit_flags3`=0x4000000 WHERE `entry`=55015; -- Whitefeather Crane
-UPDATE `creature_template` SET `speed_run`=1, `BaseAttackTime`=2000, `unit_flags2`=0x4000800, `unit_flags3`=0x41000000 WHERE `entry`=57636; -- Stack of Reeds
-UPDATE `creature_template` SET `ScriptName`= 'npc_jojo_ironbrow_summon', `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=57638; -- Jojo Ironbrow
-
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry` IN (57620, 55021, 65467, 56394, 56393, 55015, 57638) AND `DifficultyID`=0); -- CanSwim
-UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x20000100, `VerifiedBuild`=65299 WHERE (`Entry`=57636 AND `DifficultyID`=0); -- 57636 (Stack of Reeds) - Sessile, Floating
-
-
-
--- Creature Spawns
-
-
--- Creature Spawns Addons
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451158,451160,451170,451171,451173,451174,451178,451461,451457,451466,451456,451467,451463,451458);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
@@ -475,54 +459,9 @@ INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, 
 
 
 
--- Quest: 29678 Shu The Spirit of Water
-
-
--- Quest: 29679 A new Friend
--- Object required for the pool of reflection
-SET @OGUID := 900000;
-DELETE FROM `gameobject` WHERE `guid` = @OGUID+69;
-INSERT INTO `gameobject` VALUES
-(@OGUID+69, '209585', '860', '5736', '5862', '0', '0', '0', '0', '-1', '1106.2', '2860.34', '92.189', '0.918553', '-0', '-0', '-0.4433', '-0.896374', '300', '255', '1', '', NULL, '0');
-
-UPDATE `creature_template` SET `AIName` = 'SmartAI', `unit_flags` = '33554944', `unit_flags2` = '2048' WHERE (`entry` = '60488');
-UPDATE `creature_template` SET `ScriptName` = 'npc_shu_playing' WHERE (`entry` = '65493');
-
-DELETE FROM `creature_template_addon` WHERE `entry` IN (60488);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55539);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('60488', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '89304 116695'); -- Water Spout Bunny at pool2 -- 85096 or 80797 ????? 
--- UPDATE `creature_template_addon` SET `auras` = '89304 116695' WHERE (`entry` = '60488');
-
--- these flags disable gravity for the bunny so it can stay above water
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '60488') and (`DifficultyID` = '0');
-
-DELETE FROM `creature_addon` WHERE `guid` IN (451090);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('451090', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '89304'); -- Shu at pool2 -- 85096 or 80797 ????? 
--- UPDATE `creature_addon` SET `auras` = '89304' WHERE (`guid` = '451090'); -- not sure if this is correct or one of the above
-
-
-
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60488,6048800); -- 15880 was the original model but not working
-INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
-('60488', '0', '0', '1', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '3', '0', '21072', '0', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '', '0', '0', '0', '0', 'Water Spout - Just Spawned - Morph'),
-('60488', '0', '1', '0', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6048800', '2', '0', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '', '0', '0', '0', '0', 'Water Spout - Just Spawned - Run Script'),
-('6048800', '9', '0', '0', '', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '11', '117057', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Geyser Aura'),
-('6048800', '9', '1', '0', '', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '116696', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Burst'),
-('6048800', '9', '2', '0', '', '0', '0', '100', '0', '0', '0', '3000', '3000', '0', '', '28', '116695', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Remove Aura'),
-('6048800', '9', '3', '0', '', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Despawn');
-
-
-
-
--- Quest: 29680 The Source of Our Livelihood
-UPDATE `creature_template` SET `ScriptName` = 'npc_shu_follower' WHERE `Entry` IN (55213);
-UPDATE `creature_template` SET `movementId` = '65' WHERE (`entry` = '55213');
-
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55213,55539);
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('55213', '5521300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '103245'),
-('55539', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797');
+('55539', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797'); -- Wugou
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451176,451196);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 

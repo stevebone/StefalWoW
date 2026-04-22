@@ -19,15 +19,23 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('54975', '29680', '0');
 
 -- Creature Templates
-DELETE FROM `creature_template_addon` WHERE `entry` IN (60249, 60250, 57620);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (60249, 60250, 57620, 55022, 57636, 57638, 60488);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, 
 `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+(60488, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, '89304, 116695'),
+(57636, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(57638, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2935, 0, 0, 0, ''),
+(55022, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Steam Fiend
 (57620, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Whittler Dewei
 (60249, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Deng
 (60250, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''); -- Cai
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60250, 60249, 54975, 55021, 56393, 56394, 57620, 65467);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60250, 60249, 54975, 55021, 56393, 56394, 57620, 65467, 55022, 57636, 57638, 60488);
 INSERT INTO `creature_template_difficulty` VALUES
+(60488, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 21288, 1024, 0, 0, 0, 0, 0, 700, 1500, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57636, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26326, 1610612752, 6, 0, 0, 0, 0, 700, 1500, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57638, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26322, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55022, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30456, 0, 0, 0, 55022, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (54975, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30538, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647), 
 (60249, 0, -3, -3, 1723, 11, 1, 1, 1, 1, 21699, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60250, 0, -3, -3, 1723, 11, 1, 1, 1, 1, 21697, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -37,9 +45,19 @@ INSERT INTO `creature_template_difficulty` VALUES
 (57620, 0, 0, 0, 80, 4, 1.1, 1, 1, 0.2, 26364, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65467, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59127, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
 
-DELETE FROM `creature_addon` WHERE `guid`=450772;
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(450772, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49414'); -- Aysa Cloudsinger - 49414 - Generic Quest Invisibility 1 - !!! already present in database !!!
+DELETE FROM `creature_addon` WHERE `guid` IN (450772, 451078, 451087, 451049, 451022, 451092, 451042, 451091);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, 
+`meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(451022, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80797'),
+(451049, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '82358'),
+(451092, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '85096'),
+(451042, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49415'),
+(451091, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '60921'),
+(450772, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, '49414'), -- Aysa Cloudsinger - 49414 - Generic Quest Invisibility 1 - !!! already present in database !!!
+(451078, 5502200, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451087, 5502201, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
+
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451078, 451087);
 
 -- Creature Spawns Addons Jojo at the Pools
 -- Unnecessary spawn
@@ -79,6 +97,14 @@ UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_cai', `BaseAttackT
 UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_deng', `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=60249; 
 
 -- Quest: 29662 Stronger Than Reeds
+UPDATE `creature_template` SET `npcflag`=4289 WHERE `entry`=57620; -- Whittler Dewei
+UPDATE `creature_template` SET `ScriptName`= 'npc_whitefeather_crane', `unit_flags3`=0x4000000 WHERE `entry`=55015; -- Whitefeather Crane
+UPDATE `creature_template` SET `speed_run`=1, `BaseAttackTime`=2000, `unit_flags2`=0x4000800, `unit_flags3`=0x41000000 WHERE `entry`=57636; -- Stack of Reeds
+UPDATE `creature_template` SET `ScriptName`= 'npc_jojo_ironbrow_summon', `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=57638; -- Jojo Ironbrow
+
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry` IN (57620, 55021, 65467, 56394, 56393, 55015, 57638) AND `DifficultyID`=0); -- CanSwim
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x20000100, `VerifiedBuild`=65299 WHERE (`Entry`=57636 AND `DifficultyID`=0); -- 57636 (Stack of Reeds) - Sessile, Floating
+
 DELETE FROM `smart_scripts` WHERE `entryorguid`=29662 AND `source_type`=5;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 (29662, 5, 0, 0, '', 50, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 108786, 0, 0, 0, 0, 0, 0, NULL, 7, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'On Quest 29662 Reward - Cast on Player - Summon Stack of Reeds');
@@ -120,51 +146,35 @@ INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseU
 (@CGUID+746, '54993', '860', '5736', '5826', '0', '0', '169', '0', '-1', '0', '0', '1011.65', '3299.14', '116.784', '3.13979', '300', '0', '0', '100', '0', NULL, '262144', NULL, NULL, '', NULL, '0');
 
 -- Quest: 29677 The Sun Pearl 
-
 UPDATE `creature_template` SET `ScriptName` = 'npc_fang_she' WHERE `entry` = 55292;
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 54976; -- Barbed Ray
 
+UPDATE `creature` SET `PhaseId` = 964 WHERE `id` IN (60454, 60457);
+UPDATE `creature` SET `MovementType` = 2 WHERE `id` = 60457;
 DELETE FROM `creature` WHERE `guid` IN ('451096', '451050', '451043'); -- remove duplicate Fang-She as not sure they are for different phases
 UPDATE `creature` SET `wander_distance` = 5 AND `MovementType` = 1 WHERE id IN (54976); -- Barbed Rays should be moving
 UPDATE `gameobject_template` SET `ContentTuningId` = 80 WHERE (`entry` = '209584');
 
-DELETE FROM `smart_scripts` WHERE `entryorguid` = 54976 AND `source_type` = 0;
-INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties,
-    event_type, event_phase_mask, event_chance, event_flags,
-    event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string,
-    action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string,
-    target_type, target_param1, target_param2, target_param3, target_param4, target_param_string,
-    target_x, target_y, target_z, target_o,
-    comment) VALUES 
-('54976', '0', '0', '0', '', '0', '0', '100', '0', '3000', '5000', '6000', '8000', '0', '', '11', '128407', '0', '0', '0', '0', '0', '0', NULL, '2', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Every 6 - 8 seconds (3 - 5s initially) (IC) - Self: Cast spell  128407 on Victim');
-
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 54976; -- Barbed Ray
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE (`entry` = '55022'); -- Steam Fiend
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE (`entry` = '60411'); -- Water Pincer
-DELETE FROM smart_scripts WHERE entryorguid IN (60411) AND source_type = 0;
-INSERT INTO smart_scripts (
-    entryorguid, source_type, id, link,
-    event_type, event_phase_mask, event_chance, event_flags,
-    event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string,
-    action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string,
-    target_type, target_param1, target_param2, target_param3, target_param4, target_param_string,
-    target_x, target_y, target_z, target_o,
-    comment
-) VALUES
-(
-    60411, 0, 0, 0,
-    0, 0, 100, 0,               -- EVENT_TYPE = 0 (In Combat)
-    5000, 7000, 5000, 7000, 0, '',
-    11, 128448, 0, 0, 0, 0, 0, 0, '',   -- ACTION_TYPE = 11 (Cast Spell)
-    2, 0, 0, 0, 0, '',           -- TARGET_TYPE = 2 (Current Target)
-    0, 0, 0, 0,
-    'Water Pincer casts Phlogiston every 5-7 seconds'
-);
+DELETE FROM smart_scripts WHERE entryorguid IN (55022, 60411, 54976) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid,    source_type,    id,    link,    event_type,    event_phase_mask,    event_chance,    event_flags,    event_param1,    event_param2,
+    event_param3,    event_param4,    event_param5,    event_param_string,    action_type,    action_param1,    action_param2,    action_param3,
+    action_param4,    action_param5,    action_param6,    target_type,    target_param1,    target_param2,    target_param3,    target_x,    target_y,
+    target_z,    target_o,    comment) VALUES
+(54976, 0, 0, 0, 0, 0, 100, 0, 3000, 5000, 15000, 20000, 0, '', 11, 128407, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Barbed Ray - Update IC - Cast Poisoned Barb'),
+(60411, 0, 0, 0, 1, 0, 100, 0, 2000, 10000, 8000, 10000, 0, '', 128, 2354, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Water Pincer - Update OOC - Play AnimKit'),
+(60411, 0, 1, 0, 0, 0, 100, 0, 1000, 2000, 5000, 8000, 0, '', 11, 128448, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Water Pincer - Update IC - Cast Phlogiston'),
+(55022, 0, 0, 0, 0, 0, 100, 0, 1000, 2000, 5000, 8000, 0, '', 11, 128408, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Steam Fiend - Update IC - Cast Steam Blast');
 
-UPDATE `creature` SET `PhaseId` = 964 WHERE `id` IN (60454, 60457);
-UPDATE `creature` SET `MovementType` = 2 WHERE `id` = 60457;
-
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55015, 60411, 54976, 55292, 60454, 60457);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55015, 60411, 54976, 55292, 60454, 60457, 57712, 55020, 57621, 65493, 55213);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, 
-`movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+`movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(55213, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '103245'),
+(65493, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '89304'),
+(55020, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
+(57621, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(57712, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60454, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60457, 6045700, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (55015, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -173,8 +183,13 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 (55292, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55015, 60411, 54976, 55292, 60454, 60457);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (57712, 55015, 60411, 54976, 55292, 60454, 60457, 55020, 57621, 65493, 55213);
 INSERT INTO `creature_template_difficulty` VALUES
+(55213, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30184, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(65493, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59162, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57621, 0, 0, 0, 80, 4, 1.1, 1, 1, 0.2, 26363, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55020, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30459, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57712, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26258, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60454, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 21333, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60457, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 21327, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55015, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30467, 1, 0, 0, 55015, 0, 0, 6, 6, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -182,10 +197,39 @@ INSERT INTO `creature_template_difficulty` VALUES
 (54976, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30536, 0, 0, 0, 54976, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55292, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30033, 0, 0, 0, 55292, 0, 1, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
 
+DELETE FROM `npc_vendor` WHERE `entry` IN (57621);
+INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `type`, BonusListIDs, PlayerConditionID, IgnoreFiltering, VerifiedBuild) VALUES
+(57621, 1, 159, 0, 0, 0, 1, '', 0, 0, 64154),
+(57621, 2, 90659, 0, 0, 0, 1, '', 0, 0, 64154),
+(57621, 3, 90660, 0, 0, 0, 1, '', 0, 0, 64154);
+
+-- Quest: 29678 Shu The Spirit of Water
+-- Quest: 29679 A new Friend
+-- Object required for the pool of reflection
+SET @OGUID := 900000;
+DELETE FROM `gameobject` WHERE `guid` = @OGUID+69;
+INSERT INTO `gameobject` VALUES
+(@OGUID+69, '209585', '860', '5736', '5862', '0', '0', '0', '0', '-1', '1106.2', '2860.34', '92.189', '0.918553', '-0', '-0', '-0.4433', '-0.896374', '300', '255', '1', '', NULL, '0');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `unit_flags` = '33554944', `unit_flags2` = '2048' WHERE (`entry` = '60488');
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_playing' WHERE (`entry` = '65493');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60488,6048800); -- 15880 was the original model but not working
+INSERT INTO `smart_scripts` VALUES -- we use model 21072 now taken from wowhead
+('60488', '0', '0', '1', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '3', '0', '21072', '0', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '', '0', '0', '0', '0', 'Water Spout - Just Spawned - Morph'),
+('60488', '0', '1', '0', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6048800', '2', '0', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '', '0', '0', '0', '0', 'Water Spout - Just Spawned - Run Script'),
+('6048800', '9', '0', '0', '', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '11', '117057', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Geyser Aura'),
+('6048800', '9', '1', '0', '', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '116696', '2', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Cast Water Spout Burst'),
+('6048800', '9', '2', '0', '', '0', '0', '100', '0', '0', '0', '3000', '3000', '0', '', '28', '116695', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Remove Aura'),
+('6048800', '9', '3', '0', '', '0', '0', '100', '0', '3000', '3000', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Water Spout - Despawn');
+
+-- Quest: 29680 The Source of Our Livelihood
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_follower', `movementId` = '65' WHERE `Entry` IN (55213);
+
 -- Loot tables
 -- Delete only reference loot items (ItemType = 1) for specific NPCs
 DELETE FROM creature_loot_template 
-WHERE Entry IN (54976, 55292, 60411, 55015) 
+WHERE Entry IN (54976, 55292, 60411, 55015, 55022) 
 AND ItemType = 1;
 
 -- NPC: 54976 Barbed Ray
@@ -208,9 +252,14 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (55015, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
 (55015, 1, 7, 100, 0, 1, 1, 1, 'Bird or Flying beasts');
 
+-- NPC: 55022 Steam Fiend
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(55022, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(55022, 1, 5, 100, 0, 1, 1, 1, 'Elementals');
+
 DELETE FROM `waypoint_path` WHERE `PathId` IN (6045700);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(6045700,0,0,'The Wandering Isle - Vision of Young Liang');
+(6045700,1,0,'The Wandering Isle - Vision of Young Liang');
 
 DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6045700);
 INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
@@ -250,3 +299,45 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, 
 (6045700, 34, 1060.51, 3229.98, 114.141, 0, 0),
 (6045700, 35, 1059.11, 3220.5, 114.141, 0, 0),
 (6045700, 36, 1046.72, 3214.42, 114.141, 0, 0);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5502200, 5502201);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(5502200,1,0,'The Wandering Isle - Steam Fiend'),
+(5502201,1,0,'The Wandering Isle - Steam Fiend');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5502200, 5502201);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ, Orientation,Delay) values
+(5502200, 1, 1026.6, 2822.97, 86.804, 0, 0),
+(5502200, 2, 1022.71, 2816.53, 86.804, 0, 0),
+(5502200, 3, 1023.96, 2808.43, 86.804, 0, 0),
+(5502200, 4, 1031.31, 2801.13, 86.804, 0, 0),
+(5502200, 5, 1045.97, 2803.06, 86.804, 0, 0),
+(5502200, 6, 1050.22, 2813.04, 86.804, 0, 0),
+(5502200, 7, 1043.73, 2826.5, 86.804, 0, 0),
+(5502200, 8, 1037.35, 2839.12, 86.7012, 0, 0),
+(5502200, 9, 1036.79, 2847.12, 86.7012, 0, 0),
+(5502200, 10, 1033.37, 2849.26, 86.7012, 0, 0),
+(5502200, 11, 1030.29, 2847.7, 86.6089, 0, 0),
+(5502200, 12, 1031.24, 2838.71, 86.5804, 0, 0),
+(5502200, 13, 1031.05, 2831.18, 86.804, 0, 0),
+
+(5502201, 1, 1063.24, 2832.5, 86.804, 0, 0),
+(5502201, 2, 1069.09, 2827.64, 86.804, 0, 0),
+(5502201, 3, 1067.5, 2819.89, 86.804, 0, 0),
+(5502201, 4, 1060.08, 2817.84, 86.804, 0, 0),
+(5502201, 5, 1057.32, 2813.42, 86.804, 0, 0),
+(5502201, 6, 1062.02, 2806.99, 86.804, 0, 0),
+(5502201, 7, 1071.04, 2806.3, 86.804, 0, 0),
+(5502201, 8, 1075.71, 2811.96, 86.804, 0, 0),
+(5502201, 9, 1073.54, 2820.33, 86.804, 0, 0),
+(5502201, 10, 1068.88, 2828.41, 86.804, 0, 0),
+(5502201, 11, 1069.03, 2837.51, 86.7012, 0, 0),
+(5502201, 12, 1067.81, 2843.57, 86.7012, 0, 0),
+(5502201, 13, 1064, 2852.58, 86.7012, 0, 0),
+(5502201, 14, 1059.1, 2858.12, 86.7012, 0, 0),
+(5502201, 15, 1051.4, 2856.07, 86.7012, 0, 0),
+(5502201, 16, 1049.15, 2849.44, 86.7012, 0, 0),
+(5502201, 17, 1050.66, 2838.97, 86.7012, 0, 0),
+(5502201, 18, 1055.74, 2834.71, 86.7012, 0, 0);
+
+
