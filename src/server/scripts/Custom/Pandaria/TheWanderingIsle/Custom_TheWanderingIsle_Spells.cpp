@@ -577,16 +577,12 @@ namespace Scripts::Custom::TheWanderingIsle
 
             SpellEffectInfo const& effect = GetSpellInfo()->GetEffect(EFFECT_0);
             uint32 entry = effect.MiscValue;
-            uint32 propertiesId = effect.MiscValueB;
             int32 duration = GetSpellInfo()->GetDuration();
 
-            if (SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(propertiesId))
-            {
-                Position spawnPos = Positions::SummonAggressorSpawn[urand(0, 14)];
-                Creature* summon = caster->SummonCreature(entry, spawnPos, TEMPSUMMON_TIMED_DESPAWN, 5s);
-                if (summon)
-                    summon->SetOwnerGUID(caster->GetGUID());
-            }
+            Position spawnPos = Positions::SummonAggressorSpawn[urand(0, 14)];
+            Creature* summon = caster->SummonCreature(entry, spawnPos, TEMPSUMMON_TIMED_DESPAWN, Milliseconds(duration));
+            if (summon)
+                summon->SetOwnerGUID(caster->GetGUID());
         }
 
         void Register() override
