@@ -14830,7 +14830,9 @@ bool Player::CanRewardQuest(Quest const* quest, LootItemType rewardType, uint32 
 
 void Player::AddQuest(Quest const* quest, Object* questGiver)
 {
-    uint16 log_slot = FindQuestSlot(0);
+    uint16 log_slot = 0;
+    while (GetQuestSlotQuestId(log_slot) && log_slot < MAX_QUEST_LOG_SIZE)
+        ++log_slot;
 
     if (log_slot >= MAX_QUEST_LOG_SIZE) // Player does not have any free slot in the quest log
         return;
@@ -15488,8 +15490,9 @@ bool Player::SatisfyQuestMaxLevel(Quest const* qInfo, bool msg) const
 bool Player::SatisfyQuestLog(bool msg) const
 {
     // exist free slot
-    if (FindQuestSlot(0) < MAX_QUEST_LOG_SIZE)
-        return true;
+    for (uint32 log_slot = 0; log_slot < MAX_QUEST_LOG_SIZE; ++log_slot)
+        if (!GetQuestSlotQuestId(log_slot))
+            return true;
 
     if (msg)
     {
@@ -16454,7 +16457,9 @@ void Player::SetQuestSlot(uint16 slot, uint32 quest_id)
 {
     auto playerData = m_values.ModifyValue(&Player::m_playerData);
     auto questLogField = playerData.ModifyValue(&UF::PlayerData::QuestLog, slot);
-    SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::QuestID), quest_id);
+    auto questLogQuestIdField = questLogField.ModifyValue(&UF::QuestLog::QuestID);
+    uint32 oldQuestId = questLogQuestIdField.GetValue();
+    SetUpdateFieldValue(questLogQuestIdField, quest_id);
     SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::StateFlags), 0);
     SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::EndTime), 0);
     SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::ObjectiveFlags), 0);
@@ -16463,8 +16468,8 @@ void Player::SetQuestSlot(uint16 slot, uint32 quest_id)
 
     if (quest_id)
         SetUpdateFieldValue(playerData.ModifyValue(&UF::PlayerData::QuestLogQuestIdToIndex, quest_id), slot);
-    else
-        RemoveMapUpdateFieldValue(playerData.ModifyValue(&UF::PlayerData::QuestLogQuestIdToIndex), quest_id);
+    if (oldQuestId)
+        RemoveMapUpdateFieldValue(playerData.ModifyValue(&UF::PlayerData::QuestLogQuestIdToIndex), oldQuestId);
 }
 
 void Player::SetQuestSlotCounter(uint16 slot, uint8 counter, uint16 count)
