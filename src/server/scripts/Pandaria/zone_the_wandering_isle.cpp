@@ -1496,7 +1496,6 @@ class spell_flying_shadow_kick : public SpellScript
 // 108897 - Pandaren Faction Choice
 class spell_pandaren_faction_choice : public SpellScript
 {
-
     void HandleScriptEffect(SpellEffIndex /*effIndex*/)
     {
         if (Unit* caster = GetCaster())
