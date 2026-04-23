@@ -1604,9 +1604,15 @@ static CartData GetCartData(uint32 entry)
     return {};
 }
 
+// Spawned Yak Singing Pools 57207
+// Spawned Yak Farmstead 59498
+// Spawned Yak Forbidden Forest 57742
+// Spawned Cart Singing Pools 57208
+// Spawned Cart Farmstead 59496
+// Spawned Cart Forbidden Forest 57740
 struct npc_yak_cart : public ScriptedAI
 {
-    npc_yak_cart(Creature* creature) : ScriptedAI(creature), _passengerGuid(), _data(GetCartData(creature->GetEntry()))
+    npc_yak_cart(Creature* creature) : ScriptedAI(creature), _data(GetCartData(creature->GetEntry()))
     {
         Initialize();
     }
@@ -1628,12 +1634,12 @@ struct npc_yak_cart : public ScriptedAI
 
     void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
     {
-        Player* player = passenger ? passenger->ToPlayer() : nullptr;
-
-        if (!apply || !player || !_data.IsCart)
+        if (!apply || !_data.IsCart)
             return;
 
-        _passengerGuid = player->GetGUID();
+        Player* player = passenger->ToPlayer();
+        if (!player)
+            return;
 
         me->CastSpell(player, Spells::ForceVehicleRide);
 
@@ -1641,7 +1647,7 @@ struct npc_yak_cart : public ScriptedAI
         _events.ScheduleEvent(Events::YakCartRopes, 1s);
 
         if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)
-            player->KilledMonsterCredit(*_data.CreditNPC, _passengerGuid);
+            player->KilledMonsterCredit(*_data.CreditNPC, player->GetGUID());
     }
 
     void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
@@ -1670,7 +1676,6 @@ struct npc_yak_cart : public ScriptedAI
                         me->CastSpell(yak, Spells::OxCartRopeLeft);
                 break;
             case Events::YakCartPathStart:
-                me->LoadPath(_data.PathId);
                 me->GetMotionMaster()->MovePath(_data.PathId, false);
                 break;
             }
@@ -1679,7 +1684,6 @@ struct npc_yak_cart : public ScriptedAI
 
 private:
     EventMap _events;
-    ObjectGuid _passengerGuid;
     CartData _data;
 };
 }
