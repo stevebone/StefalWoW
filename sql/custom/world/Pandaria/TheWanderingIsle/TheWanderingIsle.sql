@@ -46,6 +46,7 @@
 -- NPC: 56730 Fe-Feng Brewthief
 -- NPC: 57205 Fe-Feng Hozen
 -- NPC: 53704 Corsac Fox
+-- NPC: 57797 Corsac Fox
 -- NPC: 57164 Fe-Feng Leaper
 -- NPC: 53714 Training Target
 -- NPC: 55601 Fe-feng Wiseman
@@ -743,18 +744,6 @@ UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' 
 
 
 
--- Misc mobs fixes
--- Remove SmartAI from 54130 since there is scripting in place
-UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` = 54130;
--- Added smart scripts missing for 54131 and 57164
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (54131,57164) AND `source_type` = 0;
-INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('54131', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '8', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - On Respawn - Set React State'),
-('54131', '0', '1', '0', '4', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '0', '0', '0', '0', '0', '0', '11', '56739', '1', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - On Aggro - Despawn Vehicle'),
-('54131', '0', '2', '0', '7', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '2000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - On Evade - Despawn'),
-('54131', '0', '3', '0', '0', '0', '100', '0', '2000', '8000', '4000', '8000', '0', '', '11', '121484', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - IC - Cast Ook\'em'),
-('54131', '0', '4', '0', '0', '0', '50', '0', '5000', '10000', '5000', '10000', '0', '', '11', '115006', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - IC - Cast Hozen Rage'),
-('57164', '0', '0', '0', '4', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '107526', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Leaper - On Aggro - Cast Reckless Leap');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55506);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55506) AND `source_type` = 0;
@@ -794,27 +783,6 @@ UPDATE `creature` SET `zoneId` = '5736', `areaId` = '5881', `wander_distance` = 
 UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (53714); -- no longer having scripts
 
 
-
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (56730,53704,57205,57164,54130);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56730,53704,57205,57164,54130);
-INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('56730', '0', '0', '1', '38', '0', '100', '0', '1', '1', '0', '0', '0', '', '97', '15', '15', '0', '0', '0', '0', '1', '0', '0', '0', '1390.44', '3846', '91.4894', '0', 'Fe-Feng Brewthief - On Data Set - Jump to Pos'),
-('56730', '0', '1', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5673000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - On Data Set - Run Script'),
-('56730', '0', '2', '3', '38', '0', '100', '0', '2', '2', '0', '0', '0', '', '97', '15', '15', '0', '0', '0', '0', '1', '0', '0', '0', '1380.98', '3846.78', '93.4798', '0', 'Fe-Feng Brewthief - Just Spawned - Jump to Pos'),
-('56730', '0', '3', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5673001', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - On Data Set - Run Script'),
-('56730', '0', '4', '5', '58', '0', '100', '0', '5', '5673006', '0', '0', '0', '', '97', '15', '10', '0', '0', '0', '0', '1', '0', '0', '0', '1402.4', '3737.49', '87.1755', '0', 'Fe-Feng Brewthief - On WP Ended - Jump to Pos'),
-('56730', '0', '5', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5673002', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - On WP Ended - Run Script'),
-('56730', '0', '6', '7', '58', '0', '100', '0', '4', '5673004', '0', '0', '0', '', '97', '15', '10', '0', '0', '0', '0', '1', '0', '0', '0', '1401.19', '3736.55', '87.4988', '0', 'Fe-Feng Brewthief - On WP Ended - Jump to Pos'),
-('56730', '0', '7', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5673003', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - On WP Ended - Run Script'),
-('56730', '0', '8', '9', '58', '0', '100', '0', '5', '5673007', '0', '0', '0', '', '97', '15', '15', '0', '0', '0', '0', '1', '0', '0', '0', '1399.77', '3859.49', '100.569', '0', 'Fe-Feng Brewthief - On WP Ended - Jump to Pos'),
-('56730', '0', '9', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '2000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - On WP Ended - Despawn'),
-('56730', '0', '10', '11', '58', '0', '100', '0', '4', '5673005', '0', '0', '0', '', '97', '15', '15', '0', '0', '0', '0', '1', '0', '0', '0', '1380.9', '3863.48', '100.405', '0', 'Fe-Feng Brewthief - On WP Ended - Jump to Pos'),
-('56730', '0', '11', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '2000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - On WP Ended - Despawn'),
-('56730', '0', '12', '0', '0', '0', '100', '0', '3000', '8000', '15000', '20000', '0', '', '11', '109084', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Brewthief - Update IC - Drunken Boxing'),
-('53704', '0', '0', '0', '0', '0', '100', '0', '3000', '8000', '15000', '20000', '0', '', '11', '75533', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Corsac Fox - Update IC - Cast Wily Wits'),
-('57205', '0', '0', '0', '0', '0', '100', '0', '3000', '8000', '15000', '20000', '0', '', '11', '114974', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - Update IC - Impale'),
-('54130', '0', '0', '0', '0', '0', '100', '0', '3000', '8000', '15000', '20000', '0', '', '11', '109081', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Amberleaf Scamp - Update IC - Take This'),
-('57164', '0', '0', '0', '4', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '107526', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Leaper - On Aggro - Cast Reckless Leap');
 
 -- fixing incorrect parameters
 UPDATE `smart_scripts` SET `action_param6` = '0', `target_type` = '1', `target_param1` = '0' WHERE (`entryorguid` = '5673000') and (`source_type` = '9') and (`id` = '1') and (`link` = '0');
@@ -901,40 +869,15 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (108808, 'spell_summon_jojo_ironbrow'),
 (108798, 'spell_jojo_headbash_filter'),
 (104450, 'spell_summon_ji_firepaw_temple'),
--- (108627, 'spell_cart_ropes'),
--- (108691, 'spell_cart_ropes'),
 (118036, 'spell_summon_spirit_of_earth'),
 (104126, 'spell_monkey_wisdom_text'),
 (125699, 'spell_ruk_ruk_ooksplosions'),
 (105333, 'spell_summon_worthy_of_passing');
 
-DELETE FROM `npc_vendor` WHERE `entry`=57620;
-INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES
-(57620, 20, 39505, 0, 0, 1, 0, 0, 64978), -- Набор виртуозного начертателя
-(57620, 19, 20815, 0, 0, 1, 0, 0, 64978), -- Инструменты ювелира
-(57620, 18, 39354, 0, 0, 1, 0, 0, 64978), -- Тонкий пергамент
-(57620, 17, 6260, 0, 0, 1, 0, 0, 64978), -- Синяя краска
-(57620, 16, 2324, 0, 0, 1, 0, 0, 64978), -- Отбеливатель
-(57620, 15, 2604, 0, 0, 1, 0, 0, 64978), -- Красная краска
-(57620, 14, 6529, 0, 0, 1, 0, 0, 64978), -- Блесна
-(57620, 13, 4289, 0, 0, 1, 0, 0, 64978), -- Соль
-(57620, 12, 3371, 0, 0, 1, 0, 0, 64978), -- Хрустальная колба
-(57620, 11, 2880, 0, 0, 1, 0, 0, 64978), -- Слабый плавень
-(57620, 10, 2320, 0, 0, 1, 0, 0, 64978), -- Грубая нить
-(57620, 9, 30817, 0, 0, 1, 0, 0, 64978), -- Простая мука
-(57620, 8, 2678, 0, 0, 1, 0, 0, 64978), -- Пряные травы
-(57620, 7, 6217, 0, 0, 1, 0, 0, 64978), -- Медный жезл
-(57620, 6, 6256, 0, 0, 1, 0, 0, 64978), -- Удочка
-(57620, 5, 5956, 0, 0, 1, 0, 0, 64978), -- Кузнечный молот
-(57620, 4, 85663, 0, 0, 1, 0, 0, 64978), -- Лопата травника
-(57620, 3, 2901, 0, 0, 1, 0, 0, 64978), -- Шахтерская кирка
-(57620, 2, 7005, 0, 0, 1, 0, 0, 64978), -- Нож для снятия шкур
-(57620, 1, 4470, 0, 0, 1, 0, 0, 64978); -- Простая древесина
+
 
 -- Loot Fixes
-UPDATE `creature_template_difficulty` SET `LootID` = '55483', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '55483') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LootID` = '55504', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '55504') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LootID` = '53704' WHERE (`Entry` = '53704') and (`DifficultyID` = '0');
+
 UPDATE `creature_template_difficulty` SET `LootID` = '57164', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '57164') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `LootID` = '57205', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '57205') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `LootID` = '56730', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '56730') and (`DifficultyID` = '0');
