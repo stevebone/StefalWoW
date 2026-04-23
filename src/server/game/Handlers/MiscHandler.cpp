@@ -1238,7 +1238,7 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
     {
         JOIN_HORDE = 0,
         JOIN_ALLIANCE = 1,
-        
+
         SPELL_TRIGGER_FACTION_CHOICE_ALLIANCE = 113244,
         SPELL_TRIGGER_FACTION_CHOICE_HORDE = 113245
     };
