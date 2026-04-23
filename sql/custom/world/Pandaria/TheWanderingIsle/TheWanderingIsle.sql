@@ -218,8 +218,10 @@ INSERT INTO `phase_area` VALUES
 (5881, 169, 'The Wandering Isle - Farmstead'),
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(5849, 631, 'Cosmetic - Huo, Pre-Ignition'),
+(5849, 632, 'Cosmetic - Huo, Post-Ignition'),
 -- The Singing Pools
 (5826, 964, 'The Singing Pools - after quest 29663 complete and before quest 29676 rewarded'),
 -- Liang's Retreat
@@ -235,10 +237,18 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5820, 1027, 'Temple of Five Dawns - after quest 29521 completed or rewarded - see Fire spirit'),
 (5820, 1028, 'Temple of Five Dawns - after quest 29775 completed or rewarded - see Water spirit'),
 (5820, 1029, 'Temple of Five Dawns - after quest 29776 completed or rewarded - see Earth spirit'),
-(5820, 1030, 'Temple of Five Dawns - after quest 29791 completed or rewarded - see Air spirit');
+(5820, 1030, 'Temple of Five Dawns - after quest 29791 completed or rewarded - see Air spirit'),
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327);
+-- Zhao-Ren
+(5736, 1429, 'The Wandering Isle - Zhao-Ren Fly By'), -- Zhaoren fly by
+(5886, 1430, 'The Wandering Isle - Zhao-Ren at Chamber of Whispers - after quest 29776 rewarded and quest 29786 not taken, complete or rewarded');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
 INSERT INTO `conditions` VALUES
+-- Huo quests
+(26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
+(26, 632, 5849, 0, 0, 47, 0, 29422, 66, 0, '', 0, 0, 0, '', 'Allow phase 632 if quest 29422 state completed / rewarded'),
+-- Singing Pools
 (26, 964, 0, 0, 0, 28, 0, 29663, 0, 0, '', 0, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29663 complete'), -- phase not updated automatically (added to SAI)
 (26, 964, 0, 0, 1, 8, 0, 29663, 0, 0, '', 0, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29663 rewarded'),
 (26, 964, 0, 0, 1, 8, 0, 29676, 0, 0, '', 1, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29676 not rewarded'),
@@ -263,7 +273,13 @@ INSERT INTO `conditions` VALUES
 (26, 1326, 5736, 0, 0, 8, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1326 when Quest 29787 not rewarded'),
 (26, 1327, 5736, 0, 0, 9, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 taken'),
 (26, 1327, 5736, 0, 1, 28, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 complete'),
-(26, 1327, 5736, 0, 2, 8, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 rewarded');
+(26, 1327, 5736, 0, 2, 8, 0, 29787, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1327 when Quest 29787 rewarded'),
+
+-- Zhao-Ren phases
+(26, 1429, 0, 0, 0, 47, 0, 29776, 10, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1429 active if 29776 IS in progress or complete'),
+(26, 1430, 0, 0, 0, 8, 0, 29776, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 rewarded'),
+(26, 1430, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 not taken, not complete and not rewarded'); -- should be until quest is available, not taken, not completed and not rewarded - but available doesnt work
+
 
 
 UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
@@ -274,188 +290,8 @@ DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` 
 INSERT INTO `conditions` VALUES
 ('26', '50007', '5881', '0', '0', '47', '0', '29775', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Farmstead - Add phase 50007 if 29775 IS NOT rewarded');
 
--- Quest Templates
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29776, 29662, 29768, 29771, 29423, 29521, 29661, 29663, 29676, 29666, 29677, 29678, 29679,29680, 29769, 29772,29774,29775);
-INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29776', '0', '0', '104396', '29775', '29778', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29776 morning-breeze-village
-
-('29768', '0', '0', '0', '29769', '29772', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29768 Missing Mallet
-('29771', '0', '0', '0', '29769', '29772', '-29768', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29771 Stronger Than Wood
-(29423, 0, 0, 0, 0, 29521, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_29423_the_passion_of_shen_zin_su'), 	-- Quest: 29423 The Passion of Shen-zin Su
-
-('29769', '0', '0', '0', '29680', '29768', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29769 Rascals
-('29772', '0', '0', '0', '29768', '29774', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29772 Raucous Rousing
-('29774', '0', '0', '0', '29772', '29775', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29774 Not In the Face!
-('29775', '0', '0', '0', '29774', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''); -- Quest: 29775 The Spirit and Body of Shen-zin Su
-
-UPDATE `quest_template_addon` SET `ScriptName`= 'quest_29422_huo_the_spirit_of_fire', `NextQuestID`=29423 WHERE `ID` IN (29422);
-
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29776, 29768, 29771);
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('54786', '29776', '0'); -- Quest: 29776 morning-breeze-village
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29768', '0'); -- Quest: 29768 Missing Mallet
-INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55478', '29771', '0'); -- Quest: 29771 Stronger Than Wood
 
 
-
-
-DELETE FROM `creature_addon` WHERE `guid` IN (451158,451160,451170,451171,451173,451174,451178,451461,451457,451466,451456,451467,451463,451458);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-
-('451158', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'), -- farmstead jojo power quest
-('451160', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
-('451170', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
-('451171', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
-('451173', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
-('451174', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
-('451178', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
-
-('451461', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'), -- morning breeze jojo power quest
-('451457', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451466', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451456', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451467', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451463', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451458', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852');
-
-
--- Fixes for Huo, the spirit of fire
-
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x30000100, `VerifiedBuild`=64978 WHERE (`Entry`=54787 AND `DifficultyID` IN (0, 1)) OR (`Entry`=57779 AND `DifficultyID` IN (0, 1)); -- 54787, 57779 (Huo) - Sessile, CanSwim, Floating
-
-UPDATE `creature` SET `PhaseId`= 632 WHERE `guid` IN (450608); 
-UPDATE `creature` SET `PhaseId`= 631, `StringId` = 'Huo_Pre_Ignition' WHERE `guid` IN (450607); 
-
-DELETE FROM `phase_area` WHERE `PhaseId` IN (631, 632);
-INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
-(5849, 631, 'Cosmetic - Huo, Pre-Ignition'),
-(5849, 632, 'Cosmetic - Huo, Post-Ignition');
-
-DELETE FROM `conditions` WHERE (`SourceGroup` IN (631, 632)) AND (`SourceEntry` = 5849);
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
-(26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
-
-(26, 632, 5849, 0, 0, 47, 0, 29422, 66, 0, '', 0, 0, 0, '', 'Allow phase 632 if quest 29422 state completed / rewarded');
-
--- 29423 The Passion of Shen-zin Su
-UPDATE `creature_template` SET `speed_run`=1.714285731315612792, `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `ScriptName`= 'npc_huo_follower' WHERE `entry`=54958; -- Huo
-UPDATE `creature` SET `ScriptName`= 'npc_chia_hui_autumnleaf', `StringId`= 'Chia_Hui_Talk_Event_Starter' WHERE `guid`=450386; 
-UPDATE `creature` SET `StringId`= 'Brewer_Lin_Talk_Event' WHERE `guid`=450387; 
-UPDATE `creature` SET `StringId`= 'Brewer_Zhen_Talk_Event' WHERE `guid`=450385; 
-UPDATE `creature` SET `ScriptName`= 'npc_shanxi_quest', `StringId`= 'ShanXi_Talk' WHERE `guid`=450020; 
-UPDATE `creature` SET `StringId`= 'Huo_Pre_Ignition' WHERE `guid`=450608; 
-
-DELETE FROM `creature_template_addon` WHERE `entry` IN (54958);
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(54958, 0, 0, 0, 3, 0, 1, 0, 0, 0, 3300, 0, 0, '102630'); -- 54958 (Huo) - Благословение Хо
-
-UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x30000000, `VerifiedBuild`=64978 WHERE (`Entry`=54958 AND `DifficultyID` IN (0, 1)); -- 54958 (Huo) - CanSwim, Floating
-UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=61127 AND `DifficultyID` IN (0, 1)); -- 61127 (Ji Firepaw) - CanSwim
-UPDATE `creature_template_difficulty` SET `ContentTuningID`=80, `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=61126 AND `DifficultyID` IN (0, 1)); -- 61126 (Aysa Cloudsinger) - CanSwim
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=57619 AND `DifficultyID`=0); -- 57619 (Cheng Dawnscrive) - CanSwim
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=54786 AND `DifficultyID`=0); -- 54786 (Master Shang Xi) - CanSwim
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000100, `VerifiedBuild`=64978 WHERE (`Entry`=57769 AND `DifficultyID`=0); -- 57769 (Шэнь-Цзынь Су) - Sessile, Floating
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=68986 AND `DifficultyID`=0); -- 68986 (Li the Tamer) - CanSwim
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=66298 AND `DifficultyID`=0); -- 66298 (Green Dragon Turtle) - CanSwim
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000100, `VerifiedBuild`=64978 WHERE (`Entry`=56479 AND `DifficultyID`=0); -- 56479 (Legacy of Liu Lang) - Sessile, Floating
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=57414 AND `DifficultyID`=0); -- 57414 (Temple Guard) - CanSwim
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=65094 AND `DifficultyID`=0); -- 65094 (Priestess of the Dawn) - CanSwim
-
-DELETE FROM `phase_area` WHERE `PhaseId` IN (1323, 1324);
-INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
-(5736, 1323, 'Cosmetic - Central Statue, Pre-Fire'),
-(5736, 1324, 'Cosmetic - Central Statue, Post-Fire');
-
-DELETE FROM `conditions` WHERE (`SourceGroup` IN (1323, 1324)) AND (`SourceEntry` = 5736);
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
-(26, 1323, 5736, 0, 0, 47, 0, 29423, 66, 0, '', 1, 0, 0, '', 'Allow phase 1323 if quest 29423 state not completed / not rewarded'),
-(26, 1324, 5736, 0, 0, 47, 0, 29423, 66, 0, '', 0, 0, 0, '', 'Allow phase 1324 if quest 29423 state completed / rewarded');
-
-
-DELETE FROM `waypoint_path` WHERE `PathId` IN (6112600);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
-(6112600, 0, 1, NULL, '61126 (Aysa Cloudsinger)');
-
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112600);
-INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`) VALUES
-(6112600, 1, 969.36, 3601.2856, 196.06541, NULL),
-(6112600, 2, 966.3715, 3602.764, 196.47968, NULL);
-
-DELETE FROM `waypoint_path` WHERE `PathId` IN (6112700);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
-(6112700, 0, 1, NULL, '61127 (Ji Firepaw)');
-
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112700);
-INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`) VALUES
-(6112700, 1, 971.5566, 3607.8015, 195.71495, NULL),
-(6112700, 2, 966.1493, 3607.0894, 196.51373, NULL);
-
-DELETE FROM `waypoint_path` WHERE `PathId` IN (6112701);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
-(6112701, 0, 2, NULL, '61127 (Ji Firepaw)');
-
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112701);
-INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
-(6112701, 1, 966.149, 3607.09, 196.514, NULL, 0),
-(6112701, 2, 961.61, 3599.57, 196.419, NULL, 0),
-(6112701, 3, 959.528, 3596.13, 196.313, NULL, 0),
-(6112701, 4, 959.424, 3595.96, 196.351, NULL, 0),
-(6112701, 5, 958.788, 3594.9, 196.421, NULL, 0),
-(6112701, 6, 958.449, 3594.34, 196.443, NULL, 0),
-(6112701, 7, 957.81, 3593.28, 196.62, NULL, 0),
-(6112701, 8, 957.277, 3592.96, 196.604, NULL, 0),
-(6112701, 9, 956.45, 3592.46, 196.599, NULL, 0),
-(6112701, 10, 955.639, 3591.97, 195.728, NULL, 0),
-(6112701, 11, 954.285, 3591.15, 195.732, NULL, 0),
-(6112701, 12, 952.979, 3590.36, 195.712, NULL, 0),
-(6112701, 13, 952.261, 3589.92, 196.578, NULL, 0),
-(6112701, 14, 951.009, 3589.16, 196.59, NULL, 0),
-(6112701, 15, 949.507, 3588.25, 196.58, NULL, 0),
-(6112701, 16, 934.264, 3588.82, 196.584, NULL, 0),
-(6112701, 17, 931.479, 3590.6, 196.603, NULL, 0),
-(6112701, 18, 930.757, 3591.06, 195.712, NULL, 0),
-(6112701, 19, 929.668, 3591.75, 195.726, NULL, 0),
-(6112701, 20, 929.493, 3591.86, 195.731, NULL, 0),
-(6112701, 21, 928.146, 3592.72, 195.745, NULL, 0),
-(6112701, 22, 927.337, 3593.23, 196.657, NULL, 0),
-(6112701, 23, 925.967, 3594.1, 196.594, NULL, 0),
-(6112701, 24, 925.661, 3594.3, 196.569, NULL, 0),
-(6112701, 25, 923.749, 3595.65, 196.407, NULL, 0),
-(6112701, 26, 919.881, 3598.4, 196.619, NULL, 0),
-(6112701, 27, 918.112, 3599.65, 196.525, NULL, 0),
-(6112701, 28, 905.293, 3603.47, 193.129, NULL, 0),
-(6112701, 29, 896.877, 3604.32, 193.098, NULL, 0),
-(6112701, 30, 890.26, 3604.66, 192.259, NULL, 0),
-(6112701, 31, 880.778, 3605.35, 192.204, NULL, 0),
-(6112701, 32, 856.174, 3606.66, 173.901, NULL, 0);
-
-DELETE FROM `waypoint_path` WHERE `PathId` IN (6112601);
-INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
-(6112601, 0, 2, NULL, '61126 (Aysa Cloudsinger)');
-
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112601);
-INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
-(6112601, 1, 966.372, 3602.76, 196.48, NULL, 0),
-(6112601, 2, 953.724, 3586.03, 196.605, NULL, 0),
-(6112601, 3, 946.795, 3581.76, 196.423, NULL, 0),
-(6112601, 4, 942.691, 3571.45, 193.022, NULL, 0),
-(6112601, 5, 940.927, 3558.86, 193.421, NULL, 0),
-(6112601, 6, 941.162, 3564.98, 193.024, NULL, 0),
-(6112601, 7, 941.02, 3559.48, 193.035, NULL, 0),
-(6112601, 8, 941.266, 3558.73, 193.41, NULL, 0),
-(6112601, 9, 940.927, 3558.86, 193.421, NULL, 0),
-(6112601, 10, 940.895, 3558.66, 193.421, NULL, 0),
-(6112601, 11, 940.85, 3556.92, 194.077, NULL, 0),
-(6112601, 12, 940.91, 3555.48, 194.04, NULL, 0),
-(6112601, 13, 940.902, 3555.33, 193.579, NULL, 0),
-(6112601, 14, 940.881, 3553.84, 193.611, NULL, 0),
-(6112601, 15, 941.021, 3552.36, 192.716, NULL, 0),
-(6112601, 16, 941.067, 3551.87, 192.735, NULL, 0),
-(6112601, 17, 941.796, 3544.16, 192.725, NULL, 0),
-(6112601, 18, 941.84, 3543.69, 192.839, NULL, 0),
-(6112601, 19, 942.205, 3532.94, 193.716, NULL, 0),
-(6112601, 20, 941.934, 3523.57, 192.076, NULL, 0),
-(6112601, 21, 941.339, 3500.11, 187.679, NULL, 0),
-(6112601, 22, 943.224, 3486.15, 187.695, NULL, 0);
 
 
 
@@ -750,7 +586,6 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55506) AND `source_type` = 0
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 ('55506', '0', '0', '0', '0', '0', '100', '0', '8000', '12000', '35000', '40000', '0', '', '11', '125383', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Raggis - Update IC - Cast Burrow');
 
-UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=64978 WHERE (`Entry`=54131 AND `DifficultyID`=0); -- 54131 (Fe-Feng Hozen) - CanSwim
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57669);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57669,5766900);
@@ -803,12 +638,6 @@ UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '-450305
 UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '34033') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '34103') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '962300') and (`source_type` = '9') and (`id` = '4') and (`link` = '0');
-
--- NPC: 64554 Zhao-Ren <The Onyx Serpent>
--- Area: 8276 Temple Spire spawn Zhao-ren
-DELETE FROM `creature_template_addon` WHERE `entry` IN (64554);
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('64554', '6455400', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '5', '');
 
 -- delete duplicate Zhaoren spawns
 DELETE FROM `creature` WHERE `id` = 64554;
@@ -873,15 +702,6 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (104126, 'spell_monkey_wisdom_text'),
 (125699, 'spell_ruk_ruk_ooksplosions'),
 (105333, 'spell_summon_worthy_of_passing');
-
-
-
--- Loot Fixes
-
-UPDATE `creature_template_difficulty` SET `LootID` = '57164', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '57164') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LootID` = '57205', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '57205') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LootID` = '56730', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '56730') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `LootID` = '54130', `GoldMin` = '7', `GoldMax` = '7' WHERE (`Entry` = '54130') and (`DifficultyID` = '0');
 
 -- The Wandering Isle Carts & Yaks fixes
 -- NPC: 57207 Spawned Yak Singing Pool

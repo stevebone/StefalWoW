@@ -45,8 +45,7 @@
 -- NPC: 55640 Thornbranch Scamp
 -- NPC: 57799 Spawned Thornbranch
 
-
-DELETE FROM `creature_queststarter` WHERE `quest` IN (29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790,29791);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (29776, 29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790,29791);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
 ('55588', '29777', '0'),
 ('55583', '29778', '0'),
@@ -60,7 +59,12 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('55672', '29788', '0'),
 ('55672', '29789', '0'),
 ('55672', '29790', '0'),
+('54786', '29776', '0'), -- Quest: 29776 morning-breeze-village
 (56662, 29791, 0);
+
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29776);
+INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
+('29776', '0', '0', '104396', '29775', '29778', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''); -- Quest: 29776 morning-breeze-village
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29777,29778,29783);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
@@ -93,6 +97,17 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('29789', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29790', '0', '0', '106623', '29788', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791'),
 ('29791', '0', '0', '0', '29790', '29792', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791');
+
+-- Jojo and crowd
+DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+('451461', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'), -- morning breeze jojo power quest
+('451457', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
+('451466', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
+('451456', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
+('451467', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
+('451463', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
+('451458', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852');
 
 -- Scripts for Jojo and monkeys
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57670,65467,56394,56393);
@@ -172,7 +187,7 @@ DELETE FROM `creature_addon` WHERE `guid` IN (451477,451621);
 INSERT INTO `creature_addon` (`guid`, `AnimTier`, `VisFlags`, `SheathState`, `auras`) VALUES ('451477', '2', '1', '1', '78718 121801 81312'); -- NPC: 55595 Aysa at Morning Breeze
 INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`) VALUES ('451621', '8', '1'); -- NPC: 55595 Aysa at ZhaoRen
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527, 1429) OR `AreaId` IN (5736);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527) OR `AreaId` IN (5736);
 INSERT INTO `phase_area` VALUES
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
@@ -184,17 +199,13 @@ INSERT INTO `phase_area` VALUES
 (5832, 536, 'The Wandering Isle - The Wood of Staves'),
 (5859, 1527, 'The Wandering Isle - Path of Elders'),
 (5832, 1527, 'The Wandering Isle - The Wood of Staves'),
-(5736, 1429, 'The Wandering Isle - The Wandering Isle'), -- Zhaoren fly by
 (5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
 (5736, 169, 'The Wandering Isle - The Wandering Isle'); -- Generic phase to show regular mobs during phase changes
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1836, 524, 536, 1527, 1429, 1885);
-  
-  -- Phase 1429: during 29776 -- Zhao-Ren fly by
-INSERT INTO `conditions` VALUES
-(26, 1429, 0, 0, 0, 47, 0, 29776, 10, 0, '', 0, 0, 0, '', 'Phase 1429 active if 29776 IS in progress or complete');
+  AND `SourceGroup` IN (1836, 524, 536, 1527, 1885);
+ 
 
 -- Phase 1836: before 29786
 INSERT INTO `conditions` VALUES

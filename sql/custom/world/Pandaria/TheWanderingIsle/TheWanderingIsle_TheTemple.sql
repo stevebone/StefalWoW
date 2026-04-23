@@ -59,7 +59,8 @@ INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES
 
 UPDATE creature_template SET ScriptName = 'npc_spirit_of_master_shang_xi_q31450' WHERE entry = 56013;
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55944, 57720, 57721, 64593, 56013, 60919, 60918, 60920, 60917, 54786, 57722);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55944, 57720, 57721, 64593, 56013, 60919, 60918, 60920, 60917, 54786, 57722,56479,61126,61127,
+57619,57769,68986,66298,57414,65094,64554);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55944', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'),
 ('60919', '0', '0', '0', '3', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
@@ -67,14 +68,36 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('60920', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('60917', '0', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('54786', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108900 49414 126160'), -- for Shang 1
+(57414, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(57619, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(57769, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, '114825'),
+(65094, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(66298, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(68986, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(56479, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''),
+(61126, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(61127, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(64554, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- Zhao-Ren
 (56013, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 82343), -- Spirit of Master temple
 (57720, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 80797), -- Aysa Temple
 (57721, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 80797), -- Ji Temple
 (57722, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 80797), -- Delora temple
 (64593, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 80797); -- Korga Temple
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (56013,57721,57720,57722,64593);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (56013,57721,57720,57722,64593,56479, 61127,61126, 57619,54786,57769,68986,66298,57414,65094,
+64554);
 INSERT INTO `creature_template_difficulty` VALUES
+(64554, 0, 0, 0, 80, 4, 8, 1, 1, 0.2, 57945, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647), -- Zhao-Ren
+(54786, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30794, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57414, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26463, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57619, 0, 0, 0, 80, 4, 1.1, 1, 1, 0.2, 26366, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57769, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26174, 1610612740, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
+(65094, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58492, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(66298, 0, 0, 0, 58, 4, 1, 1, 1, 0.2, 60192, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 60490),
+(68986, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 63150, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(61126, 0, 0, 0, 80, 4, 1, 1, 1, 1, 20182, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(61127, 0, 0, 0, 80, 4, 1, 1, 1, 1, 20180, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(56479, 0, 0, 0, 80, 4, 1, 1, 1, 1, 27905, 1610612752, 6, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, 64978), -- Liu Kang statue
 (56013, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 28810, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57720, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26245, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57721, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26244, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -178,8 +201,8 @@ INSERT INTO `vehicle_template` VALUES (55685, 0, NULL,0);
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (5568500,5569400);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
-(5568500,1,0,'Uplifting Draft at temple'),
-(5569400,1,0,'Ji Firepaw at temple - to Morning Breeze');
+(5568500,1,0,'The Wandering Isle - Uplifting Draft at temple'),
+(5569400,1,0,'The Wandering Isle - Ji Firepaw towards Morning Breeze');
 
 DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5568500,5569400);
 INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) values
@@ -242,3 +265,89 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ) 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 104489;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `Comment`) VALUES 
 (13, '1', '104489', '0', '0', '51', '0', '5', '55694', '0', '', '0', '0', '0', 'Trigger Ji Air Plateau Departure target Ji Firepaw');
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112600);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112600, 0, 1, NULL, '61126 (Aysa Cloudsinger)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112600);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`) VALUES
+(6112600, 1, 969.36, 3601.2856, 196.06541, NULL),
+(6112600, 2, 966.3715, 3602.764, 196.47968, NULL);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112700);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112700, 0, 1, NULL, '61127 (Ji Firepaw)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112700);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`) VALUES
+(6112700, 1, 971.5566, 3607.8015, 195.71495, NULL),
+(6112700, 2, 966.1493, 3607.0894, 196.51373, NULL);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112701);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112701, 0, 2, NULL, '61127 (Ji Firepaw)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112701);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
+(6112701, 1, 966.149, 3607.09, 196.514, NULL, 0),
+(6112701, 2, 961.61, 3599.57, 196.419, NULL, 0),
+(6112701, 3, 959.528, 3596.13, 196.313, NULL, 0),
+(6112701, 4, 959.424, 3595.96, 196.351, NULL, 0),
+(6112701, 5, 958.788, 3594.9, 196.421, NULL, 0),
+(6112701, 6, 958.449, 3594.34, 196.443, NULL, 0),
+(6112701, 7, 957.81, 3593.28, 196.62, NULL, 0),
+(6112701, 8, 957.277, 3592.96, 196.604, NULL, 0),
+(6112701, 9, 956.45, 3592.46, 196.599, NULL, 0),
+(6112701, 10, 955.639, 3591.97, 195.728, NULL, 0),
+(6112701, 11, 954.285, 3591.15, 195.732, NULL, 0),
+(6112701, 12, 952.979, 3590.36, 195.712, NULL, 0),
+(6112701, 13, 952.261, 3589.92, 196.578, NULL, 0),
+(6112701, 14, 951.009, 3589.16, 196.59, NULL, 0),
+(6112701, 15, 949.507, 3588.25, 196.58, NULL, 0),
+(6112701, 16, 934.264, 3588.82, 196.584, NULL, 0),
+(6112701, 17, 931.479, 3590.6, 196.603, NULL, 0),
+(6112701, 18, 930.757, 3591.06, 195.712, NULL, 0),
+(6112701, 19, 929.668, 3591.75, 195.726, NULL, 0),
+(6112701, 20, 929.493, 3591.86, 195.731, NULL, 0),
+(6112701, 21, 928.146, 3592.72, 195.745, NULL, 0),
+(6112701, 22, 927.337, 3593.23, 196.657, NULL, 0),
+(6112701, 23, 925.967, 3594.1, 196.594, NULL, 0),
+(6112701, 24, 925.661, 3594.3, 196.569, NULL, 0),
+(6112701, 25, 923.749, 3595.65, 196.407, NULL, 0),
+(6112701, 26, 919.881, 3598.4, 196.619, NULL, 0),
+(6112701, 27, 918.112, 3599.65, 196.525, NULL, 0),
+(6112701, 28, 905.293, 3603.47, 193.129, NULL, 0),
+(6112701, 29, 896.877, 3604.32, 193.098, NULL, 0),
+(6112701, 30, 890.26, 3604.66, 192.259, NULL, 0),
+(6112701, 31, 880.778, 3605.35, 192.204, NULL, 0),
+(6112701, 32, 856.174, 3606.66, 173.901, NULL, 0);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6112601);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
+(6112601, 0, 2, NULL, '61126 (Aysa Cloudsinger)');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6112601);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
+(6112601, 1, 966.372, 3602.76, 196.48, NULL, 0),
+(6112601, 2, 953.724, 3586.03, 196.605, NULL, 0),
+(6112601, 3, 946.795, 3581.76, 196.423, NULL, 0),
+(6112601, 4, 942.691, 3571.45, 193.022, NULL, 0),
+(6112601, 5, 940.927, 3558.86, 193.421, NULL, 0),
+(6112601, 6, 941.162, 3564.98, 193.024, NULL, 0),
+(6112601, 7, 941.02, 3559.48, 193.035, NULL, 0),
+(6112601, 8, 941.266, 3558.73, 193.41, NULL, 0),
+(6112601, 9, 940.927, 3558.86, 193.421, NULL, 0),
+(6112601, 10, 940.895, 3558.66, 193.421, NULL, 0),
+(6112601, 11, 940.85, 3556.92, 194.077, NULL, 0),
+(6112601, 12, 940.91, 3555.48, 194.04, NULL, 0),
+(6112601, 13, 940.902, 3555.33, 193.579, NULL, 0),
+(6112601, 14, 940.881, 3553.84, 193.611, NULL, 0),
+(6112601, 15, 941.021, 3552.36, 192.716, NULL, 0),
+(6112601, 16, 941.067, 3551.87, 192.735, NULL, 0),
+(6112601, 17, 941.796, 3544.16, 192.725, NULL, 0),
+(6112601, 18, 941.84, 3543.69, 192.839, NULL, 0),
+(6112601, 19, 942.205, 3532.94, 193.716, NULL, 0),
+(6112601, 20, 941.934, 3523.57, 192.076, NULL, 0),
+(6112601, 21, 941.339, 3500.11, 187.679, NULL, 0),
+(6112601, 22, 943.224, 3486.15, 187.695, NULL, 0);
