@@ -241,7 +241,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 -- Zhao-Ren
 (5736, 1429, 'The Wandering Isle - Zhao-Ren Fly By'), -- Zhaoren fly by
-(5886, 1430, 'The Wandering Isle - Zhao-Ren at Chamber of Whispers - after quest 29776 rewarded and quest 29786 not taken, complete or rewarded');
+(5736, 1430, 'The Wandering Isle - Zhao-Ren at Chamber of Whispers - after quest 29776 rewarded and quest 29786 not taken, complete or rewarded');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
 INSERT INTO `conditions` VALUES
