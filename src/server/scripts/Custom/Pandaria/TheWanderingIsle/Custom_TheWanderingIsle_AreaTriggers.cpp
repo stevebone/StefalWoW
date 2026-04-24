@@ -312,25 +312,19 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (player->IsAlive() && player->IsActiveQuest(Quests::quest_morning_breeze_village))
             {
-                Creature* zhaoSpawn = player->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_zhaoren_flying_temple_spire, .PrivateObjectOwnerGuid = player->GetGUID() });
-                if (zhaoSpawn)
-                    return false;
+                Creature* zhaoSpawn = player->GetMap()->GetCreatureBySpawnId(SpawnIds::zhaoren_flyby);
+                if(!zhaoSpawn)
+                    zhaoSpawn = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, Positions::ZhaoSkySpawn);
 
-                TempSummon* Zhao = player->SummonCreature(Npcs::npc_zhaoren_flying_temple_spire, Positions::ZhaoSkySpawn, TEMPSUMMON_TIMED_DESPAWN, 240s,
-                    0, 0, player->GetGUID());
-                if (Zhao)
+                if (zhaoSpawn)
                 {
-                    Zhao->setActive(true);
-                    Zhao->SetFarVisible(true);
-                    Zhao->SetCanFly(true);
-                    Zhao->StopMoving();
-                    Zhao->GetMotionMaster()->Clear();
-                    Zhao->SetWalk(false);
-                    Zhao->SetSpeed(MOVE_RUN, 7.0f);
-                    Zhao->SetSpeed(MOVE_FLIGHT, 7.0f);
-                    PhasingHandler::AddPhase(Zhao, 1429, true);
-                    Zhao->LoadPath(Paths::path_zhaoren_at_temple);
-                    Zhao->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_temple, false);
+                    zhaoSpawn->setActive(true);
+                    zhaoSpawn->SetFarVisible(true);
+                    zhaoSpawn->SetCanFly(true);
+                    zhaoSpawn->SetWalk(false);
+                    zhaoSpawn->SetSpeed(MOVE_FLIGHT, 11.0f);
+                    zhaoSpawn->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_temple, false);
+                    zhaoSpawn->DespawnOrUnsummon(120s);
                 }
 
                 return true;
