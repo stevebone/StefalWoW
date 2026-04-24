@@ -3988,6 +3988,10 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_SELECT_EQUIPMENT_CACHE_CUSTOMIZATIONS);
+            stmt->setUInt64(0, guid);
+            trans->Append(stmt);
+
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PLAYER_ACCOUNT_DATA);
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
@@ -12046,7 +12050,7 @@ void Player::SetVisibleItemSlot(uint8 slot, Item const* item)
 {
     auto setVisibleItemSlot = [this](uint32 slot, int32 itemId, int32 secondaryItemModifiedAppearanceId, int32 conditionalItemAppearanceId,
         uint16 itemAppearanceModId, uint16 itemVisual, uint32 itemModifiedAppearanceId, TransmogOutfitSlotOption transmogSlotOption,
-        bool hasTransmog, bool hasIllusion)
+        TransmogOutfitSlotOptionSheatheCategory sheatheCategory, bool hasTransmog, bool hasIllusion)
     {
         auto itemField = m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::VisibleItems, slot);
         SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::ItemID), itemId);
@@ -12056,6 +12060,7 @@ void Player::SetVisibleItemSlot(uint8 slot, Item const* item)
         SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::ItemVisual), itemVisual);
         SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::ItemModifiedAppearanceID), itemModifiedAppearanceId);
         SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::TransmogSlotOption), AsUnderlyingType(transmogSlotOption));
+        SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::SheatheCategory), AsUnderlyingType(sheatheCategory));
         SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::HasTransmog), hasTransmog);
         SetUpdateFieldValue(itemField.ModifyValue(&UF::VisibleItem::HasIllusion), hasIllusion);
 
@@ -12078,6 +12083,7 @@ void Player::SetVisibleItemSlot(uint8 slot, Item const* item)
         uint16 itemAppearanceModId = item->GetVisibleAppearanceModId(this);
         uint16 itemVisual = item->GetVisibleItemVisual(this);
         uint32 itemModifiedAppearanceId = item->GetVisibleModifiedAppearanceId(this);
+        TransmogOutfitSlotOptionSheatheCategory sheatheCategory = TransmogOutfitSlotOptionSheatheCategory::Default;
         bool hasTransmog = false;
         bool hasIllusion = false;
 
@@ -12119,6 +12125,7 @@ void Player::SetVisibleItemSlot(uint8 slot, Item const* item)
                             itemId = itemModifiedAppearance->ItemID;
                             itemAppearanceModId = itemModifiedAppearance->ItemAppearanceModifierID;
                             itemModifiedAppearanceId = itemModifiedAppearance->ID;
+                            sheatheCategory = static_cast<TransmogOutfitSlotOptionSheatheCategory>(*transmogOutfitItem.SheatheCategory);
                             hasTransmog = true;
                         }
                     }
@@ -12161,10 +12168,10 @@ void Player::SetVisibleItemSlot(uint8 slot, Item const* item)
         }
 
         setVisibleItemSlot(slot, itemId, secondaryItemModifiedAppearanceId, conditionalItemAppearanceId, itemAppearanceModId,
-            itemVisual, itemModifiedAppearanceId, transmogSlotOption, hasTransmog, hasIllusion);
+            itemVisual, itemModifiedAppearanceId, transmogSlotOption, sheatheCategory, hasTransmog, hasIllusion);
     }
     else
-        setVisibleItemSlot(slot, 0, 0, 0, 0, 0, 0, TransmogOutfitSlotOption::None, false, false);
+        setVisibleItemSlot(slot, 0, 0, 0, 0, 0, 0, TransmogOutfitSlotOption::None, TransmogOutfitSlotOptionSheatheCategory::Default, false, false);
 }
 
 void Player::VisualizeItem(uint8 slot, Item* pItem)
@@ -15046,7 +15053,9 @@ bool Player::CanRewardQuest(Quest const* quest, LootItemType rewardType, uint32 
 
 void Player::AddQuest(Quest const* quest, Object* questGiver)
 {
-    uint16 log_slot = FindQuestSlot(0);
+    uint16 log_slot = 0;
+    while (GetQuestSlotQuestId(log_slot) && log_slot < MAX_QUEST_LOG_SIZE)
+        ++log_slot;
 
     if (log_slot >= MAX_QUEST_LOG_SIZE) // Player does not have any free slot in the quest log
         return;
@@ -15704,8 +15713,9 @@ bool Player::SatisfyQuestMaxLevel(Quest const* qInfo, bool msg) const
 bool Player::SatisfyQuestLog(bool msg) const
 {
     // exist free slot
-    if (FindQuestSlot(0) < MAX_QUEST_LOG_SIZE)
-        return true;
+    for (uint32 log_slot = 0; log_slot < MAX_QUEST_LOG_SIZE; ++log_slot)
+        if (!GetQuestSlotQuestId(log_slot))
+            return true;
 
     if (msg)
     {
@@ -16598,11 +16608,8 @@ void Player::AdjustQuestObjectiveProgress(Quest const* quest)
 
 uint16 Player::FindQuestSlot(uint32 quest_id) const
 {
-    for (uint16 i = 0; i < MAX_QUEST_LOG_SIZE; ++i)
-        if (GetQuestSlotQuestId(i) == quest_id)
-            return i;
-
-    return MAX_QUEST_LOG_SIZE;
+    auto itr = m_QuestStatus.find(quest_id);
+    return itr != m_QuestStatus.end() ? itr->second.Slot : MAX_QUEST_LOG_SIZE;
 }
 
 uint32 Player::GetQuestSlotQuestId(uint16 slot) const
@@ -16671,13 +16678,21 @@ int32 Player::GetQuestObjectiveData(uint32 questId, uint32 objectiveId) const
 
 void Player::SetQuestSlot(uint16 slot, uint32 quest_id)
 {
-    auto questLogField = m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::QuestLog, slot);
-    SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::QuestID), quest_id);
+    auto playerData = m_values.ModifyValue(&Player::m_playerData);
+    auto questLogField = playerData.ModifyValue(&UF::PlayerData::QuestLog, slot);
+    auto questLogQuestIdField = questLogField.ModifyValue(&UF::QuestLog::QuestID);
+    uint32 oldQuestId = questLogQuestIdField.GetValue();
+    SetUpdateFieldValue(questLogQuestIdField, quest_id);
     SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::StateFlags), 0);
     SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::EndTime), 0);
     SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::ObjectiveFlags), 0);
     for (uint32 i = 0; i < MAX_QUEST_COUNTS; ++i)
         SetUpdateFieldValue(questLogField.ModifyValue(&UF::QuestLog::ObjectiveProgress, i), 0);
+
+    if (quest_id)
+        SetUpdateFieldValue(playerData.ModifyValue(&UF::PlayerData::QuestLogQuestIdToIndex, quest_id), slot);
+    if (oldQuestId)
+        RemoveMapUpdateFieldValue(playerData.ModifyValue(&UF::PlayerData::QuestLogQuestIdToIndex), oldQuestId);
 }
 
 void Player::SetQuestSlotCounter(uint16 slot, uint8 counter, uint16 count)
@@ -17970,12 +17985,12 @@ void Player::_LoadTransmogOutfits(PreparedQueryResult setsResult, PreparedQueryR
         } while (situationsResult->NextRow());
     }
 
-    // SELECT transmogOutfitId, slot, slotOption, itemModifiedAppearanceID, appearanceDisplayType, spellItemEnchantmentID, illusionDisplayType, flags FROM character_transmog_outfit_slot guid = ?
+    // SELECT transmogOutfitId, slot, slotOption, sheatheCategory, itemModifiedAppearanceID, appearanceDisplayType, spellItemEnchantmentID, illusionDisplayType, flags FROM character_transmog_outfit_slot guid = ?
     if (slotsResult)
     {
         do
         {
-            DEFINE_FIELD_ACCESSOR_CACHE_ANONYMOUS(PreparedResultSet, (transmogOutfitId)(slot)(slotOption)(itemModifiedAppearanceID)(appearanceDisplayType)
+            DEFINE_FIELD_ACCESSOR_CACHE_ANONYMOUS(PreparedResultSet, (transmogOutfitId)(slot)(slotOption)(sheatheCategory)(itemModifiedAppearanceID)(appearanceDisplayType)
                 (spellItemEnchantmentID)(illusionDisplayType)(flags)) fields { *slotsResult };
 
             uint32 transmogOutfitId = fields.transmogOutfitId().GetUInt32();
@@ -17983,6 +17998,7 @@ void Player::_LoadTransmogOutfits(PreparedQueryResult setsResult, PreparedQueryR
             WorldPackets::Transmogrification::TransmogOutfitSlotData& slot = sets[transmogOutfitId].slots.emplace_back();
             slot.Slot = static_cast<TransmogOutfitSlot>(fields.slot().GetInt8());
             slot.SlotOption = static_cast<TransmogOutfitSlotOption>(fields.slotOption().GetUInt8());
+            slot.SheatheCategory = static_cast<TransmogOutfitSlotOptionSheatheCategory>(fields.sheatheCategory().GetUInt8());
             slot.ItemModifiedAppearanceID = fields.itemModifiedAppearanceID().GetUInt32();
             slot.AppearanceDisplayType = static_cast<TransmogOutfitDisplayType>(fields.appearanceDisplayType().GetUInt8());
             slot.SpellItemEnchantmentID = fields.spellItemEnchantmentID().GetUInt32();
@@ -18011,7 +18027,7 @@ void Player::_LoadTransmogOutfits(PreparedQueryResult setsResult, PreparedQueryR
 
             WorldPackets::Transmogrification::TransmogOutfitDataInfo outfitInfo;
             outfitInfo.SetType = transmogOutfitEntry->GetSetType();
-            outfitInfo.Name = fields.name().GetString();
+            outfitInfo.Name = fields.name().GetStringView();
             outfitInfo.Icon = fields.icon().GetUInt32();
             outfitInfo.SituationsEnabled = fields.situationsEnabled().GetBool();
 
@@ -18042,6 +18058,7 @@ void Player::_LoadTransmogOutfits(PreparedQueryResult setsResult, PreparedQueryR
                 auto slot = transmogOutfit.ModifyValue(&UF::TransmogOutfitData::Slots, slotInfo->SlotIndex);
                 SetUpdateFieldValue(slot.ModifyValue(&UF::TransmogOutfitSlotData::Slot), AsUnderlyingType(slotData.Slot));
                 SetUpdateFieldValue(slot.ModifyValue(&UF::TransmogOutfitSlotData::SlotOption), AsUnderlyingType(slotData.SlotOption));
+                SetUpdateFieldValue(slot.ModifyValue(&UF::TransmogOutfitSlotData::SheatheCategory), AsUnderlyingType(slotData.SheatheCategory));
                 SetUpdateFieldValue(slot.ModifyValue(&UF::TransmogOutfitSlotData::ItemModifiedAppearanceID), slotData.ItemModifiedAppearanceID);
                 SetUpdateFieldValue(slot.ModifyValue(&UF::TransmogOutfitSlotData::AppearanceDisplayType), AsUnderlyingType(slotData.AppearanceDisplayType));
                 SetUpdateFieldValue(slot.ModifyValue(&UF::TransmogOutfitSlotData::SpellItemEnchantmentID), slotData.SpellItemEnchantmentID);
@@ -20820,8 +20837,6 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
         }
         stmt->setString(index++, ss.str());
 
-        stmt->setString(index++, GetCharacterSelectOutfit());
-
         ss.str("");
         for (uint32 i = 0; i < m_activePlayerData->KnownTitles.size(); ++i)
         {
@@ -20967,8 +20982,6 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
         }
         stmt->setString(index++, ss.str());
 
-        stmt->setString(index++, GetCharacterSelectOutfit());
-
         ss.str("");
         for (uint32 i = 0; i < m_activePlayerData->KnownTitles.size(); ++i)
         {
@@ -21037,6 +21050,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     m_questObjectiveCriteriaMgr->SaveToDB(trans);
     _SaveEquipmentSets(trans);
     _SaveTransmogOutfits(trans);
+    _SaveCharacterSelectOutfit(trans);
     GetSession()->SaveTutorialsData(trans);                 // changed only while character in game
     _SaveInstanceTimeRestrictions(trans);
     _SaveCurrency(trans);
@@ -23831,6 +23845,7 @@ bool Player::BuyCurrencyFromVendorSlot(ObjectGuid vendorGuid, uint32 vendorSlot,
         return false;
     }
 
+    uint64 price = 0;
     uint32 stacks = count / crItem->maxcount;
     ItemExtendedCostEntry const* iece;
     if (crItem->ExtendedCost)
@@ -23840,6 +23855,24 @@ bool Player::BuyCurrencyFromVendorSlot(ObjectGuid vendorGuid, uint32 vendorSlot,
         {
             TC_LOG_ERROR("entities.player", "Player::BuyCurrencyFromVendorSlot: Currency {} has wrong ExtendedCost field value {}", currency, crItem->ExtendedCost);
             return false;
+        }
+
+        if (iece->Money)
+        {
+            uint64 maxStacks = MAX_MONEY_AMOUNT / crItem->maxcount;
+            if (uint64(stacks) > maxStacks)
+            {
+                TC_LOG_ERROR("entities.player.cheat", "Player::BuyCurrencyFromVendorSlot: Player '{}' ({}) tried to buy currency (ItemID: {}, Count: {}), causing money overflow",
+                    GetName(), GetGUID(), currency, count);
+                count = uint32(maxStacks * crItem->maxcount);
+                stacks = maxStacks;
+            }
+            price = uint64(iece->Money * count); //it should not exceed MAX_MONEY_AMOUNT
+            if (!HasEnoughMoney(price))
+            {
+                SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, creature, currency, 0);
+                return false;
+            }
         }
 
         for (uint8 i = 0; i < MAX_ITEM_EXT_COST_ITEMS; ++i)
@@ -23911,6 +23944,8 @@ bool Player::BuyCurrencyFromVendorSlot(ObjectGuid vendorGuid, uint32 vendorSlot,
     AddCurrency(currency, count, CurrencyGainSource::Vendor);
     if (iece)
     {
+        ModifyMoney(-int64(price));
+
         for (uint8 i = 0; i < MAX_ITEM_EXT_COST_ITEMS; ++i)
         {
             if (!iece->ItemID[i])
@@ -24023,6 +24058,7 @@ bool Player::BuyItemFromVendorSlot(ObjectGuid vendorguid, uint32 vendorslot, uin
         return false;
     }
 
+    uint64 basePrice = pProto->GetBuyPrice();
     if (crItem->ExtendedCost)
     {
         // Can only buy full stacks for extended cost
@@ -24098,12 +24134,14 @@ bool Player::BuyItemFromVendorSlot(ObjectGuid vendorguid, uint32 vendorslot, uin
             SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, nullptr, nullptr); // Find correct error
             return false;
         }
+
+        basePrice = iece->Money;
     }
 
     uint64 price = 0;
-    if (pProto->GetBuyPrice() > 0) //Assume price cannot be negative (do not know why it is int32)
+    if (basePrice > 0) //Assume price cannot be negative (do not know why it is int32)
     {
-        double buyPricePerItem = double(pProto->GetBuyPrice()) / pProto->GetBuyCount();
+        double buyPricePerItem = double(basePrice) / pProto->GetBuyCount();
         uint64 maxCount = MAX_MONEY_AMOUNT / buyPricePerItem;
         if (uint64(count) > maxCount)
         {
@@ -24115,7 +24153,8 @@ bool Player::BuyItemFromVendorSlot(ObjectGuid vendorguid, uint32 vendorslot, uin
 
         // reputation discount
         price = uint64(floor(price * GetReputationPriceDiscount(creature)));
-        price = pProto->GetBuyPrice() > 0 ? std::max(uint64(1), price) : price;
+        if (basePrice > 0)
+            price = std::max(uint64(1), price);
 
         if (float priceMod = GetTotalAuraModifier(SPELL_AURA_MOD_VENDOR_ITEMS_PRICES))
             price -= CalculatePct(price, priceMod);
@@ -28606,11 +28645,12 @@ void Player::_SaveTransmogOutfits(CharacterDatabaseTransaction trans)
             stmt->setUInt32(1, transmogOutfitId);
             stmt->setInt8(2, *slot.Slot);
             stmt->setUInt8(3, *slot.SlotOption);
-            stmt->setUInt32(4, *slot.ItemModifiedAppearanceID);
-            stmt->setUInt8(5, *slot.AppearanceDisplayType);
-            stmt->setUInt32(6, *slot.SpellItemEnchantmentID);
-            stmt->setUInt8(7, *slot.IllusionDisplayType);
-            stmt->setUInt32(8, *slot.Flags);
+            stmt->setUInt8(4, *slot.SheatheCategory);
+            stmt->setUInt32(5, *slot.ItemModifiedAppearanceID);
+            stmt->setUInt8(6, *slot.AppearanceDisplayType);
+            stmt->setUInt32(7, *slot.SpellItemEnchantmentID);
+            stmt->setUInt8(8, *slot.IllusionDisplayType);
+            stmt->setUInt32(9, *slot.Flags);
             trans->Append(stmt);
         }
     }
@@ -31587,6 +31627,7 @@ void Player::UpdateTransmogOutfitSlots(uint32 id, std::span<WorldPackets::Transm
         auto viewedOutfitSlot = outfit.ModifyValue(&UF::TransmogOutfitData::Slots, outfitSlotIndex);
         SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::Slot), AsUnderlyingType(slot.Slot));
         SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::SlotOption), AsUnderlyingType(slot.SlotOption));
+        SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::SheatheCategory), AsUnderlyingType(slot.SheatheCategory));
         SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::ItemModifiedAppearanceID), slot.ItemModifiedAppearanceID);
         SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::AppearanceDisplayType), AsUnderlyingType(slot.AppearanceDisplayType));
         SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::SpellItemEnchantmentID), slot.SpellItemEnchantmentID);
@@ -31615,6 +31656,7 @@ void Player::EquipTransmogOutfit(uint32 id, TransmogSituationTrigger trigger, Op
         {
             uint32 slotIndex = TransmogMgr::GetSlotAndOption(static_cast<TransmogOutfitSlot>(*slot.Slot), static_cast<TransmogOutfitSlotOption>(*slot.SlotOption))->SlotIndex;
             auto viewedOutfitSlot = viewedOutfit.ModifyValue(&UF::TransmogOutfitData::Slots, slotIndex);
+            SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::SheatheCategory), slot.SheatheCategory);
             if (static_cast<TransmogOutfitDisplayType>(*slot.AppearanceDisplayType) != TransmogOutfitDisplayType::Unassigned)
             {
                 SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::ItemModifiedAppearanceID), slot.ItemModifiedAppearanceID);
@@ -31637,6 +31679,7 @@ void Player::EquipTransmogOutfit(uint32 id, TransmogSituationTrigger trigger, Op
 
             TransmogOutfitSlotOption slotOption = slotInfo.SlotOption ? slotInfo.SlotOption->GetOption() : TransmogOutfitSlotOption::None;
             SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::SlotOption), AsUnderlyingType(slotOption));
+            SetUpdateFieldValue(viewedOutfitSlot.ModifyValue(&UF::TransmogOutfitSlotData::SheatheCategory), AsUnderlyingType(TransmogOutfitSlotOptionSheatheCategory::Default));
 
             if (Item const* item = GetItemByPos(INVENTORY_SLOT_BAG_0, slotInfo.Slot->InventorySlotEnum))
             {
@@ -31673,7 +31716,7 @@ void Player::EquipTransmogOutfit(uint32 id, TransmogSituationTrigger trigger, Op
         SetVisibleItemSlot(equipSlot, GetItemByPos(INVENTORY_SLOT_BAG_0, equipSlot));
 }
 
-std::string Player::GetCharacterSelectOutfit() const
+void Player::_SaveCharacterSelectOutfit(CharacterDatabaseTransaction trans) const
 {
     std::vector<UF::TransmogOutfitData const*> outfits;
     for (auto const& [_, transmogOutfit] : m_activePlayerData->TransmogOutfits)
@@ -31701,7 +31744,13 @@ std::string Player::GetCharacterSelectOutfit() const
         return displayType == TransmogOutfitDisplayType::Assigned || displayType == TransmogOutfitDisplayType::Hidden;
     };
 
-    std::string result;
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_SELECT_EQUIPMENT_CACHE_CUSTOMIZATIONS);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    trans->Append(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_SELECT_EQUIPMENT_CACHE_CUSTOMIZATIONS);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+
     for (EquipmentSlots i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; i = EquipmentSlots(i + 1))
     {
         TransmogOutfitSlotOption transmogSlotOption = TransmogOutfitSlotOption::None;
@@ -31717,6 +31766,15 @@ std::string Player::GetCharacterSelectOutfit() const
                 break;
         }
 
+        uint32 itemId = 0;
+        uint32 visibleItemId = 0;
+        uint8 subClass = 0;
+        InventoryType inventoryType = INVTYPE_NON_EQUIP;
+        int32 displayId = 0;
+        uint16 itemVisual = 0;
+        int32 secondaryItemModifiedAppearanceId = 0;
+        uint8 sheatheCategory = 0;
+
         if (TransmogMgr::TransmogOutfitSlotAndOptionInfo const* slotInfo = TransmogMgr::GetSlotAndOption(i, transmogSlotOption))
         {
             UF::TransmogOutfitSlotData const& transmogOutfitSlot = outfit->Slots[slotInfo->SlotIndex];
@@ -31725,11 +31783,9 @@ std::string Player::GetCharacterSelectOutfit() const
             if (!isTransmogDisplayed(static_cast<TransmogOutfitDisplayType>(*transmogOutfitSlot.AppearanceDisplayType)))
                 itemModifiedAppearanceId = m_playerData->VisibleItems[i].ItemModifiedAppearanceID;
 
-            InventoryType inventoryType = INVTYPE_NON_EQUIP;
-            int32 displayId = 0;
-            uint16 itemVisual = 0;
-            uint8 subClass = 0;
-            uint32 secondaryItemModifiedAppearanceId = 0;
+            if (Item const* item = GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+                itemId = item->GetEntry();
+
             if (ItemModifiedAppearanceEntry const* itemModifiedAppearance = sItemModifiedAppearanceStore.LookupEntry(itemModifiedAppearanceId))
             {
                 TransmogHolidayEntry const* transmogHoliday = sTransmogHolidayStore.LookupEntry(itemModifiedAppearance->ItemID);
@@ -31737,6 +31793,7 @@ std::string Player::GetCharacterSelectOutfit() const
                 {
                     if (ItemEntry const* item = sItemStore.LookupEntry(itemModifiedAppearance->ItemID))
                     {
+                        visibleItemId = item->ID;
                         subClass = item->SubclassID;
                         inventoryType = static_cast<InventoryType>(item->InventoryType);
                     }
@@ -31769,16 +31826,20 @@ std::string Player::GetCharacterSelectOutfit() const
                 }
             }
 
-            Trinity::StringFormatTo(std::back_inserter(result), "{} {} {} {} {} ", inventoryType, displayId, itemVisual, subClass, secondaryItemModifiedAppearanceId);
+            sheatheCategory = transmogOutfitSlot.SheatheCategory;
         }
-        else
-            result += "0 0 0 0 0 "sv;
+
+        stmt->setUInt32(1 + (i * 8) + 0, itemId);
+        stmt->setUInt32(1 + (i * 8) + 1, visibleItemId);
+        stmt->setUInt8(1 + (i * 8) + 2, subClass);
+        stmt->setUInt8(1 + (i * 8) + 3, inventoryType);
+        stmt->setUInt32(1 + (i * 8) + 4, displayId);
+        stmt->setUInt32(1 + (i * 8) + 5, itemVisual);
+        stmt->setInt32(1 + (i * 8) + 6, secondaryItemModifiedAppearanceId);
+        stmt->setUInt8(1 + (i * 8) + 7, sheatheCategory);
     }
 
-    for (uint32 i = EQUIPMENT_SLOT_END; i < REAGENT_BAG_SLOT_END; ++i)
-        result += "0 0 0 0 0 "sv;
-
-    return result;
+    trans->Append(stmt);
 }
 
 void Player::OnPhaseChange()

@@ -147,6 +147,7 @@ ByteBuffer& operator>>(ByteBuffer& data, TransmogOutfitSlotData& transmogOutfitS
 {
     data >> As<int8>(transmogOutfitSlotData.Slot);
     data >> As<uint8>(transmogOutfitSlotData.SlotOption);
+    data >> As<uint8>(transmogOutfitSlotData.SheatheCategory);
     data >> transmogOutfitSlotData.ItemModifiedAppearanceID;
     data >> As<uint8>(transmogOutfitSlotData.AppearanceDisplayType);
     data >> transmogOutfitSlotData.SpellItemEnchantmentID;
@@ -160,6 +161,7 @@ ByteBuffer& operator<<(ByteBuffer& data, TransmogOutfitSlotData const& transmogO
 {
     data << As<int8>(transmogOutfitSlotData.Slot);
     data << As<uint8>(transmogOutfitSlotData.SlotOption);
+    data << As<uint8>(transmogOutfitSlotData.SheatheCategory);
     data << uint32(transmogOutfitSlotData.ItemModifiedAppearanceID);
     data << As<uint8>(transmogOutfitSlotData.AppearanceDisplayType);
     data << uint32(transmogOutfitSlotData.SpellItemEnchantmentID);
