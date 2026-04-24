@@ -18168,29 +18168,38 @@ void Player::SetHomebind(WorldLocation const& loc, uint32 areaId)
 
 void Player::SetDelveData(int32 mapId, int32 spellId, uint64 lootHistoryInstanceId, int32 field10)
 {
-    // DelveData is an OptionalUpdateField with plain struct members.
-    // ModifyValue with dummy 0 constructs the optional if absent and marks it changed.
+    // DelveData is a MapUpdateField<int32, UF::DelveData>, use mapId as the key
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
-        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
-        .ModifyValue(&UF::DelveData::Field_0), mapId);
+        .ModifyValue(&UF::ActivePlayerData::DelveData, mapId)
+        .ModifyValue(&UF::DelveData::MapID), mapId);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
-        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
-        .ModifyValue(&UF::DelveData::Field_8), lootHistoryInstanceId);
+        .ModifyValue(&UF::ActivePlayerData::DelveData, mapId)
+        .ModifyValue(&UF::DelveData::InstanceID), lootHistoryInstanceId);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
-        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
-        .ModifyValue(&UF::DelveData::Field_10), field10);
+        .ModifyValue(&UF::ActivePlayerData::DelveData, mapId)
+        .ModifyValue(&UF::DelveData::EntranceType), field10);
+    // spellId (tier spell ID) maps to Tier field in the new structure
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
-        .ModifyValue(&UF::ActivePlayerData::DelveData, 0)
-        .ModifyValue(&UF::DelveData::SpellID), spellId);
+        .ModifyValue(&UF::ActivePlayerData::DelveData, mapId)
+        .ModifyValue(&UF::DelveData::Tier), spellId);
 }
 
 void Player::ClearDelveData()
 {
-    if (m_activePlayerData->DelveData.has_value())
-    {
-        RemoveOptionalUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData)
-            .ModifyValue(&UF::ActivePlayerData::DelveData));
-    }
+    // DelveData is a MapUpdateField<int32, UF::DelveData>
+    // We need to clear all entries, so iterate through the map and remove each entry
+    auto& delveDataMap = m_activePlayerData->DelveData;
+    
+    // Get all keys and remove them
+    std::vector<int32> keysToRemove;
+    for (auto const& [key, value] : delveDataMap)
+        keysToRemove.push_back(key);
+    
+    auto delveDataField = m_values.ModifyValue(&Player::m_activePlayerData)
+        .ModifyValue(&UF::ActivePlayerData::DelveData);
+    
+    for (int32 key : keysToRemove)
+        RemoveMapUpdateFieldValue(delveDataField, key);
 }
 
 void Player::SendBindPointUpdate() const

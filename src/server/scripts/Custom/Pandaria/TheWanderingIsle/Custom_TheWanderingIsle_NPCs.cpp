@@ -3830,9 +3830,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 uint8 randomSlot = urand(0, 4);
 
-                float x, y, z;
-                me->GetRandomPoint(Positions::ShenzinsuHealerSpots[randomSlot], 3.f, x, y, z);
-                return { x, y, z, 0.f };
+                return me->GetRandomPoint(Positions::ShenzinsuHealerSpots[randomSlot], 3.f);
             }
 
             void MovementInform(uint32 type, uint32 id) override
