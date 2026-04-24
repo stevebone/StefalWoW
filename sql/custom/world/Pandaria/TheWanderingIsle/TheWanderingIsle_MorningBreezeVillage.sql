@@ -246,7 +246,8 @@ UPDATE `creature` SET `PhaseId` = 524 WHERE `guid` IN (451612,451613,451615,4516
 UPDATE `creature` SET `PhaseId` = 536 WHERE `guid` IN (451621, 451622, 451623, 451624, 451485);
 UPDATE `creature` SET `PhaseId` = 1836 WHERE `guid` IN (451498,451501,451610, 451599);
 UPDATE `creature` SET `PhaseId` = '1527' WHERE (`guid` = '451650');
-
+UPDATE `creature` SET `PhaseId` = 1430 WHERE `guid` = 451478; -- Zhao-Ren above Chamber of Whispers
+UPDATE `creature` SET `PhaseId` = 1429, `StringId` = 'npc_zhaoren_flyby' WHERE `guid` = 451413; -- Zhao-Ren Fly-by
 
 UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568);
 UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
