@@ -17,5 +17,4 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_perks_program_vendor' WHERE `
 -- New Silvemoon
 DELETE FROM creature_template WHERE entry=249042;
 INSERT INTO creature_template (entry, KillCredit1, KillCredit2, name, femaleName, subname, TitleAlt, IconName, RequiredExpansion, VignetteID, faction, npcflag, speed_walk, speed_run, scale, Classification, dmgschool, BaseAttackTime, RangeAttackTime, BaseVariance, RangeVariance, unit_class, unit_flags, unit_flags2, unit_flags3, family, trainer_class, type, VehicleId, AIName, MovementType, ExperienceModifier, RacialLeader, movementId, WidgetSetID, WidgetSetUnitConditionID, RegenHealth, CreatureImmunitiesId, flags_extra, ScriptName, StringId, VerifiedBuild) VALUES 
-(249042, 0, 0, 'Zalani', NULL, 'Zen'shiri Trading Post', NULL, NULL, 0, 0, 35, 2251799813685251, 1, 1.14286, 1, 0, 0, 2000, 0, 1, 1, 1, 768, 2048, 0, 0, 0, 7, 0, '', 0, 1, 0, 0, 0, 0, 1, 0, 0, 'npc_perks_program_vendor', NULL, 66562);
-
+(249042, 0, 0, 'Zalani', NULL, 'Zen\'shiri Trading Post', NULL, NULL, 0, 0, 35, 2251799813685251, 1, 1.14286, 1, 0, 0, 2000, 0, 1, 1, 1, 768, 2048, 0, 0, 0, 7, 0, '', 0, 1, 0, 0, 0, 0, 1, 0, 0, 'npc_perks_program_vendor', NULL, 66562);

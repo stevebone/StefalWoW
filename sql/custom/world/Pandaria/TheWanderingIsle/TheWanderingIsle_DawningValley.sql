@@ -16,6 +16,7 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('54131', '0', '3', '0', '0', '0', '100', '0', '2000', '8000', '4000', '8000', '0', '', '11', '121484', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - IC - Cast Ook\'em'),
 ('54131', '0', '4', '0', '0', '0', '50', '0', '5000', '10000', '5000', '10000', '0', '', '11', '115006', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Hozen - IC - Cast Hozen Rage');
 
+UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (53714); -- Training target no longer having scripts
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (56730,53704,57205,57164,54130, 57797);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56730,53704,57205,57164,54130, 57797) AND `source_type` = 0;
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
