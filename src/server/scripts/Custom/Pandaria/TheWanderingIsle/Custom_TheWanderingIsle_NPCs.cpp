@@ -1263,11 +1263,6 @@ namespace Scripts::Custom::TheWanderingIsle
                 if (menuId == Gossip::shu_farmstead_gossip_menu && gossipListId == 0)
                 {
                     CloseGossipMenuFor(player);
-                    //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
-                    //player->CastSpell(player, 105891);
-                    //if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_farmstead, 70.0f))
-                    //    wugou->DespawnOrUnsummon();
-                    //me->DespawnOrUnsummon();
                     player->CastSpell(player, Spells::spell_summon_spirits_water_earth);
                     return true;
                 }
@@ -1351,9 +1346,6 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         if (!_path1Started)
                         {
-                            me->GetMotionMaster()->Clear();
-                            me->StopMoving();
-                            me->LoadPath(Paths::path_shu_farmstead_1);
                             me->GetMotionMaster()->MovePath(Paths::path_shu_farmstead_1, false);
                             _path1Started = true;
                         }
@@ -1388,7 +1380,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 return;
 
                             me->CastSpell(player, Spells::spell_shu_watersplash_credit);
-                            //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_2);
+                            wugou->GetMotionMaster()->Clear();
                             wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
                             wugou->DespawnOrUnsummon(30s);
                             _events.ScheduleEvent(Events::event_shu_farmstead_path_start_2, 5s);

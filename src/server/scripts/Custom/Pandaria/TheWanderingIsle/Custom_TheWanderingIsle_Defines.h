@@ -134,8 +134,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_shu_watersplash = 118027;
         static constexpr uint32 spell_shu_watersplash_wugou = 118034;
         static constexpr uint32 spell_aura_sleep = 42386;
-        static constexpr uint32 spell_aura_invisibility = 80797; // 105889 ??
         static constexpr uint32 spell_summon_spirits_water_earth = 104017;
+        static constexpr uint32 spell_break_gong_credit = 104012;
+        static constexpr uint32 spell_break_gong_sound = 118026;
 
         // Zhao-ren battle
         static constexpr uint32 spell_summon_aysa_outside_chambers = 104593;
@@ -683,6 +684,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 credit_not_in_the_face_2 = 55547;
         static constexpr uint32 npc_wugou_q29774 = 60916;
         static constexpr uint32 npc_wugou_farmstead = 55539;
+        static constexpr uint32 npc_ji_farmstead = 55477;
 
         static constexpr uint32 npc_shu_q29775 = 55558;
         static constexpr uint32 npc_wugou_q29775 = 60916;
@@ -768,6 +770,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 go_spirit_wall = 209922;
         static constexpr uint32 go_forest_door = 210965;
         static constexpr uint32 go_forest_door2 = 210964;
+        static constexpr uint32 go_gong = 209626;
     }
 
     namespace Quests
