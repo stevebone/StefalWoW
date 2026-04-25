@@ -431,7 +431,7 @@ DELETE FROM `creature_addon` WHERE `guid` IN (451049,451022,450772,451092,451042
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 
 ('451022', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'), -- Old Man Liang at his house
-('450772', '0', '0', '0', '1', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'), -- Aysa at the pool
+
 
 ('451092', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'), -- Old Man Liang at the pool2
 ('451091', '0', '0', '0', '1', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'), -- Aysa at the pool2
