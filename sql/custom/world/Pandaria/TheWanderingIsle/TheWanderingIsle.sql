@@ -215,14 +215,6 @@
 -- Quest: 29790 Passing Wisdom
 
 -- Phases
-DELETE FROM `phase_area` WHERE `PhaseId` = 50007;
-DELETE FROM `phase_area` WHERE `PhaseId` = 169 AND `AreaId` = 5881;
-INSERT INTO `phase_area` VALUES
-(5881, 169, 'The Wandering Isle - Farmstead'),
-(5881, 50007, 'The Wandering Isle - Farmstead Ji');
-
-DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 1836, 1527, 631, 632, 878, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
-INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
@@ -373,9 +365,6 @@ INSERT INTO `conditions` VALUES
 
 
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55539);
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('55539', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797'); -- Wugou
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451176,451196);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
@@ -385,12 +374,6 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 
 
 
-
-
-
-UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (55556,55558);
-UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_pool' WHERE `Entry` = 55556;
-UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_play' WHERE `Entry` = 55558;
 
 
 
@@ -424,20 +407,7 @@ INSERT INTO `creature_template_addon`
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
 ('55021', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '82343');
 
--- Fix Visibility for Old Man Liang and Aysa during Singing Pools quests
-UPDATE `creature_template_addon` SET `auras` = '0' WHERE (`entry` = '55020'); 
 
-DELETE FROM `creature_addon` WHERE `guid` IN (451049,451022,450772,451092,451042,451091);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-
-('451022', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797'), -- Old Man Liang at his house
-
-
-('451092', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'), -- Old Man Liang at the pool2
-('451091', '0', '0', '0', '1', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'), -- Aysa at the pool2
-
-('451049', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82358'), -- Old Man Liang at the tower
-('451042', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82358'); -- Aysa at the tower
 
 -- Fix invalid scripts
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
