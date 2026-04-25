@@ -23,11 +23,16 @@ DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13140 AND `GossipOptionID` = 1
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `SpellID`) VALUES 
 ('13140', '18503', '0', '0', 'Shu, can you wake up Wuguo for me?', '54025', '0', '1', 104017);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (64939,55478,57669,55506,56241,55483, 55504,55477,55558,60916);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND `ConditionValue1` = 29774;
+INSERT INTO `conditions` VALUES
+(15, 13140, 0, 0, 0, 47, 0, 29774, 8, 0, '', 0, 0, 0, '', 'Player for which gossip text is shown has quest 29774 in progress');
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55539, 55213, 55556, 64939,55478,57669,55506,56241,55483, 55504,55477,55558,60916);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+(55556, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49414'), -- Shu at farmstead
 (55558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105890'), -- Wugou spawn
 (60916, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105889'), -- Shu spawn
-(55477, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49415'),
+(55477, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
 (55483, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (55504, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (55506, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
@@ -38,11 +43,12 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('55478', '0', '0', '0', '1', '0', '1', '1', '0', '461', '0', '0', '0', '0', '60921'), -- Jojo at farmstead
 ('57669', '5766900', '0', '0', '0', '0', '0', '1', '0', '0', '2935', '0', '0', '0', ''); -- Jojo spawned at farmstead
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (64939,55478,57669,55506,56241,55483, 55504,55477, 55213, 55539, 55558,60916);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55556, 64939,55478,57669,55506,56241,55483, 55504,55477, 55213, 55539, 55558,60916);
 INSERT INTO `creature_template_difficulty` VALUES
+(55556, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29560, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), -- Shu at farmstead
 (55558, 0, 0, 0, 80, 4, 1, 1, 1, 1, 29555, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60916, 0, 0, 0, 80, 4, 1, 1, 1, 1, 20539, 0, 0, 0, 0, 0, 0, 0, 0, 268435712, 0, 0, 0, 0, 0, 0, 0, 56647),
-(55213, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30184, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), -- Shu at Farmstead
+(55213, 0, 0, 0, 80, 4, 1, 1, 1, 1, 30184, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), -- Shu follower
 (55539, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29594, 0, 0, 0, 0, 0, 0, 0, 0, 268435712, 0, 0, 0, 0, 0, 0, 0, 56647), -- Wugou at Farmstead
 (55477, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29691, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), -- Ji at farmstead
 (55483, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29679, 0, 0, 0, 55483, 0, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), -- Plump Virmen
@@ -53,12 +59,22 @@ INSERT INTO `creature_template_difficulty` VALUES
 (57669, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26310, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (64939, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58335, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647); -- Lamplighter Sunny
 
+-- Ji second spawn
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+750);
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, 
+`currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
+(@CGUID+750, 55477, 860, 0, 0, 0, 169, 0, 0, 0, 629.354, 3139.15, 87.837, 0.558505, 120, 5, 0, 1, NULL, NULL, NULL, NULL, 0); -- Ji at farmstead as there are 2 spawns with different invis aura
+
+
 -- Lamp Lighter needs waypoint movement
 UPDATE `creature` SET `zoneId` = '5736', `areaId` = '5881', `wander_distance` = '0', `MovementType` = '2' WHERE (`guid` = '451131');
 
--- Jojo quest crowd
-DELETE FROM `creature_addon` WHERE `guid` IN (451158,451160,451170,451171,451173,451174,451178);
+DELETE FROM `creature_addon` WHERE `guid` IN (451158,451160,451170,451171,451173,451174,451178, 451166, @CGUID+750);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(451166, '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '49415'),
+(@CGUID+750, '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '85096'),
+-- Jojo quest crowd
 ('451158', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'), -- farmstead jojo power quest
 ('451160', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
 ('451170', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
@@ -138,6 +154,9 @@ WHERE SourceTypeOrReferenceId = 22
 INSERT INTO `conditions` (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, COMMENT
 ) VALUES
 (22, 5, 55477, 0, 0, 9, 0, 29774, 0, 0, 1, 'Ji: run SAI only if quest 29774 is NOT taken');
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_pool', `AIName` = '' WHERE `Entry` = 55556;
+UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_play', `AIName` = '' WHERE `Entry` = 55558;
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55539,55556,55558);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55539,55556,55558,5555800) AND `source_type` IN (0,9);
