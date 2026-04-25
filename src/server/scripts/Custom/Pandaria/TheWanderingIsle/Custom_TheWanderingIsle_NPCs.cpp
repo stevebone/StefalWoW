@@ -629,12 +629,15 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                     case Events::event_cast_throw_rock:
                     {
-                        if (victim && !me->IsWithinMeleeRange(victim))
+                        if (victim && !me->IsWithinMeleeRange(victim) && !me->HasUnitState(UNIT_STATE_CASTING))
                             DoCast(victim, Spells::spell_throw_rock);
+
+                        _events.ScheduleEvent(Events::event_cast_throw_rock, 2500ms);
+                        break;
                     }
-                    _events.ScheduleEvent(Events::event_cast_throw_rock, 2500ms);
-                    break;
+                    
                     case Events::event_monk_switch_pole:
+                    {
                         if (!me->IsInCombat())
                         {
                             SwitchPole();
@@ -642,8 +645,9 @@ namespace Scripts::Custom::TheWanderingIsle
                         }
                         break;
                     }
+                    }
                 }
-                AttackStart(victim);
+                me->DoMeleeAttackIfReady();
             }
 
         private:
