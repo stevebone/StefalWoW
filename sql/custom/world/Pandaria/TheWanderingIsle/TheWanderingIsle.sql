@@ -360,36 +360,6 @@ INSERT INTO `conditions` VALUES
 (26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
 
 
-DELETE FROM `creature_addon` WHERE `guid` IN (451176,451196);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('451176', '0', '0', '0', '3', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797 42386'), -- Wugou at Farmstead
-('451196', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797'); -- Shu at Farmstead
--- ('451166', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '80797'); -- Ji at Farmstead
-
-
-
-
-
-
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55556,55558,5555800) AND `source_type` = 0;
--- Removed spell from object as i can't get it to work
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (209626) AND `source_type` = 1;
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_chance`, `event_param1`, `action_type`, `action_param1`, `action_param2`, `target_type`, `target_param1`, `target_param2`, `comment`) VALUES 
-('209626', '1', '0', '1', '70', '100', '2', '134', '118026', 0, '7', 0,0,'On Use Break Gong - Cast Gong Song'),
-('209626', '1', '1', '2', '61', '100', '0', '45', '1', 1, '11', 55539, 20, 'Break Gong - Set Data Wugou'),
-('209626', '1', '2', '0', '61', '100', '0', '45', '2', 2, '11', 55477, 20, 'Break Gong - Set Data Ji');
-
-
-
-
-UPDATE `gameobject_template` SET `AIName` = 'SmartGameObjectAI', `Data1` = '29772', `Data10` = '0' WHERE `Entry` = 209626; -- Data10 was 104012
-
-
-
-
-
-
-
 -- Quest: 29775 The Spirit and Body of Shen-zin Su
 -- UPDATE `creature_template` SET `ScriptName` = 'npc_shu_wugou_follower' WHERE `Entry` IN (55558,60916);
 UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (55558,60916);
@@ -475,7 +445,7 @@ INSERT INTO `areatrigger_scripts` VALUES
 -- Spell Scripts
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589, 117033,117034,117035,117036, 103069,103077,103070, 116190, 116191, 128700, 109178, 
-102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699, 105333);
+102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699, 105333, 104012);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 ('128588', 'spell_aysa_congrats_trigger_aura'),
 ('128589', 'spell_aysa_congrats_timer'),

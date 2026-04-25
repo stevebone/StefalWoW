@@ -27,13 +27,21 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 ('13140', '18503', '0', '0', 'Shu, can you wake up Wuguo for me?', '54025', '0', '1', 104017);
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND `ConditionValue1` = 29774;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (118030, 118033, 108830, 108831,104017,118036,118027);
 INSERT INTO `conditions` VALUES
-(15, 13140, 0, 0, 0, 47, 0, 29774, 8, 0, '', 0, 0, 0, '', 'Player for which gossip text is shown has quest 29774 in progress');
+(15, 13140, 0, 0, 0, 47, 0, 29774, 8, 0, '', 0, 0, 0, '', 'Player for which gossip text is shown has quest 29774 in progress'),
+(13, 1, 118030, 0, 1, 51, 0, 6, 0, 0, '', 0, 0, 0, '', 'Water Spout Burst target player'),
+(13, 1, 118033, 0, 0, 51, 0, 5, 55556, 0, '', 0, 0, 0, '', 'Water Spout Laugh Trigger target Shu'),
+(13, 1, 108830, 0, 0, 51, 0, 5, 55478, 0, '', 0, 0, 0, '', 'Summon Jojo Ironbrow target Jojo Ironbrow'),
+(13, 1, 108831, 0, 0, 51, 0, 5, 57667, 0, '', 0, 0, 0, '', 'Jojo Headbash, Stack of Planks Impact target Stack of Planks'),
+(13, 1, 104017, 0, 0, 51, 0, 5, 55556, 0, '', 0, 0, 0, '', 'Summon Spirit of Water target Shu'),
+(13, 1, 118036, 0, 0, 51, 0, 5, 55539, 0, '', 0, 0, 0, '', 'Summon Spirit of Earth target Wugou'),
+(13, 1, 118027, 0, 0, 51, 0, 5, 60916, 0, '', 0, 0, 0, '', 'Shu''s Water Splash target Wugou');
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (65473,55539, 55213, 55556, 64939,55478,57669,55506,56241,55483, 55504,55477,55558,60916);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 (55556, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49414'), -- Shu at farmstead
-(55558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105890'), -- Wugou spawn
+(55558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105890 42386'), -- Wugou spawn
 (60916, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105889'), -- Shu spawn
 (55477, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
 (55483, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
@@ -188,6 +196,14 @@ INSERT INTO `conditions` (SourceTypeOrReferenceId, SourceGroup, SourceEntry, Sou
 ) VALUES
 (22, 2, -900750, 0, 0, 29, 1, 55539, 5, 0, 0, 'Second Ji: run SAI only Wugou is around');
 
+-- Gong spell conditions
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=104012;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 2, 104012, 0, 0, 51, 0, 5, 55539, 0, '', 0, 0, 0, '', 'Break Gong Credit target Wugou'),
+(13, 4, 104012, 0, 1, 51, 0, 5, 55477, 0, '', 0, 0, 0, '', 'Break Gong Credit target Ji Firepaw'),
+(13, 8, 104012, 0, 2, 51, 0, 8, 209626, 0, '', 0, 0, 0, '', 'Break Gong Credit target Break Gong');
+
+UPDATE `gameobject_template` SET `ScriptName` = 'go_209626_gong', `Data1` = '29772', `Data10` = '0' WHERE `Entry` = 209626; -- Data10 was 104012
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_pool', `AIName` = '' WHERE `Entry` = 55556;
 UPDATE `creature_template` SET `ScriptName` = 'npc_shu_at_farmstead_play', `AIName` = '' WHERE `Entry` = 55558;
