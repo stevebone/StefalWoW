@@ -64,6 +64,52 @@ namespace Scripts::Custom::TheWanderingIsle
             return new go_210965_interactAI(go);
         }
     };
+
+    // GO 209626 - Gong
+    class go_209626_gong : public GameObjectScript
+    {
+    public:
+        go_209626_gong() : GameObjectScript("go_209626_gong") { }
+
+        struct go_209626_gongAI : public GameObjectAI
+        {
+            go_209626_gongAI(GameObject* go) : GameObjectAI(go) { }
+
+            void Reset() override
+            {
+            }
+
+            bool OnReportUse(Player* player) override
+            {
+                if (!player)
+                    return false;
+
+                Creature* wugou = player->FindNearestCreature(Npcs::npc_wugou_farmstead, 20.0f);
+                Creature* ji = player->FindNearestCreature(Npcs::npc_ji_farmstead, 30.0f);
+
+                if (ji && wugou)
+                {
+                    CastSpellExtraArgs args(TRIGGERED_IGNORE_TARGET_CHECK | TRIGGERED_CAST_DIRECTLY | TRIGGERED_IS_TRIGGERED_MASK);
+
+                    player->CastSpell(me, Spells::spell_break_gong_credit, args);
+                    player->CastSpell(me, Spells::spell_break_gong_sound, true);
+
+                    wugou->AI()->SetData(1, 1);
+
+                    ji->AI()->SetData(2, 2);
+
+                    return true;
+                }
+
+                return false;
+            }
+        };
+
+        GameObjectAI* GetAI(GameObject* go) const override
+        {
+            return new go_209626_gongAI(go);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_objects()
@@ -71,4 +117,5 @@ void AddSC_custom_the_wandering_isle_objects()
     using namespace Scripts::Custom::TheWanderingIsle;
 
     new go_210965_forest_door();
+    new go_209626_gong();
 }
