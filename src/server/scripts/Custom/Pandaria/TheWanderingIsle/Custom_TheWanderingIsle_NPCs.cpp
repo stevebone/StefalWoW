@@ -962,59 +962,95 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    class npc_ox_cart : public CreatureScript
+    struct CartData
+    {
+        uint32 Entry = 0;
+        uint32 PathId = 0;
+        bool IsCart = false;
+        Optional<uint8> EjectNodeId;
+        Optional<uint32> CreditNPC;
+        Optional<uint32> QuestId;
+        Optional<uint32> YakNPC;
+    };
+
+    static constexpr CartData CartDataTable[] =
+    {
+        // Yaks
+        {
+            .Entry = Npcs::npc_vehicle_ox,
+            .PathId = Paths::path_ox,
+            .IsCart = false
+        },
+        {
+            .Entry = Npcs::npc_vehicle_ox_farmstead,
+            .PathId = Paths::path_ox_farmstead,
+            .IsCart = false
+        },
+        {
+            .Entry = Npcs::npc_vehicle_ox_forest,
+            .PathId = Paths::path_ox_forest,
+            .IsCart = false
+        },
+
+        // Carts
+        {
+            .Entry = Npcs::npc_vehicle_cart,
+            .PathId = Paths::path_cart,
+            .IsCart = true,
+            .EjectNodeId = Paths::path_node_cart_remove_passenger,
+            .CreditNPC = Npcs::npc_cart,
+            .QuestId = Quests::quest_the_source_of_livelihood,
+            .YakNPC = Npcs::npc_vehicle_ox
+        },
+        {
+            .Entry = Npcs::npc_vehicle_cart_farmstead,
+            .PathId = Paths::path_cart_farmstead,
+            .IsCart = true,
+            .EjectNodeId = Paths::path_node_cart_remove_passenger,
+            .CreditNPC = Npcs::npc_cart_farmstead,
+            .QuestId = Quests::quest_the_spirit_and_body_of_shenzinsu,
+            .YakNPC = Npcs::npc_vehicle_ox_farmstead
+        },
+        {
+            .Entry = Npcs::npc_vehicle_cart_forest,
+            .PathId = Paths::path_cart_forest,
+            .IsCart = true,
+            .EjectNodeId = Paths::path_node_cart_forest_remove_passenger,
+            .CreditNPC = Npcs::npc_cart_forest,
+            .QuestId = Quests::quest_new_allies,
+            .YakNPC = Npcs::npc_vehicle_ox_forest
+        }
+    };
+
+    static CartData GetCartData(uint32 entry)
+    {
+        for (CartData const& data : CartDataTable)
+            if (data.Entry == entry)
+                return data;
+
+        return {};
+    }
+
+    // Spawned Yak Singing Pools 57207
+    // Spawned Yak Farmstead 59498
+    // Spawned Yak Forbidden Forest 57742
+    // Spawned Cart Singing Pools 57208
+    // Spawned Cart Farmstead 59496
+    // Spawned Cart Forbidden Forest 57740
+    class npc_yak_cart : public CreatureScript
     {
     public:
-        npc_ox_cart() : CreatureScript("npc_ox_cart") { }
+        npc_yak_cart() : CreatureScript("npc_yak_cart") { }
 
-        struct npc_ox_cartAI : public ScriptedAI
+        struct npc_yak_cartAI : public ScriptedAI
         {
-            npc_ox_cartAI(Creature* creature) : ScriptedAI(creature), _passengerGuid()
+            npc_yak_cartAI(Creature* creature) : ScriptedAI(creature), _data(GetCartData(creature->GetEntry()))
             {
                 Initialize();
             }
 
             void Initialize()
             {
-                switch (me->GetEntry())
-                {
-                case Npcs::npc_vehicle_ox:
-                    _pathId = Paths::path_ox;
-                    break;
-                case Npcs::npc_vehicle_ox_farmstead:
-                    _pathId = Paths::path_ox_farmstead;
-                    break;
-                case Npcs::npc_vehicle_ox_forest:
-                    _pathId = Paths::path_ox_forest;
-                    break;
-                case Npcs::npc_vehicle_cart:
-                    _isCart = true;
-                    _pathId = Paths::path_cart;
-                    _ejectNodeId = Paths::path_node_cart_remove_passenger;
-                    _creditNPC = Npcs::npc_cart;
-                    _questId = Quests::quest_the_source_of_livelihood;
-                    _yakNPC = Npcs::npc_vehicle_ox;
-                    break;
-                case Npcs::npc_vehicle_cart_farmstead:
-                    _isCart = true;
-                    _pathId = Paths::path_cart_farmstead;
-                    _ejectNodeId = Paths::path_node_cart_remove_passenger;
-                    _creditNPC = Npcs::npc_cart_farmstead;
-                    _questId = Quests::quest_the_spirit_and_body_of_shenzinsu;
-                    _yakNPC = Npcs::npc_vehicle_ox_farmstead;
-                    break;
-                case Npcs::npc_vehicle_cart_forest:
-                    _isCart = true;
-                    _pathId = Paths::path_cart_forest;
-                    _ejectNodeId = Paths::path_node_cart_forest_remove_passenger;
-                    _creditNPC = Npcs::npc_cart_forest;
-                    _questId = Quests::quest_new_allies;
-                    _yakNPC = Npcs::npc_vehicle_ox_forest;
-                    break;
-                default:
-                    break;
-                }
-
                 me->SetPrivateObjectOwner(ObjectGuid::Empty); // Needed otherwise FindCreature does not work
                 me->SetReactState(REACT_PASSIVE);
             }
@@ -1024,38 +1060,31 @@ namespace Scripts::Custom::TheWanderingIsle
                 _events.Reset();
                 Initialize();
 
-                if(!_isCart)
-                    _events.ScheduleEvent(Events::event_ox_cart_path_start, 1400ms); // Delay
-            }
-
-            void IsSummonedBy(WorldObject* /*summoner*/) override
-            {
-                //me->ToTempSummon()->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
+                if (!_data.IsCart)
+                    _events.ScheduleEvent(Events::event_ox_cart_path_start, 1400ms); // Only yaks start moving on reset
             }
 
             void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
             {
+                if (!apply || !_data.IsCart)
+                    return;
+
                 Player* player = passenger->ToPlayer();
-                if (apply && player)
-                {
-                    if (_isCart)
-                    {
-                        _passengerGuid = player->GetGUID(); // Store for later use (e.g., for eject)
-                        me->CastSpell(player, Spells::spell_force_vehicle_ride);
-                        _events.ScheduleEvent(Events::event_ox_cart_path_start, 1800ms); // Delay
+                if (!player)
+                    return;
 
-                        if (player->hasQuest(_questId))
-                            player->KilledMonsterCredit(_creditNPC, _passengerGuid);
+                me->CastSpell(player, Spells::spell_force_vehicle_ride);
 
-                        // Rope spells are currently broken and need fixing :(
-                        //_events.ScheduleEvent(Events::event_ox_cart_ropes, 1s);
-                    }
-                }
+                _events.ScheduleEvent(Events::event_ox_cart_path_start, 1800ms);
+                _events.ScheduleEvent(Events::event_ox_cart_ropes, 1s);
+
+                if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)
+                    player->KilledMonsterCredit(*_data.CreditNPC, player->GetGUID());
             }
 
             void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
-                if (_isCart && nodeId == _ejectNodeId)
+                if (_data.IsCart && _data.EjectNodeId && nodeId == *_data.EjectNodeId)
                     me->CastSpell(me, Spells::spell_eject_passengers);
             }
 
@@ -1073,41 +1102,26 @@ namespace Scripts::Custom::TheWanderingIsle
                     switch (eventId)
                     {
                     case Events::event_ox_cart_ropes:
-                    {
-                        Unit* yak = me->FindNearestCreatureWithOptions(10.f, { .CreatureId = _yakNPC, .IgnorePhases = true } );
-                        if (yak)
-                        {
-                            me->CastSpell(yak, Spells::spell_rope_left);
-                            yak->CastSpell(me, Spells::spell_rope_right);
-                        }
+                        if (_data.YakNPC)
+                            if (Unit* yak = me->FindNearestCreatureWithOptions(10.f,
+                                { .CreatureId = *_data.YakNPC, .IgnorePhases = true }))
+                                me->CastSpell(yak, Spells::spell_rope_left);
                         break;
-                    }
-
                     case Events::event_ox_cart_path_start:
-                        me->LoadPath(_pathId);
-                        me->GetMotionMaster()->MovePath(_pathId, false);
-                        break;
-                    default:
+                        me->GetMotionMaster()->MovePath(_data.PathId, false);
                         break;
                     }
-
                 }
             }
 
         private:
             EventMap _events;
-            ObjectGuid _passengerGuid;
-            uint32 _creditNPC = 0;
-            uint32 _yakNPC = 0;
-            uint32 _questId = 0;
-            uint32 _pathId = 0;
-            uint8 _ejectNodeId = 0;
-            bool _isCart = false;
+            CartData _data;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
         {
-            return new npc_ox_cartAI(creature);
+            return new npc_yak_cartAI(creature);
         }
     };
 
@@ -4035,7 +4049,7 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_balance_pole();
     new npc_fang_she();
     new npc_shu_playing();
-    new npc_ox_cart();
+    new npc_yak_cart();
     new npc_shu_follower();
     new npc_shu_at_farmstead_pool();
     new npc_shu_at_farmstead_play();
