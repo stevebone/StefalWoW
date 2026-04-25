@@ -11,15 +11,6 @@
 -- NPC: 59962 Aysa at the Gate
 -- NPC: 59963 Jojo at the Gate
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (878);
-INSERT INTO `phase_area` VALUES
-(5736, 878, 'The Wandering Isle - The Wandering Isle'); -- Mandori Village
-
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
-INSERT INTO `conditions` VALUES
-('26', '878', '0', '0', '0', '47', '0', '29792', '10', '0', '', '0', '0', '0', '', 'The Wandering Isle Mandori Village - Add phase 878 if 29792 IS in progress'),
-('26', '878', '0', '0', '0', '47', '0', '29792', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Mandori Village - Add phase 878 if 29792 IS NOT rewarded');
-
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_mandori_village' WHERE `entry` = 59962;
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (57622, 65052, 56012, 55943, 65053, 65050, 65049, 65047,65073, 65087, 59960, 59963, 59962);

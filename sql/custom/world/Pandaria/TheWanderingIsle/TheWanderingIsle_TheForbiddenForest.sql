@@ -120,30 +120,6 @@ INSERT INTO `world_state` (`ID`, `DefaultValue`, `MapIDs`, `AreaIDs`, `Comment`)
 ('6488', '0', '860', '5833', 'The Wandering Isle - Healing Shen-zin Su healers active'),
 ('6489', '1', '860', '5833', 'The Wandering Isle - Healing Shen-zin Su healers enabled');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545);
-INSERT INTO `phase_area` VALUES
-(5736, 543, 'The Wandering Isle - Vordraka boss fight'),
-(5736, 544, 'The Wandering Isle - Before healing Shenzinsu'),
-(5736, 545, 'The Wandering Isle - After healing Shenzinsu'),
-(5736, 903, 'The Wandering Isle - The Wandering Isle'), -- Forlorn Hut see Ji until quest reward 30589
-(5736, 993, 'The Wandering Isle - After Vordraka boss fight'),
-(5736, 1835, 'The Wandering Isle - The Wandering Isle'); -- See Ji at Makael Bay
-
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (543, 903, 993, 1835, 545, 544);
-INSERT INTO `conditions` VALUES
-('26', '543', '0', '0', '0', '47', '0', '29665', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29665 IS rewarded'),
-('26', '543', '0', '0', '0', '47', '0', '29798', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29798 IS NOT complete or rewarded'),
-('26', '903', '0', '0', '0', '47', '0', '29792', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 903 if 29792 IS rewarded'),
-('26', '903', '0', '0', '0', '47', '0', '30589', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 903 if 30589 IS NOT in progress or complete or rewarded'),
-('26', '993', '0', '0', '0', '47', '0', '29798', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 29798 IS complete or rewarded'),
-('26', '993', '0', '0', '0', '47', '0', '30767', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 30767 IS NOT complete or rewarded'),
-('26', '544', '0', '0', '0', '47', '0', '30767', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 30767 IS in complete or rewarded'),
-('26', '544', '0', '0', '0', '47', '0', '29799', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29799 IS NOT rewarded'),
-('26', '545', '0', '0', '0', '47', '0', '29799', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29799 IS rewarded'),
-('26', '545', '0', '0', '0', '47', '0', '29800', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29800 IS NOT rewarded'),
-('26', '1835', '0', '0', '0', '47', '0', '30589', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 30589 IS rewarded'),
-('26', '1835', '0', '0', '0', '47', '0', '29798', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 29798 IS NOT in progress or complete or rewarded');
-
 -- Creature Templates
 UPDATE `creature_template` SET `ScriptName` = 'npc_korga_hut' WHERE `entry` = 60042;
 UPDATE `creature_template` SET `ScriptName` = 'npc_injured_sailor_55999', `RegenHealth` = '0' WHERE `entry` = 55999;

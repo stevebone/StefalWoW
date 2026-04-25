@@ -221,7 +221,7 @@ INSERT INTO `phase_area` VALUES
 (5881, 169, 'The Wandering Isle - Farmstead'),
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527, 631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 1836, 1527, 631, 632, 878, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
@@ -236,9 +236,18 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5832, 1527, 'The Wandering Isle - The Wood of Staves'),
 (5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
 
+(5736, 543, 'The Wandering Isle - Vordraka boss fight'),
+(5736, 544, 'The Wandering Isle - Before healing Shenzinsu'),
+(5736, 545, 'The Wandering Isle - After healing Shenzinsu'),
+(5736, 903, 'The Wandering Isle - The Wandering Isle'), -- Forlorn Hut see Ji until quest reward 30589
+(5736, 993, 'The Wandering Isle - After Vordraka boss fight'),
+(5736, 1835, 'The Wandering Isle - The Wandering Isle'), -- See Ji at Makael Bay
 
+-- Huo quests
 (5849, 631, 'Cosmetic - Huo, Pre-Ignition'),
 (5849, 632, 'Cosmetic - Huo, Post-Ignition'),
+-- Mandori Village
+(5736, 878, 'The Wandering Isle - Mandori Village'),
 -- The Singing Pools
 (5826, 964, 'The Singing Pools - after quest 29663 complete and before quest 29676 rewarded'),
 -- Liang's Retreat
@@ -296,6 +305,26 @@ INSERT INTO `conditions` VALUES
 (26, 1429, 0, 0, 0, 47, 0, 29776, 10, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1429 active if 29776 IS in progress or complete'),
 (26, 1430, 0, 0, 0, 8, 0, 29776, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 rewarded'),
 (26, 1430, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 not taken, not complete and not rewarded'); -- should be until quest is available, not taken, not completed and not rewarded - but available doesnt work
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
+INSERT INTO `conditions` VALUES
+('26', '878', '0', '0', '0', '47', '0', '29792', '10', '0', '', '0', '0', '0', '', 'The Wandering Isle Mandori Village - Add phase 878 if 29792 IS in progress'),
+('26', '878', '0', '0', '0', '47', '0', '29792', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Mandori Village - Add phase 878 if 29792 IS NOT rewarded');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (543, 903, 993, 1835, 545, 544);
+INSERT INTO `conditions` VALUES
+('26', '543', '0', '0', '0', '47', '0', '29665', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29665 IS rewarded'),
+('26', '543', '0', '0', '0', '47', '0', '29798', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29798 IS NOT complete or rewarded'),
+('26', '903', '0', '0', '0', '47', '0', '29792', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 903 if 29792 IS rewarded'),
+('26', '903', '0', '0', '0', '47', '0', '30589', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 903 if 30589 IS NOT in progress or complete or rewarded'),
+('26', '993', '0', '0', '0', '47', '0', '29798', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 29798 IS complete or rewarded'),
+('26', '993', '0', '0', '0', '47', '0', '30767', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 30767 IS NOT complete or rewarded'),
+('26', '544', '0', '0', '0', '47', '0', '30767', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 30767 IS in complete or rewarded'),
+('26', '544', '0', '0', '0', '47', '0', '29799', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29799 IS NOT rewarded'),
+('26', '545', '0', '0', '0', '47', '0', '29799', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29799 IS rewarded'),
+('26', '545', '0', '0', '0', '47', '0', '29800', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29800 IS NOT rewarded'),
+('26', '1835', '0', '0', '0', '47', '0', '30589', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 30589 IS rewarded'),
+('26', '1835', '0', '0', '0', '47', '0', '29798', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 29798 IS NOT in progress or complete or rewarded');
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
