@@ -24,6 +24,7 @@
 #include "CreatureAI.h"
 #include "DB2Stores.h"
 #include "GameObject.h"
+#include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"

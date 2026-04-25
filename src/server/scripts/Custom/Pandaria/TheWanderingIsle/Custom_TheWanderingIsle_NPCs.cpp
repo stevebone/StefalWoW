@@ -1169,6 +1169,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         _pathStarted = true;
                         break;
                     }
+                    // TO-DO replace this constant check with an area trigger start
                     case Events::event_shu_follower_check_player_quest:
                     {
                         if (!_pathStarted)
@@ -1220,13 +1221,13 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     me->SetWalk(true);
                     player->RemoveAurasDueToSpell(Spells::spell_summon_spirit_of_water);
-                    player->CastSpell(player, 104018, true);
+                    player->CastSpell(player, Spells::spell_see_quest_invis_1, true);
                 }
             }
 
             void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
             {
-                me->DespawnOrUnsummon(30s);
+                me->DespawnOrUnsummon(5s);
             }
 
         private:
@@ -1249,60 +1250,32 @@ namespace Scripts::Custom::TheWanderingIsle
 
         struct npc_shu_at_farmstead_poolAI : public ScriptedAI
         {
-            npc_shu_at_farmstead_poolAI(Creature* creature) : ScriptedAI(creature), _playerGuid(), _npcFlagSet(false) {}
+            npc_shu_at_farmstead_poolAI(Creature* creature) : ScriptedAI(creature) {}
 
             void Reset() override
             {
                 _events.Reset();
-                _npcFlagSet = false;
-
-                me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-
                 _events.ScheduleEvent(Events::event_shu_farmstead_play, 0s);
             }
 
             bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
             {
-                _playerGuid = player->GetGUID();
-
                 if (menuId == Gossip::shu_farmstead_gossip_menu && gossipListId == 0)
                 {
                     CloseGossipMenuFor(player);
                     //player->KilledMonsterCredit(Npcs::credit_not_in_the_face_1);
                     //player->CastSpell(player, 105891);
-                    if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_farmstead, 70.0f))
-                        wugou->DespawnOrUnsummon();
-                    me->DespawnOrUnsummon();
+                    //if (Creature* wugou = GetClosestCreatureWithEntry(me, Npcs::npc_wugou_farmstead, 70.0f))
+                    //    wugou->DespawnOrUnsummon();
+                    //me->DespawnOrUnsummon();
                     player->CastSpell(player, Spells::spell_summon_spirits_water_earth);
                     return true;
                 }
                 return false;
             }
 
-            uint32 CheckQuestTimer = 1000; // 1 second
-
             void UpdateAI(uint32 diff) override
             {
-                if (CheckQuestTimer <= diff)
-                {
-                    if (Player* player = me->SelectNearestPlayer(50.0f))
-                    {
-                        if (!_npcFlagSet && player->GetQuestStatus(Quests::quest_not_in_the_face) == QUEST_STATUS_INCOMPLETE)
-                        {
-                            if (!me->HasNpcFlag(UNIT_NPC_FLAG_GOSSIP))
-                            {
-                                me->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-                                _npcFlagSet = true;
-                            }
-                        }
-                    }
-
-                    CheckQuestTimer = 1000; // reset
-                }
-                else
-                    CheckQuestTimer -= diff;
-
-
                 _events.Update(diff);
 
                 while (uint32 eventId = _events.ExecuteEvent())
@@ -1332,8 +1305,6 @@ namespace Scripts::Custom::TheWanderingIsle
             }
         private:
             EventMap _events;
-            ObjectGuid _playerGuid;
-            bool _npcFlagSet;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
