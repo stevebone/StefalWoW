@@ -156,6 +156,7 @@
 -- NPC: 55022 Steam fiend
 -- NPC: 57621 Teamaster Ren
 -- NPC: 56241 Dai-Lo Farmer
+-- NPC: 65473 Dai-Lo Farmer
 -- NPC: 57618 Jun Steelbreath
 
 -- GO: 209584 Ancient Clam
@@ -215,7 +216,9 @@
 -- Quest: 29790 Passing Wisdom
 
 -- Phases
-
+DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 631, 632, 878, 964, 
+1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
 (5886, 524, 'The Wandering Isle - Chamber of Whispers'),
@@ -259,9 +262,12 @@
 
 -- Zhao-Ren
 (5736, 1429, 'The Wandering Isle - Zhao-Ren Fly By'), -- Zhaoren fly by
-(5736, 1430, 'The Wandering Isle - Zhao-Ren at Chamber of Whispers - after quest 29776 rewarded and quest 29786 not taken, complete or rewarded');
+(5736, 1430, 'The Wandering Isle - Zhao-Ren at Chamber of Whispers - after quest 29776 rewarded and quest 29786 not taken, complete or rewarded'),
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
+-- Ki-Han Brewery
+(5736, 1510, 'The Wandering Isle - Ki-Han Brewery - quest 29768 taken and before complete');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510);
 INSERT INTO `conditions` VALUES
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
@@ -296,7 +302,10 @@ INSERT INTO `conditions` VALUES
 -- Zhao-Ren phases
 (26, 1429, 0, 0, 0, 47, 0, 29776, 10, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1429 active if 29776 IS in progress or complete'),
 (26, 1430, 0, 0, 0, 8, 0, 29776, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 rewarded'),
-(26, 1430, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 not taken, not complete and not rewarded'); -- should be until quest is available, not taken, not completed and not rewarded - but available doesnt work
+(26, 1430, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 not taken, not complete and not rewarded'),
+
+-- Mallet quest
+(26, 1510, 0, 0, 0, 9, 0, 29768, 0, 0, '', 0, 0, 0, '', 'The Rows Phase 1510 when Quest 29768 taken');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
 INSERT INTO `conditions` VALUES
@@ -349,21 +358,6 @@ INSERT INTO `conditions` VALUES
 INSERT INTO `conditions` VALUES
 (26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
 (26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
-
-
-UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
-UPDATE `gameobject` SET `PhaseId` = '50007' WHERE (`guid` = '300209'); -- Gong at Farmstead needs to be in the same phase as Ji otherwise quest credit via SET DATA SAI fails
-
-
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50007;
-INSERT INTO `conditions` VALUES
-('26', '50007', '5881', '0', '0', '47', '0', '29775', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Farmstead - Add phase 50007 if 29775 IS NOT rewarded');
-
-
-
-
-
-
 
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451176,451196);
