@@ -189,53 +189,6 @@ DELETE FROM `creature_addon` WHERE `guid` IN (451477,451621);
 INSERT INTO `creature_addon` (`guid`, `AnimTier`, `VisFlags`, `SheathState`, `auras`) VALUES ('451477', '2', '1', '1', '78718 121801 81312'); -- NPC: 55595 Aysa at Morning Breeze
 INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`) VALUES ('451621', '8', '1'); -- NPC: 55595 Aysa at ZhaoRen
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527) OR `AreaId` IN (5736);
-INSERT INTO `phase_area` VALUES
-(5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
-(5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
-(5886, 524, 'The Wandering Isle - Chamber of Whispers'),
-(5829, 524, 'The Wandering Isle - Zhao-Ren Dragon Area'),
-(5829, 536, 'The Wandering Isle - Zhao-Ren Dragon Area'),
-(5886, 536, 'The Wandering Isle - Chamber of Whispers'),
-(5859, 536, 'The Wandering Isle - Path of Elders'),
-(5832, 536, 'The Wandering Isle - The Wood of Staves'),
-(5859, 1527, 'The Wandering Isle - Path of Elders'),
-(5832, 1527, 'The Wandering Isle - The Wood of Staves'),
-(5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
-(5736, 169, 'The Wandering Isle - The Wandering Isle'); -- Generic phase to show regular mobs during phase changes
-
-DELETE FROM `conditions`
-WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1836, 524, 536, 1527, 1885);
- 
-
--- Phase 1836: before 29786
-INSERT INTO `conditions` VALUES
-(26, 1836, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded');
-
--- Phase 524: after 29785 and before 29787
-INSERT INTO `conditions` VALUES
-(26, 524, 0, 0, 0, 47, 0, 29785, 64, 0, '', 0, 0, 0, '', 'Phase 524 active if 29785 rewarded'),
-(26, 524, 0, 0, 0, 47, 0, 29786, 66, 0, '', 1, 0, 0, '', 'Phase 524 active if 29786 NOT complete or rewarded');
-
--- Phase 536: after 29786
-INSERT INTO `conditions` VALUES
-(26, 536, 0, 0, 0, 47, 0, 29786, 66, 0, '', 0, 0, 0, '', 'Phase 536 active if 29786 complete');
-
--- Phase 536: after 29786
-INSERT INTO `conditions` VALUES
-(26, 536, 0, 0, 0, 47, 0, 29787, 64, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 NOT rewarded');
-  
--- Phase 1527: after 29787
-INSERT INTO `conditions` VALUES
-(26, 1527, 0, 0, 0, 47, 0, 29787, 64, 0, '', 0, 0, 0, '', 'Phase 1527 active if 29787 IS rewarded'),
-(26, 1527, 0, 0, 0, 47, 0, 29790, 64, 0, '', 1, 0, 0, '', 'Phase 1527 active if 29790 NOT rewarded');
-
--- Phase 1885: during 29790
-INSERT INTO `conditions` VALUES
-(26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
-(26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
-
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55650,65560,64507,64505,64506,55874);
 INSERT INTO `creature_template_addon` (`entry`, `AnimTier`, `VisFlags`, `SheathState`, `visibilityDistanceType`, `auras`) VALUES ('55650', '3', '1', '0', 3, '82358'); -- Shang Xi's Hot Air Balloon
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `AnimTier`) VALUES ('65560', '6556000', 3); -- Dafeng spawn ??

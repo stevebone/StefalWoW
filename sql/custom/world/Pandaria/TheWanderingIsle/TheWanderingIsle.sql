@@ -221,8 +221,22 @@ INSERT INTO `phase_area` VALUES
 (5881, 169, 'The Wandering Isle - Farmstead'),
 (5881, 50007, 'The Wandering Isle - Farmstead Ji');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (524,536, 1836, 1527, 631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+
+(5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
+(5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
+(5886, 524, 'The Wandering Isle - Chamber of Whispers'),
+(5829, 524, 'The Wandering Isle - Zhao-Ren Dragon Area'),
+(5829, 536, 'The Wandering Isle - Zhao-Ren Dragon Area'),
+(5886, 536, 'The Wandering Isle - Chamber of Whispers'),
+(5859, 536, 'The Wandering Isle - Path of Elders'),
+(5832, 536, 'The Wandering Isle - The Wood of Staves'),
+(5859, 1527, 'The Wandering Isle - Path of Elders'),
+(5832, 1527, 'The Wandering Isle - The Wood of Staves'),
+(5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
+
+
 (5849, 631, 'Cosmetic - Huo, Pre-Ignition'),
 (5849, 632, 'Cosmetic - Huo, Post-Ignition'),
 -- The Singing Pools
@@ -265,7 +279,7 @@ INSERT INTO `conditions` VALUES
 (26, 1030, 5820, 0, 1, 8, 0, 29791, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1030 when Quest 29791 rewarded'),
 
 -- Phases General
-(26, 1323, 5736, 0, 0, 8, 0, 29423, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1323 when Quest 29423 not rewarded'),
+(26, 1323, 5736, 0, 0, 47, 0, 29423, 64, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1323 when Quest 29423 not rewarded'),
 (26, 1324, 5736, 0, 0, 8, 0, 29423, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1324 when Quest 29423 rewarded'),
 (26, 1324, 5736, 0, 0, 8, 0, 29679, 0, 0, '', 1, 0, 0, '', 'Wandering Isle Phase 1324 when Quest 29679 not rewarded'),
 (26, 1325, 5736, 0, 0, 8, 0, 29679, 0, 0, '', 0, 0, 0, '', 'Wandering Isle Phase 1325 when Quest 29679 rewarded'),
@@ -283,6 +297,37 @@ INSERT INTO `conditions` VALUES
 (26, 1430, 0, 0, 0, 8, 0, 29776, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 rewarded'),
 (26, 1430, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 not taken, not complete and not rewarded'); -- should be until quest is available, not taken, not completed and not rewarded - but available doesnt work
 
+DELETE FROM `conditions`
+WHERE `SourceTypeOrReferenceId` = 26
+  AND `SourceGroup` IN (1836, 524, 536, 1527, 1885);
+ 
+
+-- Phase 1836: before 29786
+INSERT INTO `conditions` VALUES
+(26, 1836, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded');
+
+-- Phase 524: after 29785 and before 29787
+INSERT INTO `conditions` VALUES
+(26, 524, 0, 0, 0, 47, 0, 29785, 64, 0, '', 0, 0, 0, '', 'Phase 524 active if 29785 rewarded'),
+(26, 524, 0, 0, 0, 47, 0, 29786, 66, 0, '', 1, 0, 0, '', 'Phase 524 active if 29786 NOT complete or rewarded');
+
+-- Phase 536: after 29786
+INSERT INTO `conditions` VALUES
+(26, 536, 0, 0, 0, 47, 0, 29786, 66, 0, '', 0, 0, 0, '', 'Phase 536 active if 29786 complete');
+
+-- Phase 536: after 29786
+INSERT INTO `conditions` VALUES
+(26, 536, 0, 0, 0, 47, 0, 29787, 64, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 NOT rewarded');
+  
+-- Phase 1527: after 29787
+INSERT INTO `conditions` VALUES
+(26, 1527, 0, 0, 0, 47, 0, 29787, 64, 0, '', 0, 0, 0, '', 'Phase 1527 active if 29787 IS rewarded'),
+(26, 1527, 0, 0, 0, 47, 0, 29790, 64, 0, '', 1, 0, 0, '', 'Phase 1527 active if 29790 NOT rewarded');
+
+-- Phase 1885: during 29790
+INSERT INTO `conditions` VALUES
+(26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
+(26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
 
 
 UPDATE `creature` SET `PhaseId` = '50007' WHERE (`guid` = '451166'); -- Ji at Farmstead
