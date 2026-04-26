@@ -19,9 +19,10 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('54975', '29680', '0');
 
 -- Creature Templates
-DELETE FROM `creature_template_addon` WHERE `entry` IN (60249, 60250, 57620, 55022, 57636, 57638, 60488, 65468, 55019);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55021, 60249, 60250, 57620, 55022, 57636, 57638, 60488, 65468, 55019);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, 
 `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('55021', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '82343'), -- Jojo
 (55019, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65468, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60488, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, '89304, 116695'),

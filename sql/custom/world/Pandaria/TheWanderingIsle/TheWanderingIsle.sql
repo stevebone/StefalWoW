@@ -26,6 +26,7 @@
 -- Phase: 1510 Cosmetic Mallet Object/Quest
 -- Phase: 1518 "Cosmetic - Master Shang Xi, Air Village"
 -- Phase: 1519 "Cosmetic - Elder Shaopai, Air Village"
+-- Phase: 1523 See Vision of Dafen and Zhao-Ren
 -- Phase: 1526 Master Shang zhaoren battle completed
 -- Phase: 1527 Master Shang graveyard
 -- Phase: 1714 Cosmetic Jade Tiger Pillar
@@ -217,7 +218,7 @@
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 631, 632, 878, 964, 
-1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885);
+1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885, 1518, 1519,1523);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
@@ -265,9 +266,16 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5736, 1430, 'The Wandering Isle - Zhao-Ren at Chamber of Whispers - after quest 29776 rewarded and quest 29786 not taken, complete or rewarded'),
 
 -- Ki-Han Brewery
-(5736, 1510, 'The Wandering Isle - Ki-Han Brewery - quest 29768 taken and before complete');
+(5736, 1510, 'The Wandering Isle - Ki-Han Brewery - quest 29768 taken and before complete'),
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510);
+-- Morning Breeze Village
+(5830, 1518, 'Morning Breeze Village - after quest 29776 rewarded and before quest 29786 taken, complete or rewarded'),
+(5830, 1519, 'Morning Breeze Village - x'),
+(5830, 1523, 'Morning Breeze Village - quest 29780 rewarded'),
+(5946, 1523, 'Morning Breeze Lake - quest 29780 rewarded');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
+1510, 1518, 1519, 1523);
 INSERT INTO `conditions` VALUES
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
@@ -305,7 +313,15 @@ INSERT INTO `conditions` VALUES
 (26, 1430, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1430 when Quest 29776 not taken, not complete and not rewarded'),
 
 -- Mallet quest
-(26, 1510, 0, 0, 0, 9, 0, 29768, 0, 0, '', 0, 0, 0, '', 'The Rows Phase 1510 when Quest 29768 taken');
+(26, 1510, 0, 0, 0, 9, 0, 29768, 0, 0, '', 0, 0, 0, '', 'The Rows Phase 1510 when Quest 29768 taken'),
+
+-- Moonbreeze Village
+(26, 1518, 0, 0, 0, 47, 0, 29776, 64, 0, '', 0, 0, 0, '', 'Wandering Isle - Morning Breeze Village 1518 when Quest 29776 rewarded'),
+(26, 1518, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Wandering Isle - Morning Breeze Village 1518 when Quest 29786 not taken, complete or rewarded'),
+(26, 1519, 0, 0, 0, 47, 0, 29776, 64, 0, '', 0, 0, 0, '', 'Wandering Isle - Morning Breeze Village 1518 when Quest 29776 rewarded'),
+(26, 1523, 0, 0, 0, 8, 0, 29779, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29779 rewarded'),
+(26, 1523, 0, 0, 0, 8, 0, 29780, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29780 rewarded'),
+(26, 1523, 0, 0, 0, 8, 0, 29781, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29781 rewarded');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
 INSERT INTO `conditions` VALUES
@@ -358,15 +374,6 @@ INSERT INTO `conditions` VALUES
 INSERT INTO `conditions` VALUES
 (26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
 (26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
-
--- Fix Visibility and state addons for Jojos
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,55021);
-INSERT INTO `creature_template_addon` 
-(`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
-('55021', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '82343');
-
-
 
 -- Fix invalid scripts
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');

@@ -44,6 +44,7 @@
 -- NPC: 56686 Another Shang in the forest (spawn)
 -- NPC: 55640 Thornbranch Scamp
 -- NPC: 57799 Spawned Thornbranch
+-- NPC: 65545 Huojin Monk
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29776, 29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790,29791);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
@@ -100,16 +101,62 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_lorewalker_ruolin' WHERE `Entry` = 64876; -- Lorewalker event
 
--- Jojo and crowd
-DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458);
-INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-('451461', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'), -- morning breeze jojo power quest
-('451457', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451466', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451456', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451467', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451463', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852'),
-('451458', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80852');
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559);
+INSERT INTO `creature_template_addon` 
+(`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+(65559, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Zhao-Ren
+(65560, 6556000, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Dafeng
+(57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
+
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559);
+INSERT INTO `creature_template_difficulty` VALUES
+(65559, 0, 0, 0, 80, 4, 8, 1, 1, 0.2, 59280, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
+(65560, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59281, 0, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55583, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29504, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(65545, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59259, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55585, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29500, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57419, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26449, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
+
+UPDATE `creature` SET `PhaseId` = '1518' WHERE (`guid` = '451479'); -- Master Shang at Morning Breeze
+UPDATE `creature` SET `PhaseId` = '1519' WHERE (`guid` = '451465'); -- Elder Shaopai at Morning Breeze
+UPDATE `creature` SET `PhaseId` = '1523', `MovementType` = 2 WHERE (`guid` = '451588'); -- Vision of Dafeng
+UPDATE `creature` SET `PhaseId` = '1523' WHERE (`guid` = '451589'); -- Vision of Zhao-Ren
+
+-- Morning Breeze Villager with waypoints
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451438, 451439, 451472);
+
+DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451588);
+INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
+(451588, 451588, 0, 0, 512, 0, 0),
+(451588, 451589, 10, 0, 512, 0, 0);
+
+DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458,451468,451459,451441,451436,451446,451448,451438,451472,451473,
+451439);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(451473, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '85096'), -- Ji at the Morning Breeze Village dock
+
+-- Jojo's crowd
+(451461, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'), -- morning breeze jojo power quest
+(451457, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
+(451466, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
+(451456, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
+(451467, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
+(451463, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
+(451458, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
+-- Huojin Monk
+(451468, 0, 0, 0, 0, 0, 0, 1, 0, 27, 0, 0, 0, 0, ''),
+(451459, 0, 0, 0, 0, 0, 0, 1, 0, 27, 0, 0, 0, 0, ''),
+-- Morning Breeze Villager
+(451441, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451436, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451446, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451448, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451438, 5741900, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451439, 5741901, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451472, 5741902, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
+
 
 -- Scripts for Jojo and monkeys
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57670,65467,56394,56393);
@@ -238,9 +285,12 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6454300', '9', '1', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '53', '1', '6454300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Start WP');
 
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 104855;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
-('13', '1', '104855', '51', '5', '55786', 'Overpacked Firework target Zhao-Ren');
+(13, 1, 104855, 51, 5, 55786, 'Overpacked Firework target Zhao-Ren'),
+(13, 1, 108845, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow'),
+(13, 1, 108846, 51, 5, 57668, 'Jojo Headbash, Stack of Blocks Impact target Stack of Blocks'),
+(13, 1, 108857, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow');
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 56159; -- remove the Shang SAI
 
