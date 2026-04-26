@@ -3962,7 +3962,7 @@ float SpellInfo::GetMinRange(bool positive /*= false*/) const
     return RangeEntry->RangeMin[positive ? 1 : 0];
 }
 
-float SpellInfo::GetMaxRange(bool positive /*= false*/, WorldObject* caster /*= nullptr*/, Spell* spell /*= nullptr*/) const
+float SpellInfo::GetMaxRange(bool positive /*= false*/, WorldObject const* caster /*= nullptr*/, Spell* spell /*= nullptr*/) const
 {
     if (!RangeEntry)
         return 0.0f;
@@ -3970,6 +3970,20 @@ float SpellInfo::GetMaxRange(bool positive /*= false*/, WorldObject* caster /*= 
     if (caster)
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(this, SpellModOp::Range, range, spell);
+
+    return range;
+}
+
+SpellRange SpellInfo::GetMinMaxRange(bool positive, WorldObject const* caster, Spell* spell) const
+{
+    SpellRange range;
+    if (!RangeEntry)
+        return range;
+
+    range = { .Min = RangeEntry->RangeMin[positive ? 1 : 0], .Max = RangeEntry->RangeMax[positive ? 1 : 0] };
+    if (caster)
+        if (Player* modOwner = caster->GetSpellModOwner())
+            modOwner->ApplySpellMod(this, SpellModOp::Range, range.Max, spell);
 
     return range;
 }

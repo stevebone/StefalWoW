@@ -448,8 +448,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         Player* GetSpellModOwner() const;
 
         // target dependent range checks
-        float GetSpellMaxRangeForTarget(Unit const* target, SpellInfo const* spellInfo) const;
-        float GetSpellMinRangeForTarget(Unit const* target, SpellInfo const* spellInfo) const;
+        SpellRange GetSpellMinMaxRangeForTarget(Unit const* target, SpellInfo const* spellInfo) const;
 
         SpellEffectValue ApplyEffectModifiers(SpellInfo const* spellInfo, uint8 effIndex, SpellEffectValue value) const;
         int32 CalcSpellDuration(SpellInfo const* spellInfo, std::vector<SpellPowerCost> const* powerCosts) const;

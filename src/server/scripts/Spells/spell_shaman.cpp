@@ -2423,7 +2423,7 @@ class spell_sha_primordial_wave : public SpellScript
     {
         Unit* shaman = GetCaster();
         std::vector<Unit*> targets;
-        FireNovaTargetCheck check{ .MaxSearchRange = GetSpell()->GetMinMaxRange(false).second, .Shaman = shaman };
+        FireNovaTargetCheck check{ .MaxSearchRange = GetSpell()->GetMinMaxRange(false).Max, .Shaman = shaman };
         Trinity::UnitListSearcher searcher(shaman, targets, check);
         Cell::VisitAllObjects(shaman, searcher, check.MaxSearchRange);
 
