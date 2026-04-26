@@ -359,11 +359,6 @@ INSERT INTO `conditions` VALUES
 (26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
 (26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
 
-
--- Quest: 29775 The Spirit and Body of Shen-zin Su
--- UPDATE `creature_template` SET `ScriptName` = 'npc_shu_wugou_follower' WHERE `Entry` IN (55558,60916);
-UPDATE `creature_template` SET `AIName` = '' WHERE `Entry` IN (55558,60916);
-
 -- Fix Visibility and state addons for Jojos
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,55021);
 INSERT INTO `creature_template_addon` 

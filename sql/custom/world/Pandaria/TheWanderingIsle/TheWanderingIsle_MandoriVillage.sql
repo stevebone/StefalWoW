@@ -12,7 +12,8 @@
 -- NPC: 59963 Jojo at the Gate
 -- NPC: 66690 Lamplighter Mu
 -- NPC: 65084 Crimson Butterfly
--- NPC: 65077 Grounds Keeper Amalia
+-- NPC: 65077 Groundskeeper Amalia
+-- NPC: 65088 Groundskeeper Shen
 -- NPC: 65035 Summer Lily
 -- NPC: 60260 Jie
 -- NPC: 65039 Eng Dirtplow
@@ -26,7 +27,7 @@
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_mandori_village' WHERE `entry` = 59962;
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (66690,57622, 65052, 56012, 65053, 65050, 65049, 65047,65073, 65087, 59960, 59963, 59962,65084,65077,65035,60260,
-65039,65042,60259,65085,65086,65045,65044);
+65039,65042,60259,65085,65086,65045,65044,65088);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('56012', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '60921'),
 ('65050', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
@@ -39,6 +40,7 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('65087', '6508700', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('59960', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
 ('59962', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', ''),
+(65088, 6508800, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60259, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65042, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65044, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -54,8 +56,9 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 ('59963', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '115672');
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (66690,57622, 65052, 56012, 65053, 65050, 65049, 65047,65073, 65087, 59960, 59963, 59962,65084,65077,65035,60260,
-65039,65042,60259,65085,65086,65045,65044);
+65039,65042,60259,65085,65086,65045,65044,65088);
 INSERT INTO `creature_template_difficulty` VALUES
+(65088, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58486, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60259, 0, -3, -3, 1723, 11, 1, 1, 1, 0.3, 21679, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65042, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58440, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65044, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58442, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -81,7 +84,7 @@ INSERT INTO `creature_template_difficulty` VALUES
 (65087, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58485, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (66690, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 60662, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
 
-UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (65053,65047,65049,65087,66690,65084,65077,65035,60260);
+UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (65053,65047,65049,65087,66690,65084,65077,65035,60260,65088);
 UPDATE `creature` SET `PhaseId` = 878 WHERE `id` IN (59960, 59963, 59962);
 
 
@@ -198,16 +201,30 @@ DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7710);
 INSERT INTO `areatrigger_scripts` VALUES
 (7710, 'at_mandori_village_7710');
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (6669000,6508400,6507700,6503500,6026000);
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6669000,6508400,6507700,6503500,6026000,6508800);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
 (6669000,0,0,'The Wandering Isle - Lamplighter Mu'),
 (6503500,0,0,'The Wandering Isle - Summer Lily'),
 (6026000,0,0,'The Wandering Isle - Jie'),
-(6507700,0,0,'The Wandering Isle - Grounds keeper Amalia'),
+(6507700,0,0,'The Wandering Isle - Groundskeeper Amalia'),
+(6508800,0,0,'The Wandering Isle - Groundskeeper Shen'),
 (6508400,0,0,'The Wandering Isle - Crimson Butterfly');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6669000,6508400,6507700,6503500,6026000);
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6669000,6508400,6507700,6503500,6026000,6508800);
 INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ,Orientation,Delay) values
+(6508800, 1, 793.477, 3634.16, 160.511, 0, 0),
+(6508800, 2, 790.526, 3638.89, 160.511, 0, 0),
+(6508800, 3, 790.696, 3643.55, 160.511, 0, 0),
+(6508800, 4, 792.623, 3647.6, 160.511, 5.58505, 20000),
+(6508800, 5, 801.7, 3650.89, 160.511, 0, 0),
+(6508800, 6, 805.715, 3648.39, 160.517, 3.83972, 17000),
+(6508800, 7, 800.203, 3650.99, 160.511, 0, 0),
+(6508800, 8, 794.257, 3649.21, 160.511, 0, 0),
+(6508800, 9, 791.486, 3645.85, 160.511, 0, 0),
+(6508800, 10, 790.759, 3641.23, 160.511, 6.21337, 12000),
+(6508800, 11, 793.658, 3634.67, 160.511, 0, 0),
+(6508800, 12, 796.741, 3632.88, 160.511, 0, 0),
+(6508800, 13, 801.003, 3632.61, 160.511, 1.79769, 16000),
 (6026000, 1, 719.37, 3551.98, 141.839, 0, 0),
 (6026000, 2, 714.771, 3540.35, 141.816, 0, 0),
 (6026000, 3, 717.113, 3526.41, 140.966, 0, 0),
