@@ -2805,7 +2805,7 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_consume_energize);
     RegisterSpellScript(spell_dh_consume_soul_vengeance_lesser);
     RegisterSpellScript(spell_dh_critical_chaos);
-    RegisterSpellScript(spell_dh_cull);
+    //RegisterSpellScript(spell_dh_cull); this is already handled with a better script in the custom namespace
     RegisterSpellScript(spell_dh_cycle_of_binding);
     RegisterSpellScript(spell_dh_cycle_of_hatred);
     RegisterSpellScript(spell_dh_cycle_of_hatred_remove_stacks);
@@ -2823,7 +2823,7 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterAreaTriggerAI(at_dh_elysian_decree);
     RegisterSpellScript(spell_dh_enduring_torment);
     RegisterSpellScript(spell_dh_enduring_torment_buff);
-    RegisterSpellScript(spell_dh_eradicate);
+    //RegisterSpellScript(spell_dh_eradicate); this is already handled with a better script in the custom namespace
     RegisterSpellScript(spell_dh_essence_break);
     RegisterSpellScript(spell_dh_eye_beam);
     RegisterSpellScript(spell_dh_feast_of_souls);
@@ -2843,7 +2843,7 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_monster_rising);
     RegisterSpellScript(spell_dh_painbringer);
     RegisterSpellScript(spell_dh_painbringer_reduce_damage);
-    RegisterSpellScript(spell_dh_reap);
+    //RegisterSpellScript(spell_dh_reap); this is already handled with a better script in the custom namespace
     RegisterSpellScript(spell_dh_repeat_decree_conduit);
     RegisterSpellScript(spell_dh_restless_hunter);
     RegisterSpellScript(spell_dh_retaliation);
