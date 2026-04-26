@@ -1346,6 +1346,8 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                         if (!_path1Started)
                         {
+                            me->StopMoving();
+                            me->GetMotionMaster()->Clear();
                             me->GetMotionMaster()->MovePath(Paths::path_shu_farmstead_1, false);
                             _path1Started = true;
                         }
@@ -1357,7 +1359,6 @@ namespace Scripts::Custom::TheWanderingIsle
                         {
                             me->StopMoving();
                             me->GetMotionMaster()->Clear();
-                            me->LoadPath(Paths::path_shu_farmstead_2);
                             me->GetMotionMaster()->MovePath(Paths::path_shu_farmstead_2, false);
                             _path2Started = true;
                         }
@@ -1380,6 +1381,7 @@ namespace Scripts::Custom::TheWanderingIsle
                                 return;
 
                             me->CastSpell(player, Spells::spell_shu_watersplash_credit);
+                            wugou->StopMoving();
                             wugou->GetMotionMaster()->Clear();
                             wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
                             wugou->DespawnOrUnsummon(30s);
@@ -1413,6 +1415,9 @@ namespace Scripts::Custom::TheWanderingIsle
                             if (wugou->GetOwnerGUID() == _playerGuid)
                             {
                                 wugou->RemoveAllAuras();
+                                wugou->StopMoving();
+                                wugou->GetMotionMaster()->Clear();
+                                wugou->GetMotionMaster()->MoveFollow(me, 5.0f, 5.0f);
                                 break;
                             }
                         }
