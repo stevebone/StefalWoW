@@ -278,6 +278,8 @@ void PetBattleMgr::Initialize()
         }
     }
 
+    BuildAuraTargetMap();
+
     LoadNPCTeams();
 
     TC_LOG_INFO("server.loading", ">> Pet Battle system initialized");
@@ -290,11 +292,20 @@ void PetBattleMgr::BuildEffectActionMap()
     // This runs once at startup so string comparisons are acceptable.
 
     uint32 mappedCount = 0;
+    uint32 unclassifiedCount = 0;
+    std::vector<uint16> unclassifiedIDs;
     for (BattlePetEffectPropertiesEntry const* props : sBattlePetEffectPropertiesStore)
     {
         bool hasPoints = false, hasDuration = false, hasState = false;
         bool hasChance = false, hasPercentage = false;
         bool hasWeather = false, hasSwap = false, hasTrap = false;
+        bool hasAnyLabel = false;
+        for (uint8 i = 0; i < 6; ++i)
+            if (props->ParamLabel[i] && props->ParamLabel[i][0])
+            {
+                hasAnyLabel = true;
+                break;
+            }
 
         for (uint8 i = 0; i < 6; ++i)
         {
@@ -338,10 +349,42 @@ void PetBattleMgr::BuildEffectActionMap()
         else if (hasChance)
             action = PET_BATTLE_EFFECT_ACTION_DAMAGE; // Conditional — evaluate at use site, fall through to damage
         else
+        {
             action = PET_BATTLE_EFFECT_ACTION_DAMAGE; // Safe fallback — default handler checks basePower
+            if (hasAnyLabel)
+            {
+                ++unclassifiedCount;
+                if (unclassifiedIDs.size() < 32)
+                    unclassifiedIDs.push_back(static_cast<uint16>(props->ID));
+            }
+        }
 
         _effectActionMap[static_cast<uint16>(props->ID)] = action;
         ++mappedCount;
+    }
+
+    // Surface entries that had labels but didn't match any classification rule
+    // — these are the candidates for explicit mapping next.
+    if (unclassifiedCount)
+    {
+        std::map<uint16, uint32> usageCounts;
+        for (BattlePetAbilityEffectEntry const* entry : sBattlePetAbilityEffectStore)
+            usageCounts[entry->BattlePetEffectPropertiesID]++;
+
+        TC_LOG_WARN("server.loading", "PetBattle: {} EffectProperties entries fell through classifier "
+            "(default = DAMAGE). Sample IDs follow:", unclassifiedCount);
+        for (uint16 propsID : unclassifiedIDs)
+        {
+            BattlePetEffectPropertiesEntry const* p = sBattlePetEffectPropertiesStore.LookupEntry(propsID);
+            std::string labels;
+            if (p)
+                for (uint8 i = 0; i < 6; ++i)
+                    if (p->ParamLabel[i] && p->ParamLabel[i][0] != '\0')
+                        labels += Trinity::StringFormat("[{}]={} ", i, p->ParamLabel[i]);
+            TC_LOG_WARN("server.loading", "  Unclassified PropsID={} uses={} visual={} labels: {}",
+                propsID, usageCounts.count(propsID) ? usageCounts[propsID] : 0,
+                p ? p->BattlePetVisualID : 0, labels);
+        }
     }
 
     // Log all mapped entries for debugging
@@ -373,6 +416,91 @@ PetBattleAbilityEffectAction PetBattleMgr::GetEffectAction(uint16 propsID) const
     if (it != _effectActionMap.end())
         return it->second;
     return PET_BATTLE_EFFECT_ACTION_DAMAGE; // Fallback for unmapped IDs
+}
+
+AuraTargetType PetBattleMgr::GetAuraTarget(uint32 abilityID) const
+{
+    auto it = _auraTargetMap.find(abilityID);
+    return it != _auraTargetMap.end() ? it->second : AURA_TARGET_AMBIGUOUS;
+}
+
+void PetBattleMgr::BuildAuraTargetMap()
+{
+    // Group BattlePetAbilityState entries by ability so we can score
+    // each ability based on the semantics of the states it applies.
+    std::unordered_map<uint32, std::vector<std::pair<uint32, int32>>> abilityStates;
+    for (BattlePetAbilityStateEntry const* entry : sBattlePetAbilityStateStore)
+        abilityStates[entry->BattlePetAbilityID].push_back({ entry->BattlePetStateID, entry->Value });
+
+    // Helper: classify a single (stateID, value) pair as a self-buff or enemy-debuff signal.
+    // Returns +1 for SELF, -1 for ENEMY, 0 for unknown / neutral.
+    auto classifyState = [](uint32 stateID, int32 value) -> int
+    {
+        switch (stateID)
+        {
+            // Mechanic flags (1 = enable) — always applied to enemy
+            case BattlePets::STATE_MECHANIC_IS_POISONED:
+            case BattlePets::STATE_MECHANIC_IS_STUNNED:
+            case BattlePets::STATE_MECHANIC_IS_BLIND:
+                return value != 0 ? -1 : 0;
+
+            // "Damage dealt" / "healing dealt" / flat-dealt / max-HP / crit / dodge:
+            // positive = self-buff, negative = self-debuff (still applied to self).
+            case BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT:
+            case BattlePets::STATE_MOD_HEALING_DEALT_PERCENT:
+            case BattlePets::STATE_MOD_HEALING_TAKEN_PERCENT:
+            case BattlePets::STATE_ADD_FLAT_DAMAGE_DEALT:
+            case BattlePets::STATE_MOD_PET_TYPE_DAMAGE_DEALT_PCT:
+            case BattlePets::STATE_MOD_MAX_HEALTH_PERCENT:
+            case BattlePets::STATE_STAT_CRIT_CHANCE:
+            case BattlePets::STATE_STAT_DODGE:
+                return +1;
+
+            // "Damage taken" / flat-taken / per-type-taken — debuff applied to enemy.
+            case BattlePets::STATE_MOD_DAMAGE_TAKEN_PERCENT:
+            case BattlePets::STATE_ADD_FLAT_DAMAGE_TAKEN:
+            case BattlePets::STATE_MOD_PET_TYPE_DAMAGE_TAKEN_PCT:
+                return -1;
+
+            // Speed / accuracy: positive = self-buff, negative = enemy-debuff.
+            case BattlePets::STATE_MOD_SPEED_PERCENT:
+            case BattlePets::STATE_STAT_ACCURACY:
+                if (value > 0) return +1;
+                if (value < 0) return -1;
+                return 0;
+
+            default:
+                return 0;
+        }
+    };
+
+    uint32 selfCount = 0, enemyCount = 0, ambiguousCount = 0, unscoredCount = 0;
+    for (auto const& [abilityID, states] : abilityStates)
+    {
+        int score = 0;
+        bool anySignal = false;
+        for (auto const& [stateID, value] : states)
+        {
+            int s = classifyState(stateID, value);
+            if (s != 0)
+            {
+                score += s;
+                anySignal = true;
+            }
+        }
+
+        AuraTargetType type;
+        if (!anySignal) { type = AURA_TARGET_AMBIGUOUS; ++unscoredCount; }
+        else if (score > 0) { type = AURA_TARGET_SELF; ++selfCount; }
+        else if (score < 0) { type = AURA_TARGET_ENEMY; ++enemyCount; }
+        else { type = AURA_TARGET_AMBIGUOUS; ++ambiguousCount; }
+
+        _auraTargetMap[abilityID] = type;
+    }
+
+    TC_LOG_INFO("server.loading", ">> Built aura-target map: {} self-buffs, {} enemy-debuffs, "
+        "{} mixed/unscored ({} no recognized state)",
+        selfCount, enemyCount, ambiguousCount + unscoredCount, unscoredCount);
 }
 
 bool PetBattleMgr::IsWeatherAbility(uint32 abilityID) const

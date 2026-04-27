@@ -50,6 +50,17 @@ struct PvPQueueEntry
     uint32 EnqueueTime = 0;
 };
 
+// Inferred targeting for ability auras based on the BattlePetAbilityState
+// entries linked to the ability. Buffs that improve the caster's stats or
+// outgoing damage map to AURA_TARGET_SELF; debuffs that worsen the target's
+// stats or apply mechanic flags (stun/poison/blind) map to AURA_TARGET_ENEMY.
+enum AuraTargetType : uint8
+{
+    AURA_TARGET_AMBIGUOUS = 0,
+    AURA_TARGET_SELF      = 1,
+    AURA_TARGET_ENEMY     = 2
+};
+
 struct PvPMatchProposal
 {
     ObjectGuid Player1;
@@ -102,6 +113,9 @@ public:
     // Effect action mapping (DB2 PropsID -> abstract action type)
     PetBattleAbilityEffectAction GetEffectAction(uint16 propsID) const;
 
+    // Inferred aura targeting (caster vs. enemy) for an ability
+    AuraTargetType GetAuraTarget(uint32 abilityID) const;
+
     // Weather ability detection and state lookup
     bool IsWeatherAbility(uint32 abilityID) const;
     std::vector<std::pair<uint32, int32>> const* GetWeatherAbilityStates(uint32 abilityID) const;
@@ -113,6 +127,7 @@ public:
 
 private:
     void BuildEffectActionMap();
+    void BuildAuraTargetMap();
     void TryMatchPlayers();
 
     uint32 _nextBattleID = 1;
@@ -138,6 +153,9 @@ private:
 
     // Effect action map (BattlePetEffectPropertiesID -> PetBattleAbilityEffectAction)
     std::unordered_map<uint16, PetBattleAbilityEffectAction> _effectActionMap;
+
+    // Inferred aura target type per ability ID (built from BattlePetAbilityState semantics)
+    std::unordered_map<uint32, AuraTargetType> _auraTargetMap;
 
     // Weather ability IDs (abilities whose effects set weatherState on environment)
     std::unordered_set<uint32> _weatherAbilityIDs;

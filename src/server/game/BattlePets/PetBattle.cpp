@@ -1090,11 +1090,25 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 break;
             }
 
-            // Determine if this aura targets self or enemy
-            // DoTs (basePower > 0) target the enemy; HoTs/buffs (basePower <= 0) target self
-            // AuraBattlePetAbilityID != 0 indicates a self-referencing aura (self-buff)
+            // Determine if this aura targets self or enemy.
+            //
+            // 1. DB2-driven: if the aura ability has BattlePetAbilityState entries
+            //    that clearly mark it as a self-buff or enemy-debuff, that wins.
+            // 2. Otherwise fall back to basePower / AuraBattlePetAbilityID heuristics.
+            //
+            // PERIODIC_DAMAGE always targets the enemy (DoT) — DB2 lookup is skipped
+            // for that branch since the action enum already encodes intent.
             bool targetsSelf = false;
-            if (basePower < 0)
+            uint32 auraClassifyID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+            AuraTargetType dbTarget = (effectAction == PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE)
+                ? AURA_TARGET_ENEMY
+                : sPetBattleMgr->GetAuraTarget(auraClassifyID);
+
+            if (dbTarget == AURA_TARGET_SELF)
+                targetsSelf = true;
+            else if (dbTarget == AURA_TARGET_ENEMY)
+                targetsSelf = false;
+            else if (basePower < 0)
                 targetsSelf = true; // Negative = healing aura on self
             else if (basePower == 0 && effect->AuraBattlePetAbilityID != 0)
                 targetsSelf = true; // Non-damaging aura with ability reference = self-buff
