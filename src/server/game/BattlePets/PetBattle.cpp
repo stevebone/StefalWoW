@@ -834,6 +834,7 @@ void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint3
             effect.TargetTeam = defenderTeam;
             effect.TargetPet = defenderPet;
             effect.Param1 = defender.Health;
+            effect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
             if (dmg.IsCrit)
                 effect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
             if (dmg.TypeMod > 1.0f)
@@ -1008,6 +1009,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             roundEffect.TargetTeam = defenderTeam;
             roundEffect.TargetPet = defenderPet;
             roundEffect.Param1 = defender.Health;
+            roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
             if (dmg.IsCrit)
                 roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
             if (dmg.TypeMod > 1.0f)
@@ -1028,7 +1030,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             PetBattleRoundEffect roundEffect;
             roundEffect.AbilityEffectID = effect->ID;
             roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
-            roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL;
+            roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
             roundEffect.SourceTeam = attackerTeam;
             roundEffect.SourcePet = attackerPet;
             roundEffect.TargetTeam = attackerTeam;
@@ -1286,6 +1288,11 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             roundEffect.TargetTeam = defenderTeam;
             roundEffect.TargetPet = defenderPet;
             roundEffect.Param1 = defender.Health;
+            roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+            if (typeMod > 1.0f)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_STRONG;
+            else if (typeMod < 1.0f)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_WEAK;
             _roundEffects.push_back(roundEffect);
 
             ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, damage);
@@ -1299,7 +1306,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             PetBattleRoundEffect roundEffect;
             roundEffect.AbilityEffectID = effect->ID;
             roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
-            roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL;
+            roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
             roundEffect.SourceTeam = attackerTeam;
             roundEffect.SourcePet = attackerPet;
             roundEffect.TargetTeam = attackerTeam;
@@ -1541,6 +1548,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetTeam = defenderTeam;
                 roundEffect.TargetPet = defenderPet;
                 roundEffect.Param1 = defender.Health;
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
                 if (dmg.IsCrit)
                     roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
                 if (dmg.TypeMod > 1.0f)
@@ -1792,6 +1800,7 @@ void PetBattle::TickAuras()
                     roundEffect.TargetTeam = t;
                     roundEffect.TargetPet = p;
                     roundEffect.Param1 = pet.Health;
+                    roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
                     _roundEffects.push_back(roundEffect);
                 }
                 else if (aura.AuraType == PET_BATTLE_AURA_HOT && aura.DamagePerTick > 0)
@@ -1802,6 +1811,7 @@ void PetBattle::TickAuras()
                     PetBattleRoundEffect roundEffect;
                     roundEffect.AbilityEffectID = aura.EffectID;
                     roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                    roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
                     roundEffect.SourceTeam = aura.CasterTeam;
                     roundEffect.SourcePet = aura.CasterPet;
                     roundEffect.TargetTeam = t;
@@ -1972,6 +1982,7 @@ void PetBattle::ApplyPassiveRoundStart()
 
                 PetBattleRoundEffect roundEffect;
                 roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
                 roundEffect.TargetTeam = t;
                 roundEffect.TargetPet = _teams[t].FrontPetIndex;
                 roundEffect.Param1 = frontPet.Health;
@@ -2013,6 +2024,7 @@ bool PetBattle::ApplyPassiveOnDeath(uint8 teamIdx, uint8 petIdx)
 
         PetBattleRoundEffect roundEffect;
         roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+        roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
         roundEffect.TargetTeam = teamIdx;
         roundEffect.TargetPet = petIdx;
         roundEffect.Param1 = pet.Health;
@@ -2029,6 +2041,7 @@ bool PetBattle::ApplyPassiveOnDeath(uint8 teamIdx, uint8 petIdx)
 
         PetBattleRoundEffect roundEffect;
         roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+        roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
         roundEffect.TargetTeam = teamIdx;
         roundEffect.TargetPet = petIdx;
         roundEffect.Param1 = pet.Health;
