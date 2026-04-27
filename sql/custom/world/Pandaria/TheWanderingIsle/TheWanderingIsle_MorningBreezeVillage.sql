@@ -101,6 +101,7 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_lorewalker_ruolin' WHERE `Entry` = 64876; -- Lorewalker event
 UPDATE `creature_template` SET `ScriptName` = 'npc_ji_morning_breeze_docks' WHERE `Entry` = 55583;
+UPDATE `creature_template` SET `faction` = 16 WHERE (`entry` = 57465); -- was 14 incorrect faction
 
 DELETE FROM `gossip_menu` WHERE `MenuID` IN (13204);
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES 
@@ -110,10 +111,19 @@ DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13204 AND `GossipOptionID` = 4
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `ActionMenuID`, `ActionPoiID`, `GossipNpcOptionID`, `BoxCoded`, `BoxMoney`, `BoxText`, `BoxBroadcastTextID`, `SpellID`, `OverrideIconID`, `VerifiedBuild`) VALUES 
 (13204, 40096, 0, 0, 'Maybe you should talk to her.', 62476, 0, 0, 14268, 0, NULL, 0, 0, '', 0, NULL, NULL, 61967);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601);
+DELETE FROM `vehicle_template_accessory` WHERE `entry` IN (57464);
+INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`) VALUES
+(57464, 57465, 0, 0, 'Fe-Feng Ruffian', 7, 0);
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+-- Fe-Feng Ruffian
+(55632, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(57464, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- vehicle bunny hanging monkey
+(57465, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- hanging npc
+
 (55601, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Fe-Feng Wiseman
 (55650, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 3, '82358'), -- Balloon at Morning Breeze dock
 (65550, 0, 0, 0, 0, 0, 0, 1, 0, 426, 0, 0, 0, 0, ''), -- Tushui Monk
@@ -122,8 +132,12 @@ INSERT INTO `creature_template_addon`
 (57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601);
 INSERT INTO `creature_template_difficulty` VALUES
+(55601, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29467, 0, 0, 0, 55601, 55601, 0, 5, 5, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55632, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29415, 0, 0, 0, 55632, 55632, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57464, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26403, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57465, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26401, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55650, 0, 0, 0, 80, 4, 30, 1, 1, 0.2, 29383, 1073741824, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 262144, 0, 0, 0, 0, 0, 56647),
 (65550, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59264, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65559, 0, 0, 0, 80, 4, 8, 1, 1, 0.2, 59280, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -138,11 +152,17 @@ UPDATE `creature` SET `PhaseId` = '1519' WHERE (`guid` = '451465'); -- Elder Sha
 UPDATE `creature` SET `PhaseId` = '1523', `MovementType` = 2 WHERE (`guid` = '451588'); -- Vision of Dafeng
 UPDATE `creature` SET `PhaseId` = '1523' WHERE (`guid` = '451589'); -- Vision of Zhao-Ren
 
+UPDATE `creature` SET `id` = 57464 WHERE `guid` IN (451551,451558); -- these should be hanging monekey bunnies
+DELETE FROM `creature` WHERE `guid` IN (451514,451517,451519,451524,451553); -- hanging monekeys are spawned by bunnies
+
 -- Morning Breeze Villager with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451438, 451439, 451472);
 
 -- Fe-Feng Wiseman with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451428,451509,451508,451484,451483,451432,451505,451495,451597);
+
+-- Fe-Feng Ruffian with waypoints
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451577,451562);
 
 DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451588);
 INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
@@ -150,8 +170,12 @@ INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, 
 (451588, 451589, 10, 0, 512, 0, 0);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458,451468,451459,451441,451436,451446,451448,451438,451472,451473,
-451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443);
+451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443,451462,451577,451562);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+-- Fe-Feng Ruffian
+(451462, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '119073'),
+(451577, 5563200, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451562, 5563201, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 -- Fe-Feng Wiseman
 (451443, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
 (451510, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
@@ -187,7 +211,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (451472, 5741902, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
 
--- Scripts for Jojo and monkeys
+-- Scripts for Jojo
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57670,65467,56394,56393);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57670,5767000,65467,56394,56393,6546700,5639400,5639300) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
@@ -211,11 +235,41 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6546700', '9', '1', '0', '0', '0', '100', '0', '4000', '4000', '1000', '1000', '0', '', '5', '21', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote'),
 ('6546700', '9', '2', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '5', '4', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote');
 
--- Fe-Feng Wiseman
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55601, 5560100, 5560101, 5560102, -451429, -451502, -451484, -451503, -451507, -451595, -451496, -451594,
--451513, -451435, -451592, -451452, -451449, -451504, -451497, -451437) AND `source_type` IN (0,9);
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55632,5563200, 57465,55601, 5560100, 5560101, 5560102, -451429, -451502, -451484, -451503, -451507, 
+-451595, -451496, -451594, -451513, -451435, -451592, -451452, -451449, -451504, -451497, -451437, -451569, -451520, -451526, -451525, -451533, -451537, 
+-451543, -451541, -451547,-451529) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Fe-Feng Ruffian
+(55632, 0, 0, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(5563200, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 11, 128414, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Cast Display of Fury'),
+(-451569, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 5000, 8000, 0, 5, 407, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Emote'),
+(-451569, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451520, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 5000, 8000, 0, 5, 407, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Emote'),
+(-451520, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451526, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451526, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451525, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451525, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451533, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451533, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451537, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451537, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451547, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451547, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451543, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451543, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451541, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451541, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(-451529, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451529, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+-- Fe-Feng Ruffian (hanging)
+(57465, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - On Respawn - Set React State'),
+(57465, 0, 1, 0, 4, 0, 100, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 11, 57464, 1, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - On Aggro - Despawn Vehicle'),
+(57465, 0, 2, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
+(57465, 0, 3, 0, 7, 0, 100, 0, 0, 0, 0, 0, 0, 41, 2000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - On Evade - Despawn'),
+-- Fe-Feng Wiseman
 (-451429, 0, 0, 0, 1, 0, 100, 0, 0, 0, 23000, 23000, 0, 80, 5560100, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Run Script'),
 (5560100, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 840.253, 4096.59, 209.464, 0, 'Fe-Feng Wiseman - Jump to Pos'),
 (5560100, 9, 1, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 854.115, 4084.21, 205.568, 0, 'Fe-Feng Wiseman - Jump to Pos'),
@@ -301,13 +355,6 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, t
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk' WHERE `Entry` = 55634;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk_rocket' WHERE `Entry` = 64322;
-
-UPDATE `creature_template` SET `faction` = '16' WHERE (`entry` = '57465'); -- was 14
-UPDATE `creature_template` SET `unit_flags` = '0' WHERE (`entry` = '55632'); -- was 537133824
-
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55601);
-INSERT INTO `creature_template_difficulty` VALUES
-('55601', '0', '0', '0', '80', '4', '1', '1', '1', '0.2', '29467', '0', '0', '0', '55601', '55601', '0', '5', '5', '268435456', '0', '0', '0', '0', '0', '0', '0', '56647');
 
 -- Floating Flag Zhaoren, Balloon
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '65559') and (`DifficultyID` = '0');
@@ -438,13 +485,33 @@ INSERT INTO `smart_scripts` VALUES
 
 -- Delete existing reference loot
 DELETE FROM creature_loot_template 
-WHERE Entry IN (55601) 
+WHERE Entry IN (55601,57465,55632,57466,55633) 
 AND ItemType = 1;
 
 -- NPC: 55601 Fe-Feng Wiseman (Humanoid)
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
 (55601, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
 (55601, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
+-- NPC: 57465 Fe-Feng Ruffian (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(57465, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(57465, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
+-- NPC: 55632 Fe-Feng Ruffian (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(55632, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(55632, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
+-- NPC: 57466 Fe-Feng Firethief (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(57466, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(57466, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
+-- NPC: 55633 Fe-Feng Firethief (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(55633, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(55633, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
 
 
 UPDATE `gameobject_template` SET `Data6` = 120000, `Data23` = 1 WHERE `entry` IN (209656, 209660, 209661, 209663);
