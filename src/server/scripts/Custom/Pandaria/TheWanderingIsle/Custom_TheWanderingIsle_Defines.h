@@ -36,6 +36,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
     namespace Misc
     {
+        static constexpr uint32 LorewalkerRuolinSound = 30627;
         static constexpr uint16 Jojo_AiAnimKitID = 2935;
         // Shu spawn water spout bunnies
         static constexpr uint8 BUNNY_SPAWN_SLOT_0 = 0;
