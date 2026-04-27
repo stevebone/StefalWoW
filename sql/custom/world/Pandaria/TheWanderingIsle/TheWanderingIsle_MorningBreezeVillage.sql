@@ -110,10 +110,11 @@ DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13204 AND `GossipOptionID` = 4
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `ActionMenuID`, `ActionPoiID`, `GossipNpcOptionID`, `BoxCoded`, `BoxMoney`, `BoxText`, `BoxBroadcastTextID`, `SpellID`, `OverrideIconID`, `VerifiedBuild`) VALUES 
 (13204, 40096, 0, 0, 'Maybe you should talk to her.', 62476, 0, 0, 14268, 0, NULL, 0, 0, '', 0, NULL, NULL, 61967);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+(55601, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Fe-Feng Wiseman
 (55650, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 3, '82358'), -- Balloon at Morning Breeze dock
 (65550, 0, 0, 0, 0, 0, 0, 1, 0, 426, 0, 0, 0, 0, ''), -- Tushui Monk
 (65559, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Zhao-Ren
@@ -140,16 +141,31 @@ UPDATE `creature` SET `PhaseId` = '1523' WHERE (`guid` = '451589'); -- Vision of
 -- Morning Breeze Villager with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451438, 451439, 451472);
 
+-- Fe-Feng Wiseman with waypoints
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451428,451509,451508,451484,451483,451432,451505,451495,451597);
+
 DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451588);
 INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
 (451588, 451588, 0, 0, 512, 0, 0),
 (451588, 451589, 10, 0, 512, 0, 0);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458,451468,451459,451441,451436,451446,451448,451438,451472,451473,
-451439);
+451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(451473, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '85096'), -- Ji at the Morning Breeze Village dock
+-- Fe-Feng Wiseman
+(451443, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
+(451510, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
+(451428, 5560100, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451509, 5560101, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451508, 5560102, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451484, 5560103, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451483, 5560104, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451432, 5560105, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451505, 5560106, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451495, 5560107, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451597, 5560108, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
+(451473, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '85096'), -- Ji at the Morning Breeze Village dock
 -- Jojo's crowd
 (451461, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'), -- morning breeze jojo power quest
 (451457, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80852'),
@@ -172,11 +188,9 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 
 
 -- Scripts for Jojo and monkeys
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57670,65467,56394,56393);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55601,57670,5767000,65467,56394,56393,6546700,5639400,5639300) AND `source_type` IN (0,9);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57670,65467,56394,56393);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57670,5767000,65467,56394,56393,6546700,5639400,5639300) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('55601', '0', '0', '0', '0', '0', '100', '0', '3000', '6000', '18000', '22000', '0', '', '11', '128751', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
-('55601', '0', '1', '0', '0', '0', '100', '0', '2000', '4000', '8000', '12000', '0', '', '11', '128413', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
 ('57670', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5767000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Just Spawned - Run Script'),
 ('5767000', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Talk'),
 ('5767000', '9', '1', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '128', '1', '1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Set AI AnimKit'),
@@ -196,6 +210,74 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6546700', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '5', '4', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote'),
 ('6546700', '9', '1', '0', '0', '0', '100', '0', '4000', '4000', '1000', '1000', '0', '', '5', '21', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote'),
 ('6546700', '9', '2', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '5', '4', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote');
+
+-- Fe-Feng Wiseman
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55601, 5560100, 5560101, 5560102, -451429, -451502, -451484, -451503, -451507, -451595, -451496, -451594,
+-451513, -451435, -451592, -451452, -451449, -451504, -451497, -451437) AND `source_type` IN (0,9);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(-451429, 0, 0, 0, 1, 0, 100, 0, 0, 0, 23000, 23000, 0, 80, 5560100, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Run Script'),
+(5560100, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 840.253, 4096.59, 209.464, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560100, 9, 1, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 854.115, 4084.21, 205.568, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560100, 9, 2, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 841.644, 4096.09, 209.709, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560100, 9, 3, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 823.063, 4101.08, 212.425, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(-451429, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451429, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451502, 0, 0, 0, 1, 0, 100, 0, 0, 0, 22000, 22000, 0, 80, 5560101, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Run Script'),
+(5560101, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 870.788, 4128.51, 204.465, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560101, 9, 1, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 885.913, 4136.3, 209.251, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560101, 9, 2, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 871.609, 4129.59, 204.369, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560101, 9, 3, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 856.233, 4122.32, 198.307, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(-451502, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451502, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451484, 0, 0, 0, 1, 0, 100, 0, 0, 0, 15000, 15000, 0, 80, 5560102, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Run Script'),
+(5560102, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 885.802, 4214.34, 204.627, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560102, 9, 1, 0, 0, 0, 100, 0, 3500, 3500, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 881.219, 4222.63, 213.961, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560102, 9, 2, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 887.045, 4215.36, 204.606, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(5560102, 9, 3, 0, 0, 0, 100, 0, 3500, 3500, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 1, 0, 0, 0, 877.462, 4209.25, 200.89, 0, 'Fe-Feng Wiseman - Jump to Pos'),
+(-451484, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451484, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451503, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451503, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451503, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451507, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451507, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451507, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451595, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451595, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451595, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451496, 0, 0, 0, 1, 0, 100, 0, 0, 2000, 3000, 8000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Play Random Emote'),
+(-451496, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451496, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451594, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451594, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451594, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451513, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451513, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451513, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451435, 0, 0, 0, 1, 0, 100, 0, 0, 2000, 3000, 8000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Play Random Emote'),
+(-451435, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451435, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451592, 0, 0, 0, 1, 0, 100, 0, 2000, 4000, 3000, 8000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Play Random Emote'),
+(-451592, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451592, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451452, 0, 0, 0, 1, 0, 100, 0, 2000, 4000, 3000, 8000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Play Random Emote'),
+(-451452, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451452, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451449, 0, 0, 0, 1, 0, 100, 0, 0, 2000, 3000, 8000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Play Random Emote'),
+(-451449, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451449, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451504, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451504, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451504, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451497, 0, 0, 0, 1, 0, 100, 0, 2000, 4000, 3000, 8000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Play Random Emote'),
+(-451497, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451497, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(-451437, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 6000, 9000, 0, 11, 128753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update OOC - Cast Paint it Red!'),
+(-451437, 0, 1, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(-451437, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock'),
+(55601, 0, 0, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
+(55601, 0, 1, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57465,57466,55633,55632);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57465,57466,55633,55632) AND `source_type` = 0;
