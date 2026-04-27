@@ -398,12 +398,12 @@ static void BuildRoundEffects(std::vector<WorldPackets::BattlePet::PetBattleEffe
             case PetBattles::PET_BATTLE_EFFECT_AURA_CANCEL:
             case PetBattles::PET_BATTLE_EFFECT_AURA_CHANGE:
             {
+                // Sniff-verified retail wire order is [AbilityID, InstanceID, RoundsRemaining, CurrentRound]
+                // (we historically stored Param1=InstanceID, Param2=AbilityID — swap on the wire so
+                // existing call sites keep their semantic naming)
                 target.Type = 1; // Aura: 4 params
-                target.Params.push_back(roundEffect.Param1); // AuraInstanceID
                 target.Params.push_back(roundEffect.Param2); // AuraAbilityID
-                // Use pre-captured values from creation time (Param3/Param4)
-                // instead of live aura lookup — TickAuras may have decremented
-                // or removed the aura before this serialization runs.
+                target.Params.push_back(roundEffect.Param1); // AuraInstanceID
                 target.Params.push_back(roundEffect.Param3); // RoundsRemaining
                 target.Params.push_back(roundEffect.Param4); // CurrentRound
                 break;
