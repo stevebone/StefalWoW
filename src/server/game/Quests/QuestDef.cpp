@@ -128,7 +128,7 @@ Quest::Quest(QuestTemplateQueryResult const& questRecord) :
     _soundTurnIn(questRecord.CompleteSoundKitID().GetUInt32()),
     _areaGroupID(questRecord.AreaGroupID().GetUInt32()),
     _limitTime(questRecord.TimeAllowed().GetInt64()),
-    _allowableRaces({ .RawValue = questRecord.AllowableRaces().GetUInt64() }),
+    _allowableRaces({ .RawValue = advstd::bit_cast<std::array<int32, 2>>(questRecord.AllowableRaces().GetUInt64()) }),
     _expansion(questRecord.Expansion().GetInt32()),
     _managedWorldStateID(questRecord.ManagedWorldStateID().GetInt32()),
     _questSessionBonus(questRecord.QuestSessionBonus().GetInt32()),
@@ -650,6 +650,8 @@ bool Quest::CanIncreaseRewardedQuestCounters() const
 
 void Quest::InitializeQueryData()
 {
+    QueryData = std::make_unique<WorldPacket[]>(TOTAL_LOCALES);
+
     for (uint8 loc = LOCALE_enUS; loc < TOTAL_LOCALES; ++loc)
     {
         if (!sWorld->getBoolConfig(CONFIG_LOAD_LOCALES) && loc != DEFAULT_LOCALE)
