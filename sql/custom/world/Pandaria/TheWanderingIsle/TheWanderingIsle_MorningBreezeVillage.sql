@@ -115,10 +115,14 @@ DELETE FROM `vehicle_template_accessory` WHERE `entry` IN (57464);
 INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`) VALUES
 (57464, 57465, 0, 0, 'Fe-Feng Ruffian', 7, 0);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+-- Fe-Feng Firethief
+(57466, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(55633, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
+
 (65558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '99203 105305'), -- Ji/Monk guardian
 -- Fe-Feng Ruffian
 (55632, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -133,13 +137,16 @@ INSERT INTO `creature_template_addon`
 (57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558,
+57466,55633);
 INSERT INTO `creature_template_difficulty` VALUES
 (65558, 0, 0, 0, 80, 4, 3, 1, 1, 1, 59279, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
 (55601, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29467, 0, 0, 0, 55601, 55601, 0, 5, 5, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55632, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29415, 0, 0, 0, 55632, 55632, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57464, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26403, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
-(57465, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26401, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57465, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26401, 0, 0, 0, 57465, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57466, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26399, 0, 0, 0, 57466, 0, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55633, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29413, 0, 0, 0, 55633, 0, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55650, 0, 0, 0, 80, 4, 30, 1, 1, 0.2, 29383, 1073741824, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 262144, 0, 0, 0, 0, 0, 56647),
 (65550, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59264, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65559, 0, 0, 0, 80, 4, 8, 1, 1, 0.2, 59280, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -154,8 +161,8 @@ UPDATE `creature` SET `PhaseId` = '1519' WHERE (`guid` = '451465'); -- Elder Sha
 UPDATE `creature` SET `PhaseId` = '1523', `MovementType` = 2 WHERE (`guid` = '451588'); -- Vision of Dafeng
 UPDATE `creature` SET `PhaseId` = '1523' WHERE (`guid` = '451589'); -- Vision of Zhao-Ren
 
-UPDATE `creature` SET `id` = 57464 WHERE `guid` IN (451551,451558); -- these should be hanging monekey bunnies
-DELETE FROM `creature` WHERE `guid` IN (451514,451517,451519,451524,451553); -- hanging monekeys are spawned by bunnies
+UPDATE `creature` SET `id` = 57464 WHERE `guid` IN (451551,451558); -- these should be hanging monkey bunnies
+DELETE FROM `creature` WHERE `guid` IN (451514,451517,451519,451524,451553); -- hanging monkeys are spawned by bunnies
 
 -- Morning Breeze Villager with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451438, 451439, 451472);
@@ -166,14 +173,32 @@ UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451428,451509,451508,4
 -- Fe-Feng Ruffian with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451577,451562);
 
+-- Fe-Feng Firethief with waypoints
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451563,451583,451532,451587,451516);
+
+UPDATE `creature` SET `id` = 55633 WHERE `guid` = 451583; -- incorrect Firethief id spawn
+
 DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451588);
 INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
 (451588, 451588, 0, 0, 512, 0, 0),
 (451588, 451589, 10, 0, 512, 0, 0);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458,451468,451459,451441,451436,451446,451448,451438,451472,451473,
-451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443,451462,451577,451562);
+451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443,451462,451577,451562,451563,451583,451532,451587,451516,451554,451556,451557,
+451550,451560,451578);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+-- Fe-Feng Firethief
+(451563, 5563300, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
+(451583, 5563301, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
+(451532, 5563302, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
+(451587, 5563303, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
+(451516, 5746600, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
+(451554, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, '127932'),
+(451556, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
+(451557, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
+(451550, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
+(451560, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
+(451578, 0, 0, 0, 0, 0, 0, 1, 0, 421, 0, 0, 0, 0, ''),
 -- Fe-Feng Ruffian
 (451462, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '119073'),
 (451577, 5563200, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -238,11 +263,43 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6546700', '9', '2', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '5', '4', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote');
 
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632,65558);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632,65558,57466,55633);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55632,5563200, 57465,55601, 5560100, 5560101, 5560102, -451429, -451502, -451484, -451503, -451507, 
 -451595, -451496, -451594, -451513, -451435, -451592, -451452, -451449, -451504, -451497, -451437, -451569, -451520, -451526, -451525, -451533, -451537, 
--451543, -451541, -451547,-451529,65558,6555800) AND `source_type` IN (0,9);
+-451543, -451541, -451547,-451529,65558,6555800,57466,55633,-451518,-451570,-451564,-451565,-451572,-451542,-451539,-451532,-451563,-451549,-451552) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Fe-Feng Firethief
+(57466, 0, 0, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+(-451518, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 1000, 4000, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
+(-451518, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+(-451570, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 1000, 4000, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
+(-451570, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+(-451564, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451564, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+(-451565, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451565, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+(-451572, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 1000, 4000, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
+(-451572, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+(-451542, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451542, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
+-- Fe-Feng Firethief 55633
+(55633, 0, 0, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 127940, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot'),
+(55633, 0, 1, 0, 0, 0, 100, 0, 10000, 15000, 10000, 15000, 0, 11, 109104, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
+(-451539, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451539, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 127940, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot'),
+(-451539, 0, 2, 0, 0, 0, 100, 0, 10000, 15000, 10000, 15000, 0, 11, 109104, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
+(-451532, 0, 0, 0, 1, 0, 100, 0, 0, 2500, 2500, 3500, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
+(-451532, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 127940, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot'),
+(-451532, 0, 2, 0, 0, 0, 100, 0, 10000, 15000, 10000, 15000, 0, 11, 109104, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
+(-451563, 0, 0, 0, 1, 0, 100, 0, 0, 2500, 2500, 3500, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
+(-451563, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 127940, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot'),
+(-451563, 0, 2, 0, 0, 0, 100, 0, 10000, 15000, 10000, 15000, 0, 11, 109104, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
+(-451549, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451549, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 127940, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot'),
+(-451549, 0, 2, 0, 0, 0, 100, 0, 10000, 15000, 10000, 15000, 0, 11, 109104, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
+(-451552, 0, 0, 0, 1, 0, 100, 0, 0, 5000, 4000, 13000, 0, 10, 1, 6, 25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update OOC - Play Random Emote'),
+(-451552, 0, 1, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 127940, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot'),
+(-451552, 0, 2, 0, 0, 0, 100, 0, 10000, 15000, 10000, 15000, 0, 11, 109104, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
 -- Huojin Monk / Ji Firepaw
 (65558, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Just Spawned - Talk'),
 (65558, 0, 1, 0, 4, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117312, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Aggro - Cast Combat Roll'),
@@ -353,15 +410,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (55601, 0, 0, 0, 0, 0, 100, 0, 3000, 6000, 18000, 22000, 0, 11, 128751, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Paint it Red!'),
 (55601, 0, 1, 0, 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, 11, 128413, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Wiseman - Update IC - Cast Hozen Shock');
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57465,57466,55633,55632);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57465,57466,55633,55632) AND `source_type` = 0;
-INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('57466', '0', '0', '0', '0', '0', '100', '0', '4000', '8000', '15000', '20000', '0', '', '11', '109098', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
-('55633', '0', '0', '0', '0', '0', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '127940', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Firethief - Update IC - Cast Shoot'),
-('55633', '0', '1', '0', '0', '0', '100', '0', '10000', '15000', '10000', '15000', '0', '', '11', '109104', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Firethief - Update IC - Cast Shoot ALL the fireworks!'),
-('57465', '0', '0', '0', '0', '0', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '128414', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Ruffian - Update IC - Cast Display of Fury'),
-('55632', '0', '0', '0', '0', '0', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '128414', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Fe-Feng Ruffian - Update IC - Cast Display of Fury');
-
 DELETE FROM `npc_vendor` WHERE `entry` IN (57623);
 INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, type, BonusListIDs, PlayerConditionID, IgnoreFiltering, VerifiedBuild) VALUES
 ('57623', '1', '2880', '0', '0', '0', '1', NULL, '0', '0', '63906'),
@@ -387,10 +435,9 @@ UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55672') and (`DifficultyID` = '0');
 
 -- Fe-Feng Firethief stolen cannons aura
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55633, 55672, 56159, 55586, 56686);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55672, 56159, 55586, 56686);
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55672, 1, '108900 126160');
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55586, 1, '108900 126160');
-INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES ('55633', '1', '127932');
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES ('56159', '1', '105329');
 INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `auras`) VALUES (56686, 8, 1, '108900 126160');
 
