@@ -251,6 +251,7 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `M
 (1, 2598, 1, 1, 1, 1, 'Pattern: Red Linen Robe'),
 (1, 3609, 1, 1, 1, 1, 'Plans: Copper Chain Vest'),
 (1, 6271, 0.349562, 1, 1, 1, 'Pattern: Red Linen Vest'),
+(1, 3610, 0.349562, 1, 1, 1, 'Plans: Gemmed Copper Gauntlets'),
 (1, 4408, 0.281373, 1, 1, 1, 'Schematic: Mechanical Squirrel Box'),
 (1, 2555, 0.281373, 1, 1, 1, 'Recipe: Swiftness Potion'),
 -- Bags & Pouches
@@ -283,6 +284,7 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `M
 -- Humanoids
 (4, 2589, 77.5519, 1, 1, 1, 'Linen Cloth'),
 (4, 774, 9.41698, 1, 1, 1, 'Malachite'),
+(4, 818, 9.41698, 1, 1, 1, 'Tigerseye'),
 -- Elementals
 (5, 55983, 77.1939, 1, 1, 1, 'Inert Elemental Speck'),
 (5, 55983, 0.181159, 1, 1, 1, 'Inert Elemental Scintilla'),

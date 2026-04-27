@@ -4000,6 +4000,77 @@ namespace Scripts::Custom::TheWanderingIsle
         }        
     };
 
+    // 55583 - Ji at Morning Breeze Village
+    class npc_ji_morning_breeze_docks : public CreatureScript
+    {
+    public:
+        npc_ji_morning_breeze_docks() : CreatureScript("npc_ji_morning_breeze_docks") { }
+
+        struct npc_ji_morning_breeze_docksAI : public ScriptedAI
+        {
+            npc_ji_morning_breeze_docksAI(Creature* creature) : ScriptedAI(creature) { }
+
+            bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+            {
+                if (gossipListId == 0) // Player asks Ji about Aysa
+                {
+                    player->PlayerTalkClass->ClearMenus();
+                    player->PlayerTalkClass->SendCloseGossip();
+
+                    // Ji talks back
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            Talk(1, player);
+                        }, std::chrono::seconds(3));
+                    return true;
+                }
+                return false;
+            }
+
+            void ReceiveEmote(Player* player, uint32 emoteId) override
+            {
+                if (!player)
+                    return;
+
+                if (emoteId == TEXT_EMOTE_HUG)
+                {
+                    if (!CanPlayerHug(player->GetGUID()))
+                        return;
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            Talk(0, player);
+                        }, std::chrono::seconds(3));
+                }
+            }
+
+            bool CanPlayerHug(ObjectGuid guid)
+            {
+                uint32 now = getMSTime();
+
+                auto it = _playerHugCooldowns.find(guid);
+
+                // If player hugged before ? check cooldown
+                if (it != _playerHugCooldowns.end())
+                {
+                    if (now - it->second < 120000) // 2 minutes
+                        return false; // still on cooldown
+                }
+
+                // First hug OR cooldown passed ? update timestamp
+                _playerHugCooldowns[guid] = now;
+                return true;
+            }
+
+        private:
+            std::unordered_map<ObjectGuid, uint32> _playerHugCooldowns; // Per-player cooldown tracking
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_ji_morning_breeze_docksAI(creature);
+        }
+    };
 }
 
 void AddSC_custom_the_wandering_isle_npcs()
@@ -4039,4 +4110,5 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_healers_active_bunny();
     new npc_shenzin_su_healer();
     new npc_spirit_of_master_shang_xi_q31450();
+    new npc_ji_morning_breeze_docks();
 }

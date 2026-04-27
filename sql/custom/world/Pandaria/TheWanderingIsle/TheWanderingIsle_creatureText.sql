@@ -321,3 +321,9 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('57720', '0', '0', 'Yes... perhaps that is for the best. I like what I\'ve seen of them, and it sounds as though their world could use my help.', '12', '0', '100', '273', '0', '27305', '0', '60630', '0', 'Ji Firepaw to Player'),
 -- Aysa Cloudsinger dialogue
 ('57721', '0', '0', 'Master Shang Xi, I would like to accompany the Alliance back to their home.', '12', '0', '100', '1', '0', '27405', '0', '60628', '0', 'Aysa Cloudsinger to Player');
+
+-- Ji at the Morning Breeze Docks
+DELETE FROM creature_text WHERE creatureid IN (55583);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+('55583', '0', '0', 'Ji Firepaw warmly hugs you back.', '16', '0', '100', '0', '0', '0', '0', '64831', '0', 'Ji Firepaw hugs player'),
+('55583', '1', '0', 'Aysa? I don\'t know what to say to her. Should I tell her she\'s gorgeous, or would she find that creepy? Maybe I could tell her I admire her poise - but then she might think I don\'t have any personality!', '12', '0', '100', '0', '0', '0', '0', '62477', '0', 'Ji Firepaw to player');

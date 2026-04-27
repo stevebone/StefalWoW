@@ -100,18 +100,31 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('29791', '0', '0', '0', '29790', '29792', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791');
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_lorewalker_ruolin' WHERE `Entry` = 64876; -- Lorewalker event
+UPDATE `creature_template` SET `ScriptName` = 'npc_ji_morning_breeze_docks' WHERE `Entry` = 55583;
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559);
+DELETE FROM `gossip_menu` WHERE `MenuID` IN (13204);
+INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES 
+(13204, 18608, 61967); -- Ji at Morning Breeze Village dock
+
+DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13204 AND `GossipOptionID` = 40096;
+INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `ActionMenuID`, `ActionPoiID`, `GossipNpcOptionID`, `BoxCoded`, `BoxMoney`, `BoxText`, `BoxBroadcastTextID`, `SpellID`, `OverrideIconID`, `VerifiedBuild`) VALUES 
+(13204, 40096, 0, 0, 'Maybe you should talk to her.', 62476, 0, 0, 14268, 0, NULL, 0, 0, '', 0, NULL, NULL, 61967);
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+(55650, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 3, '82358'), -- Balloon at Morning Breeze dock
+(65550, 0, 0, 0, 0, 0, 0, 1, 0, 426, 0, 0, 0, 0, ''), -- Tushui Monk
 (65559, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Zhao-Ren
 (65560, 6556000, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Dafeng
 (57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650);
 INSERT INTO `creature_template_difficulty` VALUES
+(55650, 0, 0, 0, 80, 4, 30, 1, 1, 0.2, 29383, 1073741824, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 262144, 0, 0, 0, 0, 0, 56647),
+(65550, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59264, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65559, 0, 0, 0, 80, 4, 8, 1, 1, 0.2, 59280, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65560, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59281, 0, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55583, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29504, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -254,7 +267,6 @@ UPDATE `creature` SET `PhaseId` = 1429, `StringId` = 'npc_zhaoren_flyby' WHERE `
 UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568);
 UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
 
-UPDATE `creature` SET `wander_distance` = '50', `MovementType`=1 WHERE (`guid` = '451589');
 UPDATE `creature_template` SET `ScriptName` = 'npc_zhaoren' WHERE `Entry` = 55786;
 UPDATE `creature_template` SET `ScriptName` = 'npc_firework_launcher' WHERE `Entry` = 64507;
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_outside_chambers_of_whispers' WHERE `Entry` = 55744;
@@ -283,7 +295,6 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6453200', '9', '0', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '53', '1', '6453200', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Dafeng - Start WP'),
 ('6454300', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '59', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Just Spawned - Run Script'),
 ('6454300', '9', '1', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '53', '1', '6454300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Start WP');
-
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
@@ -343,60 +354,16 @@ INSERT INTO `smart_scripts` VALUES
 ('55672', '0', '0', '0', '', '19', '0', '100', '0', '29790', '0', '0', '0', '0', '', '41', '1000', '30000', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Accepted Quest - Invoker Cast Summon Master Shang Xi'),
 ('55672', '0', '1', '0', '', '20', '0', '100', '0', '29787', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Reward Quest - Master Shang Xi Talk');
 
-DELETE FROM `creature_loot_template` WHERE `entry` IN (55601);
-INSERT INTO `creature_loot_template` (Entry, ItemType, Item, Chance, QuestRequired, LootMode, GroupId, MinCount, MaxCount, Comment) VALUES
-('55601', '0', '117', '2.55494', '0', '1', '0', '1', '1', 'Tough Jerky'),
-('55601', '0', '118', '0.885809', '0', '1', '0', '1', '1', 'Minor Healing Potion'),
-('55601', '0', '159', '1.62347', '0', '1', '0', '1', '1', 'Refreshing Spring Water'),
-('55601', '0', '727', '0.185685', '0', '1', '0', '1', '1', 'Notched Shortsword'),
-('55601', '0', '766', '0.29324', '0', '1', '0', '1', '1', 'Flanged Mace'),
-('55601', '0', '767', '0.185685', '0', '1', '0', '1', '1', 'Long Bo Staff'),
-('55601', '0', '774', '1', '0', '1', '0', '1', '1', 'Malachite'),
-('55601', '0', '818', '0.341944', '0', '1', '0', '1', '1', 'Tigerseye'),
-('55601', '0', '1179', '0.10857', '0', '1', '0', '1', '1', 'Ice Cold Milk'),
-('55601', '0', '1411', '0.214096', '0', '1', '0', '1', '1', 'Withered Staff'),
-('55601', '0', '1412', '0.299328', '0', '1', '0', '1', '1', 'Crude Bastard Sword'),
-('55601', '0', '1413', '0.28005', '0', '1', '0', '1', '1', 'Feeble Sword'),
-('55601', '0', '1414', '0.194817', '0', '1', '0', '1', '1', 'Cracked Sledge'),
-('55601', '0', '1415', '0.261785', '0', '1', '0', '1', '1', 'Carpenter\'s Mallet'),
-('55601', '0', '1416', '0.260771', '0', '1', '0', '1', '1', 'Rusty Hatchet'),
-('55601', '0', '1417', '0.233375', '0', '1', '0', '1', '1', 'Beaten Battle Axe'),
-('55601', '0', '1418', '0.150172', '0', '1', '0', '1', '1', 'Worn Leather Belt'),
-('55601', '0', '1419', '0.133937', '0', '1', '0', '1', '1', 'Worn Leather Boots'),
-('55601', '0', '1420', '0.180612', '0', '1', '0', '1', '1', 'Worn Leather Bracers'),
-('55601', '0', '1422', '0.202934', '0', '1', '0', '1', '1', 'Worn Leather Gloves'),
-('55601', '0', '1423', '0.245551', '0', '1', '0', '1', '1', 'Worn Leather Pants'),
-('55601', '0', '1425', '0.157274', '0', '1', '0', '1', '1', 'Worn Leather Vest'),
-('55601', '0', '1427', '0.144083', '0', '1', '0', '1', '1', 'Patchwork Shoes'),
-('55601', '0', '1429', '0.15626', '0', '1', '0', '1', '1', 'Patchwork Cloak'),
-('55601', '0', '1430', '0.191773', '0', '1', '0', '1', '1', 'Patchwork Gloves'),
-('55601', '0', '1431', '0.164377', '0', '1', '0', '1', '1', 'Patchwork Pants'),
-('55601', '0', '1433', '0.172494', '0', '1', '0', '1', '1', 'Patchwork Armor'),
-('55601', '0', '2138', '0.218155', '0', '1', '0', '1', '1', 'Sharpened Letter Opener'),
-('55601', '0', '2212', '0.15626', '0', '1', '0', '1', '1', 'Cracked Buckler'),
-('55601', '0', '2213', '0.161333', '0', '1', '0', '1', '1', 'Worn Large Shield'),
-('55601', '0', '2287', '0.203949', '0', '1', '0', '1', '1', 'Haunch of Meat'),
-('55601', '0', '2635', '0.350062', '0', '1', '0', '1', '1', 'Loose Chain Belt'),
-('55601', '0', '2642', '0.485013', '0', '1', '0', '1', '1', 'Loose Chain Boots'),
-('55601', '0', '2643', '0.228301', '0', '1', '0', '1', '1', 'Loose Chain Bracers'),
-('55601', '0', '2645', '0.158289', '0', '1', '0', '1', '1', 'Loose Chain Gloves'),
-('55601', '0', '2646', '0.160318', '0', '1', '0', '1', '1', 'Loose Chain Pants'),
-('55601', '0', '2648', '0.143069', '0', '1', '0', '1', '1', 'Loose Chain Vest'),
-('55601', '0', '2773', '0.250624', '0', '1', '0', '1', '1', 'Cracked Shortbow'),
-('55601', '0', '2774', '0.222213', '0', '1', '0', '1', '1', 'Rust-Covered Blunderbuss'),
-('55601', '0', '3189', '0.244536', '0', '1', '0', '1', '1', 'Wood Chopper'),
-('55601', '0', '3370', '0.165392', '0', '1', '0', '1', '1', 'Patchwork Belt'),
-('55601', '0', '3373', '0.194817', '0', '1', '0', '1', '1', 'Patchwork Bracers'),
-('55601', '0', '4560', '0.127849', '0', '1', '0', '1', '1', 'Fine Scimitar'),
-('55601', '0', '4562', '0.115673', '0', '1', '0', '1', '1', 'Severing Axe'),
-('55601', '0', '4563', '0.277005', '0', '1', '0', '1', '1', 'Billy Club'),
-('55601', '0', '4565', '0.126834', '0', '1', '0', '1', '1', 'Simple Dagger'),
-('55601', '0', '8177', '0.27802', '0', '1', '0', '1', '1', 'Practice Sword'),
-('55601', '0', '8178', '0.141039', '0', '1', '0', '1', '1', 'Training Sword'),
-('55601', '0', '8179', '0.107555', '0', '1', '0', '1', '1', 'Cadet\'s Bow'),
-('55601', '0', '8181', '0.152201', '0', '1', '0', '1', '1', 'Hunting Rifle'),
-('55601', '0', '8182', '0.334842', '0', '1', '0', '1', '1', 'Pellet Rifle'),
-('55601', '0', '74615', '100', '1', '1', '0', '1', '1', 'Paint Soaked Brush');
+-- Delete existing reference loot
+DELETE FROM creature_loot_template 
+WHERE Entry IN (55601) 
+AND ItemType = 1;
+
+-- NPC: 55601 Fe-Feng Wiseman (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(55601, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(55601, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
 
 UPDATE `gameobject_template` SET `Data6` = 120000, `Data23` = 1 WHERE `entry` IN (209656, 209660, 209661, 209663);
 

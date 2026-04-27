@@ -87,6 +87,10 @@ INSERT INTO `creature_template_difficulty` VALUES
 UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (65053,65047,65049,65087,66690,65084,65077,65035,60260,65088);
 UPDATE `creature` SET `PhaseId` = 878 WHERE `id` IN (59960, 59963, 59962);
 
+DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451366);
+INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
+(451366, 451366, 0, 0, 512, 0, 0),
+(451366, 451382, 10, 0, 512, 0, 0);
 
 DELETE FROM `npc_vendor` WHERE `entry` IN (57622, 65047, 65049, 65050, 65052, 65053, 65087, 65091);
 INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `type`, BonusListIDs, PlayerConditionID, IgnoreFiltering, VerifiedBuild) VALUES
