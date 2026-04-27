@@ -572,15 +572,19 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
                        player->GetPositionZ(), facing);
     player->NearTeleportTo(playerPos);
 
+    // Teleport the wild creature to its battle slot facing the player
+    Position creatureBattlePos(midpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
+                               midpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
+                               creature->GetPositionZ(), facing + float(M_PI));
+    creature->NearTeleportTo(creatureBattlePos);
+
     // Send finalize location with OK result
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
     finalizeLocation.Location.LocationResult = PetBattles::PET_BATTLE_REQUEST_FAIL_OK;
     finalizeLocation.Location.BattleOrigin = midpoint;
     finalizeLocation.Location.BattleFacing = facing;
     finalizeLocation.Location.PlayerPositions[0] = playerPos;
-    finalizeLocation.Location.PlayerPositions[1] = Position(midpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
-                                                           midpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
-                                                           creature->GetPositionZ());
+    finalizeLocation.Location.PlayerPositions[1] = creatureBattlePos;
     SendPacket(finalizeLocation.Write());
 
     // Build and send initial update
@@ -745,15 +749,19 @@ void WorldSession::StartNPCPetBattle(Creature* trainer)
                        player->GetPositionZ(), facing);
     player->NearTeleportTo(playerPos);
 
+    // Teleport the trainer NPC to its battle slot facing the player
+    Position trainerBattlePos(midpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
+                              midpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
+                              trainer->GetPositionZ(), facing + float(M_PI));
+    trainer->NearTeleportTo(trainerBattlePos);
+
     // Send finalize location with OK result
     WorldPackets::BattlePet::PetBattleFinalizeLocation finalizeLocation;
     finalizeLocation.Location.LocationResult = PetBattles::PET_BATTLE_REQUEST_FAIL_OK;
     finalizeLocation.Location.BattleOrigin = midpoint;
     finalizeLocation.Location.BattleFacing = facing;
     finalizeLocation.Location.PlayerPositions[0] = playerPos;
-    finalizeLocation.Location.PlayerPositions[1] = Position(midpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(facing),
-                                                           midpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(facing),
-                                                           trainer->GetPositionZ());
+    finalizeLocation.Location.PlayerPositions[1] = trainerBattlePos;
     SendPacket(finalizeLocation.Write());
 
     // Build and send initial update

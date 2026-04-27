@@ -847,14 +847,19 @@ void PetBattleMgr::HandleProposalResult(ObjectGuid playerGUID, bool accepted)
                 pvpMidpoint.m_positionY = (p1->GetPositionY() + p2->GetPositionY()) / 2.0f;
                 pvpMidpoint.m_positionZ = (p1->GetPositionZ() + p2->GetPositionZ()) / 2.0f;
                 float pvpFacing = p1->GetAbsoluteAngle(p2);
+                Position p1BattlePos(pvpMidpoint.m_positionX - PET_BATTLE_PLAYER_DISTANCE * std::cos(pvpFacing),
+                                     pvpMidpoint.m_positionY - PET_BATTLE_PLAYER_DISTANCE * std::sin(pvpFacing),
+                                     p1->GetPositionZ(), pvpFacing);
+                Position p2BattlePos(pvpMidpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(pvpFacing),
+                                     pvpMidpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(pvpFacing),
+                                     p2->GetPositionZ(), pvpFacing + float(M_PI));
+                p1->NearTeleportTo(p1BattlePos);
+                p2->NearTeleportTo(p2BattlePos);
+
                 finalizeLocation.Location.BattleOrigin = pvpMidpoint;
                 finalizeLocation.Location.BattleFacing = pvpFacing;
-                finalizeLocation.Location.PlayerPositions[0] = Position(pvpMidpoint.m_positionX - PET_BATTLE_PLAYER_DISTANCE * std::cos(pvpFacing),
-                                                                     pvpMidpoint.m_positionY - PET_BATTLE_PLAYER_DISTANCE * std::sin(pvpFacing),
-                                                                     p1->GetPositionZ());
-                finalizeLocation.Location.PlayerPositions[1] = Position(pvpMidpoint.m_positionX + PET_BATTLE_PLAYER_DISTANCE * std::cos(pvpFacing),
-                                                                     pvpMidpoint.m_positionY + PET_BATTLE_PLAYER_DISTANCE * std::sin(pvpFacing),
-                                                                     p2->GetPositionZ());
+                finalizeLocation.Location.PlayerPositions[0] = p1BattlePos;
+                finalizeLocation.Location.PlayerPositions[1] = p2BattlePos;
                 p1->SendDirectMessage(finalizeLocation.Write());
                 p2->SendDirectMessage(finalizeLocation.Write());
             }
