@@ -323,7 +323,21 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('57721', '0', '0', 'Master Shang Xi, I would like to accompany the Alliance back to their home.', '12', '0', '100', '1', '0', '27405', '0', '60628', '0', 'Aysa Cloudsinger to Player');
 
 -- Ji at the Morning Breeze Docks
-DELETE FROM creature_text WHERE creatureid IN (55583);
+DELETE FROM creature_text WHERE creatureid IN (55583,65558);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
 ('55583', '0', '0', 'Ji Firepaw warmly hugs you back.', '16', '0', '100', '0', '0', '0', '0', '64831', '0', 'Ji Firepaw hugs player'),
-('55583', '1', '0', 'Aysa? I don\'t know what to say to her. Should I tell her she\'s gorgeous, or would she find that creepy? Maybe I could tell her I admire her poise - but then she might think I don\'t have any personality!', '12', '0', '100', '0', '0', '0', '0', '62477', '0', 'Ji Firepaw to player');
+('55583', '1', '0', 'Aysa? I don\'t know what to say to her. Should I tell her she\'s gorgeous, or would she find that creepy? Maybe I could tell her I admire her poise - but then she might think I don\'t have any personality!', '12', '0', '100', '0', '0', '0', '0', '62477', '0', 'Ji Firepaw to player'),
+-- Ji/Monk Guardian 
+(65558, 0, 0, 'Let\'s tackle this one together!', 12, 0, 100, 5, 0, 27320, 0, 60609, 0, 'Ji Firepaw to Player'),
+(65558, 1, 0, 'I like the way you fight!', 12, 0, 100, 5, 0, 27322, 0, 60610, 0, 'Ji Firepaw to Player'),
+(65558, 1, 1, 'He had that one coming.', 12, 0, 100, 273, 0, 27323, 0, 60611, 0, 'Ji Firepaw to Player'),
+(65558, 1, 2, 'Ouch! That one looked painful!', 12, 0, 100, 5, 0, 27324, 0, 60612, 0, 'Ji Firepaw to Player'),
+(65558, 1, 3, 'You make this look easy.', 12, 0, 100, 1, 0, 27325, 0, 60613, 0, 'Ji Firepaw to Player'),
+(65558, 1, 4, 'They never stood a chance.', 12, 0, 100, 1, 0, 27326, 0, 60614, 0, 'Ji Firepaw to Player'),
+(65558, 1, 5, 'You\'ve got this handled.', 12, 0, 100, 273, 0, 27327, 0, 60615, 0, 'Ji Firepaw to Player'),
+(65558, 1, 6, 'I need to fight by you more often.', 12, 0, 100, 1, 0, 27328, 0, 60616, 0, 'Ji Firepaw to Player'),
+(65558, 2, 0, 'Let\'s do this, monkeyface!', 12, 0, 100, 5, 0, 27318, 0, 60619, 0, 'Ji Firepaw to Player'),
+(65558, 3, 0, 'That all you\'ve got?!', 12, 0, 100, 5, 0, 27316, 0, 60620, 0, 'Ji Firepaw to Player'),
+(65558, 4, 0, 'This monkey\'s about to get slapped!', 12, 0, 100, 5, 0, 27317, 0, 60621, 0, 'Ji Firepaw to Player'),
+(65558, 5, 0, 'And he\'s down for the count! Good going.', 12, 0, 100, 5, 0, 27315, 0, 60622, 0, 'Ji Firepaw to Player'),
+(65558, 6, 0, 'See you at the dock!', 12, 0, 100, 0, 0, 27319, 0, 60618, 0, 'Ji Firepaw to Player');

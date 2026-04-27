@@ -115,10 +115,11 @@ DELETE FROM `vehicle_template_accessory` WHERE `entry` IN (57464);
 INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`) VALUES
 (57464, 57465, 0, 0, 'Fe-Feng Ruffian', 7, 0);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
+(65558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '99203 105305'), -- Ji/Monk guardian
 -- Fe-Feng Ruffian
 (55632, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (57464, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- vehicle bunny hanging monkey
@@ -132,8 +133,9 @@ INSERT INTO `creature_template_addon`
 (57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558);
 INSERT INTO `creature_template_difficulty` VALUES
+(65558, 0, 0, 0, 80, 4, 3, 1, 1, 1, 59279, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
 (55601, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29467, 0, 0, 0, 55601, 55601, 0, 5, 5, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55632, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29415, 0, 0, 0, 55632, 55632, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57464, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 26403, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -236,11 +238,29 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6546700', '9', '2', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '5', '4', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote');
 
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632,65558);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55632,5563200, 57465,55601, 5560100, 5560101, 5560102, -451429, -451502, -451484, -451503, -451507, 
 -451595, -451496, -451594, -451513, -451435, -451592, -451452, -451449, -451504, -451497, -451437, -451569, -451520, -451526, -451525, -451533, -451537, 
--451543, -451541, -451547,-451529) AND `source_type` IN (0,9);
+-451543, -451541, -451547,-451529,65558,6555800) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Huojin Monk / Ji Firepaw
+(65558, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Just Spawned - Talk'),
+(65558, 0, 1, 0, 4, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117312, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Aggro - Cast Combat Roll'),
+(65558, 0, 2, 0, 0, 0, 100, 0, 3000, 5000, 6000, 6000, 0, 11, 128631, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Blackout Kick'),
+(65558, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 3000, 5000, 0, 11, 128630, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Jab'),
+(65558, 0, 4, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128635, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Fists of Fury'),
+(65558, 0, 5, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128632, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Spinning Crane Kick'),
+(65558, 0, 6, 0, 0, 0, 100, 0, 10000, 10000, 10000, 10000, 0, 11, 128643, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Healing Sphere'),
+(65558, 0, 7, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 86, 105306, 2, 23, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Death - Cross Cast Summon Ji Yuan'),
+(65558, 0, 8, 0, 5, 0, 40, 0, 5000, 5000, 0, 55632, 0, 1, 1, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Kill - Talk'),
+(65558, 0, 9, 0, 5, 0, 40, 0, 5000, 5000, 0, 57466, 0, 1, 1, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Kill - Talk'),
+(65558, 0, 10, 11, 8, 0, 100, 0, 116992, 0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Spellhit - Stop Follow'),
+(65558, 0, 11, 12, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 6, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Spellhit - Talk'),
+(65558, 0, 12, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 6555800, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Spellhit - Run Script'),
+(6555800, 9, 0, 0, 0, 0, 100, 0, 3000, 3000, 0, 0, 0, 59, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Set Run'),
+(6555800, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Set React State'),
+(6555800, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 8, 0, 0, 0, 1163.807, 4334.277, 210.9638, 0, 'Ji Firepaw - Move to Pos'),
+(65558, 0, 13, 0, 34, 0, 100, 0, 8, 1, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Movement Inform - Despawn'),
 -- Fe-Feng Ruffian
 (55632, 0, 0, 0, 0, 0, 100, 0, 4000, 8000, 8000, 12000, 0, 80, 5563200, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Update IC - Run Script'),
 (5563200, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 11, 128414, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Ruffian - Cast Display of Fury'),
@@ -425,8 +445,10 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6454300', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '59', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Just Spawned - Run Script'),
 ('6454300', '9', '1', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '53', '1', '6454300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Start WP');
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857,116992);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
+(13, 1, 116992, 51, 5, 65558, 'Trigger Ji Guardian Exit target Ji Firepaw'),
+(13, 1, 116992, 33, 1, 3, 'Trigger Ji Guardian Exit target Ji Firepaw owned by summoner'),
 (13, 1, 104855, 51, 5, 55786, 'Overpacked Firework target Zhao-Ren'),
 (13, 1, 108845, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow'),
 (13, 1, 108846, 51, 5, 57668, 'Jojo Headbash, Stack of Blocks Impact target Stack of Blocks'),
