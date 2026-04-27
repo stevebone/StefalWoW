@@ -1291,6 +1291,11 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             if (defender.PetType == PET_TYPE_MAGIC)
                 damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
 
+            // Boss pets cap incoming damage at 35% max HP
+            if (BattlePetSpeciesEntry const* defenderSpecies = sBattlePetSpeciesStore.LookupEntry(defender.Species))
+                if (defenderSpecies->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
+                    damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
             if (damage < 1) damage = 1;
             defender.Health = std::max(0, defender.Health - damage);
 
@@ -1658,10 +1663,10 @@ DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attacke
     if (defender.PetType == PET_TYPE_MAGIC)
         damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
 
-    // Boss pets take reduced damage (capped at ~35% max HP per hit)
+    // Boss pets take reduced damage (capped at 35% max HP per hit)
     if (BattlePetSpeciesEntry const* defenderSpecies = sBattlePetSpeciesStore.LookupEntry(defender.Species))
         if (defenderSpecies->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
-            damage = std::min(damage, int32(defender.MaxHealth * 0.35f));
+            damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
 
     result.Damage = std::max(1, damage);
     return result;
@@ -1802,6 +1807,15 @@ void PetBattle::TickAuras()
                     // Aquatic passive: DoTs deal 25% less damage
                     if (pet.PetType == PET_TYPE_AQUATIC)
                         tickDamage = int32(tickDamage * (1.0f - PASSIVE_AQUATIC_DOT_REDUCTION));
+
+                    // Magic passive: cannot take more than 35% max HP in a single hit
+                    if (pet.PetType == PET_TYPE_MAGIC)
+                        tickDamage = std::min(tickDamage, int32(pet.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+                    // Boss pets cap incoming damage at 35% max HP
+                    if (BattlePetSpeciesEntry const* defenderSpecies = sBattlePetSpeciesStore.LookupEntry(pet.Species))
+                        if (defenderSpecies->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
+                            tickDamage = std::min(tickDamage, int32(pet.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
 
                     if (tickDamage < 1) tickDamage = 1;
                     pet.Health = std::max(0, pet.Health - tickDamage);
