@@ -1538,6 +1538,7 @@ namespace Scripts::Custom::TheWanderingIsle
             void UpdateAI(uint32 diff) override
             {
                 events.Update(diff);
+                scheduler.Update(diff);
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -1552,6 +1553,16 @@ namespace Scripts::Custom::TheWanderingIsle
                             break;
                         }
 
+                        if (dialogueIndex == 0)
+                        {
+                            me->HandleEmoteCommand(EMOTE_ONESHOT_YES);
+                            scheduler.Schedule(2s, [this](TaskContext const&)
+                                {
+                                    me->CastSpell(me, Spells::spell_ruolin_singing);
+                                    me->PlayDirectSound(Misc::LorewalkerRuolinSound);
+                                });                            
+                        }
+
                         const LorewalkerDialogueEntry& entry = dialogueSequence[dialogueIndex];
 
                         if (Creature* speaker = GetClosestCreatureWithEntry(me, entry.npcEntry, 20.0f))
@@ -1563,7 +1574,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         if (entry.isFinal)
                         {
                             StoryInProgress = false;
-                            // optionally reset events or schedule a cooldown
+                            me->RemoveAurasDueToSpell(Spells::spell_ruolin_singing);
                             events.Reset();
                         }
                         else
@@ -1587,13 +1598,12 @@ namespace Scripts::Custom::TheWanderingIsle
                 events.Reset();
                 dialogueIndex = 0;
                 StoryInProgress = true;
-                me->CastSpell(me, Spells::spell_ruolin_singing);
-                me->HandleEmoteCommand(EMOTE_ONESHOT_YES);
                 events.ScheduleEvent(Events::event_start_dialogue, 30s);
             }
 
         private:
             EventMap events;
+            TaskScheduler scheduler;
             size_t dialogueIndex;
             bool StoryInProgress = false;
         };
