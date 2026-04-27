@@ -215,6 +215,15 @@ static void BuildPetBattleEnviros(std::array<WorldPackets::BattlePet::PetBattleE
             auraInfo.CasterPBOID = env.CasterTeam * PetBattles::MAX_PET_BATTLE_TEAM_SIZE
                 + battle->GetTeam(env.CasterTeam).FrontPetIndex;
             enviros[i].Auras.push_back(auraInfo);
+
+            // State values drive the client-side visual weather (Mod_HealingDealt, Add_FlatDamage, etc.)
+            for (auto const& [stateID, stateValue] : env.States)
+            {
+                WorldPackets::BattlePet::PetBattleStateInfo stateInfo;
+                stateInfo.StateID = stateID;
+                stateInfo.StateValue = stateValue;
+                enviros[i].States.push_back(stateInfo);
+            }
         }
     }
 }
