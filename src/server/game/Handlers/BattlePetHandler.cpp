@@ -228,6 +228,29 @@ static void BuildPetBattleEnviros(std::array<WorldPackets::BattlePet::PetBattleE
     }
 }
 
+// Retail FirstRound includes a PET_SWAP effect per team to position the active pet at the
+// front. Without these, the client never animates the active pet into the combat slot.
+static void EmitInitialFrontPetSwapEffects(std::vector<WorldPackets::BattlePet::PetBattleEffectInfo>& effects,
+    PetBattles::PetBattle const* battle)
+{
+    for (uint8 t = 0; t < PetBattles::MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        PetBattles::PetBattleTeamData const& team = battle->GetTeam(t);
+        int32 frontPBOID = static_cast<int32>(t * PetBattles::MAX_PET_BATTLE_TEAM_SIZE + team.FrontPetIndex);
+
+        WorldPackets::BattlePet::PetBattleEffectInfo swapEffect;
+        swapEffect.EffectIndex = PetBattles::PET_BATTLE_EFFECT_PET_SWAP;
+        swapEffect.CasterPBOID = frontPBOID;
+
+        WorldPackets::BattlePet::PetBattleEffectTargetInfo swapTarget;
+        swapTarget.Type = 0;
+        swapTarget.Remaining = frontPBOID;
+        swapEffect.Targets.push_back(std::move(swapTarget));
+
+        effects.push_back(std::move(swapEffect));
+    }
+}
+
 static void BuildPetBattleRoundPlayerData(WorldPackets::BattlePet::PetBattleRoundPlayerData& roundData,
     PetBattles::PetBattleTeamData const& team, PetBattles::PetBattle const* battle, uint8 teamIdx)
 {
@@ -624,7 +647,8 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::PetBattle
             firstRound.Players[i].NextTrapStatus = static_cast<int8>(battle->GetTrapStatus(i));
             firstRound.Players[i].RoundTimeSecs = 0;
         }
-        // No effects, cooldowns, or deaths for the initial first-round packet
+
+        EmitInitialFrontPetSwapEffects(firstRound.Effects, battle);
 
         SendPacket(firstRound.Write());
     }
@@ -766,6 +790,8 @@ void WorldSession::StartNPCPetBattle(Creature* trainer)
             firstRound.Players[i].NextTrapStatus = static_cast<int8>(battle->GetTrapStatus(i));
             firstRound.Players[i].RoundTimeSecs = 0;
         }
+
+        EmitInitialFrontPetSwapEffects(firstRound.Effects, battle);
 
         SendPacket(firstRound.Write());
     }
