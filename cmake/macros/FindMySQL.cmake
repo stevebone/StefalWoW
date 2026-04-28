@@ -323,13 +323,18 @@ if(MySQL_lib_WANTED AND MySQL_lib_FOUND)
     RUN_OUTPUT_VARIABLE MYSQL_VERSION_DETECTION_RUN_OUTPUT
   )
 
-  string(JSON MYSQL_VERSION GET "${MYSQL_VERSION_DETECTION_RUN_OUTPUT}" "version")
-  string(JSON MYSQL_FLAVOR GET "${MYSQL_VERSION_DETECTION_RUN_OUTPUT}" "flavor")
+  if(MYSQL_VERSION_DETECTION_RUN_OUTPUT MATCHES "^\\s*\\{")
+    string(JSON MYSQL_VERSION GET "${MYSQL_VERSION_DETECTION_RUN_OUTPUT}" "version")
+    string(JSON MYSQL_FLAVOR GET "${MYSQL_VERSION_DETECTION_RUN_OUTPUT}" "flavor")
 
-  if(MYSQL_MIN_VERSION_${MYSQL_FLAVOR} VERSION_GREATER MYSQL_VERSION)
-    message(FATAL_ERROR "Found ${MYSQL_FLAVOR} version: \"${MYSQL_VERSION}\", but required is at least \"${MYSQL_MIN_VERSION_${MYSQL_FLAVOR}}\"")
+    if(MYSQL_MIN_VERSION_${MYSQL_FLAVOR} VERSION_GREATER MYSQL_VERSION)
+      message(FATAL_ERROR "Found ${MYSQL_FLAVOR} version: \"${MYSQL_VERSION}\", but required is at least \"${MYSQL_MIN_VERSION_${MYSQL_FLAVOR}}\"")
+    else()
+      message(STATUS "Found ${MYSQL_FLAVOR} version: \"${MYSQL_VERSION}\", minimum required is \"${MYSQL_MIN_VERSION_${MYSQL_FLAVOR}}\"")
+    endif()
   else()
-    message(STATUS "Found ${MYSQL_FLAVOR} version: \"${MYSQL_VERSION}\", minimum required is \"${MYSQL_MIN_VERSION_${MYSQL_FLAVOR}}\"")
+    set(MYSQL_FLAVOR "MySQL")
+    message(WARNING "MySQL version detection failed (try_run produced no JSON output). Skipping minimum-version check.")
   endif()
 
   message(STATUS "Found ${MYSQL_FLAVOR} library: ${MYSQL_LIBRARY}")

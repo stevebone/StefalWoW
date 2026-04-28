@@ -132,14 +132,14 @@ See `doc/warband/WARBAND_MASTER_PLAN.md` for the full multi-phase plan:
 
 ## Reference Data Locations
 
-### IDA Decompilation Database (`C:\dump2`)
+### IDA Decompilation Database (`C:\dumps`)
 
 - `wow_dump.bin.i64` — Main IDA database
-- `deep_analysis/warband_decompiled.c` — Decompiled warband client functions
-- `deep_analysis/warband_api_reference.json` — Warband API reference
-- `deep_analysis/warband_safe_analysis.json` — Analysis results
-- `ida_full_extraction/` — Function database, signatures, xrefs, named data
-- `scripts/phase17_warband_*.py` — Warband-specific IDA extraction scripts
+- Audit/analysis notes (`AUDIT_*.md`, `HOUSING_*.md`, etc.) at the root
+
+### Sniffs (`C:\sniff`)
+
+- Packet sniff captures organized by feature/scenario (e.g. `alliance_housing/`, `horde_housing/`, `alliance_wod_garrison/`)
 
 ### Client Data (`M:\WorldofWarcraft`)
 

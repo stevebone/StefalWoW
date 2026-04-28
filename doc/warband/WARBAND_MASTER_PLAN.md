@@ -402,11 +402,12 @@ warband/phase9-delves
 
 ## Reference Resources
 
-### IDA Decompilation (C:\dump2)
-- `deep_analysis/warband_decompiled.c` - 2,380 decompiled client functions
-- `deep_analysis/warband_api_reference.json` - Lua API catalog (150 core functions)
-- `deep_analysis/warband_safe_analysis.json` - Structural analysis
-- `ida_full_extraction/func_database.json` - Full function database
+### IDA Decompilation (C:\dumps)
+- `wow_dump.bin.i64` - Main IDA database
+- Audit/analysis notes (`AUDIT_*.md`, `HOUSING_*.md`, etc.) at the root
+
+### Sniffs (C:\sniff)
+- Packet sniff captures organized by feature/scenario
 
 ### Client Data (M:\WorldofWarcraft)
 - `dbc/enUS/WarbandScene*.db2` - All 9 warband scene DB2 files
