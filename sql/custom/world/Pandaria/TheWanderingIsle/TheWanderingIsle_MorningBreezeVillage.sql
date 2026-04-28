@@ -122,7 +122,7 @@ INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`,
 (57690, 57691, 0, 1, 'Tiger Pillar', 8, 0);
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633,55634,57692,
-55744,55595,55592,64543,64532);
+55744,55595,55592,64543,64532,64507,64505,64506,55874,55786);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
@@ -148,6 +148,11 @@ INSERT INTO `creature_template_addon`
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
 -- Zhao-Ren Event
+(55786, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Zhao-Ren
+(55874, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '29266'), -- NPC: 55874 Dead Zhaoren
+(64505, 0, 0, 0, 0, 0, 0, 1, 0, 27, 0, 0, 0, 0, ''), -- NPC: 64505 Ji at Zhaoren
+(64506, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- NPC: 64506 Aysha at Zhaoren
+(64507, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '81312'), -- NPC: 64507 Firework Launcher
 (64532, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Dafeng spawned at Dafeng
 (64543, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Aysa spawned at Dafeng
 (55744, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '104734'), -- Aysa outside chamber
@@ -155,8 +160,13 @@ INSERT INTO `creature_template_addon`
 (55592, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, '80797'); -- Dafeng in chamber
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558,
-57466,55633,55634,57692,55744,55595,55592,64543,64532);
+57466,55633,55634,57692,55744,55595,55592,64543,64532,64507,64505,64506,55874,55786);
 INSERT INTO `creature_template_difficulty` VALUES
+(55786, 0, 0, 0, 80, 4, 12, 1, 1, 0.2, 29125, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55874, 0, 0, 0, 80, 4, 5, 1, 1, 0.2, 28953, 5, 0, 0, 0, 0, 0, 0, 0, 268435712, 0, 0, 0, 0, 0, 0, 0, 56647),
+(64505, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 57869, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
+(64506, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 57870, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
+(64507, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 57871, 1610612752, 6, 0, 0, 0, 0, 0, 0, 805306624, 0, 0, 0, 0, 0, 0, 0, 56647),
 (64532, 0, 0, 0, 80, 4, 1, 1, 1, 1, 57918, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (64543, 0, 0, 0, 80, 4, 1, 1, 1, 1, 57929, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55592, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29485, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -190,13 +200,10 @@ DELETE FROM `creature` WHERE `guid` IN (451514,451517,451519,451524,451553); -- 
 
 -- Morning Breeze Villager with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451438, 451439, 451472);
-
 -- Fe-Feng Wiseman with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451428,451509,451508,451484,451483,451432,451505,451495,451597);
-
 -- Fe-Feng Ruffian with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451577,451562);
-
 -- Fe-Feng Firethief with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451563,451583,451532,451587,451516);
 
@@ -472,9 +479,6 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, t
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk' WHERE `Entry` = 55634;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk_rocket' WHERE `Entry` = 64322;
 
--- Floating Flag Zhaoren, Balloon
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '55786') and (`DifficultyID` = '0');
-
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '56274') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55466') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55672') and (`DifficultyID` = '0');
@@ -487,11 +491,6 @@ INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (
 INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `auras`) VALUES (56686, 8, 1, '108900 126160');
 
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (64507,64505,64506,55874);
-INSERT INTO `creature_template_addon` (`entry`, `auras`) VALUES ('64507', '81312'); -- NPC: 64507 Firework Launcher
-INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `emote`) VALUES ('64505', '1', '27'); -- NPC: 64505 Ji at Zhaoren
-INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `emote`) VALUES ('64506', '0', '1', '0'); -- NPC: 64506 Aysha at Zhaoren
-INSERT INTO `creature_template_addon` (`entry`, `AnimTier`, `VisFlags`, `SheathState`, `auras`) VALUES ('55874', '0', '0', '1', '29266'); -- NPC: 55874 Dead Zhaoren
 
 UPDATE `creature` SET `PhaseId` = 524 WHERE `guid` IN (451612,451613,451615,451614,451616,451617,451618,451619,451620);
 UPDATE `creature` SET `PhaseId` = 536 WHERE `guid` IN (451621, 451622, 451623, 451624, 451485);
@@ -499,7 +498,7 @@ UPDATE `creature` SET `PhaseId` = 1836 WHERE `guid` IN (451498,451501); -- Chamb
 UPDATE `creature` SET `PhaseId` = '1527' WHERE (`guid` = '451650');
 UPDATE `creature` SET `PhaseId` = 1430 WHERE `guid` = 451478; -- Zhao-Ren above Chamber of Whispers
 UPDATE `creature` SET `PhaseId` = 1429, `StringId` = 'npc_zhaoren_flyby' WHERE `guid` = 451413; -- Zhao-Ren Fly-by
-UPDATE `creature` SET `PhaseGroup` = 638 WHERE `id` = 55601;
+UPDATE `creature` SET `PhaseGroup` = 638, `PhaseId` = 0 WHERE `id` = 55601;
 
 UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568); -- Chamber of whispers winds
 UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
