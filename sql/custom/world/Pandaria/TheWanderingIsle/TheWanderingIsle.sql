@@ -220,8 +220,6 @@
 DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 631, 632, 878, 964, 
 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885, 1518, 1519,1523, 1714);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
-(5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
-(5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
 (5886, 524, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 524, 'The Wandering Isle - Zhao-Ren Dragon Area'),
 (5829, 536, 'The Wandering Isle - Zhao-Ren Dragon Area'),
@@ -275,11 +273,20 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5946, 1523, 'Morning Breeze Lake - quest 29780 rewarded'),
 
 -- Fe-Feng Village
-(5831, 1714, 'Fe-Feng Village - before quest 29782 complete or rewarded');
+(5831, 1714, 'Fe-Feng Village - before quest 29782 complete or rewarded'),
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
-1510, 1518, 1519, 1523, 1714);
+-- Chamber of Whispers related
+(5829, 1836, 'Ridge of Laughing Winds - before quest 29785 complete or rewarded'),
+(5830, 1836, 'Morning Breeze Village - before quest 29785 complete or rewarded'),
+(5886, 1836, 'Chamber of Whispers - before quest 29785 complete or rewarded');
+
+-- Phase Conditions
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
+1510, 1518, 1519, 1523, 1714,1836);
 INSERT INTO `conditions` VALUES
+-- Zhao-Ren
+(26, 524, 0, 0, 0, 9, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Phase 524 active if 29786 taken'),
+
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
 (26, 632, 5849, 0, 0, 47, 0, 29422, 66, 0, '', 0, 0, 0, '', 'Allow phase 632 if quest 29422 state completed / rewarded'),
@@ -325,10 +332,16 @@ INSERT INTO `conditions` VALUES
 (26, 1523, 0, 0, 0, 8, 0, 29779, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29779 rewarded'),
 (26, 1523, 0, 0, 0, 8, 0, 29780, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29780 rewarded'),
 (26, 1523, 0, 0, 0, 8, 0, 29781, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29781 rewarded'),
+(26, 1523, 0, 0, 0, 47, 0, 29786, 64, 0, '', 1, 0, 0, '', 'Wandering Isle - Morning Breeze Village 1523 when Quest 29786 not rewarded'),
 
 -- Fe-Feng Village
 (26, 1714, 5831, 0, 0, 28, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not complete'),
-(26, 1714, 5831, 0, 0, 8, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not rewarded');
+(26, 1714, 5831, 0, 0, 8, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not rewarded'),
+
+-- Chamber of Whispers
+(26, 1836, 0, 0, 0, 28, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not complete'),
+(26, 1836, 0, 0, 0, 8, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not rewarded');
+
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
 INSERT INTO `conditions` VALUES
@@ -352,17 +365,8 @@ INSERT INTO `conditions` VALUES
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1836, 524, 536, 1527, 1885);
- 
+  AND `SourceGroup` IN (536, 1527, 1885);
 
--- Phase 1836: before 29786
-INSERT INTO `conditions` VALUES
-(26, 1836, 0, 0, 0, 47, 0, 29786, 74, 0, '', 1, 0, 0, '', 'Phase 1836 active if 29786 NOT in progress, taken, complete, rewarded');
-
--- Phase 524: after 29785 and before 29787
-INSERT INTO `conditions` VALUES
-(26, 524, 0, 0, 0, 47, 0, 29785, 64, 0, '', 0, 0, 0, '', 'Phase 524 active if 29785 rewarded'),
-(26, 524, 0, 0, 0, 47, 0, 29786, 66, 0, '', 1, 0, 0, '', 'Phase 524 active if 29786 NOT complete or rewarded');
 
 -- Phase 536: after 29786
 INSERT INTO `conditions` VALUES
@@ -447,9 +451,15 @@ INSERT INTO `areatrigger_scripts` VALUES
 (7784, 'at_the_singing_pools_children_summon'),
 (8276, 'at_temple_of_five_dawns_summon_zhaoren'),
 (8287, 'at_lorewalker_zan'),
-(7037, 'at_chamber_of_whispers'),
-(7041, 'at_chamber_of_whispers_outside'),
+-- (7037, 'at_chamber_of_whispers'),
+-- (7041, 'at_chamber_of_whispers_outside'),
 (7106, 'at_balloon_intro_q29790');
+
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7037,7041,7042);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
+(7041, 'SmartTrigger'),
+(7037, 'SmartTrigger'),
+(7042, 'SmartTrigger');
 
 -- Spell Scripts
 

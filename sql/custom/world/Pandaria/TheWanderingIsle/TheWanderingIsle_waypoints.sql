@@ -871,3 +871,22 @@ INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ,O
 (5746600, 11, 1181.93, 4264.68, 222.322, 0, 0),
 (5746600, 12, 1168.61, 4270.24, 220.248, 0, 0),
 (5746600, 13, 1163.12, 4277.04, 217.594, 0, 0);
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (5574400,5574401);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
+(5574400,1,0,'The Wandering Isle - Aysa Chamber of Whispers'),
+(5574401,1,0,'The Wandering Isle - Aysa Chamber of Whispers');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (5574400,5574401);
+INSERT INTO `waypoint_path_node` (PathId,NodeId,PositionX, PositionY,PositionZ,Orientation,Delay) values
+(5574400, 1, 632.825, 4237.75, 202.602, 0, 0),
+(5574400, 2, 619.885, 4249.56, 202.602, 0, 0),
+(5574400, 3, 611.46, 4257.68, 203.299, 0, 0),
+(5574400, 4, 603.929, 4261.94, 206.552, 0, 0),
+(5574400, 5, 598.573, 4266.67, 206.552, 0, 0),
+
+(5574401, 1, 580.165, 4283.19, 210.195, 0, 0),
+(5574401, 2, 562.18, 4298.96, 210.525, 0, 0),
+(5574401, 3, 548.108, 4310.89, 210.195, 0, 0),
+(5574401, 4, 544.198, 4315.19, 212.232, 0, 0),
+(5574401, 5, 543.955, 4317.27, 212.239, 0, 0);

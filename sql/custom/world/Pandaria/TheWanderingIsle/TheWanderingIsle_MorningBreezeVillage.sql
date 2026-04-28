@@ -121,7 +121,8 @@ INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`,
 (57464, 57465, 0, 0, 'Fe-Feng Ruffian', 7, 0),
 (57690, 57691, 0, 1, 'Tiger Pillar', 8, 0);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633,55634,57692);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633,55634,57692,
+55744,55595,55592,64543,64532);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
@@ -144,11 +145,23 @@ INSERT INTO `creature_template_addon`
 (65559, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Zhao-Ren
 (65560, 6556000, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Vision of Dafeng
 (57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
-(65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
+(65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+
+-- Zhao-Ren Event
+(64532, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Dafeng spawned at Dafeng
+(64543, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Aysa spawned at Dafeng
+(55744, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '104734'), -- Aysa outside chamber
+(55595, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''), -- Aysa in chamber
+(55592, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, '80797'); -- Dafeng in chamber
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558,
-57466,55633,55634,57692);
+57466,55633,55634,57692,55744,55595,55592,64543,64532);
 INSERT INTO `creature_template_difficulty` VALUES
+(64532, 0, 0, 0, 80, 4, 1, 1, 1, 1, 57918, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(64543, 0, 0, 0, 80, 4, 1, 1, 1, 1, 57929, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55592, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29485, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55595, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29479, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55744, 0, 0, 0, 80, 4, 1, 1, 1, 1, 29184, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (57692, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26287, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55634, 0, 0, 0, 80, 4, 4.5, 1, 1, 0.2, 29411, 2147483720, 0, 0, 55634, 0, 0, 5, 5, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65558, 0, 0, 0, 80, 4, 3, 1, 1, 1, 59279, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
@@ -196,7 +209,7 @@ INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, 
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458,451468,451459,451441,451436,451446,451448,451438,451472,451473,
 451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443,451462,451577,451562,451563,451583,451532,451587,451516,451554,451556,451557,
-451550,451560,451578);
+451550,451560,451578,451610,451477,451621);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 -- Fe-Feng Firethief
 (451563, 5563300, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
@@ -226,6 +239,11 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (451505, 5560106, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451495, 5560107, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451597, 5560108, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+
+-- Chamber of Whispers
+(451610, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '82343'), -- Aysa inside the chamber
+(451477, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '78718 121801 81312'), -- Aysa at docks
+(451621, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Aysa at Zhao-Ren
 
 (451473, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '85096'), -- Ji at the Morning Breeze Village dock
 -- Jojo's crowd
@@ -455,9 +473,6 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk' WHERE `Entry` = 5563
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk_rocket' WHERE `Entry` = 64322;
 
 -- Floating Flag Zhaoren, Balloon
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '65559') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '55650') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '65560') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '55786') and (`DifficultyID` = '0');
 
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '56274') and (`DifficultyID` = '0');
@@ -471,13 +486,8 @@ INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES ('56159', '1', '105329');
 INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `auras`) VALUES (56686, 8, 1, '108900 126160');
 
-DELETE FROM `creature_addon` WHERE `guid` IN (451477,451621);
-INSERT INTO `creature_addon` (`guid`, `AnimTier`, `VisFlags`, `SheathState`, `auras`) VALUES ('451477', '2', '1', '1', '78718 121801 81312'); -- NPC: 55595 Aysa at Morning Breeze
-INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`) VALUES ('451621', '8', '1'); -- NPC: 55595 Aysa at ZhaoRen
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55650,65560,64507,64505,64506,55874);
-INSERT INTO `creature_template_addon` (`entry`, `AnimTier`, `VisFlags`, `SheathState`, `visibilityDistanceType`, `auras`) VALUES ('55650', '3', '1', '0', 3, '82358'); -- Shang Xi's Hot Air Balloon
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `AnimTier`) VALUES ('65560', '6556000', 3); -- Dafeng spawn ??
+DELETE FROM `creature_template_addon` WHERE `entry` IN (64507,64505,64506,55874);
 INSERT INTO `creature_template_addon` (`entry`, `auras`) VALUES ('64507', '81312'); -- NPC: 64507 Firework Launcher
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `emote`) VALUES ('64505', '1', '27'); -- NPC: 64505 Ji at Zhaoren
 INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `emote`) VALUES ('64506', '0', '1', '0'); -- NPC: 64506 Aysha at Zhaoren
@@ -485,27 +495,25 @@ INSERT INTO `creature_template_addon` (`entry`, `AnimTier`, `VisFlags`, `SheathS
 
 UPDATE `creature` SET `PhaseId` = 524 WHERE `guid` IN (451612,451613,451615,451614,451616,451617,451618,451619,451620);
 UPDATE `creature` SET `PhaseId` = 536 WHERE `guid` IN (451621, 451622, 451623, 451624, 451485);
-UPDATE `creature` SET `PhaseId` = 1836 WHERE `guid` IN (451498,451501,451610, 451599);
+UPDATE `creature` SET `PhaseId` = 1836 WHERE `guid` IN (451498,451501); -- Chamber of Whispers winds ID 55665
 UPDATE `creature` SET `PhaseId` = '1527' WHERE (`guid` = '451650');
 UPDATE `creature` SET `PhaseId` = 1430 WHERE `guid` = 451478; -- Zhao-Ren above Chamber of Whispers
 UPDATE `creature` SET `PhaseId` = 1429, `StringId` = 'npc_zhaoren_flyby' WHERE `guid` = 451413; -- Zhao-Ren Fly-by
+UPDATE `creature` SET `PhaseGroup` = 638 WHERE `id` = 55601;
 
-UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568);
+UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568); -- Chamber of whispers winds
 UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
 UPDATE `gameobject` SET `PhaseId` = 1714 WHERE `id` IN (209673);
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_zhaoren' WHERE `Entry` = 55786;
 UPDATE `creature_template` SET `ScriptName` = 'npc_firework_launcher' WHERE `Entry` = 64507;
-UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_outside_chambers_of_whispers' WHERE `Entry` = 55744;
 UPDATE `creature_template` SET `ScriptName` = 'npc_master_shang_q29787' WHERE `Entry` = 56159;
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 64507; -- remove the launcher SAI
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55592,55595,64506,64505,64532,64543);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55592,55595,64506,64505,64532,6453200,64543,6454300, 64507, 6450700) AND `source_type` IN (0,9);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (64505,64506);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (64505,64506) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('55592', '0', '0', '0', '11', '0', '100', '0', '0', '0', '0', '0', '0', '', '48', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Dafeng - on Respawn - Set Active'),
-('55595', '0', '0', '0', '19', '0', '100', '0', '29786', '0', '0', '0', '0', '', '85', '126059', '2', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Accepted Quest - Invoker Cast Summon Aysa'),
 ('64505', '0', '0', '0', '0', '4', '100', '0', '3000', '5000', '3000', '5000', '0', '', '11', '128630', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Update IC - Cast Jab'),
 ('64505', '0', '1', '0', '0', '4', '100', '0', '5000', '8000', '8000', '12000', '0', '', '11', '128631', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Update IC - Cast Blackout Kick'),
 ('64505', '0', '2', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '69', '2', '0', '0', '0', '0', '0', '1', '0', '0', '0', '714.385', '4163.74', '195.89', '0', 'Ji Firepaw - On Data Set - Move to Pos'),
@@ -513,15 +521,77 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('64506', '0', '1', '0', '38', '0', '100', '0', '2', '2', '0', '0', '0', '', '1', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Talk'),
 ('64506', '0', '2', '0', '38', '0', '100', '0', '3', '3', '0', '0', '0', '', '1', '2', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Talk'),
 ('64506', '0', '3', '0', '38', '0', '100', '0', '2', '2', '0', '0', '0', '', '49', '0', '0', '0', '0', '0', '0', '11', '55786', '30', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Start Attack'),
-('64506', '0', '4', '0', '60', '2', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '117312', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update - Cast Combat Roll'),
-('64532', '0', '1', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6453200', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Dafeng - Just Spawned - Run Script'),
-('64532', '0', '2', '0', '38', '0', '100', '0', '5', '5', '0', '0', '0', '', '69', '1', '0', '0', '0', '0', '0', '8', '0', '0', '0', '709.238', '4177.15', '198.796', '0', 'Dafeng - On Data Set - Move to Pos'),
-('64543', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6454300', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Just Spawned - Run Script'),
-('64543', '0', '1', '2', '58', '0', '100', '0', '12', '6454300', '0', '0', '0', '', '97', '15', '20', '0', '0', '0', '0', '1', '0', '0', '0', '675.445', '4204.72', '196.58', '0', 'Aysa Cloudsinger - On WP Ended - Jump to Pos'),
-('64543', '0', '2', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Movement Inform - Despawn'),
-('6453200', '9', '0', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '53', '1', '6453200', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Dafeng - Start WP'),
-('6454300', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '59', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Just Spawned - Run Script'),
-('6454300', '9', '1', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '53', '1', '6454300', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Start WP');
+('64506', '0', '4', '0', '60', '2', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '117312', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update - Cast Combat Roll');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55592,55744,55595,64543,64532,55665);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55592,55744,5574400,55595,5559500,64543,6454300,64532,6453200,5566500,5566501,-451498,-451501) AND `source_type` IN (0,9);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (7037,7041,7042) AND `source_type` IN (2);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Trigger 7041 Chamber of Winds entrance
+-- The spell summon makes the npc not targetable by other npcs. We spawn the npc directly
+-- (7041, 2, 0, 0, 46, 0, 100, 0, 7041, 0, 0, 0, 0, 86, 104593, 2, 10, 451498, 55665, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Cross Cast Forcecast Summon Aysa, Wind Chamber'),
+(7041, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 12, 55744, 8, 0, 0, 2, 0, 8, 0, 0, 0, 666.514, 4218.27, 200.851, 0, 'On Trigger - Summon Aysa, Wind Chamber'),
+-- Trigger 7042 Chamber of Winds middle
+(7042, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 86, 104614, 2, 10, 451501, 55665, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Cross Cast Forcecast Trigger Aysa Wind Chamber Middle'),
+-- Trigger 7037 Chamber of Winds rear
+(7037, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 86, 104616, 2, 10, 451599, 55592, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Cross Cast Forcecast Trigger Aysa Wind Chamber Rear'),
+
+-- Frightened Winds
+(-451498, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - On Respawn - Set React State'),
+(-451498, 0, 1, 2, 60, 0, 100, 0, 11000, 11000, 22000, 22000, 0, 28, 104333, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Remove Aura'),
+(-451498, 0, 2, 3, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 105678, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Cast Frightened Winds Offtime Aura'),
+(-451498, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 20, 209685, 1, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Activate GO'),
+(-451498, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5566500, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Run Script'),
+(5566500, 9, 0, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 11, 55744, 40, 0, 0, 0, 0, 0, 'Frightened Winds - Set Data'),
+(-451498, 0, 5, 6, 60, 0, 100, 0, 22000, 22000, 22000, 22000, 0, 28, 105678, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Remove Aura'),
+(-451498, 0, 6, 7, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 104333, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Cast Frightened Winds Aura'),
+(-451498, 0, 7, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 20, 209685, 1, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Reset GO'),
+(-451501, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - On Respawn - Set React State'),
+(-451501, 0, 1, 2, 60, 0, 100, 0, 11000, 11000, 22000, 22000, 0, 28, 104333, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Remove Aura'),
+(-451501, 0, 2, 3, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 105678, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Cast Frightened Winds Offtime Aura'),
+(-451501, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 20, 209685, 1, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Activate GO'),
+(-451501, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5566501, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Run Script'),
+(5566501, 9, 0, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 45, 2, 2, 0, 0, 0, 0, 11, 55744, 50, 0, 0, 0, 0, 0, 'Frightened Winds - Set Data'),
+(-451501, 0, 5, 6, 60, 0, 100, 0, 22000, 22000, 22000, 22000, 0, 28, 105678, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Remove Aura'),
+(-451501, 0, 6, 7, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 104333, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Cast Frightened Winds Aura'),
+(-451501, 0, 7, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 20, 209685, 1, 0, 0, 0, 0, 0, 'Frightened Winds - Update - Reset GO'),
+
+-- Dafeng
+(55592, 0, 0, 0, 31, 0, 100, 0, 104616, 0, 0, 0, 0, 33, 55666, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Dafeng - On Spellhit Target - Quest Credit'),
+-- Aysa Cloudsinger
+(55744, 0, 0, 1, 54, 0, 100, 0, 0, 0, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 8, 0, 0, 0, 653.1528, 4224.64, 202.9091, 0, 'Aysa Cloudsinger - Just Spawned - Move to Pos'),
+(55744, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Just Spawned - Set Event Phase 1'),
+(55744, 0, 2, 0, 34, 1, 100, 0, 8, 1, 0, 0, 0, 1, 0, 2000, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Movement Inform - Talk'),
+(55744, 0, 3, 0, 52, 1, 100, 0, 0, 55744, 0, 0, 0, 1, 1, 4000, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Text Over - Talk'),
+(55744, 0, 4, 0, 52, 1, 100, 0, 1, 55744, 0, 0, 0, 69, 2, 0, 0, 0, 0, 0, 8, 0, 0, 0, 647.493, 4224.63, 202.9091, 0, 'Aysa Cloudsinger - On Text Over - Move to Pos'),
+(55744, 0, 5, 6, 34, 1, 100, 0, 8, 2, 0, 0, 0, 80, 5574400, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Movement Inform - Run Script'),
+(5574400, 9, 0, 0, 0, 0, 100, 0, 250, 250, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 2.426008, 'Aysa Cloudsinger - Movement Inform - Set Orientation'),
+(55744, 0, 6, 0, 61, 1, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Movement Inform - Set Event Phase 2'),
+(55744, 0, 7, 8, 38, 2, 100, 0, 1, 1, 0, 0, 0, 53, 1, 5574400, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Start WP'),
+(55744, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Set Event Phase 3'),
+(55744, 0, 9, 10, 8, 4, 100, 0, 104612, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Spellhit - Talk'),
+(55744, 0, 10, 0, 61, 4, 100, 0, 0, 0, 0, 0, 0, 22, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Set Event Phase 4'),
+(55744, 0, 11, 12, 38, 8, 100, 0, 2, 2, 0, 0, 0, 53, 1, 5574401, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Start WP'),
+(55744, 0, 12, 0, 61, 8, 100, 0, 0, 0, 0, 0, 0, 22, 5, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Set Event Phase 5'),
+(55744, 0, 13, 14, 58, 16, 100, 0, 5, 5574401, 0, 0, 0, 11, 104748, 2, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On WP Ended - Cast Forcecast to Master for Aysa See Invis'),
+(55744, 0, 14, 15, 61, 16, 100, 0, 0, 0, 0, 0, 0, 28, 104571, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On WP Ended - Remove Aura'),
+(55744, 0, 15, 0, 61, 16, 100, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On WP Ended - Despawn'),
+-- Aysa Cloudsinger
+(55595, 0, 0, 0, 8, 0, 100, 0, 104615, 0, 10000, 10000, 0, 80, 5559500, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Spellhit - Run Script'),
+(5559500, 9, 0, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Talk'),
+(55595, 0, 1, 2, 19, 0, 100, 0, 29786, 0, 0, 0, 0, 85, 126059, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Invoker Cast Summon Aysa'),
+(55595, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1430, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Remove Phase'),
+-- Aysa Cloudsinger
+(64543, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 6454300, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Just Spawned - Run Script'),
+(6454300, 9, 0, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 136, 1, 12, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Set Movement Speed'),
+(6454300, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6454300, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Start WP'),
+(64543, 0, 1, 0, 58, 0, 100, 0, 12, 6454300, 0, 0, 0, 97, 15, 20, 0, 0, 0, 0, 1, 0, 0, 0, 675.4445, 4204.716, 196.5799, 0, 'Aysa Cloudsinger - On WP Ended - Jump to Pos'),
+(64543, 0, 2, 3, 34, 0, 100, 0, 16, 1004, 0, 0, 0, 28, 126059, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Movement Inform - Remove Aura'),
+(64543, 0, 3, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Movement Inform - Despawn'),
+-- Dafeng
+(64532, 0, 1, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 6453200, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Dafeng - Just Spawned - Run Script'),
+(6453200, 9, 0, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 53, 1, 6453200, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Dafeng - Start WP'),
+(64532, 0, 2, 0, 38, 0, 100, 0, 5, 5, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 8, 0, 0, 0, 709.238, 4177.15, 198.7956, 0, 'Dafeng - On Data Set - Move to Pos');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857,116992);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
@@ -531,6 +601,21 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (13, 1, 108845, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow'),
 (13, 1, 108846, 51, 5, 57668, 'Jojo Headbash, Stack of Blocks Impact target Stack of Blocks'),
 (13, 1, 108857, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (104612,104615,128801,126043,126059);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 104612, 0, 0, 51, 0, 5, 55744, 0, 0, 0, 0, '', 'Trigger Aysa Wind Chamber Middle target Aysa Cloudsinger'),
+(13, 1, 104615, 0, 0, 51, 0, 5, 55595, 0, 0, 0, 0, '', 'Trigger Aysa Wind Chamber Rear target Aysa Cloudsinger'),
+(13, 1, 128801, 0, 0, 51, 0, 5, 55744, 0, 0, 0, 0, '', 'Trigger Aysa Wind Chamber Rear, Summon target Aysa Cloudsinger'),
+(13, 1, 126043, 0, 0, 51, 0, 5, 55592, 0, 0, 0, 0, '', 'Summon Dafeng target Dafeng'),
+(13, 1, 126059, 0, 0, 51, 0, 5, 55595, 0, 0, 0, 0, '', 'Summon Aysa target Aysa Cloudsinger');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=22 AND `SourceEntry` IN (7041,7037);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(22, 1, 7041, 2, 0, 9, 0, 29785, 0, 0, 0, 0, 0, '', 'SAI only when quest taken'),
+(22, 1, 7041, 2, 0, 1, 0, 104571, 1, 0, 1, 0, 0, '', 'SAI only when player has not aura'),
+(22, 1, 7037, 2, 0, 9, 0, 29785, 0, 0, 0, 0, 0, '', 'SAI only when quest taken'),
+(22, 1, 7037, 2, 0, 1, 0, 104615, 1, 0, 1, 0, 0, '', 'SAI only when player has not aura');
 
 UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 56159; -- remove the Shang SAI
 
