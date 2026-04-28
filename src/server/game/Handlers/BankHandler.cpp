@@ -364,6 +364,42 @@ void WorldSession::HandleAutoDepositAccountBank(WorldPackets::Bank::AutoDepositA
     }
 }
 
+void WorldSession::HandleAccountBankDepositMoney(WorldPackets::Bank::AccountBankDepositMoney const& accountBankDepositMoney)
+{
+    if (!CanUseBank(accountBankDepositMoney.Banker))
+    {
+        TC_LOG_DEBUG("network", "WORLD: HandleAccountBankDepositMoney - {} not found or you can't interact with him.", accountBankDepositMoney.Banker.ToString());
+        return;
+    }
+
+    if (!accountBankDepositMoney.Money)
+        return;
+
+    if (!_player->HasEnoughMoney(accountBankDepositMoney.Money))
+        return;
+
+    _player->ModifyMoney(-int64(accountBankDepositMoney.Money));
+    _player->ModifyAccountBankCoinage(int64(accountBankDepositMoney.Money));
+}
+
+void WorldSession::HandleAccountBankWithdrawMoney(WorldPackets::Bank::AccountBankWithdrawMoney const& accountBankWithdrawMoney)
+{
+    if (!CanUseBank(accountBankWithdrawMoney.Banker))
+    {
+        TC_LOG_DEBUG("network", "WORLD: HandleAccountBankWithdrawMoney - {} not found or you can't interact with him.", accountBankWithdrawMoney.Banker.ToString());
+        return;
+    }
+
+    if (!accountBankWithdrawMoney.Money)
+        return;
+
+    if (_player->GetAccountBankCoinage() < accountBankWithdrawMoney.Money)
+        return;
+
+    _player->ModifyAccountBankCoinage(-int64(accountBankWithdrawMoney.Money));
+    _player->ModifyMoney(int64(accountBankWithdrawMoney.Money));
+}
+
 void WorldSession::SendShowBank(ObjectGuid guid, PlayerInteractionType interactionType)
 {
     _player->PlayerTalkClass->GetInteractionData().StartInteraction(guid, interactionType);

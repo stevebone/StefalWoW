@@ -851,6 +851,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_REP_ACCOUNT_BANK_ITEM, "REPLACE INTO account_bank_item (battlenetAccountId, bag, slot, item) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_ACCOUNT_BANK_ITEM, "DELETE FROM account_bank_item WHERE battlenetAccountId = ? AND item = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET, "DELETE FROM account_bank_item WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_COINAGE, "SELECT coinage FROM account_bank_coinage WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_REP_ACCOUNT_BANK_COINAGE, "REPLACE INTO account_bank_coinage (battlenetAccountId, coinage) VALUES (?, ?)", CONNECTION_ASYNC);
 
     PrepareStatement(CHAR_SEL_WARBAND_GROUPS, "SELECT groupId, orderIndex, warbandSceneId, flags, contentSetId, name FROM character_warband_groups WHERE battlenetAccountId = ? ORDER BY orderIndex", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_WARBAND_GROUP_MEMBERS, "SELECT gm.groupId, gm.memberIndex, gm.guid, gm.warbandScenePlacementId, gm.memberType, gm.contentSetId FROM character_warband_group_members gm INNER JOIN character_warband_groups g ON gm.groupId = g.groupId WHERE g.battlenetAccountId = ? ORDER BY gm.groupId, gm.memberIndex", CONNECTION_ASYNC);

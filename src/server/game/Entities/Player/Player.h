@@ -1026,6 +1026,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS,
     PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS,
     PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS,
+    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -1517,6 +1518,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void SetCharacterBankTabCount(uint8 count) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::NumCharacterBankTabs), count); }
         uint8 GetAccountBankTabCount() const { return m_activePlayerData->NumAccountBankTabs; }
         void SetAccountBankTabCount(uint8 count) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::NumAccountBankTabs), count); }
+        uint64 GetAccountBankCoinage() const { return m_activePlayerData->AccountBankCoinage; }
+        void SetAccountBankCoinage(uint64 coinage) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::AccountBankCoinage), coinage); }
+        void ModifyAccountBankCoinage(int64 delta);
         void SetCharacterBankTabSettings(uint32 tabId, std::string const& name, std::string const& icon, std::string const& description, BagSlotFlags depositFlags)
         {
             auto setter = m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::CharacterBankTabSettings, tabId);
@@ -3179,6 +3183,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadCharacterBankTabSettings(PreparedQueryResult result);
         void _LoadAccountBankTabSettings(PreparedQueryResult result);
         void _LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff);
+        void _LoadAccountBankCoinage(PreparedQueryResult result);
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -3212,6 +3217,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) const;
         void _SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const;
         void _SaveAccountBankItems(CharacterDatabaseTransaction trans);
+        void _SaveAccountBankCoinage(CharacterDatabaseTransaction trans) const;
 
         /*********************************************************/
         /***              ENVIRONMENTAL SYSTEM                 ***/
