@@ -11,6 +11,7 @@
 -- Quest: 29789 Small but significant
 -- Quest: 29788 Unwelcome nature
 -- Quest: 29790 Passing Wisdom
+-- Quest: 29782 Stronger than bone
 
 -- NPC: 57623 Shen Stonecarver
 -- NPC: 55588 Elder Shaopai at Morning Breeze
@@ -45,6 +46,8 @@
 -- NPC: 55640 Thornbranch Scamp
 -- NPC: 57799 Spawned Thornbranch
 -- NPC: 65545 Huojin Monk
+-- NPC: 57690 Jade Tiger Pillar vehicle
+-- NPC: 57691 Jade Tiger Pillar accessory
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29776, 29777,29778,29783,29779,29780,29781,29785,29786,29787,29788, 29789,29790,29791);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
@@ -63,9 +66,10 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('54786', '29776', '0'), -- Quest: 29776 morning-breeze-village
 (56662, 29791, 0);
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (29776);
+DELETE FROM `quest_template_addon` WHERE `ID` IN (29776,29782);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29776', '0', '0', '104396', '29775', '29778', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''); -- Quest: 29776 morning-breeze-village
+('29776', '0', '0', '104396', '29775', '29778', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''), -- Quest: 29776 morning-breeze-village
+('29782', '0', '0', '0', '29778', '29784', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '');
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29777,29778,29783);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
@@ -102,6 +106,7 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 UPDATE `creature_template` SET `ScriptName` = 'npc_lorewalker_ruolin' WHERE `Entry` = 64876; -- Lorewalker event
 UPDATE `creature_template` SET `ScriptName` = 'npc_ji_morning_breeze_docks' WHERE `Entry` = 55583;
 UPDATE `creature_template` SET `faction` = 16 WHERE (`entry` = 57465); -- was 14 incorrect faction
+UPDATE `creature_template` SET `VehicleId` = 1950 WHERE `entry` = 57690;
 
 DELETE FROM `gossip_menu` WHERE `MenuID` IN (13204);
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES 
@@ -111,11 +116,12 @@ DELETE FROM `gossip_menu_option` WHERE `MenuID` = 13204 AND `GossipOptionID` = 4
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `ActionMenuID`, `ActionPoiID`, `GossipNpcOptionID`, `BoxCoded`, `BoxMoney`, `BoxText`, `BoxBroadcastTextID`, `SpellID`, `OverrideIconID`, `VerifiedBuild`) VALUES 
 (13204, 40096, 0, 0, 'Maybe you should talk to her.', 62476, 0, 0, 14268, 0, NULL, 0, 0, '', 0, NULL, NULL, 61967);
 
-DELETE FROM `vehicle_template_accessory` WHERE `entry` IN (57464);
+DELETE FROM `vehicle_template_accessory` WHERE `entry` IN (57464,57690);
 INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`) VALUES
-(57464, 57465, 0, 0, 'Fe-Feng Ruffian', 7, 0);
+(57464, 57465, 0, 0, 'Fe-Feng Ruffian', 7, 0),
+(57690, 57691, 0, 1, 'Tiger Pillar', 8, 0);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633,55634,57692);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
@@ -123,7 +129,10 @@ INSERT INTO `creature_template_addon`
 (57466, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (55633, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
 
+(57692, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2935, 0, 0, 0, ''), -- Jojo spawn pillar quest
+(55634, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Ruk-Ruk
 (65558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '99203 105305'), -- Ji/Monk guardian
+
 -- Fe-Feng Ruffian
 (55632, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (57464, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- vehicle bunny hanging monkey
@@ -138,8 +147,10 @@ INSERT INTO `creature_template_addon`
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558,
-57466,55633);
+57466,55633,55634,57692);
 INSERT INTO `creature_template_difficulty` VALUES
+(57692, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26287, 2097160, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55634, 0, 0, 0, 80, 4, 4.5, 1, 1, 0.2, 29411, 2147483720, 0, 0, 55634, 0, 0, 5, 5, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65558, 0, 0, 0, 80, 4, 3, 1, 1, 1, 59279, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
 (55601, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29467, 0, 0, 0, 55601, 55601, 0, 5, 5, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55632, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29415, 0, 0, 0, 55632, 55632, 0, 7, 7, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -263,11 +274,30 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 ('6546700', '9', '2', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '5', '4', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Excited Onlooker - Play Emote');
 
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632,65558,57466,55633);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55601,57465,55632,65558,57466,55633,57690,57692);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55632,5563200, 57465,55601, 5560100, 5560101, 5560102, -451429, -451502, -451484, -451503, -451507, 
 -451595, -451496, -451594, -451513, -451435, -451592, -451452, -451449, -451504, -451497, -451437, -451569, -451520, -451526, -451525, -451533, -451537, 
--451543, -451541, -451547,-451529,65558,6555800,57466,55633,-451518,-451570,-451564,-451565,-451572,-451542,-451539,-451532,-451563,-451549,-451552) AND `source_type` IN (0,9);
+-451543, -451541, -451547,-451529,65558,6555800,57466,55633,-451518,-451570,-451564,-451565,-451572,-451542,-451539,-451532,-451563,-451549,-451552,
+57690,57692,5769200) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Jojo Ironbrow
+(57692, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5769200, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Just Spawned - Run Script'),
+(5769200, 9, 0, 0, 0, 0, 100, 0, 1500, 1500, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Talk'),
+(5769200, 9, 1, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 128, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Set AI AnimKit'),
+(5769200, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 8, 0, 0, 0, 1077.47, 4180.03, 205.7929, 0, 'Jojo Ironbrow - Move to Pos'),
+(5769200, 9, 3, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Talk'),
+(5769200, 9, 4, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 11, 129297, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Cast Jojo Headbash, Pillar Cast'),
+(5769200, 9, 5, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 128, 1078, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Set AI AnimKit'),
+(5769200, 9, 6, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 45, 2, 2, 0, 0, 0, 0, 11, 0, 10, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Set Data'),
+(5769200, 9, 7, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Talk'),
+(5769200, 9, 8, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Talk'),
+(5769200, 9, 9, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 136, 1, 0, 7, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Set Movement Speed'),
+(5769200, 9, 10, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 69, 2, 0, 0, 0, 0, 0, 8, 0, 0, 0, 1078.09, 4177.64, 205.7422, 0, 'Jojo Ironbrow - Move to Pos'),
+(57692, 0, 1, 2, 34, 0, 100, 0, 8, 2, 0, 0, 0, 128, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Movement Inform - Set AI AnimKit'),
+(57692, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 90, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Movement Inform - Set Bytes1'),
+-- Tiger Pillar Stand
+(57690, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 5.550147, 'Tiger Pillar Stand - Just Spawned - Set Orientation'),
+
 -- Fe-Feng Firethief
 (57466, 0, 0, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
 (-451518, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 1000, 4000, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
@@ -462,6 +492,7 @@ UPDATE `creature` SET `PhaseId` = 1429, `StringId` = 'npc_zhaoren_flyby' WHERE `
 
 UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568);
 UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
+UPDATE `gameobject` SET `PhaseId` = 1714 WHERE `id` IN (209673);
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_zhaoren' WHERE `Entry` = 55786;
 UPDATE `creature_template` SET `ScriptName` = 'npc_firework_launcher' WHERE `Entry` = 64507;
@@ -554,7 +585,7 @@ INSERT INTO `smart_scripts` VALUES
 
 -- Delete existing reference loot
 DELETE FROM creature_loot_template 
-WHERE Entry IN (55601,57465,55632,57466,55633) 
+WHERE Entry IN (55601,57465,55632,57466,55633,55634) 
 AND ItemType = 1;
 
 -- NPC: 55601 Fe-Feng Wiseman (Humanoid)
@@ -581,6 +612,11 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
 (55633, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
 (55633, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
+-- NPC: 55634 Ruk-ruk (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(55634, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(55634, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
 
 
 UPDATE `gameobject_template` SET `Data6` = 120000, `Data23` = 1 WHERE `entry` IN (209656, 209660, 209661, 209663);

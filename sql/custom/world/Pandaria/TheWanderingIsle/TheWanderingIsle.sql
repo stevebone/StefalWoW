@@ -218,7 +218,7 @@
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 631, 632, 878, 964, 
-1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885, 1518, 1519,1523);
+1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885, 1518, 1519,1523, 1714);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5886, 1836, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 1836, 'The Wandering Isle - Zhao-Ren Dragon Area'),
@@ -272,10 +272,13 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5830, 1518, 'Morning Breeze Village - after quest 29776 rewarded and before quest 29786 taken, complete or rewarded'),
 (5830, 1519, 'Morning Breeze Village - x'),
 (5830, 1523, 'Morning Breeze Village - quest 29780 rewarded'),
-(5946, 1523, 'Morning Breeze Lake - quest 29780 rewarded');
+(5946, 1523, 'Morning Breeze Lake - quest 29780 rewarded'),
+
+-- Fe-Feng Village
+(5831, 1714, 'Fe-Feng Village - before quest 29782 complete or rewarded');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
-1510, 1518, 1519, 1523);
+1510, 1518, 1519, 1523, 1714);
 INSERT INTO `conditions` VALUES
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
@@ -321,7 +324,11 @@ INSERT INTO `conditions` VALUES
 (26, 1519, 0, 0, 0, 47, 0, 29776, 64, 0, '', 0, 0, 0, '', 'Wandering Isle - Morning Breeze Village 1518 when Quest 29776 rewarded'),
 (26, 1523, 0, 0, 0, 8, 0, 29779, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29779 rewarded'),
 (26, 1523, 0, 0, 0, 8, 0, 29780, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29780 rewarded'),
-(26, 1523, 0, 0, 0, 8, 0, 29781, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29781 rewarded');
+(26, 1523, 0, 0, 0, 8, 0, 29781, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29781 rewarded'),
+
+-- Fe-Feng Village
+(26, 1714, 5831, 0, 0, 28, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not complete'),
+(26, 1714, 5831, 0, 0, 8, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not rewarded');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 878;
 INSERT INTO `conditions` VALUES

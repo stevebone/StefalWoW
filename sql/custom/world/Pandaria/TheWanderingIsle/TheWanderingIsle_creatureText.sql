@@ -341,3 +341,11 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (65558, 4, 0, 'This monkey\'s about to get slapped!', 12, 0, 100, 5, 0, 27317, 0, 60621, 0, 'Ji Firepaw to Player'),
 (65558, 5, 0, 'And he\'s down for the count! Good going.', 12, 0, 100, 5, 0, 27315, 0, 60622, 0, 'Ji Firepaw to Player'),
 (65558, 6, 0, 'See you at the dock!', 12, 0, 100, 0, 0, 27319, 0, 60618, 0, 'Ji Firepaw to Player');
+
+-- Jojo spawn pillar quest
+DELETE FROM creature_text WHERE creatureid IN (57692);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+(57692, 0, 0, 'This is magnificent!  I\'ve never seen craftsmanship so fine.', 12, 0, 100, 1, 0, 0, 0, 56363, 0, 'Jojo Ironbrow to Player'),
+(57692, 1, 0, 'There is only one thing to do.  I must smash it!  Once and for all, all shall know the power of my mighty brow.', 12, 0, 100, 1, 0, 0, 0, 56361, 0, 'Jojo Ironbrow to Player'),
+(57692, 2, 0, 'Oh... my head... it hurts so badly!  I\'ve... the pillar must contain enormous power... perhaps stronger even than my brow...', 12, 0, 100, 18, 0, 0, 0, 56362, 0, 'Jojo Ironbrow to Player'),
+(57692, 3, 0, 'I\'m... I\'m just going to lie down a while... until this headache goes away.', 12, 0, 100, 0, 0, 0, 0, 56364, 0, 'Jojo Ironbrow to Player');
