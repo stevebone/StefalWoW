@@ -380,6 +380,9 @@ void WorldSession::HandleAccountBankDepositMoney(WorldPackets::Bank::AccountBank
     if (!_player->HasEnoughMoney(accountBankDepositMoney.Money))
         return;
 
+    if (_player->GetAccountBankCoinage() > MAX_MONEY_AMOUNT - accountBankDepositMoney.Money)
+        return;
+
     _player->ModifyMoney(-int64(accountBankDepositMoney.Money));
     _player->ModifyAccountBankCoinage(int64(accountBankDepositMoney.Money));
 }
@@ -397,6 +400,12 @@ void WorldSession::HandleAccountBankWithdrawMoney(WorldPackets::Bank::AccountBan
 
     if (_player->GetAccountBankCoinage() < accountBankWithdrawMoney.Money)
         return;
+
+    if (_player->GetMoney() > MAX_MONEY_AMOUNT - accountBankWithdrawMoney.Money)
+    {
+        _player->SendEquipError(EQUIP_ERR_TOO_MUCH_GOLD, nullptr, nullptr);
+        return;
+    }
 
     _player->ModifyAccountBankCoinage(-int64(accountBankWithdrawMoney.Money));
     _player->ModifyMoney(int64(accountBankWithdrawMoney.Money));
