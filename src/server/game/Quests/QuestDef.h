@@ -27,12 +27,12 @@
 #include "RaceMask.h"
 #include "SharedDefines.h"
 #include "UniqueTrackablePtr.h"
-#include "WorldPacket.h"
 #include <bitset>
 #include <unordered_set>
 #include <vector>
 
 class Player;
+class WorldPacket;
 enum Difficulty : int16;
 
 namespace WorldPackets
@@ -642,7 +642,7 @@ class TC_GAME_API Quest
         uint32 GetMaxLevel() const { return _maxLevel; }
         uint32 GetQuestInfoID() const { return _questInfoID; }
         uint32 GetAllowableClasses() const { return _allowableClasses; }
-        Trinity::RaceMask<uint64> GetAllowableRaces() const { return _allowableRaces; }
+        Trinity::RaceMask<std::array<int32, 2>> GetAllowableRaces() const { return _allowableRaces; }
         uint32 GetRequiredSkill() const { return _requiredSkillId; }
         uint32 GetRequiredSkillValue() const { return _requiredSkillPoints; }
         uint32 GetRequiredMinRepFaction() const { return _requiredMinRepFaction; }
@@ -778,7 +778,7 @@ class TC_GAME_API Quest
 
         std::vector<uint32> DependentPreviousQuests;
         std::vector<uint32> DependentBreadcrumbQuests;
-        std::array<WorldPacket, TOTAL_LOCALES> QueryData;
+        std::unique_ptr<WorldPacket[]> QueryData;
 
     private:
         uint32 _rewItemsCount = 0;
@@ -828,7 +828,7 @@ class TC_GAME_API Quest
         uint32 _soundTurnIn = 0;
         uint32 _areaGroupID = 0;
         int64 _limitTime = 0;
-        Trinity::RaceMask<uint64> _allowableRaces;
+        Trinity::RaceMask<std::array<int32, 2>> _allowableRaces;
         std::vector<int32> _treasurePickerID;
         int32 _expansion = 0;
         int32 _managedWorldStateID = 0;

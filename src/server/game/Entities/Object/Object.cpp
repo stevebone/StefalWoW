@@ -682,32 +682,23 @@ bool WorldObject::isInBack(WorldObject const* target, float arc) const
     return !HasInArc(2 * float(M_PI) - arc, target);
 }
 
-void WorldObject::GetRandomPoint(Position const& pos, float distance, float& rand_x, float& rand_y, float& rand_z) const
-{
-    if (!distance)
-    {
-        pos.GetPosition(rand_x, rand_y, rand_z);
-        return;
-    }
-
-    // angle to face `obj` to `this`
-    float angle = rand_norm() * static_cast<float>(2 * M_PI);
-    float new_dist = rand_norm() + rand_norm();
-    new_dist = distance * (new_dist > 1 ? new_dist - 2 : new_dist);
-
-    rand_x = pos.m_positionX + new_dist * std::cos(angle);
-    rand_y = pos.m_positionY + new_dist * std::sin(angle);
-    rand_z = pos.m_positionZ;
-
-    Trinity::NormalizeMapCoord(rand_x);
-    Trinity::NormalizeMapCoord(rand_y);
-    UpdateGroundPositionZ(rand_x, rand_y, rand_z);            // update to LOS height if available
-}
-
-Position WorldObject::GetRandomPoint(Position const& srcPos, float distance) const
+Position WorldObject::GetRandomPoint(Position const& srcPos, float distance, float minDistance /*= 0.0f*/) const
 {
     float x, y, z;
-    GetRandomPoint(srcPos, distance, x, y, z);
+    srcPos.GetPosition(x, y, z);
+    if (distance)
+    {
+        // angle to face `obj` to `this`
+        float angle = rand_norm() * static_cast<float>(2 * M_PI);
+        float new_dist = minDistance + (distance - minDistance) * std::sqrt(rand_norm());
+
+        x += new_dist * std::cos(angle);
+        y += new_dist * std::sin(angle);
+
+        Trinity::NormalizeMapCoord(x);
+        Trinity::NormalizeMapCoord(y);
+        UpdateGroundPositionZ(x, y, z);            // update to LOS height if available
+    }
     return Position(x, y, z, GetOrientation());
 }
 
@@ -1676,15 +1667,6 @@ Player* WorldObject::GetSpellModOwner() const
     return nullptr;
 }
 
-// function uses real base points (typically value - 1)
-int32 WorldObject::CalculateSpellDamage(Unit const* target, SpellEffectInfo const& spellEffectInfo, int32 const* basePoints /*= nullptr*/, float* variance /*= nullptr*/, uint32 castItemId /*= 0*/, int32 itemLevel /*= -1*/) const
-{
-    if (variance)
-        *variance = 0.0f;
-
-    return spellEffectInfo.CalcValue(this, basePoints, target, variance, castItemId, itemLevel);
-}
-
 float WorldObject::GetSpellMaxRangeForTarget(Unit const* target, SpellInfo const* spellInfo) const
 {
     if (!spellInfo->RangeEntry)
@@ -1713,7 +1695,7 @@ float WorldObject::GetSpellMinRangeForTarget(Unit const* target, SpellInfo const
     return spellInfo->GetMinRange(!IsHostileTo(target));
 }
 
-double WorldObject::ApplyEffectModifiers(SpellInfo const* spellInfo, uint8 effIndex, double value) const
+SpellEffectValue WorldObject::ApplyEffectModifiers(SpellInfo const* spellInfo, uint8 effIndex, SpellEffectValue value) const
 {
     if (Player* modOwner = GetSpellModOwner())
     {
@@ -1912,7 +1894,7 @@ SpellMissInfo WorldObject::MagicSpellHitResult(Unit* victim, SpellInfo const* sp
         int32 levelBasedHitDiff = leveldif;
 
         // Base hit chance from attacker and victim levels
-        int32 modHitChance = 100;
+        float modHitChance = 100;
         if (levelBasedHitDiff >= 0)
         {
             if (victim->GetTypeId() != TYPEID_PLAYER)
@@ -1959,7 +1941,7 @@ SpellMissInfo WorldObject::MagicSpellHitResult(Unit* victim, SpellInfo const* sp
         return SPELL_MISS_MISS;
 
     // Chance resist mechanic (select max value from every mechanic spell effect)
-    int32 resist_chance = victim->GetMechanicResistChance(spellInfo) * 100;
+    int32 resist_chance = victim->GetMechanicResistChance(spellInfo) * 100.0f;
 
     // Roll chance
     if (resist_chance > 0 && rand < (tmp += resist_chance))
@@ -1968,7 +1950,7 @@ SpellMissInfo WorldObject::MagicSpellHitResult(Unit* victim, SpellInfo const* sp
     // cast by caster in front of victim
     if (!victim->HasUnitState(UNIT_STATE_CONTROLLED) && (victim->HasInArc(float(M_PI), this) || victim->HasAuraType(SPELL_AURA_IGNORE_HIT_DIRECTION)))
     {
-        int32 deflect_chance = victim->GetTotalAuraModifier(SPELL_AURA_DEFLECT_SPELLS) * 100;
+        int32 deflect_chance = victim->GetTotalAuraModifier(SPELL_AURA_DEFLECT_SPELLS) * 100.0f;
         if (deflect_chance > 0 && rand < (tmp += deflect_chance))
             return SPELL_MISS_DEFLECT;
     }
@@ -2010,10 +1992,10 @@ SpellMissInfo WorldObject::SpellHitResult(Unit* victim, SpellInfo const* spellIn
     // Try victim reflect spell
     if (canReflect)
     {
-        int32 reflectchance = victim->GetTotalAuraModifier(SPELL_AURA_REFLECT_SPELLS);
+        float reflectchance = victim->GetTotalAuraModifier(SPELL_AURA_REFLECT_SPELLS);
         reflectchance += victim->GetTotalAuraModifierByMiscMask(SPELL_AURA_REFLECT_SPELLS_SCHOOL, spellInfo->GetSchoolMask());
 
-        if (reflectchance > 0 && roll_chance_i(reflectchance))
+        if (reflectchance > 0 && roll_chance(reflectchance))
             return spellInfo->HasAttribute(SPELL_ATTR7_REFLECTION_ONLY_DEFENDS) ? SPELL_MISS_DEFLECT : SPELL_MISS_REFLECT;
     }
 
@@ -2575,7 +2557,7 @@ bool WorldObject::IsValidAssistTarget(WorldObject const* target, SpellInfo const
     if ((!bySpell || !bySpell->HasAttribute(SPELL_ATTR6_CAN_TARGET_UNTARGETABLE)) && unitTarget && unitTarget->HasUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2))
         return false;
 
-    if (unitTarget && unitTarget->IsUninteractible())
+    if ((!bySpell || !bySpell->HasAttribute(SPELL_ATTR11_CAN_ASSIST_UNINTERACTIBLE)) && unitTarget && unitTarget->IsUninteractible())
         return false;
 
     // check flags for negative spells
@@ -2814,7 +2796,7 @@ Position WorldObject::GetFirstCollisionPosition(float dist, float angle)
 Position WorldObject::GetRandomNearPosition(float radius)
 {
     Position pos = GetPosition();
-    MovePosition(pos, radius * rand_norm(), rand_norm() * static_cast<float>(2 * M_PI));
+    MovePosition(pos, radius * std::sqrt(rand_norm()), rand_norm() * static_cast<float>(2 * M_PI));
     return pos;
 }
 

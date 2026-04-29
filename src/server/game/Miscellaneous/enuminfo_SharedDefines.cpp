@@ -1710,7 +1710,7 @@ TC_API_EXPORT EnumText EnumUtils<SpellAttr11>::ToString(SpellAttr11 value)
         case SPELL_ATTR11_NOT_USABLE_IN_INSTANCES: return { "SPELL_ATTR11_NOT_USABLE_IN_INSTANCES", "Not in Instances", "" };
         case SPELL_ATTR11_UNK12: return { "SPELL_ATTR11_UNK12", "Unknown attribute 12@Attr11", "" };
         case SPELL_ATTR11_UNK13: return { "SPELL_ATTR11_UNK13", "Unknown attribute 13@Attr11", "" };
-        case SPELL_ATTR11_UNK14: return { "SPELL_ATTR11_UNK14", "Unknown attribute 14@Attr11", "" };
+        case SPELL_ATTR11_CAN_ASSIST_UNINTERACTIBLE: return { "SPELL_ATTR11_CAN_ASSIST_UNINTERACTIBLE", "Can Assist Uninteractible", "" };
         case SPELL_ATTR11_UNK15: return { "SPELL_ATTR11_UNK15", "Unknown attribute 15@Attr11", "" };
         case SPELL_ATTR11_NOT_USABLE_IN_CHALLENGE_MODE: return { "SPELL_ATTR11_NOT_USABLE_IN_CHALLENGE_MODE", "Not in Mythic+ Mode (Challenge Mode)", "" };
         case SPELL_ATTR11_UNK17: return { "SPELL_ATTR11_UNK17", "Unknown attribute 17@Attr11", "" };
@@ -1754,7 +1754,7 @@ TC_API_EXPORT SpellAttr11 EnumUtils<SpellAttr11>::FromIndex(size_t index)
         case 11: return SPELL_ATTR11_NOT_USABLE_IN_INSTANCES;
         case 12: return SPELL_ATTR11_UNK12;
         case 13: return SPELL_ATTR11_UNK13;
-        case 14: return SPELL_ATTR11_UNK14;
+        case 14: return SPELL_ATTR11_CAN_ASSIST_UNINTERACTIBLE;
         case 15: return SPELL_ATTR11_UNK15;
         case 16: return SPELL_ATTR11_NOT_USABLE_IN_CHALLENGE_MODE;
         case 17: return SPELL_ATTR11_UNK17;
@@ -1795,7 +1795,7 @@ TC_API_EXPORT size_t EnumUtils<SpellAttr11>::ToIndex(SpellAttr11 value)
         case SPELL_ATTR11_NOT_USABLE_IN_INSTANCES: return 11;
         case SPELL_ATTR11_UNK12: return 12;
         case SPELL_ATTR11_UNK13: return 13;
-        case SPELL_ATTR11_UNK14: return 14;
+        case SPELL_ATTR11_CAN_ASSIST_UNINTERACTIBLE: return 14;
         case SPELL_ATTR11_UNK15: return 15;
         case SPELL_ATTR11_NOT_USABLE_IN_CHALLENGE_MODE: return 16;
         case SPELL_ATTR11_UNK17: return 17;
@@ -1846,7 +1846,7 @@ TC_API_EXPORT EnumText EnumUtils<SpellAttr12>::ToString(SpellAttr12 value)
         case SPELL_ATTR12_UNK18: return { "SPELL_ATTR12_UNK18", "Unknown attribute 18@Attr12", "" };
         case SPELL_ATTR12_UNK19: return { "SPELL_ATTR12_UNK19", "Unknown attribute 19@Attr12", "" };
         case SPELL_ATTR12_UNK20: return { "SPELL_ATTR12_UNK20", "Unknown attribute 20@Attr12", "" };
-        case SPELL_ATTR12_UNK21: return { "SPELL_ATTR12_UNK21", "Unknown attribute 21@Attr12", "" };
+        case SPELL_ATTR12_USE_FLOAT_VALUES_FOR_SCALING_AMOUNTS: return { "SPELL_ATTR12_USE_FLOAT_VALUES_FOR_SCALING_AMOUNTS", "Use float values for scaling amounts", "" };
         case SPELL_ATTR12_UNK22: return { "SPELL_ATTR12_UNK22", "Unknown attribute 22@Attr12", "" };
         case SPELL_ATTR12_START_COOLDOWN_ON_CAST_START: return { "SPELL_ATTR12_START_COOLDOWN_ON_CAST_START", "Trigger Cooldown On Spell Start", "" };
         case SPELL_ATTR12_IS_GARRISON_BUFF: return { "SPELL_ATTR12_IS_GARRISON_BUFF", "Never Learn", "" };
@@ -1890,7 +1890,7 @@ TC_API_EXPORT SpellAttr12 EnumUtils<SpellAttr12>::FromIndex(size_t index)
         case 18: return SPELL_ATTR12_UNK18;
         case 19: return SPELL_ATTR12_UNK19;
         case 20: return SPELL_ATTR12_UNK20;
-        case 21: return SPELL_ATTR12_UNK21;
+        case 21: return SPELL_ATTR12_USE_FLOAT_VALUES_FOR_SCALING_AMOUNTS;
         case 22: return SPELL_ATTR12_UNK22;
         case 23: return SPELL_ATTR12_START_COOLDOWN_ON_CAST_START;
         case 24: return SPELL_ATTR12_IS_GARRISON_BUFF;
@@ -1931,7 +1931,7 @@ TC_API_EXPORT size_t EnumUtils<SpellAttr12>::ToIndex(SpellAttr12 value)
         case SPELL_ATTR12_UNK18: return 18;
         case SPELL_ATTR12_UNK19: return 19;
         case SPELL_ATTR12_UNK20: return 20;
-        case SPELL_ATTR12_UNK21: return 21;
+        case SPELL_ATTR12_USE_FLOAT_VALUES_FOR_SCALING_AMOUNTS: return 21;
         case SPELL_ATTR12_UNK22: return 22;
         case SPELL_ATTR12_START_COOLDOWN_ON_CAST_START: return 23;
         case SPELL_ATTR12_IS_GARRISON_BUFF: return 24;
@@ -5346,13 +5346,15 @@ TC_API_EXPORT EnumText EnumUtils<ChatMsg>::ToString(ChatMsg value)
         case CHAT_MSG_GUILD_ITEM_LOOTED: return { "CHAT_MSG_GUILD_ITEM_LOOTED", "CHAT_MSG_GUILD_ITEM_LOOTED", "" };
         case CHAT_MSG_COMMUNITIES_CHANNEL: return { "CHAT_MSG_COMMUNITIES_CHANNEL", "CHAT_MSG_COMMUNITIES_CHANNEL", "" };
         case CHAT_MSG_VOICE_TEXT: return { "CHAT_MSG_VOICE_TEXT", "CHAT_MSG_VOICE_TEXT", "" };
+        case CHAT_MSG_PING: return { "CHAT_MSG_PING", "CHAT_MSG_PING", "" };
+        case CHAT_MSG_ENCOUNTER_EVENT: return { "CHAT_MSG_ENCOUNTER_EVENT", "CHAT_MSG_ENCOUNTER_EVENT", "" };
         case MAX_CHAT_MSG_TYPE: return { "MAX_CHAT_MSG_TYPE", "MAX_CHAT_MSG_TYPE", "" };
         default: throw std::out_of_range("value");
     }
 }
 
 template <>
-TC_API_EXPORT size_t EnumUtils<ChatMsg>::Count() { return 69; }
+TC_API_EXPORT size_t EnumUtils<ChatMsg>::Count() { return 71; }
 
 template <>
 TC_API_EXPORT ChatMsg EnumUtils<ChatMsg>::FromIndex(size_t index)
@@ -5427,7 +5429,9 @@ TC_API_EXPORT ChatMsg EnumUtils<ChatMsg>::FromIndex(size_t index)
         case 65: return CHAT_MSG_GUILD_ITEM_LOOTED;
         case 66: return CHAT_MSG_COMMUNITIES_CHANNEL;
         case 67: return CHAT_MSG_VOICE_TEXT;
-        case 68: return MAX_CHAT_MSG_TYPE;
+        case 68: return CHAT_MSG_PING;
+        case 69: return CHAT_MSG_ENCOUNTER_EVENT;
+        case 70: return MAX_CHAT_MSG_TYPE;
         default: throw std::out_of_range("index");
     }
 }
@@ -5505,7 +5509,9 @@ TC_API_EXPORT size_t EnumUtils<ChatMsg>::ToIndex(ChatMsg value)
         case CHAT_MSG_GUILD_ITEM_LOOTED: return 65;
         case CHAT_MSG_COMMUNITIES_CHANNEL: return 66;
         case CHAT_MSG_VOICE_TEXT: return 67;
-        case MAX_CHAT_MSG_TYPE: return 68;
+        case CHAT_MSG_PING: return 68;
+        case CHAT_MSG_ENCOUNTER_EVENT: return 69;
+        case MAX_CHAT_MSG_TYPE: return 70;
         default: throw std::out_of_range("value");
     }
 }

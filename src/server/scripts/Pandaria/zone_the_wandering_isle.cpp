@@ -46,6 +46,31 @@ namespace Spells
     static constexpr uint32 CurseOfTheCrocodile = 102942;
     static constexpr uint32 RideVehiclePole = 102717;
     static constexpr uint32 TrainingBellPoleExitExclusion = 133381;
+
+    // Only the Worthy Shall Pass
+    static constexpr uint32 FireCrashCover = 108149;
+    static constexpr uint32 FireCrashInvis = 108150;
+    static constexpr uint32 FireCrashPhaseShift = 102515;
+    static constexpr uint32 FlyingShadowKick = 108936;
+    static constexpr uint32 FlyingShadowKickJump = 108943;
+    static constexpr uint32 FeetOfFury = 108958;
+    static constexpr uint32 FeetOfFuryDamage = 108957;
+}
+
+namespace Quests
+{
+    static constexpr uint32 OnlyTheWorthyShallPass = 29421;
+}
+
+namespace Creatures
+{
+    static constexpr uint32 MasterLiFei = 54135;
+    static constexpr uint32 MasterLiFeiCombat = 54734;
+}
+
+namespace Talks
+{
+    static constexpr uint32 LiFeiDefeat = 0;
 }
 
 enum TraineeMisc
@@ -125,12 +150,12 @@ struct npc_tushui_huojin_trainee : public ScriptedAI
             me->SetImmuneToPC(true);
             me->CombatStop();
 
-            _scheduler.Schedule(1s, [this](TaskContext /*task*/)
+            _scheduler.Schedule(1s, [this](TaskContext const& /*task*/)
             {
                 Talk(SAY_FINISH_FIGHT);
             });
 
-            _scheduler.Schedule(3s, [this](TaskContext /*task*/)
+            _scheduler.Schedule(3s, [this](TaskContext const& /*task*/)
             {
                 Position currentPosition;
                 float currentDist = 1000.0f;
@@ -161,7 +186,7 @@ struct npc_tushui_huojin_trainee : public ScriptedAI
 
     void JustEngagedWith(Unit* /*attacker*/) override
     {
-        _scheduler.Schedule(4s, [this](TaskContext task)
+        _scheduler.Schedule(4s, [this](TaskContext& task)
         {
             if (me->GetVictim())
                 DoCastVictim(SPELL_BLACKOUT_KICK);
@@ -251,7 +276,7 @@ struct npc_huojin_trainee : public npc_tushui_huojin_trainee
             _scheduler.CancelAll();
 
             me->SetEmoteState(EMOTE_ONESHOT_NONE);
-            _scheduler.Schedule(1s, [this](TaskContext /*task*/ )
+            _scheduler.Schedule(1s, [this](TaskContext const& /*task*/ )
             {
                 me->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
             });
@@ -264,12 +289,12 @@ struct npc_huojin_trainee : public npc_tushui_huojin_trainee
         me->SetEmoteState(EMOTE_ONESHOT_NONE);
         me->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
 
-        _scheduler.Schedule(1s, [this](TaskContext /*task*/)
+        _scheduler.Schedule(1s, [this](TaskContext const& /*task*/)
         {
             me->SetEmoteState(EMOTE_STATE_MONKOFFENSE_READYUNARMED);
         });
 
-        _scheduler.Schedule(4s, [this](TaskContext task)
+        _scheduler.Schedule(4s, [this](TaskContext& task)
         {
             PlayRandomEmote();
             task.Repeat(4s);
@@ -288,7 +313,7 @@ struct npc_huojin_trainee : public npc_tushui_huojin_trainee
     void BeginSparringDelayed(ObjectGuid partnerGuid)
     {
         _partnerGuid = partnerGuid;
-        _scheduler.Schedule(1s, [this, partnerGuid](TaskContext /*task*/)
+        _scheduler.Schedule(1s, [this, partnerGuid](TaskContext const& /*task*/)
         {
             BeginSparring(partnerGuid);
         });
@@ -369,7 +394,7 @@ struct npc_tushui_leading_trainee : public npc_tushui_huojin_trainee
 
     void ScheduleEmoteExecution()
     {
-        _scheduler.Schedule(1s, [this](TaskContext task)
+        _scheduler.Schedule(1s, [this](TaskContext& task)
         {
             Emote emote = PlayRandomEmote();
             HandleEmoteNearbyTushuiTrainees(me, emote);
@@ -401,12 +426,12 @@ struct npc_instructor_zhi : public ScriptedAI
 
     void JustAppeared() override
     {
-        _scheduler.Schedule(6s, [this](TaskContext task)
+        _scheduler.Schedule(6s, [this](TaskContext& task)
         {
             Emote emote = Trinity::Containers::SelectRandomContainerElement(TraineeEmotes);
             me->HandleEmoteCommand(emote);
 
-            task.Schedule(1s, [this, emote](TaskContext /*task*/)
+            task.Schedule(1s, [this, emote](TaskContext const& /*task*/)
             {
                 HandleEmoteNearbyTushuiTrainees(me, emote);
             });
@@ -567,7 +592,7 @@ struct npc_jaomin_ro_hawk : public ScriptedAI
             return;
 
         DoCast(SPELL_FORCE_SUMMONER_TO_RIDE);
-        _scheduler.Schedule(1s, [this, orientation = me->GetAbsoluteAngle(victim) - me->GetOrientation()](TaskContext /*context*/)
+        _scheduler.Schedule(1s, [this, orientation = me->GetAbsoluteAngle(victim) - me->GetOrientation()](TaskContext const& /*context*/)
         {
             me->GetMotionMaster()->MovePoint(POINT_RANDOM_DEST, me->GetFirstCollisionPosition(40.0f, orientation));
         });
@@ -614,7 +639,7 @@ class spell_force_summoner_to_ride_vehicle : public SpellScript
 {
     void HandleScript(SpellEffIndex /*effIndex*/) const
     {
-        GetHitUnit()->CastSpell(GetCaster(), GetEffectValue(), TRIGGERED_FULL_MASK);
+        GetHitUnit()->CastSpell(GetCaster(), GetEffectValueAsInt(), TRIGGERED_FULL_MASK);
     }
 
     void Register() override
@@ -731,7 +756,7 @@ struct npc_min_dimwind_summon : public ScriptedAI
 
         amberleafScamp5->GetMotionMaster()->MovePoint(0, amberleafPos[4]);
 
-        _scheduler.Schedule(2s, [this](TaskContext /*task*/)
+        _scheduler.Schedule(2s, [this](TaskContext const& /*task*/)
         {
             Creature* amberleafScamp4 = me->FindNearestCreatureWithOptions(20.0f, { .StringId = "npc_amberleaf_scamp_4" });
 
@@ -742,7 +767,7 @@ struct npc_min_dimwind_summon : public ScriptedAI
             amberleafScamp4->GetMotionMaster()->MovePoint(0, amberleafPos[3]);
         });
 
-        _scheduler.Schedule(5s, [this](TaskContext task)
+        _scheduler.Schedule(5s, [this](TaskContext& task)
         {
             Unit* summoner = me->ToTempSummon()->GetSummonerUnit();
 
@@ -752,11 +777,11 @@ struct npc_min_dimwind_summon : public ScriptedAI
             me->SetFacingToObject(summoner);
             Talk(SAY_MIN_DIMWIND_TEXT_0, summoner);
 
-            task.Schedule(4s, [this](TaskContext task)
+            task.Schedule(4s, [this](TaskContext& task)
             {
                 Talk(SAY_MIN_DIMWIND_TEXT_1);
 
-                task.Schedule(4s, [this](TaskContext /*task*/)
+                task.Schedule(4s, [this](TaskContext const& /*task*/)
                 {
                     me->GetMotionMaster()->MovePath(PATH_MOVE_RUN, false);
                 });
@@ -791,7 +816,7 @@ struct npc_min_dimwind_summon : public ScriptedAI
                 me->SetFacingTo(0.575958f);
                 me->DespawnOrUnsummon(2s);
 
-                _scheduler.Schedule(1s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(1s, [this](TaskContext const& /*task*/)
                 {
                     if (me->IsSummon())
                     {
@@ -828,7 +853,7 @@ struct npc_amberleaf_scamp : public ScriptedAI
         {
             me->GetMotionMaster()->MoveRandom(10.0f);
 
-            _scheduler.Schedule(10s, [this](TaskContext /*task*/)
+            _scheduler.Schedule(10s, [this](TaskContext const& /*task*/)
             {
                 if (!me->IsInCombat())
                     me->GetMotionMaster()->MoveTargetedHome();
@@ -880,15 +905,15 @@ struct npc_aysa_cloudsinger_summon : public ScriptedAI
 
         Talk(SAY_GO_CAVE, summoner);
 
-        _scheduler.Schedule(3s, [this](TaskContext task)
+        _scheduler.Schedule(3s, [this](TaskContext& task)
         {
             me->GetMotionMaster()->MoveJump(EVENT_JUMP, aysaJumpPos[0], 12.0f, {}, 5.0f);
 
-            task.Schedule(1700ms, [this](TaskContext task)
+            task.Schedule(1700ms, [this](TaskContext& task)
             {
                 me->GetMotionMaster()->MoveJump(EVENT_JUMP, aysaJumpPos[1], 12.0f, {}, 5.0f);
 
-                task.Schedule(2s, [this](TaskContext /*task*/)
+                task.Schedule(2s, [this](TaskContext const& /*task*/)
                 {
                     me->GetMotionMaster()->MoveJump(POINT_JUMP, aysaJumpPos[2], 12.0f, {}, 5.0f);
                 });
@@ -1055,35 +1080,35 @@ struct npc_master_li_fei_summon : public ScriptedAI
 
         Seconds delay = 23s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             FaceToPlayer();
         });
 
         delay += 2s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_0);
         });
 
         delay += 10s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_1);
         });
 
         delay += 12s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_2);
         });
 
         delay += 11s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             FaceToPlayer();
             Talk(SAY_TEXT_3);
@@ -1091,28 +1116,28 @@ struct npc_master_li_fei_summon : public ScriptedAI
 
         delay += 11s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_4);
         });
 
         delay += 9s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             FaceToPlayer();
         });
 
         delay += 2s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_5);
         });
 
         delay += 6s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Creature* aysa = me->FindNearestCreatureWithOptions(40.0f, { .StringId = "npc_aysa_quest_29414" });
 
@@ -1298,7 +1323,176 @@ public:
         return true;
     }
 };
+
+// 54135 - Master Li Fei
+struct npc_li_fei : public ScriptedAI
+{
+    npc_li_fei(Creature* creature) : ScriptedAI(creature) {}
+
+    void OnQuestAccept(Player* player, Quest const* quest) override
+    {
+        if (quest->GetQuestId() == Quests::OnlyTheWorthyShallPass)
+            player->CastSpell(player, Spells::FireCrashCover);
+    }
 };
+
+// 102499 - Fire Crash
+class spell_fire_crash : public SpellScript
+{
+    static constexpr Position PlayerJumpPos = { 1351.3334f, 3939.0347f, 109.32395f, 6.00115f };
+
+    void SetDest(SpellDestination& dest) const
+    {
+        dest.Relocate(PlayerJumpPos);
+    }
+
+    void Register() override
+    {
+        OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_fire_crash::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+    }
+};
+
+// 54734 - Master Li Fei (combat)
+struct npc_li_fei_combat : public ScriptedAI
+{
+    npc_li_fei_combat(Creature* creature) : ScriptedAI(creature), _defeatTriggered(false) {}
+
+    enum Events
+    {
+        EVENT_FEET_OF_FURY = 1,
+        EVENT_SHADOW_KICK,
+    };
+
+    void Reset() override
+    {
+        _defeatTriggered = false;
+    }
+
+    void JustEngagedWith(Unit* /*attacker*/) override
+    {
+        _events.ScheduleEvent(EVENT_FEET_OF_FURY, 6s);
+        _events.ScheduleEvent(EVENT_SHADOW_KICK, 10s);
+    }
+
+    void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+    {
+        if (!_defeatTriggered && me->HealthBelowPctDamaged(50, damage))
+        {
+            _defeatTriggered = true;
+            me->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
+
+            Creature* liFei = me->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Creatures::MasterLiFei, .IgnorePhases = true });
+            if (!liFei)
+                return;
+
+            for (ObjectGuid const& guid : me->GetTapList())
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, guid);
+                if (!player)
+                    continue;
+
+                player->KilledMonsterCredit(Creatures::MasterLiFeiCombat, ObjectGuid::Empty);
+                player->RemoveAurasDueToSpell(Spells::FireCrashCover);
+                player->RemoveAurasDueToSpell(Spells::FireCrashInvis);
+                player->RemoveAurasDueToSpell(Spells::FireCrashPhaseShift);
+            }
+
+            liFei->AI()->Talk(Talks::LiFeiDefeat, attacker);
+
+            EnterEvadeMode();
+        }
+    }
+
+    void KilledUnit(Unit* victim) override
+    {
+        Player* player = victim->ToPlayer();
+        if (!player)
+            return;
+
+        player->FailQuest(Quests::OnlyTheWorthyShallPass);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (!UpdateVictim())
+            return;
+
+        _events.Update(diff);
+
+        if (me->HasUnitState(UNIT_STATE_CASTING))
+            return;
+
+        if (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case EVENT_FEET_OF_FURY:
+                    DoCastVictim(Spells::FeetOfFury);
+
+                    _events.ScheduleEvent(EVENT_FEET_OF_FURY, 12s);
+                    break;
+                case EVENT_SHADOW_KICK:
+                    DoCastVictim(Spells::FlyingShadowKick);
+
+                    _events.ScheduleEvent(EVENT_SHADOW_KICK, 15s);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+private:
+    EventMap _events;
+    bool _defeatTriggered;
+};
+
+// 108958 - Feet of Fury
+class spell_feet_of_fury : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ Spells::FeetOfFuryDamage });
+    }
+
+    void PeriodicTick(AuraEffect const* aurEff)
+    {
+        PreventDefaultAction();
+
+        Unit* target = GetTarget();
+        target->CastSpell(target->GetVictim(), Spells::FeetOfFuryDamage, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringAura = aurEff
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_feet_of_fury::PeriodicTick, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+    }
+};
+
+// 108936 - Flying Shadow Kick
+class spell_flying_shadow_kick : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ Spells::FlyingShadowKickJump });
+    }
+
+    void HandleHitTarget(SpellEffIndex /*effIndex*/)
+    {
+        GetCaster()->CastSpell(GetHitUnit(), Spells::FlyingShadowKickJump, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_flying_shadow_kick::HandleHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
+}
 
 void AddSC_zone_the_wandering_isle()
 {
@@ -1331,4 +1525,10 @@ void AddSC_zone_the_wandering_isle()
     new at_singing_pools_transform_base<Spells::CurseOfTheCrocodile>("at_singing_pools_transform_crocodile");
     new at_singing_pools_transform_base<Spells::CurseOfTheCrane>("at_singing_pools_transform_crane");
     new at_singing_pools_transform_base<Spells::CurseOfTheTurtle>("at_singing_pools_transform_turtle");
+
+    RegisterCreatureAI(npc_li_fei);
+    RegisterSpellScript(spell_fire_crash);
+    RegisterCreatureAI(npc_li_fei_combat);
+    RegisterSpellScript(spell_feet_of_fury);
+    RegisterSpellScript(spell_flying_shadow_kick);
 }
