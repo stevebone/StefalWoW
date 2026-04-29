@@ -690,18 +690,23 @@ void WorldSession::HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingP
 
 void WorldSession::HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarrisonPetName& queryGarrisonPetName)
 {
-    // Garrison pet name query - used for stables building pets
-    // SMSG_QUERY_GARRISON_PET_NAME_RESPONSE packet structure is not yet defined
+    // SMSG_QUERY_GARRISON_PET_NAME_RESPONSE (0x4C0041) wire format is not visible in
+    // observed WoD garrison traffic — the response packet would be safer to send only
+    // once a sniff confirms its byte layout (likely { ObjectGuid NpcGUID; SizedString Name;
+    // uint32 PetNameTimestamp; } based on the corresponding entity-update field). Until
+    // then, leave as a no-op since the client tolerates the missing response (no UI path
+    // observed waiting on it). RE-blocked, intentionally not stubbed with a guess.
     TC_LOG_DEBUG("garrison", "HandleQueryGarrisonPetName: Player {} queried pet name for NPC {}",
         _player->GetGUID().ToString().c_str(), queryGarrisonPetName.NpcGUID.ToString().c_str());
 }
 
 void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Garrison::RequestGarrisonTalentWorldQuestUnlocks& /*requestGarrisonTalentWorldQuestUnlocks*/)
 {
-    // Talent-gated world quest unlocks - Legion+ feature
-    // SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE packet structure is not yet defined
-    // When implemented, this should query researched talents with GarrTalentMapPOI data
-    // and send back the list of unlocked world quest POIs
+    // SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE (0x4C004E) — Legion+ talent-gated
+    // map POIs. Wire format unsniffed; expected to be a { uint32 GarrTalentID;
+    // uint32 MapPOIID; }[] array, sourced by joining researched talents against
+    // GarrTalentMapPOI.db2. Same RE-blocked status as pet name query — leave as no-op
+    // until sniff data lands. Client UI tolerates the missing response.
     TC_LOG_DEBUG("garrison", "HandleRequestGarrisonTalentWorldQuestUnlocks: Player {} requested talent world quest unlocks",
         _player->GetGUID().ToString().c_str());
 }

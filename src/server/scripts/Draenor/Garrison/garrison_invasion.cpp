@@ -59,7 +59,13 @@ enum GarrisonInvasionConstants
     SCORE_GOLD_REWARD           = 1000,     // Gold reward (in copper) per 100 score
     INVASION_SUPPLY_BAG         = 120205,   // Bag of Garrison Supplies (invasion reward)
 
-    // Generic Draenor enemy creature IDs (these would be replaced with real DB entries)
+    // NOTE: This invasion script is framework only. The creature IDs below are
+    // approximate starting-point ranges from the Draenor garrison invasion data;
+    // real WoD invasions require a populated creature_template + creature_template_addon
+    // in the world DB plus phase-aware spawning matching the player's garrison level.
+    // The script never inserts into s_activeInvasions in normal play — invasions are
+    // triggered manually via the .garrison invasion start GM command for testing.
+    //
     // Iron Horde
     NPC_IRON_HORDE_GRUNT        = 82057,
     NPC_IRON_HORDE_BERSERKER    = 82058,

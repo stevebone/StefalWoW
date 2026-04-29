@@ -208,6 +208,7 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             follower.PacketInfo.FollowerStatus = fields[9].GetUInt32();
             follower.PacketInfo.Durability = fields[10].GetUInt32();
             follower.PacketInfo.CustomName = fields[11].GetString();
+            follower.PacketInfo.ZoneSupportSpellID = sGarrisonMgr.GetFollowerZoneSupportSpell(followerId, GetFaction());
             if (!sGarrBuildingStore.LookupEntry(follower.PacketInfo.CurrentBuildingID))
                 follower.PacketInfo.CurrentBuildingID = 0;
 
@@ -1009,7 +1010,8 @@ void Garrison::AddFollower(uint32 garrFollowerId)
     Follower& follower = _followers[dbId];
     follower.PacketInfo.DbID = dbId;
     follower.PacketInfo.GarrFollowerID = garrFollowerId;
-    follower.PacketInfo.Quality = followerEntry->Quality;   // TODO: handle magic upgrades
+    // Initial quality from DB2; quality upgrades happen post-recruit via SPELL_EFFECT_SET_FOLLOWER_QUALITY (Spell::EffectSetFollowerQuality)
+    follower.PacketInfo.Quality = followerEntry->Quality;
     follower.PacketInfo.FollowerLevel = followerEntry->FollowerLevel;
     follower.PacketInfo.ItemLevelWeapon = followerEntry->ItemLevelWeapon;
     follower.PacketInfo.ItemLevelArmor = followerEntry->ItemLevelArmor;
@@ -1018,6 +1020,7 @@ void Garrison::AddFollower(uint32 garrFollowerId)
     follower.PacketInfo.CurrentMissionID = 0;
     follower.PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(garrFollowerId, followerEntry, follower.PacketInfo.Quality, GetFaction(), true);
     follower.PacketInfo.FollowerStatus = 0;
+    follower.PacketInfo.ZoneSupportSpellID = sGarrisonMgr.GetFollowerZoneSupportSpell(garrFollowerId, GetFaction());
 
     addFollowerResult.Follower = follower.PacketInfo;
     _owner->SendDirectMessage(addFollowerResult.Write());
@@ -1051,6 +1054,7 @@ void Garrison::AddTroop(uint32 garrFollowerId, uint32 durability)
     follower.PacketInfo.CurrentMissionID = 0;
     follower.PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(garrFollowerId, followerEntry, follower.PacketInfo.Quality, GetFaction(), true);
     follower.PacketInfo.FollowerStatus = FOLLOWER_STATUS_TROOP;
+    follower.PacketInfo.ZoneSupportSpellID = sGarrisonMgr.GetFollowerZoneSupportSpell(garrFollowerId, GetFaction());
 
     addFollowerResult.Follower = follower.PacketInfo;
     _owner->SendDirectMessage(addFollowerResult.Write());
@@ -1873,6 +1877,14 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
         AutoCombatResult combatResult =
             GarrisonAutoCombat::SimulateCombat(playerUnits, enemyUnits);
         succeeded = combatResult.PlayerWon;
+
+        // combatResult.CombatLog is fully populated (rounds + per-target events) but
+        // not serialized into SMSG_GARRISON_COMPLETE_MISSION_RESULT here. The wire
+        // format for the auto-combat transcript (JamGarrisonAutoMissionRoundInfo /
+        // EventInfo / CombatantInfo) is brief Open Q #2 and not yet decoded — the
+        // client likely expects a nested rounds[].events[].combatants[].spell[] tree.
+        // SL Adventures replay UI will not show round-by-round detail until this is
+        // wired; mission outcome (succeeded/failed) is still reported correctly.
 
         TC_LOG_DEBUG("garrison", "Auto-combat for mission %u: %s in %d rounds",
             missionRecID, succeeded ? "WON" : "LOST", combatResult.TotalRounds);
@@ -3321,7 +3333,7 @@ void Garrison::CompleteAllTalentResearch()
     }
 }
 
-uint32 Garrison::LearnTalent(uint32 garrTalentID, bool /*isTemporary*/)
+uint32 Garrison::LearnTalent(uint32 garrTalentID, bool isTemporary)
 {
     GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrTalentID);
     if (!talentEntry)
@@ -3350,7 +3362,7 @@ uint32 Garrison::LearnTalent(uint32 garrTalentID, bool /*isTemporary*/)
     talent.GarrTalentID = garrTalentID;
     talent.Rank = 0;
     talent.ResearchStartTime = 0;
-    talent.Flags = 0;
+    talent.Flags = isTemporary ? GARRISON_TALENT_FLAG_TEMPORARY : GARRISON_TALENT_FLAG_NONE;
     talent.SoulbindConduitID = 0;
     talent.SoulbindConduitRank = 0;
 

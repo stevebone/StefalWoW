@@ -453,6 +453,23 @@ GarrFollowerQualityEntry const* GarrisonMgr::GetFollowerQuality(uint16 garrFollo
     return nullptr;
 }
 
+uint32 GarrisonMgr::GetFollowerZoneSupportSpell(uint32 garrFollowerID, uint32 factionIndex) const
+{
+    GarrFollSupportSpellEntry const* best = nullptr;
+    for (GarrFollSupportSpellEntry const* entry : sGarrFollSupportSpellStore)
+    {
+        if (entry->GarrFollowerID != garrFollowerID)
+            continue;
+        if (!best || entry->OrderIndex < best->OrderIndex)
+            best = entry;
+    }
+
+    if (!best)
+        return 0;
+
+    return factionIndex == GARRISON_FACTION_INDEX_ALLIANCE ? uint32(best->AllianceSpellID) : uint32(best->HordeSpellID);
+}
+
 std::vector<GarrMissionEntry const*> const* GarrisonMgr::GetMissionsByGarrType(int8 garrTypeID) const
 {
     auto itr = _missionsByGarrType.find(garrTypeID);

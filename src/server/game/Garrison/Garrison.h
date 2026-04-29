@@ -236,6 +236,14 @@ public:
         bool IsReady() const;
     };
 
+    // Bit values for Garrison::Talent::Flags. Exact wire bits unverified by sniff;
+    // the Temporary bit is server-only and routed back into the wire Flags value.
+    enum GarrisonTalentFlags : int32
+    {
+        GARRISON_TALENT_FLAG_NONE       = 0x0,
+        GARRISON_TALENT_FLAG_TEMPORARY  = 0x1,  // Legion class-hall one-shot/temporary talent
+    };
+
     struct Talent
     {
         uint32 GarrTalentID = 0;
@@ -247,6 +255,7 @@ public:
 
         bool IsResearching() const;
         bool IsResearchComplete() const;
+        bool IsTemporary() const { return (Flags & GARRISON_TALENT_FLAG_TEMPORARY) != 0; }
     };
 
     explicit Garrison(Player* owner);

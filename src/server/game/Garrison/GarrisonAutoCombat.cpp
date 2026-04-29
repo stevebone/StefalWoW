@@ -188,8 +188,11 @@ AutoCombatCombatant GarrisonAutoCombat::BuildFollowerCombatant(
 {
     AutoCombatCombatant combatant;
 
-    // Derive combat stats from follower attributes
-    // Base values scale with level and quality, enhanced by item level
+    // No DB2 publishes follower auto-combat stats directly (GarrAutoCombatant only
+    // covers enemies via GarrEncounterID). The formula below is an empirical scaling
+    // calibrated so that quality/level-equivalent followers fall within the 1000-3000
+    // HP range typical of GarrAutoCombatant enemy entries; tune against sniffed
+    // adventure outcomes when available.
     uint32 avgItemLevel = (itemLevelWeapon + itemLevelArmor) / 2;
 
     combatant.MaxHealth = 1000 + static_cast<int32>(followerLevel) * 100

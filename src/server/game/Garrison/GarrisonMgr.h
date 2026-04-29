@@ -38,6 +38,7 @@ struct GarrEncounterEntry;
 struct GarrFollowerEntry;
 struct GarrFollowerLevelXPEntry;
 struct GarrFollowerQualityEntry;
+struct GarrFollSupportSpellEntry;
 struct GarrMechanicEntry;
 struct GarrMissionXFollowerEntry;
 struct GarrMechanicTypeEntry;
@@ -99,6 +100,10 @@ public:
     // Follower progression
     GarrFollowerLevelXPEntry const* GetFollowerLevelXP(uint8 garrFollowerTypeID, int8 followerLevel) const;
     GarrFollowerQualityEntry const* GetFollowerQuality(uint16 garrFollowerTypeID, int8 quality) const;
+
+    // Returns the lowest-OrderIndex zone-support spell for a follower in the given faction
+    // (GARRISON_FACTION_INDEX_HORDE / GARRISON_FACTION_INDEX_ALLIANCE). Returns 0 when none defined.
+    uint32 GetFollowerZoneSupportSpell(uint32 garrFollowerID, uint32 factionIndex) const;
 
     // Shipment system accessors
     CharShipmentContainerEntry const* GetShipmentContainerForBuilding(uint8 garrBuildingType) const;
