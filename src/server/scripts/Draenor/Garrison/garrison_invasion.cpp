@@ -30,6 +30,8 @@
 #include "Player.h"
 #include "RBAC.h"
 #include "ScriptedCreature.h"
+#include "TemporarySummon.h"
+#include "WorldSession.h"
 
 enum GarrisonInvasionConstants
 {
@@ -372,7 +374,7 @@ class commandscript_garrison_invasion : public CommandScript
 public:
     commandscript_garrison_invasion() : CommandScript("commandscript_garrison_invasion") { }
 
-    ChatCommandTable GetCommands() const override
+    std::span<Trinity::ChatCommands::ChatCommandBuilder const> GetCommands() const override
     {
         static ChatCommandTable garrisonInvasionCommandTable =
         {

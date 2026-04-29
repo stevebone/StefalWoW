@@ -31,6 +31,7 @@ class Map;
 class Player;
 struct GarrBuildingEntry;
 struct GarrItemLevelUpgradeDataEntry;
+struct GarrMissionEntry;
 struct GarrSiteLevelEntry;
 
 enum GarrisonType : int32

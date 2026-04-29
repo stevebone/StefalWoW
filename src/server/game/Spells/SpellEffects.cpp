@@ -6475,7 +6475,8 @@ void Spell::EffectIncreaseFollowerExperience()
     if (!garrison)
         return;
 
-    uint32 xp = damage > 0 ? damage : effectInfo->MiscValue;
+    int32 effectDamage = GetEffectValueAsInt();
+    uint32 xp = effectDamage > 0 ? uint32(effectDamage) : effectInfo->MiscValue;
     for (auto& [dbId, follower] : garrison->GetFollowerMap())
     {
         garrison->AddFollowerXP(dbId, xp);
@@ -6678,7 +6679,7 @@ void Spell::EffectModifyFollowerItemLevel()
     // MiscValueB: 0 = weapon, 1 = armor, other = both
     int32 miscValue = effectInfo->MiscValue;
     int32 miscValueB = effectInfo->MiscValueB;
-    int32 iLevelDelta = damage;
+    int32 iLevelDelta = GetEffectValueAsInt();
 
     // Try to look up GarrItemLevelUpgradeData entry
     GarrItemLevelUpgradeDataEntry const* upgradeData = sGarrItemLevelUpgradeDataStore.LookupEntry(miscValue);
