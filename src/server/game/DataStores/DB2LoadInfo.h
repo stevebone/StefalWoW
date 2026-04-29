@@ -2486,6 +2486,20 @@ struct GarrFollItemSetMemberLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 5, &GarrFollItemSetMemberMeta::Instance, HOTFIX_SEL_GARR_FOLL_ITEM_SET_MEMBER };
 };
 
+struct GarrFollSupportSpellLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "HordeSpellID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "AllianceSpellID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "OrderIndex" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "GarrFollowerID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &GarrFollSupportSpellMeta::Instance, HOTFIX_SEL_GARR_FOLL_SUPPORT_SPELL };
+};
+
 struct GarrFollowerLoadInfo
 {
     static constexpr DB2FieldMeta Fields[34] =

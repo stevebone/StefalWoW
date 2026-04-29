@@ -150,6 +150,10 @@ namespace WorldPackets
             Timestamp<> StartTime;
         };
 
+        // Wire shape: 2 * int32. AGENT_BRIEF_GARRISON.md decodes this as (SocketIdx, ConduitID)
+        // per Deserialize_JamGarrisonTalentSocketData @ 0x7FF75C1759F0; TC has historically
+        // interpreted the second slot as a Rank. Until sniff data disambiguates, the names
+        // reflect TC's interpretation but the wire bytes match either reading.
         struct GarrisonTalentSocketData
         {
             int32 SoulbindConduitID = 0;
@@ -169,6 +173,13 @@ namespace WorldPackets
         {
             int32 EntryID = 0;
             int32 Rank = 0;
+        };
+
+        // JamGarrisonCompleteMissionFollowerInfo per c:/dumps/AGENT_BRIEF_GARRISON.md (Deserialize_CompleteMissionFollowerInfo @ 0x7FF75C175900)
+        struct GarrisonMissionEndingFollower
+        {
+            uint64 DbID = 0;
+            int32 Health = 0;
         };
 
         struct GarrisonCollection

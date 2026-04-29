@@ -808,6 +808,11 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " FROM garr_foll_item_set_member WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_FOLL_ITEM_SET_MEMBER, "SELECT MAX(ID) + 1 FROM garr_foll_item_set_member", CONNECTION_SYNCH);
 
+    // GarrFollSupportSpell.db2
+    PrepareStatement(HOTFIX_SEL_GARR_FOLL_SUPPORT_SPELL, "SELECT ID, HordeSpellID, AllianceSpellID, OrderIndex, GarrFollowerID"
+        " FROM garr_foll_support_spell WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_FOLL_SUPPORT_SPELL, "SELECT MAX(ID) + 1 FROM garr_foll_support_spell", CONNECTION_SYNCH);
+
     // GarrFollower.db2
     PrepareStatement(HOTFIX_SEL_GARR_FOLLOWER, "SELECT ID, HordeSourceText, AllianceSourceText, TitleName, GarrTypeID, GarrFollowerTypeID, "
         "HordeCreatureID, AllianceCreatureID, HordeGarrFollRaceID, AllianceGarrFollRaceID, HordeGarrClassSpecID, AllianceGarrClassSpecID, Quality, "

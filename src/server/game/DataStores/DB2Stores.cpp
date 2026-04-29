@@ -166,6 +166,7 @@ DB2Storage<GarrEncounterEntry>                  sGarrEncounterStore("GarrEncount
 DB2Storage<GarrEncounterSetXEncounterEntry>     sGarrEncounterSetXEncounterStore("GarrEncounterSetXEncounter.db2", &GarrEncounterSetXEncounterLoadInfo::Instance);
 DB2Storage<GarrEncounterXMechanicEntry>         sGarrEncounterXMechanicStore("GarrEncounterXMechanic.db2", &GarrEncounterXMechanicLoadInfo::Instance);
 DB2Storage<GarrFollItemSetMemberEntry>          sGarrFollItemSetMemberStore("GarrFollItemSetMember.db2", &GarrFollItemSetMemberLoadInfo::Instance);
+DB2Storage<GarrFollSupportSpellEntry>           sGarrFollSupportSpellStore("GarrFollSupportSpell.db2", &GarrFollSupportSpellLoadInfo::Instance);
 DB2Storage<GarrFollowerEntry>                   sGarrFollowerStore("GarrFollower.db2", &GarrFollowerLoadInfo::Instance);
 DB2Storage<GarrFollowerLevelXPEntry>            sGarrFollowerLevelXPStore("GarrFollowerLevelXP.db2", &GarrFollowerLevelXPLoadInfo::Instance);
 DB2Storage<GarrFollowerQualityEntry>            sGarrFollowerQualityStore("GarrFollowerQuality.db2", &GarrFollowerQualityLoadInfo::Instance);
@@ -842,6 +843,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sGarrEncounterSetXEncounterStore);
     LOAD_DB2(sGarrEncounterXMechanicStore);
     LOAD_DB2(sGarrFollItemSetMemberStore);
+    LOAD_DB2(sGarrFollSupportSpellStore);
     LOAD_DB2(sGarrFollowerStore);
     LOAD_DB2(sGarrFollowerLevelXPStore);
     LOAD_DB2(sGarrFollowerQualityStore);

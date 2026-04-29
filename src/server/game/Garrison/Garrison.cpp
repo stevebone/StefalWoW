@@ -2022,7 +2022,9 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
         }
     }
 
-    // Salvage Yard: award salvage crate from completed missions
+    // Salvage Yard is a WoD-only building (BuildingType 35) that has no equivalent in
+    // Class Order Halls / War Campaign / Covenant. Guard the WoD-specific reward path here
+    // — the equivalent expansion-specific bonus reward mechanics live in their own scripts.
     if (GetType() == GARRISON_TYPE_GARRISON)
     {
         static constexpr uint32 BUILDING_TYPE_SALVAGE_YARD = 35;
@@ -2241,7 +2243,9 @@ void Garrison::GenerateAvailableMissions()
         eligibleMissions.push_back(mission);
     }
 
-    // Inn/Tavern level 2+: add treasure missions (flagged missions with gold rewards)
+    // Inn/Tavern level 2+ unlocks WoD treasure missions. Inn (BuildingType 34) is WoD-only;
+    // Class Order Halls / War Campaign / Covenants have their own bonus-mission generators
+    // outside this code path.
     if (GetType() == GARRISON_TYPE_GARRISON)
     {
         static constexpr uint32 BUILDING_TYPE_INN = 34;

@@ -129,6 +129,7 @@ TC_GAME_API extern DB2Storage<GarrEncounterEntry>                   sGarrEncount
 TC_GAME_API extern DB2Storage<GarrEncounterSetXEncounterEntry>      sGarrEncounterSetXEncounterStore;
 TC_GAME_API extern DB2Storage<GarrEncounterXMechanicEntry>          sGarrEncounterXMechanicStore;
 TC_GAME_API extern DB2Storage<GarrFollItemSetMemberEntry>           sGarrFollItemSetMemberStore;
+TC_GAME_API extern DB2Storage<GarrFollSupportSpellEntry>            sGarrFollSupportSpellStore;
 TC_GAME_API extern DB2Storage<GarrFollowerEntry>                    sGarrFollowerStore;
 TC_GAME_API extern DB2Storage<GarrFollowerLevelXPEntry>             sGarrFollowerLevelXPStore;
 TC_GAME_API extern DB2Storage<GarrFollowerQualityEntry>             sGarrFollowerQualityStore;

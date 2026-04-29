@@ -2120,6 +2120,15 @@ struct GarrFollItemSetMemberEntry
     int32 GarrFollowerID;
 };
 
+struct GarrFollSupportSpellEntry
+{
+    uint32 ID;
+    int32 HordeSpellID;
+    int32 AllianceSpellID;
+    uint8 OrderIndex;
+    int32 GarrFollowerID;
+};
+
 struct GarrFollowerLevelXPEntry
 {
     uint32 ID;

@@ -60,6 +60,12 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonBuildingInfo const& buildingInf
     return data;
 }
 
+// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
+// Deserialize_JamGarrisonFollower @ 0x7FF75C1752A0 with a HealCost/HealStartTime/
+// HealDuration triple at the tail and no BoardIndex or CustomName. Observed
+// traffic shows a single HealingTimestamp plus BoardIndex(int8) and a SizedString
+// CustomName — match WoD/Legion sniffs. The brief's reading likely reflects an
+// older deserializer or in-memory layout.
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonFollower const& follower)
 {
     data << uint64(follower.DbID);
@@ -105,6 +111,11 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonEncounter const& encounter)
     return data;
 }
 
+// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
+// Deserialize_JamGarrisonMissionReward @ 0x7FF75C1754C0 with a Byte-gated optional
+// ItemFileDataID at the tail (8 reads); TC writes ItemFileDataID unconditionally
+// followed by an ItemInstance Optional bit. The brief's reading likely reflects an
+// older or alternate deserializer; observed traffic matches TC.
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionReward const& missionRewardItem)
 {
     data << int32(missionRewardItem.ItemID);
@@ -123,6 +134,14 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionReward const& missionRew
     return data;
 }
 
+// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
+// Deserialize_JamGarrisonMission @ 0x7FF75C1755E0 with 17 reads including a
+// trailing Currency(varint64), BonusActions.size, and AutoMissionData.size that
+// are not present in observed traffic. Those fields likely belong to an
+// auto-combat-specific tail envelope read by a different code path. TC's
+// MissionScalar(float) IS in observed traffic and is intentionally before the
+// counts. When auto-combat completion is implemented end-to-end, the trailing
+// envelope can be appended conditionally rather than reordering this base layout.
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonMission const& mission)
 {
     data << uint64(mission.DbID);
@@ -188,6 +207,14 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonCollectionEntry const& collecti
 {
     data << int32(collectionEntry.EntryID);
     data << int32(collectionEntry.Rank);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionEndingFollower const& endingFollower)
+{
+    data << uint64(endingFollower.DbID);
+    data << int32(endingFollower.Health);
 
     return data;
 }
