@@ -90,18 +90,21 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29786);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29786', '0', '0', '0', '29785', '29787', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29786_battle_for_the_skies');
+('29786', '0', '0', '0', '29785', '29787', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29787);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
-('29787', '0', '0', '105333', '29786', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29787_worthy_of_passing');
+-- remove spell since it blocks SAI
+-- remove script since no longer needed
+-- ('29787', '0', '0', '105333', '29786', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29787_worthy_of_passing');
+('29787', '0', '0', '0', '29786', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (29788, 29789, 29790, 29791);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES 
 ('29788', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
 ('29789', '0', '0', '0', '29787', '29790', '-29788', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
-('29790', '0', '0', '106623', '29788', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791'),
-('29791', '0', '0', '0', '29790', '29792', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29790_passing_wisdom_29791');
+('29790', '0', '0', '106623', '29788', '29791', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''),
+('29791', '0', '0', '0', '29790', '29792', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '');
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_lorewalker_ruolin' WHERE `Entry` = 64876; -- Lorewalker event
 UPDATE `creature_template` SET `ScriptName` = 'npc_ji_morning_breeze_docks' WHERE `Entry` = 55583;
@@ -122,7 +125,7 @@ INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`,
 (57690, 57691, 0, 1, 'Tiger Pillar', 8, 0);
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633,55634,57692,
-55744,55595,55592,64543,64532,64507,64505,64506,55874,55786);
+55744,55595,55592,64543,64532,64507,64505,64506,55874,55786,55586,56274,56159);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
@@ -147,7 +150,13 @@ INSERT INTO `creature_template_addon`
 (57419, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
+-- Wood of Staves
+(56159, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105329'), -- Master Shang
+(56274, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Guardian of the Elders
+
+
 -- Zhao-Ren Event
+(55586, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '108900 126160'), -- Master Shang when Zhao-Ren is dead
 (55786, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Zhao-Ren
 (55874, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '29266'), -- NPC: 55874 Dead Zhaoren
 (64505, 0, 0, 0, 0, 0, 0, 1, 0, 27, 0, 0, 0, 0, ''), -- NPC: 64505 Ji at Zhaoren
@@ -160,8 +169,11 @@ INSERT INTO `creature_template_addon`
 (55592, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, '80797'); -- Dafeng in chamber
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558,
-57466,55633,55634,57692,55744,55595,55592,64543,64532,64507,64505,64506,55874,55786);
+57466,55633,55634,57692,55744,55595,55592,64543,64532,64507,64505,64506,55874,55786,55586);
 INSERT INTO `creature_template_difficulty` VALUES
+(56159, 0, 0, 0, 80, 4, 1, 1, 1, 1, 28549, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(56274, 0, 0, 0, 80, 4, 3, 1, 1, 0.2, 28250, 2147549697, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55586, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29498, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55786, 0, 0, 0, 80, 4, 12, 1, 1, 0.2, 29125, 2147483661, 0, 0, 0, 0, 0, 0, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55874, 0, 0, 0, 80, 4, 5, 1, 1, 0.2, 28953, 5, 0, 0, 0, 0, 0, 0, 0, 268435712, 0, 0, 0, 0, 0, 0, 0, 56647),
 (64505, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 57869, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 262144, 0, 0, 0, 0, 0, 56647),
@@ -479,33 +491,29 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, t
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk' WHERE `Entry` = 55634;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk_rocket' WHERE `Entry` = 64322;
 
-UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '56274') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55466') and (`DifficultyID` = '0');
 UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55672') and (`DifficultyID` = '0');
 
 -- Fe-Feng Firethief stolen cannons aura
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55672, 56159, 55586, 56686);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (55672, 56686);
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55672, 1, '108900 126160');
-INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55586, 1, '108900 126160');
-INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES ('56159', '1', '105329');
 INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `auras`) VALUES (56686, 8, 1, '108900 126160');
 
 
 
 UPDATE `creature` SET `PhaseId` = 524 WHERE `guid` IN (451612,451613,451615,451614,451616,451617,451618,451619,451620);
-UPDATE `creature` SET `PhaseId` = 536 WHERE `guid` IN (451621, 451622, 451623, 451624, 451485);
+UPDATE `creature` SET `PhaseId` = 536 WHERE `guid` IN (451621, 451622, 451623);
+UPDATE `creature` SET `PhaseId` = 1526 WHERE `guid` IN (451624); -- Master Shang at Zhaoren battle (quest starter)
 UPDATE `creature` SET `PhaseId` = 1836 WHERE `guid` IN (451498,451501); -- Chamber of Whispers winds ID 55665
-UPDATE `creature` SET `PhaseId` = '1527' WHERE (`guid` = '451650');
+UPDATE `creature` SET `PhaseId` = 1527 WHERE `guid` = 451650;
 UPDATE `creature` SET `PhaseId` = 1430 WHERE `guid` = 451478; -- Zhao-Ren above Chamber of Whispers
 UPDATE `creature` SET `PhaseId` = 1429, `StringId` = 'npc_zhaoren_flyby' WHERE `guid` = 451413; -- Zhao-Ren Fly-by
 UPDATE `creature` SET `PhaseGroup` = 638, `PhaseId` = 0 WHERE `id` = 55601;
 
 UPDATE `gameobject` SET `PhaseId` = 1836 WHERE `guid` IN (300567, 300568); -- Chamber of whispers winds
-UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
 UPDATE `gameobject` SET `PhaseId` = 1714 WHERE `id` IN (209673);
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_zhaoren' WHERE `Entry` = 55786;
-UPDATE `creature_template` SET `ScriptName` = 'npc_master_shang_q29787' WHERE `Entry` = 56159;
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55592,55744,55595,64543,64532,55665);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55592,55744,5574400,55595,5559500,64543,6454300,64532,6453200,5566500,5566501,-451498,-451501) AND `source_type` IN (0,9);
@@ -629,14 +637,56 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (64506, 0, 9, 0, 60, 2, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 117312, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Update - Cast Combat Roll'),
 (64506, 0, 10, 0, 38, 0, 100, 0, 5, 5, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Evade');
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857,116992);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (64530,56159,55586,56274);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (64530,6453000,56159,5615900,55586,56274) AND `source_type` IN (0,9);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(55586, 0, 0, 0, 19, 0, 100, 0, 29787, 0, 0, 0, 0, 12, 56159, 8, 0, 0, 2, 0, 8, 0, 0, 0, 711.335, 4178.049, 197.8459, 0, 'On Quest Accept - Summon Master Shang - Quest 29787'),
+-- Master Shang Xi spawned after Zhao battle ends
+(64530, 0, 0, 1, 54, 0, 100, 0, 0, 0, 0, 0, 0, 59, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Just Spawned - Set Run'),
+(64530, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 8, 0, 0, 0, 711.335, 4178.05, 197.7852, 0, 'Master Shang - Just Spawned - Move to Pos'),
+(64530, 0, 2, 0, 34, 0, 100, 0, 8, 1, 0, 0, 0, 80, 6453000, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Movement Inform - Run Script'),
+(6453000, 9, 0, 0, 0, 0, 100, 0, 250, 250, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 5.410521, 'Master Shang - Set Orientation'),
+(6453000, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 28, 126040, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Remove Aura'),
+(6453000, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 44, 536, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Add Phase'),
+(6453000, 9, 3, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1526, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Add Phase'),
+(6453000, 9, 4, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 44, 524, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Remove Phase'),
+(6453000, 9, 5, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Despawn'),
+
+-- Master Shang Xi - spawned for escort quest
+(56159, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5615900, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Just Spawned - Run Script'),
+(5615900, 9, 0, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Talk'),
+(5615900, 9, 1, 0, 0, 0, 100, 0, 3000, 3000, 0, 0, 0, 53, 1, 5615900, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Start WP'),
+(5615900, 9, 2, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 44, 169, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Add Phase'),
+(56159, 0, 1, 2, 40, 0, 100, 0, 7, 5615900, 0, 0, 0, 59, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Reached - Set Walk'),
+(56159, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Reached - Talk'),
+(56159, 0, 3, 0, 40, 0, 100, 0, 8, 5615900, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Reached - Talk'),
+(56159, 0, 4, 0, 40, 0, 100, 0, 11, 5615900, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Reached - Talk'),
+(56159, 0, 5, 0, 58, 0, 100, 0, 12, 5615900, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 5.480334, 'Master Shang - On WP Ended - Set Orientation'),
+(56159, 0, 6, 7, 38, 0, 100, 0, 1, 1, 0, 0, 0, 55, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On Data Set - Stop WP'),
+(56159, 0, 7, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 4, 2000, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On Data Set - Talk'),
+(56159, 0, 8, 0, 52, 0, 100, 0, 4, 56159, 0, 0, 0, 53, 1, 5615901, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On Text Over - Start WP'),
+(56159, 0, 9, 10, 58, 0, 100, 0, 6, 5615901, 0, 0, 0, 11, 109144, 2, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Ended - Cast Force Trigger Master Shang Xi Final Escort Say'),
+(56159, 0, 10, 11, 61, 0, 100, 0, 0, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 4.537856, 'Master Shang - On WP Ended - Set Orientation'),
+(56159, 0, 11, 12, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1527, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Ended - Add Phase'),
+(56159, 0, 12, 13, 61, 0, 100, 0, 0, 0, 0, 0, 0, 28, 105333, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Ended - Remove Aura'),
+(56159, 0, 13, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On WP Ended - Despawn'),
+
+-- Guardian of the Elders
+(56274, 0, 0, 0, 0, 0, 100, 0, 8000, 12000, 8000, 12000, 0, 11, 125218, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Guardian of the Elders - Update IC - Cast Pounce'),
+(56274, 0, 1, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 11, 56159, 50, 0, 0, 0, 0, 0, 'Guardian of the Elders - On Death - Set Data');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857,116992,105333,106623,109335,109336);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
 (13, 1, 116992, 51, 5, 65558, 'Trigger Ji Guardian Exit target Ji Firepaw'),
 (13, 1, 116992, 33, 1, 3, 'Trigger Ji Guardian Exit target Ji Firepaw owned by summoner'),
 (13, 1, 104855, 51, 5, 55786, 'Overpacked Firework target Zhao-Ren'),
 (13, 1, 108845, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow'),
 (13, 1, 108846, 51, 5, 57668, 'Jojo Headbash, Stack of Blocks Impact target Stack of Blocks'),
-(13, 1, 108857, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow');
+(13, 1, 108857, 51, 5, 55585, 'Summon Jojo Ironbrow target Jojo Ironbrow'),
+(13, 1, 105333, 51, 5, 55586, 'Summon Master Shang Xi target Master Shang'),
+(13, 1, 106623, 51, 5, 55672, 'Summon Master Shang Xi target Master Shang'),
+(13, 1, 109335, 51, 8, 209981, 'Summon Walking Stick target Sacred Dirt'),
+(13, 1, 109336, 51, 5, 57874, 'Trigger Walking Stick Blossom target Walking Stick');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (104612,104615,128801,126043,126059);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
@@ -653,12 +703,6 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (22, 1, 7037, 2, 0, 9, 0, 29785, 0, 0, 0, 0, 0, '', 'SAI only when quest taken'),
 (22, 1, 7037, 2, 0, 1, 0, 104615, 1, 0, 1, 0, 0, '', 'SAI only when player has not aura');
 
-UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 56159; -- remove the Shang SAI
-
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (56274);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56159,5615900,56274,209922);
-INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('56274', '0', '0', '0', '0', '0', '100', '0', '8000', '12000', '8000', '12000', '0', '', '11', '125218', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Guardian of the Elders - Update IC - Cast Pounce');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55640,56686,57799);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55640,56686,5668600,5668601,5668602,5668603,57799);
@@ -743,6 +787,7 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 UPDATE `gameobject_template` SET `Data6` = 120000, `Data23` = 1 WHERE `entry` IN (209656, 209660, 209661, 209663);
 
 UPDATE `gameobject_template_addon` SET `flags` = 0 WHERE `entry` IN (209660, 209661); -- was 36
+UPDATE `gameobject_template_addon` SET `flags` = 32 WHERE `entry` IN (209685); -- was 36
 
 DELETE FROM `gameobject`
 WHERE `guid` IN (

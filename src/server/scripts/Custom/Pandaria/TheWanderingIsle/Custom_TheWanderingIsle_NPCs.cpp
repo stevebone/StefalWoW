@@ -1866,8 +1866,6 @@ namespace Scripts::Custom::TheWanderingIsle
                 Initialize();
             }
 
-            Position const pos = { 723.163f, 4163.8f, 204.999f };
-
             void Initialize()
             {
                 _phase = 0;
@@ -1920,6 +1918,18 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     if (me->GetThreatManager().IsThreatListEmpty(true))
                         me->DespawnOrUnsummon(0s, 10s);
+                }
+            }
+
+            void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+            {
+                if (damage >= me->GetHealth())
+                {
+                    for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
+                    {
+                        if (Player* target = ref->GetVictim()->ToPlayer())
+                            target->CastSpell(target, Spells::spell_summon_master_shang_after_battle, true);
+                    }
                 }
             }
 
@@ -1992,6 +2002,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
                             if (Creature* creature = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
                             {
+                                creature->SetStandState(UNIT_STAND_STATE_STAND);
                                 creature->SetReactState(REACT_PASSIVE);
                                 creature->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(5.f));
                             }
@@ -2002,7 +2013,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
 
                     case Events::event_zhao_move_center:
-                        me->GetMotionMaster()->MovePoint(1, pos);
+                        me->GetMotionMaster()->MovePoint(1, Positions::ZhaoPos);
                         break;
 
                     case Events::event_zhao_state_stun:
@@ -2050,111 +2061,6 @@ namespace Scripts::Custom::TheWanderingIsle
         CreatureAI* GetAI(Creature* creature) const override
         {
             return new npc_zhaorenAI(creature);
-        }
-    };
-
-    // 56159
-    class npc_master_shang_q29787 : public CreatureScript
-    {
-    public:
-        npc_master_shang_q29787() : CreatureScript("npc_master_shang_q29787") { }
-
-        struct npc_master_shangAI : public ScriptedAI
-        {
-            npc_master_shangAI(Creature* c) : ScriptedAI(c) { }
-
-            void Reset() override
-            {
-                events.Reset();
-
-                PlayerGUID = me->SelectNearestPlayer(5.f)->GetGUID();
-
-                Creature* shang_q29786 = me->FindNearestCreature(Npcs::npc_shang_q29786, 5.f);
-                if (shang_q29786)
-                    shang_q29786->DespawnOrUnsummon();
-
-                events.ScheduleEvent(Events::event_shang_talk_0, 2s);
-                events.ScheduleEvent(Events::event_shang_path_0, 3s);
-            }
-
-            void MovementInform(uint32 /*type*/, uint32 pointId) override
-            {
-                switch (pointId)
-                {
-                case 7: me->SetWalk(true); Talk(Talks::shang_talk_1); break;
-                case 8: Talk(Talks::shang_talk_2); break;
-                case 9: Talk(Talks::shang_talk_3); break;
-                case 12: me->SetFacingTo(5.48033f); break;
-                }
-            }
-
-            void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
-            {
-                if (pathId == Paths::path_zhang_1)
-                {
-                    me->SetFacingTo(4.53786f);
-                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                    if (player)
-                    {
-                        player->RemoveAurasDueToSpell(SpellsQ29787::spell_summon_shang_q29787);
-                        PhasingHandler::AddPhase(player, 1527, true);
-                    }
-
-                    me->DespawnOrUnsummon();
-                }
-            }
-
-            void UpdateAI(uint32 diff) override
-            {
-                if (!guardianDead)
-                {
-                    Creature* guardian = me->FindNearestCreature(Npcs::npc_guardian_q29787, 20.f, false);
-                    if (guardian && !guardian->IsAlive())
-                    {
-                        guardianDead = true;
-                        GameObject* wall = me->FindNearestGameObject(Objects::go_spirit_wall, 50.f, true);
-                        if (wall)
-                        {
-                            wall->SetRespawnTime(60);
-                            wall->DespawnOrUnsummon();
-                        }
-
-                        events.ScheduleEvent(Events::event_shang_talk_4, 2s);
-                    }
-
-                }
-
-                events.Update(diff);
-
-                while (uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                    case Events::event_shang_talk_0:
-                        Talk(Talks::shang_talk_0);
-                        break;
-
-                    case Events::event_shang_path_0:
-                        me->GetMotionMaster()->MovePath(Paths::path_zhang_0, false);
-                        break;
-
-                    case Events::event_shang_talk_4:
-                        Talk(Talks::shang_talk_4);
-                        me->GetMotionMaster()->MovePath(Paths::path_zhang_1, false);
-                        break;
-                    }
-                }
-            }
-
-        private:
-            EventMap events;
-            ObjectGuid PlayerGUID;
-            bool guardianDead = false;
-        };
-
-        CreatureAI* GetAI(Creature* c) const override
-        {
-            return new npc_master_shangAI(c);
         }
     };
 
@@ -3889,7 +3795,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_ruk_ruk();
     new npc_ruk_ruk_rocket();
     new npc_zhaoren();
-    new npc_master_shang_q29787();
     new npc_shang_xi_hot_air_balloon();
     new npc_aysa_mandori_village();
     new npc_korga_hut();

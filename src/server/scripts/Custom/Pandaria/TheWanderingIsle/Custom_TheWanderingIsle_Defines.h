@@ -149,6 +149,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_firework_inactive = 125964;
         static constexpr uint32 spell_overpacked_firework_launcher_ping = 125961;
         static constexpr uint32 spell_aicast_overpacked_fireworkd = 125970;
+        static constexpr uint32 spell_summon_master_shang_after_battle = 126040;
 
         // RukRuk
         static constexpr uint32 spell_ookslosions_triggered = 125885;

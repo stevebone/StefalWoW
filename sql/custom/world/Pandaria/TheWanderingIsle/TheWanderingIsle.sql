@@ -218,14 +218,12 @@
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (903, 993, 1835, 543, 544, 545, 524,536, 631, 632, 878, 964, 
-1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885, 1518, 1519,1523, 1714);
+1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1527, 1836, 1885, 1518, 1519,1523, 1526, 1714);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5886, 524, 'The Wandering Isle - Chamber of Whispers'),
 (5829, 524, 'The Wandering Isle - Zhao-Ren Dragon Area'),
-(5829, 536, 'The Wandering Isle - Zhao-Ren Dragon Area'),
-(5886, 536, 'The Wandering Isle - Chamber of Whispers'),
-(5859, 536, 'The Wandering Isle - Path of Elders'),
-(5832, 536, 'The Wandering Isle - The Wood of Staves'),
+(5829, 536, 'Ridge of Laughing Winds - after quest 29786 complete or rewarded'),
+
 (5859, 1527, 'The Wandering Isle - Path of Elders'),
 (5832, 1527, 'The Wandering Isle - The Wood of Staves'),
 (5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
@@ -272,6 +270,9 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5830, 1523, 'Morning Breeze Village - quest 29780 rewarded'),
 (5946, 1523, 'Morning Breeze Lake - quest 29780 rewarded'),
 
+-- Zhao-Ren dead Master Shang visible
+(5829, 1526, 'Ridge of Laughing Winds - after quest 29786 complete or rewarded'),
+
 -- Fe-Feng Village
 (5831, 1714, 'Fe-Feng Village - before quest 29782 complete or rewarded'),
 
@@ -281,11 +282,13 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5886, 1836, 'Chamber of Whispers - before quest 29785 complete or rewarded');
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
-1510, 1518, 1519, 1523, 1714,1836);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 536, 631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
+1510, 1518, 1519, 1523, 1714,1836,1526);
 INSERT INTO `conditions` VALUES
 -- Zhao-Ren
 (26, 524, 0, 0, 0, 9, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Phase 524 active if 29786 taken'),
+(26, 536, 5829, 0, 0, 28, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29786 complete'),
+(26, 536, 5829, 0, 1, 8, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29786 rewarded'),
 
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
@@ -334,6 +337,13 @@ INSERT INTO `conditions` VALUES
 (26, 1523, 0, 0, 0, 8, 0, 29781, 0, 0, '', 0, 0, 0, '', 'Morning Breeze Lake Phase 1523 when Quest 29781 rewarded'),
 (26, 1523, 0, 0, 0, 47, 0, 29786, 64, 0, '', 1, 0, 0, '', 'Wandering Isle - Morning Breeze Village 1523 when Quest 29786 not rewarded'),
 
+-- Zhao-Ren battle Master Shang visible
+(26, 1526, 0, 0, 0, 28, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29786 complete'),
+(26, 1526, 0, 0, 1, 8, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29786 rewarded'),
+(26, 1526, 0, 0, 1, 9, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29787 not taken'),
+(26, 1526, 0, 0, 1, 28, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29787 not complete'),
+(26, 1526, 0, 0, 1, 8, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29787 not rewarded'),
+
 -- Fe-Feng Village
 (26, 1714, 5831, 0, 0, 28, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not complete'),
 (26, 1714, 5831, 0, 0, 8, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not rewarded'),
@@ -365,16 +375,8 @@ INSERT INTO `conditions` VALUES
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (536, 1527, 1885);
+  AND `SourceGroup` IN (1527, 1885);
 
-
--- Phase 536: after 29786
-INSERT INTO `conditions` VALUES
-(26, 536, 0, 0, 0, 47, 0, 29786, 66, 0, '', 0, 0, 0, '', 'Phase 536 active if 29786 complete');
-
--- Phase 536: after 29786
-INSERT INTO `conditions` VALUES
-(26, 536, 0, 0, 0, 47, 0, 29787, 64, 0, '', 1, 0, 0, '', 'Phase 536 active if 29787 NOT rewarded');
   
 -- Phase 1527: after 29787
 INSERT INTO `conditions` VALUES
