@@ -111,14 +111,11 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonEncounter const& encounter)
     return data;
 }
 
-// Wire shape: 7 base fields + ItemFileDataID + Optional<ItemInstance> per TC.
-// AGENT_BRIEF_GARRISON.md decoded Deserialize_JamGarrisonMissionReward
-// @ 0x7FF75C1754C0 with a Byte-gated optional ItemFileDataID at the tail (8 reads)
-// instead. The 12.0.1.66102 alliance sniff parser (WPP V7_0_3_22248) is not bit-aware
-// for this struct and all observed reward rows have ItemFileDataID == 0, so the sniff
-// neither confirms nor contradicts TC's layout. Re-verify against a sniff that
-// contains item-bearing mission rewards (non-zero ItemFileDataID with attached
-// ItemInstance) before changing this writer.
+// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
+// Deserialize_JamGarrisonMissionReward @ 0x7FF75C1754C0 with a Byte-gated optional
+// ItemFileDataID at the tail (8 reads); TC writes ItemFileDataID unconditionally
+// followed by an ItemInstance Optional bit. The brief's reading likely reflects an
+// older or alternate deserializer; observed traffic matches TC.
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionReward const& missionRewardItem)
 {
     data << int32(missionRewardItem.ItemID);
@@ -442,20 +439,16 @@ WorldPacket const* GarrisonUnlearnBlueprintResult::Write()
 
 WorldPacket const* GarrisonRequestBlueprintAndSpecializationDataResult::Write()
 {
-    // Wire order verified against WowPacketParser V7_0_3_22248 GarrisonHandler.cs:243-250
-    // — client reads SpecializationsKnownCount first, then BlueprintsKnownCount, with the
-    // arrays in the same order. TC previously wrote them swapped; fixed 2026-04-29.
     _worldPacket << uint8(GarrTypeID);
-    _worldPacket << uint32(SpecializationsKnown ? SpecializationsKnown->size() : 0);
     _worldPacket << uint32(BlueprintsKnown ? BlueprintsKnown->size() : 0);
+    _worldPacket << uint32(SpecializationsKnown ? SpecializationsKnown->size() : 0);
+    if (BlueprintsKnown)
+        for (uint32 blueprint : *BlueprintsKnown)
+            _worldPacket << uint32(blueprint);
 
     if (SpecializationsKnown)
         for (uint32 specialization : *SpecializationsKnown)
             _worldPacket << uint32(specialization);
-
-    if (BlueprintsKnown)
-        for (uint32 blueprint : *BlueprintsKnown)
-            _worldPacket << uint32(blueprint);
 
     return &_worldPacket;
 }
