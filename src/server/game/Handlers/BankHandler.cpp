@@ -37,15 +37,24 @@ void WorldSession::HandleAutoBankItemOpcode(WorldPackets::Bank::AutoBankItem& pa
         return;
     }
 
-    if (packet.BankType != BankType::Character)
-        return;
-
     Item* item = _player->GetItemByPos(packet.Bag, packet.Slot);
     if (!item)
         return;
 
     ItemPosCountVec dest;
-    InventoryResult msg = _player->CanBankItem(NULL_BAG, NULL_SLOT, dest, item, false);
+    InventoryResult msg = EQUIP_ERR_OK;
+
+    if (packet.BankType == BankType::Account)
+    {
+        msg = _player->CanAccountBankItem(NULL_BAG, NULL_SLOT, dest, item, false);
+    }
+    else if (packet.BankType == BankType::Character)
+    {
+        msg = _player->CanBankItem(NULL_BAG, NULL_SLOT, dest, item, false);
+    }
+    else
+        return;
+
     if (msg != EQUIP_ERR_OK)
     {
         _player->SendEquipError(msg, item, nullptr);
@@ -65,7 +74,9 @@ void WorldSession::HandleAutoBankItemOpcode(WorldPackets::Bank::AutoBankItem& pa
 
 void WorldSession::HandleBankerActivateOpcode(WorldPackets::Bank::BankerActivate const& bankerActivate)
 {
-    if (bankerActivate.InteractionType != PlayerInteractionType::Banker && bankerActivate.InteractionType != PlayerInteractionType::CharacterBanker)
+    if (bankerActivate.InteractionType != PlayerInteractionType::Banker
+        && bankerActivate.InteractionType != PlayerInteractionType::CharacterBanker
+        && bankerActivate.InteractionType != PlayerInteractionType::AccountBanker)
         return;
 
     Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(bankerActivate.Banker, UNIT_NPC_FLAG_ACCOUNT_BANKER | UNIT_NPC_FLAG_BANKER, UNIT_NPC_FLAG_2_NONE);
@@ -116,7 +127,7 @@ void WorldSession::HandleAutoStoreBankItemOpcode(WorldPackets::Bank::AutoStoreBa
     if (!item)
         return;
 
-    if (_player->IsBankPos(packet.Bag, packet.Slot))                    // moving from bank to inventory
+    if (_player->IsBankPos(packet.Bag, packet.Slot))                    // moving from character bank to inventory
     {
         ItemPosCountVec dest;
         InventoryResult msg = _player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, item, false);
@@ -129,7 +140,20 @@ void WorldSession::HandleAutoStoreBankItemOpcode(WorldPackets::Bank::AutoStoreBa
         _player->RemoveItem(packet.Bag, packet.Slot, true);
         if (Item const* storedItem = _player->StoreItem(dest, item, true))
             _player->ItemAddedQuestCheck(storedItem->GetEntry(), storedItem->GetCount());
+    }
+    else if (_player->IsAccountBankPos(packet.Bag, packet.Slot))       // moving from account bank to inventory
+    {
+        ItemPosCountVec dest;
+        InventoryResult msg = _player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, item, false);
+        if (msg != EQUIP_ERR_OK)
+        {
+            _player->SendEquipError(msg, item, nullptr);
+            return;
+        }
 
+        _player->RemoveItem(packet.Bag, packet.Slot, true);
+        if (Item const* storedItem = _player->StoreItem(dest, item, true))
+            _player->ItemAddedQuestCheck(storedItem->GetEntry(), storedItem->GetCount());
     }
     else                                                                // moving from inventory to bank
     {
@@ -155,7 +179,7 @@ void WorldSession::HandleBuyBankTab(WorldPackets::Bank::BuyBankTab const& buyBan
         return;
     }
 
-    if (buyBankTab.BankType != BankType::Character)
+    if (buyBankTab.BankType != BankType::Character && buyBankTab.BankType != BankType::Account)
     {
         TC_LOG_DEBUG("network", "WorldSession::HandleBuyBankTab {} - Bank type {} is not supported.",
             _player->GetGUID(), buyBankTab.BankType);
@@ -301,6 +325,90 @@ void WorldSession::HandleAutoDepositCharacterBank(WorldPackets::Bank::AutoDeposi
         _player->BankItem(dest, item, true);
         anyDeposited = true;
     }
+}
+
+void WorldSession::HandleAutoDepositAccountBank(WorldPackets::Bank::AutoDepositAccountBank const& autoDepositAccountBank)
+{
+    if (!CanUseBank(autoDepositAccountBank.Banker))
+    {
+        TC_LOG_DEBUG("network", "WORLD: HandleAutoDepositAccountBank - {} not found or you can't interact with him.", autoDepositAccountBank.Banker);
+        return;
+    }
+
+    if (_player->GetAccountBankTabCount() == 0)
+    {
+        _player->SendEquipError(EQUIP_ERR_BANK_FULL);
+        return;
+    }
+
+    // Deposit all warbound/BoA items from inventory
+    bool anyDeposited = false;
+    for (Item* item : _player->GetWarboundItemsToDeposit())
+    {
+        ItemPosCountVec dest;
+        InventoryResult msg = _player->CanAccountBankItem(NULL_BAG, NULL_SLOT, dest, item, false);
+        if (msg != EQUIP_ERR_OK)
+        {
+            if (msg != EQUIP_ERR_BANK_FULL || !anyDeposited)
+                _player->SendEquipError(msg, item, nullptr);
+            break;
+        }
+
+        if (dest.size() == 1 && dest[0].pos == item->GetPos())
+        {
+            _player->SendEquipError(EQUIP_ERR_CANT_SWAP, item, nullptr);
+            continue;
+        }
+
+        _player->RemoveItem(item->GetBagSlot(), item->GetSlot(), true);
+        _player->BankItem(dest, item, true);
+        anyDeposited = true;
+    }
+}
+
+void WorldSession::HandleAccountBankDepositMoney(WorldPackets::Bank::AccountBankDepositMoney const& accountBankDepositMoney)
+{
+    if (!CanUseBank(accountBankDepositMoney.Banker))
+    {
+        TC_LOG_DEBUG("network", "WORLD: HandleAccountBankDepositMoney - {} not found or you can't interact with him.", accountBankDepositMoney.Banker.ToString());
+        return;
+    }
+
+    if (!accountBankDepositMoney.Money)
+        return;
+
+    if (!_player->HasEnoughMoney(accountBankDepositMoney.Money))
+        return;
+
+    if (_player->GetAccountBankCoinage() > MAX_MONEY_AMOUNT - accountBankDepositMoney.Money)
+        return;
+
+    _player->ModifyMoney(-int64(accountBankDepositMoney.Money));
+    _player->ModifyAccountBankCoinage(int64(accountBankDepositMoney.Money));
+}
+
+void WorldSession::HandleAccountBankWithdrawMoney(WorldPackets::Bank::AccountBankWithdrawMoney const& accountBankWithdrawMoney)
+{
+    if (!CanUseBank(accountBankWithdrawMoney.Banker))
+    {
+        TC_LOG_DEBUG("network", "WORLD: HandleAccountBankWithdrawMoney - {} not found or you can't interact with him.", accountBankWithdrawMoney.Banker.ToString());
+        return;
+    }
+
+    if (!accountBankWithdrawMoney.Money)
+        return;
+
+    if (_player->GetAccountBankCoinage() < accountBankWithdrawMoney.Money)
+        return;
+
+    if (_player->GetMoney() > MAX_MONEY_AMOUNT - accountBankWithdrawMoney.Money)
+    {
+        _player->SendEquipError(EQUIP_ERR_TOO_MUCH_GOLD, nullptr, nullptr);
+        return;
+    }
+
+    _player->ModifyAccountBankCoinage(-int64(accountBankWithdrawMoney.Money));
+    _player->ModifyMoney(int64(accountBankWithdrawMoney.Money));
 }
 
 void WorldSession::SendShowBank(ObjectGuid guid, PlayerInteractionType interactionType)

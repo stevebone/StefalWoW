@@ -1767,6 +1767,9 @@ void DB2Manager::IndexLoadedStores()
     for (WarbandScenePlacementEntry const* placement : sWarbandScenePlacementStore)
         _warbandScenePlacementsByScene[placement->WarbandSceneID].push_back(placement);
 
+    for (WarbandScenePlacementEntry const* placement : sWarbandScenePlacementStore)
+        _warbandScenePlacementsByScene[placement->WarbandSceneID].push_back(placement);
+
     TC_LOG_INFO("server.loading", ">> Indexed DB2 data stores in {} ms", GetMSTimeDiffToNow(oldMSTime));
 }
 
