@@ -250,6 +250,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_generic_quest_invisibility_29 = 89304;
 
         static constexpr uint32 spell_see_quest_invis_1 = 104018;
+        static constexpr uint32 spell_see_quest_invis_7 = 105307; // See Ji at the Morning Breeze Docks
+        static constexpr uint32 spell_see_quest_invis_8 = 105308; // See Aysa on rope at Morning Breeze Lake
         static constexpr uint32 spell_see_quest_invis_13 = 105156;
         static constexpr uint32 spell_see_quest_invis_14 = 105157;
         static constexpr uint32 spell_see_quest_invis_15 = 105158;

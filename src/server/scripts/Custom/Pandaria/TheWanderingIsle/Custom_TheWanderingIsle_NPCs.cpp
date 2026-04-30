@@ -1854,130 +1854,6 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // 55744 Aysa outside chambers of whispers
-    class npc_aysa_outside_chambers_of_whispers : public CreatureScript
-    {
-    public:
-        npc_aysa_outside_chambers_of_whispers() : CreatureScript("npc_aysa_outside_chambers_of_whispers") { }
-
-        struct npc_aysaAI : public ScriptedAI
-        {
-            npc_aysaAI(Creature* creature) : ScriptedAI(creature) { }
-
-            void Reset() override
-            {
-                events.Reset();
-                Unit* owner = me->GetOwner();
-                if (owner && owner->ToPlayer())
-                    PlayerGUID = owner->ToPlayer()->GetGUID();
-
-                events.ScheduleEvent(Events::event_aysa_outside_chambers_init, 1s);
-            }
-
-            void MovementInform(uint32 type, uint32 id) override
-            {
-                if (type != POINT_MOTION_TYPE)
-                    return;
-
-                if (id == 1) // reached player
-                {
-                    Talk(Talks::aysa_chamber_of_whispers_1);
-                    events.ScheduleEvent(Events::event_aysa_outside_chambers_move1, 3s);
-                }
-
-                if (id == 2) // reached outside entrance
-                {
-                    events.ScheduleEvent(Events::event_aysa_outside_chambers_move2, 25s);
-                }
-
-                if (id == 3) // reached half way chamber
-                {
-                    Talk(Talks::aysa_chamber_of_whispers_2);
-                    events.ScheduleEvent(Events::event_aysa_inside_chambers_move_dafeng, 10s);
-                }
-            }
-
-            void UpdateAI(uint32 diff) override
-            {
-                events.Update(diff);
-
-                while (uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                    case Events::event_aysa_outside_chambers_init:
-                    {
-                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                        if (!player)
-                        {
-                            player = me->SelectNearestPlayer(10.f);
-                            if (!player)
-                                return;
-                        }
-                        Talk(Talks::aysa_chamber_of_whispers_0);
-                        me->GetMotionMaster()->MovePoint(1, player->GetRandomNearPosition(3.f));
-                        break;
-                    }
-                        
-                    case Events::event_aysa_outside_chambers_move1:
-                    {
-                        me->GetMotionMaster()->MovePoint(2, Positions::AysaOutsideChamber);
-                        break;
-                    }
-
-                    case Events::event_aysa_outside_chambers_move2:
-                    {
-                        std::list<Creature*> list;
-                        GetCreatureListWithEntryInGrid(list, me, Npcs::npc_chamber_winds, 100.0f);
-
-                        for (Creature* creature : list)
-                        {
-                            if (creature)
-                            {
-                                creature->SetRespawnTime(5);
-                                creature->DespawnOrUnsummon();
-                            }
-                        }
-                        me->GetMotionMaster()->MovePoint(3, Positions::AysaInsideChamber);
-                        break;
-                    }
-
-                    case Events::event_aysa_inside_chambers_move_dafeng:
-                    {
-                        Creature* aysaDafeng = me->FindNearestCreatureWithOptions(100.f, { .CreatureId = Npcs::npc_aysa_q29785, .IgnorePhases = true });
-                        if (aysaDafeng)
-                        {
-                            std::list<Creature*> list;
-                            GetCreatureListWithEntryInGrid(list, me, Npcs::npc_chamber_winds, 100.0f);
-
-                            for (Creature* creature : list)
-                            {
-                                if (creature)
-                                {
-                                    creature->SetRespawnTime(5);
-                                    creature->DespawnOrUnsummon();
-                                }
-                            }
-
-                            me->GetMotionMaster()->MovePoint(4, aysaDafeng->GetPosition());
-                            me->DespawnOrUnsummon(25s);
-                        }
-                    }
-                    }
-                }
-            }
-
-        private:
-            EventMap events;
-            ObjectGuid PlayerGUID;
-        };
-
-        CreatureAI* GetAI(Creature* creature) const override
-        {
-            return new npc_aysaAI(creature);
-        }
-    };
-
     //55786
     class npc_zhaoren : public CreatureScript
     {
@@ -1986,109 +1862,109 @@ namespace Scripts::Custom::TheWanderingIsle
 
         struct npc_zhaorenAI : public ScriptedAI
         {
-            npc_zhaorenAI(Creature* creature) : ScriptedAI(creature), phase(0), sweepScheduled(false) { }
+            npc_zhaorenAI(Creature* creature) : ScriptedAI(creature) {
+                Initialize();
+            }
 
-        private:
-            uint8 phase;
-            bool sweepScheduled;
-            EventMap events;
-            ObjectGuid JiGUID;
-            ObjectGuid AysaGUID;
+            Position const pos = { 723.163f, 4163.8f, 204.999f };
+
+            void Initialize()
+            {
+                _phase = 0;
+                _sweepScheduled = false;
+            }
 
             void Reset() override
             {
-                events.Reset();
-                me->setActive(true);
-                me->SetReactState(REACT_AGGRESSIVE);
-                phase = 0;
-                sweepScheduled = false;
+                _events.Reset();
+                me->SetReactState(REACT_PASSIVE);
+                Initialize();
+
+                if (Creature* creature = me->FindNearestCreature(Npcs::npc_ji_q29786, me->GetVisibilityRange(), true))
+                    creature->AI()->SetData(Misc::DATA_EVADE, Misc::DATA_EVADE);
+
+                std::list<Creature*> fireworks;
+                me->GetCreatureListWithEntryInGrid(fireworks, Npcs::npc_firework_launcher, me->GetVisibilityRange());
+                for (std::list<Creature*>::iterator itr = fireworks.begin(); itr != fireworks.end(); ++itr)
+                {
+                    (*itr)->RemoveAura(Spells::spell_firework_inactive);
+                    (*itr)->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
+                }
             }
 
             void JustEngagedWith(Unit* /*who*/) override
             {
-                if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, me->GetVisibilityRange(), true))
-                {
-                    ji->SetReactState(REACT_AGGRESSIVE);
-                    ji->AI()->AttackStart(me);
-                    JiGUID = ji->GetGUID();
-                }
-
-                if (Creature* aysa = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
-                {
-                    aysa->SetReactState(REACT_AGGRESSIVE);
-                    aysa->AI()->AttackStart(me);
-                    AysaGUID = aysa->GetGUID();
-                }
-
-                me->GetMotionMaster()->Clear();
                 me->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_chamber, true);
-                events.SetPhase(Misc::ZHAO_PHASE_FLYING);
-                events.ScheduleEvent(Events::event_zhao_cast_lightning, 5s);
+                _events.SetPhase(Misc::ZHAO_PHASE_FLYING);
+                _events.ScheduleEvent(Events::event_zhao_cast_lightning, 5s);
             }
 
             void SpellHit(WorldObject* caster, SpellInfo const* spell) override
             {
                 if (spell->Id == Spells::spell_overpacked_firework)
+                {
                     if (!me->IsInCombat())
-                        if (Unit* target = caster->ToUnit())
-                            me->Attack(target, true);
+                        me->EngageWithTarget(caster->ToUnit());
+                }
             }
 
             void MovementInform(uint32 type, uint32 id) override
             {
-                if (type == POINT_MOTION_TYPE && id == 1)
-                    events.ScheduleEvent(Events::event_zhao_state_stun, 0s);
+                if (type == POINT_MOTION_TYPE && id == 1) // Move Center
+                    _events.ScheduleEvent(Events::event_zhao_state_stun, 0s);
             }
 
             void KilledUnit(Unit* who) override
             {
-                if (who->IsPlayer())
+                if (who->GetTypeId() == TYPEID_PLAYER)
                 {
                     if (me->GetThreatManager().IsThreatListEmpty(true))
-                    {
-                        if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
-                            ji->DespawnOrUnsummon(5s);
-
-                        if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
-                            aysa->DespawnOrUnsummon(5s);
-                        me->DespawnOrUnsummon(10s);
-
-                    }
+                        me->DespawnOrUnsummon(0s, 10s);
                 }
             }
 
             void JustDied(Unit* /*killer*/) override
             {
-                if (Creature* dafeng = me->FindNearestCreature(Npcs::npc_dafeng_q29786, me->GetVisibilityRange(), true))
-                    dafeng->AI()->SetData(Misc::DATA_ZHAOREN_DEATH, Misc::DATA_ZHAOREN_DEATH);
+                //DoCastAOE(126040, true); // Does not seem to be working
 
-                me->DespawnOrUnsummon(4s);
+                if (Creature* creature = me->FindNearestCreature(Npcs::npc_ji_q29786, me->GetVisibilityRange(), true))
+                    creature->AI()->SetData(Misc::DATA_ZHAOREN_DEATH, Misc::DATA_ZHAOREN_DEATH);
+                if (Creature* creature = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
+                    creature->AI()->SetData(Misc::DATA_ZHAOREN_DEATH, Misc::DATA_ZHAOREN_DEATH);
+                if (Creature* creature = me->FindNearestCreature(Npcs::npc_dafeng_q29786, me->GetVisibilityRange(), true))
+                    creature->AI()->SetData(Misc::DATA_ZHAOREN_DEATH, Misc::DATA_ZHAOREN_DEATH);
+
+                me->DespawnOrUnsummon(10s, 10s);
             }
 
             void UpdateAI(uint32 diff) override
             {
-                events.Update(diff);
-                if (phase == 0 && HealthBelowPct(85))
+                _events.Update(diff);
+
+                if (_phase == 0 && HealthBelowPct(85))
                 {
-                    phase++;
-                    if (Creature* aysha = ObjectAccessor::GetCreature(*me, AysaGUID))
-                        aysha->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
+                    _phase++;
+                    if (Creature* creature = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
+                        creature->AI()->SetData(Misc::EVENT_DATA_1, Misc::EVENT_DATA_1);
                 }
-                if (phase == Misc::ZHAO_PHASE_FLYING && HealthBelowPct(75))
+
+                if (_phase == 1 && HealthBelowPct(75))
                 {
-                    phase++;
-                    events.SetPhase(Misc::ZHAO_PHASE_GROUNDED);
-                    events.CancelEvent(Events::event_zhao_cast_lightning);
-                    events.ScheduleEvent(Events::event_zhao_move_center, 0s);
+                    _phase++;
+                    _events.SetPhase(Misc::ZHAO_PHASE_GROUNDED);
+                    _events.CancelEvent(Events::event_zhao_cast_lightning);
+                    _events.ScheduleEvent(Events::event_zhao_move_center, 0s);
                 }
-                if (phase == Misc::ZHAO_PHASE_GROUNDED && HealthBelowPct(25))
+
+                if (_phase == 2 && HealthBelowPct(25))
                 {
-                    phase++;
-                    events.SetPhase(Misc::ZHAO_PHASE_STAY_IN_CENTER);
-                    events.CancelEvent(Events::event_zhao_cast_lightning);
-                    events.ScheduleEvent(Events::event_zhao_move_center, 0s);
+                    _phase++;
+                    _events.SetPhase(Misc::ZHAO_PHASE_STAY_IN_CENTER);
+                    _events.CancelEvent(Events::event_zhao_cast_lightning);
+                    _events.ScheduleEvent(Events::event_zhao_move_center, 0s);
                 }
-                while (uint32 eventId = events.ExecuteEvent())
+
+                while (uint32 eventId = _events.ExecuteEvent())
                 {
                     switch (eventId)
                     {
@@ -2106,168 +1982,74 @@ namespace Scripts::Custom::TheWanderingIsle
                                 }
                             }
 
-                            events.ScheduleEvent(Events::event_zhao_cast_lightning, events.IsInPhase(Misc::ZHAO_PHASE_FLYING) ? 5s : 3500ms);
+                            _events.ScheduleEvent(Events::event_zhao_cast_lightning, _events.IsInPhase(Misc::ZHAO_PHASE_FLYING) ? 5s : 3500ms);
 
-                            if (!sweepScheduled && events.IsInPhase(Misc::ZHAO_PHASE_STAY_IN_CENTER))
+                            if (!_sweepScheduled && _events.IsInPhase(Misc::ZHAO_PHASE_STAY_IN_CENTER))
                             {
-                                events.ScheduleEvent(Events::event_zhao_cast_sweep, 15s, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
-                                sweepScheduled = true;
+                                _events.ScheduleEvent(Events::event_zhao_cast_sweep, 15s, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
+                                _sweepScheduled = true;
+                            }
+
+                            if (Creature* creature = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
+                            {
+                                creature->SetReactState(REACT_PASSIVE);
+                                creature->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(5.f));
                             }
                         }
                         else
-                        {
-                            if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
-                                ji->DespawnOrUnsummon(5s);
-                            if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
-                                aysa->DespawnOrUnsummon(5s);
-                            me->DespawnOrUnsummon(10s);
-                        }
+                            me->DespawnOrUnsummon(0s, 10s);
                         break;
                     }
+
                     case Events::event_zhao_move_center:
-                        me->GetMotionMaster()->MovePoint(1, Positions::ZhaoPos);
+                        me->GetMotionMaster()->MovePoint(1, pos);
                         break;
 
                     case Events::event_zhao_state_stun:
                         DoCast(Spells::spell_stunned_by_fireworks);
-                        events.ScheduleEvent(Events::event_zhao_cast_sweep, 12s);
-                        if (Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID))
+                        _events.ScheduleEvent(Events::event_zhao_cast_sweep, 12s);
+                        if (Creature* creature = me->FindNearestCreature(Npcs::npc_aysa_q29786, me->GetVisibilityRange(), true))
                         {
-                            if (phase == Misc::ZHAO_PHASE_GROUNDED)
-                                aysa->AI()->SetData(Misc::DATA_COMBAT, Misc::DATA_COMBAT);
-                            else if (phase == Misc::ZHAO_PHASE_STAY_IN_CENTER)
-                                aysa->AI()->SetData(Misc::DATA_AYSA_TALK_3, Misc::DATA_AYSA_TALK_3);
+                            creature->SetReactState(REACT_AGGRESSIVE);
+                            if (_phase == 2)
+                                creature->AI()->SetData(Misc::DATA_COMBAT, Misc::DATA_COMBAT);
+                            
+                            else if (_phase == 3)
+                                creature->AI()->SetData(Misc::DATA_AYSA_TALK_3, Misc::DATA_AYSA_TALK_3);
                         }
-                        if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
-                            ji->AI()->SetData(Misc::DATA_COMBAT, Misc::DATA_COMBAT);
+                        if (Creature* creature = me->FindNearestCreature(Npcs::npc_ji_q29786, me->GetVisibilityRange(), true))
+                            creature->AI()->SetData(Misc::DATA_COMBAT, Misc::DATA_COMBAT);
                         break;
 
                     case Events::event_zhao_cast_sweep:
-                        events.CancelEvent(Events::event_zhao_cast_lightning);
+                        _events.CancelEvent(Events::event_zhao_cast_lightning);
                         DoCast(Spells::spell_serpent_sweep);
-                        sweepScheduled = false;
-                        events.ScheduleEvent(Events::event_zhao_cast_lightning, 3500ms, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
-                        events.ScheduleEvent(Events::event_zhao_resume_path, 5s, 0, Misc::ZHAO_PHASE_GROUNDED);
-                        if (events.IsInPhase(Misc::ZHAO_PHASE_GROUNDED))
-                            if (Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID))
-                                ji->AI()->SetData(Misc::DATA_PHASE_OOC, Misc::DATA_PHASE_OOC);
+                        _sweepScheduled = false;
+                        _events.ScheduleEvent(Events::event_zhao_cast_lightning, 3500ms, 0, Misc::ZHAO_PHASE_STAY_IN_CENTER);
+                        _events.ScheduleEvent(Events::event_zhao_resume_path, 5s, 0, Misc::ZHAO_PHASE_GROUNDED);
+                        if (_events.IsInPhase(Misc::ZHAO_PHASE_GROUNDED))
+                            if (Creature* creature = me->FindNearestCreature(Npcs::npc_ji_q29786, me->GetVisibilityRange(), true))
+                                creature->AI()->SetData(Misc::DATA_PHASE_OOC, Misc::DATA_PHASE_OOC);
                         break;
+
                     case Events::event_zhao_resume_path:
                         me->GetMotionMaster()->MovePath(Paths::path_zhaoren_at_chamber, true);
-                        events.SetPhase(Misc::ZHAO_PHASE_FLYING);
-                        events.ScheduleEvent(Events::event_zhao_cast_lightning, 5s);
+                        _events.SetPhase(Misc::ZHAO_PHASE_FLYING);
+                        _events.ScheduleEvent(Events::event_zhao_cast_lightning, 5s);
                         break;
                     }
                 }
             }
+
+        private:
+            EventMap _events;
+            uint8 _phase;
+            bool _sweepScheduled;
         };
 
         CreatureAI* GetAI(Creature* creature) const override
         {
             return new npc_zhaorenAI(creature);
-        }
-    };
-
-    // 64507
-    class npc_firework_launcher : public CreatureScript
-    {
-    public:
-        npc_firework_launcher() : CreatureScript("npc_firework_launcher") { }
-
-        struct npc_firework_launcherAI : public ScriptedAI
-        {
-            npc_firework_launcherAI(Creature* creature) : ScriptedAI(creature) { }
-
-            void Reset() override
-            {
-                state = Misc::LAUNCHER_STATE_READY;
-                me->RemoveAurasDueToSpell(Spells::spell_firework_inactive);
-                events.Reset();
-            }
-
-            // Player clicks launcher ? cast 125961 on launcher
-            void OnSpellClick(Unit* clicker, bool) override
-            {
-                clicker->CastSpell(me, Spells::spell_overpacked_firework_launcher_ping, true);
-            }
-
-            // Launcher is hit by 125961
-            void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
-            {
-                if (spellInfo->Id == Spells::spell_overpacked_firework_launcher_ping &&
-                    state == Misc::LAUNCHER_STATE_READY)
-                {
-                    Unit* player = caster->ToUnit();
-                    if (!player)
-                        return;
-
-                    // Cast 125970 on player (matches SAI)
-                    me->CastSpell(player, Spells::spell_aicast_overpacked_fireworkd, true);
-
-                    // Play animation
-                    me->PlayOneShotAnimKitId(2538);
-
-                    // Apply inactive aura
-                    me->CastSpell(me, Spells::spell_firework_inactive, true);
-
-                    // Ping Ji Firepaw
-                    if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, 30.f))
-                        me->CastSpell(ji, 104080, true);
-
-                    // Enter USED state
-                    state = Misc::LAUNCHER_STATE_USED;
-
-                    // Periodic Ji pings every 5s
-                    events.ScheduleEvent(Events::event_firework_launcher_periodic_ping, 5s);
-
-                    // Recharge after 21s
-                    events.ScheduleEvent(Events::event_firework_launcher_recharge, 21s);
-                }
-            }
-
-            void UpdateAI(uint32 diff) override
-            {
-                events.Update(diff);
-
-                while (uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                    case Events::event_firework_launcher_periodic_ping:
-                    {
-                        if (state == Misc::LAUNCHER_STATE_USED)
-                        {
-                            if (Creature* ji = me->FindNearestCreature(Npcs::npc_ji_q29786, 30.f))
-                                me->CastSpell(ji, 104080, true);
-
-                            events.ScheduleEvent(eventId, 5s);
-                        }
-                        break;
-                    }
-
-                    case Events::event_firework_launcher_recharge:
-                    {
-                        state = Misc::LAUNCHER_STATE_READY;
-                        me->RemoveAurasDueToSpell(Spells::spell_firework_inactive);
-                        break;
-                    }
-                    }
-                }
-            }
-
-            bool CanBeUsed() const
-            {
-                return state == Misc::LAUNCHER_STATE_READY;
-            }
-
-        private:
-            uint8 state = Misc::LAUNCHER_STATE_NONE;
-            EventMap events;
-        };
-
-        CreatureAI* GetAI(Creature* creature) const override
-        {
-            return new npc_firework_launcherAI(creature);
         }
     };
 
@@ -4106,9 +3888,7 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_lorewalker_ruolin();
     new npc_ruk_ruk();
     new npc_ruk_ruk_rocket();
-    new npc_aysa_outside_chambers_of_whispers();
     new npc_zhaoren();
-    new npc_firework_launcher();
     new npc_master_shang_q29787();
     new npc_shang_xi_hot_air_balloon();
     new npc_aysa_mandori_village();

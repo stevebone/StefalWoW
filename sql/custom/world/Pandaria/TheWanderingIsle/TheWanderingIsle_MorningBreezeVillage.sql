@@ -505,22 +505,7 @@ UPDATE `gameobject` SET `PhaseId` = 536 WHERE `guid` IN (300472);
 UPDATE `gameobject` SET `PhaseId` = 1714 WHERE `id` IN (209673);
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_zhaoren' WHERE `Entry` = 55786;
-UPDATE `creature_template` SET `ScriptName` = 'npc_firework_launcher' WHERE `Entry` = 64507;
 UPDATE `creature_template` SET `ScriptName` = 'npc_master_shang_q29787' WHERE `Entry` = 56159;
-
-UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 64507; -- remove the launcher SAI
-
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (64505,64506);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (64505,64506) AND `source_type` IN (0,9);
-INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('64505', '0', '0', '0', '0', '4', '100', '0', '3000', '5000', '3000', '5000', '0', '', '11', '128630', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Update IC - Cast Jab'),
-('64505', '0', '1', '0', '0', '4', '100', '0', '5000', '8000', '8000', '12000', '0', '', '11', '128631', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Update IC - Cast Blackout Kick'),
-('64505', '0', '2', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '69', '2', '0', '0', '0', '0', '0', '1', '0', '0', '0', '714.385', '4163.74', '195.89', '0', 'Ji Firepaw - On Data Set - Move to Pos'),
-('64506', '0', '0', '0', '38', '0', '100', '0', '1', '1', '0', '0', '0', '', '1', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Talk'),
-('64506', '0', '1', '0', '38', '0', '100', '0', '2', '2', '0', '0', '0', '', '1', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Talk'),
-('64506', '0', '2', '0', '38', '0', '100', '0', '3', '3', '0', '0', '0', '', '1', '2', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Talk'),
-('64506', '0', '3', '0', '38', '0', '100', '0', '2', '2', '0', '0', '0', '', '49', '0', '0', '0', '0', '0', '0', '11', '55786', '30', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - On Data Set - Start Attack'),
-('64506', '0', '4', '0', '60', '2', '100', '0', '4000', '8000', '8000', '12000', '0', '', '11', '117312', '0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', 'Aysa Cloudsinger - Update - Cast Combat Roll');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55592,55744,55595,64543,64532,55665);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55592,55744,5574400,55595,5559500,64543,6454300,64532,6453200,5566500,5566501,-451498,-451501) AND `source_type` IN (0,9);
@@ -579,7 +564,9 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (55595, 0, 0, 0, 8, 0, 100, 0, 104615, 0, 10000, 10000, 0, 80, 5559500, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Spellhit - Run Script'),
 (5559500, 9, 0, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Talk'),
 (55595, 0, 1, 2, 19, 0, 100, 0, 29786, 0, 0, 0, 0, 85, 126059, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Invoker Cast Summon Aysa'),
-(55595, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1430, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Remove Phase'),
+(55595, 0, 2, 3, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1430, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Remove Phase'),
+(55595, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 28, 105307, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Player Remove Aura'),
+(55595, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 28, 105308, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Accepted Quest - Player Remove Aura'),
 -- Aysa Cloudsinger
 (64543, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 6454300, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Just Spawned - Run Script'),
 (6454300, 9, 0, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 136, 1, 12, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Set Movement Speed'),
@@ -591,6 +578,56 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (64532, 0, 1, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 6453200, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Dafeng - Just Spawned - Run Script'),
 (6453200, 9, 0, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 53, 1, 6453200, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Dafeng - Start WP'),
 (64532, 0, 2, 0, 38, 0, 100, 0, 5, 5, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 8, 0, 0, 0, 709.238, 4177.15, 198.7956, 0, 'Dafeng - On Data Set - Move to Pos');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (64505,64506,64507);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (64505,6450500,64506,64507) AND `source_type` IN (0,9);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Firework Launcher
+(64507, 0, 0, 1, 8, 0, 100, 0, 125961, 0, 0, 0, 0, 11, 125970, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Firework Launcher - On Spellhit - Cast AICast Overpacked Firework'),
+(64507, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 128, 2538, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Firework Launcher - On Spellhit - Play Oneshot AnimKit'),
+(64507, 0, 2, 3, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 125964, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Firework Launcher - On Spellhit - Cast Firework Launcher Inactive'),
+(64507, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 104080, 0, 0, 0, 0, 0, 10, 451613, 64505, 0, 0, 0, 0, 0, 'Firework Launcher - On Spellhit - Set Data'),
+(64507, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Firework Launcher - On Spellhit - Set Event Phase 1'),
+(64507, 0, 5, 0, 60, 1, 100, 0, 5000, 5000, 5000, 5000, 0, 11, 104080, 0, 0, 0, 0, 0, 10, 451613, 64505, 0, 0, 0, 0, 0, 'Firework Launcher - Update - Cast Firework Launcher Inactive'),
+(64507, 0, 6, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Firework Launcher - On Data Set - Reset Event Phase'),
+-- Ji Firepaw
+(64505, 0, 0, 1, 25, 0, 100, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Reset - Set React State'),
+(64505, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 59, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Reset - Set Run'),
+(64505, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Respawn - Set Event Phase 1'),
+(64505, 0, 3, 4, 8, 1, 100, 0, 104080, 0, 0, 0, 0, 69, 1, 0, 0, 1, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Spellhit - Move to Pos'),
+(64505, 0, 4, 0, 61, 1, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Spellhit - Set Event Phase 2'),
+(64505, 0, 5, 0, 34, 2, 100, 0, 8, 1, 0, 0, 0, 80, 6450500, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Movement Inform - Run Script'),
+(6450500, 9, 0, 0, 0, 0, 100, 0, 200, 200, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Set Orientation'),
+(6450500, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 5, 381, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Play Emote'),
+(6450500, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 28, 125964, 0, 0, 0, 0, 0, 11, 64507, 3, 0, 0, 0, 0, 0, 'Ji Firepaw - Remove Aura'),
+(6450500, 9, 3, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 11, 64507, 3, 0, 0, 0, 0, 0, 'Ji Firepaw - Set Data'),
+(6450500, 9, 4, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Set Event Phase 1'),
+(64505, 0, 6, 7, 38, 0, 100, 0, 2, 2, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Set React State'),
+(64505, 0, 7, 8, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 10, 451612, 55786, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Start Attack'),
+(64505, 0, 8, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Set Event Phase 3'),
+(64505, 0, 9, 0, 9, 4, 100, 0, 10, 40, 0, 10000, 0, 11, 117312, 1, 0, 0, 0, 0, 10, 451612, 55786, 0, 0, 0, 0, 0, 'Ji Firepaw - On Range - Cast Combat Roll'),
+(64505, 0, 10, 0, 0, 4, 100, 0, 3000, 5000, 3000, 5000, 0, 11, 128630, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Jab'),
+(64505, 0, 11, 0, 0, 4, 100, 0, 5000, 8000, 8000, 12000, 0, 11, 128631, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Blackout Kick'),
+(64505, 0, 12, 13, 38, 4, 100, 0, 4, 4, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Stop Attack'),
+(64505, 0, 13, 14, 61, 4, 100, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Set React State'),
+(64505, 0, 14, 15, 61, 4, 100, 0, 0, 0, 0, 0, 0, 69, 2, 0, 0, 1, 0, 0, 19, 64507, 40, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Move to Pos'),
+(64505, 0, 15, 0, 61, 4, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Set Event Phase 1'),
+(64505, 0, 16, 0, 38, 0, 100, 0, 5, 5, 0, 0, 0, 69, 3, 0, 0, 0, 0, 0, 8, 0, 0, 0, 714.385, 4163.74, 195.8898, 0, 'Ji Firepaw - On Data Set - Move to Pos'),
+(64505, 0, 17, 18, 34, 0, 100, 0, 8, 3, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 6.015011, 'Ji Firepaw - Movement Inform - Set Orientation'),
+(64505, 0, 18, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Movement Inform - Set Event Phase 4'),
+(64505, 0, 19, 0, 38, 8, 100, 0, 6, 6, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Evade'),
+-- Aysa Cloudsinger
+(64506, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Respawn - Set React State'),
+(64506, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Respawn - Set Event Phase 1'),
+(64506, 0, 2, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Talk'),
+(64506, 0, 3, 4, 38, 0, 100, 0, 2, 2, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Talk'),
+(64506, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 91, 8, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Remove Bytes 1'),
+(64506, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 10, 451612, 55786, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Start Attack'),
+(64506, 0, 6, 0, 38, 0, 100, 0, 3, 3, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Talk'),
+(64506, 0, 7, 8, 38, 0, 100, 0, 4, 4, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Stop Attack'),
+(64506, 0, 8, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Set Event Phase 2'),
+(64506, 0, 9, 0, 60, 2, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 117312, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Update - Cast Combat Roll'),
+(64506, 0, 10, 0, 38, 0, 100, 0, 5, 5, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Evade');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857,116992);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
