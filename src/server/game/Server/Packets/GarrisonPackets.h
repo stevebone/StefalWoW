@@ -501,6 +501,17 @@ namespace WorldPackets
         // Mission SMSG packets
         // ============================================================
 
+        // Per-follower entry mirrors the 17-byte tuple the client sends in CMSG_GARRISON_START_MISSION
+        // (uint64 DbID, int32 BoardIndex, int32 Health, uint8 HasFollowerEntry). The server echoes
+        // the same shape back. Wire-layout sniff-verified for 12.0.1.66102 — see SNIFF_AUDIT_12.0.1.66102.md §4.1.
+        struct GarrisonMissionFollowerEntry
+        {
+            uint64 DbID = 0;
+            int32 BoardIndex = -1;
+            int32 Health = 0;
+            uint8 HasFollowerEntry = 0;
+        };
+
         class GarrisonStartMissionResult final : public ServerPacket
         {
         public:
@@ -509,9 +520,11 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
-            uint32 SessionMissionCount = 0;
+            // Sniff-verified split of what was previously a single uint32 SessionMissionCount.
+            // Lower 16 bits = NumOfferedToday (today's mission-offer counter), upper 16 bits = FollowerCount.
+            uint16 NumOfferedToday = 0;
             GarrisonMission Mission;
-            std::vector<uint64> FollowerDBIDs;
+            std::vector<GarrisonMissionFollowerEntry> Followers;
         };
 
         class GarrisonCompleteMissionResult final : public ServerPacket

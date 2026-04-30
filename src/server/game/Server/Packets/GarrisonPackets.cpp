@@ -60,12 +60,13 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonBuildingInfo const& buildingInf
     return data;
 }
 
-// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
-// Deserialize_JamGarrisonFollower @ 0x7FF75C1752A0 with a HealCost/HealStartTime/
-// HealDuration triple at the tail and no BoardIndex or CustomName. Observed
-// traffic shows a single HealingTimestamp plus BoardIndex(int8) and a SizedString
-// CustomName — match WoD/Legion sniffs. The brief's reading likely reflects an
-// older deserializer or in-memory layout.
+// Sniff-verified for 12.0.1.66102 (148-byte and 156-byte FOLLOWER_CHANGED_QUALITY bodies
+// match this writer byte-for-byte — see SNIFF_AUDIT_12.0.1.66102.md §3.1).
+// Note: AGENT_BRIEF_GARRISON.md's Deserialize_JamGarrisonFollower @ 0x7FF75C1752A0 decodes
+// the JAM-mirror wire format (account-data field-mask packet, 16 VarUInt32 reads ending in
+// HealCost/HealStartTime/HealDuration). That is a SEPARATE code path from the dedicated
+// SMSGs — do NOT transplant the brief's layout here. Audit §5.1 verified that doing so
+// produces nonsense values (e.g. DbID=49148642 vs the actual 397927906).
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonFollower const& follower)
 {
     data << uint64(follower.DbID);
@@ -111,11 +112,13 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonEncounter const& encounter)
     return data;
 }
 
-// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
-// Deserialize_JamGarrisonMissionReward @ 0x7FF75C1754C0 with a Byte-gated optional
-// ItemFileDataID at the tail (8 reads); TC writes ItemFileDataID unconditionally
-// followed by an ItemInstance Optional bit. The brief's reading likely reflects an
-// older or alternate deserializer; observed traffic matches TC.
+// Sniff-verified for 12.0.1.66102 — observed in the 8316-byte SMSG_GET_GARRISON_INFO_RESULT
+// body (SNIFF_AUDIT_12.0.1.66102.md §5.3). int32 ItemFileDataID is always present
+// (sometimes zero, sometimes a real DBD ID like 1599042); the trailing OptionalInit bit
+// gates an optional ItemInstance blob.
+// The brief's Deserialize_JamGarrisonMissionReward @ 0x7FF75C1754C0 (Byte-gated VarUInt32)
+// decodes the JAM-mirror code path, NOT this dedicated SMSG. Both formats coexist for
+// different sub-collection sync paths.
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionReward const& missionRewardItem)
 {
     data << int32(missionRewardItem.ItemID);
@@ -134,14 +137,13 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionReward const& missionRew
     return data;
 }
 
-// Wire format is sniff-verified for 12.0.x. AGENT_BRIEF_GARRISON.md decoded
-// Deserialize_JamGarrisonMission @ 0x7FF75C1755E0 with 17 reads including a
-// trailing Currency(varint64), BonusActions.size, and AutoMissionData.size that
-// are not present in observed traffic. Those fields likely belong to an
-// auto-combat-specific tail envelope read by a different code path. TC's
-// MissionScalar(float) IS in observed traffic and is intentionally before the
-// counts. When auto-combat completion is implemented end-to-end, the trailing
-// envelope can be appended conditionally rather than reordering this base layout.
+// Sniff-verified for 12.0.1.66102 (SNIFF_AUDIT_12.0.1.66102.md §3.15, embedded in
+// the 188-byte SMSG_GET_GARRISON_INFO_RESULT). MissionScalar(float) sits between
+// Flags and ContentTuningID followed by 3 size fields. Note: SMSG_GARRISON_START_MISSION_RESULT
+// embeds a Mission whose exact byte layout has a residual ~2-byte misalignment vs this
+// writer (audit §4.1) — needs IDA pseudocode of Build_GarrisonStartMissionResult to fully
+// resolve. The brief's Deserialize_JamGarrisonMission @ 0x7FF75C1755E0 with Currency/
+// BonusActions/AutoMissionData tail is the JAM-mirror path, NOT this dedicated SMSG.
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonMission const& mission)
 {
     data << uint64(mission.DbID);
@@ -559,14 +561,24 @@ void GarrisonGetMissionReward::Read()
 // Mission SMSG Write implementations
 // ============================================================
 
+// Wire layout sniff-verified against 12.0.1.66102 captures:
+//   uint32 Result; uint16 NumOfferedToday; uint16 FollowerCount; GarrisonMission Mission;
+//   { uint64 DbID; int32 BoardIndex; int32 Health; uint8 HasFollowerEntry; }[FollowerCount]
+// See L:/TrinityCore/garrison/SNIFF_AUDIT_12.0.1.66102.md §4.1 for the byte-by-byte trace.
+// The trailing per-follower 17-byte tuple mirrors the CMSG_GARRISON_START_MISSION shape.
 WorldPacket const* GarrisonStartMissionResult::Write()
 {
     _worldPacket << uint32(Result);
-    _worldPacket << uint32(SessionMissionCount);
+    _worldPacket << uint16(NumOfferedToday);
+    _worldPacket << uint16(uint32(Followers.size()));
     _worldPacket << Mission;
-    _worldPacket << Size<uint32>(FollowerDBIDs);
-    for (uint64 dbId : FollowerDBIDs)
-        _worldPacket << uint64(dbId);
+    for (GarrisonMissionFollowerEntry const& follower : Followers)
+    {
+        _worldPacket << uint64(follower.DbID);
+        _worldPacket << int32(follower.BoardIndex);
+        _worldPacket << int32(follower.Health);
+        _worldPacket << uint8(follower.HasFollowerEntry);
+    }
 
     return &_worldPacket;
 }

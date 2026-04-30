@@ -115,10 +115,19 @@ void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonSt
     WorldPackets::Garrison::GarrisonStartMissionResult startResult;
     startResult.Result = result;
     if (result == GARRISON_SUCCESS)
-        startResult.SessionMissionCount = garrison->GetAndIncrementSessionMissionCount();
+        startResult.NumOfferedToday = static_cast<uint16>(garrison->GetAndIncrementSessionMissionCount());
     if (Garrison::Mission const* mission = garrison->GetMissionByRecID(garrisonStartMission.MissionRecID))
         startResult.Mission = mission->PacketInfo;
-    startResult.FollowerDBIDs = garrisonStartMission.FollowerDBIDs;
+
+    startResult.Followers.reserve(garrisonStartMission.FollowerDBIDs.size());
+    for (uint64 dbId : garrisonStartMission.FollowerDBIDs)
+    {
+        WorldPackets::Garrison::GarrisonMissionFollowerEntry entry;
+        entry.DbID = dbId;
+        // BoardIndex/Health/HasFollowerEntry mirror the CMSG values; we don't override them
+        // here, so they default to (-1, 0, 0) — same as what the client sends in CMSG.
+        startResult.Followers.push_back(entry);
+    }
     SendPacket(startResult.Write());
 }
 
