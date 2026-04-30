@@ -119,14 +119,15 @@ void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonSt
     if (Garrison::Mission const* mission = garrison->GetMissionByRecID(garrisonStartMission.MissionRecID))
         startResult.Mission = mission->PacketInfo;
 
-    startResult.Followers.reserve(garrisonStartMission.FollowerDBIDs.size());
+    startResult.FollowerInfos.reserve(garrisonStartMission.FollowerDBIDs.size());
     for (uint64 dbId : garrisonStartMission.FollowerDBIDs)
     {
         WorldPackets::Garrison::GarrisonMissionFollowerEntry entry;
         entry.DbID = dbId;
-        // BoardIndex/Health/HasFollowerEntry mirror the CMSG values; we don't override them
-        // here, so they default to (-1, 0, 0) — same as what the client sends in CMSG.
-        startResult.Followers.push_back(entry);
+        // BoardIndex/Health/HasFollowerEntry mirror the CMSG values; defaults match the
+        // shape of what the client sends in CMSG. The full GarrisonFollower trailer
+        // (Followers vector) stays empty in the standard "mission accepted" response.
+        startResult.FollowerInfos.push_back(entry);
     }
     SendPacket(startResult.Write());
 }
@@ -294,7 +295,10 @@ void WorldSession::HandleGarrisonRecruitFollower(WorldPackets::Garrison::Garriso
     WorldPackets::Garrison::GarrisonRecruitFollowerResult recruitResult;
     recruitResult.Result = result;
     if (result == GARRISON_SUCCESS)
-        recruitResult.Followers = garrison->GetAvailableRecruits();
+    {
+        if (Garrison::Follower const* follower = garrison->GetFollowerByEntry(followerID))
+            recruitResult.Follower = follower->PacketInfo;
+    }
     SendPacket(recruitResult.Write());
 }
 
@@ -307,10 +311,12 @@ void WorldSession::HandleGarrisonGenerateRecruits(WorldPackets::Garrison::Garris
     uint32 faction = static_cast<uint32>(Garrison::GetFaction(_player->GetTeam()));
     garrison->GenerateRecruits(faction);
 
-    WorldPackets::Garrison::GarrisonRecruitFollowerResult result;
-    result.Result = GARRISON_SUCCESS;
-    result.Followers = garrison->GetAvailableRecruits();
-    SendPacket(result.Write());
+    // The proper SMSG response here is SMSG_GARRISON_GENERATE_FOLLOWERS_RESULT (0x4C0033),
+    // which IDA shows expects exactly 3 inline GarrisonFollowers — see SNIFF_AUDIT §8.42.
+    // That opcode has no TC writer yet; the previous misuse of GarrisonRecruitFollowerResult
+    // (which is a single-follower struct per IDA §8.43) wrote garbled data, so we no longer
+    // send a result packet from the GenerateRecruits CMSG. The recruits become visible to
+    // the client through OpenRecruitmentNpc / the next GetGarrisonInfoResult.
 }
 
 void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::GarrisonFullyHealAllFollowers& /*garrisonFullyHealAllFollowers*/)

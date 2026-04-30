@@ -501,15 +501,16 @@ namespace WorldPackets
         // Mission SMSG packets
         // ============================================================
 
-        // Per-follower entry mirrors the 17-byte tuple the client sends in CMSG_GARRISON_START_MISSION
-        // (uint64 DbID, int32 BoardIndex, int32 Health, uint8 HasFollowerEntry). The server echoes
-        // the same shape back. Wire-layout sniff-verified for 12.0.1.66102 — see SNIFF_AUDIT_12.0.1.66102.md §4.1.
+        // Per-follower entry — IDA-confirmed 17-byte (or 21-byte) tuple. The first 17 bytes
+        // mirror the CMSG_GARRISON_START_MISSION shape; if HasFollowerEntry is set the wire
+        // appends an additional u32 FollowerEntry. See SNIFF_AUDIT_12.0.1.66102.md §8.1.
         struct GarrisonMissionFollowerEntry
         {
             uint64 DbID = 0;
             int32 BoardIndex = -1;
             int32 Health = 0;
             uint8 HasFollowerEntry = 0;
+            uint32 FollowerEntry = 0;
         };
 
         class GarrisonStartMissionResult final : public ServerPacket
@@ -519,12 +520,15 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
+            // IDA-confirmed (12.0.5.67186) + sniff-verified (12.0.1.66102) layout:
+            //   u32 Result, u16 NumOfferedToday, u32 FollowerInfoCount, u32 FollowersCount,
+            //   GarrisonMission Mission, FollowerInfo[FollowerInfoCount], GarrisonFollower[FollowersCount].
+            // See SNIFF_AUDIT_12.0.1.66102.md §8.1 for the byte-by-byte trace.
             uint32 Result = 0;
-            // Sniff-verified split of what was previously a single uint32 SessionMissionCount.
-            // Lower 16 bits = NumOfferedToday (today's mission-offer counter), upper 16 bits = FollowerCount.
             uint16 NumOfferedToday = 0;
             GarrisonMission Mission;
-            std::vector<GarrisonMissionFollowerEntry> Followers;
+            std::vector<GarrisonMissionFollowerEntry> FollowerInfos;
+            std::vector<GarrisonFollower> Followers;
         };
 
         class GarrisonCompleteMissionResult final : public ServerPacket
@@ -552,6 +556,9 @@ namespace WorldPackets
             uint32 Result = 0;
         };
 
+        // IDA case 4980762: u8 GarrTypeID, u32 Result, u8 State, Bits<1>, GarrisonMission.
+        // The Mission carries its own Rewards/OvermaxRewards inline, so the wire has no
+        // outer reward arrays. See SNIFF_AUDIT §8.23.
         class GarrisonAddMissionResult final : public ServerPacket
         {
         public:
@@ -562,10 +569,8 @@ namespace WorldPackets
             uint8 GarrTypeID = 0;
             uint32 Result = 0;
             uint8 State = 0;
-            GarrisonMission Mission;
-            std::vector<GarrisonMissionReward> Rewards;
-            std::vector<GarrisonMissionReward> BonusRewards;
             bool CanStartMission = true;
+            GarrisonMission Mission;
         };
 
         class GarrisonDeleteMissionResult final : public ServerPacket
@@ -791,6 +796,8 @@ namespace WorldPackets
             uint32 Result = 0;
         };
 
+        // IDA case 4980782: u32 Result, GarrisonFollower (the renamed CustomName lives in
+        // the trailing SizedString INSIDE the follower struct). See SNIFF_AUDIT §8.39.
         class GarrisonRenameFollowerResult final : public ServerPacket
         {
         public:
@@ -798,9 +805,8 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint64 FollowerDBID = 0;
             uint32 Result = 0;
-            std::string FollowerName;
+            GarrisonFollower Follower;
         };
 
         class GarrisonFollowerChangedFlags final : public ServerPacket
@@ -861,6 +867,8 @@ namespace WorldPackets
             GarrisonFollower Follower;
         };
 
+        // IDA case 4980788: u32 Result, GarrisonFollower (single follower, no array prefix).
+        // See SNIFF_AUDIT §8.43.
         class GarrisonRecruitFollowerResult final : public ServerPacket
         {
         public:
@@ -869,7 +877,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
-            std::vector<GarrisonFollower> Followers;
+            GarrisonFollower Follower;
         };
 
         class GarrisonOpenRecruitmentNpc final : public ServerPacket
@@ -961,14 +969,20 @@ namespace WorldPackets
             uint32 PlotInstanceID2 = 0;
         };
 
+        // IDA case 4980796: 3 × u32. Likely shape is {Result, PlotInstanceID1, PlotInstanceID2}
+        // mirroring the CMSG. Field meaning of the trailing two u32 is not byte-confirmed
+        // (no sniff sample); echoing the CMSG plot pair is the conservative choice.
+        // See SNIFF_AUDIT §8.46.
         class GarrisonSwapBuildingsResponse final : public ServerPacket
         {
         public:
-            explicit GarrisonSwapBuildingsResponse() : ServerPacket(SMSG_GARRISON_SWAP_BUILDINGS_RESPONSE, 4) { }
+            explicit GarrisonSwapBuildingsResponse() : ServerPacket(SMSG_GARRISON_SWAP_BUILDINGS_RESPONSE, 4 + 4 + 4) { }
 
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
+            uint32 PlotInstanceID1 = 0;
+            uint32 PlotInstanceID2 = 0;
         };
 
         // ============================================================
@@ -1008,6 +1022,8 @@ namespace WorldPackets
             int32 SoulbindConduitRank = 0;
         };
 
+        // IDA case 4980750: u32 Result, u8 GarrTypeID, Bits<1> (purpose unknown — observed
+        // value 0 in the static analysis), GarrisonTalent. See SNIFF_AUDIT §8.11.
         class GarrisonResearchTalentResult final : public ServerPacket
         {
         public:
@@ -1017,6 +1033,7 @@ namespace WorldPackets
 
             uint32 Result = 0;
             uint8 GarrTypeID = 0;
+            bool UnknownBit = false;
             GarrisonTalent Talent;
         };
 

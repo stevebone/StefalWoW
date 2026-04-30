@@ -561,24 +561,33 @@ void GarrisonGetMissionReward::Read()
 // Mission SMSG Write implementations
 // ============================================================
 
-// Wire layout sniff-verified against 12.0.1.66102 captures:
-//   uint32 Result; uint16 NumOfferedToday; uint16 FollowerCount; GarrisonMission Mission;
-//   { uint64 DbID; int32 BoardIndex; int32 Health; uint8 HasFollowerEntry; }[FollowerCount]
-// See L:/TrinityCore/garrison/SNIFF_AUDIT_12.0.1.66102.md §4.1 for the byte-by-byte trace.
-// The trailing per-follower 17-byte tuple mirrors the CMSG_GARRISON_START_MISSION shape.
+// Wire layout: IDA dispatcher case 4980763 (sub_7FF75C1449A0) + sniff-verified
+// against 12.0.1.66102 captures (115 / 149 / 149 byte bodies, all decoding cleanly):
+//   u32 Result, u16 NumOfferedToday,
+//   u32 FollowerInfoCount, u32 FollowersCount,
+//   GarrisonMission Mission,
+//   FollowerInfo[FollowerInfoCount]   (each: u64 DbID, i32 BoardIndex, i32 Health,
+//                                      u8 HasFollowerEntry; if HasFollowerEntry then u32 FollowerEntry),
+//   GarrisonFollower[FollowersCount]
+// See SNIFF_AUDIT_12.0.1.66102.md §8.1.
 WorldPacket const* GarrisonStartMissionResult::Write()
 {
     _worldPacket << uint32(Result);
     _worldPacket << uint16(NumOfferedToday);
-    _worldPacket << uint16(uint32(Followers.size()));
+    _worldPacket << uint32(FollowerInfos.size());
+    _worldPacket << uint32(Followers.size());
     _worldPacket << Mission;
-    for (GarrisonMissionFollowerEntry const& follower : Followers)
+    for (GarrisonMissionFollowerEntry const& info : FollowerInfos)
     {
-        _worldPacket << uint64(follower.DbID);
-        _worldPacket << int32(follower.BoardIndex);
-        _worldPacket << int32(follower.Health);
-        _worldPacket << uint8(follower.HasFollowerEntry);
+        _worldPacket << uint64(info.DbID);
+        _worldPacket << int32(info.BoardIndex);
+        _worldPacket << int32(info.Health);
+        _worldPacket << uint8(info.HasFollowerEntry);
+        if (info.HasFollowerEntry)
+            _worldPacket << uint32(info.FollowerEntry);
     }
+    for (GarrisonFollower const& follower : Followers)
+        _worldPacket << follower;
 
     return &_worldPacket;
 }
@@ -603,32 +612,28 @@ WorldPacket const* GarrisonMissionBonusRollResult::Write()
     return &_worldPacket;
 }
 
+// IDA case 4980762: u8 GarrTypeID, u32 Result, u8 State, Bits<1>+Flush, GarrisonMission.
+// The Mission struct already contains its own Rewards/OvermaxRewards arrays — duplicating
+// them at the outer level (as TC previously did) wrote bytes the client never reads.
+// See SNIFF_AUDIT §8.23.
 WorldPacket const* GarrisonAddMissionResult::Write()
 {
     _worldPacket << uint8(GarrTypeID);
     _worldPacket << uint32(Result);
     _worldPacket << uint8(State);
-    _worldPacket << Mission;
-    _worldPacket << Size<uint32>(Rewards);
-    _worldPacket << Size<uint32>(BonusRewards);
-
-    for (GarrisonMissionReward const& reward : Rewards)
-        _worldPacket << reward;
-
-    for (GarrisonMissionReward const& reward : BonusRewards)
-        _worldPacket << reward;
-
     _worldPacket << Bits<1>(CanStartMission);
     _worldPacket.FlushBits();
+    _worldPacket << Mission;
 
     return &_worldPacket;
 }
 
+// IDA case 4980771: u8 GarrTypeID, u32 Result, u32 MissionRecID. See SNIFF_AUDIT §8.29.
 WorldPacket const* GarrisonDeleteMissionResult::Write()
 {
+    _worldPacket << uint8(GarrTypeID);
     _worldPacket << uint32(Result);
     _worldPacket << uint32(MissionRecID);
-    _worldPacket << uint8(GarrTypeID);
 
     return &_worldPacket;
 }
@@ -749,30 +754,30 @@ void GarrisonSetRecruitmentPreferences::Read()
 // Follower SMSG Write implementations
 // ============================================================
 
+// IDA case 4980780: u32 Result, u64 FollowerDBID, u32 PlotInstanceID. See SNIFF_AUDIT §8.37.
 WorldPacket const* GarrisonAssignFollowerToBuildingResult::Write()
 {
-    _worldPacket << uint64(FollowerDBID);
     _worldPacket << uint32(Result);
+    _worldPacket << uint64(FollowerDBID);
     _worldPacket << uint32(PlotInstanceID);
 
     return &_worldPacket;
 }
 
+// IDA case 4980781: u32 Result, u64 FollowerDBID. See SNIFF_AUDIT §8.38.
 WorldPacket const* GarrisonRemoveFollowerFromBuildingResult::Write()
 {
-    _worldPacket << uint64(FollowerDBID);
     _worldPacket << uint32(Result);
+    _worldPacket << uint64(FollowerDBID);
 
     return &_worldPacket;
 }
 
+// IDA case 4980782: u32 Result, GarrisonFollower. See SNIFF_AUDIT §8.39.
 WorldPacket const* GarrisonRenameFollowerResult::Write()
 {
-    _worldPacket << uint64(FollowerDBID);
     _worldPacket << uint32(Result);
-    _worldPacket << SizedString::BitsSize<7>(FollowerName);
-    _worldPacket.FlushBits();
-    _worldPacket << SizedString::Data(FollowerName);
+    _worldPacket << Follower;
 
     return &_worldPacket;
 }
@@ -811,13 +816,12 @@ WorldPacket const* GarrisonUpdateFollower::Write()
     return &_worldPacket;
 }
 
+// IDA case 4980788: u32 Result, GarrisonFollower (single follower).
+// See SNIFF_AUDIT §8.43.
 WorldPacket const* GarrisonRecruitFollowerResult::Write()
 {
     _worldPacket << uint32(Result);
-    _worldPacket << Size<uint32>(Followers);
-
-    for (GarrisonFollower const& follower : Followers)
-        _worldPacket << follower;
+    _worldPacket << Follower;
 
     return &_worldPacket;
 }
@@ -893,9 +897,12 @@ void GarrisonSwapBuildings::Read()
     _worldPacket >> PlotInstanceID2;
 }
 
+// IDA case 4980796: 3 × u32. See SNIFF_AUDIT §8.46.
 WorldPacket const* GarrisonSwapBuildingsResponse::Write()
 {
     _worldPacket << uint32(Result);
+    _worldPacket << uint32(PlotInstanceID1);
+    _worldPacket << uint32(PlotInstanceID2);
 
     return &_worldPacket;
 }
@@ -922,10 +929,14 @@ void GarrisonSocketTalent::Read()
     _worldPacket >> SoulbindConduitRank;
 }
 
+// IDA case 4980750: u32 Result, u8 GarrTypeID, Bits<1>+Flush, GarrisonTalent.
+// See SNIFF_AUDIT §8.11.
 WorldPacket const* GarrisonResearchTalentResult::Write()
 {
     _worldPacket << uint32(Result);
     _worldPacket << uint8(GarrTypeID);
+    _worldPacket << Bits<1>(UnknownBit);
+    _worldPacket.FlushBits();
     _worldPacket << Talent;
 
     return &_worldPacket;

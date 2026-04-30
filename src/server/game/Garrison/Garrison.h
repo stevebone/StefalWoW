@@ -304,6 +304,7 @@ public:
     void AddTroop(uint32 garrFollowerId, uint32 durability);
     Follower const* GetFollower(uint64 dbId) const;
     Follower* GetFollower(uint64 dbId);
+    Follower const* GetFollowerByEntry(uint32 garrFollowerId) const;
     void RemoveFollower(uint64 dbId);
     void SetFollowerFavorite(uint64 dbId, bool favorite);
     void SetFollowerInactive(uint64 dbId, bool inactive);

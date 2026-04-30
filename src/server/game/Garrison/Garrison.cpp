@@ -848,6 +848,8 @@ void Garrison::SwapBuildings(uint32 plotId1, uint32 plotId2)
 {
     WorldPackets::Garrison::GarrisonSwapBuildingsResponse swapResult;
     swapResult.Result = GARRISON_SUCCESS;
+    swapResult.PlotInstanceID1 = plotId1;
+    swapResult.PlotInstanceID2 = plotId2;
 
     Plot* plot1 = GetPlot(plotId1);
     Plot* plot2 = GetPlot(plotId2);
@@ -1065,6 +1067,15 @@ Garrison::Follower const* Garrison::GetFollower(uint64 dbId) const
     auto itr = _followers.find(dbId);
     if (itr != _followers.end())
         return &itr->second;
+
+    return nullptr;
+}
+
+Garrison::Follower const* Garrison::GetFollowerByEntry(uint32 garrFollowerId) const
+{
+    for (auto const& [dbId, follower] : _followers)
+        if (follower.PacketInfo.GarrFollowerID == garrFollowerId)
+            return &follower;
 
     return nullptr;
 }
@@ -1368,13 +1379,13 @@ void Garrison::RenameFollower(uint64 dbId, std::string const& name)
     if (follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP)
     {
         result.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        result.Follower = follower->PacketInfo;
         _owner->SendDirectMessage(result.Write());
         return;
     }
 
-    result.FollowerDBID = dbId;
     follower->PacketInfo.CustomName = name;
-    result.FollowerName = name;
+    result.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(result.Write());
 }
 
