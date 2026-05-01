@@ -149,6 +149,7 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
     WorldPackets::Garrison::GarrisonCompleteMissionResult completeResult;
     completeResult.Result = result;
     completeResult.MissionRecID = garrisonCompleteMission.MissionRecID;
+    completeResult.GarrTypeID = static_cast<uint8>(garrison->GetType());
 
     // Re-fetch mission after completion (state may have changed)
     mission = garrison->GetMissionByRecID(garrisonCompleteMission.MissionRecID);
@@ -158,6 +159,11 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
         // Determine success based on the success chance roll
         completeResult.Succeeded = static_cast<int32>(urand(0, 99)) < mission->PacketInfo.SuccessChance;
     }
+
+    // FollowerInfos / Rounds left empty: no auto-combat replay generated for non-auto
+    // missions. The auto-combat simulator (GarrisonAutoCombat::ProcessTurn) populates
+    // these for Legion+ class hall and Shadowlands covenant missions. WoD-era classic
+    // missions don't drive the replay UI so they ship empty arrays here.
 
     SendPacket(completeResult.Write());
 }

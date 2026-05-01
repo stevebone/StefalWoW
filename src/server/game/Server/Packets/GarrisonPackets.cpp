@@ -653,22 +653,81 @@ WorldPacket const* GarrisonStartMissionResult::Write()
     return &_worldPacket;
 }
 
+// IDA-confirmed (12.0.5.67186) layout — see SNIFF_AUDIT §10.1.
+// 7 CONFIRMED + 3 HIGH + 2 LOW fields (the LOW are field NAMES inside the 32-byte
+// FollowerInfo sub-struct; the wire SHAPE is fully locked in).
 WorldPacket const* GarrisonCompleteMissionResult::Write()
 {
     _worldPacket << uint32(Result);
-    _worldPacket << Mission;
     _worldPacket << uint32(MissionRecID);
-    _worldPacket << Bits<1>(Succeeded);
-    _worldPacket.FlushBits();
+    _worldPacket << uint8(GarrTypeID);
+    _worldPacket << uint32(FollowerInfos.size());
+    _worldPacket << uint32(Rounds.size());
+
+    for (GarrisonCompleteMissionFollowerInfo const& info : FollowerInfos)
+    {
+        _worldPacket << uint64(info.DbID);
+        _worldPacket << uint32(info.Health);
+        _worldPacket << uint64(info.Unknown1);
+        _worldPacket << uint32(info.Unknown2);
+    }
+
+    _worldPacket << Mission;
+
+    // Single byte where the client reads bit7 as Succeeded and bit6 as OvermaxSucceeded.
+    // Written directly because TC's Bits<1> writer is LSB-first while the client reads
+    // MSB-first (see SNIFF_AUDIT §10.1.8 bit-pack note).
+    _worldPacket << uint8((Succeeded ? 0x80u : 0u) | (OvermaxSucceeded ? 0x40u : 0u));
+
+    for (GarrisonAutoMissionRound const& round : Rounds)
+    {
+        _worldPacket << uint32(round.Events.size());
+        for (GarrisonAutoMissionEvent const& evt : round.Events)
+        {
+            _worldPacket << uint32(evt.Type);
+            _worldPacket << uint32(evt.SpellID);
+            _worldPacket << uint32(evt.SchoolMask);
+            _worldPacket << uint8(evt.EffectIndex);
+            _worldPacket << uint32(evt.CasterBoardIndex);
+            _worldPacket << uint32(evt.AuraType);
+            _worldPacket << uint32(evt.TargetInfo.size());
+            for (GarrisonAutoMissionTargetInfo const& tgt : evt.TargetInfo)
+            {
+                _worldPacket << uint32(tgt.BoardIndex);
+                _worldPacket << uint32(tgt.OldHealth);
+                _worldPacket << uint32(tgt.NewHealth);
+                _worldPacket << uint32(tgt.MaxHealth);
+                // bit7 set when Points is present; the client reads (n & 0x80) >> 7 then
+                // gates the optional u32 read on that bit.
+                _worldPacket << uint8(tgt.Points.has_value() ? 0x80u : 0u);
+                if (tgt.Points)
+                    _worldPacket << uint32(*tgt.Points);
+            }
+        }
+    }
 
     return &_worldPacket;
 }
 
+// IDA-confirmed (12.0.5.67186) layout — see SNIFF_AUDIT §10.2. 3 CONFIRMED + 2 HIGH
+// fields. FollowerInfo struct shape matches COMPLETE_MISSION_RESULT (§10.1.3).
 WorldPacket const* GarrisonMissionBonusRollResult::Write()
 {
     _worldPacket << Mission;
     _worldPacket << uint32(MissionRecID);
     _worldPacket << uint32(Result);
+    _worldPacket << uint32(FollowerInfos.size());
+
+    for (GarrisonCompleteMissionFollowerInfo const& info : FollowerInfos)
+    {
+        _worldPacket << uint64(info.DbID);
+        _worldPacket << uint32(info.Health);
+        _worldPacket << uint64(info.Unknown1);
+        _worldPacket << uint32(info.Unknown2);
+    }
+
+    // Wire reads bit7 → Succeeded. The remaining 7 low bits are unused.
+    _worldPacket << uint8(Succeeded ? 0x80u : 0u);
 
     return &_worldPacket;
 }
@@ -933,26 +992,25 @@ WorldPacket const* GarrisonRecruitFollowerResult::Write()
     return &_worldPacket;
 }
 
+// IDA-confirmed (12.0.5.67186) — see SNIFF_AUDIT §10.3.
+// All 6 fields have two-source evidence (IDA pseudocode + C_Garrison Lua accessors:
+// CanGenerateRecruits, CanSetRecruitmentPreference, GetAvailableRecruits,
+// SetRecruitmentPreferences). The previous {AbilityCounters, AbilityTraits, GarrTypeID,
+// UnknownPurpose} fields had NO wire counterpart and have been removed.
 WorldPacket const* GarrisonOpenRecruitmentNpc::Write()
 {
     _worldPacket << NpcGUID;
-    _worldPacket << Size<uint32>(Followers);
-    _worldPacket << Size<uint32>(AbilityCounters);
-    _worldPacket << Size<uint32>(AbilityTraits);
-    _worldPacket << uint32(GarrTypeID);
+    _worldPacket << uint32(MechanicTypeID);
+    _worldPacket << uint32(TraitID);
 
     for (GarrisonFollower const& follower : Followers)
         _worldPacket << follower;
 
-    for (uint32 counter : AbilityCounters)
-        _worldPacket << uint32(counter);
-
-    for (uint32 trait : AbilityTraits)
-        _worldPacket << uint32(trait);
-
-    _worldPacket << Bits<1>(CanRecruitFollower);
-    _worldPacket << Bits<1>(UnknownPurpose);
-    _worldPacket.FlushBits();
+    // Wire format: bit7 = CanGenerateRecruits, bit6 = CanSetRecruitmentPreference.
+    // The remaining 6 low bits are unused; the client masks them off. Written as a
+    // direct byte rather than via Bits<1> because TC's Bits<1> writer accumulates
+    // LSB-first while the client reads bit7-first.
+    _worldPacket << uint8((CanGenerateRecruits ? 0x80u : 0u) | (CanSetRecruitmentPreference ? 0x40u : 0u));
 
     return &_worldPacket;
 }

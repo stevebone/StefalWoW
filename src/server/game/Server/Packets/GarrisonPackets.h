@@ -614,6 +614,65 @@ namespace WorldPackets
             std::vector<GarrisonFollower> Followers;
         };
 
+        // 32-byte per-follower record on COMPLETE_MISSION_RESULT / BONUS_ROLL_RESULT.
+        // IDA-confirmed via Deserialize_CompleteMissionFollowerInfo @ 0x7FF75C175900 — see
+        // SNIFF_AUDIT §10.1.3. The +0 (DbID) and +8 (Health) fields are HIGH/MEDIUM
+        // confidence; +16 and +24 are LOW confidence on field NAMES (the wire SHAPE is
+        // locked in: u64+u32+u64+u32). Sniff verification is needed to firm up the names.
+        struct GarrisonCompleteMissionFollowerInfo
+        {
+            uint64 DbID = 0;
+            uint32 Health = 0;
+            uint64 Unknown1 = 0;
+            uint32 Unknown2 = 0;
+        };
+
+        // 24-byte per-target record produced by one auto-combat event. IDA-confirmed
+        // via the inner combatant loop in sub_7FF75C1750F0 + Lua C-binding accessor
+        // sub_7FF75CB37FF0 — see SNIFF_AUDIT §10.1.6. All 6 fields CONFIRMED via
+        // matching Lua table keys ("boardIndex", "oldHealth", "newHealth", "maxHealth",
+        // "points").
+        struct GarrisonAutoMissionTargetInfo
+        {
+            uint32 BoardIndex = 0;
+            uint32 OldHealth = 0;
+            uint32 NewHealth = 0;
+            uint32 MaxHealth = 0;
+            Optional<uint32> Points;     // wire: u8 HasPoints + optional u32 Points
+        };
+
+        // 48-byte per-event auto-combat record (one spell cast / aura tick / ...).
+        // IDA-confirmed via Deserialize @ 0x7FF75C1750F0 + Lua C-binding accessor
+        // sub_7FF75CB38250 — see SNIFF_AUDIT §10.1.5. All 7 fields CONFIRMED via
+        // matching Lua table keys ("type", "spellID", "schoolMask", "effectIndex",
+        // "casterBoardIndex", "auraType", "targetInfo").
+        struct GarrisonAutoMissionEvent
+        {
+            uint32 Type = 0;             // GarrAutoMissionEventType enum
+            uint32 SpellID = 0;
+            uint32 SchoolMask = 0;
+            uint8  EffectIndex = 0;      // wire is u8, in-memory u32 (low byte only)
+            uint32 CasterBoardIndex = 0;
+            uint32 AuraType = 0;
+            std::vector<GarrisonAutoMissionTargetInfo> TargetInfo;
+        };
+
+        // 24-byte pure-container round struct — IDA-confirmed via the cleanup symbol
+        // string "struct JamGarrisonAutoMissionRoundInfo" — see SNIFF_AUDIT §10.1.4.
+        // The Lua API only exposes "events"; no scalar fields. The round index is
+        // implicit by array position.
+        struct GarrisonAutoMissionRound
+        {
+            std::vector<GarrisonAutoMissionEvent> Events;
+        };
+
+        // IDA-confirmed (12.0.5.67186) layout — see SNIFF_AUDIT §10.1.
+        //   u32 Result, u32 MissionRecID, u8 GarrTypeID,
+        //   u32 FollowerInfoCount, u32 RoundsCount,
+        //   FollowerInfo[FollowerInfoCount]  (32 bytes each),
+        //   GarrisonMission Mission,
+        //   single byte (bit7=Succeeded, bit6=OvermaxSucceeded, 6 padding bits),
+        //   Round[RoundsCount].
         class GarrisonCompleteMissionResult final : public ServerPacket
         {
         public:
@@ -622,11 +681,20 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
-            GarrisonMission Mission;
             uint32 MissionRecID = 0;
+            uint8 GarrTypeID = 0;
+            GarrisonMission Mission;
             bool Succeeded = false;
+            bool OvermaxSucceeded = false;
+            std::vector<GarrisonCompleteMissionFollowerInfo> FollowerInfos;
+            std::vector<GarrisonAutoMissionRound> Rounds;
         };
 
+        // IDA-confirmed (12.0.5.67186) layout — see SNIFF_AUDIT §10.2.
+        //   GarrisonMission Mission, u32 MissionRecID, u32 Result,
+        //   u32 FollowerInfoCount, FollowerInfo[FollowerInfoCount]   (32 bytes each),
+        //   single byte (bit7=Succeeded, 7 padding bits).
+        // Same FollowerInfo struct as COMPLETE_MISSION_RESULT (§10.1.3).
         class GarrisonMissionBonusRollResult final : public ServerPacket
         {
         public:
@@ -637,6 +705,8 @@ namespace WorldPackets
             GarrisonMission Mission;
             uint32 MissionRecID = 0;
             uint32 Result = 0;
+            bool Succeeded = false;
+            std::vector<GarrisonCompleteMissionFollowerInfo> FollowerInfos;
         };
 
         // IDA case 4980762: u8 GarrTypeID, u32 Result, u8 State, Bits<1>, GarrisonMission.
@@ -1020,6 +1090,11 @@ namespace WorldPackets
             GarrisonFollower Follower;
         };
 
+        // IDA-confirmed (12.0.5.67186) layout — see SNIFF_AUDIT §10.3, all 6 fields
+        // CONFIRMED with two-source evidence (IDA + Lua C-binding accessor names).
+        //   PackedGuid NpcGUID, u32 MechanicTypeID, u32 TraitID,
+        //   GarrisonFollower Followers[3]   (FIXED 3, no count prefix),
+        //   Bits<1> CanGenerateRecruits + Bits<1> CanSetRecruitmentPreference + 6 padding bits.
         class GarrisonOpenRecruitmentNpc final : public ServerPacket
         {
         public:
@@ -1028,12 +1103,11 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             ObjectGuid NpcGUID;
-            std::vector<GarrisonFollower> Followers;
-            std::vector<uint32> AbilityCounters;
-            std::vector<uint32> AbilityTraits;
-            uint32 GarrTypeID = 0;
-            bool CanRecruitFollower = false;
-            bool UnknownPurpose = false;
+            uint32 MechanicTypeID = 0;
+            uint32 TraitID = 0;
+            std::array<GarrisonFollower, 3> Followers;
+            bool CanGenerateRecruits = false;
+            bool CanSetRecruitmentPreference = false;
         };
 
         // IDA case 4980778 (§8.35): u8, u32. Conservative: u8 GarrTypeID, u32 Result.
