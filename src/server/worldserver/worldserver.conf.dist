@@ -4481,6 +4481,7 @@ Followship.Bots.DamageRate = 1
 # Player Extended Backpack Slots
 # Adds extra slots for the secured account option
 # This requires a way to set the appropriate flag
+# Blizzlike value is 4
 #
 # Default Value = 0 (feature disabled)
 # Max Value = 12
