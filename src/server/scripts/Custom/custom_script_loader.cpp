@@ -18,6 +18,7 @@
 // This is where scripts' loading functions should be declared:
 
 // ==================== Player Scripts ======================== //
+void AddSC_custom_player_inventory();
 void AddSC_custom_player_mails();
 
 // ==================== Class Scripts ========================= //
@@ -75,6 +76,7 @@ void AddSC_advanced_flying_spell_scripts();
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
+    AddSC_custom_player_inventory();
     AddSC_custom_player_mails();
 
     AddSC_custom_demonhunter_spell_fixes();

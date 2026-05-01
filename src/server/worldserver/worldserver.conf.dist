@@ -4476,6 +4476,16 @@ Followship.Bots.PowerRate = 1
 # Values 0.1-2; Default: 1
 Followship.Bots.DamageRate = 1
 
+###################################################################
+#
+# Player Extended Backpack Slots
+# Adds extra slots for the secured account option
+# This requires a way to set the appropriate flag
+#
+# Default Value = 0 (feature disabled)
+# Max Value = 12
+Player.Extended.BackPackSlots = 0
+
 #    Season.MythicPlusDisplaySeasonID
 #        Description: Current Mythic+ display season ID from DisplaySeason.db2.
 #        Default:     34 - (Midnight Season 1)
