@@ -24,6 +24,7 @@
 #include "Optional.h"
 #include "Position.h"
 #include "PacketUtilities.h"
+#include <array>
 #include <list>
 #include <unordered_set>
 #include <vector>
@@ -449,6 +450,88 @@ namespace WorldPackets
             uint32 GarrPlotInstanceID = 0;
         };
 
+        // Conservative shape (no IDA byte detail in audit): {u32 Result, u32 GarrSpecID,
+        // u32 GarrPlotInstanceID}. Sent when a specialization is learned for a building.
+        class GarrisonLearnSpecializationResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonLearnSpecializationResult() : ServerPacket(SMSG_GARRISON_LEARN_SPECIALIZATION_RESULT, 4 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint32 GarrSpecID = 0;
+            uint32 GarrPlotInstanceID = 0;
+        };
+
+        // Conservative shape: {u32 Result, u32 GarrPlotInstanceID, u32 GarrSpecID}.
+        // Sent when a building's active specialization is changed.
+        class GarrisonBuildingSetActiveSpecializationResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonBuildingSetActiveSpecializationResult() : ServerPacket(SMSG_GARRISON_BUILDING_SET_ACTIVE_SPECIALIZATION_RESULT, 4 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint32 GarrPlotInstanceID = 0;
+            uint32 GarrSpecID = 0;
+        };
+
+        // IDA case 4980797 (§8.47): u32 Result, u64 BuildingDbID, u32 GarrPlotInstanceID.
+        // Sent when a building finishes construction (timer expires, becomes activatable).
+        class GarrisonCompleteBuildingConstructionResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonCompleteBuildingConstructionResult() : ServerPacket(SMSG_GARRISON_COMPLETE_BUILDING_CONSTRUCTION_RESULT, 4 + 8 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint64 BuildingDbID = 0;
+            uint32 GarrPlotInstanceID = 0;
+        };
+
+        // IDA case 4980791 (§8.45): PackedGuid NpcGUID, sub-call (likely a small descriptor),
+        // varU32 size, varU32[size]. Conservative interpretation: {NpcGUID, u32 GarrTypeID,
+        // u32[] CraftableItemIDs}.
+        class GarrisonOpenCrafter final : public ServerPacket
+        {
+        public:
+            explicit GarrisonOpenCrafter() : ServerPacket(SMSG_GARRISON_OPEN_CRAFTER) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid NpcGUID;
+            uint32 GarrTypeID = 0;
+            std::vector<uint32> CraftableItemIDs;
+        };
+
+        // IDA case 4980817 (§8.51): generic byte-block helper. Conservative shape: {u32 NewMinLevel}.
+        class GarrisonAutoTroopMinLevelUpdateResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonAutoTroopMinLevelUpdateResult() : ServerPacket(SMSG_GARRISON_AUTO_TROOP_MIN_LEVEL_UPDATE_RESULT, 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 NewMinLevel = 0;
+        };
+
+        // IDA case 4980772 (§8.30): u8 GarrTypeID + GarrisonSmallStruct (likely
+        // {u32 MissionRecID, u32 BonusAbilityID}). Sent when a mission bonus ability activates.
+        class GarrisonActivateMissionBonusAbility final : public ServerPacket
+        {
+        public:
+            explicit GarrisonActivateMissionBonusAbility() : ServerPacket(SMSG_GARRISON_ACTIVATE_MISSION_BONUS_ABILITY, 1 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 MissionRecID = 0;
+            uint32 BonusAbilityID = 0;
+        };
+
         // ============================================================
         // Mission CMSG packets
         // ============================================================
@@ -618,6 +701,63 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
+        };
+
+        // IDA case 4980765 (§8.25): u32 Result, u32 MissionRecID, GarrisonMission.
+        // Sent when a mission's start time is moved (e.g., Master Plan reduces wait).
+        class GarrisonChangeMissionStartTimeResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonChangeMissionStartTimeResult() : ServerPacket(SMSG_GARRISON_CHANGE_MISSION_START_TIME_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint32 MissionRecID = 0;
+            GarrisonMission Mission;
+        };
+
+        // IDA case 4980766 (§8.26): u32 Result, u64 LastUsedTimestamp.
+        class GarrisonGetRecallPortalLastUsedTimeResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonGetRecallPortalLastUsedTimeResult() : ServerPacket(SMSG_GARRISON_GET_RECALL_PORTAL_LAST_USED_TIME_RESULT, 4 + 8) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint64 LastUsedTimestamp = 0;
+        };
+
+        // IDA case 4980767 (§8.27): u32 Result, u32 ?, u64 ?, GarrisonMission.
+        // Conservative interpretation: {Result, MissionRecID, RecallTimestamp, Mission}.
+        class GarrisonUseRecallPortalResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonUseRecallPortalResult() : ServerPacket(SMSG_GARRISON_USE_RECALL_PORTAL_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint32 MissionRecID = 0;
+            uint64 RecallTimestamp = 0;
+            GarrisonMission Mission;
+        };
+
+        // IDA case 4980803 (§8.53): u32 Result, u64 ItemDbID, u32 size, u32 size,
+        // GarrisonMissionReward[size], GarrisonMissionReward[size].
+        // Conservative naming: {Result, ItemDbID, Rewards, OvermaxRewards}.
+        class GarrisonMissionRequestRewardInfoResponse final : public ServerPacket
+        {
+        public:
+            explicit GarrisonMissionRequestRewardInfoResponse() : ServerPacket(SMSG_GARRISON_MISSION_REQUEST_REWARD_INFO_RESPONSE) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint64 ItemDbID = 0;
+            std::vector<GarrisonMissionReward> Rewards;
+            std::vector<GarrisonMissionReward> OvermaxRewards;
         };
 
         class GarrisonUpgradeResult final : public ServerPacket
@@ -896,6 +1036,194 @@ namespace WorldPackets
             bool UnknownPurpose = false;
         };
 
+        // IDA case 4980778 (§8.35): u8, u32. Conservative: u8 GarrTypeID, u32 Result.
+        class GarrisonFollowerFatigueCleared final : public ServerPacket
+        {
+        public:
+            explicit GarrisonFollowerFatigueCleared() : ServerPacket(SMSG_GARRISON_FOLLOWER_FATIGUE_CLEARED, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 Result = 0;
+        };
+
+        // IDA case 4980783 (§8.40): single full GarrisonFollower.
+        class GarrisonRemoveFollowerAbilityResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonRemoveFollowerAbilityResult() : ServerPacket(SMSG_GARRISON_REMOVE_FOLLOWER_ABILITY_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            GarrisonFollower Follower;
+        };
+
+        // IDA case 4980787 (§8.42): exactly 3 inline GarrisonFollowers (no count prefix).
+        // Sent in response to CMSG_GARRISON_GENERATE_RECRUITS once new offers are rolled.
+        class GarrisonGenerateFollowersResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonGenerateFollowersResult() : ServerPacket(SMSG_GARRISON_GENERATE_FOLLOWERS_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            std::array<GarrisonFollower, 3> Followers;
+        };
+
+        // IDA case 4980761 (§8.22): u32 size, GarrisonFollower[size].
+        // Cheat opcode — invoked by .garrison list-followers GM command.
+        class GarrisonListFollowersCheatResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonListFollowersCheatResult() : ServerPacket(SMSG_GARRISON_LIST_FOLLOWERS_CHEAT_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<GarrisonFollower> Followers;
+        };
+
+        // IDA case 4980800 (§8.50): u32 size, u32[size].
+        // Cheat opcode — list of completed mission rec IDs.
+        class GarrisonListCompletedMissionsCheatResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonListCompletedMissionsCheatResult() : ServerPacket(SMSG_GARRISON_LIST_COMPLETED_MISSIONS_CHEAT_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<uint32> MissionRecIDs;
+        };
+
+        // IDA case 4980816 (§8.62-8.66 group): u32 Result, u32 MissionRecID, u32 NewState, GarrisonMission.
+        // Cheat opcode — used by GM commands to force a mission state change.
+        class GarrisonUpdateMissionCheatResult final : public ServerPacket
+        {
+        public:
+            explicit GarrisonUpdateMissionCheatResult() : ServerPacket(SMSG_GARRISON_UPDATE_MISSION_CHEAT_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            uint32 MissionRecID = 0;
+            uint32 NewState = 0;
+            GarrisonMission Mission;
+        };
+
+        // ============================================================
+        // Collection / event-list / spec-group SMSG packets (BfA / Shadowlands campaign tracking)
+        // IDA cases 0x4C0045 - 0x4C004C, see SNIFF_AUDIT §8.54-8.61.
+        // ============================================================
+
+        // IDA case 4980805 (§8.54): wrapper + 1 byte + varU32 GarrTalentID + JamGarrisonTalentSocket.
+        // Conservative: {u8 GarrTypeID, u8 CollectionEntryFlags, u32 GarrTalentID, GarrisonTalentSocketData}.
+        class GarrisonCollectionUpdateEntry final : public ServerPacket
+        {
+        public:
+            explicit GarrisonCollectionUpdateEntry() : ServerPacket(SMSG_GARRISON_COLLECTION_UPDATE_ENTRY) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint8 CollectionEntryFlags = 0;
+            uint32 GarrTalentID = 0;
+            GarrisonTalentSocketData Socket;
+        };
+
+        // IDA case 4980806 (§8.55): u8 GarrTypeID, u32 CollectionType, u32 GarrTalentID.
+        class GarrisonCollectionRemoveEntry final : public ServerPacket
+        {
+        public:
+            explicit GarrisonCollectionRemoveEntry() : ServerPacket(SMSG_GARRISON_COLLECTION_REMOVE_ENTRY, 1 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 CollectionType = 0;
+            uint32 GarrTalentID = 0;
+        };
+
+        // IDA case 4980807 (§8.56): u8 GarrTypeID, u32 CollectionType.
+        class GarrisonClearCollection final : public ServerPacket
+        {
+        public:
+            explicit GarrisonClearCollection() : ServerPacket(SMSG_GARRISON_CLEAR_COLLECTION, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 CollectionType = 0;
+        };
+
+        // IDA case 4980808 (§8.57): u8 GarrTypeID, u32 EventListID, u64 Timestamp, u32 EventValue.
+        class GarrisonAddEvent final : public ServerPacket
+        {
+        public:
+            explicit GarrisonAddEvent() : ServerPacket(SMSG_GARRISON_ADD_EVENT, 1 + 4 + 8 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 EventListID = 0;
+            uint64 Timestamp = 0;
+            uint32 EventValue = 0;
+        };
+
+        // IDA case 4980809 (§8.58): u8 GarrTypeID, u32 EventListID, u32 EventValue.
+        class GarrisonRemoveEvent final : public ServerPacket
+        {
+        public:
+            explicit GarrisonRemoveEvent() : ServerPacket(SMSG_GARRISON_REMOVE_EVENT, 1 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 EventListID = 0;
+            uint32 EventValue = 0;
+        };
+
+        // IDA case 4980810 (§8.59): u8 GarrTypeID, u32 EventListID.
+        class GarrisonClearEventList final : public ServerPacket
+        {
+        public:
+            explicit GarrisonClearEventList() : ServerPacket(SMSG_GARRISON_CLEAR_EVENT_LIST, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 EventListID = 0;
+        };
+
+        // IDA case 4980811 (§8.60): u8 GarrTypeID, u32 size, SpecGroup[size].
+        // Conservative SpecGroup shape: {u32 GarrSpecGroupID, u32 SelectedTalentTreeID}.
+        class GarrisonAddSpecGroups final : public ServerPacket
+        {
+        public:
+            struct GarrisonSpecGroup
+            {
+                uint32 GarrSpecGroupID = 0;
+                uint32 SelectedTalentTreeID = 0;
+            };
+
+            explicit GarrisonAddSpecGroups() : ServerPacket(SMSG_GARRISON_ADD_SPEC_GROUPS) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            std::vector<GarrisonSpecGroup> SpecGroups;
+        };
+
+        // IDA case 4980812 (§8.61): single byte GarrTypeID.
+        class GarrisonClearSpecGroups final : public ServerPacket
+        {
+        public:
+            explicit GarrisonClearSpecGroups() : ServerPacket(SMSG_GARRISON_CLEAR_SPEC_GROUPS, 1) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+        };
+
         class GarrisonGetClassSpecCategoryInfoResult final : public ServerPacket
         {
         public:
@@ -1037,6 +1365,128 @@ namespace WorldPackets
             GarrisonTalent Talent;
         };
 
+        // IDA case 4980751: u8 GarrTypeID, u32 GarrTalentID, u32 Rank, u32 ResearchStartTime.
+        // Sent when a talent's research timer finishes. See SNIFF_AUDIT §8.12.
+        class GarrisonTalentCompleted final : public ServerPacket
+        {
+        public:
+            explicit GarrisonTalentCompleted() : ServerPacket(SMSG_GARRISON_TALENT_COMPLETED, 1 + 4 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 GarrTalentID = 0;
+            uint32 Rank = 0;
+            uint32 ResearchStartTime = 0;
+        };
+
+        // IDA case 4980752: u8 GarrTypeID, u32 GarrTalentID. See SNIFF_AUDIT §8.13.
+        class GarrisonTalentRemoved final : public ServerPacket
+        {
+        public:
+            explicit GarrisonTalentRemoved() : ServerPacket(SMSG_GARRISON_TALENT_REMOVED, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 GarrTalentID = 0;
+        };
+
+        // IDA case 4980753: u8 GarrTypeID, u32 GarrTalentID, optional<GarrisonTalentSocketData>
+        // (top-bit-gated by Bits<1>). See SNIFF_AUDIT §8.14.
+        class GarrisonTalentUpdateSocketData final : public ServerPacket
+        {
+        public:
+            explicit GarrisonTalentUpdateSocketData() : ServerPacket(SMSG_GARRISON_TALENT_UPDATE_SOCKET_DATA) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 GarrTalentID = 0;
+            Optional<GarrisonTalentSocketData> Socket;
+        };
+
+        // IDA case 4980754: u8 GarrTypeID, u32 GarrTalentID. See SNIFF_AUDIT §8.15.
+        class GarrisonTalentRemoveSocketData final : public ServerPacket
+        {
+        public:
+            explicit GarrisonTalentRemoveSocketData() : ServerPacket(SMSG_GARRISON_TALENT_REMOVE_SOCKET_DATA, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 GarrTalentID = 0;
+        };
+
+        // IDA case 4980755: u8 GarrTypeID, u32 GarrTalentTreeID. See SNIFF_AUDIT §8.16.
+        class GarrisonResetTalentTree final : public ServerPacket
+        {
+        public:
+            explicit GarrisonResetTalentTree() : ServerPacket(SMSG_GARRISON_RESET_TALENT_TREE, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 GarrTalentTreeID = 0;
+        };
+
+        // IDA case 4980756: u8 GarrTypeID, u32 GarrTalentTreeID. See SNIFF_AUDIT §8.17.
+        class GarrisonResetTalentTreeSocketData final : public ServerPacket
+        {
+        public:
+            explicit GarrisonResetTalentTreeSocketData() : ServerPacket(SMSG_GARRISON_RESET_TALENT_TREE_SOCKET_DATA, 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint32 GarrTalentTreeID = 0;
+        };
+
+        // IDA case 4980813: u8 GarrTypeID, u32 size, GarrisonTalent[size]. See SNIFF_AUDIT §8.62.
+        class GarrisonSwitchTalentTreeBranch final : public ServerPacket
+        {
+        public:
+            explicit GarrisonSwitchTalentTreeBranch() : ServerPacket(SMSG_GARRISON_SWITCH_TALENT_TREE_BRANCH) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            std::vector<GarrisonTalent> Talents;
+        };
+
+        // IDA case 4980814: opaque generic-byte-block helper. Field shape unknown without sniff.
+        // TC sends a single u8 GarrTypeID + size-prefixed list of unlocked talent tree IDs as
+        // the conservative interpretation. See SNIFF_AUDIT §8.63.
+        class GarrisonTalentWorldQuestUnlocksResponse final : public ServerPacket
+        {
+        public:
+            explicit GarrisonTalentWorldQuestUnlocksResponse() : ServerPacket(SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            std::vector<int32> UnlockedTalentTreeIDs;
+        };
+
+        // IDA case 4980815: opaque generic-byte-block helper. TC sends u8 GarrTypeID +
+        // size-prefixed array of {u32 GarrTalentID, GarrisonTalentSocketData} pairs. See SNIFF_AUDIT §8.64.
+        class GarrisonApplyTalentSocketDataChanges final : public ServerPacket
+        {
+        public:
+            struct TalentSocketChange
+            {
+                uint32 GarrTalentID = 0;
+                GarrisonTalentSocketData Socket;
+            };
+
+            explicit GarrisonApplyTalentSocketDataChanges() : ServerPacket(SMSG_GARRISON_APPLY_TALENT_SOCKET_DATA_CHANGES) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            std::vector<TalentSocketChange> Changes;
+        };
+
         // ============================================================
         // Shipment packets
         // ============================================================
@@ -1174,6 +1624,20 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid NpcGUID;
+        };
+
+        // IDA case 4980801 (§8.51 in main audit table — pet name): u64 NpcGUID-as-DBID + sub-call
+        // (likely PackedGuid serializer) + 1-byte top-bit-prefixed string. Conservative shape:
+        // {ObjectGuid NpcGUID, SizedString PetName}.
+        class QueryGarrisonPetNameResponse final : public ServerPacket
+        {
+        public:
+            explicit QueryGarrisonPetNameResponse() : ServerPacket(SMSG_QUERY_GARRISON_PET_NAME_RESPONSE) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid NpcGUID;
+            std::string PetName;
         };
 
         class RequestGarrisonTalentWorldQuestUnlocks final : public ClientPacket

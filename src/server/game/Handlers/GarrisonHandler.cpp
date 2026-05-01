@@ -16,6 +16,7 @@
  */
 
 #include "WorldSession.h"
+#include "Creature.h"
 #include "DB2Stores.h"
 #include "DB2Structure.h"
 #include "GameTime.h"
@@ -27,6 +28,7 @@
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "Random.h"
+#include <set>
 
 void WorldSession::HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo& /*getGarrisonInfo*/)
 {
@@ -311,12 +313,16 @@ void WorldSession::HandleGarrisonGenerateRecruits(WorldPackets::Garrison::Garris
     uint32 faction = static_cast<uint32>(Garrison::GetFaction(_player->GetTeam()));
     garrison->GenerateRecruits(faction);
 
-    // The proper SMSG response here is SMSG_GARRISON_GENERATE_FOLLOWERS_RESULT (0x4C0033),
-    // which IDA shows expects exactly 3 inline GarrisonFollowers — see SNIFF_AUDIT §8.42.
-    // That opcode has no TC writer yet; the previous misuse of GarrisonRecruitFollowerResult
-    // (which is a single-follower struct per IDA §8.43) wrote garbled data, so we no longer
-    // send a result packet from the GenerateRecruits CMSG. The recruits become visible to
-    // the client through OpenRecruitmentNpc / the next GetGarrisonInfoResult.
+    // SMSG_GARRISON_GENERATE_FOLLOWERS_RESULT (§8.42): exactly 3 inline GarrisonFollowers.
+    auto const& recruits = garrison->GetAvailableRecruits();
+    WorldPackets::Garrison::GarrisonGenerateFollowersResult result;
+    for (size_t i = 0; i < result.Followers.size(); ++i)
+    {
+        if (i < recruits.size())
+            result.Followers[i] = recruits[i];
+        // Slots beyond the rolled count stay default-constructed (empty follower record).
+    }
+    SendPacket(result.Write());
 }
 
 void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::GarrisonFullyHealAllFollowers& /*garrisonFullyHealAllFollowers*/)
@@ -705,25 +711,42 @@ void WorldSession::HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingP
 
 void WorldSession::HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarrisonPetName& queryGarrisonPetName)
 {
-    // SMSG_QUERY_GARRISON_PET_NAME_RESPONSE (0x4C0041) wire format is not visible in
-    // observed WoD garrison traffic — the response packet would be safer to send only
-    // once a sniff confirms its byte layout (likely { ObjectGuid NpcGUID; SizedString Name;
-    // uint32 PetNameTimestamp; } based on the corresponding entity-update field). Until
-    // then, leave as a no-op since the client tolerates the missing response (no UI path
-    // observed waiting on it). RE-blocked, intentionally not stubbed with a guess.
-    TC_LOG_DEBUG("garrison", "HandleQueryGarrisonPetName: Player {} queried pet name for NPC {}",
-        _player->GetGUID().ToString().c_str(), queryGarrisonPetName.NpcGUID.ToString().c_str());
+    // IDA case 4980801 (§8.51 pet name): {ObjectGuid NpcGUID, SizedString PetName}.
+    // Look up the queried NPC and echo back its custom name (if any) — for non-pet NPCs
+    // or NPCs without a stored custom name, send an empty string.
+    WorldPackets::Garrison::QueryGarrisonPetNameResponse response;
+    response.NpcGUID = queryGarrisonPetName.NpcGUID;
+    if (Creature const* creature = ObjectAccessor::GetCreature(*_player, queryGarrisonPetName.NpcGUID))
+    {
+        // Garrison pets/bodyguards may carry a custom name on the creature template or summon.
+        // Until the BattlePet/garrison-pet system is wired up, echo the creature's localized name
+        // as a sane default. Empty string is also a valid response per IDA pseudocode.
+        if (CreatureTemplate const* tmpl = creature->GetCreatureTemplate())
+            response.PetName = tmpl->Name;
+    }
+    SendPacket(response.Write());
 }
 
 void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Garrison::RequestGarrisonTalentWorldQuestUnlocks& /*requestGarrisonTalentWorldQuestUnlocks*/)
 {
     // SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE (0x4C004E) — Legion+ talent-gated
-    // map POIs. Wire format unsniffed; expected to be a { uint32 GarrTalentID;
-    // uint32 MapPOIID; }[] array, sourced by joining researched talents against
-    // GarrTalentMapPOI.db2. Same RE-blocked status as pet name query — leave as no-op
-    // until sniff data lands. Client UI tolerates the missing response.
-    TC_LOG_DEBUG("garrison", "HandleRequestGarrisonTalentWorldQuestUnlocks: Player {} requested talent world quest unlocks",
-        _player->GetGUID().ToString().c_str());
+    // map POIs. IDA dispatcher uses opaque helper so exact field shape is unconfirmed; the
+    // best conservative match is a size-prefixed list of unlocked talent tree IDs (the
+    // server's view of which trees the player has unlocked talents in for world-quest UI).
+    WorldPackets::Garrison::GarrisonTalentWorldQuestUnlocksResponse response;
+    if (Garrison* garrison = _player->GetGarrison())
+    {
+        response.GarrTypeID = static_cast<uint8>(garrison->GetType());
+        // Build the list of unique talent tree IDs from the player's known talents.
+        std::set<int32> trees;
+        for (auto const& [talentID, talent] : garrison->GetAllTalents())
+        {
+            if (GarrTalentEntry const* entry = sGarrTalentStore.LookupEntry(talentID))
+                trees.insert(entry->GarrTalentTreeID);
+        }
+        response.UnlockedTalentTreeIDs.assign(trees.begin(), trees.end());
+    }
+    SendPacket(response.Write());
 }
 
 void WorldSession::HandleGetTrophyList(WorldPackets::Garrison::GetTrophyList& /*getTrophyList*/)
