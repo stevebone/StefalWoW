@@ -11,6 +11,7 @@
 -- Quest: 29789 Small but significant
 -- Quest: 29788 Unwelcome nature
 -- Quest: 29790 Passing Wisdom
+-- Quest: 29791 The Suffering of Shen-zin Su
 -- Quest: 29782 Stronger than bone
 
 -- NPC: 57623 Shen Stonecarver
@@ -125,7 +126,7 @@ INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`,
 (57690, 57691, 0, 1, 'Tiger Pillar', 8, 0);
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55585,57419,65545, 65560, 65559, 65550, 55650, 55601,55632,57464,57465,65558,57466,55633,55634,57692,
-55744,55595,55592,64543,64532,64507,64505,64506,55874,55786,55586,56274,56159);
+55744,55595,55592,64543,64532,64507,64505,64506,55874,55786,55586,56274,56159,55672,55640,57799,56686);
 INSERT INTO `creature_template_addon` 
 (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 ('55585', '0', '0', '0', '1', '0', '1', '0', '0', '461', '0', '0', '0', '0', '84886'),
@@ -151,9 +152,12 @@ INSERT INTO `creature_template_addon`
 (65545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
 -- Wood of Staves
-(56159, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105329'), -- Master Shang
+(55672, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '108900 126160'), -- Master Shang in the forest
+(56159, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105329'), -- Master Shang towards the forest
+(56686, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, '126160'), -- Master Shang spawned in the forest
 (56274, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Guardian of the Elders
-
+(55640, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Thornbranch Scamp
+(57799, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Spwaned Thornbranch Scamp
 
 -- Zhao-Ren Event
 (55586, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '108900 126160'), -- Master Shang when Zhao-Ren is dead
@@ -169,8 +173,12 @@ INSERT INTO `creature_template_addon`
 (55592, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, '80797'); -- Dafeng in chamber
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55585,57419,65545,55583, 65560, 65559, 65550, 55650,55632,57464,57465,55601,65558,
-57466,55633,55634,57692,55744,55595,55592,64543,64532,64507,64505,64506,55874,55786,55586);
+57466,55633,55634,57692,55744,55595,55592,64543,64532,64507,64505,64506,55874,55786,55586,55672,55640,57799,56686,56159,56274);
 INSERT INTO `creature_template_difficulty` VALUES
+(56686, 0, 0, 0, 80, 4, 1, 1, 1, 1, 27511, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(57799, 0, 0, 0, 80, 4, 0.1, 1, 1, 0.2, 26130, 256, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55640, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29400, 256, 0, 0, 55640, 0, 0, 9, 9, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
+(55672, 0, 0, 0, 80, 4, 1, 1, 1, 1, 29340, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (56159, 0, 0, 0, 80, 4, 1, 1, 1, 1, 28549, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (56274, 0, 0, 0, 80, 4, 3, 1, 1, 0.2, 28250, 2147549697, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55586, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29498, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -218,6 +226,9 @@ UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451428,451509,451508,4
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451577,451562);
 -- Fe-Feng Firethief with waypoints
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451563,451583,451532,451587,451516);
+-- Thornbranch Scamp with waypoints
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451708,451584,451601,451603,451607,451606,451672,451714,451626,451629,
+451487,451636,451655,451706,451653,451705,451684,451683,451697,451710,451709,451716,451661,451658,451660,451664,451674,451665,451676,451694);
 
 UPDATE `creature` SET `id` = 55633 WHERE `guid` = 451583; -- incorrect Firethief id spawn
 
@@ -228,7 +239,9 @@ INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, 
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451461,451457,451466,451456,451467,451463,451458,451468,451459,451441,451436,451446,451448,451438,451472,451473,
 451439,451428,451509,451508,451484,451483,451432,451505,451495,451597,451510,451443,451462,451577,451562,451563,451583,451532,451587,451516,451554,451556,451557,
-451550,451560,451578,451610,451477,451621);
+451550,451560,451578,451610,451477,451621,451708,451584,451601,451603,451607,451606,451672,451714,451626,451629,451487,451636,451655,451706,451653,451705,451684,
+451683,451697,451710,451709,451716,451661,451658,451660,451664,451674,451665,451676,451694,451625,451486,451649,451707,451680,451691,451703,451662,451666,451670,
+451611,451600,451604,451687,451711,451663);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 -- Fe-Feng Firethief
 (451563, 5563300, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '127932'),
@@ -258,7 +271,6 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (451505, 5560106, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451495, 5560107, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451597, 5560108, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
-
 -- Chamber of Whispers
 (451610, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '82343'), -- Aysa inside the chamber
 (451477, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '78718 121801 81312'), -- Aysa at docks
@@ -283,8 +295,57 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (451448, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451438, 5741900, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451439, 5741901, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
-(451472, 5741902, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
+(451472, 5741902, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
+-- Thornbranch Scamp
+(451625, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451486, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451649, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451707, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451680, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451691, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451703, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451662, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451666, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451670, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+(451611, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '123906'),
+
+(451600, 0, 0, 0, 0, 0, 0, 1, 0, 133, 0, 0, 0, 0, ''),
+(451604, 0, 0, 0, 0, 0, 0, 1, 0, 133, 0, 0, 0, 0, ''),
+(451687, 0, 0, 0, 0, 0, 0, 1, 0, 133, 0, 0, 0, 0, ''),
+(451711, 0, 0, 0, 0, 0, 0, 1, 0, 133, 0, 0, 0, 0, ''),
+(451663, 0, 0, 0, 0, 0, 0, 1, 0, 133, 0, 0, 0, 0, ''),
+
+(451708, 5564000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451584, 5564001, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451601, 5564002, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451603, 5564003, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451607, 5564004, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451606, 5564005, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451672, 5564006, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451714, 5564007, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451626, 5564008, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451629, 5564009, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451487, 5564010, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451636, 5564011, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451655, 5564012, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451706, 5564013, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451653, 5564014, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451705, 5564015, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451684, 5564016, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451683, 5564017, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451697, 5564018, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451710, 5564019, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451709, 5564020, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451716, 5564021, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451661, 5564022, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451658, 5564023, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451660, 5564024, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451664, 5564025, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451674, 5564026, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451665, 5564027, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451676, 5564028, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  ''),
+(451694, 5564029, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,  '');
 
 -- Scripts for Jojo
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57670,65467,56394,56393);
@@ -334,7 +395,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (57692, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 90, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Movement Inform - Set Bytes1'),
 -- Tiger Pillar Stand
 (57690, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 5.550147, 'Tiger Pillar Stand - Just Spawned - Set Orientation'),
-
 -- Fe-Feng Firethief
 (57466, 0, 0, 0, 0, 0, 100, 0, 4000, 8000, 15000, 20000, 0, 11, 109098, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update IC - Cast Set Ablaze'),
 (-451518, 0, 0, 0, 1, 0, 100, 0, 0, 3000, 1000, 4000, 0, 5, 35, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Fe-Feng Firethief - Update OOC - Play Emote'),
@@ -491,16 +551,6 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, t
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk' WHERE `Entry` = 55634;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ruk_ruk_rocket' WHERE `Entry` = 64322;
 
-UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55466') and (`DifficultyID` = '0');
-UPDATE `creature_template_difficulty` SET `ContentTuningID` = '80' WHERE (`Entry` = '55672') and (`DifficultyID` = '0');
-
--- Fe-Feng Firethief stolen cannons aura
-DELETE FROM `creature_template_addon` WHERE `entry` IN (55672, 56686);
-INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES (55672, 1, '108900 126160');
-INSERT INTO `creature_template_addon` (`entry`, `StandState`, `SheathState`, `auras`) VALUES (56686, 8, 1, '108900 126160');
-
-
-
 UPDATE `creature` SET `PhaseId` = 524 WHERE `guid` IN (451612,451613,451615,451614,451616,451617,451618,451619,451620);
 UPDATE `creature` SET `PhaseId` = 536 WHERE `guid` IN (451621, 451622, 451623);
 UPDATE `creature` SET `PhaseId` = 1526 WHERE `guid` IN (451624); -- Master Shang at Zhaoren battle (quest starter)
@@ -637,8 +687,8 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (64506, 0, 9, 0, 60, 2, 100, 0, 4000, 8000, 8000, 12000, 0, 11, 117312, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Update - Cast Combat Roll'),
 (64506, 0, 10, 0, 38, 0, 100, 0, 5, 5, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Data Set - Evade');
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (64530,56159,55586,56274);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (64530,6453000,56159,5615900,55586,56274) AND `source_type` IN (0,9);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (64530,56159,55586,56274,55640);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (64530,6453000,56159,5615900,55586,56274,55640) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 (55586, 0, 0, 0, 19, 0, 100, 0, 29787, 0, 0, 0, 0, 12, 56159, 8, 0, 0, 2, 0, 8, 0, 0, 0, 711.335, 4178.049, 197.8459, 0, 'On Quest Accept - Summon Master Shang - Quest 29787'),
 -- Master Shang Xi spawned after Zhao battle ends
@@ -673,7 +723,50 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 
 -- Guardian of the Elders
 (56274, 0, 0, 0, 0, 0, 100, 0, 8000, 12000, 8000, 12000, 0, 11, 125218, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Guardian of the Elders - Update IC - Cast Pounce'),
-(56274, 0, 1, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 11, 56159, 50, 0, 0, 0, 0, 0, 'Guardian of the Elders - On Death - Set Data');
+(56274, 0, 1, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 11, 56159, 50, 0, 0, 0, 0, 0, 'Guardian of the Elders - On Death - Set Data'),
+
+-- Thornbranch Scamp
+(55640, 0, 0, 0, 0, 0, 100, 0, 3000, 6000, 15000, 20000, 0, 11, 109126, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Thornbranch Scamp - Update IC - Cast Mirror Images');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (56686,57874);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56686,5668600,5668601,5668602,5668603,57874);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Master Shang Xi
+(56686, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5668600, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Just Spawned - Run Script'),
+(5668600, 9, 0, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 4, 33097, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Play Sound'),
+(5668600, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Talk'),
+(5668600, 9, 2, 0, 0, 0, 100, 0, 6500, 6500, 0, 0, 0, 5, 396, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Play Emote'),
+(5668600, 9, 3, 0, 0, 0, 100, 0, 5500, 5500, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Talk'),
+(5668600, 9, 4, 0, 0, 0, 100, 0, 6500, 6500, 0, 0, 0, 136, 0, 1, 5, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Set Movement Speed'),
+(5668600, 9, 5, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 53, 0, 5668600, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Start WP'),
+(56686, 0, 1, 2, 40, 0, 100, 0, 0, 5668600, 0, 0, 0, 54, 10000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Pause WP'),
+(56686, 0, 2, 3, 61, 0, 100, 0, 0, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0.6990358, 'Master Shang - WP Reached - Set Orientation'),
+(56686, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 5, 396, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Play Emote'),
+(56686, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5668601, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Run Script'),
+(5668601, 9, 0, 0, 0, 0, 100, 0, 6000, 6000, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Talk'),
+(56686, 0, 5, 6, 40, 0, 100, 0, 4, 5668600, 0, 0, 0, 54, 15000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Pause WP'),
+(56686, 0, 6, 7, 61, 0, 100, 0, 0, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 4.816799, 'Master Shang - WP Reached - Set Orientation'),
+(56686, 0, 7, 8, 61, 0, 100, 0, 0, 0, 0, 0, 0, 4, 33098, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Play Sound'),
+(56686, 0, 8, 9, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 56913, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Cast CSA Dummy Effect Self'),
+(56686, 0, 9, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 3, 3500, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Reached - Talk'),
+(56686, 0, 10, 11, 52, 0, 100, 0, 3, 56686, 0, 0, 0, 28, 126160, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On Text Over - Remove Aura'),
+(56686, 0, 11, 12, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 128850, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On Text Over - Cast Forcecast Summon Walking Stick, Blossoming'),
+(56686, 0, 12, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5668602, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - On Text Over - Run Script'),
+(5668602, 9, 0, 0, 0, 0, 100, 0, 4000, 4000, 0, 0, 0, 5, 25, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Play Emote'),
+(5668602, 9, 1, 0, 0, 0, 100, 0, 2500, 2500, 0, 0, 0, 5, 25, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Play Emote'),
+(56686, 0, 13, 14, 58, 0, 100, 0, 5, 5668600, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 4.292658, 'Master Shang - WP Ended - Set Orientation'),
+(56686, 0, 14, 15, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 4, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Ended - Talk'),
+(56686, 0, 15, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 5668603, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - WP Ended - Run Script'),
+(5668603, 9, 0, 0, 0, 0, 100, 0, 8000, 8000, 0, 0, 0, 5, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Play Emote'),
+(5668603, 9, 1, 0, 0, 0, 100, 0, 7000, 7000, 0, 0, 0, 1, 5, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Talk'),
+(5668603, 9, 2, 0, 0, 0, 100, 0, 5500, 5500, 0, 0, 0, 90, 8, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Set Bytes1'),
+(5668603, 9, 3, 0, 0, 0, 100, 0, 2500, 2500, 0, 0, 0, 11, 128851, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Cast Master Shang Spirit Transform'),
+(5668603, 9, 4, 0, 0, 0, 100, 0, 1500, 1500, 0, 0, 0, 11, 109336, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Cast Trigger Walking Stick Blossom'),
+(5668603, 9, 5, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 11, 106625, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Cast Planting Stave Credit'),
+(5668603, 9, 6, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1885, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Add Phase'),
+(5668603, 9, 7, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Master Shang - Despawn'),
+-- Walking Stick (temp hackfix - spawns shouldn't be visible to other units, TODO)
+(57874, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 18, 520, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Walking Stick - Just Spawned - Add Unit Flags');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (104855,108845,108846,108857,116992,105333,106623,109335,109336);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
@@ -704,48 +797,15 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (22, 1, 7037, 2, 0, 1, 0, 104615, 1, 0, 1, 0, 0, '', 'SAI only when player has not aura');
 
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55640,56686,57799);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55640,56686,5668600,5668601,5668602,5668603,57799);
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57799);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57799);
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
-('55640', '0', '0', '0', '0', '0', '100', '0', '3000', '6000', '15000', '20000', '0', '', '11', '109126', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Thornbranch Scamp - Update IC - Cast Mirror Images'),
-('57799', '0', '0', '0', '63', '0', '100', '0', '0', '0', '0', '0', '0', '', '20', '0', '0', '0', '0', '0', '0', '21', '30', '0', '0', '0', '0', '0', '0', 'Thornbranch Scamp - On Respawn - Attack nearest player'),
-('56686', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668600', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Just Spawned - Run Script'),
-('56686', '0', '1', '2', '40', '0', '100', '0', '0', '5668600', '0', '0', '0', '', '54', '10000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Pause WP'),
-('56686', '0', '2', '3', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '0.699036', 'Master Shang - WP Reached - Set Orientation'),
-('56686', '0', '3', '4', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '5', '396', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Play Emote'),
-('56686', '0', '4', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668601', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Run Script'),
-('56686', '0', '5', '6', '40', '0', '100', '0', '4', '5668600', '0', '0', '0', '', '54', '15000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Pause WP'),
-('56686', '0', '6', '7', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '4.8168', 'Master Shang - WP Reached - Set Orientation'),
-('56686', '0', '7', '8', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '4', '33098', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Play Sound'),
-('56686', '0', '8', '9', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '56913', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Cast CSA Dummy Effect Self'),
-('56686', '0', '9', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '1', '3', '3500', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Reached - Talk'),
-('56686', '0', '10', '11', '52', '0', '100', '0', '3', '56686', '0', '0', '0', '', '28', '126160', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Text Over - Remove Aura'),
-('56686', '0', '11', '12', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '11', '128850', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Text Over - Cast Forcecast Summon Walking Stick, Blossoming'),
-('56686', '0', '12', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668602', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - On Text Over - Run Script'),
-('56686', '0', '13', '14', '58', '0', '100', '0', '5', '5668600', '0', '0', '0', '', '66', '0', '0', '0', '0', '0', '0', '8', '0', '0', '0', '0', '0', '0', '4.29266', 'Master Shang - WP Ended - Set Orientation'),
-('56686', '0', '14', '15', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '1', '4', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Ended - Talk'),
-('56686', '0', '15', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5668603', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - WP Ended - Run Script'),
-('5668600', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '4', '33097', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Sound'),
-('5668600', '9', '1', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
-('5668600', '9', '2', '0', '0', '0', '100', '0', '6500', '6500', '1000', '1000', '0', '', '5', '396', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
-('5668600', '9', '3', '0', '0', '0', '100', '0', '5500', '5500', '1000', '1000', '0', '', '1', '1', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
-('5668600', '9', '4', '0', '0', '0', '100', '0', '6500', '6500', '1000', '1000', '0', '', '136', '0', '1', '5', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Set Movement Speed'),
-('5668600', '9', '5', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '53', '0', '5668600', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Start WP'),
-('5668601', '9', '0', '0', '0', '0', '100', '0', '6000', '6000', '1000', '1000', '0', '', '1', '2', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
-('5668602', '9', '0', '0', '0', '0', '100', '0', '4000', '4000', '1000', '1000', '0', '', '5', '25', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
-('5668602', '9', '1', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '5', '25', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
-('5668603', '9', '0', '0', '0', '0', '100', '0', '8000', '8000', '1000', '1000', '0', '', '5', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Play Emote'),
-('5668603', '9', '1', '0', '0', '0', '100', '0', '7000', '7000', '1000', '1000', '0', '', '1', '5', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Talk'),
-('5668603', '9', '2', '0', '0', '0', '100', '0', '5500', '5500', '1000', '1000', '0', '', '90', '8', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Set Bytes1'),
-('5668603', '9', '3', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '11', '128851', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Master Shang Spirit Transform'),
-('5668603', '9', '4', '0', '0', '0', '100', '0', '1500', '1500', '1000', '1000', '0', '', '11', '109336', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Trigger Walking Stick Blossom'),
-('5668603', '9', '5', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '11', '106625', '0', '0', '0', '0', '0', '23', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Cast Planting Stave Credit'),
-('5668603', '9', '6', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Master Shang - Despawn');
+('57799', '0', '0', '0', '63', '0', '100', '0', '0', '0', '0', '0', '0', '', '20', '0', '0', '0', '0', '0', '0', '21', '30', '0', '0', '0', '0', '0', '0', 'Thornbranch Scamp - On Respawn - Attack nearest player');
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (55672);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (55672);
 INSERT INTO `smart_scripts` VALUES
-('55672', '0', '0', '0', '', '19', '0', '100', '0', '29790', '0', '0', '0', '0', '', '41', '1000', '30000', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Accepted Quest - Invoker Cast Summon Master Shang Xi'),
+('55672', '0', '0', '0', '', '19', '0', '100', '0', '29790', '0', '0', '0', '0', '', '41', '1000', '30000', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Accepted Quest - Force Despawn'),
 ('55672', '0', '1', '0', '', '20', '0', '100', '0', '29787', '0', '0', '0', '0', '', '1', '0', '0', '0', '0', '0', '0', '0', NULL, '1', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Master Shang - On Reward Quest - Master Shang Xi Talk');
 
 -- Delete existing reference loot
@@ -779,6 +839,11 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (55633, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
 
 -- NPC: 55634 Ruk-ruk (Humanoid)
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(55634, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
+(55634, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');
+
+-- NPC: 55640 Thornbranch Scamp (Humanoid)
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
 (55634, 1, 1, 100, 0, 1, 1, 1, 'General loot'),
 (55634, 1, 4, 100, 0, 1, 1, 1, 'Humanoids');

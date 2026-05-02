@@ -247,6 +247,7 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `M
 (1, 3370, 1, 1, 1, 1, 'Patchwork Belt'),
 (1, 6520, 0.31348, 1, 1, 1, 'Pioneer Cloak'),
 (1, 8178, 0.302028, 1, 1, 1, 'Training Sword'),
+(1, 4561, 0.302028, 1, 1, 1, 'Scalping Tomahawk'),
 -- Consumable
 (1, 117, 43.8596, 1, 1, 1, 'Tough Jerky'),
 (1, 159, 17, 1, 1, 1, 'Refreshing Spring Water'),
@@ -266,6 +267,8 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `M
 (1, 4408, 0.281373, 1, 1, 1, 'Schematic: Mechanical Squirrel Box'),
 (1, 2555, 0.281373, 1, 1, 1, 'Recipe: Swiftness Potion'),
 (1, 2553, 0.281373, 1, 1, 1, 'Recipe: Elixir of Minor Agility'),
+(1, 2408, 0.281373, 1, 1, 1, 'Pattern: Fine Leather Gloves'),
+(1, 2407, 0.281373, 1, 1, 1, 'Pattern: White Leather Jerkin'),
 -- Bags & Pouches
 (1, 805, 3.29206, 1, 1, 1, 'Small Red Pouch'),
 (1, 828, 6, 1, 1, 1, 'Small Blue Pouch'),

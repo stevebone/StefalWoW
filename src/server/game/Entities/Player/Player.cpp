@@ -20731,10 +20731,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
 
     // adding extra inventory cells to existing characters
     if (HasPlayerLocalFlag(PLAYER_LOCAL_FLAG_ACCOUNT_SECURED) && sWorld->getIntConfig(CONFIG_PLAYER_EXTENDED_BACKPACK_SLOTS) > 0 && GetInventorySlotCount() == INVENTORY_DEFAULT_SIZE)
-    {
         SetInventorySlotCount(INVENTORY_SECURED_SIZE);
-        return;
-    }
 
     // first save/honor gain after midnight will also update the player's honor fields
     UpdateHonorFields();

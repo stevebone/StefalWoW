@@ -283,12 +283,12 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 -- Phase Conditions
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 536, 631, 632, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
-1510, 1518, 1519, 1523, 1714,1836,1526);
+1510, 1518, 1519, 1523, 1714,1836,1526,1527);
 INSERT INTO `conditions` VALUES
 -- Zhao-Ren
 (26, 524, 0, 0, 0, 9, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Phase 524 active if 29786 taken'),
-(26, 536, 5829, 0, 0, 28, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29786 complete'),
-(26, 536, 5829, 0, 1, 8, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29786 rewarded'),
+(26, 536, 5829, 0, 0, 47, 0, 29786, 66, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29786 complete or rewarded'),
+(26, 536, 5829, 0, 0, 47, 0, 29787, 66, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29787 not complete or rewarded'),
 
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
@@ -344,6 +344,12 @@ INSERT INTO `conditions` VALUES
 (26, 1526, 0, 0, 1, 28, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29787 not complete'),
 (26, 1526, 0, 0, 1, 8, 0, 29787, 0, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 1526 when Quest 29787 not rewarded'),
 
+-- The Wood of Staves
+(26, 1527, 0, 0, 0, 8, 0, 29787, 0, 0, '', 0, 0, 0, '', 'The Wood of Staves Phase 1527 when Quest 29787 rewarded'),
+(26, 1527, 0, 0, 0, 47, 0, 29790, 74, 0, '', 1, 0, 0, '', 'The Wood of Staves Phase 1527 when Quest 29790 not taken, not complete and not rewarded'),
+(26, 1527, 0, 0, 1, 28, 0, 29787, 0, 0, '', 0, 0, 0, '', 'The Wood of Staves Phase 1527 when Quest 29787 complete'),
+(26, 1527, 0, 0, 1, 1, 0, 105333, 1, 0, '', 1, 0, 0, '', 'The Wood of Staves Phase 1527 when player has not aura'),
+
 -- Fe-Feng Village
 (26, 1714, 5831, 0, 0, 28, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not complete'),
 (26, 1714, 5831, 0, 0, 8, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not rewarded'),
@@ -375,13 +381,7 @@ INSERT INTO `conditions` VALUES
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1527, 1885);
-
-  
--- Phase 1527: after 29787
-INSERT INTO `conditions` VALUES
-(26, 1527, 0, 0, 0, 47, 0, 29787, 64, 0, '', 0, 0, 0, '', 'Phase 1527 active if 29787 IS rewarded'),
-(26, 1527, 0, 0, 0, 47, 0, 29790, 64, 0, '', 1, 0, 0, '', 'Phase 1527 active if 29790 NOT rewarded');
+  AND `SourceGroup` IN (1885);
 
 -- Phase 1885: during 29790
 INSERT INTO `conditions` VALUES
