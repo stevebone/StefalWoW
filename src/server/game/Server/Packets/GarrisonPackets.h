@@ -614,17 +614,27 @@ namespace WorldPackets
             std::vector<GarrisonFollower> Followers;
         };
 
-        // 32-byte per-follower record on COMPLETE_MISSION_RESULT / BONUS_ROLL_RESULT.
-        // IDA-confirmed via Deserialize_CompleteMissionFollowerInfo @ 0x7FF75C175900 — see
-        // SNIFF_AUDIT §10.1.3. The +0 (DbID) and +8 (Health) fields are HIGH/MEDIUM
-        // confidence; +16 and +24 are LOW confidence on field NAMES (the wire SHAPE is
-        // locked in: u64+u32+u64+u32). Sniff verification is needed to firm up the names.
+        // 32-byte per-follower complete-mission record — IDA-confirmed
+        // (12.0.5.67186) via Deserialize_CompleteMissionFollowerInfo @ 0x7FF75C175900.
+        // See SNIFF_AUDIT §10.1.3 + §11 (deepest-pass field-naming).
+        //
+        // Wire format:
+        //     varint64  DbID         CONFIRMED — follower DbID
+        //     varU32    Health       CONFIRMED — HP at end of auto-combat
+        //     varint64  Unknown1     LOW       — see §11.5 candidate decodes;
+        //                                       most-likely (MaxHealth<<32)|Durability,
+        //                                       alternatives: AwardedItemDbID,
+        //                                       (NewLevel<<32)|XpAwarded, reserved/zero.
+        //                                       TC currently writes 0 (client tolerates).
+        //     varU32    State        CONFIRMED — GarrFollowerMissionCompleteState enum:
+        //                                       0=Alive, 1=KilledByMissionFailure,
+        //                                       2=SavedByPreventDeath, 3=OutOfDurability.
         struct GarrisonCompleteMissionFollowerInfo
         {
             uint64 DbID = 0;
             uint32 Health = 0;
-            uint64 Unknown1 = 0;
-            uint32 Unknown2 = 0;
+            uint64 Unknown1 = 0;        // §11.5 — name pending live capture
+            uint32 State = 0;           // GarrFollowerMissionCompleteState
         };
 
         // 24-byte per-target record produced by one auto-combat event. IDA-confirmed

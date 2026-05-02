@@ -669,7 +669,7 @@ WorldPacket const* GarrisonCompleteMissionResult::Write()
         _worldPacket << uint64(info.DbID);
         _worldPacket << uint32(info.Health);
         _worldPacket << uint64(info.Unknown1);
-        _worldPacket << uint32(info.Unknown2);
+        _worldPacket << uint32(info.State);
     }
 
     _worldPacket << Mission;
@@ -723,7 +723,7 @@ WorldPacket const* GarrisonMissionBonusRollResult::Write()
         _worldPacket << uint64(info.DbID);
         _worldPacket << uint32(info.Health);
         _worldPacket << uint64(info.Unknown1);
-        _worldPacket << uint32(info.Unknown2);
+        _worldPacket << uint32(info.State);
     }
 
     // Wire reads bit7 → Succeeded. The remaining 7 low bits are unused.
