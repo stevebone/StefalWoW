@@ -60,6 +60,9 @@ namespace Spells
     static constexpr uint32 FlyingShadowKickJump = 108943;
     static constexpr uint32 FeetOfFury = 108958;
     static constexpr uint32 FeetOfFuryDamage = 108957;
+    static constexpr uint32 BlessingOfTheRedFlame = 102508;
+    static constexpr uint32 BlessingOfTheBlueFlame = 102509;
+    static constexpr uint32 BlessingOfThePurpleFlame = 102510;
 }
 
 namespace Quests
