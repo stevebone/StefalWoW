@@ -36,96 +36,128 @@
 
 namespace Scripts::Pandaria::TheWanderingIsle
 {
-    namespace Spells
-    {
-        // Singing Pools
-        static constexpr uint32 CurseOfTheFrog = 102938;
-        static constexpr uint32 CurseOfTheSkunk = 102939;
-        static constexpr uint32 CurseOfTheTurtle = 102940;
-        static constexpr uint32 CurseOfTheCrane = 102941;
-        static constexpr uint32 CurseOfTheCrocodile = 102942;
-        static constexpr uint32 RideVehiclePole = 102717;
-        static constexpr uint32 TrainingBellPoleExitExclusion = 133381;
+namespace Spells
+{
+    // Generic Vehicle Spells
+    static constexpr uint32 ForceVehicleRide = 46598;
+    static constexpr uint32 EjectPassengers = 50630;
+    static constexpr uint32 OxCartRopeLeft = 108627; // Cart on Yak
 
-        // Only the Worthy Shall Pass
-        static constexpr uint32 FireCrashCover = 108149;
-        static constexpr uint32 FireCrashInvis = 108150;
-        static constexpr uint32 FireCrashPhaseShift = 102515;
-        static constexpr uint32 FlyingShadowKick = 108936;
-        static constexpr uint32 FlyingShadowKickJump = 108943;
-        static constexpr uint32 FeetOfFury = 108958;
-        static constexpr uint32 FeetOfFuryDamage = 108957;
-        static constexpr uint32 BlessingOfTheRedFlame = 102508;
-        static constexpr uint32 BlessingOfTheBlueFlame = 102509;
-        static constexpr uint32 BlessingOfThePurpleFlame = 102510;
-    }
+    // Singing Pools
+    static constexpr uint32 CurseOfTheFrog = 102938;
+    static constexpr uint32 CurseOfTheSkunk = 102939;
+    static constexpr uint32 CurseOfTheTurtle = 102940;
+    static constexpr uint32 CurseOfTheCrane = 102941;
+    static constexpr uint32 CurseOfTheCrocodile = 102942;
+    static constexpr uint32 RideVehiclePole = 102717;
+    static constexpr uint32 TrainingBellPoleExitExclusion = 133381;
 
-    namespace Quests
-    {
-        static constexpr uint32 OnlyTheWorthyShallPass = 29421;
-    }
+    // Only the Worthy Shall Pass
+    static constexpr uint32 FireCrashCover = 108149;
+    static constexpr uint32 FireCrashInvis = 108150;
+    static constexpr uint32 FireCrashPhaseShift = 102515;
+    static constexpr uint32 FlyingShadowKick = 108936;
+    static constexpr uint32 FlyingShadowKickJump = 108943;
+    static constexpr uint32 FeetOfFury = 108958;
+    static constexpr uint32 FeetOfFuryDamage = 108957;
+}
 
-    namespace Creatures
-    {
-        static constexpr uint32 MasterLiFei = 54135;
-        static constexpr uint32 MasterLiFeiCombat = 54734;
-    }
+namespace Quests
+{
+    static constexpr uint32 OnlyTheWorthyShallPass = 29421;
+    static constexpr uint32 TheSourceOfLivelihood = 29680;
+    static constexpr uint32 TheSpiritAndBodyOfShenzinsu = 29775;
+    static constexpr uint32 NewAllies = 29800;
+}
 
-    namespace Talks
-    {
-        static constexpr uint32 LiFeiDefeat = 0;
-    }
+namespace Creatures
+{
+    static constexpr uint32 MasterLiFei = 54135;
+    static constexpr uint32 MasterLiFeiCombat = 54734;
 
-    enum TraineeMisc
-    {
-        SAY_FINISH_FIGHT = 0,
+    // Yak and Cart
+    static constexpr uint32 CartSingingPools = 57710;
+    static constexpr uint32 CartFarmstead = 59497;
+    static constexpr uint32 CartForest = 57741;
 
-        SPELL_BLACKOUT_KICK = 109080,
+    static constexpr uint32 CartVehicleSingingPools = 57208;
+    static constexpr uint32 CartVehicleFarmstead = 59496;
+    static constexpr uint32 CartVehicleForest = 57740;
+}
 
-        QUEST_29524_KILLCREDIT = 54586,
+namespace Talks
+{
+    static constexpr uint32 LiFeiDefeat = 0;
+}
 
-        POINT_DESPAWN = 0,
+namespace Paths
+{
+    // Yak and Cart
+    static constexpr uint32 CartSingingPools = 5720800;
+    static constexpr uint32 CartFarmstead = 5949600;
+    static constexpr uint32 CartForest = 5774000;
 
-        NPC_HUOJIN_TRAINEE_MALE = 54586,
-        NPC_HUOJIN_TRAINEE_FEMALE = 65470,
-        NPC_TUSHUI_TRAINEE_MALE = 54587,
-        NPC_TUSHUI_TRAINEE_FEMALE = 65471,
-    };
+    static constexpr int8 NodeCartRemovePassenger = 28;
+    static constexpr int8 NodeForestCartRemovePassenger = 34;
+}
 
-    Position const TraineeEndpoints[] = {
-        { 1465.3872f, 3283.8604f, 137.69096f },
-        { 1431.401f, 3264.001f, 136.02579f },
-        { 1397.2067f, 3276.5618f, 133.84508f },
-        { 1441.566f, 3232.8013f, 135.01802f },
-        { 1403.632f, 3229.1094f, 132.14877f },
-        { 1347.1927f, 3286.5842f, 131.94803f },
-        { 1365.1865f, 3338.9502f, 128.57233f },
-        { 1349.6024f, 3315.0574f, 130.97443f },
-        { 1335.4618f, 3344.019f, 130.42047f },
-        { 1360.1198f, 3378.02f, 127.34183f },
-        { 1435.8524f, 3355.6423f, 173.77744f },
-        { 1432.7031f, 3385.1572f, 184.4187f },
-        { 1452.6094f, 3373.3315f, 187.0402f },
-        { 1426.7778f, 3364.7517f, 184.39569f },
-        { 1450.3646f, 3361.264f, 184.42484f },
-    };
+namespace Events
+{
+    // Yak and Cart
+    static constexpr int8 YakCartPathStart = 1;
+    static constexpr int8 YakCartRopes = 2;
+}
 
-    Emote constexpr TraineeEmotes[5] =
-    {
-        EMOTE_ONESHOT_MONKOFFENSE_ATTACKUNARMED,
-        EMOTE_ONESHOT_MONKOFFENSE_SPECIALUNARMED,
-        EMOTE_ONESHOT_MONKOFFENSE_PARRYUNARMED,
-        EMOTE_ONESHOT_PALMSTRIKE,
-        EMOTE_ONESHOT_MONKOFFENSE_ATTACKUNARMEDOFF,
-    };
+enum TraineeMisc
+{
+    SAY_FINISH_FIGHT                    = 0,
 
-    // 54586 - Huojin Trainee
-    // 65470 - Huojin Trainee
-    // 54587 - Tushui Trainee
-    // 65471 - Tushui Trainee
-    struct npc_tushui_huojin_trainee : public ScriptedAI
-    {
-        npc_tushui_huojin_trainee(Creature* creature) : ScriptedAI(creature), _defeated(false) { }
+    SPELL_BLACKOUT_KICK                 = 109080,
+
+    QUEST_29524_KILLCREDIT              = 54586,
+
+    POINT_DESPAWN                       = 0,
+
+    NPC_HUOJIN_TRAINEE_MALE             = 54586,
+    NPC_HUOJIN_TRAINEE_FEMALE           = 65470,
+    NPC_TUSHUI_TRAINEE_MALE             = 54587,
+    NPC_TUSHUI_TRAINEE_FEMALE           = 65471,
+};
+
+Position const TraineeEndpoints[] = {
+    { 1465.3872f, 3283.8604f, 137.69096f },
+    { 1431.401f, 3264.001f, 136.02579f },
+    { 1397.2067f, 3276.5618f, 133.84508f },
+    { 1441.566f, 3232.8013f, 135.01802f },
+    { 1403.632f, 3229.1094f, 132.14877f },
+    { 1347.1927f, 3286.5842f, 131.94803f },
+    { 1365.1865f, 3338.9502f, 128.57233f },
+    { 1349.6024f, 3315.0574f, 130.97443f },
+    { 1335.4618f, 3344.019f, 130.42047f },
+    { 1360.1198f, 3378.02f, 127.34183f },
+    { 1435.8524f, 3355.6423f, 173.77744f },
+    { 1432.7031f, 3385.1572f, 184.4187f },
+    { 1452.6094f, 3373.3315f, 187.0402f },
+    { 1426.7778f, 3364.7517f, 184.39569f },
+    { 1450.3646f, 3361.264f, 184.42484f },
+};
+
+Emote constexpr TraineeEmotes[5] =
+{
+    EMOTE_ONESHOT_MONKOFFENSE_ATTACKUNARMED,
+    EMOTE_ONESHOT_MONKOFFENSE_SPECIALUNARMED,
+    EMOTE_ONESHOT_MONKOFFENSE_PARRYUNARMED,
+    EMOTE_ONESHOT_PALMSTRIKE,
+    EMOTE_ONESHOT_MONKOFFENSE_ATTACKUNARMEDOFF,
+};
+
+// 54586 - Huojin Trainee
+// 65470 - Huojin Trainee
+// 54587 - Tushui Trainee
+// 65471 - Tushui Trainee
+struct npc_tushui_huojin_trainee : public ScriptedAI
+{
+    npc_tushui_huojin_trainee(Creature* creature) : ScriptedAI(creature), _defeated(false) { }
 
         Emote PlayRandomEmote() const
         {
@@ -1521,6 +1553,117 @@ class spell_flying_shadow_kick : public SpellScript
         OnEffectHitTarget += SpellEffectFn(spell_flying_shadow_kick::HandleHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
+
+struct CartData
+{
+    uint32 Entry = 0;
+    uint32 PathId = 0;
+    Optional<uint8> EjectNodeId;
+    Optional<uint32> CreditNPC;
+    Optional<uint32> QuestId;
+    Optional<uint32> YakNPC;
+};
+
+static constexpr CartData CartDataTable[] =
+{
+    // Carts
+    {
+        .Entry = Creatures::CartVehicleSingingPools,
+        .PathId = Paths::CartSingingPools,
+        .EjectNodeId = Paths::NodeCartRemovePassenger,
+        .CreditNPC = Creatures::CartSingingPools,
+        .QuestId = Quests::TheSourceOfLivelihood,
+    },
+    {
+        .Entry = Creatures::CartVehicleFarmstead,
+        .PathId = Paths::CartFarmstead,
+        .EjectNodeId = Paths::NodeCartRemovePassenger,
+        .CreditNPC = Creatures::CartFarmstead,
+        .QuestId = Quests::TheSpiritAndBodyOfShenzinsu,
+    },
+    {
+        .Entry = Creatures::CartVehicleForest,
+        .PathId = Paths::CartForest,
+        .EjectNodeId = Paths::NodeForestCartRemovePassenger,
+        .CreditNPC = Creatures::CartForest,
+        .QuestId = Quests::NewAllies,
+    }
+};
+
+static CartData GetCartData(uint32 entry)
+{
+    for (CartData const& data : CartDataTable)
+        if (data.Entry == entry)
+            return data;
+
+    return {};
+}
+
+// 57208 - Delivery Cart (Singing Pools)
+// 59496 - Delivery Cart (Farmstead)
+// 57740 - Delivery Cart (Forbidden Forest)
+struct npc_delivery_cart : public ScriptedAI
+{
+    npc_delivery_cart(Creature* creature) : ScriptedAI(creature), _data(GetCartData(creature->GetEntry())) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+    }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+    {
+        if (!apply)
+            return;
+
+        Player* player = passenger->ToPlayer();
+        if (!player)
+            return;
+
+        me->CastSpell(player, Spells::ForceVehicleRide);
+
+        _events.ScheduleEvent(Events::YakCartPathStart, 1800ms);
+        _events.ScheduleEvent(Events::YakCartRopes, 1s);
+
+        if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)
+            player->KilledMonsterCredit(*_data.CreditNPC, player->GetGUID());
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+    {
+        if (_data.EjectNodeId && nodeId == *_data.EjectNodeId)
+            me->CastSpell(me, Spells::EjectPassengers);
+    }
+
+    void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
+    {
+        me->DespawnOrUnsummon(1s);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case Events::YakCartRopes:
+                    me->CastSpell(me, Spells::OxCartRopeLeft);
+                    break;
+                case Events::YakCartPathStart:
+                    me->GetMotionMaster()->MovePath(_data.PathId, false);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+private:
+    EventMap _events;
+    CartData _data;
+};
 }
 
 void AddSC_zone_the_wandering_isle()
@@ -1560,4 +1703,6 @@ void AddSC_zone_the_wandering_isle()
     RegisterCreatureAI(npc_li_fei_combat);
     RegisterSpellScript(spell_feet_of_fury);
     RegisterSpellScript(spell_flying_shadow_kick);
+
+    RegisterCreatureAI(npc_delivery_cart);
 }
