@@ -69,6 +69,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint8 LAUNCHER_STATE_RECHARGING = 3;
 
         // Balloon Ride Event
+        static constexpr uint32 phase_balloon_ride = 1885;
+
         static constexpr uint32 shenzinsu_bunny_text_1 = 55550;
         static constexpr uint32 shenzinsu_bunny_text_2 = 55568;
         static constexpr uint32 shenzinsu_bunny_text_3 = 55569;
@@ -163,6 +165,13 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_credit_speak_with_shenzinsu = 105010;
         static constexpr uint32 spell_eject_passenger_1 = 60603;
         static constexpr uint32 spell_parachute = 45472;
+        static constexpr uint32 spell_summon_hot_air_balloon = 105002;
+        static constexpr uint32 spell_trigger_with_anim_0 = 114898;
+        static constexpr uint32 spell_shenzinsu_trigger = 106759;
+        static constexpr uint32 spell_trigger_with_anim_1 = 118571;
+        static constexpr uint32 spell_trigger_with_turn = 118572;
+        static constexpr uint32 spell_credit_hot_air_balloon = 105895;
+        static constexpr uint32 spell_reverse_cast_ride_vehicle_seat_2 = 106617;
 
         // Forlorn Hut in the Forbidden forest
         static constexpr uint32 spell_summon_ji_at_forlorn_hut = 117973;
@@ -207,13 +216,6 @@ namespace Scripts::Custom::TheWanderingIsle
 
         // Temple faction choice
         static constexpr uint32 spell_balloon_exit_movie = 132212;
-
-        // Talking to Shenzinsu turtle spells - not working
-        // Just for later reference
-        static constexpr uint32 spell_trigger_with_anim_0 = 114898;
-        static constexpr uint32 spell_trigger = 106759;
-        static constexpr uint32 spell_trigger_with_anim_1 = 118571;
-        static constexpr uint32 spell_trigger_with_turn = 118572;
 
         // Mandori Village - not working
         // Just for later reference
@@ -550,6 +552,9 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 path_cart_forest = 5774000;
         static constexpr int8 path_node_cart_remove_passenger = 27;
         static constexpr int8 path_node_cart_forest_remove_passenger = 34;
+
+        // Balloon Ride
+        static constexpr uint32 path_hot_air_balloon = 5564900;
     }
 
 

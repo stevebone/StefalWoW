@@ -1987,10 +1987,7 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 Player* player = passenger->ToPlayer();
                 if (player && apply)
-                {
-                    player->CastSpell(player, 105002, true);
-                    //PhasingHandler::RemovePhase(player, 1885, true);
-                }
+                    player->CastSpell(player, Spells::spell_summon_hot_air_balloon, true);
             }
         };
 
@@ -2029,7 +2026,6 @@ namespace Scripts::Custom::TheWanderingIsle
                     // this does not seem to cast/work when player is already in another vehicle
                     Vehicle* vehicle = me->GetVehicleKit();
                     summoner->ToPlayer()->EnterVehicle(vehicle->GetBase(), -1);
-                    //PhasingHandler::RemovePhase(summoner, 1885, true);
                 }
             }
 
@@ -2037,14 +2033,13 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 if (apply)
                 {
-                    // Get GUIDs of Aysa and Ji when they board in
                     if (Creature* creature = passenger->ToCreature())
                     {
                         if (creature->GetEntry() == Npcs::npc_aysa_q29791)
                         {
                             Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                            PhasingHandler::RemovePhase(player, 1885, true);
-                            PhasingHandler::RemovePhase(creature, 1885, true);
+                            PhasingHandler::RemovePhase(player, Misc::phase_balloon_ride, true);
+                            PhasingHandler::RemovePhase(creature, Misc::phase_balloon_ride, true);
                         }
                     }
                 }
@@ -2059,7 +2054,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 switch (nodeId)
                 {
                 case 0:
-                    me->SetSpeed(MOVE_FLIGHT, 7.0f);
+                    me->SetSpeed(MOVE_FLIGHT, 3.0f);
                     break;
                 case 2:
                 {
@@ -2069,22 +2064,18 @@ namespace Scripts::Custom::TheWanderingIsle
                 }
                 case 3:
                 {
-                    // Share GUIDs with Shen-zin Su
-                    if (Creature* shenZinSu = me->FindNearestCreature(56676, 500.0f))
-                        shenZinSu->AI()->SetGUID(player->GetGUID(), 0);  // Player GUID
-
                     if (aysa) aysa->ToCreature()->AI()->SetData(2, 3);
                     break;
                 }
                 case 4:
                 {
-                    if (player) player->CastSpell(player, 114898);
+                    if (player) player->CastSpell(player, Spells::spell_trigger_with_anim_0);
                     events.ScheduleEvent(4, 14s);
                     break;
                 }
                 case 5:
                 {
-                    if (player) player->CastSpell(player, 118571);
+                    if (player) player->CastSpell(player, Spells::spell_trigger_with_anim_1);
                     events.ScheduleEvent(5, 14s);
                     events.ScheduleEvent(6, 15s);
                     break;
@@ -2116,7 +2107,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 }
                 case 14:
                 {
-                    if (player) DoCast(player, 105010);
+                    if (player) DoCast(player, Spells::spell_credit_speak_with_shenzinsu);
                     break;
                 }
                 case 17:
@@ -2131,14 +2122,14 @@ namespace Scripts::Custom::TheWanderingIsle
 
             void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
             {
-                if (pathId == 5564900)
+                if (pathId == Paths::path_hot_air_balloon)
                 {
                     Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
                     if (player)
                     {
                         me->CastSpell(player, Spells::spell_eject_passenger_1, true);
                         me->CastSpell(player, Spells::spell_parachute, true);
-                        player->RemoveAurasDueToSpell(105002);
+                        player->RemoveAurasDueToSpell(Spells::spell_summon_hot_air_balloon);
                     }
 
                     Unit* aysa = me->GetVehicleKit()->GetPassenger(1);
@@ -2160,7 +2151,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     {
                     case 1: // cast quest credit
                     {
-                        if (player) DoCast(player, 105895);
+                        if (player) DoCast(player, Spells::spell_credit_hot_air_balloon);
 
                         Unit* ji = me->GetVehicleKit()->GetPassenger(2);
                         Unit* aysa = me->GetVehicleKit()->GetPassenger(1);
@@ -2173,23 +2164,23 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
 
                     case 2: // Reverse cast ride vehicle Aysa
-                        me->CastSpell(me, 106617, true);
+                        me->CastSpell(me, Spells::spell_reverse_cast_ride_vehicle_seat_2, true);
                         me->SetOrientation(0.2443461f);
                         break;
 
                     case 3: // Start Path
-                        me->GetMotionMaster()->MovePath(5564900, false);
+                        me->GetMotionMaster()->MovePath(Paths::path_hot_air_balloon, false);
                         break;
 
                     case 4: // Player cross cast General Trigger
                     {
-                        if (player) player->CastSpell(player, 106759);
+                        if (player) player->CastSpell(player, Spells::spell_shenzinsu_trigger);
                         break;
                     }
 
                     case 5: // Player cross cast General Trigger
                     {
-                        if (player) player->CastSpell(player, 118571);
+                        if (player) player->CastSpell(player, Spells::spell_trigger_with_anim_1);
                         break;
                     }
 
@@ -2230,12 +2221,6 @@ namespace Scripts::Custom::TheWanderingIsle
                 currentPhase = 0;
             }
 
-            void SetGUID(ObjectGuid const& guid, int32 id) override
-            {
-                if (id == 0)
-                    playerGUID = guid;
-            }
-
             void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
             {
                 Player* player = caster->ToPlayer();
@@ -2244,19 +2229,19 @@ namespace Scripts::Custom::TheWanderingIsle
 
                 switch (spellInfo->Id)
                 {
-                case 114898:
+                case Spells::spell_trigger_with_anim_0:
                     me->Talk(Misc::shenzinsu_bunny_text_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
                     me->PlayDirectSound(27822, player);
                     currentPhase = 1;
                     break;
 
-                case 106759:
+                case Spells::spell_shenzinsu_trigger:
                     me->Talk(Misc::shenzinsu_bunny_text_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
                     me->PlayDirectSound(27823, player);
                     currentPhase = 2;
                     break;
 
-                case 118571:
+                case Spells::spell_trigger_with_anim_1:
                     switch (currentPhase)
                     {
                     case 1:
@@ -2278,7 +2263,7 @@ namespace Scripts::Custom::TheWanderingIsle
                     }
                     break;
 
-                case 118572:
+                case Spells::spell_trigger_with_turn:
                     me->Talk(Misc::shenzinsu_bunny_text_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
                     me->PlayDirectSound(27826, player);
                     currentPhase = 4;
