@@ -197,6 +197,11 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (118233, 'spell_turtle_healed_phase_timer'),
 (117783, 'spell_healing_shenzin_su');
 
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (108932,108933);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 108933, 0, 0, 51, 0, 5, 57741, 0, 0, 0, 0, '', 'Summon Ox Cart, Skyfire Crash > Temple target Delivery Cart'),
+(13, 1, 108932, 0, 0, 51, 0, 5, 57743, 0, 0, 0, 0, '', 'Summon Ox, Skyfire Crash > Temple target Nourished Yak');
+
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 60851, 57317, 60852, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780, 56007, 56008,
 56174, 56360, 55946, 53705, 56172, 60685);

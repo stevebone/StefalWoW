@@ -27,7 +27,7 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 ('13140', '18503', '0', '0', 'Shu, can you wake up Wuguo for me?', '54025', '0', '1', 104017);
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND `ConditionValue1` = 29774;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (118030, 118033, 108830, 108831,104017,118036,118027);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (118030, 118033, 108830, 108831,104017,118036,118027,114453,114454);
 INSERT INTO `conditions` VALUES
 (15, 13140, 0, 0, 0, 47, 0, 29774, 8, 0, '', 0, 0, 0, '', 'Player for which gossip text is shown has quest 29774 in progress'),
 (13, 1, 118030, 0, 1, 51, 0, 6, 0, 0, '', 0, 0, 0, '', 'Water Spout Burst target player'),
@@ -36,7 +36,9 @@ INSERT INTO `conditions` VALUES
 (13, 1, 108831, 0, 0, 51, 0, 5, 57667, 0, '', 0, 0, 0, '', 'Jojo Headbash, Stack of Planks Impact target Stack of Planks'),
 (13, 1, 104017, 0, 0, 51, 0, 5, 55556, 0, '', 0, 0, 0, '', 'Summon Spirit of Water target Shu'),
 (13, 1, 118036, 0, 0, 51, 0, 5, 55539, 0, '', 0, 0, 0, '', 'Summon Spirit of Earth target Wugou'),
-(13, 1, 118027, 0, 0, 51, 0, 5, 60916, 0, '', 0, 0, 0, '', 'Shu''s Water Splash target Wugou');
+(13, 1, 118027, 0, 0, 51, 0, 5, 60916, 0, '', 0, 0, 0, '', 'Shu''s Water Splash target Wugou'),
+(13, 1, 114453, 0, 0, 51, 0, 5, 59497, 0, '', 0, 0, 0, '', 'Summon Ox Cart, Farmlands -> Temple target Delivery Cart'),
+(13, 1, 114454, 0, 0, 51, 0, 5, 59499, 0, '', 0, 0, 0, '', 'Summon Ox, Farmlands -> Temple target Nourished Yak');
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (65473,55539, 55213, 55556, 64939,55478,57669,55506,56241,55483, 55504,55477,55558,60916);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 

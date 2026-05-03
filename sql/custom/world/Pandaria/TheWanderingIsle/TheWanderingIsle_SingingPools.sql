@@ -135,12 +135,14 @@ INSERT INTO `npc_spellclick_spells` VALUES
 (55083, 102717, 1, 0),
 (57431, 102717, 1, 0);
 
-DELETE FROM `conditions` WHERE `SourceEntry` = 107049;
+DELETE FROM `conditions` WHERE `SourceEntry` IN (107049, 107783, 107784) AND `SourceTypeOrReferenceId` IN (13,17);
 insert  into `conditions`(`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) values 
 (13,1,107049,0,0,51,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny'),
 (17,0,107049,0,0,1,0,133381,0,0,1,30,0,'','Ride Vehicle when player has not aura'),
 (17,0,107049,0,0,29,0,56869,8,0,0,30,0,'','Ride Vehicle when bunny within 8y'),
-(13,1,107049,0,0,31,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny');
+(13,1,107049,0,0,31,0,5,56869,0,0,0,0,'','Ride Vehicle target Balance Pole Landing Bunny'),
+(13, 1, 107784, 0, 0, 51, 0, 5, 57710, 0, 0, 0, 0, '', 'Summon Ox Cart, Cursed Pools -> Farmlands target Delivery Cart'),
+(13, 1, 107783, 0, 0, 51, 0, 5, 57709, 0, 0, 0, 0, '', 'Summon Ox, Cursed Pools -> Farmlands target Nourished Yak');
 
 SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` IN (@CGUID+743, @CGUID+744, @CGUID+745, @CGUID+746);
