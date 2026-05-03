@@ -119,7 +119,7 @@ namespace Scripts::Custom::TheWanderingIsle
                 {
                     Creature* balloon = player->FindNearestCreatureWithOptions(20.f, { .CreatureId = Npcs::npc_balloon_q29791, .IgnorePhases = true } );
                     if(balloon)
-                        balloon->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                        balloon->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
                 }
         }
     };

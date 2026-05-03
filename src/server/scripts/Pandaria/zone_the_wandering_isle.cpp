@@ -1625,7 +1625,7 @@ struct npc_delivery_cart : public ScriptedAI
 
         me->CastSpell(player, Spells::ForceVehicleRide);
 
-        _events.ScheduleEvent(Events::YakCartPathStart, 1800ms);
+        _events.ScheduleEvent(Events::YakCartPathStart, 1400ms);
         _events.ScheduleEvent(Events::YakCartRopes, 1s);
 
         if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)

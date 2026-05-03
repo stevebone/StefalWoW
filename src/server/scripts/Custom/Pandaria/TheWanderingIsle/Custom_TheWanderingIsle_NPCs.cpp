@@ -1031,100 +1031,6 @@ namespace Scripts::Custom::TheWanderingIsle
         return {};
     }
 
-    // Spawned Yak Singing Pools 57207
-    // Spawned Yak Farmstead 59498
-    // Spawned Yak Forbidden Forest 57742
-    // Spawned Cart Singing Pools 57208
-    // Spawned Cart Farmstead 59496
-    // Spawned Cart Forbidden Forest 57740
-    class npc_yak_cart : public CreatureScript
-    {
-    public:
-        npc_yak_cart() : CreatureScript("npc_yak_cart") { }
-
-        struct npc_yak_cartAI : public ScriptedAI
-        {
-            npc_yak_cartAI(Creature* creature) : ScriptedAI(creature), _data(GetCartData(creature->GetEntry()))
-            {
-                Initialize();
-            }
-
-            void Initialize()
-            {
-                me->SetPrivateObjectOwner(ObjectGuid::Empty); // Needed otherwise FindCreature does not work
-                me->SetReactState(REACT_PASSIVE);
-            }
-
-            void Reset() override
-            {
-                _events.Reset();
-                Initialize();
-
-                if (!_data.IsCart)
-                    _events.ScheduleEvent(Events::event_ox_cart_path_start, 1400ms); // Only yaks start moving on reset
-            }
-
-            void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
-            {
-                if (!apply || !_data.IsCart)
-                    return;
-
-                Player* player = passenger->ToPlayer();
-                if (!player)
-                    return;
-
-                me->CastSpell(player, Spells::spell_force_vehicle_ride);
-
-                _events.ScheduleEvent(Events::event_ox_cart_path_start, 1800ms);
-                _events.ScheduleEvent(Events::event_ox_cart_ropes, 1s);
-
-                if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)
-                    player->KilledMonsterCredit(*_data.CreditNPC, player->GetGUID());
-            }
-
-            void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
-            {
-                if (_data.IsCart && _data.EjectNodeId && nodeId == *_data.EjectNodeId)
-                    me->CastSpell(me, Spells::spell_eject_passengers);
-            }
-
-            void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
-            {
-                me->DespawnOrUnsummon(1s);
-            }
-
-            void UpdateAI(uint32 diff) override
-            {
-                _events.Update(diff);
-
-                while (uint32 eventId = _events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                    case Events::event_ox_cart_ropes:
-                        if (_data.YakNPC)
-                            if (Unit* yak = me->FindNearestCreatureWithOptions(10.f,
-                                { .CreatureId = *_data.YakNPC, .IgnorePhases = true }))
-                                me->CastSpell(yak, Spells::spell_rope_left);
-                        break;
-                    case Events::event_ox_cart_path_start:
-                        me->GetMotionMaster()->MovePath(_data.PathId, false);
-                        break;
-                    }
-                }
-            }
-
-        private:
-            EventMap _events;
-            CartData _data;
-        };
-
-        CreatureAI* GetAI(Creature* creature) const override
-        {
-            return new npc_yak_cartAI(creature);
-        }
-    };
-
     class npc_shu_follower : public CreatureScript
     {
     public:
@@ -2064,60 +1970,81 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // 55918 & 55649
-    class npc_shang_xi_hot_air_balloon : public CreatureScript
+    // 55918
+    class npc_hot_air_balloon_55918 : public CreatureScript
     {
     public:
-        npc_shang_xi_hot_air_balloon() : CreatureScript("npc_shang_xi_hot_air_balloon") { }
+        npc_hot_air_balloon_55918() : CreatureScript("npc_hot_air_balloon_55918") { }
 
         struct npc_shang_xi_hot_air_balloonAI : public ScriptedAI
         {
             npc_shang_xi_hot_air_balloonAI(Creature* creature) : ScriptedAI(creature)
             {
                 me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
-                me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-            }
-
-            void Reset() override
-            {
-                events.Reset();
-                me->SetCanFly(true);
-                me->SetWalk(false);
-                me->SetSpeed(MOVE_RUN, 3.0f);
-                me->SetSpeed(MOVE_FLIGHT, 3.0f);
             }
 
             void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
             {
-                if (apply && me->GetEntry() == Npcs::npc_balloon_q29791)
+                Player* player = passenger->ToPlayer();
+                if (player && apply)
                 {
-                    if (passenger->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        PlayerGUID = passenger->GetGUID();
-                        events.ScheduleEvent(Events::event_aysa_jump_in, 2s);
-                    }
+                    player->CastSpell(player, 105002, true);
+                    //PhasingHandler::RemovePhase(player, 1885, true);
                 }
+            }
+        };
 
-                if (apply && me->GetEntry() == Npcs::npc_balloon_spawned)
+        CreatureAI* GetAI(Creature* c) const override
+        {
+            return new npc_shang_xi_hot_air_balloonAI(c);
+        }
+    };
+
+    // 55649
+    class npc_hot_air_balloon_55649 : public CreatureScript
+    {
+    public:
+        npc_hot_air_balloon_55649() : CreatureScript("npc_hot_air_balloon_55649") { }
+
+        struct npc_shang_xi_hot_air_balloonAI : public ScriptedAI
+        {
+            npc_shang_xi_hot_air_balloonAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset() override
+            {
+                me->SetCanFly(true);
+                me->SetSpeed(MOVE_FLIGHT, 1.0f);
+            }
+
+            void IsSummonedBy(WorldObject* summoner) override
+            {
+                if (summoner->IsPlayer())
                 {
-                    if (passenger->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        passenger->ToPlayer()->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_1);
-                        //passenger->ToPlayer()->DisableMirrorTimer(FATIGUE_TIMER);
-                        PlayerGUID = passenger->GetGUID();
-                        PhasingHandler::OnConditionChange(passenger, true);
-                    }
+                    events.ScheduleEvent(1, 3s);
+                    events.ScheduleEvent(2, 1s);
+                    events.ScheduleEvent(3, 2s);
+                    PlayerGUID = summoner->ToPlayer()->GetGUID();
 
-                    else
+                    //summoner->CastSpell(me, Spells::spell_force_vehicle_ride);
+                    // this does not seem to cast/work when player is already in another vehicle
+                    Vehicle* vehicle = me->GetVehicleKit();
+                    summoner->ToPlayer()->EnterVehicle(vehicle->GetBase(), -1);
+                    //PhasingHandler::RemovePhase(summoner, 1885, true);
+                }
+            }
+
+            void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+            {
+                if (apply)
+                {
+                    // Get GUIDs of Aysa and Ji when they board in
+                    if (Creature* creature = passenger->ToCreature())
                     {
-                        // Get GUIDs of Aysa and Ji when they board in
-                        if (Creature* creature = passenger->ToCreature())
+                        if (creature->GetEntry() == Npcs::npc_aysa_q29791)
                         {
-                            if(creature->GetEntry() == Npcs::npc_aysa_q29791)
-                                AysaGUID = creature->GetGUID();
-
-                            if (creature->GetEntry() == Npcs::npc_ji_q29791)
-                                JiGUID = creature->GetGUID();
+                            Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                            PhasingHandler::RemovePhase(player, 1885, true);
+                            PhasingHandler::RemovePhase(creature, 1885, true);
                         }
                     }
                 }
@@ -2125,180 +2052,80 @@ namespace Scripts::Custom::TheWanderingIsle
 
             void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
-                if (me->GetEntry() == Npcs::npc_balloon_spawned)
+                Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                Unit* ji = me->GetVehicleKit()->GetPassenger(2);
+                Unit* aysa = me->GetVehicleKit()->GetPassenger(1);
+
+                switch (nodeId)
                 {
-                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                    Creature* ji = ObjectAccessor::GetCreature(*me, JiGUID);
-                    Creature* aysa = ObjectAccessor::GetCreature(*me, AysaGUID);
-                    if (!aysa || !ji || !player)
-                        return;
+                case 0:
+                    me->SetSpeed(MOVE_FLIGHT, 7.0f);
+                    break;
+                case 2:
+                {
+                    if (ji) ji->ToCreature()->AI()->SetData(2, 2);
+                    if (aysa) aysa->ToCreature()->AI()->SetData(2, 2);
+                    break;
+                }
+                case 3:
+                {
+                    // Share GUIDs with Shen-zin Su
+                    if (Creature* shenZinSu = me->FindNearestCreature(56676, 500.0f))
+                        shenZinSu->AI()->SetGUID(player->GetGUID(), 0);  // Player GUID
 
-                    switch (nodeId)
-                    {
-                    case 0:
-                    {
-                        scheduler.Schedule(2s, [ji, player](TaskContext const&)
-                            {
-                                ji->AI()->Talk(0, player);
-                            });
-
-                        scheduler.Schedule(5s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(0);
-                            });
-
-                        scheduler.Schedule(10s, [ji](TaskContext const&)
-                            {
-                                ji->AI()->Talk(1);
-                            });
-
-                        break;
-                    }
-
-                    case 1:
-                    {
-                        me->SetSpeed(MOVE_RUN, 4.0f);
-                        me->SetSpeed(MOVE_FLIGHT, 4.0f);
-
-                        aysa->AI()->Talk(1);
-
-                        scheduler.Schedule(5s, [ji](TaskContext const&)
-                            {
-                                ji->AI()->Talk(2);
-                            });
-
-                        scheduler.Schedule(10s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(2);
-                            });
-
-                        break;
-                    }
-
-                    case 3:
-                    {
-                        scheduler.Schedule(8s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(3);
-                            });
-
-                        scheduler.Schedule(18s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(4);
-                            });
-
-                        break;
-                    }
-
-                    case 4:
-                    {
-                        Creature* shenzinsu = me->FindNearestCreatureWithOptions(500.f, { .CreatureId = Npcs::npc_shenzinsu_bunny, .IgnorePhases = true });
-                        if (shenzinsu)
-                        {
-                            shenzinsu->setActive(true);
-                            shenzinsu->Talk(Misc::shenzinsu_bunny_text_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                            me->PlayDirectSound(27822, player);
-
-                            scheduler.Schedule(16s, [this, player, shenzinsu](TaskContext const&)
-                                {
-                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                                    me->PlayDirectSound(27823, player);
-                                });
-
-                            scheduler.Schedule(30s, [this, player, shenzinsu](TaskContext const&)
-                                {
-                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_3, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                                    me->PlayDirectSound(27824, player);
-                                });
-
-                            scheduler.Schedule(48s, [this, player, shenzinsu](TaskContext const&)
-                                {
-                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_4, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                                    me->PlayDirectSound(27825, player);
-                                });
-
-                            scheduler.Schedule(63s, [aysa](TaskContext const&)
-                                {
-                                    aysa->AI()->Talk(5);
-                                });
-
-                            scheduler.Schedule(75s, [this, player, shenzinsu](TaskContext const&)
-                                {
-                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                                    me->PlayDirectSound(27826, player);
-                                });
-
-                            scheduler.Schedule(90s, [aysa](TaskContext const&)
-                                {
-                                    aysa->AI()->Talk(6);
-                                });
-
-                            scheduler.Schedule(100s, [this, player, shenzinsu](TaskContext const&)
-                                {
-                                    shenzinsu->Talk(Misc::shenzinsu_bunny_text_6, CHAT_MSG_MONSTER_SAY, 500.f, player);
-                                    me->PlayDirectSound(27827, player);
-                                });
-                        }
-                        break;
-                    }
-
-                    case 5:
-                    {
-                        me->SetSpeed(MOVE_RUN, 9.0f);
-                        me->SetSpeed(MOVE_FLIGHT, 9.0f);
-                        break;
-                    }
-
-                    case 8:
-                    {
-                        ji->AI()->Talk(3);
-
-                        scheduler.Schedule(8s, [ji](TaskContext const&)
-                            {
-                                ji->AI()->Talk(4);
-                            });
-
-                        scheduler.Schedule(15s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(7);
-                            });
-
-                        break;
-                    }
-
-                    case 11:
-                    {
-                        ji->AI()->Talk(5);
-
-                        scheduler.Schedule(8s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(8);
-                            });
-
-                        scheduler.Schedule(26s, [ji](TaskContext const&)
-                            {
-                                ji->AI()->Talk(6);
-                            });
-
-                        scheduler.Schedule(37s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(9);
-                            });
-                        break;
-                    }
-
-                    case 17:
-                    {
-                        scheduler.Schedule(5s, [aysa](TaskContext const&)
-                            {
-                                aysa->AI()->Talk(10);
-                            });
-                        player->KilledMonsterCredit(Npcs::credit_the_suffering_of_shenzinsu_2);
-                        break;
-                    }
-                    default:
-                        break;
-                    }
+                    if (aysa) aysa->ToCreature()->AI()->SetData(2, 3);
+                    break;
+                }
+                case 4:
+                {
+                    if (player) player->CastSpell(player, 114898);
+                    events.ScheduleEvent(4, 14s);
+                    break;
+                }
+                case 5:
+                {
+                    if (player) player->CastSpell(player, 118571);
+                    events.ScheduleEvent(5, 14s);
+                    events.ScheduleEvent(6, 15s);
+                    break;
+                }
+                case 8:
+                {
+                    if (ji) ji->ToCreature()->AI()->SetData(2, 5);
+                    me->SetSpeed(MOVE_FLIGHT, 16.0f);
+                    break;
+                }
+                case 9:
+                {
+                    if (aysa) aysa->ToCreature()->AI()->SetData(2, 6);
+                    break;
+                }
+                case 10:
+                    me->SetSpeed(MOVE_FLIGHT, 36.0f);
+                    break;
+                case 11:
+                {
+                    if (ji) ji->ToCreature()->AI()->SetData(2, 7);
+                    break;
+                }
+                case 13:
+                {
+                    if (ji) ji->ToCreature()->AI()->SetData(2, 8);
+                    if (aysa) aysa->ToCreature()->AI()->SetData(2, 8);
+                    break;
+                }
+                case 14:
+                {
+                    if (player) DoCast(player, 105010);
+                    break;
+                }
+                case 17:
+                {
+                    if (aysa) aysa->ToCreature()->AI()->SetData(2, 9);
+                    break;
+                }
+                default:
+                    break;
                 }
             }
 
@@ -2309,65 +2136,164 @@ namespace Scripts::Custom::TheWanderingIsle
                     Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
                     if (player)
                     {
-                        //player->EnableMirrorTimer(FATIGUE_TIMER);
                         me->CastSpell(player, Spells::spell_eject_passenger_1, true);
                         me->CastSpell(player, Spells::spell_parachute, true);
+                        player->RemoveAurasDueToSpell(105002);
                     }
-                    me->DespawnOrUnsummon(30s);
+
+                    Unit* aysa = me->GetVehicleKit()->GetPassenger(1);
+                    if (aysa) aysa->ToCreature()->AI()->SetData(3, 1);
+
+                    me->DespawnOrUnsummon(10s);
                 }
             }
 
             void UpdateAI(uint32 diff) override
             {
                 events.Update(diff);
-                scheduler.Update(diff);
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+
                     switch (eventId)
                     {
-                    case Events::event_aysa_jump_in:
+                    case 1: // cast quest credit
                     {
-                        Creature* Aysa = me->FindNearestCreature(Npcs::npc_aysa_q29790, 10.f);
-                        if (Aysa)
-                        {
-                            Aysa->CastSpell(me, Spells::spell_force_vehicle_ride, true);
-                            events.ScheduleEvent(Events::event_spawn_balloon, 2s);
-                        }
+                        if (player) DoCast(player, 105895);
+
+                        Unit* ji = me->GetVehicleKit()->GetPassenger(2);
+                        Unit* aysa = me->GetVehicleKit()->GetPassenger(1);
+
+                        if (ji) ji->ToCreature()->AI()->SetData(2, 1);
+                        if (aysa) aysa->ToCreature()->AI()->SetData(2, 1);
+
+                        me->PlayDirectSound(33099, player);
                         break;
                     }
 
-                    case Events::event_spawn_balloon:
+                    case 2: // Reverse cast ride vehicle Aysa
+                        me->CastSpell(me, 106617, true);
+                        me->SetOrientation(0.2443461f);
+                        break;
+
+                    case 3: // Start Path
+                        me->GetMotionMaster()->MovePath(5564900, false);
+                        break;
+
+                    case 4: // Player cross cast General Trigger
                     {
-                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-                        Creature* spawnedBalloon = player->SummonCreature(Npcs::npc_balloon_spawned, me->GetPosition());
-                        if (spawnedBalloon)
-                        {
-                            BalloonGUID = spawnedBalloon->GetGUID();
-                            Vehicle* vehicle = spawnedBalloon->GetVehicleKit();
-                            player->EnterVehicle(vehicle->GetBase(), -1);
-                            spawnedBalloon->LoadPath(5564900);
-                            spawnedBalloon->GetMotionMaster()->MovePath(5564900, false);
-                        }
+                        if (player) player->CastSpell(player, 106759);
                         break;
                     }
-                    
+
+                    case 5: // Player cross cast General Trigger
+                    {
+                        if (player) player->CastSpell(player, 118571);
+                        break;
+                    }
+
+                    case 6:
+                    {
+                        Unit* aysa = me->GetVehicleKit()->GetPassenger(1);
+                        if (aysa) aysa->ToCreature()->AI()->SetData(2, 4);
+                        break;
+                    }
                     }
                 }
             }
 
         private:
             ObjectGuid  PlayerGUID;
-            ObjectGuid  JiGUID;
-            ObjectGuid  AysaGUID;
-            ObjectGuid  BalloonGUID;
             EventMap    events;
-            TaskScheduler scheduler;
         };
 
         CreatureAI* GetAI(Creature* c) const override
         {
             return new npc_shang_xi_hot_air_balloonAI(c);
+        }
+    };
+
+    // 56676
+    class npc_shen_zin_su_56676 : public CreatureScript
+    {
+    public:
+        npc_shen_zin_su_56676() : CreatureScript("npc_shen_zin_su_56676") { }
+
+        struct npc_shen_zin_su_56676AI : public ScriptedAI
+        {
+            npc_shen_zin_su_56676AI(Creature* creature) : ScriptedAI(creature), currentPhase(0) { }
+
+            void Reset() override
+            {
+                me->setActive(true);
+                currentPhase = 0;
+            }
+
+            void SetGUID(ObjectGuid const& guid, int32 id) override
+            {
+                if (id == 0)
+                    playerGUID = guid;
+            }
+
+            void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+            {
+                Player* player = caster->ToPlayer();
+                if (!player)
+                    return;
+
+                switch (spellInfo->Id)
+                {
+                case 114898:
+                    me->Talk(Misc::shenzinsu_bunny_text_1, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                    me->PlayDirectSound(27822, player);
+                    currentPhase = 1;
+                    break;
+
+                case 106759:
+                    me->Talk(Misc::shenzinsu_bunny_text_2, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                    me->PlayDirectSound(27823, player);
+                    currentPhase = 2;
+                    break;
+
+                case 118571:
+                    switch (currentPhase)
+                    {
+                    case 1:
+                        me->Talk(Misc::shenzinsu_bunny_text_3, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                        me->PlayDirectSound(27824, player);
+                        currentPhase = 2;
+                        break;
+                    case 2:
+                        me->Talk(Misc::shenzinsu_bunny_text_4, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                        me->PlayDirectSound(27825, player);
+                        currentPhase = 3;
+                        break;
+                    case 4:
+                        me->Talk(Misc::shenzinsu_bunny_text_6, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                        me->PlayDirectSound(27827, player);
+                        currentPhase = 0;
+                        break;  // Reset to phase 0
+                    default: break;
+                    }
+                    break;
+
+                case 118572:
+                    me->Talk(Misc::shenzinsu_bunny_text_5, CHAT_MSG_MONSTER_SAY, 500.f, player);
+                    me->PlayDirectSound(27826, player);
+                    currentPhase = 4;
+                    break;
+                }
+            }
+
+        private:
+            uint8 currentPhase;
+            ObjectGuid playerGUID;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_shen_zin_su_56676AI(creature);
         }
     };
 
@@ -3786,7 +3712,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_balance_pole();
     new npc_fang_she();
     new npc_shu_playing();
-    new npc_yak_cart();
     new npc_shu_follower();
     new npc_shu_at_farmstead_pool();
     new npc_shu_at_farmstead_play();
@@ -3795,7 +3720,9 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_ruk_ruk();
     new npc_ruk_ruk_rocket();
     new npc_zhaoren();
-    new npc_shang_xi_hot_air_balloon();
+    new npc_hot_air_balloon_55918();
+    new npc_hot_air_balloon_55649();
+    new npc_shen_zin_su_56676();
     new npc_aysa_mandori_village();
     new npc_korga_hut();
     new npc_injured_sailor_55999();
