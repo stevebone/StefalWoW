@@ -23,6 +23,7 @@
 #include "Battleground.h"
 #include "BattlegroundMgr.h"
 #include "BattlePetMgr.h"
+#include "BattlePetPackets.h"
 #include "CellImpl.h"
 #include "CharmInfo.h"
 #include "CombatLogPackets.h"
@@ -5608,7 +5609,12 @@ void Spell::EffectHealBattlePetPct()
         return;
 
     if (BattlePets::BattlePetMgr* battlePetMgr = unitTarget->ToPlayer()->GetSession()->GetBattlePetMgr())
+    {
         battlePetMgr->HealBattlePetsPct(GetEffectValueAsInt());
+
+        WorldPackets::BattlePet::BattlePetsHealed healed;
+        unitTarget->ToPlayer()->SendDirectMessage(healed.Write());
+    }
 }
 
 void Spell::EffectEnableBattlePets()

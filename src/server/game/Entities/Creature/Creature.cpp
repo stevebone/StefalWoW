@@ -1693,6 +1693,11 @@ void Creature::SelectWildBattlePetLevel()
     }
 }
 
+// Wild battle pet level is assigned at spawn/respawn for creatures that already have
+// UNIT_NPC_FLAG_WILD_BATTLE_PET in their creature_template npcflag.
+// Spawning wild battle pets requires proper spawn groups with type 14 (CREATURE_TYPE_WILD_PET)
+// creature entries — these are separate from type 8 critters.
+
 float Creature::GetHealthMod(CreatureClassifications classification)
 {
     switch (classification)
@@ -2354,6 +2359,7 @@ void Creature::Respawn(bool force)
             SelectLevel();
 
             setDeathState(JUST_RESPAWNED);
+            SelectWildBattlePetLevel();
 
             CreatureModel display(GetNativeDisplayId(), GetNativeDisplayScale(), 1.0f);
             if (sObjectMgr->GetCreatureModelRandomGender(&display, GetCreatureTemplate()))

@@ -1,0 +1,2763 @@
+/*
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "PetBattle.h"
+#include "BattlePetMgr.h"
+#include "BattlePetPackets.h"
+#include "Creature.h"
+#include "DB2Stores.h"
+#include "GameTables.h"
+#include "Log.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
+#include "PetBattleMgr.h"
+#include "Player.h"
+#include "Random.h"
+#include "WorldSession.h"
+#include <algorithm>
+
+namespace PetBattles
+{
+
+PetBattle::PetBattle()
+{
+    _teams = {};
+    _environments = {};
+}
+
+PetBattle::~PetBattle() = default;
+
+// ============================================================================
+// Team loading helpers
+// ============================================================================
+
+void PetBattle::LoadPlayerTeam(Player* player, PetBattleTeamData& team)
+{
+    team.PlayerGUID = player->GetGUID();
+    team.TrapAbilityID = PET_BATTLE_TRAP_ABILITY_ID;
+
+    BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
+    uint8 petIdx = 0;
+    for (uint8 i = 0; i < uint8(BattlePets::BattlePetSlot::Count); ++i)
+    {
+        WorldPackets::BattlePet::BattlePetSlot* slot = petMgr->GetSlot(BattlePets::BattlePetSlot(i));
+        if (!slot || slot->Locked)
+            continue;
+
+        BattlePets::BattlePet* pet = petMgr->GetPet(slot->Pet.Guid);
+        if (!pet || pet->PacketInfo.Health == 0)
+            continue;
+
+        PetBattlePetData& battlePet = team.Pets[petIdx];
+        battlePet.BattlePetGUID = pet->PacketInfo.Guid;
+        battlePet.Species = pet->PacketInfo.Species;
+        battlePet.CreatureID = pet->PacketInfo.CreatureID;
+        battlePet.DisplayID = pet->PacketInfo.DisplayID;
+
+        // Repair DisplayID if it was stored as 0 (missing creature_template at pet creation time)
+        if (battlePet.DisplayID == 0 && battlePet.CreatureID != 0)
+        {
+            if (CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(battlePet.CreatureID))
+                if (CreatureModel const* model = ct->GetRandomValidModel())
+                {
+                    battlePet.DisplayID = model->CreatureDisplayID;
+                    pet->PacketInfo.DisplayID = battlePet.DisplayID;
+                    TC_LOG_DEBUG("server.loading", "PetBattle: Repaired DisplayID for species {} (creature {}) -> {}",
+                        battlePet.Species, battlePet.CreatureID, battlePet.DisplayID);
+                }
+        }
+
+        battlePet.Breed = pet->PacketInfo.Breed;
+        battlePet.Level = pet->PacketInfo.Level;
+        battlePet.Xp = pet->PacketInfo.Exp;
+        battlePet.Quality = pet->PacketInfo.Quality;
+        battlePet.Health = pet->PacketInfo.Health;
+        battlePet.MaxHealth = pet->PacketInfo.MaxHealth;
+        battlePet.Power = pet->PacketInfo.Power;
+        battlePet.Speed = pet->PacketInfo.Speed;
+        battlePet.EffectivePower = battlePet.Power;
+        battlePet.EffectiveSpeed = battlePet.Speed;
+        battlePet.CustomName = pet->PacketInfo.Name;
+
+        BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(pet->PacketInfo.Species);
+        if (species)
+            battlePet.PetType = species->PetTypeEnum;
+
+        // Load base breed+species stats for States (client needs these)
+        BattlePets::BattlePetMgr::GetBaseStats(battlePet.Species, battlePet.Breed,
+            battlePet.BasePower, battlePet.BaseStamina, battlePet.BaseSpeed);
+
+        // Load abilities for this pet from DB2
+        std::vector<BattlePetSpeciesXAbilityEntry const*> const* speciesAbilities =
+            sPetBattleMgr->GetSpeciesAbilitiesFull(battlePet.Species);
+        if (speciesAbilities)
+        {
+            uint8 abilitySlot = 0;
+            for (BattlePetSpeciesXAbilityEntry const* entry : *speciesAbilities)
+            {
+                if (entry->RequiredLevel > battlePet.Level)
+                    continue;
+                if (entry->SlotEnum < 0 || entry->SlotEnum >= int8(MAX_PET_BATTLE_ABILITIES))
+                    continue;
+
+                uint8 slotIdx = static_cast<uint8>(entry->SlotEnum);
+                battlePet.AbilityIDs[slotIdx] = entry->BattlePetAbilityID;
+                ++abilitySlot;
+            }
+        }
+
+        ++petIdx;
+        if (petIdx >= MAX_PET_BATTLE_TEAM_SIZE)
+            break;
+    }
+    team.PetCount = petIdx;
+}
+
+void PetBattle::LoadWildPetAbilities(PetBattlePetData& pet)
+{
+    std::vector<BattlePetSpeciesXAbilityEntry const*> const* speciesAbilities =
+        sPetBattleMgr->GetSpeciesAbilitiesFull(pet.Species);
+    if (!speciesAbilities)
+    {
+        TC_LOG_ERROR("server.loading", "PetBattle LoadWildPetAbilities: Species {} has NO entries in BattlePetSpeciesXAbility!", pet.Species);
+        return;
+    }
+
+    uint8 loaded = 0;
+    for (BattlePetSpeciesXAbilityEntry const* entry : *speciesAbilities)
+    {
+        if (entry->RequiredLevel > pet.Level)
+            continue;
+        if (entry->SlotEnum < 0 || entry->SlotEnum >= int8(MAX_PET_BATTLE_ABILITIES))
+            continue;
+
+        uint8 slotIdx = static_cast<uint8>(entry->SlotEnum);
+        pet.AbilityIDs[slotIdx] = entry->BattlePetAbilityID;
+        ++loaded;
+    }
+
+    TC_LOG_DEBUG("server.loading", "PetBattle LoadWildPetAbilities: Species={} Level={} entries={} loaded={} abilities=[{},{},{}]",
+        pet.Species, pet.Level, speciesAbilities->size(), loaded,
+        pet.AbilityIDs[0], pet.AbilityIDs[1], pet.AbilityIDs[2]);
+}
+
+static void CalculateWildPetStats(PetBattlePetData& wildPet);
+
+void PetBattle::GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID)
+{
+    PetBattleTeamData& wildTeam = _teams[PET_BATTLE_TEAM_2];
+
+    Creature* creature = ObjectAccessor::GetCreature(*player, wildCreatureGUID);
+    if (!creature)
+        return;
+
+    // Wild team size: 1-3 pets, but never more than the player's available pets
+    uint8 playerPetCount = _teams[PET_BATTLE_TEAM_1].PetCount;
+    uint8 maxWildSize = std::min(uint8(3), playerPetCount);
+    uint8 wildTeamSize = maxWildSize > 1 ? static_cast<uint8>(urand(1, maxWildSize)) : uint8(1);
+
+    // First pet is always the targeted creature
+    {
+        PetBattlePetData& wildPet = wildTeam.Pets[0];
+        wildPet.CreatureID = creature->GetEntry();
+        wildPet.DisplayID = creature->GetDisplayId();
+        wildPet.Level = static_cast<uint16>(creature->GetWildBattlePetLevel());
+
+        if (BattlePetSpeciesEntry const* species = BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(creature->GetEntry()))
+        {
+            wildPet.Species = species->ID;
+            wildPet.PetType = species->PetTypeEnum;
+            wildPet.Breed = BattlePets::BattlePetMgr::RollPetBreed(species->ID);
+            wildPet.Quality = uint8(BattlePets::BattlePetMgr::GetDefaultPetQuality(species->ID));
+        }
+
+        CalculateWildPetStats(wildPet);
+        LoadWildPetAbilities(wildPet);
+    }
+
+    // Additional wild pets (same species, slight level variation)
+    for (uint8 i = 1; i < wildTeamSize; ++i)
+    {
+        PetBattlePetData& wildPet = wildTeam.Pets[i];
+        wildPet.CreatureID = creature->GetEntry();
+        wildPet.DisplayID = creature->GetDisplayId();
+
+        // Level varies by +/- 1 from primary
+        int16 baseLevel = static_cast<int16>(creature->GetWildBattlePetLevel());
+        int16 levelVariation = static_cast<int16>(urand(0, 2)) - 1; // -1, 0, or +1
+        wildPet.Level = static_cast<uint16>(std::max(int16(1), int16(baseLevel + levelVariation)));
+
+        if (BattlePetSpeciesEntry const* species = BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(creature->GetEntry()))
+        {
+            wildPet.Species = species->ID;
+            wildPet.PetType = species->PetTypeEnum;
+            wildPet.Breed = BattlePets::BattlePetMgr::RollPetBreed(species->ID);
+            wildPet.Quality = uint8(BattlePets::BattlePetMgr::GetDefaultPetQuality(species->ID));
+        }
+
+        CalculateWildPetStats(wildPet);
+        LoadWildPetAbilities(wildPet);
+    }
+
+    wildTeam.PetCount = wildTeamSize;
+}
+
+static void CalculateWildPetStats(PetBattlePetData& wildPet)
+{
+    float qualityMultiplier = 1.0f;
+    for (BattlePetBreedQualityEntry const* entry : sBattlePetBreedQualityStore)
+        if (entry->QualityEnum == wildPet.Quality)
+        {
+            qualityMultiplier = entry->StateMultiplier;
+            break;
+        }
+
+    int32 baseHP = 100, basePower = 10, baseSpeed = 10;
+    for (BattlePetBreedStateEntry const* entry : sBattlePetBreedStateStore)
+    {
+        if (entry->BattlePetBreedID != wildPet.Breed)
+            continue;
+        if (entry->BattlePetStateID == BattlePets::STATE_STAT_STAMINA)
+            baseHP = entry->Value;
+        else if (entry->BattlePetStateID == BattlePets::STATE_STAT_POWER)
+            basePower = entry->Value;
+        else if (entry->BattlePetStateID == BattlePets::STATE_STAT_SPEED)
+            baseSpeed = entry->Value;
+    }
+
+    // Also add species base stats (breed + species = total base)
+    for (BattlePetSpeciesStateEntry const* entry : sBattlePetSpeciesStateStore)
+    {
+        if (entry->BattlePetSpeciesID != wildPet.Species)
+            continue;
+        if (entry->BattlePetStateID == BattlePets::STATE_STAT_STAMINA)
+            baseHP += entry->Value;
+        else if (entry->BattlePetStateID == BattlePets::STATE_STAT_POWER)
+            basePower += entry->Value;
+        else if (entry->BattlePetStateID == BattlePets::STATE_STAT_SPEED)
+            baseSpeed += entry->Value;
+    }
+
+    // Store raw base stats for States in InitialUpdate (client uses these)
+    wildPet.BasePower = basePower;
+    wildPet.BaseStamina = baseHP;
+    wildPet.BaseSpeed = baseSpeed;
+
+    // Use same formula as BattlePet::CalculateStats (DB2 values are scaled ~1000-2000)
+    float health = float(baseHP) * qualityMultiplier * wildPet.Level;
+    float power = float(basePower) * qualityMultiplier * wildPet.Level;
+    float speed = float(baseSpeed) * qualityMultiplier * wildPet.Level;
+
+    wildPet.MaxHealth = int32(round(health / 20.0f) + 100);
+    wildPet.Health = wildPet.MaxHealth;
+    wildPet.Power = int32(round(power / 100.0f));
+    wildPet.Speed = int32(round(speed / 100.0f));
+    wildPet.EffectivePower = wildPet.Power;
+    wildPet.EffectiveSpeed = wildPet.Speed;
+
+    if (wildPet.Power < 1) wildPet.Power = 1;
+    if (wildPet.Speed < 1) wildPet.Speed = 1;
+    if (wildPet.EffectivePower < 1) wildPet.EffectivePower = 1;
+    if (wildPet.EffectiveSpeed < 1) wildPet.EffectiveSpeed = 1;
+}
+
+// ============================================================================
+// Battle initialization
+// ============================================================================
+
+void PetBattle::InitWildBattle(Player* player, ObjectGuid wildCreatureGUID)
+{
+    _battleType = PET_BATTLE_TYPE_PVE;
+    _wildCreatureGUID = wildCreatureGUID;
+    _canAwardXP = true;
+
+    LoadPlayerTeam(player, _teams[PET_BATTLE_TEAM_1]);
+    GenerateWildTeam(player, wildCreatureGUID);
+
+    // Recalculate effective stats for all pets
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        for (uint8 p = 0; p < _teams[t].PetCount; ++p)
+            _teams[t].Pets[p].RecalculateEffectiveStats();
+
+    // Lock abilities and swaps until first round begins
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        _teams[t].InputFlags = PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
+
+    _state = PET_BATTLE_STATE_WAITING_PRE_BATTLE;
+}
+
+void PetBattle::InitPvPBattle(Player* player1, Player* player2)
+{
+    _battleType = PET_BATTLE_TYPE_PVP;
+    _canAwardXP = false;
+
+    LoadPlayerTeam(player1, _teams[PET_BATTLE_TEAM_1]);
+    LoadPlayerTeam(player2, _teams[PET_BATTLE_TEAM_2]);
+
+    // Validate both teams have at least 1 alive pet
+    if (!_teams[PET_BATTLE_TEAM_1].HasAlivePets() || !_teams[PET_BATTLE_TEAM_2].HasAlivePets())
+    {
+        _state = PET_BATTLE_STATE_CREATED_FAILED;
+        return;
+    }
+
+    // Recalculate effective stats for all pets
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        for (uint8 p = 0; p < _teams[t].PetCount; ++p)
+            _teams[t].Pets[p].RecalculateEffectiveStats();
+
+    // Lock abilities and swaps until first round begins
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        _teams[t].InputFlags = PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
+
+    _state = PET_BATTLE_STATE_WAITING_PRE_BATTLE;
+}
+
+// ============================================================================
+// State machine
+// ============================================================================
+
+void PetBattle::Start()
+{
+    _state = PET_BATTLE_STATE_ROUND_IN_PROGRESS;
+    _currentRound = 0;
+}
+
+void PetBattle::Update(uint32 diff)
+{
+    if (_state == PET_BATTLE_STATE_FINISHED)
+        return;
+
+    _updateTimer += diff;
+    if (_updateTimer >= 1000)
+    {
+        _elapsedSecs += _updateTimer / 1000;
+        _updateTimer %= 1000;
+
+        // 5 minute warning before timeout
+        if (!_maxLengthWarningSent && _elapsedSecs >= PET_BATTLE_MAX_GAME_LENGTH - 300)
+        {
+            _maxLengthWarningSent = true;
+            for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
+            {
+                if (Player* player = GetPlayerForTeam(i))
+                {
+                    WorldPackets::BattlePet::PetBattleMaxGameLengthWarning warning;
+                    player->SendDirectMessage(warning.Write());
+                }
+            }
+        }
+
+        if (_elapsedSecs >= PET_BATTLE_MAX_GAME_LENGTH)
+        {
+            FinishBattle(PET_BATTLE_RESULT_DRAW);
+            return;
+        }
+
+        // Per-round AFK timeout — auto-forfeit if a player hasn't submitted input
+        if (_state == PET_BATTLE_STATE_ROUND_IN_PROGRESS || _state == PET_BATTLE_STATE_WAITING_FOR_FRONT_PET)
+        {
+            _roundTimerSecs++;
+            // Grace period: round time + 15 seconds (45s total)
+            if (_roundTimerSecs > PET_BATTLE_MAX_ROUND_TIME + 15)
+            {
+                if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
+                {
+                    for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
+                    {
+                        if (!_teams[i].HasInputThisRound)
+                        {
+                            Forfeit(i);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    Forfeit(PET_BATTLE_TEAM_1);
+                    return;
+                }
+            }
+        }
+    }
+
+    // Handle finish delay — wait for death animation before sending FinalRound
+    if (_state == PET_BATTLE_STATE_FINAL_ROUND && _finishDelayMs > 0)
+    {
+        if (diff >= _finishDelayMs)
+        {
+            _finishDelayMs = 0;
+            SendFinalRoundPacket(false);
+        }
+        else
+            _finishDelayMs -= diff;
+        return;
+    }
+
+    if (_state == PET_BATTLE_STATE_ROUND_IN_PROGRESS && BothTeamsReady())
+        ProcessRound();
+}
+
+void PetBattle::SubmitInput(uint8 teamIdx, PetBattleMoveType moveType, uint32 abilityID, int8 newFrontPet)
+{
+    if (teamIdx >= MAX_PET_BATTLE_PLAYERS)
+        return;
+
+    PetBattleTeamData& team = _teams[teamIdx];
+    team.PendingMoveType = moveType;
+    team.PendingAbilityID = abilityID;
+    team.PendingNewFrontPet = newFrontPet;
+    team.HasInputThisRound = true;
+    _roundTimerSecs = 0;
+}
+
+bool PetBattle::BothTeamsReady() const
+{
+    return _teams[PET_BATTLE_TEAM_1].HasInputThisRound &&
+           _teams[PET_BATTLE_TEAM_2].HasInputThisRound;
+}
+
+// ============================================================================
+// Round processing - the core combat loop
+// ============================================================================
+
+void PetBattle::ProcessRound()
+{
+    _state = PET_BATTLE_STATE_ROUND_IN_PROGRESS;
+    _currentRound++;
+    _roundTimerSecs = 0;
+    _roundEffects.clear();
+    _petKilledThisRound.fill(false);
+    _needsFrontPetSwap.fill(false);
+
+    // Recalculate effective stats for all living pets (includes passive bonuses, weather speed)
+    auto const* envStates = _environments[PET_BATTLE_WEATHER_ENV_SLOT].IsActive()
+        ? &_environments[PET_BATTLE_WEATHER_ENV_SLOT].States : nullptr;
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        for (uint8 p = 0; p < _teams[t].PetCount; ++p)
+            if (_teams[t].Pets[p].IsAlive())
+                _teams[t].Pets[p].RecalculateEffectiveStats(envStates);
+
+    // Apply passive round-start effects (Humanoid heal, Dragonkin reset, etc.)
+    ApplyPassiveRoundStart();
+
+    // Determine turn order based on effective speed
+    uint8 firstTeam = PET_BATTLE_TEAM_1;
+    uint8 secondTeam = PET_BATTLE_TEAM_2;
+
+    PetBattlePetData& pet1 = _teams[PET_BATTLE_TEAM_1].Pets[_teams[PET_BATTLE_TEAM_1].FrontPetIndex];
+    PetBattlePetData& pet2 = _teams[PET_BATTLE_TEAM_2].Pets[_teams[PET_BATTLE_TEAM_2].FrontPetIndex];
+
+    if (pet2.EffectiveSpeed > pet1.EffectiveSpeed)
+        std::swap(firstTeam, secondTeam);
+    else if (pet2.EffectiveSpeed == pet1.EffectiveSpeed)
+    {
+        // Speed tie: random 50/50
+        if (urand(0, 1))
+            std::swap(firstTeam, secondTeam);
+    }
+
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessRound: BEFORE TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{}",
+        _teams[0].FrontPetIndex, _teams[0].Pets[_teams[0].FrontPetIndex].Health, _teams[0].Pets[_teams[0].FrontPetIndex].MaxHealth,
+        _teams[1].FrontPetIndex, _teams[1].Pets[_teams[1].FrontPetIndex].Health, _teams[1].Pets[_teams[1].FrontPetIndex].MaxHealth);
+
+    // Process turns in speed order
+    ProcessTurnForTeam(firstTeam);
+    if (!IsFinished())
+        ProcessTurnForTeam(secondTeam);
+
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessRound: AFTER TURNS - Team0 pet[{}] HP={}/{} Team1 pet[{}] HP={}/{} effects={}",
+        _teams[0].FrontPetIndex, _teams[0].Pets[_teams[0].FrontPetIndex].Health, _teams[0].Pets[_teams[0].FrontPetIndex].MaxHealth,
+        _teams[1].FrontPetIndex, _teams[1].Pets[_teams[1].FrontPetIndex].Health, _teams[1].Pets[_teams[1].FrontPetIndex].MaxHealth,
+        _roundEffects.size());
+
+    if (IsFinished())
+        return;
+
+    // Tick auras and weather (DoTs, HoTs, weather periodic, expiry)
+    // Weather is processed inside TickAuras so it's within the AURA_PROCESSING_BEGIN/END block
+    TickAuras();
+
+    // Decrease ability cooldowns and lockdowns
+    for (auto& team : _teams)
+    {
+        for (uint8 p = 0; p < team.PetCount; ++p)
+        {
+            for (uint8 a = 0; a < MAX_PET_BATTLE_ABILITIES; ++a)
+            {
+                if (team.Pets[p].AbilityCooldowns[a] > 0)
+                    --team.Pets[p].AbilityCooldowns[a];
+                if (team.Pets[p].AbilityLockdowns[a] > 0)
+                    --team.Pets[p].AbilityLockdowns[a];
+            }
+        }
+    }
+
+    // Check for deaths (with passive resurrection handling)
+    CheckDeaths();
+
+    // Reset input flags
+    for (auto& team : _teams)
+        team.HasInputThisRound = false;
+
+    // Check if battle should end
+    if (!_teams[PET_BATTLE_TEAM_1].HasAlivePets())
+    {
+        FinishBattle(PET_BATTLE_RESULT_TEAM_2_WIN);
+        return;
+    }
+    if (!_teams[PET_BATTLE_TEAM_2].HasAlivePets())
+    {
+        FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
+        return;
+    }
+
+    // Check if any team needs to swap front pet (front pet died)
+    // Process ALL teams before returning so wild/NPC auto-swap happens even
+    // when the player's pet also died in the same round
+    bool anyPlayerNeedsSwap = false;
+    for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
+    {
+        if (!_teams[i].Pets[_teams[i].FrontPetIndex].IsAlive())
+        {
+            TC_LOG_DEBUG("server.loading", "PetBattle: Team {} front pet {} died (HP={}), needs swap",
+                i, _teams[i].FrontPetIndex, _teams[i].Pets[_teams[i].FrontPetIndex].Health);
+
+            _needsFrontPetSwap[i] = true;
+
+            // Wild/NPC team auto-swaps immediately
+            if (i == PET_BATTLE_TEAM_2 && (_battleType == PET_BATTLE_TYPE_PVE || _battleType == PET_BATTLE_TYPE_NPC))
+            {
+                int8 nextAlive = _teams[i].GetFirstAlivePetIndex();
+                if (nextAlive >= 0)
+                {
+                    TC_LOG_DEBUG("server.loading", "PetBattle: Wild/NPC team auto-swap {} -> {}", _teams[i].FrontPetIndex, nextAlive);
+                    _teams[i].FrontPetIndex = nextAlive;
+                    _needsFrontPetSwap[i] = false;
+
+                    // Generate PET_SWAP effect so client updates the active pet display
+                    PetBattleRoundEffect swapEffect;
+                    swapEffect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
+                    swapEffect.SourceTeam = i;
+                    swapEffect.SourcePet = nextAlive;
+                    swapEffect.TargetTeam = i;
+                    swapEffect.TargetPet = nextAlive;
+                    _roundEffects.push_back(swapEffect);
+                }
+            }
+
+            if (_needsFrontPetSwap[i])
+                anyPlayerNeedsSwap = true;
+        }
+    }
+
+    if (anyPlayerNeedsSwap)
+    {
+        TC_LOG_DEBUG("server.loading", "PetBattle: Setting state WAITING_FOR_FRONT_PET, player needs to pick replacement");
+        _state = PET_BATTLE_STATE_WAITING_FOR_FRONT_PET;
+        return;
+    }
+
+    // Compute InputFlags per team for the next round
+    for (uint8 i = 0; i < MAX_PET_BATTLE_PLAYERS; ++i)
+    {
+        PetBattleTeamData& team = _teams[i];
+        team.InputFlags = 0;
+
+        PetBattlePetData const& frontPet = team.Pets[team.FrontPetIndex];
+        if (frontPet.IsLockedByMultiTurn)
+            team.InputFlags |= PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
+        if (frontPet.IsStunned)
+            team.InputFlags |= PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
+    }
+
+    _state = PET_BATTLE_STATE_ROUND_IN_PROGRESS;
+}
+
+void PetBattle::ProcessTurnForTeam(uint8 teamIdx)
+{
+    PetBattleTeamData& team = _teams[teamIdx];
+    PetBattlePetData& activePet = team.Pets[team.FrontPetIndex];
+
+    // Stunned pets skip their turn
+    if (activePet.IsStunned)
+    {
+        activePet.IsStunned = false;
+        return;
+    }
+
+    // Multi-turn ability: auto-continue on subsequent turns
+    if (activePet.IsLockedByMultiTurn && activePet.MultiTurnAbilityID != 0)
+    {
+        ApplyAbilityEffects(teamIdx, team.FrontPetIndex, activePet.MultiTurnAbilityID);
+        return;
+    }
+
+    // Undead pet in revive round: dies at end of round
+    if (activePet.IsUndeadReviving)
+    {
+        activePet.IsUndeadReviving = false;
+        activePet.Health = 0;
+        _petKilledThisRound[teamIdx * MAX_PET_BATTLE_TEAM_SIZE + team.FrontPetIndex] = true;
+        return;
+    }
+
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessTurnForTeam[{}]: MoveType={} AbilityID={} FrontPet={} PetAlive={}",
+        teamIdx, int(team.PendingMoveType), team.PendingAbilityID, team.FrontPetIndex, activePet.IsAlive());
+
+    switch (team.PendingMoveType)
+    {
+        case PET_BATTLE_MOVE_ABILITY:
+        {
+            if (!activePet.IsAlive())
+                break;
+
+            // Check ability cooldown
+            bool abilityOnCooldown = false;
+            bool abilityFound = false;
+            for (uint8 i = 0; i < MAX_PET_BATTLE_ABILITIES; ++i)
+            {
+                if (activePet.AbilityIDs[i] == team.PendingAbilityID)
+                {
+                    abilityFound = true;
+                    if (activePet.AbilityCooldowns[i] > 0)
+                    {
+                        abilityOnCooldown = true;
+                        TC_LOG_DEBUG("server.loading", "PetBattle: Ability {} on cooldown ({})", team.PendingAbilityID, activePet.AbilityCooldowns[i]);
+                        break;
+                    }
+
+                    // Apply cooldown from DB2
+                    if (BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(team.PendingAbilityID))
+                        activePet.AbilityCooldowns[i] = ability->Cooldown;
+                    break;
+                }
+            }
+
+            if (!abilityFound)
+            {
+                TC_LOG_ERROR("server.loading", "PetBattle: AbilityID {} NOT FOUND in pet's ability list! Pet abilities: [{}, {}, {}]",
+                    team.PendingAbilityID, activePet.AbilityIDs[0], activePet.AbilityIDs[1], activePet.AbilityIDs[2]);
+            }
+
+            if (abilityOnCooldown)
+                break;
+
+            // Apply ability effects through the DB2 chain
+            uint32 effectsBefore = _roundEffects.size();
+            ApplyAbilityEffects(teamIdx, team.FrontPetIndex, team.PendingAbilityID);
+            _lastAbilityID[teamIdx] = team.PendingAbilityID;
+            TC_LOG_DEBUG("server.loading", "PetBattle: ApplyAbilityEffects({}) generated {} effects",
+                team.PendingAbilityID, _roundEffects.size() - effectsBefore);
+            break;
+        }
+        case PET_BATTLE_MOVE_SWAP:
+        {
+            if (team.PendingNewFrontPet >= 0 && team.PendingNewFrontPet < int8(team.PetCount))
+            {
+                if (team.Pets[team.PendingNewFrontPet].IsAlive())
+                {
+                    team.FrontPetIndex = team.PendingNewFrontPet;
+
+                    PetBattleRoundEffect effect;
+                    effect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
+                    effect.SourceTeam = teamIdx;
+                    effect.SourcePet = team.PendingNewFrontPet;
+                    effect.TargetTeam = teamIdx;
+                    effect.TargetPet = team.PendingNewFrontPet;
+                    _roundEffects.push_back(effect);
+                }
+            }
+            break;
+        }
+        case PET_BATTLE_MOVE_TRAP:
+        {
+            uint8 trapStatus = GetTrapStatus(teamIdx);
+            if (trapStatus != PET_BATTLE_TRAP_STATUS_CAN_TRAP)
+                break;
+
+            PetBattleTeamData& wildTeam = _teams[PET_BATTLE_TEAM_2];
+            PetBattlePetData& wildPet = wildTeam.Pets[wildTeam.FrontPetIndex];
+
+            float healthPct = wildPet.MaxHealth > 0 ? (float(wildPet.Health) / float(wildPet.MaxHealth)) * 100.0f : 100.0f;
+
+            uint16 trapLevel = 1;
+            if (Player* player = GetPlayerForTeam(teamIdx))
+                trapLevel = player->GetSession()->GetBattlePetMgr()->GetTrapLevel();
+
+            float captureChance = GetCaptureChance(trapLevel, healthPct, wildPet.Quality, _trapFailBonus);
+
+            // Resolve the actual BattlePetAbilityEffect ID for the trap ability so the
+            // client can look up the visual spell/animation (AbilityID != EffectID)
+            uint32 trapEffectID = 0;
+            if (std::vector<uint32> const* turnIDs = sPetBattleMgr->GetAbilityTurns(PET_BATTLE_TRAP_ABILITY_ID))
+            {
+                for (uint32 turnID : *turnIDs)
+                {
+                    if (std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turnID))
+                    {
+                        if (!effects->empty())
+                        {
+                            trapEffectID = effects->front()->ID;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (frand(0.0f, 1.0f) < captureChance)
+            {
+                // Capture success — pet is captured alive (keeps its current HP)
+                wildPet.IsCaptured = true;
+
+                // Emit STATUS_CHANGE effect with TRAPPED status so client plays capture crate animation
+                {
+                    PetBattleRoundEffect effect;
+                    effect.AbilityEffectID = trapEffectID;
+                    effect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+                    effect.SourceTeam = teamIdx;
+                    effect.SourcePet = team.FrontPetIndex;
+                    effect.TargetTeam = PET_BATTLE_TEAM_2;
+                    effect.TargetPet = wildTeam.FrontPetIndex;
+                    effect.Param1 = PET_BATTLE_PET_STATUS_TRAPPED;
+                    _roundEffects.push_back(effect);
+                }
+
+                // Don't set Health to 0 — captured pet stays alive in the journal
+                // Note: AddPet + criteria updates are deferred to CompleteBattle()
+                // so the journal notification appears AFTER the crate animation plays.
+
+                // Check if wild team has more alive, uncaptured pets
+                if (wildTeam.HasAlivePets())
+                {
+                    // Auto-swap to the next alive wild pet and continue battle
+                    int8 nextAlive = wildTeam.GetFirstAlivePetIndex();
+                    if (nextAlive >= 0)
+                    {
+                        TC_LOG_DEBUG("server.loading", "PetBattle: Captured wild pet[{}], swapping to next alive wild pet[{}]",
+                            wildTeam.FrontPetIndex, nextAlive);
+                        wildTeam.FrontPetIndex = nextAlive;
+
+                        // Emit PET_SWAP effect so client updates the active wild pet display
+                        PetBattleRoundEffect swapEffect;
+                        swapEffect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
+                        swapEffect.SourceTeam = PET_BATTLE_TEAM_2;
+                        swapEffect.SourcePet = nextAlive;
+                        swapEffect.TargetTeam = PET_BATTLE_TEAM_2;
+                        swapEffect.TargetPet = nextAlive;
+                        _roundEffects.push_back(swapEffect);
+                    }
+                }
+                else
+                {
+                    // All wild pets captured or dead — end the battle
+                    FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
+                }
+            }
+            else
+            {
+                // Capture failed — increase next attempt chance by 20%
+                _trapFailBonus += 0.20f;
+
+                // Emit STATUS_CHANGE with MISS flag so client shows failed trap animation
+                PetBattleRoundEffect effect;
+                effect.AbilityEffectID = trapEffectID;
+                effect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+                effect.Flags = PET_BATTLE_EFFECT_FLAG_MISS;
+                effect.SourceTeam = teamIdx;
+                effect.SourcePet = team.FrontPetIndex;
+                effect.TargetTeam = PET_BATTLE_TEAM_2;
+                effect.TargetPet = wildTeam.FrontPetIndex;
+                effect.Param1 = 0;
+                _roundEffects.push_back(effect);
+            }
+            break;
+        }
+        case PET_BATTLE_MOVE_QUIT:
+        {
+            Forfeit(teamIdx);
+            break;
+        }
+        case PET_BATTLE_MOVE_PASS:
+        case PET_BATTLE_MOVE_FINAL_ROUND_OK:
+        default:
+            break;
+    }
+}
+
+// ============================================================================
+// DB2-driven ability effect chain
+// ============================================================================
+
+void PetBattle::ApplyAbilityEffects(uint8 attackerTeam, uint8 attackerPet, uint32 abilityID)
+{
+    PetBattlePetData& attacker = _teams[attackerTeam].Pets[attackerPet];
+    uint8 defenderTeam = attackerTeam == PET_BATTLE_TEAM_1 ? PET_BATTLE_TEAM_2 : PET_BATTLE_TEAM_1;
+    uint8 defenderPet = _teams[defenderTeam].FrontPetIndex;
+
+    // Get ability turns from DB2 index
+    std::vector<BattlePetAbilityTurnEntry const*> const* turns = sPetBattleMgr->GetAbilityTurnsFull(abilityID);
+    TC_LOG_DEBUG("server.loading", "PetBattle ApplyAbilityEffects: abilityID={} turns={}", abilityID, turns ? turns->size() : 0);
+    if (!turns || turns->empty())
+    {
+        // Fallback: apply simple damage if no DB2 turn data exists
+        PetBattlePetData& defender = _teams[defenderTeam].Pets[defenderPet];
+        if (attacker.IsAlive() && defender.IsAlive())
+        {
+            BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(abilityID);
+            DamageResult dmg = CalculateAbilityDamage(
+                attacker.EffectivePower, attacker.EffectivePower,
+                ability ? PetBattlePetType(ability->PetTypeEnum) : PetBattlePetType(attacker.PetType),
+                attacker, defender);
+
+            defender.Health = std::max(0, defender.Health - dmg.Damage);
+
+            PetBattleRoundEffect effect;
+            effect.AbilityEffectID = abilityID;
+            effect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+            effect.SourceTeam = attackerTeam;
+            effect.SourcePet = attackerPet;
+            effect.TargetTeam = defenderTeam;
+            effect.TargetPet = defenderPet;
+            effect.Param1 = defender.Health;
+            effect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+            if (dmg.IsCrit)
+                effect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
+            if (dmg.TypeMod > 1.0f)
+                effect.Flags |= PET_BATTLE_EFFECT_FLAG_STRONG;
+            else if (dmg.TypeMod < 1.0f)
+                effect.Flags |= PET_BATTLE_EFFECT_FLAG_WEAK;
+            _roundEffects.push_back(effect);
+
+            ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, dmg.Damage);
+        }
+        return;
+    }
+
+    // Determine which turn in the sequence to execute
+    uint8 turnIndex = 0;
+    if (attacker.IsLockedByMultiTurn && attacker.MultiTurnAbilityID == int32(abilityID))
+    {
+        turnIndex = attacker.MultiTurnCurrentIndex;
+    }
+
+    // Check if this is a multi-turn ability
+    if (turns->size() > 1)
+    {
+        if (!attacker.IsLockedByMultiTurn)
+        {
+            // First turn of multi-turn: lock the pet
+            attacker.MultiTurnAbilityID = abilityID;
+            attacker.MultiTurnCurrentIndex = 0;
+            attacker.MultiTurnTotalTurns = static_cast<int8>(turns->size());
+            attacker.IsLockedByMultiTurn = true;
+            turnIndex = 0;
+
+            // Set lockdown on abilities during multi-turn
+            for (uint8 a = 0; a < MAX_PET_BATTLE_ABILITIES; ++a)
+                if (attacker.AbilityIDs[a] != 0)
+                    attacker.AbilityLockdowns[a] = attacker.MultiTurnTotalTurns;
+        }
+        else
+        {
+            // Advance to next turn
+            attacker.MultiTurnCurrentIndex++;
+            turnIndex = attacker.MultiTurnCurrentIndex;
+
+            // Check if this is the LAST turn of the sequence.
+            // Clear state now so the pet unlocks for the next round
+            // (previously checked >= TotalTurns which delayed unlock by one round).
+            if (attacker.MultiTurnCurrentIndex >= attacker.MultiTurnTotalTurns - 1)
+            {
+                attacker.MultiTurnAbilityID = 0;
+                attacker.MultiTurnCurrentIndex = 0;
+                attacker.MultiTurnTotalTurns = 0;
+                attacker.IsLockedByMultiTurn = false;
+            }
+        }
+    }
+
+    if (turnIndex >= turns->size())
+        return;
+
+    BattlePetAbilityTurnEntry const* turn = (*turns)[turnIndex];
+
+    // Get effects for this turn from DB2 index
+    std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turn->ID);
+    TC_LOG_DEBUG("server.loading", "PetBattle: TurnID={} turnIndex={} effects={}", turn->ID, turnIndex, effects ? effects->size() : 0);
+    if (!effects || effects->empty())
+    {
+        // Multi-turn turn with no DB2 effects — emit a STATUS_CHANGE so the client
+        // still shows the ability was used this round (otherwise the turn is invisible).
+        if (turns->size() > 1)
+        {
+            PetBattleRoundEffect roundEffect;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_STATUS_CHANGE;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = attackerTeam;
+            roundEffect.TargetPet = attackerPet;
+            _roundEffects.push_back(roundEffect);
+        }
+        return;
+    }
+
+    // Process each effect in order — stop if defender dies (prevents multi-hit overkill)
+    for (BattlePetAbilityEffectEntry const* effectEntry : *effects)
+    {
+        // In retail, multi-hit abilities stop when the target dies
+        if (!_teams[defenderTeam].Pets[defenderPet].IsAlive())
+            break;
+
+        TC_LOG_DEBUG("server.loading", "PetBattle: ProcessEffect effectID={} propsID={} auraAbilityID={} visualID={} Params=[{},{},{},{},{},{}]",
+            effectEntry->ID, effectEntry->BattlePetEffectPropertiesID,
+            effectEntry->AuraBattlePetAbilityID, effectEntry->BattlePetVisualID,
+            effectEntry->Param[0], effectEntry->Param[1], effectEntry->Param[2],
+            effectEntry->Param[3], effectEntry->Param[4], effectEntry->Param[5]);
+        ProcessEffect(effectEntry, attackerTeam, attackerPet, defenderTeam, defenderPet, abilityID);
+    }
+}
+
+void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 attackerTeam, uint8 attackerPet,
+    uint8 defenderTeam, uint8 defenderPet, uint32 abilityID)
+{
+    if (!effect)
+        return;
+
+    PetBattlePetData& attacker = _teams[attackerTeam].Pets[attackerPet];
+    PetBattlePetData& defender = _teams[defenderTeam].Pets[defenderPet];
+
+    if (!attacker.IsAlive())
+        return;
+
+    BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(abilityID);
+    PetBattlePetType abilityType = ability ? PetBattlePetType(ability->PetTypeEnum) : PetBattlePetType(attacker.PetType);
+
+    // Determine effect action from BattlePetEffectPropertiesEntry
+    uint16 effectPropsID = effect->BattlePetEffectPropertiesID;
+
+    // The Param array from BattlePetAbilityEffectEntry provides effect-specific values
+    // Param[0] typically = base power/amount, Param[1] = accuracy%, Param[2-5] = additional modifiers
+    int16 basePower = effect->Param[0];
+    int16 accuracy = effect->Param[1];
+
+    // Weather accuracy modifier (Elemental passive: ignores weather)
+    if (accuracy > 0 && attacker.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envAccMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_STAT_ACCURACY);
+        if (envAccMod != 0)
+            accuracy = std::max(int16(0), int16(accuracy + envAccMod));
+    }
+
+    // Check accuracy (if specified and > 0, roll for hit)
+    if (accuracy > 0 && accuracy < 100)
+    {
+        if (urand(0, 99) >= uint32(accuracy))
+        {
+            // Create miss effect so client shows the miss indicator
+            PetBattleRoundEffect missEffect;
+            missEffect.AbilityEffectID = effect->ID;
+            missEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+            missEffect.Flags = PET_BATTLE_EFFECT_FLAG_MISS;
+            missEffect.SourceTeam = attackerTeam;
+            missEffect.SourcePet = attackerPet;
+            missEffect.TargetTeam = defenderTeam;
+            missEffect.TargetPet = defenderPet;
+            missEffect.Param1 = defender.Health; // Health unchanged
+            _roundEffects.push_back(missEffect);
+            return;
+        }
+    }
+
+    // Look up the abstract action type from the DB2 PropsID mapping (built at startup)
+    PetBattleAbilityEffectAction effectAction = sPetBattleMgr->GetEffectAction(effectPropsID);
+
+    BattlePetEffectPropertiesEntry const* effectProps = sBattlePetEffectPropertiesStore.LookupEntry(effectPropsID);
+    TC_LOG_DEBUG("server.loading", "PetBattle ProcessEffect: propsID={} action={} basePower={} accuracy={}",
+        effectPropsID, uint16(effectAction), basePower, accuracy);
+
+    switch (effectAction)
+    {
+        case PET_BATTLE_EFFECT_ACTION_DAMAGE:
+        case PET_BATTLE_EFFECT_ACTION_DAMAGE_CAPPED:
+        {
+            if (!defender.IsAlive())
+                break;
+
+            DamageResult dmg = CalculateAbilityDamage(basePower, attacker.EffectivePower, abilityType, attacker, defender);
+            defender.Health = std::max(0, defender.Health - dmg.Damage);
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = defenderTeam;
+            roundEffect.TargetPet = defenderPet;
+            roundEffect.Param1 = defender.Health;
+            roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+            if (dmg.IsCrit)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
+            if (dmg.TypeMod > 1.0f)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_STRONG;
+            else if (dmg.TypeMod < 1.0f)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_WEAK;
+            _roundEffects.push_back(roundEffect);
+
+            ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, dmg.Damage);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_HEAL:
+        case PET_BATTLE_EFFECT_ACTION_HEAL_CAPPED:
+        {
+            int32 healing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
+            attacker.Health = std::min(attacker.MaxHealth, attacker.Health + healing);
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+            roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = attackerTeam;
+            roundEffect.TargetPet = attackerPet;
+            roundEffect.Param1 = attacker.Health;
+            _roundEffects.push_back(roundEffect);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_APPLY_AURA:
+        case PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE:
+        {
+            int8 auraDuration = static_cast<int8>(effect->Param[2]);
+            if (auraDuration <= 0)
+                auraDuration = 3; // Default duration
+
+            // Weather auras: if the cast ability is a weather ability, apply aura to environment
+            if (sPetBattleMgr->IsWeatherAbility(abilityID))
+            {
+                uint32 weatherAuraAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_AURA: effectID={} castAbility={} auraAbilityID={} duration={}",
+                    effect->ID, abilityID, weatherAuraAbilityID, auraDuration);
+
+                // Cancel existing weather on weather slot (PetbattleEnviros::Weather = 2, PBOID 8)
+                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].IsActive())
+                {
+                    PetBattleRoundEffect cancelEffect;
+                    cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                    cancelEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                    cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                    cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
+                    _roundEffects.push_back(cancelEffect);
+                    ClearWeatherStates();
+                }
+
+                // Set up weather environment slot with the weather aura
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = weatherAuraAbilityID;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = auraDuration;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = attackerTeam;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
+
+                // Load weather modifier states from BattlePetAbilityState DB2
+                ApplyWeatherStates(weatherAuraAbilityID);
+
+                // Emit AURA_APPLY targeting environment PBOID 8 (PetbattleEnviros::Weather)
+                PetBattleRoundEffect applyEffect;
+                applyEffect.AbilityEffectID = effect->ID;
+                applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                applyEffect.SourceTeam = attackerTeam;
+                applyEffect.SourcePet = attackerPet;
+                applyEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                applyEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                applyEffect.Param2 = weatherAuraAbilityID;
+                applyEffect.Param3 = auraDuration;
+                applyEffect.Param4 = _currentRound;
+                _roundEffects.push_back(applyEffect);
+                break;
+            }
+
+            // Determine if this aura targets self or enemy.
+            //
+            // 1. DB2-driven: if the aura ability has BattlePetAbilityState entries
+            //    that clearly mark it as a self-buff or enemy-debuff, that wins.
+            // 2. Otherwise fall back to basePower / AuraBattlePetAbilityID heuristics.
+            //
+            // PERIODIC_DAMAGE always targets the enemy (DoT) — DB2 lookup is skipped
+            // for that branch since the action enum already encodes intent.
+            bool targetsSelf = false;
+            uint32 auraClassifyID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+            AuraTargetType dbTarget = (effectAction == PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE)
+                ? AURA_TARGET_ENEMY
+                : sPetBattleMgr->GetAuraTarget(auraClassifyID);
+
+            if (dbTarget == AURA_TARGET_SELF)
+                targetsSelf = true;
+            else if (dbTarget == AURA_TARGET_ENEMY)
+                targetsSelf = false;
+            else if (basePower < 0)
+                targetsSelf = true; // Negative = healing aura on self
+            else if (basePower == 0 && effect->AuraBattlePetAbilityID != 0)
+                targetsSelf = true; // Non-damaging aura with ability reference = self-buff
+            else if (basePower == 0 && effectAction == PET_BATTLE_EFFECT_ACTION_APPLY_AURA)
+                targetsSelf = true; // Generic non-damaging aura defaults to self-buff
+
+            uint8 auraTargetTeam = targetsSelf ? attackerTeam : defenderTeam;
+            uint8 auraTargetPet = targetsSelf ? attackerPet : defenderPet;
+
+            DamageResult dmg = CalculateAbilityDamage(std::abs(basePower), attacker.EffectivePower, abilityType, attacker, defender);
+            int32 tickDamage = basePower != 0 ? dmg.Damage : 0;
+
+            PetBattleAuraType auraType;
+            if (effectAction == PET_BATTLE_EFFECT_ACTION_PERIODIC_DAMAGE)
+                auraType = PET_BATTLE_AURA_DOT;
+            else if (basePower < 0)
+                auraType = PET_BATTLE_AURA_HOT;
+            else if (targetsSelf)
+                auraType = PET_BATTLE_AURA_BUFF;
+            else
+                auraType = PET_BATTLE_AURA_DEBUFF;
+
+            // Critter passive: immune to stun, root, sleep
+            PetBattlePetData& auraTarget = _teams[auraTargetTeam].Pets[auraTargetPet];
+            if (auraTarget.PetType == PET_TYPE_CRITTER &&
+                (auraType == PET_BATTLE_AURA_STUN || auraType == PET_BATTLE_AURA_ROOT || auraType == PET_BATTLE_AURA_SLEEP))
+            {
+                PetBattleRoundEffect immuneEffect;
+                immuneEffect.AbilityEffectID = effect->ID;
+                immuneEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+                immuneEffect.Flags = PET_BATTLE_EFFECT_FLAG_IMMUNE;
+                immuneEffect.SourceTeam = attackerTeam;
+                immuneEffect.SourcePet = attackerPet;
+                immuneEffect.TargetTeam = auraTargetTeam;
+                immuneEffect.TargetPet = auraTargetPet;
+                _roundEffects.push_back(immuneEffect);
+                break;
+            }
+
+            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} auraAbilityID={}",
+                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, effect->AuraBattlePetAbilityID);
+
+            AddAura(auraTargetTeam, auraTargetPet, abilityID, effect->ID,
+                auraType, auraDuration, tickDamage, attacker.PetType,
+                attackerTeam, attackerPet);
+
+            {
+                PetBattlePetData const& targetPetData = _teams[auraTargetTeam].Pets[auraTargetPet];
+                PetBattleAura const& newAura = targetPetData.Auras.back();
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = auraTargetTeam;
+                roundEffect.TargetPet = auraTargetPet;
+                roundEffect.Param1 = newAura.AuraInstanceID;
+                roundEffect.Param2 = abilityID;
+                roundEffect.Param3 = newAura.RemainingRounds;
+                roundEffect.Param4 = newAura.CurrentRound;
+                _roundEffects.push_back(roundEffect);
+            }
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL:
+        {
+            int8 auraDuration = static_cast<int8>(effect->Param[2]);
+            if (auraDuration <= 0)
+                auraDuration = 3;
+
+            // Weather periodic auras (e.g. Moonlight HoT): route to environment
+            if (sPetBattleMgr->IsWeatherAbility(abilityID))
+            {
+                uint32 weatherAuraAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+                TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_PERIODIC: effectID={} castAbility={} auraAbilityID={} duration={}",
+                    effect->ID, abilityID, weatherAuraAbilityID, auraDuration);
+
+                if (_environments[PET_BATTLE_WEATHER_ENV_SLOT].IsActive())
+                {
+                    PetBattleRoundEffect cancelEffect;
+                    cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                    cancelEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                    cancelEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                    cancelEffect.Param2 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID;
+                    _roundEffects.push_back(cancelEffect);
+                    ClearWeatherStates();
+                }
+
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AbilityID = weatherAuraAbilityID;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].RemainingRounds = auraDuration;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CasterTeam = attackerTeam;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID = _nextAuraInstanceID++;
+                _environments[PET_BATTLE_WEATHER_ENV_SLOT].CurrentRound = _currentRound;
+
+                // Load weather modifier states from BattlePetAbilityState DB2
+                ApplyWeatherStates(weatherAuraAbilityID);
+
+                PetBattleRoundEffect applyEffect;
+                applyEffect.AbilityEffectID = effect->ID;
+                applyEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                applyEffect.SourceTeam = attackerTeam;
+                applyEffect.SourcePet = attackerPet;
+                applyEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+                applyEffect.Param1 = _environments[PET_BATTLE_WEATHER_ENV_SLOT].AuraInstanceID;
+                applyEffect.Param2 = weatherAuraAbilityID;
+                applyEffect.Param3 = auraDuration;
+                applyEffect.Param4 = _currentRound;
+                _roundEffects.push_back(applyEffect);
+                break;
+            }
+
+            int32 tickHealing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
+
+            AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
+                PET_BATTLE_AURA_HOT, auraDuration, tickHealing, attacker.PetType,
+                attackerTeam, attackerPet);
+
+            {
+                PetBattlePetData const& selfPet = _teams[attackerTeam].Pets[attackerPet];
+                PetBattleAura const& newAura = selfPet.Auras.back();
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = newAura.AuraInstanceID;
+                roundEffect.Param2 = abilityID;
+                roundEffect.Param3 = newAura.RemainingRounds;
+                roundEffect.Param4 = newAura.CurrentRound;
+                _roundEffects.push_back(roundEffect);
+            }
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_CHANGE_STATE:
+        case PET_BATTLE_EFFECT_ACTION_SET_STATE:
+        {
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+            int32 stateValue = static_cast<int32>(effect->Param[3]);
+
+            bool found = false;
+            for (auto& [id, val] : defender.States)
+            {
+                if (id == stateID)
+                {
+                    val = (effectAction == PET_BATTLE_EFFECT_ACTION_CHANGE_STATE) ? val + stateValue : stateValue;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                defender.States.emplace_back(stateID, stateValue);
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = defenderTeam;
+            roundEffect.TargetPet = defenderPet;
+            roundEffect.Param1 = stateID;
+            roundEffect.Param2 = stateValue;
+            _roundEffects.push_back(roundEffect);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_DAMAGE_PERCENTAGE:
+        {
+            if (!defender.IsAlive())
+                break;
+
+            int32 damage = int32(defender.MaxHealth * (basePower / 100.0f));
+            if (damage < 1) damage = 1;
+
+            // Apply type effectiveness
+            float typeMod = GetTypeEffectiveness(abilityType, PetBattlePetType(defender.PetType));
+            damage = int32(damage * typeMod);
+
+            // Apply Magic passive: cannot take more than 35% max HP in a single hit
+            if (defender.PetType == PET_TYPE_MAGIC)
+                damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+            // Boss pets cap incoming damage at 35% max HP
+            if (BattlePetSpeciesEntry const* defenderSpecies = sBattlePetSpeciesStore.LookupEntry(defender.Species))
+                if (defenderSpecies->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
+                    damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+            if (damage < 1) damage = 1;
+            defender.Health = std::max(0, defender.Health - damage);
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = defenderTeam;
+            roundEffect.TargetPet = defenderPet;
+            roundEffect.Param1 = defender.Health;
+            roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+            if (typeMod > 1.0f)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_STRONG;
+            else if (typeMod < 1.0f)
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_WEAK;
+            _roundEffects.push_back(roundEffect);
+
+            ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, damage);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE:
+        {
+            int32 healing = int32(attacker.MaxHealth * (basePower / 100.0f));
+            attacker.Health = std::min(attacker.MaxHealth, attacker.Health + healing);
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+            roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = attackerTeam;
+            roundEffect.TargetPet = attackerPet;
+            roundEffect.Param1 = attacker.Health;
+            _roundEffects.push_back(roundEffect);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_PET_SWAP:
+        {
+            if (defender.IsAlive() && _teams[defenderTeam].PetCount > 1)
+            {
+                // Swap to a random different alive pet
+                for (uint8 i = 0; i < _teams[defenderTeam].PetCount; ++i)
+                {
+                    if (i != _teams[defenderTeam].FrontPetIndex &&
+                        _teams[defenderTeam].Pets[i].IsAlive() &&
+                        !_teams[defenderTeam].Pets[i].IsCaptured)
+                    {
+                        _teams[defenderTeam].FrontPetIndex = static_cast<int8>(i);
+
+                        PetBattleRoundEffect roundEffect;
+                        roundEffect.AbilityEffectID = effect->ID;
+                        roundEffect.EffectType = PET_BATTLE_EFFECT_PET_SWAP;
+                        roundEffect.SourceTeam = attackerTeam;
+                        roundEffect.SourcePet = attackerPet;
+                        roundEffect.TargetTeam = defenderTeam;
+                        roundEffect.TargetPet = i;
+                        _roundEffects.push_back(roundEffect);
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_CATCH:
+        {
+            // Trap/catch is handled separately by the trap input path
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_CHANGE_MAX_HEALTH:
+        {
+            int32 healthChange = static_cast<int32>(basePower);
+            defender.MaxHealth = std::max(1, defender.MaxHealth + healthChange);
+            defender.Health = std::min(defender.Health, defender.MaxHealth);
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_MAX_HEALTH;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = defenderTeam;
+            roundEffect.TargetPet = defenderPet;
+            roundEffect.Param1 = defender.MaxHealth;
+            _roundEffects.push_back(roundEffect);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_WEATHER_SET:
+        {
+            // PropsID 170: labels [0]=Points, [1]=Accuracy, [2]=weatherState, [3]=Unused, [4]=IsPeriodic
+            // Param[2] = BattlePetState ID to set on environment, Param[0] = state value (Points)
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+            int32 stateValue = static_cast<int32>(effect->Param[0]);
+
+            TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={}",
+                effect->ID, stateID, stateValue);
+
+            // Store the state on the environment for gameplay use
+            _environments[PET_BATTLE_WEATHER_ENV_SLOT].States[stateID] = stateValue;
+
+            // Emit SET_STATE targeting environment PBOID (slot 0)
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetEnvSlot = PET_BATTLE_WEATHER_ENV_SLOT;
+            roundEffect.Param1 = stateID;
+            roundEffect.Param2 = stateValue;
+            _roundEffects.push_back(roundEffect);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_STUN:
+        {
+            // Critter passive: immune to stun
+            if (defender.PetType == PET_TYPE_CRITTER)
+            {
+                PetBattleRoundEffect immuneEffect;
+                immuneEffect.AbilityEffectID = effect->ID;
+                immuneEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+                immuneEffect.Flags = PET_BATTLE_EFFECT_FLAG_IMMUNE;
+                immuneEffect.SourceTeam = attackerTeam;
+                immuneEffect.SourcePet = attackerPet;
+                immuneEffect.TargetTeam = defenderTeam;
+                immuneEffect.TargetPet = defenderPet;
+                _roundEffects.push_back(immuneEffect);
+                break;
+            }
+
+            defender.IsStunned = true;
+
+            PetBattleRoundEffect roundEffect;
+            roundEffect.AbilityEffectID = effect->ID;
+            roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+            roundEffect.SourceTeam = attackerTeam;
+            roundEffect.SourcePet = attackerPet;
+            roundEffect.TargetTeam = defenderTeam;
+            roundEffect.TargetPet = defenderPet;
+            roundEffect.Param1 = 1; // stunned
+            _roundEffects.push_back(roundEffect);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_REMOVE_AURA:
+        {
+            uint32 auraAbilityID = static_cast<uint32>(effect->Param[2]);
+            if (auraAbilityID == 0)
+                auraAbilityID = abilityID;
+            RemoveAura(defenderTeam, defenderPet, auraAbilityID);
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_MULTI_TURN_BEGIN:
+        {
+            // DB2 effects with this category appear on the first turn of multi-turn abilities.
+            // They signal to the client that the ability's multi-turn sequence is active.
+            // Param[2] may contain a state ID to set (e.g., "burrowed", "flying").
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+            int32 stateValue = static_cast<int32>(effect->Param[3]);
+            if (stateValue == 0)
+                stateValue = 1; // Default: flag is "on"
+
+            if (stateID != 0)
+            {
+                // Set the state on the attacker (e.g., "is underground")
+                bool found = false;
+                for (auto& [id, val] : attacker.States)
+                {
+                    if (id == stateID)
+                    {
+                        val = stateValue;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    attacker.States.emplace_back(stateID, stateValue);
+
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = stateID;
+                roundEffect.Param2 = stateValue;
+                _roundEffects.push_back(roundEffect);
+            }
+
+            // Emit AURA_APPLY so the client shows a buff icon during the multi-turn sequence.
+            // Duration = remaining turns in the multi-turn ability.
+            {
+                int32 auraDuration = std::max(int32(1), int32(attacker.MultiTurnTotalTurns) - 1);
+                AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
+                    PET_BATTLE_AURA_BUFF, auraDuration, 0, attacker.PetType,
+                    attackerTeam, attackerPet);
+
+                PetBattleAura const& newAura = attacker.Auras.back();
+                PetBattleRoundEffect auraEffect;
+                auraEffect.AbilityEffectID = effect->ID;
+                auraEffect.EffectType = PET_BATTLE_EFFECT_AURA_APPLY;
+                auraEffect.SourceTeam = attackerTeam;
+                auraEffect.SourcePet = attackerPet;
+                auraEffect.TargetTeam = attackerTeam;
+                auraEffect.TargetPet = attackerPet;
+                auraEffect.Param1 = newAura.AuraInstanceID;
+                auraEffect.Param2 = abilityID;
+                auraEffect.Param3 = newAura.RemainingRounds;
+                auraEffect.Param4 = newAura.CurrentRound;
+                _roundEffects.push_back(auraEffect);
+            }
+            break;
+        }
+        case PET_BATTLE_EFFECT_ACTION_MULTI_TURN_END:
+        {
+            // Appears on the last turn of a multi-turn ability.
+            // Param[2] may contain a state ID to clear (matching the one set by case 17).
+            uint32 stateID = static_cast<uint32>(effect->Param[2]);
+
+            if (stateID != 0)
+            {
+                // Clear the state on the attacker
+                for (auto& [id, val] : attacker.States)
+                {
+                    if (id == stateID)
+                    {
+                        val = 0;
+                        break;
+                    }
+                }
+
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = attackerTeam;
+                roundEffect.TargetPet = attackerPet;
+                roundEffect.Param1 = stateID;
+                roundEffect.Param2 = 0;
+                _roundEffects.push_back(roundEffect);
+            }
+
+            // Remove the multi-turn aura so the client removes the buff icon
+            RemoveAura(attackerTeam, attackerPet, abilityID);
+            break;
+        }
+        default:
+        {
+            std::string labels;
+            if (effectProps)
+                for (uint8 i = 0; i < 6; ++i)
+                    if (effectProps->ParamLabel[i] && effectProps->ParamLabel[i][0] != '\0')
+                        labels += Trinity::StringFormat("[{}]={} ", i, effectProps->ParamLabel[i]);
+            TC_LOG_WARN("server.loading", "PetBattle ProcessEffect: UNHANDLED propsID={} action={} basePower={} defenderAlive={} params=[{},{},{},{},{},{}] labels={}",
+                effectPropsID, uint16(effectAction), basePower, defender.IsAlive(),
+                effect->Param[0], effect->Param[1], effect->Param[2], effect->Param[3], effect->Param[4], effect->Param[5],
+                labels);
+            // Unhandled effect category - treat as damage if basePower > 0
+            if (basePower > 0 && defender.IsAlive())
+            {
+                DamageResult dmg = CalculateAbilityDamage(basePower, attacker.EffectivePower, abilityType, attacker, defender);
+                defender.Health = std::max(0, defender.Health - dmg.Damage);
+
+                PetBattleRoundEffect roundEffect;
+                roundEffect.AbilityEffectID = effect->ID;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                roundEffect.SourceTeam = attackerTeam;
+                roundEffect.SourcePet = attackerPet;
+                roundEffect.TargetTeam = defenderTeam;
+                roundEffect.TargetPet = defenderPet;
+                roundEffect.Param1 = defender.Health;
+                roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+                if (dmg.IsCrit)
+                    roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_CRIT;
+                if (dmg.TypeMod > 1.0f)
+                    roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_STRONG;
+                else if (dmg.TypeMod < 1.0f)
+                    roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_WEAK;
+                _roundEffects.push_back(roundEffect);
+
+                ApplyPassiveOnDamageDealt(attackerTeam, attackerPet, defenderTeam, defenderPet, dmg.Damage);
+            }
+            break;
+        }
+    }
+}
+
+// ============================================================================
+// Damage / Healing calculations with passive abilities
+// ============================================================================
+
+DamageResult PetBattle::CalculateAbilityDamage(int32 abilityPower, int32 attackerPower, PetBattlePetType abilityType,
+    PetBattlePetData const& attacker, PetBattlePetData& defender)
+{
+    DamageResult result;
+
+    // Formula: rawDamage = abilityPower * (attackerPower / 20.0f)
+    float rawDamage = abilityPower * (attackerPower / 20.0f);
+
+    // Type effectiveness modifier
+    result.TypeMod = GetTypeEffectiveness(abilityType, PetBattlePetType(defender.PetType));
+    rawDamage *= result.TypeMod;
+
+    // Weather damage modifiers from environment states (Elemental passive: ignores weather)
+    if (attacker.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envDmgDealMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT);
+        if (envDmgDealMod != 0)
+            rawDamage *= (1.0f + envDmgDealMod / 100.0f);
+
+        // Per-type weather damage bonus: only applies if ability type matches Mod_PetType_ID
+        int32 petTypeBonus = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_DAMAGE_DEALT_PCT);
+        int32 petTypeID = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_ID);
+        if (petTypeBonus != 0 && int32(abilityType) == petTypeID)
+            rawDamage *= (1.0f + petTypeBonus / 100.0f);
+    }
+    if (defender.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envDmgTakeMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_DAMAGE_TAKEN_PERCENT);
+        if (envDmgTakeMod != 0)
+            rawDamage *= (1.0f + envDmgTakeMod / 100.0f);
+
+        // Per-type weather damage taken: only applies if ability type matches Mod_PetType_ID
+        int32 petTypeTaken = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_DAMAGE_TAKEN_PCT);
+        int32 petTypeID = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_PET_TYPE_ID);
+        if (petTypeTaken != 0 && int32(abilityType) == petTypeID)
+            rawDamage *= (1.0f + petTypeTaken / 100.0f);
+    }
+
+    // Beast passive: +25% damage when below 50% HP
+    if (attacker.PetType == PET_TYPE_BEAST && attacker.Health <= attacker.MaxHealth / 2)
+        rawDamage *= (1.0f + PASSIVE_BEAST_DAMAGE_BONUS);
+
+    // Dragonkin passive: +50% damage on round after bringing enemy below 50%
+    if (attacker.DragonkinDamageBonus)
+        rawDamage *= (1.0f + PASSIVE_DRAGONKIN_DAMAGE_BONUS);
+
+    // State-based damage modifiers (from abilities via effectCategory 3/6)
+    for (auto const& [stateID, stateValue] : attacker.States)
+        if (stateID == BattlePets::STATE_MOD_DAMAGE_DEALT_PERCENT && stateValue != 0)
+            rawDamage *= (1.0f + stateValue / 100.0f);
+
+    for (auto const& [stateID, stateValue] : defender.States)
+        if (stateID == BattlePets::STATE_MOD_DAMAGE_TAKEN_PERCENT && stateValue != 0)
+            rawDamage *= (1.0f + stateValue / 100.0f);
+
+    // Critical hit check (5% base chance, 1.5x multiplier)
+    if (frand(0.0f, 1.0f) < PET_BATTLE_BASE_CRIT_CHANCE)
+    {
+        rawDamage *= PET_BATTLE_CRIT_MULTIPLIER;
+        result.IsCrit = true;
+    }
+
+    int32 damage = std::max(1, int32(std::round(rawDamage)));
+
+    // Flat damage taken modifier from environment (e.g. Sandstorm damage shield)
+    if (defender.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 flatDmgTaken = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_ADD_FLAT_DAMAGE_TAKEN);
+        if (flatDmgTaken != 0)
+            damage = std::max(1, damage + flatDmgTaken);
+    }
+
+    // Magic passive: cannot take more than 35% max HP in a single hit
+    if (defender.PetType == PET_TYPE_MAGIC)
+        damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+    // Boss pets take reduced damage (capped at 35% max HP per hit)
+    if (BattlePetSpeciesEntry const* defenderSpecies = sBattlePetSpeciesStore.LookupEntry(defender.Species))
+        if (defenderSpecies->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
+            damage = std::min(damage, int32(defender.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+    result.Damage = std::max(1, damage);
+    return result;
+}
+
+int32 PetBattle::CalculateAbilityHealing(int32 healPower, int32 attackerPower, PetBattlePetData const& healer)
+{
+    float rawHealing = healPower * (attackerPower / 20.0f);
+
+    // Weather healing modifier from environment states (Elemental passive: ignores weather)
+    if (healer.PetType != PET_TYPE_ELEMENTAL)
+    {
+        int32 envHealMod = _environments[PET_BATTLE_WEATHER_ENV_SLOT].GetState(BattlePets::STATE_MOD_HEALING_DEALT_PERCENT);
+        if (envHealMod != 0)
+            rawHealing *= (1.0f + envHealMod / 100.0f);
+    }
+
+    // State-based healing modifiers
+    for (auto const& [stateID, stateValue] : healer.States)
+        if (stateID == BattlePets::STATE_MOD_HEALING_DEALT_PERCENT && stateValue != 0)
+            rawHealing *= (1.0f + stateValue / 100.0f);
+
+    return std::max(1, int32(std::round(rawHealing)));
+}
+
+// ============================================================================
+// Aura system
+// ============================================================================
+
+void PetBattle::AddAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID, uint32 effectID,
+    PetBattleAuraType auraType, int32 duration, int32 damagePerTick, int8 petType,
+    uint8 casterTeam, uint8 casterPet)
+{
+    PetBattlePetData& pet = _teams[targetTeam].Pets[targetPet];
+
+    // Max aura limit
+    if (pet.Auras.size() >= MAX_PET_BATTLE_AURAS)
+    {
+        // Remove oldest aura to make room
+        if (!pet.Auras.empty())
+        {
+            PetBattleRoundEffect removeEffect;
+            removeEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+            removeEffect.TargetTeam = targetTeam;
+            removeEffect.TargetPet = targetPet;
+            removeEffect.Param1 = pet.Auras.front().AuraInstanceID;
+            removeEffect.Param2 = pet.Auras.front().AbilityID;
+            _roundEffects.push_back(removeEffect);
+
+            pet.Auras.erase(pet.Auras.begin());
+        }
+    }
+
+    PetBattleAura aura;
+    aura.AbilityID = abilityID;
+    aura.EffectID = effectID;
+    aura.Duration = duration;
+    aura.RemainingRounds = duration;
+    aura.AuraInstanceID = _nextAuraInstanceID++;
+    aura.CurrentRound = _currentRound;
+    aura.CasterTeam = casterTeam;
+    aura.CasterPet = casterPet;
+    aura.AuraType = auraType;
+    aura.DamagePerTick = damagePerTick;
+    aura.PetType = petType;
+    aura.StateFlags = PET_BATTLE_AURA_STATE_JUST_APPLIED;
+    if (duration <= 0)
+        aura.StateFlags |= PET_BATTLE_AURA_STATE_INFINITE;
+
+    pet.Auras.push_back(aura);
+}
+
+void PetBattle::RemoveAura(uint8 targetTeam, uint8 targetPet, uint32 abilityID)
+{
+    PetBattlePetData& pet = _teams[targetTeam].Pets[targetPet];
+
+    auto it = std::find_if(pet.Auras.begin(), pet.Auras.end(),
+        [abilityID](PetBattleAura const& aura) { return aura.AbilityID == abilityID; });
+
+    if (it != pet.Auras.end())
+    {
+        PetBattleRoundEffect roundEffect;
+        roundEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+        roundEffect.TargetTeam = targetTeam;
+        roundEffect.TargetPet = targetPet;
+        roundEffect.Param1 = it->AuraInstanceID;
+        roundEffect.Param2 = abilityID;
+        _roundEffects.push_back(roundEffect);
+
+        pet.Auras.erase(it);
+    }
+}
+
+void PetBattle::TickAuras()
+{
+    // PBOID 9 is a sentinel value used by the client for aura processing markers
+    // (one past the last environment slot: PBOID_ENVIRONMENT_BASE + MAX_PET_BATTLE_ENVIRONMENTS)
+    static constexpr uint8 AURA_PROCESSING_SOURCE_TEAM = 3; // 3 * 3 + 0 = PBOID 9
+    static constexpr uint8 AURA_PROCESSING_SOURCE_PET = 0;
+    static constexpr int8  AURA_PROCESSING_ENV_SLOT = 3;    // PBOID_ENVIRONMENT_BASE + 3 = 9
+
+    // Emit AURA_PROCESSING_BEGIN — client expects this wrapper around all aura tick effects
+    {
+        PetBattleRoundEffect beginEffect;
+        beginEffect.EffectType = PET_BATTLE_EFFECT_AURA_PROCESSING_BEGIN;
+        beginEffect.SourceTeam = AURA_PROCESSING_SOURCE_TEAM;
+        beginEffect.SourcePet = AURA_PROCESSING_SOURCE_PET;
+        beginEffect.TargetEnvSlot = AURA_PROCESSING_ENV_SLOT;
+        _roundEffects.push_back(beginEffect);
+    }
+
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        for (uint8 p = 0; p < _teams[t].PetCount; ++p)
+        {
+            PetBattlePetData& pet = _teams[t].Pets[p];
+            if (!pet.IsAlive())
+                continue;
+
+            // Phase 1: Tick periodic effects (DoT/HoT damage/healing)
+            // Skip auras with JUST_APPLIED — they were added this round and shouldn't tick yet
+            for (PetBattleAura& aura : pet.Auras)
+            {
+                if (aura.StateFlags & PET_BATTLE_AURA_STATE_JUST_APPLIED)
+                    continue;
+
+                if (aura.AuraType == PET_BATTLE_AURA_DOT && aura.DamagePerTick > 0)
+                {
+                    int32 tickDamage = aura.DamagePerTick;
+
+                    // Apply type effectiveness for DoTs
+                    if (aura.PetType >= 0 && aura.PetType < PET_TYPE_COUNT)
+                    {
+                        float typeMod = GetTypeEffectiveness(PetBattlePetType(aura.PetType), PetBattlePetType(pet.PetType));
+                        tickDamage = int32(tickDamage * typeMod);
+                    }
+
+                    // Aquatic passive: DoTs deal 25% less damage
+                    if (pet.PetType == PET_TYPE_AQUATIC)
+                        tickDamage = int32(tickDamage * (1.0f - PASSIVE_AQUATIC_DOT_REDUCTION));
+
+                    // Magic passive: cannot take more than 35% max HP in a single hit
+                    if (pet.PetType == PET_TYPE_MAGIC)
+                        tickDamage = std::min(tickDamage, int32(pet.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+                    // Boss pets cap incoming damage at 35% max HP
+                    if (BattlePetSpeciesEntry const* defenderSpecies = sBattlePetSpeciesStore.LookupEntry(pet.Species))
+                        if (defenderSpecies->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
+                            tickDamage = std::min(tickDamage, int32(pet.MaxHealth * PASSIVE_MAGIC_DAMAGE_CAP_PCT));
+
+                    if (tickDamage < 1) tickDamage = 1;
+                    pet.Health = std::max(0, pet.Health - tickDamage);
+
+                    PetBattleRoundEffect roundEffect;
+                    roundEffect.AbilityEffectID = aura.EffectID;
+                    roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                    roundEffect.SourceTeam = aura.CasterTeam;
+                    roundEffect.SourcePet = aura.CasterPet;
+                    roundEffect.TargetTeam = t;
+                    roundEffect.TargetPet = p;
+                    roundEffect.Param1 = pet.Health;
+                    roundEffect.Flags |= PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+                    _roundEffects.push_back(roundEffect);
+                }
+                else if (aura.AuraType == PET_BATTLE_AURA_HOT && aura.DamagePerTick > 0)
+                {
+                    int32 tickHealing = aura.DamagePerTick;
+                    pet.Health = std::min(pet.MaxHealth, pet.Health + tickHealing);
+
+                    PetBattleRoundEffect roundEffect;
+                    roundEffect.AbilityEffectID = aura.EffectID;
+                    roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                    roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+                    roundEffect.SourceTeam = aura.CasterTeam;
+                    roundEffect.SourcePet = aura.CasterPet;
+                    roundEffect.TargetTeam = t;
+                    roundEffect.TargetPet = p;
+                    roundEffect.Param1 = pet.Health;
+                    _roundEffects.push_back(roundEffect);
+                }
+            }
+
+            // Phase 2: Emit AURA_CHANGE for each active aura (update CurrentRound)
+            // Skip auras with JUST_APPLIED — they were just shown via AURA_APPLY this round
+            for (PetBattleAura& aura : pet.Auras)
+            {
+                if (aura.StateFlags & PET_BATTLE_AURA_STATE_JUST_APPLIED)
+                    continue;
+
+                aura.CurrentRound++;
+
+                PetBattleRoundEffect changeEffect;
+                changeEffect.EffectType = PET_BATTLE_EFFECT_AURA_CHANGE;
+                changeEffect.SourceTeam = aura.CasterTeam;
+                changeEffect.SourcePet = aura.CasterPet;
+                changeEffect.TargetTeam = t;
+                changeEffect.TargetPet = p;
+                changeEffect.Param1 = aura.AuraInstanceID;
+                changeEffect.Param2 = aura.AbilityID;
+                changeEffect.Param3 = aura.RemainingRounds;
+                changeEffect.Param4 = aura.CurrentRound;
+                _roundEffects.push_back(changeEffect);
+            }
+
+            // Phase 3: Decrement remaining rounds and remove expired auras
+            // Skip auras with JUST_APPLIED — don't decrement on the round they're applied
+            for (int32 i = static_cast<int32>(pet.Auras.size()) - 1; i >= 0; --i)
+            {
+                PetBattleAura& aura = pet.Auras[i];
+
+                if (aura.StateFlags & PET_BATTLE_AURA_STATE_JUST_APPLIED)
+                {
+                    aura.StateFlags &= ~PET_BATTLE_AURA_STATE_JUST_APPLIED;
+                    continue;
+                }
+
+                aura.RemainingRounds--;
+
+                if (aura.RemainingRounds <= 0)
+                {
+                    PetBattleRoundEffect cancelEffect;
+                    cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                    cancelEffect.SourceTeam = aura.CasterTeam;
+                    cancelEffect.SourcePet = aura.CasterPet;
+                    cancelEffect.TargetTeam = t;
+                    cancelEffect.TargetPet = p;
+                    cancelEffect.Param1 = aura.AuraInstanceID;
+                    cancelEffect.Param2 = aura.AbilityID;
+                    cancelEffect.Param3 = 0; // RoundsRemaining = 0 (expired)
+                    cancelEffect.Param4 = aura.CurrentRound;
+                    _roundEffects.push_back(cancelEffect);
+
+                    pet.Auras.erase(pet.Auras.begin() + i);
+                }
+            }
+        }
+    }
+
+    // Phase 4: Process environment/weather auras (inside BEGIN/END block so client sees them)
+    TickWeather();
+
+    // Emit AURA_PROCESSING_END
+    {
+        PetBattleRoundEffect endEffect;
+        endEffect.EffectType = PET_BATTLE_EFFECT_AURA_PROCESSING_END;
+        endEffect.SourceTeam = AURA_PROCESSING_SOURCE_TEAM;
+        endEffect.SourcePet = AURA_PROCESSING_SOURCE_PET;
+        endEffect.TargetEnvSlot = AURA_PROCESSING_ENV_SLOT;
+        _roundEffects.push_back(endEffect);
+    }
+}
+
+// ============================================================================
+// Environment / Weather system (state-driven from BattlePetAbilityState DB2)
+// ============================================================================
+
+void PetBattle::ApplyWeatherStates(uint32 abilityID)
+{
+    // Load BattlePetAbilityState entries for this weather ability onto the environment
+    if (auto const* states = sPetBattleMgr->GetWeatherAbilityStates(abilityID))
+    {
+        for (auto const& [stateID, value] : *states)
+        {
+            _environments[PET_BATTLE_WEATHER_ENV_SLOT].States[stateID] = value;
+            TC_LOG_DEBUG("server.loading", "PetBattle ApplyWeatherStates: abilityID={} stateID={} value={}",
+                abilityID, stateID, value);
+        }
+    }
+}
+
+void PetBattle::ClearWeatherStates()
+{
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].States.clear();
+}
+
+void PetBattle::TickWeather()
+{
+    for (uint8 envSlot = 0; envSlot < MAX_PET_BATTLE_ENVIRONMENTS; ++envSlot)
+    {
+        PetBattleEnvironment& env = _environments[envSlot];
+        if (!env.IsActive())
+            continue;
+
+        // Emit AURA_CHANGE for environment aura (updates round counter in client)
+        env.CurrentRound++;
+        if (env.AuraInstanceID != 0)
+        {
+            PetBattleRoundEffect changeEffect;
+            changeEffect.EffectType = PET_BATTLE_EFFECT_AURA_CHANGE;
+            changeEffect.SourceTeam = env.CasterTeam;
+            changeEffect.SourcePet = _teams[env.CasterTeam].FrontPetIndex;
+            changeEffect.TargetEnvSlot = static_cast<int8>(envSlot);
+            changeEffect.Param1 = env.AuraInstanceID;
+            changeEffect.Param2 = env.AbilityID;
+            changeEffect.Param3 = env.RemainingRounds;
+            changeEffect.Param4 = env.CurrentRound;
+            _roundEffects.push_back(changeEffect);
+        }
+
+        env.RemainingRounds--;
+
+        if (env.RemainingRounds <= 0)
+        {
+            // Emit AURA_CANCEL so client removes the weather icon
+            if (env.AuraInstanceID != 0)
+            {
+                PetBattleRoundEffect cancelEffect;
+                cancelEffect.EffectType = PET_BATTLE_EFFECT_AURA_CANCEL;
+                cancelEffect.TargetEnvSlot = static_cast<int8>(envSlot);
+                cancelEffect.Param1 = env.AuraInstanceID;
+                cancelEffect.Param2 = env.AbilityID;
+                _roundEffects.push_back(cancelEffect);
+            }
+            env.AbilityID = 0;
+            env.AuraInstanceID = 0;
+            if (envSlot == PET_BATTLE_WEATHER_ENV_SLOT)
+                ClearWeatherStates();
+        }
+    }
+}
+
+// ============================================================================
+// Passive family abilities
+// ============================================================================
+
+void PetBattle::ApplyPassiveRoundStart()
+{
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        PetBattlePetData& frontPet = _teams[t].Pets[_teams[t].FrontPetIndex];
+        if (!frontPet.IsAlive())
+            continue;
+
+        // Humanoid: Recovers 4% max HP each round
+        if (frontPet.PetType == PET_TYPE_HUMANOID)
+        {
+            int32 healAmount = int32(frontPet.MaxHealth * PASSIVE_HUMANOID_HEAL_PCT);
+            if (healAmount > 0 && frontPet.Health < frontPet.MaxHealth)
+            {
+                frontPet.Health = std::min(frontPet.MaxHealth, frontPet.Health + healAmount);
+
+                PetBattleRoundEffect roundEffect;
+                roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+                roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+                roundEffect.TargetTeam = t;
+                roundEffect.TargetPet = _teams[t].FrontPetIndex;
+                roundEffect.Param1 = frontPet.Health;
+                _roundEffects.push_back(roundEffect);
+            }
+        }
+
+        // Dragonkin: reset damage bonus flag at start of round
+        // (it was set by ApplyPassiveOnDamageDealt in the previous round)
+        // The flag persists from previous round - it's checked in CalculateAbilityDamage
+    }
+}
+
+void PetBattle::ApplyPassiveOnDamageDealt(uint8 attackerTeam, uint8 attackerPet,
+    uint8 defenderTeam, uint8 defenderPet, int32 damage)
+{
+    PetBattlePetData& attacker = _teams[attackerTeam].Pets[attackerPet];
+    PetBattlePetData& defender = _teams[defenderTeam].Pets[defenderPet];
+
+    // Dragonkin: +50% damage next round after bringing enemy below 50% HP
+    if (attacker.PetType == PET_TYPE_DRAGONKIN)
+    {
+        int32 previousHealth = defender.Health + damage; // Health before this hit
+        if (previousHealth > defender.MaxHealth / 2 && defender.Health <= defender.MaxHealth / 2)
+            attacker.DragonkinDamageBonus = true;
+    }
+}
+
+bool PetBattle::ApplyPassiveOnDeath(uint8 teamIdx, uint8 petIdx)
+{
+    PetBattlePetData& pet = _teams[teamIdx].Pets[petIdx];
+
+    // Undead: Returns to life for one round when killed (once per battle)
+    if (pet.PetType == PET_TYPE_UNDEAD && !pet.UndeadReviveUsed)
+    {
+        pet.UndeadReviveUsed = true;
+        pet.IsUndeadReviving = true;
+        pet.Health = pet.MaxHealth; // Full HP for the revive round
+
+        PetBattleRoundEffect roundEffect;
+        roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+        roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+        roundEffect.TargetTeam = teamIdx;
+        roundEffect.TargetPet = petIdx;
+        roundEffect.Param1 = pet.Health;
+        _roundEffects.push_back(roundEffect);
+        return true;
+    }
+
+    // Mechanical: Comes back to life once per battle at 20% HP
+    if (pet.PetType == PET_TYPE_MECHANICAL && !pet.MechanicalReviveUsed)
+    {
+        pet.MechanicalReviveUsed = true;
+        pet.Health = int32(pet.MaxHealth * PASSIVE_MECHANICAL_REVIVE_PCT);
+        if (pet.Health < 1) pet.Health = 1;
+
+        PetBattleRoundEffect roundEffect;
+        roundEffect.EffectType = PET_BATTLE_EFFECT_SET_HEALTH;
+        roundEffect.Flags = PET_BATTLE_EFFECT_FLAG_HEAL | PET_BATTLE_EFFECT_FLAG_SUCCESS_CHAIN;
+        roundEffect.TargetTeam = teamIdx;
+        roundEffect.TargetPet = petIdx;
+        roundEffect.Param1 = pet.Health;
+        _roundEffects.push_back(roundEffect);
+        return true;
+    }
+
+    return false;
+}
+
+// ============================================================================
+// Speed resolution
+// ============================================================================
+
+// ============================================================================
+// Death checking
+// ============================================================================
+
+void PetBattle::CheckDeaths()
+{
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        for (uint8 p = 0; p < _teams[t].PetCount; ++p)
+        {
+            PetBattlePetData& pet = _teams[t].Pets[p];
+            if (pet.Health <= 0 && !pet.IsCaptured && !_petKilledThisRound[t * MAX_PET_BATTLE_TEAM_SIZE + p])
+            {
+                // Clear multi-turn state on death
+                pet.IsLockedByMultiTurn = false;
+                pet.MultiTurnAbilityID = 0;
+                pet.MultiTurnCurrentIndex = 0;
+                pet.MultiTurnTotalTurns = 0;
+
+                // Try passive resurrection (Undead / Mechanical)
+                if (ApplyPassiveOnDeath(t, p))
+                    continue;
+
+                _petKilledThisRound[t * MAX_PET_BATTLE_TEAM_SIZE + p] = true;
+            }
+        }
+    }
+}
+
+// ============================================================================
+// XP calculation using GameTable
+// ============================================================================
+
+void PetBattle::AwardExperience()
+{
+    if (!_canAwardXP)
+        return;
+
+    if (_winnerTeam >= MAX_PET_BATTLE_PLAYERS)
+        return;
+
+    Player* player = GetPlayerForTeam(_winnerTeam);
+    if (!player)
+        return;
+
+    PetBattleTeamData& winnerTeam = _teams[_winnerTeam];
+    uint8 loserTeamIdx = _winnerTeam == PET_BATTLE_TEAM_1 ? PET_BATTLE_TEAM_2 : PET_BATTLE_TEAM_1;
+    PetBattleTeamData& loserTeam = _teams[loserTeamIdx];
+
+    // Find the highest level opponent for XP scaling
+    uint16 maxOpponentLevel = 1;
+    for (uint8 i = 0; i < loserTeam.PetCount; ++i)
+        maxOpponentLevel = std::max(maxOpponentLevel, loserTeam.Pets[i].Level);
+
+    // Award XP to all surviving pets on the winning team
+    BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
+
+    for (uint8 i = 0; i < winnerTeam.PetCount; ++i)
+    {
+        PetBattlePetData& pet = winnerTeam.Pets[i];
+        if (!pet.IsAlive() || pet.Level >= BattlePets::MAX_BATTLE_PET_LEVEL)
+            continue;
+
+        if (pet.BattlePetGUID.IsEmpty())
+            continue;
+
+        // Look up XP from GameTable
+        GtBattlePetXPEntry const* xpEntry = sBattlePetXPGameTable.GetRow(maxOpponentLevel);
+        uint16 xpAward = xpEntry ? static_cast<uint16>(GetBattlePetXPPerLevel(xpEntry)) : 100;
+
+        // Scale by level difference: pets much lower than opponent get more XP
+        int16 levelDiff = static_cast<int16>(maxOpponentLevel) - static_cast<int16>(pet.Level);
+        if (levelDiff > 0)
+            xpAward = static_cast<uint16>(xpAward * (1.0f + levelDiff * 0.1f)); // +10% per level below opponent
+        else if (levelDiff < -5)
+            xpAward = static_cast<uint16>(xpAward * 0.1f); // Heavily reduced for fighting much lower level
+
+        if (xpAward < 1) xpAward = 1;
+
+        petMgr->GrantBattlePetExperience(pet.BattlePetGUID, xpAward, BattlePets::BattlePetXpSource::PetBattle);
+    }
+}
+
+// ============================================================================
+// Battle end
+// ============================================================================
+
+void PetBattle::FinishBattle(PetBattleResult result)
+{
+    _state = PET_BATTLE_STATE_FINAL_ROUND;
+    _finishDelayMs = 1500; // 1.5 second delay for death animation before showing result
+
+    switch (result)
+    {
+        case PET_BATTLE_RESULT_TEAM_1_WIN:
+            _winnerTeam = PET_BATTLE_TEAM_1;
+            break;
+        case PET_BATTLE_RESULT_TEAM_2_WIN:
+            _winnerTeam = PET_BATTLE_TEAM_2;
+            break;
+        default:
+            break;
+    }
+
+    AwardExperience();
+
+    // Restore wild creature state (undo battle freeze)
+    if (_battleType == PET_BATTLE_TYPE_PVE && !_wildCreatureGUID.IsEmpty())
+    {
+        if (Player* player = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        {
+            if (Creature* creature = ObjectAccessor::GetCreature(*player, _wildCreatureGUID))
+            {
+                creature->RemoveUnitFlag(UNIT_FLAG_PACIFIED);
+                creature->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+
+                // If the wild pet was captured or defeated, despawn and schedule respawn
+                bool anyPetCaptured = false;
+                for (uint8 i = 0; i < _teams[PET_BATTLE_TEAM_2].PetCount; ++i)
+                    if (_teams[PET_BATTLE_TEAM_2].Pets[i].IsCaptured)
+                        anyPetCaptured = true;
+
+                if (anyPetCaptured || result == PET_BATTLE_RESULT_TEAM_1_WIN)
+                    creature->DespawnOrUnsummon();
+            }
+        }
+    }
+
+    // Achievement criteria updates
+    // Note: ModifierTreeType conditions (BattlePetFightWasPVP, BattlePetTeamLevel,
+    // BattlePetTeamWithAliveEqualOrGreaterThan) are evaluated automatically by the
+    // criteria system when checking criteria of these types.
+    // Pass battleType as miscValue1 so BattlePetFightWasPVP can evaluate.
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        Player* player = GetPlayerForTeam(t);
+        if (!player)
+            continue;
+
+        if (t == _winnerTeam)
+        {
+            player->UpdateCriteria(CriteriaType::WinPetBattle, static_cast<uint64>(_battleType));
+
+            // Quest objective progress for wins
+            if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
+                player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPVPPETBATTLES, 0, 1);
+
+            if (_battleType == PET_BATTLE_TYPE_NPC && !_npcTrainerGUID.IsEmpty())
+            {
+                if (Creature* trainer = ObjectAccessor::GetCreature(*player, _npcTrainerGUID))
+                    player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPETBATTLEAGAINSTNPC, trainer->GetEntry(), 1, _npcTrainerGUID);
+            }
+
+            // Credit defeated species for each enemy pet killed
+            PetBattleTeamData const& loserTeam = _teams[1 - t];
+            for (uint8 p = 0; p < loserTeam.PetCount; ++p)
+                if (!loserTeam.Pets[p].IsAlive())
+                    player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_DEFEATBATTLEPET, loserTeam.Pets[p].Species, 1);
+        }
+        else
+        {
+            player->UpdateCriteria(CriteriaType::LosePetBattle, static_cast<uint64>(_battleType));
+        }
+    }
+}
+
+void PetBattle::SendFinalRoundPacket(bool abandoned)
+{
+    WorldPackets::BattlePet::PetBattleFinalRound finalRound;
+    finalRound.Abandoned = abandoned;
+    finalRound.PvpBattle = (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB);
+    finalRound.Winners[_winnerTeam] = true;
+
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        PetBattleTeamData const& team = _teams[t];
+
+        if (_battleType == PET_BATTLE_TYPE_NPC && t == PET_BATTLE_TEAM_2)
+        {
+            if (Player* p = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+                if (Creature* trainer = ObjectAccessor::GetCreature(*p, _npcTrainerGUID))
+                    finalRound.NpcCreatureID[t] = trainer->GetEntry();
+        }
+
+        for (uint8 i = 0; i < team.PetCount; ++i)
+        {
+            WorldPackets::BattlePet::PetBattleFinalPet pet;
+            pet.Guid = team.Pets[i].BattlePetGUID;
+            pet.Level = team.Pets[i].Level;
+            pet.Xp = team.Pets[i].Xp;
+            pet.Health = team.Pets[i].Health;
+            pet.MaxHealth = team.Pets[i].MaxHealth;
+            pet.InitialLevel = team.Pets[i].Level;
+            pet.Pboid = t * MAX_PET_BATTLE_TEAM_SIZE + i;
+            pet.Captured = team.Pets[i].IsCaptured;
+            pet.Caged = false;
+            pet.SeenAction = false;
+            pet.AwardedXP = _canAwardXP;
+            finalRound.Pets.push_back(pet);
+        }
+    }
+
+    if (Player* p1 = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        p1->SendDirectMessage(finalRound.Write());
+    if (Player* p2 = GetPlayerForTeam(PET_BATTLE_TEAM_2))
+        p2->SendDirectMessage(finalRound.Write());
+}
+
+void PetBattle::CompleteBattle()
+{
+    _state = PET_BATTLE_STATE_FINISHED;
+
+    // Add captured pets to the player's journal (deferred from capture resolution
+    // so the notification appears after the crate animation has played)
+    if (_battleType == PET_BATTLE_TYPE_PVE)
+    {
+        if (Player* player = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        {
+            BattlePets::BattlePetMgr* petMgr = player->GetSession()->GetBattlePetMgr();
+            PetBattleTeamData const& wildTeam = _teams[PET_BATTLE_TEAM_2];
+            for (uint8 p = 0; p < wildTeam.PetCount; ++p)
+            {
+                if (wildTeam.Pets[p].IsCaptured)
+                {
+                    petMgr->AddPet(wildTeam.Pets[p].Species, wildTeam.Pets[p].DisplayID,
+                        wildTeam.Pets[p].Breed,
+                        BattlePets::BattlePetBreedQuality(wildTeam.Pets[p].Quality),
+                        wildTeam.Pets[p].Level);
+
+                    player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildTeam.Pets[p].Species);
+                    player->UpdateCriteria(CriteriaType::PlayerObtainPetThroughBattle, wildTeam.Pets[p].Species);
+                }
+            }
+        }
+    }
+
+    // Send finished notification and sync pet health to journal
+    WorldPackets::BattlePet::PetBattleFinished finished;
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+    {
+        Player* teamPlayer = GetPlayerForTeam(t);
+        if (!teamPlayer)
+            continue;
+
+        teamPlayer->SendDirectMessage(finished.Write());
+
+        BattlePets::BattlePetMgr* petMgr = teamPlayer->GetSession()->GetBattlePetMgr();
+        PetBattleTeamData const& team = _teams[t];
+        for (uint8 p = 0; p < team.PetCount; ++p)
+        {
+            if (!team.Pets[p].BattlePetGUID.IsEmpty())
+                petMgr->SyncBattlePetHealth(team.Pets[p].BattlePetGUID, team.Pets[p].Health);
+        }
+        petMgr->SendJournal();
+    }
+
+    // NPC trainer post-battle: restore movement and play cry emote on loss
+    if (_battleType == PET_BATTLE_TYPE_NPC && !_npcTrainerGUID.IsEmpty())
+    {
+        if (Player* player = GetPlayerForTeam(PET_BATTLE_TEAM_1))
+        {
+            if (Creature* trainer = ObjectAccessor::GetCreature(*player, _npcTrainerGUID))
+            {
+                trainer->GetMotionMaster()->MoveTargetedHome();
+
+                if (_winnerTeam == PET_BATTLE_TEAM_1)
+                    trainer->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+            }
+        }
+    }
+}
+
+void PetBattle::Forfeit(uint8 teamIdx)
+{
+    // Apply deserter penalty for PvP forfeits
+    if (_battleType == PET_BATTLE_TYPE_PVP)
+    {
+        if (Player* player = GetPlayerForTeam(teamIdx))
+        {
+            // Pet Battle Deserter - 10 minute debuff (spell 150340)
+            static constexpr uint32 SPELL_PET_BATTLE_DESERTER = 150340;
+            player->CastSpell(player, SPELL_PET_BATTLE_DESERTER, true);
+        }
+    }
+
+    if (teamIdx == PET_BATTLE_TEAM_1)
+        FinishBattle(PET_BATTLE_RESULT_TEAM_2_WIN);
+    else
+        FinishBattle(PET_BATTLE_RESULT_TEAM_1_WIN);
+}
+
+// ============================================================================
+// Wild / NPC AI
+// ============================================================================
+
+void PetBattle::GenerateWildTeamInput()
+{
+    PetBattleTeamData& wildTeam = _teams[PET_BATTLE_TEAM_2];
+    PetBattlePetData& frontPet = wildTeam.Pets[wildTeam.FrontPetIndex];
+
+    if (!frontPet.IsAlive())
+    {
+        // Swap to next alive pet
+        int8 nextAlive = wildTeam.GetFirstAlivePetIndex();
+        if (nextAlive >= 0 && nextAlive != wildTeam.FrontPetIndex)
+        {
+            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, nextAlive);
+            return;
+        }
+        // No alive pets, skip
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
+        return;
+    }
+
+    // If locked in multi-turn, skip input (will auto-continue)
+    if (frontPet.IsLockedByMultiTurn)
+    {
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, frontPet.MultiTurnAbilityID, -1);
+        return;
+    }
+
+    // Collect available abilities (off cooldown, not zero)
+    struct AbilityOption
+    {
+        uint32 abilityID;
+        uint8 slotIdx;
+        float priority;
+    };
+    std::vector<AbilityOption> availableAbilities;
+
+    for (uint8 i = 0; i < MAX_PET_BATTLE_ABILITIES; ++i)
+    {
+        if (frontPet.AbilityIDs[i] == 0 || frontPet.AbilityCooldowns[i] > 0)
+            continue;
+
+        float priority = 1.0f;
+
+        BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(frontPet.AbilityIDs[i]);
+        if (ability)
+        {
+            // Prefer abilities with type advantage against defender
+            PetBattlePetData const& defenderPet = _teams[PET_BATTLE_TEAM_1].Pets[_teams[PET_BATTLE_TEAM_1].FrontPetIndex];
+            float typeMod = GetTypeEffectiveness(PetBattlePetType(ability->PetTypeEnum), PetBattlePetType(defenderPet.PetType));
+            if (typeMod > 1.0f)
+                priority += 2.0f; // Strong preference for super-effective
+            else if (typeMod < 1.0f)
+                priority -= 0.5f; // Slight avoidance of weak abilities
+        }
+
+        availableAbilities.push_back({ frontPet.AbilityIDs[i], i, priority });
+    }
+
+    if (availableAbilities.empty())
+    {
+        TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: NO available abilities! AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS",
+            frontPet.AbilityIDs[0], frontPet.AbilityIDs[1], frontPet.AbilityIDs[2],
+            frontPet.AbilityCooldowns[0], frontPet.AbilityCooldowns[1], frontPet.AbilityCooldowns[2]);
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
+        return;
+    }
+
+    // Check if healing is desirable (HP < 50% and a healing ability exists)
+    if (frontPet.Health < frontPet.MaxHealth / 2)
+    {
+        for (auto& opt : availableAbilities)
+        {
+            // Check if this ability has any healing effects via the DB2 chain
+            std::vector<uint32> const* turns = sPetBattleMgr->GetAbilityTurns(opt.abilityID);
+            if (!turns)
+                continue;
+            for (uint32 turnID : *turns)
+            {
+                std::vector<BattlePetAbilityEffectEntry const*> const* effects = sPetBattleMgr->GetTurnEffectsFull(turnID);
+                if (!effects)
+                    continue;
+                for (BattlePetAbilityEffectEntry const* effect : *effects)
+                {
+                    PetBattleAbilityEffectAction action = sPetBattleMgr->GetEffectAction(effect->BattlePetEffectPropertiesID);
+                    if (action == PET_BATTLE_EFFECT_ACTION_HEAL || action == PET_BATTLE_EFFECT_ACTION_HEAL_PERCENTAGE ||
+                        action == PET_BATTLE_EFFECT_ACTION_HEAL_CAPPED || action == PET_BATTLE_EFFECT_ACTION_PERIODIC_HEAL)
+                    {
+                        opt.priority += 3.0f; // Strong preference for healing when low HP
+                    }
+                }
+            }
+        }
+    }
+
+    // Consider swapping to a pet with type advantage if current pet is at disadvantage and low HP
+    if (frontPet.Health < frontPet.MaxHealth / 3 && wildTeam.PetCount > 1)
+    {
+        PetBattlePetData const& defenderPet = _teams[PET_BATTLE_TEAM_1].Pets[_teams[PET_BATTLE_TEAM_1].FrontPetIndex];
+        float currentTypeMod = GetTypeEffectiveness(PetBattlePetType(frontPet.PetType), PetBattlePetType(defenderPet.PetType));
+
+        if (currentTypeMod < 1.0f) // Currently at a disadvantage
+        {
+            for (uint8 i = 0; i < wildTeam.PetCount; ++i)
+            {
+                if (i == wildTeam.FrontPetIndex || !wildTeam.Pets[i].IsAlive() || wildTeam.Pets[i].IsCaptured)
+                    continue;
+
+                float swapTypeMod = GetTypeEffectiveness(PetBattlePetType(wildTeam.Pets[i].PetType), PetBattlePetType(defenderPet.PetType));
+                if (swapTypeMod > currentTypeMod && urand(0, 1)) // 50% chance to swap when advantageous
+                {
+                    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, static_cast<int8>(i));
+                    return;
+                }
+            }
+        }
+    }
+
+    // Weighted random selection from available abilities
+    float totalWeight = 0.0f;
+    for (auto const& opt : availableAbilities)
+        totalWeight += std::max(0.1f, opt.priority);
+
+    float roll = frand(0.0f, totalWeight);
+    float cumulative = 0.0f;
+
+    for (auto const& opt : availableAbilities)
+    {
+        cumulative += std::max(0.1f, opt.priority);
+        if (roll <= cumulative)
+        {
+            TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: SELECTED ability={} (avail={} roll={:.1f}/{:.1f})",
+                opt.abilityID, availableAbilities.size(), roll, totalWeight);
+            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, opt.abilityID, -1);
+            return;
+        }
+    }
+
+    // Fallback: use first available ability
+    TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: FALLBACK ability={}", availableAbilities[0].abilityID);
+    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, availableAbilities[0].abilityID, -1);
+}
+
+// ============================================================================
+// Queries
+// ============================================================================
+
+bool PetBattle::WasPetKilledThisRound(uint8 teamIdx, uint8 petIdx) const
+{
+    return _petKilledThisRound[teamIdx * MAX_PET_BATTLE_TEAM_SIZE + petIdx];
+}
+
+bool PetBattle::NeedsFrontPetSwap(uint8 teamIdx) const
+{
+    return _needsFrontPetSwap[teamIdx];
+}
+
+Player* PetBattle::GetPlayerForTeam(uint8 teamIdx) const
+{
+    return ObjectAccessor::FindPlayer(_teams[teamIdx].PlayerGUID);
+}
+
+uint32 PetBattle::GetOpponentCreatureID(uint8 teamIdx) const
+{
+    uint8 opponentTeam = 1 - teamIdx;
+    if (opponentTeam >= MAX_PET_BATTLE_PLAYERS)
+        return 0;
+
+    PetBattleTeamData const& team = _teams[opponentTeam];
+    if (team.FrontPetIndex >= 0 && team.FrontPetIndex < team.PetCount)
+        return team.Pets[team.FrontPetIndex].CreatureID;
+    return 0;
+}
+
+// ============================================================================
+// Trap status validation
+// ============================================================================
+
+uint8 PetBattle::GetTrapStatus(uint8 playerTeam) const
+{
+    if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER_BATTLE;
+
+    if (_battleType == PET_BATTLE_TYPE_NPC)
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TRAINER_BATTLE;
+
+    if (playerTeam != PET_BATTLE_TEAM_1)
+        return PET_BATTLE_TRAP_STATUS_INVALID;
+
+    PetBattleTeamData const& wildTeam = _teams[PET_BATTLE_TEAM_2];
+    PetBattlePetData const& wildPet = wildTeam.Pets[wildTeam.FrontPetIndex];
+
+    if (!wildPet.IsAlive())
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_PET_DEAD;
+
+    if (wildPet.IsCaptured)
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_TWICE;
+
+    // Check species is capturable (boss pets are never capturable)
+    if (BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(wildPet.Species))
+    {
+        if (!species->GetFlags().HasFlag(BattlePetSpeciesFlags::Capturable) ||
+            species->GetFlags().HasFlag(BattlePetSpeciesFlags::Boss))
+            return PET_BATTLE_TRAP_STATUS_CANT_TRAP_NOT_CAPTURABLE;
+    }
+
+    // Check health < 35% threshold
+    float healthPct = wildPet.MaxHealth > 0 ? (float(wildPet.Health) / float(wildPet.MaxHealth)) : 1.0f;
+    if (healthPct > 0.35f)
+        return PET_BATTLE_TRAP_STATUS_CANT_TRAP_PET_HEALTH;
+
+    // Check journal room
+    Player* player = GetPlayerForTeam(playerTeam);
+    if (player)
+    {
+        BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(wildPet.Species);
+        if (species && player->GetSession()->GetBattlePetMgr()->HasMaxPetCount(species, player->GetGUID()))
+            return PET_BATTLE_TRAP_STATUS_CANT_TRAP_NO_ROOM;
+    }
+
+    return PET_BATTLE_TRAP_STATUS_CAN_TRAP;
+}
+
+// ============================================================================
+// NPC Trainer Battle
+// ============================================================================
+
+void PetBattle::InitNPCBattle(Player* player, Creature* trainer, std::vector<NPCTeamPetInfo> const& npcTeam)
+{
+    _battleType = PET_BATTLE_TYPE_NPC;
+    _canAwardXP = true;
+    _npcTrainerGUID = trainer->GetGUID();
+
+    LoadPlayerTeam(player, _teams[PET_BATTLE_TEAM_1]);
+
+    // Build NPC team from provided data
+    PetBattleTeamData& trainerTeam = _teams[PET_BATTLE_TEAM_2];
+    trainerTeam.PetCount = 0;
+
+    for (size_t i = 0; i < npcTeam.size() && i < MAX_PET_BATTLE_TEAM_SIZE; ++i)
+    {
+        NPCTeamPetInfo const& info = npcTeam[i];
+        PetBattlePetData& pet = trainerTeam.Pets[i];
+
+        pet.Species = info.SpeciesID;
+        pet.Level = info.Level;
+        pet.Breed = info.BreedID;
+        pet.Quality = info.Quality;
+        pet.NpcTeamMemberID = info.NpcTeamMemberID;
+
+        // Determine CreatureID: use override from NPC team table, or fall back to species default
+        uint32 creatureIDForModel = info.CreatureID;
+        BattlePetSpeciesEntry const* species = sBattlePetSpeciesStore.LookupEntry(info.SpeciesID);
+        if (species)
+        {
+            if (creatureIDForModel == 0)
+                creatureIDForModel = species->CreatureID;
+            pet.CreatureID = creatureIDForModel;
+            pet.PetType = species->PetTypeEnum;
+            if (CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(creatureIDForModel))
+                if (CreatureModel const* model = ct->GetRandomValidModel())
+                    pet.DisplayID = model->CreatureDisplayID;
+        }
+
+        // Calculate stats
+        CalculateWildPetStats(pet);
+
+        // Assign abilities
+        for (uint8 a = 0; a < MAX_PET_BATTLE_ABILITIES; ++a)
+        {
+            if (info.AbilityIDs[a] != 0)
+                pet.AbilityIDs[a] = info.AbilityIDs[a];
+        }
+        // Fill any empty ability slots from DB2
+        LoadWildPetAbilities(pet);
+
+        trainerTeam.PetCount++;
+    }
+
+    // Recalculate effective stats for all pets
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        for (uint8 p = 0; p < _teams[t].PetCount; ++p)
+            _teams[t].Pets[p].RecalculateEffectiveStats();
+
+    // Lock abilities and swaps until first round begins
+    for (uint8 t = 0; t < MAX_PET_BATTLE_PLAYERS; ++t)
+        _teams[t].InputFlags = PET_BATTLE_INPUT_FLAG_ABILITY_LOCKED | PET_BATTLE_INPUT_FLAG_SWAP_LOCKED;
+
+    _state = PET_BATTLE_STATE_WAITING_PRE_BATTLE;
+}
+
+void PetBattle::GenerateNPCTeamInput()
+{
+    PetBattleTeamData& npcTeam = _teams[PET_BATTLE_TEAM_2];
+    PetBattlePetData& frontPet = npcTeam.Pets[npcTeam.FrontPetIndex];
+
+    if (!frontPet.IsAlive())
+    {
+        int8 nextAlive = npcTeam.GetFirstAlivePetIndex();
+        if (nextAlive >= 0 && nextAlive != npcTeam.FrontPetIndex)
+        {
+            SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, nextAlive);
+            return;
+        }
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
+        return;
+    }
+
+    // If locked in multi-turn, auto-continue
+    if (frontPet.IsLockedByMultiTurn)
+    {
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, frontPet.MultiTurnAbilityID, -1);
+        return;
+    }
+
+    // Collect available abilities
+    struct AbilityOption { uint32 abilityID; float priority; };
+    std::vector<AbilityOption> availableAbilities;
+
+    PetBattlePetData const& defenderPet = _teams[PET_BATTLE_TEAM_1].Pets[_teams[PET_BATTLE_TEAM_1].FrontPetIndex];
+
+    for (uint8 i = 0; i < MAX_PET_BATTLE_ABILITIES; ++i)
+    {
+        if (frontPet.AbilityIDs[i] == 0 || frontPet.AbilityCooldowns[i] > 0)
+            continue;
+
+        float priority = 1.0f;
+        BattlePetAbilityEntry const* ability = sBattlePetAbilityStore.LookupEntry(frontPet.AbilityIDs[i]);
+        if (ability)
+        {
+            float typeMod = GetTypeEffectiveness(PetBattlePetType(ability->PetTypeEnum), PetBattlePetType(defenderPet.PetType));
+            if (typeMod > 1.0f)
+                priority += 3.0f; // Trainer AI strongly prefers super-effective
+            else if (typeMod < 1.0f)
+                priority -= 1.0f;
+        }
+
+        availableAbilities.push_back({ frontPet.AbilityIDs[i], priority });
+    }
+
+    if (availableAbilities.empty())
+    {
+        // NPC trainers never skip turns — use any ability even on cooldown as fallback
+        for (uint8 i = 0; i < MAX_PET_BATTLE_ABILITIES; ++i)
+        {
+            if (frontPet.AbilityIDs[i] != 0)
+            {
+                SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, frontPet.AbilityIDs[i], -1);
+                return;
+            }
+        }
+        SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
+        return;
+    }
+
+    // Smart swap: if HP is low and at type disadvantage, consider swapping
+    if (frontPet.Health < frontPet.MaxHealth / 3 && npcTeam.PetCount > 1)
+    {
+        float currentTypeMod = GetTypeEffectiveness(PetBattlePetType(frontPet.PetType), PetBattlePetType(defenderPet.PetType));
+        if (currentTypeMod < 1.0f)
+        {
+            for (uint8 i = 0; i < npcTeam.PetCount; ++i)
+            {
+                if (i == npcTeam.FrontPetIndex || !npcTeam.Pets[i].IsAlive() || npcTeam.Pets[i].IsCaptured)
+                    continue;
+
+                float swapTypeMod = GetTypeEffectiveness(PetBattlePetType(npcTeam.Pets[i].PetType), PetBattlePetType(defenderPet.PetType));
+                if (swapTypeMod > currentTypeMod)
+                {
+                    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_SWAP, 0, static_cast<int8>(i));
+                    return;
+                }
+            }
+        }
+    }
+
+    // Select highest priority ability
+    std::sort(availableAbilities.begin(), availableAbilities.end(),
+        [](AbilityOption const& a, AbilityOption const& b) { return a.priority > b.priority; });
+
+    SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_ABILITY, availableAbilities[0].abilityID, -1);
+}
+
+} // namespace PetBattles

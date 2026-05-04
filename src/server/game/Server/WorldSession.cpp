@@ -41,6 +41,7 @@
 #include "MiscPackets.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "PetBattleMgr.h"
 #include "PacketUtilities.h"
 #include "Player.h"
 #include "QueryHolder.h"
@@ -629,7 +630,20 @@ void WorldSession::LogoutPlayer(bool save)
         ///- Remove pet
         _player->RemovePet(nullptr, PET_SAVE_AS_CURRENT, true);
 
-        ///- Release battle pet journal lock
+        ///- Clean up any active pet battle (before releasing journal lock so XP award works)
+        if (PetBattles::PetBattle* battle = sPetBattleMgr->GetBattleByPlayer(_player->GetGUID()))
+        {
+            if (!battle->IsFinished())
+            {
+                // If battle hasn't reached FINAL_ROUND yet, resolve it (awards XP, achievements)
+                if (!battle->IsFinalRound())
+                    battle->FinishBattle(PetBattles::PET_BATTLE_RESULT_DRAW);
+                battle->CompleteBattle();
+            }
+            sPetBattleMgr->RemoveBattle(battle->GetBattleID());
+        }
+
+        ///- Release battle pet journal lock (after battle cleanup so XP award has journal access)
         if (_battlePetMgr->HasJournalLock())
             _battlePetMgr->ToggleJournalLock(false);
 
