@@ -25407,6 +25407,12 @@ void Player::SendInitialPacketsBeforeAddToMap()
     initialSetup.ServerExpansionLevel = sWorld->getIntConfig(CONFIG_EXPANSION);
     SendDirectMessage(initialSetup.Write());
 
+    // Account-wide bank lock: grant to this session if no other session for the same
+    // Bnet account already holds it. Without this flag the client shows the
+    // "The bank is being used by another member of your Warband" prompt.
+    if (!sWorld->IsAccountInventoryLockAcquired(GetSession()->GetBattlenetAccountGUID(), GetSession()))
+        SetPlayerLocalFlag(PLAYER_LOCAL_FLAG_HAS_ACCOUNT_BANK_LOCK);
+
     SetMovedUnit(this);
 }
 
