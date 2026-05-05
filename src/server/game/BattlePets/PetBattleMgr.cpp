@@ -307,15 +307,40 @@ void PetBattleMgr::BuildEffectActionMap()
                 break;
             }
 
+        // Case-insensitive substring search helper
+        auto containsCI = [](std::string_view haystack, std::string_view needle) -> bool
+        {
+            if (needle.empty() || haystack.size() < needle.size())
+                return needle.empty();
+            for (size_t i = 0; i + needle.size() <= haystack.size(); ++i)
+            {
+                bool match = true;
+                for (size_t j = 0; j < needle.size(); ++j)
+                {
+                    char a = haystack[i + j];
+                    char b = needle[j];
+                    if (a >= 'A' && a <= 'Z') a = char(a - 'A' + 'a');
+                    if (b >= 'A' && b <= 'Z') b = char(b - 'A' + 'a');
+                    if (a != b) { match = false; break; }
+                }
+                if (match) return true;
+            }
+            return false;
+        };
+
         for (uint8 i = 0; i < 6; ++i)
         {
             if (!props->ParamLabel[i] || !props->ParamLabel[i][0])
                 continue;
             std::string_view label(props->ParamLabel[i]);
+
+            // Weather check first — any label containing "weather" (case-insensitive) wins,
+            // since the State substring would otherwise swallow "WeatherStateID" etc.
+            if (containsCI(label, "weather")) { hasWeather = true; continue; }
+
             if (label == "Points") hasPoints = true;
             else if (label == "Percentage") { hasPoints = true; hasPercentage = true; }
             else if (label == "Duration") hasDuration = true;
-            else if (label == "weatherState" || label == "WeatherState" || label == "weatherAura" || label == "WeatherAura") hasWeather = true;
             else if (label.find("State") != std::string_view::npos) hasState = true;
             else if (label == "Chance") hasChance = true;
             else if (label == "SwapIndex" || label == "Swap") hasSwap = true;

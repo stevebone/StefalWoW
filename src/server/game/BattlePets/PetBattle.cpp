@@ -1148,10 +1148,15 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 break;
             }
 
-            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} auraAbilityID={}",
-                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, effect->AuraBattlePetAbilityID);
+            // The aura's own ability ID drives the client-side icon lookup.
+            // When AuraBattlePetAbilityID is set, the cast ability is just a wrapper
+            // that applies a separate aura ability — that's the one whose icon shows.
+            uint32 auraIconAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
 
-            AddAura(auraTargetTeam, auraTargetPet, abilityID, effect->ID,
+            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} castAbilityID={} auraIconAbilityID={}",
+                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, abilityID, auraIconAbilityID);
+
+            AddAura(auraTargetTeam, auraTargetPet, auraIconAbilityID, effect->ID,
                 auraType, auraDuration, tickDamage, attacker.PetType,
                 attackerTeam, attackerPet);
 
@@ -1166,7 +1171,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetTeam = auraTargetTeam;
                 roundEffect.TargetPet = auraTargetPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
-                roundEffect.Param2 = abilityID;
+                roundEffect.Param2 = auraIconAbilityID;
                 roundEffect.Param3 = newAura.RemainingRounds;
                 roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
@@ -1221,8 +1226,9 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
 
             int32 tickHealing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
+            uint32 auraIconAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
 
-            AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
+            AddAura(attackerTeam, attackerPet, auraIconAbilityID, effect->ID,
                 PET_BATTLE_AURA_HOT, auraDuration, tickHealing, attacker.PetType,
                 attackerTeam, attackerPet);
 
@@ -1237,7 +1243,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetTeam = attackerTeam;
                 roundEffect.TargetPet = attackerPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
-                roundEffect.Param2 = abilityID;
+                roundEffect.Param2 = auraIconAbilityID;
                 roundEffect.Param3 = newAura.RemainingRounds;
                 roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
@@ -2237,10 +2243,12 @@ void PetBattle::FinishBattle(PetBattleResult result)
                     player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPETBATTLEAGAINSTNPC, trainer->GetEntry(), 1, _npcTrainerGUID);
             }
 
-            // Credit defeated species for each enemy pet killed
+            // Credit defeated species for each enemy pet killed or captured.
+            // Capture removes the pet from play just like a kill — quests that ask
+            // "defeat N <species>" should credit captures too.
             PetBattleTeamData const& loserTeam = _teams[1 - t];
             for (uint8 p = 0; p < loserTeam.PetCount; ++p)
-                if (!loserTeam.Pets[p].IsAlive())
+                if (!loserTeam.Pets[p].IsAlive() || loserTeam.Pets[p].IsCaptured)
                     player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_DEFEATBATTLEPET, loserTeam.Pets[p].Species, 1);
         }
         else
@@ -2438,7 +2446,10 @@ void PetBattle::GenerateWildTeamInput()
 
     if (availableAbilities.empty())
     {
-        TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: NO available abilities! AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS",
+        TC_LOG_WARN("battlepet", "PetBattle GenerateWildTeamInput: wild species={} has NO available abilities! "
+            "AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS (pet will not attack this round). "
+            "Check BattlePetSpeciesXAbility DB2 entries for this species.",
+            frontPet.Species,
             frontPet.AbilityIDs[0], frontPet.AbilityIDs[1], frontPet.AbilityIDs[2],
             frontPet.AbilityCooldowns[0], frontPet.AbilityCooldowns[1], frontPet.AbilityCooldowns[2]);
         SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
