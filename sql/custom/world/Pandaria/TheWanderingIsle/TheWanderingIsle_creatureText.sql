@@ -219,16 +219,16 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 ('56676', '4', '0', 'It is in the forest where your feet do not walk.  Continue along the mountains and you will find it.', '12', '0', '100', '0', '0', '27826', '0', '55572', '0', 'Shen-zin Su to Player'),
 ('56676', '5', '0', 'Thank you, grandchildren.', '12', '0', '100', '0', '0', '27827', '0', '63407', '0', 'Shen-zin Su to Player');
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (59962, 59960, 60042, 55943, 60900, 56236, 56416, 60729, 60741, 60770,60877,60834,60878,56418,60851,60852);
+DELETE FROM `creature_text` WHERE `creatureID` IN (59986, 59988, 60042, 55943, 60900, 56236, 56416, 60729, 60741, 60770,60877,60834,60878,56418,60851,60852);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`,`BroadcastTextId`, `TextRange`, `comment`) VALUES
-('59962', '0', '0', '$n\'s here. Let\'s go.', '12', '0', '100', '432', '0', '27420', 0, '59481', '0', 'Aysa Cloudsinger to Player'),
-('59962', '1', '0', 'Wha...', '12', '0', '100', '0', '0', '27421', 0, '59495', '0', 'Aysa Cloudsinger to Player'),
-('59962', '2', '0', 'The gate is jammed.', '12', '0', '100', '274', '0', '27422', 0, '59511', '0', 'Aysa Cloudsinger to Player'),
-('59960', '0', '0', 'Let me try.', '12', '0', '100', '5', '0', '27339', 0, '59513', '0', 'Ji to Aysa'),
-('59960', '1', '0', 'Did they prop this door up against a boulder?  It won\'t budge!', '12', '0', '100', '5', '0', '27340', 0, '59515', '0', 'Ji to Aysa'),
-('59960', '2', '0', 'Well done, Jojo!', '12', '0', '100', '5', '0', '27341', 0, '59521', '0', 'Ji to Jojo'),
-('59960', '3', '0', 'We need to dislodge that ship, Korga.  If we help your crewmates, can you help us?', '12', '0', '100', '1', '0', '27333', '0', '59584', '0', 'Ji Firepaw to Player'),
-('59960', '4', '0', 'Well, we\'ve got a master person-finder here, eh $p?  We\'re on it.', '12', '0', '100', '1', '0', '27334', '0', '59586', '0', 'Ji Firepaw to Player'),
+('59986', '0', '0', '$n\'s here. Let\'s go.', '12', '0', '100', '432', '0', '27420', 0, '59481', '0', 'Aysa Cloudsinger to Player'),
+('59986', '1', '0', 'Wha...', '12', '0', '100', '0', '0', '27421', 0, '59495', '0', 'Aysa Cloudsinger to Player'),
+('59986', '2', '0', 'The gate is jammed.', '12', '0', '100', '274', '0', '27422', 0, '59511', '0', 'Aysa Cloudsinger to Player'),
+('59988', '0', '0', 'Let me try.', '12', '0', '100', '5', '0', '27339', 0, '59513', '0', 'Ji to Aysa'),
+('59988', '1', '0', 'Did they prop this door up against a boulder?  It won\'t budge!', '12', '0', '100', '5', '0', '27340', 0, '59515', '0', 'Ji to Aysa'),
+('59988', '2', '0', 'Well done, Jojo!', '12', '0', '100', '5', '0', '27341', 0, '59521', '0', 'Ji to Jojo'),
+('59988', '3', '0', 'We need to dislodge that ship, Korga.  If we help your crewmates, can you help us?', '12', '0', '100', '1', '0', '27333', '0', '59584', '0', 'Ji Firepaw to Player'),
+('59988', '4', '0', 'Well, we\'ve got a master person-finder here, eh $p?  We\'re on it.', '12', '0', '100', '1', '0', '27334', '0', '59586', '0', 'Ji Firepaw to Player'),
 ('60042', '0', '0', 'Wei, are these friends of yours?', '12', '0', '100', '6', '0', '28120', '0', '54956', '0', 'Korga Strongmane to Player'),
 ('60042', '1', '0', 'Korga Strongmane, once prisoner of the Alliance, now free and woefully unarmed tauren. Good to meet you, pandaren.', '12', '0', '100', '66', '0', '28121', '0', '59555', '0', 'Korga Strongmane to Player'),
 ('60042', '2', '0', 'Gladly, my new friend. Our engineer is still in the wilds though - we\'ll need to rescue him first.', '12', '0', '100', '1', '0', '28122', '0', '59585', '0', 'Korga Strongmane to Ji'),
