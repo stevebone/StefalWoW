@@ -29,42 +29,6 @@
 
 namespace Scripts::Custom::TheWanderingIsle
 {
-    // GO 210965 - Forest Door 1
-    class go_210965_forest_door : public GameObjectScript
-    {
-    public:
-        go_210965_forest_door() : GameObjectScript("go_210965_forest_door") { }
-
-        struct go_210965_interactAI : public GameObjectAI
-        {
-            go_210965_interactAI(GameObject* go) : GameObjectAI(go) { }
-
-            void Reset() override
-            {
-                //me->SetDynamicFlag(GO_DYNFLAG_LO_INTERACT_COND);
-                me->SetFaction(114);
-            }
-
-            bool OnReportUse(Player* player) override
-            {
-                if (!player)
-                    return false;
-
-                player->KilledMonsterCredit(Npcs::credit_forest_door_one);
-
-                if (Creature* aysa = player->FindNearestCreature(Npcs::npc_aysa_q29792, 40.0f))
-                    aysa->AI()->SetData(1, 1);
-
-                return true;
-            }
-        };
-
-        GameObjectAI* GetAI(GameObject* go) const override
-        {
-            return new go_210965_interactAI(go);
-        }
-    };
-
     // GO 209626 - Gong
     class go_209626_gong : public GameObjectScript
     {
@@ -116,6 +80,5 @@ void AddSC_custom_the_wandering_isle_objects()
 {
     using namespace Scripts::Custom::TheWanderingIsle;
 
-    new go_210965_forest_door();
     new go_209626_gong();
 }

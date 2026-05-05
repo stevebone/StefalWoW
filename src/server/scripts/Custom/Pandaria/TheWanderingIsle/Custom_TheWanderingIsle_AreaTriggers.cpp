@@ -436,72 +436,6 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // 7710
-    class at_mandori_village_7710 : public AreaTriggerScript
-    {
-    public:
-        at_mandori_village_7710() : AreaTriggerScript("at_mandori_village_7710") { }
-
-        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
-        {
-            if (!player->IsAlive())
-                return false;             
-
-            if (player->IsActiveQuest(Quests::quest_bidden_to_greatness))
-            {
-                // add cooldown of 2min to prevent spam
-                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 120))
-                    return false;
-
-                GameObject* door = GetClosestGameObjectWithEntry(player, Objects::go_forest_door, 50.f);
-                Creature* aysha = GetClosestCreatureWithEntry(player, Npcs::npc_aysa_q29792, 30.0f);
-                
-                if (aysha)
-                {
-                    aysha->AI()->SetGUID(player->GetGUID(), 1);
-                    aysha->AI()->Talk(0, player);
-                }
-
-                door->SetFaction(0);
-                door->SetGoStateFor(GO_STATE_READY, player);
-
-                return true;
-            }
-            return false;
-        }
-    };
-
-    // 7714
-    class at_forlorn_hut_7714 : public AreaTriggerScript
-    {
-    public:
-        at_forlorn_hut_7714() : AreaTriggerScript("at_forlorn_hut_7714") { }
-
-        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
-        {
-            if (!player->IsAlive())
-                return false;
-
-            if (player->IsActiveQuest(Quests::quest_bidden_to_greatness))
-            {
-                // add cooldown of 5min to prevent spam
-                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 300))
-                    return false;
-
-                Creature* korga = GetClosestCreatureWithEntry(player, Npcs::npc_korga_hut, 50.0f);
-
-                if (korga)
-                {
-                    korga->AI()->SetData(1, 1);
-                    korga->AI()->SetGUID(player->GetGUID(), 1);
-                }
-
-                return true;
-            }
-            return false;
-        }
-    };
-
     // 7087
     class at_wreck_of_the_skyseeker_injured_sailor : public AreaTriggerScript
     {
@@ -553,8 +487,6 @@ void AddSC_custom_the_wandering_isle_at()
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_lorewalker_zan();
     new at_balloon_intro_q29790();
-    new at_mandori_village_7710();
-    new at_forlorn_hut_7714();
     new at_wreck_of_the_skyseeker_injured_sailor();
 
 }
