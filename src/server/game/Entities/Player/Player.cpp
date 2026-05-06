@@ -9892,7 +9892,8 @@ Bag* Player::GetBagByPos(uint8 bag) const
 {
     if ((bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END)
         || (bag >= BANK_SLOT_BAG_START && bag < BANK_SLOT_BAG_END)
-        || (bag >= REAGENT_BAG_SLOT_START && bag < REAGENT_BAG_SLOT_END))
+        || (bag >= REAGENT_BAG_SLOT_START && bag < REAGENT_BAG_SLOT_END)
+        || (bag >= ACCOUNT_BANK_SLOT_BAG_START && bag < ACCOUNT_BANK_SLOT_BAG_END))
         if (Item* item = GetItemByPos(INVENTORY_SLOT_BAG_0, bag))
             return item->ToBag();
     return nullptr;
@@ -21626,9 +21627,12 @@ void Player::_SaveInventory(CharacterDatabaseTransaction trans)
             }
         }
 
-        // Account bank items are saved separately in _SaveAccountBankItems — skip inventory position save
-        bool isAccountBankItem = IsAccountBankPos(item->GetBagSlot(), item->GetSlot())
-            || (container && IsAccountBankPos(INVENTORY_SLOT_BAG_0, container->GetSlot()));
+        // Items stored INSIDE an account bank tab bag are persisted per-Bnet in
+        // _SaveAccountBankItems, so skip the per-character inventory position write
+        // for them. The tab bag itself (sitting in INVENTORY_SLOT_BAG_0 at slots
+        // ACCOUNT_BANK_SLOT_BAG_START..END) is per-character and MUST go through
+        // the normal character_inventory save path so it can be restored on relog.
+        bool isAccountBankItem = container && IsAccountBankPos(INVENTORY_SLOT_BAG_0, container->GetSlot());
 
         switch (item->GetState())
         {
