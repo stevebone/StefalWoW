@@ -11378,11 +11378,21 @@ InventoryResult Player::CanAccountBankItem(uint8 bag, uint8 slot, ItemPosCountVe
         if (bag >= ACCOUNT_BANK_SLOT_BAG_START && bag < ACCOUNT_BANK_SLOT_BAG_END)
         {
             // Account bank tab bags are generic ITEM_SUBCLASS_CONTAINER bags, so
-            // both passes must run with non_specialized=true (matching CanBankItem).
-            InventoryResult res = CanStoreItem_InBag(bag, dest, pProto, count, true, true, pItem, NULL_BAG, NULL_SLOT);
-            if (res != EQUIP_ERR_OK)
-                res = CanStoreItem_InBag(bag, dest, pProto, count, false, true, pItem, NULL_BAG, NULL_SLOT);
+            // both passes run with non_specialized=true (matching CanBankItem).
+            // First merge with existing stacks (only meaningful for stackables).
+            if (pProto->GetMaxStackSize() != 1)
+            {
+                InventoryResult res = CanStoreItem_InBag(bag, dest, pProto, count, true, true, pItem, NULL_BAG, NULL_SLOT);
+                if (res != EQUIP_ERR_OK)
+                    return res;
 
+                if (count == 0)
+                    return EQUIP_ERR_OK;
+            }
+
+            // Then try empty slots — this must run even when the merge pass returned
+            // EQUIP_ERR_OK without fully placing the stack (no matching stacks found).
+            InventoryResult res = CanStoreItem_InBag(bag, dest, pProto, count, false, true, pItem, NULL_BAG, NULL_SLOT);
             if (res != EQUIP_ERR_OK)
                 return res;
 
