@@ -9843,6 +9843,103 @@ std::vector<Item*> Player::GetWarboundItemsToDeposit()
     return itemList;
 }
 
+BagSlotFlags Player::GetItemAutoDepositCategory(Item const* item)
+{
+    ItemTemplate const* proto = item->GetTemplate();
+    if (!proto)
+        return BagSlotFlags::None;
+
+    // Junk takes precedence (ITEM_QUALITY_POOR is grey items the user wants to vendor)
+    if (proto->GetQuality() == ITEM_QUALITY_POOR)
+        return BagSlotFlags::PriorityJunk;
+
+    // Crafting reagents (items flagged USED_IN_A_TRADESKILL) get their own bin
+    if (proto->IsCraftingReagent())
+        return BagSlotFlags::PriorityReagents;
+
+    switch (proto->GetClass())
+    {
+        case ITEM_CLASS_WEAPON:
+        case ITEM_CLASS_ARMOR:
+            return BagSlotFlags::PriorityEquipment;
+        case ITEM_CLASS_CONSUMABLE:
+            return BagSlotFlags::PriorityConsumables;
+        case ITEM_CLASS_TRADE_GOODS:
+            return BagSlotFlags::PriorityTradeGoods;
+        case ITEM_CLASS_QUEST:
+            return BagSlotFlags::PriorityQuestItems;
+        default:
+            return BagSlotFlags::None;
+    }
+}
+
+int8 Player::PickAutoDepositTab(::BankType bank, Item const* item) const
+{
+    static constexpr BagSlotFlags AllPriorityFlags =
+        BagSlotFlags::PriorityEquipment   | BagSlotFlags::PriorityConsumables |
+        BagSlotFlags::PriorityTradeGoods  | BagSlotFlags::PriorityJunk        |
+        BagSlotFlags::PriorityQuestItems  | BagSlotFlags::PriorityReagents;
+
+    BagSlotFlags itemCategory = GetItemAutoDepositCategory(item);
+
+    auto pick = [&](auto const& tabs) -> int8
+    {
+        int8 fallback = -1;
+        for (std::size_t i = 0; i < tabs.size(); ++i)
+        {
+            BagSlotFlags flags = static_cast<BagSlotFlags>(int32(*tabs[i].DepositFlags));
+
+            // "Cleanup: Ignore this tab" — opt out of auto-deposit entirely
+            if ((flags & BagSlotFlags::DisableAutoSort) != BagSlotFlags::None)
+                continue;
+
+            // First match on the item's specific category wins
+            if (itemCategory != BagSlotFlags::None && (flags & itemCategory) != BagSlotFlags::None)
+                return int8(i);
+
+            // Remember the first tab with no priority filters as a generic fallback
+            if (fallback < 0 && (flags & AllPriorityFlags) == BagSlotFlags::None)
+                fallback = int8(i);
+        }
+        return fallback;
+    };
+
+    return (bank == ::BankType::Account)
+        ? pick(m_activePlayerData->AccountBankTabSettings)
+        : pick(m_activePlayerData->CharacterBankTabSettings);
+}
+
+std::vector<Item*> Player::GetItemsForBankAutoDeposit(::BankType bank, bool includeReagents) const
+{
+    std::vector<Item*> itemList;
+    ForEachItem(ItemSearchLocation::Inventory, [&itemList, bank, includeReagents](Item* item)
+    {
+        ItemTemplate const* proto = item->GetTemplate();
+        if (!proto)
+            return ItemSearchCallbackResult::Continue;
+
+        // Quest items and non-empty bags never auto-deposit
+        if (proto->GetClass() == ITEM_CLASS_QUEST || item->IsNotEmptyBag())
+            return ItemSearchCallbackResult::Continue;
+
+        if (bank == ::BankType::Account)
+        {
+            // Account bank rejects character-soulbound items (only warbound / BoA / unbound allowed)
+            if (item->IsSoulBound() && !item->IsAccountBound())
+                return ItemSearchCallbackResult::Continue;
+
+            // The "Include tradeable reagents" checkbox in the warband bank UI
+            if (!includeReagents && proto->IsCraftingReagent())
+                return ItemSearchCallbackResult::Continue;
+        }
+
+        itemList.push_back(item);
+        return ItemSearchCallbackResult::Continue;
+    });
+
+    return itemList;
+}
+
 Item* Player::GetItemByGuid(ObjectGuid guid) const
 {
     Item* result = nullptr;

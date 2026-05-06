@@ -48,6 +48,10 @@ void AutoDepositCharacterBank::Read()
 
 void AutoDepositAccountBank::Read()
 {
+    // Wire layout (verified against build 12.0.5.67186 client serializer):
+    //   1 bit  - IncludeReagents (CVar bankAutoDepositReagents)
+    //   GUID   - Banker
+    _worldPacket >> Bits<1>(IncludeReagents);
     _worldPacket >> Banker;
 }
 
