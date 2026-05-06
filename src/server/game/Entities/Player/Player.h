@@ -1492,6 +1492,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         Bag*  GetBagByPos(uint8 slot) const;
         std::vector<Item*> GetCraftingReagentItemsToDeposit();
         std::vector<Item*> GetWarboundItemsToDeposit();
+        std::vector<Item*> GetItemsForBankAutoDeposit(::BankType bank, bool includeReagents) const;
+        static BagSlotFlags GetItemAutoDepositCategory(Item const* item);
+        int8 PickAutoDepositTab(::BankType bank, Item const* item) const;
         Item* GetWeaponForAttack(WeaponAttackType attackType, bool useable = false) const;
         Item* GetShield(bool useable = false) const;
         Item* GetChildItemByGuid(ObjectGuid guid) const;

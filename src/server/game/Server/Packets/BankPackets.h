@@ -83,6 +83,7 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid Banker;
+            bool IncludeReagents = false;
         };
 
         class AccountBankDepositMoney final : public ClientPacket
