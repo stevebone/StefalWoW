@@ -170,12 +170,30 @@ void PetBattle::GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID)
     uint8 maxWildSize = std::min(uint8(3), playerPetCount);
     uint8 wildTeamSize = maxWildSize > 1 ? static_cast<uint8>(urand(1, maxWildSize)) : uint8(1);
 
+    // GetWildBattlePetLevel() can return 0 when SelectWildBattlePetLevel hasn't run
+    // (e.g. summoned creatures, hot-respawned creatures, or zones with no
+    // WildBattlePetLevelMin entry in AreaTable). Pet level 0 then breaks
+    // BattlePetSpeciesXAbility loading because every entry has RequiredLevel >= 1
+    // and the pet idles every round. Always clamp to at least level 1.
+    auto getWildLevel = [creature]() -> uint16
+    {
+        uint32 lvl = creature->GetWildBattlePetLevel();
+        if (lvl == 0)
+        {
+            TC_LOG_WARN("battlepet", "PetBattle: wild creature {} has WildBattlePetLevel=0, "
+                "clamping to 1 (SelectWildBattlePetLevel may not have run for this spawn).",
+                creature->GetEntry());
+            return 1;
+        }
+        return static_cast<uint16>(lvl);
+    };
+
     // First pet is always the targeted creature
     {
         PetBattlePetData& wildPet = wildTeam.Pets[0];
         wildPet.CreatureID = creature->GetEntry();
         wildPet.DisplayID = creature->GetDisplayId();
-        wildPet.Level = static_cast<uint16>(creature->GetWildBattlePetLevel());
+        wildPet.Level = getWildLevel();
 
         if (BattlePetSpeciesEntry const* species = BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(creature->GetEntry()))
         {
@@ -197,7 +215,7 @@ void PetBattle::GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID)
         wildPet.DisplayID = creature->GetDisplayId();
 
         // Level varies by +/- 1 from primary
-        int16 baseLevel = static_cast<int16>(creature->GetWildBattlePetLevel());
+        int16 baseLevel = static_cast<int16>(getWildLevel());
         int16 levelVariation = static_cast<int16>(urand(0, 2)) - 1; // -1, 0, or +1
         wildPet.Level = static_cast<uint16>(std::max(int16(1), int16(baseLevel + levelVariation)));
 
