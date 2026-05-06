@@ -1409,16 +1409,29 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
         }
         case PET_BATTLE_EFFECT_ACTION_WEATHER_SET:
         {
-            // PropsID 170: labels [0]=Points, [1]=Accuracy, [2]=weatherState, [3]=Unused, [4]=IsPeriodic
-            // Param[2] = BattlePetState ID to set on environment, Param[0] = state value (Points)
+            // BattlePetEffectProperties WEATHER_SET (e.g. PropsID 170) param layout:
+            //   [0] Points       — value written to the BattlePetState
+            //   [1] Accuracy     — hit chance, already rolled at the top of
+            //                      ProcessEffect (line ~985), so a missed cast
+            //                      never reaches this case.
+            //   [2] weatherState — BattlePetState ID to set on the environment
+            //   [3] Unused
+            //   [4] IsPeriodic   — when 1, the SET_STATE is re-emitted each
+            //                      round during TickWeather so the client
+            //                      refreshes the visual/counter.
+            //   [5] (empty)
             uint32 stateID = static_cast<uint32>(effect->Param[2]);
             int32 stateValue = static_cast<int32>(effect->Param[0]);
+            bool isPeriodic = effect->Param[4] != 0;
 
-            TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={}",
-                effect->ID, stateID, stateValue);
+            TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={} periodic={}",
+                effect->ID, stateID, stateValue, isPeriodic);
 
             // Store the state on the environment for gameplay use
-            _environments[PET_BATTLE_WEATHER_ENV_SLOT].States[stateID] = stateValue;
+            PetBattleEnvironment& env = _environments[PET_BATTLE_WEATHER_ENV_SLOT];
+            env.States[stateID] = stateValue;
+            if (isPeriodic)
+                env.PeriodicStateIDs.insert(stateID);
 
             // Emit SET_STATE targeting environment PBOID (slot 0)
             PetBattleRoundEffect roundEffect;
@@ -1964,6 +1977,7 @@ void PetBattle::ApplyWeatherStates(uint32 abilityID)
 void PetBattle::ClearWeatherStates()
 {
     _environments[PET_BATTLE_WEATHER_ENV_SLOT].States.clear();
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].PeriodicStateIDs.clear();
 }
 
 void PetBattle::TickWeather()
@@ -1988,6 +2002,26 @@ void PetBattle::TickWeather()
             changeEffect.Param3 = env.RemainingRounds;
             changeEffect.Param4 = env.CurrentRound;
             _roundEffects.push_back(changeEffect);
+        }
+
+        // Re-emit SET_STATE for any state flagged with IsPeriodic=1 in its
+        // BattlePetEffectProperties so the client refreshes its visual/counter
+        // each round. The stored value itself doesn't change — only the wire
+        // emission. Skip the round the state was first applied (already sent).
+        for (uint32 stateID : env.PeriodicStateIDs)
+        {
+            auto it = env.States.find(stateID);
+            if (it == env.States.end())
+                continue;
+
+            PetBattleRoundEffect periodicState;
+            periodicState.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+            periodicState.SourceTeam = env.CasterTeam;
+            periodicState.SourcePet = _teams[env.CasterTeam].FrontPetIndex;
+            periodicState.TargetEnvSlot = static_cast<int8>(envSlot);
+            periodicState.Param1 = stateID;
+            periodicState.Param2 = it->second;
+            _roundEffects.push_back(periodicState);
         }
 
         env.RemainingRounds--;
