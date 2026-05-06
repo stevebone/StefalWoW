@@ -2233,6 +2233,13 @@ void PetBattle::FinishBattle(PetBattleResult result)
         {
             player->UpdateCriteria(CriteriaType::WinPetBattle, static_cast<uint64>(_battleType));
 
+            // Marcus Jensen / "Learning the Ropes" (MoP quest 31308) and other intro
+            // pet-battle quests use kill-credit virtual creature 65355 for any pet
+            // battle win. KilledMonsterCredit silently no-ops when the player has
+            // no quest with that objective, so it's safe to call unconditionally.
+            static constexpr uint32 KILL_CREDIT_WIN_PET_BATTLE = 65355;
+            player->KilledMonsterCredit(KILL_CREDIT_WIN_PET_BATTLE);
+
             // Quest objective progress for wins
             if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
                 player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPVPPETBATTLES, 0, 1);
@@ -2323,6 +2330,11 @@ void PetBattle::CompleteBattle()
 
                     player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildTeam.Pets[p].Species);
                     player->UpdateCriteria(CriteriaType::PlayerObtainPetThroughBattle, wildTeam.Pets[p].Species);
+
+                    // Marcus Jensen / "Got one!" (MoP quest 31550) credits a virtual
+                    // creature kill the first time the player captures a pet.
+                    static constexpr uint32 KILL_CREDIT_CAPTURE_PET = 65356;
+                    player->KilledMonsterCredit(KILL_CREDIT_CAPTURE_PET);
                 }
             }
         }
