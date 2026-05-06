@@ -800,6 +800,16 @@ void BattlePetMgr::GrantBattlePetExperience(ObjectGuid guid, uint16 xp, BattlePe
         player->UpdateCriteria(CriteriaType::BattlePetReachLevel, pet->PacketInfo.Species, level);
         if (xpSource == BattlePetXpSource::PetBattle)
             player->UpdateCriteria(CriteriaType::ActivelyEarnPetLevel, pet->PacketInfo.Species, level);
+
+        // Marcus Jensen / "Level Up!" (MoP quest 31785) credits a virtual creature
+        // kill the first time any pet reaches level 3. Fires only on the 2->3
+        // transition; later level-ups are no-ops when the quest is complete or
+        // not held, since UpdateQuestObjectiveProgress filters by active quests.
+        if (level == 3)
+        {
+            static constexpr uint32 KILL_CREDIT_LEVEL_3_PET = 65876;
+            player->KilledMonsterCredit(KILL_CREDIT_LEVEL_3_PET);
+        }
     }
 
     pet->PacketInfo.Level = level;
@@ -897,6 +907,19 @@ void BattlePetMgr::HealBattlePetsPct(uint8 pct)
     // Notify the client that battle pets have been healed (triggers UI feedback)
     WorldPackets::BattlePet::BattlePetsHealed healed;
     _owner->SendPacket(healed.Write());
+
+    // Marcus Jensen / "On The Mend" (MoP quest 31309) credits a virtual creature
+    // kill the first time the player heals battle pets (typically via spell
+    // "Revive Battle Pets" 125439). Only fire if at least one pet was actually
+    // restored — pressing the spell with full-HP pets shouldn't credit.
+    if (!updates.empty())
+    {
+        if (Player* player = _owner->GetPlayer())
+        {
+            static constexpr uint32 KILL_CREDIT_HEAL_BATTLE_PETS = 64320;
+            player->KilledMonsterCredit(KILL_CREDIT_HEAL_BATTLE_PETS);
+        }
+    }
 }
 
 void BattlePetMgr::UpdateBattlePetData(ObjectGuid guid)

@@ -23,6 +23,7 @@
 #include "ObjectGuid.h"
 #include <array>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class Creature;
@@ -65,6 +66,12 @@ struct PetBattleEnvironment
     uint32 AuraInstanceID = 0;   // Unique ID for the environment aura (sent to client)
     int32 CurrentRound = 0;      // Round when weather was applied
     std::unordered_map<uint32, int32> States; // BattlePetState modifiers from DB2
+
+    // States flagged with IsPeriodic=1 in BattlePetEffectProperties param[4].
+    // Each round their SET_STATE effect is re-emitted to the client so the
+    // visual / counter on the environment slot refreshes; the stored value
+    // itself doesn't change between ticks.
+    std::unordered_set<uint32> PeriodicStateIDs;
 
     bool IsActive() const { return AbilityID != 0 && AuraInstanceID != 0; }
     int32 GetState(uint32 stateID) const

@@ -170,12 +170,30 @@ void PetBattle::GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID)
     uint8 maxWildSize = std::min(uint8(3), playerPetCount);
     uint8 wildTeamSize = maxWildSize > 1 ? static_cast<uint8>(urand(1, maxWildSize)) : uint8(1);
 
+    // GetWildBattlePetLevel() can return 0 when SelectWildBattlePetLevel hasn't run
+    // (e.g. summoned creatures, hot-respawned creatures, or zones with no
+    // WildBattlePetLevelMin entry in AreaTable). Pet level 0 then breaks
+    // BattlePetSpeciesXAbility loading because every entry has RequiredLevel >= 1
+    // and the pet idles every round. Always clamp to at least level 1.
+    auto getWildLevel = [creature]() -> uint16
+    {
+        uint32 lvl = creature->GetWildBattlePetLevel();
+        if (lvl == 0)
+        {
+            TC_LOG_WARN("battlepet", "PetBattle: wild creature {} has WildBattlePetLevel=0, "
+                "clamping to 1 (SelectWildBattlePetLevel may not have run for this spawn).",
+                creature->GetEntry());
+            return 1;
+        }
+        return static_cast<uint16>(lvl);
+    };
+
     // First pet is always the targeted creature
     {
         PetBattlePetData& wildPet = wildTeam.Pets[0];
         wildPet.CreatureID = creature->GetEntry();
         wildPet.DisplayID = creature->GetDisplayId();
-        wildPet.Level = static_cast<uint16>(creature->GetWildBattlePetLevel());
+        wildPet.Level = getWildLevel();
 
         if (BattlePetSpeciesEntry const* species = BattlePets::BattlePetMgr::GetBattlePetSpeciesByCreature(creature->GetEntry()))
         {
@@ -197,7 +215,7 @@ void PetBattle::GenerateWildTeam(Player* player, ObjectGuid wildCreatureGUID)
         wildPet.DisplayID = creature->GetDisplayId();
 
         // Level varies by +/- 1 from primary
-        int16 baseLevel = static_cast<int16>(creature->GetWildBattlePetLevel());
+        int16 baseLevel = static_cast<int16>(getWildLevel());
         int16 levelVariation = static_cast<int16>(urand(0, 2)) - 1; // -1, 0, or +1
         wildPet.Level = static_cast<uint16>(std::max(int16(1), int16(baseLevel + levelVariation)));
 
@@ -1148,10 +1166,15 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 break;
             }
 
-            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} auraAbilityID={}",
-                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, effect->AuraBattlePetAbilityID);
+            // The aura's own ability ID drives the client-side icon lookup.
+            // When AuraBattlePetAbilityID is set, the cast ability is just a wrapper
+            // that applies a separate aura ability — that's the one whose icon shows.
+            uint32 auraIconAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
 
-            AddAura(auraTargetTeam, auraTargetPet, abilityID, effect->ID,
+            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} castAbilityID={} auraIconAbilityID={}",
+                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, abilityID, auraIconAbilityID);
+
+            AddAura(auraTargetTeam, auraTargetPet, auraIconAbilityID, effect->ID,
                 auraType, auraDuration, tickDamage, attacker.PetType,
                 attackerTeam, attackerPet);
 
@@ -1166,7 +1189,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetTeam = auraTargetTeam;
                 roundEffect.TargetPet = auraTargetPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
-                roundEffect.Param2 = abilityID;
+                roundEffect.Param2 = auraIconAbilityID;
                 roundEffect.Param3 = newAura.RemainingRounds;
                 roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
@@ -1221,8 +1244,9 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
 
             int32 tickHealing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
+            uint32 auraIconAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
 
-            AddAura(attackerTeam, attackerPet, abilityID, effect->ID,
+            AddAura(attackerTeam, attackerPet, auraIconAbilityID, effect->ID,
                 PET_BATTLE_AURA_HOT, auraDuration, tickHealing, attacker.PetType,
                 attackerTeam, attackerPet);
 
@@ -1237,7 +1261,7 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 roundEffect.TargetTeam = attackerTeam;
                 roundEffect.TargetPet = attackerPet;
                 roundEffect.Param1 = newAura.AuraInstanceID;
-                roundEffect.Param2 = abilityID;
+                roundEffect.Param2 = auraIconAbilityID;
                 roundEffect.Param3 = newAura.RemainingRounds;
                 roundEffect.Param4 = newAura.CurrentRound;
                 _roundEffects.push_back(roundEffect);
@@ -1385,16 +1409,29 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
         }
         case PET_BATTLE_EFFECT_ACTION_WEATHER_SET:
         {
-            // PropsID 170: labels [0]=Points, [1]=Accuracy, [2]=weatherState, [3]=Unused, [4]=IsPeriodic
-            // Param[2] = BattlePetState ID to set on environment, Param[0] = state value (Points)
+            // BattlePetEffectProperties WEATHER_SET (e.g. PropsID 170) param layout:
+            //   [0] Points       — value written to the BattlePetState
+            //   [1] Accuracy     — hit chance, already rolled at the top of
+            //                      ProcessEffect (line ~985), so a missed cast
+            //                      never reaches this case.
+            //   [2] weatherState — BattlePetState ID to set on the environment
+            //   [3] Unused
+            //   [4] IsPeriodic   — when 1, the SET_STATE is re-emitted each
+            //                      round during TickWeather so the client
+            //                      refreshes the visual/counter.
+            //   [5] (empty)
             uint32 stateID = static_cast<uint32>(effect->Param[2]);
             int32 stateValue = static_cast<int32>(effect->Param[0]);
+            bool isPeriodic = effect->Param[4] != 0;
 
-            TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={}",
-                effect->ID, stateID, stateValue);
+            TC_LOG_DEBUG("server.loading", "PetBattle WEATHER_SET_STATE: effectID={} stateID={} stateValue={} periodic={}",
+                effect->ID, stateID, stateValue, isPeriodic);
 
             // Store the state on the environment for gameplay use
-            _environments[PET_BATTLE_WEATHER_ENV_SLOT].States[stateID] = stateValue;
+            PetBattleEnvironment& env = _environments[PET_BATTLE_WEATHER_ENV_SLOT];
+            env.States[stateID] = stateValue;
+            if (isPeriodic)
+                env.PeriodicStateIDs.insert(stateID);
 
             // Emit SET_STATE targeting environment PBOID (slot 0)
             PetBattleRoundEffect roundEffect;
@@ -1940,6 +1977,7 @@ void PetBattle::ApplyWeatherStates(uint32 abilityID)
 void PetBattle::ClearWeatherStates()
 {
     _environments[PET_BATTLE_WEATHER_ENV_SLOT].States.clear();
+    _environments[PET_BATTLE_WEATHER_ENV_SLOT].PeriodicStateIDs.clear();
 }
 
 void PetBattle::TickWeather()
@@ -1964,6 +2002,26 @@ void PetBattle::TickWeather()
             changeEffect.Param3 = env.RemainingRounds;
             changeEffect.Param4 = env.CurrentRound;
             _roundEffects.push_back(changeEffect);
+        }
+
+        // Re-emit SET_STATE for any state flagged with IsPeriodic=1 in its
+        // BattlePetEffectProperties so the client refreshes its visual/counter
+        // each round. The stored value itself doesn't change — only the wire
+        // emission. Skip the round the state was first applied (already sent).
+        for (uint32 stateID : env.PeriodicStateIDs)
+        {
+            auto it = env.States.find(stateID);
+            if (it == env.States.end())
+                continue;
+
+            PetBattleRoundEffect periodicState;
+            periodicState.EffectType = PET_BATTLE_EFFECT_SET_STATE;
+            periodicState.SourceTeam = env.CasterTeam;
+            periodicState.SourcePet = _teams[env.CasterTeam].FrontPetIndex;
+            periodicState.TargetEnvSlot = static_cast<int8>(envSlot);
+            periodicState.Param1 = stateID;
+            periodicState.Param2 = it->second;
+            _roundEffects.push_back(periodicState);
         }
 
         env.RemainingRounds--;
@@ -2227,6 +2285,13 @@ void PetBattle::FinishBattle(PetBattleResult result)
         {
             player->UpdateCriteria(CriteriaType::WinPetBattle, static_cast<uint64>(_battleType));
 
+            // Marcus Jensen / "Learning the Ropes" (MoP quest 31308) and other intro
+            // pet-battle quests use kill-credit virtual creature 65355 for any pet
+            // battle win. KilledMonsterCredit silently no-ops when the player has
+            // no quest with that objective, so it's safe to call unconditionally.
+            static constexpr uint32 KILL_CREDIT_WIN_PET_BATTLE = 65355;
+            player->KilledMonsterCredit(KILL_CREDIT_WIN_PET_BATTLE);
+
             // Quest objective progress for wins
             if (_battleType == PET_BATTLE_TYPE_PVP || _battleType == PET_BATTLE_TYPE_LFPB)
                 player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPVPPETBATTLES, 0, 1);
@@ -2237,10 +2302,12 @@ void PetBattle::FinishBattle(PetBattleResult result)
                     player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_WINPETBATTLEAGAINSTNPC, trainer->GetEntry(), 1, _npcTrainerGUID);
             }
 
-            // Credit defeated species for each enemy pet killed
+            // Credit defeated species for each enemy pet killed or captured.
+            // Capture removes the pet from play just like a kill — quests that ask
+            // "defeat N <species>" should credit captures too.
             PetBattleTeamData const& loserTeam = _teams[1 - t];
             for (uint8 p = 0; p < loserTeam.PetCount; ++p)
-                if (!loserTeam.Pets[p].IsAlive())
+                if (!loserTeam.Pets[p].IsAlive() || loserTeam.Pets[p].IsCaptured)
                     player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_DEFEATBATTLEPET, loserTeam.Pets[p].Species, 1);
         }
         else
@@ -2315,6 +2382,11 @@ void PetBattle::CompleteBattle()
 
                     player->UpdateCriteria(CriteriaType::AccountObtainPetThroughBattle, wildTeam.Pets[p].Species);
                     player->UpdateCriteria(CriteriaType::PlayerObtainPetThroughBattle, wildTeam.Pets[p].Species);
+
+                    // Marcus Jensen / "Got one!" (MoP quest 31550) credits a virtual
+                    // creature kill the first time the player captures a pet.
+                    static constexpr uint32 KILL_CREDIT_CAPTURE_PET = 65356;
+                    player->KilledMonsterCredit(KILL_CREDIT_CAPTURE_PET);
                 }
             }
         }
@@ -2438,7 +2510,10 @@ void PetBattle::GenerateWildTeamInput()
 
     if (availableAbilities.empty())
     {
-        TC_LOG_DEBUG("server.loading", "PetBattle GenerateWildTeamInput: NO available abilities! AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS",
+        TC_LOG_WARN("battlepet", "PetBattle GenerateWildTeamInput: wild species={} has NO available abilities! "
+            "AbilityIDs=[{},{},{}] CDs=[{},{},{}] -> PASS (pet will not attack this round). "
+            "Check BattlePetSpeciesXAbility DB2 entries for this species.",
+            frontPet.Species,
             frontPet.AbilityIDs[0], frontPet.AbilityIDs[1], frontPet.AbilityIDs[2],
             frontPet.AbilityCooldowns[0], frontPet.AbilityCooldowns[1], frontPet.AbilityCooldowns[2]);
         SubmitInput(PET_BATTLE_TEAM_2, PET_BATTLE_MOVE_PASS, 0, -1);
