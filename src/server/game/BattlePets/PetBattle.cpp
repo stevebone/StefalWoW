@@ -1166,13 +1166,24 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
                 break;
             }
 
-            // The aura's own ability ID drives the client-side icon lookup.
-            // When AuraBattlePetAbilityID is set, the cast ability is just a wrapper
-            // that applies a separate aura ability — that's the one whose icon shows.
-            uint32 auraIconAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+            // The aura's own ability ID drives the client-side icon lookup
+            // (wire param 0 of an AURA_APPLY/CHANGE/CANCEL effect). When the
+            // cast ability is a wrapper that applies a sub-aura via
+            // AuraBattlePetAbilityID, prefer the sub-aura's ID. But some
+            // sub-auras are behind-the-scenes triggers with IconFileDataID=0;
+            // sending them produces a counter with a blank icon. Fall back to
+            // the cast ability in that case — it's the player-facing one and
+            // is guaranteed to have an icon since the player just clicked it.
+            uint32 auraIconAbilityID = abilityID;
+            if (effect->AuraBattlePetAbilityID)
+            {
+                BattlePetAbilityEntry const* subAura = sBattlePetAbilityStore.LookupEntry(effect->AuraBattlePetAbilityID);
+                if (subAura && subAura->IconFileDataID > 0)
+                    auraIconAbilityID = effect->AuraBattlePetAbilityID;
+            }
 
-            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} castAbilityID={} auraIconAbilityID={}",
-                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, abilityID, auraIconAbilityID);
+            TC_LOG_DEBUG("server.loading", "PetBattle AURA: targetsSelf={} auraType={} auraTarget=[{},{}] duration={} tickDmg={} castAbilityID={} auraIconAbilityID={} (subAura={})",
+                targetsSelf, uint8(auraType), auraTargetTeam, auraTargetPet, auraDuration, tickDamage, abilityID, auraIconAbilityID, effect->AuraBattlePetAbilityID);
 
             AddAura(auraTargetTeam, auraTargetPet, auraIconAbilityID, effect->ID,
                 auraType, auraDuration, tickDamage, attacker.PetType,
@@ -1244,7 +1255,17 @@ void PetBattle::ProcessEffect(BattlePetAbilityEffectEntry const* effect, uint8 a
             }
 
             int32 tickHealing = CalculateAbilityHealing(basePower, attacker.EffectivePower, attacker);
-            uint32 auraIconAbilityID = effect->AuraBattlePetAbilityID ? effect->AuraBattlePetAbilityID : abilityID;
+
+            // Same logic as APPLY_AURA: prefer the sub-aura's ability ID for
+            // the icon, fall back to the cast ability if the sub-aura has no
+            // IconFileDataID set in its DB2 row.
+            uint32 auraIconAbilityID = abilityID;
+            if (effect->AuraBattlePetAbilityID)
+            {
+                BattlePetAbilityEntry const* subAura = sBattlePetAbilityStore.LookupEntry(effect->AuraBattlePetAbilityID);
+                if (subAura && subAura->IconFileDataID > 0)
+                    auraIconAbilityID = effect->AuraBattlePetAbilityID;
+            }
 
             AddAura(attackerTeam, attackerPet, auraIconAbilityID, effect->ID,
                 PET_BATTLE_AURA_HOT, auraDuration, tickHealing, attacker.PetType,
