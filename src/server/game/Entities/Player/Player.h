@@ -861,7 +861,7 @@ enum class ItemSearchLocation
     Inventory       = 0x02,
     Bank            = 0x04,
     ReagentBank     = 0x08,
-    AccountBank     = 0x10, // NYI
+    AccountBank     = 0x10,
 
     Default         = Equipment | Inventory,
     Everywhere      = Equipment | Inventory | Bank | ReagentBank
@@ -1043,6 +1043,10 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES,
+    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS,
+    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS,
+    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE,
+
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -1478,6 +1482,16 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
                                     return false;
             }
 
+            if (flag.HasFlag(ItemSearchLocation::AccountBank))
+            {
+                for (uint8 i = ACCOUNT_BANK_SLOT_BAG_START; i < ACCOUNT_BANK_SLOT_BAG_END; ++i)
+                    if (Bag* bag = GetBagByPos(i))
+                        for (uint32 j = 0; j < GetBagSize(bag); ++j)
+                            if (Item* pItem = GetItemInBag(bag, j))
+                                if (callback(pItem) == ItemSearchCallbackResult::Stop)
+                                    return false;
+            }
+
             return true;
         }
 
@@ -1497,6 +1511,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         Item* GetUseableItemByPos(uint8 bag, uint8 slot) const;
         Bag*  GetBagByPos(uint8 slot) const;
         std::vector<Item*> GetCraftingReagentItemsToDeposit();
+        std::vector<Item*> GetWarboundItemsToDeposit();
+        std::vector<Item*> GetItemsForBankAutoDeposit(::BankType bank, bool includeReagents) const;
+        static BagSlotFlags GetItemAutoDepositCategory(Item const* item);
+        int8 PickAutoDepositTab(::BankType bank, Item const* item) const;
         Item* GetWeaponForAttack(WeaponAttackType attackType, bool useable = false) const;
         Item* GetShield(bool useable = false) const;
         Item* GetChildItemByGuid(ObjectGuid guid) const;
@@ -1511,7 +1529,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         static bool IsBankPos(uint8 bag, uint8 slot);
         static bool IsChildEquipmentPos(uint16 pos) { return IsChildEquipmentPos(pos >> 8, pos & 255); }
         static bool IsChildEquipmentPos(uint8 bag, uint8 slot);
-        static bool IsAccountBankPos(uint16 pos) { return IsBankPos(pos >> 8, pos & 255); }
+        static bool IsAccountBankPos(uint16 pos) { return IsAccountBankPos(pos >> 8, pos & 255); }
         static bool IsAccountBankPos(uint8 bag, uint8 slot);
         bool IsValidPos(uint16 pos, bool explicit_pos) const { return IsValidPos(pos >> 8, pos & 255, explicit_pos); }
         bool IsValidPos(uint8 bag, uint8 slot, bool explicit_pos) const;
@@ -1523,6 +1541,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void SetCharacterBankTabCount(uint8 count) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::NumCharacterBankTabs), count); }
         uint8 GetAccountBankTabCount() const { return m_activePlayerData->NumAccountBankTabs; }
         void SetAccountBankTabCount(uint8 count) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::NumAccountBankTabs), count); }
+        uint64 GetAccountBankCoinage() const { return m_activePlayerData->AccountBankCoinage; }
+        void SetAccountBankCoinage(uint64 coinage) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::AccountBankCoinage), coinage); }
+        void ModifyAccountBankCoinage(int64 delta);
         void SetCharacterBankTabSettings(uint32 tabId, std::string const& name, std::string const& icon, std::string const& description, BagSlotFlags depositFlags)
         {
             auto setter = m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::CharacterBankTabSettings, tabId);
@@ -1577,6 +1598,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         InventoryResult CanUnequipItems(uint32 item, uint32 count) const;
         InventoryResult CanUnequipItem(uint16 src, bool swap) const;
         InventoryResult CanBankItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap, bool not_loading = true, bool reagentBankOnly = false) const;
+        InventoryResult CanAccountBankItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap) const;
         InventoryResult CanUseItem(Item* pItem, bool not_loading = true) const;
         bool HasItemTotemCategory(uint32 TotemCategory) const;
         InventoryResult CanUseItem(ItemTemplate const* pItem, bool skipRequiredLevelCheck = false) const;
@@ -3220,6 +3242,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadCUFProfiles(PreparedQueryResult result);
         void _LoadPlayerData(PreparedQueryResult elementsResult, PreparedQueryResult flagsResult);
         void _LoadCharacterBankTabSettings(PreparedQueryResult result);
+        void _LoadAccountBankTabSettings(PreparedQueryResult result);
+        void _LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff);
+        void _LoadAccountBankCoinage(PreparedQueryResult result);
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -3254,6 +3279,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveCUFProfiles(CharacterDatabaseTransaction trans);
         void _SavePlayerData(CharacterDatabaseTransaction trans);
         void _SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) const;
+        void _SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const;
+        void _SaveAccountBankItems(CharacterDatabaseTransaction trans);
+        void _SaveAccountBankCoinage(CharacterDatabaseTransaction trans) const;
 
         /*********************************************************/
         /***              ENVIRONMENTAL SYSTEM                 ***/
