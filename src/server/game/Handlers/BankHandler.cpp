@@ -340,8 +340,13 @@ void WorldSession::HandleAutoDepositCharacterBank(WorldPackets::Bank::AutoDeposi
         return;
     }
 
+    // Character bank's "Deposit All" button is labelled "Deposit All Reagents"
+    // (GlobalStrings.CHARACTER_BANK_DEPOSIT_BUTTON_LABEL) and only deposits items
+    // flagged as crafting reagents. The tab-routing below still applies — reagents
+    // go to whichever tab has BagSlotFlags::PriorityReagents set, falling back to
+    // any non-disabled tab.
     bool anyDeposited = false;
-    for (Item* item : _player->GetItemsForBankAutoDeposit(BankType::Character, /*includeReagents*/ true))
+    for (Item* item : _player->GetCraftingReagentItemsToDeposit())
     {
         if (!TryAutoDepositItem(_player, BankType::Character, item))
         {
