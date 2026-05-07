@@ -233,7 +233,6 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5736, 545, 'The Wandering Isle - After healing Shenzinsu'),
 
 (5736, 993, 'The Wandering Isle - After Vordraka boss fight'),
-(5736, 1835, 'The Wandering Isle - The Wandering Isle'), -- See Ji at Makael Bay
 
 -- Huo quests
 (5849, 631, 'Cosmetic - Huo, Pre-Ignition'),
@@ -242,11 +241,11 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 -- Mandori Village
 (5828, 878, 'Mandori Village - quest 29792 taken'),
 (5828, 879, 'Mandori Village - quest 29792 complete'),
-
 -- Pei-Wu Forest
 (5737, 879, 'Pei-Wu Forest - after quest 29792 first objective complete and before quest 29792 rewarded'),
+
 (5737, 903, 'The Wandering Isle - Pei-Wu Forest'), -- Forlorn Hut see Ji until quest reward 30589
-(5944, 903, 'Forlorn Hut - after quest 29792 rewarded and before quest 30589 taken');
+(5944, 903, 'Forlorn Hut - after quest 29792 rewarded and before quest 30589 taken'),
 
 -- The Singing Pools
 (5826, 964, 'The Singing Pools - after quest 29663 complete and before quest 29676 rewarded'),
@@ -284,6 +283,10 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 -- Fe-Feng Village
 (5831, 1714, 'Fe-Feng Village - before quest 29782 complete or rewarded'),
 
+-- Forbidden Forest
+(5737, 1835, 'Pei-Wu Forest - after quest 30589 complete or rewarded and before quest 29798 taken'),
+(5833, 1835, 'Wreck of the Skyseeker - after quest 30589 complete or rewarded and before quest 29798 taken'),
+
 -- Chamber of Whispers related
 (5829, 1836, 'Ridge of Laughing Winds - before quest 29785 complete or rewarded'),
 (5830, 1836, 'Morning Breeze Village - before quest 29785 complete or rewarded'),
@@ -291,7 +294,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 -- Phase Conditions
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 536, 631, 632, 878, 879, 903, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
-1510, 1518, 1519, 1523, 1714,1836,1526,1527);
+1510, 1518, 1519, 1523, 1714,1835, 1836,1526,1527);
 INSERT INTO `conditions` VALUES
 -- Zhao-Ren
 (26, 524, 0, 0, 0, 9, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Phase 524 active if 29786 taken'),
@@ -316,6 +319,7 @@ INSERT INTO `conditions` VALUES
 (26, 964, 0, 0, 0, 28, 0, 29663, 0, 0, '', 0, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29663 complete'), -- phase not updated automatically (added to SAI)
 (26, 964, 0, 0, 1, 8, 0, 29663, 0, 0, '', 0, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29663 rewarded'),
 (26, 964, 0, 0, 1, 8, 0, 29676, 0, 0, '', 1, 0, 0, '', 'The Singing Pools Phase 964 when Quest 29676 not rewarded'),
+
 -- Spirits Phases
 (26, 1027, 5820, 0, 0, 28, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 complete'),
 (26, 1027, 5820, 0, 1, 8, 0, 29521, 0, 0, '', 0, 0, 0, '', 'Temple of Five Dawns Phase 1027 when Quest 29521 rewarded'),
@@ -374,11 +378,16 @@ INSERT INTO `conditions` VALUES
 (26, 1714, 5831, 0, 0, 28, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not complete'),
 (26, 1714, 5831, 0, 0, 8, 0, 29782, 0, 0, '', 1, 0, 0, '', 'Fe-Feng Village Phase 1714 when Quest 29782 not rewarded'),
 
+-- Pei-Wu Forest
+(26, 1835, 0, 0, 0, 47, 0, 30589, 66, 0, '', 0, 0, 0, '', 'Pei-Wu Forest Phase 1835 when Quest 30589 complete or rewarded'),
+(26, 1835, 0, 0, 0, 1, 0, 117973, 1, 0, '', 1, 0, 0, '', 'Pei-Wu Forest Phase 1835 when player has not aura'),
+(26, 1835, 0, 0, 1, 47, 0, 29798, 74, 0, '', 1, 0, 0, '', 'Pei-Wu Forest Phase 1835 when Quest 29798 not taken, not complete and not rewarded'),
+
 -- Chamber of Whispers
 (26, 1836, 0, 0, 0, 28, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not complete'),
 (26, 1836, 0, 0, 0, 8, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not rewarded');
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (543,  993, 1835, 545, 544);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (543,  993, 545, 544);
 INSERT INTO `conditions` VALUES
 ('26', '543', '0', '0', '0', '47', '0', '29665', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29665 IS rewarded'),
 ('26', '543', '0', '0', '0', '47', '0', '29798', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29798 IS NOT complete or rewarded'),
@@ -387,9 +396,7 @@ INSERT INTO `conditions` VALUES
 ('26', '544', '0', '0', '0', '47', '0', '30767', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 30767 IS in complete or rewarded'),
 ('26', '544', '0', '0', '0', '47', '0', '29799', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29799 IS NOT rewarded'),
 ('26', '545', '0', '0', '0', '47', '0', '29799', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29799 IS rewarded'),
-('26', '545', '0', '0', '0', '47', '0', '29800', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29800 IS NOT rewarded'),
-('26', '1835', '0', '0', '0', '47', '0', '30589', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 30589 IS rewarded'),
-('26', '1835', '0', '0', '0', '47', '0', '29798', '74', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 1835 if 29798 IS NOT in progress or complete or rewarded');
+('26', '545', '0', '0', '0', '47', '0', '29800', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29800 IS NOT rewarded');
 
 DELETE FROM `conditions`
 WHERE `SourceTypeOrReferenceId` = 26
