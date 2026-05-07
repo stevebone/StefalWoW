@@ -20986,6 +20986,36 @@ void Player::_LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff)
     //  Field 52: abi.bag (tab index 0-4)
     //  Field 53: abi.slot (slot within tab 0-97)
 
+    // First, ensure all account bank tabs have their bag objects created
+    // This fixes the issue where empty tabs appear but have no slots
+    for (uint8 tabIndex = 0; tabIndex < GetAccountBankTabCount(); ++tabIndex)
+    {
+        uint8 bagSlot = ACCOUNT_BANK_SLOT_BAG_START + tabIndex;
+        Bag* bag = GetBagByPos(bagSlot);
+        if (!bag)
+        {
+            // Create the bag item for this tab if it doesn't exist yet
+            if (Item* bagItem = Item::CreateItem(ITEM_ACCOUNT_BANK_TAB_BAG, 1, ItemContext::NONE, this))
+            {
+                uint16 bagPos = (INVENTORY_SLOT_BAG_0 << 8) | bagSlot;
+                bagItem->SetContainer(nullptr);
+                bagItem->SetSlot(bagSlot);
+                StoreItem(ItemPosCountVec(1, ItemPosCount(bagPos, 1)), bagItem, true);
+                bagItem->SetState(ITEM_UNCHANGED, this);
+                bag = bagItem->ToBag();
+
+                TC_LOG_DEBUG("entities.player", "Player::_LoadAccountBankItems: Created account bank bag for tab {} at slot {}", tabIndex, bagSlot);
+            }
+
+            if (!bag)
+            {
+                TC_LOG_ERROR("entities.player", "Player::_LoadAccountBankItems: Player '{}' ({}) failed to create account bank bag for tab {}.",
+                    GetName(), GetGUID().ToString(), tabIndex);
+                continue;
+            }
+        }
+    }
+
     if (!result)
         return;
 
@@ -21012,29 +21042,15 @@ void Player::_LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff)
 
             uint8 bagSlot = ACCOUNT_BANK_SLOT_BAG_START + tabIndex;
 
-            // Ensure the bag exists at this position
+            // Bag should already exist from the pre-creation loop above
             Bag* bag = GetBagByPos(bagSlot);
             if (!bag)
             {
-                // Create the bag item for this tab if it doesn't exist yet
-                if (Item* bagItem = Item::CreateItem(ITEM_ACCOUNT_BANK_TAB_BAG, 1, ItemContext::NONE, this))
-                {
-                    uint16 bagPos = (INVENTORY_SLOT_BAG_0 << 8) | bagSlot;
-                    bagItem->SetContainer(nullptr);
-                    bagItem->SetSlot(bagSlot);
-                    StoreItem(ItemPosCountVec(1, ItemPosCount(bagPos, 1)), bagItem, true);
-                    bagItem->SetState(ITEM_UNCHANGED, this);
-                    bag = bagItem->ToBag();
-                }
-
-                if (!bag)
-                {
-                    TC_LOG_ERROR("entities.player", "Player::_LoadAccountBankItems: Player '{}' ({}) failed to create account bank bag for tab {}.",
-                        GetName(), GetGUID().ToString(), tabIndex);
-                    item->DeleteFromDB(trans);
-                    delete item;
-                    continue;
-                }
+                TC_LOG_ERROR("entities.player", "Player::_LoadAccountBankItems: Player '{}' ({}) failed to get account bank bag for tab {} after pre-creation.",
+                    GetName(), GetGUID().ToString(), tabIndex);
+                item->DeleteFromDB(trans);
+                delete item;
+                continue;
             }
 
             GetSession()->GetCollectionMgr()->CheckHeirloomUpgrades(item);
