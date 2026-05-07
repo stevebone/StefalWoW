@@ -132,11 +132,7 @@ if(WIN32)
     COMMAND powershell -NoProfile -Command "$v=(Get-CimInstance -ClassName Win32_OperatingSystem); '{0} ({1})' -f $v.Caption, $v.Version"
     OUTPUT_VARIABLE TRINITY_BUILD_HOST_SYSTEM_RELEASE
 	OUTPUT_STRIP_TRAILING_WHITESPACE
-	TIMEOUT 10
   )
-  if(NOT TRINITY_BUILD_HOST_SYSTEM_RELEASE)
-    set(TRINITY_BUILD_HOST_SYSTEM_RELEASE "Unknown")
-  endif()
   # Remove "Microsoft Windows" from the result
   string(REGEX REPLACE "^.* Windows " "" TRINITY_BUILD_HOST_SYSTEM_RELEASE "${TRINITY_BUILD_HOST_SYSTEM_RELEASE}")
 endif()
