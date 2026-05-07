@@ -9873,13 +9873,13 @@ BagSlotFlags Player::GetItemAutoDepositCategory(Item const* item)
     }
 }
 
+static constexpr BagSlotFlags AllPriorityFlags =
+BagSlotFlags::PriorityEquipment | BagSlotFlags::PriorityConsumables |
+BagSlotFlags::PriorityTradeGoods | BagSlotFlags::PriorityJunk |
+BagSlotFlags::PriorityQuestItems | BagSlotFlags::PriorityReagents;
+
 int8 Player::PickAutoDepositTab(::BankType bank, Item const* item) const
 {
-    static constexpr BagSlotFlags AllPriorityFlags =
-        BagSlotFlags::PriorityEquipment   | BagSlotFlags::PriorityConsumables |
-        BagSlotFlags::PriorityTradeGoods  | BagSlotFlags::PriorityJunk        |
-        BagSlotFlags::PriorityQuestItems  | BagSlotFlags::PriorityReagents;
-
     BagSlotFlags itemCategory = GetItemAutoDepositCategory(item);
 
     auto pick = [&](auto const& tabs) -> int8
@@ -9889,7 +9889,7 @@ int8 Player::PickAutoDepositTab(::BankType bank, Item const* item) const
         {
             BagSlotFlags flags = static_cast<BagSlotFlags>(int32(*tabs[i].DepositFlags));
 
-            // "Cleanup: Ignore this tab" — opt out of auto-deposit entirely
+            // "Cleanup: Ignore this tab" - opt out of auto-deposit entirely
             if ((flags & BagSlotFlags::DisableAutoSort) != BagSlotFlags::None)
                 continue;
 
@@ -11599,7 +11599,7 @@ InventoryResult Player::CanAccountBankItem(uint8 bag, uint8 slot, ItemPosCountVe
                     return EQUIP_ERR_OK;
             }
 
-            // Then try empty slots — this must run even when the merge pass returned
+            // Then try empty slots - this must run even when the merge pass returned
             // EQUIP_ERR_OK without fully placing the stack (no matching stacks found).
             InventoryResult res = CanStoreItem_InBag(bag, dest, pProto, count, false, true, pItem, NULL_BAG, NULL_SLOT);
             if (res != EQUIP_ERR_OK)
@@ -11612,7 +11612,7 @@ InventoryResult Player::CanAccountBankItem(uint8 bag, uint8 slot, ItemPosCountVe
     }
 
     // No specific bag/slot: search all account bank bags
-    // First pass: try to merge with existing stacks (non_specialized=true — see above)
+    // First pass: try to merge with existing stacks (non_specialized=true - see above)
     for (uint8 i = ACCOUNT_BANK_SLOT_BAG_START; i < ACCOUNT_BANK_SLOT_BAG_END; i++)
     {
         InventoryResult res = CanStoreItem_InBag(i, dest, pProto, count, true, true, pItem, bag, slot);
@@ -22454,7 +22454,7 @@ void Player::_SaveAccountBankItems(CharacterDatabaseTransaction trans)
 {
     uint32 bnetAccountId = GetSession()->GetBattlenetAccountId();
 
-    // Delete all account bank item positions — they will be re-inserted below
+    // Delete all account bank item positions - they will be re-inserted below
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET);
     stmt->setUInt32(0, bnetAccountId);
     trans->Append(stmt);
