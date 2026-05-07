@@ -291,7 +291,7 @@ void WorldSession::HandleUpdateBankTabSettings(WorldPackets::Bank::UpdateBankTab
 // without DisableAutoSort. Returns true if the item was deposited.
 static bool TryAutoDepositItem(Player* player, BankType bank, Item* item)
 {
-    uint8 const bagStart = (bank == BankType::Account) ? ACCOUNT_BANK_SLOT_BAG_START : BANK_SLOT_BAG_START;
+    uint8 const bagStart = (bank == BankType::Account) ? static_cast<uint8>(ACCOUNT_BANK_SLOT_BAG_START) : static_cast<uint8>(BANK_SLOT_BAG_START);
     uint8 const tabCount = (bank == BankType::Account) ? player->GetAccountBankTabCount() : player->GetCharacterBankTabCount();
     if (!tabCount)
         return false;
