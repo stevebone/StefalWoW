@@ -141,7 +141,7 @@ UPDATE `creature` SET `PhaseId` = 545, `terrainSwapMap` = 976 WHERE guid IN (452
 UPDATE `creature` SET `PhaseId` = 0, `PhaseGroup` = 641, `terrainSwapMap` = -1 WHERE `guid` IN (451725, 451731, 4001703, 451746);
 UPDATE `creature` SET `PhaseId` = 544, `ScriptName` = 'npc_healers_active_bunny' WHERE (`guid` = '452176');
 UPDATE `creature` SET `PhaseId` = 543, `terrainSwapMap` = -1 WHERE `guid` IN (452131, 452134, 452133, 452127,452130, 452136, 452135, 452129, 452124); -- Deepscale Tormentors
-UPDATE `creature` SET `PhaseId` = 169, `terrainSwapMap` = -1 WHERE `guid` IN (451858, 451860, 451965, 451979, 451972,451978,451975,451969);
+UPDATE `creature` SET `PhaseId` = 169, `terrainSwapMap` = -1 WHERE `guid` IN (451858, 451860, 451965, 451979, 451972,451978,451975,451969,451851,451856);
 UPDATE `creature` SET `PhaseId` = 0, `PhaseGroup` = 680 WHERE `guid` IN (451733,451734,452119,452121,452123,452126);
 
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452061, 452110, 452062, 452099, 452114, 452105, 452117, 452351, 452355, 452101, 452111, 452112, 452248, 452229, 452265, 452250,
@@ -358,7 +358,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 -- Horde Druid
 (451965, 6089600, 0, 0, 8, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451979, 0, 0, 0, 8, 0, 1, 0, 0, 0, 0, 0, 0, ''),
-(451858, 6089601, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451858, 6089601, 0, 0, 8, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 -- Terror/Horror with path
 (451944, 5600802, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (452052, 5600803, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
