@@ -380,8 +380,7 @@ INSERT INTO `conditions` VALUES
 
 -- Pei-Wu Forest
 (26, 1835, 0, 0, 0, 47, 0, 30589, 66, 0, '', 0, 0, 0, '', 'Pei-Wu Forest Phase 1835 when Quest 30589 complete or rewarded'),
-(26, 1835, 0, 0, 0, 1, 0, 117973, 1, 0, '', 1, 0, 0, '', 'Pei-Wu Forest Phase 1835 when player has not aura'),
-(26, 1835, 0, 0, 1, 47, 0, 29798, 74, 0, '', 1, 0, 0, '', 'Pei-Wu Forest Phase 1835 when Quest 29798 not taken, not complete and not rewarded'),
+(26, 1835, 0, 0, 0, 47, 0, 29798, 74, 0, '', 1, 0, 0, '', 'Pei-Wu Forest Phase 1835 when Quest 29798 not taken, not complete and not rewarded'),
 
 -- Chamber of Whispers
 (26, 1836, 0, 0, 0, 28, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not complete'),

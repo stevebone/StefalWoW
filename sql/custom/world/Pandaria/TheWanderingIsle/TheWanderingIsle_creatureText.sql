@@ -349,3 +349,11 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (57692, 1, 0, 'There is only one thing to do.  I must smash it!  Once and for all, all shall know the power of my mighty brow.', 12, 0, 100, 1, 0, 0, 0, 56361, 0, 'Jojo Ironbrow to Player'),
 (57692, 2, 0, 'Oh... my head... it hurts so badly!  I\'ve... the pillar must contain enormous power... perhaps stronger even than my brow...', 12, 0, 100, 18, 0, 0, 0, 56362, 0, 'Jojo Ironbrow to Player'),
 (57692, 3, 0, 'I\'m... I\'m just going to lie down a while... until this headache goes away.', 12, 0, 100, 0, 0, 0, 0, 56364, 0, 'Jojo Ironbrow to Player');
+
+-- Delora Lionheart
+DELETE FROM creature_text WHERE creatureid IN (55944);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+(55944, 0, 0, 'We need more healers at the tents. Recall the priests from the west.', 14, 0, 100, 22, 0, 27508, 0, 60625, 0, 'Delora Lionheart'),
+(55944, 1, 0, 'Hold the line, sailors! Your brothers depend on you!', 14, 0, 100, 22, 0, 27505, 0, 59721, 0, 'Delora Lionheart'),
+(55944, 2, 0, 'Tend to the wounded! This isn''t over yet.', 14, 0, 100, 22, 0, 27506, 0, 59722, 0, 'Delora Lionheart'),
+(55944, 3, 0, 'We have men in that wreckage! Get more men out there recovering the wounded.', 14, 0, 100, 22, 0, 27507, 0, 60624, 0, 'Delora Lionheart');
