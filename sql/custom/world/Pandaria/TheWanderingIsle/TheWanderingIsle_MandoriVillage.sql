@@ -28,7 +28,7 @@
 DELETE FROM `creature_template_addon` WHERE `entry` IN (66690,57622, 65052, 56012, 65053, 65050, 65049, 65047,65073, 65087, 59960, 59963, 59962,65084,65077,65035,60260,
 65039,65042,60259,65085,65086,65045,65044,65088,59986,59988,59989,65037,66689,66691,66692,65040,65083);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-(66689, 0, 0, 0, 0, 0, 0, 1, 0, 415, 0, 0, 0, 0, ''),
+(66689, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (66691, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (66692, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (65037, 6503700, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -68,7 +68,7 @@ DELETE FROM `creature_template_difficulty` WHERE `entry` IN (66690,57622, 65052,
 INSERT INTO `creature_template_difficulty` VALUES
 (65083, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58481, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65040, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58438, 0, 0, 0, 0, 0, 0, 0, 0, 268435712, 0, 0, 0, 0, 0, 0, 0, 56647),
-(66689, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 60661, 0, 0, 0, 0, 0, 0, 0, 0, 805306624, 0, 33554432, 0, 0, 0, 0, 0, 56647),
+(66689, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 60661, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 33554432, 0, 0, 0, 0, 0, 56647),
 (66691, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 60663, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (66692, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 60664, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (65037, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58435, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -402,12 +402,13 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 -- Wei Palerage
 (55943, 0, 0, 0, 38, 0, 100, 0, 6, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 12, 1, 0, 0, 0, 0, 0, 0, 'Wei Palerage - On Data Set - Talk');
 
-UPDATE `creature_template` SET `ScriptName` = '', `AIName` = 'SmartAI' WHERE `Entry` IN (66689,66691,66692);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (66689,6668900,6668901,66691,6669100,6669101,66692,6669200,6669201) AND `source_type` IN (0,9);
+UPDATE `creature_template` SET `ScriptName` = '', `AIName` = 'SmartAI' WHERE `Entry` IN (66689,66691,66692,66690);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (66689,6668900,6668901,66691,6669100,6669101,66692,6669200,6669201,66690) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
-
+-- Lamplighter Mu
+(66690, 0, 0, 0, 40, 0, 100, 0, 62, 6669000, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 11, 66689, 20, 0, 0, 0, 0, 0, 'Lamplighter Mu - WP Reached - Set Data'),
 -- Mei Chele
-(66689, 0, 0, 1, 38, 0, 100, 0, 1, 1, 0, 0, 0, 17, 30, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - On Data Set - Set Emote State'),
+(66689, 0, 0, 1, 38, 0, 100, 0, 1, 1, 0, 0, 0, 17, 26, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - On Data Set - Set Emote State'),
 (66689, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 53, 0, 6668900, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - On Data Set - Start WP'),
 (66689, 0, 2, 3, 40, 0, 100, 0, 4, 6668900, 0, 0, 0, 54, 3500, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - WP Reached - Pause WP'),
 (66689, 0, 3, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 5, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - WP Reached - Play Emote'),
@@ -417,6 +418,7 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (6668900, 9, 0, 0, 0, 0, 100, 0, 3000, 3000, 0, 0, 0, 11, 52148, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - Cast Cosmetic - Love'),
 (6668900, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 5, 24, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - Play Emote'),
 (66689, 0, 7, 0, 58, 0, 100, 0, 11, 6668900, 0, 0, 0, 80, 6668901, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - WP Ended - Run Script'),
+(66689, 0, 8, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 17, 415, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - On Respawn - Set Emote State'),
 (6668901, 9, 0, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 5.253441, 'Mei Chele - Set Orientation'),
 (6668901, 9, 1, 0, 0, 0, 100, 0, 1000, 1000, 0, 0, 0, 62, 860, 0, 0, 0, 0, 0, 1, 0, 0, 0, 675.2795, 3514.17, 119.6324, 5.694905, 'Mei Chele - Teleport'),
 (6668901, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 17, 415, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Mei Chele - Set Emote State'),
@@ -470,7 +472,7 @@ INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES
 (6503700,0,0,'The Wandering Isle - Treeshaper Shu'),
 (6669000,0,0,'The Wandering Isle - Lamplighter Mu'),
 (6503500,0,0,'The Wandering Isle - Summer Lily'),
-(6026000,0,0,'The Wandering Isle - Jie'),
+(6026000,1,0,'The Wandering Isle - Jie'),
 (6507700,0,0,'The Wandering Isle - Groundskeeper Amalia'),
 (6508800,0,0,'The Wandering Isle - Groundskeeper Shen'),
 (6508400,0,0,'The Wandering Isle - Crimson Butterfly');
