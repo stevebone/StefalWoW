@@ -501,3 +501,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (104126, 'spell_monkey_wisdom_text'),
 (125699, 'spell_ruk_ruk_ooksplosions'),
 (105333, 'spell_summon_worthy_of_passing');
+
+DELETE FROM `playercreateinfo_cast_spell` WHERE `spell` IN (107027, 166646, 107924, 108061);
+INSERT INTO `playercreateinfo_cast_spell` (`raceMask`, `classMask`, `spell`, `note`) VALUES
+(8388608, 512, 166646, 'Pandaren - Monk - Windwalking'),
+(8388608, 4, 107924, 'Pandaren - Hunter - Wise Turtle');

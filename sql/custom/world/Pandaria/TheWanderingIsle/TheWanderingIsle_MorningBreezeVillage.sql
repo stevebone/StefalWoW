@@ -232,8 +232,20 @@ UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451708,451584,451601,4
 
 UPDATE `creature` SET `id` = 55633 WHERE `guid` = 451583; -- incorrect Firethief id spawn
 
-DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451588);
+DELETE FROM `creature_formations` WHERE `leaderGUID` IN (451588,451562,451672,451636,451653,451697,451658);
 INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
+(451658, 451658, 0, 0, 515, 0, 0),
+(451658, 451659, 5, 0, 515, 0, 0),
+(451697, 451697, 0, 0, 515, 0, 0),
+(451697, 451586, 5, 0, 515, 0, 0),
+(451653, 451653, 0, 0, 515, 0, 0),
+(451653, 451682, 5, 0, 515, 0, 0),
+(451636, 451636, 0, 0, 515, 0, 0),
+(451636, 451651, 5, 0, 515, 0, 0),
+(451672, 451672, 0, 0, 515, 0, 0),
+(451672, 451609, 5, 0, 515, 0, 0),
+(451562, 451562, 0, 0, 515, 0, 0),
+(451562, 451559, 5, 0, 515, 0, 0),
 (451588, 451588, 0, 0, 512, 0, 0),
 (451588, 451589, 10, 0, 512, 0, 0);
 

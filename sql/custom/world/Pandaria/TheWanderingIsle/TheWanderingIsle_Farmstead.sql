@@ -147,10 +147,16 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier
 ('451174', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343'),
 ('451178', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '82343');
 
-DELETE FROM `creature_formations` WHERE `leaderGUID` IN (@CGUID+806);
+DELETE FROM `creature_formations` WHERE `leaderGUID` IN (@CGUID+806, 451125,451187,451297);
 INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
 (@CGUID+806, @CGUID+806, 0, 0, 515, 0, 0), -- Dai-Lo Farmer
-(@CGUID+806, @CGUID+807, 3, 270, 515, 5, 16); -- Dai-Lo Farmer
+(@CGUID+806, @CGUID+807, 3, 270, 515, 5, 16), -- Dai-Lo Farmer
+(451297, 451297, 0, 0, 515, 0, 0), -- Dai-Lo Farmer
+(451297, 451298, 3, 90, 515, 5, 14), -- Dai-Lo Farmer
+(451187, 451187, 0, 0, 515, 0, 0), -- Dai-Lo Farmer
+(451187, 451188, 3, 270, 515, 8, 17), -- Dai-Lo Farmer
+(451125, 451125, 0, 0, 515, 0, 0), -- Dai-Lo Farmer
+(451125, 451122, 3, 90, 515, 1, 5); -- Dai-Lo Farmer
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57669);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57669,5766900) AND `source_type` IN (0,9);
@@ -298,3 +304,20 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, type, VerifiedB
 (57618, 6, 18567, 0, 0, 1, 63906),
 (57618, 7, 160298, 0, 0, 1, 63906),
 (57618, 8, 180733, 0, 0, 1, 63906);
+
+-- Fixes
+
+-- Fix missing model info for Dai-Lo farmer new models
+DELETE FROM `creature_model_info` WHERE `DisplayID` IN (140145,140146,140147);
+INSERT INTO `creature_model_info` (`DisplayID`, `BoundingRadius`, `CombatReach`, `DisplayID_Other_Gender`, `VerifiedBuild`) VALUES 
+(140146, 0.347222, 1.5, 0, 66384),
+(140145, 0.347222, 1.5, 0, 66384),
+(140147, 0.347222, 1.5, 0, 66384);
+
+DELETE FROM `creature_template_model` WHERE `CreatureID` IN (65473);
+INSERT INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`, `VerifiedBuild`) VALUES
+(65473, 0, 44082, 1, 1, 66384),
+(65473, 1, 44083, 1, 1, 66384),
+(65473, 2, 140146, 1, 1, 66384),
+(65473, 3, 140145, 1, 1, 66384),
+(65473, 4, 140147, 1, 1, 66384);

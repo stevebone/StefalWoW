@@ -71,7 +71,7 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 (57414, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (57619, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (57769, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, '114825'),
-(65094, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(65094, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (66298, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (68986, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (56479, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''),
@@ -106,14 +106,25 @@ INSERT INTO `creature_template_difficulty` VALUES
 (64593, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 57984, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
 
 -- Creature
-DELETE FROM `creature_addon` WHERE `guid` IN (451410);
+DELETE FROM `creature_addon` WHERE `guid` IN (451410,451412,450015,450023,450028,450034,450035,450014,450030,450632);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('451410', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '108900 49415 126160'); -- Shang 2
+(450015, 6509400, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450023, 6509401, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450034, 6509402, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450014, 6509403, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450030, 6509404, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450035, 6509405, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450028, 6509406, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+(450632, 6509407, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Priestess of the Dawn
+
+(451410, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '108900 49415 126160'), -- Shang 2
+(451412, 0, 0, 0, 8, 0, 1, 0, 0, 0, 0, 0, 0, ''); -- Priestess at Shrine
 
 UPDATE `creature` SET `PhaseId` = 1027 WHERE `guid` IN (451408); -- Huo
 UPDATE `creature` SET `PhaseId` = 1028, `MovementType` = 2 WHERE `guid` IN (451409); -- Shu
 UPDATE `creature` SET `PhaseId` = 1029 WHERE `guid` IN (451411); -- Wugou
 UPDATE `creature` SET `PhaseId` = 1030 WHERE `guid` IN (451828); -- Dafeng
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (450015,450023,450028,450034,450035,450014,450030,450632); -- Priestess of the Dawn
 
 -- Liu Kang statue
 SET @CGUID := 900000;
