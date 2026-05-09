@@ -2755,7 +2755,6 @@ namespace Scripts::Custom::TheWanderingIsle
             {
                 events.Reset();
                 _healersActive = 0;
-                events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 5s);
                 events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s);
             }
 
@@ -2815,45 +2814,6 @@ namespace Scripts::Custom::TheWanderingIsle
                         events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s, 60s);
                         break;
                     }
-
-                    case Events::event_healing_bunny_spawn_adds:
-                    {
-                        Creature* spawnAdd1 = ObjectAccessor::GetCreature(*me, add1);
-                        Creature* spawnAdd2 = ObjectAccessor::GetCreature(*me, add2);
-                        Creature* spawnAdd3 = ObjectAccessor::GetCreature(*me, add3);
-                        if (!spawnAdd1 || (spawnAdd1 && !spawnAdd1->IsAlive()))
-                        {
-                            Creature* newAdd1 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
-                                Positions::Ravager_Spawn_1, TEMPSUMMON_DEAD_DESPAWN);
-
-                            add1 = newAdd1->GetGUID();
-                            newAdd1->SetReactState(REACT_AGGRESSIVE);
-                            newAdd1->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_1);
-                        }
-
-                        if (!spawnAdd2 || (spawnAdd2 && !spawnAdd2->IsAlive()))
-                        {
-                            Creature* newAdd2 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
-                                Positions::Ravager_Spawn_2, TEMPSUMMON_DEAD_DESPAWN);
-
-                            add2 = newAdd2->GetGUID();
-                            newAdd2->SetReactState(REACT_AGGRESSIVE);
-                            newAdd2->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_2);
-                        }
-
-                        if (!spawnAdd3 || (spawnAdd3 && !spawnAdd3->IsAlive()))
-                        {
-                            Creature* newAdd3 = me->SummonCreature(RAND(Npcs::npc_spawned_deepscale_ravager, Npcs::npc_spawned_deepscale_fleshripper),
-                                Positions::Ravager_Spawn_3, TEMPSUMMON_DEAD_DESPAWN);
-
-                            add3 = newAdd3->GetGUID();
-                            newAdd3->SetReactState(REACT_AGGRESSIVE);
-                            newAdd3->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_3);
-                        }
-
-                        events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 25s);
-                        break;
-                    }
                     }
                 }
             }
@@ -2861,9 +2821,6 @@ namespace Scripts::Custom::TheWanderingIsle
         private:
             EventMap events;
             uint8 _healersActive = 0;
-            ObjectGuid add1;
-            ObjectGuid add2;
-            ObjectGuid add3;
         };
 
         CreatureAI* GetAI(Creature* creature) const override

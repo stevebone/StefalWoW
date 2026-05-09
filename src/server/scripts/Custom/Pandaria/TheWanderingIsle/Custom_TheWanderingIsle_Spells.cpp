@@ -26,6 +26,7 @@
 #include "GameObject.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "SpellInfo.h"
 #include "ScriptedCreature.h"
@@ -613,7 +614,12 @@ namespace Scripts::Custom::TheWanderingIsle
         {
             if (Unit* target = GetTarget())
                 if (target->IsPlayer())
+                {
                     target->CastSpell(GetTarget(), Spells::spell_turtle_healed_phase_update, true);
+                    PhasingHandler::OnConditionChange(target, true);
+                    PhasingHandler::RemoveVisibleMapId(target, 975);
+                    PhasingHandler::AddVisibleMapId(target, 976);
+                }
         }
 
         void Register() override
@@ -646,22 +652,32 @@ namespace Scripts::Custom::TheWanderingIsle
             }
         }
 
-        void HandleEffectApply(AuraEffect const*, AuraEffectHandleModes)
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_healing_shenzin_su::HandleEffectPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    class spell_ally_horde_argument : public AuraScript
+    {
+        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             if (Unit* target = GetTarget())
-            {
-                if (Player* player = target->ToPlayer())
-                {
-                    player->SetMaxPower(POWER_ALTERNATE_POWER, 100);
-                    player->SetPower(POWER_ALTERNATE_POWER, 0);
-                }
-            }
+                if (Creature* creature = target->FindNearestCreature(Npcs::npc_korga_strongmane_q29800, target->GetVisibilityRange(), true))
+                    creature->AI()->Talk(Talks::korga_after_wound_talk, target);
+        }
+
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                if (Creature* creature = target->FindNearestCreature(Npcs::npc_delora_lionheart_q29800, target->GetVisibilityRange(), true))
+                    creature->AI()->Talk(Talks::delora_after_wound_talk, target);
         }
 
         void Register() override
         {
-            OnEffectApply += AuraEffectApplyFn(spell_healing_shenzin_su::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-            OnEffectPeriodic += AuraEffectPeriodicFn(spell_healing_shenzin_su::HandleEffectPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+            OnEffectApply += AuraEffectApplyFn(spell_ally_horde_argument::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            OnEffectRemove += AuraEffectRemoveFn(spell_ally_horde_argument::OnRemove, EFFECT_1, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
         }
     };
 
@@ -763,6 +779,7 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_summon_ji_wreck_explosion);
     RegisterSpellScript(spell_turtle_healed_phase_timer);
     RegisterSpellScript(spell_healing_shenzin_su);
+    RegisterSpellScript(spell_ally_horde_argument);
     RegisterSpellScript(spell_pandaren_faction_choice);
     RegisterSpellScript(spell_faction_choice_trigger);
     RegisterSpellScript(spell_balloon_exit_timer);

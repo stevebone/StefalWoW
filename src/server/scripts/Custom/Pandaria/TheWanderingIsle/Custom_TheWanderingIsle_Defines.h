@@ -346,6 +346,10 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 aysa_vordraka_boss_2 = 2;
         static constexpr int8 aysa_vordraka_boss_3 = 3;
         static constexpr int8 aysa_vordraka_boss_4 = 4;
+
+        // After would heal
+        static constexpr int8 korga_after_wound_talk = 0;
+        static constexpr int8 delora_after_wound_talk = 0;
     }
 
     namespace PositionsQ29662
@@ -471,24 +475,6 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position AysaDeckMove = { 233.022f, 3985.45f, 86.7175f };
         static constexpr Position AysaDeckJump1 = { 232.002f, 3974.86f, 87.766f };
         static constexpr Position AysaDeckJump2 = { 239.453f, 3942.2f, 62.5987f };
-
-        // Healing Shenzinsu event
-        static constexpr Position ShenzinsuHealerSpots[5] =
-        {
-            { 230.9681f, 3961.6079f, 59.6684f },
-            { 235.9752f, 3960.1010f, 60.4301f },
-            { 244.5514f, 3957.5493f, 62.2980f },
-            { 253.4969f, 3957.4597f, 64.0818f },
-            { 261.8049f, 3954.3000f, 67.4468f }
-        };
-
-        static constexpr Position Ravager_Spawn_1 = { 215.764f, 3950.22f, 71.3403f, 6.07209f }; 
-        static constexpr Position Ravager_Jump_1 = { 234.4787f, 3957.618f, 60.7057f, 0.0167851f };
-        static constexpr Position Ravager_Spawn_2 = { 288.583f, 3939.21f, 86.5738f, 2.65644f };
-        static constexpr Position Ravager_Jump_2 = { 261.967f, 3950.88f, 68.3229f, 4.53972f };
-        static constexpr Position Ravager_Spawn_3 = { 290.049f, 3816.24f, 86.1669f, 1.66562f };
-        static constexpr Position Ravager_Jump_3 = { 270.879f, 3831.84f, 75.9501f, 1.63337f };
-
     }
 
     namespace PositionsQ29787
@@ -640,8 +626,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 event_aysa_explosion_leave_deck = 2;
 
         // Healing of Shenzinsu
-        static constexpr int8 event_healing_bunny_spawn_adds = 1;
-        static constexpr int8 event_shenzinsu_pain_shake = 2;
+        static constexpr int8 event_shenzinsu_pain_shake = 1;
     }
 
     namespace Npcs

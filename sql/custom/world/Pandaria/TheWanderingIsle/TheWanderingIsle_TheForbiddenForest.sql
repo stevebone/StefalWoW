@@ -148,8 +148,11 @@ UPDATE `creature` SET `PhaseId` = 1835 WHERE `guid` = 451988; -- Ji 55942
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452061, 452110, 452062, 452099, 452114, 452105, 452117, 452351, 452355, 452101, 452111, 452112, 452248, 452229, 452265, 452250,
 452252,452254, 452196, 452210, 452268, 452283, 452273, 452253, 452224, 452195, 452266, 452267, 452219, 452237, 452263, 452277, 452211, 452225, 452244, 452262, 452279, 452264); -- duplicate spawns
 DELETE FROM `creature` WHERE `map` = 860 AND `id` IN (56236); -- wrong spawns as the sailors are spawned from quest
-DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452202, 452245, 452189, 452201, 452149, 452143, 452151, 452141, 452158, 452235, 452208); -- event adds are now spawned from script
 
+-- Duplicate Deepscale Ravager Spawns
+DELETE FROM `creature` WHERE `map` = 860 AND `id` IN (60780) AND `guid` NOT IN (452194,452235,452246,452141,452234,452199,452223,452200,452201,452189,452202,452276,452226); 
+-- Duplicate Deepscale Fleshripper Spawns
+DELETE FROM `creature` WHERE `map` = 860 AND `id` IN (60858) AND `guid` NOT IN (452218,452241,452215,452243,452238,452193);
 -- Duplicate Tormentor Spawns
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452059,452115,451758,452011);
 -- Duplicate Darkened Horror/Terror
@@ -195,11 +198,13 @@ INSERT INTO `scene_template` (`SceneId`, `Flags`, `ScriptPackageID`, `ScriptName
 (102, 9, 26, '');
 
 -- Scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7087);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7087,8564,7265);
 INSERT INTO `areatrigger_scripts` VALUES
+(8564, 'SmartTrigger'),
+(7265, 'SmartTrigger'),
 (7087, 'at_wreck_of_the_skyseeker_injured_sailor');
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (117973, 108806, 129341, 117597, 118233, 117783, 117400);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (117973, 108806, 129341, 117597, 118233, 117783, 117400, 131983);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 (117400, 'spell_summon_deep_sea_aggressor'),
 (117973, 'spell_summon_ji_forlorn_hut'),
@@ -207,17 +212,38 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (108806, 'aura_injured_sailor_feign_death'),
 (117597, 'spell_summon_ji_wreck_explosion'),
 (118233, 'spell_turtle_healed_phase_timer'),
+(131983, 'spell_ally_horde_argument'),
 (117783, 'spell_healing_shenzin_su');
 
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry` IN (975,976);
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (108932,108933);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (13, 1, 108933, 0, 0, 51, 0, 5, 57741, 0, 0, 0, 0, '', 'Summon Ox Cart, Skyfire Crash > Temple target Delivery Cart'),
-(13, 1, 108932, 0, 0, 51, 0, 5, 57743, 0, 0, 0, 0, '', 'Summon Ox, Skyfire Crash > Temple target Nourished Yak');
+(13, 1, 108932, 0, 0, 51, 0, 5, 57743, 0, 0, 0, 0, '', 'Summon Ox, Skyfire Crash > Temple target Nourished Yak'),
 
+-- TerrainSwaps
+(25, 0, 975, 0, 0, 47, 0, 30767, 66, 0, 0, 0, 0, '', 'TerrainSwap 975 only when player has quest 30767 complete or rewarded'),
+(25, 0, 975, 0, 0, 47, 0, 29799, 64, 0, 1, 0, 0, '', 'TerrainSwap 975 only when player has quest 29799 not rewarded'),
+(25, 0, 976, 0, 0, 47, 0, 29799, 64, 0, 0, 0, 0, '', 'TerrainSwap 976 only when player has quest 29799 rewarded');
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 57317, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780, 56007, 56008,
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (57712);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (-452340) AND `source_type` IN (0, 9);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (8564,7265) AND `source_type` IN (2);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, 
+`event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, 
+`action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, 
+`target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Trigger 8564 Delora/Korga event
+(8564, 2, 0, 1, 46, 0, 100, 0, 0, 0, 0, 0, 0, 85, 131983, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Invoker Cast Ally/Horde Argument Trigger Aura'),
+(8564, 2, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 85, 131425, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Invoker Cast CKS Area Trigger Dummy Timer Aura, Self'),
+-- Trigger 7265 Cart Driver
+(7265, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 86, 88811, 2, 10, 452340, 57712, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Cross Cast Area Trigger Dummy Timer Aura'),
+-- Delivery Cart Tender
+(-452340, 0, 0, 0, 31, 0, 100, 0, 88811, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Delivery Cart Tender - On Spellhit Target - Talk');
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (60900, 57317, 60854, 60858, 56417, 60853, 60873, 56419, 60780, 56007, 56008,
 56174, 55946, 53705, 56172, 60685);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000, 57317, 60854, 60858, 56417, 55940, 60853, 60873, 56419, 60780, 57739,
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (60900, 6090000, 57317, 60854, 60858, 56417, 60853, 60873, 56419, 60780, 57739,
 56007, 56008, 56174, 55946, 53705, 56172, 60685) AND `source_type` IN (0, 9);
 INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, event_type, event_phase_mask, event_chance, event_flags,  event_param1, event_param2, 
 event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, 
@@ -233,9 +259,6 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 (56008, 0, 0, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, '', 11, 128424, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - Update IC - Cast Backhanded Swipes'),
 ('57739', '0', '0', '1', '20', '0', '100', '0', '29799', '0', '0', '0', '0', '', '44', '545', '1', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On Quest Complete - Add Phase'),
 ('57739', '0', '1', '2', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '44', '544', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On Quest Complete - Remove Phase'),
-('55940', '0', '0', '1', '19', '0', '100', '0', '29798', '0', '0', '0', '0', '', '44', '543', '1', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Quest Accepted - Add Phase'),
-('55940', '0', '1', '2', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '44', '993', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Quest Accepted - Remove Phase'),
-('55940', '0', '2', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '44', '1835', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On Quest Accepted - Remove Phase'),
 ('60900', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '6090000', '2', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - Just Spawned - Run Script'),
 ('60900', '0', '1', '2', '40', '0', '100', '0', '2', '6090000', '0', '0', '0', '', '54', '3000', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Ji Firepaw - On WP Reached - Pause WP'),
 ('60900', '0', '2', '0', '61', '0', '100', '0', '0', '0', '0', '0', '0', '', '97', '15', '15', '0', '0', '0', '0', '8', '0', '0', '0', '424.019', '3676.25', '78.6968', '0', 'Ji Firepaw - On WP Reached - Jump to Pos'),
@@ -256,9 +279,10 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 ('60873', '0', '0', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Skyseeker Sailor - Update OOC - Start Attack'),
 ('60780', '0', '0', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Deepscale Ravager - Update OOC - Start Attack');
 
-UPDATE `creature_template` SET `ScriptName` = '', `AIName` = 'SmartAI' WHERE `Entry` IN (56007,56008,56360,56419,60851,60852,56417,56418,60848,60834,60878,60770,60877);
+UPDATE `creature_template` SET `ScriptName` = '', `AIName` = 'SmartAI' WHERE `Entry` IN (56007,56008,56360,56419,60851,60852,56417,56418,60848,60834,60878,60770,60877,55940,60858,60780);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56007,56008,56360,-452012,-452006,-452103,-452104,-452054,56419,60851,60852,56417,56418,5641800,60848,6083400,
--452192,-452178,6087800,-452157,-452204,6077000,6087700,-452203,-452179,-452163,-452186,-452160,-452232,-452155,-452139) AND `source_type` IN (0,9);
+-452192,-452178,6087800,-452157,-452204,6077000,6087700,-452203,-452179,-452163,-452186,-452160,-452232,-452155,-452139,55940,6078000,-452194,-452235,-452246,-452141,
+-452234,-452199,-452223,-452200,-452201,-452189,-452202,-452276,-452226,-452218,-452241,-452215,-452243,-452238,-452193) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 -- Horde Druid
 (-452203, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
@@ -427,16 +451,18 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (56418, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Respawn - Set React State'),
 (56418, 0, 1, 0, 60, 0, 100, 0, 10000, 20000, 110000, 120000, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update - Talk'),
 (56418, 0, 2, 0, 60, 0, 100, 0, 10000, 20000, 20000, 60000, 0, 11, 131505, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update - Cast Turtle Rumble'),
-(56418, 0, 3, 0, 20, 0, 100, 0, 29799, 0, 0, 0, 0, 85, 108926, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Quest Rewarded - Invoker Cast Blackout into Healed Phase'),
-(56418, 0, 4, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 80, 5641800, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Run Script'),
+(56418, 0, 3, 4, 20, 0, 100, 0, 29799, 0, 0, 0, 0, 85, 108926, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Quest Rewarded - Invoker Cast Blackout into Healed Phase'),
+(56418, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 544, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Quest Accepted - Remove Phase'),
+(56418, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 545, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Quest Accepted - Add Phase'),
+(56418, 0, 6, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 80, 5641800, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Data Set - Run Script'),
 (5641800, 9, 0, 0, 0, 0, 100, 0, 2000, 2000, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Set Orientation'),
-(56418, 0, 5, 0, 1, 0, 100, 0, 2000, 2000, 2000, 2000, 0, 49, 0, 0, 0, 0, 0, 0, 19, 0, 5, 0, 0, 0, 0, 0, 'Ji Firepaw - Update OOC - Start Attack'),
-(56418, 0, 6, 0, 0, 0, 100, 0, 0, 0, 3000, 3000, 0, 39, 15, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Call For Help'),
-(56418, 0, 7, 0, 0, 0, 100, 0, 3000, 5000, 6000, 6000, 0, 11, 128631, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Blackout Kick'),
-(56418, 0, 8, 0, 0, 0, 100, 0, 3000, 5000, 3000, 5000, 0, 11, 128630, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Jab'),
-(56418, 0, 9, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128635, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Fists of Fury'), -- only when multiple targets are nearby
-(56418, 0, 10, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128632, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Spinning Crane Kick'), -- only when multiple targets are nearby
-(56418, 0, 11, 0, 0, 0, 100, 0, 10000, 10000, 10000, 10000, 0, 11, 128643, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Healing Sphere'),
+(56418, 0, 7, 0, 1, 0, 100, 0, 2000, 2000, 2000, 2000, 0, 49, 0, 0, 0, 0, 0, 0, 19, 0, 5, 0, 0, 0, 0, 0, 'Ji Firepaw - Update OOC - Start Attack'),
+(56418, 0, 8, 0, 0, 0, 100, 0, 0, 0, 3000, 3000, 0, 39, 15, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Call For Help'),
+(56418, 0, 9, 0, 0, 0, 100, 0, 3000, 5000, 6000, 6000, 0, 11, 128631, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Blackout Kick'),
+(56418, 0, 10, 0, 0, 0, 100, 0, 3000, 5000, 3000, 5000, 0, 11, 128630, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Jab'),
+(56418, 0, 11, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128635, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Fists of Fury'), -- only when multiple targets are nearby
+(56418, 0, 12, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128632, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Spinning Crane Kick'), -- only when multiple targets are nearby
+(56418, 0, 13, 0, 0, 0, 100, 0, 10000, 10000, 10000, 10000, 0, 11, 128643, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Healing Sphere'),
 -- Delora Lionheart
 (60851, 0, 0, 0, 10, 0, 100, 0, 1, 10, 240000, 300000, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Delora Lionheart - OOC LOS - Talk'),
 (60851, 0, 1, 0, 0, 0, 100, 0, 5000, 8000, 5000, 8000, 0, 11, 128440, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Delora Lionheart - Update IC - Cast Piercing Strikes'),
@@ -449,6 +475,9 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (56419, 0, 1, 0, 9, 0, 50, 0, 5, 30, 5000, 10000, 0, 11, 81574, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - On Target In Range - Cast Charge'),
 (56419, 0, 2, 0, 0, 0, 100, 0, 2000, 2000, 2000, 2000, 0, 11, 120383, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Update IC - Cast Pillar Strike'),
 (56419, 0, 3, 0, 0, 0, 100, 0, 5000, 8000, 8000, 12000, 0, 11, 120372, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - Update IC - Cast Pillar Sweep'),
+-- Jojo Ironbrow
+(55940, 0, 0, 1, 19, 0, 100, 0, 29798, 0, 0, 0, 0, 44, 543, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - On Quest Accepted - Add Phase'),
+(55940, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1835, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - On Quest Accepted - Remove Phase'),
 -- Darkened Horror
 (56007, 0, 0, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128417, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - Update IC - Cast Shadow Geyser'),
 -- Darkened Horror
@@ -480,11 +509,82 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (-452054, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128424, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - Update IC - Cast Backhanded Swipes'),
 -- Deepscale Tormentor
 (56360, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 9, 56362, 0, 5, 0, 0, 0, 0, 'Deepscale Tormentor - Update OOC - Start Attack'),
-(56360, 0, 1, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128270, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Tormentor - Update IC - Cast Smash');
+(56360, 0, 1, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128270, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Tormentor - Update IC - Cast Smash'),
+-- Deepscale Ravager
+(-452194, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 233.66, 3885.76, 67.891, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452194, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078000, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452194, 0, 2, 0, 58, 0, 100, 0, 4, 6078000, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452235, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 278.486, 3856.96, 74.4581, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452235, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078001, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452235, 0, 2, 0, 58, 0, 100, 0, 5, 6078001, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452246, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6078002, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Respawn - Start WP'),
+(-452246, 0, 1, 0, 40, 0, 100, 0, 3, 6078002, 0, 0, 0, 54, 3000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Reached - Pause WP'),
+(-452246, 0, 2, 0, 58, 0, 100, 0, 11, 6078002, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452141, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 328.392, 3855.01, 78.2913, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452141, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078003, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452141, 0, 2, 0, 58, 0, 100, 0, 6, 6078003, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452234, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6078004, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Respawn - Start WP'),
+(-452234, 0, 1, 0, 58, 0, 100, 0, 9, 6078004, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452199, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 267.337, 3952.24, 69.7518, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452199, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078005, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452199, 0, 2, 0, 58, 0, 100, 0, 1, 6078005, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452223, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6078006, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Respawn - Start WP'),
+(-452223, 0, 1, 2, 40, 0, 100, 0, 1, 6078006, 0, 0, 0, 54, 3000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Reached - Pause WP'),
+(-452223, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Reached - Set Emote State'),
+(-452223, 0, 3, 0, 56, 0, 100, 0, 2, 6078006, 0, 0, 0, 17, 30, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Resumed - Set Emote State'),
+(-452223, 0, 4, 0, 58, 0, 100, 0, 6, 6078006, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452200, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 252.609, 3926.75, 66.9842, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452200, 0, 1, 2, 34, 0, 100, 0, 16, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1.570796, 'Deepscale Ravager - On Movement Inform - Set Orientation'),
+(-452200, 0, 2, 3, 61, 0, 100, 0, 0, 0, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Set Emote State'),
+(-452200, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 10, 452146, 56418, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start Attack'),
+(-452200, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 80, 6078000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Run Script'),
+(-452200, 0, 5, 0, 58, 0, 100, 0, 2, 6078007, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(6078000, 9, 0, 0, 0, 0, 100, 0, 3000, 3000, 0, 0, 0, 17, 30, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - Set Emote State'),
+(6078000, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6078007, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - Start WP'),
+(-452201, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 261.281, 3950.65, 68.2835, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452201, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078008, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452201, 0, 2, 0, 58, 0, 100, 0, 1, 6078008, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452189, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 246.102, 3953.03, 62.8652, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452189, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078009, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452189, 0, 2, 0, 58, 0, 100, 0, 1, 6078009, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452202, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 251.585, 3950.82, 64.9043, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452202, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078010, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452202, 0, 2, 0, 58, 0, 100, 0, 1, 6078010, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452276, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 244.701, 4033.27, 59.3918, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452276, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078011, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452276, 0, 2, 0, 58, 0, 100, 0, 3, 6078011, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+(-452226, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 97, 15, 15, 0, 0, 0, 0, 8, 0, 0, 0, 238.3127, 4034.402, 60.0663, 0, 'Deepscale Ravager - On Respawn - Jump to Pos'),
+(-452226, 0, 1, 0, 34, 0, 100, 0, 16, 0, 0, 0, 0, 53, 1, 6078011, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On Movement Inform - Start WP'),
+(-452226, 0, 2, 0, 58, 0, 100, 0, 3, 6078011, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Ravager - On WP Ended - Despawn'),
+-- Deepscale Fleshripper
+(-452218, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6085800, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On Respawn - Start WP'),
+(-452218, 0, 1, 0, 58, 0, 100, 0, 7, 6085800, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
+(-452218, 0, 2, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+(-452241, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6085801, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On Respawn - Start WP'),
+(-452241, 0, 1, 0, 58, 0, 100, 0, 8, 6085801, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
+(-452241, 0, 2, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+(-452215, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6085802, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On Respawn - Start WP'),
+(-452215, 0, 1, 0, 58, 0, 100, 0, 7, 6085802, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
+(-452215, 0, 2, 3, 40, 0, 100, 0, 3, 6085802, 0, 0, 0, 54, 3000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Reached - Pause WP'),
+(-452215, 0, 3, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Reached - Set Emote State'),
+(-452215, 0, 4, 0, 56, 0, 100, 0, 4, 6085802, 0, 0, 0, 17, 30, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Resumed - Set Emote State'),
+(-452215, 0, 5, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+(-452243, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6085803, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On Respawn - Start WP'),
+(-452243, 0, 1, 0, 58, 0, 100, 0, 8, 6085803, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
+(-452243, 0, 2, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+(-452238, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6085804, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On Respawn - Start WP'),
+(-452238, 0, 1, 0, 58, 0, 100, 0, 11, 6085804, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
+(-452238, 0, 2, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh'),
+(-452193, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 6085805, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On Respawn - Start WP'),
+(-452193, 0, 1, 2, 40, 0, 100, 0, 1, 6085805, 0, 0, 0, 54, 3000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Reached - Pause WP'),
+(-452193, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 19, 60877, 30, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Reached - Start Attack'),
+(-452193, 0, 3, 0, 58, 0, 100, 0, 6, 6085805, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
+(-452193, 0, 4, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh');
 
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60888, 60889, 60685, 60554, 65742, 55946, 56195, 56174);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60888, 60889, 60685, 60554, 65742, 55946, 56195, 56174,60848);
 INSERT INTO `creature_template_difficulty` VALUES
+(60848, 0, 0, 0, 80, 4, 1, 1, 1, 1, 20670, 536870912, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 33554432, 0, 0, 0, 0, 0, 56647),
 (65742, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 59502, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60554, 0, 0, 0, 80, 4, 1, 1, 1, 1, 21169, 4096, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60685, 0, 0, 0, 80, 4, 0.5, 1, 1, 1, 20951, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 256, 0, 0, 0, 0, 0, 56647),
@@ -613,14 +713,16 @@ UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451857, 451875, 451810
 UPDATE `creature` SET `MovementType` = 1, `wander_distance` = 5 WHERE `id` IN (55946) and `guid` not in 
 (451348, 451352, 451756, 451788, 451835, 451839, 451845, 451849, 451878, 451880, 451883, 451886, 451888, 451893, 451912, 451918, 451926, 451930, 451933, 451937, 451941, 451942, 451983, 452015, 452019, 452025, 451865, 451813, 451815, 451817, 451821, 451836, 451844, 451847, 451900, 451905, 451916, 451923, 451929, 451932, 451339, 451352, 452010, 452034, 452038, 452041);
 
-UPDATE `creature` SET `position_x` = '548.625', `position_y` = '3492.5', `position_z` = '95.0985', `orientation` = '1.64148' WHERE `guid` = 451840; -- tiger cub pos fix
-
+UPDATE `creature` SET `position_x` = 548.625, `position_y` = 3492.5, `position_z` = 95.0985, `orientation` = 1.64148 WHERE `guid` = 451840; -- tiger cub pos fix
+UPDATE `creature` SET `position_x` = 225.803, `position_y` = 4051.25, `position_z` = 60.2276, `orientation` = 5.43847 WHERE `guid` = 452226; -- Deepscale Ravager pos fix
 
 -- Spawns
 SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` = 452141; -- Deescale Ravager wrong spawns reuse
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+751 AND @CGUID+805;
 DELETE FROM `creature` WHERE `id` IN (60897,56416,60722);
 INSERT INTO `creature` VALUES
+('452141', '60780', '860', '0', '0', '0', '0', '544', '0', '975', '0', '0', '343.309', '3834.16', '85.7566', '2.0274', '0', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886'),
 (@CGUID+751, '60897', '860', '0', '0', '0', '0', '0', '641', '-1', '0', '0', '239.771', '3842.15', '73.6128', '0.752572', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886'),
 (@CGUID+752, '60897', '860', '0', '0', '0', '0', '0', '641', '-1', '0', '0', '230.028', '3849.29', '73.4149', '0.570887', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886'),
 (@CGUID+753, '60897', '860', '0', '0', '0', '0', '0', '641', '-1', '0', '0', '251.891', '3841.52', '73.8628', '1.51058', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886'),

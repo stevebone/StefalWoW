@@ -228,11 +228,10 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5832, 1527, 'The Wandering Isle - The Wood of Staves'),
 (5736, 1885, 'The Wandering Isle - The Wandering Isle'), -- Balloon Event
 
-(5736, 543, 'The Wandering Isle - Vordraka boss fight'),
-(5736, 544, 'The Wandering Isle - Before healing Shenzinsu'),
-(5736, 545, 'The Wandering Isle - After healing Shenzinsu'),
-
-(5736, 993, 'The Wandering Isle - After Vordraka boss fight'),
+(5833, 543, 'The Wandering Isle - Vordraka boss fight'),
+(5833, 544, 'The Wandering Isle - Before healing Shenzinsu'),
+(5833, 545, 'The Wandering Isle - After healing Shenzinsu'),
+(5833, 993, 'The Wandering Isle - After Vordraka boss fight'),
 
 -- Huo quests
 (5849, 631, 'Cosmetic - Huo, Pre-Ignition'),
@@ -293,13 +292,23 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (5886, 1836, 'Chamber of Whispers - before quest 29785 complete or rewarded');
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 536, 631, 632, 878, 879, 903, 964, 1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 
-1510, 1518, 1519, 1523, 1714,1835, 1836,1526,1527);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (524, 536, 543, 544, 545, 631, 632, 878, 879, 903, 964, 993,
+1027, 1028, 1029, 1030, 1323, 1324, 1325, 1326, 1327, 1429, 1430, 1510, 1518, 1519, 1523, 1714,1835, 1836,1526,1527,1885);
 INSERT INTO `conditions` VALUES
 -- Zhao-Ren
 (26, 524, 0, 0, 0, 9, 0, 29786, 0, 0, '', 0, 0, 0, '', 'Phase 524 active if 29786 taken'),
 (26, 536, 5829, 0, 0, 47, 0, 29786, 66, 0, '', 0, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29786 complete or rewarded'),
 (26, 536, 5829, 0, 0, 47, 0, 29787, 66, 0, '', 1, 0, 0, '', 'Ridge of Laughing Winds Phase 536 when Quest 29787 not complete or rewarded'),
+
+-- Wreck area
+(26, 543, 5833, 0, 0, 47, 0, 29665, 64, 0, '', 0, 0, 0, '', 'Wreck of the Skyseeker Phase 543 when Quest 29665 rewarded'),
+(26, 543, 5833, 0, 0, 47, 0, 29798, 66, 0, '', 1, 0, 0, '', 'Wreck of the Skyseeker Phase 543 when Quest 29798 IS NOT complete or rewarded'),
+(26, 544, 5833, 0, 0, 47, 0, 30767, 66, 0, '', 0, 0, 0, '', 'Wreck of the Skyseeker Phase 544 when Quest 30767 complete or rewarded'),
+(26, 544, 5833, 0, 0, 47, 0, 29799, 64, 0, '', 1, 0, 0, '', 'Wreck of the Skyseeker Phase 544 when Quest 29799 not rewarded'),
+(26, 545, 5833, 0, 0, 8, 0, 29799, 0, 0, '', 0, 0, 0, '', 'Wreck of the Skyseeker Phase 545 when Quest 29799 rewarded'),
+(26, 545, 5833, 0, 0, 8, 0, 29800, 0, 0, '', 1, 0, 0, '', 'Wreck of the Skyseeker Phase 545 when Quest 29800 NOT rewarded'),
+(26, 993, 5833, 0, 0, 47, 0, 29798, 66, 0, '', 0, 0, 0, '', 'Wreck of the Skyseeker - Add phase 993 if 29798 IS complete or rewarded'),
+(26, 993, 5833, 0, 0, 47, 0, 30767, 66, 0, '', 1, 0, 0, '', 'Wreck of the Skyseeker - Add phase 993 if 30767 IS NOT complete or rewarded'),
 
 -- Huo quests
 (26, 631, 5849, 0, 0, 47, 0, 29422, 9, 0, '', 0, 0, 0, '', 'Allow phase 631 if quest 29422 state not taken / in progress'),
@@ -384,27 +393,12 @@ INSERT INTO `conditions` VALUES
 
 -- Chamber of Whispers
 (26, 1836, 0, 0, 0, 28, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not complete'),
-(26, 1836, 0, 0, 0, 8, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not rewarded');
+(26, 1836, 0, 0, 0, 8, 0, 29785, 0, 0, '', 1, 0, 0, '', 'Chamber of Whispers Phase 1836 when Quest 29785 not rewarded'),
 
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (543,  993, 545, 544);
-INSERT INTO `conditions` VALUES
-('26', '543', '0', '0', '0', '47', '0', '29665', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29665 IS rewarded'),
-('26', '543', '0', '0', '0', '47', '0', '29798', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 543 if 29798 IS NOT complete or rewarded'),
-('26', '993', '0', '0', '0', '47', '0', '29798', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 29798 IS complete or rewarded'),
-('26', '993', '0', '0', '0', '47', '0', '30767', '66', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 993 if 30767 IS NOT complete or rewarded'),
-('26', '544', '0', '0', '0', '47', '0', '30767', '66', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 30767 IS in complete or rewarded'),
-('26', '544', '0', '0', '0', '47', '0', '29799', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 544 if 29799 IS NOT rewarded'),
-('26', '545', '0', '0', '0', '47', '0', '29799', '64', '0', '', '0', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29799 IS rewarded'),
-('26', '545', '0', '0', '0', '47', '0', '29800', '64', '0', '', '1', '0', '0', '', 'The Wandering Isle Forbidden Forest - Add phase 545 if 29800 IS NOT rewarded');
+-- The Wood of Staves
+(26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'The Wood of Staves Phase 1885 active if 29790 IS in complete or rewarded'),
+(26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'The Wood of Staves Phase 1885 active if 29791 NOT in progress, complete, rewarded');
 
-DELETE FROM `conditions`
-WHERE `SourceTypeOrReferenceId` = 26
-  AND `SourceGroup` IN (1885);
-
--- Phase 1885: during 29790
-INSERT INTO `conditions` VALUES
-(26, 1885, 0, 0, 0, 47, 0, 29790, 66, 0, '', 0, 0, 0, '', 'Phase 1885 active if 29790 IS in progress'),
-(26, 1885, 0, 0, 0, 47, 0, 29791, 74, 0, '', 1, 0, 0, '', 'Phase 1885 active if 29791 NOT in progress, complete, rewarded');
 
 -- Fix invalid scripts
 UPDATE `smart_scripts` SET `event_param3` = '120000', `event_param4` = '120000' WHERE (`entryorguid` = '-450361') and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
@@ -458,14 +452,13 @@ INSERT INTO spell_target_position VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106, 7265);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
 (7116, 'at_temple_stairs_from_farmstead'),
 (7258, 'at_cart_locations'),
 (7822, 'at_cart_locations'),
-(7265, 'at_cart_locations'),
 (7783, 'at_pools_of_reflection'),
 (8628, 'at_singing_pools_training_bell'),
 (7784, 'at_the_singing_pools_children_summon'),
