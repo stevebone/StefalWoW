@@ -16,6 +16,21 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29774', '0');
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES ('55477', '29775', '0');
 
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7822);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
+(7822, 'SmartTrigger');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (-451179) AND `source_type` IN (0, 9);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (7822) AND `source_type` IN (2);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, 
+`event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, 
+`action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, 
+`target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Trigger 7822 - Cart - The Dai-Lo Farmstead
+(7822, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 86, 88811, 2, 10, 451179, 57712, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Cross Cast Area Trigger Dummy Timer Aura'),
+-- Delivery Cart Tender
+(-451179, 0, 0, 0, 31, 0, 100, 0, 88811, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Delivery Cart Tender - On Spellhit Target - Talk');
+
 DELETE FROM `gossip_menu` WHERE `MenuID` IN (13140,14617);
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES 
 ('13140', '18503', '0'),

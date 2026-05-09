@@ -226,37 +226,6 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
-    // 7258 // 7822 // 7265
-    class at_cart_locations : public AreaTriggerScript
-    {
-    public:
-        at_cart_locations() : AreaTriggerScript("at_cart_locations") { }
-
-        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
-        {
-            // add cooldown of 2min to prevent spam talk
-            if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 120))
-                return false;
-
-            Creature* cartTender = player->FindNearestCreature(Npcs::npc_cart_tender, 30.0f);
-            if (!cartTender || !player->IsAlive())
-                return false;
-
-            switch (areaTrigger->ID)
-            {
-            case AreaTriggers::singing_pools_cart:
-                cartTender->AI()->Talk(Talks::Cart_Tender_Talk_0);
-                return true;
-            case AreaTriggers::forbidden_forest_cart:
-            case AreaTriggers::farmstead_cart:
-                cartTender->AI()->Talk(Talks::Cart_Tender_Talk_1);
-                return true;
-            default: return false;
-            }
-            return false;
-        }
-    };
-
     // 7116
     class at_temple_stairs_from_farmstead : public AreaTriggerScript
     {
@@ -482,7 +451,6 @@ void AddSC_custom_the_wandering_isle_at()
     new at_the_singing_pools_children_summon();
     new at_singing_pools_training_bell();
     new at_pools_of_reflection();
-    new at_cart_locations();
     new at_temple_stairs_from_farmstead();
     new at_temple_of_five_dawns_summon_zhaoren();
     new at_lorewalker_zan();

@@ -18,6 +18,21 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('54975', '29679', '0'),
 ('54975', '29680', '0');
 
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7258);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
+(7258, 'SmartTrigger');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (-451060) AND `source_type` IN (0, 9);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (7258) AND `source_type` IN (2);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, 
+`event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, 
+`action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, 
+`target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Trigger 7258 - Cart - The Singing Pools
+(7258, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 86, 88811, 2, 10, 451060, 57712, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'On Trigger - Cross Cast Area Trigger Dummy Timer Aura'),
+-- Delivery Cart Tender
+(-451060, 0, 0, 0, 31, 0, 100, 0, 88811, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Delivery Cart Tender - On Spellhit Target - Talk');
+
 -- Creature Templates
 DELETE FROM `creature_template_addon` WHERE `entry` IN (55021, 60249, 60250, 57620, 55022, 57636, 57638, 60488, 65468, 55019);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, 

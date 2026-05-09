@@ -452,20 +452,16 @@ INSERT INTO spell_target_position VALUES
 
 -- Area Trigger Scripts
 
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7258, 7822, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7116, 7783, 8628, 7784, 7750, 7835, 8276, 8287, 7041, 7037, 7106);
 INSERT INTO `areatrigger_scripts` VALUES
 (7750, 'at_talk_on_huo_follow_quest_29423'),
 (7835, 'at_enter_temple_quest_29423'),
 (7116, 'at_temple_stairs_from_farmstead'),
-(7258, 'at_cart_locations'),
-(7822, 'at_cart_locations'),
 (7783, 'at_pools_of_reflection'),
 (8628, 'at_singing_pools_training_bell'),
 (7784, 'at_the_singing_pools_children_summon'),
 (8276, 'at_temple_of_five_dawns_summon_zhaoren'),
 (8287, 'at_lorewalker_zan'),
--- (7037, 'at_chamber_of_whispers'),
--- (7041, 'at_chamber_of_whispers_outside'),
 (7106, 'at_balloon_intro_q29790');
 
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7037,7041,7042);
