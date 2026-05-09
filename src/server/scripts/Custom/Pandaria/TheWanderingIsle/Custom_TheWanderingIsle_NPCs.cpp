@@ -2756,10 +2756,6 @@ namespace Scripts::Custom::TheWanderingIsle
                 events.Reset();
                 _healersActive = 0;
                 events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 5s);
-                events.ScheduleEvent(Events::event_healing_bunny_ji_yell, 45s);
-                events.ScheduleEvent(Events::event_healing_bunny_korga_combat, 5s);
-                events.ScheduleEvent(Events::event_healing_bunny_jojo_combat, 5s);
-                events.ScheduleEvent(Events::event_healing_bunny_delora_combat, 5s);
                 events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s);
             }
 
@@ -2800,7 +2796,6 @@ namespace Scripts::Custom::TheWanderingIsle
                     updateTimer -= diff;
 
                 events.Update(diff);
-                scheduler.Update(diff);
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -2818,91 +2813,6 @@ namespace Scripts::Custom::TheWanderingIsle
                                     player->CastSpell(player, Spells::spell_shenzinsu_pain_shake, true);
 
                         events.ScheduleEvent(Events::event_shenzinsu_pain_shake, 45s, 60s);
-                        break;
-                    }
-
-                    case Events::event_healing_bunny_korga_combat:
-                    {
-                        Creature* korga = me->FindNearestCreature(Npcs::npc_korga_during_healing, 200.f, true);
-                        if (korga)
-                        {
-                            Creature* hordeCrewman = korga->FindNearestCreature(Npcs::npc_horde_crewman, 30.f, true);
-                            if (hordeCrewman)
-                            {
-                                hordeCrewman->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-                                hordeCrewman->GetMotionMaster()->MoveFollow(korga, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
-                            }
-
-                            scheduler.Schedule(5s, [korga](TaskContext const&)
-                                {
-                                    Unit* target = korga->SelectNearestTarget(20.f);
-                                    if (target)
-                                        korga->EngageWithTarget(target);
-                                });
-
-                            if (roll_chance(10))
-                            {
-                                korga->AI()->Talk(0);
-                            }
-                        }
-
-                        events.ScheduleEvent(Events::event_healing_bunny_korga_combat, 35s, 45s);
-                        break;
-                    }
-
-                    case Events::event_healing_bunny_delora_combat:
-                    {
-                        Creature* delora = me->FindNearestCreature(Npcs::npc_delora_during_healing, 200.f, true);
-                        if (delora)
-                        {
-                            Creature* deloraCrewman = delora->FindNearestCreature(Npcs::npc_delora_crewman, 30.f, true);
-                            if (deloraCrewman)
-                                deloraCrewman->GetMotionMaster()->MoveFollow(delora, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
-
-                            scheduler.Schedule(5s, [delora](TaskContext const&)
-                                {
-                                    Unit* target = delora->SelectNearestTarget(20.f);
-                                    if (target)
-                                        delora->EngageWithTarget(target);
-                                });
-
-                            if (roll_chance(10))
-                            {
-                                delora->AI()->Talk(0);
-                            }
-                        }
-
-                        events.ScheduleEvent(Events::event_healing_bunny_delora_combat, 35s, 45s);
-                        break;
-                    }
-
-                    case Events::event_healing_bunny_jojo_combat:
-                    {
-                        Creature* jojo = me->FindNearestCreature(Npcs::npc_jojo_during_healing, 200.f, true);
-                        if (jojo)
-                        {
-                            scheduler.Schedule(5s, [jojo](TaskContext const&)
-                                {
-                                    Unit* target = jojo->SelectNearestTarget(20.f);
-                                    if (target)
-                                        jojo->EngageWithTarget(target);
-                                });
-                        }
-
-                        events.ScheduleEvent(Events::event_healing_bunny_jojo_combat, 35s, 45s);
-                        break;
-                    }
-
-                    case Events::event_healing_bunny_ji_yell:
-                    {
-                        Creature* ji = me->FindNearestCreature(Npcs::npc_ji_during_healing, 100.f);
-                        if (ji)
-                        {
-                            ji->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
-                            ji->AI()->Talk(0);
-                        }
-
-                        events.ScheduleEvent(Events::event_healing_bunny_ji_yell, 45s, 60s);
                         break;
                     }
 
@@ -2941,7 +2851,7 @@ namespace Scripts::Custom::TheWanderingIsle
                             newAdd3->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::Ravager_Jump_3);
                         }
 
-                        events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 15s);
+                        events.ScheduleEvent(Events::event_healing_bunny_spawn_adds, 25s);
                         break;
                     }
                     }
@@ -2950,7 +2860,6 @@ namespace Scripts::Custom::TheWanderingIsle
 
         private:
             EventMap events;
-            TaskScheduler scheduler;
             uint8 _healersActive = 0;
             ObjectGuid add1;
             ObjectGuid add2;
@@ -2960,183 +2869,6 @@ namespace Scripts::Custom::TheWanderingIsle
         CreatureAI* GetAI(Creature* creature) const override
         {
             return new npc_healers_active_bunnyAI(creature);
-        }
-    };
-
-    enum HealerState
-    {
-        STATE_IDLE,
-        STATE_MOVING_TO_WOUND,
-        STATE_HEALING,
-        STATE_COMBAT
-    };
-
-    class npc_shenzin_su_healer : public CreatureScript
-    {
-    public:
-        npc_shenzin_su_healer() : CreatureScript("npc_shenzin_su_healer") { }
-
-        struct npc_shenzin_su_healerAI : public ScriptedAI
-        {
-            npc_shenzin_su_healerAI(Creature* creature) : ScriptedAI(creature) { }
-
-            HealerState state = STATE_IDLE;
-            uint32 checkTimer = 1000;
-            uint32 combatTimer = 2000;
-            uint32 healSpell = 0;
-            uint32 combatSpell1 = 0;
-            uint32 combatSpell2 = 0;
-
-            void Reset() override
-            {
-                state = STATE_IDLE;
-                InitSpells();
-                me->SetReactState(REACT_AGGRESSIVE);
-                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
-            }
-
-            void InitSpells()
-            {
-                switch (me->GetEntry())
-                {
-                case Npcs::npc_healer_alliance_priest:
-                case Npcs::npc_healer_alliance_priest2:
-                    healSpell = Spells::spell_priest_wound_heal;
-                    combatSpell1 = Spells::spell_alliance_priest_smite;
-                    combatSpell2 = Spells::spell_alliance_priest_greater_heal;
-                    break;
-
-                case Npcs::npc_healer_horde_druid:
-                case Npcs::npc_healer_horde_druid2:
-                    healSpell = Spells::spell_druid_wound_heal;
-                    combatSpell1 = Spells::spell_horde_druid_wrath;
-                    combatSpell2 = Spells::spell_horde_druid_healing_touch;
-                    break;
-                }
-            }
-
-            // -------------------------
-            // SPELL CLICK ? START EVENT
-            // -------------------------
-            void OnSpellClick(Unit* clicker, bool) override
-            {
-                Player* player = clicker->ToPlayer();
-                if (!player)
-                    return;
-
-                QuestStatus qStatus = player->GetQuestStatus(Quests::quest_the_healing_of_shenzinsu);
-
-                if (qStatus != QUEST_STATUS_INCOMPLETE)
-                    return;
-
-                if (state != STATE_IDLE)
-                    return;
-
-                Talk(0, player); // healer line 0
-                me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
-                MoveToRandomWoundSpot();
-            }
-
-            void MoveToRandomWoundSpot()
-            {
-                state = STATE_MOVING_TO_WOUND;
-                me->GetMotionMaster()->MovePoint(1, GetRandomWoundPosition());
-            }
-
-            Position GetRandomWoundPosition()
-            {
-                uint8 randomSlot = urand(0, 4);
-
-                return me->GetRandomPoint(Positions::ShenzinsuHealerSpots[randomSlot], 3.f);
-            }
-
-            void MovementInform(uint32 type, uint32 id) override
-            {
-                if (type == POINT_MOTION_TYPE && id == 1)
-                    StartHealing();
-            }
-
-            // -------------------------
-            // HEALING LOOP
-            // -------------------------
-            void StartHealing()
-            {
-                state = STATE_HEALING;
-                me->SetReactState(REACT_PASSIVE);
-                me->CastSpell(me, healSpell, false);
-            }
-
-            void StopHealing()
-            {
-                me->InterruptNonMeleeSpells(true);
-                me->RemoveAurasDueToSpell(healSpell);
-            }
-
-            // -------------------------
-            // COMBAT LOOP
-            // -------------------------
-            void JustEnteredCombat(Unit* /*attacker*/) override
-            {
-                if(state == STATE_HEALING)
-                    StopHealing();
-
-                state = STATE_COMBAT;
-                me->SetReactState(REACT_AGGRESSIVE);
-            }
-
-            void JustExitedCombat() override
-            {
-                // Resume healing
-                if(!me->HasNpcFlag(UNIT_NPC_FLAG_SPELLCLICK))
-                    MoveToRandomWoundSpot();
-            }
-
-            void UpdateAI(uint32 diff) override
-            {
-                // Healing state: ensure channel stays active
-                if (state == STATE_HEALING)
-                {
-                    if (checkTimer <= diff)
-                    {
-                        if (!me->HasAura(healSpell))
-                            me->CastSpell(me, healSpell, false);
-
-                        checkTimer = 1000;
-                    }
-                    else
-                        checkTimer -= diff;
-
-                    return;
-                }
-
-                // Combat state: cast combat spells
-                if (state == STATE_COMBAT)
-                {
-                    if (!UpdateVictim())
-                        return;
-
-                    if (combatTimer <= diff)
-                    {
-                        if(me->GetHealthPct() <= 35)
-                            me->CastSpell(me, combatSpell2, false);
-                        
-                        else
-                            me->CastSpell(me->GetVictim(), combatSpell1, false);
-
-                        combatTimer = 2000;
-                    }
-                    else
-                        combatTimer -= diff;
-
-                    me->DoMeleeAttackIfReady();
-                    return;
-                }
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const override
-        {
-            return new npc_shenzin_su_healerAI(creature);
         }
     };
 
@@ -3335,7 +3067,6 @@ void AddSC_custom_the_wandering_isle_npcs()
     new npc_vordraka();
     new npc_aysa_explosion();
     new npc_healers_active_bunny();
-    new npc_shenzin_su_healer();
     new npc_spirit_of_master_shang_xi_q31450();
     new npc_ji_morning_breeze_docks();
 }

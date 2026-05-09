@@ -641,11 +641,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         // Healing of Shenzinsu
         static constexpr int8 event_healing_bunny_spawn_adds = 1;
-        static constexpr int8 event_healing_bunny_ji_yell = 2;
-        static constexpr int8 event_healing_bunny_korga_combat = 3;
-        static constexpr int8 event_healing_bunny_delora_combat = 4;
-        static constexpr int8 event_healing_bunny_jojo_combat = 5;
-        static constexpr int8 event_shenzinsu_pain_shake = 6;
+        static constexpr int8 event_shenzinsu_pain_shake = 2;
     }
 
     namespace Npcs

@@ -125,7 +125,11 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_injured_sailor_55999', `Regen
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_vordraka_fight' WHERE `entry` = 56416;
 UPDATE `creature_template` SET `ScriptName` = 'npc_vordraka' WHERE `entry` = 56009;
 UPDATE `creature_template` SET `ScriptName` = 'npc_aysa_explosion' WHERE `entry` = 60729;
-UPDATE `creature_template` SET `ScriptName` = 'npc_shenzin_su_healer' WHERE `entry` IN (60877, 60878, 60770, 60834);
+UPDATE `creature_template` SET `npcflag` = 16777216, `VehicleId` = 2171 WHERE `entry` = 60848;
+
+DELETE FROM `vehicle_template` WHERE `creatureId` IN (60848);
+INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`) VALUES 
+(60848, 0);
 
 
 UPDATE `creature` SET `PhaseId` = 543 WHERE `id` IN (56009); -- Vordraka
@@ -150,6 +154,8 @@ DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452202, 452245, 452189, 
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452059,452115,451758,452011);
 -- Duplicate Darkened Horror/Terror
 DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (451966,451967,451959,451952);
+-- Duplicate Horde Druid
+DELETE FROM `creature` WHERE `map` = 860 AND `guid` IN (452222,452172,452216,452239,452249,452258,452269,452281,452217,452247,452228,452259);
 
 UPDATE `gameobject` SET `PhaseId` = 1835 WHERE `id` IN (209793);
 UPDATE `gameobject` SET `PhaseId` = 993 WHERE `guid` IN (300834);
@@ -174,20 +180,23 @@ INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `
 ('67185', '7', '90659', '0', '0', '0', '1', NULL, '0', '0', '63906'),
 ('67185', '8', '90660', '0', '0', '0', '1', NULL, '0', '0', '63906');
 
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (55999, 60770, 60877, 60878, 60834);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (55999, 60770, 60877, 60878, 60834,60848);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
 (55999, 129340, 1, 0),
 (55999, 56685, 1, 0),
 (60770, 56685, 1, 0),
 (60877, 56685, 1, 0),
 (60834, 56685, 1, 0),
-(60878, 56685, 1, 0);
+(60878, 56685, 1, 0),
+(60848, 117848, 1, 0);
 
+DELETE FROM `scene_template` WHERE `SceneId`=102;
+INSERT INTO `scene_template` (`SceneId`, `Flags`, `ScriptPackageID`, `ScriptName`) VALUES
+(102, 9, 26, '');
 
 -- Scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7714, 7087);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7087);
 INSERT INTO `areatrigger_scripts` VALUES
-(7714, 'at_forlorn_hut_7714'),
 (7087, 'at_wreck_of_the_skyseeker_injured_sailor');
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (117973, 108806, 129341, 117597, 118233, 117783, 117400);
@@ -247,16 +256,175 @@ action_param6, target_type, target_param1, target_param2, target_param3, target_
 ('60873', '0', '0', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Skyseeker Sailor - Update OOC - Start Attack'),
 ('60780', '0', '0', '0', '1', '0', '100', '0', '2000', '2000', '2000', '2000', '0', '', '49', '0', '0', '0', '0', '0', '0', '19', '0', '10', '0', '0', '0', '0', '0', 'Deepscale Ravager - Update OOC - Start Attack');
 
-UPDATE `creature_template` SET `ScriptName` = '', `AIName` = 'SmartAI' WHERE `Entry` IN (56007,56008,56360,56419,60851,60852,56417,56418);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56007,56008,56360,-452012,-452006,-452103,-452104,-452054,56419,60851,60852,56417,56418,5641800) AND `source_type` IN (0,9);
+UPDATE `creature_template` SET `ScriptName` = '', `AIName` = 'SmartAI' WHERE `Entry` IN (56007,56008,56360,56419,60851,60852,56417,56418,60848,60834,60878,60770,60877);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (56007,56008,56360,-452012,-452006,-452103,-452104,-452054,56419,60851,60852,56417,56418,5641800,60848,6083400,
+-452192,-452178,6087800,-452157,-452204,6077000,6087700,-452203,-452179,-452163,-452186,-452160,-452232,-452155,-452139) AND `source_type` IN (0,9);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+-- Horde Druid
+(-452203, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
+(-452203, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Event Phase 1'),
+(-452203, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Reset - Set Npcflag'),
+(-452203, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Aggro - Remove Npcflag'),
+(-452203, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6077000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Spellhit - Run Script'),
+(-452203, 0, 5, 0, 52, 2, 100, 0, 0, 60770, 0, 0, 0, 53, 1, 6077000, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text over - Start WP'),
+(-452203, 0, 6, 7, 58, 2, 100, 0, 8, 6077000, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452203, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452203, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 3'),
+(-452203, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452203, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452179, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
+(-452179, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Event Phase 1'),
+(-452179, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Reset - Set Npcflag'),
+(-452179, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Aggro - Remove Npcflag'),
+(-452179, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6077000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Spellhit - Run Script'),
+(-452179, 0, 5, 0, 52, 2, 100, 0, 0, 60770, 0, 0, 0, 53, 1, 6077001, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text over - Start WP'),
+(-452179, 0, 6, 7, 58, 2, 100, 0, 6, 6077001, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452179, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452179, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 3'),
+(-452179, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452179, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452163, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
+(-452163, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Event Phase 1'),
+(-452163, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Reset - Set Npcflag'),
+(-452163, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Aggro - Remove Npcflag'),
+(-452163, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6077000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Spellhit - Run Script'),
+(-452163, 0, 5, 0, 52, 2, 100, 0, 0, 60770, 0, 0, 0, 53, 1, 6077002, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text over - Start WP'),
+(-452163, 0, 6, 7, 58, 2, 100, 0, 5, 6077002, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452163, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452163, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 3'),
+(-452163, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452163, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452186, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
+(-452186, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Event Phase 1'),
+(-452186, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Reset - Set Npcflag'),
+(-452186, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Aggro - Remove Npcflag'),
+(-452186, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6077000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Spellhit - Run Script'),
+(-452186, 0, 5, 0, 52, 2, 100, 0, 0, 60770, 0, 0, 0, 53, 1, 6077003, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text over - Start WP'),
+(-452186, 0, 6, 7, 58, 2, 100, 0, 6, 6077003, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452186, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452186, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 3'),
+(-452186, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452186, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452160, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
+(-452160, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Event Phase 1'),
+(-452160, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Reset - Set Npcflag'),
+(-452160, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Aggro - Remove Npcflag'),
+(-452160, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6077000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Spellhit - Run Script'),
+(-452160, 0, 5, 0, 52, 2, 100, 0, 0, 60770, 0, 0, 0, 53, 1, 6077004, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text over - Start WP'),
+(-452160, 0, 6, 7, 58, 2, 100, 0, 5, 6077004, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452160, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452160, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 3'),
+(-452160, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452160, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452232, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Root'),
+(-452232, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Set Event Phase 1'),
+(-452232, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Reset - Set Npcflag'),
+(-452232, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Aggro - Remove Npcflag'),
+(-452232, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6077000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Spellhit - Run Script'),
+(-452232, 0, 5, 0, 52, 2, 100, 0, 0, 60770, 0, 0, 0, 53, 1, 6077005, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text over - Start WP'),
+(-452232, 0, 6, 7, 58, 2, 100, 0, 7, 6077005, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452232, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452232, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 3'),
+(-452232, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452232, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(6077000, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117950, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Cast Fighting Healer Rescued Aura'),
+(6077000, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 103, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Unset Root'),
+(6077000, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 17, 30, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Set Emote State'),
+(6077000, 9, 3, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 3000, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Talk'),
+(6077000, 9, 4, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Remove Npcflag'),
+(6077000, 9, 5, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Set Event Phase 2'),
+-- Alliance Priest
+(-452155, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Respawn - Set Root'),
+(-452155, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Respawn - Set Event Phase 1'),
+(-452155, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Reset - Set Npcflag'),
+(-452155, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Aggro - Remove Npcflag'),
+(-452155, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6087700, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Spellhit - Run Script'),
+(-452155, 0, 5, 0, 52, 2, 100, 0, 0, 60877, 0, 0, 0, 53, 1, 6087700, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Text over - Start WP'),
+(-452155, 0, 6, 7, 58, 2, 100, 0, 5, 6087700, 0, 0, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452155, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Data'),
+(-452155, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Event Phase 3'),
+(-452155, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On Death - Set Data'),
+(-452155, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452139, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 103, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Respawn - Set Root'),
+(-452139, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Respawn - Set Event Phase 1'),
+(-452139, 0, 2, 0, 25, 1, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Reset - Set Npcflag'),
+(-452139, 0, 3, 0, 4, 1, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Aggro - Remove Npcflag'),
+(-452139, 0, 4, 0, 8, 1, 100, 0, 56685, 0, 0, 0, 0, 80, 6087700, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Spellhit - Run Script'),
+(-452139, 0, 5, 0, 52, 2, 100, 0, 0, 60877, 0, 0, 0, 53, 1, 6087701, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Text over - Start WP'),
+(-452139, 0, 6, 7, 58, 2, 100, 0, 5, 6087701, 0, 0, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452139, 0, 7, 8, 61, 2, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Data'),
+(-452139, 0, 8, 0, 61, 2, 100, 0, 0, 0, 0, 0, 0, 22, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Event Phase 3'),
+(-452139, 0, 9, 0, 6, 4, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On Death - Set Data'),
+(-452139, 0, 10, 0, 1, 4, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - OOC - Cast Healing Shen-zin Su''s Wound'),
+(6087700, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117950, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Cast Fighting Healer Rescued Aura'),
+(6087700, 9, 1, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 103, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Unset Root'),
+(6087700, 9, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 3000, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Talk'),
+(6087700, 9, 3, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 83, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Remove Npcflag'),
+(6087700, 9, 4, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Set Event Phase 2'),
+-- Loose Wreckage
+(60848, 0, 0, 0, 54, 0, 100, 0, 0, 0, 0, 0, 0, 85, 46598, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Loose Wreckage - Just Spawned - Invoker Cast Ride Vehicle Hardcoded'),
+(60848, 0, 1, 0, 27, 0, 100, 0, 0, 0, 0, 0, 0, 81, 16777216, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Loose Wreckage - Passenger Boarded - Set Npcflag'),
+(60848, 0, 2, 3, 8, 0, 100, 0, 117848, 0, 0, 0, 0, 11, 50630, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Loose Wreckage - On Spellhit - Cast Eject All Passengers'),
+(60848, 0, 3, 4, 61, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'Loose Wreckage - On Spellhit - Set Data'),
+(60848, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117873, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Loose Wreckage - On Spellhit - Cast Flying Wreckage'),
+(60848, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 41, 3000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Loose Wreckage - On Spellhit - Despawn'),
+-- Horde Druid - under wreckage
+(-452192, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117857, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Cast Summon Possessed Loose Wreckage'),
+(-452192, 0, 1, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 80, 6083400, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Data Set - Run Script'),
+(-452192, 0, 2, 0, 52, 0, 100, 0, 0, 60834, 0, 0, 0, 53, 1, 6083400, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text Over - Start WP'),
+(-452192, 0, 3, 4, 58, 0, 100, 0, 3, 6083400, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452192, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452192, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 2'),
+(-452192, 0, 6, 0, 6, 2, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452192, 0, 7, 0, 3, 1, 100, 0, 0, 40, 20000, 30000, 0, 11, 94527, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Mana Pct - Cast Drink Mana Potion'),
+(-452192, 0, 8, 0, 2, 1, 100, 0, 0, 30, 20000, 30000, 0, 11, 117882, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Health Pct - Cast Healing Touch'),
+(-452192, 0, 9, 0, 0, 1, 100, 0, 0, 2000, 2500, 3000, 0, 11, 117767, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Update IC - Cast Wrath'),
+(-452192, 0, 10, 0, 1, 2, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452178, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117857, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Respawn - Cast Summon Possessed Loose Wreckage'),
+(-452178, 0, 1, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 80, 6083400, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Data Set - Run Script'),
+(-452178, 0, 2, 0, 52, 0, 100, 0, 0, 60834, 0, 0, 0, 53, 1, 6083401, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Text Over - Start WP'),
+(-452178, 0, 3, 4, 58, 0, 100, 0, 7, 6083401, 0, 0, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452178, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Data'),
+(-452178, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On WP Ended - Set Event Phase 2'),
+(-452178, 0, 6, 0, 6, 2, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Horde Druid - On Death - Set Data'),
+(-452178, 0, 7, 0, 3, 1, 100, 0, 0, 40, 20000, 30000, 0, 11, 94527, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Mana Pct - Cast Drink Mana Potion'),
+(-452178, 0, 8, 0, 2, 1, 100, 0, 0, 30, 20000, 30000, 0, 11, 117882, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - On Health Pct - Cast Healing Touch'),
+(-452178, 0, 9, 0, 0, 1, 100, 0, 0, 2000, 2500, 3000, 0, 11, 117767, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Update IC - Cast Wrath'),
+(-452178, 0, 10, 0, 1, 2, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117932, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - OOC - Cast Healing Shen-zin Su''s Wound'),
+(6083400, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Set Event Phase 1'),
+(6083400, 9, 1, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 1, 0, 5000, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Horde Druid - Talk'),
+-- Alliance Priest - under wreckage
+(-452157, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117857, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Respawn - Cast Summon Possessed Loose Wreckage'),
+(-452157, 0, 1, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 80, 6087800, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Data Set - Run Script'),
+(-452157, 0, 2, 0, 52, 0, 100, 0, 0, 60878, 0, 0, 0, 53, 1, 6087800, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Text Over - Start WP'),
+(-452157, 0, 3, 4, 58, 0, 100, 0, 5, 6087800, 0, 0, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452157, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Data'),
+(-452157, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Event Phase 2'),
+(-452157, 0, 6, 0, 6, 2, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On Death - Set Data'),
+(-452157, 0, 7, 0, 3, 1, 100, 0, 0, 40, 20000, 30000, 0, 11, 94527, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Mana Pct - Cast Drink Mana Potion'),
+(-452157, 0, 8, 0, 2, 1, 100, 0, 0, 30, 20000, 30000, 0, 11, 117933, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Health Pct - Cast Greater Heal'),
+(-452157, 0, 9, 0, 0, 1, 100, 0, 0, 2000, 2500, 3000, 0, 11, 117935, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Update IC - Cast Smite'),
+(-452157, 0, 10, 0, 1, 2, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - OOC - Cast Healing Shen-zin Su''s Wound'),
+(-452204, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 11, 117857, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Respawn - Cast Summon Possessed Loose Wreckage'),
+(-452204, 0, 1, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 80, 6087800, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Data Set - Run Script'),
+(-452204, 0, 2, 0, 52, 0, 100, 0, 0, 60878, 0, 0, 0, 53, 1, 6087801, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Text Over - Start WP'),
+(-452204, 0, 3, 4, 58, 0, 100, 0, 7, 6087801, 0, 0, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Cast Healing Shen-zin Su''s Wound'),
+(-452204, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Data'),
+(-452204, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 22, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On WP Ended - Set Event Phase 2'),
+(-452204, 0, 6, 0, 6, 2, 100, 0, 0, 0, 0, 0, 0, 45, 2, 1, 0, 0, 0, 0, 10, 452176, 40789, 0, 0, 0, 0, 0, 'Alliance Priest - On Death - Set Data'),
+(-452204, 0, 7, 0, 3, 1, 100, 0, 0, 40, 20000, 30000, 0, 11, 94527, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Mana Pct - Cast Drink Mana Potion'),
+(-452204, 0, 8, 0, 2, 1, 100, 0, 0, 30, 20000, 30000, 0, 11, 117933, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - On Health Pct - Cast Greater Heal'),
+(-452204, 0, 9, 0, 0, 1, 100, 0, 0, 2000, 2500, 3000, 0, 11, 117935, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Update IC - Cast Smite'),
+(-452204, 0, 10, 0, 1, 2, 100, 0, 1000, 1000, 5000, 5000, 0, 11, 117784, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - OOC - Cast Healing Shen-zin Su''s Wound'),
+(6087800, 9, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Set Event Phase 1'),
+(6087800, 9, 1, 0, 0, 0, 100, 0, 5000, 5000, 0, 0, 0, 1, 0, 5000, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Alliance Priest - Talk'),
 -- Aysa Cloudsinger
-(56417, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Respawn - Set React State'),
+(56417, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - On Respawn - Set React State'),
 (56417, 0, 1, 0, 1, 0, 100, 0, 2000, 2000, 2000, 2000, 0, 49, 0, 0, 0, 0, 0, 0, 19, 0, 5, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Update OOC - Start Attack'),
 (56417, 0, 2, 0, 0, 0, 100, 0, 2000, 4000, 2000, 4000, 0, 11, 117275, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Update IC - Cast Tempered Fury'),
 (56417, 0, 3, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 117401, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Aysa Cloudsinger - Update IC - Cast Spinning Crane Kick'), -- only when multiple targets are nearby
 -- Ji Firepaw
-(56418, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Respawn - Set React State'),
+(56418, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Respawn - Set React State'),
 (56418, 0, 1, 0, 60, 0, 100, 0, 10000, 20000, 110000, 120000, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update - Talk'),
 (56418, 0, 2, 0, 60, 0, 100, 0, 10000, 20000, 20000, 60000, 0, 11, 131505, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update - Cast Turtle Rumble'),
 (56418, 0, 3, 0, 20, 0, 100, 0, 29799, 0, 0, 0, 0, 85, 108926, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - On Quest Rewarded - Invoker Cast Blackout into Healed Phase'),
@@ -270,11 +438,11 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (56418, 0, 10, 0, 0, 0, 100, 0, 5000, 8000, 10000, 15000, 0, 11, 128632, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Spinning Crane Kick'), -- only when multiple targets are nearby
 (56418, 0, 11, 0, 0, 0, 100, 0, 10000, 10000, 10000, 10000, 0, 11, 128643, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Ji Firepaw - Update IC - Cast Healing Sphere'),
 -- Delora Lionheart
-(60851, 0, 0, 0, 10, 256, 100, 0, 1, 10, 240000, 300000, 1, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Delora Lionheart - OOC LOS - Talk'),
+(60851, 0, 0, 0, 10, 0, 100, 0, 1, 10, 240000, 300000, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Delora Lionheart - OOC LOS - Talk'),
 (60851, 0, 1, 0, 0, 0, 100, 0, 5000, 8000, 5000, 8000, 0, 11, 128440, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Delora Lionheart - Update IC - Cast Piercing Strikes'),
 (60851, 0, 2, 0, 0, 0, 100, 0, 2000, 5000, 2000, 5000, 0, 11, 128513, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Delora Lionheart - Update IC - Cast Strike'),
 -- Korga Strongmane
-(60852, 0, 0, 0, 10, 256, 100, 0, 1, 10, 240000, 300000, 1, 1, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 'Korga Strongmane - OOC LOS - Talk'),
+(60852, 0, 0, 0, 10, 0, 100, 0, 1, 10, 240000, 300000, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Korga Strongmane - OOC LOS - Talk'),
 (60852, 0, 1, 0, 0, 0, 100, 0, 2000, 4000, 5000, 8000, 0, 11, 128515, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Korga Strongmane - Update IC - Cast Lightning Bolt'),
 -- Jojo Ironbrow
 (56419, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Jojo Ironbrow - On Respawn - Set React State'),
@@ -286,29 +454,29 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 -- Darkened Horror
 (-452012, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 5600700, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - On Respawn - Start WP'),
 (-452012, 0, 1, 2, 58, 0, 100, 0, 9, 5600700, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Set Emote State'),
-(-452012, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 1, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Start Attack'),
+(-452012, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Start Attack'),
 (-452012, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128417, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - Update IC - Cast Shadow Geyser'),
 -- Darkened Horror
 (-452006, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 5600701, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - On Respawn - Start WP'),
 (-452006, 0, 1, 2, 58, 0, 100, 0, 8, 5600701, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Set Emote State'),
-(-452006, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 1, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Start Attack'),
+(-452006, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Start Attack'),
 (-452006, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128417, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - Update IC - Cast Shadow Geyser'),
 -- Darkened Horror
 (-452103, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 5600702, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - On Respawn - Start WP'),
 (-452103, 0, 1, 2, 58, 0, 100, 0, 12, 5600702, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Set Emote State'),
-(-452103, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 1, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Start Attack'),
+(-452103, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Horror - On WP Ended - Start Attack'),
 (-452103, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128417, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Horror - Update IC - Cast Shadow Geyser'),
 -- Darkened Terror
 (56008, 0, 0, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128424, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - Update IC - Cast Backhanded Swipes'),
 -- Darkened Terror
 (-452104, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 5600800, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - On Respawn - Start WP'),
 (-452104, 0, 1, 2, 58, 0, 100, 0, 12, 5600800, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - On WP Ended - Set Emote State'),
-(-452104, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 1, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Terror - On WP Ended - Start Attack'),
+(-452104, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Terror - On WP Ended - Start Attack'),
 (-452104, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128424, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - Update IC - Cast Backhanded Swipes'),
 -- Darkened Terror
 (-452054, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 53, 1, 5600801, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - On Respawn - Start WP'),
 (-452054, 0, 1, 2, 58, 0, 100, 0, 9, 5600801, 0, 0, 0, 17, 27, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - On WP Ended - Set Emote State'),
-(-452054, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 1, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Terror - On WP Ended - Start Attack'),
+(-452054, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 11, 60554, 5, 0, 0, 0, 0, 0, 'Darkened Terror - On WP Ended - Start Attack'),
 (-452054, 0, 3, 0, 0, 0, 100, 0, 3000, 5000, 8000, 12000, 0, 11, 128424, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Darkened Terror - Update IC - Cast Backhanded Swipes'),
 -- Deepscale Tormentor
 (56360, 0, 0, 0, 11, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 9, 56362, 0, 5, 0, 0, 0, 0, 'Deepscale Tormentor - Update OOC - Start Attack'),
@@ -326,8 +494,9 @@ INSERT INTO `creature_template_difficulty` VALUES
 (55946, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 28860, 1, 0, 0, 55946, 0, 1, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (56195, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 28424, 0, 0, 0, 0, 0, 0, 0, 0, 268435712, 0, 0, 0, 0, 0, 0, 0, 56647);
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (60888, 60889, 60685, 60554, 65742, 55946, 56195, 56174);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (60848,60888, 60889, 60685, 60554, 65742, 55946, 56195, 56174);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureId`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+(60848, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '117855'),
 (60554, 0, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
 (65742, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (60685, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
