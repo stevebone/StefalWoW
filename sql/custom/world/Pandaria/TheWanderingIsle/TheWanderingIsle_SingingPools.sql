@@ -219,6 +219,11 @@ INSERT INTO `creature_template_difficulty` VALUES
 (54976, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30536, 0, 0, 0, 54976, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (55292, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 30033, 0, 0, 0, 55292, 0, 1, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647);
 
+DELETE FROM `creature_formations` WHERE `leaderGUID` IN (450997);
+INSERT INTO `creature_formations` (`leaderGUID`, `memberGUID`, `dist`, `angle`, `groupAI`, `point_1`, `point_2`) VALUES
+(450997, 450997, 0, 0, 512, 0, 0), -- Vision of Young Liang
+(450997, 450996, 5, 0, 512, 0, 0); -- Vision of Shu
+
 DELETE FROM `npc_vendor` WHERE `entry` IN (57621);
 INSERT INTO `npc_vendor` (entry, slot, item, maxcount, incrtime, ExtendedCost, `type`, BonusListIDs, PlayerConditionID, IgnoreFiltering, VerifiedBuild) VALUES
 (57621, 1, 159, 0, 0, 0, 1, '', 0, 0, 64154),
