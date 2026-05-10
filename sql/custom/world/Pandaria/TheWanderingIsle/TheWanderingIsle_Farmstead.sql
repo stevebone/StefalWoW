@@ -147,7 +147,7 @@ UPDATE `gameobject` SET `PhaseId` = 1510 WHERE `id` = 214406; -- Mallet object i
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451192,451297,451326,451187,451182,451125,451358,@CGUID+806,@CGUID+809);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451158,451160,451170,451171,451173,451174,451178, 451166, @CGUID+750, 451128, 451126, 451154, 451281, 
-451307, 451223, 451233, 451309, 451133, 451149, 451164, 451206, 451216, 451229, 451297, 451326, 451187, 451182, 451125, @CGUID+806,@CGUID+809,451192,451358);
+451307, 451223, 451233, 451309, 451133, 451149, 451164, 451206, 451216, 451229, 451297, 451326, 451187, 451182, 451125, @CGUID+806,@CGUID+809,451192,451358,@CGUID+808);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 -- Dai-Lo Farmer
 (451128, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
@@ -164,6 +164,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier
 (451206, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
 (451216, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
 (451229, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
+(@CGUID+808, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
 (451297, 6547300, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (451192, 6547301, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
