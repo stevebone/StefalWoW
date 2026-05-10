@@ -423,16 +423,14 @@ UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '34103')
 UPDATE `smart_scripts` SET `action_param6` = '0' WHERE (`entryorguid` = '962300') and (`source_type` = '9') and (`id` = '4') and (`link` = '0');
 
 -- Spell Target Positions
-DELETE FROM `spell_target_position` WHERE `ID` IN (108827,104450,108847,108858,102499,116191,116191,108786,115426,115426,115334,115336,115338,
+DELETE FROM `spell_target_position` WHERE `ID` IN (104450,108847,108858,102499,116191,116191,115426,115426,115334,115336,115338,
 116190,118500,126040,104571,131974,117615,117597,118499,115435,115495,115494,115493);
 INSERT INTO spell_target_position VALUES
-('108827', '0', '0', '860', '601.62', '3132.89', '88.0976', NULL, '0'),
 ('104450', '0', '0', '860', '909.137', '3610.38', '252.092', NULL, '0'),
 ('108847', '0', '0', '860', '1075.6', '4177.97', '204.63', NULL, '0'),
 ('108858', '0', '0', '860', '1075.54', '4177.9', '205.583', NULL, '0'),
 ('102499', '0', '0', '860', '1351.33', '3939.03', '109.324', NULL, '0'),
 ('116191', '0', '0', '860', '949.37', '3510', '187.715', NULL, '0'),
-('108786', '0', '0', '860', '1038.55', '3286.39', '128.176', NULL, '0'),
 ('115426', '0', '0', '860', '695.26', '3600.99', '142.381', NULL, '20886'),
 ('115334', '0', '0', '860', '571.201', '3584.59', '94.8437', NULL, '0'),
 ('115336', '0', '0', '860', '573.84', '3577.94', '95.0413', NULL, '0'),
@@ -473,7 +471,7 @@ INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 -- Spell Scripts
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (128588,128589, 117033,117034,117035,117036, 103069,103077,103070, 116190, 116191, 128700, 109178, 
-102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699, 105333, 104012);
+102522, 109090, 109095, 109105, 109109, 108786, 108808, 108798, 104450, 118036, 108627, 108691, 104126, 125699, 105333, 104012,108831,108827);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES 
 ('128588', 'spell_aysa_congrats_trigger_aura'),
 ('128589', 'spell_aysa_congrats_timer'),
@@ -496,6 +494,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (108786, 'spell_summon_stack_of_reeds'),
 (108808, 'spell_summon_jojo_ironbrow'),
 (108798, 'spell_jojo_headbash_filter'),
+(108827, 'spell_summon_stack_of_planks'),
+(108831, 'spell_jojo_headbash_filter_wood'),
 (104450, 'spell_summon_ji_firepaw_temple'),
 (118036, 'spell_summon_spirit_of_earth'),
 (104126, 'spell_monkey_wisdom_text'),

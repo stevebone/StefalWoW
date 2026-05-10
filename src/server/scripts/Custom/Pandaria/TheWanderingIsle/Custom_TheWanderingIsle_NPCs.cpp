@@ -416,7 +416,7 @@ namespace Scripts::Custom::TheWanderingIsle
                         });
                     _scheduler.Schedule(4s, [this](TaskContext const&)
                         {
-                            me->GetMotionMaster()->MovePoint(1, PositionsQ29662::JojoMovePoint);
+                            me->GetMotionMaster()->MovePoint(1, Positions::JojoMovePointQ29662);
                         });
                     _scheduler.Schedule(6200ms, [this](TaskContext const&)
                         {

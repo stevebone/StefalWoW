@@ -55,7 +55,8 @@ INSERT INTO `conditions` VALUES
 (13, 1, 114453, 0, 0, 51, 0, 5, 59497, 0, '', 0, 0, 0, '', 'Summon Ox Cart, Farmlands -> Temple target Delivery Cart'),
 (13, 1, 114454, 0, 0, 51, 0, 5, 59499, 0, '', 0, 0, 0, '', 'Summon Ox, Farmlands -> Temple target Nourished Yak');
 
-DELETE FROM `creature_template_addon` WHERE `entry` IN (65473,55539, 55213, 55556, 64939,55478,57669,55506,56241,55483, 55504,55477,55558,60916);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (65473,55539, 55213, 55556, 64939,55478,57669,55506,56241,55483, 55504,55477,55558,60916,
+57667,66941);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
 (55556, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '49414'), -- Shu at farmstead
 (55558, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '105890'), -- shu spawn
@@ -70,10 +71,14 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 (55539, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80797 42386'),
 ('64939', '6493900', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '126986'), -- Lamplighter Sunny
 ('55478', '0', '0', '0', '1', '0', '1', '1', '0', '461', '0', '0', '0', '0', '60921'), -- Jojo at farmstead
-('57669', '5766900', '0', '0', '0', '0', '0', '1', '0', '0', '2935', '0', '0', '0', ''); -- Jojo spawned at farmstead
+('57669', '5766900', '0', '0', '0', '0', '0', '1', '0', '0', '2935', '0', '0', '0', ''), -- Jojo spawned at farmstead
+(57667, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Stack of planks
+(66941, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '80797 116695'); -- Water Spout Bunny at farmstead -- not sure of the invis aura ????? 
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55556, 64939,55478,57669,55506,56241,55483, 55504,55477, 55213, 55539, 55558,60916,65473);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (55556, 64939,55478,57669,55506,56241,55483, 55504,55477, 55213, 55539, 55558,60916,65473,
+57667);
 INSERT INTO `creature_template_difficulty` VALUES
+(57667, 0, 0, 0, 80, 4, 1, 1, 1, 1, 26314, 1610612752, 6, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, 0), -- Stack of planks
 (55556, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 29560, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647), -- Shu at farmstead
 (55558, 0, 0, 0, 80, 4, 1, 1, 1, 1, 29555, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
 (60916, 0, 0, 0, 80, 4, 1, 1, 1, 1, 20539, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647),
@@ -204,11 +209,11 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57669,5766900) AND `source_t
 INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`event_param_string`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`action_param4`,`action_param5`,`action_param6`,`target_type`,`target_param1`,`target_param2`,`target_param3`,`target_x`,`target_y`,`target_z`,`target_o`,`comment`) VALUES 
 ('57669', '0', '0', '0', '54', '0', '100', '0', '0', '0', '0', '0', '0', '', '80', '5766900', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Just Spawned - Run Script'),
 ('57669', '0', '1', '0', '58', '0', '100', '0', '50', '6', '0', '0', '0', '', '41', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - On WP Ended - Despawn'),
-('5766900', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Talk'),
+('5766900', '9', '0', '0', '0', '0', '100', '0', '1000', '1000', '1000', '1000', '0', '', '1', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Talk'),
 ('5766900', '9', '1', '0', '0', '0', '100', '0', '7000', '7000', '1000', '1000', '0', '', '128', '1', '1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Set AI AnimKit'),
 ('5766900', '9', '2', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '69', '1', '0', '0', '0', '0', '0', '8', '0', '0', '0', '599.215', '3132.27', '89.0657', '0', 'Jojo Ironbrow - Move to Pos'),
 ('5766900', '9', '3', '0', '0', '0', '100', '0', '5000', '5000', '1000', '1000', '0', '', '11', '129293', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Cast Jojo Headbash, Planks Cast'),
-('5766900', '9', '4', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '1', '1', '0', '0', '0', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Talk'),
+('5766900', '9', '4', '0', '0', '0', '100', '0', '2500', '2500', '1000', '1000', '0', '', '1', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Talk'),
 ('5766900', '9', '5', '0', '0', '0', '100', '0', '100', '100', '0', '0', '0', '', '28', '108831', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Remove Auras'),
 ('5766900', '9', '6', '0', '0', '0', '100', '0', '100', '100', '0', '0', '0', '', '28', '108831', '0', '0', '0', '0', '0', '18', '50', '0', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Remove Player Auras'),
 ('5766900', '9', '7', '0', '0', '0', '100', '0', '0', '0', '1000', '1000', '0', '', '45', '1', '1', '0', '0', '0', '0', '11', '0', '10', '0', '0', '0', '0', '0', 'Jojo Ironbrow - Set Data'),
@@ -273,11 +278,16 @@ INSERT INTO `conditions` (SourceTypeOrReferenceId, SourceGroup, SourceEntry, Sou
 (22, 2, -900750, 0, 0, 29, 1, 55539, 5, 0, 0, 'Second Ji: run SAI only Wugou is around');
 
 -- Gong spell conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=104012;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (104012,108830,108831);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 108830, 0, 0, 51, 0, 5, 55478, 0, '', 0, 0, 0, '', 'Summon Jojo Ironbrow target Jojo Ironbrow'),
+(13, 1, 108831, 0, 0, 51, 0, 5, 57667, 0, '', 0, 0, 0, '', 'Jojo Headbash, Stack of Planks Impact target Stack of Planks'),
 (13, 2, 104012, 0, 0, 51, 0, 5, 55539, 0, '', 0, 0, 0, '', 'Break Gong Credit target Wugou'),
 (13, 4, 104012, 0, 1, 51, 0, 5, 55477, 0, '', 0, 0, 0, '', 'Break Gong Credit target Ji Firepaw'),
 (13, 8, 104012, 0, 2, 51, 0, 8, 209626, 0, '', 0, 0, 0, '', 'Break Gong Credit target Break Gong');
+
+UPDATE `creature_template` SET `unit_flags2` = 67110912, `BaseAttackTime` = 2000 WHERE `entry` = 57667; -- Stack of Planks
+UPDATE quest_template` SET `RewardSpell` = 108827 WHERE `ID` = 29771; -- Stronger than Wood reward spell
 
 UPDATE `gameobject_template` SET `ScriptName` = 'go_209626_gong', `Data1` = '29772', `Data10` = '0' WHERE `Entry` = 209626; -- Data10 was 104012
 
@@ -294,10 +304,6 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 
 -- Water spout bunny
 UPDATE `creature_template` SET `AIName` = 'SmartAI', `unit_flags` = '33554944', `unit_flags2` = '2048' WHERE (`entry` = '66941');
-
-DELETE FROM `creature_template_addon` WHERE `entry` IN (66941);
-INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
-('66941', '0', '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '80797 116695'); -- Water Spout Bunny at farmstead -- not sure of the invis aura ????? 
 
 -- these flags disable gravity for the bunny so it can stay above water
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = '536870912' WHERE (`Entry` = '66941') and (`DifficultyID` = '0');

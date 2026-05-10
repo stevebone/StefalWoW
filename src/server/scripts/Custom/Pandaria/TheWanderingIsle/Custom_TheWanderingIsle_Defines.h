@@ -352,15 +352,15 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr int8 delora_after_wound_talk = 0;
     }
 
-    namespace PositionsQ29662
-    {
-        static constexpr Position JojoSpawnPoint = { 1039.49f, 3283.11f, 129.523f, 1.81514f };
-        static constexpr Position StackOfReedsSpawnPoint = { 1038.5538330078125f, 3286.385498046875f, 128.25982666015625f, 4.921828269958496093f };
-        static constexpr Position JojoMovePoint = { 1039.19f, 3284.26f, 129.3971f, 0.0f };
-    }
-
     namespace Positions
     {
+        // Jojo Quests
+        static constexpr Position JojoSpawnPointQ29662 = { 1039.49f, 3283.11f, 129.523f, 1.81514f };
+        static constexpr Position StackOfReedsSpawnPointQ29662 = { 1038.5538330078125f, 3286.385498046875f, 128.25982666015625f, 4.921828269958496093f };
+        static constexpr Position JojoMovePointQ29662 = { 1039.19f, 3284.26f, 129.3971f, 0.0f };
+
+        static constexpr Position StackOfPlanksSpawnPointQ29771 = { 601.62f, 3132.89f, 88.0976f, 3.316126f };
+
         // Spell Positions
         // Singing Pools
         static constexpr Position CaiSpawnPos = { 934.0156f, 3513.154f, 188.1347f, 0.0f };
@@ -637,6 +637,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_aysa_q29423 = 61126;
         static constexpr uint32 npc_ji_q29423 = 61127;
         static constexpr uint32 npc_stack_of_reeds = 57636;
+        static constexpr uint32 npc_stack_of_planks = 57667;
         // Singing Pools
         static constexpr uint32 Cai = 60250;
         static constexpr uint32 Deng = 60249;

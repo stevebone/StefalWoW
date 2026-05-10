@@ -211,7 +211,7 @@ namespace Scripts::Custom::TheWanderingIsle
 
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionsQ29662::StackOfReedsSpawnPoint);
+            dest.Relocate(Positions::StackOfReedsSpawnPointQ29662);
         }
 
         void Register() override
@@ -226,12 +226,48 @@ namespace Scripts::Custom::TheWanderingIsle
 
         void SetDest(SpellDestination& dest) const
         {
-            dest.Relocate(PositionsQ29662::JojoSpawnPoint);
+            dest.Relocate(Positions::JojoSpawnPointQ29662);
         }
 
         void Register() override
         {
             OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_jojo_ironbrow::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 108831 spell_jojo_headbash_stack_of_planks_impact
+    class spell_jojo_headbash_filter_wood : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            targets.remove_if([](WorldObject* target)
+                {
+                    if (target->GetEntry() != Npcs::npc_stack_of_planks)
+                    {
+                        return true;
+                    }
+                    return false;
+                });
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_jojo_headbash_filter_wood::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+        }
+    };
+
+    // 108827
+    class spell_summon_stack_of_planks : public SpellScript
+    {
+
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(Positions::StackOfPlanksSpawnPointQ29771);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_stack_of_planks::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
         }
     };
 
@@ -758,6 +794,8 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_jojo_headbash_filter);
     RegisterSpellScript(spell_summon_stack_of_reeds);
     RegisterSpellScript(spell_summon_jojo_ironbrow);
+    RegisterSpellScript(spell_jojo_headbash_filter_wood);
+    RegisterSpellScript(spell_summon_stack_of_planks);
     RegisterSpellScript(spell_rock_jump_a);
     RegisterSpellScript(spell_rock_jump_b);
     RegisterSpellScript(spell_rock_jump_c);
