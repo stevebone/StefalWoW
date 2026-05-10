@@ -90,8 +90,10 @@ INSERT INTO `creature_template_difficulty` VALUES
 (64939, 0, 0, 0, 80, 4, 1, 1, 1, 0.2, 58335, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 56647); -- Lamplighter Sunny
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451186, 451266, 451356, 451264, 451353, 451290, 451247, 451234, 451139, 451224, 451215, 
-451271, 451248, 451169, 451134, 451272, 451296, 451288, 451354, 451269, 451214, 451212, 451143, 451308, 451331, 451312);
+451271, 451248, 451169, 451134, 451272, 451296, 451288, 451354, 451269, 451214, 451212, 451143, 451308, 451331, 451312,451201);
 INSERT INTO `creature_addon` VALUES
+-- Field Yak
+(451201, 5725800, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 -- Plump Vermin
 (451186, 5548300, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (451266, 5548301, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -121,11 +123,11 @@ INSERT INTO `creature_addon` VALUES
 (451312, 5548325, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '');
 
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451186, 451266, 451356, 451264, 451353, 451290, 451247, 451234, 451139, 451224, 451215, 
-451271, 451248, 451169, 451134, 451272, 451296, 451288, 451354, 451269, 451214, 451212, 451143, 451308, 451331, 451312);
+451271, 451248, 451169, 451134, 451272, 451296, 451288, 451354, 451269, 451214, 451212, 451143, 451308, 451331, 451312,451201);
 
 -- Ji second spawn
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` IN (@CGUID+750, @CGUID+806, @CGUID+807, @CGUID+808);
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+750, @CGUID+806, @CGUID+807, @CGUID+808, @CGUID+809);
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, 
 `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
 (@CGUID+750, 55477, 860, 0, 0, 0, 169, 0, 0, 0, 629.354, 3139.15, 87.837, 0.558505, 120, 5, 0, 1, NULL, NULL, NULL, NULL, 0); -- Ji at farmstead as there are 2 spawns with different invis aura
@@ -133,7 +135,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 INSERT INTO `creature` VALUES
 (@CGUID+806, '65473', '860', '0', '0', '0', '0', 169, '0', '-1', '0', '1', '733.453', '2886.23', '76.3088', '4.55946', '120', '0', '0', '100', '2', NULL, NULL, NULL, NULL, '', NULL, '20886'),
 (@CGUID+807, '65473', '860', '0', '0', '0', '0', 169, '0', '-1', '0', '1', '736.863', '2888.66', '76.5924', '4.58896', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886'),
-(@CGUID+808, '65473', '860', '0', '0', '0', '0', 169, '0', '-1', '0', '1', '760.439', '3315.01', '88.1761', '1.71042', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886');
+(@CGUID+808, '65473', '860', '0', '0', '0', '0', 169, '0', '-1', '0', '1', '760.439', '3315.01', '88.1761', '1.71042', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '20886'),
+(@CGUID+809, '65473', '860', '0', '0', '0', '0', 169, '0', '-1', '0', '1', '667.608', '3279.48', '74.9715', '2.78173', '120', '0', '0', '100', '2', NULL, NULL, NULL, NULL, '', NULL, '20886');
 
 
 -- Lamp Lighter needs waypoint movement
@@ -141,10 +144,10 @@ UPDATE `creature` SET `zoneId` = '5736', `areaId` = '5881', `wander_distance` = 
 UPDATE `gameobject` SET `PhaseId` = 1510 WHERE `id` = 214406; -- Mallet object is in phase 1510
 
 -- Dai-Lo farmers with waypoints
-UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451297,451326,451187,451182,451125,@CGUID+806);
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (451192,451297,451326,451187,451182,451125,451358,@CGUID+806,@CGUID+809);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (451158,451160,451170,451171,451173,451174,451178, 451166, @CGUID+750, 451128, 451126, 451154, 451281, 
-451307, 451223, 451233, 451309, 451133, 451149, 451164, 451206, 451216, 451229, 451297, 451326, 451187, 451182, 451125, @CGUID+806);
+451307, 451223, 451233, 451309, 451133, 451149, 451164, 451206, 451216, 451229, 451297, 451326, 451187, 451182, 451125, @CGUID+806,@CGUID+809,451192,451358);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 -- Dai-Lo Farmer
 (451128, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
@@ -163,11 +166,14 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier
 (451229, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
 
 (451297, 6547300, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
-(451326, 6547301, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
+(451192, 6547301, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (451187, 5624100, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (451182, 5624101, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (451125, 5624102, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (@CGUID+806, 5624103, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451326, 6547302, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(451358, 6547303, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(@CGUID+809, 6547304, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 
 -- Ji at farmstead
 (451166, '0', '0', '0', '0', '1', '1', '0', '0', '0', '0', '0', '0', '49415'),
