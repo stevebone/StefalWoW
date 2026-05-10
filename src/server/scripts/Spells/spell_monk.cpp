@@ -129,7 +129,6 @@ class spell_monk_crackling_jade_lightning : public AuraScript
     {
         return ValidateSpellInfo(
         {
-            SPELL_MONK_STANCE_OF_THE_SPIRITED_CRANE,
             SPELL_MONK_CRACKLING_JADE_LIGHTNING_CHI_PROC
         });
     }
@@ -137,8 +136,7 @@ class spell_monk_crackling_jade_lightning : public AuraScript
     void OnTick(AuraEffect const* /*aurEff*/)
     {
         if (Unit* caster = GetCaster())
-            if (caster->HasAura(SPELL_MONK_STANCE_OF_THE_SPIRITED_CRANE))
-                caster->CastSpell(caster, SPELL_MONK_CRACKLING_JADE_LIGHTNING_CHI_PROC, TRIGGERED_FULL_MASK);
+            caster->CastSpell(caster, SPELL_MONK_CRACKLING_JADE_LIGHTNING_CHI_PROC, TRIGGERED_FULL_MASK);
     }
 
     void Register() override
@@ -504,13 +502,12 @@ class spell_monk_save_them_all : public AuraScript
 {
     bool Validate(SpellInfo const* spellInfo) override
     {
-        return ValidateSpellInfo({ SPELL_MONK_SAVE_THEM_ALL_HEAL_BONUS })
-            && ValidateSpellEffect({ { spellInfo->Id, EFFECT_2 } });
+        return ValidateSpellInfo({ SPELL_MONK_SAVE_THEM_ALL_HEAL_BONUS });
     }
 
     bool CheckProc(ProcEventInfo const& eventInfo) const
     {
-        return eventInfo.GetActionTarget()->HealthBelowPct(GetEffectInfo(EFFECT_2).CalcValue(eventInfo.GetActor()));
+        return eventInfo.GetActionTarget()->HealthBelowPct(50.f);
     }
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/) const
