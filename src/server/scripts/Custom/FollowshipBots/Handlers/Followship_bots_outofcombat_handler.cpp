@@ -1362,7 +1362,7 @@ namespace FSBOOC
         // Timer should ensure we are not spamming these
         if (bot->IsInCombat())
         {
-            FSBChat::StartBotRandomChat(bot, ChatChannelType::CombatDefense);
+            FSBChat::StartBotRandomChat(bot, FSBChat::ChatChannelType::CombatDefense);
 
             baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;
 
@@ -1384,10 +1384,10 @@ namespace FSBOOC
 
         // 5. Start Random Chat
         if (action == 2)
-            FSBChat::StartBotRandomChat(bot, ChatChannelType::General);
+            FSBChat::StartBotRandomChat(bot, FSBChat::ChatChannelType::General);
 
         if (action == 3 && FSBUtils::IsBotInTradeCity(bot))
-            FSBChat::StartBotRandomChat(bot, ChatChannelType::Trade);
+            FSBChat::StartBotRandomChat(bot, FSBChat::ChatChannelType::Trade);
 
         // 6. Set next allowed time (store future timestamp)
         baseAI->botChatChannelsTimer = now + FollowshipBotsConfig::configFSBChatChannelsInterval + offset;

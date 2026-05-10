@@ -24,57 +24,57 @@
 
 class Creature;
 
-enum class ConversationRole
-{
-    Starter,
-    Responder,
-    Follower,
-    Extra
-};
-
-struct ConversationLine
-{
-    ConversationRole role;
-    std::string text;
-};
-
-struct ConversationTemplate
-{
-    std::string topic;
-    std::vector<ConversationLine> lines;
-};
-
-struct ActiveConversation
-{
-    ConversationTemplate* tmpl = nullptr;
-    std::vector<Creature*> participants;
-    std::map<ConversationRole, size_t> roleMap;   // NEW
-    size_t currentLine = 0;
-    uint32 nextSpeakTime = 0;
-};
-
-enum class ChatChannelType
-{
-    General,
-    Trade,
-    LocalDefense,
-    CombatDefense, // is basically for LocalDefense but specific to bot combat
-    LFG,
-    Custom
-};
-
-struct RandomChatTemplate
-{
-    uint32 zoneId;                     // 0 = any zone
-    ChatChannelType channel;           // General, Trade, LFG, etc.
-    Team team;                       // Alliance, Horde, Neutral
-    uint32 spellId;
-    uint32 itemId;
-    std::string text;                  // The actual chat line
-};
-
 namespace FSBChat
 {
+    enum class ConversationRole
+    {
+        Starter,
+        Responder,
+        Follower,
+        Extra
+    };
+
+    struct ConversationLine
+    {
+        ConversationRole role;
+        std::string text;
+    };
+
+    struct ConversationTemplate
+    {
+        std::string topic;
+        std::vector<ConversationLine> lines;
+    };
+
+    struct ActiveConversation
+    {
+        ConversationTemplate* tmpl = nullptr;
+        std::vector<Creature*> participants;
+        std::map<ConversationRole, size_t> roleMap;   // NEW
+        size_t currentLine = 0;
+        uint32 nextSpeakTime = 0;
+    };
+
+    enum class ChatChannelType
+    {
+        General,
+        Trade,
+        LocalDefense,
+        CombatDefense, // is basically for LocalDefense but specific to bot combat
+        LFG,
+        Custom
+    };
+
+    struct RandomChatTemplate
+    {
+        uint32 zoneId;                     // 0 = any zone
+        ChatChannelType channel;           // General, Trade, LFG, etc.
+        Team team;                       // Alliance, Horde, Neutral
+        uint32 spellId;
+        uint32 itemId;
+        std::string text;                  // The actual chat line
+    };
+
     void BotSendGeneralChat(Creature* bot, std::string const& msg);
     void BotSendTradeChat(Creature* bot, std::string const& msg);
     void BotSendLocalDefenseChat(Creature* bot, std::string const& msg);
