@@ -5077,13 +5077,6 @@ void SpellMgr::LoadSpellInfoCorrections()
         102499, // Fire Crash
         118499, // Summon Aysa
         118500, // Summon Ji
-        116190, // Summon Child 1
-        116191, // Summon Child 2
-        108786, // Summon Stack of Reeds
-        108827, // Summon Stack of Planks
-        108847, // Summon Stack of Blocks
-        108858, // Summon Tiger Stand
-        104450, // Summon Ji Yuan
         104571, // Summon Aysa
         126040, // Summon Master Shang Xi
         115334, // Summon Aysa
@@ -5092,7 +5085,6 @@ void SpellMgr::LoadSpellInfoCorrections()
         115493, // Summon Aysa
         115494, // Summon Ji
         115495, // Summon Jojo
-        117597  // Summon Ji
         }, [](SpellInfo* spellInfo)
         {
             ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
