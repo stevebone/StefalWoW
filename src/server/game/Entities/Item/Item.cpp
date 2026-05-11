@@ -2284,7 +2284,7 @@ uint32 Item::GetItemLevel(Player const* owner) const
 }
 
 uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bonusData, uint32 level, uint32 fixedLevel,
-    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel)
+    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel, bool applySquish)
 {
     if (!itemTemplate)
         return MIN_ITEM_LEVEL;
@@ -2323,35 +2323,37 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.PvpItemLevelBonus;
     }
 
-    if (!bonusData.IgnoreSquish)
+    if (applySquish)
     {
-        if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
+        if (!bonusData.IgnoreSquish)
         {
-            int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
-
-            // apply all squishes between items_squish and server_squish
-            for (uint32 squishId = bonusData.ItemSquishEraID; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+            if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
             {
-                ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
-                if (!squish)
-                    continue;
+                int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
 
-                if (squish->Patch > currentBuild)
-                    break;
+                for (uint32 squishId = bonusData.ItemSquishEraID; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+                {
+                    ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
+                    if (!squish)
+                        continue;
 
-                if (squish->CurveID)
-                    itemLevel = uint32(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel));
+                    if (squish->Patch > currentBuild)
+                        break;
+
+                    if (squish->CurveID)
+                        itemLevel = uint32(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel));
+                }
             }
         }
-    }
 
-    if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
-    {
-        if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
-            itemLevel = minItemLevel;
+        if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
+        {
+            if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
+                itemLevel = minItemLevel;
 
-        if (maxItemLevel && itemLevel > maxItemLevel)
-            itemLevel = maxItemLevel;
+            if (maxItemLevel && itemLevel > maxItemLevel)
+                itemLevel = maxItemLevel;
+        }
     }
 
     return std::min(std::max(itemLevel, uint32(MIN_ITEM_LEVEL)), uint32(MAX_ITEM_LEVEL));

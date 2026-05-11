@@ -664,6 +664,7 @@ void AddSC_azuremyst_isle()
     new npc_engineer_spark_overgrind();
     new npc_injured_draenei();
     new npc_magwin();
+    new npc_geezle();
     RegisterSpellScript(spell_inoculate_nestlewood);
     RegisterSpellScript(spell_azuremyst_isle_cast_fishing_net);
 }
