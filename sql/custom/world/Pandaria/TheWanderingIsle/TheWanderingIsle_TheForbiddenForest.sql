@@ -217,9 +217,16 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry` IN (975,976);
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (108932,108933);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=18 AND `SourceGroup` IN (55999);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (13, 1, 108933, 0, 0, 51, 0, 5, 57741, 0, 0, 0, 0, '', 'Summon Ox Cart, Skyfire Crash > Temple target Delivery Cart'),
 (13, 1, 108932, 0, 0, 51, 0, 5, 57743, 0, 0, 0, 0, '', 'Summon Ox, Skyfire Crash > Temple target Nourished Yak'),
+
+-- Spell click conditions for Injured sailor - these appear to NOT work?
+(18, 55999, 129340, 0, 0, 47, 0, 29794, 8, 0, 0, 0, 0, '', 'Show spellclick only when player has taken quest'),
+(18, 55999, 56685, 0, 0, 47, 0, 29794, 8, 0, 0, 0, 0, '', 'Show spellclick only when player has taken quest'),
+(18, 55999, 56685, 0, 0, 1, 0, 105520, 0, 0, 1, 0, 0, '', 'Show spellclick only when player has not aura'),
+(18, 55999, 56685, 0, 0, 1, 0, 129340, 0, 0, 1, 0, 0, '', 'Show spellclick only when player has not aura'),
 
 -- TerrainSwaps
 (25, 0, 975, 0, 0, 47, 0, 30767, 66, 0, 0, 0, 0, '', 'TerrainSwap 975 only when player has quest 30767 complete or rewarded'),
