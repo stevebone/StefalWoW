@@ -5075,16 +5075,17 @@ void SpellMgr::LoadSpellInfoCorrections()
     ApplySpellFix({
         102445, // Summon Master Li Fei
         102499, // Fire Crash
-        118499, // Summon Aysa
-        118500, // Summon Ji
-        104571, // Summon Aysa
-        126040, // Summon Master Shang Xi
-        115334, // Summon Aysa
-        115336, // Summon Ji
-        115338, // Summon Jojo
-        115493, // Summon Aysa
-        115494, // Summon Ji
-        115495, // Summon Jojo
+        //118499, // Summon Aysa
+        //118500, // Summon Ji
+        //104571, // Summon Aysa
+        //126040, // Summon Master Shang Xi
+        //115334, // Summon Aysa
+        //115336, // Summon Ji
+        //115338, // Summon Jojo
+        //115493, // Summon Aysa
+        //115494, // Summon Ji
+        //115495, // Summon Jojo
+        108858, // Summon Tiger Stand
         }, [](SpellInfo* spellInfo)
         {
             ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)

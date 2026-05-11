@@ -249,6 +249,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 spell_generic_quest_invisibility_5 = 80797;
         static constexpr uint32 spell_generic_quest_invisibility_6 = 82358;
         static constexpr uint32 spell_generic_quest_invisibility_7 = 85096;
+        static constexpr uint32 spell_generic_quest_invisibility_8 = 78718;
         static constexpr uint32 spell_generic_quest_invisibility_11 = 83305;
         static constexpr uint32 spell_generic_quest_invisibility_29 = 89304;
 
@@ -360,6 +361,8 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr Position JojoMovePointQ29662 = { 1039.19f, 3284.26f, 129.3971f, 0.0f };
 
         static constexpr Position StackOfPlanksSpawnPointQ29771 = { 601.62f, 3132.89f, 88.0976f, 3.316126f };
+
+        static constexpr Position StackOfBlocksSpawnPointQ29783 = { 1075.6f, 4177.97f, 204.63f, 0.7853982f };
 
         // Spell Positions
         // Singing Pools
@@ -638,6 +641,7 @@ namespace Scripts::Custom::TheWanderingIsle
         static constexpr uint32 npc_ji_q29423 = 61127;
         static constexpr uint32 npc_stack_of_reeds = 57636;
         static constexpr uint32 npc_stack_of_planks = 57667;
+        static constexpr uint32 npc_stack_of_blocks = 57668;
         // Singing Pools
         static constexpr uint32 Cai = 60250;
         static constexpr uint32 Deng = 60249;

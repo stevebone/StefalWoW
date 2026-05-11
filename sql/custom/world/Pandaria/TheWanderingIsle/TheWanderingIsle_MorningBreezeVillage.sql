@@ -808,8 +808,8 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (22, 1, 7037, 2, 0, 9, 0, 29785, 0, 0, 0, 0, 0, '', 'SAI only when quest taken'),
 (22, 1, 7037, 2, 0, 1, 0, 104615, 1, 0, 1, 0, 0, '', 'SAI only when player has not aura');
 
--- this ensures Aysa at the docks is no longer visible after quest complete 29785
-UPDATE `spell_area` SET `quest_end` = 29785, `quest_end_status` = 2 WHERE `spell` IN (105308);
+-- this ensures Aysa at the docks is no longer visible after quest complete 29784
+UPDATE `spell_area` SET `quest_end` = 29784, `quest_end_status` = 66 WHERE `spell` IN (105308);
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `Entry` IN (57799);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57799);

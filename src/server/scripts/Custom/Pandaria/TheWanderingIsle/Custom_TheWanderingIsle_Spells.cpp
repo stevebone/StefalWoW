@@ -271,6 +271,42 @@ namespace Scripts::Custom::TheWanderingIsle
         }
     };
 
+    // 108847
+    class spell_summon_stack_of_blocks : public SpellScript
+    {
+
+        void SetDest(SpellDestination& dest) const
+        {
+            dest.Relocate(Positions::StackOfBlocksSpawnPointQ29783);
+        }
+
+        void Register() override
+        {
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_summon_stack_of_blocks::SetDest, EFFECT_0, TARGET_DEST_NEARBY_ENTRY);
+        }
+    };
+
+    // 108846 spell_jojo_headbash_stack_of_blocks_impact
+    class spell_jojo_headbash_filter_blocks : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            targets.remove_if([](WorldObject* target)
+                {
+                    if (target->GetEntry() != Npcs::npc_stack_of_blocks)
+                    {
+                        return true;
+                    }
+                    return false;
+                });
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_jojo_headbash_filter_blocks::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+        }
+    };
+
     // 103069
     class spell_rock_jump_a : public SpellScript
     {
@@ -796,6 +832,8 @@ void AddSC_custom_the_wandering_isle_spells()
     RegisterSpellScript(spell_summon_jojo_ironbrow);
     RegisterSpellScript(spell_jojo_headbash_filter_wood);
     RegisterSpellScript(spell_summon_stack_of_planks);
+    RegisterSpellScript(spell_jojo_headbash_filter_blocks);
+    RegisterSpellScript(spell_summon_stack_of_blocks);
     RegisterSpellScript(spell_rock_jump_a);
     RegisterSpellScript(spell_rock_jump_b);
     RegisterSpellScript(spell_rock_jump_c);
