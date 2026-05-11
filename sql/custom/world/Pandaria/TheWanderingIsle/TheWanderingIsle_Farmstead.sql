@@ -169,7 +169,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier
 (451206, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
 (451216, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
 (451229, 0, 0, 0, 0, 0, 1, 0, 425, 0, 0, 0, 0, ''),
-(@CGUID+808, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
+(@CGUID+808, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, ''),
 
 (451297, 6547300, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
 (451192, 6547301, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), 
@@ -287,7 +287,7 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (13, 8, 104012, 0, 2, 51, 0, 8, 209626, 0, '', 0, 0, 0, '', 'Break Gong Credit target Break Gong');
 
 UPDATE `creature_template` SET `unit_flags2` = 67110912, `BaseAttackTime` = 2000 WHERE `entry` = 57667; -- Stack of Planks
-UPDATE quest_template` SET `RewardSpell` = 108827 WHERE `ID` = 29771; -- Stronger than Wood reward spell
+UPDATE `quest_template` SET `RewardSpell` = 108827 WHERE `ID` = 29771; -- Stronger than Wood reward spell
 
 UPDATE `gameobject_template` SET `ScriptName` = 'go_209626_gong', `Data1` = '29772', `Data10` = '0' WHERE `Entry` = 209626; -- Data10 was 104012
 
