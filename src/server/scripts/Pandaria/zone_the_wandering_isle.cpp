@@ -60,6 +60,9 @@ namespace Spells
     static constexpr uint32 FlyingShadowKickJump = 108943;
     static constexpr uint32 FeetOfFury = 108958;
     static constexpr uint32 FeetOfFuryDamage = 108957;
+    static constexpr uint32 BlessingOfTheRedFlame = 102508;
+    static constexpr uint32 BlessingOfTheBlueFlame = 102509;
+    static constexpr uint32 BlessingOfThePurpleFlame = 102510;
 }
 
 namespace Quests
@@ -1367,7 +1370,12 @@ struct npc_li_fei : public ScriptedAI
     void OnQuestAccept(Player* player, Quest const* quest) override
     {
         if (quest->GetQuestId() == Quests::OnlyTheWorthyShallPass)
+        {
             player->CastSpell(player, Spells::FireCrashCover);
+            player->CastSpell(player, Spells::BlessingOfTheRedFlame);
+            player->CastSpell(player, Spells::BlessingOfTheBlueFlame);
+            player->CastSpell(player, Spells::BlessingOfThePurpleFlame);
+        }
     }
 };
 
@@ -1400,6 +1408,7 @@ struct npc_li_fei_combat : public ScriptedAI
 
     void Reset() override
     {
+        _events.Reset();
         _defeatTriggered = false;
     }
 
@@ -1411,30 +1420,43 @@ struct npc_li_fei_combat : public ScriptedAI
 
     void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
     {
-        if (!_defeatTriggered && me->HealthBelowPctDamaged(50, damage))
+        if (!_defeatTriggered && me->HealthBelowPctDamaged(20, damage))
         {
+            if (me->GetHealth() - damage <= 0)
+                damage = me->GetHealth() - 1; // Prevent death
+
             _defeatTriggered = true;
             me->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
 
-            Creature* liFei = me->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Creatures::MasterLiFei, .IgnorePhases = true });
-            if (!liFei)
-                return;
+            // Store attacker for later use
+            Unit* storedAttacker = attacker;
 
-            for (ObjectGuid const& guid : me->GetTapList())
-            {
-                Player* player = ObjectAccessor::GetPlayer(*me, guid);
-                if (!player)
-                    continue;
+            // Schedule ALL logic with delay
+            me->m_Events.AddEventAtOffset([this, storedAttacker]()
+                {
+                    Creature* liFei = me->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Creatures::MasterLiFei, .IgnorePhases = true });
+                    if (liFei)
+                    {
+                        for (ObjectGuid const& guid : me->GetTapList())
+                        {
+                            Player* player = ObjectAccessor::GetPlayer(*me, guid);
+                            if (player)
+                            {
+                                player->KilledMonsterCredit(Creatures::MasterLiFeiCombat);
+                                player->RemoveAurasDueToSpell(Spells::FireCrashCover);
+                                player->RemoveAurasDueToSpell(Spells::FireCrashInvis);
+                                player->RemoveAurasDueToSpell(Spells::FireCrashPhaseShift);
+                                player->RemoveAurasDueToSpell(Spells::BlessingOfTheRedFlame);
+                                player->RemoveAurasDueToSpell(Spells::BlessingOfTheBlueFlame);
+                                player->RemoveAurasDueToSpell(Spells::BlessingOfThePurpleFlame);
+                            }
+                        }
 
-                player->KilledMonsterCredit(Creatures::MasterLiFeiCombat, ObjectGuid::Empty);
-                player->RemoveAurasDueToSpell(Spells::FireCrashCover);
-                player->RemoveAurasDueToSpell(Spells::FireCrashInvis);
-                player->RemoveAurasDueToSpell(Spells::FireCrashPhaseShift);
-            }
+                        liFei->AI()->Talk(Talks::LiFeiDefeat, storedAttacker);
+                    }
 
-            liFei->AI()->Talk(Talks::LiFeiDefeat, attacker);
-
-            EnterEvadeMode();
+                    EnterEvadeMode();
+                }, 100ms);
         }
     }
 
@@ -1445,6 +1467,13 @@ struct npc_li_fei_combat : public ScriptedAI
             return;
 
         player->FailQuest(Quests::OnlyTheWorthyShallPass);
+        EnterEvadeMode();
+    }
+
+    void JustReachedHome() override
+    {
+        if (_defeatTriggered)
+            me->DespawnOrUnsummon(10s);
     }
 
     void UpdateAI(uint32 diff) override
