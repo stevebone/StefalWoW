@@ -2308,7 +2308,10 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.ItemLevelBonus;
     }
     else
-        itemLevel = bonusData.ItemLevelOffset + uint32(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, bonusData.ItemLevelOffsetItemLevel));
+    {
+        int32 effective = static_cast<int32>(bonusData.ItemLevelOffset) + static_cast<int32>(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, level));
+        itemLevel = uint32(std::max(effective, static_cast<int32>(MIN_ITEM_LEVEL)));
+    }
 
     for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
         itemLevel += bonusData.GemItemLevelBonus[i];
@@ -2382,7 +2385,7 @@ int32 Item::GetItemStatType(uint32 index) const
     return itemStatType;
 }
 
-float Item::GetItemStatValue(uint32 index, Player const* owner) const
+float Item::GetItemStatValue(uint32 index, uint32 itemLevel) const
 {
     ASSERT(index < MAX_ITEM_PROTO_STATS);
     switch (GetItemStatType(index))
@@ -2394,17 +2397,21 @@ float Item::GetItemStatValue(uint32 index, Player const* owner) const
             break;
     }
 
-    uint32 itemLevel = GetItemLevel(owner);
     if (float randomPropPoints = GetRandomPropertyPoints(itemLevel, GetQuality(), GetTemplate()->GetInventoryType(), GetTemplate()->GetSubClass()))
     {
         float statValue = float(_bonusData.StatPercentEditor[index] * randomPropPoints) * 0.0001f;
         if (GtItemSocketCostPerLevelEntry const* gtCost = sItemSocketCostPerLevelGameTable.GetRow(itemLevel))
             statValue -= float(int32(_bonusData.ItemStatSocketCostMultiplier[index] * gtCost->SocketCost));
 
-        return statValue;
+        return std::round(statValue);
     }
 
     return 0.0f;
+}
+
+float Item::GetItemStatValue(uint32 index, Player const* owner) const
+{
+    return GetItemStatValue(index, GetItemLevel(owner));
 }
 
 Optional<uint32> Item::GetDisenchantLootId() const
