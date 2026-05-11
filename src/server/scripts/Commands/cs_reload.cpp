@@ -77,7 +77,7 @@ EndScriptData */
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 
-#if TRINITY_COMPILER == TRINITY_COMPILER_GNU
+#if TRINITY_COMPILER_IS_GCC
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
