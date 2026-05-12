@@ -30,14 +30,20 @@ void AddSC_custom_warlock_demon_npcs();
 
 // ==================== Per Zone Scripts ====================== //
 void AddSC_custom_elwynn_forest_npcs();
+
+void AddSC_custom_stormwind_at();
+void AddSC_custom_stormwind_npcs();
+
 void AddSC_custom_the_wandering_isle_at();
 void AddSC_custom_the_wandering_isle_npcs();
 void AddSC_custom_the_wandering_isle_objects();
 void AddSC_custom_the_wandering_isle_player();
 void AddSC_custom_the_wandering_isle_quests();
 void AddSC_custom_the_wandering_isle_spells();
+
 void AddSC_custom_tirisfal_glades_npcs();
 void AddSC_custom_tirisfal_glades_player();
+
 void AddSC_custom_westfall_npcs();
 void AddSC_custom_westfall_player();
 
@@ -86,14 +92,20 @@ void AddCustomScripts()
     AddSC_custom_warlock_demon_npcs();
 
     AddSC_custom_elwynn_forest_npcs();
+
+    AddSC_custom_stormwind_at();
+    AddSC_custom_stormwind_npcs();
+
     AddSC_custom_the_wandering_isle_at();
     AddSC_custom_the_wandering_isle_npcs();
     AddSC_custom_the_wandering_isle_objects();
     AddSC_custom_the_wandering_isle_player();
     AddSC_custom_the_wandering_isle_quests();
     AddSC_custom_the_wandering_isle_spells();
+
     AddSC_custom_tirisfal_glades_npcs();
     AddSC_custom_tirisfal_glades_player();
+
     AddSC_custom_westfall_npcs();
     AddSC_custom_westfall_player();
 
