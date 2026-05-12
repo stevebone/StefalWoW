@@ -15,8 +15,9 @@
 -- AT: 7996 Stormwind City (Trade District Center)
 -- AT: 7990 Stormwind City (Trade District Moni npc)
 -- AT: 7991 Stormwind City (Trade District > Canal)
+-- AT: 7992 Stormwind City (Castle 1st stairs)
 -- AT: 7993 Stormwind City (Canals Bridge)
--- AT: 7993 Stormwind City (Canals Brunn Goldenmug)
+-- AT: 7994 Stormwind City (Canals Brunn Goldenmug)
 
 -- Quest: 30987 Joining the Alliance
 
@@ -30,6 +31,8 @@
 -- NPC: 61836 Moni Widdlesprock
 -- NPC: 61837 Leria Nightwind
 -- NPC: 61841 Brunn Goldenmug
+-- NPC: 61839 Lucas Severing
+-- NPC: 61840 Naanae
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (1135,1136,1137);
