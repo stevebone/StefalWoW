@@ -148,7 +148,7 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "sellAllJunkEnabled"sv, "1"sv },
         { "bypassItemLevelScalingCode"sv, "0"sv },
         { "shop2Enabled"sv, "0"sv },
-        { "bpayStoreEnable"sv, "0"sv },
+        { "bpayStoreEnable"sv, "1"sv },
         { "recentAlliesEnabledClient"sv, "0"sv },
         { "browserEnabled"sv, "0"sv },
         { "housingEnableCreateGuildNeighborhood"sv, "0"sv },

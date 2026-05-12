@@ -18,8 +18,6 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * MoveJump Broken
  */
 
 #include "Cell.h"
@@ -47,6 +45,7 @@
 #include "MoveSpline.h"
 #include "CharmInfo.h"
 #include "Object.h"
+#include "PhasingHandler.h"
 #include "zone_gilneas.h"
 
 enum eZoneGilneas
@@ -132,7 +131,7 @@ enum eZoneGilneas
     ZONE_DUSKHAVEN                               = 4786,
 
     SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1 = 49416,
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_01           = 59073,
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_02           = 59074, // phase 171
 
 };
 
@@ -141,6 +140,15 @@ class player_zone_gilneas_city1 : public PlayerScript
 {
 public:
     player_zone_gilneas_city1() : PlayerScript("player_zone_gilneas_city1") { }
+
+    void OnLogin(Player* player, bool /*firstLogin*/) override
+    {
+        if (player->GetQuestStatus(QUEST_THE_REBEL_LORDS_ARSENAL) == QUEST_STATUS_REWARDED)
+        {
+            if (!player->HasAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02))
+                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
+        }
+    }
 
     void OnQuestStatusChange(Player* player, uint32 questId) override
     {
@@ -152,7 +160,7 @@ public:
         {
             case QUEST_THE_REBEL_LORDS_ARSENAL:
                 player->RemoveAura(SPELL_WORGEN_BITE);
-                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_01, player);
+                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
                 break;
         }
     }
@@ -369,144 +377,6 @@ public:
     CreatureAI* GetAI(Creature* creature) const override
     {
         return new npc_gilneas_city_guard_gate_34864AI(creature);
-    }
-};
-
-// 34850
-class npc_prince_liam_greymane_34850 : public CreatureScript
-{
-public:
-    npc_prince_liam_greymane_34850() : CreatureScript("npc_prince_liam_greymane_34850") { }
-
-    enum eNpc
-    {
-        EVENT_START_TALK_TO_GUARD = 101,
-        EVENT_TALK_TO_GUARD_1,
-        EVENT_TALK_TO_GUARD_2,
-        EVENT_TALK_TO_GUARD_3,
-        EVENT_COUNT_COOLDOWN,
-        EVENT_MASTER_RESET,
-    };
-
-    bool OnQuestAccept(Player* /*player*/, Creature* creature, Quest const* quest) override
-    {
-        if (quest->GetQuestId() == QUEST_LOCKDOWN)
-            if (Creature* citizen = creature->FindNearestCreature(NPC_PANICKED_CITIZEN, 20.0f))
-                citizen->AI()->Talk(0);
-
-        return true;
-    }
-
-    struct npc_prince_liam_greymane_34850AI : public ScriptedAI
-    {
-        npc_prince_liam_greymane_34850AI(Creature *c) : ScriptedAI(c) { }
-
-        EventMap m_events;
-        std::map<ObjectGuid, int32> cdList;
-        ObjectGuid m_playerGUID;
-
-        void Reset() override
-        {
-            m_events.RescheduleEvent(EVENT_COUNT_COOLDOWN, 1s);
-        }
-
-        void MoveInLineOfSight(Unit* who) override
-        {
-            if (Player* player = who->ToPlayer())
-                if (player->GetDistance2d(me) < 15.0f)
-                    if (cdList.find(player->GetGUID()) == cdList.end())
-                        if (player->GetQuestStatus(QUEST_LOCKDOWN) != QUEST_STATUS_REWARDED)
-                            cdList.insert(std::make_pair(player->GetGUID(), 70));
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            m_events.Update(diff);
-
-            while (uint32 eventId = m_events.ExecuteEvent())
-            {
-                switch (eventId)
-                {
-                    case EVENT_COUNT_COOLDOWN:
-                    {
-                        for (std::map<ObjectGuid, int32>::iterator itr = cdList.begin(); itr != cdList.end(); ++itr)
-                            if ((itr)->second > 0)
-                                --(itr)->second;
-
-                        if (!m_playerGUID)
-                            for (std::map<ObjectGuid, int32>::iterator itr = cdList.begin(); itr != cdList.end(); ++itr)
-                                if ((itr)->second == 0)
-                                    if (Player* player = ObjectAccessor::GetPlayer(*me, (itr)->first))
-                                        if (player->GetDistance2d(me) < 15.0f)
-                                        {
-                                            --(itr)->second;
-                                            m_playerGUID = player->GetGUID();
-                                            m_events.ScheduleEvent(EVENT_MASTER_RESET, 120s);
-                                            m_events.ScheduleEvent(EVENT_START_TALK_TO_GUARD, 1s);
-                                        }
-
-                        for (std::map<ObjectGuid, int32>::iterator itr = cdList.begin(); itr != cdList.end();)
-                        {
-                            if (ToBeDeleted(itr))
-                                itr = cdList.erase(itr);
-                            else
-                                ++itr;
-                        }
-
-                        m_events.ScheduleEvent(EVENT_COUNT_COOLDOWN, 1s);
-                        break;
-                    }
-                    case EVENT_START_TALK_TO_GUARD:
-                    {
-                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            Talk(0, player);
-                        m_events.ScheduleEvent(EVENT_TALK_TO_GUARD_1, 15s);
-                        break;
-                    }
-                    case EVENT_TALK_TO_GUARD_1:
-                    {
-                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            Talk(1, player);
-                        m_events.ScheduleEvent(EVENT_TALK_TO_GUARD_2, 18s);
-                        break;
-                    }
-                    case EVENT_TALK_TO_GUARD_2:
-                    {
-                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            Talk(2, player);
-                        m_events.ScheduleEvent(EVENT_TALK_TO_GUARD_3, 25s);
-                        break;
-                    }
-                    case EVENT_TALK_TO_GUARD_3:
-                    {
-                        m_events.ScheduleEvent(EVENT_MASTER_RESET, 1s);
-                        break;
-                    }
-                    case EVENT_MASTER_RESET:
-                    {
-                        m_playerGUID = ObjectGuid();
-                        Reset();
-                        break;
-                    }
-                }
-            }
-
-            UpdateVictim();
-        }
-
-        bool ToBeDeleted(std::map<ObjectGuid, int32>::iterator itr)
-        {
-            if (itr->second < 0)
-                if (Player* player = ObjectAccessor::GetPlayer(*me, (itr)->first))
-                    if (player->GetQuestStatus(QUEST_LOCKDOWN) == QUEST_STATUS_REWARDED)
-                        return true;
-            return false;
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_prince_liam_greymane_34850AI(creature);
     }
 };
 
@@ -1718,13 +1588,16 @@ public:
     bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest) override
     {
         if (quest->GetQuestId() == 14154)
+        {
             if (CAST_AI(npc_lord_darius_crowley_35077AI, creature->AI())->m_playerGUID.IsEmpty())
             {
                 creature->AI()->SetGUID(player->GetGUID(), PLAYER_GUID);
                 creature->AI()->DoAction(ACTION_START_EVENT);
                 creature->CastSpell(player, SPELL_BY_THE_SKIN, true);
             }
-        return true;
+            return true;
+        }
+        return false;
     }
 
     struct npc_lord_darius_crowley_35077AI : public ScriptedAI
@@ -1733,21 +1606,32 @@ public:
 
         enum eQ14154
         {
-            Event120Secounds = 1,
-            EventCheckPlayerIsAlive,
+            EventCheckPlayer = 1,
             EventSummonNextWave,
             EventHelpPlayer,
+            EventTimeout,
         };
 
         ObjectGuid m_playerGUID;
         EventMap m_events;
         SummonList m_summons;
         uint32 m_phase;
+        uint32 m_waveCount;
 
         void Init()
         {
             m_events.Reset();
             m_summons.DespawnAll();
+            m_phase = 0;
+            m_waveCount = 0;
+            m_playerGUID = ObjectGuid();
+        }
+
+        void Reset() override
+        {
+            if (m_phase)
+                return;
+            Init();
         }
 
         void JustSummoned(Creature* summoned) override
@@ -1763,24 +1647,15 @@ public:
         void DoAction(int32 /*action*/) override
         {
             m_phase = 1;
-            m_events.ScheduleEvent(EventCheckPlayerIsAlive, 1000ms);
+            m_events.ScheduleEvent(EventCheckPlayer, 1000ms);
             m_events.ScheduleEvent(EventSummonNextWave, 1000ms);
-            m_events.ScheduleEvent(Event120Secounds, 120000ms);
             m_events.ScheduleEvent(EventHelpPlayer, 250ms);
+            m_events.ScheduleEvent(EventTimeout, 120000ms);
         }
 
         void SetGUID(ObjectGuid const& guid, int32 /*id*/) override
         {
             m_playerGUID = guid;
-        }
-
-        void DamageTaken(Unit* attacker, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
-        {
-            if (/*Creature* worgen = */attacker->ToCreature())
-                if (!me->IsInCombat())
-                {
-                    //me->Attack(worgen, true);
-                }
         }
 
         void UpdateAI(uint32 diff) override
@@ -1791,39 +1666,73 @@ public:
             {
                 switch (eventId)
                 {
-                    case Event120Secounds:
-                        Init();
-                        break;
-                    case EventCheckPlayerIsAlive: // check every sec player is alive
+                    case EventCheckPlayer:
+                    {
+                        bool shouldStop = false;
                         if (!m_playerGUID.IsEmpty() && m_phase)
+                        {
                             if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                                if (!player->IsInWorld() || !player->IsAlive())
-                                    Init();
+                            {
+                                if (!player->IsInWorld() || !player->HasAura(68218))
+                                    shouldStop = true;
+                            }
+                            else
+                                shouldStop = true;
+                        }
+                        else
+                            shouldStop = true;
 
-                        m_events.ScheduleEvent(EventCheckPlayerIsAlive, 1000ms);
+                        if (shouldStop)
+                        {
+                            m_phase = 0;
+                            Init();
+                            ScriptedAI::EnterEvadeMode(EvadeReason::NoHostiles);
+                        }
+                        else
+                            m_events.ScheduleEvent(EventCheckPlayer, 1000ms);
+                        break;
+                    }
+                    case EventTimeout:
+                        m_phase = 0;
+                        Init();
+                        ScriptedAI::EnterEvadeMode(EvadeReason::Other);
                         break;
                     case EventSummonNextWave:
                     {
+                        m_waveCount++;
                         for (int i = 0; i < 4; i++)
                         {
-                            uint32 w1 = RAND(NPC_WORGEN_RUNT_C1, NPC_WORGEN_RUNT_C2, NPC_WORGEN_ALPHA_C1, NPC_WORGEN_ALPHA_C2);
-                            uint32 w2 = RAND(NPC_WORGEN_RUNT_C1, NPC_WORGEN_RUNT_C2, NPC_WORGEN_ALPHA_C1, NPC_WORGEN_ALPHA_C2);
-                            Creature* creature1 = me->SummonCreature(w1, -1610.39f, 1507.16f, 74.99f, 3.94f, TEMPSUMMON_TIMED_DESPAWN, 120000ms);
-                            m_summons.Summon(creature1);
-                            creature1->AI()->SetGUID(m_playerGUID, PLAYER_GUID);
-                            creature1->AI()->DoAction(1);
-                            Creature* creature2 = me->SummonCreature(w2, -1718.01f, 1516.81f, 55.40f, 4.6f, TEMPSUMMON_TIMED_DESPAWN, 120000ms);
-                            m_summons.Summon(creature2);
-                            creature2->AI()->SetGUID(m_playerGUID, PLAYER_GUID);
-                            creature2->AI()->DoAction(2);
+                            uint32 w = RAND(NPC_WORGEN_RUNT_C1, NPC_WORGEN_RUNT_C2, NPC_WORGEN_ALPHA_C1, NPC_WORGEN_ALPHA_C2);
+                            if (m_waveCount % 2 == 1)
+                            {
+                                if (Creature* creature = me->SummonCreature(w, -1718.01f, 1516.81f, 55.40f, 4.6f, TEMPSUMMON_CORPSE_DESPAWN, 10s))
+                                {
+                                    creature->AI()->SetGUID(m_playerGUID, PLAYER_GUID);
+                                    creature->AI()->DoAction(2);
+                                    creature->SetBaseAttackTime(BASE_ATTACK, 3000);
+                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE) * 0.1f);
+                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE) * 0.1f);
+                                }
+                            }
+                            else
+                            {
+                                if (Creature* creature = me->SummonCreature(w, -1610.39f, 1507.16f, 74.99f, 3.94f, TEMPSUMMON_CORPSE_DESPAWN, 10s))
+                                {
+                                    creature->AI()->SetGUID(m_playerGUID, PLAYER_GUID);
+                                    creature->AI()->DoAction(1);
+                                    creature->SetBaseAttackTime(BASE_ATTACK, 3000);
+                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE) * 0.1f);
+                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE) * 0.1f);
+                                }
+                            }
                         }
 
-                        m_events.ScheduleEvent(EventSummonNextWave, 30000ms); // every 30 secounds one wave
+                        m_events.ScheduleEvent(EventSummonNextWave, 30000ms);
                         break;
                     }
                     case EventHelpPlayer:
                     {
-                        if (!me->IsInCombat())
+                        if (!me->IsInCombat() && !me->IsInEvadeMode())
                         {
                             Creature* creature = nullptr;
                             creature = me->FindNearestCreature(NPC_WORGEN_RUNT_C1, 5.0f);
@@ -1834,10 +1743,7 @@ public:
                             if (!creature)
                                 creature = me->FindNearestCreature(NPC_WORGEN_ALPHA_C2, 5.0f);
                             if (creature)
-                            {
-                                me->Attack(creature, true);
-                                // creature->Attack(me, true);
-                            }
+                                AttackStart(creature);
                         }
 
                         m_events.ScheduleEvent(EventHelpPlayer, 250ms);
@@ -1867,6 +1773,11 @@ public:
     struct npc_tobias_mistmantle_35124AI : public ScriptedAI
     {
         npc_tobias_mistmantle_35124AI(Creature* creature) : ScriptedAI(creature) { }
+
+        void DamageTaken(Unit* /*who*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            damage = 0;
+        }
 
         void UpdateAI(uint32 /*diff*/) override
         {
@@ -1902,6 +1813,8 @@ public:
         void Init()
         {
             m_phase = 0;
+            m_playerGUID = ObjectGuid();
+            m_events.Reset();
             JumpW1[0] = Position(-1643.91f, 1482.96f, 63.22f, 3.95f);
             JumpW1[1] = Position(-1638.83f, 1478.07f, 65.36f, 3.84f);
             JumpW1[2] = Position(-1631.49f, 1475.02f, 65.64f, 3.84f);
@@ -1916,13 +1829,18 @@ public:
             LandingW2[3] = Position(-1700.37f, 1473.32f, 52.29f, 5.41f);
         }
 
+        void Reset() override
+        {
+            Init();
+        }
+
         void DoAction(int32 action) override
         {
             if (!m_playerGUID.IsEmpty())
             {
                 m_events.ScheduleEvent(1, 500ms);
                 m_phase = action;
-                me->SetSpeed(MOVE_RUN, frand(1.2f, 1.6f));
+                me->SetSpeedRate(MOVE_RUN, frand(1.0f, 1.2f));
             }
         }
 
@@ -1933,8 +1851,10 @@ public:
 
         void MovementInform(uint32 type, uint32 pointId) override
         {
-            if (type == POINT_MOTION_TYPE || type == EFFECT_MOTION_TYPE)
+            if (type == POINT_MOTION_TYPE)
                 m_phase = pointId;
+            else if (type == EFFECT_MOTION_TYPE && pointId == EVENT_JUMP)
+                m_phase = 25;
         }
 
         void UpdateAI(uint32 diff) override
@@ -1952,6 +1872,8 @@ public:
                 }
             }
 
+            if (m_phase > 0 && m_phase < 7)
+                return;
             if (!UpdateVictim())
                 return;
         }
@@ -1965,13 +1887,13 @@ public:
                     m_phase = 3;
                     uint8 rol = urand(0, 2);
                     jump = JumpW1[rol];
-                    me->GetMotionMaster()->MovePoint(11 + rol, jump);
+                    me->GetMotionMaster()->MovePoint(11 + rol, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 }
                 case 2:
                     m_phase = 3;
                     jump = Position(-1717.73f, 1486.27f, 57.23f, 5.45f);
-                    me->GetMotionMaster()->MovePoint(21, jump);
+                    me->GetMotionMaster()->MovePoint(21, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 case 11:
                     m_phase = 4;
@@ -1994,19 +1916,26 @@ public:
                     break;
                 }
                 case 25:
-                    m_phase = 6;
                     if (!m_playerGUID.IsEmpty())
                         if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            if (player->IsInWorld() || player->IsAlive())
+                            if (player->IsInWorld())
                             {
+                                m_phase = 6;
                                 Position pos = player->GetNearPosition(frand(2.0f, 4.0f), frand(3.14f, 6.28f));
-                                me->GetMotionMaster()->MovePoint(26, pos);
+                                me->GetMotionMaster()->MovePoint(26, pos, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                             }
                     break;
                 case 26:
+                {
                     m_phase = 7;
                     me->SetHomePosition(me->GetPosition());
+                    m_events.CancelEvent(1);
+                    if (!m_playerGUID.IsEmpty())
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            if (player->IsInWorld())
+                                me->Attack(player, true);
                     break;
+                }
             }
         }
     };
@@ -2038,6 +1967,8 @@ public:
         void Init()
         {
             m_phase = 0;
+            m_playerGUID = ObjectGuid();
+            m_events.Reset();
             JumpW1[0] = Position(-1643.91f, 1482.96f, 63.22f, 3.95f);
             JumpW1[1] = Position(-1638.83f, 1478.07f, 65.36f, 3.84f);
             JumpW1[2] = Position(-1631.49f, 1475.02f, 65.64f, 3.84f);
@@ -2052,13 +1983,18 @@ public:
             LandingW2[3] = Position(-1700.37f, 1473.32f, 52.29f, 5.41f);
         }
 
+        void Reset() override
+        {
+            Init();
+        }
+
         void DoAction(int32 action) override
         {
             if (!m_playerGUID.IsEmpty())
             {
                 m_events.ScheduleEvent(1, 500ms);
                 m_phase = action;
-                me->SetSpeed(MOVE_RUN, frand(1.2f, 1.6f));
+                me->SetSpeedRate(MOVE_RUN, frand(1.0f, 1.2f));
             }
         }
 
@@ -2069,8 +2005,10 @@ public:
 
         void MovementInform(uint32 type, uint32 pointId) override
         {
-            if (type == POINT_MOTION_TYPE || type == EFFECT_MOTION_TYPE)
+            if (type == POINT_MOTION_TYPE)
                 m_phase = pointId;
+            else if (type == EFFECT_MOTION_TYPE && pointId == EVENT_JUMP)
+                m_phase = 25;
         }
 
         void UpdateAI(uint32 diff) override
@@ -2088,6 +2026,8 @@ public:
             }
             }
 
+            if (m_phase > 0 && m_phase < 7)
+                return;
             if (!UpdateVictim())
                 return;
         }
@@ -2101,13 +2041,13 @@ public:
                     m_phase = 3;
                     uint8 rol = urand(0, 2);
                     jump = JumpW1[rol];
-                    me->GetMotionMaster()->MovePoint(11 + rol, jump);
+                    me->GetMotionMaster()->MovePoint(11 + rol, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 }
                 case 2:
                     m_phase = 3;
                     jump = Position(-1717.73f, 1486.27f, 57.23f, 5.45f);
-                    me->GetMotionMaster()->MovePoint(21, jump);
+                    me->GetMotionMaster()->MovePoint(21, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 case 11:
                     m_phase = 4;
@@ -2130,19 +2070,26 @@ public:
                     break;
                 }
                 case 25:
-                    m_phase = 6;
                     if (!m_playerGUID.IsEmpty())
                         if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            if (player->IsInWorld() || player->IsAlive())
+                            if (player->IsInWorld())
                             {
+                                m_phase = 6;
                                 Position pos = player->GetNearPosition(frand(2.0f, 4.0f), frand(3.14f, 6.28f));
-                                me->GetMotionMaster()->MovePoint(26, pos);
+                                me->GetMotionMaster()->MovePoint(26, pos, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                             }
                     break;
                 case 26:
+                {
                     m_phase = 7;
                     me->SetHomePosition(me->GetPosition());
+                    m_events.CancelEvent(1);
+                    if (!m_playerGUID.IsEmpty())
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            if (player->IsInWorld())
+                                me->Attack(player, true);
                     break;
+                }
             }
         }
     };
@@ -2174,6 +2121,8 @@ public:
         void Init()
         {
             m_phase = 0;
+            m_playerGUID = ObjectGuid();
+            m_events.Reset();
             JumpW1[0] = Position(-1643.91f, 1482.96f, 63.22f, 3.95f);
             JumpW1[1] = Position(-1638.83f, 1478.07f, 65.36f, 3.84f);
             JumpW1[2] = Position(-1631.49f, 1475.02f, 65.64f, 3.84f);
@@ -2188,13 +2137,18 @@ public:
             LandingW2[3] = Position(-1700.37f, 1473.32f, 52.29f, 5.41f);
         }
 
+        void Reset() override
+        {
+            Init();
+        }
+
         void DoAction(int32 action) override
         {
             if (!m_playerGUID.IsEmpty())
             {
                 m_events.ScheduleEvent(1, 500ms);
                 m_phase = action;
-                me->SetSpeed(MOVE_RUN, frand(1.2f, 1.6f));
+                me->SetSpeedRate(MOVE_RUN, frand(1.0f, 1.2f));
             }
         }
 
@@ -2205,8 +2159,10 @@ public:
 
         void MovementInform(uint32 type, uint32 pointId) override
         {
-            if (type == POINT_MOTION_TYPE || type == EFFECT_MOTION_TYPE)
+            if (type == POINT_MOTION_TYPE)
                 m_phase = pointId;
+            else if (type == EFFECT_MOTION_TYPE && pointId == EVENT_JUMP)
+                m_phase = 25;
         }
 
         void UpdateAI(uint32 diff) override
@@ -2224,6 +2180,8 @@ public:
                 }
             }
 
+            if (m_phase > 0 && m_phase < 7)
+                return;
             if (!UpdateVictim())
                 return;
         }
@@ -2237,13 +2195,13 @@ public:
                     m_phase = 3;
                     uint8 rol = urand(0, 2);
                     jump = JumpW1[rol];
-                    me->GetMotionMaster()->MovePoint(11 + rol, jump);
+                    me->GetMotionMaster()->MovePoint(11 + rol, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 }
                 case 2:
                     m_phase = 3;
                     jump = Position(-1717.73f, 1486.27f, 57.23f, 5.45f);
-                    me->GetMotionMaster()->MovePoint(21, jump);
+                    me->GetMotionMaster()->MovePoint(21, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 case 11:
                     m_phase = 4;
@@ -2266,19 +2224,26 @@ public:
                     break;
                 }
                 case 25:
-                    m_phase = 6;
                     if (!m_playerGUID.IsEmpty())
                         if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            if (player->IsInWorld() || player->IsAlive())
+                            if (player->IsInWorld())
                             {
+                                m_phase = 6;
                                 Position pos = player->GetNearPosition(frand(2.0f, 4.0f), frand(3.14f, 6.28f));
-                                me->GetMotionMaster()->MovePoint(26, pos);
+                                me->GetMotionMaster()->MovePoint(26, pos, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                             }
                     break;
                 case 26:
+                {
                     m_phase = 7;
                     me->SetHomePosition(me->GetPosition());
+                    m_events.CancelEvent(1);
+                    if (!m_playerGUID.IsEmpty())
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            if (player->IsInWorld())
+                                me->Attack(player, true);
                     break;
+                }
             }
         }
     };
@@ -2310,6 +2275,8 @@ public:
         void Init()
         {
             m_phase = 0;
+            m_playerGUID = ObjectGuid();
+            m_events.Reset();
             JumpW1[0] = Position(-1643.91f, 1482.96f, 63.22f, 3.95f);
             JumpW1[1] = Position(-1638.83f, 1478.07f, 65.36f, 3.84f);
             JumpW1[2] = Position(-1631.49f, 1475.02f, 65.64f, 3.84f);
@@ -2324,13 +2291,18 @@ public:
             LandingW2[3] = Position(-1700.37f, 1473.32f, 52.29f, 5.41f);
         }
 
+        void Reset() override
+        {
+            Init();
+        }
+
         void DoAction(int32 action) override
         {
             if (!m_playerGUID.IsEmpty())
             {
                 m_events.ScheduleEvent(1, 500ms);
                 m_phase = action;
-                me->SetSpeed(MOVE_RUN, frand(1.2f, 1.6f));
+                me->SetSpeedRate(MOVE_RUN, frand(1.0f, 1.2f));
             }
         }
 
@@ -2341,8 +2313,10 @@ public:
 
         void MovementInform(uint32 type, uint32 pointId) override
         {
-            if (type == POINT_MOTION_TYPE || type == EFFECT_MOTION_TYPE)
+            if (type == POINT_MOTION_TYPE)
                 m_phase = pointId;
+            else if (type == EFFECT_MOTION_TYPE && pointId == EVENT_JUMP)
+                m_phase = 25;
         }
 
         void UpdateAI(uint32 diff) override
@@ -2360,6 +2334,8 @@ public:
             }
             }
 
+            if (m_phase > 0 && m_phase < 7)
+                return;
             if (!UpdateVictim())
                 return;
         }
@@ -2373,13 +2349,13 @@ public:
                     m_phase = 3;
                     uint8 rol = urand(0, 2);
                     jump = JumpW1[rol];
-                    me->GetMotionMaster()->MovePoint(11 + rol, jump);
+                    me->GetMotionMaster()->MovePoint(11 + rol, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 }
                 case 2:
                     m_phase = 3;
                     jump = Position(-1717.73f, 1486.27f, 57.23f, 5.45f);
-                    me->GetMotionMaster()->MovePoint(21, jump);
+                    me->GetMotionMaster()->MovePoint(21, jump, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                     break;
                 case 11:
                     m_phase = 4;
@@ -2402,19 +2378,26 @@ public:
                     break;
                 }
                 case 25:
-                    m_phase = 6;
                     if (!m_playerGUID.IsEmpty())
                         if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            if (player->IsInWorld() || player->IsAlive())
+                            if (player->IsInWorld())
                             {
+                                m_phase = 6;
                                 Position pos = player->GetNearPosition(frand(2.0f, 4.0f), frand(3.14f, 6.28f));
-                                me->GetMotionMaster()->MovePoint(26, pos);
+                                me->GetMotionMaster()->MovePoint(26, pos, true, {}, {}, MovementWalkRunSpeedSelectionMode::ForceRun);
                             }
                     break;
                 case 26:
+                {
                     m_phase = 7;
                     me->SetHomePosition(me->GetPosition());
+                    m_events.CancelEvent(1);
+                    if (!m_playerGUID.IsEmpty())
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            if (player->IsInWorld())
+                                me->Attack(player, true);
                     break;
+                }
             }
         }
     };
@@ -2425,125 +2408,6 @@ public:
     }
 };
 
-// 35112
-class npc_king_genn_greymane_35112 : public CreatureScript
-{
-public:
-    npc_king_genn_greymane_35112() : CreatureScript("npc_king_genn_greymane_35112") { }
-
-    struct npc_king_genn_greymane_35112AI : public ScriptedAI
-    {
-        npc_king_genn_greymane_35112AI(Creature* creature) : ScriptedAI(creature) {}
-
-        void Reset() override
-        {
-            me->SetUnitFlag(UNIT_FLAG_REMOVE_CLIENT_CONTROL);
-            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_king_genn_greymane_35112AI(creature);
-    }
-};
-
-// 35115
-class npc_lord_godfrey_35115 : public CreatureScript
-{
-public:
-    npc_lord_godfrey_35115() : CreatureScript("npc_lord_godfrey_35115") { }
-
-    struct npc_lord_godfrey_35115AI : public ScriptedAI
-    {
-        npc_lord_godfrey_35115AI(Creature* creature) : ScriptedAI(creature) {}
-
-        void Reset() override
-        {
-            me->SetUnitFlag(UNIT_FLAG_REMOVE_CLIENT_CONTROL);
-            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_lord_godfrey_35115AI(creature);
-    }
-};
-
-// 35118 showfight <> guard 34916
-class npc_bloodfang_worgen_35118 : public CreatureScript
-{
-public:
-    npc_bloodfang_worgen_35118() : CreatureScript("npc_bloodfang_worgen_35118") {}
-
-    enum eNpc
-    {
-        EVENT_ENRAGE_COOLDOWN = 101,
-    };
-
-    struct npc_bloodfang_worgen_35118AI : public ScriptedAI
-    {
-        npc_bloodfang_worgen_35118AI(Creature* creature) : ScriptedAI(creature) {}
-
-        EventMap m_events;
-        bool m_enrage;
-
-        void Reset() override
-        {
-            m_enrage = false;
-        }
-
-        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
-        {
-            if (!m_enrage && me->GetHealthPct() < 50.0f)
-            {
-                me->CastSpell(me, SPELL_ENRAGE_8599);
-                m_enrage = true;
-                m_events.ScheduleEvent(EVENT_ENRAGE_COOLDOWN, 20000ms);
-            }
-        }
-
-        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
-        {
-            if (Player* player = caster->ToPlayer())
-            {
-                if (player->GetQuestStatus(14276) == QUEST_STATUS_INCOMPLETE)
-                    if (spellInfo->Id == 56641)
-                        player->KilledMonsterCredit(44175);
-
-                if (player->GetQuestStatus(14281) == QUEST_STATUS_INCOMPLETE)
-                    if (spellInfo->Id == 5143)
-                        player->KilledMonsterCredit(44175);
-            }
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            m_events.Update(diff);
-
-            while (uint32 eventId = m_events.ExecuteEvent())
-            {
-                switch (eventId)
-                {
-                case EVENT_ENRAGE_COOLDOWN:
-                {
-                    m_enrage = false;
-                    break;
-                }
-                }
-            }
-
-            if (!UpdateVictim())
-                return;
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_bloodfang_worgen_35118AI(creature);
-    }
-};
 /* QUEST - 14154 - By The Skin of His Teeth - END */
 
 /* Phase 4 - QUEST - 14159 - The Rebel Lord's Arsenal - START */
@@ -2651,26 +2515,11 @@ public:
         std::list<Player*> GetListOfPlayersNearAndIndoorsAndWithQuest()
         {
             std::list<Player*> pList = me->SelectNearestPlayers(20.0f, true);
-            while (DeleteWrongPlayer(pList)) {}
-            return pList;
-        }
-
-        bool DeleteWrongPlayer(std::list<Player*> &pList)
-        {
-            if (pList.empty())
-                return false;
-
-            for (std::list<Player*>::const_iterator itr = pList.begin(); itr != pList.end(); itr++)
+            pList.remove_if([](Player* player)
             {
-                Player* player = (*itr);
-                player->GetMap()->GetAreaId(player->GetPhaseShift(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
-                if (player->GetQuestStatus(QUEST_THE_REBEL_LORDS_ARSENAL) != QUEST_STATUS_COMPLETE)
-                {
-                    pList.remove(player);
-                    return true;
-                }
-            }
-            return false;
+                return player->GetQuestStatus(QUEST_THE_REBEL_LORDS_ARSENAL) != QUEST_STATUS_COMPLETE;
+            });
+            return pList;
         }
 
         void TalkToGroup(std::list<Player*> pList, uint8 groupId)
@@ -2722,20 +2571,22 @@ public:
             m_badAveryGUID = ObjectGuid();
             m_lornaGUID = ObjectGuid();
             m_events.Reset();
-            Position pos = Position(-1792.37f, 1427.35f, 12.46f, 3.152f);
-            me->MovePosition(pos, 0, 0);
+            me->Relocate(-1792.37f, 1427.35f, 12.46f, 3.152f);
             me->SetDisplayId(11686);
         }
 
         void IsSummonedBy(WorldObject* summoner) override
         {
             if (Player* player = summoner->ToPlayer())
+            {
+                PhasingHandler::AddPhase(me, 171, true);
                 if (Creature* lorna = me->FindNearestCreature(NPC_LORNA_CROWLEY_35378, 60.0f, true))
                 {
                     m_playerGUID = player->GetGUID();
                     m_lornaGUID = lorna->GetGUID();
                     m_events.RescheduleEvent(EVENTS_START_ANIM, 25ms);
                 }
+            }
         }
 
         void UpdateAI(uint32 diff) override
@@ -2760,8 +2611,8 @@ public:
                         {
                             m_badAveryGUID = badAvery->GetGUID();
                             badAvery->SetOrientation(badAvery->GetAbsoluteAngle(player)); // Face Player
-                            badAvery->CastSpell(player, SPELL_COSMETIC_COMBAT_ATTACK, true); // Do Cosmetic Attack
-                            //player->GetMotionMaster()->MoveKnockTo(-1791.94f, 1427.29f, 12.4584f, 22.0f, 8.0f, m_playerGUID.GetCounter());
+                            badAvery->CastSpell(player, SPELL_COSMETIC_COMBAT_ATTACK, true);
+                            player->GetMotionMaster()->MoveKnockbackFrom(Position(-1791.94f, 1427.29f, 12.4584f), 22.0f, 8.0f, 0.0f);
                             badAvery->GetThreatManager().ResetAllThreat();
                         }
                     m_events.ScheduleEvent(EVENTS_ANIM_2, 1200ms);
@@ -2770,7 +2621,7 @@ public:
                 case EVENTS_ANIM_2:
                 {
                     if (Creature* badAvery = ObjectAccessor::GetCreature(*me, m_badAveryGUID))
-                        badAvery->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1791.94f, 1427.29f, 12.4584f), 0.0f, 18.0f, 7.0f);
+                        badAvery->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1791.94f, 1427.29f, 12.4584f), 18.0f, 7.0f);
                     m_events.ScheduleEvent(EVENTS_ANIM_3, 600ms);
                     break;
                 }
@@ -2788,8 +2639,7 @@ public:
                         if (Creature* badAvery = ObjectAccessor::GetCreature(*me, m_badAveryGUID))
                         {
                             badAvery->CastSpell(badAvery, SPELL_GET_SHOT, true);
-                            badAvery->setDeathState(JUST_DIED);
-                            player->SaveToDB();
+                            me->Kill(me, badAvery);
                             badAvery->DespawnOrUnsummon(1000ms);
                             me->DespawnOrUnsummon(1000ms);
                         }
@@ -2824,7 +2674,7 @@ public:
         if (quest->GetQuestId() == QUEST_FROM_THE_SHADOWS)
         {
             if (Pet* pet = player->GetPet())
-                player->RemovePet(pet, PET_SAVE_AS_CURRENT);
+                player->RemovePet(pet, PET_SAVE_NOT_IN_SLOT);
             player->CastSpell(player, SPELL_SUMMON_GILNEAN_MASTIFF);
             creature->AI()->Talk(0);
         }
@@ -2895,8 +2745,13 @@ public:
                 case EVENT_CHECK_QUEST_REWARDED:
                 {
                     if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        if (player->GetQuestStatus(QUEST_FROM_THE_SHADOWS) != QUEST_STATUS_INCOMPLETE)
+                    {
+                        QuestStatus status = player->GetQuestStatus(QUEST_FROM_THE_SHADOWS);
+                        if (status == QUEST_STATUS_REWARDED || status == QUEST_STATUS_NONE)
                             me->DespawnOrUnsummon(1s);
+                    }
+                    else
+                        me->DespawnOrUnsummon(1s);
 
                     m_events.ScheduleEvent(EVENT_CHECK_QUEST_REWARDED, 10s);
                     break;
@@ -4686,7 +4541,6 @@ void AddSC_zone_gilneas_city1()
 {
     new player_zone_gilneas_city1();
     new npc_gilneas_city_guard_gate_34864();
-    new npc_prince_liam_greymane_34850();
     new npc_rampaging_worgen_35660();
     new npc_gilneas_city_guard_34916();
     new npc_prince_liam_greymane_34913();
@@ -4699,17 +4553,20 @@ void AddSC_zone_gilneas_city1()
     new npc_gilnean_royal_guard_35232();
     new npc_wounded_guard_47091();
     new npc_mariam_spellwalker_35872();
-    new npc_king_genn_greymane_35112();
-    new npc_bloodfang_worgen_35118();
-    new npc_tobias_mistmantle_35124();
+
+    //QUEST: 14154
     new npc_lord_darius_crowley_35077();
+    new npc_tobias_mistmantle_35124();
     new npc_worgen_runt_35188();
     new npc_worgen_alpha_35170();
     new npc_worgen_runt_35456();
     new npc_worgen_alpha_35167();
-    new npc_lord_godfrey_35115();
+
+    //QUEST: 14159
     new npc_josiah_avery_35369();
     new npc_josiah_avery_trigger_50415();
+
+
     new npc_lorna_crowley_35378();
     new npc_bloodfang_lurker_35463();
     new npc_gilnean_mastiff_35631();
