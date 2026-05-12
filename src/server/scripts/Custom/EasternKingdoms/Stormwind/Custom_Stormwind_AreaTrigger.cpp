@@ -157,10 +157,10 @@ namespace Scripts::EasternKingdoms::StormwindCity
     };
 }
 
+using namespace Scripts::EasternKingdoms::StormwindCity;
+
 void AddSC_custom_stormwind_at()
 {
-    using namespace Scripts::EasternKingdoms::StormwindCity;
-
     new at_stormwind_trade_district_7990();
     new at_stormwind_keep_7992();
     new at_stormwind_canals_7993();
