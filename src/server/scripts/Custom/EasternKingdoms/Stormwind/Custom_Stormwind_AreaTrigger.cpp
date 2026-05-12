@@ -107,6 +107,28 @@ namespace Scripts::EasternKingdoms::Stormwind
             return true;
         }
     };
+
+    // 7994 - Stormwind Canals - Brunn Goldenmug
+    class at_stormwind_canals_7994 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_canals_7994() : AreaTriggerScript("at_stormwind_canals_7994") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                    return false;
+
+                Creature* brunn = player->FindNearestCreature(Creatures::BrunnGoldenmug, 50.f);
+                if (brunn && brunn->IsAlive())
+                    brunn->AI()->Talk(0);
+            }
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_stormwind_at()
@@ -115,5 +137,6 @@ void AddSC_custom_stormwind_at()
 
     new at_stormwind_trade_district_7990();
     new at_stormwind_canals_7993();
+    new at_stormwind_canals_7994();
     
 }

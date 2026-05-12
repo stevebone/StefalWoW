@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Define.h"
+
 namespace Scripts::EasternKingdoms::Stormwind
 {
     namespace Creatures
@@ -27,6 +29,7 @@ namespace Scripts::EasternKingdoms::Stormwind
         static constexpr uint32 AlynBlack = 61834;
         static constexpr uint32 MoniWiddlesprock = 61836;
         static constexpr uint32 LeriaNightwind = 61837;
+        static constexpr uint32 BrunnGoldenmug = 61841;
 
     }
 

@@ -16,6 +16,7 @@
 -- AT: 7990 Stormwind City (Trade District Moni npc)
 -- AT: 7991 Stormwind City (Trade District > Canal)
 -- AT: 7993 Stormwind City (Canals Bridge)
+-- AT: 7993 Stormwind City (Canals Brunn Goldenmug)
 
 -- Quest: 30987 Joining the Alliance
 
@@ -28,6 +29,7 @@
 -- NPC: 61834 Alyn Black
 -- NPC: 61836 Moni Widdlesprock
 -- NPC: 61837 Leria Nightwind
+-- NPC: 61841 Brunn Goldenmug
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (1135,1136,1137);
@@ -66,10 +68,11 @@ INSERT INTO `spell_target_position` VALUES
 ('116957', '1', 0, '0', '-9063.70', '434.73', '93.055', '0.6744', 0);
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7990,7993);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7990,7993,7994);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
 (7990, 'at_stormwind_trade_district_7990'),
-(7993, 'at_stormwind_canals_7993');
+(7993, 'at_stormwind_canals_7993'),
+(7994, 'at_stormwind_canals_7994');
 
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_moni_widdlesprock' WHERE `entry` = 61836;
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_alyn_black' WHERE `entry` = 61834;
@@ -192,7 +195,7 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (22, 1, 7996, 2, 0, 47, 0, 30987, 10, 0, '', 0, 'Action invoker has quest Joining the Alliance (30987) active');
 
 -- Creature Text
-DELETE FROM creature_text WHERE `CreatureID` IN (61792,61836,61834,61837);
+DELETE FROM creature_text WHERE `CreatureID` IN (61792,61836,61834,61837,61841);
 DELETE FROM creature_text WHERE `CreatureID` = 68 AND `GroupID` = 6;
 DELETE FROM creature_text WHERE `CreatureID` = 466 AND `GroupID` IN (1,2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
@@ -214,7 +217,9 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 -- Alyn Black
 (61834, 0, 0, 'Yes. Those are pandaren, Moni.', 12, 0, 100, 1, 5000, 0, 0, 61405, 0, 'Alyn Black at Stormwind Trade District'),
 -- Leria Nightwind
-(61837, 0, 0, 'Welcome to Stormwind!', 12, 0, 100, 3, 0, 0, 0, 61410, 0, 'Leria Nightwind at Stormwind Canals Bridge');
+(61837, 0, 0, 'Welcome to Stormwind!', 12, 0, 100, 3, 0, 0, 0, 61410, 0, 'Leria Nightwind at Stormwind Canals Bridge'),
+-- Brunn Goldenmug
+(61841, 0, 0, 'Pandaren? I mussht be seein'' thingssh...', 12, 0, 100, 0, 0, 0, 0, 61411, 0, 'Brunn Goldenmug at Stormwind Canals');
 
 
 -- Spawns
