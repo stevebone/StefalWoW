@@ -82,9 +82,11 @@ namespace Scripts::EasternKingdoms::Stormwind
     };
 }
 
+using namespace Scripts::EasternKingdoms::Stormwind;
+
 void AddSC_custom_stormwind_npcs()
 {
-    using namespace Scripts::EasternKingdoms::Stormwind;
+    
 
     RegisterCreatureAI(npc_moni_widdlesprock);
     RegisterCreatureAI(npc_alyn_black);
