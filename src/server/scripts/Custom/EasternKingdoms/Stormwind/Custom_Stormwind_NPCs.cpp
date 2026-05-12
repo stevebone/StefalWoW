@@ -80,12 +80,11 @@ namespace Scripts::EasternKingdoms::StormwindCity
     private:
         TaskScheduler _scheduler;
     };
-
-    void AddSC_custom_stormwind_npcs()
-    {
-        RegisterCreatureAI(npc_moni_widdlesprock);
-        RegisterCreatureAI(npc_alyn_black);
-    }
 }
 
-
+void AddSC_custom_stormwind_npcs()
+{
+    RegisterCreatureAI(Scripts::EasternKingdoms::StormwindCity::npc_moni_widdlesprock);
+    RegisterCreatureAI(Scripts::EasternKingdoms::StormwindCity::npc_alyn_black);
+   
+}
