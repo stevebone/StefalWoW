@@ -26,6 +26,7 @@ namespace Scripts::EasternKingdoms::Stormwind
     {
         static constexpr uint32 AlynBlack = 61834;
         static constexpr uint32 MoniWiddlesprock = 61836;
+        static constexpr uint32 LeriaNightwind = 61837;
 
     }
 

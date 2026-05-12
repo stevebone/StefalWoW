@@ -63,7 +63,7 @@ namespace Scripts::EasternKingdoms::Stormwind
                 _scheduler.Schedule(5s, [this](TaskContext /*context*/)
                     {
                         if (me && me->IsAlive())
-                            Talk(1);
+                            Talk(0);
                     });
             }
         }

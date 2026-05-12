@@ -26,6 +26,7 @@
 #include "MotionMaster.h"
 #include "Player.h"
 #include "Position.h"
+#include "ScriptMgr.h"
 #include "TaskScheduler.h"
 #include "Unit.h"
 
@@ -83,6 +84,28 @@ namespace Scripts::EasternKingdoms::Stormwind
             return true;
         }
     };
+
+    // 7993 - Stormwind Canals - Leria Nightwind
+    class at_stormwind_canals_7993 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_canals_7993() : AreaTriggerScript("at_stormwind_canals_7993") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                    return false;
+
+                Creature* leria = player->FindNearestCreature(Creatures::LeriaNightwind, 50.f);
+                if (leria && leria->IsAlive())
+                    leria->AI()->Talk(0);
+            }
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_stormwind_at()
@@ -90,5 +113,6 @@ void AddSC_custom_stormwind_at()
     using namespace Scripts::EasternKingdoms::Stormwind;
 
     new at_stormwind_trade_district_7990();
+    new at_stormwind_canals_7993();
     
 }
