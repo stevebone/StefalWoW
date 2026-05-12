@@ -59,50 +59,29 @@ namespace Scripts::EasternKingdoms::Stormwind
     static PlayerAreaTriggerCooldown g_areaTriggerCooldown;
 
     // 7990 - Stormwind Trade District - Moni and Alyn
-    struct at_stormwind_trade_district_7990 : AreaTriggerAI
+    class at_stormwind_trade_district_7990 : public AreaTriggerScript
     {
-        at_stormwind_trade_district_7990(AreaTrigger* areatrigger) : AreaTriggerAI(areatrigger) { }
+    public:
+        at_stormwind_trade_district_7990() : AreaTriggerScript("at_stormwind_trade_district_7990") {}
 
-        void OnUnitEnter(Unit* unit) override
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
         {
-            Player* player = unit->ToPlayer();
-            if (!player || player->GetQuestStatus(Quests::JoiningTheAlliance) != QUEST_STATUS_COMPLETE)
-                return;
-
-            // add cooldown of 45s to prevent spam talk
-            if (!g_areaTriggerCooldown.CanTrigger(player, AreaTriggers::StormwindTradeDistrictMoniAlyn, 45))
-                return;
-
-            Creature* moni = player->FindNearestCreature(Creatures::MoniWiddlesprock, 50.f);
-            if (moni && moni->IsAlive())
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
             {
-                moni->AI()->Talk(0);
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                    return false;
 
-                scheduler.Schedule(8s, [moni](TaskContext context)
-                    {
-                        if (moni && moni->IsAlive())
-                            moni->AI()->Talk(1);
-                    });
+                Creature* moni = player->FindNearestCreature(Creatures::MoniWiddlesprock, 50.f);
+                if (moni && moni->IsAlive())
+                    moni->AI()->SetData(1, 1);
+
+                Creature* alyn = player->FindNearestCreature(Creatures::AlynBlack, 50.f);
+                if (alyn && alyn->IsAlive())
+                    alyn->AI()->SetData(1, 1);
             }
-
-            Creature* alyn = player->FindNearestCreature(Creatures::AlynBlack, 50.f);
-            if (alyn && alyn->IsAlive())
-            {
-                scheduler.Schedule(3s, [alyn](TaskContext context)
-                    {
-                        if (alyn && alyn->IsAlive())
-                            alyn->AI()->Talk(1);
-                    });
-            }
+            return true;
         }
-
-        void OnUpdate(uint32 diff) override
-        {
-            scheduler.Update(diff);
-        }
-
-    private:
-        TaskScheduler scheduler;
     };
 }
 
@@ -110,6 +89,6 @@ void AddSC_custom_stormwind_at()
 {
     using namespace Scripts::EasternKingdoms::Stormwind;
 
-    RegisterAreaTriggerAI(at_stormwind_trade_district_7990);
+    new at_stormwind_trade_district_7990();
     
 }

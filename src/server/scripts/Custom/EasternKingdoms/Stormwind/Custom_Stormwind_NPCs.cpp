@@ -24,11 +24,65 @@
 
 namespace Scripts::EasternKingdoms::Stormwind
 {
+    // 61836 - Moni Widdlesprock
+    struct npc_moni_widdlesprock : public ScriptedAI
+    {
+        npc_moni_widdlesprock(Creature* creature) : ScriptedAI(creature) {}
 
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1 && value == 1)
+            {
+                Talk(0);
+                _scheduler.Schedule(10s, [this](TaskContext /*context*/)
+                    {
+                        if (me && me->IsAlive())
+                            Talk(1);
+                    });
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
+
+    // 61834 - Alyn Black
+    struct npc_alyn_black : public ScriptedAI
+    {
+        npc_alyn_black(Creature* creature) : ScriptedAI(creature) {}
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1 && value == 1)
+            {
+                _scheduler.Schedule(5s, [this](TaskContext /*context*/)
+                    {
+                        if (me && me->IsAlive())
+                            Talk(1);
+                    });
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
 }
 
 void AddSC_custom_stormwind_npcs()
 {
     using namespace Scripts::EasternKingdoms::Stormwind;
+
+    RegisterCreatureAI(npc_moni_widdlesprock);
+    RegisterCreatureAI(npc_alyn_black);
     
 }
