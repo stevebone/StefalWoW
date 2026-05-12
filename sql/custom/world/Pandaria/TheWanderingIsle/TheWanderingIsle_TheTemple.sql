@@ -153,10 +153,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (130422, 'spell_balloon_exit_timer'),
 (132211, 'spell_balloon_exit_timer');
 
-DELETE FROM `spell_target_position` WHERE `ID` IN (116957, 116962);
+DELETE FROM `spell_target_position` WHERE `ID` IN (116962);
 INSERT INTO `spell_target_position` VALUES
-('116957', '0', 0, '0', '-9128.09', '388.54', '91.163', '0', 0),
-('116957', '1', 0, '0', '-9128.09', '388.54', '91.163', '0', 0),
 ('116962', '0', 0, '1', '1361.95', '-4375.25', '26.0891', 0, '20886'),
 ('116962', '1', 0, '1', '1361.95', '-4375.25', '26.0891', 0, '20886');
 
