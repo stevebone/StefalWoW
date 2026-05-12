@@ -739,18 +739,12 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
     trans->Append(stmt);
 
     // Insert new groups and members
-    for (uint8 groupIdx = 0; groupIdx < setupWarbandGroups.Groups.size(); ++groupIdx)
+    for (auto const& group : setupWarbandGroups.Groups)
     {
-        auto const& group = setupWarbandGroups.Groups[groupIdx];
-
-        // Use a predictable groupId: battlenetAccountId * 100 + groupIdx
-        // This avoids needing LAST_INSERT_ID across multiple inserts in same transaction
-        uint64 groupId = static_cast<uint64>(battlenetAccountId) * 100 + groupIdx;
-
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
-        stmt->setUInt64(0, groupId);
+        stmt->setUInt64(0, group.GroupID);
         stmt->setUInt32(1, battlenetAccountId);
-        stmt->setUInt8(2, groupIdx);
+        stmt->setUInt8(2, group.OrderIndex);
         stmt->setUInt32(3, group.WarbandSceneID);
         stmt->setUInt32(4, group.Flags);
         stmt->setInt32(5, group.ContentSetID);
@@ -762,7 +756,7 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
             auto const& member = group.Members[memberIdx];
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
-            stmt->setUInt64(0, groupId);
+            stmt->setUInt64(0, group.GroupID);
             stmt->setUInt8(1, memberIdx);
             stmt->setUInt64(2, member.Guid.GetCounter());
             stmt->setUInt32(3, member.WarbandScenePlacementID);

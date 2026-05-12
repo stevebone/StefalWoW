@@ -895,9 +895,13 @@ WorldPacket const* PlayerSavePersonalEmblem::Write()
 
 void SetupWarbandGroups::Read()
 {
-    _worldPacket >> Size<uint32>(Groups);
+    _worldPacket >> BitsSize<5>(Groups);
+    _worldPacket.ResetBitPos();
+
     for (WarbandGroupSetup& group : Groups)
     {
+        _worldPacket >> group.GroupID;
+        _worldPacket >> group.OrderIndex;
         _worldPacket >> group.WarbandSceneID;
         _worldPacket >> group.Flags;
         _worldPacket >> group.ContentSetID;
