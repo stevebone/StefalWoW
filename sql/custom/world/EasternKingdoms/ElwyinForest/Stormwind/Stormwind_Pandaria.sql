@@ -66,7 +66,7 @@ INSERT INTO `spell_target_position` VALUES
 ('116957', '1', 0, '0', '-9063.70', '434.73', '93.055', '0.6744', 0);
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7990,7990);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7990,7993);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
 (7990, 'at_stormwind_trade_district_7990'),
 (7993, 'at_stormwind_canals_7993');
