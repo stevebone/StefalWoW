@@ -11,6 +11,8 @@ void AddSC_duskwood_custom();
 
 void AddSC_zone_tirisfal_glades();
 
+void AddSC_azuremyst_isle_custom();
+
 void AddSC_custom_the_wandering_isle_at();
 void AddSC_custom_the_wandering_isle_npcs();
 void AddSC_custom_the_wandering_isle_objects();
@@ -31,6 +33,8 @@ void AddCoreExtendedScripts()
     AddSC_duskwood_custom();
 
     AddSC_zone_tirisfal_glades();
+
+    AddSC_azuremyst_isle_custom();
 
     AddSC_custom_the_wandering_isle_at();
     AddSC_custom_the_wandering_isle_npcs();
