@@ -26,7 +26,7 @@
 
 #include "Custom_Stormwind_Defines.h"
 
-namespace Scripts::EasternKingdoms::Stormwind
+namespace Scripts::EasternKingdoms::StormwindCity
 {
     // 61836 - Moni Widdlesprock
     struct npc_moni_widdlesprock : public ScriptedAI
@@ -82,11 +82,9 @@ namespace Scripts::EasternKingdoms::Stormwind
     };
 }
 
-using namespace Scripts::EasternKingdoms::Stormwind;
-
 void AddSC_custom_stormwind_npcs()
 {
-    
+    using namespace Scripts::EasternKingdoms::StormwindCity;
 
     RegisterCreatureAI(npc_moni_widdlesprock);
     RegisterCreatureAI(npc_alyn_black);
