@@ -486,7 +486,7 @@ void Spell::EffectResurrectNew()
 
     uint32 health = GetEffectValueAsInt();
     uint32 mana = effectInfo->MiscValue;
-    ExecuteLogEffectResurrect(SpellEffectName(effectInfo->Effect), player);
+    ExecuteLogEffectResurrect(effectInfo->Effect, player);
     player->SetResurrectRequestData(m_caster, health, mana, 0);
     SendResurrectRequest(player);
 }
@@ -1194,7 +1194,7 @@ void Spell::EffectPowerDrain()
 
         unitCaster->EnergizeBySpell(unitCaster, m_spellInfo, gain, powerType);
     }
-    ExecuteLogEffectTakeTargetPower(SpellEffectName(effectInfo->Effect), unitTarget, powerType, damage, gainMultiplier);
+    ExecuteLogEffectTakeTargetPower(effectInfo->Effect, unitTarget, powerType, damage, gainMultiplier);
 }
 
 void Spell::EffectSendEvent()
@@ -1254,7 +1254,7 @@ void Spell::EffectPowerBurn()
     float dmgMultiplier = effectInfo->CalcValueMultiplier(GetUnitCasterForEffectHandlers(), this);
 
     // add log data before multiplication (need power amount, not damage)
-    ExecuteLogEffectTakeTargetPower(SpellEffectName(effectInfo->Effect), unitTarget, powerType, damage, 0.0f);
+    ExecuteLogEffectTakeTargetPower(effectInfo->Effect, unitTarget, powerType, damage, 0.0f);
 
     damage = int32(damage * dmgMultiplier);
 
@@ -1489,7 +1489,7 @@ void Spell::EffectCreateItem()
         return;
 
     DoCreateItem(effectInfo->ItemType, m_spellInfo->HasAttribute(SPELL_ATTR0_IS_TRADESKILL) ? ItemContext::Trade_Skill : ItemContext::NONE);
-    ExecuteLogEffectCreateItem(SpellEffectName(effectInfo->Effect), effectInfo->ItemType);
+    ExecuteLogEffectCreateItem(effectInfo->Effect, effectInfo->ItemType);
 }
 
 void Spell::EffectCreateItem2()
@@ -1756,7 +1756,7 @@ void Spell::EffectOpenLock()
             }
         }
     }
-    ExecuteLogEffectOpenLock(SpellEffectName(effectInfo->Effect), gameObjTarget ? (Object*)gameObjTarget : (Object*)itemTarget);
+    ExecuteLogEffectOpenLock(effectInfo->Effect, gameObjTarget ? (Object*)gameObjTarget : (Object*)itemTarget);
 }
 
 void Spell::EffectSummonChangeItem()
@@ -2056,7 +2056,7 @@ void Spell::EffectSummonType()
                         else if (properties->Control == SUMMON_CATEGORY_WILD && caster->IsPlayer()) // there might be more conditions involved
                             summon->SetDemonCreatorGUID(caster->GetGUID());
 
-                        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), summon);
+                        ExecuteLogEffectSummonObject(effectInfo->Effect, summon);
                     }
                     return;
                 }
@@ -2111,7 +2111,7 @@ void Spell::EffectSummonType()
     if (summon)
     {
         summon->SetCreatorGUID(caster->GetGUID());
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), summon);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, summon);
         CallScriptOnSummonHandlers(summon);
     }
 }
@@ -2772,7 +2772,7 @@ void Spell::EffectSummonPet()
             pet->SetName(new_name);
     }
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), pet);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, pet);
 }
 
 void Spell::EffectLearnPetSpell()
@@ -3082,7 +3082,7 @@ void Spell::EffectSummonObjectWild()
     go->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
     go->SetSpellId(m_spellInfo->Id);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     // Wild object not have owner and check clickable by players
     map->AddToMap(go);
@@ -3094,7 +3094,7 @@ void Spell::EffectSummonObjectWild()
         linkedTrap->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
         linkedTrap->SetSpellId(m_spellInfo->Id);
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), linkedTrap);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, linkedTrap);
     }
 }
 
@@ -3351,7 +3351,7 @@ void Spell::EffectDuel()
     go->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
     go->SetSpellId(m_spellInfo->Id);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     caster->AddGameObject(go);
     map->AddToMap(go);
@@ -3603,7 +3603,7 @@ void Spell::EffectFeedPet()
     if (!pet->IsAlive())
         return;
 
-    ExecuteLogEffectDestroyItem(SpellEffectName(effectInfo->Effect), foodItem->GetEntry());
+    ExecuteLogEffectDestroyItem(effectInfo->Effect, foodItem->GetEntry());
 
     int32 pct;
     int32 levelDiff = int32(pet->GetLevel()) - int32(foodItem->GetTemplate()->GetBaseItemLevel());
@@ -3636,7 +3636,7 @@ void Spell::EffectDismissPet()
 
     Pet* pet = unitTarget->ToPet();
 
-    ExecuteLogEffectUnsummonObject(SpellEffectName(effectInfo->Effect), pet);
+    ExecuteLogEffectUnsummonObject(effectInfo->Effect, pet);
     pet->Remove(PET_SAVE_NOT_IN_SLOT);
 }
 
@@ -3691,7 +3691,7 @@ void Spell::EffectSummonObject()
     go->SetSpellId(m_spellInfo->Id);
     unitCaster->AddGameObject(go);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     map->AddToMap(go);
 
@@ -3722,7 +3722,7 @@ void Spell::EffectResurrect()
     uint32 health = player->CountPctFromMaxHealth(effectValue);
     uint32 mana   = CalculatePct(player->GetMaxPower(POWER_MANA), effectValue);
 
-    ExecuteLogEffectResurrect(SpellEffectName(effectInfo->Effect), player);
+    ExecuteLogEffectResurrect(effectInfo->Effect, player);
 
     player->SetResurrectRequestData(m_caster, health, mana, 0);
     SendResurrectRequest(player);
@@ -3740,7 +3740,7 @@ void Spell::EffectAddExtraAttacks()
 
     unitTarget->AddExtraAttacks(extraAttacks);
 
-    ExecuteLogEffectExtraAttacks(SpellEffectName(effectInfo->Effect), unitTarget, extraAttacks);
+    ExecuteLogEffectExtraAttacks(effectInfo->Effect, unitTarget, extraAttacks);
 }
 
 void Spell::EffectParry()
@@ -4438,7 +4438,7 @@ void Spell::EffectDurabilityDamage()
     if (slot < 0)
     {
         unitTarget->ToPlayer()->DurabilityPointsLossAll(GetEffectValueAsInt(), (slot < -1));
-        ExecuteLogEffectDurabilityDamage(SpellEffectName(effectInfo->Effect), unitTarget, -1, -1);
+        ExecuteLogEffectDurabilityDamage(effectInfo->Effect, unitTarget, -1, -1);
         return;
     }
 
@@ -4449,7 +4449,7 @@ void Spell::EffectDurabilityDamage()
     if (Item* item = unitTarget->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
     {
         unitTarget->ToPlayer()->DurabilityPointsLoss(item, GetEffectValueAsInt());
-        ExecuteLogEffectDurabilityDamage(SpellEffectName(effectInfo->Effect), unitTarget, item->GetEntry(), slot);
+        ExecuteLogEffectDurabilityDamage(effectInfo->Effect, unitTarget, item->GetEntry(), slot);
     }
 }
 
@@ -4606,7 +4606,7 @@ void Spell::EffectTransmitted()
     //go->SetLevel(unitCaster->getLevel());
     go->SetSpellId(m_spellInfo->Id);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     TC_LOG_DEBUG("spells", "AddObject at SpellEfects.cpp EffectTransmitted");
     //unitCaster->AddGameObject(go);
@@ -4623,7 +4623,7 @@ void Spell::EffectTransmitted()
         linkedTrap->SetSpellId(m_spellInfo->Id);
         linkedTrap->SetOwnerGUID(unitCaster->GetGUID());
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), linkedTrap);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, linkedTrap);
     }
 }
 
@@ -5113,7 +5113,7 @@ TempSummon* Spell::SummonGuardian(SpellEffectInfo const* effect, uint32 entry, S
         // Used for things like Monk Transcendence
         OutSummon = summon;
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effect->Effect), summon);
+        ExecuteLogEffectSummonObject(SpellEffects(effect->Effect), summon);
     }
 
     return OutSummon;
@@ -5412,7 +5412,7 @@ void Spell::EffectSummonPersonalGameObject()
     go->SetSpellId(m_spellInfo->Id);
     go->SetPrivateObjectOwner(m_caster->GetGUID());
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     map->AddToMap(go);
 
@@ -5423,7 +5423,7 @@ void Spell::EffectSummonPersonalGameObject()
         linkedTrap->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
         linkedTrap->SetSpellId(m_spellInfo->Id);
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), linkedTrap);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, linkedTrap);
     }
 }
 
@@ -5454,7 +5454,7 @@ void Spell::EffectResurrectWithAura()
     if (resurrectAura && target->HasAura(resurrectAura))
         return;
 
-    ExecuteLogEffectResurrect(SpellEffectName(effectInfo->Effect), target);
+    ExecuteLogEffectResurrect(effectInfo->Effect, target);
     target->SetResurrectRequestData(m_caster, health, mana, resurrectAura);
     SendResurrectRequest(target);
 }
@@ -5599,7 +5599,7 @@ void Spell::EffectCreateHeirloomItem()
     bonusList.push_back(collectionMgr->GetHeirloomBonus(m_misc.Raw.Data[0]));
 
     DoCreateItem(m_misc.Raw.Data[0], ItemContext::NONE, &bonusList);
-    ExecuteLogEffectCreateItem(SpellEffectName(effectInfo->Effect), m_misc.Raw.Data[0]);
+    ExecuteLogEffectCreateItem(effectInfo->Effect, m_misc.Raw.Data[0]);
 }
 
 void Spell::EffectActivateGarrisonBuilding()
