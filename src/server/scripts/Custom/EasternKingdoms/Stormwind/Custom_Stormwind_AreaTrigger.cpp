@@ -33,7 +33,7 @@
 
 #include "Custom_Stormwind_Defines.h"
 
-namespace Scripts::EasternKingdoms::Stormwind
+namespace Scripts::EasternKingdoms::StormwindCity
 {
     // Helper class for player mapped cooldown
     class PlayerAreaTriggerCooldown
@@ -129,13 +129,40 @@ namespace Scripts::EasternKingdoms::Stormwind
             return true;
         }
     };
+
+    // 7992 - Stormwind Keep - Stairs/Fountain
+    class at_stormwind_keep_7992 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_keep_7992() : AreaTriggerScript("at_stormwind_keep_7992") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                    return false;
+
+                Creature* lucas = player->FindNearestCreature(Creatures::LucasSevering, 50.f);
+                if (lucas && lucas->IsAlive())
+                    lucas->AI()->Talk(0);
+
+                Creature* naanae = player->FindNearestCreature(Creatures::Naanae, 50.f);
+                if (naanae && naanae->IsAlive())
+                    naanae->AI()->SetData(1, 1);
+            }
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_stormwind_at()
 {
-    using namespace Scripts::EasternKingdoms::Stormwind;
+    using namespace Scripts::EasternKingdoms::StormwindCity;
 
     new at_stormwind_trade_district_7990();
+    new at_stormwind_keep_7992();
     new at_stormwind_canals_7993();
     new at_stormwind_canals_7994();
     

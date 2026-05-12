@@ -22,14 +22,17 @@
 
 #include "Define.h"
 
-namespace Scripts::EasternKingdoms::Stormwind
+namespace Scripts::EasternKingdoms::StormwindCity
 {
     namespace Creatures
     {
         static constexpr uint32 AlynBlack = 61834;
         static constexpr uint32 MoniWiddlesprock = 61836;
         static constexpr uint32 LeriaNightwind = 61837;
+        static constexpr uint32 LucasSevering = 61839;
+        static constexpr uint32 Naanae = 61840;
         static constexpr uint32 BrunnGoldenmug = 61841;
+        
 
     }
 
