@@ -21,6 +21,7 @@
  */
 
 #include "Creature.h"
+#include "CreatureAIImpl.h"
 #include "ScriptedCreature.h"
 #include "TaskScheduler.h"
 
