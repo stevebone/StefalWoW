@@ -107,6 +107,8 @@ enum eZoneGilneas
     SPELL_GET_SHOT                               = 67349,
     SPELL_SUMMON_JOSIAH_AVERY                    = 67350,
     SPELL_FORCE_CAST_SUMMON_JOSIAH               = 67352,
+    SPELL_WORGEN_ATTACK_KNOCKBACK                = 42880,
+    SPELL_INSTAKILL_LORNA                        = 67593,
     SPELL_ATTACK_LURKER                          = 67805,
     SPELL_SUMMON_GILNEAN_MASTIFF                 = 67807,
     SPELL_RESCUE_KRENNAN                         = 68219,
@@ -2549,6 +2551,8 @@ public:
         void IsSummonedBy(WorldObject* /*summoner*/) override
         {
             PhasingHandler::AddPhase(me, 171, true);
+            me->SetReactState(REACT_PASSIVE);
+            me->CombatStop();
         }
     };
 
@@ -2566,14 +2570,10 @@ public:
 
     enum eNpc
     {
-        SAY_JOSAIH_AVERY_TRIGGER = 1,
-        ACTION_START_ANIM = 102,
-        EVENTS_ANIM_1,
-        EVENTS_ANIM_2,
-        EVENTS_ANIM_3,
-        EVENTS_ANIM_4,
-        EVENTS_ANIM_5,
-        EVENTS_START_ANIM,
+        SAY_JOSAIH_AVERY_TRIGGER = 0,
+        EVENT_KNOCKBACK = 1,
+        EVENT_SHOOT,
+        EVENT_WHISPER,
     };
 
     struct npc_josiah_avery_trigger_50415AI : public ScriptedAI
@@ -2583,26 +2583,25 @@ public:
         EventMap m_events;
         ObjectGuid m_playerGUID;
         ObjectGuid m_badAveryGUID;
-        ObjectGuid m_lornaGUID;
-
-        void Reset() override
-        {
-            m_playerGUID = ObjectGuid();
-            m_badAveryGUID = ObjectGuid();
-            m_lornaGUID = ObjectGuid();
-            m_events.Reset();
-            me->Relocate(-1792.37f, 1427.35f, 12.46f, 3.152f);
-            me->SetDisplayId(11686);
-        }
 
         void IsSummonedBy(WorldObject* summoner) override
         {
-            if (Player* player = summoner->ToPlayer())
+            PhasingHandler::AddPhase(me, 171, true);
+
+            Player* player = nullptr;
+            if (summoner->IsPlayer())
+                player = summoner->ToPlayer();
+            else
+                player = me->SelectNearestPlayer(30.0f);
+
+            if (player)
             {
-                PhasingHandler::AddPhase(me, 171, true);
                 m_playerGUID = player->GetGUID();
-                m_events.RescheduleEvent(EVENTS_START_ANIM, 100ms);
+                me->SetDisplayId(11686);
+                m_events.ScheduleEvent(EVENT_KNOCKBACK, 500ms);
             }
+
+            me->DespawnOrUnsummon(16000ms);
         }
 
         void UpdateAI(uint32 diff) override
@@ -2613,65 +2612,50 @@ public:
             {
                 switch (eventId)
                 {
-                case EVENTS_START_ANIM:
+                case EVENT_KNOCKBACK:
                 {
                     if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        Talk(SAY_JOSAIH_AVERY_TRIGGER, player);
-                    m_events.ScheduleEvent(EVENTS_ANIM_1, 200ms);
-                    break;
-                }
-                case EVENTS_ANIM_1:
-                {
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        if (Creature* badAvery = me->FindNearestCreature(NPC_JOSIAH_AVERY_35370, 25.0f, true))
+                    {
+                        std::list<Creature*> allCreatures;
+                        me->GetCreatureListWithEntryInGrid(allCreatures, NPC_JOSIAH_AVERY_35370, 100.0f);
+                        if (!allCreatures.empty())
                         {
+                            Creature* badAvery = allCreatures.front();
                             m_badAveryGUID = badAvery->GetGUID();
+                            badAvery->SetReactState(REACT_PASSIVE);
+                            badAvery->CombatStop();
                             badAvery->SetOrientation(badAvery->GetAbsoluteAngle(player));
                             badAvery->CastSpell(player, SPELL_COSMETIC_COMBAT_ATTACK, true);
-                            player->GetMotionMaster()->MoveKnockbackFrom(Position(-1791.94f, 1427.29f, 12.4584f), 22.0f, 8.0f, 0.0f);
-                            badAvery->GetThreatManager().ResetAllThreat();
+                            player->GetMotionMaster()->MoveJump(EVENT_CHARGE, Position(-1791.94f, 1427.29f, 12.4584f), 22.0f, 2.0f);
                         }
-                    m_events.ScheduleEvent(EVENTS_ANIM_2, 1200ms);
+                    }
+                    m_events.ScheduleEvent(EVENT_SHOOT, 1200ms);
                     break;
                 }
-                case EVENTS_ANIM_2:
-                {
-                    if (Creature* badAvery = ObjectAccessor::GetCreature(*me, m_badAveryGUID))
-                        badAvery->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1791.94f, 1427.29f, 12.4584f), 18.0f, 7.0f);
-                    m_events.ScheduleEvent(EVENTS_ANIM_3, 600ms);
-                    break;
-                }
-                case EVENTS_ANIM_3:
+                case EVENT_SHOOT:
                 {
                     if (Creature* badAvery = ObjectAccessor::GetCreature(*me, m_badAveryGUID))
                     {
-                        if (m_lornaGUID.IsEmpty())
-                            if (Creature* lorna = me->FindNearestCreature(NPC_LORNA_CROWLEY_35378, 60.0f, true))
-                                m_lornaGUID = lorna->GetGUID();
-
-                        if (Creature* lorna = ObjectAccessor::GetCreature(*me, m_lornaGUID))
+                        std::list<Creature*> lornaList;
+                        me->GetCreatureListWithEntryInGrid(lornaList, NPC_LORNA_CROWLEY_35378, 100.0f);
+                        if (!lornaList.empty())
+                        {
+                            Creature* lorna = lornaList.front();
+                            lorna->SetOrientation(lorna->GetAbsoluteAngle(badAvery));
                             lorna->CastSpell(badAvery, SPELL_SHOOT, true);
+                        }
+                        badAvery->CastSpell(badAvery, SPELL_GET_SHOT, true);
+                        me->Kill(me, badAvery);
+                        badAvery->DespawnOrUnsummon(1000ms);
                     }
-                    m_events.ScheduleEvent(EVENTS_ANIM_4, 200ms);
+                    m_events.ScheduleEvent(EVENT_WHISPER, 200ms);
                     break;
                 }
-                case EVENTS_ANIM_4:
+                case EVENT_WHISPER:
                 {
                     if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        if (Creature* badAvery = ObjectAccessor::GetCreature(*me, m_badAveryGUID))
-                        {
-                            badAvery->CastSpell(badAvery, SPELL_GET_SHOT, true);
-                            me->Kill(me, badAvery);
-                            badAvery->DespawnOrUnsummon(1000ms);
-                            me->DespawnOrUnsummon(1000ms);
-                        }
-
-                    m_events.ScheduleEvent(EVENTS_ANIM_5, 5000ms);
-                    break;
-                }
-                case EVENTS_ANIM_5:
-                {
-                    me->DespawnOrUnsummon(10ms);
+                        Talk(SAY_JOSAIH_AVERY_TRIGGER, player);
+                    me->DespawnOrUnsummon(1000ms);
                     break;
                 }
                 }
