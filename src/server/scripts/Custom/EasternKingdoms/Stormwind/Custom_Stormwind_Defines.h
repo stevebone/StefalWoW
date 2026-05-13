@@ -38,6 +38,10 @@ namespace Scripts::EasternKingdoms::StormwindCity
         static constexpr uint32 BrunnGoldenmug = 61841;
         static constexpr uint32 Marty = 61895;
         static constexpr uint32 Josie = 61896;
+        static constexpr uint32 KingVarianPhased = 29611;
+        static constexpr uint32 KingVarianSpawned = 61796;
+
+        static constexpr uint32 CreditWalkWithKingVarian = 61798;
     }
 
     namespace Spawns
@@ -59,6 +63,22 @@ namespace Scripts::EasternKingdoms::StormwindCity
     {
         static constexpr Position AysaStormwindCityGeneralMarcus = { -8957.971f, 517.9630f, 96.3556f, 0.7743f };
         static constexpr Position AysaStormwindCityCenter = { -8826.584f, 627.582f, 94.3396f, 0.7692f };
+    }
+
+    namespace Paths
+    {
+        static constexpr uint32 StormwindKeepKingVarian = 6179600;
+    }
+
+    namespace Events
+    {
+        static constexpr int8 KingVarianSpawnedStartPath = 1;
+        static constexpr int8 KingVarianSpawnedInitialTalk = 2;
+    }
+
+    namespace Phases
+    {
+        static constexpr uint32 StormwindKeepKingVarian = 1139;
     }
 
     namespace AreaTriggers

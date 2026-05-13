@@ -33,6 +33,7 @@ void AddSC_custom_elwynn_forest_npcs();
 
 void AddSC_custom_stormwind_at();
 void AddSC_custom_stormwind_npcs();
+void AddSC_custom_stormwind_quests();
 
 void AddSC_custom_the_wandering_isle_at();
 void AddSC_custom_the_wandering_isle_npcs();
@@ -95,6 +96,7 @@ void AddCustomScripts()
 
     AddSC_custom_stormwind_at();
     AddSC_custom_stormwind_npcs();
+    AddSC_custom_stormwind_quests();
 
     AddSC_custom_the_wandering_isle_at();
     AddSC_custom_the_wandering_isle_npcs();

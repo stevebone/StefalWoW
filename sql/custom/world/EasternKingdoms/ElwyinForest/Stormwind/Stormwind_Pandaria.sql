@@ -6,6 +6,7 @@
 
 -- Spells: 120344 Summon Aysa (Stormwind Gate)
 -- Spells: 120345 Summon Jojo (Stormwind Gate)
+-- Spells: 120352 Summon Varian (also triggers the spawn of Jojo/Aysa see above)
 -- Spells: 83773 Conversation Trigger 01 (Instant No Delay)
 -- Spells: 88811 CSA AT Dummy Timer (30s)
 -- Spells: 116601 Timer Aura (5s)
@@ -21,6 +22,7 @@
 -- AT: 7994 Stormwind City (Canals Brunn Goldenmug)
 
 -- Quest: 30987 Joining the Alliance
+-- Quest: 30988 The Alliance Way
 
 -- NPC: 62419 Aysa Stormwind Monk Trainer
 -- NPC: 60565 Shang Xi's Hot Air Balloon
@@ -38,6 +40,7 @@
 -- NPC: 61895 Marty
 -- NPC: 61896 Josie
 -- NPC: 29611 King Varian
+-- NPC: 61796 King Varian (spawned)
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (1135,1136,1137,1139);
@@ -65,6 +68,15 @@ INSERT INTO `conditions` VALUES
 
 -- On quest accept cast Summon Aysa spell on player
 UPDATE `quest_template_addon` SET `SourceSpellID` = 120344 WHERE `ID` = 30987;
+-- Quest Template Addons
+DELETE FROM `quest_template_addon` WHERE `ID` IN (30988);
+INSERT INTO `quest_template_addon` VALUES
+(30988, 0, 0, 0, 30987, 30989, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_30988_the_alliance_way');
+
+DELETE FROM `creature_queststarter` WHERE `quest` IN (30988);
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
+('29611', '30988', '0');
+
 
 -- Spell Conditions
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (120344,120345);
@@ -92,6 +104,8 @@ INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 (7996, 'at_stormwind_trade_district_center_7996');
 
 -- Creature Templates
+UPDATE `creature_template` SET `ScriptName` = 'npc_king_varian_61796' WHERE `entry` = 61796;
+
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (466,60567,60566,60565,61792,61793);
 INSERT INTO `creature_template_difficulty` VALUES
 (466, 0, 0, 0, 864, 11, 10, 1, 1, 4.6, 313, 0, 0, 0, 466, 0, 0, 451, 594, 0, 0, 0, 0, 0, 0, 0, 0, -1),
@@ -128,7 +142,7 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (@ENTRY, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1136, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Owner/Summoner: Remove phase id Cosmetic - Stormwind/Elwynn - Jojo (1136)', '');
 
 -- Creature Text
-DELETE FROM creature_text WHERE `CreatureID` IN (61792,61793,61836,61834,61837,61841,61838, 61839,61840,61895,61896);
+DELETE FROM creature_text WHERE `CreatureID` IN (61792,61793,61836,61834,61837,61841,61838, 61839,61840,61895,61896,61796);
 DELETE FROM creature_text WHERE `CreatureID` = 68 AND `GroupID` = 6;
 DELETE FROM creature_text WHERE `CreatureID` = 466 AND `GroupID` IN (1,2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
@@ -138,6 +152,9 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (61792, 2, 0, 'Look at this!', 14, 0, 100, 5, 5000, 0, 0, 61422, 0, 'Aysa Spawned at Stormwind Gate'),
 (61792, 3, 0, 'Well, that''s good news. Once we join the Alliance, we certainly won''t run out of things to do.', 12, 0, 100, 1, 5000, 0, 0, 61423, 0, 'Aysa Spawned at Stormwind Gate'),
 (61792, 4, 0, 'Let''s keep moving.', 12, 0, 100, 1, 0, 0, 0, 61415, 0, 'Aysa Spawned at Stormwind Gate'),
+(61792, 5, 0, 'Yes. Go on.', 12, 0, 100, 273, 0, 27390, 0, 61428, 0, 'Aysa Spawned at Stormwind Gate'),
+(61792, 6, 0, 'Certainly.', 12, 0, 100, 273, 0, 27391, 0, 61433, 0, 'Aysa Spawned at Stormwind Gate'),
+(61792, 7, 0, 'Yes... of course.', 12, 0, 100, 24, 0, 27392, 0, 61441, 0, 'Aysa Spawned at Stormwind Gate'),
 -- Jojo spawned at Stormwind Gate
 (61793, 0, 0, 'Let''s... just keep moving.', 12, 0, 100, 1, 0, 0, 0, 61409, 0, 'Jojo Spawned at Stormwind Gate'),
 (61793, 1, 0, 'What''s the Light?', 12, 0, 100, 6, 0, 0, 0, 61416, 0, 'Jojo Spawned at Stormwind Gate'),
@@ -169,8 +186,23 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (61895, 0, 0, 'Hey look! Gnolls!', 12, 0, 100, 1, 0, 0, 0, 61401, 0, 'Marty at Stormwind City entrance'),
 -- Josie
 (61896, 0, 0, 'Those aren''t gnolls, silly. Use your eyes.', 12, 0, 100, 1, 0, 0, 0, 61402, 0, 'Josie at Stormwind City entrance'),
-(61896, 1, 0, 'Those are FURBOLGS.', 12, 0, 100, 1, 0, 0, 0, 61403, 0, 'Josie at Stormwind City entrance');
-
+(61896, 1, 0, 'Those are FURBOLGS.', 12, 0, 100, 1, 0, 0, 0, 61403, 0, 'Josie at Stormwind City entrance'),
+-- King Varian
+(61796, 0, 0, 'Walk with me. All three of you.', 12, 0, 100, 1, 0, 29574, 0, 61424, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 1, 0, 'I understand you want to join the Alliance.', 12, 0, 100, 0, 0, 29575, 0, 61425, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 2, 0, 'We always have need of allies. I''d be a fool to turn you away, especially at a time of war.', 12, 0, 100, 1, 0, 29576, 0, 61426, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 3, 0, 'But there are a number of things I need to make clear to you.', 12, 0, 100, 0, 0, 29577, 0, 61427, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 4, 0, 'First: the races of the Alliance look out for one another.', 12, 0, 100, 0, 0, 29578, 0, 61429, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 5, 0, 'You are expected to provide aid to Alliance members in need, whether they be human, gnome, draenei... or pandaren like yourselves.', 12, 0, 100, 1, 0, 29579, 0, 61430, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 6, 0, 'It is a simple guideline, but a meaningful one. Do you understand?', 12, 0, 100, 0, 0, 29580, 0, 61432, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 7, 0, 'Good. Because that brings me to my second point.', 12, 0, 100, 273, 0, 29581, 0, 61434, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 8, 0, 'Not all pandaren have chosen the same path as you three.', 12, 0, 100, 0, 0, 29582, 0, 61435, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 9, 0, 'Some have sided with the Horde.', 12, 0, 100, 0, 0, 29583, 0, 61436, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 10, 0, 'They, along with the other barbarian clans of the Horde, are your new enemies.', 12, 0, 100, 1, 0, 29584, 0, 61437, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 11, 0, 'Those who you once considered friends, or even those you might have loved, are now your sworn adversaries.', 12, 0, 100, 274, 0, 29585, 0, 61438, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 12, 0, 'I am deeply sorry, but the battle lines have been drawn. I will not tolerate any fraternizing with the enemy, as you could expose our Alliance to danger.', 12, 0, 100, 5, 0, 29586, 0, 61439, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 13, 0, 'Do I make myself clear?', 12, 0, 100, 0, 0, 29587, 0, 61440, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 14, 0, 'Very well. We are nearly finished, $p.', 12, 0, 100, 0, 0, 29588, 0, 61442, 0, 'King Varian Spawned in Stormwind Keep');
 
 -- Spawns
 SET @CGUID := 900810;
@@ -183,3 +215,34 @@ INSERT INTO `creature` VALUES
 (@CGUID+3, '61839', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8479', '392.182', '115.942', '5.96828', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474'),
 (@CGUID+4, '61840', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8476.99', '391.53', '115.942', '2.82668', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474'),
 (@CGUID+5, '29611', '0', '1519', '6292', '0', '0', '1139', '0', '-1', '0', '1', '-8362.34', '233.782', '156.991', '2.79159', '300', '0', '0', '100', '0', NULL, NULL, '2099200', NULL, '', NULL, '0');
+
+-- Waypoint Data
+DELETE FROM `waypoint_path` WHERE `PathId` IN (6179600);
+INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES 
+('6179600', '0', '0', '0', 'Stormwind City - King Varian - The Alliance Way');
+
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6179600);
+INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES 
+(6179600, 1, -8369.53, 241.893, 155.328, 1.99772, 0),
+(6179600, 2, -8368.91, 244.505, 155.347, 1.0287, 0),
+(6179600, 3, -8364, 252.275, 155.347, 0.904774, 0),
+(6179600, 4, -8354.36, 261.153, 155.347, 0.650098, 0),
+(6179600, 5, -8344.61, 268.933, 155.347, 5.75023, 0),
+(6179600, 6, -8328.42, 249.585, 155.347, 5.42983, 0),
+(6179600, 7, -8321.03, 249.644, 155.347, 0.101599, 0),
+(6179600, 8, -8312.62, 256.125, 155.347, 0.631743, 0),
+(6179600, 9, -8302.02, 264.74, 155.347, 0.6329, 0),
+(6179600, 10, -8284.91, 278.514, 155.347, 0.681181, 0),
+(6179600, 11, -8279.14, 282.917, 155.347, 0.778777, 0),
+(6179600, 12, -8279.43, 286.499, 155.347, 1.82567, 0),
+(6179600, 13, -8283.64, 291.271, 155.347, 2.2662, 0),
+(6179600, 14, -8291.48, 301.105, 155.347, 2.2297, 0),
+(6179600, 15, -8297.76, 308.91, 155.347, 2.22416, 0),
+(6179600, 16, -8309.79, 324.38, 155.347, 2.2051, 0),
+(6179600, 17, -8314.17, 329.66, 155.347, 2.26909, 0),
+(6179600, 18, -8318.16, 329.228, 155.347, 3.39176, 0),
+(6179600, 19, -8326.47, 322.829, 155.347, 3.76887, 0),
+(6179600, 20, -8339.91, 312.315, 155.347, 4.21609, 0),
+(6179600, 21, -8334.28, 306.164, 157.347, 5.38865, 0),
+(6179600, 22, -8327.68, 297.537, 156.832, 5.4263, 0),
+(6179600, 23, -8318.99, 287.084, 156.832, 3.89098, 0);
