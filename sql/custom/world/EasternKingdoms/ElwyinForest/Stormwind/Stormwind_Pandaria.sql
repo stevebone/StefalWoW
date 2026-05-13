@@ -12,6 +12,7 @@
 
 -- AT: 7995 Stormwind Bridge (middle)
 -- AT: 5828 Stormwind Bridge (Marshall)
+-- AT: 7989 Stormwind City Entrance (Josie & Marty)
 -- AT: 7996 Stormwind City (Trade District Center)
 -- AT: 7990 Stormwind City (Trade District Moni npc)
 -- AT: 7991 Stormwind City (Trade District > Canal)
@@ -30,22 +31,27 @@
 -- NPC: 61834 Alyn Black
 -- NPC: 61836 Moni Widdlesprock
 -- NPC: 61837 Leria Nightwind
--- NPC: 61841 Brunn Goldenmug
+-- NPC: 61838 Gavin Marlsbury
 -- NPC: 61839 Lucas Severing
 -- NPC: 61840 Naanae
+-- NPC: 61841 Brunn Goldenmug
+-- NPC: 61895 Marty
+-- NPC: 61896 Josie
+-- NPC: 29611 King Varian
 
 -- Phases
-DELETE FROM `phase_area` WHERE `PhaseId` IN (1135,1136,1137);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (1135,1136,1137,1139);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (1617, 1135, 'Stormwind - Valley of Heroes see Aysa'),
 (7486, 1135, 'Elwynn Forest - Stormwind Gate see Aysa'),
 (1617, 1136, 'Stormwind - Valley of Heroes see Jojo'),
 (7486, 1136, 'Elwynn Forest - Stormwind Gate see Jojo'),
 (1617, 1137, 'Stormwind - Valley of Heroes see Balloon'),
-(7486, 1137, 'Elwynn Forest - Stormwind Gate see Balloon');
+(7486, 1137, 'Elwynn Forest - Stormwind Gate see Balloon'),
+(6292, 1139, 'Stormwind Keep - see King Varian');
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (1135,1136,1137);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (1135,1136,1137,1139);
 INSERT INTO `conditions` VALUES
 -- Stormwind Gate
 (26, 1135, 0, 0, 0, 47, 0, 31450, 74, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1135 active if 31450 taken, in progress, complete, rewarded'),
@@ -53,7 +59,9 @@ INSERT INTO `conditions` VALUES
 (26, 1137, 0, 0, 0, 47, 0, 31450, 74, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1135 active if 31450 taken, in progress, complete, rewarded'),
 (26, 1135, 0, 0, 0, 47, 0, 30987, 1, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1135 active if 30987 NOT taken'),
 (26, 1136, 0, 0, 0, 47, 0, 30987, 1, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1136 active if 30987 NOT taken'),
-(26, 1137, 0, 0, 0, 47, 0, 30987, 64, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1137 active if 30987 NOT rewarded');
+(26, 1137, 0, 0, 0, 47, 0, 30987, 64, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1137 active if 30987 NOT rewarded'),
+(26, 1139, 0, 0, 0, 47, 0, 30987, 66, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30987 complete or rewarded'),
+(26, 1139, 0, 0, 0, 47, 0, 30988, 66, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30987 complete or rewarded');
 
 -- On quest accept cast Summon Aysa spell on player
 UPDATE `quest_template_addon` SET `SourceSpellID` = 120344 WHERE `ID` = 30987;
@@ -71,17 +79,17 @@ INSERT INTO `spell_target_position` VALUES
 ('116957', '1', 0, '0', '-9063.70', '434.73', '93.055', '0.6744', 0);
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (7990,7992,7993,7994,7995);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5828,7989, 7990,7991,7992,7993,7994,7995,7996);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
+(5828, 'at_stormwind_valley_of_heroes_5828'),
+(7989, 'at_stormwind_entrance_7989'),
 (7990, 'at_stormwind_trade_district_7990'),
+(7991, 'at_stormwind_canals_7991'),
 (7992, 'at_stormwind_keep_7992'),
 (7993, 'at_stormwind_canals_7993'),
 (7994, 'at_stormwind_canals_7994'),
-(7995, 'at_stormwind_valley_of_heroes_7995');
-
-UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_moni_widdlesprock' WHERE `entry` = 61836;
-UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_alyn_black' WHERE `entry` = 61834;
-UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_naanae' WHERE `entry` = 61840;
+(7995, 'at_stormwind_valley_of_heroes_7995'),
+(7996, 'at_stormwind_trade_district_center_7996');
 
 -- Creature Templates
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (466,60567,60566,60565,61792,61793);
@@ -109,68 +117,18 @@ DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
 (@ENTRY, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Follow Owner by distance 0, angle 0', ''),
 (@ENTRY, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1135, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Owner/Summoner: Remove phase id Cosmetic - Stormwind/Elwynn - Aysa (1135)', ''),
-(@ENTRY, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Talk 0 to Owner/Summoner', ''),
-(@ENTRY, 0, 3, 4, 38, 0, 100, 0, 1, 1, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Stop Follow', ''),
-(@ENTRY, 0, 4, 5, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 88811, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Cast 88811 on Self', ''),
-(@ENTRY, 0, 5, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 69, 1, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, -8957.971, 517.9630, 96.3556, 0.7743, 'On Data Set - Move to POS', ''),
-(@ENTRY, 0, 6, 0, 34, 0, 100, 0, 8, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Movement Inform - Self: Talk 1', ''),
-(@ENTRY, 0, 7, 0, 52, 0, 100, 0, 1, @ENTRY, 0, 0, 0, 45, 1, 2, 0, 0, 0, 0, 0, 9, 466, 0, 50, 0, 0, 0, 0, 'On Text Over 1 - Set Data', ''),
-(@ENTRY, 0, 8, 0, 90, 0, 100, 0, 88811, 0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On Aura Remove - Self: Follow Owner', ''),
-(@ENTRY, 0, 9, 10, 38, 0, 100, 0, 1, 3, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Stop Follow', ''),
-(@ENTRY, 0, 10, 11, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Talk 2 to Owner/Summoner', ''),
-(@ENTRY, 0, 11, 12, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 116601, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Cast 116601 on Self', ''),
-(@ENTRY, 0, 12, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 69, 2, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, -8826.584, 627.582, 94.3396, 0.7692, 'On Data Set - Move to POS', ''),
-(@ENTRY, 0, 13, 14, 90, 0, 100, 0, 116601, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On Aura Remove - Self: Follow Owner', ''),
-(@ENTRY, 0, 14, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On Aura Remove - Self: Follow Owner', '');
+(@ENTRY, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Talk 0 to Owner/Summoner', '');
 
  -- Jojo smart ai
 SET @ENTRY := 61793;
 UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
 DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
-(@ENTRY, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 29, 5, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Follow Owner by distance 0, angle 0', ''),
+(@ENTRY, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 29, 3, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Follow Owner by distance 3, angle 0', ''),
 (@ENTRY, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1136, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Owner/Summoner: Remove phase id Cosmetic - Stormwind/Elwynn - Jojo (1136)', '');
 
-
- -- Stormwind Bridge Marshall area trigger 5828 smart ai
-SET @ENTRY := 5828;
-DELETE FROM `areatrigger_scripts` WHERE `entry` = @ENTRY;
-INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES (@ENTRY, 'SmartTrigger');
-DELETE FROM `smart_scripts` WHERE `source_type` = 2 AND `entryOrGuid` = @ENTRY;
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
-(@ENTRY, 2, 0, 1, 46, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 0, 9, 61792, 0, 50, 0, 0, 0, 0, 'On trigger - Creature Aysa Cloudsinger (61792) in 0 - 50 yards: Set creature data #1 to 1', ''),
-(@ENTRY, 2, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 1, 0, 0, 0, 0, 0, 9, 466, 0, 50, 0, 0, 0, 0, 'On trigger - General Marcus Jonathan (66) in 0 - 50 yards: Set creature data #1 to 1', '');
-
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 5828 AND `SourceId` = 2;
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`) VALUES 
-(22, 1, 5828, 2, 0, 47, 0, 30987, 10, 0, '', 0, 'Action invoker has quest Joining the Alliance (30987) active'),
-(22, 2, 5828, 2, 0, 47, 0, 30987, 10, 0, '', 0, 'Action invoker has quest Joining the Alliance (30987) active');
-
- -- General Marcus Jonathan smart ai
-SET @ENTRY := 466;
-UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = 466;
-DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY AND `id` IN (2,3,4,5,6);
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
-(@ENTRY, 0, 2, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 1, 1, 2000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Talk 1 to self', ''),
-(@ENTRY, 0, 3, 4, 38, 0, 100, 0, 1, 2, 0, 0, 0, 1, 2, 2000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Talk 2 to self', ''),
-(@ENTRY, 0, 4, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 11, 116601, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Data Set - Self: Cast 116601 on Self', ''),
-(@ENTRY, 0, 5, 0, 90, 0, 100, 0, 116601, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Aura Remove - Self: Talk 3 to self', ''),
-(@ENTRY, 0, 6, 0, 52, 0, 100, 0, 3, @ENTRY, 0, 0, 0, 1, 4, 2000, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On Text Over 3 - Self: Talk 4 to self', '');
-
- -- Stormwind Trade Distric center area trigger 7996 smart ai
-SET @ENTRY := 7996;
-DELETE FROM `areatrigger_scripts` WHERE `entry` = @ENTRY;
-INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES (@ENTRY, 'SmartTrigger');
-DELETE FROM `smart_scripts` WHERE `source_type` = 2 AND `entryOrGuid` = @ENTRY;
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
-(@ENTRY, 2, 0, 0, 46, 0, 100, 0, 0, 0, 0, 0, 0, 45, 1, 3, 0, 0, 0, 0, 0, 9, 61792, 0, 50, 0, 0, 0, 0, 'On trigger - Creature Aysa Cloudsinger (61792) in 0 - 50 yards: Set creature data #1 to 1', '');
-
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 7996 AND `SourceId` = 2;
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`) VALUES 
-(22, 1, 7996, 2, 0, 47, 0, 30987, 10, 0, '', 0, 'Action invoker has quest Joining the Alliance (30987) active');
-
 -- Creature Text
-DELETE FROM creature_text WHERE `CreatureID` IN (61792,61836,61834,61837,61841,61839,61840);
+DELETE FROM creature_text WHERE `CreatureID` IN (61792,61793,61836,61834,61837,61841,61838, 61839,61840,61895,61896);
 DELETE FROM creature_text WHERE `CreatureID` = 68 AND `GroupID` = 6;
 DELETE FROM creature_text WHERE `CreatureID` = 466 AND `GroupID` IN (1,2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
@@ -179,6 +137,10 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (61792, 1, 0, 'We''re here to join the Alliance. We seek audience with your Emperor.', 12, 0, 100, 2, 5000, 0, 0, 61417, 0, 'Aysa Spawned at Stormwind Gate'),
 (61792, 2, 0, 'Look at this!', 14, 0, 100, 5, 5000, 0, 0, 61422, 0, 'Aysa Spawned at Stormwind Gate'),
 (61792, 3, 0, 'Well, that''s good news. Once we join the Alliance, we certainly won''t run out of things to do.', 12, 0, 100, 1, 5000, 0, 0, 61423, 0, 'Aysa Spawned at Stormwind Gate'),
+(61792, 4, 0, 'Let''s keep moving.', 12, 0, 100, 1, 0, 0, 0, 61415, 0, 'Aysa Spawned at Stormwind Gate'),
+-- Jojo spawned at Stormwind Gate
+(61793, 0, 0, 'Let''s... just keep moving.', 12, 0, 100, 1, 0, 0, 0, 61409, 0, 'Jojo Spawned at Stormwind Gate'),
+(61793, 1, 0, 'What''s the Light?', 12, 0, 100, 6, 0, 0, 0, 61416, 0, 'Jojo Spawned at Stormwind Gate'),
 -- Stormwind Guard at Stormwind Bridge
 (68, 6, 0, 'Never thought I''d see one of your kind walk through here.', 12, 0, 100, 66, 0, 0, 0, 61418, 0, 'Stormwind Guard at Stormwind Bridge'),
 -- General Marcus Jonathan
@@ -195,20 +157,29 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (61837, 0, 0, 'Welcome to Stormwind!', 12, 0, 100, 3, 0, 0, 0, 61410, 0, 'Leria Nightwind at Stormwind Canals Bridge'),
 -- Brunn Goldenmug
 (61841, 0, 0, 'Pandaren? I mussht be seein'' thingssh...', 12, 0, 100, 0, 0, 0, 0, 61411, 0, 'Brunn Goldenmug at Stormwind Canals'),
+-- Gavin Marlsbury
+(61838, 0, 0, 'Heh... pandaren. You must be here to join the Alliance.', 12, 0, 100, 0, 0, 0, 0, 61407, 0, 'Gaving Marlsbury at Stormwind Canals'),
+(61838, 1, 0, 'Good move. It worked out well for me.', 12, 0, 100, 0, 0, 0, 0, 61408, 0, 'Gaving Marlsbury at Stormwind Canals'),
 -- Lucas Severing
 (61839, 0, 0, 'Quiet, Naanae. Outsiders approach.', 12, 0, 100, 1, 0, 0, 0, 61412, 0, 'Lucas Severing at Stormwind Keep'),
 -- Naanae
 (61840, 0, 0, 'Outsiders, yes - but their intentions are good.', 12, 0, 100, 1, 0, 0, 0, 61413, 0, 'Naanae at Stormwind Keep'),
-(61840, 1, 0, 'Look carefully, Lucas. The Light is strong with them. Particularly that one.', 12, 0, 100, 1, 0, 0, 0, 61414, 0, 'Naanae at Stormwind Keep');
+(61840, 1, 0, 'Look carefully, Lucas. The Light is strong with them. Particularly that one.', 12, 0, 100, 1, 0, 0, 0, 61414, 0, 'Naanae at Stormwind Keep'),
+-- Marty
+(61895, 0, 0, 'Hey look! Gnolls!', 12, 0, 100, 1, 0, 0, 0, 61401, 0, 'Marty at Stormwind City entrance'),
+-- Josie
+(61896, 0, 0, 'Those aren''t gnolls, silly. Use your eyes.', 12, 0, 100, 1, 0, 0, 0, 61402, 0, 'Josie at Stormwind City entrance'),
+(61896, 1, 0, 'Those are FURBOLGS.', 12, 0, 100, 1, 0, 0, 0, 61403, 0, 'Josie at Stormwind City entrance');
 
 
 -- Spawns
 SET @CGUID := 900810;
 
-DELETE FROM `creature` WHERE `id` IN (60567,60566,60565,61839,61840);
+DELETE FROM `creature` WHERE `id` IN (60567,60566,60565,61839,61840,29611);
 INSERT INTO `creature` VALUES
 (@CGUID+0, '60565', '0', '12', '7486', '0', '0', '1137', '0', '-1', '0', '0', '-9084.53', '427.842', '92.5858', '0.521299', '300', '0', '0', '100', '0', NULL, NULL, NULL, '1048576', '', NULL, '0'),
 (@CGUID+1, '60566', '0', '1519', '1617', '0', '0', '1135', '0', '-1', '0', '0', '-9061.02', '433.229', '93.0557', '0.705292', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+2, '60567', '0', '1519', '1617', '0', '0', '1136', '0', '-1', '0', '0', '-9065.02', '437.349', '93.0558', '0.550979', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+3, '61839', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8479', '392.182', '115.942', '5.96828', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474'),
-(@CGUID+4, '61840', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8476.99', '391.53', '115.942', '2.82668', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474');
+(@CGUID+4, '61840', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8476.99', '391.53', '115.942', '2.82668', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474'),
+(@CGUID+5, '29611', '0', '1519', '6292', '0', '0', '1139', '0', '-1', '0', '1', '-8362.34', '233.782', '156.991', '2.79159', '300', '0', '0', '100', '0', NULL, NULL, '2099200', NULL, '', NULL, '0');

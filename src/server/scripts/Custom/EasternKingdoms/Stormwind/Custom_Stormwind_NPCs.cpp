@@ -121,7 +121,7 @@ void AddSC_custom_stormwind_npcs()
     using namespace Scripts::EasternKingdoms::StormwindCity;
 
     // Creature
-    RegisterCreatureAI(npc_moni_widdlesprock);
-    RegisterCreatureAI(npc_alyn_black);
-    RegisterCreatureAI(npc_naanae);
+    //RegisterCreatureAI(npc_moni_widdlesprock);
+    //RegisterCreatureAI(npc_alyn_black);
+    //RegisterCreatureAI(npc_naanae);
 }

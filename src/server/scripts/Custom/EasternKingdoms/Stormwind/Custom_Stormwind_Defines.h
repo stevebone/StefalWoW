@@ -26,14 +26,18 @@ namespace Scripts::EasternKingdoms::StormwindCity
 {
     namespace Creatures
     {
+        static constexpr uint32 GeneralMarcusJonathan = 466;
+        static constexpr uint32 AysaSpawnedAtGate = 61792;
+        static constexpr uint32 JojoSpawnedAtGate = 61793;
         static constexpr uint32 AlynBlack = 61834;
         static constexpr uint32 MoniWiddlesprock = 61836;
         static constexpr uint32 LeriaNightwind = 61837;
+        static constexpr uint32 GavinMarlsbury = 61838;
         static constexpr uint32 LucasSevering = 61839;
         static constexpr uint32 Naanae = 61840;
         static constexpr uint32 BrunnGoldenmug = 61841;
-        
-
+        static constexpr uint32 Marty = 61895;
+        static constexpr uint32 Josie = 61896;
     }
 
     namespace Spawns
@@ -44,6 +48,17 @@ namespace Scripts::EasternKingdoms::StormwindCity
     namespace Quests
     {
         static constexpr uint32 JoiningTheAlliance = 30987;
+    }
+
+    namespace Spells
+    {
+        static constexpr uint32 Stealth = 86603;
+    }
+
+    namespace Positions
+    {
+        static constexpr Position AysaStormwindCityGeneralMarcus = { -8957.971f, 517.9630f, 96.3556f, 0.7743f };
+        static constexpr Position AysaStormwindCityCenter = { -8826.584f, 627.582f, 94.3396f, 0.7692f };
     }
 
     namespace AreaTriggers

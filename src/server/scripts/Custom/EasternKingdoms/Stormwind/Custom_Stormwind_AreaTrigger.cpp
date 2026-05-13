@@ -65,6 +65,107 @@ namespace Scripts::EasternKingdoms::StormwindCity
 
     static PlayerAreaTriggerCooldown g_areaTriggerCooldown;
 
+    // 5828 - Valley of Heroes - General Marcus Jonathan
+    class at_stormwind_valley_of_heroes_5828 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_valley_of_heroes_5828() : AreaTriggerScript("at_stormwind_valley_of_heroes_5828") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 2min))
+                    return false;
+
+                Creature* marcus = player->FindNearestCreature(Creatures::GeneralMarcusJonathan, 50.f);
+                if (marcus && marcus->IsAlive())
+                {
+                    marcus->AI()->Talk(1);
+
+                    marcus->m_Events.AddEventAtOffset([marcus]()
+                        {
+                            if(marcus && marcus->IsAlive())
+                                marcus->AI()->Talk(2);
+                        }, std::chrono::seconds(10));
+
+                    marcus->m_Events.AddEventAtOffset([marcus]()
+                        {
+                            if (marcus && marcus->IsAlive())
+                                marcus->AI()->Talk(3);
+                        }, std::chrono::seconds(12));
+
+                    marcus->m_Events.AddEventAtOffset([marcus]()
+                        {
+                            if (marcus && marcus->IsAlive())
+                                marcus->AI()->Talk(4);
+                        }, std::chrono::seconds(15));
+                }
+
+                Creature* aysa = player->FindNearestCreature(Creatures::AysaSpawnedAtGate, 50.f);
+                if (aysa && aysa->IsAlive())
+                {
+                    aysa->GetMotionMaster()->Clear();
+                    aysa->GetMotionMaster()->MovePoint(2, Positions::AysaStormwindCityGeneralMarcus);
+
+                    aysa->m_Events.AddEventAtOffset([aysa]()
+                        {
+                            if (aysa && aysa->IsAlive())
+                            {
+                                aysa->AI()->Talk(1);
+                            }
+                        }, std::chrono::seconds(5));
+
+                    aysa->m_Events.AddEventAtOffset([aysa, player]()
+                        {
+                            if (aysa && aysa->IsAlive())
+                                aysa->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                        }, std::chrono::seconds(15));
+                }
+            }
+            return true;
+        }
+    };
+
+    // 7989 - Stormwind City Entrance - Josie/Marty
+    class at_stormwind_entrance_7989 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_entrance_7989() : AreaTriggerScript("at_stormwind_entrance_7989") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
+                    return false;
+
+                Creature* marty = player->FindNearestCreature(Creatures::Marty, 50.f);
+                if (marty && marty->IsAlive())
+                    marty->AI()->Talk(0);
+
+                Creature* josie = player->FindNearestCreature(Creatures::Josie, 50.f);
+                if (josie && josie->IsAlive())
+                {
+                    josie->m_Events.AddEventAtOffset([josie]()
+                        {
+                            if (josie && josie->IsAlive())
+                                josie->AI()->Talk(0);
+                        }, std::chrono::seconds(5));
+
+                    josie->m_Events.AddEventAtOffset([josie]()
+                        {
+                            if (josie && josie->IsAlive())
+                                josie->AI()->Talk(1);
+                        }, std::chrono::seconds(8));
+                }
+            }
+            return true;
+        }
+    };
+
     // 7995 - Valley of Heroes - Stormwind City Guard
     class at_stormwind_valley_of_heroes_7995 : public AreaTriggerScript
     {
@@ -87,6 +188,40 @@ namespace Scripts::EasternKingdoms::StormwindCity
         }
     };
 
+    // 7996 - Stormwind City Trade District Center
+    class at_stormwind_trade_district_center_7996 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_trade_district_center_7996() : AreaTriggerScript("at_stormwind_trade_district_center_7996") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 2min))
+                    return false;
+
+                Creature* aysa = player->FindNearestCreature(Creatures::AysaSpawnedAtGate, 50.f);
+                if (aysa && aysa->IsAlive())
+                {
+                    aysa->AI()->Talk(2);
+                    aysa->GetMotionMaster()->Clear();
+                    aysa->GetMotionMaster()->MovePoint(1, Positions::AysaStormwindCityCenter);
+                    aysa->m_Events.AddEventAtOffset([aysa, player]()
+                        {
+                            if (aysa && aysa->IsAlive())
+                            {
+                                aysa->AI()->Talk(3);
+                                aysa->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                            }
+                        }, std::chrono::seconds(15));
+                }
+            }
+            return true;
+        }
+    };
+
     // 7990 - Stormwind Trade District - Moni and Alyn
     class at_stormwind_trade_district_7990 : public AreaTriggerScript
     {
@@ -103,11 +238,24 @@ namespace Scripts::EasternKingdoms::StormwindCity
 
                 Creature* moni = player->FindNearestCreature(Creatures::MoniWiddlesprock, 50.f);
                 if (moni && moni->IsAlive())
-                    moni->AI()->SetData(1, 1);
+                {
+                    moni->AI()->Talk(0);
+                    moni->m_Events.AddEventAtOffset([moni]()
+                        {
+                            if (moni && moni->IsAlive())
+                                moni->AI()->Talk(1);
+                        }, std::chrono::seconds(10));
+                }
 
                 Creature* alyn = player->FindNearestCreature(Creatures::AlynBlack, 50.f);
                 if (alyn && alyn->IsAlive())
-                    alyn->AI()->SetData(1, 1);
+                {
+                    alyn->m_Events.AddEventAtOffset([alyn]()
+                        {
+                            if (alyn && alyn->IsAlive())
+                                alyn->AI()->Talk(0);
+                        }, std::chrono::seconds(5));
+                }
             }
             return true;
         }
@@ -127,9 +275,34 @@ namespace Scripts::EasternKingdoms::StormwindCity
                 if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
                     return false;
 
-                Creature* brunn = player->FindNearestCreature(Creatures::BrunnGoldenmug, 50.f);
-                if (brunn && brunn->IsAlive())
-                    brunn->AI()->Talk(0);
+                Creature* gavin = player->FindNearestCreature(Creatures::GavinMarlsbury, 50.f);
+                if (gavin && gavin->IsAlive())
+                {
+                    gavin->SetFacingToObject(player, true);
+                    gavin->RemoveAurasDueToSpell(Spells::Stealth);
+                    gavin->AI()->Talk(0);
+                    gavin->m_Events.AddEventAtOffset([gavin]()
+                        {
+                            if (gavin && gavin->IsAlive())
+                                gavin->AI()->Talk(1);
+                        }, std::chrono::seconds(5));
+
+                    gavin->m_Events.AddEventAtOffset([gavin]()
+                        {
+                            if (gavin && gavin->IsAlive())
+                                gavin->CastSpell(gavin, Spells::Stealth);
+                        }, std::chrono::seconds(35));
+                }
+
+                Creature* jojo = player->FindNearestCreature(Creatures::JojoSpawnedAtGate, 50.f);
+                if (jojo && jojo->IsAlive())
+                {
+                    jojo->m_Events.AddEventAtOffset([jojo]()
+                        {
+                            if (jojo && jojo->IsAlive())
+                                jojo->AI()->Talk(0);
+                        }, std::chrono::seconds(10));
+                }
             }
             return true;
         }
@@ -199,7 +372,39 @@ namespace Scripts::EasternKingdoms::StormwindCity
 
                 Creature* naanae = player->FindNearestCreature(Creatures::Naanae, 50.f);
                 if (naanae && naanae->IsAlive())
-                    naanae->AI()->SetData(1, 1);
+                {
+                    naanae->m_Events.AddEventAtOffset([naanae]()
+                        {
+                            if (naanae && naanae->IsAlive())
+                                naanae->AI()->Talk(0);
+                        }, std::chrono::seconds(5));
+
+                    naanae->m_Events.AddEventAtOffset([naanae]()
+                        {
+                            if (naanae && naanae->IsAlive())
+                                naanae->AI()->Talk(1);
+                        }, std::chrono::seconds(10));
+                }
+
+                Creature* aysa = player->FindNearestCreature(Creatures::AysaSpawnedAtGate, 50.f);
+                if (aysa && aysa->IsAlive())
+                {
+                    aysa->m_Events.AddEventAtOffset([aysa]()
+                        {
+                            if (aysa && aysa->IsAlive())
+                                aysa->AI()->Talk(4);
+                        }, std::chrono::seconds(20));
+                }
+
+                Creature* jojo = player->FindNearestCreature(Creatures::JojoSpawnedAtGate, 50.f);
+                if (jojo && jojo->IsAlive())
+                {
+                    jojo->m_Events.AddEventAtOffset([jojo]()
+                        {
+                            if (jojo && jojo->IsAlive())
+                                jojo->AI()->Talk(1);
+                        }, std::chrono::seconds(25));
+                }
             }
             return true;
         }
@@ -210,10 +415,13 @@ void AddSC_custom_stormwind_at()
 {
     using namespace Scripts::EasternKingdoms::StormwindCity;
 
+    new at_stormwind_valley_of_heroes_5828();
+    new at_stormwind_entrance_7989();
     new at_stormwind_trade_district_7990();
     new at_stormwind_canals_7991();
     new at_stormwind_keep_7992();
     new at_stormwind_canals_7993();
     new at_stormwind_canals_7994();
     new at_stormwind_valley_of_heroes_7995();
+    new at_stormwind_trade_district_center_7996();
 }
