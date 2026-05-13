@@ -80,11 +80,46 @@ namespace Scripts::EasternKingdoms::StormwindCity
     private:
         TaskScheduler _scheduler;
     };
+
+    // 61840 - Naanae
+    struct npc_naanae : public ScriptedAI
+    {
+        npc_naanae(Creature* creature) : ScriptedAI(creature) {}
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1 && value == 1)
+            {
+                _scheduler.Schedule(5s, [this](TaskContext /*context*/)
+                    {
+                        if (me && me->IsAlive())
+                            Talk(0);
+                    });
+
+                _scheduler.Schedule(10s, [this](TaskContext /*context*/)
+                    {
+                        if (me && me->IsAlive())
+                            Talk(1);
+                    });
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
 }
 
 void AddSC_custom_stormwind_npcs()
 {
     using namespace Scripts::EasternKingdoms::StormwindCity;
-    new npc_moni_widdlesprock(nullptr);
-    new npc_alyn_black(nullptr);
+
+    // Creature
+    RegisterCreatureAI(npc_moni_widdlesprock);
+    RegisterCreatureAI(npc_alyn_black);
+    RegisterCreatureAI(npc_naanae);
 }

@@ -36,6 +36,11 @@ namespace Scripts::EasternKingdoms::StormwindCity
 
     }
 
+    namespace Spawns
+    {
+        static constexpr uint32 StormwindCityGuardOnBridge = 313908;
+    }
+
     namespace Quests
     {
         static constexpr uint32 JoiningTheAlliance = 30987;

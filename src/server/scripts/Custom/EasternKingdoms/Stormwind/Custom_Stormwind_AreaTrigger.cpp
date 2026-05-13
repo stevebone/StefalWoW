@@ -24,6 +24,7 @@
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "DB2Stores.h"
+#include "Map.h"
 #include "MotionMaster.h"
 #include "Player.h"
 #include "Position.h"
@@ -41,24 +42,50 @@ namespace Scripts::EasternKingdoms::StormwindCity
     public:
         PlayerAreaTriggerCooldown() = default;
 
-        bool CanTrigger(Player* player, uint32 areaTriggerId, uint32 cooldownSeconds)
+        template<class Rep, class Period>
+        bool CanTrigger(Player* player, uint32 areaTriggerId, std::chrono::duration<Rep, Period> cooldown)
         {
-            time_t now = time(nullptr);
-            auto& playerMap = lastTrigger[player->GetGUID()];
-            time_t& t = playerMap[areaTriggerId];
+            using namespace std::chrono;
 
-            if (now - t < cooldownSeconds)
+            auto now = steady_clock::now();
+            auto& playerMap = lastTrigger[player->GetGUID()];
+            auto& last = playerMap[areaTriggerId];
+
+            // If this is the first time, last == time_point{} ? always allow
+            if (now - last < cooldown)
                 return false;
 
-            t = now;
+            last = now;
             return true;
         }
 
     private:
-        std::unordered_map<ObjectGuid, std::unordered_map<uint32, time_t>> lastTrigger;
+        std::unordered_map<ObjectGuid, std::unordered_map<uint32, std::chrono::steady_clock::time_point>> lastTrigger;
     };
 
     static PlayerAreaTriggerCooldown g_areaTriggerCooldown;
+
+    // 7995 - Valley of Heroes - Stormwind City Guard
+    class at_stormwind_valley_of_heroes_7995 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_valley_of_heroes_7995() : AreaTriggerScript("at_stormwind_valley_of_heroes_7995") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 2min))
+                    return false;
+
+                Creature* guard = player->GetMap()->GetCreatureBySpawnId(Spawns::StormwindCityGuardOnBridge);
+                if (guard && guard->IsAlive())
+                    guard->AI()->Talk(6);
+            }
+            return true;
+        }
+    };
 
     // 7990 - Stormwind Trade District - Moni and Alyn
     class at_stormwind_trade_district_7990 : public AreaTriggerScript
@@ -71,7 +98,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
             if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
             {
                 // add cooldown of 45s to prevent spam talk
-                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
                     return false;
 
                 Creature* moni = player->FindNearestCreature(Creatures::MoniWiddlesprock, 50.f);
@@ -97,7 +124,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
             if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
             {
                 // add cooldown of 45s to prevent spam talk
-                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
                     return false;
 
                 Creature* leria = player->FindNearestCreature(Creatures::LeriaNightwind, 50.f);
@@ -119,7 +146,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
             if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
             {
                 // add cooldown of 45s to prevent spam talk
-                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
                     return false;
 
                 Creature* brunn = player->FindNearestCreature(Creatures::BrunnGoldenmug, 50.f);
@@ -141,7 +168,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
             if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
             {
                 // add cooldown of 45s to prevent spam talk
-                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45))
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
                     return false;
 
                 Creature* lucas = player->FindNearestCreature(Creatures::LucasSevering, 50.f);
@@ -165,5 +192,5 @@ void AddSC_custom_stormwind_at()
     new at_stormwind_keep_7992();
     new at_stormwind_canals_7993();
     new at_stormwind_canals_7994();
-    
+    new at_stormwind_valley_of_heroes_7995();
 }
