@@ -23,6 +23,7 @@
 #include "Creature.h"
 #include "CreatureAIImpl.h"
 #include "ScriptedCreature.h"
+#include "ScriptMgr.h"
 #include "TaskScheduler.h"
 
 #include "Custom_Stormwind_Defines.h"

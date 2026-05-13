@@ -113,6 +113,28 @@ namespace Scripts::EasternKingdoms::StormwindCity
         }
     };
 
+    // 7991 - Stormwind Canals - Gavin
+    class at_stormwind_canals_7991 : public AreaTriggerScript
+    {
+    public:
+        at_stormwind_canals_7991() : AreaTriggerScript("at_stormwind_canals_7991") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::JoiningTheAlliance) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown of 45s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 45s))
+                    return false;
+
+                Creature* brunn = player->FindNearestCreature(Creatures::BrunnGoldenmug, 50.f);
+                if (brunn && brunn->IsAlive())
+                    brunn->AI()->Talk(0);
+            }
+            return true;
+        }
+    };
+
     // 7993 - Stormwind Canals - Leria Nightwind
     class at_stormwind_canals_7993 : public AreaTriggerScript
     {
@@ -189,6 +211,7 @@ void AddSC_custom_stormwind_at()
     using namespace Scripts::EasternKingdoms::StormwindCity;
 
     new at_stormwind_trade_district_7990();
+    new at_stormwind_canals_7991();
     new at_stormwind_keep_7992();
     new at_stormwind_canals_7993();
     new at_stormwind_canals_7994();
