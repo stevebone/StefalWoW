@@ -159,7 +159,6 @@ public:
         switch (questId)
         {
             case QUEST_THE_REBEL_LORDS_ARSENAL:
-                player->RemoveAura(SPELL_WORGEN_BITE);
                 player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
                 break;
         }
@@ -2425,17 +2424,6 @@ public:
         ACTION_START_ANIM = 102,
     };
 
-    bool OnQuestReward(Player* player, Creature* creature, Quest const* quest, uint32 /*opt*/) override
-    {
-        if (quest->GetQuestId() == QUEST_THE_REBEL_LORDS_ARSENAL)
-        {
-            creature->AddAura(SPELL_WORGEN_BITE, player);
-            creature->GetAI()->SetGUID(player->GetGUID(), PLAYER_GUID);
-            creature->AI()->DoAction(ACTION_START_ANIM);
-        }
-        return true;
-    }
-
     struct npc_josiah_avery_35369AI : public ScriptedAI
     {
         npc_josiah_avery_35369AI(Creature* creature) : ScriptedAI(creature) {}
@@ -2445,6 +2433,16 @@ public:
         ObjectGuid m_playerGUID;
         ObjectGuid m_badAveryGUID;
         ObjectGuid m_triggerGUID;
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() == QUEST_THE_REBEL_LORDS_ARSENAL)
+            {
+                me->AddAura(SPELL_WORGEN_BITE, player);
+                SetGUID(player->GetGUID(), PLAYER_GUID);
+                DoAction(ACTION_START_ANIM);
+            }
+        }
 
         // Evade or Respawn
         void Reset() override
@@ -2538,6 +2536,28 @@ public:
     }
 };
 
+// 35370
+class npc_josiah_avery_35370 : public CreatureScript
+{
+public:
+    npc_josiah_avery_35370() : CreatureScript("npc_josiah_avery_35370") {}
+
+    struct npc_josiah_avery_35370AI : public ScriptedAI
+    {
+        npc_josiah_avery_35370AI(Creature* creature) : ScriptedAI(creature) {}
+
+        void IsSummonedBy(WorldObject* /*summoner*/) override
+        {
+            PhasingHandler::AddPhase(me, 171, true);
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_josiah_avery_35370AI(creature);
+    }
+};
+
 // 50415
 class npc_josiah_avery_trigger_50415 : public CreatureScript
 {
@@ -2580,12 +2600,8 @@ public:
             if (Player* player = summoner->ToPlayer())
             {
                 PhasingHandler::AddPhase(me, 171, true);
-                if (Creature* lorna = me->FindNearestCreature(NPC_LORNA_CROWLEY_35378, 60.0f, true))
-                {
-                    m_playerGUID = player->GetGUID();
-                    m_lornaGUID = lorna->GetGUID();
-                    m_events.RescheduleEvent(EVENTS_START_ANIM, 25ms);
-                }
+                m_playerGUID = player->GetGUID();
+                m_events.RescheduleEvent(EVENTS_START_ANIM, 100ms);
             }
         }
 
@@ -2600,7 +2616,7 @@ public:
                 case EVENTS_START_ANIM:
                 {
                     if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        Talk(SAY_JOSAIH_AVERY_TRIGGER, player); // Tell Player they have been bitten
+                        Talk(SAY_JOSAIH_AVERY_TRIGGER, player);
                     m_events.ScheduleEvent(EVENTS_ANIM_1, 200ms);
                     break;
                 }
@@ -2610,7 +2626,7 @@ public:
                         if (Creature* badAvery = me->FindNearestCreature(NPC_JOSIAH_AVERY_35370, 25.0f, true))
                         {
                             m_badAveryGUID = badAvery->GetGUID();
-                            badAvery->SetOrientation(badAvery->GetAbsoluteAngle(player)); // Face Player
+                            badAvery->SetOrientation(badAvery->GetAbsoluteAngle(player));
                             badAvery->CastSpell(player, SPELL_COSMETIC_COMBAT_ATTACK, true);
                             player->GetMotionMaster()->MoveKnockbackFrom(Position(-1791.94f, 1427.29f, 12.4584f), 22.0f, 8.0f, 0.0f);
                             badAvery->GetThreatManager().ResetAllThreat();
@@ -2628,8 +2644,14 @@ public:
                 case EVENTS_ANIM_3:
                 {
                     if (Creature* badAvery = ObjectAccessor::GetCreature(*me, m_badAveryGUID))
+                    {
+                        if (m_lornaGUID.IsEmpty())
+                            if (Creature* lorna = me->FindNearestCreature(NPC_LORNA_CROWLEY_35378, 60.0f, true))
+                                m_lornaGUID = lorna->GetGUID();
+
                         if (Creature* lorna = ObjectAccessor::GetCreature(*me, m_lornaGUID))
                             lorna->CastSpell(badAvery, SPELL_SHOOT, true);
+                    }
                     m_events.ScheduleEvent(EVENTS_ANIM_4, 200ms);
                     break;
                 }
@@ -3440,24 +3462,23 @@ public:
         ACTION_STARTING_EVENT = 101,
     };
 
-    bool OnQuestReward(Player* player, Creature* godfrey, Quest const* quest, uint32 /*opt*/) override
-    {
-        if (quest->GetQuestId() == QUEST_SAVE_KRENNAN_ARANAS)
-        {
-            godfrey->AI()->Talk(SAY_LORD_GODFREY_P4);
-            player->RemoveAura(SPELL_WORGEN_BITE);
-            godfrey->AddAura(SPELL_INFECTED_BITE, player);
-            player->CastSpell(player, SPELL_GILNEAS_CANNON_CAMERA);
-            player->SaveToDB();
-            if (Creature* cannon = GetClosestCreatureWithEntry(godfrey, NPC_COMMANDEERED_CANNON, 50.0f))
-                cannon->GetAI()->DoAction(ACTION_STARTING_EVENT);
-        }
-        return true;
-    }
-
     struct npc_lord_godfrey_35906AI : public ScriptedAI
     {
         npc_lord_godfrey_35906AI(Creature* creature) : ScriptedAI(creature) {}
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() == QUEST_SAVE_KRENNAN_ARANAS)
+            {
+                Talk(SAY_LORD_GODFREY_P4);
+                player->RemoveAura(SPELL_WORGEN_BITE);
+                me->AddAura(SPELL_INFECTED_BITE, player);
+                player->CastSpell(player, SPELL_GILNEAS_CANNON_CAMERA);
+                player->SaveToDB();
+                if (Creature* cannon = GetClosestCreatureWithEntry(me, NPC_COMMANDEERED_CANNON, 50.0f))
+                    cannon->GetAI()->DoAction(ACTION_STARTING_EVENT);
+            }
+        }
     };
 
     CreatureAI* GetAI(Creature* creature) const override
@@ -4255,27 +4276,25 @@ public:
         return false;
     }
 
-    bool OnQuestReward(Player* player, Creature* creature, const Quest *_Quest, uint32 /*opt*/) override
-    {
-        if (_Quest->GetQuestId() == QUEST_LAST_STAND)
-        {
-            player->RemoveAura(SPELL_HIDEOUS_BITE_WOUND);
-            player->CastSpell(player, SPELL_ALTERED_FORM, true);
-            player->CastSpell(player, SPELL_FORCE_WORGEN_ALTERED_FORM, true);
-            player->CastSpell(player, SPELL_ALTERED_FORM2, true);
-            creature->AI()->SetGUID(player->GetGUID(), PLAYER_GUID);
-            creature->AI()->DoAction(EVENT_START_MOVIE);
-            return true;
-        }
-        return false;
-    }
-
     struct npc_lord_darius_crowley_35566AI : public ScriptedAI
     {
         npc_lord_darius_crowley_35566AI(Creature* creature) : ScriptedAI(creature) {  }
 
         EventMap m_events;
         ObjectGuid   m_playerGUID;
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() == QUEST_LAST_STAND)
+            {
+                player->RemoveAura(SPELL_HIDEOUS_BITE_WOUND);
+                player->CastSpell(player, SPELL_ALTERED_FORM, true);
+                player->CastSpell(player, SPELL_FORCE_WORGEN_ALTERED_FORM, true);
+                player->CastSpell(player, SPELL_ALTERED_FORM2, true);
+                SetGUID(player->GetGUID(), PLAYER_GUID);
+                DoAction(EVENT_START_MOVIE);
+            }
+        }
 
         void Reset() override
         {
@@ -4564,6 +4583,7 @@ void AddSC_zone_gilneas_city1()
 
     //QUEST: 14159
     new npc_josiah_avery_35369();
+    new npc_josiah_avery_35370();
     new npc_josiah_avery_trigger_50415();
 
 
