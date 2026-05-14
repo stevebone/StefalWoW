@@ -73,7 +73,8 @@ namespace Scripts::EasternKingdoms::StormwindCity
     namespace Events
     {
         static constexpr int8 KingVarianSpawnedStartPath = 1;
-        static constexpr int8 KingVarianSpawnedInitialTalk = 2;
+        static constexpr int8 KingVarianSpawnedStartDialogue = 2;
+        static constexpr int8 KingVarianDialogueStep = 3;
     }
 
     namespace Phases
@@ -84,5 +85,39 @@ namespace Scripts::EasternKingdoms::StormwindCity
     namespace AreaTriggers
     {
         static constexpr uint32 StormwindTradeDistrictMoniAlyn = 7990;
+    }
+
+    struct DialogueEntry
+    {
+        uint32 NpcEntry;
+        uint8 TalkId;
+        Milliseconds NextDelay;
+        bool IsFinal = false;
+    };
+
+    namespace Dialogue
+    {
+        static constexpr DialogueEntry VarianDialogue[] =
+        {
+            // The time delay in seconds represents how long the line should take
+            // Until the next one can fire
+            { Creatures::KingVarianSpawned, 0, 4s }, // Walk with me. All three of you.
+            { Creatures::KingVarianSpawned, 1, 5s }, // I understand you want to join the Alliance.
+            { Creatures::KingVarianSpawned, 2, 8s }, // We always have need of allies. I'd be a fool to turn you away, especially at a time of war.
+            { Creatures::KingVarianSpawned, 3, 6s }, // But there are a number of things I need to make clear to you.
+            { Creatures::AysaSpawnedAtGate, 5, 3s }, // Yes. Go on.
+            { Creatures::KingVarianSpawned, 4, 5s }, // First: the races of the Alliance look out for one another.
+            { Creatures::KingVarianSpawned, 5, 10s }, // You are expected to provide aid to Alliance members in need, whether they be human, gnome, draenei... or pandaren like yourselves.
+            { Creatures::KingVarianSpawned, 6, 7s }, // It is a simple guideline, but a meaningful one. Do you understand?
+            { Creatures::AysaSpawnedAtGate, 6, 3s }, // Certainly
+            { Creatures::KingVarianSpawned, 7, 5s }, // Good. Because that brings me to my second point.
+            { Creatures::KingVarianSpawned, 8, 7s }, // Not all pandaren have chosen the same path as you three.
+            { Creatures::KingVarianSpawned, 9, 5s }, // Some have sided with the Horde.
+            { Creatures::KingVarianSpawned, 10, 7s }, // They, along with the other barbarian clans of the Horde, are your new enemies.
+            { Creatures::KingVarianSpawned, 11, 10s }, // Those who you once considered friends, or even those you might have loved, are now your sworn adversaries.
+            { Creatures::KingVarianSpawned, 12, 12s }, // I am deeply sorry, but the battle lines have been drawn. I will not tolerate any fraternizing with the enemy, as you could expose our Alliance to danger.
+            { Creatures::KingVarianSpawned, 13, 4s }, // Do I make myself clear?
+            { Creatures::AysaSpawnedAtGate, 7, 3s, true } // Yes... Of course.
+        };
     }
 }
