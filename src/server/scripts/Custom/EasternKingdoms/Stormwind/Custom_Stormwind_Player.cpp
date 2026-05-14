@@ -28,6 +28,7 @@
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Stormwind_Defines.h"
 
