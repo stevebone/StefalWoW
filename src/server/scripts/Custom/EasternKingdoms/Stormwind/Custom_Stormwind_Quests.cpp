@@ -29,6 +29,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "TaskScheduler.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Stormwind_Defines.h"
 
