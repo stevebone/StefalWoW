@@ -22,6 +22,7 @@
 
 #include "Creature.h"
 #include "CreatureAIImpl.h"
+#include "MotionMaster.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "QuestDef.h"
