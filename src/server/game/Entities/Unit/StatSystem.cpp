@@ -29,6 +29,7 @@
 #include <G3D/g3dmath.h>
 #include <numeric>
 #include <cmath>
+#include <iostream>
 
 inline bool _ModifyUInt32(bool apply, uint32& baseValue, int32& amount)
 {
@@ -1045,13 +1046,31 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, 
     float attackPower      = GetTotalAttackPowerValue(attType, false);
     float attackSpeedMulti = GetAPMultiplier(attType, normalized);
     float baseValue        = GetFlatModifierValue(unitMod, BASE_VALUE) + (attackPower / 3.5f) * variance;
-    float basePct          = GetPctModifierValue(unitMod, BASE_PCT) * attackSpeedMulti;
+    float basePct          = GetPctModifierValue(unitMod, BASE_PCT);
     float totalValue       = GetFlatModifierValue(unitMod, TOTAL_VALUE);
     float totalPct         = addTotalPct ? GetPctModifierValue(unitMod, TOTAL_PCT) : 1.0f;
     float dmgMultiplier    = GetCreatureDifficulty()->DamageModifier; // = DamageModifier * GetDamageMod(rank);
 
     minDamage = ((weaponMinDamage + baseValue) * dmgMultiplier * basePct + totalValue) * totalPct;
     maxDamage = ((weaponMaxDamage + baseValue) * dmgMultiplier * basePct + totalValue) * totalPct;
+
+    if (attType == BASE_ATTACK)
+    {
+        if (uint32 entry = GetEntry(); entry == 35631 || entry == 35463)
+        {
+            std::cout << "[DMG_LOG] Entry=" << entry
+                      << " weaponMin=" << weaponMinDamage
+                      << " AP=" << attackPower
+                      << " speedMulti=" << attackSpeedMulti
+                      << " baseValue=" << baseValue
+                      << " basePct=" << basePct
+                      << " dmgMult=" << dmgMultiplier
+                      << " totalPct=" << totalPct
+                      << " => min=" << minDamage
+                      << " max=" << maxDamage
+                      << std::endl;
+        }
+    }
 }
 
 /*#######################################

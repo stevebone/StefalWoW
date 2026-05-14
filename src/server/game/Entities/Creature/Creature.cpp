@@ -35,6 +35,7 @@
 #include "ItemTemplate.h"
 #include "Log.h"
 #include "Loot.h"
+#include <iostream>
 #include "LootMgr.h"
 #include "MapManager.h"
 #include "MapUtils.h"
@@ -1774,6 +1775,22 @@ void Creature::UpdateLevelDependantStats()
 
     // damage
     float basedamage = GetBaseDamageForLevel(level);
+    float attackTime = GetBaseAttackTime(BASE_ATTACK);
+    CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
+
+    if (uint32 entry = GetEntry(); entry == 35631 || entry == 35463)
+    {
+        std::cout << "[DMG_LOG] Entry=" << entry
+                  << " Level=" << (int)level
+                  << " unit_class=" << (int)cInfo->unit_class
+                  << " HealthScalingExpansion=" << creatureDifficulty->GetHealthScalingExpansion()
+                  << " ContentTuningID=" << creatureDifficulty->ContentTuningID
+                  << " DPS=" << basedamage
+                  << " AttackTime=" << attackTime
+                  << " DamageModifier=" << creatureDifficulty->DamageModifier
+                  << " Classification=" << (uint32)cInfo->Classification
+                  << std::endl;
+    }
 
     float weaponBaseMinDamage = basedamage;
     float weaponBaseMaxDamage = basedamage * 1.5f;

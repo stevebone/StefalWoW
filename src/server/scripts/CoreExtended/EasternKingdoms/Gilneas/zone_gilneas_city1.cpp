@@ -148,7 +148,10 @@ public:
         if (player->GetQuestStatus(QUEST_THE_REBEL_LORDS_ARSENAL) == QUEST_STATUS_REWARDED)
         {
             if (!player->HasAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02))
+            {
                 player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
+                player->AddAura(SPELL_WORGEN_BITE, player);
+            }
         }
     }
 
@@ -2408,11 +2411,11 @@ public:
         return new npc_worgen_alpha_35167AI(creature);
     }
 };
-
 /* QUEST - 14154 - By The Skin of His Teeth - END */
 
-/* Phase 4 - QUEST - 14159 - The Rebel Lord's Arsenal - START */
 
+
+/* QUEST - 14159 - The Rebel Lord's Arsenal - START */
 // 35369
 class npc_josiah_avery_35369 : public CreatureScript
 {
@@ -2642,7 +2645,7 @@ public:
                         {
                             Creature* lorna = lornaList.front();
                             lorna->SetOrientation(lorna->GetAbsoluteAngle(badAvery));
-                            lorna->CastSpell(badAvery, SPELL_SHOOT, true);
+                            lorna->CastSpell(badAvery, SPELL_SHOOT, CastSpellExtraArgs(TriggerCastFlags(TRIGGERED_FULL_MASK | TRIGGERED_IGNORE_TARGET_CHECK)));
                         }
                         badAvery->CastSpell(badAvery, SPELL_GET_SHOT, true);
                         me->Kill(me, badAvery);
@@ -2668,7 +2671,11 @@ public:
         return new npc_josiah_avery_trigger_50415AI(creature);
     }
 };
+/* QUEST - 14159 - The Rebel Lord's Arsenal - END */
 
+
+
+/* QUEST - 14204 - From the Shadows - START */
 // 35378
 class npc_lorna_crowley_35378 : public CreatureScript
 {
@@ -2735,7 +2742,7 @@ public:
                 m_playerGUID = player->GetGUID();
         }
 
-        void JustDied(Unit* /*killer*/) override // Otherwise, player is stuck with pet corpse they cannot remove from world
+        void JustDied(Unit* /*killer*/) override
         {
             me->DespawnOrUnsummon(1s);
         }
@@ -2802,21 +2809,38 @@ public:
             DoCast(me, SPELL_SHADOWSTALKER_STEALTH);
         }
 
+        void MoveInLineOfSight(Unit*) override {}
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == SPELL_ATTACK_LURKER)
+            {
+                me->RemoveAura(SPELL_SHADOWSTALKER_STEALTH);
+                if (Unit* unit = caster->ToUnit())
+                    AttackStart(unit);
+            }
+        }
+
         void UpdateAI(uint32 diff) override
         {
             if (tSeek <= diff)
             {
-                if ((me->IsAlive()) && (!me->IsInCombat() && (me->GetDistance2d(me->GetHomePosition().GetPositionX(), me->GetHomePosition().GetPositionY()) <= 2.0f)))
-                    if (Player* player = me->SelectNearestPlayer(2.0f))
+                if (me->IsAlive() && !me->IsInCombat() &&
+                    me->GetDistance2d(me->GetHomePosition().GetPositionX(), me->GetHomePosition().GetPositionY()) <= 0.7f)
+                {
+                    if (Player* player = me->SelectNearestPlayer(0.5f))
                     {
                         if (!player->IsInCombat())
                         {
-                            me->AI()->AttackStart(player);
+                            me->RemoveAura(SPELL_SHADOWSTALKER_STEALTH);
+                            AttackStart(player);
                             tSeek = urand(5000, 10000);
                         }
                     }
+                }
             }
-            else tSeek -= diff;
+            else
+                tSeek -= diff;
 
             if (!UpdateVictim())
                 return;
@@ -2837,6 +2861,7 @@ public:
         return new npc_bloodfang_lurker_35463AI(creature);
     }
 };
+/* QUEST - 14204 - From the Shadows - END */
 
 // 35504
 class npc_gilnean_city_guard_35504 : public CreatureScript
