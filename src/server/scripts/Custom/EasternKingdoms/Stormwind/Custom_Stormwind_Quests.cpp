@@ -23,6 +23,8 @@
 #include "Creature.h"
 #include "CreatureAIImpl.h"
 #include "PhasingHandler.h"
+#include "Player.h"
+#include "QuestDef.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "TaskScheduler.h"

@@ -22,6 +22,8 @@
 
 #include "Creature.h"
 #include "CreatureAIImpl.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "Player.h"
 #include "ScriptedCreature.h"

@@ -26,6 +26,7 @@
 #include "DB2Stores.h"
 #include "Map.h"
 #include "MotionMaster.h"
+#include "ObjectGuid.h"
 #include "Player.h"
 #include "Position.h"
 #include "ScriptMgr.h"

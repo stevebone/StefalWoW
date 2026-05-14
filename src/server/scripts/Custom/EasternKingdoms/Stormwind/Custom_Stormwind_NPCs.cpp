@@ -23,11 +23,13 @@
 #include "Creature.h"
 #include "CreatureAIImpl.h"
 #include "EventMap.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
+#include "SpellInfo.h"
 #include "TaskScheduler.h"
 
 #include "Custom_Stormwind_Defines.h"
