@@ -26,6 +26,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
 {
     namespace Creatures
     {
+        static constexpr uint32 AysaAtStormwindGateKeep = 60566;
         static constexpr uint32 GeneralMarcusJonathan = 466;
         static constexpr uint32 AysaSpawnedAtGate = 61792;
         static constexpr uint32 JojoSpawnedAtGate = 61793;
@@ -42,6 +43,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
         static constexpr uint32 KingVarianSpawned = 61796;
 
         static constexpr uint32 CreditWalkWithKingVarian = 61798;
+        static constexpr uint32 CreditFightWithKingVarian = 61824;
     }
 
     namespace Spawns
@@ -52,17 +54,25 @@ namespace Scripts::EasternKingdoms::StormwindCity
     namespace Quests
     {
         static constexpr uint32 JoiningTheAlliance = 30987;
+        static constexpr uint32 TheAllianceWay = 30988;
+        static constexpr uint32 AnOldPitFighter = 30989;
     }
 
     namespace Spells
     {
+        static constexpr uint32 SummonAysaAtStormwindGate = 120344;
+        static constexpr uint32 SummonJojoAtStormwindGate = 120345;
         static constexpr uint32 Stealth = 86603;
+        static constexpr uint32 VariansPhaseInvisAura = 120418;
+        static constexpr uint32 PandarenQuackingPalm = 107079;
     }
 
     namespace Positions
     {
         static constexpr Position AysaStormwindCityGeneralMarcus = { -8957.971f, 517.9630f, 96.3556f, 0.7743f };
         static constexpr Position AysaStormwindCityCenter = { -8826.584f, 627.582f, 94.3396f, 0.7692f };
+        static constexpr Position AysaStormwindKeepVarianSpar = { -8326.8f, 301.036f, 156.833f, 5.23791f };
+        static constexpr Position JojoStormwindKeepVarianSpar = { -8313.51f, 280.193f, 156.833f, 2.30782f };
     }
 
     namespace Paths
@@ -75,11 +85,22 @@ namespace Scripts::EasternKingdoms::StormwindCity
         static constexpr int8 KingVarianSpawnedStartPath = 1;
         static constexpr int8 KingVarianSpawnedStartDialogue = 2;
         static constexpr int8 KingVarianDialogueStep = 3;
+        static constexpr int8 KingVarianCombatStart = 4;
+        static constexpr int8 KingVarianCombatEnd = 5;
+        static constexpr int8 KingVarianSpawnedFinalPath = 6;
     }
 
     namespace Phases
     {
+        static constexpr uint32 StormwindGateAysa = 1135;
+        static constexpr uint32 StormwindGateJojo = 1136;
         static constexpr uint32 StormwindKeepKingVarian = 1139;
+        static constexpr uint32 StormwindKeepKingVarianSpar = 1147;
+    }
+
+    namespace Misc
+    {
+        static constexpr int8 KingVarianSparScene = 2;
     }
 
     namespace AreaTriggers
@@ -115,7 +136,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
             { Creatures::KingVarianSpawned, 9, 5s }, // Some have sided with the Horde.
             { Creatures::KingVarianSpawned, 10, 7s }, // They, along with the other barbarian clans of the Horde, are your new enemies.
             { Creatures::KingVarianSpawned, 11, 10s }, // Those who you once considered friends, or even those you might have loved, are now your sworn adversaries.
-            { Creatures::KingVarianSpawned, 12, 12s }, // I am deeply sorry, but the battle lines have been drawn. I will not tolerate any fraternizing with the enemy, as you could expose our Alliance to danger.
+            { Creatures::KingVarianSpawned, 12, 14s }, // I am deeply sorry, but the battle lines have been drawn. I will not tolerate any fraternizing with the enemy, as you could expose our Alliance to danger.
             { Creatures::KingVarianSpawned, 13, 4s }, // Do I make myself clear?
             { Creatures::AysaSpawnedAtGate, 7, 3s, true } // Yes... Of course.
         };

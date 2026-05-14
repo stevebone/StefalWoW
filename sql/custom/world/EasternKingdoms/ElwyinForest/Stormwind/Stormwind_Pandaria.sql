@@ -3,6 +3,7 @@
 -- Phase: 1137 Cosmetic - Stormwind/Elwynn - Balloon
 -- Phase: 1138 Cosmetic - Ling Completion - See Scroll
 -- Phase: 1139 Cosmetic - Stormwind Keep - See Varian
+-- Phase: 1147 Spar with Varian
 
 -- Spells: 120344 Summon Aysa (Stormwind Gate)
 -- Spells: 120345 Summon Jojo (Stormwind Gate)
@@ -10,6 +11,8 @@
 -- Spells: 83773 Conversation Trigger 01 (Instant No Delay)
 -- Spells: 88811 CSA AT Dummy Timer (30s)
 -- Spells: 116601 Timer Aura (5s)
+-- Spells: 120568 Varian Gets Punched Scene
+-- Spells: 120418 Varians Phase/Invis Aura
 
 -- AT: 7995 Stormwind Bridge (middle)
 -- AT: 5828 Stormwind Bridge (Marshall)
@@ -23,6 +26,7 @@
 
 -- Quest: 30987 Joining the Alliance
 -- Quest: 30988 The Alliance Way
+-- Quest: 30989 An Old Pit Fighter
 
 -- NPC: 62419 Aysa Stormwind Monk Trainer
 -- NPC: 60565 Shang Xi's Hot Air Balloon
@@ -64,14 +68,16 @@ INSERT INTO `conditions` VALUES
 (26, 1136, 0, 0, 0, 47, 0, 30987, 1, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1136 active if 30987 NOT taken'),
 (26, 1137, 0, 0, 0, 47, 0, 30987, 64, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1137 active if 30987 NOT rewarded'),
 (26, 1139, 0, 0, 0, 47, 0, 30987, 66, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30987 complete or rewarded'),
-(26, 1139, 0, 0, 0, 47, 0, 30988, 66, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30987 complete or rewarded');
+(26, 1139, 0, 0, 0, 47, 0, 30988, 66, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30987 complete or rewarded'),
+(26, 1139, 0, 0, 1, 47, 0, 30989, 2, 0, '', 0, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30989 complete'),
+(26, 1139, 0, 0, 1, 47, 0, 30989, 64, 0, '', 1, 0, 0, '', 'Stormwind Gate - Phase 1139 active if 30989 complete');
 
--- On quest accept cast Summon Aysa spell on player
-UPDATE `quest_template_addon` SET `SourceSpellID` = 120344 WHERE `ID` = 30987;
 -- Quest Template Addons
-DELETE FROM `quest_template_addon` WHERE `ID` IN (30988);
+DELETE FROM `quest_template_addon` WHERE `ID` IN (30987,30988,30989);
 INSERT INTO `quest_template_addon` VALUES
-(30988, 0, 0, 0, 30987, 30989, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_30988_the_alliance_way');
+(30987, 0, 0, 120344, 31450, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_30987_joining_the_alliance'),
+(30988, 0, 0, 0, 30987, 30989, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_30988_the_alliance_way'),
+(30989, 0, 0, 0, 30988, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'quest_30989_an_old_pit_fighter');
 
 DELETE FROM `creature_queststarter` WHERE `quest` IN (30988);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
@@ -89,6 +95,11 @@ DELETE FROM `spell_target_position` WHERE `ID` IN (116957);
 INSERT INTO `spell_target_position` VALUES
 ('116957', '0', 0, '0', '-9063.70', '434.73', '93.055', '0.6744', 0),
 ('116957', '1', 0, '0', '-9063.70', '434.73', '93.055', '0.6744', 0);
+
+DELETE FROM `scene_template` WHERE `SceneId`=2;
+INSERT INTO `scene_template` (`SceneId`, `Flags`, `ScriptPackageID`, `ScriptName`) VALUES
+-- Scene for Varian being punched
+(2, 4, 55, '');
 
 -- AT scripts
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5828,7989, 7990,7991,7992,7993,7994,7995,7996);
@@ -123,29 +134,13 @@ INSERT INTO `creature_template_addon` VALUES
 (60566, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- Aysa
 (60567, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '115672'); -- Jojo
 
--- SmartAI
- -- Aysa Cloudsinger smart ai
-SET @ENTRY := 61792;
-UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
-DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
-(@ENTRY, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Follow Owner by distance 0, angle 0', ''),
-(@ENTRY, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1135, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Owner/Summoner: Remove phase id Cosmetic - Stormwind/Elwynn - Aysa (1135)', ''),
-(@ENTRY, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Talk 0 to Owner/Summoner', '');
-
- -- Jojo smart ai
-SET @ENTRY := 61793;
-UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
-DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
-(@ENTRY, 0, 0, 1, 11, 0, 100, 0, 0, 0, 0, 0, 0, 29, 3, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Self: Follow Owner by distance 3, angle 0', ''),
-(@ENTRY, 0, 1, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 44, 1136, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 'On respawn - Owner/Summoner: Remove phase id Cosmetic - Stormwind/Elwynn - Jojo (1136)', '');
-
 -- Creature Text
-DELETE FROM creature_text WHERE `CreatureID` IN (61792,61793,61836,61834,61837,61841,61838, 61839,61840,61895,61896,61796);
+DELETE FROM creature_text WHERE `CreatureID` IN (61792,61793,61836,61834,61837,61841,61838, 61839,61840,61895,61896,61796,60566);
 DELETE FROM creature_text WHERE `CreatureID` = 68 AND `GroupID` = 6;
 DELETE FROM creature_text WHERE `CreatureID` = 466 AND `GroupID` IN (1,2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+-- Aysa Stormwind Gate/Stormwind Keep
+(60566, 0, 0, 'Careful, $p! You do not want to hurt your new king...', 12, 0, 100, 274, 0, 27393, 0, 61457, 0, 'Aysa Spawned at Stormwind Gate'),
 -- Aysa spawned at Stormwind Gate
 (61792, 0, 0, 'Let''s get going, $p. If we are going to be of any use out here, we are going to need allies.', 12, 0, 100, 0, 0, 27389, 0, 61421, 0, 'Aysa Spawned at Stormwind Gate'),
 (61792, 1, 0, 'We''re here to join the Alliance. We seek audience with your Emperor.', 12, 0, 100, 2, 5000, 0, 0, 61417, 0, 'Aysa Spawned at Stormwind Gate'),
@@ -202,19 +197,28 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (61796, 11, 0, 'Those who you once considered friends, or even those you might have loved, are now your sworn adversaries.', 12, 0, 100, 274, 0, 29585, 0, 61438, 0, 'King Varian Spawned in Stormwind Keep'),
 (61796, 12, 0, 'I am deeply sorry, but the battle lines have been drawn. I will not tolerate any fraternizing with the enemy, as you could expose our Alliance to danger.', 12, 0, 100, 5, 0, 29586, 0, 61439, 0, 'King Varian Spawned in Stormwind Keep'),
 (61796, 13, 0, 'Do I make myself clear?', 12, 0, 100, 0, 0, 29587, 0, 61440, 0, 'King Varian Spawned in Stormwind Keep'),
-(61796, 14, 0, 'Very well. We are nearly finished, $p.', 12, 0, 100, 0, 0, 29588, 0, 61442, 0, 'King Varian Spawned in Stormwind Keep');
+(61796, 14, 0, 'Very well. We are nearly finished, $p.', 12, 0, 100, 0, 0, 29588, 0, 61442, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 15, 0, 'Few people know this, but I was once a pit fighter myself. A gladiator for the Horde''s amusement. So I know a thing or two about martial combat.', 12, 0, 100, 1, 0, 29568, 0, 66865, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 16, 0, 'Now, pandaren... let me see what you''ve got!', 12, 0, 100, 5, 0, 29569, 0, 61454, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 17, 0, 'Don''t hold back now! Let''s have it!', 12, 0, 100, 5, 0, 29570, 0, 61455, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 18, 0, 'What''s the matter? You''ll have to do better than that.', 12, 0, 100, 6, 0, 29571, 0, 61456, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 19, 0, 'Come on, pandaren! HIT ME!', 14, 0, 100, 5, 0, 29572, 0, 61458, 0, 'King Varian Spawned in Stormwind Keep'),
+(61796, 20, 0, 'Ha ha ha haaa! I haven''t felt like this in YEARS! Don''t worry, $p... I''ve been in worse scraps than this. A fighting spirit like yours is welcome in the Alliance.  Now, let''s get back to business.', 12, 0, 100, 11, 0, 29573, 0, 61459, 0, 'King Varian Spawned in Stormwind Keep');
 
 -- Spawns
 SET @CGUID := 900810;
 
-DELETE FROM `creature` WHERE `id` IN (60567,60566,60565,61839,61840,29611);
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+0,@CGUID+1,@CGUID+2,@CGUID+3,@CGUID+4,@CGUID+5,@CGUID+6,@CGUID+7);
 INSERT INTO `creature` VALUES
 (@CGUID+0, '60565', '0', '12', '7486', '0', '0', '1137', '0', '-1', '0', '0', '-9084.53', '427.842', '92.5858', '0.521299', '300', '0', '0', '100', '0', NULL, NULL, NULL, '1048576', '', NULL, '0'),
 (@CGUID+1, '60566', '0', '1519', '1617', '0', '0', '1135', '0', '-1', '0', '0', '-9061.02', '433.229', '93.0557', '0.705292', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+2, '60567', '0', '1519', '1617', '0', '0', '1136', '0', '-1', '0', '0', '-9065.02', '437.349', '93.0558', '0.550979', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+3, '61839', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8479', '392.182', '115.942', '5.96828', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474'),
 (@CGUID+4, '61840', '0', '1519', '5390', '0', '0', '0', '0', '-1', '0', '1', '-8476.99', '391.53', '115.942', '2.82668', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '37474'),
-(@CGUID+5, '29611', '0', '1519', '6292', '0', '0', '1139', '0', '-1', '0', '1', '-8362.34', '233.782', '156.991', '2.79159', '300', '0', '0', '100', '0', NULL, NULL, '2099200', NULL, '', NULL, '0');
+(@CGUID+5, '29611', '0', '1519', '6292', '0', '0', '1139', '0', '-1', '0', '1', '-8362.34', '233.782', '156.991', '2.79159', '300', '0', '0', '100', '0', NULL, NULL, '2099200', NULL, '', NULL, '0'),
+(@CGUID+6, '60566', '0', '1519', '6292', '0', '0', '1147', '0', '-1', '0', '0', '-8326.8', '301.036', '156.833', '5.23791', '300', '0', '0', '100', '0', NULL, '32768', NULL, NULL, '', NULL, '0'),
+(@CGUID+7, '60567', '0', '1519', '6292', '0', '0', '1147', '0', '-1', '0', '0', '-8313.51', '280.193', '156.833', '2.30782', '300', '0', '0', '100', '0', NULL, '32768', NULL, NULL, '', NULL, '0');
+
 
 -- Waypoint Data
 DELETE FROM `waypoint_path` WHERE `PathId` IN (6179600);

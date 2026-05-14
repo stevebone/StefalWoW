@@ -24,6 +24,7 @@
 #include "CreatureAIImpl.h"
 #include "EventMap.h"
 #include "ObjectAccessor.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
@@ -34,6 +35,7 @@
 namespace Scripts::EasternKingdoms::StormwindCity
 {
     // 61796 - King Varian (Spawned for Quest: The Alliance Way)
+    // Also Quest: An Old Pit Fighter
     struct npc_king_varian_61796 : public ScriptedAI
     {
         npc_king_varian_61796(Creature* creature) : ScriptedAI(creature) {}
@@ -41,6 +43,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
         void Reset() override
         {
             _events.Reset();
+            hitMe = false;
             _events.ScheduleEvent(Events::KingVarianSpawnedStartPath, 2s);
             _events.ScheduleEvent(Events::KingVarianSpawnedStartDialogue, 5s);
         }
@@ -51,16 +54,90 @@ namespace Scripts::EasternKingdoms::StormwindCity
                 _playerGUID = guid;
         }
 
-        void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
+        void OnQuestAccept(Player* player, Quest const* quest) override
         {
-            if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID))
+            if (quest->GetQuestId() == Quests::AnOldPitFighter)
             {
-                player->KilledMonsterCredit(Creatures::CreditWalkWithKingVarian);
+                Creature* aysa = player->FindNearestCreature(Creatures::AysaSpawnedAtGate, 50.f);
+                if (aysa && aysa->IsAlive())
+                {
+                    aysa->GetMotionMaster()->Clear();
+                    aysa->GetMotionMaster()->MovePoint(3, Positions::AysaStormwindKeepVarianSpar);
+                }
+
+                Creature* jojo = player->FindNearestCreature(Creatures::JojoSpawnedAtGate, 50.f);
+                if (jojo && jojo->IsAlive())
+                {
+                    jojo->GetMotionMaster()->Clear();
+                    jojo->GetMotionMaster()->MovePoint(3, Positions::JojoStormwindKeepVarianSpar);
+                }
+
                 me->m_Events.AddEventAtOffset([this, player]()
                     {
                         if (me && me->IsAlive())
-                            Talk(14, player);
-                    }, std::chrono::seconds(7));
+                        {
+                            PhasingHandler::AddPhase(me, Phases::StormwindKeepKingVarianSpar, false);
+                            player->AddAura(Spells::VariansPhaseInvisAura, player);
+
+                            Talk(15);
+                            _events.ScheduleEvent(Events::KingVarianCombatStart, 10s);
+                        }
+                    }, std::chrono::seconds(3));
+            }
+        }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::PandarenQuackingPalm && hitMe)
+            {
+                me->RemoveAllAuras();
+                me->SetStandState(UNIT_STAND_STATE_STAND);
+
+                Player* player = caster->ToPlayer();
+                if (player)
+                {
+                    if (!sObjectMgr->GetSceneTemplate(Misc::KingVarianSparScene))
+                        return;
+
+                    player->GetSceneMgr().PlayScene(Misc::KingVarianSparScene);
+                    me->HandleEmoteCommand(Emote(482));
+                    me->RestoreFaction();
+                    player->CombatStop(true);
+                    me->ClearInCombat();
+                    _events.ScheduleEvent(Events::KingVarianCombatEnd, 10s);
+                }
+            }
+        }
+
+        void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+        {
+            if (pathId == Paths::StormwindKeepKingVarian)
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID))
+                {
+                    player->KilledMonsterCredit(Creatures::CreditWalkWithKingVarian);
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            if (me && me->IsAlive())
+                                Talk(14, player);
+                        }, std::chrono::seconds(9));
+                }
+            }
+        }
+
+        void MovementInform(uint32 type, uint32 pointId) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            if (pointId == 1)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID);
+                if (player)
+                {
+                    PhasingHandler::AddPhase(player, Phases::StormwindKeepKingVarian, true);
+                    me->DespawnOrUnsummon();
+                }
             }
         }
 
@@ -110,6 +187,92 @@ namespace Scripts::EasternKingdoms::StormwindCity
 
                     break;
                 }
+
+                case Events::KingVarianCombatStart:
+                {
+                    Talk(16); // Now, pandaren... let me see what you''ve got!
+                    me->SetFaction(14); // may need to find a more appropriate faction
+                    me->SetEmoteState(Emote(663));
+
+                    me->m_Events.AddEventAtOffset([this]()
+                        {
+                            if (me && me->IsAlive())
+                                Talk(17); // Don't hold back now! Let's have it!
+                        }, std::chrono::seconds(7));
+
+                    me->m_Events.AddEventAtOffset([this]()
+                        {
+                            if (me && me->IsAlive())
+                                Talk(18); // What's the matter? You'll have to do better than that.
+                        }, std::chrono::seconds(15));
+
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID);
+                    if (player && player->IsAlive())
+                    {
+                        Creature* aysa = player->FindNearestCreature(Creatures::AysaAtStormwindGateKeep, 50.f);
+                        if (aysa && aysa->IsAlive())
+                        {
+                            aysa->m_Events.AddEventAtOffset([aysa, player]()
+                                {
+                                    if (aysa && aysa->IsAlive())
+                                        aysa->AI()->Talk(0, player); // Careful, $p! You do not want to hurt your new king...
+                                }, std::chrono::seconds(20));
+                        }
+                    }
+
+                    me->m_Events.AddEventAtOffset([this]()
+                        {
+                            if (me && me->IsAlive())
+                                Talk(19); // Come on, pandaren! HIT ME!
+                            hitMe = true; // now we can hit the mofo
+                        }, std::chrono::seconds(25));
+
+                    break;
+                }
+
+                case Events::KingVarianCombatEnd:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID);
+                    if (player && player->IsAlive())
+                    {
+                        me->SetStandState(UNIT_STAND_STATE_STAND);
+
+                        player->KilledMonsterCredit(Creatures::CreditFightWithKingVarian);
+                        Talk(20, player);
+
+                        _events.ScheduleEvent(Events::KingVarianSpawnedFinalPath, 5s);
+
+                        PhasingHandler::RemovePhase(me, Phases::StormwindKeepKingVarianSpar, false);
+                        player->RemoveAurasDueToSpell(Spells::VariansPhaseInvisAura);
+
+                        Creature* aysa = player->FindNearestCreature(Creatures::AysaSpawnedAtGate, 50.f);
+                        if (aysa && aysa->IsAlive())
+                        {
+                            aysa->GetMotionMaster()->Clear();
+                            aysa->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                        }
+
+                        Creature* jojo = player->FindNearestCreature(Creatures::JojoSpawnedAtGate, 50.f);
+                        if (jojo && jojo->IsAlive())
+                        {
+                            jojo->GetMotionMaster()->Clear();
+                            jojo->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                        }
+                    }
+                    break;
+                }
+
+                case Events::KingVarianSpawnedFinalPath:
+                {
+                    Creature* phasedVarian = me->FindNearestCreatureWithOptions(100.f, { .CreatureId = Creatures::KingVarianPhased, .IgnorePhases = true });
+
+                    if (phasedVarian)
+                    {
+                        me->GetMotionMaster()->Clear();
+                        me->GetMotionMaster()->MovePoint(1, phasedVarian->GetPosition());
+                    }
+                    break;
+                }
                 }
             }
         }
@@ -125,6 +288,7 @@ namespace Scripts::EasternKingdoms::StormwindCity
         EventMap _events;
         ObjectGuid _playerGUID;
         size_t _dialogueIndex = 0;
+        bool hitMe = false;
     };
 }
 
