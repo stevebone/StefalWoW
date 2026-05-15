@@ -16,7 +16,7 @@ REPLACE INTO `phase` VALUES
 (50001, 4, -1), -- Start zone 1
 (50002, 4, -1), -- Start zone 2
 (50003, 4, -1), -- Start zone 2
-(50004, 4, -1), -- Westfall 1
-(50005, 4, -1), -- Westfall 2
-(50006, 4, -1), -- Westfall 3
-(50007, 4, -1); -- The Wandering Isle 1
+(50004, 20, -1), -- Westfall 1
+(50005, 20, -1), -- Westfall 2
+(50006, 20, -1), -- Westfall 3
+(50007, 20, -1); -- xxx can be reused
