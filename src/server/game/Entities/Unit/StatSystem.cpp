@@ -1053,24 +1053,6 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, 
 
     minDamage = ((weaponMinDamage + baseValue) * dmgMultiplier * basePct + totalValue) * totalPct;
     maxDamage = ((weaponMaxDamage + baseValue) * dmgMultiplier * basePct + totalValue) * totalPct;
-
-    if (attType == BASE_ATTACK)
-    {
-        if (uint32 entry = GetEntry(); entry == 35631 || entry == 35463)
-        {
-            std::cout << "[DMG_LOG] Entry=" << entry
-                      << " weaponMin=" << weaponMinDamage
-                      << " AP=" << attackPower
-                      << " speedMulti=" << attackSpeedMulti
-                      << " baseValue=" << baseValue
-                      << " basePct=" << basePct
-                      << " dmgMult=" << dmgMultiplier
-                      << " totalPct=" << totalPct
-                      << " => min=" << minDamage
-                      << " max=" << maxDamage
-                      << std::endl;
-        }
-    }
 }
 
 /*#######################################
@@ -1112,8 +1094,11 @@ bool Guardian::UpdateStats(Stats stat)
     }
     else if (stat == STAT_STAMINA)
     {
-        ownersBonus = CalculatePct(owner->GetStat(STAT_STAMINA), 30);
-        value += ownersBonus;
+        if (GetCreateStat(STAT_STRENGTH) != 0.0f)
+        {
+            ownersBonus = CalculatePct(owner->GetStat(STAT_STAMINA), 30);
+            value += ownersBonus;
+        }
     }
                                                             //warlock's and mage's pets gain 30% of owner's intellect
     else if (stat == STAT_INTELLECT)
@@ -1256,6 +1241,20 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
     float bonusAP = 0.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
 
+    if (GetCreateStat(STAT_STRENGTH) == 0.0f)
+    {
+        float base_attPower = GetFlatModifierValue(unitMod, BASE_VALUE) * GetPctModifierValue(unitMod, BASE_PCT);
+        float attPowerMultiplier = GetPctModifierValue(unitMod, TOTAL_PCT) - 1.0f;
+
+        SetAttackPower(int32(base_attPower));
+        SetAttackPowerMultiplier(attPowerMultiplier);
+        SetRangedAttackPower(int32(base_attPower));
+        SetRangedAttackPowerMultiplier(attPowerMultiplier);
+
+        UpdateDamagePhysical(BASE_ATTACK);
+        return;
+    }
+
     if (GetEntry() == ENTRY_IMP)                                   // imp's attack power
         val = GetStat(STAT_STRENGTH) - 10.0f;
     else
@@ -1339,6 +1338,17 @@ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
         }
     }
 
+    float weapon_mindamage = GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE);
+    float weapon_maxdamage = GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
+
+    if (GetCreateStat(STAT_STRENGTH) == 0.0f)
+    {
+        float dmgMultiplier = GetCreatureDifficulty()->DamageModifier;
+        SetUpdateFieldStatValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::MinDamage), weapon_mindamage * dmgMultiplier);
+        SetUpdateFieldStatValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::MaxDamage), weapon_maxdamage * dmgMultiplier);
+        return;
+    }
+
     UnitMods unitMod = UNIT_MOD_DAMAGE_MAINHAND;
 
     float att_speed = float(GetBaseAttackTime(BASE_ATTACK))/1000.0f;
@@ -1347,9 +1357,6 @@ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
     float base_pct    = GetPctModifierValue(unitMod, BASE_PCT);
     float total_value = GetFlatModifierValue(unitMod, TOTAL_VALUE);
     float total_pct   = GetPctModifierValue(unitMod, TOTAL_PCT);
-
-    float weapon_mindamage = GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE);
-    float weapon_maxdamage = GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
 
     float mindamage = ((base_value + weapon_mindamage) * base_pct + total_value) * total_pct;
     float maxdamage = ((base_value + weapon_maxdamage) * base_pct + total_value) * total_pct;

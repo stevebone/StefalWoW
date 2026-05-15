@@ -1778,20 +1778,6 @@ void Creature::UpdateLevelDependantStats()
     float attackTime = GetBaseAttackTime(BASE_ATTACK);
     CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
 
-    if (uint32 entry = GetEntry(); entry == 35631 || entry == 35463)
-    {
-        std::cout << "[DMG_LOG] Entry=" << entry
-                  << " Level=" << (int)level
-                  << " unit_class=" << (int)cInfo->unit_class
-                  << " HealthScalingExpansion=" << creatureDifficulty->GetHealthScalingExpansion()
-                  << " ContentTuningID=" << creatureDifficulty->ContentTuningID
-                  << " DPS=" << basedamage
-                  << " AttackTime=" << attackTime
-                  << " DamageModifier=" << creatureDifficulty->DamageModifier
-                  << " Classification=" << (uint32)cInfo->Classification
-                  << std::endl;
-    }
-
     float weaponBaseMinDamage = basedamage;
     float weaponBaseMaxDamage = basedamage * 1.5f;
 
@@ -3283,7 +3269,9 @@ float Creature::GetDamageMultiplierForTarget(WorldObject const* target) const
     uint8 levelForTarget = GetLevelForTarget(target);
     uint32 contentTuningId = GetContentTuningIdForTarget(target);
 
-    return GetBaseDamageForLevel(levelForTarget, contentTuningId) / GetBaseDamageForLevel(GetLevel());
+    float multiplier = GetBaseDamageForLevel(levelForTarget, contentTuningId) / GetBaseDamageForLevel(GetLevel());
+
+    return multiplier;
 }
 
 float Creature::GetBaseArmorForLevel(uint8 level) const

@@ -1075,17 +1075,23 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                 }
                 default:
                 {
-                    /* ToDo: Check what 5f5d2028 broke/fixed and how much of Creature::UpdateLevelDependantStats()
-                     * should be copied here (or moved to another method or if that function should be called here
-                     * or not just for this default case)
-                     */
+                    SetCreateStat(STAT_STRENGTH, 0);
+                    SetCreateStat(STAT_AGILITY, 0);
+                    SetCreateStat(STAT_STAMINA, 0);
+                    SetCreateStat(STAT_INTELLECT, 0);
+
                     float basedamage = GetBaseDamageForLevel(petlevel);
 
-                    float weaponBaseMinDamage = basedamage;
-                    float weaponBaseMaxDamage = basedamage * 1.5f;
+                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, basedamage);
+                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, basedamage);
+                    SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, basedamage * 0.5f);
+                    SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, basedamage * 0.5f);
+                    SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, basedamage);
+                    SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, basedamage);
 
-                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+                    CreatureBaseStats const* baseStats = sObjectMgr->GetCreatureBaseStats(petlevel, cinfo->unit_class);
+                    SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(baseStats->AttackPower));
+                    SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, float(baseStats->RangedAttackPower));
                     break;
                 }
             }

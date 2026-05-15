@@ -1714,8 +1714,6 @@ public:
                                     creature->AI()->SetGUID(m_playerGUID, PLAYER_GUID);
                                     creature->AI()->DoAction(2);
                                     creature->SetBaseAttackTime(BASE_ATTACK, 3000);
-                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE) * 0.1f);
-                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE) * 0.1f);
                                 }
                             }
                             else
@@ -1725,8 +1723,6 @@ public:
                                     creature->AI()->SetGUID(m_playerGUID, PLAYER_GUID);
                                     creature->AI()->DoAction(1);
                                     creature->SetBaseAttackTime(BASE_ATTACK, 3000);
-                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE) * 0.1f);
-                                    creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE) * 0.1f);
                                 }
                             }
                         }
