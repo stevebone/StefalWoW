@@ -6,6 +6,10 @@ DELETE FROM creature_loot_template
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
 500,501,504,513,515,517,519,550,589,590,594,830,831,832,834,1065,1109,1236,1424,6250,42357,42653,42669, 42677);
 
+-- Delete Skinning Loot
+DELETE FROM skinning_loot_template 
+WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
+500,501,504,513,515,517,519,550,589,590,594,830,831,832,834,1065,1109,1236,1424,6250,42357,42653,42669, 42677);
 
 -- Quest Items are distributed PER creature entry
 DELETE FROM creature_loot_template
@@ -16,15 +20,14 @@ WHERE (Entry, Item) IN (
     (124, 58111),
     (126, 1357),
     (126, 57756),
+	(515, 57756),
     (154, 57786),
     (157, 57788),
     (391, 3636),
-    (500, 23801),
-    (500, 49751),
     (500, 57755),
+	(117, 57755),
     (550, 1381),
     (834, 57787),
-    (1236, 49748),
     (42669, 58204),
     (42677, 58117),
     (42677, 58118),
@@ -41,6 +44,9 @@ WHERE (Entry, Item) IN (
 	(48521, 915),
 	(48522, 915),
 	(84697, 829),
+	(456, 1357),
+	(515, 1357),
+	(513, 1357),
 	(95, 829),
 	(121, 829),
 	(122, 829),
@@ -83,17 +89,19 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (114, 0, 57911, 100, 1, 1, 0, 1, 1, 'Okra'),
 (114, 0, 57935, 100, 1, 1, 0, 1, 1, 'Harvest Watcher Heart'),
 (124, 0, 58111, 100, 1, 1, 0, 1, 1, 'Gnoll Attack Orders'),
-(126, 0, 1357, 100, 1, 1, 0, 1, 1, 'Captain Sanders Treasure Map'),
-(126, 0, 57756, 100, 1, 1, 0, 1, 1, 'Murloc Clue'),
+(126, 0, 1357, 10, 1, 1, 0, 1, 1, 'Captain Sanders Treasure Map'),
+(456, 0, 1357, 10, 1, 1, 0, 1, 1, 'Captain Sanders Treasure Map'),
+(515, 0, 1357, 10, 1, 1, 0, 1, 1, 'Captain Sanders Treasure Map'),
+(513, 0, 1357, 10, 1, 1, 0, 1, 1, 'Captain Sanders Treasure Map'),
+(126, 0, 57756, 20, 1, 1, 0, 1, 1, 'Murloc Clue'),
+(515, 0, 57756, 20, 1, 1, 0, 1, 1, 'Murloc Clue'),
 (154, 0, 57786, 100, 1, 1, 0, 1, 1, 'Stringy Fleshripper Meat'),
 (157, 0, 57788, 100, 1, 1, 0, 1, 1, 'Goretusk Flank'),
 (391, 0, 3636, 100, 1, 1, 0, 1, 1, 'Scale of Old Murk-Eye'),
-(500, 0, 23801, 100, 1, 1, 0, 1, 1, 'Bristlelimb Key'),
-(500, 0, 49751, 100, 1, 1, 0, 1, 1, 'Priceless Rockjaw Artifact'),
-(500, 0, 57755, 100, 1, 1, 0, 1, 1, 'Riverpaw Gnoll Clue'),
+(500, 0, 57755, 30, 1, 1, 0, 1, 1, 'Riverpaw Gnoll Clue'),
+(117, 0, 57755, 30, 1, 1, 0, 1, 1, 'Riverpaw Gnoll Clue'),
 (550, 0, 1381, 100, 1, 1, 0, 1, 1, 'A Mysterious Message'),
 (834, 0, 57787, 100, 1, 1, 0, 1, 1, 'Coyote Tail'),
-(1236, 0, 49748, 100, 1, 1, 0, 1, 1, 'Ragged Wolf Hide'),
 (42669, 0, 58204, 100, 1, 1, 0, 1, 1, 'Chasm Ooze'),
 (42677, 0, 58117, 100, 1, 1, 0, 1, 1, 'Red Bandana'),
 (42677, 0, 58118, 100, 1, 1, 0, 1, 1, 'Red Bandana');
@@ -135,6 +143,7 @@ WHERE (Entry, Item) IN (
 	(1424, 6205),
 	(1424, 6206),
 	(517, 1405),
+	(453, 1391),
     (123, 821)
 );
 
@@ -170,6 +179,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (834, 0, 2672, 0.103611, 0, 1, 1, 1, 1, 'Stringy Wolf Meat - Coyote'),
 (513, 0, 835, 4.503, 0, 1, 0, 1, 1, 'Large Rope Net - Murloc Netter'),
 (123, 0, 821, 3, 0, 1, 0, 1, 1, 'Riverpaw Leather Vest - Riverpaw Mongrel'),
+(453, 0, 1391, 3.89759, 0, 1, 26, 1, 1, 'Riverpaw Mystic Staff - Riverpaw Mystic'),
 (1424, 0, 6206, 30, 0, 1, 1, 1, 1, 'Rock Chipper - Master Digger'),
 (1424, 0, 6205, 10, 0, 1, 1, 1, 1, 'Borrowing Shovel - Master Digger'),
 (517, 0, 1405, 1, 0, 1, 26, 1, 1, 'Foamspittle Staff - Murloc Oracle'),

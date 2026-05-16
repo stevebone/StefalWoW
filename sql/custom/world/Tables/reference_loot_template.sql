@@ -388,7 +388,7 @@ INSERT INTO `reference_loot_template` (`entry`, `ItemType`, `Item`, `Chance`, `Q
 (18, 0, 3036, 0.135344, 0, 1, 26, 1, 1, 'Heavy Shortbow'),
 (18, 0, 15268, 0.119102, 0, 1, 26, 1, 1, 'Twin-Bladed Axe'),
 (18, 0, 3190, 0.131725, 0, 1, 26, 1, 1, 'Beatstick'),
-(18, 0, 1391, 3.89759, 0, 1, 26, 1, 1, 'Riverpaw Mystic Staff'),
+
 (18, 0, 767, 0.14, 0, 1, 26, 1, 1, 'Long Bo Staff'),
 (18, 0, 15925, 0.118433, 0, 1, 26, 1, 1, 'Journeymans Stave'),
 (18, 0, 3673, 2, 0, 1, 26, 1, 1, 'Broken Arrow'),
