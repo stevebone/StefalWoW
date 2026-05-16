@@ -710,15 +710,83 @@ DELETE FROM `creature_text` WHERE CreatureID IN (42384,42386) AND `GroupID` IN (
 INSERT INTO creature_text
 (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId)
 VALUES
-(42384, 11, 0, 'Bless you, friend.!', 7, 12, 100, 1, 0, 0, 42490),
+(42384, 11, 0, 'Bless you, friend.', 7, 12, 100, 1, 0, 0, 42490),
 (42384, 11, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
 (42384, 11, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
 (42384, 11, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
 (42384, 11, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
 (42384, 11, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491),
-(42386, 11, 0, 'Bless you, friend.!', 7, 12, 100, 1, 0, 0, 42490),
+(42386, 11, 0, 'Bless you, friend.', 7, 12, 100, 1, 0, 0, 42490),
 (42386, 11, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
 (42386, 11, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
 (42386, 11, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
 (42386, 11, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
 (42386, 11, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491);
+
+-- Creature text for Westfall hobos event at Sentinel Hill
+DELETE FROM `creature_text` WHERE CreatureID IN (42383) AND `GroupID` IN (11);
+DELETE FROM `creature_text` WHERE CreatureID IN (42407,42400);
+INSERT INTO creature_text
+(CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId)
+VALUES
+-- Guard
+(42407, 0, 0, 'WHOA THERE, BUDDY!', 7, 12, 100, 3, 0, 0, 42340),
+(42407, 1, 0, 'Where do you think you two are going?', 7, 12, 100, 0, 0, 0, 42341),
+(42407, 2, 0, 'Can''t you read, pal? Probably not, huh?', 7, 12, 100, 22, 0, 0, 42344),
+(42407, 3, 0, 'The sign here says: "ABSOLUTELY NO BUMS!" Now get lost!', 7, 12, 100, 6, 0, 0, 42345),
+
+-- Transient
+(42383, 11, 0, 'We''re just trying to get a decent meal and maybe a comfortable night''s sleep.', 7, 12, 100, 0, 0, 0, 42342),
+
+-- Drifter/cart
+(42400, 0, 0, 'Dirty, rotten pig-lickers. You''ll get your come-uppance some day.', 7, 12, 100, 396, 0, 0, 42347),
+(42400, 1, 0, 'Let''s get the hell out of here. I hope this place burns to the ground.', 7, 12, 100, 396, 0, 0, 42348);
+
+DELETE FROM `creature_text` WHERE CreatureID IN (42384,42386,42391,42383,42390) AND `GroupID` IN (12);
+INSERT INTO creature_text
+(CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId) VALUES
+
+(42384, 12, 0, 'Let us in!', 7, 12, 100, 5, 0, 0, 42329),
+(42384, 12, 1, 'Down with the king!', 7, 12, 100, 15, 0, 0, 42330),
+(42384, 12, 2, 'This is horse poop!', 7, 12, 100, 22, 0, 0, 42331),
+(42384, 12, 3, 'What right do you have keeping us out?', 7, 12, 100, 6, 0, 0, 42332),
+(42384, 12, 4, 'We''re hungry and cold! Help us!', 7, 12, 100, 20, 0, 0, 42333),
+(42384, 12, 5, 'Heartless monsters!', 7, 12, 100, 14, 0, 0, 42334),
+(42384, 12, 6, 'Is this equality and justice for all?', 7, 12, 100, 6, 0, 0, 42335),
+(42384, 12, 7, 'What do you expect us to do?', 7, 12, 100, 25, 0, 0, 42336),
+
+(42386, 12, 0, 'Let us in!', 7, 12, 100, 5, 0, 0, 42329),
+(42386, 12, 1, 'Down with the king!', 7, 12, 100, 15, 0, 0, 42330),
+(42386, 12, 2, 'This is horse poop!', 7, 12, 100, 22, 0, 0, 42331),
+(42386, 12, 3, 'What right do you have keeping us out?', 7, 12, 100, 6, 0, 0, 42332),
+(42386, 12, 4, 'We''re hungry and cold! Help us!', 7, 12, 100, 20, 0, 0, 42333),
+(42386, 12, 5, 'Heartless monsters!', 7, 12, 100, 14, 0, 0, 42334),
+(42386, 12, 6, 'Is this equality and justice for all?', 7, 12, 100, 6, 0, 0, 42335),
+(42386, 12, 7, 'What do you expect us to do?', 7, 12, 100, 25, 0, 0, 42336),
+
+(42391, 12, 0, 'Let us in!', 7, 12, 100, 5, 0, 0, 42329),
+(42391, 12, 1, 'Down with the king!', 7, 12, 100, 15, 0, 0, 42330),
+(42391, 12, 2, 'This is horse poop!', 7, 12, 100, 22, 0, 0, 42331),
+(42391, 12, 3, 'What right do you have keeping us out?', 7, 12, 100, 6, 0, 0, 42332),
+(42391, 12, 4, 'We''re hungry and cold! Help us!', 7, 12, 100, 20, 0, 0, 42333),
+(42391, 12, 5, 'Heartless monsters!', 7, 12, 100, 14, 0, 0, 42334),
+(42391, 12, 6, 'Is this equality and justice for all?', 7, 12, 100, 6, 0, 0, 42335),
+(42391, 12, 7, 'What do you expect us to do?', 7, 12, 100, 25, 0, 0, 42336),
+
+(42383, 12, 0, 'Let us in!', 7, 12, 100, 5, 0, 0, 42329),
+(42383, 12, 1, 'Down with the king!', 7, 12, 100, 15, 0, 0, 42330),
+(42383, 12, 2, 'This is horse poop!', 7, 12, 100, 22, 0, 0, 42331),
+(42383, 12, 3, 'What right do you have keeping us out?', 7, 12, 100, 6, 0, 0, 42332),
+(42383, 12, 4, 'We''re hungry and cold! Help us!', 7, 12, 100, 20, 0, 0, 42333),
+(42383, 12, 5, 'Heartless monsters!', 7, 12, 100, 14, 0, 0, 42334),
+(42383, 12, 6, 'Is this equality and justice for all?', 7, 12, 100, 6, 0, 0, 42335),
+(42383, 12, 7, 'What do you expect us to do?', 7, 12, 100, 25, 0, 0, 42336),
+
+(42390, 12, 0, 'Let us in!', 7, 12, 100, 5, 0, 0, 42329),
+(42390, 12, 1, 'Down with the king!', 7, 12, 100, 15, 0, 0, 42330),
+(42390, 12, 2, 'This is horse poop!', 7, 12, 100, 22, 0, 0, 42331),
+(42390, 12, 3, 'What right do you have keeping us out?', 7, 12, 100, 6, 0, 0, 42332),
+(42390, 12, 4, 'We''re hungry and cold! Help us!', 7, 12, 100, 20, 0, 0, 42333),
+(42390, 12, 5, 'Heartless monsters!', 7, 12, 100, 14, 0, 0, 42334),
+(42390, 12, 6, 'Is this equality and justice for all?', 7, 12, 100, 6, 0, 0, 42335),
+(42390, 12, 7, 'What do you expect us to do?', 7, 12, 100, 25, 0, 0, 42336);

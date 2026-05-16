@@ -33,13 +33,37 @@ namespace Scripts::EasternKingdoms::Westfall
     {
         static constexpr uint32 WestfallStew = 42617;
         static constexpr uint32 HomelessStormwindCitizen = 42384;
-        static constexpr uint32 HomelessStormwindCitizen2 = 42386;
+        static constexpr uint32 HomelessStormwindCitizen2 = 42386; // female version
+        static constexpr uint32 Transient = 42383;
+        static constexpr uint32 WestPlainsDrifter = 42391;
+        static constexpr uint32 SentinelHillGuard = 42407;
+        static constexpr uint32 SmallTimeHustler = 42390;
+    }
+
+    namespace Spawns
+    {
+        static constexpr uint32 WestfallGuard = 275390;
+        static constexpr uint32 RightSideCitizen = 275382;
+        static constexpr uint32 RightBackCitizen = 274898;
+        static constexpr uint32 LeftSideCitizen = 275403;
+        static constexpr uint32 LeftBackCitizen = 274914;
+        static constexpr uint32 DrifterWithCartBuddy = 280419;
+        static constexpr uint32 CartBuddy = 280420;
     }
 
     namespace Spells
     {
         static constexpr uint32 FullBelly = 79451;
         static constexpr uint32 SleepAura = 78677;
+        static constexpr uint32 RottenAppleToss = 58509;
+        static constexpr uint32 RottenBananaToss = 58513;
+        static constexpr uint32 HoboStew = 80384;
+    }
+
+    namespace Events
+    {
+        static constexpr int8 WestfalGuardPacifyDrifters = 1;
+        static constexpr int8 WestfalGuardCrowdReaction = 2;
     }
 }
 
@@ -50,10 +74,6 @@ enum Custom_Westfall_Generic_NPCs
     NPC_WESTFALL_Q26232_CREDIT = 42417,
 
     NPC_WESTFALL_LIEUTENANT_HORATIO = 42308,
-
-    NPC_WESTFALL_STEW = 42617,
-    NPC_WESTFALL_HOMELESS_STORMWIND_CITIZEN = 42384,
-    NPC_WESTFALL_HOMELESS_STORMWIND_CITIZEN_FEMALE = 42386,
 
     NPC_WESTFALL_KEARNEN = 7024,
     NPC_WESTFALL_ELITE_MERCENARY = 42656,

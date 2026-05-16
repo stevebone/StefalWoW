@@ -24,6 +24,7 @@
 #include "Creature.h"
 #include "CreatureAIImpl.h"
 #include "EventMap.h"
+#include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
@@ -110,6 +111,184 @@ namespace Scripts::EasternKingdoms::Westfall
             }
 
         }
+    };
+
+    /*######
+    ## npc_custom_westfall_guard_42407
+    ## ID 42407, SpawnID 275390
+    ######*/
+
+    struct npc_custom_westfall_guard_42407 : public ScriptedAI
+    {
+        npc_custom_westfall_guard_42407(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+
+            // This is needed since there might be an issue with factions OR
+            // The npcs at the Sentinel Hill need to be passive
+            _events.ScheduleEvent(Events::WestfalGuardPacifyDrifters, 500ms);
+
+            _events.ScheduleEvent(Events::WestfalGuardCrowdReaction, 11s, 19s); // weird timers to create randomness
+            _events.ScheduleEvent(Events::WestfalGuardCrowdReaction, 13s, 26s); // weird timers to create randomness
+            _events.ScheduleEvent(Events::WestfalGuardCrowdReaction, 35s, 46s); // weird timers to create randomness
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            ScriptedAI::MoveInLineOfSight(who);
+
+            if (!who || !who->IsCreature())
+                return;
+
+            Creature* drifterWithCartBuddy = who->ToCreature();
+
+            if (drifterWithCartBuddy->GetSpawnId() == Spawns::DrifterWithCartBuddy)
+            {
+                if (!_drifterWithCartConvoOnCooldown && me->IsWithinDistInMap(who, 15.0f))
+                {
+                    _drifterWithCartConvoOnCooldown = true;
+                    StartGuardConversation(drifterWithCartBuddy);
+                }
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::WestfalGuardCrowdReaction:
+                {
+                    // Get crowd
+                    std::list<Creature*> crowd;
+                    GetCreatureListWithEntryInGrid(crowd, me, Creatures::HomelessStormwindCitizen, 50.f);
+                    GetCreatureListWithEntryInGrid(crowd, me, Creatures::HomelessStormwindCitizen2, 50.f);
+                    GetCreatureListWithEntryInGrid(crowd, me, Creatures::Transient, 50.f);
+                    GetCreatureListWithEntryInGrid(crowd, me, Creatures::WestPlainsDrifter, 50.f);
+                    GetCreatureListWithEntryInGrid(crowd, me, Creatures::SmallTimeHustler, 50.f);
+
+                    // Remove hobos that are sitting down
+                    crowd.remove_if([](Creature* c)
+                        {
+                            return !c || c->GetStandState() == UNIT_STAND_STATE_SIT || c->HasAura(Spells::SleepAura);
+                        });
+
+                    Creature* hobo = Trinity::Containers::SelectRandomContainerElement(crowd);
+                    if(!hobo || !hobo->IsAlive())
+                        hobo = Trinity::Containers::SelectRandomContainerElement(crowd);
+
+                    if (hobo)
+                    {
+                        // Get guard target
+                        // First check if we are left/right side citizens for Hobo Stew spit
+                        if (hobo->GetSpawnId() == Spawns::LeftSideCitizen ||
+                            hobo->GetSpawnId() == Spawns::RightSideCitizen ||
+                            hobo->GetSpawnId() == Spawns::RightBackCitizen ||
+                            hobo->GetSpawnId() == Spawns::LeftBackCitizen)
+                        {
+                            Creature* guard = hobo->FindNearestCreature(Creatures::SentinelHillGuard, 10.f);
+                            if (guard)
+                                hobo->CastSpell(guard, Spells::HoboStew);
+
+                            _events.ScheduleEvent(Events::WestfalGuardCrowdReaction, 10s, 30s); // weird timers to create randomness
+                            break; // break here for this action
+                        }
+
+                        // roll for throw banana/apple VS talk
+                        if (roll_chance(50))
+                        {
+                            uint32 spell = RAND(Spells::RottenAppleToss, Spells::RottenBananaToss);
+                            Creature* guard = hobo->FindNearestCreature(Creatures::SentinelHillGuard, 20.f);
+                            if (guard)
+                                hobo->CastSpell(guard, spell);
+
+                            _events.ScheduleEvent(Events::WestfalGuardCrowdReaction, 10s, 30s); // weird timers to create randomness
+                            break;
+                        }
+
+                        hobo->AI()->Talk(12);
+                    }
+
+                    _events.ScheduleEvent(Events::WestfalGuardCrowdReaction, 10s, 30s); // weird timers to create randomness
+                    break;
+                }
+                case Events::WestfalGuardPacifyDrifters:
+                {
+                    // We do this by adding Immune To NPC to the Homeless
+                    std::list<Creature*> list;
+                    GetCreatureListWithEntryInGrid(list, me, Creatures::HomelessStormwindCitizen, 50.f);
+                    GetCreatureListWithEntryInGrid(list, me, Creatures::HomelessStormwindCitizen2, 50.f);
+                    GetCreatureListWithEntryInGrid(list, me, Creatures::SmallTimeHustler, 50.f);
+
+                    for (Creature* hobo : list)
+                    {
+                        if (!hobo->IsAlive())
+                            continue;
+
+                        hobo->SetImmuneToNPC(true);
+                    }
+                    break;
+                }
+                }
+            }
+        }
+
+        void StartGuardConversation(Creature* drifter)
+        {
+            Talk(0);
+
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    if(me && me->IsAlive())
+                        Talk(1);
+                }, std::chrono::seconds(4));
+
+            drifter->m_Events.AddEventAtOffset([drifter]()
+                {
+                    if (drifter && drifter->IsAlive())
+                        drifter->AI()->Talk(11);
+                }, std::chrono::seconds(10));
+
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsAlive())
+                        Talk(2);
+                }, std::chrono::seconds(15));
+
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsAlive())
+                        Talk(3);
+                }, std::chrono::seconds(20));
+
+            if (Creature* cart = me->GetMap()->GetCreatureBySpawnId(Spawns::CartBuddy))
+            {
+                cart->m_Events.AddEventAtOffset([cart]()
+                    {
+                        if (cart && cart->IsAlive())
+                            cart->AI()->Talk(0);
+                    }, std::chrono::seconds(25));
+
+                cart->m_Events.AddEventAtOffset([cart, drifter]()
+                    {
+                        if (cart && cart->IsAlive())
+                        {
+                            cart->AI()->Talk(1);
+                            cart->DespawnOrUnsummon(20s);
+                            drifter->DespawnOrUnsummon(20s);
+                        }
+                    }, std::chrono::seconds(30));
+            }
+        }
+
+    private:
+        EventMap _events;
+        bool _drifterWithCartConvoOnCooldown = false;
     };
 }
 
@@ -342,94 +521,6 @@ public:
     {
         return new npc_lous_parting_thoughts_thugAI(creature);
     }
-};
-
-class npc_custom_hungry_hobo : public CreatureScript
-{
-public:
-    npc_custom_hungry_hobo() : CreatureScript("npc_custom_hungry_hobo") {}
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_hungry_hoboAI(creature);
-    }
-
-    struct npc_hungry_hoboAI : public ScriptedAI
-    {
-        npc_hungry_hoboAI(Creature* creature) : ScriptedAI(creature) {}
-
-        uint8 count = 0;
-        uint32 Miam = 0;
-
-        void Reset() override
-        {
-            count = 0;
-            Miam = 2000;
-        }
-
-        void Eat()
-        {
-            me->CastSpell(me, SPELL_WESTFALL_FULL_BELLY, true);
-            me->SetStandState(UNIT_STAND_STATE_SIT);
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            if (Miam < diff)
-            {
-                if (Creature* stew = me->FindNearestCreature(NPC_WESTFALL_STEW, 10.0f, true))
-                {
-                    if (me->HasAura(SPELL_WESTFALL_FULL_BELLY) && count == 0)
-                        return;
-
-                    switch (count)
-                    {
-                    case 0:
-                    {
-                        static constexpr uint32 SPELL_SLEEP = 78677; // replace with real spell ID
-
-                        if (me->HasAura(SPELL_SLEEP))
-                        {
-                            // Creature is sleeping so we remove the aura
-                            me->RemoveAurasDueToSpell(SPELL_SLEEP);
-                        }
-                        me->SetStandState(UNIT_STAND_STATE_STAND);
-                        Miam = 1000;
-                        count++;
-                        break;
-                    }
-                    case 1:
-                    {
-                        Eat();
-                        Miam = 2000;
-                        me->SetStandState(UNIT_STAND_STATE_SIT);
-                        count++;
-                        break;
-                    }
-                    case 2:
-                    {
-                        if (stew->ToTempSummon())
-                            if (WorldObject* player = stew->ToTempSummon()->GetSummoner())
-                                player->ToPlayer()->KilledMonsterCredit(42617);
-                        Miam = 25000;
-                        count++;
-                        break;
-                    }
-                    default:
-                        break;
-                    }
-                }
-                else Miam = 3000;
-
-                if (!me->HasAura(SPELL_WESTFALL_FULL_BELLY))
-                    me->SetStandState(UNIT_STAND_STATE_STAND);
-
-                if (count == 3)
-                    Reset();
-            }
-            else Miam -= diff;
-        }
-    };
 };
 
 class npc_custom_agent_kearnen : public CreatureScript
@@ -785,10 +876,10 @@ void AddSC_custom_westfall_npcs()
     using namespace Scripts::EasternKingdoms::Westfall;
 
     RegisterCreatureAI(npc_custom_westfall_stew_42617);
+    RegisterCreatureAI(npc_custom_westfall_guard_42407);
 
     new npc_custom_lous_parting_thoughts_trigger();
     new npc_custom_lous_parting_thoughts_thug();
-    new npc_custom_hungry_hobo();
     new npc_custom_agent_kearnen();
     new npc_custom_elite_mercenary();
     new npc_custom_trigger_mortwake_tower();

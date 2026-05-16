@@ -15,6 +15,18 @@ WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,44
 DELETE FROM creature_loot_template
 WHERE (Entry, Item) IN (
     (98, 725),
+	(117, 725),
+	(500, 725),
+	(501, 725),
+	(123, 725),
+	(124, 725),
+	(125, 725),
+	(452, 725),
+	(453, 725),
+	(1065, 725),
+	(54373, 725),
+	(54372, 725),
+	(54371, 725),
     (114, 57911),
     (114, 57935),
     (124, 58111),
@@ -27,7 +39,8 @@ WHERE (Entry, Item) IN (
     (500, 57755),
 	(117, 57755),
     (550, 1381),
-    (834, 57787),
+    (833, 57787),
+	(834, 57787),
     (42669, 58204),
     (42677, 58117),
     (42677, 58118),
@@ -86,6 +99,18 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (48522, 0, 915, 75, 1, 1, 0, 1, 1, 'Red Silk Bandana'),
 
 (98, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(117, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(123, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(124, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(125, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(452, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(453, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(500, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(501, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(1065, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(54373, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(54372, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
+(54371, 0, 725, 75, 1, 1, 0, 1, 1, 'Gnoll Paw'),
 (114, 0, 57911, 100, 1, 1, 0, 1, 1, 'Okra'),
 (114, 0, 57935, 100, 1, 1, 0, 1, 1, 'Harvest Watcher Heart'),
 (124, 0, 58111, 100, 1, 1, 0, 1, 1, 'Gnoll Attack Orders'),
@@ -101,6 +126,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (500, 0, 57755, 30, 1, 1, 0, 1, 1, 'Riverpaw Gnoll Clue'),
 (117, 0, 57755, 30, 1, 1, 0, 1, 1, 'Riverpaw Gnoll Clue'),
 (550, 0, 1381, 100, 1, 1, 0, 1, 1, 'A Mysterious Message'),
+(833, 0, 57787, 100, 1, 1, 0, 1, 1, 'Coyote Tail'),
 (834, 0, 57787, 100, 1, 1, 0, 1, 1, 'Coyote Tail'),
 (42669, 0, 58204, 100, 1, 1, 0, 1, 1, 'Chasm Ooze'),
 (42677, 0, 58117, 100, 1, 1, 0, 1, 1, 'Red Bandana'),
@@ -132,6 +158,8 @@ WHERE (Entry, Item) IN (
     (42669, 20766),
     (42669, 20767),
     (42669, 20768),
+	(833, 2673),
+    (833, 2672),
     (834, 2673),
     (834, 2672),
     (513, 835),
@@ -175,6 +203,8 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (42669, 0, 20766, 0.661805, 0, 1, 2, 1, 1, 'Slimy Bag - Chasm Slime'),
 (42669, 0, 20767, 0.247974, 0, 1, 2, 1, 1, 'Scum Covered Bag - Chasm Slime'),
 (42669, 0, 20768, 0.476434, 0, 1, 2, 1, 1, 'Oozing Bag - Chasm Slime'),
+(833, 0, 2673, 0.120386, 0, 1, 1, 1, 1, 'Coyote Meat - Coyote Packleader'),
+(833, 0, 2672, 0.103611, 0, 1, 1, 1, 1, 'Stringy Wolf Meat - Coyote Packleader'),
 (834, 0, 2673, 0.120386, 0, 1, 1, 1, 1, 'Coyote Meat - Coyote'),
 (834, 0, 2672, 0.103611, 0, 1, 1, 1, 1, 'Stringy Wolf Meat - Coyote'),
 (513, 0, 835, 4.503, 0, 1, 0, 1, 1, 'Large Rope Net - Murloc Netter'),
@@ -189,7 +219,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 -- Delete only reference loot items (ItemType = 1) for specific NPCs
 DELETE FROM creature_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
-500,501,504,513,515,517,519,550,589,590,594,830,831,832,834,1065,1109,1236,1424,6250,42357,42653,42669, 42677) 
+500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,54373,54371,54372) 
 AND ItemType = 1;
 
 -- NPC: 42677 Moonbrook Thug
@@ -343,6 +373,16 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (123, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
 (123, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
 
+-- NPC: 54372 Riverpaw Brute
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(54372, 1, 24, 100, 0, 1, 1, 1, 'Armor Zone 2'), 
+(54372, 1, 23, 100, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(54372, 1, 22, 100, 0, 1, 1, 1, 'Consumable Zone 2'),
+(54372, 1, 19, 100, 0, 1, 1, 1, 'Bags Zone 2'),
+(54372, 1, 18, 100, 0, 1, 1, 1, 'Weapons Zone 2'),
+(54372, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
+(54372, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
+
 -- NPC: 124 Riverpaw Brute
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
 (124, 1, 24, 100, 0, 1, 1, 1, 'Armor Zone 2'), 
@@ -373,6 +413,27 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (501, 1, 18, 100, 0, 1, 1, 1, 'Weapons Zone 2'),
 (501, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
 (501, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 54373 Riverpaw Herbalist
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(54373, 1, 24, 100, 0, 1, 1, 1, 'Armor Zone 2'), 
+(54373, 1, 23, 100, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(54373, 1, 22, 100, 0, 1, 1, 1, 'Consumable Zone 2'),
+(54373, 1, 20, 100, 0, 1, 1, 1, 'Herbs Zone 2'),
+(54373, 1, 19, 100, 0, 1, 1, 1, 'Bags Zone 2'),
+(54373, 1, 18, 100, 0, 1, 1, 1, 'Weapons Zone 2'),
+(54373, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
+(54373, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 54371 Riverpaw Bandit
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(54371, 1, 24, 100, 0, 1, 1, 1, 'Armor Zone 2'), 
+(54371, 1, 23, 100, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(54371, 1, 22, 100, 0, 1, 1, 1, 'Consumable Zone 2'),
+(54371, 1, 19, 100, 0, 1, 1, 1, 'Bags Zone 2'),
+(54371, 1, 18, 100, 0, 1, 1, 1, 'Weapons Zone 2'),
+(54371, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
+(54371, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
 
 -- NPC: 452 Riverpaw Bandit
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
@@ -662,6 +723,16 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (832, 1, 18, 100, 0, 1, 1, 1, 'Weapons Zone 2'),
 (832, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
 (832, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 833 Coyote Packleader
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(833, 1, 24, 100, 0, 1, 1, 1, 'Armor Zone 2'), 
+(833, 1, 10, 100, 0, 1, 1, 1, 'Beasts Zone 2'),
+(833, 1, 22, 100, 0, 1, 1, 1, 'Consumable Zone 2'),
+(833, 1, 19, 100, 0, 1, 1, 1, 'Bags Zone 2'),
+(833, 1, 18, 100, 0, 1, 1, 1, 'Weapons Zone 2'),
+(833, 1, 17, 100, 0, 1, 1, 1, 'Recipes Zone 2'),
+(833, 1, 16, 100, 0, 1, 1, 1, 'Gems Zone 2');
 
 -- NPC: 834 Coyote
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES

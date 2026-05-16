@@ -223,7 +223,7 @@ INSERT INTO `creature` VALUES
 -- Waypoint Data
 DELETE FROM `waypoint_path` WHERE `PathId` IN (6179600);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES 
-('6179600', '0', '0', '0', 'Stormwind City - King Varian - The Alliance Way');
+(6179600, 0, 0, 0, 'Stormwind City - King Varian - The Alliance Way');
 
 DELETE FROM `waypoint_path_node` WHERE `PathId` IN (6179600);
 INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES 
