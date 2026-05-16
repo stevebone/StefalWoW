@@ -82,7 +82,7 @@ namespace Scripts::EasternKingdoms::Westfall
                 hungryHobo->m_Events.AddEventAtOffset([hungryHobo, this]()
                     {
                         if (hungryHobo && hungryHobo->IsAlive())
-                            hungryHobo->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(1.f));
+                            hungryHobo->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(2.f));
                     }, std::chrono::seconds(1));
 
                 hungryHobo->m_Events.AddEventAtOffset([hungryHobo, this]()
@@ -91,7 +91,6 @@ namespace Scripts::EasternKingdoms::Westfall
                         {
                             hungryHobo->SetFacingToObject(me, true);
                             hungryHobo->SetStandState(UNIT_STAND_STATE_SIT);
-                            hungryHobo->SetEmoteState(Emote(EMOTE_STATE_EAT));
                             hungryHobo->AI()->Talk(11);
                         }
                     }, std::chrono::seconds(4));
@@ -100,8 +99,7 @@ namespace Scripts::EasternKingdoms::Westfall
                     {
                         if (hungryHobo && hungryHobo->IsAlive())
                         {
-                            hungryHobo->SetEmoteState(Emote(EMOTE_STATE_NONE));
-                            me->CastSpell(hungryHobo, Spells::FullBelly);
+                            hungryHobo->CastSpell(hungryHobo, Spells::FullBelly, true);
                             WorldObject* summoner = me->ToTempSummon()->GetSummoner();
                             if (summoner && summoner->ToPlayer())
                                 summoner->ToPlayer()->KilledMonsterCredit(Creatures::WestfallStew);
