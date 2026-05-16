@@ -22,6 +22,27 @@
 
 #include "Position.h"
 
+namespace Scripts::EasternKingdoms::Westfall
+{
+    namespace Quests
+    {
+
+    }
+
+    namespace Creatures
+    {
+        static constexpr uint32 WestfallStew = 42617;
+        static constexpr uint32 HomelessStormwindCitizen = 42384;
+        static constexpr uint32 HomelessStormwindCitizen2 = 42386;
+    }
+
+    namespace Spells
+    {
+        static constexpr uint32 FullBelly = 79451;
+        static constexpr uint32 SleepAura = 78677;
+    }
+}
+
 enum Custom_Westfall_Generic_NPCs
 {
     NPC_WESTFALL_THUG = 42387,

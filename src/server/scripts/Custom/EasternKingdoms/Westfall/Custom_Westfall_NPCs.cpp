@@ -20,19 +20,100 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
-#include "ObjectAccessor.h"
-#include "Player.h"
+
 #include "Creature.h"
+#include "CreatureAIImpl.h"
+#include "EventMap.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "ObjectGuid.h"
+#include "ObjectMgr.h"
+#include "PhasingHandler.h"
+#include "Player.h"
+#include "ScriptedCreature.h"
+#include "ScriptMgr.h"
+#include "SpellInfo.h"
+#include "TaskScheduler.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
-#include "ObjectGuid.h"
-#include "MotionMaster.h"
 
 #include <queue>
 
 #include "Custom_Westfall_Defines.h"
+
+namespace Scripts::EasternKingdoms::Westfall
+{
+    /*######
+    ## npc_custom_westfall_stew_42617
+    ######*/
+
+    struct npc_custom_westfall_stew_42617 : public ScriptedAI
+    {
+        npc_custom_westfall_stew_42617(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsAlive())
+                        FindHobosToFeed();
+                }, std::chrono::seconds(1));
+        }
+
+        void FindHobosToFeed()
+        {
+            std::list<Creature*> list;
+            GetCreatureListWithEntryInGrid(list, me, Creatures::HomelessStormwindCitizen, 10.f);
+            GetCreatureListWithEntryInGrid(list, me, Creatures::HomelessStormwindCitizen2, 10.f);
+
+            for (Creature* hungryHobo : list)
+            {
+                if (!hungryHobo || !hungryHobo->IsAlive())
+                    continue;
+
+                if (hungryHobo->HasAura(Spells::FullBelly))
+                    continue;
+
+                if (hungryHobo->HasAura(Spells::SleepAura))
+                    hungryHobo->RemoveAurasDueToSpell(Spells::SleepAura);
+
+                hungryHobo->SetStandState(UNIT_STAND_STATE_STAND);
+
+                hungryHobo->m_Events.AddEventAtOffset([hungryHobo, this]()
+                    {
+                        if (hungryHobo && hungryHobo->IsAlive())
+                            hungryHobo->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(1.f));
+                    }, std::chrono::seconds(1));
+
+                hungryHobo->m_Events.AddEventAtOffset([hungryHobo, this]()
+                    {
+                        if (hungryHobo && hungryHobo->IsAlive())
+                        {
+                            hungryHobo->SetFacingToObject(me, true);
+                            hungryHobo->SetStandState(UNIT_STAND_STATE_SIT);
+                            hungryHobo->SetEmoteState(Emote(EMOTE_STATE_EAT));
+                            hungryHobo->AI()->Talk(11);
+                        }
+                    }, std::chrono::seconds(4));
+
+                hungryHobo->m_Events.AddEventAtOffset([hungryHobo, this]()
+                    {
+                        if (hungryHobo && hungryHobo->IsAlive())
+                        {
+                            hungryHobo->SetEmoteState(Emote(EMOTE_STATE_NONE));
+                            me->CastSpell(hungryHobo, Spells::FullBelly);
+                            WorldObject* summoner = me->ToTempSummon()->GetSummoner();
+                            if (summoner && summoner->ToPlayer())
+                                summoner->ToPlayer()->KilledMonsterCredit(Creatures::WestfallStew);
+
+                            hungryHobo->DespawnOrUnsummon(100s, 10s);
+                        }
+                    }, std::chrono::seconds(7));
+            }
+
+        }
+    };
+}
 
  /*######
  ## npc_custom_lous_parting_thoughts_trigger
@@ -703,6 +784,10 @@ public:
 
 void AddSC_custom_westfall_npcs()
 {
+    using namespace Scripts::EasternKingdoms::Westfall;
+
+    RegisterCreatureAI(npc_custom_westfall_stew_42617);
+
     new npc_custom_lous_parting_thoughts_trigger();
     new npc_custom_lous_parting_thoughts_thug();
     new npc_custom_hungry_hobo();

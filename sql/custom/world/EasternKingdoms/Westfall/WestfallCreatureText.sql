@@ -704,3 +704,21 @@ VALUES
 (42662, 2, 0, 'Judgment day is soon upon us, Helix.', 12, 100, 1, 0, 0, 42541),
 (42662, 3, 0, 'Call for the people. I wish to speak to them one last time before the dawning.', 12, 100, 1, 0, 0, 42542),
 (42662, 4, 0, 'Aye. Tonight.', 12, 100, 273, 0, 0, 42544);
+
+-- Creature text for Westfall Stew foot quest
+DELETE FROM `creature_text` WHERE CreatureID IN (42384,42386) AND `GroupID` IN (11);
+INSERT INTO creature_text
+(CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId)
+VALUES
+(42384, 11, 0, 'Bless you, friend.!', 7, 12, 100, 1, 0, 0, 42490),
+(42384, 11, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
+(42384, 11, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
+(42384, 11, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
+(42384, 11, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
+(42384, 11, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491),
+(42386, 11, 0, 'Bless you, friend.!', 7, 12, 100, 1, 0, 0, 42490),
+(42386, 11, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
+(42386, 11, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
+(42386, 11, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
+(42386, 11, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
+(42386, 11, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491);

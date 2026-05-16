@@ -73,8 +73,7 @@ INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 ('234', '166', '0');
 
 -- Quest: 26271 Feeding the hungry
-UPDATE `creature_template` SET `ScriptName` = 'npc_custom_hungry_hobo' WHERE (`entry` = '42384');
-UPDATE `creature_template` SET `ScriptName` = 'npc_custom_hungry_hobo' WHERE (`entry` = '42386');
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_westfall_stew_42617' WHERE (`entry` = 42617);
 
 -- Update NEW phase for existing creatures
 UPDATE `creature` SET `PhaseId` = 50005 WHERE `guid` IN (275164);
