@@ -3281,6 +3281,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const;
         void _SaveAccountBankItems(CharacterDatabaseTransaction trans);
         void _SaveAccountBankCoinage(CharacterDatabaseTransaction trans) const;
+        void _SaveAccountTaxiMask(CharacterDatabaseTransaction trans) const;
 
         /*********************************************************/
         /***              ENVIRONMENTAL SYSTEM                 ***/

@@ -21485,15 +21485,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveAccountBankTabSettings(trans);
     _SaveAccountBankItems(trans);
     _SaveAccountBankCoinage(trans);
-
-    {
-        std::ostringstream ss;
-        ss << m_taxi;
-        CharacterDatabasePreparedStatement* taxiStmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_WARBAND_TAXI_MASK);
-        taxiStmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
-        taxiStmt->setString(1, ss.str());
-        trans->Append(taxiStmt);
-    }
+    _SaveAccountTaxiMask(trans);
 
     if (_garrison)
         _garrison->SaveToDB(trans);
@@ -22453,6 +22445,18 @@ void Player::_SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) c
         trans->Append(stmt);
     }
 }
+
+void Player::_SaveAccountTaxiMask(CharacterDatabaseTransaction trans) const
+{
+    std::ostringstream ss;
+    ss << m_taxi;
+
+    auto stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_WARBAND_TAXI_MASK);
+    stmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
+    stmt->setString(1, ss.str());
+    trans->Append(stmt);
+}
+
 
 void Player::_SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const
 {
