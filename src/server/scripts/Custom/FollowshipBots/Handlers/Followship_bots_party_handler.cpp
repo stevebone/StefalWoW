@@ -89,6 +89,9 @@ namespace FSBParty
         if (!player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleported())
             return;
 
+        if (!bot)
+            return;
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->GetAI());
         if (!baseAI)
             return;
@@ -485,7 +488,10 @@ namespace FSBParty
                 player->IsBeingTeleported())
                 return;
 
-            SendFakePartyUpdate(player);
+            // Get the first active bot for this player to use as the base AI
+            std::vector<Creature*> activeBots = CollectActiveBots(player);
+            if (!activeBots.empty())
+                SendFakePartyUpdate(player, activeBots[0]);
         }
 
         // Also update for existing members who have bots
@@ -504,7 +510,11 @@ namespace FSBParty
 
                 auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
                 if (botsPtr && !botsPtr->empty())
-                    SendFakePartyUpdate(member);
+                {
+                    std::vector<Creature*> activeBots = CollectActiveBots(member);
+                    if (!activeBots.empty())
+                        SendFakePartyUpdate(member, activeBots[0]);
+                }
             }
         }
     }

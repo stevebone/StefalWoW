@@ -462,8 +462,11 @@ public:
             FSBDeath::HandlerJustDied(me, killer);
         }
 
-        void MovementInform(uint32 /*type*/, uint32 id) override
+        void MovementInform(uint32 type, uint32 id) override
         {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
             switch (id)
             {
             case FSB_MOVEMENT_POINT_CORPSE:
