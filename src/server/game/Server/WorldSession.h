@@ -676,6 +676,7 @@ namespace WorldPackets
         class PetCancelAura;
         class PetSetAction;
         class SetPetSpecializationClient;
+        class SetPetFavorite;
     }
 
     namespace Petition
@@ -1741,6 +1742,7 @@ class TC_GAME_API WorldSession
         void HandlePetSpellAutocastOpcode(WorldPackets::Pet::PetSpellAutocast& packet);
         void HandlePetCastSpellOpcode(WorldPackets::Spells::PetCastSpell& petCastSpell);
         void HandleSetPetSpecialization(WorldPackets::Pet::SetPetSpecializationClient& packet);
+        void HandleSetPetFavorite(WorldPackets::Pet::SetPetFavorite& packet);
 
         void HandleSetActionBarToggles(WorldPackets::Character::SetActionBarToggles& packet);
 
@@ -1921,7 +1923,7 @@ class TC_GAME_API WorldSession
         void HandleCommerceTokenGetMarketPrice(WorldPackets::Token::CommerceTokenGetMarketPrice& requestWowTokenMarketPrice);
 
         // Perks Program (Trading Post)
-        void HandleRequestStoreFrontInfoUpdate(WorldPackets::PerksProgram::RequestStoreFrontInfoUpdate& packet);
+        //void HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet);
         void HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& packet);
         void HandlePerksProgramRequestPendingRewards(WorldPackets::Misc::PerksProgramRequestPendingRewards& packet);
         void HandlePerksProgramGetRecentPurchases(WorldPackets::PerksProgram::PerksProgramGetRecentPurchases& packet);
