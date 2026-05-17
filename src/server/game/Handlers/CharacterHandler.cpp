@@ -396,6 +396,16 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt32(0, m_battlenetAccountId);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE, stmt);
 
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_TAXI_MASK);
+    stmt->setUInt32(0, m_battlenetAccountId);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_WARBAND_TAXI_MASK, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_MAX_LEVEL_CHARS);
+    stmt->setUInt32(0, m_battlenetAccountId);
+    stmt->setUInt8(1, sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL));
+    stmt->setUInt64(2, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_WARBAND_MAX_LEVEL_COUNT, stmt);
+
     return res;
 }
 

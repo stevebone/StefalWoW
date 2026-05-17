@@ -1046,6 +1046,8 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS,
     PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS,
     PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE,
+    PLAYER_LOGIN_QUERY_LOAD_WARBAND_TAXI_MASK,
+    PLAYER_LOGIN_QUERY_LOAD_WARBAND_MAX_LEVEL_COUNT,
 
     MAX_PLAYER_LOGIN_QUERY
 };
@@ -2957,6 +2959,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void DeleteGarrison();
         Garrison* GetGarrison() const { return _garrison.get(); }
 
+        uint8 GetWarbandMaxLevelCharCount() const { return _warbandMaxLevelCharCount; }
+
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
 
@@ -3500,6 +3504,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         uint32 _activeCheats;
 
         std::unique_ptr<Garrison> _garrison;
+
+        uint8 _warbandMaxLevelCharCount = 0;
 
         bool _advancedCombatLoggingEnabled;
 

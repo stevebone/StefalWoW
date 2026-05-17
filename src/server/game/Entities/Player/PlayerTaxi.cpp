@@ -142,6 +142,36 @@ bool PlayerTaxi::LoadTaxiMask(std::string const& data)
     return !warn;
 }
 
+TaxiMask PlayerTaxi::LoadTaxiMaskFromString(std::string const& data)
+{
+    TaxiMask mask;
+    std::vector<std::string_view> tokens = Trinity::Tokenize(data, ' ', false);
+    for (size_t index = 0; (index < mask.size()) && (index < tokens.size()); ++index)
+    {
+        if (Optional<uint32> val = Trinity::StringTo<uint32>(tokens[index]))
+            mask[index] = sTaxiNodesMask[index] & *val;
+        else
+            mask[index] = 0;
+    }
+    return mask;
+}
+
+void PlayerTaxi::MergeAccountTaxiMask(TaxiMask const& accountMask)
+{
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (node->GetFlags().HasFlag(TaxiNodeFlags::NotAccountWide))
+            continue;
+
+        uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+        TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+
+        if (accountMask[field] & submask)
+            m_taximask[field] |= submask;
+    }
+}
+
+
 void PlayerTaxi::AppendTaximaskTo(WorldPackets::Taxi::ShowTaxiNodes& data, bool all)
 {
     if (all)
