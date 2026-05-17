@@ -60,6 +60,7 @@
 #include "ScriptMgr.h"
 #include "SocialMgr.h"
 #include "SpellAuraEffects.h"
+#include "SpellMgr.h"
 #include "StringConvert.h"
 #include "SystemPackets.h"
 #include "TransmogMgr.h"
