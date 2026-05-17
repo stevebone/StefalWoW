@@ -21458,8 +21458,8 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveSkills(trans);
     _SaveStoredAuraTeleportLocations(trans);
     m_achievementMgr->SaveToDB(trans);
-    m_reputationMgr->SaveToDB(trans);
     m_reputationMgr->SaveAccountWideToDB(trans);
+    m_reputationMgr->SaveToDB(trans);
     m_questObjectiveCriteriaMgr->SaveToDB(trans);
     _SaveEquipmentSets(trans);
     _SaveTransmogOutfits(trans);
