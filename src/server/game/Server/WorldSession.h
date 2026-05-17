@@ -565,6 +565,7 @@ namespace WorldPackets
         class SetCurrencyFlags;
         class PerksProgramRequestPendingRewards;
         class FactionSelect;
+        class RequestStoreFrontInfoUpdate;
     }
 
     namespace Movement
@@ -674,6 +675,7 @@ namespace WorldPackets
         class PetAction;
         class PetCancelAura;
         class PetSetAction;
+        class SetPetSpecializationClient;
     }
 
     namespace Petition
@@ -1738,6 +1740,7 @@ class TC_GAME_API WorldSession
         void HandlePetCancelAuraOpcode(WorldPackets::Spells::PetCancelAura& packet);
         void HandlePetSpellAutocastOpcode(WorldPackets::Pet::PetSpellAutocast& packet);
         void HandlePetCastSpellOpcode(WorldPackets::Spells::PetCastSpell& petCastSpell);
+        void HandleSetPetSpecialization(WorldPackets::Pet::SetPetSpecializationClient& packet);
 
         void HandleSetActionBarToggles(WorldPackets::Character::SetActionBarToggles& packet);
 
@@ -1891,6 +1894,7 @@ class TC_GAME_API WorldSession
         void HandleQueryCountdownTimer(WorldPackets::Misc::QueryCountdownTimer& queryCountdownTimer);
         void HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags const& setCurrenctFlags);
         void HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction);
+        void HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet);
 
         // Adventure Journal
         void HandleAdventureJournalOpenQuest(WorldPackets::AdventureJournal::AdventureJournalOpenQuest& openQuest);

@@ -1070,6 +1070,29 @@ namespace WorldPackets
 
             WorldPacket const* Write() override { return &_worldPacket; }
         };
+
+        class RequestStoreFrontInfoUpdate final : public ClientPacket
+        {
+        public:
+            explicit RequestStoreFrontInfoUpdate(WorldPacket&& packet) : ClientPacket(CMSG_REQUEST_STORE_FRONT_INFO_UPDATE, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 StoreFrontID = 0;
+            std::vector<uint32> CurrencyIDs;
+        };
+
+        class AccountStoreFrontUpdate final : public ServerPacket
+        {
+        public:
+            AccountStoreFrontUpdate() : ServerPacket(SMSG_ACCOUNT_STORE_FRONT_UPDATE, 12) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 StoreFrontID = 0;
+            int32 Result = 0;
+            uint32 Unknown = 0;
+        };
     }
 }
 
