@@ -345,6 +345,7 @@ void WorldSession::HandleMoveWorldportAck()
 
     // resummon pet
     player->ResummonPetTemporaryUnSummonedIfAny();
+    player->ResummonAnimalCompanionIfAny();
     player->ResummonBattlePetTemporaryUnSummonedIfAny();
 
     //lets process all delayed operations on successful teleport
@@ -430,6 +431,7 @@ void WorldSession::HandleMoveTeleportAck(WorldPackets::Movement::MoveTeleportAck
 
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
+    GetPlayer()->ResummonAnimalCompanionIfAny();
 
     //lets process all delayed operations on successful teleport
     GetPlayer()->ProcessDelayedOperations();

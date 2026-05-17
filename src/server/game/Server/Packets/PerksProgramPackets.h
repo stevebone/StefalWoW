@@ -100,28 +100,6 @@ namespace WorldPackets
             void Read() override { _worldPacket.rfinish(); }
         };
 
-        class RequestStoreFrontInfoUpdate final : public ClientPacket
-        {
-        public:
-            explicit RequestStoreFrontInfoUpdate(WorldPacket&& packet) : ClientPacket(CMSG_REQUEST_STORE_FRONT_INFO_UPDATE, std::move(packet)) { }
-
-            void Read() override { _worldPacket.rfinish(); }
-        };
-
-        class AccountStoreFrontUpdate final : public ServerPacket
-        {
-        public:
-            explicit AccountStoreFrontUpdate() : ServerPacket(SMSG_ACCOUNT_STORE_FRONT_UPDATE, 14) { }
-
-            WorldPacket const* Write() override;
-
-            uint8  Status       = 2;
-            uint32 StoreFrontID = 1;
-            uint64 Expiry       = 0;
-            bool   Flag1        = true;
-            bool   Flag2        = true;
-        };
-
         class PerksAnimToggleKillSwitch final : public ServerPacket
         {
         public:

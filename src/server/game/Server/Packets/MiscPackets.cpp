@@ -854,4 +854,25 @@ void WorldPackets::Misc::FactionSelect::Read()
 {
     _worldPacket >> FactionChoice;
 }
+
+void RequestStoreFrontInfoUpdate::Read()
+{
+    _worldPacket >> StoreFrontID;
+    uint32 currencyCount = _worldPacket.read<uint32>();
+    CurrencyIDs.resize(currencyCount);
+    for (uint32 i = 0; i < currencyCount; ++i)
+        _worldPacket >> CurrencyIDs[i];
+}
+
+WorldPacket const* AccountStoreFrontUpdate::Write()
+{
+    _worldPacket << uint8(Status);
+    _worldPacket << uint32(StoreFrontID);
+    _worldPacket << uint64(Expiry);
+    _worldPacket << Bits<1>(Flag1);
+    _worldPacket << Bits<1>(Flag2);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
 }

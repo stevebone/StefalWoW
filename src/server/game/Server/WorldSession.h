@@ -565,6 +565,7 @@ namespace WorldPackets
         class SetCurrencyFlags;
         class PerksProgramRequestPendingRewards;
         class FactionSelect;
+        class RequestStoreFrontInfoUpdate;
     }
 
     namespace Movement
@@ -652,7 +653,6 @@ namespace WorldPackets
 
     namespace PerksProgram
     {
-        class RequestStoreFrontInfoUpdate;
         class PerksProgramStatusRequest;
         class PerksProgramGetRecentPurchases;
         class PerksProgramRequestPurchase;
@@ -674,6 +674,8 @@ namespace WorldPackets
         class PetAction;
         class PetCancelAura;
         class PetSetAction;
+        class SetPetSpecializationClient;
+        class SetPetFavorite;
     }
 
     namespace Petition
@@ -1738,6 +1740,8 @@ class TC_GAME_API WorldSession
         void HandlePetCancelAuraOpcode(WorldPackets::Spells::PetCancelAura& packet);
         void HandlePetSpellAutocastOpcode(WorldPackets::Pet::PetSpellAutocast& packet);
         void HandlePetCastSpellOpcode(WorldPackets::Spells::PetCastSpell& petCastSpell);
+        void HandleSetPetSpecialization(WorldPackets::Pet::SetPetSpecializationClient& packet);
+        void HandleSetPetFavorite(WorldPackets::Pet::SetPetFavorite& packet);
 
         void HandleSetActionBarToggles(WorldPackets::Character::SetActionBarToggles& packet);
 
@@ -1891,6 +1895,7 @@ class TC_GAME_API WorldSession
         void HandleQueryCountdownTimer(WorldPackets::Misc::QueryCountdownTimer& queryCountdownTimer);
         void HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags const& setCurrenctFlags);
         void HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction);
+        void HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet);
 
         // Adventure Journal
         void HandleAdventureJournalOpenQuest(WorldPackets::AdventureJournal::AdventureJournalOpenQuest& openQuest);
@@ -1917,7 +1922,6 @@ class TC_GAME_API WorldSession
         void HandleCommerceTokenGetMarketPrice(WorldPackets::Token::CommerceTokenGetMarketPrice& requestWowTokenMarketPrice);
 
         // Perks Program (Trading Post)
-        void HandleRequestStoreFrontInfoUpdate(WorldPackets::PerksProgram::RequestStoreFrontInfoUpdate& packet);
         void HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& packet);
         void HandlePerksProgramRequestPendingRewards(WorldPackets::Misc::PerksProgramRequestPendingRewards& packet);
         void HandlePerksProgramGetRecentPurchases(WorldPackets::PerksProgram::PerksProgramGetRecentPurchases& packet);

@@ -22857,7 +22857,7 @@ Pet* Player::GetPet() const
     return nullptr;
 }
 
-void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
+void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent, bool stampeded /*= false*/)
 {
     if (!pet)
         pet = GetPet();
@@ -22908,11 +22908,32 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
 
     pet->CombatStop();
 
+    if (pet->IsAnimalCompanion())
+        SetAnimalCompanion(ObjectGuid::Empty);
+
     // exit areatriggers before saving to remove auras applied by them
     pet->ExitAllAreaTriggers();
 
+    // Stampeded/animal companion pets are not in PetStable, skip all stable logic
+    if (pet->IsInStampeded() || pet->IsAnimalCompanion())
+    {
+        SetMinion(pet, false, true);
+        pet->AddObjectToRemoveList();
+        pet->m_removed = true;
+
+        if (pet->isControlled())
+        {
+            WorldPackets::Pet::PetSpells petSpellsPacket;
+            SendDirectMessage(petSpellsPacket.Write());
+
+            if (GetGroup())
+                SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET);
+        }
+        return;
+    }
+
     // only if current pet in slot
-    pet->SavePetToDB(mode);
+    pet->SavePetToDB(mode, stampeded);
 
     PetStable::PetInfo const* currentPet = m_petStable->GetCurrentPet();
     ASSERT(currentPet && currentPet->PetNumber == pet->GetCharmInfo()->GetPetNumber());
@@ -23400,6 +23421,14 @@ void Player::SendRemoveControlBar() const
 {
     WorldPackets::Pet::PetSpells packet;
     SendDirectMessage(packet.Write());
+}
+
+void Player::SendPetGuids()
+{
+    WorldPackets::Pet::PetGuids guids;
+    for (Unit* unit : m_Controlled)
+        guids.PetGUIDs.push_back(unit->GetGUID());
+    SendDirectMessage(guids.Write());
 }
 
 int32 Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier const* mod, Spell const* spell)
@@ -28809,6 +28838,22 @@ void Player::ResummonPetTemporaryUnSummonedIfAny()
     m_temporaryUnsummonedPetNumber = 0;
 }
 
+void Player::ResummonAnimalCompanionIfAny()
+{
+    if (GetPet() && GetAnimalCompanion().IsEmpty())
+    {
+        Unit::AuraEffectList const& animalCompanion = GetAuraEffectsByType(SPELL_AURA_ANIMAL_COMPANION);
+        for (AuraEffect const* aurEff : animalCompanion)
+        {
+            if (uint32 triggerSpell = aurEff->GetSpellEffectInfo().TriggerSpell)
+            {
+                if (sSpellMgr->GetSpellInfo(triggerSpell, DIFFICULTY_NONE))
+                    CastSpell(this, triggerSpell, true);
+            }
+        }
+    }
+}
+
 void Player::UnsummonBattlePetTemporaryIfAny(bool onFlyingMount /*= false*/)
 {
     Creature* battlepet = GetSummonedBattlePet();
@@ -30447,13 +30492,19 @@ void Player::AddPetToUpdateFields(PetStable::PetInfo const& pet, PetSaveMode slo
 {
     auto ufStable = m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PetStable, 0);
     auto ufPet = AddDynamicUpdateFieldValue(ufStable.ModifyValue(&UF::StableInfo::Pets));
+
+    uint8 petFlags = flags;
+    if (pet.IsFavorite)
+        petFlags |= PET_STABLE_FAVORITE;
+
     ufPet.ModifyValue(&UF::StablePetInfo::PetSlot).SetValue(slot);
     ufPet.ModifyValue(&UF::StablePetInfo::PetNumber).SetValue(pet.PetNumber);
     ufPet.ModifyValue(&UF::StablePetInfo::CreatureID).SetValue(pet.CreatureId);
     ufPet.ModifyValue(&UF::StablePetInfo::DisplayID).SetValue(pet.DisplayId);
     ufPet.ModifyValue(&UF::StablePetInfo::ExperienceLevel).SetValue(pet.Level);
-    ufPet.ModifyValue(&UF::StablePetInfo::PetFlags).SetValue(flags);
+    ufPet.ModifyValue(&UF::StablePetInfo::PetFlags).SetValue(petFlags);
     ufPet.ModifyValue(&UF::StablePetInfo::Name).SetValue(pet.Name);
+    ufPet.ModifyValue(&UF::StablePetInfo::Specialization).SetValue(pet.SpecializationId);
 }
 
 void Player::SetPetSlot(uint32 petNumber, PetSaveMode dstPetSlot)
@@ -30870,8 +30921,8 @@ void Player::_LoadPetStable(uint32 summonedPetNumber, PreparedQueryResult result
 
     m_petStable = std::make_unique<PetStable>();
 
-    //         0      1        2      3    4           5     6     7        8          9       10      11        12              13       14              15
-    // SELECT id, entry, modelid, level, exp, Reactstate, slot, name, renamed, curhealth, curmana, abdata, savetime, CreatedBySpell, PetType, specialization FROM character_pet WHERE owner = ?
+    //         0      1        2      3    4           5     6     7        8          9       10      11        12              13       14            15        16
+    // SELECT id, entry, modelid, level, exp, Reactstate, slot, name, renamed, curhealth, curmana, abdata, savetime, CreatedBySpell, PetType, specialization, favorite FROM character_pet WHERE owner = ?
     if (result)
     {
 
@@ -30895,6 +30946,7 @@ void Player::_LoadPetStable(uint32 summonedPetNumber, PreparedQueryResult result
             petInfo.CreatedBySpellId = fields[13].GetUInt32();
             petInfo.Type = PetType(fields[14].GetUInt8());
             petInfo.SpecializationId = fields[15].GetUInt16();
+            petInfo.IsFavorite = fields[16].GetBool();
             if (slot >= PET_SAVE_FIRST_ACTIVE_SLOT && slot < PET_SAVE_LAST_ACTIVE_SLOT)
             {
                 m_petStable->ActivePets[slot] = std::move(petInfo);
@@ -31321,11 +31373,13 @@ Guild const* Player::GetGuild() const
     return guildId ? sGuildMgr->GetGuildById(guildId) : nullptr;
 }
 
-Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float y, float z, float ang, uint32 duration, bool* isNew /*= nullptr*/)
+Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float y, float z, float ang, uint32 duration, bool* isNew /*= nullptr*/, bool stampeded /*= false*/, bool animalCompanion /*= false*/, std::function<void(Pet*, bool)> callBack /*[](Pet*, bool) {}*/)
 {
     PetStable& petStable = GetOrInitPetStable();
 
     Pet* pet = new Pet(this, SUMMON_PET);
+    pet->SetStampeded(stampeded);
+    pet->SetAnimalCompanion(animalCompanion);
 
     if (pet->LoadPetFromDB(this, entry, 0, false, slot))
     {
@@ -31335,6 +31389,8 @@ Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float 
         if (isNew)
             *isNew = false;
 
+        callBack(pet, true);
+
         return pet;
     }
 
@@ -31342,6 +31398,7 @@ Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float 
     if (!entry)
     {
         delete pet;
+        callBack(nullptr, false);
         return nullptr;
     }
 
@@ -31352,6 +31409,7 @@ Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float 
     {
         TC_LOG_ERROR("misc", "Player::SummonPet: Pet ({}, Entry: {}) not summoned. Suggested coordinates aren't valid (X: {} Y: {})", pet->GetGUID().ToString(), pet->GetEntry(), pet->GetPositionX(), pet->GetPositionY());
         delete pet;
+        callBack(nullptr, false);
         return nullptr;
     }
 
@@ -31363,6 +31421,8 @@ Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float 
         delete pet;
         return nullptr;
     }
+
+    SendPetGuids();
 
     if (petStable.GetCurrentPet())
         RemovePet(nullptr, PET_SAVE_NOT_IN_SLOT);
@@ -31404,6 +31464,8 @@ Pet* Player::SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float 
 
     if (isNew)
         *isNew = true;
+
+    callBack(pet, true);
 
     return pet;
 }

@@ -1340,3 +1340,12 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
             _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
     }
 }
+
+void WorldSession::HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet)
+{
+    WorldPackets::Misc::AccountStoreFrontUpdate response;
+    response.StoreFrontID = packet.StoreFrontID;
+    response.Status = 0;  // Success
+    response.Expiry = 0;
+    SendPacket(response.Write());
+}

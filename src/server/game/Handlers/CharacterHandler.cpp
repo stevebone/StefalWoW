@@ -59,6 +59,8 @@
 #include "ReputationMgr.h"
 #include "ScriptMgr.h"
 #include "SocialMgr.h"
+#include "SpellAuraEffects.h"
+#include "SpellMgr.h"
 #include "StringConvert.h"
 #include "SystemPackets.h"
 #include "TransmogMgr.h"
@@ -1744,6 +1746,20 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     if (!pCurrChar->IsStandState() && !pCurrChar->HasUnitState(UNIT_STATE_STUNNED))
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
+
+    // Summon animal companion on login if aura is active
+    if (pCurrChar->GetPet() && pCurrChar->GetAnimalCompanion().IsEmpty())
+    {
+        Unit::AuraEffectList const& animalCompanion = pCurrChar->GetAuraEffectsByType(SPELL_AURA_ANIMAL_COMPANION);
+        for (AuraEffect const* aurEff : animalCompanion)
+        {
+            if (uint32 triggerSpell = aurEff->GetSpellEffectInfo().TriggerSpell)
+            {
+                if (sSpellMgr->GetSpellInfo(triggerSpell, DIFFICULTY_NONE))
+                    pCurrChar->CastSpell(pCurrChar, triggerSpell, true);
+            }
+        }
+    }
 
     pCurrChar->UpdateAverageItemLevelTotal();
     pCurrChar->UpdateAverageItemLevelEquipped();
