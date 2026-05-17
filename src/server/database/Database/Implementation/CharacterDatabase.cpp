@@ -863,6 +863,13 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_DEL_WARBAND_GROUP_MEMBERS, "DELETE FROM character_warband_group_members WHERE groupId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_WARBAND_MEMBER_BY_GUID, "DELETE FROM character_warband_group_members WHERE guid = ?", CONNECTION_ASYNC);
 
+    PrepareStatement(CHAR_SEL_WARBAND_TAXI_MASK, "SELECT taximask FROM warband_taxi_mask WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_REP_WARBAND_TAXI_MASK, "REPLACE INTO warband_taxi_mask (battlenetAccountId, taximask) VALUES (?, ?)", CONNECTION_ASYNC);
+
+    // Characters table does NOT have battlenetAccount but account -- this needs to be done differently
+    //PrepareStatement(CHAR_SEL_WARBAND_MAX_LEVEL_CHARS, "SELECT COUNT(*) FROM characters WHERE battlenetAccount = ? AND level = ? AND guid != ? AND deleteDate IS NULL", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_WARBAND_MAX_LEVEL_CHARS, "SELECT COUNT(*) FROM characters WHERE account = ? AND level = ? AND guid != ? AND deleteDate IS NULL", CONNECTION_ASYNC);
+
     // Perks Program (Trading Post)
     PrepareStatement(CHAR_SEL_PERKS_CURRENCY, "SELECT currency, total_earned, purchased_count FROM character_perks_currency WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_REP_PERKS_CURRENCY, "REPLACE INTO character_perks_currency (guid, currency, total_earned, purchased_count) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);

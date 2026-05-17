@@ -31,6 +31,7 @@
 #include "Player.h"
 #include "TaxiPackets.h"
 #include "TaxiPathGraph.h"
+#include <sstream>
 
 void WorldSession::HandleEnableTaxiNodeOpcode(WorldPackets::Taxi::EnableTaxiNode& enableTaxiNode)
 {
@@ -144,6 +145,18 @@ bool WorldSession::SendLearnNewTaxiNode(Creature* unit)
         SendPacket(data.Write());
 
         GetPlayer()->UpdateCriteria(CriteriaType::LearnTaxiNode, curloc);
+
+        TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(curloc);
+        if (node && !node->GetFlags().HasFlag(TaxiNodeFlags::NotAccountWide))
+        {
+            std::ostringstream ss;
+            ss << GetPlayer()->m_taxi;
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_WARBAND_TAXI_MASK);
+            stmt->setUInt32(0, GetBattlenetAccountId());
+            stmt->setString(1, ss.str());
+            CharacterDatabase.Execute(stmt);
+        }
+
         return true;
     }
     else
@@ -153,7 +166,20 @@ bool WorldSession::SendLearnNewTaxiNode(Creature* unit)
 void WorldSession::SendDiscoverNewTaxiNode(uint32 nodeid)
 {
     if (GetPlayer()->m_taxi.SetTaximaskNode(nodeid))
+    {
         SendPacket(WorldPackets::Taxi::NewTaxiPath(nodeid).Write());
+
+        TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(nodeid);
+        if (node && !node->GetFlags().HasFlag(TaxiNodeFlags::NotAccountWide))
+        {
+            std::ostringstream ss;
+            ss << GetPlayer()->m_taxi;
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_WARBAND_TAXI_MASK);
+            stmt->setUInt32(0, GetBattlenetAccountId());
+            stmt->setString(1, ss.str());
+            CharacterDatabase.Execute(stmt);
+        }
+    }
 }
 
 void WorldSession::HandleActivateTaxiOpcode(WorldPackets::Taxi::ActivateTaxi& activateTaxi)

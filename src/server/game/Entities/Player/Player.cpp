@@ -15454,6 +15454,11 @@ uint32 Player::GetQuestXPReward(Quest const* quest)
     for (Unit::AuraEffectList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
         AddPct(XP, (*i)->GetAmount());
 
+    // Warband alt XP bonus (5% per max-level character on account, max 25%)
+    // TO-DO: check https://www.wowhead.com/spell=430191/warband-mentored-leveling
+    if (uint8 altCount = GetWarbandMaxLevelCharCount())
+        XP += XP * altCount * 5 / 100;
+
     return XP;
 }
 
@@ -19100,6 +19105,12 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     if (!m_taxi.LoadTaxiMask(fields.taximask))                   // must be before InitTaxiNodesForLevel
         TC_LOG_WARN("entities.player.loading", "Player::LoadFromDB: Player ({}) has invalid taximask ({}) in DB. Forced partial load.", GetGUID().ToString(), fields.taximask);
 
+    if (PreparedQueryResult warbandTaxiResult = holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_WARBAND_TAXI_MASK))
+    {
+        TaxiMask accountMask = PlayerTaxi::LoadTaxiMaskFromString((*warbandTaxiResult)[0].GetString());
+        m_taxi.MergeAccountTaxiMask(accountMask);
+    }
+
     uint32 extraflags = fields.extra_flags;
 
     _LoadPetStable(fields.summonedPetNumber, holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_PET_SLOTS));
@@ -19195,6 +19206,9 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
 
     // must be before inventory (some items required reputation check)
     m_reputationMgr->LoadFromDB(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_REPUTATION));
+
+    if (PreparedQueryResult maxLevelResult = holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_WARBAND_MAX_LEVEL_COUNT))
+        _warbandMaxLevelCharCount = std::min((*maxLevelResult)[0].GetUInt64(), uint64(5));
 
     _LoadCharacterBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS));
     _LoadAccountBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS));
@@ -21471,6 +21485,8 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveAccountBankTabSettings(trans);
     _SaveAccountBankItems(trans);
     _SaveAccountBankCoinage(trans);
+    _SaveAccountTaxiMask(trans);
+
     if (_garrison)
         _garrison->SaveToDB(trans);
 
@@ -22429,6 +22445,18 @@ void Player::_SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) c
         trans->Append(stmt);
     }
 }
+
+void Player::_SaveAccountTaxiMask(CharacterDatabaseTransaction trans) const
+{
+    std::ostringstream ss;
+    ss << m_taxi;
+
+    auto stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_WARBAND_TAXI_MASK);
+    stmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
+    stmt->setString(1, ss.str());
+    trans->Append(stmt);
+}
+
 
 void Player::_SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const
 {
