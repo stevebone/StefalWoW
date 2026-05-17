@@ -396,6 +396,19 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt32(0, m_battlenetAccountId);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE, stmt);
 
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_REPUTATION);
+    stmt->setUInt32(0, m_battlenetAccountId);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_REPUTATION, stmt);
+
+    // Phase 10C - renown reward grant tracking (character + warband)
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_RENOWN_REWARDS_GRANTED);
+    stmt->setUInt64(0, lowGuid);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_CHAR_RENOWN_REWARDS_GRANTED, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_RENOWN_REWARDS_GRANTED);
+    stmt->setUInt32(0, m_battlenetAccountId);
+    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_WARBAND_RENOWN_REWARDS_GRANTED, stmt);
+
     return res;
 }
 

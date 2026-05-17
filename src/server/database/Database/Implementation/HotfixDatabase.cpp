@@ -502,6 +502,14 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_CORRUPTION_EFFECTS, "SELECT MAX(ID) + 1 FROM corruption_effects", CONNECTION_SYNCH);
 
+    // Covenant.db2
+    PrepareStatement(HOTFIX_SEL_COVENANT, "SELECT ID, Name, Description, BountySetID, SkillLineID, DeathTeleportSpellID, "
+        "Unknown902_6, Unknown902_7, FactionID, CurrencyTypesID, RequiredPlayerConditionID FROM covenant"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_COVENANT, "SELECT MAX(ID) + 1 FROM covenant", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_COVENANT, "SELECT ID, Name_lang, Description_lang FROM covenant_locale WHERE (`VerifiedBuild` > 0) = ?"
+        " AND locale = ?", CONNECTION_SYNCH);
+
     // CraftingQuality.db2
     PrepareStatement(HOTFIX_SEL_CRAFTING_QUALITY, "SELECT ID, QualityTier, CraftingQualityAtlasSetID FROM crafting_quality"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
@@ -674,6 +682,13 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         "ReputationRaceMask4_2 FROM faction WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_FACTION, "SELECT MAX(ID) + 1 FROM faction", CONNECTION_SYNCH);
     PREPARE_LOCALE_STMT(HOTFIX_SEL_FACTION, "SELECT ID, Name_lang, Description_lang FROM faction_locale WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
+    // FactionGroup.db2
+    PrepareStatement(HOTFIX_SEL_FACTION_GROUP, "SELECT ID, InternalName, Name, MaskID, HonorCurrencyTextureFileID, ConquestCurrencyTextureFileID"
+        " FROM faction_group WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_FACTION_GROUP, "SELECT MAX(ID) + 1 FROM faction_group", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_FACTION_GROUP, "SELECT ID, Name_lang FROM faction_group_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // FactionTemplate.db2
     PrepareStatement(HOTFIX_SEL_FACTION_TEMPLATE, "SELECT ID, Faction, Flags, FactionGroup, FriendGroup, EnemyGroup, Enemies1, Enemies2, Enemies3, "
@@ -1580,6 +1595,21 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_RAND_PROP_POINTS, "SELECT MAX(ID) + 1 FROM rand_prop_points", CONNECTION_SYNCH);
 
+    // RenownRewards.db2
+    PrepareStatement(HOTFIX_SEL_RENOWN_REWARDS, "SELECT ID, Name, Description, ToastDescription, CovenantID, Level, Icon, Flags, UiOrder, "
+        "ItemID, SpellID, MountID, TransmogID, TransmogSetID, CharTitlesID, GarrFollowerID, TransmogIllusionID, "
+        "RewardCategory, QuestID, PlayerConditionID FROM renown_rewards WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_RENOWN_REWARDS, "SELECT MAX(ID) + 1 FROM renown_rewards", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_RENOWN_REWARDS, "SELECT ID, Name_lang, Description_lang, ToastDescription_lang FROM renown_rewards_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
+    // RenownRewardsPlunderstorm.db2
+    PrepareStatement(HOTFIX_SEL_RENOWN_REWARDS_PLUNDERSTORM, "SELECT ID, Name, Description, CovenantID, Level, Icon, RewardCategory, "
+        "UiOrder, SpellID FROM renown_rewards_plunderstorm WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_RENOWN_REWARDS_PLUNDERSTORM, "SELECT MAX(ID) + 1 FROM renown_rewards_plunderstorm", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_RENOWN_REWARDS_PLUNDERSTORM, "SELECT ID, Name_lang, Description_lang FROM renown_rewards_plunderstorm_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
     // RewardPack.db2
     PrepareStatement(HOTFIX_SEL_REWARD_PACK, "SELECT ID, CharTitleID, Money, ArtifactXPDifficulty, ArtifactXPMultiplier, ArtifactXPCategoryID, "
         "TreasurePickerID FROM reward_pack WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
@@ -2199,6 +2229,11 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_LOCALE_STMT(HOTFIX_SEL_UI_SPLASH_SCREEN, "SELECT ID, Header_lang, TopLeftFeatureTitle_lang, TopLeftFeatureDesc_lang, "
         "BottomLeftFeatureTitle_lang, BottomLeftFeatureDesc_lang, RightFeatureTitle_lang, RightFeatureDesc_lang FROM ui_splash_screen_locale"
         " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
+    // UiTextureKit.db2
+    PrepareStatement(HOTFIX_SEL_UI_TEXTURE_KIT, "SELECT ID, KitPrefix FROM ui_texture_kit"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_UI_TEXTURE_KIT, "SELECT MAX(ID) + 1 FROM ui_texture_kit", CONNECTION_SYNCH);
 
     // UnitCondition.db2
     PrepareStatement(HOTFIX_SEL_UNIT_CONDITION, "SELECT ID, Flags, Variable1, Variable2, Variable3, Variable4, Variable5, Variable6, Variable7, "

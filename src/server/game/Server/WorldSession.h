@@ -527,6 +527,11 @@ namespace WorldPackets
         class SendMail;
     }
 
+    namespace MajorFactions
+    {
+        class RequestCatchupState;
+    }
+
     namespace Misc
     {
         class SetSelection;
@@ -1537,6 +1542,14 @@ class TC_GAME_API WorldSession
 
         void HandleTabardVendorActivateOpcode(WorldPackets::NPC::TabardVendorActivate const& tabardVendorActivate);
         void HandleBankerActivateOpcode(WorldPackets::Bank::BankerActivate const& bankerActivate);
+
+        // Phase 10E - covenant/major-faction renown catchup request handler.
+        // The client sends CMSG_COVENANT_RENOWN_REQUEST_CATCHUP_STATE when
+        // opening the Renown UI; the server replies with the current catchup
+        // state for every major faction where the character is behind the
+        // account-max renown.
+        void HandleCovenantRenownRequestCatchupState(WorldPackets::MajorFactions::RequestCatchupState const& packet);
+
         void HandleTrainerListOpcode(WorldPackets::NPC::Hello& packet);
         void HandleTrainerBuySpellOpcode(WorldPackets::NPC::TrainerBuySpell& packet);
         void HandlePetitionShowList(WorldPackets::Petition::PetitionShowList& packet);

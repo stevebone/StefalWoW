@@ -8318,6 +8318,47 @@ void ObjectMgr::LoadReputationSpilloverTemplate()
     TC_LOG_INFO("server.loading", ">> Loaded {} reputation_spillover_template in {} ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
 
+void ObjectMgr::LoadWarbandReputationFactions()
+{
+    uint32 oldMSTime = getMSTime();
+
+    _warbandReputationFactions.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT factionId FROM warband_reputation_faction");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 warband reputation factions. DB table `warband_reputation_faction` is empty.");
+        return;
+    }
+
+    do
+    {
+        uint32 factionId = result->Fetch()[0].GetUInt16();
+
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
+        if (!factionEntry)
+        {
+            TC_LOG_ERROR("sql.sql", "Faction {} in `warband_reputation_faction` does not exist, skipping.", factionId);
+            continue;
+        }
+
+        if (!factionEntry->CanHaveReputation())
+        {
+            TC_LOG_ERROR("sql.sql", "Faction {} in `warband_reputation_faction` cannot have reputation, skipping.", factionId);
+            continue;
+        }
+
+        _warbandReputationFactions.insert(factionId);
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} warband reputation factions in {} ms", _warbandReputationFactions.size(), GetMSTimeDiffToNow(oldMSTime));
+}
+
+bool ObjectMgr::IsWarbandReputationFaction(uint32 factionId) const
+{
+    return _warbandReputationFactions.count(factionId) > 0;
+}
+
 void ObjectMgr::LoadPointsOfInterest()
 {
     uint32 oldMSTime = getMSTime();

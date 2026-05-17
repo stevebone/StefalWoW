@@ -117,6 +117,7 @@ DB2Storage<ContentTuningXExpectedEntry>         sContentTuningXExpectedStore("Co
 DB2Storage<ContentTuningXLabelEntry>            sContentTuningXLabelStore("ContentTuningXLabel.db2", &ContentTuningXLabelLoadInfo::Instance);
 DB2Storage<ConversationLineEntry>               sConversationLineStore("ConversationLine.db2", &ConversationLineLoadInfo::Instance);
 DB2Storage<CorruptionEffectsEntry>              sCorruptionEffectsStore("CorruptionEffects.db2", &CorruptionEffectsLoadInfo::Instance);
+DB2Storage<CovenantEntry>                       sCovenantStore("Covenant.db2", &CovenantLoadInfo::Instance);
 DB2Storage<CraftingQualityEntry>                sCraftingQualityStore("CraftingQuality.db2", &CraftingQualityLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore("CreatureDisplayInfo.db2", &CreatureDisplayInfoLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", &CreatureDisplayInfoExtraLoadInfo::Instance);
@@ -145,6 +146,7 @@ DB2Storage<EmotesTextSoundEntry>                sEmotesTextSoundStore("EmotesTex
 DB2Storage<ExpectedStatEntry>                   sExpectedStatStore("ExpectedStat.db2", &ExpectedStatLoadInfo::Instance);
 DB2Storage<ExpectedStatModEntry>                sExpectedStatModStore("ExpectedStatMod.db2", &ExpectedStatModLoadInfo::Instance);
 DB2Storage<FactionEntry>                        sFactionStore("Faction.db2", &FactionLoadInfo::Instance);
+DB2Storage<FactionGroupEntry>                   sFactionGroupStore("FactionGroup.db2", &FactionGroupLoadInfo::Instance);
 DB2Storage<FactionTemplateEntry>                sFactionTemplateStore("FactionTemplate.db2", &FactionTemplateLoadInfo::Instance);
 DB2Storage<FlightCapabilityEntry>               sFlightCapabilityStore("FlightCapability.db2", &FlightCapabilityLoadInfo::Instance);
 DB2Storage<FriendshipRepReactionEntry>          sFriendshipRepReactionStore("FriendshipRepReaction.db2", &FriendshipRepReactionLoadInfo::Instance);
@@ -305,6 +307,8 @@ DB2Storage<QuestSortEntry>                      sQuestSortStore("QuestSort.db2",
 DB2Storage<QuestV2Entry>                        sQuestV2Store("QuestV2.db2", &QuestV2LoadInfo::Instance);
 DB2Storage<QuestXPEntry>                        sQuestXPStore("QuestXP.db2", &QuestXpLoadInfo::Instance);
 DB2Storage<RandPropPointsEntry>                 sRandPropPointsStore("RandPropPoints.db2", &RandPropPointsLoadInfo::Instance);
+DB2Storage<RenownRewardsEntry>                  sRenownRewardsStore("RenownRewards.db2", &RenownRewardsLoadInfo::Instance);
+DB2Storage<RenownRewardsPlunderstormEntry>      sRenownRewardsPlunderstormStore("RenownRewardsPlunderstorm.db2", &RenownRewardsPlunderstormLoadInfo::Instance);
 DB2Storage<RewardPackEntry>                     sRewardPackStore("RewardPack.db2", &RewardPackLoadInfo::Instance);
 DB2Storage<RewardPackXCurrencyTypeEntry>        sRewardPackXCurrencyTypeStore("RewardPackXCurrencyType.db2", &RewardPackXCurrencyTypeLoadInfo::Instance);
 DB2Storage<RewardPackXItemEntry>                sRewardPackXItemStore("RewardPackXItem.db2", &RewardPackXItemLoadInfo::Instance);
@@ -416,6 +420,7 @@ DB2Storage<UiMapAssignmentEntry>                sUiMapAssignmentStore("UiMapAssi
 DB2Storage<UiMapLinkEntry>                      sUiMapLinkStore("UiMapLink.db2", &UiMapLinkLoadInfo::Instance);
 DB2Storage<UiMapXMapArtEntry>                   sUiMapXMapArtStore("UiMapXMapArt.db2", &UiMapXMapArtLoadInfo::Instance);
 DB2Storage<UISplashScreenEntry>                 sUISplashScreenStore("UISplashScreen.db2", &UiSplashScreenLoadInfo::Instance);
+DB2Storage<UiTextureKitEntry>                   sUiTextureKitStore("UiTextureKit.db2", &UiTextureKitLoadInfo::Instance);
 DB2Storage<UnitConditionEntry>                  sUnitConditionStore("UnitCondition.db2", &UnitConditionLoadInfo::Instance);
 DB2Storage<UnitPowerBarEntry>                   sUnitPowerBarStore("UnitPowerBar.db2", &UnitPowerBarLoadInfo::Instance);
 DB2Storage<VehicleEntry>                        sVehicleStore("Vehicle.db2", &VehicleLoadInfo::Instance);
@@ -776,6 +781,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sContentTuningXLabelStore);
     LOAD_DB2(sConversationLineStore);
     LOAD_DB2(sCorruptionEffectsStore);
+    LOAD_DB2(sCovenantStore);
     LOAD_DB2(sCraftingQualityStore);
     LOAD_DB2(sCreatureDisplayInfoStore);
     LOAD_DB2(sCreatureDisplayInfoExtraStore);
@@ -804,6 +810,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sExpectedStatStore);
     LOAD_DB2(sExpectedStatModStore);
     LOAD_DB2(sFactionStore);
+    LOAD_DB2(sFactionGroupStore);
     LOAD_DB2(sFactionTemplateStore);
     LOAD_DB2(sFlightCapabilityStore);
     LOAD_DB2(sFriendshipRepReactionStore);
@@ -964,6 +971,8 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sQuestV2Store);
     LOAD_DB2(sQuestXPStore);
     LOAD_DB2(sRandPropPointsStore);
+    LOAD_DB2(sRenownRewardsStore);
+    LOAD_DB2(sRenownRewardsPlunderstormStore);
     LOAD_DB2(sRewardPackStore);
     LOAD_DB2(sRewardPackXCurrencyTypeStore);
     LOAD_DB2(sRewardPackXItemStore);
@@ -1075,6 +1084,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sUiMapLinkStore);
     LOAD_DB2(sUiMapXMapArtStore);
     LOAD_DB2(sUISplashScreenStore);
+    LOAD_DB2(sUiTextureKitStore);
     LOAD_DB2(sUnitConditionStore);
     LOAD_DB2(sUnitPowerBarStore);
     LOAD_DB2(sVehicleStore);

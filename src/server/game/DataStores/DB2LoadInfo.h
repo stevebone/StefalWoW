@@ -1446,6 +1446,26 @@ struct CorruptionEffectsLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 5, &CorruptionEffectsMeta::Instance, HOTFIX_SEL_CORRUPTION_EFFECTS };
 };
 
+struct CovenantLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[11] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "BountySetID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "SkillLineID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "DeathTeleportSpellID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Unknown902_6" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Unknown902_7" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "FactionID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "CurrencyTypesID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "RequiredPlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 11, &CovenantMeta::Instance, HOTFIX_SEL_COVENANT };
+};
+
 struct CraftingQualityLoadInfo
 {
     static constexpr DB2FieldMeta Fields[3] =
@@ -2054,6 +2074,21 @@ struct FactionLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 43, &FactionMeta::Instance, HOTFIX_SEL_FACTION };
+};
+
+struct FactionGroupLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[6] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING_NOT_LOCALIZED, .Name = "InternalName" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_BYTE, .Name = "MaskID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "HonorCurrencyTextureFileID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "ConquestCurrencyTextureFileID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 6, &FactionGroupMeta::Instance, HOTFIX_SEL_FACTION_GROUP };
 };
 
 struct FactionTemplateLoadInfo
@@ -5163,6 +5198,53 @@ struct RandPropPointsLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 35, &RandPropPointsMeta::Instance, HOTFIX_SEL_RAND_PROP_POINTS };
 };
 
+struct RenownRewardsLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[20] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "ToastDescription" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Level" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Icon" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "UiOrder" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "ItemID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "SpellID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "MountID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "TransmogID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "TransmogSetID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "CharTitlesID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "GarrFollowerID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "TransmogIllusionID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "RewardCategory" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "QuestID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "PlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 20, &RenownRewardsMeta::Instance, HOTFIX_SEL_RENOWN_REWARDS };
+};
+
+struct RenownRewardsPlunderstormLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[9] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Level" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Icon" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "RewardCategory" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "UiOrder" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "SpellID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 9, &RenownRewardsPlunderstormMeta::Instance, HOTFIX_SEL_RENOWN_REWARDS_PLUNDERSTORM };
+};
+
 struct RewardPackLoadInfo
 {
     static constexpr DB2FieldMeta Fields[7] =
@@ -7134,6 +7216,17 @@ struct UiSplashScreenLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 16, &UISplashScreenMeta::Instance, HOTFIX_SEL_UI_SPLASH_SCREEN };
+};
+
+struct UiTextureKitLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[2] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING_NOT_LOCALIZED, .Name = "KitPrefix" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 2, &UiTextureKitMeta::Instance, HOTFIX_SEL_UI_TEXTURE_KIT };
 };
 
 struct UnitConditionLoadInfo

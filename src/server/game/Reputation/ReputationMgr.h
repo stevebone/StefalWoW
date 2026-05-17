@@ -24,6 +24,8 @@
 #include "SharedDefines.h"
 #include <set>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 
 struct FactionEntry;
 struct FactionTemplateEntry;
@@ -47,6 +49,12 @@ enum class ReputationFlags : uint16
 };
 
 DEFINE_ENUM_FLAG(ReputationFlags);
+
+struct AccountReputationState
+{
+    int32 standing = 0;
+    int32 renownLevel = 0;
+};
 
 typedef uint32 RepListID;
 struct FactionState
@@ -74,6 +82,20 @@ class TC_GAME_API ReputationMgr
 
         void SaveToDB(CharacterDatabaseTransaction trans);
         void LoadFromDB(PreparedQueryResult result);
+        void LoadAccountWideFromDB(PreparedQueryResult result);
+        void SaveAccountWideToDB(CharacterDatabaseTransaction trans);
+
+        // -- Renown reward grant tracking (Phase 10C) ------------------------
+        void LoadRenownRewardsGrantedFromDB(PreparedQueryResult charResult, PreparedQueryResult accountResult);
+        bool IsRenownRewardGranted(uint32 renownRewardId, bool accountWide) const;
+        void MarkRenownRewardGranted(uint32 renownRewardId, bool accountWide);
+
+        // -- Account-wide reputation read accessor (Phase 10E) ---------------
+        // Looks up the cached account-max renown level for a given faction,
+        // populated by LoadAccountWideFromDB at login. Returns the per-char
+        // renown level if the faction is not warband-shared or no account row
+        // exists.
+        int32 GetAccountRenownLevel(uint32 factionId) const;
     public:                                                 // statics
         static std::set<int32> const ReputationRankThresholds;
         static const int32 Reputation_Cap;
@@ -161,6 +183,9 @@ class TC_GAME_API ReputationMgr
     private:
         Player* _player;
         FactionStateList _factions;
+        std::unordered_map<uint32 /*factionId*/, AccountReputationState> _accountReputation;
+        std::unordered_set<uint32> _grantedRenownRewardsChar;     // per-character renown reward grants (PK rewardId)
+        std::unordered_set<uint32> _grantedRenownRewardsAccount;  // per-bnet renown reward grants (loaded with account-wide rep)
         ForcedReactions _forcedReactions;
         uint8 _visibleFactionCount :8;
         uint8 _honoredFactionCount :8;

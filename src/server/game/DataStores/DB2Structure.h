@@ -1059,6 +1059,21 @@ struct CorruptionEffectsEntry
     int32 Flags;
 };
 
+struct CovenantEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 BountySetID;
+    int32 SkillLineID;
+    int32 DeathTeleportSpellID;
+    int32 Unknown902_6;
+    int32 Unknown902_7;
+    int32 FactionID;
+    int32 CurrencyTypesID;
+    int32 RequiredPlayerConditionID;
+};
+
 struct CraftingQualityEntry
 {
     uint32 ID;
@@ -1749,6 +1764,16 @@ struct FactionEntry
 };
 
 #define MAX_FACTION_RELATIONS 8
+
+struct FactionGroupEntry
+{
+    uint32 ID;
+    char const* InternalName;
+    LocalizedString Name;
+    uint8 MaskID;
+    int32 HonorCurrencyTextureFileID;
+    int32 ConquestCurrencyTextureFileID;
+};
 
 struct FactionTemplateEntry
 {
@@ -3746,6 +3771,43 @@ struct RandPropPointsEntry
     std::array<uint32, 5> Good;
 };
 
+struct RenownRewardsEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    LocalizedString ToastDescription;
+    int32 CovenantID;
+    int32 Level;
+    int32 Icon;
+    int32 Flags;
+    int32 UiOrder;
+    int32 ItemID;
+    int32 SpellID;
+    int32 MountID;
+    int32 TransmogID;
+    int32 TransmogSetID;
+    int32 CharTitlesID;
+    int32 GarrFollowerID;
+    int32 TransmogIllusionID;
+    int32 RewardCategory;        // Field_12_0_0_63534_016 - reward category enum
+    int32 QuestID;
+    int32 PlayerConditionID;
+};
+
+struct RenownRewardsPlunderstormEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 CovenantID;
+    int32 Level;
+    int32 Icon;
+    int32 RewardCategory;        // Field_10_2_6_53840_005
+    int32 UiOrder;
+    int32 SpellID;
+};
+
 struct RewardPackEntry
 {
     uint32 ID;
@@ -5084,6 +5146,12 @@ struct UISplashScreenEntry
     int32 PlayerConditionID;
     int32 CharLevelConditionID;
     int32 RequiredTimeEventPassed; // serverside TimeEvent table, see ModifierTreeType::HasTimeEventPassed
+};
+
+struct UiTextureKitEntry
+{
+    uint32 ID;
+    char const* KitPrefix;     // textureKit string (e.g. "MajorFaction-DragonscaleExpedition")
 };
 
 #define MAX_UNIT_CONDITION_VALUES 8
