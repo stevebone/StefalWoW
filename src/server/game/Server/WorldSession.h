@@ -653,7 +653,6 @@ namespace WorldPackets
 
     namespace PerksProgram
     {
-        class RequestStoreFrontInfoUpdate;
         class PerksProgramStatusRequest;
         class PerksProgramGetRecentPurchases;
         class PerksProgramRequestPurchase;
@@ -1923,7 +1922,6 @@ class TC_GAME_API WorldSession
         void HandleCommerceTokenGetMarketPrice(WorldPackets::Token::CommerceTokenGetMarketPrice& requestWowTokenMarketPrice);
 
         // Perks Program (Trading Post)
-        //void HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet);
         void HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& packet);
         void HandlePerksProgramRequestPendingRewards(WorldPackets::Misc::PerksProgramRequestPendingRewards& packet);
         void HandlePerksProgramGetRecentPurchases(WorldPackets::PerksProgram::PerksProgramGetRecentPurchases& packet);

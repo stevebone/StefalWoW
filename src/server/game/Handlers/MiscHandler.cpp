@@ -1345,7 +1345,7 @@ void WorldSession::HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::Request
 {
     WorldPackets::Misc::AccountStoreFrontUpdate response;
     response.StoreFrontID = packet.StoreFrontID;
-    response.Result = 0;  // Success
-    response.Unknown = 0;
+    response.Status = 0;  // Success
+    response.Expiry = 0;
     SendPacket(response.Write());
 }

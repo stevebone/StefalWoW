@@ -866,9 +866,13 @@ void RequestStoreFrontInfoUpdate::Read()
 
 WorldPacket const* AccountStoreFrontUpdate::Write()
 {
-    _worldPacket << StoreFrontID;
-    _worldPacket << Result;
-    _worldPacket << Unknown;
+    _worldPacket << uint8(Status);
+    _worldPacket << uint32(StoreFrontID);
+    _worldPacket << uint64(Expiry);
+    _worldPacket << Bits<1>(Flag1);
+    _worldPacket << Bits<1>(Flag2);
+    _worldPacket.FlushBits();
+
     return &_worldPacket;
 }
 }

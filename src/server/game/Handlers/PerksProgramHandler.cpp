@@ -100,12 +100,6 @@ void WorldSession::SendPerksProgramActivityUpdate()
     SendPacket(response.Write());
 }
 
-void WorldSession::HandleRequestStoreFrontInfoUpdate(WorldPackets::PerksProgram::RequestStoreFrontInfoUpdate& /*packet*/)
-{
-    WorldPackets::PerksProgram::AccountStoreFrontUpdate response;
-    SendPacket(response.Write());
-}
-
 void WorldSession::HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& /*packet*/)
 {
     SendPerksProgramActivityUpdate();

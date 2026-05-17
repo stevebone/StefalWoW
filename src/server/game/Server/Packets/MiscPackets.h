@@ -1085,13 +1085,15 @@ namespace WorldPackets
         class AccountStoreFrontUpdate final : public ServerPacket
         {
         public:
-            AccountStoreFrontUpdate() : ServerPacket(SMSG_ACCOUNT_STORE_FRONT_UPDATE, 12) { }
+            AccountStoreFrontUpdate() : ServerPacket(SMSG_ACCOUNT_STORE_FRONT_UPDATE, 14) { }
 
             WorldPacket const* Write() override;
 
-            uint32 StoreFrontID = 0;
-            int32 Result = 0;
-            uint32 Unknown = 0;
+            uint8  Status = 0; // 2
+            uint32 StoreFrontID = 0; // 1            
+            uint64 Expiry = 0;
+            bool   Flag1 = true;
+            bool   Flag2 = true;
         };
     }
 }
