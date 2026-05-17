@@ -23,6 +23,7 @@
 #include "ScriptMgr.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
+#include "SpellMgr.h"
 #include "Unit.h"
 #include "Player.h"
 #include "Pet.h"
