@@ -23395,6 +23395,14 @@ void Player::SendRemoveControlBar() const
     SendDirectMessage(packet.Write());
 }
 
+void Player::SendPetGuids()
+{
+    WorldPackets::Pet::PetGuids guids;
+    for (Unit* unit : m_Controlled)
+        guids.PetGUIDs.push_back(unit->GetGUID());
+    SendDirectMessage(guids.Write());
+}
+
 int32 Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier const* mod, Spell const* spell)
 {
     if (!mod || !spellInfo)

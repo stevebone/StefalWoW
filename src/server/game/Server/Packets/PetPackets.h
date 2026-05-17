@@ -292,6 +292,47 @@ namespace WorldPackets
             CommandStates CommandState = COMMAND_STAY;
             uint8 Flag = 0;
         };
+
+        class PetGuids final : public ServerPacket
+        {
+        public:
+            PetGuids() : ServerPacket(SMSG_PET_GUIDS, 4) { }
+
+            WorldPacket const* Write() override;
+
+            GuidVector PetGUIDs;
+        };
+
+        class PetClearSpells final : public ServerPacket
+        {
+        public:
+            PetClearSpells() : ServerPacket(SMSG_PET_CLEAR_SPELLS, 0) {}
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
+        class PetDismissSound final : public ServerPacket
+        {
+        public:
+            PetDismissSound() : ServerPacket(SMSG_PET_DISMISS_SOUND) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid PetGUID;
+            uint32 DisplayID = 0;
+            TaggedPosition<Position::XYZ> ModelPosition;
+        };
+
+        class SetPetFavorite final : public ClientPacket
+        {
+        public:
+            explicit SetPetFavorite(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_FAVORITE, std::move(packet)) { }
+
+            void Read() override;
+
+            uint8 Slot = 0;
+            bool Favorite = false;
+        };
     }
 }
 
