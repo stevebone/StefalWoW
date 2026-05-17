@@ -1384,10 +1384,15 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void SetStableMaster(ObjectGuid stableMaster);
 
         Pet* GetPet() const;
-        Pet* SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float y, float z, float ang, uint32 despwtime, bool* isNew = nullptr);
-        void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
+        Pet* SummonPet(uint32 entry, Optional<PetSaveMode> slot, float x, float y, float z, float ang, uint32 despwtime, bool* isNew = nullptr, bool stampeded = false, bool animalCompanion = false, std::function<void(Pet*, bool)> callback = [](Pet*, bool) {});
+        void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false, bool stampeded = false);
         void DeletePetFromDB(uint32 petNumber);
         void SendTameFailure(PetTameResult result);
+
+        //Animal Companion
+        void SetAnimalCompanion(ObjectGuid guid) { petAnimalCompanionGuid = guid; }
+        ObjectGuid GetAnimalCompanion() { return petAnimalCompanionGuid; }
+        ObjectGuid petAnimalCompanionGuid;
 
         // pet auras
         std::unordered_set<PetAura const*> m_petAuras;
@@ -2017,6 +2022,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void PossessSpellInitialize();
         void VehicleSpellInitialize();
         void SendRemoveControlBar() const;
+        void SendPetGuids();
         bool HasSpell(uint32 spell) const override;
         bool HasActiveSpell(uint32 spell) const;            // show in spellbook
         SpellInfo const* GetCastSpellInfo(SpellInfo const* spellInfo, TriggerCastFlags& triggerFlag, GetCastSpellInfoContext* context) const override;
@@ -2812,6 +2818,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void EnablePetControlsOnDismount();
         void UnsummonPetTemporaryIfAny();
         void ResummonPetTemporaryUnSummonedIfAny();
+        void ResummonAnimalCompanionIfAny();
         void UnsummonBattlePetTemporaryIfAny(bool onFlyingMount = false);
         void ResummonBattlePetTemporaryUnSummonedIfAny();
         bool IsPetNeedBeTemporaryUnsummoned() const;

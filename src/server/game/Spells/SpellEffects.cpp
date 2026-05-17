@@ -349,7 +349,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectUnused,                                   //257 SPELL_EFFECT_257
     &Spell::EffectNULL,                                     //258 SPELL_EFFECT_MODIFY_KEYSTONE
     &Spell::EffectRespecAzeriteEmpoweredItem,               //259 SPELL_EFFECT_RESPEC_AZERITE_EMPOWERED_ITEM
-    &Spell::EffectNULL,                                     //260 SPELL_EFFECT_SUMMON_STABLED_PET
+    &Spell::EffectSummonStabledPet,                         //260 SPELL_EFFECT_SUMMON_STABLED_PET
     &Spell::EffectNULL,                                     //261 SPELL_EFFECT_SCRAP_ITEM
     &Spell::EffectUnused,                                   //262 SPELL_EFFECT_262
     &Spell::EffectNULL,                                     //263 SPELL_EFFECT_REPAIR_ITEM
@@ -6370,4 +6370,130 @@ void Spell::EffectEquipTransmogOutfit()
     }
 
     target->EquipTransmogOutfit(m_misc.EquipTransmogOutfit.TransmogOutfitId, static_cast<TransmogSituationTrigger>(m_misc.EquipTransmogOutfit.SituationTrigger), locked);
+}
+
+void Spell::EffectSummonStabledPet()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_LAUNCH)
+        return;
+
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = m_caster->ToPlayer();
+
+    if (!player)
+        return;
+
+    // Don't summon if animal companion already exists
+    if (!player->GetAnimalCompanion().IsEmpty())
+        return;
+
+    Pet* mainPet = player->GetPet();
+    if (!mainPet)
+        return;
+
+    auto stable = player->GetPetStable();
+    if (!stable)
+        return;
+
+    // Animal companion is taken from the first stable slot (slot 5)
+    if (!stable->StabledPets[0].has_value())
+        return;
+
+    PetStable::PetInfo const& stabledPet = stable->StabledPets[0].value();
+
+    // Calculate positions: main pet to the left, animal companion to the right
+    float playerX = player->GetPositionX();
+    float playerY = player->GetPositionY();
+    float playerZ = player->GetPositionZ();
+    float orient = player->GetOrientation();
+    float dist = player->GetCombatReach() + 2.0f;
+
+    // Move main pet to the left side of the player
+    float mainAngle = orient - M_PI / 2.0f;
+    mainPet->NearTeleportTo(
+        playerX + dist * cos(mainAngle),
+        playerY + dist * sin(mainAngle),
+        playerZ,
+        mainPet->GetOrientation(),
+        true);
+
+    // Place animal companion on the right side of the player
+    float acAngle = orient + M_PI / 2.0f;
+    float px = playerX + dist * cos(acAngle);
+    float py = playerY + dist * sin(acAngle);
+    float pz = playerZ;
+
+    // Create the animal companion pet
+    Pet* pet = new Pet(player, SUMMON_PET);
+
+    Map* map = player->GetMap();
+    uint32 pet_number = sObjectMgr->GeneratePetNumber();
+
+    if (!pet->Create(map->GenerateLowGuid<HighGuid::Pet>(), map, stabledPet.CreatureId, pet_number))
+    {
+        TC_LOG_ERROR("misc", "Spell::EffectSummonStabledPet: No such creature entry {}", stabledPet.CreatureId);
+        delete pet;
+        return;
+    }
+
+    pet->Relocate(px, py, pz, player->GetOrientation());
+    if (!pet->IsPositionValid())
+    {
+        // Fallback: place next to player
+        player->GetClosePoint(px, py, pz, player->GetCombatReach());
+        pet->Relocate(px, py, pz, player->GetOrientation());
+    }
+
+    PhasingHandler::InheritPhaseShift(pet, player);
+
+    pet->SetCreatorGUID(player->GetGUID());
+    pet->SetFaction(player->GetFaction());
+    pet->ReplaceAllNpcFlags(UNIT_NPC_FLAG_NONE);
+    pet->ReplaceAllNpcFlags2(UNIT_NPC_FLAG_2_NONE);
+    pet->InitStatsForLevel(player->GetLevel());
+
+    // Set the pet's custom name from the stable
+    pet->SetName(stabledPet.Name);
+
+    player->SetMinion(pet, true, true);
+
+    pet->GetCharmInfo()->SetPetNumber(pet_number, true);
+    pet->SetClass(CLASS_MAGE);
+    pet->SetPetExperience(0);
+    pet->SetPetNextLevelExperience(1000);
+    pet->SetFullHealth();
+    pet->SetFullPower(POWER_MANA);
+    pet->SetPetNameTimestamp(uint32(GameTime::GetGameTime()));
+
+    // Stampeded pet: no abilities - set BEFORE AddToMap to prevent SavePetToDB crash
+    pet->SetStampeded(true);
+    pet->SetAnimalCompanion(true);
+    player->SetAnimalCompanion(pet->GetGUID());
+
+    // Inherit behavior from main pet
+    pet->SetReactState(mainPet->GetReactState());
+
+    // Clear all spells and autospells - stamped pet doesn't use its own abilities
+    std::list<uint32> spellsToRemove;
+    for (auto iter : pet->m_spells)
+        spellsToRemove.push_back(iter.first);
+
+    for (uint32 id : spellsToRemove)
+    {
+        auto iter = pet->m_spells.find(id);
+        pet->m_spells.erase(iter);
+    }
+
+    pet->m_autospells.clear();
+    pet->m_Events.KillAllEvents(true);
+
+    SpellInfo const* spellInfo = GetSpellInfo();
+    pet->SetCreatedBySpell(spellInfo->Id);
+
+    if (int32 duration = player->CalcSpellDuration(spellInfo, nullptr))
+        pet->SetDuration(duration);
+
+    map->AddToMap(pet->ToCreature());
 }
