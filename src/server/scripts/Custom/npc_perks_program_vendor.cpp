@@ -80,7 +80,7 @@ struct go_perks_collectors_cache : public GameObjectAI
         if (!hasPending)
             return true; 
             
-        // placeholder until CurrencyAmount lookup is implemented
+        // placeholder until CurrencyAmount looksup is implemented
         player->GetSession()->SendPerksProgramCurrencyUpdate();
         return true;
     }

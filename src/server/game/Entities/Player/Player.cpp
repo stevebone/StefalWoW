@@ -7597,6 +7597,13 @@ void Player::ModifyCurrency(uint32 id, int32 amount, CurrencyGainSource gainSour
     // TODO: FirstCraftOperationID, LastSpendTime & Toasts
 
     SendDirectMessage(packet.Write());
+
+    if (id == CURRENCY_TRADERS_TENDER)
+    {
+        int32 newAmount = static_cast<int32>(itr->second.Quantity);
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PerksProgramCurrency), newAmount);
+        _perksCurrencyDirty = true;
+    }
 }
 
 void Player::AddCurrency(uint32 id, uint32 amount, CurrencyGainSource gainSource/* = CurrencyGainSource::Cheat*/)

@@ -188,6 +188,7 @@ void WorldSession::HandlePerksProgramRequestPurchase(WorldPackets::PerksProgram:
         response.PurchasedItems.push_back(shortItem);
     }
     SendPacket(response.Write());
+    SendPerksProgramCurrencyUpdate();
     SendPerksProgramVendorList(packet.VendorGuid);
 }
 
@@ -250,6 +251,7 @@ void WorldSession::HandlePerksProgramRequestCartCheckout(WorldPackets::PerksProg
         SendPacket(response.Write());
     }
 
+    SendPerksProgramCurrencyUpdate();
     SendPerksProgramVendorList(packet.VendorGuid);
 }
 
