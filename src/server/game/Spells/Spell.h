@@ -466,6 +466,8 @@ class TC_GAME_API Spell
         void EffectSetPlayerDataFlagAccount();
         void EffectSetPlayerDataFlagCharacter();
         void EffectEquipTransmogOutfit();
+        void EffectScrapItem();
+        void EffectLootWithToast();
 
         typedef std::unordered_set<Aura*> UsedSpellMods;
 

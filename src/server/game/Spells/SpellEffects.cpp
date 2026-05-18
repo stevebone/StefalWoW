@@ -278,7 +278,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //186 SPELL_EFFECT_186
     &Spell::EffectNULL,                                     //187 SPELL_EFFECT_RANDOMIZE_ARCHAEOLOGY_DIGSITES
     &Spell::EffectNULL,                                     //188 SPELL_EFFECT_SUMMON_STABLED_PET_AS_GUARDIAN
-    &Spell::EffectNULL,                                     //189 SPELL_EFFECT_LOOT
+    &Spell::EffectLootWithToast,                            //189 SPELL_EFFECT_LOOT
     &Spell::EffectNULL,                                     //190 SPELL_EFFECT_CHANGE_PARTY_MEMBERS
     &Spell::EffectNULL,                                     //191 SPELL_EFFECT_TELEPORT_TO_DIGSITE
     &Spell::EffectUncageBattlePet,                          //192 SPELL_EFFECT_UNCAGE_BATTLEPET
@@ -350,7 +350,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //258 SPELL_EFFECT_MODIFY_KEYSTONE
     &Spell::EffectRespecAzeriteEmpoweredItem,               //259 SPELL_EFFECT_RESPEC_AZERITE_EMPOWERED_ITEM
     &Spell::EffectSummonStabledPet,                         //260 SPELL_EFFECT_SUMMON_STABLED_PET
-    &Spell::EffectNULL,                                     //261 SPELL_EFFECT_SCRAP_ITEM
+    &Spell::EffectScrapItem,                                //261 SPELL_EFFECT_SCRAP_ITEM
     &Spell::EffectUnused,                                   //262 SPELL_EFFECT_262
     &Spell::EffectNULL,                                     //263 SPELL_EFFECT_REPAIR_ITEM
     &Spell::EffectNULL,                                     //264 SPELL_EFFECT_REMOVE_GEM
@@ -6496,4 +6496,38 @@ void Spell::EffectSummonStabledPet()
         pet->SetDuration(duration);
 
     map->AddToMap(pet->ToCreature());
+}
+
+void Spell::EffectScrapItem()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!itemTarget)
+        return;
+
+    if (!itemTarget->GetTemplate()->HasFlag(ITEM_FLAG4_SCRAPABLE))
+        return;
+
+    uint32 scrapLootId = itemTarget->GetTemplate()->GetScrappingLootId();
+    if (!scrapLootId)
+        return;
+
+    if (Player* player = GetCaster()->ToPlayer())
+    {
+        itemTarget->m_loot.reset(new Loot(player->GetMap(), itemTarget->GetGUID(), LOOT_DISENCHANTING, nullptr));
+        itemTarget->m_loot->FillLoot(scrapLootId, LootTemplates_Scrapping, player, true);
+        player->SendLoot(*itemTarget->m_loot);
+    }
+}
+
+void Spell::EffectLootWithToast()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || !unitTarget->IsPlayer())
+        return;
+
+    unitTarget->ToPlayer()->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, ItemContext::NONE, false, true, DisplayToastMethod::PersonalLoot);
 }
