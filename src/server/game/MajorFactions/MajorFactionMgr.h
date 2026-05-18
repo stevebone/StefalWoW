@@ -73,7 +73,8 @@ namespace MajorFactions
         bool   UseJourneyRewardTrack   = false;
         bool   UseJourneyUnlockToast   = false;
         int32  UiPriority              = 0;
-        uint32 IntroQuestID            = 0;
+        uint32 IntroQuestID            = 0;   // canonical/Horde intro quest
+        uint32 IntroQuestIDAlliance    = 0;   // 0 = use IntroQuestID for both teams
         uint32 PlayerCompanionID       = 0;
         uint32 RenownCampaignID        = 0;   // Campaign.db2 ID for the faction's main renown campaign
     };
@@ -165,6 +166,10 @@ class TC_GAME_API MajorFactionMgr
         bool ShouldUseJourneyUnlockToast(uint32 factionId) const;
         uint32 GetPlayerCompanionID(uint32 factionId) const;
         uint32 GetIntroQuestID(uint32 factionId) const;
+        // Team-aware variant: returns the Alliance variant for Alliance
+        // players if the row provides one, otherwise falls back to the
+        // canonical IntroQuestID. Pass nullptr to get the canonical value.
+        uint32 GetIntroQuestID(Player const* player, uint32 factionId) const;
         uint32 GetRenownCampaignID(uint32 factionId) const;
 
         // Walks faction -> renown Campaign -> Campaign.UiTextureKitID ->

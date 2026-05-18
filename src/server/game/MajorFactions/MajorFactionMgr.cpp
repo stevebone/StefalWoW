@@ -166,8 +166,8 @@ void MajorFactionMgr::LoadWorldData()
 
     //                                                  0          1                          2                  3
     QueryResult result = WorldDatabase.Query("SELECT factionId, hiddenFromExpansionPage, displayAsJourney, useJourneyRewardTrack, "
-        //  4                       5            6              7                    8
-        "useJourneyUnlockToast, uiPriority, introQuestId, playerCompanionId, renownCampaignId "
+        //  4                       5            6                  7                       8                    9
+        "useJourneyUnlockToast, uiPriority, introQuestId, introQuestIdAlliance, playerCompanionId, renownCampaignId "
         "FROM major_faction_config");
 
     uint32 count = 0;
@@ -191,8 +191,9 @@ void MajorFactionMgr::LoadWorldData()
             config.UseJourneyUnlockToast   = fields[4].GetBool();
             config.UiPriority              = fields[5].GetInt32();
             config.IntroQuestID            = fields[6].GetUInt32();
-            config.PlayerCompanionID       = fields[7].GetUInt32();
-            config.RenownCampaignID        = fields[8].GetUInt32();
+            config.IntroQuestIDAlliance    = fields[7].GetUInt32();
+            config.PlayerCompanionID       = fields[8].GetUInt32();
+            config.RenownCampaignID        = fields[9].GetUInt32();
 
             // Validate Campaign FK if set.
             if (config.RenownCampaignID && !sCampaignStore.LookupEntry(config.RenownCampaignID))
@@ -385,6 +386,16 @@ uint32 MajorFactionMgr::GetIntroQuestID(uint32 factionId) const
     return config ? config->IntroQuestID : 0u;
 }
 
+uint32 MajorFactionMgr::GetIntroQuestID(Player const* player, uint32 factionId) const
+{
+    MajorFactions::MajorFactionConfig const* config = GetConfig(factionId);
+    if (!config)
+        return 0u;
+    if (player && player->GetTeam() == ALLIANCE && config->IntroQuestIDAlliance)
+        return config->IntroQuestIDAlliance;
+    return config->IntroQuestID;
+}
+
 uint32 MajorFactionMgr::GetRenownCampaignID(uint32 factionId) const
 {
     MajorFactions::MajorFactionConfig const* config = GetConfig(factionId);
@@ -424,7 +435,7 @@ bool MajorFactionMgr::IsUnlockedForPlayer(Player const* player, uint32 factionId
 
     // If an intro quest is configured, treat the faction as locked until the
     // quest is rewarded.
-    if (uint32 introQuest = GetIntroQuestID(factionId))
+    if (uint32 introQuest = GetIntroQuestID(player, factionId))
         if (!player->GetQuestRewardStatus(introQuest))
             return false;
 
