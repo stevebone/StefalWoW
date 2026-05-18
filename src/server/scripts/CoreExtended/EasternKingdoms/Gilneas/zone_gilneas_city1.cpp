@@ -112,6 +112,7 @@ enum eZoneGilneas
     SPELL_ATTACK_LURKER                          = 67805,
     SPELL_SUMMON_GILNEAN_MASTIFF                 = 67807,
     SPELL_RESCUE_KRENNAN                         = 68219,
+    SPELL_RIDE_VEHICLE_HARDCODED                 = 46598,
     SPELL_FORCECAST_SUMMON_GRAYMANE_HORSE        = 68232,
     SPELL_CANNON_FIRE                            = 68235,
     SPELL_CURSE_OF_THE_WORGEN                    = 68630,
@@ -2966,11 +2967,13 @@ class npc_king_genn_greymane_35550 : public CreatureScript
 public:
     npc_king_genn_greymane_35550() : CreatureScript("npc_king_genn_greymane_35550") {}
 
-    enum eNpc
-    {
-        SAY_KING_GENN_GREYMANE = 0,
-        MAX_SUMMONED_RIPPER = 20,
-    };
+        enum eNpc
+        {
+            SAY_DONT_GIVE_UP = 1,
+            SAY_PUSH_THEM_BACK = 2,
+            MAX_SUMMONED_RIPPER = 20,
+            TIMER_WAVE = 60000,
+        };
 
     bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest) override
     {
@@ -2985,35 +2988,26 @@ public:
 
     struct npc_king_genn_greymane_35550AI : public ScriptedAI
     {
-        npc_king_genn_greymane_35550AI(Creature* creature) : ScriptedAI(creature) { Initialize(); }
+        npc_king_genn_greymane_35550AI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 tSummon, tSay;
-        bool EventActive, RunOnce;
+        uint32 tSummon;
         uint32 m_counter;
+        uint8 m_sayGroup;
         ObjectGuid m_playerGUID;
-
-        void Initialize()
-        {
-            m_counter = 0;
-        }
 
         void Reset() override
         {
-            tSay = urand(10000, 20000);
-            tSummon = urand(3000, 5000); // How often we spawn
+            tSummon = TIMER_WAVE;
+            m_counter = 0;
+            m_sayGroup = SAY_DONT_GIVE_UP;
         }
 
         void JustSummoned(Creature* summoned) override
         {
-            switch (summoned->GetEntry())
+            if (summoned->GetEntry() == NPC_BLOODFANG_RIPPER_35505)
             {
-                case NPC_BLOODFANG_RIPPER_35505:
-                {
-                    m_counter += 1;
-                    summoned->GetDefaultMovementType();
-                    summoned->SetReactState(REACT_AGGRESSIVE);
-                    break;
-                }
+                m_counter += 1;
+                summoned->SetReactState(REACT_AGGRESSIVE);
             }
         }
 
@@ -3025,66 +3019,33 @@ public:
 
         void SetGUID(ObjectGuid const& guid, int32 id) override
         {
-            switch (id)
-            {
-                case PLAYER_GUID:
-                {
-                    m_playerGUID = guid;
-                    break;
-                }
-            }
+            if (id == PLAYER_GUID)
+                m_playerGUID = guid;
         }
 
         void UpdateAI(uint32 diff) override
         {
-            if (tSay <= diff) // Time for next spawn wave
+            if (tSummon <= diff)
             {
-                Talk(SAY_KING_GENN_GREYMANE);
-                tSay = urand(10000, 20000);
-            }
-            else tSay -= diff;
-
-            if (tSummon <= diff) // Time for next spawn wave
-            {
-                SummonNextWave(); // Activate next spawn wave
-                tSummon = urand(3000, 5000); // Reset our spawn timer
+                Talk(m_sayGroup);
+                m_sayGroup = (m_sayGroup == SAY_DONT_GIVE_UP) ? SAY_PUSH_THEM_BACK : SAY_DONT_GIVE_UP;
+                SummonWave();
+                tSummon = TIMER_WAVE;
             }
             else tSummon -= diff;
         }
 
-        void SummonNextWave()
+        void SummonWave()
         {
-            switch (urand(1, 4))
-            {
-                case 1:
-                {
-                    for (int i = 0; i < 5; i++)
-                        if (m_counter < MAX_SUMMONED_RIPPER)
-                            me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1781.173f + irand(-15, 15), 1372.90f + irand(-15, 15), 19.7803f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
-                    break;
-                }
-                case 2:
-                {
-                    for (int i = 0; i < 5; i++)
-                        if (m_counter < MAX_SUMMONED_RIPPER)
-                            me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1756.30f + irand(-15, 15), 1380.61f + irand(-15, 15), 19.7652f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
-                    break;
-                }
-                case 3:
-                {
-                    for (int i = 0; i < 5; i++)
-                        if (m_counter < MAX_SUMMONED_RIPPER)
-                            me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1739.84f + irand(-15, 15), 1384.87f + irand(-15, 15), 19.841f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
-                    break;
-                }
-                case 4:
-                {
-                    for (int i = 0; i < 5; i++)
-                        if (m_counter < MAX_SUMMONED_RIPPER)
-                            me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1781.173f + irand(-15, 15), 1372.90f + irand(-15, 15), 19.7803f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
-                    break;
-                }
-            }
+            if (m_counter >= MAX_SUMMONED_RIPPER)
+                return;
+
+            for (int i = 0; i < 5; i++)
+                me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1781.17f + irand(-15, 15), 1372.90f + irand(-15, 15), 19.78f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
+            for (int i = 0; i < 5; i++)
+                me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1756.30f + irand(-15, 15), 1380.61f + irand(-15, 15), 19.76f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
+            for (int i = 0; i < 5; i++)
+                me->SummonCreature(NPC_BLOODFANG_RIPPER_35505, -1739.84f + irand(-15, 15), 1384.87f + irand(-15, 15), 19.84f, urand(0, 6), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000ms);
         }
     };
 
@@ -3098,149 +3059,78 @@ public:
 class npc_king_greymanes_horse_35905 : public CreatureScript
 {
     public:
-        npc_king_greymanes_horse_35905() : CreatureScript("npc_king_greymanes_horse_35905") { }
+        npc_king_greymanes_horse_35905() : CreatureScript("npc_king_greymanes_horse_35905") {}
 
         enum eHorse
         {
-            SAY_KRENNAN_TREE_HELP = 0,
-            SAY_HORSE_HOW_DO_HELP = 1,
-            SAY_KRENNAN_HORSE_THANKS = 2,
-            EVENT_SAY_KRENNAN_HELP = 101,   // krennan 35753 in tree
-            EVENT_STARTING_RESCUE_PART2,
-            EVENT_SAY_KRENNAN_THANKS,
-            EVENT_START_WAYPOINT_MOVEMENT,
-            EVENT_MOVE_TO_NEXT_POINT,
-            WAYPOINT_COMPLETE
+            EVENT_SAY_KRENNAN_HELP = 101,
+            PATH_ID = 3590500,
         };
 
-        struct WaypointData
+        static WaypointPath const& GetPath()
         {
-            float x, y, z, o;
-        };
-
-        static const std::vector<WaypointData> waypoints;
+            static WaypointPath path(PATH_ID, {
+                { 0,  -1800.37f, 1407.18f, 20.0265f },
+                { 1,  -1790.45f, 1383.17f, 19.8166f },
+                { 2,  -1777.13f, 1369.23f, 19.8021f },
+                { 3,  -1755.42f, 1368.40f, 19.7833f },
+                { 4,  -1728.55f, 1351.81f, 19.6012f },
+                { 5,  -1707.42f, 1345.95f, 19.8960f },
+                { 6,  -1674.46f, 1344.95f, 15.1352f },
+                { 7,  -1668.71f, 1348.29f, 15.1366f },
+                { 8,  -1666.29f, 1355.75f, 15.1350f },
+                { 9,  -1672.07f, 1362.12f, 15.1350f },
+                { 10, -1685.27f, 1355.40f, 15.1356f },
+                { 11, -1705.86f, 1350.95f, 19.8964f },
+                { 12, -1725.38f, 1356.36f, 19.8184f },
+                { 13, -1746.30f, 1375.96f, 19.9700f },
+                { 14, -1766.16f, 1404.17f, 19.8109f },
+                { 15, -1771.46f, 1430.10f, 19.8183f }
+            }, WaypointMoveType::Run);
+            return path;
+        }
 
         struct npc_king_greymanes_horse_35905AI : public ScriptedAI
         {
-            npc_king_greymanes_horse_35905AI(Creature* creature) : ScriptedAI(creature)
-            {
-                _currentWaypoint = 0;
-                _isPaused = false;
-            }
+            npc_king_greymanes_horse_35905AI(Creature* creature) : ScriptedAI(creature) {}
 
-            TaskScheduler _scheduler;
             EventMap m_events;
             ObjectGuid m_playerGUID;
             ObjectGuid m_krennanHorseGUID;
             ObjectGuid m_krennanTreeGUID;
-            uint32 _currentWaypoint;
-            bool _isPaused;
 
             void Reset() override
             {
                 m_events.Reset();
-                _scheduler.CancelAll();
                 m_playerGUID = ObjectGuid();
                 m_krennanHorseGUID = ObjectGuid();
                 m_krennanTreeGUID = ObjectGuid();
-                _currentWaypoint = 0;
-                _isPaused = false;
-                me->GetMotionMaster()->MoveIdle();
                 m_events.ScheduleEvent(EVENT_SAY_KRENNAN_HELP, 500ms);
             }
 
-            void StartWaypointMovement(ObjectGuid playerGUID)
+            void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
-                m_playerGUID = playerGUID;
-                _currentWaypoint = 0;
-                _isPaused = false;
-
-                _scheduler.Schedule(1s, [this](TaskContext& /*context*/)
-                    {
-                        MoveToNextPoint();
-                    });
-            }
-
-            void SetWaypointPaused(bool paused)
-            {
-                _isPaused = paused;
-                if (!paused)
-                    MoveToNextPoint();
-            }
-
-            Player* GetPlayerForWaypoint()
-            {
-                return ObjectAccessor::GetPlayer(*me, m_playerGUID);
-            }
-
-            // ????? ??? ??????????? ? ????????? ?????
-            void MoveToNextPoint()
-            {
-                if (_isPaused || _currentWaypoint >= waypoints.size())
-                    return;
-
-                const WaypointData& wp = waypoints[_currentWaypoint];
-                me->GetMotionMaster()->MovePoint(WAYPOINT_COMPLETE, wp.x, wp.y, wp.z, wp.o);
-            }
-
-            void MovementInform(uint32 type, uint32 id) override
-            {
-                if (type == POINT_MOTION_TYPE && id == WAYPOINT_COMPLETE)
+                switch (nodeId)
                 {
-                    // ???????????? ???????? ? ?????
-                    HandleWaypointReached(_currentWaypoint);
-
-                    // ???? ?? ?? ?????, ????????? ???????? ? ????????? ?????
-                    if (!_isPaused)
-                    {
-                        _currentWaypoint++;
-                        _scheduler.Schedule(1s, [this](TaskContext& /*context*/)
-                            {
-                                MoveToNextPoint();
-                            });
-                    }
-                }
-                else if (type == EFFECT_MOTION_TYPE && _currentWaypoint == 5)
-                {
-                    // ????????? ?????????? ??????
-                    _currentWaypoint++;
-                    _isPaused = false;
-                    _scheduler.Schedule(1s, [this](TaskContext& /*context*/)
-                        {
-                            MoveToNextPoint();
-                        });
-                }
-            }
-
-            // ?????? WaypointReached ?? EscortAI
-            void HandleWaypointReached(uint32 waypointId)
-            {
-                switch (waypointId)
-                {
-                case 5:
-                {
-                    if (me->GetVehicleKit()->HasEmptySeat(1))
-                    {
-                        _isPaused = true;
-                        me->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1679.089f, 1348.42f, 15.31f), 25.0f, 15.0f);
-                        if (Player* player = GetPlayerForWaypoint())
-                        {
-                            Talk(SAY_HORSE_HOW_DO_HELP, player);
-                            player->SetClientControl(me, true);
-                        }
-                    }
-                    break;
-                }
                 case 6:
                 {
-                    if (Player* player = GetPlayerForWaypoint())
-                        player->SetClientControl(me, false);
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                    {
+                        player->KilledMonsterCredit(NPC_KRENNAN_ARANAS_TREE);
+                        player->AreaExploredOrEventHappens(QUEST_SAVE_KRENNAN_ARANAS);
+                    }
+                    if (Creature* krennan = me->FindNearestCreature(NPC_KRENNAN_ARANAS_TREE, 30.0f, true))
+                    {
+                        me->CastSpell(krennan, SPELL_RESCUE_KRENNAN, true);
+                        krennan->CastSpell(me, SPELL_RIDE_VEHICLE_HARDCODED, true);
+                    }
                     break;
                 }
-                case 12:
+                case 15:
                 {
-                    if (Player* player = GetPlayerForWaypoint())
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
                         player->ExitVehicle();
+                    me->DespawnOrUnsummon(1s);
                     break;
                 }
                 }
@@ -3255,8 +3145,8 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                         if (!m_playerGUID)
                         {
                             m_playerGUID = player->GetGUID();
-                            StartWaypointMovement(m_playerGUID);
                             player->SetClientControl(me, false);
+                            me->GetMotionMaster()->MovePath(GetPath(), false);
                         }
                     }
                     else if (who->GetEntry() == NPC_KRENNAN_ARANAS && !m_krennanHorseGUID)
@@ -3264,18 +3154,22 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                         m_krennanHorseGUID = who->GetGUID();
                         if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
                             player->RemoveAura(SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1);
-                        m_events.ScheduleEvent(EVENT_STARTING_RESCUE_PART2, 400ms);
                     }
                 }
-                else if (seatId == 1)
+            }
+
+            void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damagetype*/, SpellInfo const* /*spellInfo*/) override
+            {
+                if (me->HealthBelowPctDamaged(10, damage))
                 {
-                    m_events.ScheduleEvent(EVENT_SAY_KRENNAN_THANKS, 25ms);
+                    damage = 0;
+                    me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
                 }
             }
 
             void JustDied(Unit* /*killer*/) override
             {
-                if (Player* player = GetPlayerForWaypoint())
+                if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
                 {
                     player->FailQuest(QUEST_SAVE_KRENNAN_ARANAS);
                     player->RemoveAura(SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1);
@@ -3284,14 +3178,11 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
 
             void UpdateAI(uint32 diff) override
             {
-                _scheduler.Update(diff);
                 m_events.Update(diff);
 
                 while (uint32 eventId = m_events.ExecuteEvent())
                 {
-                    switch (eventId)
-                    {
-                    case EVENT_SAY_KRENNAN_HELP:
+                    if (eventId == EVENT_SAY_KRENNAN_HELP)
                     {
                         if (!m_krennanTreeGUID)
                             if (Creature* krennan = me->FindNearestCreature(NPC_KRENNAN_ARANAS_TREE, 100.0f, true))
@@ -3302,55 +3193,21 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                             if (Creature* krennan = ObjectAccessor::GetCreature(*me, m_krennanTreeGUID))
                                 if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
                                 {
-                                    krennan->AI()->Talk(SAY_KRENNAN_TREE_HELP, player);
+                                    krennan->AI()->Talk(0, player);
                                     m_events.ScheduleEvent(EVENT_SAY_KRENNAN_HELP, 6s, 9s);
                                     break;
                                 }
                             m_events.ScheduleEvent(EVENT_SAY_KRENNAN_HELP, 500ms);
                         }
-                        break;
-                    }
-                    case EVENT_STARTING_RESCUE_PART2:
-                    {
-                        SetWaypointPaused(false);
-                        break;
-                    }
-                    case EVENT_SAY_KRENNAN_THANKS:
-                    {
-                        if (Creature* krennan = ObjectAccessor::GetCreature(*me, m_krennanHorseGUID))
-                        {
-                            krennan->AI()->Talk(0);
-                            krennan->NearTeleportTo(-1771.03f, 1433.41f, 19.85f, 3.598f);
-                            krennan->GetAI()->DoAction(0);
-                        }
-                        me->DespawnOrUnsummon(25ms);
-                        break;
                     }
                 }
             }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_king_greymanes_horse_35905AI(creature);
         }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_king_greymanes_horse_35905AI(creature);
-    }
-};
-
-const std::vector<npc_king_greymanes_horse_35905::WaypointData> npc_king_greymanes_horse_35905::waypoints = {
-    { -1800.63f, 1404.35f, 19.77f, 0.0f },   // 0
-    { -1798.42f, 1409.55f, 19.79f, 0.0f },   // 1
-    { -1790.40f, 1419.52f, 19.53f, 0.0f },   // 2
-    { -1779.77f, 1430.24f, 19.79f, 0.0f },   // 3
-    { -1767.85f, 1430.73f, 19.68f, 0.0f },   // 4
-    { -1745.50f, 1393.67f, 19.78f, 0.0f },   // 5 - jump here
-    { -1720.64f, 1367.78f, 19.68f, 0.0f },   // 6
-    { -1705.76f, 1356.66f, 19.83f, 0.0f },   // 7
-    { -1687.94f, 1353.74f, 19.73f, 0.0f },   // 8
-    { -1685.28f, 1351.58f, 19.73f, 0.0f },   // 9
-    { -1681.12f, 1348.92f, 19.73f, 0.0f },   // 10
-    { -1682.22f, 1347.67f, 19.73f, 0.0f },   // 11
-    { -1771.03f, 1433.41f, 19.85f, 0.0f }    // 12 - last
 };
 
 // 35907
