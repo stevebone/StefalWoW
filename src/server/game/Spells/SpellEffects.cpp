@@ -6515,9 +6515,8 @@ void Spell::EffectScrapItem()
 
     if (Player* player = GetCaster()->ToPlayer())
     {
-        itemTarget->m_loot.reset(new Loot(player->GetMap(), itemTarget->GetGUID(), LOOT_DISENCHANTING, nullptr));
-        itemTarget->m_loot->FillLoot(scrapLootId, LootTemplates_Scrapping, player, true);
-        player->SendLoot(*itemTarget->m_loot);
+        player->DestroyItem(itemTarget->GetBagSlot(), itemTarget->GetSlot(), true);
+        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::Vendor, false, false, DisplayToastMethod::Default);
     }
 }
 
