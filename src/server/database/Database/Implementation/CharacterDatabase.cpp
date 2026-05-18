@@ -856,6 +856,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_REP_PERKS_CURRENCY, "REPLACE INTO character_perks_currency (guid, currency, total_earned, purchased_count) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_PERKS_PURCHASES, "SELECT vendor_item_id, purchase_time, refundable FROM character_perks_purchases WHERE guid = ? ORDER BY purchase_time DESC", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_PERKS_PURCHASE, "INSERT INTO character_perks_purchases (guid, vendor_item_id, purchase_time, refundable) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_PERKS_PURCHASE, "DELETE FROM character_perks_purchases WHERE guid = ? AND vendor_item_id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_PERKS_FROZEN, "SELECT vendor_item_id FROM character_perks_frozen WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_REP_PERKS_FROZEN, "REPLACE INTO character_perks_frozen (guid, vendor_item_id) VALUES (?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_PERKS_FROZEN, "DELETE FROM character_perks_frozen WHERE guid = ?", CONNECTION_ASYNC);

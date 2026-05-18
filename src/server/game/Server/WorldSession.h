@@ -1936,6 +1936,8 @@ class TC_GAME_API WorldSession
         void SendPerksProgramCurrencyUpdate();
         void SendPerksProgramActivityUpdate();
         void SendPerksProgramVendorList(ObjectGuid vendorGuid);
+        void SendPerksProgramActivityComplete(int32 activityID);
+        void SendPerksProgramVendorUpdate();
 
         // Compact Unit Frames (4.x)
         void HandleSaveCUFProfiles(WorldPackets::Misc::SaveCUFProfiles& packet);

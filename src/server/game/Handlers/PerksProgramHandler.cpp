@@ -27,6 +27,8 @@
 #include "Log.h"
 #include "UpdateFields.h"
 #include "GameTime.h"
+#include <iomanip>
+#include <iostream>
 
 namespace
 {
@@ -281,14 +283,69 @@ void WorldSession::HandlePerksProgramSetFrozenVendorItem(WorldPackets::PerksProg
     }
 }
 
-void WorldSession::HandlePerksProgramItemsRefreshed(WorldPackets::PerksProgram::PerksProgramItemsRefreshed& /*packet*/)
+void WorldSession::HandlePerksProgramItemsRefreshed(WorldPackets::PerksProgram::PerksProgramItemsRefreshed& packet)
 {
-    TC_LOG_DEBUG("network", "HandlePerksProgramItemsRefreshed: stub");
+    WorldPacket const* raw = packet.GetRawPacket();
+    std::cout << "[ITEMS_REFRESHED] size=" << raw->size() << " hex=";
+    for (size_t i = 0; i < raw->size(); ++i)
+        std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>((*raw)[i]);
+    std::cout << std::dec << std::endl;
 }
 
-void WorldSession::HandlePerksProgramRequestRefund(WorldPackets::PerksProgram::PerksProgramRequestRefund& /*packet*/)
+void WorldSession::HandlePerksProgramRequestRefund(WorldPackets::PerksProgram::PerksProgramRequestRefund& packet)
 {
-    TC_LOG_DEBUG("network", "HandlePerksProgramRequestRefund: stub (not implemented)");
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    TC_LOG_DEBUG("network", "HandlePerksProgramRequestRefund: VendorItemID={}", packet.VendorItemID);
+
+    PerksProgramVendorItemData const* vendorItem = sPerksProgramMgr->GetVendorItem(packet.VendorItemID);
+    if (!vendorItem)
+    {
+        TC_LOG_DEBUG("network", "HandlePerksProgramRequestRefund: VendorItemID {} not found.", packet.VendorItemID);
+        return;
+    }
+
+    bool found = false;
+    for (auto const& entry : player->GetPerksPurchases())
+    {
+        if (entry.VendorItemID == packet.VendorItemID)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        TC_LOG_DEBUG("network", "HandlePerksProgramRequestRefund: Player {} has no purchase for VendorItemID {}.",
+            player->GetGUID().ToString(), packet.VendorItemID);
+        return;
+    }
+
+    if (!player->RemovePerksPurchase(packet.VendorItemID))
+    {
+        TC_LOG_DEBUG("network", "HandlePerksProgramRequestRefund: Failed to remove purchase for VendorItemID {}.", packet.VendorItemID);
+        return;
+    }
+
+    player->ModifyPerksCurrency(vendorItem->PacketData.Price);
+
+    WorldPackets::PerksProgram::PerksProgramResultRefund response;
+    response.RefundVendorItemID = packet.VendorItemID;
+
+    for (auto const& entry : player->GetPerksPurchases())
+    {
+        WorldPackets::PerksProgram::PerksShortItem shortItem;
+        shortItem.VendorItemID = entry.VendorItemID;
+        shortItem.PurchaseTime = time_t(entry.PurchaseTime);
+        shortItem.Flags = 0x80;
+        response.PurchasedItems.push_back(shortItem);
+    }
+
+    SendPacket(response.Write());
+    SendPerksProgramCurrencyUpdate();
 }
 
 void WorldSession::SendPerksAnimToggleKillSwitch()
@@ -335,6 +392,41 @@ void WorldSession::SendPerksProgramVendorList(ObjectGuid vendorGuid)
 
     TC_LOG_DEBUG("network", "SendPerksProgramVendorList: Sending {} items, frozenID={}, VendorGuid={}, PlayerGuid={}",
         packet.Items.size(), frozenID, vendorGuid.ToString(), player->GetGUID().ToString());
+
+    SendPacket(packet.Write());
+}
+
+void WorldSession::SendPerksProgramActivityComplete(int32 activityID)
+{
+    WorldPackets::PerksProgram::PerksProgramActivityComplete packet;
+    packet.ActivityID = activityID;
+    SendPacket(packet.Write());
+
+    TC_LOG_DEBUG("network", "SendPerksProgramActivityComplete: ActivityID={}", activityID);
+}
+
+void WorldSession::SendPerksProgramVendorUpdate()
+{
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    WorldPackets::PerksProgram::PerksProgramVendorUpdate packet;
+    packet.PlayerGuid = player->GetGUID();
+
+    int32 frozenID = player->GetPerksFrozenVendorItemID();
+    if (frozenID != 0)
+    {
+        if (PerksProgramVendorItemData const* frozenData = sPerksProgramMgr->GetVendorItem(frozenID))
+            packet.FrozenItem = frozenData->PacketData;
+    }
+
+    std::vector<PerksProgramVendorItemData const*> rotationItems = sPerksProgramMgr->GetCurrentRotationItems();
+    for (PerksProgramVendorItemData const* item : rotationItems)
+        packet.Items.push_back(item->PacketData);
+
+    TC_LOG_DEBUG("network", "SendPerksProgramVendorUpdate: Sending {} items, frozenID={}, PlayerGuid={}",
+        packet.Items.size(), frozenID, player->GetGUID().ToString());
 
     SendPacket(packet.Write());
 }

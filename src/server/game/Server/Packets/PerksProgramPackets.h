@@ -97,7 +97,9 @@ namespace WorldPackets
         public:
             explicit PerksProgramRequestRefund(WorldPacket&& packet) : ClientPacket(CMSG_PERKS_PROGRAM_REQUEST_REFUND, std::move(packet)) { }
 
-            void Read() override { _worldPacket.rfinish(); }
+            void Read() override;
+
+            int32 VendorItemID = 0;
         };
 
         class RequestStoreFrontInfoUpdate final : public ClientPacket
@@ -207,6 +209,40 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             std::vector<PerksShortItem> RecentPurchases;
+        };
+
+        class PerksProgramResultRefund final : public ServerPacket
+        {
+        public:
+            explicit PerksProgramResultRefund() : ServerPacket(SMSG_PERKS_PROGRAM_RESULT, 48) { }
+
+            WorldPacket const* Write() override;
+
+            int32 RefundVendorItemID = 0;
+            std::vector<PerksShortItem> PurchasedItems;
+        };
+
+        class PerksProgramActivityComplete final : public ServerPacket
+        {
+        public:
+            explicit PerksProgramActivityComplete() : ServerPacket(SMSG_PERKS_PROGRAM_ACTIVITY_COMPLETE, 4) { }
+
+            WorldPacket const* Write() override;
+
+            int32 ActivityID = 0;
+        };
+
+        class PerksProgramVendorUpdate final : public ServerPacket
+        {
+        public:
+            explicit PerksProgramVendorUpdate() : ServerPacket(SMSG_PERKS_PROGRAM_VENDOR_UPDATE, 1872) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid VendorGuid;
+            ObjectGuid PlayerGuid;
+            PerksVendorItem FrozenItem;
+            std::vector<PerksVendorItem> Items;
         };
     }
 }

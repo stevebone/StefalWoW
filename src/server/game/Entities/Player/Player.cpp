@@ -7327,6 +7327,26 @@ void Player::AddPerksPurchase(int32 vendorItemID, uint32 purchaseTime)
     CharacterDatabase.Execute(stmt);
 }
 
+bool Player::RemovePerksPurchase(int32 vendorItemID)
+{
+    for (auto itr = _perksPurchases.begin(); itr != _perksPurchases.end(); ++itr)
+    {
+        if (itr->VendorItemID == vendorItemID)
+        {
+            _perksPurchases.erase(itr);
+            _perksPurchasedCount = std::max(0, _perksPurchasedCount - 1);
+            _perksCurrencyDirty = true;
+
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PERKS_PURCHASE);
+            stmt->setUInt64(0, GetGUID().GetCounter());
+            stmt->setInt32(1, vendorItemID);
+            CharacterDatabase.Execute(stmt);
+            return true;
+        }
+    }
+    return false;
+}
+
 void Player::SetPerksFrozenVendorItem(int32 vendorItemID, WorldPackets::PerksProgram::PerksVendorItem const* itemData)
 {
     _perksFrozenVendorItemID = vendorItemID;

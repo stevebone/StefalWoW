@@ -1959,6 +1959,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         std::vector<PerksPurchaseEntry> const& GetPerksPurchases() const { return _perksPurchases; }
         bool ModifyPerksCurrency(int32 amount);
         void AddPerksPurchase(int32 vendorItemID, uint32 purchaseTime);
+        bool RemovePerksPurchase(int32 vendorItemID);
         void SetPerksFrozenVendorItem(int32 vendorItemID, WorldPackets::PerksProgram::PerksVendorItem const* itemData = nullptr);
         void AddPerksMilestone(int32 activityID);
         bool HasPerksMilestone(int32 activityID) const;

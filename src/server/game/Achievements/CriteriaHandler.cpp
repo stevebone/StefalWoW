@@ -891,7 +891,11 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
             {
                 if (int32 milestoneActivityID = sPerksProgramMgr->GetThresholdActivityForCriteriaTree(tree->ID))
                     if (!referencePlayer->HasPerksMilestone(milestoneActivityID))
+                    {
                         referencePlayer->AddPerksMilestone(milestoneActivityID);
+                        if (referencePlayer->GetSession())
+                            referencePlayer->GetSession()->SendPerksProgramActivityComplete(milestoneActivityID);
+                    }
             }
         }
 

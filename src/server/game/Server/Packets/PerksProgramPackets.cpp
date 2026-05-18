@@ -46,6 +46,11 @@ void PerksProgramSetFrozenVendorItem::Read()
     _worldPacket >> Unknown;
 }
 
+void PerksProgramRequestRefund::Read()
+{
+    _worldPacket >> VendorItemID;
+}
+
 WorldPacket const* AccountStoreFrontUpdate::Write()
 {
     _worldPacket << uint8(Status);
@@ -148,6 +153,46 @@ WorldPacket const* ResponsePerkRecentPurchases::Write()
         _worldPacket << item.PurchaseTime;
         _worldPacket << uint8(item.Flags);
     }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PerksProgramResultRefund::Write()
+{
+    _worldPacket << uint8(0x30);
+    _worldPacket << int32(RefundVendorItemID);
+    _worldPacket << uint32(PurchasedItems.size());
+
+    for (PerksShortItem const& item : PurchasedItems)
+    {
+        _worldPacket << int32(item.VendorItemID);
+        _worldPacket << item.PurchaseTime;
+        _worldPacket << uint8(item.Flags);
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PerksProgramActivityComplete::Write()
+{
+    _worldPacket << int32(ActivityID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PerksProgramVendorUpdate::Write()
+{
+    _worldPacket << VendorGuid;
+    _worldPacket << PlayerGuid;
+    _worldPacket << uint32(Items.size());
+    _worldPacket << FrozenItem.AvailableUntil;
+    _worldPacket << int32(FrozenItem.VendorItemID);
+    _worldPacket << int32(FrozenItem.MountID);
+    _worldPacket << int32(FrozenItem.BattlePetSpeciesID);
+    _worldPacket << int32(FrozenItem.TransmogSetID);
+    _worldPacket << int32(FrozenItem.ItemModifiedAppearanceID);
+    for (PerksVendorItem const& item : Items)
+        _worldPacket << item;
 
     return &_worldPacket;
 }

@@ -65,6 +65,7 @@ EndScriptData */
 #include "WorldPacket.h"
 #include "Corpse.h"
 #include "Creature.h"
+#include "PerksProgramMgr.h"
 #include "DynamicObject.h"
 #include "GameObject.h"
 #include "GridNotifiers.h"
@@ -202,6 +203,8 @@ public:
             { "creature_addons",               rbac::RBAC_PERM_COMMAND_RELOAD_ALL,                              true,  &HandleReloadCreatureAddonsCommand,             "" },
             { "creature_template_all",         rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_TEMPLATE,                true,  &HandleReloadCreatureTemplateAllCommand,        "" },
             { "creature_template_outfits",     rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_TEMPLATE,                true,  &HandleReloadCreatureTemplateOutfitsCommand,    "" },
+            { "perks_vendor",                  rbac::RBAC_PERM_COMMAND_RELOAD_ALL,                              true,  &HandleReloadPerksProgramCommand,               "" },
+            { "trading_post",                  rbac::RBAC_PERM_COMMAND_RELOAD_ALL,                              true,  &HandleReloadPerksProgramCommand,               "" },
         };
         static ChatCommandTable commandTable =
         {
@@ -521,6 +524,18 @@ public:
         });
 
         handler->SendGlobalGMSysMessage("DB table `creature_template_outfits` reloaded.");
+        return true;
+    }
+
+    static bool HandleReloadPerksProgramCommand(ChatHandler* handler, char const* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Re-Loading Perks Program (Trading Post) tables...");
+        sPerksProgramMgr->LoadVendorItems();
+        sPerksProgramMgr->LoadMonthlyRotation();
+        sPerksProgramMgr->LoadActivityIntervals();
+        sPerksProgramMgr->BuildCriteriaTreeMap();
+        sPerksProgramMgr->LoadCurrentActivities();
+        handler->SendGlobalGMSysMessage("Perks Program (Trading Post) tables reloaded.");
         return true;
     }
 
