@@ -79,6 +79,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "PerksProgramMgr.h"
 #include "PetitionMgr.h"
 #include "Player.h"
 #include "PlayerDump.h"
@@ -1824,6 +1825,19 @@ bool World::SetInitialWorldSettings()
         TC_LOG_INFO("server.loading", "Loading Black Market Auctions...");
         sBlackMarketMgr->LoadAuctions();
     }
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program vendor items...");
+    sPerksProgramMgr->LoadVendorItems();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program monthly rotation...");
+    sPerksProgramMgr->LoadMonthlyRotation();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program activity intervals...");
+    sPerksProgramMgr->LoadActivityIntervals();
+    sPerksProgramMgr->BuildCriteriaTreeMap();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program current activities...");
+    sPerksProgramMgr->LoadCurrentActivities();
 
     TC_LOG_INFO("server.loading", "Loading Guild rewards...");
     sGuildMgr->LoadGuildRewards();

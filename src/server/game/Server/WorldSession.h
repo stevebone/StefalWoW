@@ -562,6 +562,7 @@ namespace WorldPackets
         class RequestLatestSplashScreen;
         class QueryCountdownTimer;
         class SetCurrencyFlags;
+        class PerksProgramReqestPendingRewards;
         class FactionSelect;
         class AccountNotificationAcknowledge;
         class OverrideScreenFlash;
@@ -646,6 +647,18 @@ namespace WorldPackets
         class SetRestrictPingsToAssistants;
         class SendPingUnit;
         class SendPingWorldPoint;
+    }
+
+    namespace PerksProgram
+    {
+        class RequestStoreFrontInfoUpdate;
+        class PerksProgramStatusRequest;
+        class PerksProgramGetRecentPurchases;
+        class PerksProgramRequestPurchase;
+        class PerksProgramRequestCartCheckout;
+        class PerksProgramSetFrozenVendorItem;
+        class PerksProgramItemsRefreshed;
+        class PerksProgramRequestRefund;
     }
 
     namespace Pet
@@ -1909,6 +1922,20 @@ class TC_GAME_API WorldSession
         // Token
         void HandleCommerceTokenGetLog(WorldPackets::Token::CommerceTokenGetLog& updateListedAuctionableTokens);
         void HandleCommerceTokenGetMarketPrice(WorldPackets::Token::CommerceTokenGetMarketPrice& requestWowTokenMarketPrice);
+
+        // Perks Program (Trading Post)
+        void HandlePerksProgramStatusRequest(WorldPackets::PerksProgram::PerksProgramStatusRequest& packet);
+        void HandlePerksProgramReqestPendingRewards(WorldPackets::Misc::PerksProgramReqestPendingRewards& packet);
+        void HandlePerksProgramGetRecentPurchases(WorldPackets::PerksProgram::PerksProgramGetRecentPurchases& packet);
+        void HandlePerksProgramRequestPurchase(WorldPackets::PerksProgram::PerksProgramRequestPurchase& packet);
+        void HandlePerksProgramRequestCartCheckout(WorldPackets::PerksProgram::PerksProgramRequestCartCheckout& packet);
+        void HandlePerksProgramSetFrozenVendorItem(WorldPackets::PerksProgram::PerksProgramSetFrozenVendorItem& packet);
+        void HandlePerksProgramItemsRefreshed(WorldPackets::PerksProgram::PerksProgramItemsRefreshed& packet);
+        void HandlePerksProgramRequestRefund(WorldPackets::PerksProgram::PerksProgramRequestRefund& packet);
+        void SendPerksAnimToggleKillSwitch();
+        void SendPerksProgramCurrencyUpdate();
+        void SendPerksProgramActivityUpdate();
+        void SendPerksProgramVendorList(ObjectGuid vendorGuid);
 
         // Compact Unit Frames (4.x)
         void HandleSaveCUFProfiles(WorldPackets::Misc::SaveCUFProfiles& packet);

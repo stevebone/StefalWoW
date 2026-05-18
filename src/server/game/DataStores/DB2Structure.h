@@ -3480,6 +3480,107 @@ struct PerksActivityEntry
     int32 Priority;
 };
 
+struct PerksActivityThresholdEntry
+{
+    uint32 ID;
+    int32 PerksActivityCount;
+    int32 CurrencyAmount;
+    int32 Unknown;
+    uint32 ThresholdGroupID;
+};
+
+struct PerksActivityThresholdGroupEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Unknown;
+};
+
+struct PerksActivityXIntervalEntry
+{
+    uint32 ID;
+    int32 PerksActivityID;
+    uint32 IntervalID;
+};
+
+struct PerksActivityConditionEntry
+{
+    uint32 ID;
+    int32 PlayerConditionID;
+    int32 Field_002;
+    uint32 PerksActivityID;
+};
+
+struct PerksActivityTagEntry
+{
+    LocalizedString TagName;
+    uint32 ID;
+};
+
+struct PerksActivityXHolidaysEntry
+{
+    uint32 ID;
+    int32 HolidayID;
+    uint32 PerksActivityID;
+};
+
+struct PerksActivityXTagEntry
+{
+    uint32 ID;
+    int32 PerksActivityTagID;
+    uint32 PerksActivityID;
+};
+
+struct PerksUIThemeEntry
+{
+    uint32 ID;
+    int32 UiTextureKitID;
+    int32 Field_002;
+};
+
+struct PerksVendorCategoryEntry
+{
+    LocalizedString DisplayName;
+    uint32 ID;
+    int32 PerksVendorType;
+    int32 DefaultUIModelSceneID;
+};
+
+struct PerksVendorItemEntry
+{
+    uint32 ID;
+    int8  PerksVendorCategoryID;
+    int32 Field_10_0_5_47118_002;
+    int32 ItemID;
+    int32 Field_10_0_5_47118_004;
+    int32 CreatureDisplayInfoID;
+    int32 Cost;
+    int32 UiModelSceneID;
+    int32 UiGroupInfo;
+};
+
+struct PerksVendorItemUIGroupEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Priority;
+};
+
+struct PerksVendorItemUIInfoEntry
+{
+    uint32 ID;
+    int32 Field_10_0_5_47118_001;
+    int32 CreatureDisplayInfoID;
+    int32 Field_10_2_5_52206_003;
+};
+
+struct PerksVendorItemXIntervalEntry
+{
+    uint32 ID;
+    int32 PerksVendorItemID;
+    int32 PerksActivityThresholdID;
+};
+
 struct PhaseEntry
 {
     uint32 ID;

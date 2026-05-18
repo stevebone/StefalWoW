@@ -604,3 +604,166 @@ CREATE TABLE `pvp_bracket_types` (
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`, `VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity Condition
+CREATE TABLE IF NOT EXISTS `perks_activity_condition` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PlayerConditionID` int(11) NOT NULL DEFAULT 0,
+    `Field_002` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity Tag
+CREATE TABLE IF NOT EXISTS `perks_activity_tag` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `TagName` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity Tag Locale
+CREATE TABLE IF NOT EXISTS `perks_activity_tag_locale` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `locale` varchar(4) NOT NULL,
+    `TagName_lang` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity X Holidays
+CREATE TABLE IF NOT EXISTS `perks_activity_x_holidays` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `HolidayID` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity X Tag
+CREATE TABLE IF NOT EXISTS `perks_activity_x_tag` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PerksActivityTagID` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks UI Theme
+CREATE TABLE IF NOT EXISTS `perks_ui_theme` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `UiTextureKitID` int(11) NOT NULL DEFAULT 0,
+    `Field_002` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Category
+CREATE TABLE IF NOT EXISTS `perks_vendor_category` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `DisplayName` text,
+    `PerksVendorType` int(11) NOT NULL DEFAULT 0,
+    `DefaultUIModelSceneID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Category Locale
+CREATE TABLE IF NOT EXISTS `perks_vendor_category_locale` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `locale` varchar(4) NOT NULL,
+    `DisplayName_lang` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item (DB2)
+CREATE TABLE IF NOT EXISTS `perks_vendor_item` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PerksVendorCategoryID` tinyint(4) NOT NULL DEFAULT 0,
+    `Field_10_0_5_47118_002` int(11) NOT NULL DEFAULT 0,
+    `ItemID` int(11) NOT NULL DEFAULT 0,
+    `Field_10_0_5_47118_004` int(11) NOT NULL DEFAULT 0,
+    `CreatureDisplayInfoID` int(11) NOT NULL DEFAULT 0,
+    `Cost` int(11) NOT NULL DEFAULT 0,
+    `UiModelSceneID` int(11) NOT NULL DEFAULT 0,
+    `UiGroupInfo` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item UI Group
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_ui_group` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `Name` text,
+    `Priority` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item UI Group Locale
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_ui_group_locale` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `locale` varchar(4) NOT NULL,
+    `Name_lang` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item UI Info
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_ui_info` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `Field_10_0_5_47118_001` int(11) NOT NULL DEFAULT 0,
+    `CreatureDisplayInfoID` int(11) NOT NULL DEFAULT 0,
+    `Field_10_2_5_52206_003` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item X Interval
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_x_interval` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PerksVendorItemID` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityThresholdID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity Threshold
+CREATE TABLE IF NOT EXISTS `perks_activity_threshold` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `PerksActivityCount` int NOT NULL DEFAULT '0',
+  `CurrencyAmount` int NOT NULL DEFAULT '0',
+  `Unknown` int NOT NULL DEFAULT '0',
+  `ThresholdGroupID` int unsigned NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity Threshold Group
+CREATE TABLE IF NOT EXISTS `perks_activity_threshold_group` (
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Unknown` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity Threshold Group Locale
+CREATE TABLE IF NOT EXISTS `perks_activity_threshold_group_locale` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`locale`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity X Interval
+CREATE TABLE IF NOT EXISTS `perks_activity_x_interval` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `PerksActivityID` int NOT NULL DEFAULT '0',
+  `IntervalID` int unsigned NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

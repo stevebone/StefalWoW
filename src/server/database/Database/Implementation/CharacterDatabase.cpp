@@ -851,6 +851,18 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS, "DELETE FROM character_bank_tab_settings WHERE characterGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_BANK_TAB_SETTINGS, "INSERT INTO character_bank_tab_settings (characterGuid, tabId, name, icon, description, depositFlags) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
 
+    // Perks Program (Trading Post)
+    PrepareStatement(CHAR_SEL_PERKS_CURRENCY, "SELECT currency, total_earned, purchased_count FROM character_perks_currency WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_REP_PERKS_CURRENCY, "REPLACE INTO character_perks_currency (guid, currency, total_earned, purchased_count) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_PERKS_PURCHASES, "SELECT vendor_item_id, purchase_time, refundable FROM character_perks_purchases WHERE guid = ? ORDER BY purchase_time DESC", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_PERKS_PURCHASE, "INSERT INTO character_perks_purchases (guid, vendor_item_id, purchase_time, refundable) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_PERKS_FROZEN, "SELECT vendor_item_id FROM character_perks_frozen WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_REP_PERKS_FROZEN, "REPLACE INTO character_perks_frozen (guid, vendor_item_id) VALUES (?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_PERKS_FROZEN, "DELETE FROM character_perks_frozen WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_PERKS_MILESTONES, "SELECT activity_id FROM character_perks_completed_milestones WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_PERKS_MILESTONE, "INSERT IGNORE INTO character_perks_completed_milestones (guid, activity_id, completed_time) VALUES (?, ?, UNIX_TIMESTAMP())", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_PERKS_MILESTONES, "DELETE FROM character_perks_completed_milestones WHERE guid = ?", CONNECTION_ASYNC);
+
     // Club Finder
     PrepareStatement(CHAR_SEL_CLUB_FINDER_POSTS, "SELECT postingID, guildID, description, playstyle, interests, specIDs, classMask, minLevel, maxLevel, slotsAvailable, maxApplicants, language, status, timestamp FROM club_finder_post", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CLUB_FINDER_APPLICANTS, "SELECT id, postingID, playerGUID, status, comment, timestamp FROM club_finder_applicant", CONNECTION_SYNCH);

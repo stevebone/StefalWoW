@@ -27,6 +27,7 @@ void AddSC_CustomDisplayCommands();
 void AddSC_CustomEffectHandler();
 void AddSC_CustomEffectCommands();
 void AddSC_toy_spell_scripts();
+void AddSC_npc_perks_program_vendor();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -42,4 +43,5 @@ void AddCustomScripts()
     AddSC_CustomDisplayCommands();
     AddSC_CustomEffectHandler();
     AddSC_CustomEffectCommands();
+    AddSC_npc_perks_program_vendor();
 }
