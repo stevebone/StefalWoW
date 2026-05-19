@@ -278,7 +278,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //186 SPELL_EFFECT_186
     &Spell::EffectNULL,                                     //187 SPELL_EFFECT_RANDOMIZE_ARCHAEOLOGY_DIGSITES
     &Spell::EffectNULL,                                     //188 SPELL_EFFECT_SUMMON_STABLED_PET_AS_GUARDIAN
-    &Spell::EffectLootWithToast,                            //189 SPELL_EFFECT_LOOT
+    &Spell::EffectNULL,                                     //189 SPELL_EFFECT_LOOT
     &Spell::EffectNULL,                                     //190 SPELL_EFFECT_CHANGE_PARTY_MEMBERS
     &Spell::EffectNULL,                                     //191 SPELL_EFFECT_TELEPORT_TO_DIGSITE
     &Spell::EffectUncageBattlePet,                          //192 SPELL_EFFECT_UNCAGE_BATTLEPET
@@ -6516,17 +6516,8 @@ void Spell::EffectScrapItem()
     if (Player* player = GetCaster()->ToPlayer())
     {
         player->DestroyItem(itemTarget->GetBagSlot(), itemTarget->GetSlot(), true);
-        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::Vendor, false, false);
+        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::NONE, false, true);
     }
 }
 
-void Spell::EffectLootWithToast()
-{
-    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
-        return;
 
-    if (!unitTarget || !unitTarget->IsPlayer())
-        return;
-
-    unitTarget->ToPlayer()->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, ItemContext::NONE, false, true);
-}
