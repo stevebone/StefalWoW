@@ -468,6 +468,17 @@ class TC_GAME_API Spell
         void EffectEquipTransmogOutfit();
         void EffectScrapItem();
         void EffectLootWithToast();
+        void EffectForceEquipItem();
+        void EffectIncreaseSkill();
+        void EffectRemovePhase();
+        void EffectModReputation();
+        void EffectJoinOrLeavePlayerParty();
+        void SendScene();
+        void EffectDespawnAreatrigger();
+        void EffectSpecCount();
+        void EffectObliterateItem();
+        void EffectCorpseLoot();
+        void EffectSurvey();
 
         typedef std::unordered_set<Aura*> UsedSpellMods;
 
