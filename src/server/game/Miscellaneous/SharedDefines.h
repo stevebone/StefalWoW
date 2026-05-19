@@ -107,6 +107,13 @@ enum Expansions
 
 #define CURRENT_EXPANSION EXPANSION_MIDNIGHT
 
+enum TimerunningSeasons : uint32
+{
+    TIMERUNNING_SEASON_NONE = 0,
+    TIMERUNNING_SEASON_PANDARIA = 1,
+    TIMERUNNING_SEASON_LEGION = 2
+};
+
 constexpr uint32 GetMaxLevelForExpansion(uint32 expansion)
 {
     switch (expansion)

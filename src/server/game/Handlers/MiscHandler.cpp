@@ -26,6 +26,7 @@
 #include "CinematicMgr.h"
 #include "ClientConfigPackets.h"
 #include "Common.h"
+#include "ConditionMgr.h"
 #include "Conversation.h"
 #include "ConversationAI.h"
 #include "Corpse.h"
@@ -1460,18 +1461,36 @@ void WorldSession::HandleChromieTimeSelectExpansion(WorldPackets::Misc::ChromieT
     if (!player)
         return;
 
-    int32 expansionId = chromieTimeSelectExpansion.ExpansionID;
-
-    if (expansionId < 0 || expansionId > CURRENT_EXPANSION)
+    // Wire format (12.0.5): PackedGuid Vendor + int32 ExpansionID, where ExpansionID is the
+    // UIChromieTimeExpansionInfo.ID (DB2 record id), not the Expansions enum.
+    // Verify the vendor is a gossip NPC the player is actually interacting with.
+    Creature const* vendor = player->GetNPCIfCanInteractWith(chromieTimeSelectExpansion.Vendor, UNIT_NPC_FLAG_GOSSIP, UNIT_NPC_FLAG_2_NONE);
+    if (!vendor)
         return;
 
-    // Blizzlike: only available for levels 10-70 (below max level)
+    int32 expansionId = chromieTimeSelectExpansion.ExpansionID;
+
+    // Blizzlike: only available for levels 10-70 (below max level).
     if (player->GetLevel() < 10 || player->IsMaxLevel())
+        return;
+
+    // 0 = "Return to the present"; clear without store lookup.
+    if (expansionId == 0)
+    {
+        player->SetChromieTime(0);
+        player->SendDirectMessage(WorldPackets::Misc::ChromieTimeSelectExpansionSuccess().Write());
+        return;
+    }
+
+    UIChromieTimeExpansionInfoEntry const* entry = sUIChromieTimeExpansionInfoStore.LookupEntry(uint32(expansionId));
+    if (!entry)
+        return;
+
+    if (entry->ShowPlayerConditionID && !ConditionMgr::IsPlayerMeetingCondition(player, entry->ShowPlayerConditionID))
         return;
 
     player->SetChromieTime(expansionId);
 
-    // Send success response
     player->SendDirectMessage(WorldPackets::Misc::ChromieTimeSelectExpansionSuccess().Write());
 }
 

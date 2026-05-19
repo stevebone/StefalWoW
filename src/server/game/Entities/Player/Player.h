@@ -127,6 +127,11 @@ namespace WorldPackets
         struct CustomTabardInfo;
     }
 
+    namespace Misc
+    {
+        struct CTROptionsBlock;
+    }
+
     namespace Movement
     {
         enum class UpdateCollisionHeightReason : uint8;
@@ -2489,7 +2494,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         static uint8 GetFactionGroupForRace(uint8 race);
         void SetChromieTime(int32 expansionId);
         void SetChromieTimeConditionalFlags(bool enabled);
-        void SendCtrOptions() const;
+        void SendCtrOptions(WorldPackets::Misc::CTROptionsBlock const* previous = nullptr) const;
         Team GetTeam() const { return m_team; }
         Team GetNativeTeam() const { return TeamForRace(GetRace()); }
         void SetTeam(Team team) { m_team = team; }

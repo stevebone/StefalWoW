@@ -5416,6 +5416,24 @@ struct UISplashScreenEntry
     int32 RequiredTimeEventPassed; // serverside TimeEvent table, see ModifierTreeType::HasTimeEventPassed
 };
 
+struct UIChromieTimeExpansionInfoEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    LocalizedString AllianceOverrideDesc;
+    LocalizedString HordeOverrideDesc;
+    int32 SpellID;
+    int32 MapAtlasElement;
+    int32 PreviewAtlasElement;
+    int32 ShowPlayerConditionID;
+    int32 ExpansionMask;
+    int32 ContentTuningID;
+    int32 CompletedPlayerConditionID;
+    int32 SortPriority;
+    int32 RecommendPlayerConditionID;
+};
+
 #define MAX_UNIT_CONDITION_VALUES 8
 
 struct UnitConditionEntry

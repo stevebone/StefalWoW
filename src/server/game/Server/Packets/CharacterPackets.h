@@ -915,6 +915,17 @@ namespace WorldPackets
             int32 Error;
         };
 
+        class ConvertTimerunningCharacter final : public ClientPacket
+        {
+        public:
+            explicit ConvertTimerunningCharacter(WorldPacket&& packet) : ClientPacket(CMSG_CONVERT_TIMERUNNING_CHARACTER, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid CharacterGuid;
+            uint32 RaceAndFaction = 0;  // packed: low 16 bits = RaceID, high 8 bits = faction sign (see binary sub_7FF75DBB01B0)
+        };
+
         class NeutralPlayerFactionSelectResult final : public ServerPacket
         {
         public:

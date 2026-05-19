@@ -1190,8 +1190,8 @@ namespace WorldPackets
 
             void Read() override;
 
-            ObjectGuid Guid;
-            int32 ExpansionID = 0;
+            ObjectGuid Vendor;     // packed GUID of the Chromie NPC the player is interacting with
+            int32 ExpansionID = 0; // UIChromieTimeExpansionInfo.ID (NOT the Expansions enum)
         };
 
         class ChromieTimeSelectExpansionSuccess final : public ServerPacket
@@ -1202,16 +1202,32 @@ namespace WorldPackets
             WorldPacket const* Write() override { return &_worldPacket; }
         };
 
-        class SetCtrOptions final : public ServerPacket
+        class TimerunningSeasonEnded final : public ServerPacket
         {
         public:
-            SetCtrOptions() : ServerPacket(SMSG_SET_CTR_OPTIONS, 4 + 1 + 4) {}
+            TimerunningSeasonEnded() : ServerPacket(SMSG_TIMERUNNING_SEASON_ENDED, 4) {}
 
             WorldPacket const* Write() override;
 
+            uint32 SeasonID = 0;
+        };
+
+        struct CTROptionsBlock
+        {
             std::vector<uint32> ConditionalFlags;
             uint8 FactionGroup = 0;
             uint32 ChromieTimeExpansionMask = 0;
+        };
+
+        class SetCtrOptions final : public ServerPacket
+        {
+        public:
+            SetCtrOptions() : ServerPacket(SMSG_SET_CTR_OPTIONS, 26) {}
+
+            WorldPacket const* Write() override;
+
+            CTROptionsBlock Previous;
+            CTROptionsBlock Current;
         };
 
         class RequestStoreFrontInfoUpdate final : public ClientPacket
