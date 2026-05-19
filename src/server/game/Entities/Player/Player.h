@@ -1619,8 +1619,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void EquipChildItem(uint8 parentBag, uint8 parentSlot, Item* parentItem);
         void AutoUnequipChildItem(Item* parentItem);
         bool StoreNewItemInBestSlots(uint32 itemId, uint32 amount, ItemContext context);
-        void AutoStoreLoot(uint8 bag, uint8 slot, uint32 loot_id, LootStore const& store, ItemContext context = ItemContext::NONE, bool broadcast = false, bool createdByPlayer = false, DisplayToastMethod toastMethod = DisplayToastMethod::Default);
-        void AutoStoreLoot(uint32 loot_id, LootStore const& store, ItemContext context = ItemContext::NONE, bool broadcast = false, bool createdByPlayer = false, DisplayToastMethod toastMethod = DisplayToastMethod::Default) { AutoStoreLoot(NULL_BAG, NULL_SLOT, loot_id, store, context, broadcast, createdByPlayer, toastMethod); }
+        void AutoStoreLoot(uint8 bag, uint8 slot, uint32 loot_id, LootStore const& store, ItemContext context = ItemContext::NONE, bool broadcast = false, bool createdByPlayer = false);
+        void AutoStoreLoot(uint32 loot_id, LootStore const& store, ItemContext context = ItemContext::NONE, bool broadcast = false, bool createdByPlayer = false) { AutoStoreLoot(NULL_BAG, NULL_SLOT, loot_id, store, context, broadcast, createdByPlayer); }
         void StoreLootItem(ObjectGuid lootWorldObjectGuid, uint8 lootSlot, Loot* loot, AELootResult* aeResult = nullptr);
 
         InventoryResult CanTakeMoreSimilarItems(uint32 entry, uint32 count, Item* pItem, uint32* no_space_count = nullptr, uint32* offendingItemId = nullptr) const;

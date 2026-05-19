@@ -6516,7 +6516,7 @@ void Spell::EffectScrapItem()
     if (Player* player = GetCaster()->ToPlayer())
     {
         player->DestroyItem(itemTarget->GetBagSlot(), itemTarget->GetSlot(), true);
-        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::Vendor, false, false, DisplayToastMethod::Default);
+        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::Vendor, false, false);
     }
 }
 
@@ -6528,5 +6528,5 @@ void Spell::EffectLootWithToast()
     if (!unitTarget || !unitTarget->IsPlayer())
         return;
 
-    unitTarget->ToPlayer()->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, ItemContext::NONE, false, true, DisplayToastMethod::PersonalLoot);
+    unitTarget->ToPlayer()->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, ItemContext::NONE, false, true);
 }
