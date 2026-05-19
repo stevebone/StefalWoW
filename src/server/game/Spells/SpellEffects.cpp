@@ -6759,7 +6759,7 @@ void Spell::EffectCorpseLoot()
 }
 
 void Spell::EffectSurvey()
-{
+{/*
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT)
         return;
 
@@ -6781,4 +6781,5 @@ void Spell::EffectSurvey()
         TC_LOG_ERROR("LOG_FILTER_SPELLS_AURAS", "Spell::EffectSurvey: no go id for x: {} y: {} z: {} map: {}", m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), m_caster->GetMapId());
         return;
     }
+*/
 }
