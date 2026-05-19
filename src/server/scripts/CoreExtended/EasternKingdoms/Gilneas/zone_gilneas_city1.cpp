@@ -45,6 +45,7 @@
 #include "MoveSpline.h"
 #include "CharmInfo.h"
 #include "Object.h"
+#include "ObjectMgr.h"
 #include "PhasingHandler.h"
 #include "zone_gilneas.h"
 
@@ -82,6 +83,7 @@ enum eZoneGilneas
     NPC_GRAYMANE_HORSE_35905                     = 35905,
     NPC_KRENNAN_ARANAS                           = 35907,
     NPC_KING_GREYMANE                            = 35911,
+    NPC_LORD_GODFREY                             = 35906,
     NPC_COMMANDEERED_CANNON                      = 35914,
     NPC_NORTHGATE_REBEL_1                        = 36057,
     NPC_PANICKED_CITIZEN_GATE                    = 44086,
@@ -3055,6 +3057,38 @@ public:
     }
 };
 
+// 68219 - DBC handles: trigger 68228 (summon 35907 + kill credit), remove aura 49416
+// Script handles: range check (must be near 35753), despawn 35753
+class spell_rescue_krennan_68219 : public SpellScript
+{
+    void HandleCast()
+    {
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        Player* player = nullptr;
+        if (caster->IsPlayer())
+            player = caster->ToPlayer();
+        else if (caster->IsVehicle())
+            if (Unit* passenger = caster->GetVehicleKit()->GetPassenger(0))
+                player = passenger->ToPlayer();
+
+        if (!player)
+            return;
+
+        player->AreaExploredOrEventHappens(QUEST_SAVE_KRENNAN_ARANAS);
+
+        if (Creature* krennanTree = player->FindNearestCreature(NPC_KRENNAN_ARANAS_TREE, 50.0f, true))
+            krennanTree->DespawnOrUnsummon();
+    }
+
+    void Register() override
+    {
+        OnCast += SpellCastFn(spell_rescue_krennan_68219::HandleCast);
+    }
+};
+
 // 35905
 class npc_king_greymanes_horse_35905 : public CreatureScript
 {
@@ -3063,9 +3097,11 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
 
         enum eHorse
         {
-            EVENT_SAY_KRENNAN_HELP = 101,
             EVENT_JUMP_TO_KRENNAN = 102,
             EVENT_RESUME_PATH = 103,
+            EVENT_START_PATH = 104,
+            EVENT_COMPLETE_QUEST = 105,
+            EVENT_FORCE_WORGEN_ATTACK = 106,
             PATH_ID = 3590500,
             PATH_ID_PART2 = 3590501,
         };
@@ -3113,21 +3149,26 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
             EventMap m_events;
             ObjectGuid m_playerGUID;
             ObjectGuid m_krennanHorseGUID;
-            ObjectGuid m_krennanTreeGUID;
 
             void Reset() override
             {
                 m_events.Reset();
                 m_playerGUID = ObjectGuid();
                 m_krennanHorseGUID = ObjectGuid();
-                m_krennanTreeGUID = ObjectGuid();
-                m_events.ScheduleEvent(EVENT_SAY_KRENNAN_HELP, 500ms);
             }
 
             void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
             {
                 switch (nodeId)
                 {
+                case 6:
+                {
+                    if (!m_krennanHorseGUID)
+                        if (Creature* krennan = me->FindNearestCreature(NPC_KRENNAN_ARANAS_TREE, 100.0f, true))
+                            if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                                krennan->AI()->Talk(0, player);
+                    break;
+                }
                 case 7:
                 {
                     m_events.ScheduleEvent(EVENT_JUMP_TO_KRENNAN, 1ms);
@@ -3135,12 +3176,21 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                 }
                 case 21:
                 {
+                    m_events.CancelEvent(EVENT_FORCE_WORGEN_ATTACK);
                     if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
                     {
+                        if (Creature* krennan = ObjectAccessor::GetCreature(*me, m_krennanHorseGUID))
+                        {
+                            krennan->AI()->Talk(0, player);
+                            krennan->SetDisableGravity(false);
+                            krennan->SetHover(false);
+                            krennan->DespawnOrUnsummon(5s);
+                        }
                         player->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
                         player->ExitVehicle();
+                        m_events.ScheduleEvent(EVENT_COMPLETE_QUEST, 3s);
                     }
-                    me->DespawnOrUnsummon(1s);
+                    me->DespawnOrUnsummon(5s);
                     break;
                 }
                 }
@@ -3150,17 +3200,7 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
             {
                 if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP_TO_KRENNAN)
                 {
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                    {
-                        player->KilledMonsterCredit(NPC_KRENNAN_ARANAS_TREE);
-                        player->AreaExploredOrEventHappens(QUEST_SAVE_KRENNAN_ARANAS);
-                    }
-                    if (Creature* krennan = me->FindNearestCreature(NPC_KRENNAN_ARANAS_TREE, 30.0f, true))
-                    {
-                        me->CastSpell(krennan, SPELL_RESCUE_KRENNAN, true);
-                        krennan->CastSpell(me, SPELL_RIDE_VEHICLE_HARDCODED, true);
-                    }
-                    m_events.ScheduleEvent(EVENT_RESUME_PATH, 1ms);
+                    // Horse landed near tree ? wait for player to press rescue button (spell 68219)
                 }
             }
 
@@ -3177,15 +3217,15 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                             player->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
                             me->SetFaction(player->GetFaction());
                             me->SetReactState(REACT_PASSIVE);
-                            player->CastSpell(player, SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1, true);
-                            me->GetMotionMaster()->MovePath(GetPathPart1(), false);
+                            player->AddAura(SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1, player);
+                            m_events.ScheduleEvent(EVENT_START_PATH, 500ms);
                         }
                     }
                     else if (who->GetEntry() == NPC_KRENNAN_ARANAS && !m_krennanHorseGUID)
                     {
                         m_krennanHorseGUID = who->GetGUID();
-                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            player->RemoveAura(SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1);
+                        who->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                        m_events.ScheduleEvent(EVENT_RESUME_PATH, 1ms);
                     }
                 }
             }
@@ -3213,25 +3253,6 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                 {
                     switch (eventId)
                     {
-                    case EVENT_SAY_KRENNAN_HELP:
-                    {
-                        if (!m_krennanTreeGUID)
-                            if (Creature* krennan = me->FindNearestCreature(NPC_KRENNAN_ARANAS_TREE, 100.0f, true))
-                                m_krennanTreeGUID = krennan->GetGUID();
-
-                        if (!m_krennanHorseGUID)
-                        {
-                            if (Creature* krennan = ObjectAccessor::GetCreature(*me, m_krennanTreeGUID))
-                                if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                                {
-                                    krennan->AI()->Talk(0, player);
-                                    m_events.ScheduleEvent(EVENT_SAY_KRENNAN_HELP, 6s, 9s);
-                                    break;
-                                }
-                            m_events.ScheduleEvent(EVENT_SAY_KRENNAN_HELP, 500ms);
-                        }
-                        break;
-                    }
                     case EVENT_JUMP_TO_KRENNAN:
                     {
                         me->GetMotionMaster()->MoveJump(EVENT_JUMP_TO_KRENNAN, Position(-1676.16f, 1346.19f, 15.1349f), 25.0f, 10.0f);
@@ -3240,6 +3261,45 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                     case EVENT_RESUME_PATH:
                     {
                         me->GetMotionMaster()->MovePath(GetPathPart2(), false);
+                        m_events.ScheduleEvent(EVENT_FORCE_WORGEN_ATTACK, 2s);
+                        break;
+                    }
+                    case EVENT_START_PATH:
+                    {
+                        me->ClearUnitState(UNIT_STATE_ROOT);
+                        me->RemoveUnitMovementFlag(MOVEMENTFLAG_ROOT);
+                        me->GetMotionMaster()->MovePath(GetPathPart1(), false);
+                        break;
+                    }
+                    case EVENT_COMPLETE_QUEST:
+                    {
+                        Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID);
+                        if (!player)
+                            break;
+
+                        if (Creature* godfrey = me->FindNearestCreature(NPC_LORD_GODFREY, 100.0f))
+                        {
+                            if (Quest const* quest = sObjectMgr->GetQuestTemplate(QUEST_SAVE_KRENNAN_ARANAS))
+                                player->RewardQuest(quest, LootItemType::Item, 0, godfrey, true);
+                        }
+                        else
+                        {
+                            if (Quest const* quest = sObjectMgr->GetQuestTemplate(QUEST_SAVE_KRENNAN_ARANAS))
+                                player->RewardQuest(quest, LootItemType::Item, 0, me, true);
+                        }
+
+                        break;
+                    }
+                    case EVENT_FORCE_WORGEN_ATTACK:
+                    {
+                        std::list<Creature*> worgens;
+                        me->GetCreatureListWithEntryInGrid(worgens, NPC_BLOODFANG_RIPPER_35505, 30.0f);
+                        for (Creature* worgen : worgens)
+                        {
+                            if (!worgen->IsInCombat() && worgen->IsAlive())
+                                worgen->AI()->AttackStart(me);
+                        }
+                        m_events.Repeat(2s);
                         break;
                     }
                     }
@@ -4501,6 +4561,7 @@ void AddSC_zone_gilneas_city1()
     new npc_king_genn_greymane_35550();
     new npc_king_greymanes_horse_35905();
     new npc_krennan_aranas_35907();
+    new spell_rescue_krennan_68219();
     new npc_commandeered_cannon_35914();
     new npc_bloodfang_stalker_35229();
     new npc_lord_darius_crowley_35552();
