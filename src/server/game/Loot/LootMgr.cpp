@@ -56,6 +56,7 @@ LootStore LootTemplates_Prospecting("prospecting_loot_template",     "item entry
 LootStore LootTemplates_Reference("reference_loot_template",         "reference id",                    false);
 LootStore LootTemplates_Skinning("skinning_loot_template",           "creature skinning id",            true);
 LootStore LootTemplates_Spell("spell_loot_template",                 "spell id (random item creating)", false);
+LootStore LootTemplates_Scrapping("scrapping_loot_template",         "scrapping id",                    true);
 
 // Selects invalid loot items to be removed from group possible entries (before rolling)
 struct LootGroupInvalidSelector
@@ -1429,6 +1430,48 @@ void LoadLootTemplates_Spell()
         TC_LOG_INFO("server.loading", ">> Loaded 0 spell loot templates. DB table `spell_loot_template` is empty");
 }
 
+void LoadLootTemplates_Scrapping()
+{
+    TC_LOG_INFO("server.loading", "Loading scrapping loot templates...");
+
+    uint32 oldMSTime = getMSTime();
+
+    LootIdSet lootIdSet, lootIdSetUsed;
+    uint32 count = LootTemplates_Scrapping.LoadAndCollectLootIds(lootIdSet);
+
+    for (auto const& itemScrappingLoot : *sObjectMgr->GetItemScrappingLootStore())
+    {
+        uint32 lootid = itemScrappingLoot.Id;
+        if (lootIdSet.find(lootid) == lootIdSet.end())
+            LootTemplates_Scrapping.ReportNonExistingId(lootid, "ItemScrappingLoot", lootid);
+        else
+            lootIdSetUsed.insert(lootid);
+    }
+
+    for (ItemBonusEntry const* itemBonus : sItemBonusStore)
+    {
+        if (itemBonus->Type != ITEM_BONUS_SCRAPPING_LOOT_ID)
+            continue;
+
+        uint32 lootid = itemBonus->Value[0];
+        if (!lootIdSet.contains(lootid))
+            LootTemplates_Scrapping.ReportNonExistingId(lootid, "ItemBonusList", itemBonus->ParentItemBonusListID);
+        else
+            lootIdSetUsed.insert(lootid);
+    }
+
+    for (uint32 lootId : lootIdSetUsed)
+        lootIdSet.erase(lootId);
+
+    // output error for any still listed (not referenced from appropriate table) ids
+    LootTemplates_Scrapping.ReportUnusedIds(lootIdSet);
+
+    if (count)
+        TC_LOG_INFO("server.loading", ">> Loaded {} scrapping loot templates in {} ms", count, GetMSTimeDiffToNow(oldMSTime));
+    else
+        TC_LOG_INFO("server.loading", ">> Loaded 0 scrapping loot templates. DB table `scrapping_loot_template` is empty");
+}
+
 void LoadLootTemplates_Reference()
 {
     TC_LOG_INFO("server.loading", "Loading reference loot templates...");
@@ -1450,6 +1493,7 @@ void LoadLootTemplates_Reference()
     LootTemplates_Prospecting.CheckLootRefs(&lootIdSet);
     LootTemplates_Mail.CheckLootRefs(&lootIdSet);
     LootTemplates_Reference.CheckLootRefs(&lootIdSet);
+    LootTemplates_Scrapping.CheckLootRefs(&lootIdSet);
 
     // output error for any still listed ids (not referenced from any loot table)
     LootTemplates_Reference.ReportUnusedIds(lootIdSet);
@@ -1470,6 +1514,7 @@ void LoadLootTables()
     LoadLootTemplates_Disenchant();
     LoadLootTemplates_Prospecting();
     LoadLootTemplates_Spell();
+    LoadLootTemplates_Scrapping();
 
     LoadLootTemplates_Reference();
 }

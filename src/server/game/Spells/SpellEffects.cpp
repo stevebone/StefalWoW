@@ -350,7 +350,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //258 SPELL_EFFECT_MODIFY_KEYSTONE
     &Spell::EffectRespecAzeriteEmpoweredItem,               //259 SPELL_EFFECT_RESPEC_AZERITE_EMPOWERED_ITEM
     &Spell::EffectSummonStabledPet,                         //260 SPELL_EFFECT_SUMMON_STABLED_PET
-    &Spell::EffectNULL,                                     //261 SPELL_EFFECT_SCRAP_ITEM
+    &Spell::EffectScrapItem,                                //261 SPELL_EFFECT_SCRAP_ITEM
     &Spell::EffectUnused,                                   //262 SPELL_EFFECT_262
     &Spell::EffectNULL,                                     //263 SPELL_EFFECT_REPAIR_ITEM
     &Spell::EffectNULL,                                     //264 SPELL_EFFECT_REMOVE_GEM
@@ -6497,3 +6497,27 @@ void Spell::EffectSummonStabledPet()
 
     map->AddToMap(pet->ToCreature());
 }
+
+void Spell::EffectScrapItem()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!itemTarget)
+        return;
+
+    if (!itemTarget->GetTemplate()->HasFlag(ITEM_FLAG4_SCRAPABLE))
+        return;
+
+    uint32 scrapLootId = itemTarget->GetTemplate()->GetScrappingLootId();
+    if (!scrapLootId)
+        return;
+
+    if (Player* player = GetCaster()->ToPlayer())
+    {
+        player->DestroyItem(itemTarget->GetBagSlot(), itemTarget->GetSlot(), true);
+        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::NONE, false, true);
+    }
+}
+
+

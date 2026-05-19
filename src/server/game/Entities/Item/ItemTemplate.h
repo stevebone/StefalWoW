@@ -901,6 +901,7 @@ struct TC_GAME_API ItemTemplate
     float  GetDmgVariance() const { return ExtendedData->DmgVariance; }
     uint8 GetArtifactID() const { return ExtendedData->ArtifactID; }
     uint8 GetRequiredExpansion() const { return ExtendedData->ExpansionID; }
+    uint32 GetScrappingLootId() const { return ScrappingLootId; }
 
     uint32 MaxDurability;
     std::vector<ItemEffectEntry const*> Effects;
@@ -910,6 +911,7 @@ struct TC_GAME_API ItemTemplate
     uint32 FoodType;
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
+    uint32 ScrappingLootId;
     uint32 FlagsCu;
     float SpellPPMRate;
     uint32 RandomBonusListTemplateId;
