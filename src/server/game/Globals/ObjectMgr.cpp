@@ -12377,27 +12377,3 @@ ItemScrappingLoot const* ObjectMgr::GetItemScrappingLoot(Item* item) const
 
     return nullptr;
 }
-
-ItemScrappingLoot const* ObjectMgr::GetItemScrappingLoot(Item* item) const
-{
-    for (auto& itemScrappingloot : _itemScrappingLootStore)
-    {
-        ItemTemplate const* iT = item->GetTemplate();
-        if (itemScrappingloot.Class != iT->GetClass())
-            continue;
-        if (!(itemScrappingloot.Subclass & 1 << iT->GetSubClass()))
-            continue;
-        if (itemScrappingloot.InventoryType != -1 && !(itemScrappingloot.InventoryType & 1 << iT->GetInventoryType()))
-            continue;
-        if (itemScrappingloot.MinLevel > item->GetItemLevel(item->GetOwner()))
-            continue;
-        if (itemScrappingloot.MaxLevel < item->GetItemLevel(item->GetOwner()))
-            continue;
-        if (itemScrappingloot.Quality != -1 && itemScrappingloot.Quality != int32(iT->GetQuality()))
-            continue;
-        if (itemScrappingloot.IsCrafted != -1 && ((itemScrappingloot.IsCrafted == 1) == !(ITEM_FLAG_NO_CREATOR)))
-            continue;
-        return &itemScrappingloot;
-    }
-    return nullptr;
-}
