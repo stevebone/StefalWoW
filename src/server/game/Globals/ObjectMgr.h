@@ -1213,7 +1213,6 @@ class TC_GAME_API ObjectMgr
         void LoadCreatureQuestEnders();
 
         std::vector<ItemScrappingLoot> _itemScrappingLootStore;
-
         ItemScrappingLoot const* GetItemScrappingLoot(Item* item) const;
         std::vector<ItemScrappingLoot> const* GetItemScrappingLootStore() const { return &_itemScrappingLootStore; }
 

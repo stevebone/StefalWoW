@@ -6844,18 +6844,17 @@ void Spell::EffectScrapItem()
     if (!itemTarget)
         return;
 
-    if (!(ITEM_FLAG4_SCRAPABLE))
+    if (!itemTarget->GetTemplate()->HasFlag(ITEM_FLAG4_SCRAPABLE))
         return;
 
-    ItemScrappingLoot const* iSL = sObjectMgr->GetItemScrappingLoot(itemTarget);
-
-    if (!iSL)
+    uint32 scrapLootId = itemTarget->GetTemplate()->GetScrappingLootId();
+    if (!scrapLootId)
         return;
 
     if (Player* player = GetCaster()->ToPlayer())
     {
         player->DestroyItem(itemTarget->GetBagSlot(), itemTarget->GetSlot(), true);
-        player->AutoStoreLoot(iSL->Id, LootTemplates_Scrapping);
+        player->AutoStoreLoot(scrapLootId, LootTemplates_Scrapping, ItemContext::NONE, false, true);
     }
 }
 

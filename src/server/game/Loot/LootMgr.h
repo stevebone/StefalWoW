@@ -168,11 +168,10 @@ TC_GAME_API extern LootStore LootTemplates_Skinning;
 TC_GAME_API extern LootStore LootTemplates_Disenchant;
 TC_GAME_API extern LootStore LootTemplates_Prospecting;
 TC_GAME_API extern LootStore LootTemplates_Spell;
-
 TC_GAME_API extern LootStore LootTemplates_Scrapping;
 
 TC_GAME_API void LoadLootTemplates_Creature();
-TC_GAME_API void LoadLootTemplates_Fishing();
+TC_GAME_API void LoadLootTemplates_Fishing(); void EffectEquipTransmogOutfi
 TC_GAME_API void LoadLootTemplates_Gameobject();
 TC_GAME_API void LoadLootTemplates_Item();
 TC_GAME_API void LoadLootTemplates_Mail();
