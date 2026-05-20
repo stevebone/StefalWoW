@@ -767,3 +767,37 @@ CREATE TABLE IF NOT EXISTS `perks_activity_x_interval` (
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--Ui Chromie Time Expansion info
+DROP TABLE IF EXISTS `ui_chromie_time_expansion_info`;
+CREATE TABLE `ui_chromie_time_expansion_info`  (
+  `ID` int UNSIGNED NOT NULL DEFAULT 0,
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `AllianceOverrideDesc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `HordeOverrideDesc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `SpellID` int NOT NULL DEFAULT 0,
+  `MapAtlasElement` int NOT NULL DEFAULT 0,
+  `PreviewAtlasElement` int NOT NULL DEFAULT 0,
+  `ShowPlayerConditionID` int NOT NULL DEFAULT 0,
+  `ExpansionMask` int NOT NULL DEFAULT 0,
+  `ContentTuningID` int NOT NULL DEFAULT 0,
+  `CompletedPlayerConditionID` int NOT NULL DEFAULT 0,
+  `SortPriority` int NOT NULL DEFAULT 0,
+  `RecommendPlayerConditionID` int NOT NULL DEFAULT 0,
+  `VerifiedBuild` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`ID`, `VerifiedBuild`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- Ui Chromie Time Expansion info Locale
+DROP TABLE IF EXISTS `ui_chromie_time_expansion_info_locale`;
+CREATE TABLE `ui_chromie_time_expansion_info_locale`  (
+  `ID` int UNSIGNED NOT NULL DEFAULT 0,
+  `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `Description_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `AllianceOverrideDesc_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `HordeOverrideDesc_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `VerifiedBuild` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;

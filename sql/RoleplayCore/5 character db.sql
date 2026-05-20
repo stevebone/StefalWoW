@@ -39,5 +39,7 @@ CREATE TABLE IF NOT EXISTS `character_perks_completed_milestones` (
   `activity_id`    int NOT NULL COMMENT 'PerksActivity ID (from rotation-specific XInterval)',
   `completed_time` int unsigned NOT NULL COMMENT 'Unix timestamp when completed',
   PRIMARY KEY (`guid`, `activity_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='Perks Program completed threshold milestone activities per player';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Perks Program completed threshold milestone activities per player';
+
+ALTER TABLE `characters`
+  ADD COLUMN `timerunningSeasonId` int unsigned NOT NULL DEFAULT '0' AFTER `chromieTimeExpansionId`;
