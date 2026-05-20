@@ -3100,7 +3100,6 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
             EVENT_JUMP_TO_KRENNAN = 102,
             EVENT_RESUME_PATH = 103,
             EVENT_START_PATH = 104,
-            EVENT_COMPLETE_QUEST = 105,
             EVENT_FORCE_WORGEN_ATTACK = 106,
             PATH_ID = 3590500,
             PATH_ID_PART2 = 3590501,
@@ -3187,8 +3186,8 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                             krennan->DespawnOrUnsummon(5s);
                         }
                         player->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+
                         player->ExitVehicle();
-                        m_events.ScheduleEvent(EVENT_COMPLETE_QUEST, 3s);
                     }
                     me->DespawnOrUnsummon(5s);
                     break;
@@ -3261,7 +3260,6 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                     case EVENT_RESUME_PATH:
                     {
                         me->GetMotionMaster()->MovePath(GetPathPart2(), false);
-                        m_events.ScheduleEvent(EVENT_FORCE_WORGEN_ATTACK, 2s);
                         break;
                     }
                     case EVENT_START_PATH:
@@ -3269,25 +3267,7 @@ class npc_king_greymanes_horse_35905 : public CreatureScript
                         me->ClearUnitState(UNIT_STATE_ROOT);
                         me->RemoveUnitMovementFlag(MOVEMENTFLAG_ROOT);
                         me->GetMotionMaster()->MovePath(GetPathPart1(), false);
-                        break;
-                    }
-                    case EVENT_COMPLETE_QUEST:
-                    {
-                        Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID);
-                        if (!player)
-                            break;
-
-                        if (Creature* godfrey = me->FindNearestCreature(NPC_LORD_GODFREY, 100.0f))
-                        {
-                            if (Quest const* quest = sObjectMgr->GetQuestTemplate(QUEST_SAVE_KRENNAN_ARANAS))
-                                player->RewardQuest(quest, LootItemType::Item, 0, godfrey, true);
-                        }
-                        else
-                        {
-                            if (Quest const* quest = sObjectMgr->GetQuestTemplate(QUEST_SAVE_KRENNAN_ARANAS))
-                                player->RewardQuest(quest, LootItemType::Item, 0, me, true);
-                        }
-
+                        m_events.ScheduleEvent(EVENT_FORCE_WORGEN_ATTACK, 2s);
                         break;
                     }
                     case EVENT_FORCE_WORGEN_ATTACK:
@@ -3438,7 +3418,7 @@ public:
                 Talk(SAY_LORD_GODFREY_P4);
                 player->RemoveAura(SPELL_WORGEN_BITE);
                 me->AddAura(SPELL_INFECTED_BITE, player);
-                player->CastSpell(player, SPELL_GILNEAS_CANNON_CAMERA);
+                me->CastSpell(player, SPELL_GILNEAS_CANNON_CAMERA);
                 player->SaveToDB();
                 if (Creature* cannon = GetClosestCreatureWithEntry(me, NPC_COMMANDEERED_CANNON, 50.0f))
                     cannon->GetAI()->DoAction(ACTION_STARTING_EVENT);
