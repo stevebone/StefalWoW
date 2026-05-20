@@ -290,87 +290,69 @@ namespace Scripts::EasternKingdoms::Westfall
         EventMap _events;
         bool _drifterWithCartConvoOnCooldown = false;
     };
-}
 
- /*######
- ## npc_custom_lous_parting_thoughts_trigger
- ######*/
+    /*######
+    ## npc_custom_lous_parting_thoughts_trigger
+    ## ID 42562
+    ######*/
 
-class npc_custom_lous_parting_thoughts_trigger : public CreatureScript
-{
-public:
-    npc_custom_lous_parting_thoughts_trigger() : CreatureScript("npc_custom_lous_parting_thoughts_trigger") { }
-
-    struct npc_lous_parting_thoughts_triggerAI : public ScriptedAI
+    struct npc_custom_lous_parting_thoughts_trigger : public ScriptedAI
     {
-        npc_lous_parting_thoughts_triggerAI(Creature* creature) : ScriptedAI(creature) { }
-
-        ObjectGuid PlayerGUID;
-        std::array<ObjectGuid, 4> ThugGUIDs;
-
-        uint32 PhaseTimer = 0;
-        uint8  Phase = 0;
-        uint8  DeadThugs = 0;
-        bool   EventStarted = false;
-        bool   EventLocked = false;
+        npc_custom_lous_parting_thoughts_trigger(Creature* creature) : ScriptedAI(creature) { }
 
         void Reset() override
         {
-            Phase = 0;
-            DeadThugs = 0;
-            EventStarted = false;
-            EventLocked = false;
-            PhaseTimer = 1000;
+            _phase = 0;
+            _deadThugs = 0;
+            _eventStarted = false;
+            _eventLocked = false;
+            _phaseTimer = 1000;
 
-            for (auto& guid : ThugGUIDs)
+            for (auto& guid : _thugGuids)
                 guid.Clear();
         }
 
         void MoveInLineOfSight(Unit* who) override
         {
-            if (EventStarted)
+            if (_eventStarted)
                 return;
 
             Player* player = who->ToPlayer();
             if (!player)
                 return;
 
-            if (player->GetQuestStatus(QUEST_LOUS_PARTING_THOUGHTS) != QUEST_STATUS_INCOMPLETE)
+            if (player->GetQuestStatus(Quests::LousPartingThoughts) != QUEST_STATUS_INCOMPLETE)
                 return;
 
             if (!who->IsWithinDistInMap(me, 30.0f))
                 return;
 
-            PlayerGUID = player->GetGUID();
+            _playerGuid = player->GetGUID();
+
             StartEvent();
         }
 
         void StartEvent()
         {
-            EventStarted = true;
+            _eventStarted = true;
 
             for (uint8 i = 0; i < 4; ++i)
             {
-                if (Creature* thug = me->SummonCreature(
-                    NPC_WESTFALL_THUG,
-                    Q26232ThugPositions[i],
-                    TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,
-                    90s))
+                if (Creature* thug = me->SummonCreature(Creatures::WestfallThug, Positions::Q26232ThugPositions[i], TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
                 {
                     thug->SetReactState(REACT_PASSIVE);
                     thug->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
 
-                    ThugGUIDs[i] = thug->GetGUID();
+                    _thugGuids[i] = thug->GetGUID();
                 }
-
             }
 
-            PhaseTimer = 2000;
+            _phaseTimer = 2000;
         }
 
         Creature* GetThug(uint8 index)
         {
-            return ObjectAccessor::GetCreature(*me, ThugGUIDs[index]);
+            return ObjectAccessor::GetCreature(*me, _thugGuids[index]);
         }
 
         void SetData(uint32 id, uint32 /*value*/) override
@@ -378,84 +360,84 @@ public:
             if (id != 1)
                 return;
 
-            ++DeadThugs;
+            ++_deadThugs;
 
-            if (DeadThugs >= 4)
+            if (_deadThugs >= 4)
             {
-                if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
                 {
-                    me->TextEmote(SAY_FURLBROW_RETURN);
-                    player->KilledMonsterCredit(NPC_WESTFALL_Q26232_CREDIT, PlayerGUID);
-                    player->RemoveAurasDueToSpell(SPELL_WESTFALL_DETECT_QUEST_INVIS_1);
-                    player->CastSpell(player, SPELL_WESTFALL_DETECT_QUEST_INVIS_2);
+                    Talk(Talks::Q26232ReturnToFurlsbrowCottage);
+                    player->KilledMonsterCredit(Creatures::LousPartingThoughtsCredit, _playerGuid);
+
+                    // TO-DO Move these to spell area
+                    player->RemoveAurasDueToSpell(Spells::DetectQuestInvis1);
+                    player->CastSpell(player, Spells::DetectQuestInvis2);
                 }
-
-
                 Reset();
             }
         }
 
         void UpdateAI(uint32 diff) override
         {
-            if (!EventStarted || EventLocked)
+            if (!_eventStarted || _eventLocked)
                 return;
 
-            if (PhaseTimer <= diff)
+            if (_phaseTimer <= diff)
             {
-                switch (Phase)
+                switch (_phase)
                 {
                 case 0:
                     if (Creature* thug = GetThug(1))
-                        thug->AI()->Talk(Q26232_SAY_ASK_MEET);
-                    PhaseTimer = 3500;
+                        thug->AI()->Talk(Talks::Q26232AskMeet);
+                    _phaseTimer = 3500;
                     break;
 
                 case 1:
                     if (Creature* thug = GetThug(0))
-                        thug->AI()->Talk(Q26232_SAY_CONFIRM_MEET);
-                    PhaseTimer = 4000;
+                        thug->AI()->Talk(Talks::Q26232ConfirmMeet);
+                    _phaseTimer = 4000;
                     break;
 
                 case 2:
                     if (Creature* thug = GetThug(0))
-                        thug->AI()->Talk(Q26232_SAY_CONGRATULATE);
-                    PhaseTimer = 7000;
+                        thug->AI()->Talk(Talks::Q26232Congratulate);
+                    _phaseTimer = 7000;
                     break;
 
                 case 3:
                     if (Creature* thug = GetThug(3))
-                        thug->AI()->Talk(Q26232_SAY_ASK_IDENTITY);
-                    PhaseTimer = 4000;
+                        thug->AI()->Talk(Talks::Q26232AskIdentity);
+                    _phaseTimer = 4000;
                     break;
 
                 case 4:
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
-                        for (auto guid : ThugGUIDs)
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                        for (auto guid : _thugGuids)
                             if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
                                 thug->SetFacingToObject(player);
-                    PhaseTimer = 1000;
+                    _phaseTimer = 1000;
                     break;
 
                 case 5:
                     if (Creature* thug = GetThug(2))
-                        thug->AI()->Talk(Q26232_SAY_NOTICE_PLAYER);
-                    PhaseTimer = 4500;
+                        thug->AI()->Talk(Talks::Q26232NoticePlayer);
+                    _phaseTimer = 4500;
                     break;
 
                 case 6:
                     if (Creature* thug = GetThug(1))
-                        thug->AI()->Talk(Q26232_SAY_THREATEN_PLAYER);
-                    PhaseTimer = 4500;
+                        thug->AI()->Talk(Talks::Q26232ThreatenPlayer);
+                    _phaseTimer = 4500;
                     break;
 
                 case 7:
                     if (Creature* thug = GetThug(0))
-                        thug->AI()->Talk(Q26232_SAY_DIE);
-                    PhaseTimer = 2000;
+                        thug->AI()->Talk(Talks::Q26232Die);
+                    _phaseTimer = 2000;
                     break;
 
                 case 8:
-                    for (auto guid : ThugGUIDs)
+                    for (auto guid : _thugGuids)
                     {
                         if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
                         {
@@ -464,44 +446,43 @@ public:
                             thug->SetReactState(REACT_AGGRESSIVE);
                         }
                     }
-                    PhaseTimer = 1000;
+                    _phaseTimer = 1000;
                     break;
 
                 case 9:
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
-                        for (auto guid : ThugGUIDs)
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                        for (auto guid : _thugGuids)
                             if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
                                 thug->EngageWithTarget(player);
-                    EventLocked = true;
-                    PhaseTimer = 0;
+                    _eventLocked = true;
+                    _phaseTimer = 0;
                     break;
                 }
 
-                ++Phase;
+                ++_phase;
             }
             else
-                PhaseTimer -= diff;
+                _phaseTimer -= diff;
         }
+
+    private:
+        ObjectGuid _playerGuid;
+        std::array<ObjectGuid, 4> _thugGuids;
+        uint32 _phaseTimer = 0;
+        uint8  _phase = 0;
+        uint8  _deadThugs = 0;
+        bool   _eventStarted = false;
+        bool   _eventLocked = false;
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
+    /*######
+    ## npc_custom_lous_parting_thoughts_thug
+    ## ID 42387
+    ######*/
+
+    struct npc_custom_lous_parting_thoughts_thug : public ScriptedAI
     {
-        return new npc_lous_parting_thoughts_triggerAI(creature);
-    }
-};
-
-/*######
-## npc_custom_lous_parting_thoughts_thug
-######*/
-
-class npc_custom_lous_parting_thoughts_thug : public CreatureScript
-{
-public:
-    npc_custom_lous_parting_thoughts_thug() : CreatureScript("npc_custom_lous_parting_thoughts_thug") { }
-
-    struct npc_lous_parting_thoughts_thugAI : public ScriptedAI
-    {
-        npc_lous_parting_thoughts_thugAI(Creature* creature) : ScriptedAI(creature) { }
+        npc_custom_lous_parting_thoughts_thug(Creature* creature) : ScriptedAI(creature) { }
 
         void JustDied(Unit* /*killer*/) override
         {
@@ -516,12 +497,7 @@ public:
         }
 
     };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_lous_parting_thoughts_thugAI(creature);
-    }
-};
+}
 
 class npc_custom_agent_kearnen : public CreatureScript
 {
@@ -877,9 +853,9 @@ void AddSC_custom_westfall_npcs()
 
     RegisterCreatureAI(npc_custom_westfall_stew_42617);
     RegisterCreatureAI(npc_custom_westfall_guard_42407);
+    RegisterCreatureAI(npc_custom_lous_parting_thoughts_trigger);
+    RegisterCreatureAI(npc_custom_lous_parting_thoughts_thug);
 
-    new npc_custom_lous_parting_thoughts_trigger();
-    new npc_custom_lous_parting_thoughts_thug();
     new npc_custom_agent_kearnen();
     new npc_custom_elite_mercenary();
     new npc_custom_trigger_mortwake_tower();

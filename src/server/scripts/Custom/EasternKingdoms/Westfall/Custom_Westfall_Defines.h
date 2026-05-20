@@ -26,7 +26,7 @@ namespace Scripts::EasternKingdoms::Westfall
 {
     namespace Quests
     {
-
+        static constexpr uint32 LousPartingThoughts = 26232;
     }
 
     namespace Creatures
@@ -38,6 +38,9 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 WestPlainsDrifter = 42391;
         static constexpr uint32 SentinelHillGuard = 42407;
         static constexpr uint32 SmallTimeHustler = 42390;
+        static constexpr uint32 WestfallThug = 42387;
+        static constexpr uint32 LousPartingThoughtsTrigger = 42562;
+        static constexpr uint32 LousPartingThoughtsCredit = 42417;
     }
 
     namespace Spawns
@@ -58,6 +61,10 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 RottenAppleToss = 58509;
         static constexpr uint32 RottenBananaToss = 58513;
         static constexpr uint32 HoboStew = 80384;
+
+        // Invis spells
+        static constexpr uint32 DetectQuestInvis1 = 79229;
+        static constexpr uint32 DetectQuestInvis2 = 79341;
     }
 
     namespace Events
@@ -65,13 +72,38 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr int8 WestfalGuardPacifyDrifters = 1;
         static constexpr int8 WestfalGuardCrowdReaction = 2;
     }
+
+    namespace Positions
+    {
+        static constexpr Position Q26232ThugPositions[4] =
+        {
+            { -9859.36f, 1332.42f, 41.985f, 2.49f },
+            { -9862.51f, 1332.08f, 41.985f, 0.85f },
+            { -9863.49f, 1335.49f, 41.985f, 5.63f },
+            { -9860.42f, 1335.46f, 41.985f, 4.11f },
+        };
+    }
+
+    namespace Talks
+    {
+        // Quest: Lous parting thoughts
+        // Thugs
+        static constexpr int8 Q26232ThreatenPlayer = 0;
+        static constexpr int8 Q26232AskMeet = 1;
+        static constexpr int8 Q26232NoticePlayer = 2;
+        static constexpr int8 Q26232ConfirmMeet = 3;
+        static constexpr int8 Q26232Congratulate = 4;
+        static constexpr int8 Q26232AskIdentity = 5;
+        static constexpr int8 Q26232Die = 6;
+        // Trigger
+        static constexpr int8 Q26232ReturnToFurlsbrowCottage = 3;
+
+    }
 }
 
 enum Custom_Westfall_Generic_NPCs
 {
-    NPC_WESTFALL_THUG = 42387,
-    NPC_WESTFALL_Q26232_TRIGGER = 42562,
-    NPC_WESTFALL_Q26232_CREDIT = 42417,
+    
 
     NPC_WESTFALL_LIEUTENANT_HORATIO = 42308,
 
@@ -84,7 +116,7 @@ enum Custom_Westfall_Generic_NPCs
 
 enum Custom_Westfall_Quests
 {
-    QUEST_LOUS_PARTING_THOUGHTS = 26232,
+    
     QUEST_THE_DEFIAS_BROTHERHOOD_FINAL = 166,
     QUEST_FEEDING_THE_HUNGRY = 26271,
     QUEST_SECRETS_OF_THE_TOWER = 26290,
@@ -92,9 +124,8 @@ enum Custom_Westfall_Quests
 
 enum Custom_Westfall_Spells
 {
-    SPELL_WESTFALL_DETECT_QUEST_INVIS_1 = 79229,
-    SPELL_WESTFALL_DETECT_QUEST_INVIS_2 = 79341,
-    SPELL_WESTFALL_FULL_BELLY = 79451,
+    
+    
     SPELL_WESTFALL_POTION_SHROUDING = 79528,
     SPELL_WESTFALL_KILL_SHOT = 79526,
     SPELL_WESTFALL_TELEPORT_VISUAL = 64446,
@@ -106,26 +137,11 @@ enum Custom_Westfall_Events
     EVENT_KEARNEN_KILL_SHOT = 1,
 };
 
-static Position const Q26232ThugPositions[4] =
-{
-    { -9859.36f, 1332.42f, 41.985f, 2.49f },
-    { -9862.51f, 1332.08f, 41.985f, 0.85f },
-    { -9863.49f, 1335.49f, 41.985f, 5.63f },
-    { -9860.42f, 1335.46f, 41.985f, 4.11f },
-};
+
 
 constexpr int SAY_FURLBROW_RETURN = 42446;
 
-enum Custom_Westfall_Q26232_TALK
-{
-    Q26232_SAY_THREATEN_PLAYER = 0,
-    Q26232_SAY_ASK_MEET = 1,
-    Q26232_SAY_NOTICE_PLAYER = 2,
-    Q26232_SAY_CONFIRM_MEET = 3,
-    Q26232_SAY_CONGRATULATE = 4,
-    Q26232_SAY_ASK_IDENTITY = 5,
-    Q26232_SAY_DIE = 6,  
-};
+
 
 enum Custom_Westfall_Q26290_TALK
 {
