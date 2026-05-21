@@ -12,7 +12,9 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 ('29679', '0', '0', '0', '29678', '29680', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'quest_29679_a_new_friend'), -- Quest: 29679 A new friend
 ('29680', '0', '0', '0', '29679', '29769', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ''); -- Quest: 29680 The Source of Our Livelihood
 
--- temp fix until quest accept works from auto completed quests and new offered quests
+
+UPDATE `quest_template` SET Flags = Flags | 0x00080000  WHERE ID = 29679; -- add auto accept flag
+
 DELETE FROM `creature_queststarter` WHERE `quest` IN (29679, 29680);
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
 ('54975', '29679', '0'),
