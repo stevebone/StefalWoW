@@ -291,12 +291,12 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `G
 (16, 5498, 10, 1, 25, 1, 1, 'Small Lustrous Pearl'),
 
 -- Recipes
-(17, 24101, 3, 1, 25, 1, 1, 'Book of Ferocious Bite V'),
+(17, 24101, 0.1, 1, 25, 1, 1, 'Book of Ferocious Bite V'),
 (17, 728, 0.276684, 1, 25, 1, 1, 'Recipe: Westfall Stew'),
 (17, 2698, 0.336531, 1, 25, 1, 1, 'Recipe: Cooked Crab Claw'),
 (17, 3609, 0.108115, 1, 25, 1, 1, 'Plans: Copper Chain Vest'),
 (17, 6271, 0.132892, 1, 25, 1, 1, 'Pattern: Red Linen Vest'),
-(17, 24102, 15, 1, 25, 1, 1, 'Manual of Eviscerate IX'),
+(17, 24102, 0.1, 1, 25, 1, 1, 'Manual of Eviscerate IX'),
 (17, 6716, 0.5, 1, 25, 1, 1, 'Schematic: EZ-Thro Dynamite'),
 (17, 3394, 0.114735, 1, 25, 1, 1, 'Recipe: Potion of Curing'),
 (17, 3612, 0.131126, 1, 25, 1, 1, 'Plans: Green Iron Gauntlets'),

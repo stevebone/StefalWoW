@@ -494,355 +494,435 @@ namespace Scripts::EasternKingdoms::Westfall
         }
 
     };
-}
 
-class npc_custom_agent_kearnen : public CreatureScript
-{
-public:
-    npc_custom_agent_kearnen() : CreatureScript("npc_custom_agent_kearnen") { }
+    /*######
+    ## npc_custom_salma_saldean_235
+    ## ID 235
+    ######*/
 
-    struct npc_agent_kearnenAI : public ScriptedAI
+    struct npc_custom_salma_saldean_235 : public ScriptedAI
     {
-        npc_agent_kearnenAI(Creature* creature) : ScriptedAI(creature) { }
+        npc_custom_salma_saldean_235(Creature* creature) : ScriptedAI(creature) { }
 
-        EventMap events;
-        ObjectGuid PlayerGUID;
-        std::queue<ObjectGuid> PendingTargets;
-
-        void Reset() override
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/)
         {
-            events.Reset();
-            PlayerGUID.Clear();
+            if (quest->GetQuestId() == Quests::NewWestfallStew)
+            {
+                // We remove the flag for the duration of the event
+                // To avoid multiple triggers
+                me->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER); 
+                Talk(0, player);
+                me->SetWalk(true);
 
-            std::queue<ObjectGuid> empty;
-            std::swap(PendingTargets, empty);
+                me->m_Events.AddEventAtOffset([this]()
+                    {
+                        if (me && me->IsAlive())
+                            me->GetMotionMaster()->MovePoint(1, Positions::SalmaSaldeanStew);
+                    }, std::chrono::seconds(2));
+
+                if (Creature* orphan = player->FindNearestCreature(Creatures::WestfallOrphan, 10.f))
+                {
+                    me->m_Events.AddEventAtOffset([orphan, player]()
+                        {
+                            if (orphan && orphan->IsAlive())
+                                orphan->AI()->Talk(0, player);
+                        }, std::chrono::seconds(15));
+
+                    me->m_Events.AddEventAtOffset([orphan, player]()
+                        {
+                            if (orphan && orphan->IsAlive())
+                                orphan->AI()->Talk(1, player);
+                        }, std::chrono::seconds(20));
+                }
+            }
         }
 
-        void Assist(Player* player, Creature* target)
+        void MovementInform(uint32 type, uint32 pointId) override
         {
-            if (!player || !target)
+            if (type != POINT_MOTION_TYPE)
                 return;
 
-            PlayerGUID = player->GetGUID();
-            PendingTargets.push(target->GetGUID());
-            events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            events.Update(diff);
-
-            while (uint32 eventId = events.ExecuteEvent())
+            if (pointId == 1)
             {
-                switch (eventId)
-                {
-                case EVENT_KEARNEN_KILL_SHOT:
-                {
-                    if (PendingTargets.empty())
-                        break;
+                me->HandleEmoteCommand(EMOTE_ONESHOT_USE_STANDING);
 
-                    ObjectGuid TargetGUID = PendingTargets.front();
-                    PendingTargets.pop();
-
-                    Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
-                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-
-                    if (target && target->IsAlive() && player)
+                me->m_Events.AddEventAtOffset([this]()
                     {
-                        me->SetFacingToObject(target);
-                        me->CastSpell(target, SPELL_WESTFALL_KILL_SHOT, true);
-                        Talk(0, player);
-                    }
+                        if (me && me->IsAlive())
+                        {
+                            me->SetOrientation(2.4434f);
+                            Talk(1);
 
-                    // If more targets remain, schedule again
-                    if (!PendingTargets.empty())
-                        events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+                            std::list<Creature*> orphans;
+                            GetCreatureListWithEntryInGrid(orphans, me, Creatures::WestfallOrphan, 20.f);
 
-                    break;
-                }
-                }
+                            for (Creature* orphan : orphans)
+                            {
+                                if (orphan && orphan->IsAlive())
+                                {
+                                    orphan->GetMotionMaster()->MovePoint(1, me->GetRandomNearPosition(2.5f));
+                                    orphan->DespawnOrUnsummon(15s, 1s);
+                                }
+
+                            }
+
+                            me->DespawnOrUnsummon(15s, 1s);
+                        }
+                    }, std::chrono::seconds(5));
+
             }
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
+    class npc_custom_agent_kearnen : public CreatureScript
     {
-        return new npc_agent_kearnenAI(creature);
-    }
-};
+    public:
+        npc_custom_agent_kearnen() : CreatureScript("npc_custom_agent_kearnen") { }
 
-class npc_custom_elite_mercenary : public CreatureScript
-{
-public:
-    npc_custom_elite_mercenary() : CreatureScript("npc_custom_elite_mercenary") { }
-
-    struct npc_elite_mercenaryAI : public ScriptedAI
-    {
-        npc_elite_mercenaryAI(Creature* creature) : ScriptedAI(creature) { }
-
-        bool AssistTriggered = false;
-
-        void Reset() override
+        struct npc_agent_kearnenAI : public ScriptedAI
         {
-            AssistTriggered = false;
-        }
+            npc_agent_kearnenAI(Creature* creature) : ScriptedAI(creature) { }
 
-        void JustEngagedWith(Unit* who) override
+            EventMap events;
+            ObjectGuid PlayerGUID;
+            std::queue<ObjectGuid> PendingTargets;
+
+            void Reset() override
+            {
+                events.Reset();
+                PlayerGUID.Clear();
+
+                std::queue<ObjectGuid> empty;
+                std::swap(PendingTargets, empty);
+            }
+
+            void Assist(Player* player, Creature* target)
+            {
+                if (!player || !target)
+                    return;
+
+                PlayerGUID = player->GetGUID();
+                PendingTargets.push(target->GetGUID());
+                events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+            }
+
+            void UpdateAI(uint32 diff) override
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EVENT_KEARNEN_KILL_SHOT:
+                    {
+                        if (PendingTargets.empty())
+                            break;
+
+                        ObjectGuid TargetGUID = PendingTargets.front();
+                        PendingTargets.pop();
+
+                        Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
+                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+
+                        if (target && target->IsAlive() && player)
+                        {
+                            me->SetFacingToObject(target);
+                            me->CastSpell(target, SPELL_WESTFALL_KILL_SHOT, true);
+                            Talk(0, player);
+                        }
+
+                        // If more targets remain, schedule again
+                        if (!PendingTargets.empty())
+                            events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+
+                        break;
+                    }
+                    }
+                }
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
         {
-            if (!who)
-                return;
-
-            Player* player = who->ToPlayer();
-            if (!player)
-                return;
-
-            if (AssistTriggered)
-                return;
-
-            if (player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) != QUEST_STATUS_INCOMPLETE)
-                return;
-
-            Creature* agent = me->FindNearestCreature(NPC_WESTFALL_KEARNEN, 150.0f, true);
-            if (!agent)
-                return;
-
-            if (auto* ai = CAST_AI(npc_custom_agent_kearnen::npc_agent_kearnenAI, agent->AI()))
-                ai->Assist(player, me);
-
-            AssistTriggered = true;
+            return new npc_agent_kearnenAI(creature);
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
+    class npc_custom_elite_mercenary : public CreatureScript
     {
-        return new npc_elite_mercenaryAI(creature);
-    }
-};
+    public:
+        npc_custom_elite_mercenary() : CreatureScript("npc_custom_elite_mercenary") { }
 
-
-class npc_custom_trigger_mortwake_tower : public CreatureScript
-{
-public:
-    npc_custom_trigger_mortwake_tower() : CreatureScript("npc_custom_trigger_mortwake_tower") {}
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_custom_trigger_mortwake_towerAI(creature);
-    }
-
-    struct npc_custom_trigger_mortwake_towerAI : public ScriptedAI
-    {
-        npc_custom_trigger_mortwake_towerAI(Creature* creature) : ScriptedAI(creature) {}
-
-        uint8 Phase = 0;
-        uint32 SummonTimer = 0;
-        ObjectGuid PlayerGUID;
-        ObjectGuid OafGUID;
-        ObjectGuid Helix3GUID;
-        ObjectGuid Shadowy3GUID;
-
-        bool bSumm = false;
-        bool bSumm1 = false;
-        bool bSumm2 = false;
-        bool bExit = false;
-        bool EventTriggered = false;   // prevents retriggering
-        bool EventRunning = false;     // allows UpdateAI to run the sequence
-
-        void Reset() override
+        struct npc_elite_mercenaryAI : public ScriptedAI
         {
-            Phase = 0;
-            SummonTimer = 2000;
-            bSumm = false;
-            bSumm1 = false;
-            bSumm2 = false;
-            bExit = false;
+            npc_elite_mercenaryAI(Creature* creature) : ScriptedAI(creature) { }
 
-            EventTriggered = false;   // prevents retriggering
-            EventRunning = false;     // allows UpdateAI to run the sequence
+            bool AssistTriggered = false;
+
+            void Reset() override
+            {
+                AssistTriggered = false;
+            }
+
+            void JustEngagedWith(Unit* who) override
+            {
+                if (!who)
+                    return;
+
+                Player* player = who->ToPlayer();
+                if (!player)
+                    return;
+
+                if (AssistTriggered)
+                    return;
+
+                if (player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) != QUEST_STATUS_INCOMPLETE)
+                    return;
+
+                Creature* agent = me->FindNearestCreature(NPC_WESTFALL_KEARNEN, 150.0f, true);
+                if (!agent)
+                    return;
+
+                if (auto* ai = CAST_AI(npc_custom_agent_kearnen::npc_agent_kearnenAI, agent->AI()))
+                    ai->Assist(player, me);
+
+                AssistTriggered = true;
+            }
+        };
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_elite_mercenaryAI(creature);
+        }
+    };
+
+    class npc_custom_trigger_mortwake_tower : public CreatureScript
+    {
+    public:
+        npc_custom_trigger_mortwake_tower() : CreatureScript("npc_custom_trigger_mortwake_tower") {}
+
+        CreatureAI* GetAI(Creature* creature) const override
+        {
+            return new npc_custom_trigger_mortwake_towerAI(creature);
         }
 
-        void StartEvent()
+        struct npc_custom_trigger_mortwake_towerAI : public ScriptedAI
         {
-            if (!bSumm)
+            npc_custom_trigger_mortwake_towerAI(Creature* creature) : ScriptedAI(creature) {}
+
+            uint8 Phase = 0;
+            uint32 SummonTimer = 0;
+            ObjectGuid PlayerGUID;
+            ObjectGuid OafGUID;
+            ObjectGuid Helix3GUID;
+            ObjectGuid Shadowy3GUID;
+
+            bool bSumm = false;
+            bool bSumm1 = false;
+            bool bSumm2 = false;
+            bool bExit = false;
+            bool EventTriggered = false;   // prevents retriggering
+            bool EventRunning = false;     // allows UpdateAI to run the sequence
+
+            void Reset() override
             {
-                if (!bSumm1)
+                Phase = 0;
+                SummonTimer = 2000;
+                bSumm = false;
+                bSumm1 = false;
+                bSumm2 = false;
+                bExit = false;
+
+                EventTriggered = false;   // prevents retriggering
+                EventRunning = false;     // allows UpdateAI to run the sequence
+            }
+
+            void StartEvent()
+            {
+                if (!bSumm)
                 {
-                    if (Creature* Shadowy3 = me->SummonCreature(NPC_WESTFALL_SHADOWY_FIGURE, -11138.659f, 545.20f, 70.30f, 0.19f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                    if (!bSumm1)
                     {
-                        Shadowy3GUID = Shadowy3->GetGUID();
-                        Shadowy3->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-                        Shadowy3->SetWalk(true);
-                        Shadowy3->GetMotionMaster()->MovePoint(0, -11131.710f, 546.810f, 70.380f);
-                        bSumm1 = true;
+                        if (Creature* Shadowy3 = me->SummonCreature(NPC_WESTFALL_SHADOWY_FIGURE, -11138.659f, 545.20f, 70.30f, 0.19f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                        {
+                            Shadowy3GUID = Shadowy3->GetGUID();
+                            Shadowy3->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                            Shadowy3->SetWalk(true);
+                            Shadowy3->GetMotionMaster()->MovePoint(0, -11131.710f, 546.810f, 70.380f);
+                            bSumm1 = true;
+                        }
+                    }
+
+                    if (!bSumm2)
+                    {
+                        if (Creature* oafVehicle = me->SummonCreature(NPC_WESTFALL_OAF_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                        {
+                            OafGUID = oafVehicle->GetGUID();
+                            oafVehicle->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+
+                            if (Creature* helix = me->SummonCreature(NPC_WESTFALL_HELIX_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                            {
+                                Helix3GUID = helix->GetGUID();
+                                helix->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+
+                                // Attach Helix to the Oaf
+                                helix->EnterVehicle(oafVehicle, 0);
+
+                                bSumm2 = true;
+                            }
+                        }
+                    }
+
+                    if (bSumm1 && bSumm2)
+                    {
+                        bSumm = true;
+                        SummonTimer = 2000;
                     }
                 }
+            }
 
-                if (!bSumm2)
+            void UpdateAI(uint32 diff) override
+            {
+                // 1. Detect player (only if event not triggered yet)
+                if (!EventTriggered)
                 {
-                    if (Creature* oafVehicle = me->SummonCreature(NPC_WESTFALL_OAF_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                    if (Player* player = me->SelectNearestPlayer(30.0f))
                     {
-                        OafGUID = oafVehicle->GetGUID();
-                        oafVehicle->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-
-                        if (Creature* helix = me->SummonCreature(NPC_WESTFALL_HELIX_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                        if (player->HasAura(SPELL_WESTFALL_POTION_SHROUDING) &&
+                            player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) == QUEST_STATUS_INCOMPLETE &&
+                            fabs(player->GetPositionZ() - me->GetPositionZ()) < 2.0f &&
+                            player->IsWithinDistInMap(me, 20.0f))
                         {
-                            Helix3GUID = helix->GetGUID();
-                            helix->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-
-                            // Attach Helix to the Oaf
-                            helix->EnterVehicle(oafVehicle, 0);
-
-                            bSumm2 = true;
+                            PlayerGUID = player->GetGUID();
+                            StartEvent();
+                            EventTriggered = true;
+                            EventRunning = true;
                         }
                     }
                 }
 
-                if (bSumm1 && bSumm2)
+                if (EventRunning)
                 {
-                    bSumm = true;
-                    SummonTimer = 2000;
-                }
-            }
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            // 1. Detect player (only if event not triggered yet)
-            if (!EventTriggered)
-            {
-                if (Player* player = me->SelectNearestPlayer(30.0f))
-                {
-                    if (player->HasAura(SPELL_WESTFALL_POTION_SHROUDING) &&
-                        player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) == QUEST_STATUS_INCOMPLETE &&
-                        fabs(player->GetPositionZ() - me->GetPositionZ()) < 2.0f &&
-                        player->IsWithinDistInMap(me, 20.0f))
+                    if (SummonTimer < diff)
                     {
-                        PlayerGUID = player->GetGUID();
-                        StartEvent();
-                        EventTriggered = true;
-                        EventRunning = true;
-                    }
-                }
-            }
+                        if (bSumm)
+                        {
+                            if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
+                                if (Creature* oaf = ObjectAccessor::GetCreature(*me, OafGUID))
+                                    if (Creature* Shadowy3 = ObjectAccessor::GetCreature(*me, Shadowy3GUID))
+                                    {
+                                        Creature* Helix = ObjectAccessor::GetCreature(*me, Helix3GUID);
+                                        if (!Helix)
+                                            return;
 
-            if (EventRunning)
-            {
-                if (SummonTimer < diff)
-                {
-                    if (bSumm)
-                    {
-                        if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
-                            if (Creature* oaf = ObjectAccessor::GetCreature(*me, OafGUID))
-                                if (Creature* Shadowy3 = ObjectAccessor::GetCreature(*me, Shadowy3GUID))
-                                {
-                                    Creature* Helix = ObjectAccessor::GetCreature(*me, Helix3GUID);
-                                    if (!Helix)
-                                        return;
-
-                                    switch (Phase)
-                                    {
-                                    case 0:
-                                    {
-                                        oaf->SetInFront(me);
-                                        SummonTimer = 1000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 1:
-                                    {
-                                        Helix->AI()->Talk(Q26232_SAY_HELIX_0);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 2:
-                                    {
-                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_0);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 3:
-                                    {
-                                        Helix->AI()->Talk(Q26232_SAY_HELIX_1);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 4:
-                                    {
-                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_1);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 5:
-                                    {
-                                        Helix->AI()->Talk(Q26232_SAY_HELIX_2);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 6:
-                                    {
-                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_2);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 7:
-                                    {
-                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_3);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 8:
-                                    {
-                                        Helix->AI()->Talk(Q26232_SAY_HELIX_3);
-                                        SummonTimer = 6000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 9:
-                                    {
-                                        Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_4);
-                                        SummonTimer = 2000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 10:
-                                    {
-                                        player->CastSpell(player, SPELL_WESTFALL_Q26290_CREDIT, true);
-                                        SummonTimer = 1000;
-                                        Phase++;
-                                        break;
-                                    }
-                                    case 11:
-                                    {
-                                        if (!bExit)
+                                        switch (Phase)
                                         {
-                                            Shadowy3->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
-                                            Shadowy3->DespawnOrUnsummon(1s);
-                                            oaf->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
-                                            Helix->DespawnOrUnsummon(1s);
-                                            oaf->DespawnOrUnsummon(1s);
-                                            bExit = true;
-                                            Reset();
+                                        case 0:
+                                        {
+                                            oaf->SetInFront(me);
+                                            SummonTimer = 1000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 1:
+                                        {
+                                            Helix->AI()->Talk(Q26232_SAY_HELIX_0);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 2:
+                                        {
+                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_0);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 3:
+                                        {
+                                            Helix->AI()->Talk(Q26232_SAY_HELIX_1);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 4:
+                                        {
+                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_1);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 5:
+                                        {
+                                            Helix->AI()->Talk(Q26232_SAY_HELIX_2);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 6:
+                                        {
+                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_2);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 7:
+                                        {
+                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_3);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 8:
+                                        {
+                                            Helix->AI()->Talk(Q26232_SAY_HELIX_3);
+                                            SummonTimer = 6000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 9:
+                                        {
+                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_4);
+                                            SummonTimer = 2000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 10:
+                                        {
+                                            player->CastSpell(player, SPELL_WESTFALL_Q26290_CREDIT, true);
+                                            SummonTimer = 1000;
+                                            Phase++;
+                                            break;
+                                        }
+                                        case 11:
+                                        {
+                                            if (!bExit)
+                                            {
+                                                Shadowy3->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
+                                                Shadowy3->DespawnOrUnsummon(1s);
+                                                oaf->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
+                                                Helix->DespawnOrUnsummon(1s);
+                                                oaf->DespawnOrUnsummon(1s);
+                                                bExit = true;
+                                                Reset();
+                                            }
+                                        }
+                                        break;
+                                        default:
+                                            break;
                                         }
                                     }
-                                    break;
-                                    default:
-                                        break;
-                                    }
-                                }
+                        }
                     }
+                    else SummonTimer -= diff;
                 }
-                else SummonTimer -= diff;
             }
-        }
+        };
     };
-};
+}
+
+
 
 void AddSC_custom_westfall_npcs()
 {
@@ -852,6 +932,7 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_westfall_guard_42407);
     RegisterCreatureAI(npc_custom_lous_parting_thoughts_trigger);
     RegisterCreatureAI(npc_custom_lous_parting_thoughts_thug);
+    RegisterCreatureAI(npc_custom_salma_saldean_235);
 
     new npc_custom_agent_kearnen();
     new npc_custom_elite_mercenary();

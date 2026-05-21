@@ -28,6 +28,7 @@ namespace Scripts::EasternKingdoms::Westfall
     {
         static constexpr uint32 LivinTheLife = 26228;
         static constexpr uint32 LousPartingThoughts = 26232;
+        static constexpr uint32 NewWestfallStew = 26241;
     }
 
     namespace Creatures
@@ -44,6 +45,8 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 LousPartingThoughtsCredit = 42417;
         static constexpr uint32 StormwindInvestigator = 42559;
         static constexpr uint32 LtHorationLaine = 42558;
+        static constexpr uint32 SalmaSaldean = 235;
+        static constexpr uint32 WestfallOrphan = 42385;
     }
 
     namespace Spawns
@@ -87,6 +90,8 @@ namespace Scripts::EasternKingdoms::Westfall
             { -9863.49f, 1335.49f, 41.985f, 5.63f },
             { -9860.42f, 1335.46f, 41.985f, 4.11f },
         };
+
+        static constexpr Position SalmaSaldeanStew = { -10106.9238f, 1038.5223f, 37.947f, 5.64f };
     }
 
     namespace Talks

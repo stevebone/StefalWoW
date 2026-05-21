@@ -67,6 +67,9 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_thug' WHERE (`entry` = '42387');
 DELETE FROM `creature` WHERE `ID` = 42387; -- thugs are spawned by script now
 
+-- Script for Salma's Westfall Stew
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_salma_saldean_235' WHERE `entry` = 235;
+
 -- Fixes and Scripts for Secrets of the tower 
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_agent_kearnen' WHERE `entry` = 7024;
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_elite_mercenary' WHERE `entry` = 42656;

@@ -668,9 +668,13 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 (900000, 0, 9, 'Someday, Westfall will rise again. Mark my words.', 12, 0, 100, 0, 0, 0, 0, 0, 0, 'Farmer ambient');
 
 -- creature texts for the thugs in quest 26232
-DELETE FROM `creature_text` WHERE `CreatureID` IN (42387,42562,42559,42558);
+DELETE FROM `creature_text` WHERE `CreatureID` IN (42387,42562,42559,42558,235,42385);
 DELETE FROM `creature_text` WHERE CreatureID IN (42384) AND `GroupID` IN (13);
 INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
+(42385, 0, 0, 'I''m so happy. Thank you, mama and thank you, $n.', 12, 7, 100, 1, 0, 0, 0, 42470, 0, 'Orphan - Westfall Stew Quest'),
+(42385, 1, 0, 'YAY FOR $n!', 12, 7, 100, 1, 0, 0, 0, 42472, 0, 'Orphan - Westfall Stew Quest'),
+(235, 0, 0, 'Thank you, $n. Your kindness will not be forgotten.', 12, 7, 100, 2, 0, 0, 0, 42468, 0, 'Salma Saldean - Westfall Stew Quest'),
+(235, 1, 0, 'Dinner''s ready! Come and get it!', 14, 7, 100, 22, 0, 0, 0, 42469, 0, 'Salma Saldean - Westfall Stew Quest'),
 (42558, 0, 0, 'Doesn''t look good, rookie.', 12, 7, 100, 1, 0, 0, 0, 42447, 0, 'Horation Laine - Lous murder'),
 (42558, 1, 0, 'This was an execution. Whoever did this was sending a message...', 12, 7, 100, 0, 0, 0, 0, 42449, 0, 'Horation Laine - Lous murder'),
 (42558, 2, 0, 'A message for anyone that would dare snitch on these criminals.', 12, 7, 100, 0, 0, 0, 0, 42450, 0, 'Horation Laine - Lous murder'),
@@ -689,7 +693,7 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 ('42387', '0', '0', 'Only one thing to do with a lousy, good-for-nothin eavesdropper.', '12', '7', '100', '6', '0', '0', '0', '0', '0', 'Вор');
 
 -- Creature text for Small time hustler
-DELETE FROM `creature_text` WHERE CreatureID IN (42390) AND `GroupID` IN (); -- Helix / Shadowy figure
+DELETE FROM `creature_text` WHERE CreatureID IN (42390) AND `GroupID` IN (0,1,2,3);
 INSERT INTO creature_text
 (CreatureID, groupid, id, text, type, language, probability, emote, duration, sound, BroadcastTextId, comment)
 VALUES
