@@ -531,7 +531,10 @@ namespace Scripts::EasternKingdoms::Westfall
                     me->m_Events.AddEventAtOffset([orphan, player]()
                         {
                             if (orphan && orphan->IsAlive())
+                            {
                                 orphan->AI()->Talk(1, player);
+                                orphan->AI()->Talk(2);
+                            }
                         }, std::chrono::seconds(20));
                 }
             }

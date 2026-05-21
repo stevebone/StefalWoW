@@ -673,6 +673,7 @@ DELETE FROM `creature_text` WHERE CreatureID IN (42384) AND `GroupID` IN (13);
 INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
 (42385, 0, 0, 'I''m so happy. Thank you, mama and thank you, $n.', 12, 7, 100, 1, 0, 0, 0, 42470, 0, 'Orphan - Westfall Stew Quest'),
 (42385, 1, 0, 'YAY FOR $n!', 12, 7, 100, 1, 0, 0, 0, 42472, 0, 'Orphan - Westfall Stew Quest'),
+(42385, 2, 0, '%s cries.', 16, 7, 100, 18, 0, 0, 0, 42473, 0, 'Orphan - Westfall Stew Quest'),
 (235, 0, 0, 'Thank you, $n. Your kindness will not be forgotten.', 12, 7, 100, 2, 0, 0, 0, 42468, 0, 'Salma Saldean - Westfall Stew Quest'),
 (235, 1, 0, 'Dinner''s ready! Come and get it!', 14, 7, 100, 22, 0, 0, 0, 42469, 0, 'Salma Saldean - Westfall Stew Quest'),
 (42558, 0, 0, 'Doesn''t look good, rookie.', 12, 7, 100, 1, 0, 0, 0, 42447, 0, 'Horation Laine - Lous murder'),
