@@ -27,77 +27,83 @@
 #include "Followship_bots_mail_handler.h"
 #include "Custom_Westfall_Defines.h"
 
-class player_westfall_q26232_handler : public PlayerScript
+namespace Scripts::EasternKingdoms::Westfall
 {
-public:
-    player_westfall_q26232_handler() : PlayerScript("player_westfall_q26232_handler") { }
 
-    void OnQuestStatusChange(Player* player, uint32 questId) override
+    class player_westfall_q26232_handler : public PlayerScript
     {
-        if (questId != QUEST_LOUS_PARTING_THOUGHTS)
-            return;
+    public:
+        player_westfall_q26232_handler() : PlayerScript("player_westfall_q26232_handler") { }
 
-        if (player->IsActiveQuest(QUEST_LOUS_PARTING_THOUGHTS) && player->HasAura(SPELL_WESTFALL_DETECT_QUEST_INVIS_1))
-            return;
-
-        if (player->GetQuestStatus(QUEST_LOUS_PARTING_THOUGHTS) == QUEST_STATUS_REWARDED)
-            return;
-
-        // Quest accepted or incomplete ? ensure phase 1 aura
-        if (player->GetQuestStatus(QUEST_LOUS_PARTING_THOUGHTS) != QUEST_STATUS_COMPLETE)
+        void OnQuestStatusChange(Player* player, uint32 questId) override
         {
-            if (!player->HasAura(SPELL_WESTFALL_DETECT_QUEST_INVIS_1))
-                player->AddAura(SPELL_WESTFALL_DETECT_QUEST_INVIS_1, player);
+            if (questId != Quests::LousPartingThoughts)
+                return;
 
-            if (player->HasAura(SPELL_WESTFALL_DETECT_QUEST_INVIS_2))
-                player->RemoveAura(SPELL_WESTFALL_DETECT_QUEST_INVIS_2);
+            if (player->IsActiveQuest(Quests::LousPartingThoughts) && player->HasAura(Spells::DetectQuestInvis1))
+                return;
 
-            return;
+            if (player->GetQuestStatus(Quests::LousPartingThoughts) == QUEST_STATUS_REWARDED)
+                return;
+
+            // Quest accepted or incomplete ? ensure phase 1 aura
+            if (player->GetQuestStatus(Quests::LousPartingThoughts) != QUEST_STATUS_COMPLETE)
+            {
+                if (!player->HasAura(Spells::DetectQuestInvis1))
+                    player->AddAura(Spells::DetectQuestInvis1, player);
+
+                if (player->HasAura(Spells::DetectQuestInvis2))
+                    player->RemoveAura(Spells::DetectQuestInvis2);
+
+                return;
+            }
         }
-    }
-};
+    };
 
-class player_westfall_defias_brotherhood_mailer : public PlayerScript
-{
-public:
-    player_westfall_defias_brotherhood_mailer() : PlayerScript("player_westfall_defias_brotherhood_mailer") { }
-
-    void OnQuestStatusChange(Player* player, uint32 questId) override
+    class player_westfall_defias_brotherhood_mailer : public PlayerScript
     {
-        if (!player)
-            return;
+    public:
+        player_westfall_defias_brotherhood_mailer() : PlayerScript("player_westfall_defias_brotherhood_mailer") { }
 
-        if (questId != QUEST_THE_DEFIAS_BROTHERHOOD_FINAL)
-            return;
+        void OnQuestStatusChange(Player* player, uint32 questId) override
+        {
+            if (!player)
+                return;
 
-        // Only trigger when the quest is actually rewarded
-        if (player->GetQuestStatus(QUEST_THE_DEFIAS_BROTHERHOOD_FINAL) != QUEST_STATUS_REWARDED)
-            return;
+            if (questId != QUEST_THE_DEFIAS_BROTHERHOOD_FINAL)
+                return;
 
-        SendWestfallMurderMail(player);
-    }
+            // Only trigger when the quest is actually rewarded
+            if (player->GetQuestStatus(QUEST_THE_DEFIAS_BROTHERHOOD_FINAL) != QUEST_STATUS_REWARDED)
+                return;
 
-    void SendWestfallMurderMail(Player* player)
-    {
-        uint32 senderEntry = NPC_WESTFALL_LIEUTENANT_HORATIO; // define in your header
+            SendWestfallMurderMail(player);
+        }
 
-        std::string subject = "Urgent Request For Questioning!";
-        std::string text =
-            "Citizen,\n\n"
-            "This is Lieutenant Horatio Laine of the Westfall Brigade. "
-            "Your previous dealings with the Furlbrows have come to our attention.\n\n"
-            "A serious incident has occurred at their farm, and your presence is required "
-            "for questioning. Report to the crime scene immediately.\n\n"
-            "Do not delay.\n"
-            "- Lt. Horatio Laine";
+        void SendWestfallMurderMail(Player* player)
+        {
+            uint32 senderEntry = NPC_WESTFALL_LIEUTENANT_HORATIO; // define in your header
 
-        // No items needed, so pass empty vector
-        FSBMail::SendMail(senderEntry, player, subject, text, {});
-    }
-};
+            std::string subject = "Urgent Request For Questioning!";
+            std::string text =
+                "Citizen,\n\n"
+                "This is Lieutenant Horatio Laine of the Westfall Brigade. "
+                "Your previous dealings with the Furlbrows have come to our attention.\n\n"
+                "A serious incident has occurred at their farm, and your presence is required "
+                "for questioning. Report to the crime scene immediately.\n\n"
+                "Do not delay.\n"
+                "- Lt. Horatio Laine";
+
+            // No items needed, so pass empty vector
+            FSBMail::SendMail(senderEntry, player, subject, text, {});
+        }
+    };
+}
 
 void AddSC_custom_westfall_player()
 {
+    using namespace Scripts::EasternKingdoms::Westfall;
+
     new player_westfall_q26232_handler();
     new player_westfall_defias_brotherhood_mailer();
 }

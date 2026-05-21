@@ -668,15 +668,41 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 (900000, 0, 9, 'Someday, Westfall will rise again. Mark my words.', 12, 0, 100, 0, 0, 0, 0, 0, 0, 'Farmer ambient');
 
 -- creature texts for the thugs in quest 26232
-DELETE FROM `creature_text` WHERE `CreatureID` IN (42387);
+DELETE FROM `creature_text` WHERE `CreatureID` IN (42387,42562,42559,42558);
+DELETE FROM `creature_text` WHERE CreatureID IN (42384) AND `GroupID` IN (13);
 INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
-('42387', '1', '0', 'Did you... Did you meet her?', '12', '0', '100', '6', '0', '0', '0', '42439', '0', 'Вор'),
+(42558, 0, 0, 'Doesn''t look good, rookie.', 12, 7, 100, 1, 0, 0, 0, 42447, 0, 'Horation Laine - Lous murder'),
+(42558, 1, 0, 'This was an execution. Whoever did this was sending a message...', 12, 7, 100, 0, 0, 0, 0, 42449, 0, 'Horation Laine - Lous murder'),
+(42558, 2, 0, 'A message for anyone that would dare snitch on these criminals.', 12, 7, 100, 0, 0, 0, 0, 42450, 0, 'Horation Laine - Lous murder'),
+(42558, 3, 0, 'It would appear that poor Lou really put his foot...', 12, 7, 100, 0, 0, 0, 0, 42451, 0, 'Horation Laine - Lous murder'),
+(42558, 4, 0, 'In his mouth.', 12, 7, 100, 0, 0, 0, 0, 42452, 0, 'Horation Laine - Lous murder'),
+(42384, 13, 0, 'I... I didn''t see nothin''! He... he died of natural causes.', 12, 7, 100, 0, 0, 0, 0, 42457, 0, 'Homeless Stormwind Citizen to Stormwind Investigator'),
+(42559, 0, 0, 'You were standing right here! What the hell did you see? Speak up!', 12, 7, 100, 0, 0, 0, 0, 42456, 0, 'Stormwind Investigator - Lous death scene'),
+(42559, 1, 0, 'Natural causes? Two bullets in the chest and his shoes are on his head. What kind of natural death would that be?', 12, 7, 100, 0, 0, 0, 0, 42458, 0, 'Stormwind Investigator - Lous death scene'),
+(42562, 3, 0, 'Hurry back to the Furlbrow''s Cottage!', 41, 0, 100, 0, 0, 0, 0, 42446, 0, 'Lou''s Parting Thoughts Trigger to Player'),
+('42387', '1', '0', 'Did you... Did you meet her?', '12', '7', '100', '6', '0', '0', '0', '42439', '0', 'Вор'),
 ('42387', '2', '0', 'Whoa, what do we have here? Looks like we have ourselves an eavesdropper, boys.', '12', '0', '100', '5', '0', '0', '0', '42443', '0', 'Вор'),
-('42387', '3', '0', 'Yep. She\'s for real.', '12', '0', '100', '396', '0', '0', '0', '42440', '0', 'Вор'),
+('42387', '3', '0', 'Yep. She\'s for real.', '12', '7', '100', '396', '0', '0', '0', '42440', '0', 'Вор'),
 ('42387', '4', '0', 'She wanted for me to tell you lugs that she appreciates the job thet we did for her on the Furlbrows. Gave me a pile o\' gold to split with you all.', '12', '0', '100', '396', '0', '0', '0', '42441', '0', 'Вор'),
-('42387', '5', '0', 'See her face? Is it really...', '12', '0', '100', '6', '0', '0', '0', '42442', '0', 'Вор'),
-('42387', '6', '0', 'DIE!', '12', '0', '100', '6', '0', '0', '0', '0', '0', 'Вор'),
-('42387', '0', '0', 'Only one thing to do with a lousy, good-for-nothin eavesdropper.', '12', '0', '100', '6', '0', '0', '0', '0', '0', 'Вор');
+('42387', '5', '0', 'See her face? Is it really...', '12', '7', '100', '6', '0', '0', '0', '42442', '0', 'Вор'),
+('42387', '6', '0', 'DIE!', '12', '7', '100', '6', '0', '0', '0', '0', '0', 'Вор'),
+('42387', '0', '0', 'Only one thing to do with a lousy, good-for-nothin eavesdropper.', '12', '7', '100', '6', '0', '0', '0', '0', '0', 'Вор');
+
+-- Creature text for Small time hustler
+DELETE FROM `creature_text` WHERE CreatureID IN (42390) AND `GroupID` IN (); -- Helix / Shadowy figure
+INSERT INTO creature_text
+(CreatureID, groupid, id, text, type, language, probability, emote, duration, sound, BroadcastTextId, comment)
+VALUES
+(42390, 0, 0, 'Pssst...', 12, 7, 100, 0, 0, 0, 42306, 'Small-Time Hustler to Player'),
+(42390, 1, 0, 'You need something, $g mack:lady;?', 12, 7, 100, 0, 0, 0, 42307, 'Small-Time Hustler to Player'),
+(42390, 1, 2, 'Whaddya need? Information? I got that too!', 12, 7, 100, 0, 0, 0, 42311, 'Small-Time Hustler to Player'),
+(42390, 1, 3, 'You lookin'' for somethin'' a little more... exotic?', 12, 7, 100, 0, 0, 0, 42312, 'Small-Time Hustler to Player'),
+(42390, 2, 0, 'Keep your head low, $g buddy:lady;.', 12, 7, 100, 0, 0, 0, 42314, 'Small-Time Hustler to Player'),
+(42390, 3, 0, 'Nice stuff. You must be rich.', 12, 7, 100, 0, 0, 0, 42309, 'Small-Time Hustler to Player'),
+(42390, 3, 1, 'What''re you doin'' out here? Slummin''?', 12, 7, 100, 0, 0, 0, 42310, 'Small-Time Hustler to Player'),
+(42390, 3, 2, 'I think we can do business.', 12, 7, 100, 0, 0, 0, 42313, 'Small-Time Hustler to Player'),
+(42390, 3, 3, 'Whatever you need, I can get...', 12, 7, 100, 0, 0, 0, 42308, 'Small-Time Hustler to Player');
+
 
 -- Creature text for Agent Kearnen
 DELETE FROM `creature_text` WHERE CreatureID = 7024;

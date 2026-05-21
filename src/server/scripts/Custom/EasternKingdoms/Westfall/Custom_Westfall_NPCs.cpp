@@ -366,7 +366,31 @@ namespace Scripts::EasternKingdoms::Westfall
             {
                 if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
                 {
-                    Talk(Talks::Q26232ReturnToFurlsbrowCottage);
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            if (me)
+                                me->PlayDirectSound(Sounds::WeaponFire1, player);
+                        }, std::chrono::seconds(1));
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            if (me)
+                                me->PlayDirectSound(Sounds::WeaponFire2, player);
+                        }, std::chrono::seconds(2));
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            if (me)
+                                me->PlayDirectSound(Sounds::WomanScream, player);
+                        }, std::chrono::seconds(3));
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            if (me)
+                                me->PlayDirectSound(Sounds::Warning, player);
+                            Talk(Talks::Q26232ReturnToFurlsbrowCottage);
+                        }, std::chrono::seconds(5));
+
                     player->KilledMonsterCredit(Creatures::LousPartingThoughtsCredit, _playerGuid);
 
                     // TO-DO Move these to spell area
@@ -382,87 +406,60 @@ namespace Scripts::EasternKingdoms::Westfall
             if (!_eventStarted || _eventLocked)
                 return;
 
-            if (_phaseTimer <= diff)
+            if (_phaseTimer > diff)
             {
+                _phaseTimer -= diff;
+                return;
+            }
+
+            // Out of bounds = event finished
+            if (_phase >= std::size(Dialogue::Q26232Steps))
+                return;
+
+            auto const& step = Dialogue::Q26232Steps[_phase];
+
+            // Handle normal talk phases
+            if (step.thugIndex != 255)
+            {
+                if (Creature* thug = GetThug(step.thugIndex))
+                    thug->AI()->Talk(step.talkId);
+            }
+            else
+            {
+                // Handle special phases
                 switch (_phase)
                 {
-                case 0:
-                    if (Creature* thug = GetThug(1))
-                        thug->AI()->Talk(Talks::Q26232AskMeet);
-                    _phaseTimer = 3500;
-                    break;
-
-                case 1:
-                    if (Creature* thug = GetThug(0))
-                        thug->AI()->Talk(Talks::Q26232ConfirmMeet);
-                    _phaseTimer = 4000;
-                    break;
-
-                case 2:
-                    if (Creature* thug = GetThug(0))
-                        thug->AI()->Talk(Talks::Q26232Congratulate);
-                    _phaseTimer = 7000;
-                    break;
-
-                case 3:
-                    if (Creature* thug = GetThug(3))
-                        thug->AI()->Talk(Talks::Q26232AskIdentity);
-                    _phaseTimer = 4000;
-                    break;
-
-                case 4:
+                case 4: // Face player
                     if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
                         for (auto guid : _thugGuids)
                             if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
                                 thug->SetFacingToObject(player);
-                    _phaseTimer = 1000;
                     break;
 
-                case 5:
-                    if (Creature* thug = GetThug(2))
-                        thug->AI()->Talk(Talks::Q26232NoticePlayer);
-                    _phaseTimer = 4500;
-                    break;
-
-                case 6:
-                    if (Creature* thug = GetThug(1))
-                        thug->AI()->Talk(Talks::Q26232ThreatenPlayer);
-                    _phaseTimer = 4500;
-                    break;
-
-                case 7:
-                    if (Creature* thug = GetThug(0))
-                        thug->AI()->Talk(Talks::Q26232Die);
-                    _phaseTimer = 2000;
-                    break;
-
-                case 8:
+                case 8: // Enable combat
                     for (auto guid : _thugGuids)
-                    {
                         if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
                         {
                             thug->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
                             thug->SetFaction(14);
                             thug->SetReactState(REACT_AGGRESSIVE);
                         }
-                    }
-                    _phaseTimer = 1000;
                     break;
 
-                case 9:
+                case 9: // Engage player
                     if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
                         for (auto guid : _thugGuids)
                             if (Creature* thug = ObjectAccessor::GetCreature(*me, guid))
                                 thug->EngageWithTarget(player);
+
                     _eventLocked = true;
-                    _phaseTimer = 0;
                     break;
                 }
-
-                ++_phase;
             }
-            else
-                _phaseTimer -= diff;
+
+            // Set next timer and advance phase
+            _phaseTimer = step.delay;
+            ++_phase;
         }
 
     private:

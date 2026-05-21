@@ -95,6 +95,8 @@
 -- Spell: 79489 Detect Quest Invis 0 (for Laine and murder npcs)
 -- Spell: 79341 Detect Quest Invis 2 (for Lou murder)
 
+-- AT: 5989 Furlbrow's Pumpkin Farm (Lou)
+
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006);
 INSERT INTO `phase_area` VALUES
@@ -113,3 +115,8 @@ INSERT INTO `conditions` VALUES
 -- Phase 50005 is the phase for the new/post Cata storyline
 -- It starts after the quest The Defias Brotherhood
 ('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 109 IS rewarded');
+
+-- AT scripts
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
+(5989, 'at_westfall_furlsbrow_farm_5989');

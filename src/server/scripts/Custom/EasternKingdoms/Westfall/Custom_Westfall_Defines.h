@@ -26,6 +26,7 @@ namespace Scripts::EasternKingdoms::Westfall
 {
     namespace Quests
     {
+        static constexpr uint32 LivinTheLife = 26228;
         static constexpr uint32 LousPartingThoughts = 26232;
     }
 
@@ -41,6 +42,8 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 WestfallThug = 42387;
         static constexpr uint32 LousPartingThoughtsTrigger = 42562;
         static constexpr uint32 LousPartingThoughtsCredit = 42417;
+        static constexpr uint32 StormwindInvestigator = 42559;
+        static constexpr uint32 LtHorationLaine = 42558;
     }
 
     namespace Spawns
@@ -52,6 +55,8 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 LeftBackCitizen = 274914;
         static constexpr uint32 DrifterWithCartBuddy = 280419;
         static constexpr uint32 CartBuddy = 280420;
+        static constexpr uint32 StormwindInvestigator = 251574;
+        static constexpr uint32 StormwindCitizenInterogation = 251572;
     }
 
     namespace Spells
@@ -98,6 +103,39 @@ namespace Scripts::EasternKingdoms::Westfall
         // Trigger
         static constexpr int8 Q26232ReturnToFurlsbrowCottage = 3;
 
+    }
+
+    namespace Dialogue
+    {
+        // Phase table describing the scripted sequence
+        struct Q26232PhaseStep
+        {
+            uint8 thugIndex;   // 255 = special case
+            uint32 talkId;     // 0 = no talk
+            uint32 delay;      // next phase delay
+        };
+
+        static constexpr Q26232PhaseStep Q26232Steps[] =
+        {
+            { 1, Talks::Q26232AskMeet,        3500 }, // Phase 0
+            { 0, Talks::Q26232ConfirmMeet,    4000 }, // Phase 1
+            { 0, Talks::Q26232Congratulate,   7000 }, // Phase 2
+            { 3, Talks::Q26232AskIdentity,    4000 }, // Phase 3
+            { 255, 0,                         1000 }, // Phase 4: face player
+            { 2, Talks::Q26232NoticePlayer,   4500 }, // Phase 5
+            { 1, Talks::Q26232ThreatenPlayer, 4500 }, // Phase 6
+            { 0, Talks::Q26232Die,            2000 }, // Phase 7
+            { 255, 0,                         1000 }, // Phase 8: enable combat
+            { 255, 0,                            0 }, // Phase 9: engage
+        };
+    }
+
+    namespace Sounds
+    {
+        static constexpr uint32 Warning = 8174;
+        static constexpr uint32 WomanScream = 17852;
+        static constexpr uint32 WeaponFire1 = 161625;
+        static constexpr uint32 WeaponFire2 = 161611;
     }
 }
 
