@@ -720,7 +720,10 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 (234, 0, 0, 'The People of Westfall salute $n, a brave and valiant defender of freedom.', 12, 7, 100, 0, 0, 0, 0, 198, 0, 'Marshal Gryan Stoutmantle'),
 (234, 1, 0, 'You have our full cooperation, lieutenant. The Furlbrows were good people. Their deaths will not go unpunished.', 12, 7, 100, 0, 0, 0, 0, 42505, 0, 'Marshal Gryan Stoutmantle'),
 (234, 2, 0, 'We caught this beast slaughtering sheep in the countryside. He is unrepentant and easily agitated. Keep your distance, lieutenant.', 12, 7, 100, 0, 0, 0, 0, 42508, 0, 'Marshal Gryan Stoutmantle'),
-(42635, 0, 0, 'When I break out of these stocks I''m going to rip out your heart and devour it whole!', 12, 7, 100, 0, 0, 0, 0, 42509, 0, 'Ripsnarl');
+(234, 3, 0, 'Do you know anything about this, beast? Who is the admiral? Speak!', 12, 7, 100, 0, 0, 0, 0, 42528, 0, 'Marshal Gryan Stoutmantle'),
+(234, 4, 0, 'Gibberish from a mad wolf. Bah!', 12, 7, 100, 0, 0, 0, 0, 42530, 0, 'Marshal Gryan Stoutmantle'),
+(42635, 0, 0, 'When I break out of these stocks I''m going to rip out your heart and devour it whole!', 12, 7, 100, 0, 0, 0, 0, 42509, 0, 'Ripsnarl'),
+(42635, 1, 0, 'The dawning comes, Stoutmantle, and with it comes your end.', 12, 7, 100, 0, 0, 0, 0, 42529, 0, 'Ripsnarl');
 
 
 -- Creature text for Agent Kearnen

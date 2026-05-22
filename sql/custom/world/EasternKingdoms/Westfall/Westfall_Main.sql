@@ -116,7 +116,7 @@ INSERT INTO `conditions` VALUES
 ('26', '50004', '0', '0', '0', '47', '0', '166', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 50004 if 166 IS NOT rewarded'),
 -- Phase 50005 is the phase for the new/post Cata storyline
 -- It starts after the quest The Defias Brotherhood
-('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 109 IS rewarded'),
+('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 166 IS rewarded'),
 -- Phase 172 for Sentinel Hill Tower murder dialogue
 ('26', '172', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 172 if 26266 IS taken, complete, rewarded');
 

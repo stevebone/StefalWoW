@@ -26,10 +26,13 @@ namespace Scripts::EasternKingdoms::Westfall
 {
     namespace Quests
     {
+        static constexpr uint32 TheDefiasBrotherhoodFinal = 166;
+
         static constexpr uint32 LivinTheLife = 26228;
         static constexpr uint32 LousPartingThoughts = 26232;
         static constexpr uint32 NewWestfallStew = 26241;
         static constexpr uint32 HopeForThePeople = 26266;
+        static constexpr uint32 InDefenseOfWestfall = 26286;
     }
 
     namespace Creatures

@@ -522,13 +522,13 @@ namespace Scripts::EasternKingdoms::Westfall
 
                 if (Creature* orphan = player->FindNearestCreature(Creatures::WestfallOrphan, 10.f))
                 {
-                    me->m_Events.AddEventAtOffset([orphan, player]()
+                    orphan->m_Events.AddEventAtOffset([orphan, player]()
                         {
                             if (orphan && orphan->IsAlive())
                                 orphan->AI()->Talk(0, player);
                         }, std::chrono::seconds(15));
 
-                    me->m_Events.AddEventAtOffset([orphan, player]()
+                    orphan->m_Events.AddEventAtOffset([orphan, player]()
                         {
                             if (orphan && orphan->IsAlive())
                             {
@@ -577,78 +577,124 @@ namespace Scripts::EasternKingdoms::Westfall
         }
     };
 
-    class npc_custom_agent_kearnen : public CreatureScript
+    /*######
+    ## npc_custom_gryan_stoutmantle_234
+    ## ID 234
+    ######*/
+
+    struct npc_custom_gryan_stoutmantle_234 : public ScriptedAI
     {
-    public:
-        npc_custom_agent_kearnen() : CreatureScript("npc_custom_agent_kearnen") { }
+        npc_custom_gryan_stoutmantle_234(Creature* creature) : ScriptedAI(creature) { }
 
-        struct npc_agent_kearnenAI : public ScriptedAI
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
         {
-            npc_agent_kearnenAI(Creature* creature) : ScriptedAI(creature) { }
+            if (quest->GetQuestId() == Quests::TheDefiasBrotherhoodFinal)
+                Talk(0, player);
 
-            EventMap events;
-            ObjectGuid PlayerGUID;
-            std::queue<ObjectGuid> PendingTargets;
-
-            void Reset() override
+            if (quest->GetQuestId() == Quests::InDefenseOfWestfall)
             {
-                events.Reset();
-                PlayerGUID.Clear();
-
-                std::queue<ObjectGuid> empty;
-                std::swap(PendingTargets, empty);
+                me->SetWalk(true);
+                me->GetMotionMaster()->MovePoint(1, Positions::GryanStoutmantleTalkRipsnarl);
             }
+        }
 
-            void Assist(Player* player, Creature* target)
+        void MovementInform(uint32 type, uint32 pointId) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            if (pointId == 1)
             {
-                if (!player || !target)
-                    return;
+                Talk(3);
 
-                PlayerGUID = player->GetGUID();
-                PendingTargets.push(target->GetGUID());
-                events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
-            }
-
-            void UpdateAI(uint32 diff) override
-            {
-                events.Update(diff);
-
-                while (uint32 eventId = events.ExecuteEvent())
+                Creature* ripsnarl = me->FindNearestCreatureWithOptions(10.f, { .CreatureId = Creatures::RipsnarlAtTower, .IgnorePhases = true });
+                if (ripsnarl && ripsnarl->IsAlive())
                 {
-                    switch (eventId)
-                    {
-                    case EVENT_KEARNEN_KILL_SHOT:
-                    {
-                        if (PendingTargets.empty())
-                            break;
+                    me->SetFacingToObject(ripsnarl);
 
-                        ObjectGuid TargetGUID = PendingTargets.front();
-                        PendingTargets.pop();
-
-                        Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
-                        Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
-
-                        if (target && target->IsAlive() && player)
+                    ripsnarl->m_Events.AddEventAtOffset([ripsnarl]()
                         {
-                            me->SetFacingToObject(target);
-                            me->CastSpell(target, SPELL_WESTFALL_KILL_SHOT, true);
-                            Talk(0, player);
-                        }
+                            if (ripsnarl && ripsnarl->IsAlive())
+                                ripsnarl->AI()->Talk(1);
+                        }, std::chrono::seconds(7));
+                }
 
-                        // If more targets remain, schedule again
-                        if (!PendingTargets.empty())
-                            events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+                me->m_Events.AddEventAtOffset([this]()
+                    {
+                        if (me && me->IsAlive())
+                            me->AI()->Talk(4);
+                    }, std::chrono::seconds(12));
 
+                me->m_Events.AddEventAtOffset([this]()
+                    {
+                        if (me && me->IsAlive())
+                            me->GetMotionMaster()->MovePoint(2, me->GetHomePosition());
+                    }, std::chrono::seconds(17));
+            }
+        }
+    };
+
+    struct npc_custom_agent_kearnen : public ScriptedAI
+    {
+        npc_custom_agent_kearnen(Creature* creature) : ScriptedAI(creature) { }
+
+        EventMap events;
+        ObjectGuid PlayerGUID;
+        std::queue<ObjectGuid> PendingTargets;
+
+        void Reset() override
+        {
+            events.Reset();
+            PlayerGUID.Clear();
+
+            std::queue<ObjectGuid> empty;
+            std::swap(PendingTargets, empty);
+        }
+
+        void Assist(Player* player, Creature* target)
+        {
+            if (!player || !target)
+                return;
+
+            PlayerGUID = player->GetGUID();
+            PendingTargets.push(target->GetGUID());
+            events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            events.Update(diff);
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case EVENT_KEARNEN_KILL_SHOT:
+                {
+                    if (PendingTargets.empty())
                         break;
+
+                    ObjectGuid TargetGUID = PendingTargets.front();
+                    PendingTargets.pop();
+
+                    Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
+                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+
+                    if (target && target->IsAlive() && player)
+                    {
+                        me->SetFacingToObject(target);
+                        me->CastSpell(target, SPELL_WESTFALL_KILL_SHOT, true);
+                        Talk(0, player);
                     }
-                    }
+
+                    // If more targets remain, schedule again
+                    if (!PendingTargets.empty())
+                        events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+
+                    break;
+                }
                 }
             }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const override
-        {
-            return new npc_agent_kearnenAI(creature);
         }
     };
 
@@ -687,7 +733,7 @@ namespace Scripts::EasternKingdoms::Westfall
                 if (!agent)
                     return;
 
-                if (auto* ai = CAST_AI(npc_custom_agent_kearnen::npc_agent_kearnenAI, agent->AI()))
+                if (auto* ai = CAST_AI(npc_custom_agent_kearnen, agent->AI()))
                     ai->Assist(player, me);
 
                 AssistTriggered = true;
@@ -936,8 +982,9 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_lous_parting_thoughts_trigger);
     RegisterCreatureAI(npc_custom_lous_parting_thoughts_thug);
     RegisterCreatureAI(npc_custom_salma_saldean_235);
+    RegisterCreatureAI(npc_custom_gryan_stoutmantle_234);
+    RegisterCreatureAI(npc_custom_agent_kearnen);
 
-    new npc_custom_agent_kearnen();
     new npc_custom_elite_mercenary();
     new npc_custom_trigger_mortwake_tower();
 }

@@ -20,6 +20,7 @@
 -- Quest: 6181 A swift message
 -- Quest: 6281 Continue to Stormwind
 -- Quest: 26271 Feeding the hungry
+-- Quest: 26286 In Defense of Westfall
 
 -- Quest: 65 The Defias Brotherhood
 -- Quest: 132 The Defias Brotherhood
@@ -136,3 +137,6 @@ INSERT INTO `creature` VALUES
 
 DELETE FROM `creature_addon` WHERE `guid` = @CGUID+818; -- Horatio Laine addon
 INSERT INTO `creature_addon` (`guid`, `VisFlags`, `SheathState`, `auras`) VALUES (@CGUID+818, 0, 1, '');
+
+-- Quest: 26286 In Defense of Westfall
+UPDATE `creature_template` SET `ScriptName` = 'npc_custom_gryan_stoutmantle_234' WHERE (`entry` = 234);
