@@ -28,7 +28,6 @@
 #include "World.h"
 #include <G3D/g3dmath.h>
 #include <numeric>
-#include <cmath>
 #include <iostream>
 
 inline bool _ModifyUInt32(bool apply, uint32& baseValue, int32& amount)
@@ -289,7 +288,7 @@ void Player::UpdateArmor()
     value *= GetPctModifierValue(unitMod, TOTAL_PCT);
     value *= GetTotalAuraMultiplier(SPELL_AURA_MOD_BONUS_ARMOR_PCT);
 
-    SetArmor(int32(std::round(value)), int32(std::round(value - baseValue)));
+    SetArmor(int32(value), int32(value - baseValue));
 
     Pet* pet = GetPet();
     if (pet)

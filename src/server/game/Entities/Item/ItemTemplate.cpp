@@ -19,7 +19,6 @@
 #include "DB2Stores.h"
 #include "Player.h"
 #include "World.h"
-#include <cmath>
 
 int32 const SocketColorToGemTypeMask[31] =
 {
@@ -171,25 +170,30 @@ uint32 ItemTemplate::GetArmor(uint32 itemLevel) const
             return 0;
 
         float total = 1.0f;
+        float locationModifier = 1.0f;
         switch (GetSubClass())
         {
             case ITEM_SUBCLASS_ARMOR_CLOTH:
                 total = armorTotal->Cloth;
+                locationModifier = location->Clothmodifier;
                 break;
             case ITEM_SUBCLASS_ARMOR_LEATHER:
                 total = armorTotal->Leather;
+                locationModifier = location->Leathermodifier;
                 break;
             case ITEM_SUBCLASS_ARMOR_MAIL:
                 total = armorTotal->Mail;
+                locationModifier = location->Chainmodifier;
                 break;
             case ITEM_SUBCLASS_ARMOR_PLATE:
                 total = armorTotal->Plate;
+                locationModifier = location->Platemodifier;
                 break;
             default:
                 break;
         }
 
-        return uint32(std::round(armorQuality->Qualitymod[quality] * total * location->Modifier));
+        return uint32(armorQuality->Qualitymod[quality] * total * locationModifier + 0.5f);
     }
 
     // shields
@@ -197,7 +201,7 @@ uint32 ItemTemplate::GetArmor(uint32 itemLevel) const
     if (!shield)
         return 0;
 
-    return uint32(std::round(shield->Quality[quality]));
+    return uint32(shield->Quality[quality] + 0.5f);
 }
 
 float ItemTemplate::GetDPS(uint32 itemLevel) const
