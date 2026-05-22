@@ -504,7 +504,7 @@ namespace Scripts::EasternKingdoms::Westfall
     {
         npc_custom_salma_saldean_235(Creature* creature) : ScriptedAI(creature) { }
 
-        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/)
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
         {
             if (quest->GetQuestId() == Quests::NewWestfallStew)
             {
