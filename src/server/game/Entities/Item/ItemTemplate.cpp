@@ -171,30 +171,25 @@ uint32 ItemTemplate::GetArmor(uint32 itemLevel) const
             return 0;
 
         float total = 1.0f;
-        float locationModifier = 1.0f;
         switch (GetSubClass())
         {
             case ITEM_SUBCLASS_ARMOR_CLOTH:
                 total = armorTotal->Cloth;
-                locationModifier = location->Clothmodifier;
                 break;
             case ITEM_SUBCLASS_ARMOR_LEATHER:
                 total = armorTotal->Leather;
-                locationModifier = location->Leathermodifier;
                 break;
             case ITEM_SUBCLASS_ARMOR_MAIL:
                 total = armorTotal->Mail;
-                locationModifier = location->Chainmodifier;
                 break;
             case ITEM_SUBCLASS_ARMOR_PLATE:
                 total = armorTotal->Plate;
-                locationModifier = location->Platemodifier;
                 break;
             default:
                 break;
         }
 
-        return uint32(std::round(armorQuality->Qualitymod[quality] * total * locationModifier));
+        return uint32(std::round(armorQuality->Qualitymod[quality] * total * location->Modifier));
     }
 
     // shields

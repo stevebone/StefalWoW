@@ -159,7 +159,6 @@ float GetRandomPropertyPoints(uint32 itemLevel, uint32 quality, uint32 inventory
 
     switch (quality)
     {
-        case ITEM_QUALITY_NORMAL:
         case ITEM_QUALITY_UNCOMMON:
             return randPropPointsEntry->GoodF[propIndex];
         case ITEM_QUALITY_RARE:
