@@ -110,7 +110,7 @@ namespace FSBParty
             else
             {
                 // Player is in a real group ? send a normal group-only PartyUpdate
-                ScriptHelpers::SendFakePartyUpdate(player, std::vector<Creature*>(), std::vector<uint8>(), std::vector<uint8>());
+                ScriptHelpers::SendFakePartyUpdate(player, std::vector<Creature*>(), std::vector<uint8>(), std::vector<uint8>(), std::vector<uint8>());
 
                 TC_LOG_DEBUG("scripts.fsb.party",
                     "FSB: SendFakePartyUpdate Sent real-only PartyUpdate to {} (no active bots)",
@@ -140,10 +140,11 @@ namespace FSBParty
         if (trimmedBots.size() > maxBotsAllowed)
             trimmedBots.resize(maxBotsAllowed);
 
-        // filter bots and collect class/race info
+        // filter bots and collect class/race/role info
         std::vector<Creature*> safeBots;
         std::vector<uint8> botClasses;
         std::vector<uint8> botRaces;
+        std::vector<uint8> botRoles;
         for (Creature* bot : trimmedBots)
         {
             if (bot && bot->IsInWorld())
@@ -153,6 +154,7 @@ namespace FSBParty
                 FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
                 botClasses.push_back(FSBUtils::FSBToTCClass(botClass));
                 botRaces.push_back(FSBUtils::BotRaceToTC(botRace));
+                botRoles.push_back(GetLfgRoleForBot(bot));
             }
         }
 
@@ -160,7 +162,7 @@ namespace FSBParty
 
         // ------------------------------------------------------------
 
-        ScriptHelpers::SendFakePartyUpdate(player, safeBots, botClasses, botRaces);
+        ScriptHelpers::SendFakePartyUpdate(player, safeBots, botClasses, botRaces, botRoles);
 
         TC_LOG_DEBUG("scripts.fsb.party",
             "FSB: SendFakePartyUpdate sent to player {} with {} bots",

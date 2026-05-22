@@ -60,8 +60,8 @@ namespace ScriptHelpers
 
     // Wrapper function to send a fake party update packet to a player with bots
     // This constructs the packet internally in the core to avoid linking issues with dynamic loading
-    // Takes a list of bot creatures and their class/race information to include in the party
-    TC_GAME_API void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces);
+    // Takes a list of bot creatures and their class/race/role information to include in the party
+    TC_GAME_API void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces, std::vector<uint8> const& botRoles);
 
     // Wrapper function to send a GossipMessage packet to a player
     // This constructs the packet internally in the core to avoid linking issues with dynamic loading

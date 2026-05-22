@@ -99,7 +99,7 @@ namespace ScriptHelpers
         player->SendDirectMessage(packet.Write());
     }
 
-    void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces)
+    void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces, std::vector<uint8> const& botRoles)
     {
         if (!player || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
             return;
@@ -170,17 +170,19 @@ namespace ScriptHelpers
 
         WorldPackets::Party::PartyUpdate partyUpdate;
 
-        // Filter bots and match with class/race info
+        // Filter bots and match with class/race/role info
         std::vector<Creature*> safeBots;
         std::vector<uint8> safeBotClasses;
         std::vector<uint8> safeBotRaces;
-        for (size_t i = 0; i < bots.size() && i < botClasses.size() && i < botRaces.size(); ++i)
+        std::vector<uint8> safeBotRoles;
+        for (size_t i = 0; i < bots.size() && i < botClasses.size() && i < botRaces.size() && i < botRoles.size(); ++i)
         {
             if (bots[i] && bots[i]->IsInWorld())
             {
                 safeBots.push_back(bots[i]);
                 safeBotClasses.push_back(botClasses[i]);
                 safeBotRaces.push_back(botRaces[i]);
+                safeBotRoles.push_back(botRoles[i]);
             }
         }
 
@@ -231,7 +233,7 @@ namespace ScriptHelpers
                 info.FactionGroup = Player::GetFactionGroupForRace(safeBotRaces[i]);
                 info.Connected = true;
                 info.Subgroup = 0;
-                info.RolesAssigned = 0;
+                info.RolesAssigned = safeBotRoles[i];
             }
 
             if (partyUpdate.PlayerList.size() > 1)
@@ -282,7 +284,7 @@ namespace ScriptHelpers
                 info.FactionGroup = Player::GetFactionGroupForRace(safeBotRaces[i]);
                 info.Connected = true;
                 info.Subgroup = 0;
-                info.RolesAssigned = 0;
+                info.RolesAssigned = safeBotRoles[i];
             }
 
             player->SendDirectMessage(partyUpdate.Write());
