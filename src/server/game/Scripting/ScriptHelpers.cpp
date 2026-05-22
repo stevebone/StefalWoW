@@ -20,7 +20,7 @@
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "PartyPackets.h"
-#include "NpcPackets.h"
+#include "NPCPackets.h"
 #include "DelvePackets.h"
 #include "Group.h"
 #include "WorldSession.h"
