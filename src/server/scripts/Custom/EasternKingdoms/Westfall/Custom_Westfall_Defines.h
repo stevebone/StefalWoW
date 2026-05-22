@@ -29,6 +29,7 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 LivinTheLife = 26228;
         static constexpr uint32 LousPartingThoughts = 26232;
         static constexpr uint32 NewWestfallStew = 26241;
+        static constexpr uint32 HopeForThePeople = 26266;
     }
 
     namespace Creatures
@@ -39,14 +40,28 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 Transient = 42383;
         static constexpr uint32 WestPlainsDrifter = 42391;
         static constexpr uint32 SentinelHillGuard = 42407;
+
         static constexpr uint32 SmallTimeHustler = 42390;
         static constexpr uint32 WestfallThug = 42387;
         static constexpr uint32 LousPartingThoughtsTrigger = 42562;
         static constexpr uint32 LousPartingThoughtsCredit = 42417;
         static constexpr uint32 StormwindInvestigator = 42559;
         static constexpr uint32 LtHorationLaine = 42558;
+
         static constexpr uint32 SalmaSaldean = 235;
         static constexpr uint32 WestfallOrphan = 42385;
+
+        static constexpr uint32 SpawnedScoutGaliaanAtTower = 42752;
+        static constexpr uint32 SpawnedCaptainDanuvinAtTower = 42751;
+        static constexpr uint32 SpawnedGryanStoutmantleAtTower = 42750;
+        static constexpr uint32 SpawnedHopeSaldeanAtTower = 42749;
+        static constexpr uint32 SpawnedRipsnarlAtTower = 42748;
+        static constexpr uint32 SpawnedStormwindInvestigatorAtTower = 42745;
+        static constexpr uint32 SpawnedHoratioLaineAtTower = 42744;
+
+        static constexpr uint32 GryanStoutmantle = 234;
+        static constexpr uint32 LtHorationLaineAtTower = 42308;
+        static constexpr uint32 RipsnarlAtTower = 42635;
     }
 
     namespace Spawns
@@ -73,6 +88,18 @@ namespace Scripts::EasternKingdoms::Westfall
         // Invis spells
         static constexpr uint32 DetectQuestInvis1 = 79229;
         static constexpr uint32 DetectQuestInvis2 = 79341;
+
+        static constexpr uint32 HoratiosSunglasses = 78935;
+
+        // Sentinel Hill
+        static constexpr uint32 SummonRipsnarl = 79670;
+        static constexpr uint32 SummonScoutGaliaan = 79669;
+        static constexpr uint32 SummonCaptainDanuvin = 79668;
+        static constexpr uint32 SummonStormwindInvestigator2 = 79667;
+        static constexpr uint32 SummonStormwindInvestigator1 = 79666;
+        static constexpr uint32 SummonHopeSaldean = 79665;
+        static constexpr uint32 SummonHoratioLaine = 79664;
+        static constexpr uint32 SummonGryanStoutmantle = 79663;
     }
 
     namespace Events
@@ -92,6 +119,8 @@ namespace Scripts::EasternKingdoms::Westfall
         };
 
         static constexpr Position SalmaSaldeanStew = { -10106.9238f, 1038.5223f, 37.947f, 5.64f };
+
+        static constexpr Position GryanStoutmantleTalkRipsnarl = { -10512.5126f, 1046.5996f, 60.5181f, 3.6035f };
     }
 
     namespace Talks

@@ -708,6 +708,20 @@ VALUES
 (42390, 3, 2, 'I think we can do business.', 12, 7, 100, 0, 0, 0, 42313, 'Small-Time Hustler to Player'),
 (42390, 3, 3, 'Whatever you need, I can get...', 12, 7, 100, 0, 0, 0, 42308, 'Small-Time Hustler to Player');
 
+-- creature texts for the dialogue at Sentinel Hill Tower (Stew quest)
+DELETE FROM `creature_text` WHERE `CreatureID` IN (234,42635);
+DELETE FROM `creature_text` WHERE CreatureID IN (42308) AND `GroupID` IN (3,4,5,6,7);
+INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
+(42308, 3, 0, 'That''s good to hear, marshal. While $n has brought the perpetrators to justice, their ringleader is still on the loose. Perhaps with the aid of the Westfall Brigade we will finally be able to solve this case.', 12, 7, 100, 0, 0, 0, 0, 42506, 0, 'Horatio Laine - Westfall Stew Quest End'),
+(42308, 4, 0, 'Might I ask, what''s with the worgen in the stocks?', 12, 7, 100, 0, 0, 0, 0, 42507, 0, 'Horatio Laine - Westfall Stew Quest End'),
+(42308, 5, 0, 'Wow, the marshal wasn''t kidding.', 12, 7, 100, 0, 0, 0, 0, 42510, 0, 'Horatio Laine - Westfall Stew Quest End'),
+(42308, 6, 0, 'But is your bark...', 12, 7, 100, 0, 0, 0, 0, 42511, 0, 'Horatio Laine - Westfall Stew Quest End'),
+(42308, 7, 0, 'Worse than your bite?', 12, 7, 100, 0, 0, 0, 0, 42512, 0, 'Horatio Laine - Westfall Stew Quest End'),
+(234, 0, 0, 'The People of Westfall salute $n, a brave and valiant defender of freedom.', 12, 7, 100, 0, 0, 0, 0, 198, 0, 'Marshal Gryan Stoutmantle'),
+(234, 1, 0, 'You have our full cooperation, lieutenant. The Furlbrows were good people. Their deaths will not go unpunished.', 12, 7, 100, 0, 0, 0, 0, 42505, 0, 'Marshal Gryan Stoutmantle'),
+(234, 2, 0, 'We caught this beast slaughtering sheep in the countryside. He is unrepentant and easily agitated. Keep your distance, lieutenant.', 12, 7, 100, 0, 0, 0, 0, 42508, 0, 'Marshal Gryan Stoutmantle'),
+(42635, 0, 0, 'When I break out of these stocks I''m going to rip out your heart and devour it whole!', 12, 7, 100, 0, 0, 0, 0, 42509, 0, 'Ripsnarl');
+
 
 -- Creature text for Agent Kearnen
 DELETE FROM `creature_text` WHERE CreatureID = 7024;
@@ -736,7 +750,7 @@ VALUES
 (42662, 3, 0, 'Call for the people. I wish to speak to them one last time before the dawning.', 12, 100, 1, 0, 0, 42542),
 (42662, 4, 0, 'Aye. Tonight.', 12, 100, 273, 0, 0, 42544);
 
--- Creature text for Westfall Stew foot quest
+-- Creature text for Westfall Stew food quest
 DELETE FROM `creature_text` WHERE CreatureID IN (42384,42386) AND `GroupID` IN (11);
 INSERT INTO creature_text
 (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId)

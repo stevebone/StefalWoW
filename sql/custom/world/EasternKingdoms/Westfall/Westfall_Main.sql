@@ -96,16 +96,18 @@
 -- Spell: 79341 Detect Quest Invis 2 (for Lou murder)
 
 -- AT: 5989 Furlbrow's Pumpkin Farm (Lou)
+-- AT: 5993 Sentinel Hill Tower
 
 -- Phases
-DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006, 172);
 INSERT INTO `phase_area` VALUES
+(108, 172, 'Westfall - Quest Zone 2'),
 (40, 50004, 'Westfall - Furlbrows 1 - Defias Brotherhood'),
 (40, 50005, 'Westfall - Furlbrows 2 - Return of the Defias (Vanessa)');
 -- (40, 50006, 'xxx to be reused');
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006, 172);
 INSERT INTO `conditions` VALUES
 -- Phase 50004 allows the OLD Furlbrows npcs to be again visible for the old quests
 -- This includes ALL the OLD Defias mobs around westfall.
@@ -114,9 +116,12 @@ INSERT INTO `conditions` VALUES
 ('26', '50004', '0', '0', '0', '47', '0', '166', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 50004 if 166 IS NOT rewarded'),
 -- Phase 50005 is the phase for the new/post Cata storyline
 -- It starts after the quest The Defias Brotherhood
-('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 109 IS rewarded');
+('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 109 IS rewarded'),
+-- Phase 172 for Sentinel Hill Tower murder dialogue
+('26', '172', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 172 if 26266 IS taken, complete, rewarded');
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
-(5989, 'at_westfall_furlsbrow_farm_5989');
+(5989, 'at_westfall_furlsbrow_farm_5989'),
+(5993, 'at_westfall_sentinel_hill_tower_5993');

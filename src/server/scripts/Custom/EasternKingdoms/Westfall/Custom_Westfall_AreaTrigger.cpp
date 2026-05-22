@@ -23,6 +23,7 @@
 #include "AreaTriggerAI.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "CreatureAIImpl.h"
 #include "DB2Stores.h"
 #include "Map.h"
 #include "MotionMaster.h"
@@ -128,6 +129,8 @@ namespace Scripts::EasternKingdoms::Westfall
                     Creature* horatio = player->FindNearestCreature(Creatures::LtHorationLaine, 20.f);
                     if (horatio && horatio->IsAlive())
                     {
+                        horatio->CastSpell(horatio, Spells::HoratiosSunglasses);
+
                         auto ScheduleTalk = [&](uint32 delay, uint32 textId)
                             {
                                 horatio->m_Events.AddEventAtOffset([horatio, textId]()
@@ -149,6 +152,66 @@ namespace Scripts::EasternKingdoms::Westfall
             return true;
         }
     };
+
+    // 5993 - Westfall - Sentinel Hill Tower
+    class at_westfall_sentinel_hill_tower_5993 : public AreaTriggerScript
+    {
+    public:
+        at_westfall_sentinel_hill_tower_5993() : AreaTriggerScript("at_westfall_sentinel_hill_tower_5993") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            if (player->GetQuestStatus(Quests::HopeForThePeople) == QUEST_STATUS_COMPLETE)
+            {
+                // add cooldown of 120s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 2min))
+                    return false;
+
+                Creature* gryan = player->FindNearestCreature(Creatures::GryanStoutmantle, 20.f);
+                if(gryan && gryan->IsAlive())
+                {
+                    gryan->AI()->Talk(1);
+
+                    gryan->m_Events.AddEventAtOffset([gryan]()
+                        {
+                            if (gryan && gryan->IsAlive())
+                                gryan->AI()->Talk(2);
+                        }, std::chrono::seconds(18));
+                }
+
+                Creature* ripsnarl = player->FindNearestCreature(Creatures::RipsnarlAtTower, 20.f);
+                if (ripsnarl && ripsnarl->IsAlive())
+                {
+                    ripsnarl->m_Events.AddEventAtOffset([ripsnarl]()
+                        {
+                            if (ripsnarl && ripsnarl->IsAlive())
+                                ripsnarl->AI()->Talk(0);
+                        }, std::chrono::seconds(25));
+                }
+
+                Creature* horatio = player->FindNearestCreature(Creatures::LtHorationLaineAtTower, 20.f);
+                if (horatio && horatio->IsAlive())
+                {
+                    auto ScheduleTalk = [&](uint32 delay, uint32 textId)
+                        {
+                            horatio->m_Events.AddEventAtOffset([horatio, textId, player]()
+                                {
+                                    if (horatio && horatio->IsAlive())
+                                        horatio->AI()->Talk(textId, player);
+                                }, std::chrono::seconds(delay));
+                        };
+
+                    ScheduleTalk(7, 3); // Good to hear...
+                    ScheduleTalk(13, 4); // Might I ask
+                    ScheduleTalk(30, 5); // Wow
+                    ScheduleTalk(34, 6); // bark
+                    ScheduleTalk(38, 7); // bite
+                }
+            }
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_westfall_at()
@@ -156,4 +219,5 @@ void AddSC_custom_westfall_at()
     using namespace Scripts::EasternKingdoms::Westfall;
 
     new at_westfall_furlsbrow_farm_5989();
+    new at_westfall_sentinel_hill_tower_5993();
 }

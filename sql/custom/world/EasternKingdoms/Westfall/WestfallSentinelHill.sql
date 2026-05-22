@@ -125,3 +125,14 @@ INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScaling
 (54373, 0, 0, 0, 6, 0, 0.7, 1, 1, 0.2, 31357, 0, 0, 0, 54373, 54373, 0, 200, 300, 0, 0, 0, 0, 0, 0, 0, 0, 64978), -- alternate Riverpaw Herbalist
 (54372, 0, 0, 0, 6, 0, 1, 1, 1, 0.2, 31359, 0, 0, 0, 54372, 54372, 0, 200, 300, 0, 0, 0, 0, 0, 0, 0, 0, 64978), -- alternate Riverpaw Brute
 (54371, 0, 0, 0, 6, 0, 1, 1, 1, 0.2, 31361, 0, 0, 0, 54371, 54371, 0, 200, 300, 0, 0, 0, 0, 0, 0, 0, 0, 64978); -- alternate Riverpaw Bandit
+
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+818,@CGUID+819,@CGUID+820);
+INSERT INTO `creature` VALUES
+-- Horatio Laine and Stormwind Investigators for Dialogue with Gryan
+(@CGUID+818, '42308', '0', '40', '108', '0', '0', '172', '0', '-1', '0', '0', '-10507.5', '1049.1', '60.5186', '4.37166', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+819, '42745', '0', '40', '108', '0', '0', '172', '0', '-1', '0', '0', '-10504.6', '1049.27', '60.5181', '4.09412', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+820, '42745', '0', '40', '108', '0', '0', '172', '0', '-1', '0', '0', '-10508.6', '1051.57', '60.0498', '4.69275', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
+
+DELETE FROM `creature_addon` WHERE `guid` = @CGUID+818; -- Horatio Laine addon
+INSERT INTO `creature_addon` (`guid`, `VisFlags`, `SheathState`, `auras`) VALUES (@CGUID+818, 0, 1, '');
