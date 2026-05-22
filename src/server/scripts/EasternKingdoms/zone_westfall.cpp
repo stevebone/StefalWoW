@@ -168,6 +168,13 @@ struct npc_westfall_overloaded_harvest_golem : public ScriptedAI
         _events.ScheduleEvent(Events::ItsAlive::CheckArea, 1s);
     }
 
+    void OnCharmed(bool apply) override
+    {
+        // Prevent PossessedAI from replacing this AI
+        if (apply)
+            me->SetControlled(false, UNIT_STATE_POSSESSED);
+    }
+
     void PassengerBoarded(Unit* /*passenger*/, int8 /*seatId*/, bool apply) override
     {
         if (!apply)
