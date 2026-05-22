@@ -140,39 +140,6 @@ enum eZoneGilneas
 
 };
 
-// player
-class player_zone_gilneas_city1 : public PlayerScript
-{
-public:
-    player_zone_gilneas_city1() : PlayerScript("player_zone_gilneas_city1") { }
-
-    void OnLogin(Player* player, bool /*firstLogin*/) override
-    {
-        if (player->GetQuestStatus(QUEST_THE_REBEL_LORDS_ARSENAL) == QUEST_STATUS_REWARDED)
-        {
-            if (!player->HasAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02))
-            {
-                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
-                player->AddAura(SPELL_WORGEN_BITE, player);
-            }
-        }
-    }
-
-    void OnQuestStatusChange(Player* player, uint32 questId) override
-    {
-        if (player->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE ||
-            player->GetQuestStatus(questId) == QUEST_STATUS_COMPLETE)
-            return;
-
-        switch (questId)
-        {
-            case QUEST_THE_REBEL_LORDS_ARSENAL:
-                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
-                break;
-        }
-    }
-};
-
 //gilnean crow 50260
 class npc_gilnean_crow : public CreatureScript
 {
@@ -3594,33 +3561,72 @@ public:
 /* start quest Sacrifices */
 
 // 35231
+// Vehicle seat has VEHICLE_SEAT_FLAG_CAN_CONTROL, so VehicleJoinEvent::Execute calls
+// SetCharmedBy before PassengerBoarded, replacing our AI with PossessedAI.
+// PassengerBoarded, MovementInform, and our UpdateAI are never called on our AI.
+// All scheduling must use Creature::m_Events (processed in Creature::Update regardless of AI).
 class npc_crowley_horse_35231 : public CreatureScript
 {
 public:
     npc_crowley_horse_35231() : CreatureScript("npc_crowley_horse_35231") {}
 
-    enum eNpc
+    static WaypointPath const& GetPathRun1()
     {
-        EVENT_JUMP_ON_WALL = 950,
-        EVENT_JUMP_ON_BRIDGE,
-        EVENT_CAST_TORCH,
-    };
+        static WaypointPath path(352310, {
+            { 0,  -1686.12f, 1655.64f, 20.6106f },
+            { 1,  -1668.16f, 1639.43f, 20.6106f },
+            { 2,  -1666.63f, 1628.86f, 20.5327f },
+            { 3,  -1670.76f, 1617.43f, 20.6106f },
+            { 4,  -1693.65f, 1592.64f, 20.6106f },
+            { 5,  -1708.02f, 1590.55f, 20.6104f },
+            { 6,  -1719.37f, 1595.65f, 20.6104f },
+            { 7,  -1720.57f, 1610.14f, 20.6074f },
+            { 8,  -1711.90f, 1629.70f, 20.6074f },
+            { 9,  -1698.15f, 1656.48f, 20.6106f },
+            { 10, -1696.42f, 1682.01f, 20.5262f },
+            { 11, -1684.68f, 1700.12f, 20.4648f },
+            { 12, -1658.31f, 1710.31f, 20.5898f },
+            { 13, -1625.48f, 1712.30f, 21.8051f },
+        }, WaypointMoveType::Run);
+        return path;
+    }
+
+    static WaypointPath const& GetPathRun2()
+    {
+        static WaypointPath path(352311, {
+            { 0,  -1545.08f, 1684.23f, 20.6099f },
+            { 1,  -1542.79f, 1656.08f, 20.6099f },
+            { 2,  -1543.00f, 1640.54f, 20.6099f },
+            { 3,  -1520.73f, 1618.10f, 20.6105f },
+            { 4,  -1498.79f, 1621.74f, 20.6105f },
+            { 5,  -1468.36f, 1630.78f, 20.6105f },
+            { 6,  -1441.65f, 1627.67f, 20.6105f },
+            { 7,  -1429.84f, 1616.63f, 20.5898f },
+            { 8,  -1417.99f, 1586.55f, 20.5898f },
+            { 9,  -1429.18f, 1548.78f, 20.8485f },
+            { 10, -1447.42f, 1532.79f, 20.6010f },
+            { 11, -1463.10f, 1535.03f, 20.6105f },
+            { 12, -1483.04f, 1544.15f, 20.6105f },
+            { 13, -1505.16f, 1568.61f, 20.6105f },
+            { 14, -1531.60f, 1581.87f, 26.5387f },
+            { 15, -1540.59f, 1574.43f, 29.2067f },
+        }, WaypointMoveType::Run);
+        return path;
+    }
 
     struct npc_crowley_horse_35231AI : public NullCreatureAI
     {
-        npc_crowley_horse_35231AI(Creature *creature) : NullCreatureAI(creature) { }
+        npc_crowley_horse_35231AI(Creature* creature) : NullCreatureAI(creature) { }
 
-        EventMap    m_events;
-        ObjectGuid      m_playerGUID;
-        ObjectGuid      m_dariusGUID;
-        uint32      m_movePart;
-        bool        m_IsActiveAI;
+        ObjectGuid m_playerGUID;
+        ObjectGuid m_dariusGUID;
+        uint8 m_phase;
 
         void Reset() override
         {
             m_playerGUID = ObjectGuid();
             m_dariusGUID = ObjectGuid();
-            m_movePart = 0;
+            m_phase = 0;
             me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
         }
 
@@ -3628,6 +3634,26 @@ public:
         {
             if (Player* player = summoner->ToPlayer())
                 m_playerGUID = player->GetGUID();
+
+            me->m_Events.AddEventAtOffset([this]() {
+                if (Vehicle* vehicle = me->GetVehicleKit())
+                    for (auto const& [seatId, seat] : vehicle->Seats)
+                        if (Unit* passenger = ObjectAccessor::GetUnit(*me, seat.Passenger.Guid))
+                            if (passenger->GetEntry() == NPC_DARIUS_CROWLEY)
+                            {
+                                m_dariusGUID = passenger->GetGUID();
+                                passenger->ToCreature()->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                            }
+
+                if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                    player->SetClientControl(me, false);
+
+                me->m_Events.AddEventAtOffset([this]() {
+                    m_phase = 1;
+                    me->GetMotionMaster()->MovePoint(1031, -1735.01f, 1653.01f, 20.49f);
+                    ScheduleMovementCheck(500ms);
+                }, 1s);
+            }, 1s);
         }
 
         void JustDied(Unit* /*killer*/) override
@@ -3640,145 +3666,84 @@ public:
                 }
         }
 
-        void PassengerBoarded(Unit* passenger, int8 /*seatId*/, bool apply) override
+        void ScheduleMovementCheck(Milliseconds delay)
         {
-            if (passenger->IsPlayer())
-            {
-                if (apply)
-                    m_events.ScheduleEvent(EVENT_START_WALK, 1s);
-                else
-                    me->DespawnOrUnsummon(10s);
-            }
-            if (Creature* npc = passenger->ToCreature())
-            {
-                if (npc->GetEntry() == NPC_DARIUS_CROWLEY)
+            me->m_Events.AddEventAtOffset([this]() {
+                Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID);
+                if (!player || !player->IsOnVehicle(me))
                 {
-                    m_dariusGUID = npc->GetGUID();
-                    npc->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                    me->DespawnOrUnsummon(10s);
+                    return;
                 }
-            }
+
+                if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() != IDLE_MOTION_TYPE)
+                {
+                    ScheduleMovementCheck(200ms);
+                    return;
+                }
+
+                me->m_Events.AddEventAtOffset([this]() { AdvancePhase(); }, 10s);
+            }, delay);
         }
 
-        void MovementInform(uint32 type, uint32 id) override
+        void AdvancePhase()
         {
-            if (type == WAYPOINT_MOTION_TYPE)
-                switch (id)
-                {
-                case 3:
-                {
-                    if (m_movePart == 3)
+            switch (m_phase)
+            {
+            case 1:
+                m_phase = 2;
+                me->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1714.02f, 1666.37f, 20.57f), 25.0f, 15.0f);
+                ScheduleMovementCheck(500ms);
+                break;
+            case 2:
+                m_phase = 3;
+                me->GetMotionMaster()->MovePath(GetPathRun1(), false);
+                me->m_Events.AddEventAtOffset([this]() {
+                    if (Creature* darius = ObjectAccessor::GetCreature(*me, m_dariusGUID))
                         if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                            if (Creature* darius = ObjectAccessor::GetCreature(*me, m_dariusGUID))
-                            {
-                                darius->AI()->Talk(0, player);
-                                m_events.ScheduleEvent(EVENT_TALK_PERIODIC, 6000ms);
-                            }
-                    break;
-                }
-                case 14:
-                {
-                    if (m_movePart == 5) // endpoint run 2
-                        m_events.ScheduleEvent(EVENT_MOVE_PART5, 10s);
-                    break;
-                }
-                case 16:
-                {
-                    if (m_movePart == 3) // endpoint run 1
-                        m_events.ScheduleEvent(EVENT_MOVE_PART3, 10s);
-                    break;
-                }
-                }
-            else if (type == POINT_MOTION_TYPE)
-            {
-                switch (id)
-                {
-                case 1031: // ride to first wall
-                {
-                    m_events.ScheduleEvent(EVENT_MOVE_PART1, 10s);
-                    break;
-                }
-                }
-            }
-            else if (type == EFFECT_MOTION_TYPE)
-            {
-                switch (m_movePart)
-                {
-                    case 2: // jump over wall
+                            darius->AI()->Talk(0, player);
+                    SchedulePeriodicTalk(10s);
+                }, 5s);
+                ScheduleMovementCheck(500ms);
+                break;
+            case 3:
+                m_phase = 4;
+                me->GetMotionMaster()->MovePoint(1032, -1592.09f, 1710.71f, 20.5899f);
+                ScheduleMovementCheck(500ms);
+                break;
+            case 4:
+                m_phase = 5;
+                me->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1571.1566f, 1709.6495f, 21.8051f), 25.0f, 15.0f);
+                ScheduleMovementCheck(500ms);
+                break;
+            case 5:
+                m_phase = 6;
+                me->GetMotionMaster()->MovePath(GetPathRun2(), false);
+                ScheduleMovementCheck(500ms);
+                break;
+            case 6:
+                if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                    if (player->GetQuestStatus(QUEST_SACRIFICES) != QUEST_STATUS_COMPLETE)
                     {
-                        m_events.ScheduleEvent(EVENT_MOVE_PART2, 10s);
-                        break;
+                        player->FailQuest(QUEST_SACRIFICES);
+                        player->NearTeleportTo(-1739.2f, 1657.9f, 20.48f, 0.5225f);
                     }
-                    case 4: // jump over bridge
-                    {
-                        m_events.ScheduleEvent(EVENT_MOVE_PART4, 10s);
-                        break;
-                    }
-                }
+                me->DespawnOrUnsummon(10s);
+                break;
             }
         }
 
-        void UpdateAI(uint32 diff) override
+        void SchedulePeriodicTalk(Milliseconds delay)
         {
-            m_events.Update(diff);
-
-            while (uint32 eventId = m_events.ExecuteEvent())
-            {
-                switch (eventId)
+            me->m_Events.AddEventAtOffset([this]() {
+                if (m_phase < 6 && me->IsAlive())
                 {
-                case EVENT_START_WALK: // walk to the wall
-                {
-                    m_movePart = 1;
-                    me->GetMotionMaster()->MovePoint(1031, -1735.01f, 1653.01f, 20.49f);
-                    break;
+                    if (Creature* darius = ObjectAccessor::GetCreature(*me, m_dariusGUID))
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            darius->AI()->Talk(urand(1,3), player);
+                    SchedulePeriodicTalk(randtime(15s, 30s));
                 }
-                case EVENT_MOVE_PART1: // jump over wall
-                {
-                    m_movePart = 2;
-                    me->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1714.02f, 1666.37f, 20.57f), 0.0f, 25.0f, 15.0f);
-                    break;
-                }
-                case EVENT_MOVE_PART2:
-                {
-                    m_movePart = 3; // waypoint
-                    me->GetMotionMaster()->MovePath(352311, false); // 0-16
-                    break;
-                }
-                case EVENT_MOVE_PART3:
-                {
-                    m_movePart = 4; // jump over brige
-                    me->GetMotionMaster()->MoveJump(EVENT_JUMP, Position(-1571.23f, 1710.034f, 20.485f), 0.0f, 25.0f, 15.0f);
-                    break;
-                }
-                case EVENT_MOVE_PART4:
-                {
-                    m_movePart = 5; // to cathedrale
-                    me->GetMotionMaster()->MovePath(352312, false); // 0-14
-                    break;
-                }
-                case EVENT_MOVE_PART5:  // despawn
-                {
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        if (player->GetQuestStatus(QUEST_SACRIFICES) != QUEST_STATUS_COMPLETE)
-                        {
-                            player->FailQuest(QUEST_SACRIFICES);
-                            player->NearTeleportTo(-1739.2f, 1657.9f, 20.48f, 0.5225f);
-                        }
-                    me->DespawnOrUnsummon(10s);
-                    break;
-                }
-                case EVENT_TALK_PERIODIC:
-                {
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                        if (Creature* darius = ObjectAccessor::GetCreature(*me, m_dariusGUID))
-                            darius->AI()->Talk(1, player);
-                    if (m_movePart < 5)
-                        m_events.ScheduleEvent(EVENT_TALK_PERIODIC, 5000ms, 8000ms);
-                    break;
-                }
-                }
-            }
-
-            UpdateVictim();
+            }, delay);
         }
     };
 
@@ -4503,7 +4468,6 @@ public:
 
 void AddSC_zone_gilneas_city1()
 {
-    new player_zone_gilneas_city1();
     new npc_gilneas_city_guard_gate_34864();
     new npc_rampaging_worgen_35660();
     new npc_gilneas_city_guard_34916();
