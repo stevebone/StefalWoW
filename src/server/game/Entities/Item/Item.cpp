@@ -2284,7 +2284,7 @@ uint32 Item::GetItemLevel(Player const* owner) const
 }
 
 uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bonusData, uint32 level, uint32 fixedLevel,
-    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel)
+    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel, bool applySquish)
 {
     if (!itemTemplate)
         return MIN_ITEM_LEVEL;
@@ -2308,7 +2308,10 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.ItemLevelBonus;
     }
     else
-        itemLevel = bonusData.ItemLevelOffset + uint32(std::round(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, bonusData.ItemLevelOffsetItemLevel)));
+    {
+        int32 effective = static_cast<int32>(bonusData.ItemLevelOffset) + static_cast<int32>(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, level));
+        itemLevel = uint32(std::max(effective, static_cast<int32>(MIN_ITEM_LEVEL)));
+    }
 
     for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
         itemLevel += bonusData.GemItemLevelBonus[i];
@@ -2323,35 +2326,37 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.PvpItemLevelBonus;
     }
 
-    if (!bonusData.IgnoreSquish)
+    if (applySquish)
     {
-        if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
+        if (!bonusData.IgnoreSquish)
         {
-            int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
-
-            // apply all squishes between items_squish and server_squish
-            for (uint32 squishId = bonusData.ItemSquishEraID + 1; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+            if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
             {
-                ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
-                if (!squish || squish->Flags & 0x1)
-                    continue;
+                int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
 
-                if (squish->Patch > currentBuild)
-                    break;
+                for (uint32 squishId = bonusData.ItemSquishEraID; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+                {
+                    ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
+                    if (!squish)
+                        continue;
 
-                if (squish->CurveID)
-                    itemLevel = uint32(std::round(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel)));
+                    if (squish->Patch > currentBuild)
+                        break;
+
+                    if (squish->CurveID)
+                        itemLevel = uint32(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel));
+                }
             }
         }
-    }
 
-	if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
-    {
-        if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
-            itemLevel = minItemLevel;
+        if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
+        {
+            if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
+                itemLevel = minItemLevel;
 
-        if (maxItemLevel && itemLevel > maxItemLevel)
-            itemLevel = maxItemLevel;
+            if (maxItemLevel && itemLevel > maxItemLevel)
+                itemLevel = maxItemLevel;
+        }
     }
 
     return std::min(std::max(itemLevel, uint32(MIN_ITEM_LEVEL)), uint32(MAX_ITEM_LEVEL));
@@ -2380,7 +2385,7 @@ int32 Item::GetItemStatType(uint32 index) const
     return itemStatType;
 }
 
-float Item::GetItemStatValue(uint32 index, Player const* owner) const
+float Item::GetItemStatValue(uint32 index, uint32 itemLevel) const
 {
     ASSERT(index < MAX_ITEM_PROTO_STATS);
     switch (GetItemStatType(index))
@@ -2392,17 +2397,21 @@ float Item::GetItemStatValue(uint32 index, Player const* owner) const
             break;
     }
 
-    uint32 itemLevel = GetItemLevel(owner);
     if (float randomPropPoints = GetRandomPropertyPoints(itemLevel, GetQuality(), GetTemplate()->GetInventoryType(), GetTemplate()->GetSubClass()))
     {
         float statValue = float(_bonusData.StatPercentEditor[index] * randomPropPoints) * 0.0001f;
         if (GtItemSocketCostPerLevelEntry const* gtCost = sItemSocketCostPerLevelGameTable.GetRow(itemLevel))
             statValue -= float(_bonusData.ItemStatSocketCostMultiplier[index] * gtCost->SocketCost);
 
-        return statValue;
+        return std::round(statValue);
     }
 
     return 0.0f;
+}
+
+float Item::GetItemStatValue(uint32 index, Player const* owner) const
+{
+    return GetItemStatValue(index, GetItemLevel(owner));
 }
 
 Optional<uint32> Item::GetDisenchantLootId() const
