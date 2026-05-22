@@ -2284,7 +2284,7 @@ uint32 Item::GetItemLevel(Player const* owner) const
 }
 
 uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bonusData, uint32 level, uint32 fixedLevel,
-    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel, bool applySquish)
+    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel)
 {
     if (!itemTemplate)
         return MIN_ITEM_LEVEL;
@@ -2302,13 +2302,13 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
             else if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(bonusData.ContentTuningId, {}, true))
                 level = std::min(std::max(int16(level), levels->MinLevel), levels->MaxLevel);
 
-            itemLevel = uint32(sDB2Manager.GetCurveValueAt(bonusData.PlayerLevelToItemLevelCurveId, level));
+            itemLevel = uint32(std::round(sDB2Manager.GetCurveValueAt(bonusData.PlayerLevelToItemLevelCurveId, level)));
         }
 
         itemLevel += bonusData.ItemLevelBonus;
     }
     else
-        itemLevel = bonusData.ItemLevelOffset + uint32(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, bonusData.ItemLevelOffsetItemLevel));
+        itemLevel = bonusData.ItemLevelOffset + uint32(std::round(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, bonusData.ItemLevelOffsetItemLevel)));
 
     for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
         itemLevel += bonusData.GemItemLevelBonus[i];
@@ -2323,37 +2323,35 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.PvpItemLevelBonus;
     }
 
-    if (applySquish)
+    if (!bonusData.IgnoreSquish)
     {
-        if (!bonusData.IgnoreSquish)
+        if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
         {
-            if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
+            int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
+
+            // apply all squishes between items_squish and server_squish
+            for (uint32 squishId = bonusData.ItemSquishEraID + 1; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
             {
-                int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
+                ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
+                if (!squish || squish->Flags & 0x1)
+                    continue;
 
-                for (uint32 squishId = bonusData.ItemSquishEraID; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
-                {
-                    ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
-                    if (!squish)
-                        continue;
+                if (squish->Patch > currentBuild)
+                    break;
 
-                    if (squish->Patch > currentBuild)
-                        break;
-
-                    if (squish->CurveID)
-                        itemLevel = uint32(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel));
-                }
+                if (squish->CurveID)
+                    itemLevel = uint32(std::round(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel)));
             }
         }
+    }
 
-        if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
-        {
-            if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
-                itemLevel = minItemLevel;
+	if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
+    {
+        if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
+            itemLevel = minItemLevel;
 
-            if (maxItemLevel && itemLevel > maxItemLevel)
-                itemLevel = maxItemLevel;
-        }
+        if (maxItemLevel && itemLevel > maxItemLevel)
+            itemLevel = maxItemLevel;
     }
 
     return std::min(std::max(itemLevel, uint32(MIN_ITEM_LEVEL)), uint32(MAX_ITEM_LEVEL));
@@ -2399,7 +2397,7 @@ float Item::GetItemStatValue(uint32 index, Player const* owner) const
     {
         float statValue = float(_bonusData.StatPercentEditor[index] * randomPropPoints) * 0.0001f;
         if (GtItemSocketCostPerLevelEntry const* gtCost = sItemSocketCostPerLevelGameTable.GetRow(itemLevel))
-            statValue -= float(int32(_bonusData.ItemStatSocketCostMultiplier[index] * gtCost->SocketCost));
+            statValue -= float(_bonusData.ItemStatSocketCostMultiplier[index] * gtCost->SocketCost);
 
         return statValue;
     }
