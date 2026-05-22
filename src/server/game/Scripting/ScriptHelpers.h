@@ -1,0 +1,78 @@
+/*
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef SC_SCRIPTHELPERS_H
+#define SC_SCRIPTHELPERS_H
+
+#include "Define.h"
+#include "ObjectGuid.h"
+#include <vector>
+#include <string>
+
+class Creature;
+class Player;
+
+namespace ScriptHelpers
+{
+    // Simplified gossip option structure for scripts to avoid needing NPCPackets.h
+    struct GossipOptionData
+    {
+        int32 GossipOptionID;
+        uint32 OrderIndex;
+        std::string Text;
+        uint32 SpellID;
+        uint8 Status; // GossipOptionStatus enum value
+    };
+
+    // Simplified treasure item structure for scripts
+    struct TreasureItemData
+    {
+        uint32 ItemID;
+        uint32 Quantity;
+        uint32 ItemContext;
+    };
+
+    // Wrapper function to send a clear fake party update packet to a player
+    // This constructs the packet internally in the core to avoid linking issues with dynamic loading
+    TC_GAME_API void SendClearFakeParty(Player* player);
+
+    // Wrapper function to send a party member full state packet for a bot to a player
+    // This constructs the packet internally in the core to avoid linking issues with dynamic loading
+    // Takes raw bot data instead of PartyMemberStats to avoid needing PartyPackets.h in scripts
+    TC_GAME_API void SendBotMemberState(Player* player, Creature* bot, uint32 level, uint32 currentHealth, uint32 maxHealth, 
+                                          uint8 powerType, uint32 currentPower, uint32 maxPower, uint32 zoneID, 
+                                          float positionX, float positionY, float positionZ, 
+                                          std::vector<uint32> const& auraSpellIds);
+
+    // Wrapper function to send a fake party update packet to a player with bots
+    // This constructs the packet internally in the core to avoid linking issues with dynamic loading
+    // Takes a list of bot creatures and their class/race information to include in the party
+    TC_GAME_API void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces);
+
+    // Wrapper function to send a GossipMessage packet to a player
+    // This constructs the packet internally in the core to avoid linking issues with dynamic loading
+    // Takes simplified data structures instead of the full GossipMessage to avoid needing NPCPackets.h in scripts
+    TC_GAME_API void SendGossipMessage(Player* player, ObjectGuid gossipGUID, uint32 gossipID, uint32 lfgDungeonsID, 
+                                        uint32 broadcastTextID, std::vector<GossipOptionData> const& options,
+                                        std::vector<std::vector<TreasureItemData>> const& treasureItems);
+
+    // Wrapper function to send a ShowDelvesCompanionConfigurationUI packet to a player
+    // This constructs the packet internally in the core to avoid linking issues with dynamic loading
+    TC_GAME_API void SendShowDelvesCompanionConfigurationUI(Player* player, uint32 companionConfigValue);
+}
+
+#endif // SC_SCRIPTHELPERS_H

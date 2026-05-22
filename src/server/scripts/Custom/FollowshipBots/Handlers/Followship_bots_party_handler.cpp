@@ -20,8 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "PartyPackets.h"
 #include "PacketOperators.h"
+#include "ScriptHelpers.h"
 
 #include "Log.h"
 #include "Group.h"
@@ -110,63 +110,15 @@ namespace FSBParty
             else
             {
                 // Player is in a real group ? send a normal group-only PartyUpdate
-                WorldPackets::Party::PartyUpdate partyUpdate;
-                partyUpdate.PartyFlags = realGroup->GetGroupFlags();
-                partyUpdate.PartyIndex = realGroup->GetGroupCategory();
-                partyUpdate.PartyType = GROUP_TYPE_NORMAL;
-                partyUpdate.PartyGUID = realGroup->GetGUID();
-                partyUpdate.LeaderGUID = realGroup->GetLeaderGUID();
-                partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
-                partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(realGroup->GetGroupCategory());
-
-                int32 myIndex = -1;
-                uint8 index = 0;
-
-                for (auto const& memberSlot : realGroup->GetMemberSlots())
-                {
-                    if (memberSlot.guid == player->GetGUID())
-                        myIndex = index;
-
-                    Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid);
-
-                    WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
-                    info.GUID = memberSlot.guid;
-                    info.Name = memberSlot.name;
-                    info.Class = memberSlot._class;
-                    info.FactionGroup = Player::GetFactionGroupForRace(memberSlot.race);
-                    info.Connected = member && member->GetSession() && !member->GetSession()->PlayerLogout();
-                    info.Subgroup = memberSlot.group;
-                    info.Flags = memberSlot.flags;
-                    info.RolesAssigned = memberSlot.roles;
-                    ++index;
-                }
-
-                partyUpdate.MyIndex = myIndex;
-
-                if (partyUpdate.PlayerList.size() > 1)
-                {
-                    partyUpdate.LootSettings.emplace();
-                    partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
-                    partyUpdate.LootSettings->Threshold = realGroup->GetLootThreshold();
-                    partyUpdate.LootSettings->LootMaster = ObjectGuid::Empty;
-
-                    partyUpdate.DifficultySettings.emplace();
-                    partyUpdate.DifficultySettings->DungeonDifficultyID = realGroup->GetDungeonDifficultyID();
-                    partyUpdate.DifficultySettings->RaidDifficultyID = realGroup->GetRaidDifficultyID();
-                    partyUpdate.DifficultySettings->LegacyRaidDifficultyID = realGroup->GetLegacyRaidDifficultyID();
-                }
-
-                player->SendDirectMessage(partyUpdate.Write());
+                ScriptHelpers::SendFakePartyUpdate(player, std::vector<Creature*>(), std::vector<uint8>(), std::vector<uint8>());
 
                 TC_LOG_DEBUG("scripts.fsb.party",
-                    "FSB: SendFakePartyUpdate Sent real-only PartyUpdate to {} with {} members (no active bots)",
-                    player->GetName(), partyUpdate.PlayerList.size());
+                    "FSB: SendFakePartyUpdate Sent real-only PartyUpdate to {} (no active bots)",
+                    player->GetName());
             }
 
             return;
         }
-
-        WorldPackets::Party::PartyUpdate partyUpdate;
 
         // ------------------------------------------------------------
         // LIMIT PARTY SIZE TO MAX 5 (PLAYER + 4 OTHERS)
@@ -188,126 +140,31 @@ namespace FSBParty
         if (trimmedBots.size() > maxBotsAllowed)
             trimmedBots.resize(maxBotsAllowed);
 
-        // filter bots
+        // filter bots and collect class/race info
         std::vector<Creature*> safeBots;
+        std::vector<uint8> botClasses;
+        std::vector<uint8> botRaces;
         for (Creature* bot : trimmedBots)
         {
             if (bot && bot->IsInWorld())
+            {
                 safeBots.push_back(bot);
+                FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+                FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+                botClasses.push_back(FSBUtils::FSBToTCClass(botClass));
+                botRaces.push_back(FSBUtils::BotRaceToTC(botRace));
+            }
         }
 
         baseAI->partyBots = safeBots;
 
         // ------------------------------------------------------------
 
-        if (realGroup)
-        {
-            // Player is in a real group - augment it with bots
-            partyUpdate.PartyFlags = realGroup->GetGroupFlags();
-            partyUpdate.PartyIndex = realGroup->GetGroupCategory();
-            partyUpdate.PartyType = GROUP_TYPE_NORMAL;
-            partyUpdate.PartyGUID = realGroup->GetGUID();
-            partyUpdate.LeaderGUID = realGroup->GetLeaderGUID();
-            partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
-            partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(realGroup->GetGroupCategory());
-
-            int32 myIndex = -1;
-            uint8 index = 0;
-
-            for (auto const& memberSlot : realGroup->GetMemberSlots())
-            {
-                if (memberSlot.guid == player->GetGUID())
-                    myIndex = index;
-
-                Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid);
-
-                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
-                info.GUID = memberSlot.guid;
-                info.Name = memberSlot.name;
-                info.Class = memberSlot._class;
-                info.FactionGroup = Player::GetFactionGroupForRace(memberSlot.race);
-                info.Connected = member && member->GetSession() && !member->GetSession()->PlayerLogout();
-                info.Subgroup = memberSlot.group;
-                info.Flags = memberSlot.flags;
-                info.RolesAssigned = memberSlot.roles;
-                ++index;
-            }
-
-            partyUpdate.MyIndex = myIndex;
-
-            // Append bots
-            for (Creature* bot : safeBots)
-            {
-                FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-                FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
-
-                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
-                info.GUID = bot->GetGUID();
-                info.Name = bot->GetName();
-                info.Class = FSBUtils::FSBToTCClass(botClass);
-                info.FactionGroup = Player::GetFactionGroupForRace(FSBUtils::BotRaceToTC(botRace));
-                info.Connected = true;
-                info.Subgroup = 0;
-                info.RolesAssigned = GetLfgRoleForBot(bot);
-            }
-
-            if (partyUpdate.PlayerList.size() > 1)
-            {
-                partyUpdate.LootSettings.emplace();
-                partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
-                partyUpdate.LootSettings->Threshold = realGroup->GetLootThreshold();
-                partyUpdate.LootSettings->LootMaster = ObjectGuid::Empty;
-
-                partyUpdate.DifficultySettings.emplace();
-                partyUpdate.DifficultySettings->DungeonDifficultyID = realGroup->GetDungeonDifficultyID();
-                partyUpdate.DifficultySettings->RaidDifficultyID = realGroup->GetRaidDifficultyID();
-                partyUpdate.DifficultySettings->LegacyRaidDifficultyID = realGroup->GetLegacyRaidDifficultyID();
-            }
-        }
-        else
-        {
-            // Player is solo - create a fake standalone party
-            partyUpdate.PartyFlags = GROUP_FLAG_NONE;
-            partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
-            partyUpdate.PartyType = GROUP_TYPE_NORMAL;
-
-            partyUpdate.PartyGUID = player->GetGUID();
-            partyUpdate.LeaderGUID = player->GetGUID();
-            partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
-            partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_HOME);
-
-            WorldPackets::Party::PartyPlayerInfo& playerInfo = partyUpdate.PlayerList.emplace_back();
-            playerInfo.GUID = player->GetGUID();
-            playerInfo.Name = player->GetName();
-            playerInfo.Class = player->GetClass();
-            playerInfo.FactionGroup = Player::GetFactionGroupForRace(player->GetRace());
-            playerInfo.Connected = true;
-            playerInfo.Subgroup = 0;
-            playerInfo.RolesAssigned = 0;
-
-            partyUpdate.MyIndex = 0;
-
-            for (Creature* bot : safeBots)
-            {
-                FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-                FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
-
-                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
-                info.GUID = bot->GetGUID();
-                info.Name = bot->GetName();
-                info.Class = FSBUtils::FSBToTCClass(botClass);
-                info.FactionGroup = Player::GetFactionGroupForRace(FSBUtils::BotRaceToTC(botRace));
-                info.Connected = true;
-                info.Subgroup = 0;
-                info.RolesAssigned = GetLfgRoleForBot(bot);
-            }
-        }
-
-        player->SendDirectMessage(partyUpdate.Write());
+        ScriptHelpers::SendFakePartyUpdate(player, safeBots, botClasses, botRaces);
 
         TC_LOG_DEBUG("scripts.fsb.party",
-            "FSB: SendFakePartyUpdate sent to player {} with {} members (including {} bots)",
-            player->GetName(), partyUpdate.PlayerList.size(), safeBots.size());
+            "FSB: SendFakePartyUpdate sent to player {} with {} bots",
+            player->GetName(), safeBots.size());
     }
 
     void SendBotMemberState(Player* player, Creature* bot)
@@ -327,116 +184,30 @@ namespace FSBParty
         if (!player->HaveAtClient(bot))
             return;
 
-        WorldPackets::Party::PartyMemberFullState packet;
-        packet.ForEnemy = false;
-        packet.MemberGuid = bot->GetGUID();
+        // Collect bot data
+        uint32 level = bot->GetLevel();
+        uint32 currentHealth = bot->GetHealth();
+        uint32 maxHealth = bot->GetMaxHealth();
+        uint8 powerType = bot->GetPowerType();
+        uint32 currentPower = bot->GetPower(bot->GetPowerType());
+        uint32 maxPower = bot->GetMaxPower(bot->GetPowerType());
+        uint32 zoneID = bot->GetZoneId();
+        float positionX = bot->GetPositionX();
+        float positionY = bot->GetPositionY();
+        float positionZ = bot->GetPositionZ();
 
-        auto& stats = packet.MemberStats;
+        // Get aura spell IDs
+        std::vector<uint32> auraSpellIds = GetBotAppliedAuras(bot);
 
-        // Status -- crashing the client for now
-        /*
-        if (!bot || !bot->IsInWorld())
-        {
-            stats.Status = MEMBER_STATUS_OFFLINE;
-        }
-        else if (bot->HasAura(SPELL_SPECIAL_GHOST))
-        {
-            stats.Status = MEMBER_STATUS_GHOST;
-        }
-        else if (!bot->IsAlive())
-        {
-            stats.Status = MEMBER_STATUS_DEAD;
-        }
-        else
-        {
-            stats.Status = MEMBER_STATUS_ONLINE;
-        }
-        */
+        TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), auraSpellIds.size());
 
-        // Level
-        stats.Level = bot->GetLevel();
-
-        // Health
-        stats.CurrentHealth = bot->GetHealth();
-        stats.MaxHealth = bot->GetMaxHealth();
-
-        // Power
-        stats.PowerType = bot->GetPowerType();
-        //stats.PowerDisplayID = 0;
-        stats.CurrentPower = bot->GetPower(bot->GetPowerType());
-        stats.MaxPower = bot->GetMaxPower(bot->GetPowerType());
-
-        // Position
-        stats.ZoneID = bot->GetZoneId();
-        stats.PositionX = bot->GetPositionX();
-        stats.PositionY = bot->GetPositionY();
-        stats.PositionZ = bot->GetPositionZ();
-
-        // Spec - bots don't have specs, use 0
-        //stats.SpecID = 0;
-
-        // PartyType
-        stats.PartyType[0] = GROUP_TYPE_NORMAL;
-        //stats.PartyType[1] = 0;
-
-        stats.Auras = GetBotAppliedAuras(bot);
-
-        // Pet
-        /*
-        if (FSBPet::BotHasPet(bot))
-        {
-            Unit* pet = FSBPet::GetBotPet(bot);
-
-            stats.PetStats.emplace();
-
-            stats.PetStats->GUID = pet->GetGUID();
-            stats.PetStats->Name = pet->GetName();
-            stats.PetStats->ModelId = pet->GetDisplayId();
-
-            stats.PetStats->CurrentHealth = pet->GetHealth();
-            stats.PetStats->MaxHealth = pet->GetMaxHealth();
-
-            for (AuraApplication const* aurApp : pet->GetVisibleAuras())
-            {
-                WorldPackets::Party::PartyMemberAuraStates& aura = stats.PetStats->Auras.emplace_back();
-
-                aura.SpellID = aurApp->GetBase()->GetId();
-                aura.ActiveFlags = aurApp->GetEffectMask();
-                aura.Flags = aurApp->GetFlags();
-
-                if (aurApp->GetFlags() & AFLAG_SCALABLE)
-                    for (AuraEffect const* aurEff : aurApp->GetBase()->GetAuraEffects())
-                        if (aurApp->HasEffect(aurEff->GetEffIndex()))
-                            aura.Points.push_back(float(aurEff->GetAmount()));
-            }
-        }
-        */
-        TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), stats.Auras.size());
-
-        player->SendDirectMessage(packet.Write());
+        ScriptHelpers::SendBotMemberState(player, bot, level, currentHealth, maxHealth, powerType, currentPower, maxPower, 
+                                         zoneID, positionX, positionY, positionZ, auraSpellIds);
     }
 
     void SendClearFakeParty(Player* player)
     {
-        if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || !player->IsInWorld())
-            return;
-
-        // Only clear if the player is NOT in a real group
-        if (player->GetGroup() && player->GetGroup()->GetMembersCount() > 1)
-            return;
-
-        WorldPackets::Party::PartyUpdate partyUpdate;
-        partyUpdate.PartyFlags = GROUP_FLAG_NONE;
-        partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
-        partyUpdate.PartyType = GROUP_TYPE_NONE;
-        partyUpdate.PartyGUID = player->GetGUID();
-        partyUpdate.PartyGUID = ObjectGuid::Empty;
-        partyUpdate.LeaderGUID = ObjectGuid::Empty;
-        partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
-        partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_HOME);
-        partyUpdate.MyIndex = -1;
-
-        player->SendDirectMessage(partyUpdate.Write());
+        ScriptHelpers::SendClearFakeParty(player);
 
         TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendClearFakeParty sent to player {}", player->GetName());
     }
@@ -563,10 +334,9 @@ namespace FSBParty
         }
     }
 
-    std::vector<WorldPackets::Party::PartyMemberAuraStates>
-        GetBotAppliedAuras(Creature* bot)
+    std::vector<uint32> GetBotAppliedAuras(Creature* bot)
     {
-        std::vector<WorldPackets::Party::PartyMemberAuraStates> result;
+        std::vector<uint32> result;
 
         if (!bot)
             return result;
@@ -580,21 +350,7 @@ namespace FSBParty
             if (!aura)
                 continue;
 
-            WorldPackets::Party::PartyMemberAuraStates auraState;
-            auraState.SpellID = aura->GetId();
-            auraState.ActiveFlags = aurApp->GetEffectMask();
-            auraState.Flags = aurApp->GetFlags();
-
-            if (aurApp->GetFlags() & AFLAG_SCALABLE)
-            {
-                for (AuraEffect const* aurEff : aura->GetAuraEffects())
-                {
-                    if (aurApp->HasEffect(aurEff->GetEffIndex()))
-                        auraState.Points.push_back(float(aurEff->GetAmount()));
-                }
-            }
-
-            result.push_back(auraState);
+            result.push_back(aura->GetId());
         }
 
         return result;

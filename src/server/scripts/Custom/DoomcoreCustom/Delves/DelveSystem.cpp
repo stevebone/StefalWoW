@@ -16,6 +16,7 @@
 
 #include "DelveData.h"
 #include "DelvePackets.h"
+#include "ScriptHelpers.h"
 #include "ScriptMgr.h"
 #include "Creature.h"
 #include "DBCEnums.h"
@@ -23,7 +24,6 @@
 #include "GameObjectAI.h"
 #include "GossipDef.h"
 #include "Log.h"
-#include "NPCPackets.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
@@ -110,42 +110,41 @@ public:
                 );
             }
 
-            WorldPackets::NPC::GossipMessage gossipMessage;
-            gossipMessage.GossipGUID      = me->GetGUID();
-            gossipMessage.GossipID        = info->GossipMenuId;
-            gossipMessage.LfgDungeonsID   = info->LfgDungeonsId;
-            gossipMessage.BroadcastTextID = info->BroadcastTextId;
+            // Collect gossip options data
+            std::vector<ScriptHelpers::GossipOptionData> options;
+            std::vector<std::vector<ScriptHelpers::TreasureItemData>> treasureItems;
 
             for (uint32 i = 0; i < MAX_DELVE_TIERS; ++i)
             {
-                auto& opt = gossipMessage.GossipOptions.emplace_back();
+                ScriptHelpers::GossipOptionData opt;
                 opt.GossipOptionID = info->FirstTierGossipOptionId - static_cast<int32>(i);
-                opt.OrderIndex     = i;
-                opt.OptionNPC      = GossipOptionNpc::None;
-                opt.Text           = TIER_NAMES[i];
-                opt.SpellID        = TIER_SPELL_IDS[i];
-
-                // TODO: compute real eligibility per-player (ilvl, achievements, etc.)
-                opt.Status = GossipOptionStatus::Available;
+                opt.OrderIndex = i;
+                opt.Text = TIER_NAMES[i];
+                opt.SpellID = TIER_SPELL_IDS[i];
+                opt.Status = static_cast<uint8>(GossipOptionStatus::Available);
+                options.push_back(opt);
 
                 bool lowTier = (i < 3);
                 auto const* previews = lowTier ? TREASURE_3_ITEMS : TREASURE_2_ITEMS;
                 uint32 count = lowTier ? 3 : 2;
+                
+                std::vector<ScriptHelpers::TreasureItemData> items;
                 for (uint32 t = 0; t < count; ++t)
                 {
-                    WorldPackets::NPC::TreasureItem ti;
-                    ti.Type        = GossipOptionRewardType::Item;
-                    ti.ID          = previews[t].ItemID;
-                    ti.Quantity    = 1;
-                    ti.ItemContext = previews[t].ItemContext;
-                    opt.Treasure.Items.push_back(ti);
+                    ScriptHelpers::TreasureItemData item;
+                    item.ItemID = previews[t].ItemID;
+                    item.Quantity = 1;
+                    item.ItemContext = previews[t].ItemContext;
+                    items.push_back(item);
                 }
+                treasureItems.push_back(items);
             }
 
             player->PlayerTalkClass->GetInteractionData().StartInteraction(
                 me->GetGUID(), PlayerInteractionType::Gossip);
 
-            player->GetSession()->SendPacket(gossipMessage.Write());
+            ScriptHelpers::SendGossipMessage(player, me->GetGUID(), info->GossipMenuId, info->LfgDungeonsId, 
+                                             info->BroadcastTextId, options, treasureItems);
 
             _delveInfo = info;
 
@@ -315,9 +314,7 @@ struct npc_valeera_companion : public ScriptedAI
             player->GetName());
 
         // Send companion configuration UI packet
-        WorldPackets::Delve::ShowDelvesCompanionConfigurationUI configUI;
-        configUI.CompanionConfigValue = 257755; // From sniff - companion TraitConfig ID
-        player->GetSession()->SendPacket(configUI.Write());
+        ScriptHelpers::SendShowDelvesCompanionConfigurationUI(player, 257755); // From sniff - companion TraitConfig ID
 
         return true;
     }

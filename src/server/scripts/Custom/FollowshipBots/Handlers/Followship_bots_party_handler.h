@@ -24,7 +24,6 @@
 
 #include <vector>
 
-#include "PartyPackets.h"
 #include "Creature.h"
 
 #include "Followship_bots_defines.h"
@@ -54,5 +53,5 @@ namespace FSBParty
     void OnMemberAdd(Group* group, ObjectGuid guid);
     void OnMemberRemove(Group* group, ObjectGuid guid);
 
-    std::vector<WorldPackets::Party::PartyMemberAuraStates> GetBotAppliedAuras(Creature* bot);
+    std::vector<uint32> GetBotAppliedAuras(Creature* bot);
 }

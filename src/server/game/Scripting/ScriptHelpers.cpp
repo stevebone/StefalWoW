@@ -1,0 +1,338 @@
+/*
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ScriptHelpers.h"
+#include "Creature.h"
+#include "ObjectAccessor.h"
+#include "Player.h"
+#include "Server/Packets/PartyPackets.h"
+#include "Server/Packets/NpcPackets.h"
+#include "Server/Packets/DelvePackets.h"
+#include "Group.h"
+#include "WorldSession.h"
+#include "GossipDef.h"
+
+namespace ScriptHelpers
+{
+    void SendClearFakeParty(Player* player)
+    {
+        if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || !player->IsInWorld())
+            return;
+
+        // Only clear if the player is NOT in a real group
+        if (player->GetGroup() && player->GetGroup()->GetMembersCount() > 1)
+            return;
+
+        WorldPackets::Party::PartyUpdate partyUpdate;
+        partyUpdate.PartyFlags = GROUP_FLAG_NONE;
+        partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
+        partyUpdate.PartyType = GROUP_TYPE_NONE;
+        partyUpdate.PartyGUID = ObjectGuid::Empty;
+        partyUpdate.LeaderGUID = ObjectGuid::Empty;
+        partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+        partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_HOME);
+        partyUpdate.MyIndex = -1;
+
+        player->SendDirectMessage(partyUpdate.Write());
+    }
+
+    void SendBotMemberState(Player* player, Creature* bot, uint32 level, uint32 currentHealth, uint32 maxHealth, 
+                           uint8 powerType, uint32 currentPower, uint32 maxPower, uint32 zoneID, 
+                           float positionX, float positionY, float positionZ, 
+                           std::vector<uint32> const& auraSpellIds)
+    {
+        if (!player || !player->GetSession() || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
+            return;
+
+        if (player->GetSession()->PlayerLoading())
+            return;
+
+        if (!bot || !bot->IsInWorld())
+            return;
+
+        if (player->GetMapId() != bot->GetMapId())
+            return;
+
+        if (!player->HaveAtClient(bot))
+            return;
+
+        WorldPackets::Party::PartyMemberFullState packet;
+        packet.ForEnemy = false;
+        packet.MemberGuid = bot->GetGUID();
+
+        auto& stats = packet.MemberStats;
+        stats.Level = level;
+        stats.CurrentHealth = currentHealth;
+        stats.MaxHealth = maxHealth;
+        stats.PowerType = powerType;
+        stats.CurrentPower = currentPower;
+        stats.MaxPower = maxPower;
+        stats.ZoneID = zoneID;
+        stats.PositionX = positionX;
+        stats.PositionY = positionY;
+        stats.PositionZ = positionZ;
+        stats.PartyType[0] = GROUP_TYPE_NORMAL;
+
+        // Populate auras
+        for (uint32 spellId : auraSpellIds)
+        {
+            WorldPackets::Party::PartyMemberAuraStates& aura = stats.Auras.emplace_back();
+            aura.SpellID = spellId;
+            aura.ActiveFlags = 0;
+            aura.Flags = 0;
+        }
+
+        player->SendDirectMessage(packet.Write());
+    }
+
+    void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces)
+    {
+        if (!player || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
+            return;
+
+        Group* realGroup = player->GetGroup();
+
+        if (bots.empty())
+        {
+            if (!realGroup || realGroup->GetMembersCount() == 1)
+            {
+                // Player is solo ? send a clean "clear fake party"
+                SendClearFakeParty(player);
+            }
+            else
+            {
+                // Player is in a real group ? send a normal group-only PartyUpdate
+                WorldPackets::Party::PartyUpdate partyUpdate;
+                partyUpdate.PartyFlags = realGroup->GetGroupFlags();
+                partyUpdate.PartyIndex = realGroup->GetGroupCategory();
+                partyUpdate.PartyType = GROUP_TYPE_NORMAL;
+                partyUpdate.PartyGUID = realGroup->GetGUID();
+                partyUpdate.LeaderGUID = realGroup->GetLeaderGUID();
+                partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+                partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(realGroup->GetGroupCategory());
+
+                int32 myIndex = -1;
+                uint8 index = 0;
+
+                for (auto const& memberSlot : realGroup->GetMemberSlots())
+                {
+                    if (memberSlot.guid == player->GetGUID())
+                        myIndex = index;
+
+                    Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid);
+
+                    WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
+                    info.GUID = memberSlot.guid;
+                    info.Name = memberSlot.name;
+                    info.Class = memberSlot._class;
+                    info.FactionGroup = Player::GetFactionGroupForRace(memberSlot.race);
+                    info.Connected = member && member->GetSession() && !member->GetSession()->PlayerLogout();
+                    info.Subgroup = memberSlot.group;
+                    info.Flags = memberSlot.flags;
+                    info.RolesAssigned = memberSlot.roles;
+                    ++index;
+                }
+
+                partyUpdate.MyIndex = myIndex;
+
+                if (partyUpdate.PlayerList.size() > 1)
+                {
+                    partyUpdate.LootSettings.emplace();
+                    partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
+                    partyUpdate.LootSettings->Threshold = realGroup->GetLootThreshold();
+                    partyUpdate.LootSettings->LootMaster = ObjectGuid::Empty;
+
+                    partyUpdate.DifficultySettings.emplace();
+                    partyUpdate.DifficultySettings->DungeonDifficultyID = realGroup->GetDungeonDifficultyID();
+                    partyUpdate.DifficultySettings->RaidDifficultyID = realGroup->GetRaidDifficultyID();
+                    partyUpdate.DifficultySettings->LegacyRaidDifficultyID = realGroup->GetLegacyRaidDifficultyID();
+                }
+
+                player->SendDirectMessage(partyUpdate.Write());
+            }
+
+            return;
+        }
+
+        WorldPackets::Party::PartyUpdate partyUpdate;
+
+        // Filter bots and match with class/race info
+        std::vector<Creature*> safeBots;
+        std::vector<uint8> safeBotClasses;
+        std::vector<uint8> safeBotRaces;
+        for (size_t i = 0; i < bots.size() && i < botClasses.size() && i < botRaces.size(); ++i)
+        {
+            if (bots[i] && bots[i]->IsInWorld())
+            {
+                safeBots.push_back(bots[i]);
+                safeBotClasses.push_back(botClasses[i]);
+                safeBotRaces.push_back(botRaces[i]);
+            }
+        }
+
+        // ------------------------------------------------------------
+
+        if (realGroup)
+        {
+            // Player is in a real group - augment it with bots
+            partyUpdate.PartyFlags = realGroup->GetGroupFlags();
+            partyUpdate.PartyIndex = realGroup->GetGroupCategory();
+            partyUpdate.PartyType = GROUP_TYPE_NORMAL;
+            partyUpdate.PartyGUID = realGroup->GetGUID();
+            partyUpdate.LeaderGUID = realGroup->GetLeaderGUID();
+            partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+            partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(realGroup->GetGroupCategory());
+
+            int32 myIndex = -1;
+            uint8 index = 0;
+
+            for (auto const& memberSlot : realGroup->GetMemberSlots())
+            {
+                if (memberSlot.guid == player->GetGUID())
+                    myIndex = index;
+
+                Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid);
+
+                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
+                info.GUID = memberSlot.guid;
+                info.Name = memberSlot.name;
+                info.Class = memberSlot._class;
+                info.FactionGroup = Player::GetFactionGroupForRace(memberSlot.race);
+                info.Connected = member && member->GetSession() && !member->GetSession()->PlayerLogout();
+                info.Subgroup = memberSlot.group;
+                info.Flags = memberSlot.flags;
+                info.RolesAssigned = memberSlot.roles;
+                ++index;
+            }
+
+            partyUpdate.MyIndex = myIndex;
+
+            // Append bots
+            for (size_t i = 0; i < safeBots.size(); ++i)
+            {
+                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
+                info.GUID = safeBots[i]->GetGUID();
+                info.Name = safeBots[i]->GetName();
+                info.Class = safeBotClasses[i];
+                info.FactionGroup = Player::GetFactionGroupForRace(safeBotRaces[i]);
+                info.Connected = true;
+                info.Subgroup = 0;
+                info.RolesAssigned = 0;
+            }
+
+            if (partyUpdate.PlayerList.size() > 1)
+            {
+                partyUpdate.LootSettings.emplace();
+                partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
+                partyUpdate.LootSettings->Threshold = realGroup->GetLootThreshold();
+                partyUpdate.LootSettings->LootMaster = ObjectGuid::Empty;
+
+                partyUpdate.DifficultySettings.emplace();
+                partyUpdate.DifficultySettings->DungeonDifficultyID = realGroup->GetDungeonDifficultyID();
+                partyUpdate.DifficultySettings->RaidDifficultyID = realGroup->GetRaidDifficultyID();
+                partyUpdate.DifficultySettings->LegacyRaidDifficultyID = realGroup->GetLegacyRaidDifficultyID();
+            }
+
+            player->SendDirectMessage(partyUpdate.Write());
+        }
+        else
+        {
+            // Player is solo - create a fake party with bots
+            partyUpdate.PartyFlags = GROUP_FLAG_NONE;
+            partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
+            partyUpdate.PartyType = GROUP_TYPE_NORMAL;
+            partyUpdate.PartyGUID = player->GetGUID();
+            partyUpdate.LeaderGUID = player->GetGUID();
+            partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+            partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_HOME);
+            partyUpdate.MyIndex = 0;
+
+            // Add player
+            WorldPackets::Party::PartyPlayerInfo& playerInfo = partyUpdate.PlayerList.emplace_back();
+            playerInfo.GUID = player->GetGUID();
+            playerInfo.Name = player->GetName();
+            playerInfo.Class = player->GetClass();
+            playerInfo.FactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+            playerInfo.Connected = true;
+            playerInfo.Subgroup = 0;
+            playerInfo.Flags = 0;
+            playerInfo.RolesAssigned = 0;
+
+            // Add bots
+            for (size_t i = 0; i < safeBots.size(); ++i)
+            {
+                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
+                info.GUID = safeBots[i]->GetGUID();
+                info.Name = safeBots[i]->GetName();
+                info.Class = safeBotClasses[i];
+                info.FactionGroup = Player::GetFactionGroupForRace(safeBotRaces[i]);
+                info.Connected = true;
+                info.Subgroup = 0;
+                info.RolesAssigned = 0;
+            }
+
+            player->SendDirectMessage(partyUpdate.Write());
+        }
+    }
+
+    void SendGossipMessage(Player* player, ObjectGuid gossipGUID, uint32 gossipID, uint32 lfgDungeonsID, 
+                           uint32 broadcastTextID, std::vector<GossipOptionData> const& options,
+                           std::vector<std::vector<TreasureItemData>> const& treasureItems)
+    {
+        if (!player || !player->GetSession())
+            return;
+
+        WorldPackets::NPC::GossipMessage gossipMessage;
+        gossipMessage.GossipGUID = gossipGUID;
+        gossipMessage.GossipID = gossipID;
+        gossipMessage.LfgDungeonsID = lfgDungeonsID;
+        gossipMessage.BroadcastTextID = broadcastTextID;
+
+        for (size_t i = 0; i < options.size() && i < treasureItems.size(); ++i)
+        {
+            auto& opt = gossipMessage.GossipOptions.emplace_back();
+            opt.GossipOptionID = options[i].GossipOptionID;
+            opt.OrderIndex = options[i].OrderIndex;
+            opt.OptionNPC = GossipOptionNpc::None;
+            opt.Text = options[i].Text;
+            opt.SpellID = options[i].SpellID;
+            opt.Status = static_cast<GossipOptionStatus>(options[i].Status);
+
+            for (auto const& itemData : treasureItems[i])
+            {
+                WorldPackets::NPC::TreasureItem ti;
+                ti.Type = GossipOptionRewardType::Item;
+                ti.ID = itemData.ItemID;
+                ti.Quantity = itemData.Quantity;
+                ti.ItemContext = itemData.ItemContext;
+                opt.Treasure.Items.push_back(ti);
+            }
+        }
+
+        player->GetSession()->SendPacket(gossipMessage.Write());
+    }
+
+    void SendShowDelvesCompanionConfigurationUI(Player* player, uint32 companionConfigValue)
+    {
+        if (!player || !player->GetSession())
+            return;
+
+        WorldPackets::Delve::ShowDelvesCompanionConfigurationUI configUI;
+        configUI.CompanionConfigValue = companionConfigValue;
+        player->GetSession()->SendPacket(configUI.Write());
+    }
+}
