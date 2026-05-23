@@ -129,6 +129,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 -- Specific Mob Flavor items
 DELETE FROM `creature_loot_template`
 WHERE (Entry, Item) IN (
+	(573, 933),
 	(513, 1357),
 	(515, 1357),
 	(456, 1357),
@@ -180,6 +181,9 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (515, 0, 1357, 10, 0, 1, 1, 1, 1, 'Captain Sanders Treasure Map'),
 (513, 0, 1357, 10, 0, 1, 1, 1, 1, 'Captain Sanders Treasure Map'),
 
+(573, 0, 933, 75, 0, 1, 2, 1, 1, 'Large Rucksack - Foe Reaper 4000'),
+(573, 0, 4434, 20, 0, 1, 2, 1, 1, 'Scarecrow Trousers - Foe Reaper 4000'),
+
 (519, 0, 3188, 20, 0, 1, 2, 1, 1, 'Coral Claymore - Slark'),
 (519, 0, 6180, 30, 0, 1, 2, 1, 1, 'Slarkskin - Slark'),
 (462, 0, 4454, 0, 0, 1, 2, 1, 1, 'Talon of Vultros - Vultros'),
@@ -224,7 +228,8 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 -- Delete only reference loot items (ItemType = 1) for specific NPCs
 DELETE FROM creature_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
-500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,54373,54371,54372) 
+500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,
+54373,54371,54372,573) 
 AND ItemType = 1;
 
 -- NPC: 42677 Moonbrook Thug
@@ -479,6 +484,16 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (1065, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
 (1065, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
 (1065, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 573 Foe Reaper 4000
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(573, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(573, 1, 13, 50, 0, 1, 1, 1, 'Mechanical Zone 2'),
+(573, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(573, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(573, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(573, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(573, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
 
 -- NPC: 114 Harvest Watcher
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES

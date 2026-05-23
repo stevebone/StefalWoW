@@ -394,8 +394,9 @@ namespace Scripts::EasternKingdoms::Westfall
                     player->KilledMonsterCredit(Creatures::LousPartingThoughtsCredit, _playerGuid);
 
                     // TO-DO Move these to spell area
-                    player->RemoveAurasDueToSpell(Spells::DetectQuestInvis1);
-                    player->CastSpell(player, Spells::DetectQuestInvis2);
+                    //player->RemoveAurasDueToSpell(Spells::DetectQuestInvis1);
+                    //player->CastSpell(player, Spells::DetectQuestInvis2);
+                    PhasingHandler::AddPhase(player, 171, true);
                 }
                 Reset();
             }
@@ -634,116 +635,117 @@ namespace Scripts::EasternKingdoms::Westfall
         }
     };
 
+    /*######
+    ## npc_custom_agent_kearnen
+    ## ID 7024
+    ######*/
+
     struct npc_custom_agent_kearnen : public ScriptedAI
     {
         npc_custom_agent_kearnen(Creature* creature) : ScriptedAI(creature) { }
 
-        EventMap events;
-        ObjectGuid PlayerGUID;
-        std::queue<ObjectGuid> PendingTargets;
-
         void Reset() override
         {
-            events.Reset();
-            PlayerGUID.Clear();
+            _events.Reset();
+            _playerGuid.Clear();
 
             std::queue<ObjectGuid> empty;
-            std::swap(PendingTargets, empty);
+            _pendingTargets = {};
         }
 
         void Assist(Player* player, Creature* target)
         {
-            if (!player || !target)
+            if (!player || !target || !target->IsAlive())
                 return;
 
-            PlayerGUID = player->GetGUID();
-            PendingTargets.push(target->GetGUID());
-            events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+            _playerGuid = player->GetGUID();
+            _pendingTargets.push(target->GetGUID());
+            _events.ScheduleEvent(Events::AgentKearnenCastKillShot, 5s, 10s);
         }
 
         void UpdateAI(uint32 diff) override
         {
-            events.Update(diff);
+            _events.Update(diff);
 
-            while (uint32 eventId = events.ExecuteEvent())
+            while (uint32 eventId = _events.ExecuteEvent())
             {
                 switch (eventId)
                 {
-                case EVENT_KEARNEN_KILL_SHOT:
+                case Events::AgentKearnenCastKillShot:
                 {
-                    if (PendingTargets.empty())
+                    if (_pendingTargets.empty())
                         break;
 
-                    ObjectGuid TargetGUID = PendingTargets.front();
-                    PendingTargets.pop();
+                    ObjectGuid TargetGUID = _pendingTargets.front();
+                    _pendingTargets.pop();
 
                     Creature* target = ObjectAccessor::GetCreature(*me, TargetGUID);
-                    Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID);
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
 
                     if (target && target->IsAlive() && player)
                     {
                         me->SetFacingToObject(target);
-                        me->CastSpell(target, SPELL_WESTFALL_KILL_SHOT, true);
+                        me->CastSpell(target, Spells::KillShot, true);
                         Talk(0, player);
                     }
 
                     // If more targets remain, schedule again
-                    if (!PendingTargets.empty())
-                        events.ScheduleEvent(EVENT_KEARNEN_KILL_SHOT, 5s, 10s);
+                    if (!_pendingTargets.empty())
+                        _events.Repeat(5s, 10s);
 
                     break;
                 }
                 }
             }
         }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+        std::queue<ObjectGuid> _pendingTargets;
     };
 
-    class npc_custom_elite_mercenary : public CreatureScript
+    /*######
+    ## npc_custom_elite_mercenary
+    ## ID 42656
+    ######*/
+
+    struct npc_custom_elite_mercenary : public ScriptedAI
     {
-    public:
-        npc_custom_elite_mercenary() : CreatureScript("npc_custom_elite_mercenary") { }
+        npc_custom_elite_mercenary(Creature* creature) : ScriptedAI(creature) { }
 
-        struct npc_elite_mercenaryAI : public ScriptedAI
+        void Reset() override
         {
-            npc_elite_mercenaryAI(Creature* creature) : ScriptedAI(creature) { }
-
-            bool AssistTriggered = false;
-
-            void Reset() override
-            {
-                AssistTriggered = false;
-            }
-
-            void JustEngagedWith(Unit* who) override
-            {
-                if (!who)
-                    return;
-
-                Player* player = who->ToPlayer();
-                if (!player)
-                    return;
-
-                if (AssistTriggered)
-                    return;
-
-                if (player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) != QUEST_STATUS_INCOMPLETE)
-                    return;
-
-                Creature* agent = me->FindNearestCreature(NPC_WESTFALL_KEARNEN, 150.0f, true);
-                if (!agent)
-                    return;
-
-                if (auto* ai = CAST_AI(npc_custom_agent_kearnen, agent->AI()))
-                    ai->Assist(player, me);
-
-                AssistTriggered = true;
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const override
-        {
-            return new npc_elite_mercenaryAI(creature);
+            _assistTriggered = false;
         }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            if (!who)
+                return;
+
+            Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself();
+            if (!player)
+                return;
+
+            if (_assistTriggered)
+                return;
+
+            if (player->GetQuestStatus(Quests::SecretsOfTheTower) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            Creature* agent = me->FindNearestCreature(Creatures::AgentKearnen, 150.0f, true);
+            if (!agent)
+                return;
+
+            if (auto* ai = CAST_AI(npc_custom_agent_kearnen, agent->AI()))
+                ai->Assist(player, me);
+
+            _assistTriggered = true;
+        }
+
+    private:
+        bool _assistTriggered = false;
     };
 
     class npc_custom_trigger_mortwake_tower : public CreatureScript
@@ -838,8 +840,8 @@ namespace Scripts::EasternKingdoms::Westfall
                 {
                     if (Player* player = me->SelectNearestPlayer(30.0f))
                     {
-                        if (player->HasAura(SPELL_WESTFALL_POTION_SHROUDING) &&
-                            player->GetQuestStatus(QUEST_SECRETS_OF_THE_TOWER) == QUEST_STATUS_INCOMPLETE &&
+                        if (player->HasAura(Spells::PotionShrouding) &&
+                            player->GetQuestStatus(Quests::SecretsOfTheTower) == QUEST_STATUS_INCOMPLETE &&
                             fabs(player->GetPositionZ() - me->GetPositionZ()) < 2.0f &&
                             player->IsWithinDistInMap(me, 20.0f))
                         {
@@ -939,7 +941,7 @@ namespace Scripts::EasternKingdoms::Westfall
                                         }
                                         case 10:
                                         {
-                                            player->CastSpell(player, SPELL_WESTFALL_Q26290_CREDIT, true);
+                                            player->CastSpell(player, Spells::QuestCredit26290, true);
                                             SummonTimer = 1000;
                                             Phase++;
                                             break;
@@ -948,9 +950,9 @@ namespace Scripts::EasternKingdoms::Westfall
                                         {
                                             if (!bExit)
                                             {
-                                                Shadowy3->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
+                                                Shadowy3->CastSpell(Shadowy3, Spells::TeleportVisual, true);
                                                 Shadowy3->DespawnOrUnsummon(1s);
-                                                oaf->CastSpell(Shadowy3, SPELL_WESTFALL_TELEPORT_VISUAL, true);
+                                                oaf->CastSpell(Shadowy3, Spells::TeleportVisual, true);
                                                 Helix->DespawnOrUnsummon(1s);
                                                 oaf->DespawnOrUnsummon(1s);
                                                 bExit = true;
@@ -984,7 +986,7 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_salma_saldean_235);
     RegisterCreatureAI(npc_custom_gryan_stoutmantle_234);
     RegisterCreatureAI(npc_custom_agent_kearnen);
+    RegisterCreatureAI(npc_custom_elite_mercenary);
 
-    new npc_custom_elite_mercenary();
     new npc_custom_trigger_mortwake_tower();
 }

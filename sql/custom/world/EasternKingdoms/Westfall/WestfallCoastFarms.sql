@@ -30,19 +30,27 @@ DELETE FROM `quest_template_addon` WHERE `ID` IN (109);
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES
 (109, 64);
 
--- Fix Quest: 26215 Meet Two-Shoed Lou (makes the NPC be visible to hand in quest)
 DELETE FROM `quest_template_addon` WHERE `ID` = 26215;
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`) VALUES 
-('26215', '0', '0', '79229', '26213', '26228');
+('26215', '0', '0', '0', '26213', '26228');
 
 DELETE FROM `creature_template_addon` WHERE `Entry` IN (42497);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, 
 `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(42497, 0, 0, 0, 0, 0, 0, 1, 0, 869, 0, 0, 0, 0, ''); -- Mama Celeste
+(42497, 0, 0, 0, 0, 0, 0, 1, 869, 0, 0, 0, 0, 0, ''); -- Mama Celeste
 
-DELETE FROM `creature_addon` WHERE `guid` IN (275892,275894,275895,275896,275898);
+DELETE FROM `creature_addon` WHERE `guid` IN (275892,275894,275895,275896,275898,251570,251571,251572,251573,251574,251575,251569);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, 
 `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+-- Lou Murder Scene
+(251569, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '79372 29266'),
+(251570, 0, 0, 0, 0, 0, 1, 1, 0, 431, 0, 0, 0, 0, ''),
+(251571, 0, 0, 0, 0, 0, 1, 1, 0, 431, 0, 0, 0, 0, ''),
+(251572, 0, 0, 0, 0, 0, 1, 1, 0, 431, 0, 0, 0, 0, ''),
+(251573, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
+(251574, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
+(251575, 0, 0, 0, 8, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
+
 (275892, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (275894, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (275895, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -52,7 +60,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 
 -- Creature Updates
 UPDATE `creature` SET `wander_distance` = 10, `MovementType` = 1 WHERE `id` IN (1236, 42677); -- Kobold Digger, Moonbrook Thug
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (504, 42405); -- Defias Trapper / Lou
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (504); -- Defias Trapper / Lou
 UPDATE `creature` SET `wander_distance` = 15, `MovementType` = 1 WHERE `id` IN (126, 127, 171, 456, 458, 513, 515, 517); -- All murlocs except the 2 rares
 UPDATE `creature` SET `wander_distance` = 20, `MovementType` = 1 WHERE `id` IN (157,454,42357, 830, 831); -- Goretusk / Crawler
 UPDATE `creature` SET `wander_distance` = 30, `MovementType` = 1 WHERE `id` IN (154,199,1109, 834, 832); -- Fleshripper / Coyote / Cyclone
@@ -67,6 +75,8 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_thug' WHERE (`entry` = '42387');
 DELETE FROM `creature` WHERE `ID` = 42387; -- thugs are spawned by script now
 
+UPDATE `creature` SET `PhaseId` = 171 WHERE `guid` IN (251569,251570,251571,251572,251575,251573,251574);
+
 -- Script for Salma's Westfall Stew
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_salma_saldean_235' WHERE `entry` = 235;
 
@@ -79,7 +89,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_custom_agent_kearnen' WHERE `
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_elite_mercenary' WHERE `entry` = 42656;
 UPDATE `creature_template` SET `faction` = '35', `ScriptName` = 'npc_custom_trigger_mortwake_tower', `unit_flags` = '33555200', `flags_extra` = '128' WHERE (`entry` = '17234'); -- trigger npc
 UPDATE `creature_template` SET `VehicleId` = '1259' WHERE (`entry` = '42754'); -- vehicle id needed for the Oaf
-DELETE FROM `creature_template_addon` WHERE `entry` IN (42655, 42754, 42662); -- shdow auras
+DELETE FROM `creature_template_addon` WHERE `entry` IN (42655, 42754, 42662); -- shadow auras
 INSERT INTO `creature_template_addon` (`entry`, `SheathState`, `auras`) VALUES 
 ('42662', '1', '48143 69676'),
 ('42655', '1', '48143 69676'),
@@ -147,14 +157,6 @@ VALUES
 
 -- Increase Say rate to 30% which is more in line with Blizz
 UPDATE `smart_scripts` SET `event_chance` = '30' WHERE `entryorguid` IN (95, 121, 122, 481, 590) and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
-
--- Script for removing Detect Quest Invis 0 when quest rewarded
-DELETE FROM `smart_scripts` WHERE `entryorguid` = 42405 AND `source_type` = 0 AND `id` = 0;
-INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_chance`, `event_param1`, `action_type`, `action_param1`, `target_type`, `comment`) VALUES 
-('42405', '0', '0', '0', '20', '100', '26215', '28', '79489', '7', 'Two-Shoed Lou - On Quest Reward - Invoker remova aura 79489');
-
-
-
 
 -- Update NEW phase for existing creatures
 UPDATE `creature` SET `PhaseId` = 50005 WHERE `guid` IN (276241, 276256, 276238, 276261, 276262, 276239, 276257, 276258, 276259, 276260);

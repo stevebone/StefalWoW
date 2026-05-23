@@ -70,11 +70,11 @@ namespace Scripts::EasternKingdoms::Westfall
             if (!player)
                 return;
 
-            if (questId != QUEST_THE_DEFIAS_BROTHERHOOD_FINAL)
+            if (questId != Quests::TheDefiasBrotherhoodFinal)
                 return;
 
             // Only trigger when the quest is actually rewarded
-            if (player->GetQuestStatus(QUEST_THE_DEFIAS_BROTHERHOOD_FINAL) != QUEST_STATUS_REWARDED)
+            if (player->GetQuestStatus(Quests::TheDefiasBrotherhoodFinal) != QUEST_STATUS_REWARDED)
                 return;
 
             SendWestfallMurderMail(player);
@@ -82,7 +82,7 @@ namespace Scripts::EasternKingdoms::Westfall
 
         void SendWestfallMurderMail(Player* player)
         {
-            uint32 senderEntry = NPC_WESTFALL_LIEUTENANT_HORATIO; // define in your header
+            uint32 senderEntry = Creatures::LtHorationLaineAtTower;
 
             std::string subject = "Urgent Request For Questioning!";
             std::string text =

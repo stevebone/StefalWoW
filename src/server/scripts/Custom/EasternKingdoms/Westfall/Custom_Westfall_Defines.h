@@ -33,6 +33,7 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 NewWestfallStew = 26241;
         static constexpr uint32 HopeForThePeople = 26266;
         static constexpr uint32 InDefenseOfWestfall = 26286;
+        static constexpr uint32 SecretsOfTheTower = 26290;
     }
 
     namespace Creatures
@@ -65,6 +66,9 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 GryanStoutmantle = 234;
         static constexpr uint32 LtHorationLaineAtTower = 42308;
         static constexpr uint32 RipsnarlAtTower = 42635;
+
+        static constexpr uint32 AgentKearnen = 7024;
+        static constexpr uint32 EliteMercenary = 42656;
     }
 
     namespace Spawns
@@ -89,7 +93,11 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 HoboStew = 80384;
 
         // Invis spells
-        static constexpr uint32 DetectQuestInvis1 = 79229;
+        static constexpr uint32 ApplyQuestInvis1 = 78284;
+        static constexpr uint32 ApplyQuestInvis2 = 79343;
+
+        static constexpr uint32 DetectQuestInvis0 = 79489;
+        static constexpr uint32 DetectQuestInvis1 = 79229; // this looks incorrect
         static constexpr uint32 DetectQuestInvis2 = 79341;
 
         static constexpr uint32 HoratiosSunglasses = 78935;
@@ -103,12 +111,19 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 SummonHopeSaldean = 79665;
         static constexpr uint32 SummonHoratioLaine = 79664;
         static constexpr uint32 SummonGryanStoutmantle = 79663;
+
+        static constexpr uint32 PotionShrouding = 79528;
+        static constexpr uint32 KillShot = 79525;
+        static constexpr uint32 TeleportVisual = 64446;
+        static constexpr uint32 QuestCredit26290 = 79534;
     }
 
     namespace Events
     {
         static constexpr int8 WestfalGuardPacifyDrifters = 1;
         static constexpr int8 WestfalGuardCrowdReaction = 2;
+
+        static constexpr int8 AgentKearnenCastKillShot = 1;
     }
 
     namespace Positions
@@ -180,10 +195,9 @@ enum Custom_Westfall_Generic_NPCs
 {
     
 
-    NPC_WESTFALL_LIEUTENANT_HORATIO = 42308,
+    
 
-    NPC_WESTFALL_KEARNEN = 7024,
-    NPC_WESTFALL_ELITE_MERCENARY = 42656,
+    
     NPC_WESTFALL_SHADOWY_FIGURE = 42662,
     NPC_WESTFALL_HELIX_MORTWAKE = 42655,
     NPC_WESTFALL_OAF_MORTWAKE = 42754
@@ -192,29 +206,10 @@ enum Custom_Westfall_Generic_NPCs
 enum Custom_Westfall_Quests
 {
     
-    QUEST_THE_DEFIAS_BROTHERHOOD_FINAL = 166,
+    
     QUEST_FEEDING_THE_HUNGRY = 26271,
-    QUEST_SECRETS_OF_THE_TOWER = 26290,
-};
-
-enum Custom_Westfall_Spells
-{
     
-    
-    SPELL_WESTFALL_POTION_SHROUDING = 79528,
-    SPELL_WESTFALL_KILL_SHOT = 79526,
-    SPELL_WESTFALL_TELEPORT_VISUAL = 64446,
-    SPELL_WESTFALL_Q26290_CREDIT = 79534,
 };
-
-enum Custom_Westfall_Events
-{
-    EVENT_KEARNEN_KILL_SHOT = 1,
-};
-
-
-
-constexpr int SAY_FURLBROW_RETURN = 42446;
 
 
 
