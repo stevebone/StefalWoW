@@ -134,6 +134,8 @@ float SpellImplicitTargetInfo::CalcDirectionAngle() const
 
 Targets SpellImplicitTargetInfo::GetTarget() const
 {
+    if (_target == TARGET_UNIT_NONE)
+        return TARGET_UNIT_CASTER;
     return _target;
 }
 
@@ -428,8 +430,8 @@ SpellEffectInfo::SpellEffectInfo(SpellInfo const* spellInfo, SpellEffectEntry co
     MiscValueB = _effect.EffectMiscValue[1];
     Mechanic = Mechanics(_effect.EffectMechanic);
     PositionFacing = _effect.EffectPosFacing;
-    TargetA = SpellImplicitTargetInfo(_effect.ImplicitTarget[0]);
-    TargetB = SpellImplicitTargetInfo(_effect.ImplicitTarget[1]);
+    TargetA = SpellImplicitTargetInfo(_effect.ImplicitTarget[0] == 0 ? TARGET_UNIT_CASTER : _effect.ImplicitTarget[0]);
+    TargetB = SpellImplicitTargetInfo(_effect.ImplicitTarget[1] == 0 ? TARGET_UNIT_CASTER : _effect.ImplicitTarget[1]);
     TargetARadiusEntry = sSpellRadiusStore.LookupEntry(_effect.EffectRadiusIndex[0]);
     TargetBRadiusEntry = sSpellRadiusStore.LookupEntry(_effect.EffectRadiusIndex[1]);
     ChainTargets = _effect.EffectChainTargets;
