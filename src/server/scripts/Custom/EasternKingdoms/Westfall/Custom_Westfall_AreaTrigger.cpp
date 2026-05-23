@@ -212,6 +212,32 @@ namespace Scripts::EasternKingdoms::Westfall
             return true;
         }
     };
+
+    // 5994 - Westfall - Mortwake Tower
+    class at_westfall_mortwake_tower_5994 : public AreaTriggerScript
+    {
+    public:
+        at_westfall_mortwake_tower_5994() : AreaTriggerScript("at_westfall_mortwake_tower_5994") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            // Check if player has the quest active and the required aura
+            if (player->GetQuestStatus(Quests::SecretsOfTheTower) == QUEST_STATUS_INCOMPLETE && player->HasAura(Spells::PotionShrouding))
+            {
+                // add cooldown of 120s to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 2min))
+                    return false;
+
+                // Find the trigger NPC
+                Creature* trigger = player->FindNearestCreature(Creatures::MortwakeTrigger, 50.f);
+                if (trigger)
+                    // Set guid on the NPC with player GUID to start the event
+                    trigger->AI()->SetGUID(player->GetGUID(), 1);
+            }
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_westfall_at()
@@ -220,4 +246,5 @@ void AddSC_custom_westfall_at()
 
     new at_westfall_furlsbrow_farm_5989();
     new at_westfall_sentinel_hill_tower_5993();
+    new at_westfall_mortwake_tower_5994();
 }

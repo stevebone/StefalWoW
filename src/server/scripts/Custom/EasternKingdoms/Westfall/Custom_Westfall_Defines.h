@@ -69,6 +69,10 @@ namespace Scripts::EasternKingdoms::Westfall
 
         static constexpr uint32 AgentKearnen = 7024;
         static constexpr uint32 EliteMercenary = 42656;
+        static constexpr uint32 MortwakeTrigger = 17234;
+        static constexpr uint32 MortwakeShadowyFigure = 42662;
+        static constexpr uint32 MortwakeHelix = 42655;
+        static constexpr uint32 MortwakeOaf = 42754;
     }
 
     namespace Spawns
@@ -155,10 +159,50 @@ namespace Scripts::EasternKingdoms::Westfall
         // Trigger
         static constexpr int8 Q26232ReturnToFurlsbrowCottage = 3;
 
+        // Mortwake
+        static constexpr int8 Q26232Helix0 = 0;
+        static constexpr int8 Q26232Helix1 = 1;
+        static constexpr int8 Q26232Helix2 = 2;
+        static constexpr int8 Q26232Helix3 = 3;
+        static constexpr int8 Q26232Shadowy0 = 0;
+        static constexpr int8 Q26232Shadowy1 = 1;
+        static constexpr int8 Q26232Shadowy2 = 2;
+        static constexpr int8 Q26232Shadowy3 = 3;
+        static constexpr int8 Q26232Shadowy4 = 4;
     }
 
     namespace Dialogue
     {
+        enum class MortwakeActor : uint8
+        {
+            Helix,
+            Shadowy,
+            PlayerCredit,
+            Exit
+        };
+
+        struct MortwakeStep
+        {
+            MortwakeActor actor;
+            int32 textId;     // -1 if no Talk
+            uint32 delayMs;   // delay before next step
+        };
+
+        static constexpr MortwakeStep MortwakeSequence[] =
+        {
+            { MortwakeActor::Helix,   Talks::Q26232Helix0,   6000 },
+            { MortwakeActor::Shadowy, Talks::Q26232Shadowy0, 6000 },
+            { MortwakeActor::Helix,   Talks::Q26232Helix1,   6000 },
+            { MortwakeActor::Shadowy, Talks::Q26232Shadowy1, 6000 },
+            { MortwakeActor::Helix,   Talks::Q26232Helix2,   6000 },
+            { MortwakeActor::Shadowy, Talks::Q26232Shadowy2, 6000 },
+            { MortwakeActor::Shadowy, Talks::Q26232Shadowy3, 6000 },
+            { MortwakeActor::Helix,   Talks::Q26232Helix3,   6000 },
+            { MortwakeActor::Shadowy, Talks::Q26232Shadowy4, 2000 },
+            { MortwakeActor::PlayerCredit, -1,              1000 },
+            { MortwakeActor::Exit,    -1,                   0    },
+        };
+
         // Phase table describing the scripted sequence
         struct Q26232PhaseStep
         {
@@ -197,38 +241,3 @@ namespace Scripts::EasternKingdoms::Westfall
     }
 }
 
-enum Custom_Westfall_Generic_NPCs
-{
-    
-
-    
-
-    
-    NPC_WESTFALL_SHADOWY_FIGURE = 42662,
-    NPC_WESTFALL_HELIX_MORTWAKE = 42655,
-    NPC_WESTFALL_OAF_MORTWAKE = 42754
-};
-
-enum Custom_Westfall_Quests
-{
-    
-    
-    QUEST_FEEDING_THE_HUNGRY = 26271,
-    
-};
-
-
-
-enum Custom_Westfall_Q26290_TALK
-{
-    Q26232_SAY_HELIX_0 = 0,
-    Q26232_SAY_HELIX_1 = 1,
-    Q26232_SAY_HELIX_2 = 2,
-    Q26232_SAY_HELIX_3 = 3,
-
-    Q26232_SAY_SHADOWY_0 = 0,
-    Q26232_SAY_SHADOWY_1 = 1,
-    Q26232_SAY_SHADOWY_2 = 2,
-    Q26232_SAY_SHADOWY_3 = 3,
-    Q26232_SAY_SHADOWY_4 = 4,
-};

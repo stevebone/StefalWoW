@@ -743,228 +743,151 @@ namespace Scripts::EasternKingdoms::Westfall
         bool _assistTriggered = false;
     };
 
-    class npc_custom_trigger_mortwake_tower : public CreatureScript
-    {
-    public:
-        npc_custom_trigger_mortwake_tower() : CreatureScript("npc_custom_trigger_mortwake_tower") {}
+    /*######
+    ## npc_custom_trigger_mortwake_tower
+    ## ID 17234
+    ######*/
 
-        CreatureAI* GetAI(Creature* creature) const override
+    struct npc_custom_trigger_mortwake_tower : public ScriptedAI
+    {
+        npc_custom_trigger_mortwake_tower(Creature* creature) : ScriptedAI(creature) {}
+
+        void Reset() override
         {
-            return new npc_custom_trigger_mortwake_towerAI(creature);
+            _stepIndex = 0;
+            _summonTimer = 2000;
+            _bSumm = false;
+            _bSumm1 = false;
+            _bSumm2 = false;
+            _eventRunning = false;
+            _playerGUID.Clear();
+            _oafGUID.Clear();
+            _helixGUID.Clear();
+            _shadowyGUID.Clear();
         }
 
-        struct npc_custom_trigger_mortwake_towerAI : public ScriptedAI
+        void SetGUID(ObjectGuid const& guid, int32 id) override
         {
-            npc_custom_trigger_mortwake_towerAI(Creature* creature) : ScriptedAI(creature) {}
-
-            uint8 Phase = 0;
-            uint32 SummonTimer = 0;
-            ObjectGuid PlayerGUID;
-            ObjectGuid OafGUID;
-            ObjectGuid Helix3GUID;
-            ObjectGuid Shadowy3GUID;
-
-            bool bSumm = false;
-            bool bSumm1 = false;
-            bool bSumm2 = false;
-            bool bExit = false;
-            bool EventTriggered = false;   // prevents retriggering
-            bool EventRunning = false;     // allows UpdateAI to run the sequence
-
-            void Reset() override
+            if (id == 1 && !_eventRunning)
             {
-                Phase = 0;
-                SummonTimer = 2000;
-                bSumm = false;
-                bSumm1 = false;
-                bSumm2 = false;
-                bExit = false;
+                _playerGUID = guid;
+                StartEvent();
+                _eventRunning = true;
+            }
+        }
 
-                EventTriggered = false;   // prevents retriggering
-                EventRunning = false;     // allows UpdateAI to run the sequence
+        void StartEvent()
+        {
+            if (_bSumm)
+                return;
+
+            if (!_bSumm1)
+            {
+                if (Creature* shadowy = me->SummonCreature(Creatures::MortwakeShadowyFigure, -11138.659f, 545.20f, 70.30f, 0.19f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
+                {
+                    _shadowyGUID = shadowy->GetGUID();
+                    shadowy->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                    shadowy->SetWalk(true);
+                    shadowy->GetMotionMaster()->MovePoint(0, -11131.710f, 546.810f, 70.380f);
+                    _bSumm1 = true;
+                }
             }
 
-            void StartEvent()
+            if (!_bSumm2)
             {
-                if (!bSumm)
+                if (Creature* oaf = me->SummonCreature(Creatures::MortwakeOaf, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
                 {
-                    if (!bSumm1)
+                    _oafGUID = oaf->GetGUID();
+                    oaf->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+
+                    if (Creature* helix = me->SummonCreature(Creatures::MortwakeHelix, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
                     {
-                        if (Creature* Shadowy3 = me->SummonCreature(NPC_WESTFALL_SHADOWY_FIGURE, -11138.659f, 545.20f, 70.30f, 0.19f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                        {
-                            Shadowy3GUID = Shadowy3->GetGUID();
-                            Shadowy3->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-                            Shadowy3->SetWalk(true);
-                            Shadowy3->GetMotionMaster()->MovePoint(0, -11131.710f, 546.810f, 70.380f);
-                            bSumm1 = true;
-                        }
-                    }
-
-                    if (!bSumm2)
-                    {
-                        if (Creature* oafVehicle = me->SummonCreature(NPC_WESTFALL_OAF_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                        {
-                            OafGUID = oafVehicle->GetGUID();
-                            oafVehicle->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-
-                            if (Creature* helix = me->SummonCreature(NPC_WESTFALL_HELIX_MORTWAKE, -11128.11f, 547.52f, 70.41f, 3.32f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                            {
-                                Helix3GUID = helix->GetGUID();
-                                helix->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-
-                                // Attach Helix to the Oaf
-                                helix->EnterVehicle(oafVehicle, 0);
-
-                                bSumm2 = true;
-                            }
-                        }
-                    }
-
-                    if (bSumm1 && bSumm2)
-                    {
-                        bSumm = true;
-                        SummonTimer = 2000;
+                        _helixGUID = helix->GetGUID();
+                        helix->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+                        helix->EnterVehicle(oaf, 0);
+                        _bSumm2 = true;
                     }
                 }
             }
 
-            void UpdateAI(uint32 diff) override
+            if (_bSumm1 && _bSumm2)
             {
-                // 1. Detect player (only if event not triggered yet)
-                if (!EventTriggered)
-                {
-                    if (Player* player = me->SelectNearestPlayer(30.0f))
-                    {
-                        if (player->HasAura(Spells::PotionShrouding) &&
-                            player->GetQuestStatus(Quests::SecretsOfTheTower) == QUEST_STATUS_INCOMPLETE &&
-                            fabs(player->GetPositionZ() - me->GetPositionZ()) < 2.0f &&
-                            player->IsWithinDistInMap(me, 20.0f))
-                        {
-                            PlayerGUID = player->GetGUID();
-                            StartEvent();
-                            EventTriggered = true;
-                            EventRunning = true;
-                        }
-                    }
-                }
-
-                if (EventRunning)
-                {
-                    if (SummonTimer < diff)
-                    {
-                        if (bSumm)
-                        {
-                            if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
-                                if (Creature* oaf = ObjectAccessor::GetCreature(*me, OafGUID))
-                                    if (Creature* Shadowy3 = ObjectAccessor::GetCreature(*me, Shadowy3GUID))
-                                    {
-                                        Creature* Helix = ObjectAccessor::GetCreature(*me, Helix3GUID);
-                                        if (!Helix)
-                                            return;
-
-                                        switch (Phase)
-                                        {
-                                        case 0:
-                                        {
-                                            oaf->SetInFront(me);
-                                            SummonTimer = 1000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 1:
-                                        {
-                                            Helix->AI()->Talk(Q26232_SAY_HELIX_0);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 2:
-                                        {
-                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_0);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 3:
-                                        {
-                                            Helix->AI()->Talk(Q26232_SAY_HELIX_1);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 4:
-                                        {
-                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_1);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 5:
-                                        {
-                                            Helix->AI()->Talk(Q26232_SAY_HELIX_2);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 6:
-                                        {
-                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_2);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 7:
-                                        {
-                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_3);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 8:
-                                        {
-                                            Helix->AI()->Talk(Q26232_SAY_HELIX_3);
-                                            SummonTimer = 6000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 9:
-                                        {
-                                            Shadowy3->AI()->Talk(Q26232_SAY_SHADOWY_4);
-                                            SummonTimer = 2000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 10:
-                                        {
-                                            player->CastSpell(player, Spells::QuestCredit26290, true);
-                                            SummonTimer = 1000;
-                                            Phase++;
-                                            break;
-                                        }
-                                        case 11:
-                                        {
-                                            if (!bExit)
-                                            {
-                                                Shadowy3->CastSpell(Shadowy3, Spells::TeleportVisual, true);
-                                                Shadowy3->DespawnOrUnsummon(1s);
-                                                oaf->CastSpell(Shadowy3, Spells::TeleportVisual, true);
-                                                Helix->DespawnOrUnsummon(1s);
-                                                oaf->DespawnOrUnsummon(1s);
-                                                bExit = true;
-                                                Reset();
-                                            }
-                                        }
-                                        break;
-                                        default:
-                                            break;
-                                        }
-                                    }
-                        }
-                    }
-                    else SummonTimer -= diff;
-                }
+                _bSumm = true;
+                _summonTimer = 2000;
+                _stepIndex = 0;
             }
-        };
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!_eventRunning || !_bSumm)
+                return;
+
+            if (_summonTimer > diff)
+            {
+                _summonTimer -= diff;
+                return;
+            }
+
+            Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID);
+            Creature* oaf = ObjectAccessor::GetCreature(*me, _oafGUID);
+            Creature* helix = ObjectAccessor::GetCreature(*me, _helixGUID);
+            Creature* shadowy = ObjectAccessor::GetCreature(*me, _shadowyGUID);
+
+            if (!player || !oaf || !helix || !shadowy)
+                return;
+
+            // Initial facing once, before dialogue
+            if (_stepIndex == 0)
+                oaf->SetInFront(me);
+
+            if (_stepIndex >= std::size(Dialogue::MortwakeSequence))
+                return;
+
+            Dialogue::MortwakeStep const& step = Dialogue::MortwakeSequence[_stepIndex];
+
+            switch (step.actor)
+            {
+            case Dialogue::MortwakeActor::Helix:
+                if (step.textId != -1)
+                    helix->AI()->Talk(step.textId);
+                break;
+            case Dialogue::MortwakeActor::Shadowy:
+                if (step.textId != -1)
+                    shadowy->AI()->Talk(step.textId);
+                break;
+            case Dialogue::MortwakeActor::PlayerCredit:
+                player->CastSpell(player, Spells::QuestCredit26290, true);
+                break;
+            case Dialogue::MortwakeActor::Exit:
+            {
+                shadowy->CastSpell(shadowy, Spells::TeleportVisual, true);
+                shadowy->DespawnOrUnsummon(1s);
+                oaf->CastSpell(shadowy, Spells::TeleportVisual, true);
+                helix->DespawnOrUnsummon(1s);
+                oaf->DespawnOrUnsummon(1s);
+                Reset();
+                return;
+            }
+            }
+
+            _summonTimer = step.delayMs;
+            ++_stepIndex;
+        }
+
+        private:
+            uint32 _summonTimer = 0;
+            uint8 _stepIndex = 0;
+            ObjectGuid _playerGUID;
+            ObjectGuid _oafGUID;
+            ObjectGuid _helixGUID;
+            ObjectGuid _shadowyGUID;
+
+            bool _bSumm = false;
+            bool _bSumm1 = false;
+            bool _bSumm2 = false;
+            bool _bExit = false;
+            bool _eventRunning = false;
     };
 }
 
@@ -982,6 +905,5 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_gryan_stoutmantle_234);
     RegisterCreatureAI(npc_custom_agent_kearnen);
     RegisterCreatureAI(npc_custom_elite_mercenary);
-
-    new npc_custom_trigger_mortwake_tower();
+    RegisterCreatureAI(npc_custom_trigger_mortwake_tower);
 }
