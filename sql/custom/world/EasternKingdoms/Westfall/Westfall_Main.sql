@@ -99,16 +99,15 @@
 -- AT: 5993 Sentinel Hill Tower
 
 -- Phases
-DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006, 172, 171);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006, 172);
 INSERT INTO `phase_area` VALUES
-(109, 171, 'Westfall - Quest Zone 3 - Furlbrows Pumpking Farm'),
 (108, 172, 'Westfall - Quest Zone 3'),
 (40, 50004, 'Westfall - Furlbrows 1 - Defias Brotherhood'),
 (40, 50005, 'Westfall - Furlbrows 2 - Return of the Defias (Vanessa)');
 -- (40, 50006, 'xxx to be reused');
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006, 172,171);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006, 172);
 INSERT INTO `conditions` VALUES
 -- Phase 50004 allows the OLD Furlbrows npcs to be again visible for the old quests
 -- This includes ALL the OLD Defias mobs around westfall.
@@ -119,10 +118,7 @@ INSERT INTO `conditions` VALUES
 -- It starts after the quest The Defias Brotherhood
 ('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 166 IS rewarded'),
 -- Phase 172 for Sentinel Hill Tower murder dialogue
-('26', '172', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 172 if 26266 IS taken, complete, rewarded'),
--- Lous murder
-('26', '171', 0, '0', '0', '47', '0', '26232', '66', '0', '', '0', '0', '0', '', 'Westfall - Add phase 171 if 26232 IS complete/rewarded'),
-('26', '171', 0, '0', '0', '47', '0', '26236', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 171 if 26236 IS NOT rewarded');
+('26', '172', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 172 if 26266 IS taken, complete, rewarded');
 
 -- AT scripts
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993);
@@ -130,7 +126,10 @@ INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 (5989, 'at_westfall_furlsbrow_farm_5989'),
 (5993, 'at_westfall_sentinel_hill_tower_5993');
 
--- Spell Area
-DELETE FROM `spell_area` WHERE `spell` IN (79229) AND `area` IN (109);
-INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`, `quest_start_status`, `quest_end_status`) VALUES 
-(79229, 109, 26215, 26232, 0, 0, 2, 3, 66, 2); -- Quest Invist 1 (Furlbrows Pumpkin Farm)
+-- SpellArea
+DELETE FROM `spell_area` WHERE (`spell`=79346 AND `area`=40) OR (`spell`=79229 AND `area`=40);
+INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`, `quest_start_status`, `quest_end_status`) VALUES
+(79346, 40, 26232, 26236, 0, 0, 2, 3, 66, 11),
+(79229, 40, 0, 26232, 0, 0, 2, 3, 64, 9);
+
+

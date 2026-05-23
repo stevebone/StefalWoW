@@ -37,20 +37,11 @@ INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `Sourc
 DELETE FROM `creature_template_addon` WHERE `Entry` IN (42497);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, 
 `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(42497, 0, 0, 0, 0, 0, 0, 1, 869, 0, 0, 0, 0, 0, ''); -- Mama Celeste
+(42497, 0, 0, 0, 0, 0, 0, 1, 0, 869, 0, 0, 0, 0, ''); -- Mama Celeste
 
-DELETE FROM `creature_addon` WHERE `guid` IN (275892,275894,275895,275896,275898,251570,251571,251572,251573,251574,251575,251569);
+DELETE FROM `creature_addon` WHERE `guid` IN (275892,275894,275895,275896,275898);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, 
 `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
--- Lou Murder Scene
-(251569, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '79372 29266'),
-(251570, 0, 0, 0, 0, 0, 1, 1, 0, 431, 0, 0, 0, 0, ''),
-(251571, 0, 0, 0, 0, 0, 1, 1, 0, 431, 0, 0, 0, 0, ''),
-(251572, 0, 0, 0, 0, 0, 1, 1, 0, 431, 0, 0, 0, 0, ''),
-(251573, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
-(251574, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
-(251575, 0, 0, 0, 8, 0, 1, 1, 0, 0, 0, 0, 0, 0, ''),
-
 (275892, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (275894, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
 (275895, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''),
@@ -60,7 +51,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 
 -- Creature Updates
 UPDATE `creature` SET `wander_distance` = 10, `MovementType` = 1 WHERE `id` IN (1236, 42677); -- Kobold Digger, Moonbrook Thug
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (504); -- Defias Trapper / Lou
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (504); -- Defias Trapper
 UPDATE `creature` SET `wander_distance` = 15, `MovementType` = 1 WHERE `id` IN (126, 127, 171, 456, 458, 513, 515, 517); -- All murlocs except the 2 rares
 UPDATE `creature` SET `wander_distance` = 20, `MovementType` = 1 WHERE `id` IN (157,454,42357, 830, 831); -- Goretusk / Crawler
 UPDATE `creature` SET `wander_distance` = 30, `MovementType` = 1 WHERE `id` IN (154,199,1109, 834, 832); -- Fleshripper / Coyote / Cyclone
@@ -74,8 +65,6 @@ UPDATE creature SET wander_distance = 0, MovementType = 0 WHERE guid IN (274842,
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_trigger' WHERE (`entry` = '42562');
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_thug' WHERE (`entry` = '42387');
 DELETE FROM `creature` WHERE `ID` = 42387; -- thugs are spawned by script now
-
-UPDATE `creature` SET `PhaseId` = 171 WHERE `guid` IN (251569,251570,251571,251572,251575,251573,251574);
 
 -- Script for Salma's Westfall Stew
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_salma_saldean_235' WHERE `entry` = 235;

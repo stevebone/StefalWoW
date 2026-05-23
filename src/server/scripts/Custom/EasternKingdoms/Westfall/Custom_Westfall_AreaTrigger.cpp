@@ -116,7 +116,7 @@ namespace Scripts::EasternKingdoms::Westfall
                         citizen->m_Events.AddEventAtOffset([citizen]()
                             {
                                 if (citizen && citizen->IsAlive())
-                                    citizen->AI()->Talk(13);
+                                    citizen->AI()->Talk(11);
                             }, std::chrono::seconds(5));
                     }
 

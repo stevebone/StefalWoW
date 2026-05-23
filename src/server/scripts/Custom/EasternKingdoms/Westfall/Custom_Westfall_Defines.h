@@ -97,7 +97,7 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 ApplyQuestInvis2 = 79343;
 
         static constexpr uint32 DetectQuestInvis0 = 79489;
-        static constexpr uint32 DetectQuestInvis1 = 79229; // this looks incorrect
+        static constexpr uint32 DetectQuestInvis1 = 79229;
         static constexpr uint32 DetectQuestInvis2 = 79341;
 
         static constexpr uint32 HoratiosSunglasses = 78935;
@@ -188,6 +188,12 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 WomanScream = 17852;
         static constexpr uint32 WeaponFire1 = 161625;
         static constexpr uint32 WeaponFire2 = 161611;
+    }
+
+    namespace Phases
+    {
+        static constexpr uint32 QuestZone2 = 171;
+        static constexpr uint32 QuestZone3 = 172;
     }
 }
 

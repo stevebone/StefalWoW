@@ -92,7 +92,7 @@ namespace Scripts::EasternKingdoms::Westfall
                         {
                             hungryHobo->SetFacingToObject(me, true);
                             hungryHobo->SetStandState(UNIT_STAND_STATE_SIT);
-                            hungryHobo->AI()->Talk(11);
+                            hungryHobo->AI()->Talk(13);
                         }
                     }, std::chrono::seconds(4));
 
@@ -392,11 +392,6 @@ namespace Scripts::EasternKingdoms::Westfall
                         }, std::chrono::seconds(5));
 
                     player->KilledMonsterCredit(Creatures::LousPartingThoughtsCredit, _playerGuid);
-
-                    // TO-DO Move these to spell area
-                    //player->RemoveAurasDueToSpell(Spells::DetectQuestInvis1);
-                    //player->CastSpell(player, Spells::DetectQuestInvis2);
-                    PhasingHandler::AddPhase(player, 171, true);
                 }
                 Reset();
             }

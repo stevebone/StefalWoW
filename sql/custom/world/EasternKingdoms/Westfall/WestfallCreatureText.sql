@@ -669,7 +669,7 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 
 -- creature texts for the thugs in quest 26232
 DELETE FROM `creature_text` WHERE `CreatureID` IN (42387,42562,42559,42558,235,42385);
-DELETE FROM `creature_text` WHERE CreatureID IN (42384) AND `GroupID` IN (13);
+DELETE FROM `creature_text` WHERE CreatureID IN (42384) AND `GroupID` IN (11);
 INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probability, Emote, Duration, Sound, SoundPlayType, BroadcastTextId, TextRange, comment) VALUES
 (42385, 0, 0, 'I''m so happy. Thank you, mama and thank you, $n.', 12, 7, 100, 1, 0, 0, 0, 42470, 0, 'Orphan - Westfall Stew Quest'),
 (42385, 1, 0, 'YAY FOR $n!', 12, 7, 100, 1, 0, 0, 0, 42472, 0, 'Orphan - Westfall Stew Quest'),
@@ -681,7 +681,7 @@ INSERT INTO creature_text (CreatureID, GroupID, ID, Text, Type, Language, Probab
 (42558, 2, 0, 'A message for anyone that would dare snitch on these criminals.', 12, 7, 100, 0, 0, 0, 0, 42450, 0, 'Horation Laine - Lous murder'),
 (42558, 3, 0, 'It would appear that poor Lou really put his foot...', 12, 7, 100, 0, 0, 0, 0, 42451, 0, 'Horation Laine - Lous murder'),
 (42558, 4, 0, 'In his mouth.', 12, 7, 100, 0, 0, 0, 0, 42452, 0, 'Horation Laine - Lous murder'),
-(42384, 13, 0, 'I... I didn''t see nothin''! He... he died of natural causes.', 12, 7, 100, 0, 0, 0, 0, 42457, 0, 'Homeless Stormwind Citizen to Stormwind Investigator'),
+(42384, 11, 0, 'I... I didn''t see nothin''! He... he died of natural causes.', 12, 7, 100, 0, 0, 0, 0, 42457, 0, 'Homeless Stormwind Citizen to Stormwind Investigator'),
 (42559, 0, 0, 'You were standing right here! What the hell did you see? Speak up!', 12, 7, 100, 0, 0, 0, 0, 42456, 0, 'Stormwind Investigator - Lous death scene'),
 (42559, 1, 0, 'Natural causes? Two bullets in the chest and his shoes are on his head. What kind of natural death would that be?', 12, 7, 100, 0, 0, 0, 0, 42458, 0, 'Stormwind Investigator - Lous death scene'),
 (42562, 3, 0, 'Hurry back to the Furlbrow''s Cottage!', 41, 0, 100, 0, 0, 0, 0, 42446, 0, 'Lou''s Parting Thoughts Trigger to Player'),
@@ -754,22 +754,22 @@ VALUES
 (42662, 4, 0, 'Aye. Tonight.', 12, 100, 273, 0, 0, 42544);
 
 -- Creature text for Westfall Stew food quest
-DELETE FROM `creature_text` WHERE CreatureID IN (42384,42386) AND `GroupID` IN (11);
+DELETE FROM `creature_text` WHERE CreatureID IN (42384,42386) AND `GroupID` IN (13);
 INSERT INTO creature_text
 (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId)
 VALUES
-(42384, 11, 0, 'Bless you, friend.', 7, 12, 100, 1, 0, 0, 42490),
-(42384, 11, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
-(42384, 11, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
-(42384, 11, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
-(42384, 11, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
-(42384, 11, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491),
-(42386, 11, 0, 'Bless you, friend.', 7, 12, 100, 1, 0, 0, 42490),
-(42386, 11, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
-(42386, 11, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
-(42386, 11, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
-(42386, 11, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
-(42386, 11, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491);
+(42384, 13, 0, 'Bless you, friend.', 7, 12, 100, 1, 0, 0, 42490),
+(42384, 13, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
+(42384, 13, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
+(42384, 13, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
+(42384, 13, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
+(42384, 13, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491),
+(42386, 13, 0, 'Bless you, friend.', 7, 12, 100, 1, 0, 0, 42490),
+(42386, 13, 1, 'Maybe... maybe life is worth living.', 7, 12, 100, 18, 0, 0, 42489),
+(42386, 13, 2, 'I''d know that smell anywhere! Salma''s famous stew!', 7, 12, 100, 5, 0, 0, 42488),
+(42386, 13, 3, 'Thank you, kind and gentle stranger.', 7, 12, 100, 1, 0, 0, 42486),
+(42386, 13, 4, 'Westfall stew? I''ll never forget this moment!', 7, 12, 100, 5, 0, 0, 42487),
+(42386, 13, 5, 'Perhaps one day I will repay you for this kind act.', 7, 12, 100, 1, 0, 0, 42491);
 
 -- Creature text for Westfall hobos event at Sentinel Hill
 DELETE FROM `creature_text` WHERE CreatureID IN (42383) AND `GroupID` IN (11);
