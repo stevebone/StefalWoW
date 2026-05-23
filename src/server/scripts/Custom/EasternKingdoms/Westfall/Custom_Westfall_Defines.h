@@ -34,6 +34,8 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 HopeForThePeople = 26266;
         static constexpr uint32 InDefenseOfWestfall = 26286;
         static constexpr uint32 SecretsOfTheTower = 26290;
+        static constexpr uint32 TheDawningOfANewDay = 26297;
+        static constexpr uint32 AVisionOfThePast = 26320;
     }
 
     namespace Creatures
@@ -73,6 +75,9 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 MortwakeShadowyFigure = 42662;
         static constexpr uint32 MortwakeHelix = 42655;
         static constexpr uint32 MortwakeOaf = 42754;
+
+        static constexpr uint32 SpawnedShadowyFigureAtMoonbrook = 42680;
+        static constexpr uint32 MoonbrookPlayerTrigger = 43515;
     }
 
     namespace Spawns
@@ -107,6 +112,8 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 HoratiosSunglasses = 78935;
 
         // Sentinel Hill
+        static constexpr uint32 InStocks = 69196;
+
         static constexpr uint32 SummonRipsnarl = 79670;
         static constexpr uint32 SummonScoutGaliaan = 79669;
         static constexpr uint32 SummonCaptainDanuvin = 79668;
@@ -116,10 +123,15 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 SummonHoratioLaine = 79664;
         static constexpr uint32 SummonGryanStoutmantle = 79663;
 
+        // Mortwake Tower
         static constexpr uint32 PotionShrouding = 79528;
         static constexpr uint32 KillShot = 79525;
         static constexpr uint32 TeleportVisual = 64446;
         static constexpr uint32 QuestCredit26290 = 79534;
+
+        // Moonbrook
+        static constexpr uint32 SummonShadowyFigureMoonbrook = 79551;
+        static constexpr uint32 CancelShadowyFigureMoonbrook = 79557;
     }
 
     namespace Events
@@ -143,6 +155,42 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr Position SalmaSaldeanStew = { -10106.9238f, 1038.5223f, 37.947f, 5.64f };
 
         static constexpr Position GryanStoutmantleTalkRipsnarl = { -10512.5126f, 1046.5996f, 60.5181f, 3.6035f };
+
+        struct CrowdSpawnData
+        {
+            float x, y, z, o;
+        };
+
+        static constexpr CrowdSpawnData CrowdSpawns[] =
+        {
+            { -11009.036f, 1490.47f, 43.58f, 4.16f },
+            { -11010.76f,  1488.21f, 43.57f, 4.33f },
+            { -11017.39f,  1491.76f, 43.19f, 4.78f },
+            { -11021.73f,  1493.054f,43.184f,5.09f },
+            { -11025.74f,  1487.70f, 43.17f, 5.45f },
+            { -11025.25f,  1482.23f, 43.03f, 6.04f },
+            { -11029.68f,  1481.255f,43.185f,6.20f },
+            { -11024.46f,  1473.88f, 43.02f, 0.43f },
+            { -11019.49f,  1471.70f, 43.21f, 1.09f },
+            { -11021.56f,  1497.053f,43.20f, 5.00f },
+            { -11012.29f,  1488.14f, 43.77f, 4.16f },
+            { -11014.67f,  1493.14f, 43.23f, 4.60f },
+            { -11019.8f,   1494.25f, 43.2f,  4.77f },
+            { -11023.6f,   1489.35f, 43.17f, 4.77f },
+            { -11023.1f,   1482.51f, 43.07f, 6.25f },
+            { -11027.2f,   1494.37f, 43.17f, 5.15f },
+            { -11029.6f,   1488.29f, 43.19f, 5.64f },
+            { -11030.8f,   1485.13f, 43.31f, 5.94f },
+            { -11026.2f,   1478.62f, 42.94f, 6.17f },
+            { -11013.2f,   1497.81f, 43.31f, 4.44f },
+            { -11011.6f,   1492.61f, 43.39f, 4.44f },
+            { -11015.4f,   1489.06f, 43.28f, 4.73f },
+            { -11020.2f,   1490.15f, 43.19f, 5.07f },
+            { -11009.9f,   1483.52f, 44.06f, 3.88f },
+            { -11020.1f,   1484.87f, 43.18f, 5.33f },
+            { -11017.7f,   1487.42f, 43.24f, 4.89f },
+            { -11017.9f,   1498.24f, 43.20f, 5.04f },
+        };
     }
 
     namespace Talks
@@ -169,10 +217,49 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr int8 Q26232Shadowy2 = 2;
         static constexpr int8 Q26232Shadowy3 = 3;
         static constexpr int8 Q26232Shadowy4 = 4;
+
+        // Moonbrook
+        static constexpr int8 Q26297TriggerWarning = 0;
+        static constexpr int8 Q26297Shadowy0 = 0;
+        static constexpr int8 Q26297Shadowy1 = 1;
+        static constexpr int8 Q26297Shadowy2 = 2;
+        static constexpr int8 Q26297Shadowy3 = 3;
+        static constexpr int8 Q26297Shadowy4 = 4;
+        static constexpr int8 Q26297Shadowy5 = 5;
+        static constexpr int8 Q26297Shadowy6 = 6;
+        static constexpr int8 Q26297Shadowy7 = 7;
     }
 
     namespace Dialogue
     {
+        enum class MoonbrookActor : uint8
+        {
+            Trigger,
+            Shadowy
+        };
+
+        struct MoonbrookStep
+        {
+            MoonbrookActor actor;
+            int32 textId;    // -1 = no Talk, just run custom logic
+            uint32 delayMs;  // delay before next step
+        };
+
+        static constexpr MoonbrookStep MoonbrookSequence[] =
+        {
+            { MoonbrookActor::Trigger, Talks::Q26297TriggerWarning, 1500 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy0,       3000 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy1,       5500 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy2,       5000 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy3,       5500 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy4,       5500 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy5,       5500 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy6,       5500 },
+            { MoonbrookActor::Shadowy, Talks::Q26297Shadowy7,       5500 },
+            // Last "step" is special: no text, just crowd + credit + despawn
+            { MoonbrookActor::Trigger, -1,                           0   },
+        };
+
         enum class MortwakeActor : uint8
         {
             Helix,
@@ -232,12 +319,37 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 WomanScream = 17852;
         static constexpr uint32 WeaponFire1 = 161625;
         static constexpr uint32 WeaponFire2 = 161611;
+        static constexpr uint32 CrowdCheer = 15882;
     }
 
     namespace Phases
     {
         static constexpr uint32 QuestZone2 = 171;
         static constexpr uint32 QuestZone3 = 172;
+    }
+
+    inline void SummonCrowd(WorldObject* source)
+    {
+        if (!source)
+            return;
+
+        Map* map = source->GetMap();
+        if (!map)
+            return;
+
+        for (auto const& spawn : Positions::CrowdSpawns)
+        {
+            uint32 crowdNpc = RAND(Creatures::HomelessStormwindCitizen, Creatures::HomelessStormwindCitizen2,
+                Creatures::WestPlainsDrifter, Creatures::SmallTimeHustler);
+
+            if (Creature* c = source->SummonCreature(
+                crowdNpc,
+                spawn.x, spawn.y, spawn.z, spawn.o,
+                TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,
+                360s
+            ))
+                c->SetImmuneToAll(true);
+        }
     }
 }
 

@@ -97,17 +97,19 @@
 
 -- AT: 5989 Furlbrow's Pumpkin Farm (Lou)
 -- AT: 5993 Sentinel Hill Tower
+-- AT: 5994 Mortwake Tower (top)
+-- AT: 5998 Moonbrook Center
+-- AT: 6080 Moonbrook Defias Hideout Entrance
 
 -- Phases
-DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006, 172);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006);
 INSERT INTO `phase_area` VALUES
-(108, 172, 'Westfall - Quest Zone 3'),
 (40, 50004, 'Westfall - Furlbrows 1 - Defias Brotherhood'),
-(40, 50005, 'Westfall - Furlbrows 2 - Return of the Defias (Vanessa)');
--- (40, 50006, 'xxx to be reused');
+(40, 50005, 'Westfall - Furlbrows 2 - Return of the Defias (Vanessa)'),
+(40, 50006, 'Westfall - Horatio & Investigators at Silent Hill'); -- until i can find the proper invisibility spells
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006, 172);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006);
 INSERT INTO `conditions` VALUES
 -- Phase 50004 allows the OLD Furlbrows npcs to be again visible for the old quests
 -- This includes ALL the OLD Defias mobs around westfall.
@@ -116,20 +118,20 @@ INSERT INTO `conditions` VALUES
 ('26', '50004', '0', '0', '0', '47', '0', '166', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 50004 if 166 IS NOT rewarded'),
 -- Phase 50005 is the phase for the new/post Cata storyline
 -- It starts after the quest The Defias Brotherhood
-('26', '50005', '40', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 166 IS rewarded'),
+('26', '50005', '0', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 166 IS rewarded'),
 -- Phase 172 for Sentinel Hill Tower murder dialogue
-('26', '172', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 172 if 26266 IS taken, complete, rewarded');
+('26', '50006', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50006 if 26266 IS taken, complete, rewarded');
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
 (5989, 'at_westfall_furlsbrow_farm_5989'),
-(5993, 'at_westfall_sentinel_hill_tower_5993');
+(5993, 'at_westfall_sentinel_hill_tower_5993'),
+(5994, 'at_westfall_mortwake_tower_5994'),
+(5998, 'at_westfall_moonbrook_center_5998');
 
 -- SpellArea
 DELETE FROM `spell_area` WHERE (`spell`=79346 AND `area`=40) OR (`spell`=79229 AND `area`=40);
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`, `quest_start_status`, `quest_end_status`) VALUES
 (79346, 40, 26232, 26236, 0, 0, 2, 3, 66, 11),
 (79229, 40, 0, 26232, 0, 0, 2, 3, 64, 9);
-
-

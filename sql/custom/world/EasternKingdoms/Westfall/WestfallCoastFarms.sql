@@ -144,6 +144,13 @@ VALUES
 ('467', '0', '8', '0', '', '6', '0', '100', '0', '0', '0', '0', '0', '0', '', '6', '155', '0', '0', '0', '0', '0', '0', NULL, '12', '1', '0', '0', '0', NULL, '0', '0', '0', '0', 'Defias Traitor - On Death - Fail quest'),
 ('467', '0', '9', '0', '', '4', '0', '30', '0', '0', '0', '0', '0', '0', '', '1', '0', '0', '1', '0', '0', '0', '0', NULL, '7', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Defias Traitor - On Aggro - Say Line 0 (No Repeat)');
 
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (42677); -- Moonbrook Thug
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 42677 AND `source_type` = 0;
+INSERT INTO `smart_scripts` VALUES
+('42677', '0', '0', '0', '', '2', '0', '100', '1', '0', '15', '0', '0', '0', '', '25', '1', '0', '0', '0', '0', '0', '0', NULL, '0', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Moonbrook Thug - Between 0-15% Health - Flee For Assist (No Repeat)'),
+('42677', '0', '1', '0', '', '0', '0', '100', '0', '5500', '7800', '18500', '21200', '0', '', '11', '80146', '0', '0', '0', '0', '0', '0', NULL, '2', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Moonbrook Thug - In Combat - Cast \'Bonk\''),
+('42677', '0', '2', '0', '', '4', '0', '30', '0', '0', '0', '0', '0', '0', '', '1', '0', '0', '1', '0', '0', '0', '0', NULL, '7', '0', '0', '0', '0', NULL, '0', '0', '0', '0', 'Moonbrook Thug - On Aggro - Say Line 0 (No Repeat)');
+
 -- Increase Say rate to 30% which is more in line with Blizz
 UPDATE `smart_scripts` SET `event_chance` = '30' WHERE `entryorguid` IN (95, 121, 122, 481, 590) and (`source_type` = '0') and (`id` = '0') and (`link` = '0');
 

@@ -9,6 +9,7 @@
 -- NPC: 42386 Homeless Stormwind Citizen (Female
 -- NPC: 42575 Hope Saldean
 -- NPC: 42635 Ripsnarl
+-- NPCL 42748 Ripsnarl Spawned
 
 -- GO: 204005 Heavy Wooden Stocks
 
@@ -77,7 +78,7 @@ INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_westfall_stew_42617' WHERE (`entry` = 42617);
 
 -- Update NEW phase for existing creatures
-UPDATE `creature` SET `PhaseId` = 50005 WHERE `id` IN (54373,54371,54372);
+UPDATE `creature` SET `PhaseId` = 50005 WHERE `id` IN (54373,54371,54372,42407,42384,42386,42383,42391,42390,42385,42400,42677);
 UPDATE `creature` SET `PhaseId` = 50005 WHERE `guid` IN (275164);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (275405,275407,275377,275376,275379,275378,275283,275259,275257,275258,275137,275096,
@@ -131,12 +132,15 @@ SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` IN (@CGUID+818,@CGUID+819,@CGUID+820);
 INSERT INTO `creature` VALUES
 -- Horatio Laine and Stormwind Investigators for Dialogue with Gryan
-(@CGUID+818, '42308', '0', '40', '108', '0', '0', '172', '0', '-1', '0', '0', '-10507.5', '1049.1', '60.5186', '4.37166', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
-(@CGUID+819, '42745', '0', '40', '108', '0', '0', '172', '0', '-1', '0', '0', '-10504.6', '1049.27', '60.5181', '4.09412', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
-(@CGUID+820, '42745', '0', '40', '108', '0', '0', '172', '0', '-1', '0', '0', '-10508.6', '1051.57', '60.0498', '4.69275', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
+(@CGUID+818, '42308', '0', '40', '108', '0', '0', '50006', '0', '-1', '0', '0', '-10507.5', '1049.1', '60.5186', '4.37166', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+819, '42745', '0', '40', '108', '0', '0', '50006', '0', '-1', '0', '0', '-10504.6', '1049.27', '60.5181', '4.09412', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+820, '42745', '0', '40', '108', '0', '0', '50006', '0', '-1', '0', '0', '-10508.6', '1051.57', '60.0498', '4.69275', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
 DELETE FROM `creature_addon` WHERE `guid` = @CGUID+818; -- Horatio Laine addon
 INSERT INTO `creature_addon` (`guid`, `VisFlags`, `SheathState`, `auras`) VALUES (@CGUID+818, 0, 1, '');
 
 -- Quest: 26286 In Defense of Westfall
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_gryan_stoutmantle_234' WHERE (`entry` = 234);
+
+-- Ripsnarl
+UPDATE `creature_template` SET `ScriptName` = 'npc_ripsnarl' WHERE `entry` IN (42748,42635);

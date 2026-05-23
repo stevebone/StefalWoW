@@ -50,6 +50,7 @@ void AddSC_custom_tirisfal_glades_player();
 void AddSC_custom_westfall_at();
 void AddSC_custom_westfall_npcs();
 void AddSC_custom_westfall_player();
+void AddSC_custom_westfall_quests();
 
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
@@ -116,6 +117,7 @@ void AddCustomScripts()
     AddSC_custom_westfall_at();
     AddSC_custom_westfall_npcs();
     AddSC_custom_westfall_player();
+    AddSC_custom_westfall_quests();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();

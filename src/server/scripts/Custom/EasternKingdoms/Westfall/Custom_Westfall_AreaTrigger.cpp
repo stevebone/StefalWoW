@@ -238,6 +238,32 @@ namespace Scripts::EasternKingdoms::Westfall
             return true;
         }
     };
+
+    // 5998 - Westfall - Moonbrook Center
+    class at_westfall_moonbrook_center_5998 : public AreaTriggerScript
+    {
+    public:
+        at_westfall_moonbrook_center_5998() : AreaTriggerScript("at_westfall_moonbrook_center_5998") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            // Check if player has the quest active and the required aura
+            if (player->GetQuestStatus(Quests::TheDawningOfANewDay) == QUEST_STATUS_INCOMPLETE)
+            {
+                // add cooldown of 5min to prevent spam talk
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 5min))
+                    return false;
+
+                // Find the trigger NPC
+                Creature* trigger = player->FindNearestCreature(Creatures::MoonbrookPlayerTrigger, 10.f);
+                if (trigger)
+                    // Set guid on the NPC with player GUID to start the event
+                    trigger->AI()->SetGUID(player->GetGUID(), 1);
+            }
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_westfall_at()
@@ -247,4 +273,5 @@ void AddSC_custom_westfall_at()
     new at_westfall_furlsbrow_farm_5989();
     new at_westfall_sentinel_hill_tower_5993();
     new at_westfall_mortwake_tower_5994();
+    new at_westfall_moonbrook_center_5998();
 }

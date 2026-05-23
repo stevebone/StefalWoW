@@ -123,8 +123,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (833, 0, 57787, 100, 1, 1, 1, 1, 1, 'Coyote Tail'),
 (834, 0, 57787, 100, 1, 1, 1, 1, 1, 'Coyote Tail'),
 (42669, 0, 58204, 100, 1, 1, 1, 1, 1, 'Chasm Ooze'),
-(42677, 0, 58117, 100, 1, 1, 1, 1, 1, 'Red Bandana'),
-(42677, 0, 58118, 100, 1, 1, 1, 1, 1, 'Red Bandana');
+(42677, 0, 58118, 60, 1, 1, 1, 1, 1, 'Red Bandana');
 
 -- Specific Mob Flavor items
 DELETE FROM `creature_loot_template`
@@ -172,6 +171,7 @@ WHERE (Entry, Item) IN (
 	(1424, 6206),
 	(517, 1405),
 	(453, 1391),
+	(42677, 58117),
     (123, 821)
 );
 
@@ -180,6 +180,8 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (456, 0, 1357, 10, 0, 1, 1, 1, 1, 'Captain Sanders Treasure Map'),
 (515, 0, 1357, 10, 0, 1, 1, 1, 1, 'Captain Sanders Treasure Map'),
 (513, 0, 1357, 10, 0, 1, 1, 1, 1, 'Captain Sanders Treasure Map'),
+
+(42677, 0, 58117, 30, 0, 1, 2, 1, 1, 'Red Bandana - Moonbrook Thug'),
 
 (573, 0, 933, 75, 0, 1, 2, 1, 1, 'Large Rucksack - Foe Reaper 4000'),
 (573, 0, 4434, 20, 0, 1, 2, 1, 1, 'Scarecrow Trousers - Foe Reaper 4000'),

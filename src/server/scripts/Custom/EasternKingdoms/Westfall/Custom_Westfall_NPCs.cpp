@@ -889,9 +889,188 @@ namespace Scripts::EasternKingdoms::Westfall
             bool _bExit = false;
             bool _eventRunning = false;
     };
+
+    // 42635 // 42748
+    struct npc_custom_ripsnarl : public ScriptedAI
+    {
+        npc_custom_ripsnarl(Creature* c) : ScriptedAI(c) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            me->SetFaction(7);
+            me->SetReactState(REACT_PASSIVE);
+            me->AddAura(Spells::InStocks, me);
+            me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE));
+        }
+    };
+
+    struct npc_custom_moonbrook_player_trigger : public ScriptedAI
+    {
+        npc_custom_moonbrook_player_trigger(Creature* creature) : ScriptedAI(creature) {}
+
+        void Reset() override
+        {
+            _stepIndex = 0;
+            _summonTimer = 2000;
+            _eventRunning = false;
+            _bText = false;
+            _playerGUID.Clear();
+            _shadowyGUID.Clear();
+        }
+
+        void SetGUID(ObjectGuid const& guid, int32 id) override
+        {
+            if (id == 1 && !_eventRunning)
+            {
+                _playerGUID = guid;
+                StartSpeech();
+                _eventRunning = true;
+            }
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            ScriptedAI::MoveInLineOfSight(who);
+
+            if (!who || who->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (player->GetQuestStatus(Quests::AVisionOfThePast) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            if (!_bText && who->IsWithinDistInMap(me, 2.0f))
+            {
+                _playerGUID = who->GetGUID();
+                me->TextEmote("Follow the trail of homeless to the Deadmines dungeon entrance.", nullptr, true);
+                _bText = true; // don't spam the emote
+            }
+        }
+
+        void StartSpeech()
+        {
+            Player* player = ObjectAccessor::FindPlayer(_playerGUID);
+            if (!player)
+                return;
+
+            if (Creature* shadowy = player->FindNearestCreature(Creatures::SpawnedShadowyFigureAtMoonbrook, 50.f))
+            {
+                _shadowyGUID = shadowy->GetGUID();
+                _summonTimer = 2000;
+                _stepIndex = 0;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!_eventRunning)
+                return;
+
+            if (_summonTimer > diff)
+            {
+                _summonTimer -= diff;
+                return;
+            }
+
+            Player* player = ObjectAccessor::GetPlayer(*me, _playerGUID);
+            Creature* shadowy = ObjectAccessor::GetCreature(*me, _shadowyGUID);
+
+            if (!player || !shadowy)
+                return;
+
+            if (_stepIndex >= std::size(Dialogue::MoonbrookSequence))
+                return;
+
+            Dialogue::MoonbrookStep const& step = Dialogue::MoonbrookSequence[_stepIndex];
+
+            // Normal dialogue steps
+            if (step.textId != -1)
+            {
+                switch (step.actor)
+                {
+                case Dialogue::MoonbrookActor::Trigger:
+                    Talk(step.textId, player);
+                    break;
+
+                case Dialogue::MoonbrookActor::Shadowy:
+                    if (shadowy)
+                        shadowy->AI()->Talk(step.textId, player);
+                    break;
+                }
+                _summonTimer = step.delayMs;
+                ++_stepIndex;
+                return;
+            }
+
+            // Final step: crowd reacts + credit + despawn
+            HandleFinalStep(player, shadowy);
+            Reset(); // clean up state
+        }
+
+        void HandleFinalStep(Player* player, Creature* shadowy)
+        {
+            std::list<Creature*> crowd;
+            GetCreatureListWithEntryInGrid(crowd, me, Creatures::HomelessStormwindCitizen, 30.f);
+            GetCreatureListWithEntryInGrid(crowd, me, Creatures::HomelessStormwindCitizen2, 30.f);
+            GetCreatureListWithEntryInGrid(crowd, me, Creatures::WestPlainsDrifter, 30.f);
+            GetCreatureListWithEntryInGrid(crowd, me, Creatures::SmallTimeHustler, 30.f);
+
+            for (Creature* listener : crowd)
+            {
+                int8 delay = urand(500, 4000);
+                listener->m_Events.AddEventAtOffset(
+                    [listener]()
+                    {
+                        if (listener && listener->IsAlive())
+                            listener->HandleEmoteCommand(EMOTE_ONESHOT_APPLAUD);
+                    },
+                    std::chrono::milliseconds(delay)
+                );
+
+                listener->m_Events.AddEventAtOffset([listener, player]()
+                    {
+                        if (listener && listener->IsAlive())
+                        {
+                            listener->PlayDistanceSound(Sounds::CrowdCheer, player);
+                            listener->HandleEmoteCommand(EMOTE_ONESHOT_CHEER);
+                            listener->DespawnOrUnsummon(10s);
+                        }
+                    },
+                    std::chrono::seconds(5)
+                );
+            }
+
+            me->m_Events.AddEventAtOffset([this, shadowy, player]()
+                {
+                    if (player)
+                        player->KilledMonsterCredit(Creatures::SpawnedShadowyFigureAtMoonbrook, _playerGUID);
+
+                    if (shadowy && shadowy->IsAlive())
+                    {
+                        shadowy->CastSpell(shadowy, Spells::TeleportVisual, true);
+                        shadowy->DespawnOrUnsummon(1s);
+                    }
+                    Reset();
+                },
+                std::chrono::seconds(10)
+            );
+        }
+
+        private:
+            uint32 _summonTimer = 0;
+            uint8 _stepIndex = 0;
+
+            ObjectGuid _playerGUID;
+            ObjectGuid _shadowyGUID;
+
+            bool _eventRunning = false;
+            bool _bText = false;
+    };
 }
-
-
 
 void AddSC_custom_westfall_npcs()
 {
@@ -903,7 +1082,9 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_lous_parting_thoughts_thug);
     RegisterCreatureAI(npc_custom_salma_saldean_235);
     RegisterCreatureAI(npc_custom_gryan_stoutmantle_234);
+    RegisterCreatureAI(npc_custom_ripsnarl);
     RegisterCreatureAI(npc_custom_agent_kearnen);
     RegisterCreatureAI(npc_custom_elite_mercenary);
     RegisterCreatureAI(npc_custom_trigger_mortwake_tower);
+    RegisterCreatureAI(npc_custom_moonbrook_player_trigger);
 }

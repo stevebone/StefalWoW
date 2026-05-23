@@ -643,300 +643,8 @@ class spell_westfall_aggro_hobo : public SpellScript
 };
 }
 
-enum eShadowy2
-{
-    QUEST_THE_DAWNING_OF_NEW_DAY = 26297,
-    QUEST_A_VISION_OF_THE_PAST = 26320,
-    NPC_SHADOWY2 = 42680,
-    NPC_TRIGGER2 = 43515,
-    NPC_LISTENER = 42383
-};
 
-class npc_shadowy_trigger : public CreatureScript
-{
-public:
-    npc_shadowy_trigger() : CreatureScript("npc_shadowy_trigger") {}
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_shadowy_triggerAI(creature);
-    }
-
-    struct npc_shadowy_triggerAI : public ScriptedAI
-    {
-        npc_shadowy_triggerAI(Creature* creature) : ScriptedAI(creature) {}
-
-        uint32 SummonTimer;
-        ObjectGuid PlayerGUID;
-        ObjectGuid Shadowy2GUID;
-        ObjectGuid Witness1GUID;
-        ObjectGuid Witness2GUID;
-        ObjectGuid Witness3GUID;
-        ObjectGuid Witness4GUID;
-        ObjectGuid Witness5GUID;
-        ObjectGuid Witness6GUID;
-        ObjectGuid Witness7GUID;
-        ObjectGuid Witness8GUID;
-        ObjectGuid Witness9GUID;
-        ObjectGuid Witness10GUID;
-        ObjectGuid Witness11GUID;
-        ObjectGuid Witness12GUID;
-        ObjectGuid Witness13GUID;
-        ObjectGuid Witness14GUID;
-        ObjectGuid Witness15GUID;
-        ObjectGuid Witness16GUID;
-        ObjectGuid Witness17GUID;
-        ObjectGuid Witness18GUID;
-        ObjectGuid Witness19GUID;
-        ObjectGuid Witness20GUID;
-        ObjectGuid Witness21GUID;
-        ObjectGuid Witness22GUID;
-        ObjectGuid Witness23GUID;
-        ObjectGuid Witness24GUID;
-        ObjectGuid Witness25GUID;
-        ObjectGuid Witness26GUID;
-        ObjectGuid Witness27GUID;
-
-        uint8 Phase;
-
-        bool bSummoned;
-        bool bSummoned1;
-        bool bText;
-
-        void Reset() override
-        {
-            Phase = 0;
-            bSummoned = false;
-            bSummoned1 = false;
-            bText = false;
-            SummonTimer = 2000;
-        }
-
-        void MoveInLineOfSight(Unit* who) override
-        {
-            ScriptedAI::MoveInLineOfSight(who);
-
-            if (who->GetTypeId() != TYPEID_PLAYER)
-                return;
-
-            if (who->ToPlayer()->GetQuestStatus(QUEST_THE_DAWNING_OF_NEW_DAY) == QUEST_STATUS_INCOMPLETE)
-            {
-                if (who->IsWithinDistInMap(me, 20.0f) && !bSummoned)
-                {
-                    PlayerGUID = who->GetGUID();
-                    StartSpeech();
-                }
-            }
-            else
-                if (who->ToPlayer()->GetQuestStatus(QUEST_A_VISION_OF_THE_PAST) == QUEST_STATUS_INCOMPLETE)
-                {
-                    if (who->IsWithinDistInMap(me, 2.0f) && !bSummoned)
-                    {
-                        PlayerGUID = who->GetGUID();
-                        me->TextEmote("Follow the trail of homeless to the Deadmines dungeon entrance.", NULL, true);
-                    }
-                }
-        }
-
-        void StartSpeech()
-        {
-            if (!bSummoned)
-            {
-                if (Creature* Shadowy2 = me->SummonCreature(NPC_SHADOWY2, -11016.31f, 1478.82f, 47.80f, 2.016f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                {
-                    Shadowy2GUID = Shadowy2->GetGUID();
-                    bSummoned = true;
-                    SummonTimer = 2000;
-                    SummonCrowd();
-                }
-            }
-        }
-
-        void SummonCrowd()
-        {
-            if (!bSummoned1)
-            {
-                if (Creature* Witness1 = me->SummonCreature(NPC_LISTENER, -11009.036f, 1490.47f, 43.58f, 4.16f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                    if (Creature* Witness2 = me->SummonCreature(NPC_LISTENER, -11010.76f, 1488.21f, 43.57f, 4.33f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                        if (Creature* Witness3 = me->SummonCreature(NPC_LISTENER, -11017.39f, 1491.76f, 43.19f, 4.78f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                            if (Creature* Witness4 = me->SummonCreature(NPC_LISTENER, -11021.73f, 1493.054f, 43.184f, 5.09f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                if (Creature* Witness5 = me->SummonCreature(NPC_LISTENER, -11025.74f, 1487.70f, 43.17f, 5.45f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                    if (Creature* Witness6 = me->SummonCreature(NPC_LISTENER, -11025.25f, 1482.23f, 43.03f, 6.04f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                        if (Creature* Witness7 = me->SummonCreature(NPC_LISTENER, -11029.68f, 1481.255f, 43.185f, 6.20f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                            if (Creature* Witness8 = me->SummonCreature(NPC_LISTENER, -11024.46f, 1473.88f, 43.02f, 0.43f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                if (Creature* Witness9 = me->SummonCreature(NPC_LISTENER, -11019.49f, 1471.70f, 43.21f, 1.09f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                    if (Creature* Witness10 = me->SummonCreature(NPC_LISTENER, -11021.56f, 1497.053f, 43.20f, 5.00f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                        if (Creature* Witness11 = me->SummonCreature(NPC_LISTENER, -11012.29f, 1488.14f, 43.77f, 4.16f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                            if (Creature* Witness12 = me->SummonCreature(NPC_LISTENER, -11014.67f, 1493.14f, 43.23f, 4.60f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                if (Creature* Witness13 = me->SummonCreature(NPC_LISTENER, -11019.8f, 1494.25f, 43.2f, 4.77f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                    if (Creature* Witness14 = me->SummonCreature(NPC_LISTENER, -11023.6f, 1489.35f, 43.17f, 4.77f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                        if (Creature* Witness15 = me->SummonCreature(NPC_LISTENER, -11023.1f, 1482.51f, 43.07f, 6.25f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                            if (Creature* Witness16 = me->SummonCreature(NPC_LISTENER, -11027.2f, 1494.37f, 43.17f, 5.15f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                if (Creature* Witness17 = me->SummonCreature(NPC_LISTENER, -11029.6f, 1488.29f, 43.19f, 5.64f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                    if (Creature* Witness18 = me->SummonCreature(NPC_LISTENER, -11030.8f, 1485.13f, 43.31f, 5.94f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                        if (Creature* Witness19 = me->SummonCreature(NPC_LISTENER, -11026.2f, 1478.62f, 42.94f, 6.17f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                            if (Creature* Witness20 = me->SummonCreature(NPC_LISTENER, -11013.2f, 1497.81f, 43.31f, 4.44f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                if (Creature* Witness21 = me->SummonCreature(NPC_LISTENER, -11011.6f, 1492.61f, 43.39f, 4.44f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                    if (Creature* Witness22 = me->SummonCreature(NPC_LISTENER, -11015.4f, 1489.06f, 43.28f, 4.73f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                        if (Creature* Witness23 = me->SummonCreature(NPC_LISTENER, -11020.2f, 1490.15f, 43.19f, 5.07f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                            if (Creature* Witness24 = me->SummonCreature(NPC_LISTENER, -11009.9f, 1483.52f, 44.06f, 3.88f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                                if (Creature* Witness25 = me->SummonCreature(NPC_LISTENER, -11020.1f, 1484.87f, 43.18f, 5.33f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                                    if (Creature* Witness26 = me->SummonCreature(NPC_LISTENER, -11017.7f, 1487.42f, 43.24f, 4.89f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                                        if (Creature* Witness27 = me->SummonCreature(NPC_LISTENER, -11017.9f, 1498.24f, 43.20f, 5.04f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s))
-                                                                                                                        {
-                                                                                                                            Witness1GUID = Witness1->GetGUID();
-                                                                                                                            Witness2GUID = Witness2->GetGUID();
-                                                                                                                            Witness3GUID = Witness3->GetGUID();
-                                                                                                                            Witness4GUID = Witness4->GetGUID();
-                                                                                                                            Witness5GUID = Witness5->GetGUID();
-                                                                                                                            Witness6GUID = Witness6->GetGUID();
-                                                                                                                            Witness7GUID = Witness7->GetGUID();
-                                                                                                                            Witness8GUID = Witness8->GetGUID();
-                                                                                                                            Witness9GUID = Witness9->GetGUID();
-                                                                                                                            Witness10GUID = Witness10->GetGUID();
-                                                                                                                            Witness11GUID = Witness11->GetGUID();
-                                                                                                                            Witness12GUID = Witness12->GetGUID();
-                                                                                                                            Witness13GUID = Witness13->GetGUID();
-                                                                                                                            Witness14GUID = Witness14->GetGUID();
-                                                                                                                            Witness15GUID = Witness15->GetGUID();
-                                                                                                                            Witness16GUID = Witness16->GetGUID();
-                                                                                                                            Witness17GUID = Witness17->GetGUID();
-                                                                                                                            Witness18GUID = Witness18->GetGUID();
-                                                                                                                            Witness19GUID = Witness19->GetGUID();
-                                                                                                                            Witness20GUID = Witness20->GetGUID();
-                                                                                                                            Witness21GUID = Witness21->GetGUID();
-                                                                                                                            Witness22GUID = Witness22->GetGUID();
-                                                                                                                            Witness23GUID = Witness23->GetGUID();
-                                                                                                                            Witness24GUID = Witness24->GetGUID();
-                                                                                                                            Witness25GUID = Witness25->GetGUID();
-                                                                                                                            Witness26GUID = Witness26->GetGUID();
-                                                                                                                            Witness27GUID = Witness27->GetGUID();
-
-                                                                                                                            bSummoned1 = true;
-                                                                                                                        }
-            }
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            if (SummonTimer < diff)
-            {
-                if (bSummoned)
-                {
-                    if (Player* player = ObjectAccessor::GetPlayer(*me, PlayerGUID))
-                        if (Creature* Shadowy2 = ObjectAccessor::GetCreature(*me, Shadowy2GUID))
-                        {
-                            switch (Phase)
-                            {
-                            case 0:
-                            {
-                                me->TextEmote("The rally is about to begin!", NULL, true);
-                                SummonTimer = 1500;
-                                Phase++;
-                                break;
-                            }
-                            case 1:
-                            {
-                                Shadowy2->Yell("Gather, brothers and sisters! Come, all, and listen!", LANG_UNIVERSAL);
-                                SummonTimer = 3000;
-                                Phase++;
-                                break;
-                            }
-                            case 2:
-                            {
-                                Shadowy2->Yell("Brothers. Sisters. We are ABANDONED - the orphaned children of Stormwind.", LANG_UNIVERSAL);
-                                SummonTimer = 5500;
-                                Phase++;
-                                break;
-                            }
-                            case 3:
-                            {
-                                Shadowy2->Yell("Our 'king' sits atop his throne made of gold and shrugs at our plight!", LANG_UNIVERSAL);
-                                SummonTimer = 4000;
-                                Phase++;
-                                break;
-                            }
-                            case 4:
-                            {
-                                Shadowy2->Yell("Meanwhile, our children die of starvation on these very streets!", LANG_UNIVERSAL);
-                                SummonTimer = 4500;
-                                Phase++;
-                                break;
-                            }
-                            case 5:
-                            {
-                                Shadowy2->Yell("HIS war, not ours, cost us our livelihood. WE paid for the Alliance's victories with our blood and the blood of our loved ones!", LANG_UNIVERSAL);
-                                SummonTimer = 4500;
-                                Phase++;
-                                break;
-                            }
-                            case 6:
-                            {
-                                Shadowy2->Yell("The time has come, brothers and sisters, to stop this injustice!", LANG_UNIVERSAL);
-                                SummonTimer = 4500;
-                                Phase++;
-                                break;
-                            }
-                            case 7:
-                            {
-                                Shadowy2->Yell("The government of Stormwind, of the ALLIANCE, must be made accountable for what it has done to us!", LANG_UNIVERSAL); SummonTimer = 4500;
-                                Phase++;
-                                break;
-                            }
-                            case 8:
-                            {
-                                Shadowy2->Yell("Today, we are reborn! Today, we take a stand as men and women, not nameless, faceless numbers!", LANG_UNIVERSAL);
-                                SummonTimer = 4500;
-                                Phase++;
-                                break;
-                            }
-                            case 9:
-                            {
-                                if (Creature* listener = me->FindNearestCreature(NPC_LISTENER, 35.0f, true))
-                                {
-                                    if (!bText)
-                                    {
-                                        me->TextEmote("<homeless people applaud and cheer>", NULL, true);
-                                        listener->TextEmote(TEXT_EMOTE_APPLAUD, ObjectAccessor::GetPlayer(*me, PlayerGUID), false);
-                                        bText = true;
-                                    }
-                                    listener->HandleEmoteCommand(EMOTE_ONESHOT_APPLAUD);
-                                    player->KilledMonsterCredit(42680, PlayerGUID);
-                                    Shadowy2->CastSpell(me, 64446, true);
-                                    Shadowy2->DespawnOrUnsummon(1s);
-                                }
-                            }
-                            break;
-                            default:
-                                break;
-                            }
-                        }
-                }
-            }
-            else SummonTimer -= diff;
-        }
-    };
-};
-
-enum Ripsnarl
-{
-    AURA_IN_STOCKS = 69196,
-};
-
-//42635
-struct npc_ripsnarl : public ScriptedAI
-{
-    npc_ripsnarl(Creature* c) : ScriptedAI(c) { }
-
-    void Reset() override
-    {
-        ScriptedAI::Reset();
-        me->SetFaction(7);
-        me->SetReactState(REACT_PASSIVE);
-        me->AddAura(AURA_IN_STOCKS, me);
-        me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE));
-    }
-};
 
 enum eEnd
 {
@@ -1293,7 +1001,7 @@ public:
                                 }
                                 case 12:
                                 {
-                                    Ripsnarl->RemoveAurasDueToSpell(AURA_IN_STOCKS);
+                                    Ripsnarl->RemoveAurasDueToSpell(1);
                                     Ripsnarl->CastSpell(Ripsnarl, SPELL_TRANSFORM_HUMAN, true);
                                     Hope->Say("Admiral, your hat.", LANG_UNIVERSAL);
                                     EventTimer = 4000;
@@ -1510,11 +1218,12 @@ public:
         if (spell->GetSpellInfo()->Id != SPELL_INCENSE_BURNER)
             return;
 
-        if (player->GetQuestStatus(QUEST_A_VISION_OF_THE_PAST) != QUEST_STATUS_INCOMPLETE)
+        //QUEST_A_VISION_OF_THE_PAST
+        if (player->GetQuestStatus(0) != QUEST_STATUS_INCOMPLETE)
             return;
 
         // Complete the quest directly - temp fix
-        player->CompleteQuest(QUEST_A_VISION_OF_THE_PAST);
+        player->CompleteQuest(0);
     }
 };
 
@@ -1551,9 +1260,7 @@ void AddSC_westfall()
 
     // Creature
     RegisterCreatureAI(npc_westfall_overloaded_harvest_golem);
-    RegisterCreatureAI(npc_ripsnarl);
 
-    new npc_shadowy_trigger();
     new player_rise_of_the_brotherhood();
     new npc_rise_br();
     new npc_defias_blackguard();
