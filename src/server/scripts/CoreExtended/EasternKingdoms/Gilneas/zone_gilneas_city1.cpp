@@ -3646,7 +3646,10 @@ public:
                             }
 
                 if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
-                    player->SetClientControl(me, false);
+                {
+                    me->RemoveCharmedBy(player);
+                    player->VehicleSpellInitialize();
+                }
 
                 me->m_Events.AddEventAtOffset([this]() {
                     m_phase = 1;

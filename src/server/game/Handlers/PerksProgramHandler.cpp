@@ -96,7 +96,7 @@ void WorldSession::SendPerksProgramActivityUpdate()
         response.IntervalActivityID5 = completed.size() > 4 ? completed[4] : 0;
     }
 
-    TC_LOG_ERROR("misc", "SendPerksProgramActivityUpdate: player={} MonthStart={} MonthEnd={} ActivityCount={}",
+    TC_LOG_DEBUG("misc", "SendPerksProgramActivityUpdate: player={} MonthStart={} MonthEnd={} ActivityCount={}",
         player->GetName(), uint32(sPerksProgramMgr->GetCurrentMonthStart()), uint32(sPerksProgramMgr->GetCurrentMonthEnd()), uint32(response.ActivityIDs.size()));
 
     SendPacket(response.Write());
