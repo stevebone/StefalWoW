@@ -1173,7 +1173,7 @@ namespace Scripts::EasternKingdoms::Westfall
                                 _allies.hunter->SetHomePosition(_allies.hunter->GetRandomPoint(Positions::VisionAllianceNPCSForward, 3.f));
                             }, 6s);
                         Schedule(_allies.hunter, [this, vc]() { _allies.hunter->AI()->AttackStart(vc); }, 17s);
-                        Schedule(_allies.hunter, [this, vc]()
+                        Schedule(_allies.hunter, [this]()
                             {
                                 _allies.hunter->GetMotionMaster()->Clear();
                                 if(Creature* hunterBunny = _allies.hunter->GetMap()->GetCreatureBySpawnId(Spawns::VisionBunnyForHunter2))
