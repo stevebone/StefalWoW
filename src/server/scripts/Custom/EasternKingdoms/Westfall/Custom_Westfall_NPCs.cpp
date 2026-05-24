@@ -886,11 +886,15 @@ namespace Scripts::EasternKingdoms::Westfall
             bool _bSumm = false;
             bool _bSumm1 = false;
             bool _bSumm2 = false;
-            bool _bExit = false;
             bool _eventRunning = false;
     };
 
-    // 42635 // 42748
+    /*######
+    ## npc_custom_ripsnarl
+    ## ID 42635
+    ## ID 42748
+    ######*/
+
     struct npc_custom_ripsnarl : public ScriptedAI
     {
         npc_custom_ripsnarl(Creature* c) : ScriptedAI(c) { }
@@ -905,6 +909,11 @@ namespace Scripts::EasternKingdoms::Westfall
         }
     };
 
+    /*######
+    ## npc_custom_moonbrook_player_trigger
+    ## ID 43515
+    ######*/
+
     struct npc_custom_moonbrook_player_trigger : public ScriptedAI
     {
         npc_custom_moonbrook_player_trigger(Creature* creature) : ScriptedAI(creature) {}
@@ -914,7 +923,6 @@ namespace Scripts::EasternKingdoms::Westfall
             _stepIndex = 0;
             _summonTimer = 2000;
             _eventRunning = false;
-            _bText = false;
             _playerGUID.Clear();
             _shadowyGUID.Clear();
         }
@@ -926,28 +934,6 @@ namespace Scripts::EasternKingdoms::Westfall
                 _playerGUID = guid;
                 StartSpeech();
                 _eventRunning = true;
-            }
-        }
-
-        void MoveInLineOfSight(Unit* who) override
-        {
-            ScriptedAI::MoveInLineOfSight(who);
-
-            if (!who || who->GetTypeId() != TYPEID_PLAYER)
-                return;
-
-            Player* player = who->ToPlayer();
-            if (!player)
-                return;
-
-            if (player->GetQuestStatus(Quests::AVisionOfThePast) != QUEST_STATUS_INCOMPLETE)
-                return;
-
-            if (!_bText && who->IsWithinDistInMap(me, 2.0f))
-            {
-                _playerGUID = who->GetGUID();
-                me->TextEmote("Follow the trail of homeless to the Deadmines dungeon entrance.", nullptr, true);
-                _bText = true; // don't spam the emote
             }
         }
 
@@ -1068,7 +1054,118 @@ namespace Scripts::EasternKingdoms::Westfall
             ObjectGuid _shadowyGUID;
 
             bool _eventRunning = false;
-            bool _bText = false;
+    };
+
+    /*######
+    ## npc_vision_of_the_past
+    ## ID 42693
+    ######*/
+
+    struct npc_vision_of_the_past : public ScriptedAI
+    {
+        npc_vision_of_the_past(Creature* creature) : ScriptedAI(creature), _currentWaypoint(0) {}
+
+        void MovementInform(uint32 /*type*/, uint32 pointId) override
+        {
+            if (pointId == 0)
+            {
+                if (InstanceScript* instance = me->GetInstanceScript())
+                    instance->SetData(1, IN_PROGRESS);
+            }
+
+            _currentWaypoint = pointId;
+
+            // Schedule movement to next waypoint after a short delay
+            if (pointId < 5) // We have waypoints 0-5 (6 total)
+            {
+                _events.ScheduleEvent(Events::VisionOfThePastSecondPath, 2s);
+            }
+            else
+            {
+                // Reached final waypoint, complete the vision
+                _events.ScheduleEvent(Events::VisionOfThePastQuestReward, 2s);
+            }
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (action == 2)
+                _events.ScheduleEvent(Events::VisionOfThePastQuestReward, 3s);
+        }
+
+        void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
+        {
+            if (apply)
+            {
+                who->SetCanFly(true);
+                who->SetDisableGravity(true);
+
+                me->SetCanFly(true);
+                me->NearTeleportTo(Positions::VisionEntryPosition, false);
+
+                Talk(Talks::VisionIntro, who);
+
+                _currentWaypoint = 0;
+                _events.ScheduleEvent(Events::VisionOfThePastFirstPath, 3s);
+            }
+            else
+            {
+                who->SetCanFly(false);
+                who->SetDisableGravity(false);
+                who->NearTeleportTo(Positions::VisionLeavePosition, false);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 id = _events.ExecuteEvent())
+            {
+                switch (id)
+                {
+                case Events::VisionOfThePastFirstPath:
+                    me->GetMotionMaster()->MovePoint(0, Positions::visionWaypoints[0]);
+                    break;
+                case Events::VisionOfThePastSecondPath:
+                    if (_currentWaypoint < 5)
+                    {
+                        _currentWaypoint++;
+                        me->GetMotionMaster()->MovePoint(_currentWaypoint, Positions::visionWaypoints[_currentWaypoint]);
+                    }
+                    break;
+                case Events::VisionOfThePastQuestReward:
+                    _events.ScheduleEvent(Events::VisionOfThePastExit, 3s);
+                    if (Unit* passenger = me->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    {
+                        if (Player* player = passenger->ToPlayer())
+                        {
+                            // Award quest credit directly
+                            if (player->GetQuestStatus(Quests::AVisionOfThePast) == QUEST_STATUS_INCOMPLETE)
+                                player->CompleteQuest(Quests::AVisionOfThePast);
+
+                            // Also try the spell method as backup
+                            passenger->CastSpell(passenger, Spells::VisionOfThePastCredit, true);
+                        }
+                        me->NearTeleportTo(Positions::VisionLeavePosition, false);
+                    }
+                    break;
+                case Events::VisionOfThePastExit:
+                    if (Unit* passenger = me->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    {
+                        passenger->ExitVehicle();
+                        passenger->SetCanFly(false);
+                        passenger->SetDisableGravity(false);
+                    }
+                    me->DespawnOrUnsummon(1s);
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        uint32 _currentWaypoint;
     };
 }
 
@@ -1087,4 +1184,5 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_elite_mercenary);
     RegisterCreatureAI(npc_custom_trigger_mortwake_tower);
     RegisterCreatureAI(npc_custom_moonbrook_player_trigger);
+    RegisterCreatureAI(npc_vision_of_the_past);
 }

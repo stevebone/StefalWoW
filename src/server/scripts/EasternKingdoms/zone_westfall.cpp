@@ -1199,34 +1199,6 @@ public:
     };
 };
 
-// Temp player script to complete quest until whole event is scripted
-enum IncenseBurner
-{
-    SPELL_INCENSE_BURNER = 79586,   // ? spell the player casts
-};
-
-class player_spell_incense_burner : public PlayerScript
-{
-public:
-    player_spell_incense_burner() : PlayerScript("player_spell_incense_burner") { }
-
-    void OnSpellCast(Player* player, Spell* spell, bool /*skipCheck*/) override
-    {
-        if (!player || !spell)
-            return;
-
-        if (spell->GetSpellInfo()->Id != SPELL_INCENSE_BURNER)
-            return;
-
-        //QUEST_A_VISION_OF_THE_PAST
-        if (player->GetQuestStatus(0) != QUEST_STATUS_INCOMPLETE)
-            return;
-
-        // Complete the quest directly - temp fix
-        player->CompleteQuest(0);
-    }
-};
-
 // add phase 226 if player still has the quest 26322 completed
 class player_login_phase_rise : public PlayerScript
 {
@@ -1265,7 +1237,6 @@ void AddSC_westfall()
     new npc_rise_br();
     new npc_defias_blackguard();
 
-    new player_spell_incense_burner();
     new player_login_phase_rise();
     RegisterCreatureAI(npc_westfall_hobo_witness);
 

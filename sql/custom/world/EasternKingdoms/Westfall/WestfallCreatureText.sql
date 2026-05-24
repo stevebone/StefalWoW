@@ -848,7 +848,7 @@ INSERT INTO creature_text
 (42677, 0, 2, 'Where do you think you''re goin''?', 7, 12, 100, 0, 0, 0, 42553, 'Moonbrook Thug'),
 (42677, 0, 3, 'If you ain''t with us, you''re against us! DIE!', 7, 12, 100, 0, 0, 0, 42554, 'Moonbrook Thug');
 
-DELETE FROM `creature_text` WHERE CreatureID IN (43515,42680);
+DELETE FROM `creature_text` WHERE CreatureID IN (43515,42680,42693);
 INSERT INTO creature_text
 (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId, comment) VALUES
 -- Moonbrook Player Trigger
@@ -862,4 +862,6 @@ INSERT INTO creature_text
 (42680, 4, 0, 'HIS war, not ours, cost us our livelihood. WE paid for the Alliance''s victories with our blood and the blood of our loved ones!', 7, 14, 100, 15, 0, 0, 42574, 'Moonbrook Shadowy Figure'),
 (42680, 5, 0, 'The time has come, brothers and sisters, to stop this injustice!', 7, 14, 100, 5, 0, 0, 42575, 'Moonbrook Shadowy Figure'),
 (42680, 6, 0, 'The government of Stormwind, of the ALLIANCE, must be made accountable for what it has done to us!', 7, 14, 100, 1, 0, 0, 42576, 'Moonbrook Shadowy Figure'),
-(42680, 7, 0, 'Today, we are reborn! Today, we take a stand as men and women, not nameless, faceless numbers!', 7, 14, 100, 5, 0, 0, 42577, 'Moonbrook Shadowy Figure');
+(42680, 7, 0, 'Today, we are reborn! Today, we take a stand as men and women, not nameless, faceless numbers!', 7, 14, 100, 5, 0, 0, 42577, 'Moonbrook Shadowy Figure'),
+-- A vision of the past
+(42693, 0, 0, '|cFF768EBDFive years ago, in the heart of the Deadmines...|r |TInterface\QuestFrame\UI-QUESTLOG-BOOKICON.BLP:32|t', 0, 42, 100, 0, 0, 0, 42864, 'Vision of the past to Player');

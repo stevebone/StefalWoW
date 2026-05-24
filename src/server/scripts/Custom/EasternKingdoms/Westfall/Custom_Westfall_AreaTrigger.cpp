@@ -247,7 +247,7 @@ namespace Scripts::EasternKingdoms::Westfall
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
         {
-            // Check if player has the quest active and the required aura
+            // Check if player has the quest active
             if (player->GetQuestStatus(Quests::TheDawningOfANewDay) == QUEST_STATUS_INCOMPLETE)
             {
                 // add cooldown of 5min to prevent spam talk
@@ -264,6 +264,31 @@ namespace Scripts::EasternKingdoms::Westfall
             return true;
         }
     };
+
+    // 6080 - Westfall - Moonbrook Defias Hideout Entrance
+    class at_westfall_moonbrook_defias_entrance_6080 : public AreaTriggerScript
+    {
+    public:
+        at_westfall_moonbrook_defias_entrance_6080() : AreaTriggerScript("at_westfall_moonbrook_defias_entrance_6080") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            // Check if player has the quest active
+            if (player->GetQuestStatus(Quests::AVisionOfThePast) == QUEST_STATUS_INCOMPLETE)
+            {
+                // add cooldown of 5min to prevent spam trigger
+                if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 5min))
+                    return false;
+
+                // Find the trigger NPC
+                Creature* trigger = player->FindNearestCreature(Creatures::MoonbrookPlayerTrigger, 10.f);
+                if (trigger)
+                    trigger->AI()->Talk(Talks::Q26320TriggerWarning, player);
+            }
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_westfall_at()
@@ -274,4 +299,5 @@ void AddSC_custom_westfall_at()
     new at_westfall_sentinel_hill_tower_5993();
     new at_westfall_mortwake_tower_5994();
     new at_westfall_moonbrook_center_5998();
+    new at_westfall_moonbrook_defias_entrance_6080();
 }

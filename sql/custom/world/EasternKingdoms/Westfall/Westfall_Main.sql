@@ -74,6 +74,14 @@
 -- NPC: 900000 copy of Farmer Furlbrow for phasing
 -- NPC: 900001 copy of Verna Furlbrow
 -- NPC: 900002 copy of Old Blanchy
+-- NPC: 639 Edwin VC
+-- NPC: 42371 Vanessa VC
+-- NPC: 646 Mr Smite (Vision)
+-- NPC: 657 Defias Pirate (Vision of the past)
+-- NPC: 1732 Defias Squallshaper (Vision)
+-- NPC: 3450 Defias Companion (Vision)
+-- NPC: 3947 Goblin Ship Builder (Vision)
+
 
 -- Quest: 9 The killing fields
 -- Quest: 22 Goretusk Liver Pie
@@ -94,6 +102,12 @@
 -- Spell: 79229 Detect Quest Invis 1 (same effect as the above)
 -- Spell: 79489 Detect Quest Invis 0 (for Laine and murder npcs)
 -- Spell: 79341 Detect Quest Invis 2 (for Lou murder)
+
+-- Spell: 5172 Bloodsail Companion
+-- Spell: 24623 Summon Edwin VC
+-- Spell: 5200 Summon VC Allies
+
+-- Phase: 231 Vision of the past
 
 -- AT: 5989 Furlbrow's Pumpkin Farm (Lou)
 -- AT: 5993 Sentinel Hill Tower
@@ -123,12 +137,13 @@ INSERT INTO `conditions` VALUES
 ('26', '50006', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50006 if 26266 IS taken, complete, rewarded');
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998,6080);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
 (5989, 'at_westfall_furlsbrow_farm_5989'),
 (5993, 'at_westfall_sentinel_hill_tower_5993'),
 (5994, 'at_westfall_mortwake_tower_5994'),
-(5998, 'at_westfall_moonbrook_center_5998');
+(5998, 'at_westfall_moonbrook_center_5998'),
+(6080, 'at_westfall_moonbrook_defias_entrance_6080');
 
 -- SpellArea
 DELETE FROM `spell_area` WHERE (`spell`=79346 AND `area`=40) OR (`spell`=79229 AND `area`=40);

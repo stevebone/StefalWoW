@@ -78,6 +78,8 @@ namespace Scripts::EasternKingdoms::Westfall
 
         static constexpr uint32 SpawnedShadowyFigureAtMoonbrook = 42680;
         static constexpr uint32 MoonbrookPlayerTrigger = 43515;
+
+        static constexpr uint32 VisionOfThePast = 42693;
     }
 
     namespace Spawns
@@ -132,6 +134,9 @@ namespace Scripts::EasternKingdoms::Westfall
         // Moonbrook
         static constexpr uint32 SummonShadowyFigureMoonbrook = 79551;
         static constexpr uint32 CancelShadowyFigureMoonbrook = 79557;
+
+        static constexpr uint32 IncenseBurner = 79586;
+        static constexpr uint32 VisionOfThePastCredit = 79620;
     }
 
     namespace Events
@@ -140,6 +145,12 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr int8 WestfalGuardCrowdReaction = 2;
 
         static constexpr int8 AgentKearnenCastKillShot = 1;
+
+        static constexpr int8 VisionOfThePastFirstPath = 1;
+        static constexpr int8 VisionOfThePastCombat = 2;
+        static constexpr int8 VisionOfThePastQuestReward = 3;
+        static constexpr int8 VisionOfThePastExit = 4;
+        static constexpr int8 VisionOfThePastSecondPath = 5;
     }
 
     namespace Positions
@@ -191,6 +202,20 @@ namespace Scripts::EasternKingdoms::Westfall
             { -11017.7f,   1487.42f, 43.24f, 4.89f },
             { -11017.9f,   1498.24f, 43.20f, 5.04f },
         };
+
+        // Vision of the past
+        static constexpr Position VisionEntryPosition = { -97.6376f, -690.562f, 24.3914f };
+        static constexpr Position VisionLeavePosition = { -19.5636f, -377.193f, 60.8038f };
+
+        static constexpr Position visionWaypoints[6] =
+        {
+            { -96.52084f, -701.3229f, 26.23725f },
+            { -72.3125f,  -732.9184f, 34.70948f },
+            { -40.28125f, -763.783f,  43.5428f  },
+            { -2.125f,    -818.7014f, 57.0428f  },
+            { -27.65799f, -850.7101f, 57.0428f  },
+            { -63.17188f, -829.3177f, 47.68164f },
+        };
     }
 
     namespace Talks
@@ -228,6 +253,11 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr int8 Q26297Shadowy5 = 5;
         static constexpr int8 Q26297Shadowy6 = 6;
         static constexpr int8 Q26297Shadowy7 = 7;
+
+        static constexpr int8 Q26320TriggerWarning = 1;
+
+        // Vision of the Past
+        static constexpr int8 VisionIntro = 0;
     }
 
     namespace Dialogue

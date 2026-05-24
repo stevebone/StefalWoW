@@ -1,9 +1,11 @@
 -- Westfall Waypoints
 
-DELETE FROM waypoint_path WHERE `PathId` IN (4238300);
-insert into waypoint_path values (4238300, 0, 0, null, 'Westfall - Drifter + buddy cart');
+DELETE FROM waypoint_path WHERE `PathId` IN (4238300,4269300);
+insert into waypoint_path values 
+(4238300, 0, 0, null, 'Westfall - Drifter + buddy cart'),
+(4269300, 0, 0, null, 'Westfall - Deadmines Vision of the past quest');
 
-DELETE FROM waypoint_path_node WHERE `PathId` IN (4238300);
+DELETE FROM waypoint_path_node WHERE `PathId` IN (4238300,4269300);
 insert into waypoint_path_node values
 (4238300, 1, -9799.86, 834.884, 29.2046, 5.43897, 0),
 (4238300, 2, -9817.91, 855.183, 26.6801, 5.43897, 0),
@@ -45,4 +47,12 @@ insert into waypoint_path_node values
 (4238300, 38, -10333.1, 958.84, 32.7739, 5.01668, 0),
 (4238300, 39, -10333.8, 947.653, 33.3136, 4.11683, 0),
 (4238300, 40, -10346.4, 939.008, 32.2787, 3.74815, 0),
-(4238300, 41, -10365.5, 925.7, 31.6032, 3.74815, 0);
+(4238300, 41, -10365.5, 925.7, 31.6032, 3.74815, 0),
+
+-- Vision of the past
+(4269300, 1, -96.52084, -701.3229, 26.23725, 0, 0),
+(4269300, 2, -72.31250, -732.9184, 34.70948, 0, 0),
+(4269300, 3, -40.28125, -763.7830, 43.54280, 0, 0),
+(4269300, 4, -2.12500,  -818.7014, 57.04280, 0, 0),
+(4269300, 5, -27.65799, -850.7101, 57.04280, 0, 0),
+(4269300, 6, -63.17188, -829.3177, 47.68164, 0, 0);
