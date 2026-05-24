@@ -1080,12 +1080,9 @@ namespace Scripts::EasternKingdoms::Westfall
             if (!apply)
                 return; // we need this to avoid double triggers upon removal from vehicle
 
-            if (Player* player = who->ToPlayer())
-            {                
-                me->NearTeleportTo(Positions::VisionEntryPosition, false);
-                Talk(Talks::VisionIntro, who);
-                _events.ScheduleEvent(Events::VisionOfThePastStartPath, 3s);
-            }
+            me->NearTeleportTo(Positions::VisionEntryPosition, false);
+            Talk(Talks::VisionIntro, who);
+            _events.ScheduleEvent(Events::VisionOfThePastStartPath, 3s);
         }
 
         void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
