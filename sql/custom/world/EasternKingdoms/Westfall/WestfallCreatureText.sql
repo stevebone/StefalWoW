@@ -848,7 +848,7 @@ INSERT INTO creature_text
 (42677, 0, 2, 'Where do you think you''re goin''?', 7, 12, 100, 0, 0, 0, 42553, 'Moonbrook Thug'),
 (42677, 0, 3, 'If you ain''t with us, you''re against us! DIE!', 7, 12, 100, 0, 0, 0, 42554, 'Moonbrook Thug');
 
-DELETE FROM `creature_text` WHERE CreatureID IN (43515,42680,42693);
+DELETE FROM `creature_text` WHERE CreatureID IN (43515,42680,42693,42371,42699);
 INSERT INTO creature_text
 (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId, comment) VALUES
 -- Moonbrook Player Trigger
@@ -864,4 +864,9 @@ INSERT INTO creature_text
 (42680, 6, 0, 'The government of Stormwind, of the ALLIANCE, must be made accountable for what it has done to us!', 7, 14, 100, 1, 0, 0, 42576, 'Moonbrook Shadowy Figure'),
 (42680, 7, 0, 'Today, we are reborn! Today, we take a stand as men and women, not nameless, faceless numbers!', 7, 14, 100, 5, 0, 0, 42577, 'Moonbrook Shadowy Figure'),
 -- A vision of the past
-(42693, 0, 0, '|cFF768EBDFive years ago, in the heart of the Deadmines...|r |TInterface\QuestFrame\UI-QUESTLOG-BOOKICON.BLP:32|t', 0, 42, 100, 0, 0, 0, 42864, 'Vision of the past to Player');
+(42693, 0, 0, '|cFF768EBDFive years ago, in the heart of the Deadmines...|r |TInterface\QuestFrame\UI-QUESTLOG-BOOKICON.BLP:32|t', 0, 42, 100, 0, 0, 0, 42864, 'Vision of the past to Player'),
+(42371, 0, 0, 'Daddy...', 7, 12, 100, 0, 0, 0, 42604, 'Vanessa van Cleef to Edwin van Cleef'),
+(42699, 0, 0, 'There''s nowhere left to hide, VanCleef! The Defias are THROUGH!', 7, 14, 100, 22, 0, 0, 42593, 'Alliance Warrior to Edwin van Cleef'),
+(42699, 1, 0, 'We''re here to finish this! Face us, coward!', 7, 14, 100, 397, 0, 0, 42594, 'Alliance Warrior to Edwin van Cleef'),
+(42699, 2, 0, 'Victory for the Alliance! Glory to Stormwind!', 7, 14, 100, 5, 0, 0, 42602, 'Alliance Warrior to Edwin van Cleef'),
+(42699, 3, 0, 'Let us return to Sentinel Hill, allies, and inform Gryan of VanCleef''s demise!', 7, 12, 100, 396, 0, 0, 42603, 'Alliance Warrior to Edwin van Cleef');

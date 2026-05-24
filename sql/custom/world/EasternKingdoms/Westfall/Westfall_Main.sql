@@ -74,6 +74,7 @@
 -- NPC: 900000 copy of Farmer Furlbrow for phasing
 -- NPC: 900001 copy of Verna Furlbrow
 -- NPC: 900002 copy of Old Blanchy
+-- NPC: 636 Edwin's Guards
 -- NPC: 639 Edwin VC
 -- NPC: 42371 Vanessa VC
 -- NPC: 646 Mr Smite (Vision)

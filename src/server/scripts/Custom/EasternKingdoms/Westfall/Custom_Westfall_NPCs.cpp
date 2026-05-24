@@ -1063,57 +1063,38 @@ namespace Scripts::EasternKingdoms::Westfall
 
     struct npc_vision_of_the_past : public ScriptedAI
     {
-        npc_vision_of_the_past(Creature* creature) : ScriptedAI(creature), _currentWaypoint(0) {}
+        npc_vision_of_the_past(Creature* creature) : ScriptedAI(creature) {}
 
-        void MovementInform(uint32 /*type*/, uint32 pointId) override
+        void Reset() override
         {
-            if (pointId == 0)
-            {
-                if (InstanceScript* instance = me->GetInstanceScript())
-                    instance->SetData(1, IN_PROGRESS);
-            }
-
-            _currentWaypoint = pointId;
-
-            // Schedule movement to next waypoint after a short delay
-            if (pointId < 5) // We have waypoints 0-5 (6 total)
-            {
-                _events.ScheduleEvent(Events::VisionOfThePastSecondPath, 2s);
-            }
-            else
-            {
-                // Reached final waypoint, complete the vision
-                _events.ScheduleEvent(Events::VisionOfThePastQuestReward, 2s);
-            }
+            _events.Reset();
+            me->SetCanFly(true);
+            me->SetWalk(false);
+            me->SetSpeed(MOVE_FLIGHT, 5.f);
+            me->SetDisableGravity(true);
         }
 
-        void DoAction(int32 action) override
-        {
-            if (action == 2)
-                _events.ScheduleEvent(Events::VisionOfThePastQuestReward, 3s);
-        }
-
+        // Player boards the vision NPC (vehicle)
         void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
         {
-            if (apply)
-            {
-                who->SetCanFly(true);
-                who->SetDisableGravity(true);
+            if (!apply)
+                return; // we need this to avoid double triggers upon removal from vehicle
 
-                me->SetCanFly(true);
+            if (Player* player = who->ToPlayer())
+            {                
                 me->NearTeleportTo(Positions::VisionEntryPosition, false);
-
                 Talk(Talks::VisionIntro, who);
+                _events.ScheduleEvent(Events::VisionOfThePastStartPath, 3s);
+            }
+        }
 
-                _currentWaypoint = 0;
-                _events.ScheduleEvent(Events::VisionOfThePastFirstPath, 3s);
-            }
-            else
-            {
-                who->SetCanFly(false);
-                who->SetDisableGravity(false);
-                who->NearTeleportTo(Positions::VisionLeavePosition, false);
-            }
+        void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+        {
+            if (pathId != Paths::VisionOfThePast)
+                return;
+
+            // combat event logic starts from here
+            _events.ScheduleEvent(Events::VisionOfThePastCombat, 3s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -1124,48 +1105,198 @@ namespace Scripts::EasternKingdoms::Westfall
             {
                 switch (id)
                 {
-                case Events::VisionOfThePastFirstPath:
-                    me->GetMotionMaster()->MovePoint(0, Positions::visionWaypoints[0]);
+                case Events::VisionOfThePastStartPath:
+                    me->GetMotionMaster()->MovePath(Paths::VisionOfThePast, false);
                     break;
-                case Events::VisionOfThePastSecondPath:
-                    if (_currentWaypoint < 5)
-                    {
-                        _currentWaypoint++;
-                        me->GetMotionMaster()->MovePoint(_currentWaypoint, Positions::visionWaypoints[_currentWaypoint]);
-                    }
-                    break;
-                case Events::VisionOfThePastQuestReward:
-                    _events.ScheduleEvent(Events::VisionOfThePastExit, 3s);
-                    if (Unit* passenger = me->GetCharmerOrOwnerPlayerOrPlayerItself())
-                    {
-                        if (Player* player = passenger->ToPlayer())
-                        {
-                            // Award quest credit directly
-                            if (player->GetQuestStatus(Quests::AVisionOfThePast) == QUEST_STATUS_INCOMPLETE)
-                                player->CompleteQuest(Quests::AVisionOfThePast);
+                case Events::VisionOfThePastCombat:
+                {
+                    Creature* vc = me->SummonCreature(Creatures::VisionOfThePastEdwinVC, Positions::VisionVC);
+                    if (!vc)
+                        return;
 
-                            // Also try the spell method as backup
-                            passenger->CastSpell(passenger, Spells::VisionOfThePastCredit, true);
-                        }
-                        me->NearTeleportTo(Positions::VisionLeavePosition, false);
-                    }
-                    break;
-                case Events::VisionOfThePastExit:
-                    if (Unit* passenger = me->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    _allies.mage = me->SummonCreature(Creatures::VisionAllianceMage, Positions::VisionAllianceNPCS, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                    _allies.warrior = me->SummonCreature(Creatures::VisionAllianceWarrior, Positions::VisionAllianceNPCS, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                    _allies.rogue = me->SummonCreature(Creatures::VisionAllianceRogue, Positions::VisionAllianceNPCS, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                    _allies.priest = me->SummonCreature(Creatures::VisionAlliancePriest, Positions::VisionAllianceNPCS, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                    _allies.hunter = me->SummonCreature(Creatures::VisionAllianceHunter, Positions::VisionAllianceNPCS, TEMPSUMMON_TIMED_DESPAWN, 5min);
+                    if (_allies.warrior)
                     {
-                        passenger->ExitVehicle();
-                        passenger->SetCanFly(false);
-                        passenger->SetDisableGravity(false);
+                        if (_allies.rogue) _allies.rogue->GetMotionMaster()->MoveFollow(_allies.warrior, 2.f, float(M_PI));
+
+                        if (_allies.mage)
+                        {
+                            if(Creature* mageBunny = _allies.mage->GetMap()->GetCreatureBySpawnId(Spawns::VisionBunnyForMage))
+                                _allies.mage->GetMotionMaster()->MovePoint(1, mageBunny->GetPosition());
+                        }
+                        
+                        if (_allies.priest)
+                        {
+                            if(Creature* priestBunny = _allies.priest->GetMap()->GetCreatureBySpawnId(Spawns::VisionBunnyForPriest))
+                                _allies.priest->GetMotionMaster()->MovePoint(1, priestBunny->GetPosition());
+                        }
+
+                        if (_allies.hunter)
+                        {
+                            if(Creature* hunterBunny = _allies.hunter->GetMap()->GetCreatureBySpawnId(Spawns::VisionBunnyForHunter1))
+                                _allies.hunter->GetMotionMaster()->MovePoint(1, hunterBunny->GetPosition());
+                        }
+
+                        Schedule(_allies.warrior, [this]() { _allies.warrior->GetMotionMaster()->MovePoint(1, Positions::VisionAllianceNPCSForward); }, 1s);
+                        Schedule(_allies.warrior, [this,vc]()
+                            {
+                                _allies.warrior->SetFacingToObject(vc, true);
+                                _allies.warrior->SetHomePosition(_allies.warrior->GetRandomPoint(Positions::VisionAllianceNPCSForward, 3.f));
+                                _allies.warrior->AI()->Talk(Talks::VisionAllianceWarr0);
+                            }, 6s);
+                        Schedule(_allies.warrior, [this]() { _allies.warrior->AI()->Talk(Talks::VisionAllianceWarr1); }, 11s);
+                        Schedule(_allies.warrior, [this, vc]() { vc->AI()->AttackStart(_allies.warrior); }, 15s);
+                        Schedule(_allies.warrior, [this, vc]() { _allies.warrior->AI()->AttackStart(vc); }, 17s);
+
+                        Schedule(_allies.priest, [this, vc]()
+                            {
+                                _allies.priest->SetFacingToObject(vc, true);
+                                _allies.priest->SetHomePosition(_allies.priest->GetRandomPoint(Positions::VisionAllianceNPCSForward, 3.f));
+                                _allies.priest->CastSpell(_allies.priest, Spells::AlliancePriestFortitude);
+                            }, 6s);
+                        Schedule(_allies.priest, [this, vc]() { _allies.priest->AI()->AttackStartCaster(vc, 40.f); }, 17s);
+
+                        Schedule(_allies.mage, [this, vc]()
+                            {
+                                _allies.mage->SetFacingToObject(vc, true);
+                                _allies.mage->SetHomePosition(_allies.mage->GetRandomPoint(Positions::VisionAllianceNPCSForward, 3.f));
+                            }, 6s);
+                        Schedule(_allies.mage, [this, vc]() { _allies.mage->AI()->AttackStartCaster(vc, 40.f); }, 17s);
+
+                        Schedule(_allies.hunter, [this, vc]()
+                            {
+                                _allies.hunter->SetFacingToObject(vc, true);
+                                _allies.hunter->SetHomePosition(_allies.hunter->GetRandomPoint(Positions::VisionAllianceNPCSForward, 3.f));
+                            }, 6s);
+                        Schedule(_allies.hunter, [this, vc]() { _allies.hunter->AI()->AttackStart(vc); }, 17s);
+                        Schedule(_allies.hunter, [this, vc]()
+                            {
+                                _allies.hunter->GetMotionMaster()->Clear();
+                                if(Creature* hunterBunny = _allies.hunter->GetMap()->GetCreatureBySpawnId(Spawns::VisionBunnyForHunter2))
+                                    _allies.hunter->GetMotionMaster()->MovePoint(2, hunterBunny->GetPosition());
+                            }, 18s);
+
+                        Schedule(_allies.rogue, [this, vc]()
+                            {
+                                _allies.rogue->SetFacingToObject(vc, true);
+                                _allies.rogue->SetHomePosition(_allies.rogue->GetRandomPoint(Positions::VisionAllianceNPCSForward, 3.f));
+                            }, 6s);
+                        Schedule(_allies.rogue, [this, vc]() { _allies.rogue->AI()->AttackStart(vc); }, 17s);
                     }
+
+                    _events.ScheduleEvent(Events::VisionAllianceNPCSLeave, 25s);
+                    break;
+                }
+                case Events::VisionAllianceNPCSLeave:
+                {
+                    if(Creature* warrior = me->FindNearestCreature(Creatures::VisionAllianceWarrior, 100.f))
+                    {
+                        warrior->AI()->Talk(Talks::VisionAllianceWarr2);
+                        Schedule(_allies.warrior, [this]() { _allies.warrior->AI()->Talk(Talks::VisionAllianceWarr3); }, 5s);
+                        Schedule(_allies.warrior, [this]()
+                            {
+                                _allies.warrior->DespawnOrUnsummon(10s);
+                                _allies.warrior->GetMotionMaster()->MovePoint(2, Positions::VisionAllianceNPCSLeave);
+                            }, 10s);
+
+                        Schedule(_allies.rogue, [this]()
+                            {
+                                _allies.rogue->DespawnOrUnsummon(10s);
+                                _allies.rogue->GetMotionMaster()->MovePoint(2, Positions::VisionAllianceNPCSLeave);
+                            }, 10s);
+
+                        Schedule(_allies.mage, [this]()
+                            {
+                                _allies.mage->DespawnOrUnsummon(10s);
+                                _allies.mage->GetMotionMaster()->MovePoint(2, Positions::VisionAllianceNPCSLeave);
+                            }, 10s);
+
+                        Schedule(_allies.priest, [this]()
+                            {
+                                _allies.priest->DespawnOrUnsummon(10s);
+                                _allies.priest->GetMotionMaster()->MovePoint(2, Positions::VisionAllianceNPCSLeave);
+                            }, 10s);
+
+                        Schedule(_allies.hunter, [this]()
+                            {
+                                _allies.hunter->DespawnOrUnsummon(10s);
+                                _allies.hunter->GetMotionMaster()->MovePoint(3, Positions::VisionAllianceNPCSLeave);
+                            }, 10s);
+                    }
+                    _events.ScheduleEvent(Events::VisionChildScene, 15s);
+                    break;
+                }
+                case Events::VisionChildScene:
+                {
+                    if (Creature* vanessa = me->SummonCreature(Creatures::VisionOfThePastVanessaVC, Positions::VisionVC, TEMPSUMMON_TIMED_DESPAWN, 2min))
+                    {
+                        if (Creature* vc = vanessa->FindNearestCreature(Creatures::VisionOfThePastEdwinVC, 50.f, false))
+                        {
+                            vanessa->SetWalk(true);
+                            vanessa->GetMotionMaster()->MoveCloserAndStop(1, vc, 2.f);
+                            vanessa->m_Events.AddEventAtOffset([vanessa]()
+                                {
+                                    if (vanessa && vanessa->IsAlive())
+                                    {
+                                        vanessa->AI()->Talk(Talks::VisionVanessa0);
+                                        vanessa->DespawnOrUnsummon(10s);
+                                    }
+                                }, std::chrono::seconds(8));
+                        }
+                    }
+                    _events.ScheduleEvent(Events::VisionOfThePastQuestReward, 15s);
+                    break;
+                }
+                case Events::VisionOfThePastQuestReward:
+                {
+                    if (Unit* passenger = me->GetCharmerOrOwnerPlayerOrPlayerItself())
+                        if (Player* player = passenger->ToPlayer())
+                            player->CastSpell(player, Spells::VisionOfThePastCredit, true);
+
+                    _events.ScheduleEvent(Events::VisionOfThePastExit, 3s);
+
+                    break;
+                }
+                case Events::VisionOfThePastExit:
+                {
+                    me->NearTeleportTo(Positions::VisionLeavePosition, false);
+                    _events.ScheduleEvent(Events::VisionRemovePassenger, 1s);
+                    break;
+                }
+                case Events::VisionRemovePassenger:
+                {
+                    if (Unit* passenger = me->GetCharmerOrOwnerPlayerOrPlayerItself())
+                        passenger->ExitVehicle();
                     me->DespawnOrUnsummon(1s);
                     break;
+                }
                 }
             }
         }
 
     private:
         EventMap _events;
-        uint32 _currentWaypoint;
+        AllianceGroup _allies = {};
+    };
+
+    /*######
+    ## npc_vision_defias_pirate
+    ## ID 657
+    ######*/
+
+    struct npc_vision_defias_pirate : public ScriptedAI
+    {
+        npc_vision_defias_pirate(Creature* c) : ScriptedAI(c) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            me->CastSpell(me, Spells::BloodsailCompanion, true);
+        }
     };
 }
 
@@ -1185,4 +1316,5 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_trigger_mortwake_tower);
     RegisterCreatureAI(npc_custom_moonbrook_player_trigger);
     RegisterCreatureAI(npc_vision_of_the_past);
+    RegisterCreatureAI(npc_vision_defias_pirate);
 }

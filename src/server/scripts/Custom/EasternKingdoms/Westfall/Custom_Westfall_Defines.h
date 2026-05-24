@@ -80,6 +80,13 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 MoonbrookPlayerTrigger = 43515;
 
         static constexpr uint32 VisionOfThePast = 42693;
+        static constexpr uint32 VisionOfThePastEdwinVC = 639;
+        static constexpr uint32 VisionOfThePastVanessaVC = 42371;
+        static constexpr uint32 VisionAllianceWarrior = 42699;
+        static constexpr uint32 VisionAllianceRogue = 42700;
+        static constexpr uint32 VisionAllianceHunter = 42701;
+        static constexpr uint32 VisionAllianceMage = 42702;
+        static constexpr uint32 VisionAlliancePriest = 42703;
     }
 
     namespace Spawns
@@ -93,6 +100,12 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 CartBuddy = 280420;
         static constexpr uint32 StormwindInvestigator = 251574;
         static constexpr uint32 StormwindCitizenInterogation = 251572;
+
+        // Vision of the past
+        static constexpr uint32 VisionBunnyForHunter1 = 376144;
+        static constexpr uint32 VisionBunnyForHunter2 = 376134;
+        static constexpr uint32 VisionBunnyForPriest = 376147;
+        static constexpr uint32 VisionBunnyForMage = 376128;
     }
 
     namespace Spells
@@ -137,6 +150,9 @@ namespace Scripts::EasternKingdoms::Westfall
 
         static constexpr uint32 IncenseBurner = 79586;
         static constexpr uint32 VisionOfThePastCredit = 79620;
+        static constexpr uint32 VisionVCSummonAllies = 5200;
+        static constexpr uint32 AlliancePriestFortitude = 13864;
+        static constexpr uint32 BloodsailCompanion = 5172;
     }
 
     namespace Events
@@ -146,11 +162,13 @@ namespace Scripts::EasternKingdoms::Westfall
 
         static constexpr int8 AgentKearnenCastKillShot = 1;
 
-        static constexpr int8 VisionOfThePastFirstPath = 1;
+        static constexpr int8 VisionOfThePastStartPath = 1;
         static constexpr int8 VisionOfThePastCombat = 2;
-        static constexpr int8 VisionOfThePastQuestReward = 3;
-        static constexpr int8 VisionOfThePastExit = 4;
-        static constexpr int8 VisionOfThePastSecondPath = 5;
+        static constexpr int8 VisionChildScene = 3;
+        static constexpr int8 VisionOfThePastQuestReward = 4;
+        static constexpr int8 VisionOfThePastExit = 5;
+        static constexpr int8 VisionRemovePassenger = 6;
+        static constexpr int8 VisionAllianceNPCSLeave = 7;
     }
 
     namespace Positions
@@ -206,16 +224,10 @@ namespace Scripts::EasternKingdoms::Westfall
         // Vision of the past
         static constexpr Position VisionEntryPosition = { -97.6376f, -690.562f, 24.3914f };
         static constexpr Position VisionLeavePosition = { -19.5636f, -377.193f, 60.8038f };
-
-        static constexpr Position visionWaypoints[6] =
-        {
-            { -96.52084f, -701.3229f, 26.23725f },
-            { -72.3125f,  -732.9184f, 34.70948f },
-            { -40.28125f, -763.783f,  43.5428f  },
-            { -2.125f,    -818.7014f, 57.0428f  },
-            { -27.65799f, -850.7101f, 57.0428f  },
-            { -63.17188f, -829.3177f, 47.68164f },
-        };
+        static constexpr Position VisionVC = { -86.0902f, -819.3812f, 39.3065f, 6.176f };
+        static constexpr Position VisionAllianceNPCS = { -47.6163f, -808.856f,	42.8273f };
+        static constexpr Position VisionAllianceNPCSForward = { -64.4392f, -819.938f, 41.2188f };
+        static constexpr Position VisionAllianceNPCSLeave = { -68.508f, -898.203f, 14.2018f };
     }
 
     namespace Talks
@@ -258,6 +270,16 @@ namespace Scripts::EasternKingdoms::Westfall
 
         // Vision of the Past
         static constexpr int8 VisionIntro = 0;
+        static constexpr int8 VisionVanessa0 = 0;
+        static constexpr int8 VisionVCChallenge = 0;
+        static constexpr int8 VisionVCLapdogs = 1;
+        static constexpr int8 VisionVCCallAllies = 2;
+        static constexpr int8 VisionVCFools = 3;
+        static constexpr int8 VisionVCPrevail = 5;
+        static constexpr int8 VisionAllianceWarr0 = 0;
+        static constexpr int8 VisionAllianceWarr1 = 1;
+        static constexpr int8 VisionAllianceWarr2 = 2;
+        static constexpr int8 VisionAllianceWarr3 = 3;
     }
 
     namespace Dialogue
@@ -352,10 +374,25 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 CrowdCheer = 15882;
     }
 
-    namespace Phases
+    namespace Paths
     {
-        static constexpr uint32 QuestZone2 = 171;
-        static constexpr uint32 QuestZone3 = 172;
+        static constexpr uint32 VisionOfThePast = 4269300;
+    }
+
+    struct AllianceGroup
+    {
+        Creature* warrior = nullptr;
+        Creature* mage = nullptr;
+        Creature* rogue = nullptr;
+        Creature* priest = nullptr;
+        Creature* hunter = nullptr;
+    };
+
+    template<class F>
+    void Schedule(Creature* c, F&& fn, std::chrono::seconds delay)
+    {
+        if (c && c->IsAlive())
+            c->m_Events.AddEventAtOffset(std::forward<F>(fn), delay);
     }
 
     inline void SummonCrowd(WorldObject* source)
