@@ -1371,7 +1371,7 @@ namespace Scripts::EasternKingdoms::Westfall
                         std::chrono::seconds(2)
                     );
 
-                    me->m_Events.AddEventAtOffset([this, player]()
+                    me->m_Events.AddEventAtOffset([this,player]()
                         {
                             if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f))
                                 gryan->SetFacingToObject(me, true);
@@ -1394,7 +1394,7 @@ namespace Scripts::EasternKingdoms::Westfall
                     return;
 
                 Talk(0, player);
-                me->m_Events.AddEventAtOffset([this, player]()
+                me->m_Events.AddEventAtOffset([player]()
                     {
                         if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f))
                             gryan->AI()->SetData(1, 1);

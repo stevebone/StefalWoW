@@ -53,8 +53,8 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 UPDATE `creature` SET `wander_distance` = 10, `MovementType` = 1 WHERE `id` IN (1236, 42677); -- Kobold Digger, Moonbrook Thug
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (504); -- Defias Trapper
 UPDATE `creature` SET `wander_distance` = 15, `MovementType` = 1 WHERE `id` IN (126, 127, 171, 456, 458, 513, 515, 517); -- All murlocs except the 2 rares
-UPDATE `creature` SET `wander_distance` = 20, `MovementType` = 1 WHERE `id` IN (157,454,42357, 830, 831); -- Goretusk / Crawler
-UPDATE `creature` SET `wander_distance` = 30, `MovementType` = 1 WHERE `id` IN (154,199,1109, 834, 832); -- Fleshripper / Coyote / Cyclone
+UPDATE `creature` SET `wander_distance` = 20, `MovementType` = 1 WHERE `id` IN (157,454,42357, 830, 831) AND `guid` NOT IN (275917,275912,275817,275782,275725,275798,275692,275630,275629,275619,275534,275527,275530,275606,275669,275609,275545,275519,275549,275478,275522,275420,275521,275544,275319,275279,275320,275318,275418); -- Goretusk / Crawler
+UPDATE `creature` SET `wander_distance` = 30, `MovementType` = 1 WHERE `id` IN (154,199,1109, 834, 832) AND `guid` NOT IN (275918,275909,276023,275924,275728,276019,275936,275925,275813,275718,275667,275481,275518,275797,275792,275688,275624,275689,275620,275537,275535,275531,275529,275671,275660,275480,275690,275625,275623,275696,275533,275538); -- Fleshripper / Coyote / Cyclone
 UPDATE `creature` SET `wander_distance` = 15, `MovementType` = 1 WHERE `id` IN (98, 117, 123, 124, 452, 453, 500, 501, 1065); -- Riverpaw
 UPDATE `creature` SET `wander_distance` = 10, `MovementType` = 1 WHERE `id` IN (114,115,42342); -- Harvest Reaper
 UPDATE `creature` SET `wander_distance` = 5, `MovementType` = 1 WHERE `id` = 42669; -- Chasm Slime

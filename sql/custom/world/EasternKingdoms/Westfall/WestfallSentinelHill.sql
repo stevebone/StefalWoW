@@ -144,3 +144,9 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_custom_gryan_stoutmantle_234'
 
 -- Ripsnarl
 UPDATE `creature_template` SET `ScriptName` = 'npc_ripsnarl' WHERE `entry` IN (42748,42635);
+
+-- Quest: 26322 Rise of the brotherhood
+UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26322_rise_of_the_brotherhood' WHERE ID = 26322;
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_gryan_stoutmantle_act2' WHERE `entry` IN (42750);
+UPDATE `creature_template` SET `ScriptName` = 'npc_hope_act2' WHERE `entry` IN (42749);
