@@ -18,142 +18,142 @@
 // * with this program. If not, see <http://www.gnu.org/licenses/>.
 // */
 //
-//#include "CreatureTextMgr.h"
-//#include "GameObject.h"
-//#include "GameObjectAI.h"
-//#include "MoveSplineInit.h"
-//#include "MotionMaster.h"
-//#include "ObjectAccessor.h"
-//#include "PassiveAI.h"
-//#include "Player.h"
-//#include "ScriptMgr.h"
-//#include "ScriptedCreature.h"
-//#include "ScriptedEscortAI.h"
-//#include "ScriptedFollowerAI.h"
-//#include "SpellAuraEffects.h"
-//#include "SpellMgr.h"
-//#include "SpellScript.h"
-//#include "TemporarySummon.h"
-//#include "Vehicle.h"
-//#include "WorldSession.h"
-//#include "zone_gilneas.h"
-//
-//enum eDuskHaven
-//{
-//    NPC_GENERIC_TRIGGER_LAB_MP                  = 35374, // target on ship
-//    NPC_LORD_GODFREY_36170                      = 36170,
-//    NPC_TRIGGER                                 = 36198,
-//    NPC_HORRID_ABOMINATION                      = 36231,
-//    NPC_QUEST_14348_KILL_CREDIT                 = 36233,
-//    NPC_FORSAKEN_CATAPULT                       = 36283,
-//    NPC_GENERIC_TRIGGER_LAB_AOI                 = 36286, // target on land
-//    NPC_CYNTIA_CREDIT                           = 36287,
-//    NPC_JAMES_CREDIT                            = 36288,
-//    NPC_ASHLEY_CREDIT                           = 36289,
-//    NPC_FORSAKEN_MACHINIST                      = 36292,
-//    NPC_DARK_RANGER_THYALA                      = 36312,
-//    NPC_LORD_GODFREY_36330                      = 36330,
-//    NPC_KRENNAN_ARANAS_36331                    = 36331,
-//    NPC_KING_GENN_GREYMANE_36332                = 36332,
-//    NPC_MASTIFF                                 = 36405,
-//    NPC_DROWNING_WATCHMANN_CREDIT               = 36450,
-//    NPC_PRINCE_LIAM_GREYMANE                    = 36451,
-//    NPC_LORNA_CROWLEY                           = 36457,
-//    NPC_CAT                                     = 36459,
-//    NPC_LUCIUS                                  = 36461,
-//    NPC_SWIFT_MOUNTAIN_HORSE                    = 36741,
-//    NPC_LORD_DARIUS_CROWLEY                     = 37195,
-//    NPC_ENSLAVED_VILLAGER                       = 37694,
-//    NPC_KOROTH                                  = 37808,
-//    NPC_LORD_GODFREY                            = 37875,
-//    NPC_DARK_SCOUT                              = 37953,
-//    NPC_HARNESS_38755                           = 38755,
-//    NPC_HARNESS_43336                           = 43336,
-//    NPC_CARRIAGE_43337                          = 43337,
-//    NPC_STAGECOACH_CARRIAGE                     = 44928,
-//    NPC_LORNA_CRAWLEY                           = 51409,
-//
-//    GO_BALL_AND_CHAIN                           = 201775,
-//
-//    QUEST_INVASION                              = 14321,
-//    QUEST_LAST_CHANCE_AT_HUMANITY               = 14375,
-//    QUEST_LAST_STAND                            = 14222,
-//    QUEST_KILL_OR_BE_KILLED                     = 14336,
-//    QUEST_YOU_CANT_TAKE_EM_ALONE                = 14348,
-//    QUEST_SAVE_THE_CHILDREN                     = 14368,
-//    QUEST_LEADER_OF_THE_PACK                    = 14386,
-//    QUEST_GASPING_FOR_BREATH                    = 14395,
-//    QUEST_AS_THE_LAND_SHATTERS                  = 14396,
-//    QUEST_GRANDMAS_CAT                          = 14401,
-//    QUEST_TO_GREYMANE_MANOR                     = 14465,
-//    QUEST_THE_KINGS_OBSERVATORY                 = 14466,
-//    QUEST_ALAS_GILNEAS                          = 14467,
-//    QUEST_EXODUS                                = 24438,
-//    QUEST_INTRODUCTIONS_ARE_IN_ORDER            = 24472,
-//    QUEST_STORMGLEN                             = 24483,
-//    QUEST_LIBERATION_DAY                        = 24575,
-//    QUEST_BETRAYAL_AT_TEMPESTS_REACH            = 24592,
-//    QUEST_LOSING_YOUR_TAIL                      = 24616,
-//    QUEST_AT_OUR_DOORSTEP                       = 24627,
-//    QUEST_PUSH_THEM_OUT                         = 24676,
-//    QUEST_FLANK_THE_FORSAKEN                    = 24677,
-//    QUEST_THE_HUNGRY_ETTIN                      = 54416,
-//
-//    SPELL_RANDOM_POINT_POISON                   = 42266,
-//    SPELL_RANDOM_POINT_BONE                     = 42267,
-//    SPELL_RANDOM_POINT_BONE_2                   = 42274,
-//    SPELL_SELF_ROOT                             = 42716,
-//    SPELL_CORPSE_EXPLOSION                      = 43999,
-//    SPELL_PARACHUTE                             = 45472,
-//    SPELL_DANS_EJECT_ALL_PASSENGERS             = 51254,
-//    SPELL_FORCE_REACTION_1                      = 61899,
-//    SPELL_LAUNCH3                               = 66227,
-//    SPELL_LAUNCH2                               = 66251,
-//    SPELL_FORCECAST_SUMMON_FORSAKEN_ASSASSIN    = 68492,
-//    SPELL_BARREL_KEG_PLACED                     = 68555,
-//    SPELL_ABOMINATION_KILL_ME                   = 68558,
-//    SPELL_FIERY_BOULDER                         = 68591,
-//    SPELL_HORRID_ABOMINATION_EXPLOSION          = 68560,
-//    SPELL_LAUNCH1                               = 68659,
-//    SPELL_RESCUE_DROWNING_WATCHMANN             = 68735,
-//    SPELL_SAVE_DROWNING_MILITIA_EFFECT          = 68737,
-//    SPELL_EXIT_VEHICLE                          = 68741,
-//    SPELL_ROUND_UP_HORSE                        = 68903,
-//    SPELL_ROPE_IN_HORSE                         = 68908,
-//    SPELL_MOUNTAIN_HORSE_CREDIT                 = 68917,
-//    SPELL_ROPE_CHANNEL                          = 68940,
-//    SPELL_CATACLYSM_1                           = 68953,
-//    SPELL_FORCECAST_CATACLYSM_I                 = 69027,
-//    SPELL_BARREL_KEG                            = 69094,
-//    SPELL_IN_STOCKS                             = 69169,
-//    SPELL_FORCECAST_SUMMON_SWIFT_MOUNTAIN_HORSE = 69256,
-//    SPELL_FORCECAST_GILNEAS_TELESCOPE           = 69258,
-//    SPELL_STEALTH_70456                         = 70456,
-//    SPELL_FREEZING_TRAP_EFFECT                  = 70794,
-//    SPELL_AIMED_SHOOT                           = 70796,
-//    SPELL_RIDE_VEHICLE_72764                    = 72764,
-//    SPELL_SUMMON_CARRIAGE                       = 72767,
-//    SPELL_THROW_BOULDER                         = 72768,
-//    SPELL_LAST_STAND_COMPLETE                   = 72799,
-//    SPELL_CATACLYSM_3                           = 80133,
-//    SPELL_CATACLYSM_2                           = 80134,
-//    SPELL_UPDATE_BIND_TO_GREYMANE_MANOR         = 82892,
-//    SPELL_GENERIC_QUEST_INVISIBLE_DETECTION_10  = 84481,
-//    SPELL_UPDATE_ZONE_AURAS                     = 89180,
-//    SPELL_FADE_BACK                             = 94053,
-//    SPELL_RIDE_VEHICLE                          = 94654,
-//    SPELL_FORCECAST_UPDATE_ZONE_AURAS           = 94828,
-//    SPELL_LAUNCH4                               = 96185,
-//
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_06 = 68481, // 181
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_07 = 68482, // 182
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_08 = 68483, // 183
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_09 = 69077, // 184
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_10 = 69078, // 185
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_11 = 69484, // 186
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_12 = 69485, // 187
-//    SPELL_PHASE_QUEST_ZONE_SPECIFIC_19 = 74096, // 194
-//};
+#include "CreatureTextMgr.h"
+#include "GameObject.h"
+#include "GameObjectAI.h"
+#include "MoveSplineInit.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "PassiveAI.h"
+#include "Player.h"
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
+#include "ScriptedEscortAI.h"
+#include "ScriptedFollowerAI.h"
+#include "SpellAuraEffects.h"
+#include "SpellMgr.h"
+#include "SpellScript.h"
+#include "TemporarySummon.h"
+#include "Vehicle.h"
+#include "WorldSession.h"
+#include "zone_gilneas.h"
+
+enum eDuskHaven
+{
+    NPC_GENERIC_TRIGGER_LAB_MP                  = 35374, // target on ship
+    NPC_LORD_GODFREY_36170                      = 36170,
+    NPC_TRIGGER                                 = 36198,
+    NPC_HORRID_ABOMINATION                      = 36231,
+    NPC_QUEST_14348_KILL_CREDIT                 = 36233,
+    NPC_FORSAKEN_CATAPULT                       = 36283,
+    NPC_GENERIC_TRIGGER_LAB_AOI                 = 36286, // target on land
+    NPC_CYNTIA_CREDIT                           = 36287,
+    NPC_JAMES_CREDIT                            = 36288,
+    NPC_ASHLEY_CREDIT                           = 36289,
+    NPC_FORSAKEN_MACHINIST                      = 36292,
+    NPC_DARK_RANGER_THYALA                      = 36312,
+    NPC_LORD_GODFREY_36330                      = 36330,
+    NPC_KRENNAN_ARANAS_36331                    = 36331,
+    NPC_KING_GENN_GREYMANE_36332                = 36332,
+    NPC_MASTIFF                                 = 36405,
+    NPC_DROWNING_WATCHMANN_CREDIT               = 36450,
+    NPC_PRINCE_LIAM_GREYMANE                    = 36451,
+    NPC_LORNA_CROWLEY                           = 36457,
+    NPC_CAT                                     = 36459,
+    NPC_LUCIUS                                  = 36461,
+    NPC_SWIFT_MOUNTAIN_HORSE                    = 36741,
+    NPC_LORD_DARIUS_CROWLEY                     = 37195,
+    NPC_ENSLAVED_VILLAGER                       = 37694,
+    NPC_KOROTH                                  = 37808,
+    NPC_LORD_GODFREY                            = 37875,
+    NPC_DARK_SCOUT                              = 37953,
+    NPC_HARNESS_38755                           = 38755,
+    NPC_HARNESS_43336                           = 43336,
+    NPC_CARRIAGE_43337                          = 43337,
+    NPC_STAGECOACH_CARRIAGE                     = 44928,
+    NPC_LORNA_CRAWLEY                           = 51409,
+
+    GO_BALL_AND_CHAIN                           = 201775,
+
+    QUEST_INVASION                              = 14321,
+    QUEST_LAST_CHANCE_AT_HUMANITY               = 14375,
+    QUEST_LAST_STAND                            = 14222,
+    QUEST_KILL_OR_BE_KILLED                     = 14336,
+    QUEST_YOU_CANT_TAKE_EM_ALONE                = 14348,
+    QUEST_SAVE_THE_CHILDREN                     = 14368,
+    QUEST_LEADER_OF_THE_PACK                    = 14386,
+    QUEST_GASPING_FOR_BREATH                    = 14395,
+    QUEST_AS_THE_LAND_SHATTERS                  = 14396,
+    QUEST_GRANDMAS_CAT                          = 14401,
+    QUEST_TO_GREYMANE_MANOR                     = 14465,
+    QUEST_THE_KINGS_OBSERVATORY                 = 14466,
+    QUEST_ALAS_GILNEAS                          = 14467,
+    QUEST_EXODUS                                = 24438,
+    QUEST_INTRODUCTIONS_ARE_IN_ORDER            = 24472,
+    QUEST_STORMGLEN                             = 24483,
+    QUEST_LIBERATION_DAY                        = 24575,
+    QUEST_BETRAYAL_AT_TEMPESTS_REACH            = 24592,
+    QUEST_LOSING_YOUR_TAIL                      = 24616,
+    QUEST_AT_OUR_DOORSTEP                       = 24627,
+    QUEST_PUSH_THEM_OUT                         = 24676,
+    QUEST_FLANK_THE_FORSAKEN                    = 24677,
+    QUEST_THE_HUNGRY_ETTIN                      = 54416,
+
+    SPELL_RANDOM_POINT_POISON                   = 42266,
+    SPELL_RANDOM_POINT_BONE                     = 42267,
+    SPELL_RANDOM_POINT_BONE_2                   = 42274,
+    SPELL_SELF_ROOT                             = 42716,
+    SPELL_CORPSE_EXPLOSION                      = 43999,
+    SPELL_PARACHUTE                             = 45472,
+    SPELL_DANS_EJECT_ALL_PASSENGERS             = 51254,
+    SPELL_FORCE_REACTION_1                      = 61899,
+    SPELL_LAUNCH3                               = 66227,
+    SPELL_LAUNCH2                               = 66251,
+    SPELL_FORCECAST_SUMMON_FORSAKEN_ASSASSIN    = 68492,
+    SPELL_BARREL_KEG_PLACED                     = 68555,
+    SPELL_ABOMINATION_KILL_ME                   = 68558,
+    SPELL_FIERY_BOULDER                         = 68591,
+    SPELL_HORRID_ABOMINATION_EXPLOSION          = 68560,
+    SPELL_LAUNCH1                               = 68659,
+    SPELL_RESCUE_DROWNING_WATCHMANN             = 68735,
+    SPELL_SAVE_DROWNING_MILITIA_EFFECT          = 68737,
+    SPELL_EXIT_VEHICLE                          = 68741,
+    SPELL_ROUND_UP_HORSE                        = 68903,
+    SPELL_ROPE_IN_HORSE                         = 68908,
+    SPELL_MOUNTAIN_HORSE_CREDIT                 = 68917,
+    SPELL_ROPE_CHANNEL                          = 68940,
+    SPELL_CATACLYSM_1                           = 68953,
+    SPELL_FORCECAST_CATACLYSM_I                 = 69027,
+    SPELL_BARREL_KEG                            = 69094,
+    SPELL_IN_STOCKS                             = 69169,
+    SPELL_FORCECAST_SUMMON_SWIFT_MOUNTAIN_HORSE = 69256,
+    SPELL_FORCECAST_GILNEAS_TELESCOPE           = 69258,
+    SPELL_STEALTH_70456                         = 70456,
+    SPELL_FREEZING_TRAP_EFFECT                  = 70794,
+    SPELL_AIMED_SHOOT                           = 70796,
+    SPELL_RIDE_VEHICLE_72764                    = 72764,
+    SPELL_SUMMON_CARRIAGE                       = 72767,
+    SPELL_THROW_BOULDER                         = 72768,
+    SPELL_LAST_STAND_COMPLETE                   = 72799,
+    SPELL_CATACLYSM_3                           = 80133,
+    SPELL_CATACLYSM_2                           = 80134,
+    SPELL_UPDATE_BIND_TO_GREYMANE_MANOR         = 82892,
+    SPELL_GENERIC_QUEST_INVISIBLE_DETECTION_10  = 84481,
+    SPELL_UPDATE_ZONE_AURAS                     = 89180,
+    SPELL_FADE_BACK                             = 94053,
+    SPELL_RIDE_VEHICLE                          = 94654,
+    SPELL_FORCECAST_UPDATE_ZONE_AURAS           = 94828,
+    SPELL_LAUNCH4                               = 96185,
+
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_06 = 68481, // 181
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_07 = 68482, // 182
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_08 = 68483, // 183
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_09 = 69077, // 184
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_10 = 69078, // 185
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_11 = 69484, // 186
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_12 = 69485, // 187
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_19 = 74096, // 194
+};
 //
 //// player
 //class player_zone_duskhaven : public PlayerScript

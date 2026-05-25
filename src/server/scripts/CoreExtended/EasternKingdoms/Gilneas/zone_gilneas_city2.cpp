@@ -18,137 +18,137 @@
 // * with this program. If not, see <http://www.gnu.org/licenses/>.
 // */
 //
-//#include "CreatureTextMgr.h"
-//#include "CreatureGroups.h"
-//#include "GameObject.h"
-//#include "GameObjectAI.h"
-//#include "MoveSplineInit.h"
-//#include "MotionMaster.h"
-//#include "ObjectAccessor.h"
-//#include "PassiveAI.h"
-//#include "PhasingHandler.h"
-//#include "Player.h"
-//#include "ScriptMgr.h"
-//#include "ScriptedGossip.h"
-//#include "ScriptedCreature.h"
-//#include "ScriptedEscortAI.h"
-//#include "ScriptedFollowerAI.h"
-//#include "SpellAuraEffects.h"
-//#include "SpellMgr.h"
-//#include "SpellScript.h"
-//#include "Spell.h"
-//#include "SpellInfo.h"
-//#include "Unit.h"
-//#include "TemporarySummon.h"
-//#include "Vehicle.h"
-//#include "WorldSession.h"
-//#include "zone_gilneas.h"
-//
-//enum eZoneGilneasCity2
-//{
-//    QUEST_PUSH_THEM_OUT                 = 24676,
-//    QUEST_THE_HUNT_FOR_SYLVANAS         = 24902,
-//    QUEST_THE_BATTLE_FOR_GILNEAS_CITY   = 24904,
-//
-//    NPC_PRINCE_LIAM_GREYMANE_BATTLE     = 38218,
-//    NPC_FORSAKEN_CROSSBOWMAN            = 38210,
-//    NPC_GILNEAN_MILITIA                 = 38221,
-//    NPC_GOREROT                         = 38331,
-//    NPC_WORGEN_WARRIER                  = 38348,
-//    NPC_DAMAGED_CATAPULT                = 38377,
-//    NPC_LORD_DARIUS_CROWLEY             = 38415,
-//    NPC_VILE_ABOMINATION                = 38420,
-//    NPC_EMBERSTONE_CANNON               = 38424,
-//    NPC_FREED_EMBERSTONE_VILLAGER       = 38425,
-//    NPC_LORNA_CROWLEY                   = 38426,
-//    NPC_DARK_RANGER_ELITE               = 38464,
-//    NPC_MYRIAM_SPELLWAKER               = 38465,
-//    NPC_SISTER_ALMYRA                   = 38466,
-//    NPC_LADY_SYLVANAS_WINDRUNNER        = 38469,
-//    NPC_KING_GENN_GREYMANE              = 38470,
-//    NPC_PRINCE_LIAM_GREYMANE            = 38474,
-//    NPC_KRENNAN_ARANAS                  = 38553,
-//    NPC_WORGEN_WARRIOR                  = 43651,
-//    NPC_LEADER_GUID                     = 99994,
-//
-//    SPELL_GILNEAS_MILITIA_SHOOT         = 6660,
-//    SPELL_FORSAKEN_CROSSBOW_SHOOT       = 6660,
-//    SPELL_THUNDERCLAP                   = 8078,
-//    SOUND_GILNEAN_MILITIA               = 22584,
-//    SPELL_KNOCKBACK                     = 68683,
-//    SPELL_SMASH                         = 71774,
-//    SPELL_FIERY_BOULDER                 = 72050,
-//    SPELL_BANSHEE_QUEENS_WAIL           = 72113,
-//    SPELL_AIMED_SHOOT                   = 72114,
-//    SPELL_LIAM_SYLVANAS_DUMMY           = 72115,
-//    SPELL_SHOOT_LIAM                    = 72116,
-//    SPELL_BFGC_COMPLETE                 = 72349,
-//    SPELL_LIAM_SLAIN_DUMMY              = 72361,
-//    SPELL_DESPAWN_FORSAKEN              = 72384,
-//    SPELL_FORCECAST_SUMMON_TOBIAS       = 72471,
-//    NPC_SOULTETHERED_BANSHEE            = 38473,
-//
-//    ACTION_START_EVENT = 101,
-//    ACTION_EVENT_RESET_TIMER,
-//    ACTION_INITIALIZE_DONE,
-//    ACTION_START_MOTIVATION,
-//    ACTION_MOTIVATION_DONE,
-//    ACTION_MOVE_TO_WAVE_POSION_1,
-//    ACTION_MOVE_TO_WAVE_POSION_2,
-//    ACTION_MOVE_TO_WAVE_POSION_3,
-//    ACTION_MOVE_TO_WAVE_POSION_4,
-//    ACTION_MOVE_TO_WAVE_POSION_5,
-//    ACTION_MOVE_TO_WAVE_POSION_6,
-//    ACTION_MOVE_TO_WAVE_POSION_7,
-//    ACTION_MOVE_TO_MEET_POINT4,
-//    ACTION_LIAM_TALK_10,
-//    ACTION_KING_TALK_2,
-//    ACTION_LIAM_ARRIVED,
-//    ACTION_MYRIAM_ARRIVED,
-//    ACTION_LORNA_ARRIVED,
-//    ACTION_DARIUS_ARRIVED,
-//    ACTION_GENN_ARRIVED,
-//    ACTION_SYLVANAS_ARRIVED,
-//    ACTION_SYLVANAS_HAS_ENOUGH,
-//    ACTION_AIM_AT_KING,
-//    ACTION_SHOOT_AT_KING,
-//    ACTION_LIAM_IS_DEATH,
-//    ACTION_QUEST_REWARDED,
-//
-//    EVENT_GLOBAL_RESET = 201,
-//    EVENT_CHECK_PLAYER_FOR_PHASE,
-//    EVENT_CHECK_PLAYER_FOR_INVITE,
-//    EVENT_PLAYER_INVITE_COOLDOWN,
-//    EVENT_INITIALISE,
-//    EVENT_RANDOM_TEXT,
-//    EVENT_LIAM_TALK_9,
-//    EVENT_FORSAKEN_CROSSBOW_SHOOT,
-//    EVENT_FORSAKEN_KNOCKBACK,
-//    EVENT_START_LIAMS_FIRST_ANIM,
-//    EVENT_MOTIVATION_0,
-//    EVENT_MOTIVATION_1,
-//    EVENT_MOTIVATION_2,
-//    EVENT_MOTIVATION_3,
-//    EVENT_MOTIVATION_4,
-//    EVENT_MOTIVATION_5,
-//    EVENT_MOTIVATION_6,
-//    EVENT_MOTIVATION_DONE,
-//    EVENT_MOVE_WAVE,
-//    EVENT_FIGHT_WAVE,
-//    EVENT_SYNC_BEFORE_NEXT_WAVE,
-//    EVENT_SYLVANAS_HAS_ENOUGH,
-//    EVENT_DARIUS_TALK_2,
-//    EVENT_CHECK_FOR_TIMER,
-//    EVENT_SYLVANAS_ATTACK1,
-//    EVENT_SYLVANAS_ATTACK2,
-//    EVENT_SYLVANAS_ATTACK3,
-//    EVENT_SYLVANAS_ATTACK4,
-//    EVENT_LIAM_IS_DEATH,
-//    EVENT_LIAM_DEATH_TALK1,
-//    EVENT_LIAM_DEATH_TALK2,
-//
-//    DATA_IS_BATTLE_STARTED = 99993,
-//};
+#include "CreatureTextMgr.h"
+#include "CreatureGroups.h"
+#include "GameObject.h"
+#include "GameObjectAI.h"
+#include "MoveSplineInit.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "PassiveAI.h"
+#include "PhasingHandler.h"
+#include "Player.h"
+#include "ScriptMgr.h"
+#include "ScriptedGossip.h"
+#include "ScriptedCreature.h"
+#include "ScriptedEscortAI.h"
+#include "ScriptedFollowerAI.h"
+#include "SpellAuraEffects.h"
+#include "SpellMgr.h"
+#include "SpellScript.h"
+#include "Spell.h"
+#include "SpellInfo.h"
+#include "Unit.h"
+#include "TemporarySummon.h"
+#include "Vehicle.h"
+#include "WorldSession.h"
+#include "zone_gilneas.h"
+
+enum eZoneGilneasCity2
+{
+    QUEST_PUSH_THEM_OUT                 = 24676,
+    QUEST_THE_HUNT_FOR_SYLVANAS         = 24902,
+    QUEST_THE_BATTLE_FOR_GILNEAS_CITY   = 24904,
+
+    NPC_PRINCE_LIAM_GREYMANE_BATTLE     = 38218,
+    NPC_FORSAKEN_CROSSBOWMAN            = 38210,
+    NPC_GILNEAN_MILITIA                 = 38221,
+    NPC_GOREROT                         = 38331,
+    NPC_WORGEN_WARRIER                  = 38348,
+    NPC_DAMAGED_CATAPULT                = 38377,
+    NPC_LORD_DARIUS_CROWLEY             = 38415,
+    NPC_VILE_ABOMINATION                = 38420,
+    NPC_EMBERSTONE_CANNON               = 38424,
+    NPC_FREED_EMBERSTONE_VILLAGER       = 38425,
+    NPC_LORNA_CROWLEY                   = 38426,
+    NPC_DARK_RANGER_ELITE               = 38464,
+    NPC_MYRIAM_SPELLWAKER               = 38465,
+    NPC_SISTER_ALMYRA                   = 38466,
+    NPC_LADY_SYLVANAS_WINDRUNNER        = 38469,
+    NPC_KING_GENN_GREYMANE              = 38470,
+    NPC_PRINCE_LIAM_GREYMANE            = 38474,
+    NPC_KRENNAN_ARANAS                  = 38553,
+    NPC_WORGEN_WARRIOR                  = 43651,
+    NPC_LEADER_GUID                     = 99994,
+
+    SPELL_GILNEAS_MILITIA_SHOOT         = 6660,
+    SPELL_FORSAKEN_CROSSBOW_SHOOT       = 6660,
+    SPELL_THUNDERCLAP                   = 8078,
+    SOUND_GILNEAN_MILITIA               = 22584,
+    SPELL_KNOCKBACK                     = 68683,
+    SPELL_SMASH                         = 71774,
+    SPELL_FIERY_BOULDER                 = 72050,
+    SPELL_BANSHEE_QUEENS_WAIL           = 72113,
+    SPELL_AIMED_SHOOT                   = 72114,
+    SPELL_LIAM_SYLVANAS_DUMMY           = 72115,
+    SPELL_SHOOT_LIAM                    = 72116,
+    SPELL_BFGC_COMPLETE                 = 72349,
+    SPELL_LIAM_SLAIN_DUMMY              = 72361,
+    SPELL_DESPAWN_FORSAKEN              = 72384,
+    SPELL_FORCECAST_SUMMON_TOBIAS       = 72471,
+    NPC_SOULTETHERED_BANSHEE            = 38473,
+
+    ACTION_START_EVENT = 101,
+    ACTION_EVENT_RESET_TIMER,
+    ACTION_INITIALIZE_DONE,
+    ACTION_START_MOTIVATION,
+    ACTION_MOTIVATION_DONE,
+    ACTION_MOVE_TO_WAVE_POSION_1,
+    ACTION_MOVE_TO_WAVE_POSION_2,
+    ACTION_MOVE_TO_WAVE_POSION_3,
+    ACTION_MOVE_TO_WAVE_POSION_4,
+    ACTION_MOVE_TO_WAVE_POSION_5,
+    ACTION_MOVE_TO_WAVE_POSION_6,
+    ACTION_MOVE_TO_WAVE_POSION_7,
+    ACTION_MOVE_TO_MEET_POINT4,
+    ACTION_LIAM_TALK_10,
+    ACTION_KING_TALK_2,
+    ACTION_LIAM_ARRIVED,
+    ACTION_MYRIAM_ARRIVED,
+    ACTION_LORNA_ARRIVED,
+    ACTION_DARIUS_ARRIVED,
+    ACTION_GENN_ARRIVED,
+    ACTION_SYLVANAS_ARRIVED,
+    ACTION_SYLVANAS_HAS_ENOUGH,
+    ACTION_AIM_AT_KING,
+    ACTION_SHOOT_AT_KING,
+    ACTION_LIAM_IS_DEATH,
+    ACTION_QUEST_REWARDED,
+
+    EVENT_GLOBAL_RESET = 201,
+    EVENT_CHECK_PLAYER_FOR_PHASE,
+    EVENT_CHECK_PLAYER_FOR_INVITE,
+    EVENT_PLAYER_INVITE_COOLDOWN,
+    EVENT_INITIALISE,
+    EVENT_RANDOM_TEXT,
+    EVENT_LIAM_TALK_9,
+    EVENT_FORSAKEN_CROSSBOW_SHOOT,
+    EVENT_FORSAKEN_KNOCKBACK,
+    EVENT_START_LIAMS_FIRST_ANIM,
+    EVENT_MOTIVATION_0,
+    EVENT_MOTIVATION_1,
+    EVENT_MOTIVATION_2,
+    EVENT_MOTIVATION_3,
+    EVENT_MOTIVATION_4,
+    EVENT_MOTIVATION_5,
+    EVENT_MOTIVATION_6,
+    EVENT_MOTIVATION_DONE,
+    EVENT_MOVE_WAVE,
+    EVENT_FIGHT_WAVE,
+    EVENT_SYNC_BEFORE_NEXT_WAVE,
+    EVENT_SYLVANAS_HAS_ENOUGH,
+    EVENT_DARIUS_TALK_2,
+    EVENT_CHECK_FOR_TIMER,
+    EVENT_SYLVANAS_ATTACK1,
+    EVENT_SYLVANAS_ATTACK2,
+    EVENT_SYLVANAS_ATTACK3,
+    EVENT_SYLVANAS_ATTACK4,
+    EVENT_LIAM_IS_DEATH,
+    EVENT_LIAM_DEATH_TALK1,
+    EVENT_LIAM_DEATH_TALK2,
+
+    DATA_IS_BATTLE_STARTED = 99993,
+};
 //
 //
 // // 38221 -- gilneas militia... first 3 groups

@@ -1006,7 +1006,7 @@ void Creature::UpdateAttackPowerAndDamage(bool ranged)
     }
 }
 
-void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& minDamage, float& maxDamage) const
+void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool /*normalized*/, bool addTotalPct, float& minDamage, float& maxDamage) const
 {
     float variance = 1.0f;
     UnitMods unitMod;
@@ -1044,7 +1044,7 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, 
     }
 
     float attackPower      = GetTotalAttackPowerValue(attType, false);
-    float attackSpeedMulti = GetAPMultiplier(attType, normalized);
+    //float attackSpeedMulti = GetAPMultiplier(attType, normalized);
     float baseValue        = GetFlatModifierValue(unitMod, BASE_VALUE) + (attackPower / 3.5f) * variance;
     float basePct          = GetPctModifierValue(unitMod, BASE_PCT);
     float totalValue       = GetFlatModifierValue(unitMod, TOTAL_VALUE);

@@ -1775,8 +1775,8 @@ void Creature::UpdateLevelDependantStats()
 
     // damage
     float basedamage = GetBaseDamageForLevel(level);
-    float attackTime = GetBaseAttackTime(BASE_ATTACK);
-    CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
+    //float attackTime = GetBaseAttackTime(BASE_ATTACK);
+    //CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
 
     float weaponBaseMinDamage = basedamage;
     float weaponBaseMaxDamage = basedamage * 1.5f;
