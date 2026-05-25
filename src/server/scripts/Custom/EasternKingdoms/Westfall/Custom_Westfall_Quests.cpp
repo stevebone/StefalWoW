@@ -46,7 +46,6 @@ namespace Scripts::EasternKingdoms::Westfall
             if (!player)
                 return;
 
-            // Optional: restrict to specific quest ID
             if (newStatus != QUEST_STATUS_INCOMPLETE)
                 return;
 
@@ -55,6 +54,63 @@ namespace Scripts::EasternKingdoms::Westfall
             SummonCrowd(player);
         }
     };
+
+    // 26322 - Rise of the brotherhood
+    class quest_26322_rise_of_the_brotherhood : public QuestScript
+    {
+    public:
+        quest_26322_rise_of_the_brotherhood() : QuestScript("quest_26322_rise_of_the_brotherhood") { }
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (!player)
+                return;
+
+            if (newStatus != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            _playerGuid = player->GetGUID();
+            PhasingHandler::AddPhase(player, Phases::WestfallAct2, true);
+
+            SummonSpellNPCS(player);
+
+            if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 20.f))
+                gryan->AI()->SetGUID(player->GetGUID(), 1);
+            //SummonBrotherhood(player);
+        }
+
+        void SummonSpellNPCS(Player* player)
+        {
+            if (!player)
+                return;
+
+            for (uint32 spellId : PlayerSummonSpells)
+                player->CastSpell(player, spellId, true);
+        }
+
+        void SummonBrotherhood(Player* player)
+        {
+            if (!player)
+                return;
+
+            for (auto const& spawn : Brotherhood)
+            {
+                if (Creature* c = player->SummonCreature(
+                    spawn.entry,
+                    spawn.pos,
+                    TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,
+                    std::chrono::seconds(spawn.despawnTime)))
+                {
+                    c->SetReactState(REACT_PASSIVE);
+                    _brotherhoodGuids.push_back(c->GetGUID());
+                }
+            }
+        }
+
+    private:
+        ObjectGuid _playerGuid;
+        std::vector<ObjectGuid> _brotherhoodGuids;    
+    };
 }
 
 void AddSC_custom_westfall_quests()
@@ -62,4 +118,5 @@ void AddSC_custom_westfall_quests()
     using namespace Scripts::EasternKingdoms::Westfall;
 
     new quest_26297_the_dawning_of_a_new_day();
+    new quest_26322_rise_of_the_brotherhood();
 }

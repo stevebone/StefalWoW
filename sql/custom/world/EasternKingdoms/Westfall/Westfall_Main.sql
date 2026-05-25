@@ -117,14 +117,15 @@
 -- AT: 6080 Moonbrook Defias Hideout Entrance
 
 -- Phases
-DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (50004, 50005, 50006, 226);
 INSERT INTO `phase_area` VALUES
+(108, 226, 'Westfall - Act 2'),
 (40, 50004, 'Westfall - Furlbrows 1 - Defias Brotherhood'),
 (40, 50005, 'Westfall - Furlbrows 2 - Return of the Defias (Vanessa)'),
 (40, 50006, 'Westfall - Horatio & Investigators at Silent Hill'); -- until i can find the proper invisibility spells
 
 -- Phase Conditions
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006);
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (50004, 50005, 50006, 226);
 INSERT INTO `conditions` VALUES
 -- Phase 50004 allows the OLD Furlbrows npcs to be again visible for the old quests
 -- This includes ALL the OLD Defias mobs around westfall.
@@ -134,8 +135,10 @@ INSERT INTO `conditions` VALUES
 -- Phase 50005 is the phase for the new/post Cata storyline
 -- It starts after the quest The Defias Brotherhood
 ('26', '50005', '0', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 166 IS rewarded'),
--- Phase 172 for Sentinel Hill Tower murder dialogue
-('26', '50006', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50006 if 26266 IS taken, complete, rewarded');
+-- Phase 50006 for Sentinel Hill Tower murder dialogue
+('26', '50006', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50006 if 26266 IS taken, complete, rewarded'),
+-- Phase 226 Westfall Act 2
+('26', '226', 0, '0', '0', '47', '0', '26322', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 226 if 26322 IS taken, complete, rewarded');
 
 -- AT scripts
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998,6080);

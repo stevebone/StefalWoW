@@ -1295,6 +1295,118 @@ namespace Scripts::EasternKingdoms::Westfall
             me->CastSpell(me, Spells::BloodsailCompanion, true);
         }
     };
+
+    /*######
+    ## npc_gryan_stoutmantle_act2
+    ## ID 42750
+    ######*/
+
+    struct npc_gryan_stoutmantle_act2 : public ScriptedAI
+    {
+        npc_gryan_stoutmantle_act2(Creature* c) : ScriptedAI(c) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+        }
+
+        void SetGUID(ObjectGuid const& guid, int32 id) override
+        {
+            if (id == 1)
+            {
+                _playerGuid = guid;
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player)
+                {
+                    Talk(0, player); // Stay alert
+
+                    if (Creature* hope = player->FindNearestCreature(Creatures::SpawnedHopeSaldeanAtTower, 50.f))
+                        hope->AI()->SetGUID(_playerGuid, 1);
+                }
+            }
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1 && value == 1)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player)
+                {
+                    Talk(1, player);
+                }
+            }
+        }
+
+    private:
+        ObjectGuid _playerGuid;
+    };
+
+    /*######
+    ## npc_hope_act2
+    ## ID 42749
+    ######*/
+
+    struct npc_hope_act2 : public ScriptedAI
+    {
+        npc_hope_act2(Creature* c) : ScriptedAI(c) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+        }
+
+        void SetGUID(ObjectGuid const& guid, int32 id) override
+        {
+            if (id == 1)
+            {
+                _playerGuid = guid;
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player)
+                {
+                    me->m_Events.AddEventAtOffset([this]()
+                        {
+                            me->GetMotionMaster()->MovePoint(1, Positions::BRHopeStart);
+                        },
+                        std::chrono::seconds(2)
+                    );
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f))
+                                gryan->SetFacingToObject(me, true);
+                        },
+                        std::chrono::seconds(4)
+                    );
+                }
+            }
+        }
+
+        void MovementInform(uint32 type, uint32 pointId) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            if (pointId == 1)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (!player)
+                    return;
+
+                Talk(0, player);
+                me->m_Events.AddEventAtOffset([this, player]()
+                    {
+                        if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f))
+                            gryan->AI()->SetData(1, 1);
+                    },
+                    std::chrono::seconds(5)
+                );
+            }
+        }
+
+    private:
+        ObjectGuid _playerGuid;
+    };
 }
 
 void AddSC_custom_westfall_npcs()
@@ -1314,4 +1426,6 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_custom_moonbrook_player_trigger);
     RegisterCreatureAI(npc_vision_of_the_past);
     RegisterCreatureAI(npc_vision_defias_pirate);
+    RegisterCreatureAI(npc_gryan_stoutmantle_act2);
+    RegisterCreatureAI(npc_hope_act2);
 }

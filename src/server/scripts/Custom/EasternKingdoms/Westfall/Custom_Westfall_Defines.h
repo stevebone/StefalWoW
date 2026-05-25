@@ -20,7 +20,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Creature.h"
 #include "Position.h"
+#include "TemporarySummon.h"
 
 namespace Scripts::EasternKingdoms::Westfall
 {
@@ -36,6 +38,7 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 SecretsOfTheTower = 26290;
         static constexpr uint32 TheDawningOfANewDay = 26297;
         static constexpr uint32 AVisionOfThePast = 26320;
+        static constexpr uint32 RiseOfTheBrotherhood = 26322;
     }
 
     namespace Creatures
@@ -64,6 +67,9 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 SpawnedRipsnarlAtTower = 42748;
         static constexpr uint32 SpawnedStormwindInvestigatorAtTower = 42745;
         static constexpr uint32 SpawnedHoratioLaineAtTower = 42744;
+        static constexpr uint32 DefiasBlackguard = 42769;
+        static constexpr uint32 SpawnedHelixAtTower = 42753;
+        static constexpr uint32 SpawnedGlubtokAtTower = 42755;
 
         static constexpr uint32 GryanStoutmantle = 234;
         static constexpr uint32 LtHorationLaineAtTower = 42308;
@@ -129,15 +135,6 @@ namespace Scripts::EasternKingdoms::Westfall
         // Sentinel Hill
         static constexpr uint32 InStocks = 69196;
 
-        static constexpr uint32 SummonRipsnarl = 79670;
-        static constexpr uint32 SummonScoutGaliaan = 79669;
-        static constexpr uint32 SummonCaptainDanuvin = 79668;
-        static constexpr uint32 SummonStormwindInvestigator2 = 79667;
-        static constexpr uint32 SummonStormwindInvestigator1 = 79666;
-        static constexpr uint32 SummonHopeSaldean = 79665;
-        static constexpr uint32 SummonHoratioLaine = 79664;
-        static constexpr uint32 SummonGryanStoutmantle = 79663;
-
         // Mortwake Tower
         static constexpr uint32 PotionShrouding = 79528;
         static constexpr uint32 KillShot = 79525;
@@ -153,6 +150,30 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 VisionVCSummonAllies = 5200;
         static constexpr uint32 AlliancePriestFortitude = 13864;
         static constexpr uint32 BloodsailCompanion = 5172;
+
+        // Rise of the brotherhood
+        static constexpr uint32 SummonRipsnarl = 79670;
+        static constexpr uint32 SummonScoutGaliaan = 79669;
+        static constexpr uint32 SummonCaptainDanuvin = 79668;
+        static constexpr uint32 SummonStormwindInvestigator2 = 79667;
+        static constexpr uint32 SummonStormwindInvestigator1 = 79666;
+        static constexpr uint32 SummonHopeSaldean = 79665;
+        static constexpr uint32 SummonHoratioLaine = 79664;
+        static constexpr uint32 SummonGryanStoutmantle = 79663;
+        static constexpr uint32 SummonHelix = 79763;
+        static constexpr uint32 SummonGlubtok = 79762;
+
+        static constexpr uint32 TransformHuman = 79745;
+        static constexpr uint32 AdmiralHat = 79750;
+        static constexpr uint32 TransformVaneesa = 79709;
+        static constexpr uint32 SummonBlackguard = 79712;
+        static constexpr uint32 TiedUpGoodGuys = 79723;
+        static constexpr uint32 TiedUpVisual = 79724;
+        static constexpr uint32 DefiasFinaleEvent = 79758;
+        static constexpr uint32 TossTorch = 79778;
+        static constexpr uint32 TossTorchTrigger = 79779;
+        static constexpr uint32 Smoke = 67690;
+        static constexpr uint32 HitMe = 65600;
     }
 
     namespace Events
@@ -228,6 +249,9 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr Position VisionAllianceNPCS = { -47.6163f, -808.856f,	42.8273f };
         static constexpr Position VisionAllianceNPCSForward = { -64.4392f, -819.938f, 41.2188f };
         static constexpr Position VisionAllianceNPCSLeave = { -68.508f, -898.203f, 14.2018f };
+
+        // Rise of the Brotherhood
+        static constexpr Position BRHopeStart = { -10507.65f, 1042.81f, 60.51f };
     }
 
     namespace Talks
@@ -379,6 +403,11 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 VisionOfThePast = 4269300;
     }
 
+    namespace Phases
+    {
+        static constexpr uint32 WestfallAct2 = 226;
+    }
+
     struct AllianceGroup
     {
         Creature* warrior = nullptr;
@@ -418,5 +447,43 @@ namespace Scripts::EasternKingdoms::Westfall
                 c->SetImmuneToAll(true);
         }
     }
+
+    static constexpr uint32 PlayerSummonSpells[] =
+    {
+        Spells::SummonRipsnarl,
+        Spells::SummonScoutGaliaan,
+        Spells::SummonCaptainDanuvin,
+        Spells::SummonStormwindInvestigator2,
+        Spells::SummonStormwindInvestigator1,
+        Spells::SummonHopeSaldean,
+        Spells::SummonHoratioLaine,
+        Spells::SummonGryanStoutmantle,
+        Spells::SummonHelix,
+        Spells::SummonGlubtok
+    };
+
+    struct BrotherhoodSpawn
+    {
+        uint32 entry;
+        Position pos;
+        uint32 despawnTime;
+    };
+
+    static constexpr BrotherhoodSpawn Brotherhood[] =
+    {
+        { Creatures::DefiasBlackguard, { -10500.37f, 1042.65f, 60.51f, 3.06f }, 100 },
+        { Creatures::DefiasBlackguard, { -10500.99f, 1046.73f, 60.517f, 3.29f }, 100 },
+        { Creatures::DefiasBlackguard, { -10505.202f, 1040.46f, 60.51f, 1.88f }, 100 },
+        { Creatures::DefiasBlackguard, { -10507.89f, 1039.52f, 60.51f, 1.95f }, 100 },
+        { Creatures::DefiasBlackguard, { -10513.54f, 1038.66f, 60.51f, 0.51f }, 100 },
+        { Creatures::DefiasBlackguard, { -10514.930f, 1042.012f, 60.51f, 0.399f }, 100 },
+        { Creatures::DefiasBlackguard, { -10516.797f, 1048.61f, 59.95f, 5.32f }, 100 },
+        { Creatures::DefiasBlackguard, { -10514.032f, 1049.80f, 59.92f, 5.11f} , 100 },
+        { Creatures::DefiasBlackguard, { -10509.012f, 1051.92f, 59.85f, 5.11f }, 100 },
+        { Creatures::DefiasBlackguard, { -10504.77f, 1053.57f, 59.86f, 4.84f }, 100 },
+        { Creatures::SpawnedGlubtokAtTower, { -10506.12f, 1053.13f, 59.10f, 4.92f }, 120 },
+        { Creatures::SpawnedHelixAtTower, { -10509.368f, 1057.28f, 57.86f, 4.95f }, 120 },
+    };
+
 }
 

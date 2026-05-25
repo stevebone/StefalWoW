@@ -16,7 +16,6 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_vision_defias_pirate' WHERE `
 UPDATE `creature_template` SET `Faction` = 1771 WHERE `entry` = 639;
 
 UPDATE `creature_template_addon` SET `auras` = '29266 6433' WHERE (`entry` = '646'); -- Mr Smite
-UPDATE `creature_template_addon` SET `auras` = '29266 5172' WHERE (`entry` = '657'); -- Defias Pirate
 
 DELETE FROM `vehicle_template` WHERE `creatureId` = 42693;
 INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `CustomFlags`) VALUES
