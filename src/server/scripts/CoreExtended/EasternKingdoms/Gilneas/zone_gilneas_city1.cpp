@@ -3022,6 +3022,37 @@ public:
     }
 };
 
+class player_gilneas_city1_reapply_auras : public PlayerScript
+{
+public:
+    player_gilneas_city1_reapply_auras() : PlayerScript("player_gilneas_city1_reapply_auras") {}
+
+    void OnLogin(Player* player, bool /*loginFirst*/) override
+    {
+        if (player->GetQuestStatus(QUEST_THE_REBEL_LORDS_ARSENAL) == QUEST_STATUS_REWARDED)
+        {
+            if (player->GetQuestStatus(QUEST_SAVE_KRENNAN_ARANAS) == QUEST_STATUS_REWARDED)
+            {
+                if (player->GetQuestStatus(QUEST_LAST_STAND) == QUEST_STATUS_REWARDED)
+                    return;
+
+                if (player->IsActiveQuest(QUEST_LAST_STAND))
+                    player->AddAura(SPELL_HIDEOUS_BITE_WOUND, player);
+                else
+                {
+                    player->AddAura(SPELL_INFECTED_BITE, player);
+                    player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_03, player);
+                }
+            }
+            else
+            {
+                player->AddAura(SPELL_WORGEN_BITE, player);
+                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02, player);
+            }
+        }
+    }
+};
+
 // next part in script zone_duskhaven
 
 void AddSC_zone_gilneas_chapter_1()
@@ -3070,5 +3101,6 @@ void AddSC_zone_gilneas_chapter_1()
 
     //QUEST
     new npc_lord_darius_crowley_35566();
+    new player_gilneas_city1_reapply_auras();
 };
 

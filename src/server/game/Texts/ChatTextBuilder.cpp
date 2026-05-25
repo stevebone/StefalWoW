@@ -55,10 +55,10 @@ ChatPacketSender::ChatPacketSender(ChatMsg chatType, ::Language language, WorldO
         else if (soundKitPlayType == SoundKitPlayType::ObjectSound)
         {
             SoundPacket = std::make_unique<WorldPackets::Misc::PlayObjectSound>(
-                receiver ? receiver->GetGUID() : ObjectGuid::Empty,
+                receiver ? receiver->GetGUID() : (sender ? sender->GetGUID() : ObjectGuid::Empty),
                 sender ? sender->GetGUID() : ObjectGuid::Empty,
                 soundKitId,
-                receiver ? receiver->GetPosition() : Position(),
+                sender ? sender->GetPosition() : Position(),
                 broadcastTextId
             );
         }
