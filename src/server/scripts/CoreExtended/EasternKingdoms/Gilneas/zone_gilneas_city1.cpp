@@ -2187,6 +2187,7 @@ public:
             {
                 Talk(SAY_LORD_GODFREY_P4);
                 player->RemoveAura(SPELL_WORGEN_BITE);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02);
                 me->AddAura(SPELL_INFECTED_BITE, player);
                 me->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_03, player);
                 me->CastSpell(player, SPELL_GILNEAS_CANNON_CAMERA);

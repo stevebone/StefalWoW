@@ -50,6 +50,7 @@
 #include "Common.h"
 #include "ConditionMgr.h"
 #include "Config.h"
+#include "Conversation.h"
 #include "Containers.h"
 #include "CreatureAI.h"
 #include "DB2Stores.h"
@@ -6356,13 +6357,28 @@ void Player::SendDirectMessage(WorldPacket const* data) const
     m_session->SendPacket(data);
 }
 
-void Player::SendCinematicStart(uint32 CinematicSequenceId) const
+void Player::SendCinematicStart(uint32 CinematicSequenceId)
 {
     WorldPackets::Misc::TriggerCinematic packet;
     packet.CinematicID = CinematicSequenceId;
-    SendDirectMessage(packet.Write());
+
     if (CinematicSequencesEntry const* sequence = sCinematicSequencesStore.LookupEntry(CinematicSequenceId))
+    {
+        if (CinematicCameraEntry const* camera = sCinematicCameraStore.LookupEntry(sequence->Camera[0]))
+        {
+            if (camera->ConversationID)
+            {
+                if (Conversation* conversation = Conversation::CreateConversation(camera->ConversationID, this, GetPosition(), GetGUID()))
+                    packet.ConversationGuid = conversation->GetGUID();
+                else
+                    TC_LOG_ERROR("entities.player", "SendCinematicStart: Failed to create conversation {} for cinematic {}", camera->ConversationID, CinematicSequenceId);
+            }
+        }
+
         _cinematicMgr->BeginCinematic(sequence);
+    }
+
+    SendDirectMessage(packet.Write());
 }
 
 void Player::SendMovieStart(uint32 movieId)

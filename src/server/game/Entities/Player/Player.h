@@ -2845,7 +2845,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void ResummonBattlePetTemporaryUnSummonedIfAny();
         bool IsPetNeedBeTemporaryUnsummoned() const;
 
-        void SendCinematicStart(uint32 CinematicSequenceId) const;
+        void SendCinematicStart(uint32 CinematicSequenceId);
         void SendMovieStart(uint32 movieId);
 
         uint32 DoRandomRoll(uint32 minimum, uint32 maximum);
