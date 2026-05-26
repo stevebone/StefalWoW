@@ -1483,7 +1483,7 @@ namespace Scripts::EasternKingdoms::Westfall
                     std::chrono::seconds(20)
                 );
 
-                me->m_Events.AddEventAtOffset([this, player]()
+                me->m_Events.AddEventAtOffset([this]()
                     {
                         me->GetMotionMaster()->MovePoint(3, Positions::BRVanessaWalkingAway);
                     },

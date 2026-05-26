@@ -172,9 +172,9 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 DELETE FROM `spell_target_position` WHERE `ID` IN (79664,79666,79667,79670);
 INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`, `PositionX`, `PositionY`, `Positionz`, `Orientation`, `VerifiedBuild`) VALUES
 (79670, 0, 0, 0, -10514.8, 	1045.6,  60.8075, 0.48869, 0), -- Ripsnarl
-(79664, 0, 0, 0, -10508, 	1047.54, 60.518,  4.37166, 0), -- Horatio
-(79666, 0, 0, 0, -10509.1, 	1048.56, 60.518,  4.09412, 0), -- Investigator
-(79667, 0, 0, 0, -10506.3, 	1047.7,  60.518,  4.69275, 0); -- Investigator
+(79664, 0, 0, 0, -10507.5, 	1049.1,  60.5186, 4.37166, 0), -- Horatio
+(79666, 0, 0, 0, -10504.6, 	1049.27, 60.5181, 4.09412, 0), -- Investigator
+(79667, 0, 0, 0, -10508.6, 	1051.57, 60.0498, 4.69275, 0); -- Investigator
 
 
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+887 AND @CGUID+907;
