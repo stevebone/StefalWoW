@@ -79,7 +79,7 @@ INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_westfall_stew_42617' WHERE (`entry` = 42617);
 
 -- Update NEW phase for existing creatures
-UPDATE `creature` SET `PhaseId` = 50005 WHERE `id` IN (54373,54371,54372,42407,42384,42386,42383,42391,42390,42385,42400,42677);
+UPDATE `creature` SET `PhaseId` = 50005 WHERE `id` IN (54373,54371,54372,42407,42384,42386,42383,42391,42390,42385,42400,42677) AND `PhaseId` IN (0,169);
 UPDATE `creature` SET `PhaseId` = 50005 WHERE `guid` IN (275164);
 
 DELETE FROM `creature_addon` WHERE `guid` IN (275405,275407,275377,275376,275379,275378,275283,275259,275257,275258,275137,275096,
@@ -201,10 +201,11 @@ INSERT INTO `creature` VALUES
 (@CGUID+906, '42793', '0', '40', '108', '0', '0', '232', '0', '-1', '0', '0', '-10502.9', '1051.42', '64.4438', '0', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+907, '42793', '0', '40', '108', '0', '0', '232', '0', '-1', '0', '0', '-10497.9', '1039.05', '69.8796', '0', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0');
 
-DELETE FROM `creature` WHERE `guid` IN (@CGUID+908);
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+908,@CGUID+909);
 INSERT INTO `creature` VALUES
 -- Thor
-(@CGUID+908, '110587', '0', '40', '108', '0', '0', '232', '0', '-1', '0', '0', '-10553.6', '1034.42', '57.0394', '0.0174533', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
+(@CGUID+908, '110587', '0', '40', '108', '0', '0', '232', '0', '-1', '0', '0', '-10553.6', '1034.42', '57.0394', '0.0174533', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+909, '110587', '0', '40', '108', '0', '0', '226', '0', '-1', '0', '0', '-10553.6', '1034.42', '57.0394', '0.0174533', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
 -- Heavy Wooden Stocks
 SET @OGUID := 900000;

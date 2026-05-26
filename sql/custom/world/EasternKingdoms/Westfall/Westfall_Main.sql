@@ -137,13 +137,21 @@ INSERT INTO `conditions` VALUES
 -- Phase 50005 is the phase for the new/post Cata storyline
 -- It starts after the quest The Defias Brotherhood
 ('26', '50005', '0', '0', '0', '47', '0', '166', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50005 if 166 IS rewarded'),
+('26', '50005', '0', '0', '0', '47', '0', '26322', '74', '0', '', '1', '0', '0', '', 'Westfall - Add phase 50005 if 26322 IS NOT in progress, complete or rewarded'),
 -- Phase 50006 for Sentinel Hill Tower murder dialogue
 ('26', '50006', 0, '0', '0', '47', '0', '26266', '74', '0', '', '0', '0', '0', '', 'Westfall - Add phase 50006 if 26266 IS taken, complete, rewarded'),
 ('26', '50006', 0, '0', '0', '47', '0', '26322', '74', '0', '', '1', '0', '0', '', 'Westfall - Add phase 50006 if 26322 IS NOT in progress'),
 -- Phase 232 Rise of the Brotherhood
 ('26', '232', 0, '0', '0', '47', '0', '26322', '8', '0', '', '0', '0', '0', '', 'Westfall - Add phase 238 if 26322 IS in progress'),
+('26', '232', 0, '0', '0', '47', '0', '26322', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 238 if 26322 IS NOT rewarded'),
 -- Phase 226 Westfall Act 2
-('26', '226', 0, '0', '0', '47', '0', '26322', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 226 if 26322 IS rewarded');
+('26', '226', 0, '0', '0', '47', '0', '26322', '64', '0', '', '0', '0', '0', '', 'Westfall - Add phase 226 if 26322 IS rewarded'),
+('26', '226', 0, '0', '0', '47', '0', '26761', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 226 if 26761 IS NOT rewarded');
+
+DELETE FROM `conditions` WHERE (`SourceTypeOrReferenceId` = 26) AND (`SourceEntry` IN (40));
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`) VALUES 
+(26, 50005, 40, 0, 1, 47, 0, 26761, 64, 0, '', 0, 'Player has quest 26761 rewarded');
+
 
 -- AT scripts
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998,6080);

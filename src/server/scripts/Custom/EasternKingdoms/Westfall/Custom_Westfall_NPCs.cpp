@@ -24,6 +24,7 @@
 #include "Creature.h"
 #include "CreatureAIImpl.h"
 #include "EventMap.h"
+#include "GameObject.h"
 #include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
