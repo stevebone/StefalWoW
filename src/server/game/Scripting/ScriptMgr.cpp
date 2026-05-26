@@ -2242,13 +2242,13 @@ void ScriptMgr::OnPlayerFreeTalentPointsChanged(Player* player, uint32 points)
     FOREACH_SCRIPT(PlayerScript)->OnFreeTalentPointsChanged(player, points);
 }
 
-void ScriptMgr::OnPlayerTalentsReset(Player* player, bool noCost)
+void ScriptMgr::OnPlayerTalentsReset(Player* player, bool involuntarily)
 {
 #ifdef ELUNA
     if (Eluna* e = player->GetEluna())
-        e->OnTalentsReset(player, noCost);
+        e->OnTalentsReset(player, involuntarily);
 #endif
-    FOREACH_SCRIPT(PlayerScript)->OnTalentsReset(player, noCost);
+    FOREACH_SCRIPT(PlayerScript)->OnTalentsReset(player, involuntarily);
 }
 
 void ScriptMgr::OnPlayerMoneyChanged(Player* player, int64& amount)
@@ -3451,7 +3451,7 @@ void PlayerScript::OnFreeTalentPointsChanged(Player* /*player*/, uint32 /*points
 {
 }
 
-void PlayerScript::OnTalentsReset(Player* /*player*/, bool /*noCost*/)
+void PlayerScript::OnTalentsReset(Player* /*player*/, bool /*involuntarily*/)
 {
 }
 
