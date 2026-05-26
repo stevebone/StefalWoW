@@ -70,13 +70,13 @@ namespace Scripts::EasternKingdoms::Westfall
                 return;
 
             _playerGuid = player->GetGUID();
-            PhasingHandler::AddPhase(player, Phases::WestfallAct2, true);
+            PhasingHandler::RemovePhase(player, 50005, true);
+            PhasingHandler::AddPhase(player, Phases::WestfallRiseBR, true);
 
             SummonSpellNPCS(player);
 
             if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 20.f))
                 gryan->AI()->SetGUID(player->GetGUID(), 1);
-            //SummonBrotherhood(player);
         }
 
         void SummonSpellNPCS(Player* player)
@@ -88,28 +88,8 @@ namespace Scripts::EasternKingdoms::Westfall
                 player->CastSpell(player, spellId, true);
         }
 
-        void SummonBrotherhood(Player* player)
-        {
-            if (!player)
-                return;
-
-            for (auto const& spawn : Brotherhood)
-            {
-                if (Creature* c = player->SummonCreature(
-                    spawn.entry,
-                    spawn.pos,
-                    TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,
-                    std::chrono::seconds(spawn.despawnTime)))
-                {
-                    c->SetReactState(REACT_PASSIVE);
-                    _brotherhoodGuids.push_back(c->GetGUID());
-                }
-            }
-        }
-
     private:
-        ObjectGuid _playerGuid;
-        std::vector<ObjectGuid> _brotherhoodGuids;    
+        ObjectGuid _playerGuid;    
     };
 }
 

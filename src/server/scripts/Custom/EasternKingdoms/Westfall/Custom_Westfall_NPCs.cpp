@@ -904,8 +904,60 @@ namespace Scripts::EasternKingdoms::Westfall
             ScriptedAI::Reset();
             me->SetFaction(7);
             me->SetReactState(REACT_PASSIVE);
-            me->AddAura(Spells::InStocks, me);
             me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE));
+            me->SetWalk(true);
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::HitMe)
+            {
+                me->RemoveAllAuras();
+                me->SetAIAnimKitId(0);
+                DoCast(Spells::TransformHuman);
+
+                WorldObject* summoner = me->ToTempSummon()->GetSummoner();
+                if (summoner && summoner->ToPlayer())
+                {
+
+                    me->m_Events.AddEventAtOffset([this, summoner]()
+                        {
+                            Talk(0, summoner);
+                        },
+                        std::chrono::seconds(7)
+                    );
+                }
+
+                me->m_Events.AddEventAtOffset([this]()
+                    {
+                        DoCast(Spells::AdmiralHat);
+                    },
+                    std::chrono::seconds(9)
+                );
+
+                me->m_Events.AddEventAtOffset([this]()
+                    {
+                        me->GetMotionMaster()->MovePoint(1, Positions::BRRipsnarl1);
+                    },
+                    std::chrono::seconds(10)
+                );
+            }
+        }
+
+        void MovementInform(uint32 type, uint32 pointId) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            if (pointId == 1)
+            {
+                me->GetMotionMaster()->MovePoint(2, Positions::BRRipsnarl2);
+            }
+
+            if (pointId == 2)
+            {
+                me->GetMotionMaster()->MovePoint(3, Positions::BRRipsnarl3);
+            }
         }
     };
 
@@ -1336,6 +1388,21 @@ namespace Scripts::EasternKingdoms::Westfall
                     Talk(1, player);
                 }
             }
+
+            if (id == 1 && value == 2)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player)
+                {
+                    Talk(2, player);
+
+                    std::list<Player*> players;
+                    me->GetPlayerListInGrid(players, 50.0f);
+
+                    for (std::list<Player*>::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                        (*itr)->GroupEventHappens(Quests::RiseOfTheBrotherhood, me);
+                }
+            }
         }
 
     private:
@@ -1354,6 +1421,8 @@ namespace Scripts::EasternKingdoms::Westfall
         void Reset() override
         {
             ScriptedAI::Reset();
+
+            me->SetWalk(true);
         }
 
         void SetGUID(ObjectGuid const& guid, int32 id) override
@@ -1364,20 +1433,11 @@ namespace Scripts::EasternKingdoms::Westfall
                 Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
                 if (player)
                 {
-                    me->m_Events.AddEventAtOffset([this]()
-                        {
-                            me->GetMotionMaster()->MovePoint(1, Positions::BRHopeStart);
-                        },
-                        std::chrono::seconds(2)
-                    );
+                    _brGroup.gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f);
+                    _brGroup.ripsnarl = player->FindNearestCreature(Creatures::SpawnedRipsnarlAtTower, 30.f);
+                    _brGroup.horatio = player->FindNearestCreature(Creatures::SpawnedHoratioLaineAtTower, 30.f);
 
-                    me->m_Events.AddEventAtOffset([this,player]()
-                        {
-                            if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f))
-                                gryan->SetFacingToObject(me, true);
-                        },
-                        std::chrono::seconds(4)
-                    );
+                    _events.ScheduleEvent(Events::BRHopeWalkToGryan, 2s);
                 }
             }
         }
@@ -1393,19 +1453,380 @@ namespace Scripts::EasternKingdoms::Westfall
                 if (!player)
                     return;
 
-                Talk(0, player);
-                me->m_Events.AddEventAtOffset([player]()
+                Talk(0, player); // You bastards will burn
+
+                _events.ScheduleEvent(Events::BRHopeSetData1Gryan, 5s); // Hope! Wha...
+                _events.ScheduleEvent(Events::BRHopeMonologue, 9s);
+            }
+
+            if (pointId == 2)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (!player)
+                    return;
+
+                if (_brGroup.ripsnarl)
+                    DoCast(_brGroup.ripsnarl, Spells::HitMe);
+
+                me->m_Events.AddEventAtOffset([this, player]()
                     {
-                        if (Creature* gryan = player->FindNearestCreature(Creatures::SpawnedGryanStoutmantleAtTower, 30.f))
-                            gryan->AI()->SetData(1, 1);
+                        Talk(5, player); // Admiral hat
                     },
                     std::chrono::seconds(5)
                 );
+
+                me->m_Events.AddEventAtOffset([this, player]()
+                    {
+                        me->SetFacingToObject(player, true);
+                        Talk(6, player); // Vanessa to player
+                    },
+                    std::chrono::seconds(20)
+                );
+
+                me->m_Events.AddEventAtOffset([this, player]()
+                    {
+                        me->GetMotionMaster()->MovePoint(3, Positions::BRVanessaWalkingAway);
+                    },
+                    std::chrono::seconds(26)
+                );
+
+                if (_brGroup.horatio)
+                {
+                    Creature* horatio = _brGroup.horatio;
+                    horatio->m_Events.AddEventAtOffset([horatio, player]()
+                        {
+                            horatio->AI()->Talk(0, player);
+                        },
+                        std::chrono::seconds(28)
+                    );
+
+                    horatio->m_Events.AddEventAtOffset([horatio, player]()
+                        {
+                            horatio->AI()->Talk(1, player);
+                        },
+                        std::chrono::seconds(31)
+                    );
+                }
+            }
+
+            if (pointId == 3)
+            {
+                if(_brGroup.horatio)
+                    me->SetFacingToObject(_brGroup.horatio, true);
+
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player)
+                {
+                    Talk(7, player);
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            Talk(8, player);
+                        },
+                        std::chrono::seconds(8)
+                    );
+
+                    me->m_Events.AddEventAtOffset([this, player]()
+                        {
+                            Talk(9, player);
+                        },
+                        std::chrono::seconds(13)
+                    );
+                }
+
+                _events.ScheduleEvent(Events::BRHopeBurnCity, 15s);
+                _events.ScheduleEvent(Events::BRHopeDeparture, 18s);
+                _events.ScheduleEvent(Events::BRHopeSetData2Gryan, 23s);
+            }
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::TransformVaneesa)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                if (player)
+                {
+                    Talk(3, player); // RISE UP BROTHERHOOD
+
+                    _events.ScheduleEvent(Events::BRHopeSummonBrotherhood, 3s);
+                    _events.ScheduleEvent(Events::BRHopeTieThemUp, 5s);
+                }
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::BRHopeWalkToGryan:
+                {
+                    me->GetMotionMaster()->MovePoint(1, Positions::BRHopeStart);
+
+                    if (_brGroup.gryan)
+                    {
+                        _brGroup.gryan->m_Events.AddEventAtOffset([this]()
+                            {
+                                _brGroup.gryan->SetFacingToObject(me, true);
+                            },
+                            std::chrono::seconds(2)
+                        );
+                    }
+                    break;
+                }
+
+                case Events::BRHopeSetData1Gryan:
+                {
+                    if (_brGroup.gryan)
+                        _brGroup.gryan->AI()->SetData(1, 1); // Gryan will say: Wha....
+                    break;
+                }
+
+                case Events::BRHopeMonologue:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                    if (player)
+                    {
+                        Talk(1, player); // I saw father...
+
+                        me->m_Events.AddEventAtOffset([this, player]()
+                            {
+                                Talk(2, player); // Hope is a cruel joke
+                            },
+                            std::chrono::seconds(5)
+                        );
+
+                        me->m_Events.AddEventAtOffset([this]()
+                            {
+                                me->CastSpell(me, Spells::TransformVaneesa, true);
+                            },
+                            std::chrono::seconds(10)
+                        );
+                    }
+                    break;
+                }
+
+                case Events::BRHopeSummonBrotherhood:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                    if (player)
+                    {
+                        SummonBrotherhood(player);
+                        player->CastSpell(player, Spells::SummonGlubtok, true);
+                        player->CastSpell(player, Spells::SummonHelix, true);
+
+                        _events.ScheduleEvent(Events::BRStoreHelixGlubtok, 1s);
+                    }
+                    break;
+                }
+
+                case Events::BRStoreHelixGlubtok:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                    if (player)
+                    {
+                        if (Creature* helix = player->FindNearestCreature(Creatures::SpawnedHelixAtTower, 50.f))
+                        {
+                            if (_brGroup.ripsnarl)
+                            {
+                                helix->SetWalk(true);
+                                helix->GetMotionMaster()->MoveCloserAndStop(1, _brGroup.ripsnarl, 7.f);
+                            }
+
+                            _brGroup.helix = helix;
+                        }
+
+                        if (Creature* glubtok = player->FindNearestCreature(Creatures::SpawnedGlubtokAtTower, 30.f))
+                        {
+                            glubtok->SetWalk(true);
+                            _brGroup.glubtok = glubtok;
+                        }
+                    }
+
+                    break;
+                }
+
+                case Events::BRHopeTieThemUp:
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid);
+                    if (player)
+                    {
+                        Talk(4, player); // Tie them up
+
+                        me->m_Events.AddEventAtOffset([this]()
+                            {
+                                DoCast(Spells::TiedUpGoodGuysForceCast);
+                            },
+                            std::chrono::seconds(1)
+                        );
+
+                        me->m_Events.AddEventAtOffset([this]()
+                            {
+                                me->GetMotionMaster()->MovePoint(2, Positions::BRVanessaToAdmiral);
+                            },
+                            std::chrono::seconds(3)
+                        );
+                    }
+                    break;
+                }
+
+                case Events::BRHopeBurnCity:
+                {
+                    ForEachBrotherhood([](Creature* c)
+                        {
+                            c->AI()->SetData(1, 1);
+                        });
+                    break;
+                }
+
+                case Events::BRHopeSetData2Gryan:
+                {
+                    if(_brGroup.gryan)
+                        _brGroup.gryan->AI()->SetData(1, 2);
+
+                    break;
+                }
+
+                case Events::BRHopeDeparture:
+                {
+                    me->GetMotionMaster()->MovePoint(4, Positions::BRVanessaDeparture);
+
+                    if(_brGroup.helix)
+                        _brGroup.helix->GetMotionMaster()->MovePoint(5, Positions::BRHelixDeparture);
+
+                    if (_brGroup.glubtok)
+                        _brGroup.glubtok->GetMotionMaster()->MovePoint(6, Positions::BRGlubtokDeparture);
+
+                    break;
+                }
+                }
             }
         }
 
     private:
+        EventMap _events;
         ObjectGuid _playerGuid;
+        std::vector<ObjectGuid> _brotherhoodGuids;
+        BRGroup _brGroup = {};
+
+        void SummonBrotherhood(Player* player)
+        {
+            if (!player)
+                return;
+
+            for (auto const& spawn : Brotherhood)
+            {
+                if (Creature* c = player->SummonCreature(
+                    spawn.entry,
+                    spawn.pos,
+                    TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,
+                    std::chrono::seconds(spawn.despawnTime)))
+                {
+                    c->SetReactState(REACT_PASSIVE);
+                    _brotherhoodGuids.push_back(c->GetGUID());
+                }
+            }
+        }
+
+        template <typename Func>
+        void ForEachBrotherhood(Func&& fn)
+        {
+            for (auto const& guid : _brotherhoodGuids)
+                if (Creature* c = ObjectAccessor::GetCreature(*me, guid))
+                    fn(c);
+        }
+    };
+
+    /*######
+    ## npc_defias_blackguard
+    ## ID 42769
+    ######*/
+
+    struct npc_defias_blackguard : public ScriptedAI
+    {
+        npc_defias_blackguard(Creature* creature) : ScriptedAI(creature) {}
+
+        void Reset() override
+        {
+            Defias_DoFire = false;
+            ThrowTimer = 4000;
+
+            DoCast(Spells::Smoke);
+            DoCast(Spells::Sneak);
+        }
+
+        // Triggered externally via SetData(1,1)
+        void SetData(uint32 type, uint32 data) override
+        {
+            if (type == 1 && data == 1)
+                Defias_DoFire = true;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!Defias_DoFire)
+                return;
+
+            if (Creature* pTarget = me->FindNearestCreature(Creatures::SentinelHillFireTrigger, 30.0f, true))
+            {
+                if (ThrowTimer <= diff)
+                {
+                    DoCast(pTarget, Spells::ThrowTorch, true);
+                    ThrowTimer = 4000;
+
+                    me->SetWalk(true);
+                    me->GetMotionMaster()->MovePoint(
+                        0,
+                        me->GetPositionX() - 5,
+                        me->GetPositionY() + 5,
+                        me->GetPositionZ());
+                }
+                else
+                    ThrowTimer -= diff;
+            }
+        }
+
+    private:
+        uint32 ThrowTimer = 0;
+        bool Defias_DoFire = false;
+    };
+
+    /*######
+    ## npc_sentinel_hill_fire_trigger
+    ## ID 42793
+    ######*/
+
+    struct npc_sentinel_hill_fire_trigger : public ScriptedAI
+    {
+        npc_sentinel_hill_fire_trigger(Creature* creature) : ScriptedAI(creature) {}
+
+        void Reset() override
+        {
+            _spawnFire = false;
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (_spawnFire)
+                return;
+
+            if (spellInfo->Id == Spells::ThrowTorch)
+            {
+                if (GameObject* fire = me->SummonGameObject(Gameobjects::Fire, me->GetPosition(), QuaternionData(), 0s))
+                {
+                    _spawnFire = true;
+                    fire->DespawnOrUnsummon(6min);
+                    me->DespawnOrUnsummon(6min, 1s);
+                }
+            }
+        }
+
+    private:
+        bool _spawnFire = false;
     };
 }
 
@@ -1428,4 +1849,6 @@ void AddSC_custom_westfall_npcs()
     RegisterCreatureAI(npc_vision_defias_pirate);
     RegisterCreatureAI(npc_gryan_stoutmantle_act2);
     RegisterCreatureAI(npc_hope_act2);
+    RegisterCreatureAI(npc_defias_blackguard);
+    RegisterCreatureAI(npc_sentinel_hill_fire_trigger);
 }

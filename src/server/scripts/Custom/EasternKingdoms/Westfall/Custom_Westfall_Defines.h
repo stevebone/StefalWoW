@@ -21,6 +21,7 @@
  */
 
 #include "Creature.h"
+#include "CreatureAIImpl.h"
 #include "Position.h"
 #include "TemporarySummon.h"
 
@@ -70,6 +71,7 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 DefiasBlackguard = 42769;
         static constexpr uint32 SpawnedHelixAtTower = 42753;
         static constexpr uint32 SpawnedGlubtokAtTower = 42755;
+        static constexpr uint32 SentinelHillFireTrigger = 42793;
 
         static constexpr uint32 GryanStoutmantle = 234;
         static constexpr uint32 LtHorationLaineAtTower = 42308;
@@ -93,6 +95,11 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 VisionAllianceHunter = 42701;
         static constexpr uint32 VisionAllianceMage = 42702;
         static constexpr uint32 VisionAlliancePriest = 42703;
+    }
+
+    namespace Gameobjects
+    {
+        static constexpr uint32 Fire = 204099;
     }
 
     namespace Spawns
@@ -167,13 +174,16 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr uint32 AdmiralHat = 79750;
         static constexpr uint32 TransformVaneesa = 79709;
         static constexpr uint32 SummonBlackguard = 79712;
+        static constexpr uint32 TiedUpGoodGuysForceCast = 79795;
         static constexpr uint32 TiedUpGoodGuys = 79723;
         static constexpr uint32 TiedUpVisual = 79724;
-        static constexpr uint32 DefiasFinaleEvent = 79758;
+        static constexpr uint32 DefiasFinaleEventCredit = 79758;
         static constexpr uint32 TossTorch = 79778;
         static constexpr uint32 TossTorchTrigger = 79779;
+        static constexpr uint32 ThrowTorch = 83860;
         static constexpr uint32 Smoke = 67690;
         static constexpr uint32 HitMe = 65600;
+        static constexpr uint32 Sneak = 22766;
     }
 
     namespace Events
@@ -190,6 +200,16 @@ namespace Scripts::EasternKingdoms::Westfall
         static constexpr int8 VisionOfThePastExit = 5;
         static constexpr int8 VisionRemovePassenger = 6;
         static constexpr int8 VisionAllianceNPCSLeave = 7;
+
+        static constexpr int8 BRHopeWalkToGryan = 1;
+        static constexpr int8 BRHopeSetData1Gryan = 2;
+        static constexpr int8 BRHopeMonologue = 3;
+        static constexpr int8 BRHopeSummonBrotherhood = 4;
+        static constexpr int8 BRStoreHelixGlubtok = 5;
+        static constexpr int8 BRHopeTieThemUp = 6;
+        static constexpr int8 BRHopeSetData2Gryan = 7;
+        static constexpr int8 BRHopeDeparture = 8;
+        static constexpr int8 BRHopeBurnCity = 9;
     }
 
     namespace Positions
@@ -252,6 +272,14 @@ namespace Scripts::EasternKingdoms::Westfall
 
         // Rise of the Brotherhood
         static constexpr Position BRHopeStart = { -10507.65f, 1042.81f, 60.51f };
+        static constexpr Position BRVanessaToAdmiral = { -10512.36f, 1044.36f, 60.518f };
+        static constexpr Position BRVanessaWalkingAway = { -10513.37f, 1056.48f, 57.605f };
+        static constexpr Position BRVanessaDeparture = { -10518.38f, 1067.99f, 54.84f };
+        static constexpr Position BRRipsnarl1 = { -10513.41f, 1041.11f, 60.518f };
+        static constexpr Position BRRipsnarl2 = { -10511.34f, 1042.46f, 60.5172f };
+        static constexpr Position BRRipsnarl3 = { -10516.64f, 1064.78f, 55.362f };
+        static constexpr Position BRHelixDeparture = { -10520.01f, 1062.31f, 55.386f };
+        static constexpr Position BRGlubtokDeparture = { -10511.79f, 1065.78f, 55.085f };
     }
 
     namespace Talks
@@ -406,6 +434,7 @@ namespace Scripts::EasternKingdoms::Westfall
     namespace Phases
     {
         static constexpr uint32 WestfallAct2 = 226;
+        static constexpr uint32 WestfallRiseBR = 232;
     }
 
     struct AllianceGroup
@@ -448,6 +477,15 @@ namespace Scripts::EasternKingdoms::Westfall
         }
     }
 
+    struct BRGroup
+    {
+        Creature* gryan = nullptr;
+        Creature* horatio = nullptr;
+        Creature* ripsnarl = nullptr;
+        Creature* helix = nullptr;
+        Creature* glubtok = nullptr;
+    };
+
     static constexpr uint32 PlayerSummonSpells[] =
     {
         Spells::SummonRipsnarl,
@@ -458,8 +496,6 @@ namespace Scripts::EasternKingdoms::Westfall
         Spells::SummonHopeSaldean,
         Spells::SummonHoratioLaine,
         Spells::SummonGryanStoutmantle,
-        Spells::SummonHelix,
-        Spells::SummonGlubtok
     };
 
     struct BrotherhoodSpawn
@@ -471,19 +507,16 @@ namespace Scripts::EasternKingdoms::Westfall
 
     static constexpr BrotherhoodSpawn Brotherhood[] =
     {
-        { Creatures::DefiasBlackguard, { -10500.37f, 1042.65f, 60.51f, 3.06f }, 100 },
-        { Creatures::DefiasBlackguard, { -10500.99f, 1046.73f, 60.517f, 3.29f }, 100 },
-        { Creatures::DefiasBlackguard, { -10505.202f, 1040.46f, 60.51f, 1.88f }, 100 },
-        { Creatures::DefiasBlackguard, { -10507.89f, 1039.52f, 60.51f, 1.95f }, 100 },
-        { Creatures::DefiasBlackguard, { -10513.54f, 1038.66f, 60.51f, 0.51f }, 100 },
-        { Creatures::DefiasBlackguard, { -10514.930f, 1042.012f, 60.51f, 0.399f }, 100 },
-        { Creatures::DefiasBlackguard, { -10516.797f, 1048.61f, 59.95f, 5.32f }, 100 },
-        { Creatures::DefiasBlackguard, { -10514.032f, 1049.80f, 59.92f, 5.11f} , 100 },
-        { Creatures::DefiasBlackguard, { -10509.012f, 1051.92f, 59.85f, 5.11f }, 100 },
-        { Creatures::DefiasBlackguard, { -10504.77f, 1053.57f, 59.86f, 4.84f }, 100 },
-        { Creatures::SpawnedGlubtokAtTower, { -10506.12f, 1053.13f, 59.10f, 4.92f }, 120 },
-        { Creatures::SpawnedHelixAtTower, { -10509.368f, 1057.28f, 57.86f, 4.95f }, 120 },
+        { Creatures::DefiasBlackguard, { -10500.37f, 1042.65f, 60.51f, 3.06f }, 120 },
+        { Creatures::DefiasBlackguard, { -10500.99f, 1046.73f, 60.517f, 3.29f }, 120 },
+        { Creatures::DefiasBlackguard, { -10505.202f, 1040.46f, 60.51f, 1.88f }, 120 },
+        { Creatures::DefiasBlackguard, { -10507.89f, 1039.52f, 60.51f, 1.95f }, 120 },
+        { Creatures::DefiasBlackguard, { -10513.54f, 1038.66f, 60.51f, 0.51f }, 120 },
+        { Creatures::DefiasBlackguard, { -10514.930f, 1042.012f, 60.51f, 0.399f }, 120 },
+        { Creatures::DefiasBlackguard, { -10516.797f, 1048.61f, 59.95f, 5.32f }, 120 },
+        { Creatures::DefiasBlackguard, { -10514.032f, 1049.80f, 59.92f, 5.11f} , 120 },
+        { Creatures::DefiasBlackguard, { -10509.012f, 1051.92f, 59.85f, 5.11f }, 120 },
+        { Creatures::DefiasBlackguard, { -10504.77f, 1053.57f, 59.86f, 4.84f }, 120 },
     };
-
 }
 

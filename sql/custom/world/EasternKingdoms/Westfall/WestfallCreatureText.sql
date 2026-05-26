@@ -877,21 +877,21 @@ INSERT INTO creature_text
 (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId, comment) VALUES
 -- Gryan
 (42750, 0, 0, 'I don''t like this, $n. Stay alert!', 7, 12, 100, 0, 0, 0, 42655, 'Gryan Stoutmantle - Rise of the Brotherhood'),
-(42750, 0, 1, 'Hope! Wha..', 7, 12, 100, 0, 0, 0, 42657, 'Gryan Stoutmantle - Rise of the Brotherhood'),
-(42750, 0, 2, '$n, get to Stormwind. Tell King Wrynn everything. EVERYTHING! GO NOW!', 7, 12, 100, 0, 0, 0, 42681, 'Gryan Stoutmantle - Rise of the Brotherhood'),
+(42750, 1, 0, 'Hope! Wha..', 7, 12, 100, 0, 0, 0, 42657, 'Gryan Stoutmantle - Rise of the Brotherhood'),
+(42750, 2, 0, '$n, get to Stormwind. Tell King Wrynn everything. EVERYTHING! GO NOW!', 7, 12, 100, 0, 0, 0, 42681, 'Gryan Stoutmantle - Rise of the Brotherhood'),
 -- Hope
 (42749, 0, 0, 'You bastards will burn for what you did.', 7, 12, 100, 25, 0, 0, 42656, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 1, 'Hope? Is that what I was supposed to feel when I saw my father decapitated by your henchmen?', 7, 12, 100, 0, 0, 0, 42658, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 2, 'Hope is a cruel joke, played upon us by a harsh and uncaring world. There is no Hope, there is only Vanessa. Vanessa VanCleef.', 7, 12, 100, 0, 0, 0, 42659, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 3, 'RISE UP BROTHERHOOD! THE DAWNING DAY IS UPON US!', 7, 14, 100, 22, 0, 0, 42660, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 4, 'Tie them up.', 7, 12, 100, 25, 0, 0, 42661, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 5, 'Admiral, your hat.', 7, 12, 100, 1, 0, 0, 42662, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 6, 'And you, $n, I will spare your life. You have done much to help our cause, albeit unwittingly, but the next time we meet it will be as enemies. ', 7, 12, 100, 25, 0, 0, 42673, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 7, 'I had no choice, lieutenant. They recognized me. The only people in the world who even knew I existed, recognized my face from when I was an infant.', 7, 12, 100, 1, 0, 0, 42676, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 8, 'I took no pleasure in their deaths.', 7, 12, 100, 1, 0, 0, 42677, 'Hope Saldean - Rise of the Brotherhood'),
-(42749, 0, 9, 'Leave nothing but ashes in your wake, brothers! Burn Sentinel Hill to the ground!', 7, 14, 100, 22, 0, 0, 42672, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 1, 0, 'Hope? Is that what I was supposed to feel when I saw my father decapitated by your henchmen?', 7, 12, 100, 0, 0, 0, 42658, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 2, 0, 'Hope is a cruel joke, played upon us by a harsh and uncaring world. There is no Hope, there is only Vanessa. Vanessa VanCleef.', 7, 12, 100, 0, 0, 0, 42659, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 3, 0, 'RISE UP BROTHERHOOD! THE DAWNING DAY IS UPON US!', 7, 14, 100, 22, 0, 0, 42660, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 4, 0, 'Tie them up.', 7, 12, 100, 25, 0, 0, 42661, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 5, 0, 'Admiral, your hat.', 7, 12, 100, 1, 0, 0, 42662, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 6, 0, 'And you, $n, I will spare your life. You have done much to help our cause, albeit unwittingly, but the next time we meet it will be as enemies. ', 7, 12, 100, 25, 0, 0, 42673, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 7, 0, 'I had no choice, lieutenant. They recognized me. The only people in the world who even knew I existed, recognized my face from when I was an infant.', 7, 12, 100, 1, 0, 0, 42676, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 8, 0, 'I took no pleasure in their deaths.', 7, 12, 100, 1, 0, 0, 42677, 'Hope Saldean - Rise of the Brotherhood'),
+(42749, 9, 0, 'Leave nothing but ashes in your wake, brothers! Burn Sentinel Hill to the ground!', 7, 14, 100, 22, 0, 0, 42672, 'Hope Saldean - Rise of the Brotherhood'),
 -- Ripsnarl
 (42748, 0, 0, 'Thank you, my dear.', 7, 12, 100, 0, 0, 0, 42663, 'Ripsnarl - Rise of the Brotherhood'),
 -- Horatio
 (42744, 0, 0, 'Just tell me one thing, Vanessa.', 7, 12, 100, 0, 0, 0, 42674, 'Horatio - Rise of the Brotherhood'),
-(42744, 0, 1, 'Why''d you have the Furlbrows killed?', 7, 12, 100, 0, 0, 0, 42675, 'Horatio - Rise of the Brotherhood');
+(42744, 1, 0, 'Why''d you have the Furlbrows killed?', 7, 12, 100, 0, 0, 0, 42675, 'Horatio - Rise of the Brotherhood');
