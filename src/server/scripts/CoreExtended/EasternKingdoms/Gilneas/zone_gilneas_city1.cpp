@@ -107,8 +107,6 @@ enum eZoneGilneas
     SPELL_GENERIC_QUEST_INVISIBILITY_DETECTION_1 = 49416,
     SPELL_PHASE_QUEST_ZONE_SPECIFIC_02           = 59074, // phase: 171
     SPELL_PHASE_QUEST_ZONE_SPECIFIC_03           = 59087, // phase: 172
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_06           = 68481, // phase: 181
-
 };
 
 //gilnean crow 50260
@@ -3001,7 +2999,6 @@ public:
                     if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
                     {
                         player->CastSpell(player, SPELL_LAST_STAND_COMPLETE, true);
-                        player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_06, player);
                         player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_03);
                         player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_02);
                         player->SaveToDB();

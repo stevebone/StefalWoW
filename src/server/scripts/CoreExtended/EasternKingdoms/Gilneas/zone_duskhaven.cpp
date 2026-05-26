@@ -145,53 +145,311 @@ enum eDuskHaven
     SPELL_FORCECAST_UPDATE_ZONE_AURAS           = 94828,
     SPELL_LAUNCH4                               = 96185,
 
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_06 = 68481, // 181
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_07 = 68482, // 182
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_08 = 68483, // 183
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_09 = 69077, // 184
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_10 = 69078, // 185
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_11 = 69484, // 186
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_12 = 69485, // 187
-    SPELL_PHASE_QUEST_ZONE_SPECIFIC_19 = 74096, // 194
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_06          = 68481, // 181
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_07          = 68482, // 182
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_08          = 68483, // 183
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_09          = 69077, // 184
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_10          = 69078, // 185
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_11          = 69484, // 186
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_12          = 69485, // 187
+    SPELL_PHASE_QUEST_ZONE_SPECIFIC_19          = 74096, // 194
+
+    SPELL_CURSE_OF_THE_WORGEN                   = 68630,
+    SPELL_FADE_IN                               = 280527,
+
+    ACTION_SCENE_CLEANUP                        = 200,
+
+    EVENT_SCENE_CHECK_PLAYER                    = 290,
+    EVENT_SCENE_KRENNAN_TALK                    = 300,
+    EVENT_SCENE_SUMMON_GODFREY,
+    EVENT_SCENE_GODFREY_MOVE,
+    EVENT_SCENE_GODFREY_TALK,
+    EVENT_SCENE_SUMMON_GENN,
+    EVENT_SCENE_GENN_MOVE,
+    EVENT_SCENE_GENN_TALK_1,
+    EVENT_SCENE_GENN_TALK_2,
+    EVENT_SCENE_OFFER_QUEST,
+    EVENT_SCENE_CLEANUP,
+
+    MOVE_GODFREY_SCENE                          = 1,
+    MOVE_GENN_SCENE                             = 2,
 };
-//
-//// player
-//class player_zone_duskhaven : public PlayerScript
-//{
-//public:
-//    player_zone_duskhaven() : PlayerScript("player_zone_duskhaven") { }
-//
-//    void OnQuestStatusChange(Player* player, uint32 questId) override
-//    {
-//        if (player->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE ||
-//            player->GetQuestStatus(questId) == QUEST_STATUS_COMPLETE)
-//            return;
-//
-//        switch (questId)
-//        {
-//            case QUEST_TO_GREYMANE_MANOR:
-//            case QUEST_THE_KINGS_OBSERVATORY:
-//            case QUEST_ALAS_GILNEAS:
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_06);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_07);
-//                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_08, player);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_09);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_10);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_11);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_12);
-//                break;
-//            case QUEST_EXODUS:
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_06);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_07);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_08);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_09);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_10);
-//                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_11, player);
-//                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_12);
-//                break;
-//        }
-//    }
-//};
+
+Position const GodfreySpawnPos = { -1844.0399f, 2289.6338f, 42.4899f, 0.2407f };
+Position const GennSpawnPos = { -1846.7084f, 2288.7517f, 42.4899f, 0.1491f };
+
+Position const GodfreyScenePos = { -1821.9219f, 2295.0503f, 42.0993f, 0.0f };
+Position const GennScenePos = { -1821.0903f, 2292.5972f, 42.1017f, 1.3265f };
+
+// 36331
+class npc_krennan_aranas_36331 : public CreatureScript
+{
+public:
+    npc_krennan_aranas_36331() : CreatureScript("npc_krennan_aranas_36331") {}
+
+    struct npc_krennan_aranas_36331AI : public PassiveAI
+    {
+        npc_krennan_aranas_36331AI(Creature* creature) : PassiveAI(creature), m_summons(creature), m_sceneActive(false) {}
+
+        EventMap m_events;
+        ObjectGuid m_playerGUID;
+        SummonList m_summons;
+        ObjectGuid m_godfreyGUID;
+        ObjectGuid m_gennGUID;
+        bool m_sceneActive;
+
+        void InitializeAI() override
+        {
+            m_events.ScheduleEvent(EVENT_SCENE_CHECK_PLAYER, 1s);
+        }
+
+        void Reset() override
+        {
+            m_events.Reset();
+            m_playerGUID.Clear();
+            m_godfreyGUID.Clear();
+            m_gennGUID.Clear();
+            m_sceneActive = false;
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            m_summons.Summon(summon);
+            summon->SetReactState(REACT_PASSIVE);
+
+            switch (summon->GetEntry())
+            {
+            case NPC_LORD_GODFREY_36330:
+                m_godfreyGUID = summon->GetGUID();
+                break;
+            case NPC_KING_GENN_GREYMANE_36332:
+                m_gennGUID = summon->GetGUID();
+                summon->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
+                break;
+            default:
+                break;
+            }
+        }
+
+        void SummonedCreatureDespawn(Creature* summon) override
+        {
+            m_summons.Despawn(summon);
+        }
+
+        void DoAction(int32 param) override
+        {
+            if (param == ACTION_SCENE_CLEANUP)
+                m_events.ScheduleEvent(EVENT_SCENE_CLEANUP, 2s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            m_events.Update(diff);
+
+            while (uint32 eventId = m_events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case EVENT_SCENE_CHECK_PLAYER:
+                {
+                    if (m_sceneActive)
+                        break;
+
+                    if (Player* player = me->SelectNearestPlayer(5.0f))
+                    {
+                        if (player->HasAura(SPELL_CURSE_OF_THE_WORGEN))
+                        {
+                            m_playerGUID = player->GetGUID();
+                            m_sceneActive = true;
+                            player->CastSpell(player, SPELL_FADE_IN, true);
+                            m_events.ScheduleEvent(EVENT_SCENE_KRENNAN_TALK, 7s);
+                            break;
+                        }
+                    }
+
+                    m_events.ScheduleEvent(EVENT_SCENE_CHECK_PLAYER, 1s);
+                    break;
+                }
+                case EVENT_SCENE_KRENNAN_TALK:
+                {
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                        Talk(0, player);
+
+                    m_events.ScheduleEvent(EVENT_SCENE_SUMMON_GODFREY, 2400ms);
+                    break;
+                }
+                case EVENT_SCENE_SUMMON_GODFREY:
+                {
+                    me->SummonCreature(NPC_LORD_GODFREY_36330,
+                        GodfreySpawnPos, TEMPSUMMON_MANUAL_DESPAWN);
+
+                    m_events.ScheduleEvent(EVENT_SCENE_GODFREY_MOVE, 5300ms);
+                    break;
+                }
+                case EVENT_SCENE_GODFREY_MOVE:
+                {
+                    if (Creature* godfrey = ObjectAccessor::GetCreature(*me, m_godfreyGUID))
+                    {
+                        godfrey->SetWalk(true);
+                        godfrey->GetMotionMaster()->MovePoint(MOVE_GODFREY_SCENE,
+                            GodfreyScenePos.GetPositionX(),
+                            GodfreyScenePos.GetPositionY(),
+                            GodfreyScenePos.GetPositionZ());
+                    }
+
+                    m_events.ScheduleEvent(EVENT_SCENE_GODFREY_TALK, 9s);
+                    break;
+                }
+                case EVENT_SCENE_GODFREY_TALK:
+                {
+                    if (Creature* godfrey = ObjectAccessor::GetCreature(*me, m_godfreyGUID))
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            godfrey->SetFacingToObject(player);
+
+                        godfrey->AI()->Talk(0);
+                    }
+
+                    m_events.ScheduleEvent(EVENT_SCENE_SUMMON_GENN, 3100ms);
+                    break;
+                }
+                case EVENT_SCENE_SUMMON_GENN:
+                {
+                    me->SummonCreature(NPC_KING_GENN_GREYMANE_36332,
+                        GennSpawnPos, TEMPSUMMON_MANUAL_DESPAWN);
+
+                    m_events.ScheduleEvent(EVENT_SCENE_GENN_MOVE, 1500ms);
+                    break;
+                }
+                case EVENT_SCENE_GENN_MOVE:
+                {
+                    if (Creature* genn = ObjectAccessor::GetCreature(*me, m_gennGUID))
+                    {
+                        genn->SetWalk(true);
+                        genn->GetMotionMaster()->MovePoint(MOVE_GENN_SCENE,
+                            GennScenePos.GetPositionX(),
+                            GennScenePos.GetPositionY(),
+                            GennScenePos.GetPositionZ());
+                    }
+
+                    m_events.ScheduleEvent(EVENT_SCENE_GENN_TALK_1, 10s);
+                    break;
+                }
+                case EVENT_SCENE_GENN_TALK_1:
+                {
+                    if (Creature* genn = ObjectAccessor::GetCreature(*me, m_gennGUID))
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            genn->AI()->Talk(0, player);
+                    }
+
+                    m_events.ScheduleEvent(EVENT_SCENE_GENN_TALK_2, 9300ms);
+                    break;
+                }
+                case EVENT_SCENE_GENN_TALK_2:
+                {
+                    if (Creature* genn = ObjectAccessor::GetCreature(*me, m_gennGUID))
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                            genn->AI()->Talk(1, player);
+
+                        genn->SetFacingTo(5.4978f);
+                    }
+
+                    m_events.ScheduleEvent(EVENT_SCENE_OFFER_QUEST, 5800ms);
+                    break;
+                }
+                case EVENT_SCENE_OFFER_QUEST:
+                {
+                    if (Player* player = ObjectAccessor::GetPlayer(*me, m_playerGUID))
+                    {
+                        if (Creature* genn = ObjectAccessor::GetCreature(*me, m_gennGUID))
+                        {
+                            genn->SetNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
+                            genn->SetFacingToObject(player);
+                        }
+                    }
+
+                    break;
+                }
+                }
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_krennan_aranas_36331AI(creature);
+    }
+};
+
+// 36332
+class npc_king_genn_36332 : public CreatureScript
+{
+public:
+    npc_king_genn_36332() : CreatureScript("npc_king_genn_36332") {}
+
+    struct npc_king_genn_36332AI : public ScriptedAI
+    {
+        npc_king_genn_36332AI(Creature* creature) : ScriptedAI(creature) {}
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() == QUEST_LAST_CHANCE_AT_HUMANITY)
+            {
+                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_06, player);
+                player->CastSpell(player, SPELL_FADE_IN, true);
+                player->RemoveAura(SPELL_CURSE_OF_THE_WORGEN);
+
+                if (Creature* krennan = me->FindNearestCreature(NPC_KRENNAN_ARANAS_36331, 10.0f))
+                    krennan->AI()->DoAction(ACTION_SCENE_CLEANUP);
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_king_genn_36332AI(creature);
+    }
+};
+
+// player
+class player_zone_duskhaven : public PlayerScript
+{
+public:
+    player_zone_duskhaven() : PlayerScript("player_zone_duskhaven") { }
+
+    void OnQuestStatusChange(Player* player, uint32 questId) override
+    {
+        if (player->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE ||
+            player->GetQuestStatus(questId) == QUEST_STATUS_COMPLETE)
+            return;
+
+        switch (questId)
+        {
+            case QUEST_TO_GREYMANE_MANOR:
+            case QUEST_THE_KINGS_OBSERVATORY:
+            case QUEST_ALAS_GILNEAS:
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_06);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_07);
+                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_08, player);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_09);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_10);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_11);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_12);
+                break;
+            case QUEST_EXODUS:
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_06);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_07);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_08);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_09);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_10);
+                player->AddAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_11, player);
+                player->RemoveAura(SPELL_PHASE_QUEST_ZONE_SPECIFIC_12);
+                break;
+        }
+    }
+};
 //
 //// Phase 1/169
 //// Phase 4096/181 is used from reward quest 14222 and forward
@@ -3428,3 +3686,9 @@ enum eDuskHaven
 //    new npc_enslaved_villager_37694();
 //    new go_ball_and_chain_201775();
 //};
+void AddSC_zone_gilneas_chapter_2()
+{
+    new npc_krennan_aranas_36331();
+    new npc_king_genn_36332();
+    new player_zone_duskhaven();
+};
