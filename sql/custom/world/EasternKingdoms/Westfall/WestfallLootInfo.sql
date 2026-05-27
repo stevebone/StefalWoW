@@ -128,6 +128,11 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 -- Specific Mob Flavor items
 DELETE FROM `creature_loot_template`
 WHERE (Entry, Item) IN (
+	(596, 1933),
+	(596, 5967),
+	(596, 3902),
+	(599, 4660),
+	(599, 3019),
 	(573, 933),
 	(513, 1357),
 	(515, 1357),
@@ -188,6 +193,14 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 
 (519, 0, 3188, 20, 0, 1, 2, 1, 1, 'Coral Claymore - Slark'),
 (519, 0, 6180, 30, 0, 1, 2, 1, 1, 'Slarkskin - Slark'),
+
+(596, 0, 5967, 40, 0, 1, 2, 1, 1, 'Girdle of Nobility - Brainwashed Noble'),
+(596, 0, 3902, 15, 0, 1, 2, 1, 1, 'Staff of Nobles - Brainwashed Noble'),
+(596, 0, 1933, 10, 0, 1, 2, 1, 1, 'Staff of Conjuring - Brainwashed Noble'),
+
+(599, 0, 4660, 50, 0, 1, 2, 1, 1, 'Walking Boots - Marisa Du Paige'),
+(599, 0, 3019, 15, 0, 1, 2, 1, 1, 'Nobles Robe - Marisa Du Paige'),
+
 (462, 0, 4454, 0, 0, 1, 2, 1, 1, 'Talon of Vultros - Vultros'),
 (462, 0, 115349, 3, 0, 1, 2, 1, 1, 'Talon of Vultros - Vultros'),
 (462, 0, 5971, 67, 0, 1, 2, 1, 1, 'Feathered Cape - Vultros'),
@@ -231,8 +244,28 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 DELETE FROM creature_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
 500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,
-54373,54371,54372,573) 
+54373,54371,54372,573,599,596) 
 AND ItemType = 1;
+
+-- NPC: 596 Brainwashed Noble
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(596, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(596, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(596, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(596, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(596, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(596, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(596, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 599 Marisa Du Paige
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(599, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(599, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(599, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(599, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(599, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(599, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(599, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
 
 -- NPC: 42677 Moonbrook Thug
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES

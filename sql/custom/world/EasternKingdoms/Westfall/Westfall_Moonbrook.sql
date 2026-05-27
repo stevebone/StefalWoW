@@ -1,3 +1,5 @@
+-- Moonbrook area fixes (includes Deadmines outside instance)
+
 -- NPC: 43515 Trigger Dawn of a new day
 
 -- wrong faction for hobos
@@ -7,6 +9,12 @@ DELETE FROM `creature_template_addon` WHERE `entry` IN (119390);
 INSERT INTO `creature_template_addon` VALUES
 (119390, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, '79116'); -- Marcus hobo
 
+DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (599,596);
+INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScalingDeltaMin`,`LevelScalingDeltaMax`,`ContentTuningID`,`HealthScalingExpansion`,`HealthModifier`,`ManaModifier`,`ArmorModifier`,`DamageModifier`,`CreatureDifficultyID`,`TypeFlags`,`TypeFlags2`,`TypeFlags3`,`LootID`,`PickPocketLootID`,`SkinLootID`,`GoldMin`,`GoldMax`,`StaticFlags1`,`StaticFlags2`,`StaticFlags3`,`StaticFlags4`,`StaticFlags5`,`StaticFlags6`,`StaticFlags7`,`StaticFlags8`,`VerifiedBuild`) VALUES 
+(596, 0, 0, 0, 6, 0, 1.5, 2, 1, 1, 407, 0, 0, 0, 596, 596, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 64978), -- Brainwashed Noble
+(599, 0, 0, 0, 6, 0, 1.5, 2, 1, 1, 410, 0, 0, 0, 599, 599, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 67602); -- Marisa dupaige
+
+UPDATE `creature` SET `spawntimesecs` = 3600 WHERE `id` = 599; -- Marisa has an hour respawn timer
 UPDATE `creature` SET `ID` = 42400 WHERE `guid` IN (274691,274657); -- wrong spawn, should be hobo with cart
 
 -- wander distance for citizens at moonbrook
@@ -180,13 +188,24 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `position_x`, `position_y`, `positi
 (@CGUID+930, 462, 0, -11124.4, 863.032, 45.5566, 0.620062, 3600, 10, 1),
 (@CGUID+931, 462, 0, -11131.2, 826.004, 40.7787, 5.17773, 3600, 10, 1);
 
-SET @POOLID := 900000;
-DELETE FROM `pool_template` WHERE `entry` = @POOLID+0;
-INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
-(@POOLID+0, 1, 'Westfall - Vultros Pool');
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+932, @CGUID+933);
+INSERT INTO `creature` VALUES
+-- Brainwashed Noble
+(@CGUID+932, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11229.1', '1477.09', '19.0713', '3.44822', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+933, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11193.5', '1533.91', '19.8202', '0.529225', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
-DELETE FROM `pool_members` WHERE `poolSpawnId` = @POOLID+0;
+
+SET @POOLID := 900000;
+DELETE FROM `pool_template` WHERE `entry` IN (@POOLID+0, @POOLID+1);
+INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
+(@POOLID+0, 1, 'Westfall - Vultros Pool'),
+(@POOLID+1, 1, 'Westfall - Brainwashed Noble Pool');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId` IN (@POOLID+0,@POOLID+1);
 INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES
+(0, @CGUID+932, @POOLID+1, 0, 'Westfall - Brainwashed Noble - Deadmines'),
+(0, @CGUID+933, @POOLID+1, 0, 'Westfall - Brainwashed Noble - Deadmines'),
+
 (0, @CGUID+916, @POOLID+0, 0, 'Westfall - Vultros - Silent Hill area'),
 (0, @CGUID+917, @POOLID+0, 0, 'Westfall - Vultros - Alexton Farmstead'),
 (0, @CGUID+918, @POOLID+0, 0, 'Westfall - Vultros - Alexton Farmstead'),
