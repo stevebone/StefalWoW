@@ -1,5 +1,31 @@
 -- NPC: 43515 Trigger Dawn of a new day
 
+-- wrong faction for hobos
+UPDATE `creature_template` SET `faction` =2280 WHERE `entry` IN (42386, 42390,42384,42391);
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (119390);
+INSERT INTO `creature_template_addon` VALUES
+(119390, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, '79116'); -- Marcus hobo
+
+UPDATE `creature` SET `ID` = 42400 WHERE `guid` IN (274691,274657); -- wrong spawn, should be hobo with cart
+
+-- wander distance for citizens at moonbrook
+UPDATE `creature` SET `wander_distance` = 5, `MovementType` = 1 WHERE `guid` IN 
+(274725,274630,274626,274523,274524,274496,274436,274539,274468,274470,274590); 
+
+-- Waypoints
+DELETE FROM `creature_addon` WHERE `guid` IN (274760,274691,274657,274532);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`, `PvPFlags`, `auras`) VALUES 
+(274691, 4240001, 1, 0, '79143'), -- Hobo with Cart at Moonbrook
+(274657, 4240002, 1, 0, '79143'), -- Hobo with Cart at Moonbrook
+(274760, 4240700, 1, 1, ''); -- Guard at Moonbrook pathing
+
+INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`, `auras`) VALUES 
+(274532, 1, 1, '');
+
+
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (274760,274691,274657); -- path movement
+
 -- Quest: 26297 The dawning of a new day
 UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26297_the_dawning_of_a_new_day' WHERE ID = 26297;
 
@@ -120,3 +146,15 @@ INSERT INTO `creature` VALUES
 (@CGUID+62, '3947', '36', '1581', '1581', '1,2,24', '0', '231', '0', '-1', '0', '1', '-47.2258', '-784.883', '18.4681', '4.11898', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '24015'),
 (@CGUID+63, '3947', '36', '1581', '1581', '1,2,24', '0', '231', '0', '-1', '0', '1', '-83.3867', '-791.399', '25.8925', '5.81195', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '24015'),
 (@CGUID+64, '3947', '36', '1581', '1581', '1,2,24', '0', '231', '0', '-1', '0', '1', '-44.1057', '-853.08', '18.6352', '4.03171', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '24015');
+
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+910 AND @CGUID+915;
+INSERT INTO `creature` VALUES
+-- Missing rotten ghoul spawns at graveyard
+(@CGUID+910, '846', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-10979', '1628.82', '46.3427', '4.35301', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+911, '846', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-10973.3', '1611.65', '46.0341', '1.3826', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+912, '846', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-10992', '1610.19', '44.8723', '3.02015', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+913, '846', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-10964.2', '1601.25', '47.6235', '3.15761', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+914, '846', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-10982.7', '1599.76', '46.1088', '5.41066', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+-- Marcus hobo
+(@CGUID+915, '119390', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-11058.5', '1562.44', '44.0762', '3.58245', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
