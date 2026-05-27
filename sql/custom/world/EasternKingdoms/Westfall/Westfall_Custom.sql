@@ -26,6 +26,20 @@ INSERT INTO `conditions` VALUES
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`) VALUES 
 (26, 50005, 40, 0, 1, 47, 0, 26761, 64, 0, '', 0, 'Player has quest 26761 rewarded');
 
+-- Reactivating old/deprecated quests for Deadmines
+-- These start in various places
+DELETE FROM `disables` WHERE `entry` IN (167,168) AND `sourceType` = 1; -- quest source
+
+DELETE FROM `creature_queststarter` WHERE `quest` IN (167,168);
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES 
+(656, 167, 0),
+(656, 168, 0);
+
+DELETE FROM `creature_questender` WHERE `quest` IN (167,168);
+INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
+(656, 167, 0),
+(656, 168, 0);
+
 -- Reactivating old/deprecated quests in Westfall
 DELETE FROM `disables` WHERE `entry` IN (9, 22, 36, 64, 109, 151, 103) AND `sourceType` = 1; -- quest source
 DELETE FROM `creature_queststarter` WHERE `quest` IN (9, 22, 36, 109, 64, 151, 103);
@@ -51,7 +65,7 @@ INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 
 
 -- Quest Templates
-UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = '0' WHERE `ID` IN (9, 22, 36, 109, 64, 103, 151);
+UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = '0' WHERE `ID` IN (9, 22, 36, 109, 64, 103, 151,167,168);
 DELETE FROM `quest_template_addon` WHERE `ID` IN (109);
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES
 (109, 64);
@@ -371,15 +385,68 @@ INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseU
 (@CGUID+282, '467', '0', '40', '108', '0', '0', '50004', '0', '-1', '0', '0', '-10509.2', '1066.37', '55.065', '1.77615', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+283, '550', '0', '40', '40', '0', '0', '50004', '0', '-1', '0', '1', -11024.3,	1458.48,	42.9396,	4.59736, '120', '0', '0', '100', '2', NULL, NULL, NULL, NULL, '', NULL, '0');
 
-
 -- Waypoints
-DELETE FROM waypoint_path WHERE `PathId` IN (3,4,5);
-insert into waypoint_path values (3, 1, 0, null, 'Westfall - Defias Traitor');
-insert into waypoint_path values (4, 0, 0, null, 'Westfall - Defias Messenger');
-insert into waypoint_path values (5, 0, 0, null, 'Westfall - Defias Traitor Moonbrook');
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (274368); -- path movement
 
-DELETE FROM waypoint_path_node WHERE `PathId` IN (3,4,5);
+DELETE FROM `creature_addon` WHERE `guid` IN (274368);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`, `PvPFlags`, `auras`) VALUES 
+(274368, 4240003, 1, 0, '79143'); -- Hobo with Cart at Moonbrook
+
+DELETE FROM `waypoint_path` WHERE `PathId` IN (4240003, 3,4,5);
+INSERT INTO `waypoint_path` VALUES
+(4240003, 0, 0, NULL, 'Westfall - Hobo with cart in Deadmines'), 
+(3, 1, 0, null, 'Westfall - Defias Traitor'),
+(4, 0, 0, null, 'Westfall - Defias Messenger'),
+(5, 0, 0, null, 'Westfall - Defias Traitor Moonbrook');
+
+DELETE FROM waypoint_path_node WHERE `PathId` IN (4240003, 3,4,5);
 insert into waypoint_path_node values
+(4240003, 1, -11208.1, 1677.03, 24.5295, 4.58455, 0),
+(4240003, 2, -11209.5, 1667.22, 24.7272, 4.43082, 0),
+(4240003, 3, -11212.2, 1658.22, 25.7177, 4.4269, 0),
+(4240003, 4, -11211, 1644.41, 27.3123, 4.76693, 0),
+(4240003, 5, -11211.8, 1635.2, 27.0338, 3.89907, 0),
+(4240003, 6, -11223.5, 1628.55, 27.0289, 3.56908, 0),
+(4240003, 7, -11231.5, 1630.13, 26.7231, 2.81278, 0),
+(4240003, 8, -11234.5, 1632.89, 26.5932, 2.39594, 0),
+(4240003, 9, -11245.7, 1646.61, 29.558, 2.31567, 0),
+(4240003, 10, -11248.8, 1656.22, 33.1934, 1.90887, 0),
+(4240003, 11, -11246.3, 1662.11, 33.3699, 0.611809, 0),
+(4240003, 12, -11230.8, 1659.98, 33.5091, 5.74265, 0),
+(4240003, 13, -11225.6, 1648.39, 33.9413, 4.80352, 0),
+(4240003, 14, -11225.3, 1616.3, 32.6977, 4.73895, 0),
+(4240003, 15, -11226, 1595.42, 32.4059, 4.52285, 0),
+(4240003, 16, -11245.5, 1588.69, 34.1772, 3.51407, 0),
+(4240003, 17, -11255.3, 1585.41, 33.5575, 4.32973, 0),
+(4240003, 18, -11260.7, 1561.53, 34.1304, 4.88748, 0),
+(4240003, 19, -11251.3, 1558.41, 33.9527, 5.96925, 0),
+(4240003, 20, -11232.1, 1551.75, 34.8483, 5.75327, 0),
+(4240003, 21, -11222.1, 1544.35, 33.1359, 4.92802, 0),
+(4240003, 22, -11228, 1531.4, 36.2529, 4.21596, 0),
+(4240003, 23, -11248.5, 1510.45, 37.5943, 3.88436, 0),
+(4240003, 24, -11267.2, 1510.81, 37.6786, 3.20879, 0),
+(4240003, 25, -11274.2, 1511.56, 37.4076, 2.61408, 0),
+(4240003, 26, -11278.1, 1518.17, 37.8605, 1.37456, 0),
+(4240003, 27, -11275.3, 1521.85, 37.7794, 5.65324, 0),
+(4240003, 28, -11256.8, 1509.7, 37.18, 6.01234, 0),
+(4240003, 29, -11246.7, 1514.19, 37.6682, 0.524716, 0),
+(4240003, 30, -11226.8, 1533.92, 36.2362, 0.873185, 0),
+(4240003, 31, -11223.3, 1547.19, 32.8667, 2.56076, 0),
+(4240003, 32, -11245.5, 1557.01, 34.1097, 3.06908, 0),
+(4240003, 33, -11258.9, 1557.93, 34.3166, 1.95484, 0),
+(4240003, 34, -11253.8, 1582.69, 33.8108, 1.32595, 0),
+(4240003, 35, -11242.1, 1592.9, 33.6668, 0.558446, 0),
+(4240003, 36, -11226.2, 1598.65, 32.4113, 0.887156, 0),
+(4240003, 37, -11225.9, 1628.72, 34.1178, 1.5335, 0),
+(4240003, 38, -11226.2, 1649.78, 33.9313, 2.07935, 0),
+(4240003, 39, -11234.9, 1661.44, 33.3501, 3.29432, 0),
+(4240003, 40, -11248.4, 1657.95, 33.3409, 4.91063, 0),
+(4240003, 41, -11242.7, 1642.11, 27.8467, 5.2457, 0),
+(4240003, 42, -11231.7, 1628.76, 26.7942, 6.24489, 0),
+(4240003, 43, -11215.4, 1628.17, 27.7002, 1.12409, 0),
+(4240003, 44, -11211.2, 1651.73, 27.0678, 1.42486, 0),
+
+
 ('3', '1', '-10508.4', '1068', '55.21', NULL, '3000'),
 ('3', '2', '-10518.3', '1074.84', '53.96', NULL, '0'),
 ('3', '3', '-10534.8', '1081.92', '49.88', NULL, '0'),

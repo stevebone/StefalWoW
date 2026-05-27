@@ -14,6 +14,10 @@ WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,44
 -- Quest Items are distributed PER creature entry
 DELETE FROM creature_loot_template
 WHERE (Entry, Item) IN (
+(623, 1894),
+(624, 1894),
+(625, 1894),
+(626, 1875),
 (95, 829),
 (98, 725),
 (117, 725),
@@ -69,6 +73,11 @@ WHERE (Entry, Item) IN (
 );
 
 INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`QuestRequired`,`LootMode`,`GroupId`,`MinCount`,`MaxCount`,`Comment`) VALUES
+(623, 0, 1894, 40, 1, 1, 1, 1, 1, 'Miners Union Card'),
+(624, 0, 1894, 40, 1, 1, 1, 1, 1, 'Miners Union Card'),
+(625, 0, 1894, 40, 1, 1, 1, 1, 1, 'Miners Union Card'),
+(626, 0, 1875, 100, 1, 1, 1, 1, 1, 'Thistlenettles Badge'),
+
 (95, 0, 829, 80, 1, 1, 1, 1, 1, 'Red Leather Bandana'),
 (121, 0, 829, 80, 1, 1, 1, 1, 1, 'Red Leather Bandana'),
 (122, 0, 829, 80, 1, 1, 1, 1, 1, 'Red Leather Bandana'),
@@ -128,6 +137,15 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 -- Specific Mob Flavor items
 DELETE FROM `creature_loot_template`
 WHERE (Entry, Item) IN (
+	(626, 2167),
+	(626, 2166),
+	(626, 2168),
+	(624, 1958),
+	(624, 1959),
+	(623, 1958),
+	(623, 1959),
+	(625, 1958),
+	(625, 1959),
 	(596, 1933),
 	(596, 5967),
 	(596, 3902),
@@ -201,6 +219,16 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 (599, 0, 4660, 50, 0, 1, 2, 1, 1, 'Walking Boots - Marisa Du Paige'),
 (599, 0, 3019, 15, 0, 1, 2, 1, 1, 'Nobles Robe - Marisa Du Paige'),
 
+(623, 0, 1958, 10, 0, 1, 2, 1, 1, 'Petrified Shinbone - Skeletal Miner'),
+(623, 0, 1959, 1, 0, 1, 2, 1, 1, 'Cold Iron Pick - Skeletal Miner'),
+(625, 0, 1958, 10, 0, 1, 2, 1, 1, 'Petrified Shinbone - Undead Excavator'),
+(625, 0, 1959, 1, 0, 1, 2, 1, 1, 'Cold Iron Pick - Undead Excavator'),
+(625, 0, 1958, 10, 0, 1, 2, 1, 1, 'Petrified Shinbone - Undead Dynamiter'),
+(625, 0, 1959, 1, 0, 1, 2, 1, 1, 'Cold Iron Pick - Undead Dynamiter'),
+(626, 0, 2167, 2, 0, 1, 2, 1, 1, 'Foremans Gloves - Foreman Thistlenettle'),
+(626, 0, 2166, 2, 0, 1, 2, 1, 1, 'Foremans Leggings - Foreman Thistlenettle'),
+(626, 0, 2168, 1, 0, 1, 2, 1, 1, 'Corpse Rompers - Foreman Thistlenettle'),
+
 (462, 0, 4454, 0, 0, 1, 2, 1, 1, 'Talon of Vultros - Vultros'),
 (462, 0, 115349, 3, 0, 1, 2, 1, 1, 'Talon of Vultros - Vultros'),
 (462, 0, 5971, 67, 0, 1, 2, 1, 1, 'Feathered Cape - Vultros'),
@@ -244,7 +272,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 DELETE FROM creature_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
 500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,
-54373,54371,54372,573,599,596) 
+54373,54371,54372,573,599,596,625,623,624,626) 
 AND ItemType = 1;
 
 -- NPC: 596 Brainwashed Noble
@@ -266,6 +294,48 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (599, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
 (599, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
 (599, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 623 Skeletal Miner
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(623, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(623, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(623, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(623, 1, 15, 100, 0, 1, 1, 1, 'Ore Zone 2'),
+(623, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(623, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(623, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(623, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 624 Undead Excavator
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(624, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(624, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(624, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(624, 1, 15, 100, 0, 1, 1, 1, 'Ore Zone 2'),
+(624, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(624, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(624, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(624, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 625 Undead Dynamiter
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(625, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(625, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(625, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(625, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(625, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(625, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(625, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 626 Foreman Thistlenettle
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(626, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(626, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(626, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(626, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(626, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(626, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(626, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
 
 -- NPC: 42677 Moonbrook Thug
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES

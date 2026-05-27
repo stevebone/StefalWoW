@@ -9,10 +9,14 @@ DELETE FROM `creature_template_addon` WHERE `entry` IN (119390);
 INSERT INTO `creature_template_addon` VALUES
 (119390, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, '79116'); -- Marcus hobo
 
-DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (599,596);
+DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (599,596,625,623,624,626);
 INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScalingDeltaMin`,`LevelScalingDeltaMax`,`ContentTuningID`,`HealthScalingExpansion`,`HealthModifier`,`ManaModifier`,`ArmorModifier`,`DamageModifier`,`CreatureDifficultyID`,`TypeFlags`,`TypeFlags2`,`TypeFlags3`,`LootID`,`PickPocketLootID`,`SkinLootID`,`GoldMin`,`GoldMax`,`StaticFlags1`,`StaticFlags2`,`StaticFlags3`,`StaticFlags4`,`StaticFlags5`,`StaticFlags6`,`StaticFlags7`,`StaticFlags8`,`VerifiedBuild`) VALUES 
-(596, 0, 0, 0, 6, 0, 1.5, 2, 1, 1, 407, 0, 0, 0, 596, 596, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 64978), -- Brainwashed Noble
-(599, 0, 0, 0, 6, 0, 1.5, 2, 1, 1, 410, 0, 0, 0, 599, 599, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 67602); -- Marisa dupaige
+(596, 0, 0, 0, 6, 0, 1.5, 2, 1, 1, 407, 0, 0, 0, 596, 596, 0, 70, 80, 268435456, 0, 0, 0, 0, 0, 0, 0, 64978), -- Brainwashed Noble
+(599, 0, 0, 0, 6, 0, 1.5, 2, 1, 1, 410, 0, 0, 0, 599, 599, 0, 70, 80, 268435456, 0, 0, 0, 0, 0, 0, 0, 67602), -- Marisa dupaige
+(623, 0, 0, 0, 6, 0, 1, 1, 1, 0.2, 432, 0, 0, 0, 623, 623, 0, 90, 100, 0, 0, 0, 0, 0, 0, 0, 0, 64978), -- Skeletal Miner
+(624, 0, 0, 0, 6, 0, 1, 1, 1, 0.2, 433, 0, 0, 0, 624, 624, 0, 80, 90, 0, 0, 0, 0, 0, 0, 0, 0, 64978), -- Undead Excavator
+(625, 0, 0, 0, 6, 0, 1, 1, 1, 0.2, 434, 0, 0, 0, 625, 625, 0, 70, 80, 0, 0, 0, 0, 0, 0, 0, 0, 64978), -- Undead Dynamiter
+(626, 0, 0, 0, 6, 0, 1.2, 1, 1, 0.2, 435, 0, 0, 0, 626, 626, 0, 70, 70, 0, 0, 0, 0, 0, 0, 0, 0, 64978); -- Foreman Thistlenettle
 
 UPDATE `creature` SET `spawntimesecs` = 3600 WHERE `id` = 599; -- Marisa has an hour respawn timer
 UPDATE `creature` SET `ID` = 42400 WHERE `guid` IN (274691,274657); -- wrong spawn, should be hobo with cart

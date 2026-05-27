@@ -1,7 +1,7 @@
 -- Westfall Waypoints
 
 DELETE FROM waypoint_path WHERE `PathId` IN (4238300,4269300,4240700,4240001);
-insert into waypoint_path values 
+INSERT INTO waypoint_path VALUES 
 (39100, 0, 0, null, 'Westfall - Old Murk-Eye')
 (4240700, 0, 0, null, 'Westfall - Guard at Moonbrook'),
 (4238300, 0, 0, null, 'Westfall - Drifter + buddy cart'),
@@ -10,7 +10,7 @@ insert into waypoint_path values
 (4269300, 0, 0, null, 'Westfall - Deadmines Vision of the past quest');
 
 DELETE FROM waypoint_path_node WHERE `PathId` IN (39100,4238300,4269300,4240700,4240002);
-insert into waypoint_path_node values
+INSERT INTO waypoint_path_node VALUES
 (39100, '1',  '-11371.1', '1822.79', '6.05455', '0',        '0'),
 (39100, '2',  '-11350.5', '1853.45', '5.96267', '4.54775',  '0'),
 (39100, '3',  '-11327.9', '1876.57', '10.5485', '1.18913',  '0'),
