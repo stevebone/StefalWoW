@@ -1,0 +1,13 @@
+-- Try to keep the latest used custom ids here
+
+-- Creatures
+SET @CGUID := 900000;
+Last GUID: @CGUID+931
+
+-- Gameobjects
+SET @OGUID := 900000;
+Last GUID: @OGUID+71
+
+-- Spawn Pools
+SET @POOLID := 900000;
+Last PoolID: @POOLID+0

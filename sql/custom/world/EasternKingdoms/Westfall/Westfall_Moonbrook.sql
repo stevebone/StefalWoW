@@ -158,3 +158,48 @@ INSERT INTO `creature` VALUES
 (@CGUID+914, '846', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-10982.7', '1599.76', '46.1088', '5.41066', '300', '3', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
 -- Marcus hobo
 (@CGUID+915, '119390', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-11058.5', '1562.44', '44.0762', '3.58245', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
+
+-- Vultros spawns
+DELETE FROM `creature` WHERE `id` = 462;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+916 AND @CGUID+931;
+INSERT INTO `creature` (`guid`, `id`, `map`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES
+(@CGUID+916, 462, 0, -10416.1, 1244.29, 52.9231, 1.12112, 3600, 10, 1),
+(@CGUID+917, 462, 0, -10812.2, 1594.89, 45.5767, 3.77027, 3600, 10, 1),
+(@CGUID+918, 462, 0, -10858.9, 1729.85, 39.0217, 5.03084, 3600, 10, 1),
+(@CGUID+919, 462, 0, -10746.1, 1402.35, 36.2243, 5.6843, 3600, 10, 1),
+(@CGUID+920, 462, 0, -10801.9, 1418.7, 38.4624, 1.94188, 3600, 10, 1),
+(@CGUID+921, 462, 0, -10477.4, 1471.47, 53.6513, 5.2162, 3600, 10, 1),
+(@CGUID+922, 462, 0, -10425.4, 1426.25, 49.2233, 2.22619, 3600, 10, 1),
+(@CGUID+923, 462, 0, -10431.2, 1378.46, 70.494, 0.722943, 3600, 10, 1),
+(@CGUID+924, 462, 0, -9955.56, 1228.82, 47.7644, 3.27077, 3600, 10, 1),
+(@CGUID+925, 462, 0, -9941.29, 1098.53, 40.6962, 2.56156, 3600, 10, 1),
+(@CGUID+926, 462, 0, -10730.7, 802.78, 42.7118, 3.13019, 3600, 10, 1),
+(@CGUID+927, 462, 0, -10757.4, 779.167, 40.7259, 4.05696, 3600, 10, 1),
+(@CGUID+928, 462, 0, -10770.2, 723.453, 42.2173, 1.87277, 3600, 10, 1),
+(@CGUID+929, 462, 0, -11161.7, 845.012, 44.2314, 0.226577, 3600, 10, 1),
+(@CGUID+930, 462, 0, -11124.4, 863.032, 45.5566, 0.620062, 3600, 10, 1),
+(@CGUID+931, 462, 0, -11131.2, 826.004, 40.7787, 5.17773, 3600, 10, 1);
+
+SET @POOLID := 900000;
+DELETE FROM `pool_template` WHERE `entry` = @POOLID+0;
+INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
+(@POOLID+0, 1, 'Westfall - Vultros Pool');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId` = @POOLID+0;
+INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES
+(0, @CGUID+916, @POOLID+0, 0, 'Westfall - Vultros - Silent Hill area'),
+(0, @CGUID+917, @POOLID+0, 0, 'Westfall - Vultros - Alexton Farmstead'),
+(0, @CGUID+918, @POOLID+0, 0, 'Westfall - Vultros - Alexton Farmstead'),
+(0, @CGUID+919, @POOLID+0, 0, 'Westfall - Vultros - Stendels Pond'),
+(0, @CGUID+920, @POOLID+0, 0, 'Westfall - Vultros - Stendels Pond'),
+(0, @CGUID+921, @POOLID+0, 0, 'Westfall - Vultros - The Raging Chasm'),
+(0, @CGUID+922, @POOLID+0, 0, 'Westfall - Vultros - The Raging Chasm'),
+(0, @CGUID+923, @POOLID+0, 0, 'Westfall - Vultros - The Raging Chasm'),
+(0, @CGUID+924, @POOLID+0, 0, 'Westfall - Vultros - Furlbrows Pumpkin Farm'),
+(0, @CGUID+925, @POOLID+0, 0, 'Westfall - Vultros - Furlbrows Pumpkin Farm'),
+(0, @CGUID+926, @POOLID+0, 0, 'Westfall - Vultros - The Dead Acre'),
+(0, @CGUID+927, @POOLID+0, 0, 'Westfall - Vultros - The Dead Acre'),
+(0, @CGUID+928, @POOLID+0, 0, 'Westfall - Vultros - The Dead Acre'),
+(0, @CGUID+929, @POOLID+0, 0, 'Westfall - Vultros - The Dust Plains'),
+(0, @CGUID+930, @POOLID+0, 0, 'Westfall - Vultros - The Dust Plains'),
+(0, @CGUID+931, @POOLID+0, 0, 'Westfall - Vultros - The Dust Plains');
