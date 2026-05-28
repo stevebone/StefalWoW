@@ -2,7 +2,7 @@
 
 DELETE FROM waypoint_path WHERE `PathId` IN (4238300,4269300,4240700,4240001);
 INSERT INTO waypoint_path VALUES 
-(39100, 0, 0, null, 'Westfall - Old Murk-Eye')
+(39100, 0, 0, null, 'Westfall - Old Murk-Eye'),
 (4240700, 0, 0, null, 'Westfall - Guard at Moonbrook'),
 (4238300, 0, 0, null, 'Westfall - Drifter + buddy cart'),
 (4240001, 0, 0, null, 'Westfall - Hobo with cart at Moonbrook'),
