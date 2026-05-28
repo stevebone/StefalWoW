@@ -147,6 +147,9 @@ INSERT INTO `creature_addon` (guid, PathId) VALUES (274200, 39100);
 DELETE FROM `creature` WHERE `guid` = 274183; -- remove duplicate old murk-eye
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` = 274200;
 
+-- Unbound Cyclone add missing aura to send units flying :D
+UPDATE `creature_template_addon` SET `auras` = '76080' WHERE (`entry` = 832);
+
 SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+940 AND @CGUID+943;
 INSERT INTO `creature` VALUES
