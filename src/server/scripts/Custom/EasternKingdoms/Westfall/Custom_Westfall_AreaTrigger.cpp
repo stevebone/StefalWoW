@@ -289,6 +289,27 @@ namespace Scripts::EasternKingdoms::Westfall
             return true;
         }
     };
+
+    // 8481 - Westfall - Old MacDonald
+    class at_westfall_old_macdonald_8481 : public AreaTriggerScript
+    {
+    public:
+        at_westfall_old_macdonald_8481() : AreaTriggerScript("at_westfall_old_macdonald_8481") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* areaTrigger) override
+        {
+            // add cooldown of 5min to prevent spam trigger
+            if (!g_areaTriggerCooldown.CanTrigger(player, areaTrigger->ID, 5min))
+                return false;
+
+            // Find the Old MacDonald NPC
+            Creature* mac = player->FindNearestCreature(Creatures::OldMacDonald, 20.f);
+            if (mac)
+                mac->AI()->Talk(0, player);
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_westfall_at()
@@ -300,4 +321,5 @@ void AddSC_custom_westfall_at()
     new at_westfall_mortwake_tower_5994();
     new at_westfall_moonbrook_center_5998();
     new at_westfall_moonbrook_defias_entrance_6080();
+    new at_westfall_old_macdonald_8481();
 }

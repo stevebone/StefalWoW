@@ -31,6 +31,9 @@ UPDATE `creature` SET `wander_distance` = 5, `MovementType` = 1 WHERE `id` = 426
 -- Set some Riverpaw to be fixed instead of wandering
 UPDATE creature SET wander_distance = 0, MovementType = 0 WHERE guid IN (274842,274843,274870,274947,275194,275208,275737,274577,274575,275196,275209,275593,275594,275675,275742);
 
+-- Fix respawn timer for Lepritus
+UPDATE `creature` SET `spawntimesecs` = 3600 WHERE `guid` = 224148;
+
 -- Script for Lou's Parting Thoughts Quest
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_trigger' WHERE (`entry` = '42562');
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_thug' WHERE (`entry` = '42387');
@@ -67,9 +70,10 @@ UPDATE `smart_scripts` SET `event_chance` = '30' WHERE `entryorguid` IN (95, 121
 DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (95, 98, 114, 115, 117, 121, 122, 123, 124, 126, 127, 154, 157, 171, 
 199, 233, 235, 237, 238,391, 392, 449, 452, 453, 454, 456, 458, 462, 480, 481, 500, 501, 504, 513, 515, 517, 519, 582, 589, 590, 
 594, 830, 831, 832, 833, 834, 1065, 1109, 1236, 1424, 6250, 7024, 42342, 42357, 42383, 42384, 42386, 42390, 42391, 42653, 42656, 
-42669, 42677,42387);
+42669, 42677,42387,65648);
 INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScalingDeltaMin`,`LevelScalingDeltaMax`,`ContentTuningID`,`HealthScalingExpansion`,`HealthModifier`,`ManaModifier`,`ArmorModifier`,`DamageModifier`,`CreatureDifficultyID`,`TypeFlags`,`TypeFlags2`,`TypeFlags3`,`LootID`,`PickPocketLootID`,`SkinLootID`,`GoldMin`,`GoldMax`,`StaticFlags1`,`StaticFlags2`,`StaticFlags3`,`StaticFlags4`,`StaticFlags5`,`StaticFlags6`,`StaticFlags7`,`StaticFlags8`,`VerifiedBuild`) VALUES 
 (42387, 0, 0, 0, 2, 0, 0.3, 1, 1, 0.2, 53237, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40000), -- Westfall Thug
+(65648, 0, 0, 0, 6, 0, 1, 1, 1, 0.2, 59382, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 52188), -- Old MacDonald
 ('121', '0', '0', '0', '2', '0', '0.7', '1', '1', '0.2', '64', '0', '0', '0', '121', '121', '0', '5', '38', '268959744', '0', '0', '0', '0', '0', '0', '0', '-1'),
 ('122', '0', '0', '0', '2', '0', '0.7', '1', '1', '0.2', '65', '0', '0', '0', '122', '122', '0', '8', '54', '268959744', '0', '0', '0', '0', '0', '0', '0', '-1'),
 ('480', '0', '0', '0', '2', '0', '0.7', '1', '1', '0.2', '325', '32768', '0', '0', '480', '0', '0', '2', '18', '0', '0', '0', '0', '0', '0', '0', '0', '-1'),
@@ -143,3 +147,11 @@ INSERT INTO `creature_addon` (guid, PathId) VALUES (274200, 39100);
 DELETE FROM `creature` WHERE `guid` = 274183; -- remove duplicate old murk-eye
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` = 274200;
 
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+940 AND @CGUID+943;
+INSERT INTO `creature` VALUES
+-- Old MacDonald
+(@CGUID+940, '65648', '0', '40', '40', '0', '0', '0', '0', '-1', '0', '1', '-9827.87', '889.355', '28.0392', '3.64268', '300', '0', '0', '100', '0', '3', NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+941, '65661', '0', '40', '40', '0', '0', '0', '0', '-1', '0', '0', '-9829.08', '888.39', '27.6564', '3.68835', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+942, '65659', '0', '40', '40', '0', '0', '0', '0', '-1', '0', '0', '-9828.8', '890.726', '28.1581', '3.87556', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+943, '65660', '0', '40', '40', '0', '0', '0', '0', '-1', '0', '0', '-9827.05', '887.957', '27.9179', '3.79208', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');

@@ -44,6 +44,8 @@ namespace Scripts::EasternKingdoms::Westfall
 
     namespace Creatures
     {
+        static constexpr uint32 OldMacDonald = 65648;
+
         static constexpr uint32 WestfallStew = 42617;
         static constexpr uint32 HomelessStormwindCitizen = 42384;
         static constexpr uint32 HomelessStormwindCitizen2 = 42386; // female version

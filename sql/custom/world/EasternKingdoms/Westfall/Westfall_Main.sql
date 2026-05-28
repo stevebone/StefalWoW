@@ -116,6 +116,7 @@
 -- AT: 5994 Mortwake Tower (top)
 -- AT: 5998 Moonbrook Center
 -- AT: 6080 Moonbrook Defias Hideout Entrance
+-- AT: 8481 Westfall - Old MacDonald
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (50006, 226,232);
@@ -138,16 +139,22 @@ INSERT INTO `conditions` VALUES
 ('26', '226', 0, '0', '0', '47', '0', '26761', '64', '0', '', '1', '0', '0', '', 'Westfall - Add phase 226 if 26761 IS NOT rewarded');
 
 -- AT scripts
-DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998,6080);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5989,5993,5994,5998,6080,8481);
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES 
 (5989, 'at_westfall_furlsbrow_farm_5989'),
 (5993, 'at_westfall_sentinel_hill_tower_5993'),
 (5994, 'at_westfall_mortwake_tower_5994'),
 (5998, 'at_westfall_moonbrook_center_5998'),
-(6080, 'at_westfall_moonbrook_defias_entrance_6080');
+(6080, 'at_westfall_moonbrook_defias_entrance_6080'),
+(8481, 'at_westfall_old_macdonald_8481');
 
 -- SpellArea
 DELETE FROM `spell_area` WHERE (`spell`=79346 AND `area`=40) OR (`spell`=79229 AND `area`=40);
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`, `quest_start_status`, `quest_end_status`) VALUES
 (79346, 40, 26232, 26236, 0, 0, 2, 3, 66, 11),
 (79229, 40, 0, 26232, 0, 0, 2, 3, 64, 9);
+
+-- Game Events
+DELETE FROM `game_event` WHERE `eventEntry` = 25;
+INSERT INTO `game_event` (`eventEntry`, `start_time`, `end_time`, `occurence`, `length`, `holiday`, `holidayStage`, `WorldStateId`, `description`, `world_event`, `announce`) VALUES
+(25, '2026-10-28 20:00:00', '2036-12-31 06:00:00', 1440, 720, 0, 0, NULL, 'Nights', 0, 2);

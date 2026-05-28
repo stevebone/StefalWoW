@@ -4,12 +4,14 @@
 -- Other delete queries below may be redundant however needed for single operations
 DELETE FROM creature_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
-500,501,504,513,515,517,519,550,589,590,594,830,831,832,834,1065,1109,1236,1424,6250,42357,42653,42669, 42677);
+500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,
+54373,54371,54372,573,599,596,625,623,624,626,846);
 
 -- Delete Skinning Loot
 DELETE FROM skinning_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
-500,501,504,513,515,517,519,550,589,590,594,830,831,832,834,1065,1109,1236,1424,6250,42357,42653,42669, 42677);
+500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,
+54373,54371,54372,573,599,596,625,623,624,626,846);
 
 -- Quest Items are distributed PER creature entry
 DELETE FROM creature_loot_template
@@ -272,7 +274,7 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`Ques
 DELETE FROM creature_loot_template 
 WHERE Entry IN (95,98,114,115,117,121,122,123,124,126,127,154,157,171,199,391,449,452,453,454,456,458,462,480,481,
 500,501,504,513,515,517,519,550,589,590,594,830,831,832,833,834,1065,1109,1236,1424,6250,42357,42653,42669,42677,
-54373,54371,54372,573,599,596,625,623,624,626) 
+54373,54371,54372,573,599,596,625,623,624,626,846) 
 AND ItemType = 1;
 
 -- NPC: 596 Brainwashed Noble
@@ -336,6 +338,16 @@ INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired
 (626, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
 (626, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
 (626, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
+
+-- NPC: 846 Rotten Ghoul
+INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES
+(846, 1, 24, 10, 0, 1, 1, 1, 'Armor Zone 2'), 
+(846, 1, 23, 50, 0, 1, 1, 1, 'Humanoids Zone 2'),
+(846, 1, 22, 40, 0, 1, 1, 1, 'Consumable Zone 2'),
+(846, 1, 19, 10, 0, 1, 1, 1, 'Bags Zone 2'),
+(846, 1, 18, 10, 0, 1, 1, 1, 'Weapons Zone 2'),
+(846, 1, 17, 15, 0, 1, 1, 1, 'Recipes Zone 2'),
+(846, 1, 16, 10, 0, 1, 1, 1, 'Gems Zone 2');
 
 -- NPC: 42677 Moonbrook Thug
 INSERT INTO creature_loot_template (Entry, ItemType, Item, Chance, QuestRequired, LootMode, MinCount, MaxCount, Comment) VALUES

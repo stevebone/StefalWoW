@@ -21,6 +21,9 @@ INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScaling
 UPDATE `creature` SET `spawntimesecs` = 3600 WHERE `id` = 599; -- Marisa has an hour respawn timer
 UPDATE `creature` SET `ID` = 42400 WHERE `guid` IN (274691,274657); -- wrong spawn, should be hobo with cart
 
+-- Update Z position for birds
+UPDATE `creature` SET `position_z` = (`position_z` + 5) WHERE `guid` IN (274721,274722,274585,274588,274690);
+
 -- wander distance for citizens at moonbrook
 UPDATE `creature` SET `wander_distance` = 5, `MovementType` = 1 WHERE `guid` IN 
 (274725,274630,274626,274523,274524,274496,274436,274539,274468,274470,274590,274453,274446,274449,
@@ -81,8 +84,9 @@ DELETE FROM `vehicle_template` WHERE `creatureId` = 42693;
 INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `CustomFlags`) VALUES
 (42693, 0, 0, 0);
 
-DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (639,42702);
+DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (639,846,42702);
 INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScalingDeltaMin`,`LevelScalingDeltaMax`,`ContentTuningID`,`HealthScalingExpansion`,`HealthModifier`,`ManaModifier`,`ArmorModifier`,`DamageModifier`,`CreatureDifficultyID`,`TypeFlags`,`TypeFlags2`,`TypeFlags3`,`LootID`,`PickPocketLootID`,`SkinLootID`,`GoldMin`,`GoldMax`,`StaticFlags1`,`StaticFlags2`,`StaticFlags3`,`StaticFlags4`,`StaticFlags5`,`StaticFlags6`,`StaticFlags7`,`StaticFlags8`,`VerifiedBuild`) VALUES 
+(846, 0, 0, 0, 6, 0, 1, 1, 1, 1, 619, 0, 0, 0, 846, 0, 0, 19, 29, 0, 0, 0, 0, 0, 0, 0, 0, 63305), -- Rotten Ghoul
 (639, 1, 2, 2, 2872, 0, 1, 1, 1, 1, 442, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 57689),
 (639, 2, 2, 2, 2872, 0, 8, 1, 1, 1.7, 442, 0, 0, 0, 639, 639, 0, 51, 421, 268435456, 0, 0, 0, 0, 0, 0, 0, -1),
 (639, 24, 2, 2, 2872, 0, 1, 1, 1, 1, 442, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 57689),
@@ -193,6 +197,20 @@ INSERT INTO `creature` VALUES
 -- Marcus hobo
 (@CGUID+915, '119390', '0', '40', '20', '0', '0', '0', '0', '-1', '0', '0', '-11058.5', '1562.44', '44.0762', '3.58245', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
+-- add ghouls to Nights game event 25 to spawn at night
+DELETE FROM `game_event_creature` WHERE `guid` IN (@CGUID+910,@CGUID+911,@CGUID+912,@CGUID+913,@CGUID+914,274721,274722,274585,274588,274690);
+INSERT INTO `game_event_creature` (`eventEntry`, `guid`) VALUES
+(25, @CGUID+910), 
+(25, @CGUID+911),
+(25, @CGUID+912),
+(25, @CGUID+913),
+(25, @CGUID+914),
+(-25, 274585),
+(-25, 274588),
+(-25, 274690),
+(-25, 274721),
+(-25, 274722);
+
 -- Vultros spawns
 DELETE FROM `creature` WHERE `id` = 462;
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+916 AND @CGUID+931;
@@ -216,7 +234,7 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `position_x`, `position_y`, `positi
 
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+932 AND @CGUID+939;
 INSERT INTO `creature` VALUES
--- Brainwashed Noble
+-- Deadmines (outside) spawns
 (@CGUID+932, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11229.1', '1477.09', '19.0713', '3.44822', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+933, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11193.5', '1533.91', '19.8202', '0.529225', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
 (@CGUID+934, '42390', '0', '40', '6510', '0', '0', '50005', '0', '-1', '0', '0', '-11092.6', '1499.08', '49.9287', '6.23082', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
@@ -278,3 +296,67 @@ INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `descrip
 (0, @CGUID+929, @POOLID+0, 0, 'Westfall - Vultros - The Dust Plains'),
 (0, @CGUID+930, @POOLID+0, 0, 'Westfall - Vultros - The Dust Plains'),
 (0, @CGUID+931, @POOLID+0, 0, 'Westfall - Vultros - The Dust Plains');
+
+-- add more old defias (Pillager & Looter) at Moonbrook / Deadmines
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+944 AND @CGUID+1003;
+INSERT INTO `creature` VALUES
+(@CGUID+944, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10969.5, 1537.03, 44.7657, 4.97528, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+945, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10962.1, 1548.91, 45.6167, 4.83011, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+946, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10962.7, 1561.05, 45.6186, 3.27709, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+947, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11001.4, 1535.21, 44.0742, 4.8063, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+948, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11021.1, 1533.67, 48.9964, 3.19611, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+949, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11022.9, 1548.39, 49.0199, 4.62714, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+950, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11045.3, 1535.67, 43.2701, 5.50957, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+951, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11002.5, 1479.54, 43.2022, 3.67104, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+952, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10992.4, 1481.89, 43.7524, 4.76449, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+953, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10992, 1480.42, 50.6089, 0.116083, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+954, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10975.4, 1492.58, 50.6081, 4.03754, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+955, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11041.4, 1437.48, 43.3792, 6.14242, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+956, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11039, 1425.68, 44.3615, 0.309684, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+957, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11011.5, 1400.54, 45.4653, 6.07611, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+958, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10988.3, 1392.99, 45.5022, 0.62615, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+959, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10962, 1391.53, 44.5177, 1.57938, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+960, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10984.4, 1368.68, 45.194, 1.77043, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+961, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11034, 1415.97, 43.4362, 1.14546, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+962, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10974.3, 1464.35, 43.2029, 2.93895, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+963, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11076.3, 1499.9, 42.8794, 3.75519, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+964, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11087.3, 1515.99, 49.7783, 4.22076, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+965, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11098.6, 1499.7, 49.852, 4.78844, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+966, 589, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11110.2, 1485.78, 32.4136, 3.77875, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+967, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11128.7, 1501.41, 36.2002, 1.05214, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+968, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11088.2, 1529.24, 30.3696, 0.340198, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+969, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11117.1, 1487.84, 23.9211, 4.31754, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+970, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11126, 1510.16, 23.2816, 2.83533, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+971, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11143.2, 1551.76, 20.8445, 2.22156, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+972, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11143.9, 1566.86, 21.7414, 4.49517, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+973, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11176.6, 1553.15, 19.9397, 4.39745, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+974, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11185.4, 1532.33, 20.4021, 4.39745, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+975, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11201.7, 1507.57, 17.3361, 4.39745, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+976, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11212.5, 1484.88, 16.2944, 0.329666, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+977, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11196.2, 1561.25, 27.0901, 1.15806, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+978, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11241.5, 1519.36, 29.6241, 5.64048, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+979, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11269.3, 1542.64, 28.589, 1.79769, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+980, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11250, 1588.56, 33.763, 0.547165, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+981, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11231.2, 1619.11, 32.9728, 2.60814, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+982, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11233.2, 1668.93, 34.3362, 3.22964, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+983, 589, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11256.7, 1647.16, 33.2117, 1.44632, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+984, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11245.9, 1656.81, 32.9258, 0.0662126, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+985, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11224.6, 1636.76, 34.2733, 4.80044, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+986, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11199.9, 1627.1, 28.4491, 6.11043, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+987, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11166.2, 1636.91, 24.122, 0.651336, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+988, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11222.6, 1600.18, 32.6221, 0.0769555, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+989, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11264.1, 1557.59, 34.4449, 3.8546, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+990, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11229.1, 1521.64, 36.8162, 5.43439, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+991, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11278.5, 1512.14, 37.3751, 3.21333, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+992, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11198.4, 1594.73, 29.1637, 0.219802, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+993, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11192.2, 1537.93, 19.6981, 3.90435, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+994, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11174.7, 1519.98, 19.6392, 4.44801, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+995, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11137.5, 1493.97, 25.0916, 6.00147, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+996, 590, 0, 40, 6510, 0, 0, 50004, 0, -1, 0, 1, -11089.1, 1514.04, 29.5487, 5.50055, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+997, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11084.8, 1507.01, 49.7995, 1.30164, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+998, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11045.8, 1557.42, 43.4009, 3.58946, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+999, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11038, 1516.37, 43.0563, 2.59212, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+1000, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11070.2, 1486.22, 43.4477, 3.46958, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+1001, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -11042.5, 1459.43, 45.3206, 2.47386, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+1002, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10991.4, 1448.94, 43.2019, 2.23142, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+1003, 590, 0, 40, 20, 0, 0, 50004, 0, -1, 0, 1, -10951.1, 1538.61, 44.1129, 2.79517, 300, 5, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0);

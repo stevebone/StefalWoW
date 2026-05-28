@@ -895,3 +895,9 @@ INSERT INTO creature_text
 -- Horatio
 (42744, 0, 0, 'Just tell me one thing, Vanessa.', 7, 12, 100, 0, 0, 0, 42674, 'Horatio - Rise of the Brotherhood'),
 (42744, 1, 0, 'Why''d you have the Furlbrows killed?', 7, 12, 100, 0, 0, 0, 42675, 'Horatio - Rise of the Brotherhood');
+
+-- Misc
+DELETE FROM `creature_text` WHERE CreatureID IN (65648);
+INSERT INTO creature_text (CreatureID, groupid, id, text, language, type, probability, emote, duration, sound, BroadcastTextId, comment) VALUES
+-- Old MacDonald
+(65648, 0, 0, 'I had a farm once, but that was a long time ago. I prefer a good battle, don\'t you?', 7, 12, 100, 6, 0, 0, 66835, 'Old MacDonald to Player');
