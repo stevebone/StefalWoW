@@ -27,10 +27,10 @@ UPDATE `creature` SET `wander_distance` = 5, `MovementType` = 1 WHERE `guid` IN
 274434,274429,274426,274445,274447,274450,274385,274383,274380,274377,274378,274381,274358,274360,
 274354,274370,274355,274357); 
 
--- Waypoints
 DELETE FROM `creature_addon` WHERE `guid` IN (274760,274691,274657,274532,274443,274425,274423,274444,274431,
-274387,274386,274375,274373,274374,274362,274361,274371,274391,274349,274350);
+274387,274386,274375,274373,274374,274362,274361,274371,274391,274349,274350,274356);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`, `PvPFlags`, `auras`) VALUES 
+-- Waypoints
 (274691, 4240001, 1, 0, '79143'), -- Hobo with Cart at Moonbrook
 (274657, 4240002, 1, 0, '79143'), -- Hobo with Cart at Moonbrook
 (274760, 4240700, 1, 1, ''); -- Guard at Moonbrook pathing
@@ -38,6 +38,7 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`, `PvPFlags`, `aura
 INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`, `auras`) VALUES 
 (274423, 3, 1, ''),
 (274375, 3, 1, ''),
+(274356, 3, 1, ''),
 (274349, 3, 1, ''),
 (274374, 1, 1, ''),
 (274362, 1, 1, ''),
