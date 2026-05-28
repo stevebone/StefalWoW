@@ -23,18 +23,39 @@ UPDATE `creature` SET `ID` = 42400 WHERE `guid` IN (274691,274657); -- wrong spa
 
 -- wander distance for citizens at moonbrook
 UPDATE `creature` SET `wander_distance` = 5, `MovementType` = 1 WHERE `guid` IN 
-(274725,274630,274626,274523,274524,274496,274436,274539,274468,274470,274590); 
+(274725,274630,274626,274523,274524,274496,274436,274539,274468,274470,274590,274453,274446,274449,
+274434,274429,274426,274445,274447,274450,274385,274383,274380,274377,274378,274381,274358,274360,
+274354,274370,274355,274357); 
 
 -- Waypoints
-DELETE FROM `creature_addon` WHERE `guid` IN (274760,274691,274657,274532);
+DELETE FROM `creature_addon` WHERE `guid` IN (274760,274691,274657,274532,274443,274425,274423,274444,274431,
+274387,274386,274375,274373,274374,274362,274361,274371,274391,274349,274350);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`, `PvPFlags`, `auras`) VALUES 
 (274691, 4240001, 1, 0, '79143'), -- Hobo with Cart at Moonbrook
 (274657, 4240002, 1, 0, '79143'), -- Hobo with Cart at Moonbrook
 (274760, 4240700, 1, 1, ''); -- Guard at Moonbrook pathing
-
+-- Hobos sitting down
 INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`, `auras`) VALUES 
-(274532, 1, 1, '');
+(274423, 3, 1, ''),
+(274375, 3, 1, ''),
+(274349, 3, 1, ''),
+(274374, 1, 1, ''),
+(274362, 1, 1, ''),
+(274350, 1, 1, ''),
+(274361, 1, 1, ''),
+(274373, 1, 1, ''),
+(274371, 1, 1, ''),
+(274391, 1, 1, ''),
+(274431, 1, 1, ''),
+(274386, 1, 1, ''),
+(274387, 1, 1, ''),
+(274532, 1, 1, ''),
+(274444, 1, 1, ''),
+(274425, 1, 1, ''),
+(274443, 1, 1, '');
 
+-- fix position for hobo
+UPDATE `creature` SET `position_x` = -11135.8, `position_y` = 1515.65, `position_z` = 23.3943, `orientation` = 3.45395  WHERE `guid` = 274387;
 
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (274760,274691,274657); -- path movement
 
@@ -192,23 +213,53 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `position_x`, `position_y`, `positi
 (@CGUID+930, 462, 0, -11124.4, 863.032, 45.5566, 0.620062, 3600, 10, 1),
 (@CGUID+931, 462, 0, -11131.2, 826.004, 40.7787, 5.17773, 3600, 10, 1);
 
-DELETE FROM `creature` WHERE `guid` IN (@CGUID+932, @CGUID+933);
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+932 AND @CGUID+939;
 INSERT INTO `creature` VALUES
 -- Brainwashed Noble
 (@CGUID+932, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11229.1', '1477.09', '19.0713', '3.44822', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
-(@CGUID+933, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11193.5', '1533.91', '19.8202', '0.529225', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
+(@CGUID+933, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11193.5', '1533.91', '19.8202', '0.529225', '3600', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+934, '42390', '0', '40', '6510', '0', '0', '50005', '0', '-1', '0', '0', '-11092.6', '1499.08', '49.9287', '6.23082', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+935, '42391', '0', '40', '6510', '0', '0', '50005', '0', '-1', '0', '0', '-11098.4', '1498.19', '49.932', '3.14159', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+936, '599', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11218.4', '1544.83', '33.8562', '1.19144', '3600', '5', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+937, '596', '0', '40', '6510', '0', '0', '0', '0', '-1', '0', '1', '-11251.5', '1515.33', '37.4923', '5.5862', '3600', '5', '0', '100', '1', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+938, '42391', '0', '40', '6510', '0', '0', '50005', '0', '-1', '0', '0', '-11260.5', '1566.41', '34.149', '0.227592', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0'),
+(@CGUID+939, '42391', '0', '0', '0', '0', '0', '50005', '0', '-1', '0', '0', '-11220.7', '1615.41', '33.2954', '2.98451', '120', '0', '0', '100', '0', NULL, NULL, NULL, NULL, '', NULL, '0');
 
+DELETE FROM `creature_addon` WHERE `guid` IN (@CGUID+934,@CGUID+935,@CGUID+938,@CGUID+939);
+-- Hobos sitting down
+INSERT INTO `creature_addon` (`guid`, `StandState`, `SheathState`, `auras`) VALUES 
+(@CGUID+934, 1, 1, ''),
+(@CGUID+935, 1, 1, ''),
+(@CGUID+938, 1, 1, ''),
+(@CGUID+939, 1, 1, '');
 
 SET @POOLID := 900000;
-DELETE FROM `pool_template` WHERE `entry` IN (@POOLID+0, @POOLID+1);
+DELETE FROM `pool_template` WHERE `entry` BETWEEN @POOLID+0 AND @POOLID+5;
 INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
 (@POOLID+0, 1, 'Westfall - Vultros Pool'),
-(@POOLID+1, 1, 'Westfall - Brainwashed Noble Pool');
+(@POOLID+1, 1, 'Westfall - Brainwashed Noble Pool'),
+(@POOLID+2, 1, 'Westfall - Deadmines Hobo Spawn'),
+(@POOLID+3, 1, 'Westfall - Deadmines Hobo Spawn'),
+(@POOLID+4, 1, 'Westfall - Marisa Du Paige'),
+(@POOLID+5, 1, 'Westfall - Deadmines Hobo Spawn');
 
-DELETE FROM `pool_members` WHERE `poolSpawnId` IN (@POOLID+0,@POOLID+1);
+DELETE FROM `pool_members` WHERE `poolSpawnId` BETWEEN @POOLID+0 AND @POOLID+5;
 INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES
+(0, @CGUID+939, @POOLID+5, 0, 'Westfall - West Plains Drifter - Deadmines'),
+(0, 274369, 	@POOLID+5, 0, 'Westfall - Orphan - Deadmines'),
+
+(0, @CGUID+936, @POOLID+4, 0, 'Westfall - Marisa Du Paige - Deadmines'),
+(0, 274357, 	@POOLID+4, 0, 'Westfall - Marisa Du Paige - Deadmines'),
+
+(0, @CGUID+935, @POOLID+3, 0, 'Westfall - Small-Time Hustler - Deadmines'),
+(0, 274435, 	@POOLID+3, 0, 'Westfall - Orphan - Deadmines'),
+
+(0, @CGUID+934, @POOLID+2, 0, 'Westfall - Small-Time Hustler - Deadmines'),
+(0, 274439, 	@POOLID+2, 0, 'Westfall - Orphan - Deadmines'),
+
 (0, @CGUID+932, @POOLID+1, 0, 'Westfall - Brainwashed Noble - Deadmines'),
 (0, @CGUID+933, @POOLID+1, 0, 'Westfall - Brainwashed Noble - Deadmines'),
+(0, @CGUID+937, @POOLID+1, 0, 'Westfall - Brainwashed Noble - Deadmines'),
 
 (0, @CGUID+916, @POOLID+0, 0, 'Westfall - Vultros - Silent Hill area'),
 (0, @CGUID+917, @POOLID+0, 0, 'Westfall - Vultros - Alexton Farmstead'),

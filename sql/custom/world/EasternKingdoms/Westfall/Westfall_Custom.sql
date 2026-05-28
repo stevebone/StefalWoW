@@ -386,11 +386,12 @@ INSERT INTO `creature` (guid, id, map, zoneId, areaId, spawnDifficulties, phaseU
 (@CGUID+283, '550', '0', '40', '40', '0', '0', '50004', '0', '-1', '0', '1', -11024.3,	1458.48,	42.9396,	4.59736, '120', '0', '0', '100', '2', NULL, NULL, NULL, NULL, '', NULL, '0');
 
 -- Waypoints
-UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (274368); -- path movement
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (274368,274351); -- path movement
 
-DELETE FROM `creature_addon` WHERE `guid` IN (274368);
+DELETE FROM `creature_addon` WHERE `guid` IN (274368,274351);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`, `PvPFlags`, `auras`) VALUES 
-(274368, 4240003, 1, 0, '79143'); -- Hobo with Cart at Moonbrook
+(274351, 4240003, 1, 0, '79116'), -- Transient in Deadmines
+(274368, 4240003, 1, 0, '79143'); -- Hobo with Cart in Deadmines
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (4240003, 3,4,5);
 INSERT INTO `waypoint_path` VALUES
