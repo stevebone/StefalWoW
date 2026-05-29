@@ -24,6 +24,7 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "ScriptedCreature.h"
 
 #include "Custom_Instance_Deadmines.h"
 #include "Custom_DeadminesOLD_Defines.h"
@@ -45,9 +46,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (instance)
                 instance->SetData(Data::DeadminesVersion, Version::Classic);
-
-            if (killer->ToPlayer())
-                killer->SetDBPhase(MiscOLD::PhaseDeadminesOLD);
 
             BossAI::JustDied(killer);
         }
