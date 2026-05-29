@@ -64,6 +64,10 @@ void AddSC_instance_shadow_enclave_delve();
 void AddSC_delve_commands();
 
 // ==================== Instance Scripts ===================== //
+// Deadmines
+void AddSC_custom_instance_deadmines();
+void AddSC_custom_deadmines_old_npcs();
+
 // Magister's Terrace 12.0.1 (Map 2811)
 void AddSC_instance_magisters_terrace_12();
 void AddSC_boss_arcanotron_custos();
@@ -129,6 +133,10 @@ void AddCustomScripts()
 
     // Perks Program (Trading Post)
     AddSC_npc_perks_program_vendor();
+
+    // Deadmines
+    AddSC_custom_instance_deadmines();
+    AddSC_custom_deadmines_old_npcs();
 
     // Magister's Terrace 12.0.1 (Map 2811)
     AddSC_instance_magisters_terrace_12();
