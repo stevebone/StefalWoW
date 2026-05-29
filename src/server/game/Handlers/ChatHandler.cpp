@@ -356,7 +356,8 @@ ChatMessageResult WorldSession::HandleChatMessage(ChatMsg type, Language lang, s
                     return ChatMessageResult::NotInGroup;
             }
 
-            type = group->IsLeader(sender->GetGUID()) ? CHAT_MSG_PARTY_LEADER : CHAT_MSG_PARTY;
+            if (group->IsLeader(GetPlayer()->GetGUID()))
+                type = CHAT_MSG_PARTY_LEADER;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 
