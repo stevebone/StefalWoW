@@ -76,8 +76,29 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MastRoomDoor = 16400;
         static constexpr uint32 HeavyDoor = 17153;
         static constexpr uint32 FoundryDoor = 16399;
-        static constexpr uint32 DefiasCannon = 16398;
+        static constexpr uint32 DefiasCannon = 442661;
         static constexpr uint32 DoorLever = 101833;
+    }
+
+    namespace Items
+    {
+        static constexpr uint32 DefiasGunpowder = 221485;
+    }
+
+    namespace CannonEvent
+    {
+        static constexpr int8 DATA_EVENT = 1;
+
+        static constexpr int8 STATE_CANNON_NOT_USED = 0;
+        static constexpr int8 STATE_CANNON_GUNPOWDER_USED = 1;
+        static constexpr int8 STATE_CANNON_BLAST_INITIATED = 2;
+        static constexpr int8 STATE_PIRATES_ATTACK = 3;
+        static constexpr int8 STATE_SMITE_ALARM = 4;
+        static constexpr int8 STATE_DONE = 5;
+
+        static constexpr uint32 BLAST_TIMER = 3000;
+        static constexpr uint32 PIRATES_TIMER = 1000;
+        static constexpr uint32 SMITE_ALARM_TIMER = 5000;
     }
 
     static constexpr ObjectData modernCreatureData[] =

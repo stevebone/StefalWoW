@@ -75,6 +75,105 @@ namespace Scripts::EasternKingdoms::Deadmines
         }
     };
 
+    struct boss_sneed : public BossAI
+    {
+        boss_sneed(Creature* creature) : BossAI(creature, DataTypesOLD::BOSS_SNEED) { }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            BossAI::JustEngagedWith(who);
+            events.ScheduleEvent(EventsOLD::SneedCastDisarm, 8s, 18s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+                return;
+
+            events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case EventsOLD::SneedCastDisarm:
+                        DoCastVictim(SpellsOLD::SneedDisarm);
+                        events.Repeat(30s, 45s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
+
+    struct boss_gilnid : public BossAI
+    {
+        boss_gilnid(Creature* creature) : BossAI(creature, DataTypesOLD::BOSS_GILNID) { }
+
+        void Reset() override
+        {
+            BossAI::Reset();
+            events.ScheduleEvent(EventsOLD::GilnidTalk, 2min);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            BossAI::JustEngagedWith(who);
+            events.CancelEvent(EventsOLD::GilnidTalk);
+            events.ScheduleEvent(EventsOLD::GilnidCastMoltenMetal, 2s, 5s);
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            BossAI::EnterEvadeMode(why);
+            events.ScheduleEvent(EventsOLD::GilnidTalk, 2min);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsOLD::GilnidTalk:
+                        Talk(TextsOLD::GilnidOOC);
+                        events.Repeat(2min);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                return;
+            }
+
+            events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case EventsOLD::GilnidCastMoltenMetal:
+                        DoCastVictim(SpellsOLD::GilnidMoltenMetal);
+                        events.Repeat(23s, 45s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
+
     struct npc_zidormi_deadmines_old : public ScriptedAI
     {
         npc_zidormi_deadmines_old(Creature* creature) : ScriptedAI(creature) {}
@@ -123,5 +222,7 @@ void AddSC_custom_deadmines_old_npcs()
     using namespace Scripts::EasternKingdoms::Deadmines;
 
     RegisterCreatureAI(boss_rhahkzor);
+    RegisterCreatureAI(boss_sneed);
+    RegisterCreatureAI(boss_gilnid);
     RegisterCreatureAI(npc_zidormi_deadmines_old);
 }

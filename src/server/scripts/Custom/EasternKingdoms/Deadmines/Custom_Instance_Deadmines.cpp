@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Map.h"
 #include "PhasingHandler.h"
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
@@ -39,8 +40,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             custom_instance_deadmines_InstanceMapScript(InstanceMap* map) : InstanceScript(map),
                 _version(*this, "DeadminesVersion", Version::NotSet),
-                _phaseSyncTimer(1000),
-                _phaseSyncCount(0)
+                _cannonState(*this, "CannonState", CannonEvent::STATE_CANNON_NOT_USED)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -49,69 +49,14 @@ namespace Scripts::EasternKingdoms::Deadmines
                 LoadDungeonEncounterData(modernEncounters);
             }
 
-            void OnPlayerEnter(Player* player) override
-            {
-                SyncPlayerPhase(player);
-                _phaseSyncCount = 10;
-                _phaseSyncTimer = 1000;
-            }
-
-            void AfterDataLoad() override
-            {
-                if (GetBossState(DataTypesOLD::BOSS_RHAHKZOR) == DONE && _version == Version::NotSet)
-                    _version.LoadValue(Version::Classic);
-
-                if (IsClassicVersion())
-                    _phaseSyncCount = 10;
-            }
-
-            void Update(uint32 diff) override
-            {
-                if (!_phaseSyncCount)
-                    return;
-
-                if (_phaseSyncTimer > diff)
-                {
-                    _phaseSyncTimer -= diff;
-                    return;
-                }
-
-                SyncPlayerPhases();
-                --_phaseSyncCount;
-                _phaseSyncTimer = 1000;
-            }
-
             bool SetBossState(uint32 id, EncounterState state) override
             {
-                if (!InstanceScript::SetBossState(id, state))
-                    return false;
-
-                if (id == DataTypes::BOSS_GLUBTOK && state == DONE && _version == Version::NotSet)
-                {
-                    if (HasPlayerInOldPhase())
-                        SetDeadminesVersion(Version::Classic);
-                    else
-                        SetDeadminesVersion(Version::Modern);
-                }
-
-                return true;
-            }
-
-            bool HasPlayerInOldPhase() const
-            {
-                Map::PlayerList const& players = instance->GetPlayers();
-
-                for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                    if (Player* player = itr->GetSource())
-                        if (player->GetPhaseShift().HasPhase(MiscOLD::PhaseDeadminesOLD))
-                            return true;
-
-                return false;
+                return InstanceScript::SetBossState(id, state);
             }
 
             bool IsClassicVersion() const
             {
-                return _version == Version::Classic || GetBossState(DataTypesOLD::BOSS_RHAHKZOR) == DONE;
+                return _version == Version::Classic;
             }
 
             void SetDeadminesVersion(uint8 version)
@@ -120,30 +65,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                     return;
 
                 _version = version;
-
-                if (version == Version::Classic)
-                    SyncPlayerPhases();
-            }
-
-            void SyncPlayerPhase(Player* player) const
-            {
-                if (!player || !IsClassicVersion())
-                    return;
-
-                PhasingHandler::OnAreaChange(player);
-
-                if (!player->GetPhaseShift().HasPhase(MiscOLD::PhaseDeadminesOLD))
-                    PhasingHandler::AddPhase(player, MiscOLD::PhaseDeadminesOLD, true);
-
-                player->UpdateObjectVisibility();
-            }
-
-            void SyncPlayerPhases() const
-            {
-                Map::PlayerList const& players = instance->GetPlayers();
-
-                for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                    SyncPlayerPhase(itr->GetSource());
             }
 
             void SetData(uint32 type, uint32 data) override
@@ -152,6 +73,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                     case Data::DeadminesVersion:
                         SetDeadminesVersion(uint8(data));
+                        break;
+                    case CannonEvent::DATA_EVENT:
+                        _cannonState = data;
                         break;
                     default:
                         break;
@@ -164,15 +88,173 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                     case Data::DeadminesVersion:
                         return _version;
+                    case CannonEvent::DATA_EVENT:
+                        return _cannonState;
                     default:
                         return 0;
                 }
             }
 
+            void OnGameObjectCreate(GameObject* go) override
+            {
+                InstanceScript::OnGameObjectCreate(go);
+
+                switch (go->GetEntry())
+                {
+                case Objects::IronCladDoor:
+                    _ironCladDoorGUID = go->GetGUID();
+                    break;
+                case Objects::DefiasCannon:
+                    _defiasCannonGUID = go->GetGUID();
+                    break;
+                case Objects::DoorLever:
+                    _doorLeverGUID = go->GetGUID();
+                    break;
+                //case GO_MR_SMITE_CHEST:
+                //    uiSmiteChestGUID = go->GetGUID();
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            void Update(uint32 diff) override
+            {
+                // Defias Cannon Event only runs in Classic version
+                if (!IsClassicVersion())
+                    return;
+
+                // Defias Cannon Event Starts Here
+                GameObject* IronCladDoor = instance->GetGameObject(_ironCladDoorGUID);
+                if (!IronCladDoor)
+                    return;
+
+                switch (_cannonState)
+                {
+                case CannonEvent::STATE_CANNON_GUNPOWDER_USED:
+                    _cannonBlastTimer = CannonEvent::BLAST_TIMER;
+                    _cannonState = CannonEvent::STATE_CANNON_BLAST_INITIATED;
+                    break;
+                case CannonEvent::STATE_CANNON_BLAST_INITIATED:
+                    if (_cannonBlastTimer <= diff)
+                    {
+                        SummonCreatures();
+                        ShootCannon();
+                        BlastOutDoor();
+                        LeverStuck();
+                        instance->LoadGrid(-22.8f, -797.24f); // Loads Mr. Smite's grid.
+                        if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite)) // goes off when door blows up
+                            smite->AI()->Talk(TextsOLD::SmiteAlarm1);
+                        _piratesTimer = CannonEvent::PIRATES_TIMER;
+                        _smiteAlarmTimer = CannonEvent::SMITE_ALARM_TIMER;
+                        _cannonState = CannonEvent::STATE_PIRATES_ATTACK;
+                    }
+                    else _cannonBlastTimer -= diff;
+                    break;
+                case CannonEvent::STATE_PIRATES_ATTACK:
+                    if (_piratesTimer <= diff)
+                    {
+                        MoveCreaturesInside();
+                        _cannonState = CannonEvent::STATE_SMITE_ALARM;
+                    }
+                    else _piratesTimer -= diff;
+                    break;
+                case CannonEvent::STATE_SMITE_ALARM:
+                    if (_smiteAlarmTimer <= diff)
+                    {
+                        if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite))
+                            smite->AI()->Talk(TextsOLD::SmiteAlarm2);
+                        _cannonState = CannonEvent::STATE_DONE;
+                    }
+                    else _smiteAlarmTimer -= diff;
+                    break;
+                }
+            }
+
+            void SummonCreatures()
+            {
+                if (GameObject* pIronCladDoor = instance->GetGameObject(_ironCladDoorGUID))
+                {
+                    if(Creature* DefiasPirate1 = pIronCladDoor->SummonCreature(CreaturesOLD::DefiasPirate,
+                        pIronCladDoor->GetPositionX() - 2,
+                        pIronCladDoor->GetPositionY() - 7,
+                        pIronCladDoor->GetPositionZ(),
+                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
+                    {
+                        _defiasPirate1GUID = DefiasPirate1->GetGUID();
+                        DefiasPirate1->RemoveAllAuras();
+                    }
+
+                    if (Creature* DefiasPirate2 = pIronCladDoor->SummonCreature(CreaturesOLD::DefiasPirate,
+                        pIronCladDoor->GetPositionX() + 3,
+                        pIronCladDoor->GetPositionY() - 6,
+                        pIronCladDoor->GetPositionZ(),
+                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
+                    {
+                        _defiasPirate2GUID = DefiasPirate2->GetGUID();
+                        DefiasPirate2->RemoveAllAuras();
+                    }
+                }
+            }
+
+            void MoveCreaturesInside()
+            {
+                if (!_defiasPirate1GUID || !_defiasPirate2GUID)
+                    return;
+
+                Creature* pDefiasPirate1 = instance->GetCreature(_defiasPirate1GUID);
+                Creature* pDefiasPirate2 = instance->GetCreature(_defiasPirate2GUID);
+                if (!pDefiasPirate1 || !pDefiasPirate2)
+                    return;
+
+                MoveCreatureInside(pDefiasPirate1);
+                MoveCreatureInside(pDefiasPirate2);
+            }
+
+            void MoveCreatureInside(Creature* creature)
+            {
+                creature->SetWalk(false);
+                creature->GetMotionMaster()->MovePoint(0, -102.7f, -655.9f, creature->GetPositionZ());
+            }
+
+            void ShootCannon()
+            {
+                if (GameObject* pDefiasCannon = instance->GetGameObject(_defiasCannonGUID))
+                {
+                    pDefiasCannon->SetGoState(GO_STATE_ACTIVE);
+                    pDefiasCannon->PlayDirectSound(SoundsOLD::CannonFire);
+                }
+            }
+
+            void BlastOutDoor()
+            {
+                if (GameObject* pIronCladDoor = instance->GetGameObject(_ironCladDoorGUID))
+                {
+                    pIronCladDoor->SetGoState(GO_STATE_DESTROYED);
+                    pIronCladDoor->PlayDirectSound(SoundsOLD::DestroyDoor);
+                }
+            }
+
+            void LeverStuck()
+            {
+                if (GameObject* pDoorLever = instance->GetGameObject(_doorLeverGUID))
+                    pDoorLever->SetFlag(GO_FLAG_INTERACT_COND);
+            }
+
         private:
             PersistentInstanceScriptValue<uint8> _version;
-            uint32 _phaseSyncTimer;
-            uint8 _phaseSyncCount;
+            PersistentInstanceScriptValue<uint8> _cannonState;
+
+            uint32 _cannonBlastTimer = 0;
+            uint32 _piratesTimer = 0;
+            uint32 _smiteAlarmTimer = 0;
+
+            ObjectGuid _ironCladDoorGUID;
+            ObjectGuid _doorLeverGUID;
+            ObjectGuid _defiasCannonGUID;
+
+            ObjectGuid _defiasPirate1GUID;
+            ObjectGuid _defiasPirate2GUID;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const override

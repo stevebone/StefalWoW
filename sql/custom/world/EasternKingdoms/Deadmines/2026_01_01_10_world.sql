@@ -153,3 +153,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 DELETE FROM `creature_text` WHERE `CreatureID` = 48445;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `comment`) VALUES 
 ('48445', '0', '1', '%s becomes enraged!', '16', '100', 'Oaf Lackey Enraged');
+
+-- Update wrong flag for trash mob
+UPDATE `smart_scripts` SET `event_flags` = '1' WHERE (`entryorguid` = '48230') and (`source_type` = '0') and (`id` = '1') and (`link` = '0');
