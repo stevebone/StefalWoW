@@ -11557,6 +11557,10 @@ void Unit::SetMeleeAnimKitId(uint16 animKitId)
                 sScriptMgr->OnPlayerKilledByCreature(killerCre, killed);
         }
     }
+
+    // Hook for OnPlayerDeath Event (any cause)
+    if (Player* player = victim->ToPlayer())
+        sScriptMgr->OnPlayerDeath(player);
 }
 
 void Unit::SetControlled(bool apply, UnitState state)
