@@ -198,7 +198,10 @@ void FSBMgr::SpawnPlayerBots(Player* player)
             Position pos = player->GetPosition();
             TempSummon* temp = player->SummonCreature(botData.entry, pos, TEMPSUMMON_MANUAL_DESPAWN, 0s);
             if (temp)
+            {
                 bot = static_cast<Creature*>(temp);
+                PhasingHandler::InheritPhaseShift(bot, player);
+            }
 
             if (!bot)
             {
@@ -261,7 +264,7 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
 
     FSBMgr::Get()->RegisterBotSpawn(bot, player);
-    PhasingHandler::ResetPhaseShift(bot);
+    PhasingHandler::InheritPhaseShift(bot, player);
 
     // Do not remove the below since they are needed for the Hire flow
     bot->SetStandState(UNIT_STAND_STATE_STAND);
@@ -728,5 +731,49 @@ void FSBMgr::SetRole(Creature* bot, FSB_Roles role)
 
     if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
         ai->botRole = role;
+}
+
+void FSBMgr::SyncBotPhasingWithOwner(Player* player)
+{
+    if (!player)
+        return;
+
+    auto* bots = GetPersistentBotsForPlayer(player);
+    if (!bots || bots->empty())
+    {
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Player {} has no persistent bots", player->GetName());
+        return;
+    }
+
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Player {} has {} bots to sync", player->GetName(), bots->size());
+
+    for (auto const& botData : *bots)
+    {
+        Creature* bot = nullptr;
+
+        // Try to find bot on current map by spawnId
+        if (botData.spawnId != 0)
+            bot = player->GetMap()->GetCreatureBySpawnId(botData.spawnId);
+
+        // If not found by spawnId, try by entry (for temp spawns)
+        if (!bot)
+            bot = player->FindNearestCreatureWithOptions(500.f, { .CreatureId = botData.entry, .IgnorePhases = true });
+
+        if (!bot)
+        {
+            TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Bot entry {} spawnId {} not found for player {}", botData.entry, botData.spawnId, player->GetName());
+            continue;
+        }
+
+        if (bot->GetOwnerGUID() != player->GetGUID())
+        {
+            TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Bot {} has wrong owner (expected {}, got {})", bot->GetName(), player->GetGUID().ToString(), bot->GetOwnerGUID().ToString());
+            continue;
+        }
+
+        PhasingHandler::InheritPhaseShift(bot, player);
+        bot->UpdateObjectVisibility(true);
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Synced phasing for bot {} with player {}", bot->GetName(), player->GetName());
+    }
 }
 

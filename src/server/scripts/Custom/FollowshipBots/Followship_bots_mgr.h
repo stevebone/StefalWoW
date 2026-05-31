@@ -188,6 +188,9 @@ public:
     // Set the role of a bot (does nothing if not a bot or AI not present)
     void SetRole(Creature* bot, FSB_Roles role);
 
+    // Sync bot phasing with owner
+    void SyncBotPhasingWithOwner(Player* player);
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
 };

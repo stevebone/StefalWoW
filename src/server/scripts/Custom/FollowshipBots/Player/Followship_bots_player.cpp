@@ -36,9 +36,9 @@ class followship_bots_player : public PlayerScript
 public:
     followship_bots_player() : PlayerScript("followship_bots_player") { }
 
-    void OnLogin(Player* /*player*/, bool /*firstLogin*/) override
+    void OnLogin(Player* player, bool /*firstLogin*/) override
     {
-
+        FSBMgr::Get()->SyncBotPhasingWithOwner(player);
     }
 
     void OnLogout(Player* /*player*/) override
@@ -49,6 +49,12 @@ public:
     {
         FSBMgr::Get()->RemovePersistentExpiredPlayerBots(player);
         FSBMgr::Get()->SpawnPlayerBots(player);
+    }
+
+    void OnPhaseChange(Player* player) override
+    {
+        TC_LOG_DEBUG("scripts.fsb.player", "FSB: OnPhaseChange called for player {}", player->GetName());
+        FSBMgr::Get()->SyncBotPhasingWithOwner(player);
     }
 
     void OnPlayerTeleport(Player* /*player*/)
