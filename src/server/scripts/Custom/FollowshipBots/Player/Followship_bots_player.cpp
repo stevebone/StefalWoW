@@ -31,6 +31,9 @@
 #include "Followship_bots_priest.h"
 #include "Followship_bots_party_handler.h"
 
+#include "Followship_bots_death_handler.h"
+#include "Followship_bots_group_handler.h"
+
 class followship_bots_player : public PlayerScript
 {
 public:
@@ -59,6 +62,53 @@ public:
 
     void OnPlayerTeleport(Player* /*player*/)
     {
+    }
+
+    void OnPlayerDeath(Player* player) override
+    {
+        if (!player)
+            return;
+
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: OnPlayerDeath called for player {}", player->GetName());
+
+        // Build the player's logical group (player + bots)
+        std::vector<Unit*> group;
+        group.push_back(player);
+
+        auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} has {} bots in persistent data", player->GetName(), botsPtr ? botsPtr->size() : 0);
+
+        if (botsPtr)
+        {
+            for (auto const& botData : *botsPtr)
+            {
+                if (botData.runtimeGuid.IsEmpty())
+                    continue;
+
+                if (Unit* botUnit = ObjectAccessor::GetUnit(*player, botData.runtimeGuid))
+                {
+                    if (botUnit->IsInWorld() && !botUnit->IsDuringRemoveFromWorld())
+                    {
+                        group.push_back(botUnit);
+                        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Added bot {} to player {} group", botUnit->GetName(), player->GetName());
+                    }
+                }
+            }
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} group size: {}", player->GetName(), group.size());
+
+        // Check if there's a healer in the group
+        Unit* healer = FSBGroup::BotGetFirstGroupHealer(group);
+        if (healer)
+        {
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} died, found healer: {}", player->GetName(), healer->GetName());
+            FSBDeath::AddToHealerResurrectQueue(player, healer->ToCreature());
+        }
+        else
+        {
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} died, NO healer found in group", player->GetName());
+        }
     }
 
 };

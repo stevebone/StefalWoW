@@ -53,14 +53,11 @@ struct FSBSpellDefinition
 using FSBSpellTable = std::vector<FSBSpellDefinition>;
 extern std::unordered_map<FSB_Class, FSBSpellTable const*> sBotSpellTables;
 
-
 struct FSBSpellRuntime
 {
     FSBSpellDefinition const* def; // pointer to static definition
     uint32 nextReadyMs = 0; // runtime cooldown
 };
-
-
 
 namespace FSBSpells
 {

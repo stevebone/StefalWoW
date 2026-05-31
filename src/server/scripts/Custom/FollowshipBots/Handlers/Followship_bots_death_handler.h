@@ -28,8 +28,8 @@ namespace FSBDeath
     void HandleDeathWithGraveyard(Creature* bot, Position botCorpse);
     void HandleDeathInDungeon(Creature* bot, float fDistance, float fAngle);
     void BotSetStateAfterCorpseRevive(Creature* bot);
-    // Add dead bot to healer's resurrect queue
-    void AddToHealerResurrectQueue(Creature* deadBot, Creature* healer);
+    // Add dead unit (bot or player) to healer's resurrect queue
+    void AddToHealerResurrectQueue(Unit* deadUnit, Creature* healer);
     // Process resurrect queue (called by event)
     void ProcessResurrectQueue(Creature* healer);
     // Actions when bot is hit with resurrect spell

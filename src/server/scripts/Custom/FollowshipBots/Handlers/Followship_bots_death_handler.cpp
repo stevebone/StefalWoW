@@ -161,25 +161,25 @@ namespace FSBDeath
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at corpse location after graveyard run.", bot->GetName());
     }
 
-    void AddToHealerResurrectQueue(Creature* deadBot, Creature* healer)
+    void AddToHealerResurrectQueue(Unit* deadUnit, Creature* healer)
     {
-        if (!deadBot || !healer)
+        if (!deadUnit || !healer)
             return;
 
         auto healerAI = dynamic_cast<FSB_BaseAI*>(healer->AI());
         if (!healerAI)
             return;
 
-        // Add dead bot GUID to healer's queue
-        healerAI->botResurrectQueue.push(deadBot->GetGUID());
-        TC_LOG_DEBUG("scripts.fsb.death", "FSB: AddToHealerResurrectQueue Added dead bot {} to healer {} resurrect queue", deadBot->GetName(), healer->GetName());
+        // Add dead unit GUID to healer's queue
+        healerAI->botResurrectQueue.push(deadUnit->GetGUID());
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: AddToHealerResurrectQueue Added dead unit {} to healer {} resurrect queue", deadUnit->GetName(), healer->GetName());
 
         // Chatter announcement (once when added to queue)
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
-            std::string chatter = FSBChatter::GetRandomReply(healer, deadBot, FSB_ChatterCategory::botMemberDied, FSBMgr::Get()->GetBotChatterTypeForEntry(healer->GetEntry()), 0);
+            std::string chatter = FSBChatter::GetRandomReply(healer, deadUnit, FSB_ChatterCategory::botMemberDied, FSBMgr::Get()->GetBotChatterTypeForEntry(healer->GetEntry()), 0);
             healer->Yell(chatter, LANG_UNIVERSAL);
-            FSBChatter::DemandTimedReply(healer, deadBot, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
+            FSBChatter::DemandTimedReply(healer, deadUnit, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
         }
 
         // Schedule resurrect event
