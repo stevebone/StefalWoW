@@ -43,6 +43,17 @@ namespace Scripts::EasternKingdoms::Deadmines
             BossAI::JustEngagedWith(who);
             Talk(0);
             events.ScheduleEvent(EventsOLD::RhahkzorCastSlam, 8s, 12s);
+
+            // Engage nearby Defias Watchman
+            std::list<Creature*> watchmen;
+            me->GetCreatureListWithEntryInGrid(watchmen, CreaturesOLD::DefiasWatchman, 50.0f);
+            for (Creature* watchman : watchmen)
+            {
+                if (watchman->IsAlive() && !watchman->IsInCombat())
+                {
+                    watchman->AI()->AttackStart(who);
+                }
+            }
         }
 
         void JustDied(Unit* killer) override
@@ -320,6 +331,27 @@ namespace Scripts::EasternKingdoms::Deadmines
         ObjectGuid _mrSmiteChestGUID;
     };
 
+    struct npc_defias_blackguard : public ScriptedAI
+    {
+        npc_defias_blackguard(Creature* creature) : ScriptedAI(creature) {}
+
+        void JustEngagedWith(Unit* who) override
+        {
+            ScriptedAI::JustEngagedWith(who);
+
+            Talk(TextsOLD::DefiasBlackguardNotification);
+
+            // Find Mr Smite nearby and make him engage
+            if (Creature* smite = me->FindNearestCreature(CreaturesOLD::MrSmite, 50.0f, true))
+            {
+                if (!smite->IsInCombat())
+                {
+                    smite->AI()->AttackStart(who);
+                }
+            }
+        }
+    };
+
     struct npc_zidormi_deadmines_old : public ScriptedAI
     {
         npc_zidormi_deadmines_old(Creature* creature) : ScriptedAI(creature) {}
@@ -371,5 +403,6 @@ void AddSC_custom_deadmines_old_npcs()
     RegisterCreatureAI(boss_sneed);
     RegisterCreatureAI(boss_gilnid);
     RegisterCreatureAI(boss_mr_smite);
+    RegisterCreatureAI(npc_defias_blackguard);
     RegisterCreatureAI(npc_zidormi_deadmines_old);
 }

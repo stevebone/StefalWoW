@@ -44,6 +44,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MrSmite = 642;
 
         static constexpr uint32 DefiasPirate = 657;
+        static constexpr uint32 DefiasWatchman = 1725;
+        static constexpr uint32 DefiasBlackguard = 636;
     }
 
     namespace SpawnsOLD
@@ -102,6 +104,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 SmiteAlarm2 = 1;
         static constexpr int8 SmitePhase1 = 2;
         static constexpr int8 SmitePhase2 = 3;
+        static constexpr int8 DefiasBlackguardNotification = 0;
     }
 
     namespace SoundsOLD

@@ -5,11 +5,14 @@
 -- NPC: 622 Goblin Engineer
 -- NPC: 634 Defias Overseer
 -- NPC: 636 Defias Blackguard
+-- NPC: 639 Edwin VanCleef
 -- NPC: 641 Defias Woodcarver
 -- NPC: 642 Sneeds Shredder
 -- NPC: 643 Sneed
 -- NPC: 644 RhahkZor
+-- NPC: 645 Cookie
 -- NPC: 646 Mr Smite
+-- NPC: 647 Captain Greenskin
 -- NPC: 657 Defias Pirate
 -- NPC: 1725 Defias Watchman
 -- NPC: 1729 Defias Evoker
@@ -38,32 +41,39 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 
 UPDATE `instance_template` SET `script` = 'custom_instance_deadmines' WHERE (`map` = '36');
 
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_blackguard' WHERE `entry` = 636;
 UPDATE `creature_template` SET `ScriptName` = 'boss_mr_smite' WHERE `entry` = 646;
 UPDATE `creature_template` SET `ScriptName` = 'boss_rhahkzor' WHERE `entry` = 644;
 UPDATE `creature_template` SET `ScriptName` = 'boss_sneed' WHERE `entry` = 643;
 UPDATE `creature_template` SET `ScriptName` = 'boss_gilnid' WHERE `entry` = 1763;
 
+UPDATE `creature_template_addon` SET `auras` = '6408' WHERE `entry` = 636; -- Defias Blackguard Faded aura
+
+
 DELETE FROM `areatrigger_scripts` WHERE `Entry` = 6361;
 INSERT INTO `areatrigger_scripts` (`Entry`, `ScriptName`) VALUES
 (6361, 'deadmines_door_cannon_event_at');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (598,622,634,636,641,642,643,644,646,657,1725,1729,1731,1732,1763,2520,3450,3947,
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (598,622,634,636,639,641,642,643,644,645,646,647,657,1725,1729,1731,1732,1763,2520,3450,3947,
 4416,4417,4418);
 INSERT INTO `creature_template_difficulty` VALUES
 (598, 1, 0, 0, 202, 0, 1, 1, 1, 1.7, 409, 2097224, 0, 0, 598, 598, 0, 7, 54, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Miner
 (622, 1, 0, 0, 202, 0, 4, 1, 1, 1.7, 431, 2097224, 0, 0, 622, 622, 0, 87, 178, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Goblin Engineer
 (634, 1, 0, 0, 202, 0, 6, 1, 1, 1.7, 439, 2097224, 0, 0, 634, 634, 0, 26, 158, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Overseer
 (636, 1, 1, 1, 202, 0, 3, 1, 1, 1.7, 440, 72, 0, 0, 636, 636, 0, 49, 121, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Defias Blackguard
+(639, 2, 2, 2, 202, 0, 8, 1, 1, 1.7, 442, 0, 0, 0, 639, 639, 0, 51, 421, 268435456, 0, 0, 0, 0, 0, 0, 0, -1), -- Edwin VanCleef
 (641, 1, 0, 0, 202, 0, 5, 1, 1, 1.7, 443, 2097224, 0, 0, 641, 641, 0, 32, 161, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Woodcarver
 (642, 1, 0, 0, 202, 0, 25, 1, 1, 1.7, 444, 2097256, 128, 0, 642, 0, 0, 159, 262, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Sneeds Shredder
 (643, 1, 0, 0, 202, 0, 5, 1, 1, 7.5, 445, 2097256, 128, 0, 643, 643, 0, 137, 184, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Sneed
 (644, 1, 0, 0, 202, 0, 25, 1, 1, 1.7, 446, 2097256, 128, 0, 644, 644, 0, 108, 298, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- RhahkZor
+(645, 1, 2, 2, 202, 0, 6, 1, 1, 1.7, 447, 0, 0, 0, 645, 645, 0, 58, 212, 268959744, 0, 0, 0, 0, 0, 0, 0, 45338), -- Cookie
 (646, 1, 2, 2, 202, 0, 8, 1, 1, 1.7, 448, 0, 0, 0, 646, 646, 0, 69, 267, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Mr Smite
+(647, 1, 2, 2, 202, 0, 6, 1, 1, 1.7, 449, 0, 0, 0, 647, 647, 0, 76, 212, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Captain Greenskin
 (657, 1, 1, 1, 202, 0, 3, 1, 1, 1.7, 457, 0, 0, 0, 657, 657, 0, 44, 196, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Defias Pirate
 (1725, 1, 0, 0, 202, 0, 1, 1, 1, 1.7, 1416, 0, 0, 0, 1725, 1725, 0, 34, 103, 268959744, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Watchman
 (1729, 1, 0, 0, 202, 0, 4.6, 0.7264, 1, 1.7, 1419, 2097224, 0, 0, 1729, 1729, 0, 23, 156, 268959744, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Evoker
 (1731, 1, 0, 0, 202, 0, 5, 1, 1, 1.7, 1421, 2097224, 0, 0, 1731, 1731, 0, 41, 174, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Goblin Craftsman
-(1732, 1, 1, 1, 202, 0, 3, 0.7871, 1, 1.7, 1422, 0, 0, 0, 0, 0, 0, 30, 156, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Defias Squallshaper
+(1732, 1, 1, 1, 202, 0, 3, 0.7871, 1, 1.7, 1422, 0, 0, 0, 1732, 1732, 0, 30, 156, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Defias Squallshaper
 (1763, 1, 0, 0, 202, 0, 25, 1, 1, 1.7, 1452, 2097256, 128, 0, 1763, 1763, 0, 76, 217, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Gildnid
 (2520, 1, 0, 0, 202, 0, 3, 1, 1, 1, 2117, 2097224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Remote Controlled Golem
 (3450, 1, 0, 0, 202, 0, 2.5, 1, 1, 1, 2992, 2097224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Defias Companion
