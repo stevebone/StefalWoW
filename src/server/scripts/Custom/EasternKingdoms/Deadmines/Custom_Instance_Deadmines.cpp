@@ -72,7 +72,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 switch (type)
                 {
-                    case Data::DeadminesVersion:
+                    case Misc::DeadminesVersion:
                         SetDeadminesVersion(uint8(data));
                         break;
                     case CannonEvent::DATA_EVENT:
@@ -90,7 +90,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 switch (type)
                 {
-                    case Data::DeadminesVersion:
+                    case Misc::DeadminesVersion:
                         return _version;
                     case CannonEvent::DATA_EVENT:
                         return _cannonState;
@@ -150,7 +150,15 @@ namespace Scripts::EasternKingdoms::Deadmines
                         LeverStuck();
                         instance->LoadGrid(-22.8f, -797.24f); // Loads Mr. Smite's grid.
                         if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite)) // goes off when door blows up
-                            smite->AI()->Talk(TextsOLD::SmiteAlarm1);
+                        {
+                            // Use m_Events to add a delay for Smite
+                            // Otherwise the sound does not play completely since it overlaps with the explosion/door sounds
+                            smite->m_Events.AddEventAtOffset([smite]()
+                                {
+                                    if (smite && smite->IsAlive())
+                                        smite->AI()->Talk(TextsOLD::SmiteAlarm1);
+                                }, std::chrono::seconds(3));
+                        }
                         _piratesTimer = CannonEvent::PIRATES_TIMER;
                         _cannonState = CannonEvent::STATE_PIRATES_ATTACK;
                     }

@@ -66,6 +66,7 @@ void AddSC_delve_commands();
 // ==================== Instance Scripts ===================== //
 // Deadmines
 void AddSC_custom_instance_deadmines();
+void AddSC_custom_deadmines_areatrigger();
 void AddSC_custom_deadmines_objects();
 void AddSC_custom_deadmines_old_npcs();
 
@@ -137,6 +138,7 @@ void AddCustomScripts()
 
     // Deadmines
     AddSC_custom_instance_deadmines();
+    AddSC_custom_deadmines_areatrigger();
     AddSC_custom_deadmines_objects();
     AddSC_custom_deadmines_old_npcs();
 

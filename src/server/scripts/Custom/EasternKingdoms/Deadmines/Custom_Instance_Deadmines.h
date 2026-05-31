@@ -33,6 +33,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         constexpr char const* DMScriptName = "custom_instance_deadmines";
         constexpr char const* DataHeader = "DM";
         static constexpr int8 EncounterCount = 7;
+        static constexpr uint32 DeadminesVersion = 1000;
     }
 
     namespace Version
@@ -50,11 +51,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 BOSS_ADMIRAL_RIPSNARL = 3;
         static constexpr int8 BOSS_CAPTAIN_COOKIE = 4;
         static constexpr int8 BOSS_VANESSA_VANCLEEF = 5;
-    }
-
-    namespace Data
-    {
-        static constexpr uint32 DeadminesVersion = 1000;
     }
 
     namespace Creatures

@@ -34,26 +34,30 @@
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
-    struct deadmines_door_cannon_event_at : public AreaTriggerAI
+    class deadmines_door_cannon_event_at : public AreaTriggerScript
     {
-        deadmines_door_cannon_event_at(AreaTrigger* at) : AreaTriggerAI(at) { }
+    public:
+        deadmines_door_cannon_event_at() : AreaTriggerScript("deadmines_door_cannon_event_at") {}
 
-        void OnUnitEnter(Unit* unit) override
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
         {
-            if (Player* player = unit->ToPlayer())
+            if (InstanceScript* instance = player->GetInstanceScript())
             {
-                if (InstanceScript* instance = player->GetInstanceScript())
-                {
-                    if (instance->GetData(MiscOLD::SecondSmiteAlarm) == 1)
-                        return;
+                if (instance->GetData(Misc::DeadminesVersion) != Version::Classic)
+                    return false;
 
-                    if (Creature* smite = player->GetMap()->GetCreatureBySpawnId(SpawnsOLD::MrSmite))
-                    {
-                        instance->SetData(MiscOLD::SecondSmiteAlarm, 1);
-                        smite->AI()->Talk(TextsOLD::SmiteAlarm2);
-                    }
+                if (instance->GetData(MiscOLD::SecondSmiteAlarm) == 1)
+                    return false;
+
+                player->GetMap()->LoadGrid(-22.8f, -797.24f); // Loads Mr. Smite's grid.
+
+                if (Creature* smite = player->GetMap()->GetCreatureBySpawnId(SpawnsOLD::MrSmite))
+                {
+                    instance->SetData(MiscOLD::SecondSmiteAlarm, 1);
+                    smite->AI()->Talk(TextsOLD::SmiteAlarm2);
                 }
             }
+            return true;
         }
     };
 }
@@ -62,5 +66,5 @@ void AddSC_custom_deadmines_areatrigger()
 {
     using namespace Scripts::EasternKingdoms::Deadmines;
 
-    RegisterAreaTriggerAI(deadmines_door_cannon_event_at);
+    new deadmines_door_cannon_event_at();
 }

@@ -45,7 +45,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         void JustDied(Unit* killer) override
         {
             if (instance)
-                instance->SetData(Data::DeadminesVersion, Version::Classic);
+                instance->SetData(Misc::DeadminesVersion, Version::Classic);
 
             BossAI::JustDied(killer);
         }
@@ -204,7 +204,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             events.ScheduleEvent(EventsOLD::SmiteCastSlam, 9s);
         }
 
-        void MovementInform(uint32 type, uint32 id) override
+        void MovementInform(uint32 type, uint32 /*id*/) override
         {
             if (type != POINT_MOTION_TYPE)
                 return;
