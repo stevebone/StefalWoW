@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <queue>
 #include "CreatureAI.h"
 #include "EventMap.h"
 #include "ScriptedCreature.h"
@@ -78,7 +79,7 @@ public:
 
         botCorpsePos(),
 
-        botResurrectTargetGuid(ObjectGuid::Empty)
+        botResurrectQueue()
     {
     }
 
@@ -122,7 +123,7 @@ public:
 
     Position botCorpsePos;
 
-    ObjectGuid botResurrectTargetGuid;
+    std::queue<ObjectGuid> botResurrectQueue;
 
     void ScheduleBotEvent(uint32 eventId, Milliseconds time);
     void ScheduleBotEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime);

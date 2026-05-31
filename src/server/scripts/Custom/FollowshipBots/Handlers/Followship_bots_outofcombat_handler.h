@@ -59,8 +59,6 @@ namespace FSBOOC
     bool BotOOCRecovery(Creature* bot, uint32& globalCooldown);
     bool BotOOCSummonPetOrDemon(Creature* bot);
     bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup);
-    bool BotOOCResurrect(Creature* bot);
-    bool BotOOCResurrectTarget(Creature* bot);
     bool BotOOCBuffBeacon(Creature* bot);
     bool BotOOCDoRandomEvent(Creature* bot);
     bool BotOOCSpawnCompanion(Creature* bot);

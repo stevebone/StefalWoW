@@ -615,8 +615,6 @@ public:
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
 
-                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_CHECK_MEMBER_DEATH, 3s, 5s);
-
                         if (now >= _5secondsCheckMs)
                         {
                             FSBStats::UpdateBotLevelToPlayer(me);

@@ -75,11 +75,6 @@ namespace FSBOOC
         if (FSBRecovery::BotHasRecoveryActive(bot))
             return false;
 
-        //0 OOC Resurrect
-        // If we resurrect someone then end tick
-        if (BotOOCResurrect(bot))
-            return true;
-
         //1. Bot Heal Owner
         // If we heal owner this turn return and end tick
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
@@ -444,121 +439,6 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCResurrect(Creature* bot)
-    {
-        if (!bot || !bot->IsAlive())
-            return false;
-
-        if (!FSBUtils::BotIsHealerClass(bot))
-            return false;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return false;
-
-        if (!baseAI->botResurrectTargetGuid)
-            return false;
-
-        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);
-
-        return true;
-    }
-
-    bool BotOOCResurrectTarget(Creature* bot)
-    {
-        if (!bot || !bot->IsAlive())
-            return false;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return false;
-
-        auto& resurrectTargetGuid = baseAI->botResurrectTargetGuid;
-        auto botClass = baseAI->botClass;
-        Unit* target = ObjectAccessor::GetUnit(*bot, resurrectTargetGuid);
-        bool canCombatRes = botClass == FSB_Class::Druid && bot->IsInCombat();
-
-        if (!target || target->IsAlive())
-        {
-            return false;
-        }
-
-        if (target)
-            TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget Bot {} found dead unit {} for resurrection", bot->GetName(), target->GetName());
-
-        if ((bot->IsInCombat() && !canCombatRes) || bot->HasUnitState(UNIT_STATE_CASTING))
-        {
-            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
-            return false;
-        }
-        
-        if (target && bot->GetMapId() == target->GetMapId() && bot->GetDistance(target) > 30.0f)
-        {
-            TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget target {} too far from bot: {}", target->GetName(), bot->GetName());
-            bot->GetMotionMaster()->Clear();
-            bot->GetMotionMaster()->MoveCloserAndStop(4, target, 28.f);
-            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
-            return false;
-        }
-
-        uint32 spellId = 0;
-
-        switch (botClass)
-        {
-        case FSB_Class::Priest:
-            spellId = SPELL_PRIEST_RESURRECTION;
-            break;
-        case FSB_Class::Druid:
-            if (canCombatRes)
-                spellId = SPELL_DRUID_REBIRTH;
-            else spellId = SPELL_DRUID_REVIVE;
-            break;
-        case FSB_Class::Monk:
-            spellId = SPELL_MONK_RESUSCITATE;
-            break;
-        case FSB_Class::Paladin:
-            spellId = SPELL_PALADIN_REDEMPTION;
-            break;
-        case FSB_Class::Shaman:
-            spellId = SPELL_SHAMAN_ANCESTRAL_SPIRIT;
-            break;
-        default:
-            break;
-        }
-
-        if (spellId)
-        {
-            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
-            int32 castTimeMs = spellInfo->CalcCastTime(); // in milliseconds
-            //FSBMovement::StopFollow(bot);
-
-            if (FSBSpells::BotCastSpell(bot, spellId, target))
-            {
-                uint32 now = getMSTime();
-                baseAI->botGlobalCooldown = now + 1500;
-                TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: BotOOCResurrectTarget Bot {} tried ressurect spell: {} on {}", bot->GetName(), spellId, target->GetName());
-
-                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                {
-                    // SAY after ressurect
-                    FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botRevivedTarget, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
-                }
-
-                baseAI->botResurrectTargetGuid.Clear();
-            }
-            else
-            {
-                FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
-                return false;
-            }
-
-            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(castTimeMs + 1000));
-            return true;
-        }
-
-        return false;
-    }
-
     void BotOOCClearFlagsStates(Creature* bot)
     {
         if (!bot)
@@ -591,18 +471,23 @@ namespace FSBOOC
         if (baseAI->botMoveState == FSB_MOVE_STATE_FOLLOWING && FSBMovement::GetMovementType(bot) != FOLLOW_MOTION_TYPE)
             FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
-        auto& deadTargetGuid = baseAI->botResurrectTargetGuid;
-        Unit* target = nullptr;
-        if(!deadTargetGuid.IsEmpty())
-            target = ObjectAccessor::GetUnit(*bot, deadTargetGuid);
-
-        if (target && target->IsAlive())
+        // Clear resurrect queue if target is alive
+        auto& resurrectQueue = baseAI->botResurrectQueue;
+        while (!resurrectQueue.empty())
         {
-            baseAI->botResurrectTargetGuid.Clear();
-            baseAI->botSayMemberDead = false;
+            ObjectGuid targetGuid = resurrectQueue.front();
+            Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+            if (target && target->IsAlive())
+            {
+                resurrectQueue.pop();
+                baseAI->botSayMemberDead = false;
+            }
+            else
+            {
+                break; // Stop at first invalid target
+            }
         }
-        
-        
+
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
         auto& botSitsByFire = baseAI->botSitsByFire;
         auto& botRandomEvent = baseAI->botDoingRandomEvent;

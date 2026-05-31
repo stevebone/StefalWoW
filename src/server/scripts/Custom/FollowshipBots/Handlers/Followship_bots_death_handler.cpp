@@ -23,6 +23,7 @@
 #include "Creature.h"
 #include "Log.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 #include "ScriptedCreature.h"
 
 #include "Followship_bots.h"
@@ -35,6 +36,7 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
+#include "Followship_bots_spells_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 namespace FSBDeath
@@ -53,6 +55,9 @@ namespace FSBDeath
 
         auto& hasSS = baseAI->botHasSoulstone;
         auto& botGroup = baseAI->botLogicalGroup;
+
+        // Ensure group is built before checking for healer
+        FSBGroup::BuildLogicalBotGroup(bot, botGroup);
 
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied from attacker {}.", bot->GetName(), killer->GetName());
 
@@ -76,10 +81,11 @@ namespace FSBDeath
         }
 
         // handle death with healer present
-        bool healerPresent = FSBGroup::BotGetFirstGroupHealer(botGroup);
-        if (healerPresent)
+        Unit* healer = FSBGroup::BotGetFirstGroupHealer(botGroup);
+        if (healer)
         {
-            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied and is waiting for healer resurrect.", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied, found healer: {}", bot->GetName(), healer->GetName());
+            AddToHealerResurrectQueue(bot, healer->ToCreature());
             bot->AI()->DoAction(FSB_ACTION_WAIT_HEALER_RESSURECT);
             return;
         }
@@ -155,47 +161,161 @@ namespace FSBDeath
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at corpse location after graveyard run.", bot->GetName());
     }
 
-    bool CheckBotMemberDeath(Creature* bot)
+    void AddToHealerResurrectQueue(Creature* deadBot, Creature* healer)
     {
-        if (!bot)
-            return false;
+        if (!deadBot || !healer)
+            return;
 
-        if (!bot->IsAlive())
-            return false;
+        auto healerAI = dynamic_cast<FSB_BaseAI*>(healer->AI());
+        if (!healerAI)
+            return;
 
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return false;
+        // Add dead bot GUID to healer's queue
+        healerAI->botResurrectQueue.push(deadBot->GetGUID());
+        TC_LOG_DEBUG("scripts.fsb.death", "FSB: AddToHealerResurrectQueue Added dead bot {} to healer {} resurrect queue", deadBot->GetName(), healer->GetName());
 
-        auto& botGroup = baseAI->botLogicalGroup;
-        auto& botSayMemberDead = baseAI->botSayMemberDead;
-
-        if (!baseAI->botResurrectTargetGuid.IsEmpty())
-            return false;
-
-        if (baseAI->botSayMemberDead)
-            return false;
-
-        Unit* deadTarget = FSBGroup::BotGetFirstDeadMember(botGroup);
-
-        if (!deadTarget || !deadTarget->IsInWorld() || deadTarget->IsDuringRemoveFromWorld())
-            return false;
-
-        // Announce death (only once)
-        if (!botSayMemberDead && bot->IsAlive() &&
-            urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        // Chatter announcement (once when added to queue)
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
-            std::string chatter = FSBChatter::GetRandomReply(bot, deadTarget, FSB_ChatterCategory::botMemberDied, FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry()), 0);
-            bot->Yell(chatter, LANG_UNIVERSAL);
-            FSBChatter::DemandTimedReply(bot, deadTarget, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
-            baseAI->botSayMemberDead = true;
-            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} announced dead unit {}", bot->GetName(), deadTarget->GetName());
+            std::string chatter = FSBChatter::GetRandomReply(healer, deadBot, FSB_ChatterCategory::botMemberDied, FSBMgr::Get()->GetBotChatterTypeForEntry(healer->GetEntry()), 0);
+            healer->Yell(chatter, LANG_UNIVERSAL);
+            FSBChatter::DemandTimedReply(healer, deadBot, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
         }
 
-        baseAI->botResurrectTargetGuid = deadTarget->GetGUID();
+        // Schedule resurrect event
+        FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);
+    }
 
-        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} found dead unit {} for resurrection", bot->GetName(), deadTarget->GetName());
-        return true;
+    void ProcessResurrectQueue(Creature* healer)
+    {
+        if (!healer || !healer->IsAlive())
+            return;
+
+        auto healerAI = dynamic_cast<FSB_BaseAI*>(healer->AI());
+        if (!healerAI)
+            return;
+
+        auto& resurrectQueue = healerAI->botResurrectQueue;
+        if (resurrectQueue.empty())
+            return;
+
+        // Check if healer can resurrect (out of combat, or Druid for combat res)
+        bool canCombatRes = healerAI->botClass == FSB_Class::Druid;
+        if (healer->IsInCombat() && !canCombatRes)
+        {
+            FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
+            return;
+        }
+
+        if (healer->HasUnitState(UNIT_STATE_CASTING))
+        {
+            FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 2s);
+            return;
+        }
+
+        // Get next target from queue
+        ObjectGuid targetGuid = resurrectQueue.front();
+        Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
+
+        // Validate target
+        if (!target || target->IsAlive() || !target->IsInWorld() || target->IsDuringRemoveFromWorld())
+        {
+            resurrectQueue.pop();
+            if (!resurrectQueue.empty())
+                FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 1s);
+            return;
+        }
+
+        // Check distance
+        if (healer->GetMapId() == target->GetMapId() && healer->GetDistance(target) > 30.0f)
+        {
+            healer->GetMotionMaster()->Clear();
+            healer->GetMotionMaster()->MoveCloserAndStop(4, target, 28.f);
+            FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
+            return;
+        }
+
+        // Determine spell based on class
+        uint32 spellId = 0;
+        switch (healerAI->botClass)
+        {
+        case FSB_Class::Priest:
+            spellId = SPELL_PRIEST_RESURRECTION;
+            break;
+        case FSB_Class::Druid:
+            if (canCombatRes && healer->IsInCombat())
+                spellId = SPELL_DRUID_REBIRTH;
+            else
+                spellId = SPELL_DRUID_REVIVE;
+            break;
+        case FSB_Class::Monk:
+            spellId = SPELL_MONK_RESUSCITATE;
+            break;
+        case FSB_Class::Paladin:
+            spellId = SPELL_PALADIN_REDEMPTION;
+            break;
+        case FSB_Class::Shaman:
+            spellId = SPELL_SHAMAN_ANCESTRAL_SPIRIT;
+            break;
+        default:
+            resurrectQueue.pop();
+            if (!resurrectQueue.empty())
+                FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 1s);
+            return;
+        }
+
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
+        if (!spellInfo)
+        {
+            resurrectQueue.pop();
+            if (!resurrectQueue.empty())
+                FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 1s);
+            return;
+        }
+
+        int32 castTimeMs = spellInfo->CalcCastTime();
+        auto costs = spellInfo->CalcPowerCost(healer, spellInfo->GetSchoolMask());
+        uint32 manaCost = 0;
+        if (!costs.empty())
+        {
+            auto manaIt = std::find_if(costs.begin(), costs.end(), [](SpellPowerCost const& cost) { return cost.Power == POWER_MANA; });
+            if (manaIt != costs.end())
+                manaCost = manaIt->Amount;
+            else
+                manaCost = costs[0].Amount;
+        }
+        uint32 currentMana = healer->GetPower(POWER_MANA);
+
+        // Check if healer has enough mana
+        if (currentMana < manaCost)
+        {
+            FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 10s);
+            return;
+        }
+
+        // Cast resurrection on dead target
+        if (FSBSpells::BotCastSpellOnDeadTarget(healer, spellId, target))
+        {
+            uint32 now = getMSTime();
+            healerAI->botGlobalCooldown = now + 1500;
+            resurrectQueue.pop();
+
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: ProcessResurrectQueue Healer {} resurrected {}", healer->GetName(), target->GetName());
+
+            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+            {
+                FSBChatter::DemandBotChatter(healer, target, FSB_ChatterCategory::botRevivedTarget, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            }
+
+            FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(castTimeMs + 1000));
+
+            if (!resurrectQueue.empty())
+                FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, std::chrono::milliseconds(castTimeMs + 2000));
+        }
+        else
+        {
+            FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 5s);
+        }
     }
 
     void HandleSpellResurrection(Creature* bot, uint32 spellId)

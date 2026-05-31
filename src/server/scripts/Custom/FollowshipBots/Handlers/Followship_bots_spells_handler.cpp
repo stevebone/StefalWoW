@@ -442,6 +442,31 @@ namespace FSBSpells
         return false;
     }
 
+    bool BotCastSpellOnDeadTarget(Creature* bot, uint32 spellId, Unit* target)
+    {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return false;
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld())
+            return false;
+
+        if (!spellId)
+            return false;
+
+        bot->SetFacingToObject(target, true);
+
+        SpellCastResult result = bot->CastSpell(target, spellId);
+
+        if (result == SPELL_CAST_OK)
+        {
+            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} casted spell {} on dead target {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), target->GetName());
+            return true;
+        }
+        else TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} Unable to cast spell {} on dead target {} with result {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), target->GetName(), result);
+
+        return false;
+    }
+
     bool BotCastSpellatLocation(Creature* bot, uint32 spellId, const Position& pos)
     {
         if (!bot)

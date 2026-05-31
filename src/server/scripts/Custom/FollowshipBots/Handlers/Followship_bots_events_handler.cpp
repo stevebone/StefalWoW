@@ -131,7 +131,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
 
     case FSB_EVENT_HIRED_RESURRECT_TARGET:
-        FSBOOC::BotOOCResurrectTarget(bot);
+        FSBDeath::ProcessResurrectQueue(bot);
         break;
 
     case FSB_EVENT_HIRED_RESUME_FOLLOW:
@@ -150,10 +150,6 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         else botEvents.ScheduleEvent(FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
         break;
     }
-
-    case FSB_EVENT_HIRED_CHECK_MEMBER_DEATH:
-        FSBDeath::CheckBotMemberDeath(bot);
-        break;
 
     case FSB_EVENT_HIRED_SPELL_RESURRECT_STATE:
         FSBDeath::HandleSpellResurrectionDelayedAction(bot);
