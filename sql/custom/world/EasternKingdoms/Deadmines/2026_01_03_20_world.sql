@@ -69,21 +69,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 ('48505', '0', '2', '0', '1', '2', '100', '0', '50', '15000', '18000', '11', '90958', '0', '1', 'Defias Shadowguard Cast Evasion 50% HP'),
 ('48505', '0', '3', '0', '1,2', '0', '100', '8000', '8000', '14000', '15000', '11', '90956', '0', '5', 'Defias Shadowguard Cast Shadowstep');
 
--- Defias Cannon Event
-UPDATE `gameobject_template` SET `ScriptName` = 'go_defias_cannon' WHERE (`entry` = '442661'); -- Defias Cannon (new)
-UPDATE `gameobject` SET `id` = '442661' WHERE (`guid` = '235341'); -- Defias Cannon (new) replacing 16398
-
--- Gunpowder spawn
-DELETE FROM `gameobject` WHERE `map` = 36 AND `id` = 17155;
-INSERT INTO `gameobject` VALUES
-('900043', '17155', '36', '1581', '1581', '1,2', '0', '0', '0', '-1', '-106.115', '-617.24', '13.8818', '3.22747', '-0', '-0', '-0.999078', '0.0429272', '300', '255', '1', '', NULL, '0');
-
--- Gunpowder fix for loot
-UPDATE `gameobject_template` SET `Data1` = '17155' WHERE (`entry` = '17155');
-
-DELETE FROM `gameobject_loot_template` WHERE `Entry` IN (17155); -- Defias Gunpowder
-INSERT INTO `gameobject_loot_template` VALUES
-('17155', '0', '221485', '100', '0', '1', '0', '1', '1', 'Defias Gunpowder');
 
 -- Rare parrots spawns
 DELETE FROM `creature` WHERE `map` = 36 AND `id` IN (48448, 48449);

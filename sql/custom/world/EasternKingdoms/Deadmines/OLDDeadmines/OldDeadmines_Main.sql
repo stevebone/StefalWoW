@@ -4,6 +4,7 @@
 -- NPC: 598 Defias Miner
 -- NPC: 622 Goblin Engineer
 -- NPC: 634 Defias Overseer
+-- NPC: 636 Defias Blackguard
 -- NPC: 641 Defias Woodcarver
 -- NPC: 642 Sneeds Shredder
 -- NPC: 643 Sneed
@@ -17,9 +18,12 @@
 -- NPC: 1763 Gildnid
 -- NPC: 2520 Remote Controlled Golem
 -- NPC: 3450 Defias Companion
+-- NPC: 3947 Goblin Shipbuilder
 -- NPC: 4416 Defias Strip Miner
 -- NPC: 4417 Defias Taskmaster
 -- NPC: 4418 Defias Wizzard
+
+-- AT: 6361 Deadmines after cannon door
 
 -- Deadmines Classic Phase
 -- Phase 50007 applies Classic Deadmines mobs when instance data DeadminesVersion = 1 (Classic)
@@ -34,15 +38,17 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 
 UPDATE `instance_template` SET `script` = 'custom_instance_deadmines' WHERE (`map` = '36');
 
+UPDATE `creature_template` SET `ScriptName` = 'boss_mr_smite' WHERE `entry` = 646;
 UPDATE `creature_template` SET `ScriptName` = 'boss_rhahkzor' WHERE `entry` = 644;
 UPDATE `creature_template` SET `ScriptName` = 'boss_sneed' WHERE `entry` = 643;
 UPDATE `creature_template` SET `ScriptName` = 'boss_gilnid' WHERE `entry` = 1763;
 
-DELETE FROM `item_script_names` WHERE `Id` = 221485;
-INSERT INTO `item_script_names` (`Id`, `ScriptName`) VALUES
-(221485, 'item_defias_gunpowder');
+DELETE FROM `areatrigger_scripts` WHERE `Entry` = 6361;
+INSERT INTO `areatrigger_scripts` (`Entry`, `ScriptName`) VALUES
+(6361, 'deadmines_door_cannon_event_at');
 
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (598,622,634,641,642,643,644,646,657,1725,1729,1731,1732,1763,2520,3450,4416,4417,4418);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (598,622,634,641,642,643,644,646,657,1725,1729,1731,1732,1763,2520,3450,3947,
+4416,4417,4418);
 INSERT INTO `creature_template_difficulty` VALUES
 (598, 1, 0, 0, 202, 0, 1, 1, 1, 1.7, 409, 2097224, 0, 0, 598, 598, 0, 7, 54, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Miner
 (622, 1, 0, 0, 202, 0, 4, 1, 1, 1.7, 431, 2097224, 0, 0, 622, 622, 0, 87, 178, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Goblin Engineer
@@ -60,6 +66,7 @@ INSERT INTO `creature_template_difficulty` VALUES
 (1763, 1, 0, 0, 202, 0, 25, 1, 1, 1.7, 1452, 2097256, 128, 0, 1763, 1763, 0, 76, 217, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Gildnid
 (2520, 1, 0, 0, 202, 0, 3, 1, 1, 1, 2117, 2097224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Remote Controlled Golem
 (3450, 1, 0, 0, 202, 0, 2.5, 1, 1, 1, 2992, 2097224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Defias Companion
+(3947, 1, 1, 1, 202, 0, 3, 1, 1, 1.7, 3440, 0, 0, 0, 3947, 3947, 0, 89, 194, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- Goblin Shipbuilder
 (4416, 1, 0, 0, 202, 0, 4, 1, 1, 1.7, 3873, 2097224, 0, 0, 4416, 4416, 0, 8, 56, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Strip Miner
 (4417, 1, 0, 0, 202, 0, 6, 1, 1, 1.7, 3874, 2097224, 0, 0, 4417, 4417, 0, 66, 171, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Taskmaster
 (4418, 1, 0, 0, 202, 0, 5, 0.7871, 1, 1.7, 3875, 2097224, 0, 0, 4418, 4418, 0, 79, 169, 268959744, 0, 0, 0, 0, 0, 0, 0, -1); -- Defias Wizzard
@@ -81,7 +88,9 @@ INSERT INTO `gameobject_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `
 DELETE FROM `creature_text` WHERE `CreatureID` = 646; -- Mr Smite
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
 (646, 0, 0, 'You there! Check out that noise!', 14, 7, 100, 5775, 1148, 255, 'Mr Smite to Player'),
-(646, 0, 1, 'We''re under attack! Avast, ye swabs! Repel the invaders!', 14, 7, 100, 5777, 1149, 255, 'Mr Smite to Player');
+(646, 1, 0, 'We''re under attack! Avast, ye swabs! Repel the invaders!', 14, 7, 100, 5777, 1149, 255, 'Mr Smite to Player'),
+(646, 2, 0, 'You landlubbers are tougher than I thought! I''ll have to improvise!', 14, 7, 100, 5778, 1344, 100, 'Mr Smite to Player'),
+(646, 3, 0, 'D''ah! Now you''re making me angry!', 14, 7, 100, 5779, 1345, 100, 'Mr Smite to Player');
 
 
 DELETE FROM `waypoint_path`

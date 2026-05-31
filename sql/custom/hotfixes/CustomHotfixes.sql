@@ -11,7 +11,8 @@ REPLACE INTO `hotfix_data` (`Id`, `UniqueId`, `TableHash`, `RecordId`, `Status`,
 (800005, 800005, 4042326115, 50005, 1, -1), -- Phase Westfall 2
 (800006, 800006, 4042326115, 50006, 1, -1), -- Phase Westfall 3
 (800007, 800007, 4042326115, 50007, 1, -1), -- Phase Old Deadmines Dungeon
-(800008, 800008, 441483745,  119,   1, -1); -- Area Trigger Deadmines Portal
+(800008, 800008, 441483745,  119,   1, -1), -- Area Trigger Deadmines Portal
+(800009, 800009, 441483745,  6361,   1, -1); -- Area Trigger Deadmines Cannon door outside
 
 REPLACE INTO `phase` VALUES
 (50001, 4, -1), -- Start zone 1
@@ -23,4 +24,5 @@ REPLACE INTO `phase` VALUES
 (50007, 4, -1); -- Old Deadmines Dungeon
 
 REPLACE INTO `area_trigger` (`PosX`, `PosY`, `PosZ`, `ID`, `ContinentID`, `PhaseUseFlags`, `PhaseID`, `PhaseGroupID`, `Radius`, `BoxLength`, `BoxWidth`, `BoxHeight`, `BoxYaw`, `ShapeType`, `ShapeID`, `AreaTriggerActionSetID`, `Flags`, `VerifiedBuild`) VALUES 
-(-14.36279964447, -393.38000488281, 64.56050109863, 119, 36, 1, 0, 0, 6, 0, 0, 0, 0, 0, 0, 180, 0, 67823);
+(-14.36279964447, -393.38000488281, 64.56050109863, 119, 36, 1, 0, 0, 6, 0, 0, 0, 0, 0, 0, 180, 0, 67823),
+(-96.15100097656, -704.35400390625, 8.89498996735, 6361, 36, 1, 0, 0, 0, 35.56999969482, 43.72999954224, 12.57999992371, 0, 1, 0, 2162, 0, 67823);

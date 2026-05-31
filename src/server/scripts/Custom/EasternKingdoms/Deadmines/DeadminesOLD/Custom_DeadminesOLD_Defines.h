@@ -32,6 +32,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 EncounterCount = 7;
         static constexpr uint32 PhaseDeadminesOLD = 50007;
         static constexpr uint32 ZidormiTextId = 7187;
+        static constexpr uint8 SecondSmiteAlarm = 10;
+        static constexpr uint64 DATA_SMITE_CHEST = 0;
     }
 
     namespace CreaturesOLD
@@ -39,6 +41,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 RhahkZor = 644;
         static constexpr uint32 Sneed = 643;
         static constexpr uint32 Gilnid = 1763;
+        static constexpr uint32 MrSmite = 642;
 
         static constexpr uint32 DefiasPirate = 657;
     }
@@ -48,11 +51,26 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MrSmite = 901188;
     }
 
+    namespace ObjectsOLD
+    {
+        static constexpr uint32 MrSmiteChest = 144111;
+    }
+
     namespace SpellsOLD
     {
         static constexpr uint32 RhahkZorSlam = 6304;
         static constexpr uint32 SneedDisarm = 455098;  //6713 Seems to fail to cast
         static constexpr uint32 GilnidMoltenMetal = 5213;
+        static constexpr uint32 SmiteTrash = 3391;
+        static constexpr uint32 SmiteStomp = 6432;
+        static constexpr uint32 SmiteSlam = 6435;
+    }
+
+    namespace EquipmentOLD
+    {
+        static constexpr uint32 SmiteSword = 5191;
+        static constexpr uint32 SmiteAxe = 5196;
+        static constexpr uint32 SmiteMace = 7230;
     }
 
     namespace DataTypesOLD
@@ -72,28 +90,18 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 SneedCastDisarm = 2;
         static constexpr int8 GilnidTalk = 3;
         static constexpr int8 GilnidCastMoltenMetal = 4;
-    }
-
-    namespace CannonEvent
-    {
-        static constexpr int8 DATA_EVENT = 1;
-
-        static constexpr int8 STATE_CANNON_NOT_USED = 0;
-        static constexpr int8 STATE_CANNON_GUNPOWDER_USED = 1;
-        static constexpr int8 STATE_CANNON_BLAST_INITIATED = 2;
-        static constexpr int8 STATE_PIRATES_ATTACK = 3;
-        static constexpr int8 STATE_SMITE_ALARM = 4;
-        static constexpr int8 STATE_DONE = 5;
-
-        static constexpr uint32 BLAST_TIMER = 3000;
-        static constexpr uint32 PIRATES_TIMER = 1000;
-        static constexpr uint32 SMITE_ALARM_TIMER = 5000;
+        static constexpr int8 SmiteCastTrash = 5;
+        static constexpr int8 SmiteCastSlam = 6;
+        static constexpr int8 SmitePhaseEvent = 7;
     }
 
     namespace TextsOLD
     {
+        static constexpr int8 GilnidOOC = 0;
         static constexpr int8 SmiteAlarm1 = 0;
         static constexpr int8 SmiteAlarm2 = 1;
+        static constexpr int8 SmitePhase1 = 2;
+        static constexpr int8 SmitePhase2 = 3;
     }
 
     namespace SoundsOLD

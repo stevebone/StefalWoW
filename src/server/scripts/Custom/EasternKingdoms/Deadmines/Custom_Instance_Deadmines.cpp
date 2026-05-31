@@ -40,7 +40,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             custom_instance_deadmines_InstanceMapScript(InstanceMap* map) : InstanceScript(map),
                 _version(*this, "DeadminesVersion", Version::NotSet),
-                _cannonState(*this, "CannonState", CannonEvent::STATE_CANNON_NOT_USED)
+                _cannonState(*this, "CannonState", CannonEvent::STATE_CANNON_NOT_USED),
+                _secondSmiteAlarm(*this, "SecondSmiteAlarm", 0)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -77,6 +78,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case CannonEvent::DATA_EVENT:
                         _cannonState = data;
                         break;
+                    case MiscOLD::SecondSmiteAlarm:
+                        _secondSmiteAlarm = data;
+                        break;
                     default:
                         break;
                 }
@@ -90,6 +94,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _version;
                     case CannonEvent::DATA_EVENT:
                         return _cannonState;
+                    case MiscOLD::SecondSmiteAlarm:
+                        return _secondSmiteAlarm;
                     default:
                         return 0;
                 }
@@ -110,8 +116,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 case Objects::DoorLever:
                     _doorLeverGUID = go->GetGUID();
                     break;
-                //case GO_MR_SMITE_CHEST:
-                //    uiSmiteChestGUID = go->GetGUID();
+                case ObjectsOLD::MrSmiteChest:
+                    _mrSmiteChestGUID = go->GetGUID();
                     break;
                 default:
                     break;
@@ -146,7 +152,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                         if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite)) // goes off when door blows up
                             smite->AI()->Talk(TextsOLD::SmiteAlarm1);
                         _piratesTimer = CannonEvent::PIRATES_TIMER;
-                        _smiteAlarmTimer = CannonEvent::SMITE_ALARM_TIMER;
                         _cannonState = CannonEvent::STATE_PIRATES_ATTACK;
                     }
                     else _cannonBlastTimer -= diff;
@@ -155,18 +160,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     if (_piratesTimer <= diff)
                     {
                         MoveCreaturesInside();
-                        _cannonState = CannonEvent::STATE_SMITE_ALARM;
-                    }
-                    else _piratesTimer -= diff;
-                    break;
-                case CannonEvent::STATE_SMITE_ALARM:
-                    if (_smiteAlarmTimer <= diff)
-                    {
-                        if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite))
-                            smite->AI()->Talk(TextsOLD::SmiteAlarm2);
                         _cannonState = CannonEvent::STATE_DONE;
                     }
-                    else _smiteAlarmTimer -= diff;
+                    else _piratesTimer -= diff;
                     break;
                 }
             }
@@ -241,17 +237,29 @@ namespace Scripts::EasternKingdoms::Deadmines
                     pDoorLever->SetFlag(GO_FLAG_INTERACT_COND);
             }
 
+            ObjectGuid GetGuidData(uint32 data) const override
+            {
+                switch (data)
+                {
+                case MiscOLD::DATA_SMITE_CHEST:
+                    return _mrSmiteChestGUID;
+                }
+
+                return ObjectGuid::Empty;
+            }
+
         private:
             PersistentInstanceScriptValue<uint8> _version;
             PersistentInstanceScriptValue<uint8> _cannonState;
+            PersistentInstanceScriptValue<uint8> _secondSmiteAlarm;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
-            uint32 _smiteAlarmTimer = 0;
 
             ObjectGuid _ironCladDoorGUID;
             ObjectGuid _doorLeverGUID;
             ObjectGuid _defiasCannonGUID;
+            ObjectGuid _mrSmiteChestGUID;
 
             ObjectGuid _defiasPirate1GUID;
             ObjectGuid _defiasPirate2GUID;

@@ -174,6 +174,149 @@ namespace Scripts::EasternKingdoms::Deadmines
         }
     };
 
+    struct boss_mr_smite : public BossAI
+    {
+        boss_mr_smite(Creature* creature) : BossAI(creature, DataTypesOLD::BOSS_MR_SMITE), _phase(0), _isMoving(false), _mrSmiteChestGUID() { }
+
+        void Reset() override
+        {
+            BossAI::Reset();
+            SetEquipmentSlots(false, EquipmentOLD::SmiteSword, EQUIP_UNEQUIP, EQUIP_NO_CHANGE);
+            me->SetStandState(UNIT_STAND_STATE_STAND);
+            me->SetReactState(REACT_AGGRESSIVE);
+            me->SetNoCallAssistance(true);
+            _phase = 0;
+            _isMoving = false;
+            _healthCheck = 0;
+            
+
+            if (instance)
+            {
+                if (GameObject* chest = ObjectAccessor::GetGameObject(*me, instance->GetGuidData(MiscOLD::DATA_SMITE_CHEST)))
+                    _mrSmiteChestGUID = chest->GetGUID();
+            }
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            BossAI::JustEngagedWith(who);
+            events.ScheduleEvent(EventsOLD::SmiteCastTrash, 5s, 9s);
+            events.ScheduleEvent(EventsOLD::SmiteCastSlam, 9s);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            me->SetFacingTo(5.47f);
+            me->SetStandState(UNIT_STAND_STATE_KNEEL);
+            _phaseTimer = 2000;
+            _phase = 2;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+                return;
+
+            // Phase handling (equipment swap, stand up, return to combat)
+            if (_phase)
+            {
+                if (_phaseTimer <= diff)
+                {
+                    switch (_phase)
+                    {
+                    case 1:
+                        if (!_isMoving)
+                        {
+                            if (GameObject* chest = ObjectAccessor::GetGameObject(*me, instance->GetGuidData(MiscOLD::DATA_SMITE_CHEST)))
+                            {
+                                me->GetMotionMaster()->Clear();
+                                me->GetMotionMaster()->MovePoint(0, chest->GetPositionX() - 1.5f, chest->GetPositionY() + 1.4f, chest->GetPositionZ());
+                                _isMoving = true;
+                            }
+                        }
+                        break;
+                    case 2:
+                        if (_healthCheck == 1)
+                            SetEquipmentSlots(false, EquipmentOLD::SmiteAxe, EquipmentOLD::SmiteAxe, EQUIP_NO_CHANGE);
+                        else
+                            SetEquipmentSlots(false, EquipmentOLD::SmiteMace, EQUIP_UNEQUIP, EQUIP_NO_CHANGE);
+                        _phaseTimer = 500;
+                        _phase = 3;
+                        break;
+                    case 3:
+                        me->SetStandState(UNIT_STAND_STATE_STAND);
+                        _phaseTimer = 750;
+                        _phase = 4;
+                        break;
+                    case 4:
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        SetCombatMovement(true);
+                        me->GetMotionMaster()->MoveChase(me->GetVictim(), me->m_CombatDistance);
+                        _isMoving = false;
+                        _phase = 0;
+                        break;
+                    }
+                }
+                else _phaseTimer -= diff;
+            }
+
+            // Abilities only when not in phase transition
+            if (!_isMoving)
+            {
+                events.Update(diff);
+
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                    case EventsOLD::SmiteCastTrash:
+                        if (urand(0, 99) > 15)
+                            DoCastSelf(SpellsOLD::SmiteTrash);
+                        events.Repeat(6s, 15s);
+                        break;
+                    case EventsOLD::SmiteCastSlam:
+                        if (urand(0, 99) > 15)
+                            DoCastVictim(SpellsOLD::SmiteSlam);
+                        events.Repeat(11s);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+
+            // Phase changes at 66% and 33% health
+            if ((_healthCheck == 0 && !HealthAbovePct(66)) || (_healthCheck == 1 && !HealthAbovePct(33)))
+            {
+                ++_healthCheck;
+                DoCastAOE(SpellsOLD::SmiteStomp, false);
+                SetCombatMovement(false);
+                me->AttackStop();
+                me->InterruptNonMeleeSpells(false);
+                me->SetReactState(REACT_PASSIVE);
+                _phaseTimer = 2500;
+                _phase = 1;
+
+                Talk(_healthCheck == 1 ? TextsOLD::SmitePhase1 : TextsOLD::SmitePhase2);
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        uint8 _phase = 0;
+        uint8 _healthCheck = 0;
+        bool _isMoving = false;
+        uint32 _phaseTimer = 0;
+        ObjectGuid _mrSmiteChestGUID;
+    };
+
     struct npc_zidormi_deadmines_old : public ScriptedAI
     {
         npc_zidormi_deadmines_old(Creature* creature) : ScriptedAI(creature) {}
@@ -224,5 +367,6 @@ void AddSC_custom_deadmines_old_npcs()
     RegisterCreatureAI(boss_rhahkzor);
     RegisterCreatureAI(boss_sneed);
     RegisterCreatureAI(boss_gilnid);
+    RegisterCreatureAI(boss_mr_smite);
     RegisterCreatureAI(npc_zidormi_deadmines_old);
 }

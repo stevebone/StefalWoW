@@ -1,0 +1,66 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "AreaTrigger.h"
+#include "AreaTriggerAI.h"
+#include "Creature.h"
+#include "CreatureAI.h"
+#include "InstanceScript.h"
+#include "Map.h"
+#include "Player.h"
+#include "ScriptMgr.h"
+
+#include "Custom_DeadminesOLD_Defines.h"
+#include "Custom_Instance_Deadmines.h"
+
+namespace Scripts::EasternKingdoms::Deadmines
+{
+    struct deadmines_door_cannon_event_at : public AreaTriggerAI
+    {
+        deadmines_door_cannon_event_at(AreaTrigger* at) : AreaTriggerAI(at) { }
+
+        void OnUnitEnter(Unit* unit) override
+        {
+            if (Player* player = unit->ToPlayer())
+            {
+                if (InstanceScript* instance = player->GetInstanceScript())
+                {
+                    if (instance->GetData(MiscOLD::SecondSmiteAlarm) == 1)
+                        return;
+
+                    if (Creature* smite = player->GetMap()->GetCreatureBySpawnId(SpawnsOLD::MrSmite))
+                    {
+                        instance->SetData(MiscOLD::SecondSmiteAlarm, 1);
+                        smite->AI()->Talk(TextsOLD::SmiteAlarm2);
+                    }
+                }
+            }
+        }
+    };
+}
+
+void AddSC_custom_deadmines_areatrigger()
+{
+    using namespace Scripts::EasternKingdoms::Deadmines;
+
+    RegisterAreaTriggerAI(deadmines_door_cannon_event_at);
+}
