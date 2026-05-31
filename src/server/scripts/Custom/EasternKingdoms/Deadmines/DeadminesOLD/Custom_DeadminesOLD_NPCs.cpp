@@ -26,6 +26,7 @@
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
+#include "ScriptedGossip.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 
