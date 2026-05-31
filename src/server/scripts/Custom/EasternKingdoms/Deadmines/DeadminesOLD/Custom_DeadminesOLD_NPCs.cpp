@@ -21,6 +21,7 @@
  */
 
 #include "Creature.h"
+#include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
