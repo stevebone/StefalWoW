@@ -2137,6 +2137,11 @@ void ScriptMgr::OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newAre
     FOREACH_SCRIPT(PlayerScript)->OnUpdateZone(player, newZone, newArea);
 }
 
+void ScriptMgr::OnPhaseChange(Player* player)
+{
+    FOREACH_SCRIPT(PlayerScript)->OnPhaseChange(player);
+}
+
 void ScriptMgr::OnQuestStatusChange(Player* player, uint32 questId)
 {
     FOREACH_SCRIPT(PlayerScript)->OnQuestStatusChange(player, questId);
@@ -3007,6 +3012,10 @@ void PlayerScript::OnBindToInstance(Player* /*player*/, Difficulty /*difficulty*
 }
 
 void PlayerScript::OnUpdateZone(Player* /*player*/, uint32 /*newZone*/, uint32 /*newArea*/)
+{
+}
+
+void PlayerScript::OnPhaseChange(Player* /*player*/)
 {
 }
 

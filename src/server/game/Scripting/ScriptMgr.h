@@ -780,6 +780,9 @@ class TC_GAME_API PlayerScript : public ScriptObject
         // Called when a player switches to a new zone
         virtual void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea);
 
+        // Called when a player's phase changes
+        virtual void OnPhaseChange(Player* player);
+
         // Called when a player changes to a new map (after moving to new map)
         virtual void OnMapChanged(Player* player);
 
@@ -1242,6 +1245,7 @@ class TC_GAME_API ScriptMgr
         void OnPlayerSave(Player* player);
         void OnPlayerBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent, uint8 extendState);
         void OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea);
+        void OnPhaseChange(Player* player);
         void OnQuestStatusChange(Player* player, uint32 questId);
         void OnPlayerRepop(Player* player);
         void OnMovieComplete(Player* player, uint32 movieId);

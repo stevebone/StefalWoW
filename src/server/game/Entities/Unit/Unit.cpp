@@ -12479,6 +12479,8 @@ float Unit::MeleeSpellMissChance(Unit const* victim, WeaponAttackType attType, S
 
 void Unit::OnPhaseChange()
 {
+    if (Player* player = ToPlayer())
+        sScriptMgr->OnPhaseChange(player);
 }
 
 void Unit::UpdateObjectVisibility(bool forced)
