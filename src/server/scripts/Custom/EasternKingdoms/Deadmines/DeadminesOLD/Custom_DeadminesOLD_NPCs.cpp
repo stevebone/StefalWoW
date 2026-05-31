@@ -22,6 +22,7 @@
 
 #include "Creature.h"
 #include "GameObject.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PhasingHandler.h"
 #include "Player.h"
