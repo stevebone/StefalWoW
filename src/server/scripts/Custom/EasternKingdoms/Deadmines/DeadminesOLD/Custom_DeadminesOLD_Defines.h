@@ -113,10 +113,10 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         static constexpr int8 VanCleefAggro = 0;
         static constexpr int8 VanCleefHealth66 = 1;
-        static constexpr int8 VanCleefHealth50 = 2;
+        static constexpr int8 VanCleefSummonAllies = 2;
         static constexpr int8 VanCleefHealth33 = 3;
-        static constexpr int8 VanCleefHealth25 = 4;
-        static constexpr int8 VanCleefKill = 5;
+        static constexpr int8 VanCleefKill = 4;
+        static constexpr int8 VanCleefDeath = 5;
     }
 
     namespace PositionsOLD

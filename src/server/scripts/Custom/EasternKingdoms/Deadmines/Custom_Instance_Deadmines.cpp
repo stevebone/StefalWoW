@@ -27,6 +27,7 @@
 #include "PhasingHandler.h"
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Instance_Deadmines.h"
 #include "Custom_DeadminesOLD_Defines.h"
@@ -131,6 +132,9 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 // Defias Cannon Event only runs in Classic version
                 if (!IsClassicVersion())
+                    return;
+
+                if (_cannonState = CannonEvent::STATE_DONE)
                     return;
 
                 // Defias Cannon Event Starts Here

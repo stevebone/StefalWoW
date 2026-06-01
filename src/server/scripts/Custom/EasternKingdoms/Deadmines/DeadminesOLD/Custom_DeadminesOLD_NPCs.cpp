@@ -195,6 +195,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void Reset() override
         {
+
             BossAI::Reset();
             SetEquipmentSlots(false, EquipmentOLD::SmiteSword, EQUIP_UNEQUIP, EQUIP_NO_CHANGE);
             me->SetStandState(UNIT_STAND_STATE_STAND);
@@ -214,6 +215,13 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void JustEngagedWith(Unit* who) override
         {
+            // Only engage Mr Smite in Classic version
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                if (instance->GetData(Misc::DeadminesVersion) != Version::Classic)
+                    return;
+            }
+
             BossAI::JustEngagedWith(who);
             events.ScheduleEvent(EventsOLD::SmiteCastTrash, 5s, 9s);
             events.ScheduleEvent(EventsOLD::SmiteCastSlam, 9s);
@@ -310,6 +318,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             if ((_healthCheck == 0 && !HealthAbovePct(66)) || (_healthCheck == 1 && !HealthAbovePct(33)))
             {
                 ++_healthCheck;
+                me->RemoveAllAuras();
                 DoCastAOE(SpellsOLD::SmiteStomp, false);
                 SetCombatMovement(false);
                 me->AttackStop();
@@ -391,8 +400,14 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void KilledUnit(Unit* victim) override
         {
-            if (victim->GetTypeId() == TYPEID_PLAYER)
-                Talk(TextsOLD::VanCleefKill);
+            Talk(TextsOLD::VanCleefKill);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            BossAI::JustDied(killer);
+
+            Talk(TextsOLD::VanCleefDeath);
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override
@@ -411,7 +426,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (!_guardsCalled && HealthBelowPct(50))
             {
-                Talk(TextsOLD::VanCleefHealth50);
+                Talk(TextsOLD::VanCleefSummonAllies);
                 DoCastSelf(SpellsOLD::VanCleefAllies);
                 _guardsCalled = true;
             }
@@ -426,12 +441,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 Talk(TextsOLD::VanCleefHealth33);
                 _health33 = true;
-            }
-
-            if (!_health25 && HealthBelowPct(25))
-            {
-                Talk(TextsOLD::VanCleefHealth25);
-                _health25 = true;
             }
         }
 
