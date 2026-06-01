@@ -25,6 +25,7 @@
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "ScriptedCreature.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_config.h"
