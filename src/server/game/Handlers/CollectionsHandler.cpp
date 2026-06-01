@@ -44,3 +44,8 @@ void WorldSession::HandleCollectionItemSetFavorite(WorldPackets::Collections::Co
             break;
     }
 }
+
+void WorldSession::HandleMountClearFanfare(WorldPackets::Collections::MountClearFanfare& packet)
+{
+    GetCollectionMgr()->ClearMountFanfare(packet.spellID);
+}
