@@ -26,6 +26,8 @@
 -- NPC: 4417 Defias Taskmaster
 -- NPC: 4418 Defias Wizzard
 
+-- Quest: 373 The Unsent Letter
+
 -- AT: 6361 Deadmines after cannon door
 
 -- Deadmines Classic Phase
@@ -38,6 +40,11 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 50007 AND `SourceEntry` = 1581;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`) VALUES
 (26, 50007, 1581, 0, 0, 13, 0, 1000, 1, 0, '', 0, 'Deadmines - Apply phase 50007 if instance data DeadminesVersion = 1 (Classic)');
+
+-- Reactivate OLD quests
+DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (373);
+UPDATE `quest_template` SET `ContentTuningID` = '202', `StartItem` = '2874' WHERE (`ID` = '373');
+
 
 UPDATE `instance_template` SET `script` = 'custom_instance_deadmines' WHERE (`map` = '36');
 

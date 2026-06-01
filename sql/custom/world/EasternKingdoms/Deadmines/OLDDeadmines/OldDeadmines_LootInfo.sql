@@ -27,7 +27,7 @@ WHERE (Entry, Item) IN (
 );
 
 INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`,`Chance`,`QuestRequired`,`LootMode`,`GroupId`,`MinCount`,`MaxCount`,`Comment`) VALUES
-(639, 0, 2874, 100, 0, 1, 1, 1, 1, 'An Unsent Letter - Edwin VanCleef'),
+(639, 0, 2874, 100, 0, 1, 3, 1, 1, 'An Unsent Letter - Edwin VanCleef'),
 (639, 0, 5202, 25, 0, 1, 2, 1, 1, 'Corsairs Overshirt - Edwin VanCleef'),
 (639, 0, 5193, 25, 0, 1, 2, 1, 1, 'Cape of the Brotherhood - Edwin VanCleef'),
 (639, 0, 10399, 15, 0, 1, 2, 1, 1, 'Blackened Defias Armor - Edwin VanCleef'),
