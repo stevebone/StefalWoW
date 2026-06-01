@@ -353,6 +353,95 @@ namespace Scripts::EasternKingdoms::Deadmines
         }
     };
 
+    struct boss_vancleef : public BossAI
+    {
+        boss_vancleef(Creature* creature) : BossAI(creature, DataTypesOLD::BOSS_VANCLEEF) {}
+
+        void Reset() override
+        {
+            BossAI::Reset();
+
+            _guardsCalled = false;
+            _health25 = false;
+            _health33 = false;
+            _health66 = false;
+
+            DoCastSelf(SpellsOLD::VanCleefDualWield, true);
+            DoCastSelf(SpellsOLD::VanCleefThrash, true);
+
+            // Health scaling: if not classic version, reduce health to 10/17 (for Vision of the Past quest)
+            if (instance && instance->GetData(Misc::DeadminesVersion) != Version::Classic)
+            {
+                uint64 currentMaxHealth = me->GetMaxHealth();
+                uint64 scaledMaxHealth = (currentMaxHealth * 10) / 17;
+                me->SetMaxHealth(scaledMaxHealth);
+                me->SetHealth(scaledMaxHealth);
+            }
+
+            SummonBlackguards();
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            BossAI::JustEngagedWith(who);
+            summons.DoZoneInCombat();
+
+            Talk(TextsOLD::VanCleefAggro);
+        }
+
+        void KilledUnit(Unit* victim) override
+        {
+            if (victim->GetTypeId() == TYPEID_PLAYER)
+                Talk(TextsOLD::VanCleefKill);
+        }
+
+        void EnterEvadeMode(EvadeReason /*why*/) override
+        {
+            summons.DespawnAll();
+            _DespawnAtEvade();
+        }
+
+        void SummonBlackguards()
+        {
+            for (Position const& pos : PositionsOLD::BlackguardPositions)
+                DoSummon(CreaturesOLD::DefiasBlackguard, pos, 1min, TEMPSUMMON_CORPSE_TIMED_DESPAWN);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (!_guardsCalled && HealthBelowPct(50))
+            {
+                Talk(TextsOLD::VanCleefHealth50);
+                DoCastSelf(SpellsOLD::VanCleefAllies);
+                _guardsCalled = true;
+            }
+
+            if (!_health66 && HealthBelowPct(66))
+            {
+                Talk(TextsOLD::VanCleefHealth66);
+                _health66 = true;
+            }
+
+            if (!_health33 && HealthBelowPct(33))
+            {
+                Talk(TextsOLD::VanCleefHealth33);
+                _health33 = true;
+            }
+
+            if (!_health25 && HealthBelowPct(25))
+            {
+                Talk(TextsOLD::VanCleefHealth25);
+                _health25 = true;
+            }
+        }
+
+    private:
+        bool _guardsCalled = false;
+        bool _health25 = false;
+        bool _health33 = false;
+        bool _health66 = false;
+    };
+
     struct npc_zidormi_deadmines_old : public ScriptedAI
     {
         npc_zidormi_deadmines_old(Creature* creature) : ScriptedAI(creature) {}
@@ -404,6 +493,7 @@ void AddSC_custom_deadmines_old_npcs()
     RegisterCreatureAI(boss_sneed);
     RegisterCreatureAI(boss_gilnid);
     RegisterCreatureAI(boss_mr_smite);
+    RegisterCreatureAI(boss_vancleef);
     RegisterCreatureAI(npc_defias_blackguard);
     RegisterCreatureAI(npc_zidormi_deadmines_old);
 }

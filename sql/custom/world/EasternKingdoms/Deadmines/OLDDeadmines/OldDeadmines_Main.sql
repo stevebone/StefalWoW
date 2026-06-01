@@ -103,6 +103,8 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (646, 2, 0, 'You landlubbers are tougher than I thought! I''ll have to improvise!', 14, 7, 100, 5778, 1344, 100, 'Mr Smite to Player'),
 (646, 3, 0, 'D''ah! Now you''re making me angry!', 14, 7, 100, 5779, 1345, 100, 'Mr Smite to Player');
 
+UPDATE `creature_text` SET `Language` = 7 WHERE `CreatureID` = 639 and `GroupID` IN (0, 1, 3, 4, 5); -- VanCleef text
+
 
 DELETE FROM `waypoint_path`
 WHERE `PathId` IN (

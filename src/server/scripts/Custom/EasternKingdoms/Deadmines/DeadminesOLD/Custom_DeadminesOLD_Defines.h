@@ -42,6 +42,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 Sneed = 643;
         static constexpr uint32 Gilnid = 1763;
         static constexpr uint32 MrSmite = 642;
+        static constexpr uint32 VanCleef = 639;
 
         static constexpr uint32 DefiasPirate = 657;
         static constexpr uint32 DefiasWatchman = 1725;
@@ -66,6 +67,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 SmiteTrash = 3391;
         static constexpr uint32 SmiteStomp = 6432;
         static constexpr uint32 SmiteSlam = 6435;
+
+        static constexpr uint32 VanCleefDualWield = 674;
+        static constexpr uint32 VanCleefThrash = 12787;
+        static constexpr uint32 VanCleefAllies = 5200;
     }
 
     namespace EquipmentOLD
@@ -105,6 +110,22 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 SmitePhase1 = 2;
         static constexpr int8 SmitePhase2 = 3;
         static constexpr int8 DefiasBlackguardNotification = 0;
+
+        static constexpr int8 VanCleefAggro = 0;
+        static constexpr int8 VanCleefHealth66 = 1;
+        static constexpr int8 VanCleefHealth50 = 2;
+        static constexpr int8 VanCleefHealth33 = 3;
+        static constexpr int8 VanCleefHealth25 = 4;
+        static constexpr int8 VanCleefKill = 5;
+    }
+
+    namespace PositionsOLD
+    {
+        inline Position const BlackguardPositions[2] =
+        {
+            { -78.2791f, -824.784f, 40.0007f, 2.93215f },
+            { -77.8071f, -815.097f, 40.0188f, 3.26377f }
+        };
     }
 
     namespace SoundsOLD
