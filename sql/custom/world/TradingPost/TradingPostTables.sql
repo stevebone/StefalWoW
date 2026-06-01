@@ -22,14 +22,14 @@ CREATE TABLE IF NOT EXISTS `perks_vendor_items` (
 
 DELETE FROM `perks_vendor_items` WHERE `VendorItemID` IN (947, 1000, 1306, 1316, 1322, 1331, 1354, 1361);
 INSERT INTO `perks_vendor_items` (`VendorItemID`, `MountID`, `BattlePetSpeciesID`, `TransmogSetID`, `ItemModifiedAppearanceID`, `TransmogIllusionID`, `ToyID`, `WarbandSceneID`, `Price`, `OriginalPrice`, `AvailableUntil`, `Disabled`, `DoesNotExpire`) VALUES 
-(947, 0, 0, 0, 249023, 0, 0, 0, 200, 0, 1775055600, 0, 0),
-(1000, 1218012, 0, 0, 0, 0, 0, 0, 700, 0, 1775055600, 0, 0),
-(1306, 1270523, 0, 0, 0, 0, 0, 0, 500, 0, 1775055600, 0, 0),
-(1316, 0, 0, 0, 302232, 0, 0, 0, 100, 0, 1775055600, 0, 0),
-(1322, 0, 0, 0, 304086, 0, 0, 0, 80, 0, 1775055600, 0, 0),
-(1331, 0, 0, 5355, 0, 0, 0, 0, 150, 0, 1775055600, 0, 0),
-(1354, 0, 0, 0, 304226, 0, 0, 0, 80, 0, 1775055600, 0, 0),
-(1361, 0, 0, 0, 304091, 0, 0, 0, 80, 0, 1775055600, 0, 0);
+(947, 0, 0, 0, 249023, 0, 0, 0, 200, 0, 1798642800, 0, 0),
+(1000, 1218012, 0, 0, 0, 0, 0, 0, 700, 0, 1798642800, 0, 0),
+(1306, 1270523, 0, 0, 0, 0, 0, 0, 500, 0, 1798642800, 0, 0),
+(1316, 0, 0, 0, 302232, 0, 0, 0, 100, 0, 1798642800, 0, 0),
+(1322, 0, 0, 0, 304086, 0, 0, 0, 80, 0, 1798642800, 0, 0),
+(1331, 0, 0, 5355, 0, 0, 0, 0, 150, 0, 1798642800, 0, 0),
+(1354, 0, 0, 0, 304226, 0, 0, 0, 80, 0, 1798642800, 0, 0),
+(1361, 0, 0, 0, 304091, 0, 0, 0, 80, 0, 1798642800, 0, 0);
 
 -- Perks Program: Monthly rotation
 CREATE TABLE IF NOT EXISTS `perks_monthly_rotation` (
@@ -44,12 +44,12 @@ CREATE TABLE IF NOT EXISTS `perks_monthly_rotation` (
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COMMENT='Perks Program monthly item rotation schedule';
 
 INSERT INTO `perks_monthly_rotation` (`month_start`, `month_end`, `vendor_item_id`, `comment`) VALUES
-(1772377200, 1775055600, 1316, 'March 2026 - Transmog Appearance'),
-(1772377200, 1775055600, 1000, 'March 2026 - Mount'),
-(1772377200, 1775055600, 1322, 'March 2026 - Transmog Set'),
-(1772377200, 1775055600, 947,  'March 2026 - Unknown Item 947'),
-(1772377200, 1775055600, 1331, 'March 2026 - Unknown Item 1331'),
-(1772377200, 1775055600, 1306, 'March 2026 - Mount (Freezable)');
+(1772377200, 1798642800, 1316, 'March 2026 - Transmog Appearance'),
+(1772377200, 1798642800, 1000, 'March 2026 - Mount'),
+(1772377200, 1798642800, 1322, 'March 2026 - Transmog Set'),
+(1772377200, 1798642800, 947,  'March 2026 - Unknown Item 947'),
+(1772377200, 1798642800, 1331, 'March 2026 - Unknown Item 1331'),
+(1772377200, 1798642800, 1306, 'March 2026 - Mount (Freezable)');
 
 -- Perks Program: Activity intervals
 CREATE TABLE IF NOT EXISTS `perks_activity_intervals` (
