@@ -134,7 +134,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 if (!IsClassicVersion())
                     return;
 
-                if (_cannonState = CannonEvent::STATE_DONE)
+                if (_cannonState == CannonEvent::STATE_DONE)
                     return;
 
                 // Defias Cannon Event Starts Here
