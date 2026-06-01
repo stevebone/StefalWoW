@@ -41,7 +41,8 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 
 UPDATE `instance_template` SET `script` = 'custom_instance_deadmines' WHERE (`map` = '36');
 
-UPDATE `creature_template` SET `ScriptName` = 'npc_defias_blackguard' WHERE `entry` = 636;
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_blackguard_old' WHERE `entry` = 636;
+UPDATE `creature_template` SET `ScriptName` = 'boss_vancleef' WHERE `entry` = 639;
 UPDATE `creature_template` SET `ScriptName` = 'boss_mr_smite' WHERE `entry` = 646;
 UPDATE `creature_template` SET `ScriptName` = 'boss_rhahkzor' WHERE `entry` = 644;
 UPDATE `creature_template` SET `ScriptName` = 'boss_sneed' WHERE `entry` = 643;

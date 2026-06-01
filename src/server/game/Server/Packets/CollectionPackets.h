@@ -54,14 +54,6 @@ namespace WorldPackets
             int32 Flags = 0;
         };
 
-        struct ItemCollectionItemData
-        {
-            int32 ID = 0;
-            ItemCollectionType Type = ItemCollectionType::None;
-            int64 Unknown1110 = 0;
-            int32 Flags = 0;
-        };
-
         class AccountItemCollectionData final : public ServerPacket
         {
         public:

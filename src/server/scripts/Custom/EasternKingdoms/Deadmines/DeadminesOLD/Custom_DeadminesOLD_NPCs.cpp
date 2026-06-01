@@ -332,9 +332,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         ObjectGuid _mrSmiteChestGUID;
     };
 
-    struct npc_defias_blackguard : public ScriptedAI
+    struct npc_defias_blackguard_old : public ScriptedAI
     {
-        npc_defias_blackguard(Creature* creature) : ScriptedAI(creature) {}
+        npc_defias_blackguard_old(Creature* creature) : ScriptedAI(creature) {}
 
         void JustEngagedWith(Unit* who) override
         {
@@ -494,6 +494,6 @@ void AddSC_custom_deadmines_old_npcs()
     RegisterCreatureAI(boss_gilnid);
     RegisterCreatureAI(boss_mr_smite);
     RegisterCreatureAI(boss_vancleef);
-    RegisterCreatureAI(npc_defias_blackguard);
+    RegisterCreatureAI(npc_defias_blackguard_old);
     RegisterCreatureAI(npc_zidormi_deadmines_old);
 }
