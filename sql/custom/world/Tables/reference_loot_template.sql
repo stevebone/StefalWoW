@@ -2,7 +2,7 @@
 -- The creature loot template then uses these references
 
 -- Shared reference loot table for TheWanderingIsle - starter zone
-DELETE FROM `reference_loot_template` WHERE `entry` BETWEEN 1 AND 25;
+DELETE FROM `reference_loot_template` WHERE `entry` BETWEEN 1 AND 26;
 INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `comment`) VALUES
 -- Zone 1 (starting areas)
 -- Weapons & Armor
@@ -117,7 +117,6 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `G
 (1, 2598, 1, 1, 12, 1, 1, 'Pattern: Red Linen Robe'),
 (1, 3609, 1, 1, 12, 1, 1, 'Plans: Copper Chain Vest'),
 (1, 6271, 0.349562, 1, 12, 1, 1, 'Pattern: Red Linen Vest'),
-(1, 3610, 0.349562, 1, 12, 1, 1, 'Plans: Gemmed Copper Gauntlets'),
 (1, 4408, 0.281373, 1, 12, 1, 1, 'Schematic: Mechanical Squirrel Box'),
 (1, 2555, 0.281373, 1, 12, 1, 1, 'Recipe: Swiftness Potion'),
 (1, 2553, 0.281373, 1, 12, 1, 1, 'Recipe: Elixir of Minor Agility'),
@@ -299,6 +298,7 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `G
 (17, 24102, 0.1, 1, 25, 1, 1, 'Manual of Eviscerate IX'),
 (17, 6716, 0.5, 1, 25, 1, 1, 'Schematic: EZ-Thro Dynamite'),
 (17, 3394, 0.114735, 1, 25, 1, 1, 'Recipe: Potion of Curing'),
+(17, 3610, 0.349562, 1, 25, 1, 1, 'Plans: Gemmed Copper Gauntlets'),
 (17, 3612, 0.131126, 1, 25, 1, 1, 'Plans: Green Iron Gauntlets'),
 (17, 3830, 0.114735, 1, 25, 1, 1, 'Recipe: Elixir of Fortitude'),
 (17, 3832, 0.180298, 1, 25, 1, 1, 'Recipe: Elixir of Detect Lesser Invisibility'),
@@ -307,15 +307,33 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `G
 (17, 3870, 0.196689, 1, 25, 1, 1, 'Plans: Green Iron Shoulders'),
 (17, 3872, 0.131126, 1, 25, 1, 1, 'Plans: Golden Scale Leggings'),
 (17, 3874, 0.131126, 1, 25, 1, 1, 'Plans: Polished Steel Boots'),
+(17, 4292, 0.131126, 1, 25, 1, 1, 'Pattern: Green Woolen Bag'),
+(17, 4293, 0.131126, 1, 25, 1, 1, 'Pattern: Hillmans Leather Vest'),
+(17, 4294, 0.131126, 1, 25, 1, 1, 'Pattern: Hillmans Belt'),
 (17, 4296, 0.131126, 1, 25, 1, 1, 'Pattern: Dark Leather Shoulders'),
+(17, 2409, 0.131126, 1, 25, 1, 1, 'Pattern: Dark Leather Tunic'),
+(17, 2406, 0.131126, 1, 25, 1, 1, 'Pattern: Fine Leather Boots'),
+(17, 2601, 0.131126, 1, 25, 1, 1, 'Pattern: Gray Woolen Robe'),
+(17, 2881, 0.031126, 1, 25, 1, 1, 'Plans: Runed Copper Breastplate'),
+(17, 2882, 0.031126, 1, 25, 1, 1, 'Plans: Silvered Bronze Shoulders'),
+(17, 5578, 0.031126, 1, 25, 1, 1, 'Plans: Silvered Bronze Breastplate'),
+(17, 2883, 0.031126, 1, 25, 1, 1, 'Plans: Deadly Bronze Poniard'),
 (17, 4299, 0.114735, 1, 25, 1, 1, 'Pattern: Guardian Armor'),
 (17, 4300, 0.163908, 1, 25, 1, 1, 'Pattern: Guardian Leather Bracers'),
+(17, 4345, 0.114735, 1, 25, 1, 1, 'Pattern: Red Woolen Boots'),
 (17, 4346, 0.114735, 1, 25, 1, 1, 'Pattern: Heavy Woolen Cloak'),
+(17, 4347, 0.114735, 1, 25, 1, 1, 'Pattern: Reinforced Woolen Shoulders'),
 (17, 4348, 0.114735, 1, 25, 1, 1, 'Pattern: Phoenix Gloves'),
+(17, 4349, 0.114735, 1, 25, 1, 1, 'Pattern: Phoenix Pants'),
+(17, 5786, 0.114735, 1, 25, 1, 1, 'Pattern: Murloc Scale Belt'),
+(17, 5972, 0.114735, 1, 25, 1, 1, 'Pattern: Fine Leather Pants'),
+(17, 4409, 0.131126, 1, 25, 1, 1, 'Schematic: Small Seaforium Charge'),
+(17, 4410, 0.131126, 1, 25, 1, 1, 'Schematic: Shadow Goggles'),
 (17, 4412, 0.131126, 1, 25, 1, 1, 'Schematic: Moonsight Rifle'),
 (17, 4414, 0.180298, 1, 25, 1, 1, 'Schematic: Portable Bronze Mortar'),
 (17, 4416, 0.163908, 1, 25, 1, 1, 'Schematic: Goblin Land Mine'),
 (17, 6045, 0.114735, 1, 25, 1, 1, 'Plans: Iron Counterweight'),
+(17, 6390, 0.131126, 1, 25, 1, 1, 'Pattern: Stylish Blue Shirt'),
 (17, 6391, 0.131126, 1, 25, 1, 1, 'Pattern: Stylish Green Shirt'),
 (17, 7084, 0.147517, 1, 25, 1, 1, 'Pattern: Crimson Silk Shoulders'),
 (17, 7085, 0.163908, 1, 25, 1, 1, 'Pattern: Azure Shoulders'),
@@ -323,8 +341,15 @@ INSERT INTO `reference_loot_template` (`entry`, `Item`, `Chance`, `LootMode`, `G
 (17, 7449, 0.180298, 1, 25, 1, 1, 'Pattern: Dusky Leather Leggings'),
 (17, 7450, 0.114735, 1, 25, 1, 1, 'Pattern: Green Whelp Armor'),
 (17, 7453, 0.245861, 1, 25, 1, 1, 'Pattern: Swift Boots'),
+(17, 10316, 0.245861, 1, 25, 1, 1, 'Pattern: Colorful Kilt'),
 (17, 10424, 0.114735, 1, 25, 1, 1, 'Plans: Silvered Bronze Leggings'),
 (17, 10601, 0.311424, 1, 25, 1, 1, 'Schematic: Bright-Eye Goggles'),
+(17, 6344, 0.147517, 1, 25, 1, 1, 'Formula: Enchant Bracer - Minor Versatility'),
+(17, 6347, 0.147517, 1, 25, 1, 1, 'Formula: Enchant Bracer - Minor Strength'),
+(17, 6375, 0.147517, 1, 25, 1, 1, 'Formula: Enchant Bracer - Lesser Versatility'),
+(17, 11038, 0.147517, 1, 25, 1, 1, 'Formula: Enchant 2H Weapon - Lesser Versatility'),
+(17, 11039, 0.147517, 1, 25, 1, 1, 'Formula: Enchant Cloak - Minor Agility'),
+(17, 11081, 0.147517, 1, 25, 1, 1, 'Formula: Formula: Enchant Shield - Lesser Protection'),
 (17, 11164, 0.147517, 1, 25, 1, 1, 'Formula: Enchant Weapon - Lesser Beastslayer'),
 (17, 11165, 0.21308, 1, 25, 1, 1, 'Formula: Enchant Weapon - Lesser Elemental Slayer'),
 (17, 11167, 0.131126, 1, 25, 1, 1, 'Formula: Enchant Boots - Lesser Spirit'),
@@ -514,6 +539,7 @@ INSERT INTO `reference_loot_template` (`entry`, `ItemType`, `Item`, `Chance`, `Q
 (24, 0, 4683, 0.1275, 0, 1, 32, 1, 1, 'Spellbinder Cloak'),
 (24, 0, 4684, 0.15699, 0, 1, 32, 1, 1, 'Spellbinder Belt'),
 (24, 0, 4690, 0.104949, 0, 1, 32, 1, 1, 'Hunting Belt'),
+(24, 0, 4700, 0.104949, 0, 1, 32, 1, 1, 'Inscribed Leather Spaulders'),
 (24, 0, 6336, 0.17347, 0, 1, 32, 1, 1, 'Infantry Tunic'),
 (24, 0, 6537, 0.115357, 0, 1, 32, 1, 1, 'Willow Boots'),
 (24, 0, 6549, 0.103214, 0, 1, 32, 1, 1, 'Soldiers Cloak'),
@@ -663,4 +689,13 @@ INSERT INTO `reference_loot_template` (`entry`, `ItemType`, `Item`, `Chance`, `Q
 -- Defias Mobs (Westfall Specific)
 (25, 0, 1927, 4.26888, 0, 1, 26, 1, 1, 'Deadmines Cleaver'),
 (25, 0, 832, 4.72222, 0, 1, 2, 1, 1, 'Silver Defias Belt'),
-(25, 0, 7997, 2, 0, 1, 2, 1, 1, 'Red Defias Mask');
+(25, 0, 7997, 2, 0, 1, 2, 1, 1, 'Red Defias Mask'),
+
+-- Trash Mobs (Dungeon Specific)
+(26, 0, 1951, 4.26888, 0, 1, 26, 1, 1, 'Blackwater Cutlass'),
+(26, 0, 13136, 0.072222, 0, 1, 26, 1, 1, 'Lil Timmys Peashooter'),
+(26, 0, 2879, 0.072222, 0, 1, 26, 1, 1, 'Antipodean Rod'),
+(26, 0, 12982, 0.072222, 0, 1, 24, 1, 1, 'Silver-linked Footguards'),
+(26, 0, 2911, 0.072222, 0, 1, 24, 1, 1, 'Kellers Girdle'),
+(26, 0, 12977, 0.072222, 0, 1, 24, 1, 1, 'Magefist Gloves'),
+(26, 0, 12984, 0.072222, 0, 1, 26, 1, 1, 'Skycaller');

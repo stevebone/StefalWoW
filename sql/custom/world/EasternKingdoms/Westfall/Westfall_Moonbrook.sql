@@ -87,9 +87,7 @@ INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `Custom
 DELETE FROM `creature_template_difficulty` WHERE `Entry` IN (639,846,42702);
 INSERT INTO `creature_template_difficulty` (`Entry`,`DifficultyID`,`LevelScalingDeltaMin`,`LevelScalingDeltaMax`,`ContentTuningID`,`HealthScalingExpansion`,`HealthModifier`,`ManaModifier`,`ArmorModifier`,`DamageModifier`,`CreatureDifficultyID`,`TypeFlags`,`TypeFlags2`,`TypeFlags3`,`LootID`,`PickPocketLootID`,`SkinLootID`,`GoldMin`,`GoldMax`,`StaticFlags1`,`StaticFlags2`,`StaticFlags3`,`StaticFlags4`,`StaticFlags5`,`StaticFlags6`,`StaticFlags7`,`StaticFlags8`,`VerifiedBuild`) VALUES 
 (846, 0, 0, 0, 6, 0, 1, 1, 1, 1, 619, 0, 0, 0, 846, 0, 0, 19, 29, 0, 0, 0, 0, 0, 0, 0, 0, 63305), -- Rotten Ghoul
-(639, 1, 2, 2, 2872, 0, 1, 1, 1, 1, 442, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 57689),
-(639, 2, 2, 2, 2872, 0, 8, 1, 1, 1.7, 442, 0, 0, 0, 639, 639, 0, 51, 421, 268435456, 0, 0, 0, 0, 0, 0, 0, -1),
-(639, 24, 2, 2, 2872, 0, 1, 1, 1, 1, 442, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 57689),
+(639, 1, 2, 2, 202, 0, 8, 1, 1, 1.7, 442, 0, 0, 0, 639, 639, 0, 51, 421, 268435456, 0, 0, 0, 0, 0, 0, 0, -1), -- Edwin VanCleef
 (42702, 0, 0, 0, 202, 0, 3, 4.5775, 1, 1, 52977, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 64978),
 (42702, 1, 2, 2, 202, 0, 3, 4.5775, 1, 1, 52977, 0, 0, 0, 0, 0, 0, 0, 0, 268435456, 0, 0, 0, 0, 0, 0, 0, 0);
 
