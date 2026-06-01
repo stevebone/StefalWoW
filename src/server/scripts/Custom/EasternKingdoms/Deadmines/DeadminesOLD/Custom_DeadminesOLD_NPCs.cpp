@@ -398,7 +398,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             Talk(TextsOLD::VanCleefAggro);
         }
 
-        void KilledUnit(Unit* victim) override
+        void KilledUnit(Unit* /*victim*/) override
         {
             Talk(TextsOLD::VanCleefKill);
         }
