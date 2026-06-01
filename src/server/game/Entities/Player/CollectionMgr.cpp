@@ -442,16 +442,6 @@ bool CollectionMgr::AddMount(uint32 spellId, MountStatusFlags flags, bool factio
     return true;
 }
 
-void CollectionMgr::ClearMountFanfare(uint32 spellId)
-{
-    auto itr = _mounts.find(spellId);
-    if (itr == _mounts.end())
-        return;
-
-    itr->second = MountStatusFlags(itr->second & ~MOUNT_NEEDS_FANFARE);
-    SendSingleMountUpdate(*itr);
-}
-
 void CollectionMgr::MountSetFavorite(uint32 spellId, bool favorite)
 {
     auto itr = _mounts.find(spellId);

@@ -37,23 +37,6 @@ namespace WorldPackets
             bool IsFavorite = false;
         };
 
-        class MountClearFanfare final : public ClientPacket
-        {
-        public:
-            MountClearFanfare(WorldPacket&& packet) : ClientPacket(CMSG_MOUNT_CLEAR_FANFARE, std::move(packet)) { }
-
-            void Read() override;
-            uint32 spellID = 0;
-        };
-
-        struct ItemCollectionItemData
-        {
-            int32 ID = 0;
-            ItemCollectionType Type = ItemCollectionType::None;
-            int64 Unknown1110 = 0;
-            int32 Flags = 0;
-        };
-
         struct ItemCollectionItemData
         {
             int32 ID = 0;
