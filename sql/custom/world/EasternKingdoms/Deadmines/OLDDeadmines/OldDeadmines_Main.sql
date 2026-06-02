@@ -60,9 +60,10 @@ UPDATE `creature_template` SET `ScriptName` = 'boss_sneed' WHERE `entry` = 643;
 UPDATE `creature_template` SET `ScriptName` = 'boss_gilnid' WHERE `entry` = 1763;
 
 UPDATE `creature_template_addon` SET `auras` = '6408' WHERE `entry` = 636; -- Defias Blackguard Faded aura
+UPDATE `creature_template_addon` SET `emote` = 234 WHERE `entry` = 641; -- Goblin Woodcarver chop wood emote
 
 
-DELETE FROM `areatrigger_scripts` WHERE `Entry` IN (78,6361);
+DELETE FROM `areatrigger_scripts` WHERE `Entry` IN (3746,6361);
 INSERT INTO `areatrigger_scripts` (`Entry`, `ScriptName`) VALUES
 (3746, 'deadmines_mysterious_chest_at'),
 (6361, 'deadmines_door_cannon_event_at');
@@ -104,6 +105,15 @@ UPDATE `gameobject_template` SET `Data1` = 17155 WHERE `entry` = 17155; -- Defia
 UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 400647; -- make the entrance portal visible for all phases
 UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235362; -- make iron clad door visible for all phases
 UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235298; -- make iron clad lever visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235363; -- make factory door visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235294; -- make factory door lever visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235334; -- make heavy door visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235342; -- make mast room door visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235300; -- make mast room door lever visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235345; -- make heavy door visible for all phases
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235340; -- make foundry door visible for all phases
+DELETE FROM `gameobject` WHERE `guid` = 235346; -- delete duplicate foundry door
+UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `guid` = 235299; -- make foundry door lever visible for all phases
 
 DELETE FROM `gameobject_loot_template` WHERE `Entry` = 17155;
 INSERT INTO `gameobject_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `LootMode`, `MinCount`, `MaxCount`, `Comment`) VALUES
