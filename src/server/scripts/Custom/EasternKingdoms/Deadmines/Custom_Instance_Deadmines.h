@@ -74,11 +74,23 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 FoundryDoor = 16399;
         static constexpr uint32 DefiasCannon = 442661;
         static constexpr uint32 DoorLever = 101833;
+
+        static constexpr uint32 MysteriousDeadminesChest = 180024;
     }
 
     namespace Items
     {
         static constexpr uint32 DefiasGunpowder = 221485;
+    }
+
+    namespace Quests
+    {
+        static constexpr uint32 YourFortuneAwaitsInDeadmines = 7938;
+    }
+
+    namespace Positions
+    {
+        static constexpr Position MysteriousDeadminesChest = { -32.1232f, -374.64f, 59.06f, 3.082f };
     }
 
     namespace CannonEvent

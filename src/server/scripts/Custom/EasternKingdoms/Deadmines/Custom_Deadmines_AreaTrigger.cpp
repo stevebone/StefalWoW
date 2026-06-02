@@ -34,6 +34,7 @@
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
+    // 6361 - Deadmines - Cannon Event  Door (outside)
     class deadmines_door_cannon_event_at : public AreaTriggerScript
     {
     public:
@@ -60,11 +61,37 @@ namespace Scripts::EasternKingdoms::Deadmines
             return true;
         }
     };
+
+    // 3746 - Deadmines - Mysterious Chest
+    class deadmines_mysterious_chest_at : public AreaTriggerScript
+    {
+    public:
+        deadmines_mysterious_chest_at() : AreaTriggerScript("deadmines_mysterious_chest_at") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            QuestStatus status = player->GetQuestStatus(Quests::YourFortuneAwaitsInDeadmines);
+
+            if (status == QUEST_STATUS_COMPLETE)
+            {
+                if (GameObject* chest = player->FindNearestGameObjectWithOptions(50.f, { .GameObjectId = Objects::MysteriousDeadminesChest, .PrivateObjectOwnerGuid = player->GetGUID() }))
+                    return false;
+
+                if (GameObject* chest = player->SummonGameObject(Objects::MysteriousDeadminesChest, Positions::MysteriousDeadminesChest, QuaternionData(), 0s, GO_SUMMON_TIMED_DESPAWN))
+                {
+                    chest->SetPrivateObjectOwner(player->GetGUID());
+                    chest->DespawnOrUnsummon(5min);
+                }
+            }
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_deadmines_areatrigger()
 {
     using namespace Scripts::EasternKingdoms::Deadmines;
 
+    new deadmines_mysterious_chest_at();
     new deadmines_door_cannon_event_at();
 }

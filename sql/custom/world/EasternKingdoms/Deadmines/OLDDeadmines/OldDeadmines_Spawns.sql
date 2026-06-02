@@ -358,7 +358,7 @@ SET @OGUID := 900000;
 
 DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+72 AND @OGUID+117;
 INSERT INTO `gameobject` (guid, id, map, spawndifficulties, phaseUseFlags, phaseid, position_x, position_y, position_z, orientation, rotation2, rotation3, spawntimesecs, state) VALUES
-(@OGUID+72, 180024, 36, 1, 0, 50007, -32.1232, -374.64, 59.06, 3.082, 0.999556, 0.0297919, -1, 1),
+-- (@OGUID+72, 180024, 36, 1, 0, 50007, -32.1232, -374.64, 59.06, 3.082, 0.999556, 0.0297919, -1, 1),
 (@OGUID+73, 16399, 	36, 1, 0, 50007, -168.514, -579.861, 19.3159, 3.12414, 0.999962, 0.0087262, 43200, 1),
 (@OGUID+74, 17153, 	36, 1, 0, 50007, -262.714, -482.361, 49.4353, -0.017454, -0.00872689, 0.999962, 43200, 1),
 (@OGUID+75, 17154, 	36, 1, 0, 50007, -242.965, -578.561, 51.1366, 3.12414, 0.999962, 0.0087262, 43200, 1),

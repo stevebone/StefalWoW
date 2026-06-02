@@ -8,6 +8,7 @@
 -- NPC: 5566 Tannysa
 -- NPC: 6089 Harry Burlguard
 -- NPC: 6122 Gakin
+-- NPC: 6579 Shoni the Shilent
 -- NPC: 49540 Stormwind Rat
 
 -- Quest: 389 Bazil Thredd
@@ -16,20 +17,24 @@
 -- Quest: 1688 Surena Caledon
 -- Quest: 1861 Mirror Lake
 -- Quest: 2206 Snatch and Grab
+-- Quest: 2040 Underground Assault
+-- Quest: 2041 Speak with Shoni
 -- Quest: 6261 Dungar Longdrink
 -- Quest: 6285 Return to Lewis
 
 -- Reactivating old/deprecated quests in Stormwind
-DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (389,399, 1861, 1666, 1688, 2206, 6261, 6285);
+DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (389,399, 1861, 1666, 1688, 2040,2041,2206,6261, 6285);
 
 -- Quest starters and enders
-DELETE FROM `creature_queststarter` WHERE `quest` IN (389,399,1666, 1688, 1861, 2206, 6261, 6285);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (389,399,1666, 1688, 1861, 2040,2041,2206,6261, 6285);
 DELETE FROM `creature_questender` WHERE `quest` IN (399,1666, 1688, 1861, 2206, 6261, 6285);
 
 INSERT INTO `creature_queststarter` VALUES
 (1646, 389,0),
 (352, 6285, 0),
 (1323, 6261, 0),
+(6579, 2040, 0),
+(6569, 2041, 0),
 (332, 2206, 0),
 (1646, 399, 0),
 (6089, 1666, 0),
@@ -54,6 +59,8 @@ UPDATE `quest_template_addon` SET `AllowableClasses` = '0' WHERE `ID` IN (1688, 
 UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = '0' WHERE `ID` IN (399, 6261, 6285);
 
 UPDATE `quest_template` SET `ContentTuningID` = 202, `Expansion` = 0 WHERE `ID` = 389;
+UPDATE `quest_template` SET `ContentTuningID` = 202, `Expansion` = 0 WHERE `ID` = 2040;
+UPDATE `quest_template` SET `ContentTuningID` = 6, `Expansion` = 0 WHERE `ID` = 2041;
 
 -- Gameobjects
 SET @OGUID := 900000;

@@ -2,7 +2,7 @@
 -- Id starts at 800001
 -- Table Hashes need to be updated when client is updated
 
-DELETE FROM `hotfix_data` WHERE `Id` BETWEEN 800001 AND 800015;
+DELETE FROM `hotfix_data` WHERE `Id` BETWEEN 800001 AND 800016;
 INSERT INTO `hotfix_data` (`Id`, `UniqueId`, `TableHash`, `RecordId`, `Status`, `VerifiedBuild`) VALUES
 (800001, 800001, 4042326115, 50001, 1, -1), -- Phase Start zone 1
 (800002, 800002, 4042326115, 50002, 1, -1), -- Phase Start zone 2
@@ -18,7 +18,8 @@ INSERT INTO `hotfix_data` (`Id`, `UniqueId`, `TableHash`, `RecordId`, `Status`, 
 (800012, 800012, 0x4AD4429C,  800000,   1, -1), -- Achievement 1 Criteria 1 Criteria Tree 1 Deadmines
 (800013, 800013, 0x4AD4429C,  800001,   1, -1), -- Achievement 1 Criteria 1 Criteria Tree 2 Deadmines
 (800014, 800014, 0x50238EC2,  2874,   1, -1), -- Item: An unsent letter
-(800015, 800015, 0x919BE54E,  2874,   1, -1); -- ItemSparse: An unsent letter
+(800015, 800015, 0x919BE54E,  2874,   1, -1), -- ItemSparse: An unsent letter
+(800016, 800016, 0x919BE54E,  2874,   1, -1); -- ItemSparse: Sayges Fortune 24
 
 DELETE FROM `phase` WHERE `Id` BETWEEN 50001 AND 50007;
 INSERT INTO `phase` VALUES
@@ -52,6 +53,7 @@ DELETE FROM `item` WHERE `ID` IN (2874);
 INSERT INTO `item` (`ID`, `ClassID`, `SubclassID`, `Material`, `InventoryType`, `SheatheType`, `SoundOverrideSubclassID`, `IconFileDataID`, `ItemGroupSoundsID`, `ContentTuningID`, `ModifiedCraftingReagentItemID`, `Unknown1200`, `CraftingQualityID`, `ItemSquishEraID`, `RecraftReagentCountPercentage`, `OrderSource`) VALUES 
 ('2874', '12', '0', '0', '0', '0', '-1', '133471', '20', '0', '0', '0', '0', '0', '0', '0');
 
-DELETE FROM `item_sparse` WHERE `ID` IN (2874);
+DELETE FROM `item_sparse` WHERE `ID` IN (2874,19424);
 INSERT INTO `item_sparse` (`ID`, `AllowableRace`, `Description`, `Display`, `ExpansionID`, `DmgVariance`, `LimitCategory`, `DurationInInventory`, `QualityModifier`, `BagFamily`, `StartQuestID`, `LanguageID`, `ItemRange`, `StatPercentageOfSocket1`, `StatPercentageOfSocket2`, `StatPercentageOfSocket3`, `StatPercentageOfSocket4`, `StatPercentageOfSocket5`, `StatPercentageOfSocket6`, `StatPercentageOfSocket7`, `StatPercentageOfSocket8`, `StatPercentageOfSocket9`, `StatPercentageOfSocket10`, `StatPercentEditor1`, `StatPercentEditor2`, `StatPercentEditor3`, `StatPercentEditor4`, `StatPercentEditor5`, `StatPercentEditor6`, `StatPercentEditor7`, `StatPercentEditor8`, `StatPercentEditor9`, `StatPercentEditor10`, `StatModifierBonusStat1`, `StatModifierBonusStat2`, `StatModifierBonusStat3`, `StatModifierBonusStat4`, `StatModifierBonusStat5`, `StatModifierBonusStat6`, `StatModifierBonusStat7`, `StatModifierBonusStat8`, `StatModifierBonusStat9`, `StatModifierBonusStat10`, `Stackable`, `MaxCount`, `MinReputation`, `RequiredAbility`, `AllowableRace_1`, `AllowableRace_2`, `SellPrice`, `BuyPrice`, `VendorStackCount`, `PriceVariance`, `PriceRandomValue`, `Flags1`, `Flags2`, `Flags3`, `Flags4`, `Flags5`, `FactionRelated`, `ModifiedCraftingReagentItemID`, `ContentTuningID`, `PlayerLevelToItemLevelCurveID`, `ItemLevelOffsetCurveID`, `ItemLevelOffsetItemLevel`, `ItemSquishEraID`, `ItemNameDescriptionID`, `RequiredTransmogHoliday`, `RequiredHoliday`, `GemProperties`, `SocketMatchEnchantmentId`, `TotemCategoryID`, `InstanceBound`, `ZoneBound1`, `ZoneBound2`, `ItemSet`, `LockID`, `PageID`, `ItemDelay`, `MinFactionID`, `RequiredSkillRank`, `RequiredSkill`, `ItemLevel`, `AllowableClass`, `ArtifactID`, `SpellWeight`, `SpellWeightCategory`, `SocketType1`, `SocketType2`, `SocketType3`, `SheatheType`, `Material`, `PageMaterialID`, `Bonding`, `DamageDamageType`, `ContainerSlots`, `RequiredPVPMedal`, `RequiredPVPRank`, `RequiredLevel`, `InventoryType`, `OverallQualityID`, `VerifiedBuild`) VALUES 
-('2874', '-1', 'A letter found on Edwin VanCleef''s person.', 'An Unsent Letter', '0', '0', '0', '0', '0', '0', '373', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '1', '0', '0', '0', '-1', '-1', '0', '0', '1', '1', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '-1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0', '0', '67186');
+('2874', '-1', 'A letter found on Edwin VanCleef''s person.', 'An Unsent Letter', '0', '0', '0', '0', '0', '0', '373', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '1', '0', '0', '0', '-1', '-1', '0', '0', '1', '1', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '-1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0', 1, 67186),
+(19424,-1,'Your fortune awaits you inside the Deadmines.','Sayge''s Fortune #24',0,0,0,0,0,0,7938,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,-1,-1,0,0,1,1,1.01559996605,0,8192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,67186);
