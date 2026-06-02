@@ -21,9 +21,11 @@
  */
 
 #include "Group.h"
+#include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "Unit.h"
 
 #include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
@@ -44,10 +46,6 @@ public:
         FSBMgr::Get()->SyncBotPhasingWithOwner(player);
     }
 
-    void OnLogout(Player* /*player*/) override
-    {
-    }
-
     void OnMapChanged(Player* player) override
     {
         FSBMgr::Get()->RemovePersistentExpiredPlayerBots(player);
@@ -60,16 +58,10 @@ public:
         FSBMgr::Get()->SyncBotPhasingWithOwner(player);
     }
 
-    void OnPlayerTeleport(Player* /*player*/)
-    {
-    }
-
     void OnPlayerDeath(Player* player) override
     {
         if (!player)
             return;
-
-        TC_LOG_DEBUG("scripts.fsb.death", "FSB: OnPlayerDeath called for player {}", player->GetName());
 
         // Build the player's logical group (player + bots)
         std::vector<Unit*> group;
@@ -105,10 +97,6 @@ public:
             TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} died, found healer: {}", player->GetName(), healer->GetName());
             FSBDeath::AddToHealerResurrectQueue(player, healer->ToCreature());
         }
-        else
-        {
-            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} died, NO healer found in group", player->GetName());
-        }
     }
 
 };
@@ -127,12 +115,6 @@ public:
     void OnRemoveMember(Group* group, ObjectGuid guid, RemoveMethod /*method*/, ObjectGuid /*kicker*/, char const* /*reason*/) override
     {
         FSBParty::OnMemberRemove(group, guid);
-    }
-
-    void OnDisband(Group* /*group*/) override
-    {
-        // Group disbanded - each player's bots will be re-sent as standalone fake parties
-        // This happens naturally through the periodic maintenance
     }
 };
 
