@@ -10,6 +10,7 @@
 -- NPC: 6122 Gakin
 -- NPC: 49540 Stormwind Rat
 
+-- Quest: 389 Bazil Thredd
 -- Quest: 399 Humble Beginnings
 -- Quest: 1666 Marshal Haggard
 -- Quest: 1688 Surena Caledon
@@ -19,13 +20,14 @@
 -- Quest: 6285 Return to Lewis
 
 -- Reactivating old/deprecated quests in Stormwind
-DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (399, 1861, 1666, 1688, 2206, 6261, 6285);
+DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (389,399, 1861, 1666, 1688, 2206, 6261, 6285);
 
 -- Quest starters and enders
-DELETE FROM `creature_queststarter` WHERE `quest` IN (1666, 1688, 1861, 2206, 6261, 6285);
-DELETE FROM `creature_questender` WHERE `quest` IN (1666, 1688, 1861, 2206, 6261, 6285);
+DELETE FROM `creature_queststarter` WHERE `quest` IN (389,399,1666, 1688, 1861, 2206, 6261, 6285);
+DELETE FROM `creature_questender` WHERE `quest` IN (399,1666, 1688, 1861, 2206, 6261, 6285);
 
-INSERT IGNORE INTO `creature_queststarter` VALUES
+INSERT INTO `creature_queststarter` VALUES
+(1646, 389,0),
 (352, 6285, 0),
 (1323, 6261, 0),
 (332, 2206, 0),
@@ -34,7 +36,7 @@ INSERT IGNORE INTO `creature_queststarter` VALUES
 (6122, 1688, 0),
 (5497, 1861, 0);
 
-INSERT IGNORE INTO `creature_questender` VALUES
+INSERT INTO `creature_questender` VALUES
 (491, 6285, 0),
 (352, 6261, 0),
 (332, 2206, 0),
@@ -51,6 +53,7 @@ UPDATE `quest_template` SET `ContentTuningID` = '73', `QuestSortID` = '12', `All
 UPDATE `quest_template_addon` SET `AllowableClasses` = '0' WHERE `ID` IN (1688, 1861, 2206);
 UPDATE `quest_template` SET `ContentTuningID` = '6', `Expansion` = '0' WHERE `ID` IN (399, 6261, 6285);
 
+UPDATE `quest_template` SET `ContentTuningID` = 202, `Expansion` = 0 WHERE `ID` = 389;
 
 -- Gameobjects
 SET @OGUID := 900000;
