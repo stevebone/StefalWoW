@@ -20,12 +20,22 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Custom_Instance_Deadmines.h"
 #include "ScriptedCreature.h"
 #include "MotionMaster.h"
 #include "MoveSplineInit.h"
+#include "ObjectMgr.h"
 #include "PassiveAI.h"
 #include "SpellScript.h"
+#include "Player.h"
+#include "Map.h"
+#include "ObjectAccessor.h"
+#include "Vehicle.h"
+#include "GridNotifiers.h"
+#include "Containers.h"
+#include "DB2Stores.h"
+#include "Creature.h"
+
+#include "Custom_Instance_Deadmines.h"
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
@@ -78,9 +88,10 @@ namespace Scripts::EasternKingdoms::Deadmines
             events.RescheduleEvent(Events::GlubtokCastFistOfFlame, std::chrono::seconds(Glubtok::FistOfFlameTimer));
         }
 
-        void KilledUnit(Unit* /*victim*/) override
+        void KilledUnit(Unit* victim) override
         {
-            Talk(Texts::GlubtokKill);
+            if(victim != me)
+                Talk(Texts::GlubtokKill);
         }
 
         void JustDied(Unit* killer) override
@@ -94,7 +105,31 @@ namespace Scripts::EasternKingdoms::Deadmines
             _summonedUnits.clear();
 
             if (_platter)
+            {
                 _platter->AI()->DoAction(2); // Cleanup action
+                _platter->DespawnOrUnsummon();
+                _platter = nullptr;
+            }
+
+            // Check for Ready for Raiding achievement (heroic only, no firewall hits)
+            if (killer->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
+            {
+                // Award achievement only to players who were NOT hit by firewall
+                AchievementEntry const* achievement = sAchievementStore.LookupEntry(Achievements::ReadyForRaidingDeadmines);
+                if (achievement)
+                {
+                    Map::PlayerList const& players = instance->instance->GetPlayers();
+                    for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                    {
+                        if (Player* player = itr->GetSource())
+                        {
+                            // Check if this specific player was hit by firewall
+                            if (instance->GetData(player->GetGUID().GetCounter()) == 0)
+                                player->CompletedAchievement(achievement);
+                        }
+                    }
+                }
+            }
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override
@@ -109,6 +144,10 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (_platter)
                 _platter->AI()->DoAction(2); // Cleanup action
+
+            // Reset dying state on evade
+            _dying = false;
+
             BossAI::EnterEvadeMode();
         }
 
@@ -132,6 +171,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 if (!_dying && _transitionDone)
                 {
+                    damage = 0;
                     events.Reset();
                     DoCast(me, Spells::ArcaneOverloadInitial, true);
                     SummonBeams();
@@ -163,6 +203,26 @@ namespace Scripts::EasternKingdoms::Deadmines
                     if (me && me->IsInWorld())
                         me->CastSpell(me, Spells::ArcaneOverloadSuicide, true);
                 }, std::chrono::seconds(Glubtok::SuicideTimer));
+
+                // Schedule model change separately, not nested, to ensure it executes even after suicide
+                me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsInWorld())
+                    {
+                        if (CreatureTemplate const* ci = sObjectMgr->GetCreatureTemplate(Creatures::GlubtokDead))
+                        {
+                            if (CreatureModel const* model = ObjectMgr::ChooseDisplayId(ci))
+                                me->SetDisplayId(model->CreatureDisplayID);
+                        }
+                    }
+                }, std::chrono::seconds(Glubtok::SuicideTimer) + 500ms);
+
+                // Mark instance as complete after suicide
+                me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsInWorld() && instance)
+                        instance->SetBossState(DataTypes::BOSS_GLUBTOK, DONE);
+                }, std::chrono::seconds(Glubtok::SuicideTimer) + 100ms);
             }
         }
 
@@ -211,7 +271,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
                 if (Creature* dummy = me->SummonCreature(Creatures::BeamBunny, pos1, TEMPSUMMON_TIMED_DESPAWN, 7s))
                 {
-                    dummy->CastSpell(me, spellID, true);
+                    // Start the movement path first
                     Movement::MoveSplineInit init(dummy);
                     init.Path().push_back(G3D::Vector3(pos1.m_positionX, pos1.m_positionY, pos1.m_positionZ));
                     init.Path().push_back(G3D::Vector3(pos2.m_positionX, pos2.m_positionY, pos2.m_positionZ));
@@ -220,13 +280,25 @@ namespace Scripts::EasternKingdoms::Deadmines
                     init.SetFly();
                     init.SetCyclic();
                     init.Launch();
+
+                    // Cast the beam spell after movement starts - capture me by GUID to ensure it works even if AI state changes
+                    ObjectGuid glubtokGUID = me->GetGUID();
+                    dummy->m_Events.AddEventAtOffset([dummy, glubtokGUID, spellID]()
+                    {
+                        if (dummy && dummy->IsInWorld())
+                        {
+                            if (Unit* glubtok = ObjectAccessor::GetUnit(*dummy, glubtokGUID))
+                                dummy->CastSpell(glubtok, spellID, true);
+                        }
+                    }, 100ms);
                 }
             }
         }
 
         void UpdateAI(uint32 diff) override
         {
-            if (!UpdateVictim())
+            // During dying phase, process events even without a victim
+            if (!_dying && !UpdateVictim())
                 return;
 
             events.Update(diff);
@@ -266,7 +338,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                             _platter = me->SummonCreature(Creatures::GlubtokMainPlatter, Glubtok::Phase2Center.m_positionX, Glubtok::Phase2Center.m_positionY, Glubtok::Phase2Center.m_positionZ + 2.0f);
                             if (_platter)
                             {
-                                TC_LOG_DEBUG("scripts.fsb", "Glubtok: Summoned main platter (entry: {}) at ({}, {}, {})", Creatures::GlubtokMainPlatter, Glubtok::Phase2Center.m_positionX, Glubtok::Phase2Center.m_positionY, Glubtok::Phase2Center.m_positionZ + 2.0f);
                                 _platter->setActive(true);
                                 Talk(Texts::GlubtokFirewall);
 
@@ -383,7 +454,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             glubtokBunny->CastSpell(glubtokBunny, Spells::TriggerFireWall, true);
                             _summonedUnits.push_back(glubtokBunny);
-                            TC_LOG_DEBUG("scripts.fsb", "Glubtok: Summoned firewall bunny at Glubtok's air location ({}, {}, {})", me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
                         }
                         break;
                     }
@@ -435,21 +505,18 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                     case 1: // Summon first wave - firewall bunnies and secondary platters
                     {
-                        TC_LOG_DEBUG("scripts.fsb", "Main Platter: Summoning first wave");
                         // Summon 2 firewall bunnies for seats 0 and 7
                         if (Creature* bunny1 = me->SummonCreature(Creatures::FirewallBunny, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0.0f, TEMPSUMMON_MANUAL_DESPAWN))
                         {
                             bunny1->CastSpell(bunny1, Spells::TriggerFireWall, true);
                             bunny1->EnterVehicle(me, 0);
                             _summonedUnits.push_back(bunny1);
-                            TC_LOG_DEBUG("scripts.fsb", "Main Platter: Summoned firewall bunny for seat 0");
                         }
                         if (Creature* bunny2 = me->SummonCreature(Creatures::FirewallBunny, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0.0f, TEMPSUMMON_MANUAL_DESPAWN))
                         {
                             bunny2->CastSpell(bunny2, Spells::TriggerFireWall, true);
                             bunny2->EnterVehicle(me, 7);
                             _summonedUnits.push_back(bunny2);
-                            TC_LOG_DEBUG("scripts.fsb", "Main Platter: Summoned firewall bunny for seat 7");
                         }
 
                         // Summon secondary platters for seats 1-6
@@ -471,7 +538,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                                 secondary->EnterVehicle(me, platter.seat);
                                 _summonedUnits.push_back(secondary);
                                 _secondaryPlatters.push_back(secondary);
-                                TC_LOG_DEBUG("scripts.fsb", "Main Platter: Summoned secondary platter (entry: {}) for seat {}", platter.entry, platter.seat);
                             }
                         }
 
@@ -481,7 +547,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                     }
                     case 2: // Trigger secondary platters to summon their bunnies
                     {
-                        TC_LOG_DEBUG("scripts.fsb", "Main Platter: Triggering secondary platters to summon bunnies");
                         for (Creature* secondary : _secondaryPlatters)
                             if (secondary)
                                 secondary->AI()->DoAction(1); // Action to summon bunnies
@@ -508,20 +573,37 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (actionID == 2) // Cleanup action
             {
-                TC_LOG_DEBUG("scripts.fsb", "Main Platter: Cleaning up all summons");
-                CleanupSummons();
+                // First tell secondary platters to cleanup their bunnies
                 for (Creature* secondary : _secondaryPlatters)
                     if (secondary)
                         secondary->AI()->DoAction(2); // Cleanup secondary platters
+                // Then cleanup our own summons (which includes the secondary platters)
+                CleanupSummons();
             }
         }
 
         void CleanupSummons()
         {
             for (Creature* unit : _summonedUnits)
+            {
                 if (unit)
+                {
+                    // Remove any fire wall auras before despawning
+                    unit->RemoveAllAuras();
                     unit->DespawnOrUnsummon();
+                }
+            }
             _summonedUnits.clear();
+
+            // Also despawn secondary platters themselves
+            for (Creature* secondary : _secondaryPlatters)
+            {
+                if (secondary)
+                {
+                    secondary->RemoveAllAuras();
+                    secondary->DespawnOrUnsummon();
+                }
+            }
             _secondaryPlatters.clear();
         }
 
@@ -543,7 +625,6 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void DoAction(int32 actionID) override
         {
-            TC_LOG_DEBUG("scripts.fsb", "Secondary Platter (entry: {}): Received action {}", me->GetEntry(), actionID);
             if (actionID == 1) // Summon firewall bunnies
             {
                 if (!me->GetVehicleKit())
@@ -552,7 +633,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                     return;
                 }
 
-                TC_LOG_DEBUG("scripts.fsb", "Secondary Platter (entry: {}): Summoning firewall bunnies for all available seats", me->GetEntry());
                 uint8 seatCount = me->GetVehicleKit()->GetAvailableSeatCount();
                 for (uint8 i = 0; i < seatCount; ++i)
                 {
@@ -561,13 +641,11 @@ namespace Scripts::EasternKingdoms::Deadmines
                         bunny->CastSpell(bunny, Spells::TriggerFireWall, true);
                         bunny->EnterVehicle(me, i);
                         _summonedUnits.push_back(bunny);
-                        TC_LOG_DEBUG("scripts.fsb", "Secondary Platter: Summoned firewall bunny for seat {}", i);
                     }
                 }
             }
             else if (actionID == 2) // Cleanup action
             {
-                TC_LOG_DEBUG("scripts.fsb", "Secondary Platter (entry: {}): Cleaning up summons", me->GetEntry());
                 CleanupSummons();
             }
         }

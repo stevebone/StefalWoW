@@ -77,6 +77,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 FireBlossomDummy = 47282;
         static constexpr uint32 BeamBunny = 47242;
         static constexpr uint32 FirewallBunny = 101052;
+        static constexpr uint32 GlubtokDead = 47290;
     }
 
     namespace Objects
@@ -102,6 +103,11 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 DungeonEntrance = 235318;
         static constexpr uint32 FoundryRoom = 235319;
         static constexpr uint32 MastRoom = 235320;
+    }
+
+    namespace Achievements
+    {
+        static constexpr uint32 ReadyForRaidingDeadmines = 5366;
     }
 
     namespace Texts
@@ -162,6 +168,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 GlubtokFallGround = 8;
         static constexpr int8 GlubtokSayFirewall = 9;
         static constexpr int8 GlubtokSpawnFirewallBunny = 10;
+        static constexpr int8 GlubtokTransformDead = 11;
     }
 
     namespace GlubtokActions
@@ -187,7 +194,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 ArcanePower3Timer = 1;
         static constexpr int8 FallGroundTimer = 5;
         static constexpr int8 BoomTimer = 1;
-        static constexpr int8 SuicideTimer = 2;
+        static constexpr int8 SuicideTimer = 3;
     }
 
     namespace Items

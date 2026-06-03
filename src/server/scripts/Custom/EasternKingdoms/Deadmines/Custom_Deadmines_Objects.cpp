@@ -135,7 +135,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             // Cast visual spell at random interval (1-5s)
             uint32 delay = urand(1000, 5000);
-            ObjectGuid pGuid = player->GetGUID();
+
             player->m_Events.AddEventAtOffset([player]()
             {
                 if (player)

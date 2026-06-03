@@ -52,9 +52,23 @@ namespace Scripts::EasternKingdoms::Deadmines
         }
     };
 
+    // 91397 Fire Wall
     // Spell: Glubtok Firewall Targetting (cooldown check for targets)
+    // Hit check to award related achievement
     class spell_glubtok_firewall_targetting : public SpellScript
     {
+        void HandleHit()
+        {
+            if (Player* player = GetHitUnit()->ToPlayer())
+            {
+                if (InstanceScript* instance = player->GetInstanceScript())
+                {
+                    // Mark this specific player as hit by firewall using their GUID
+                    instance->SetData(player->GetGUID().GetCounter(), 1);
+                }
+            }
+        }
+
         void SelectTarget(std::list<WorldObject*>& targets)
         {
             targets.remove_if([](WorldObject* target)
@@ -71,6 +85,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         void Register() override
         {
             OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_glubtok_firewall_targetting::SelectTarget, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+            OnHit += SpellHitFn(spell_glubtok_firewall_targetting::HandleHit);
         }
     };
 }

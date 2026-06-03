@@ -55,6 +55,23 @@ namespace Scripts::EasternKingdoms::Deadmines
                 LoadDungeonEncounterData(modernEncounters);
             }
 
+            void OnPlayerEnter(Player* player) override
+            {
+                // Reset fire wall hit tracking for this player when they enter
+                _playersHitByFirewall.erase(player->GetGUID());
+            }
+
+            void MarkPlayerHitByFirewall(Player* player)
+            {
+                if (player)
+                    _playersHitByFirewall.insert(player->GetGUID());
+            }
+
+            bool WasPlayerHitByFirewall(Player* player) const
+            {
+                return _playersHitByFirewall.contains(player->GetGUID());
+            }
+
             bool SetBossState(uint32 id, EncounterState state) override
             {
                 return InstanceScript::SetBossState(id, state);
@@ -87,6 +104,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _secondSmiteAlarm = data;
                         break;
                     default:
+                        // Check if this is a player GUID (used for firewall hit tracking)
+                        if (data == 1)
+                            _playersHitByFirewall.insert(ObjectGuid::Create<HighGuid::Player>(type));
                         break;
                 }
             }
@@ -102,6 +122,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case MiscOLD::SecondSmiteAlarm:
                         return _secondSmiteAlarm;
                     default:
+                        // Check if this is a player GUID (used for firewall hit tracking)
+                        if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
+                            return 1;
                         return 0;
                 }
             }
@@ -279,6 +302,8 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             ObjectGuid _defiasPirate1GUID;
             ObjectGuid _defiasPirate2GUID;
+
+            GuidSet _playersHitByFirewall;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const override
