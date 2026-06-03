@@ -26,6 +26,7 @@
 #include "InstanceScript.h"
 #include "Item.h"
 #include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "Spell.h"
@@ -135,10 +136,10 @@ namespace Scripts::EasternKingdoms::Deadmines
             // Cast visual spell at random interval (1-5s)
             uint32 delay = urand(1000, 5000);
             ObjectGuid pGuid = player->GetGUID();
-            player->m_Events.AddEventAtOffset([player, pGuid]()
+            player->m_Events.AddEventAtOffset([player]()
             {
-                if (Player* plr = ObjectAccessor::FindPlayer(pGuid))
-                    plr->CastSpell(plr, Spells::GoblinTeleporter, true);
+                if (player)
+                    player->CastSpell(player, Spells::GoblinTeleporter, true);
             }, Milliseconds(delay));
 
             return true;
