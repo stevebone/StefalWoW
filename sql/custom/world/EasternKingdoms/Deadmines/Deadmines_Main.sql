@@ -8,11 +8,27 @@
 -- GO: 208002 Goblin Teleporter
 
 -- Creature Difficulties
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230);
 INSERT INTO `creature_template_difficulty` VALUES
+(48229, 1, -1, -1, 202, 0, 1, 1, 1, 2, 41764, 0, 0, 0, 48229, 48229, 0, 7684, 7684, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48229, 2, 0, 0, 1199, 0, 2, 1, 1, 7, 41765, 0, 0, 0, 48229, 48229, 0, 7684, 7684, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48229, 24, 0, 0, 2872, 3, 2, 1, 1, 7, 41765, 0, 0, 0, 48229, 48229, 0, 7684, 7684, 524288, 0, 0, 0, 0, 0, 0, 0, 64978), -- Kobold Digger
+(48230, 1, 0, 0, 202, 0, 7, 1, 1, 15, 41758, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48230, 2, 1, 1, 1199, 0, 7, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48230, 24, 1, 1, 2872, 3, 12, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745), -- Ogre Henchmen
 (47162, 1, 1, 1, 202, 0, 35, 1, 1, 16, 43989, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
 (47162, 2, 2, 2, 1199, 0, 50, 1, 1, 16, 43995, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
-(47162, 24, 2, 2, 1199, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
+(47162, 24, 2, 2, 2872, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
+
+UPDATE `prod_world`.`creature_template_addon` SET `PvPFlags` = '16' WHERE (`entry` = '48229');
+
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48230);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48230) and `source_type` = 0;
+INSERT INTO `smart_scripts` VALUES
+(48229, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 9000, 12000, 0, '', 11, 89663, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cast Candle Blast'),
+(48230, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 12000, 14000, 0, '', 11, 91045, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cast Uppercut'),
+(48230, 0, 1, 0, '', 0, 0, 100, 1, 0, 25, 1000, 1000, 0, '', 11, 89652, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cast Ogrish Motivation at 25% HP');
 
 -- Glubtok encounter
 UPDATE `creature_template` SET `ScriptName` = 'boss_glubtok' WHERE `entry` = 47162;
@@ -74,3 +90,16 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 (12691, -3248896, 0, 'Press the button labeled \'Wood and Lumber.\'', 50716, 25996),
 (12691, -3248897, 1, 'Press the button labeled \'Metal and Scraps.\'', 50717, 25937),
 (12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996);
+
+-- Deadmines Loot Tables
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (47162); -- Glubtok loot normal and heroic
+INSERT INTO `creature_loot_template` VALUES
+('47162', '0', '5444', '37', '0', '1', '0', '1', '1', 'Glubtok Miner Cape'),
+('47162', '0', '2169', '32', '0', '1', '0', '1', '1', 'Glubtok Buzzer Blade'),
+('47162', '0', '5195', '32', '0', '1', '0', '1', '1', 'Glubtok Gold-Flecked Gloves'),
+('47162', '0', '65163', '21', '0', '1', '0', '1', '1', 'Glubtok Heroic Buzzer Blade'),
+('47162', '0', '63468', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Defias Brotherhood Vest'),
+('47162', '0', '63470', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Missing Diplomat Pauldrons'),
+('47162', '0', '63471', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Vest of the curious visitor'),
+('47162', '0', '63467', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Shadow of the past'),
+('47162', '0', '157628', '19', '0', '1', '0', '1', '1', 'Glubtok Heroic Gold-Flecked Gloves');

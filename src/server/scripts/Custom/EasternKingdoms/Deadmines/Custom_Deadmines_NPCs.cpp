@@ -35,6 +35,7 @@
 #include "DB2Stores.h"
 #include "Creature.h"
 #include "TemporarySummon.h"
+#include "G3D/Vector3.h"
 
 #include "Custom_Instance_Deadmines.h"
 
