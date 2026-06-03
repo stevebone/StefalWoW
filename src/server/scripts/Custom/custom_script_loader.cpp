@@ -67,7 +67,9 @@ void AddSC_delve_commands();
 // Deadmines
 void AddSC_custom_instance_deadmines();
 void AddSC_custom_deadmines_areatrigger();
+void AddSC_custom_deadmines_npcs();
 void AddSC_custom_deadmines_objects();
+void AddSC_custom_deadmines_spells();
 void AddSC_custom_deadmines_old_npcs();
 
 // Magister's Terrace 12.0.1 (Map 2811)
@@ -139,7 +141,9 @@ void AddCustomScripts()
     // Deadmines
     AddSC_custom_instance_deadmines();
     AddSC_custom_deadmines_areatrigger();
+    AddSC_custom_deadmines_npcs();
     AddSC_custom_deadmines_objects();
+    AddSC_custom_deadmines_spells();
     AddSC_custom_deadmines_old_npcs();
 
     // Magister's Terrace 12.0.1 (Map 2811)

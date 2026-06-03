@@ -1,0 +1,84 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "AreaTrigger.h"
+#include "AreaTriggerAI.h"
+#include "Creature.h"
+#include "CreatureAI.h"
+#include "GameObject.h"
+#include "InstanceScript.h"
+#include "Map.h"
+#include "Player.h"
+#include "ScriptMgr.h"
+
+#include "Custom_Instance_Deadmines.h"
+
+namespace Scripts::EasternKingdoms::Deadmines
+{
+    // Spell: Glubtok Generic Proc (cooldown management)
+    class spell_glubtok_generic_proc : public AuraScript
+    {
+        bool CheckProc(ProcEventInfo& /*eventInfo*/)
+        {
+            if (GetTarget()->GetSpellHistory()->HasCooldown(GetSpellInfo()->Id))
+                return false;
+
+            GetTarget()->GetSpellHistory()->AddCooldown(GetSpellInfo()->Id, 0, 4s);
+            return true;
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_glubtok_generic_proc::CheckProc);
+        }
+    };
+
+    // Spell: Glubtok Firewall Targetting (cooldown check for targets)
+    class spell_glubtok_firewall_targetting : public SpellScript
+    {
+        void SelectTarget(std::list<WorldObject*>& targets)
+        {
+            targets.remove_if([](WorldObject* target)
+                {
+                    if (target->ToUnit() && target->ToUnit()->GetSpellHistory()->HasCooldown(Spells::FireWallTriggered))
+                        return true;
+
+                    if (target->ToUnit())
+                        target->ToUnit()->GetSpellHistory()->AddCooldown(Spells::FireWallTriggered, 0, 1s);
+                    return false;
+                });
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_glubtok_firewall_targetting::SelectTarget, EFFECT_0, TARGET_UNIT_DEST_AREA_ENTRY);
+        }
+    };
+}
+
+void AddSC_custom_deadmines_spells()
+{
+    using namespace Scripts::EasternKingdoms::Deadmines;
+
+    RegisterSpellScript(spell_glubtok_generic_proc);
+    RegisterSpellScript(spell_glubtok_firewall_targetting);
+}

@@ -62,6 +62,21 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 AdmiralRipsnarl = 47626;
         static constexpr uint32 CaptainCookie = 47739;
         static constexpr uint32 VanessaVanCleef = 49541;
+
+        // Glubtok Adds
+        static constexpr uint32 FireBlossom = 48957;
+        static constexpr uint32 FrostBlossom = 48958;
+        static constexpr uint32 FireWall2A = 48976;
+        static constexpr uint32 FireWall1A = 48975;
+        static constexpr uint32 FireWall1B = 49039;
+        static constexpr uint32 FireWall2B = 49041;
+        static constexpr uint32 FireWall1C = 49040;
+        static constexpr uint32 FireWall2C = 49042;
+        static constexpr uint32 GlubtokMainPlatter = 48974;
+        static constexpr uint32 FrostBlossomDummy = 47284;
+        static constexpr uint32 FireBlossomDummy = 47282;
+        static constexpr uint32 BeamBunny = 47242;
+        static constexpr uint32 FirewallBunny = 101052;
     }
 
     namespace Objects
@@ -76,6 +91,103 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 DoorLever = 101833;
 
         static constexpr uint32 MysteriousDeadminesChest = 180024;
+
+        // Teleporters
+        static constexpr uint32 GoblinTeleporter = 208002;
+    }
+
+    namespace TeleporterSpawnIds
+    {
+        static constexpr uint32 IronCladCove = 235317;
+        static constexpr uint32 DungeonEntrance = 235318;
+        static constexpr uint32 FoundryRoom = 235319;
+        static constexpr uint32 MastRoom = 235320;
+    }
+
+    namespace Texts
+    {
+        static constexpr uint32 GoblinTeleporterMenuID = 12691;
+
+        // Glubtok
+        static constexpr uint32 GlubtokDeath = 0;
+        static constexpr uint32 GlubtokArcanePower = 1;
+        static constexpr uint32 GlubtokAggro = 2;
+        static constexpr uint32 GlubtokKill = 3;
+        static constexpr uint32 GlubtokFire = 4;
+        static constexpr uint32 GlubtokHead1 = 5;
+        static constexpr uint32 GlubtokFrost = 6;
+        static constexpr uint32 GlubtokHead2 = 7;
+        static constexpr uint32 GlubtokFirewall = 8;
+    }
+
+    namespace Spells
+    {
+        static constexpr uint32 GoblinTeleporter = 55695;
+
+        // Glubtok
+        static constexpr uint32 ArcanePower = 88009;
+        static constexpr uint32 FistOfFlame = 87859;
+        static constexpr uint32 FistOfFlame0 = 87896;
+        static constexpr uint32 FistOfFrost = 87861;
+        static constexpr uint32 FistOfFrost0 = 87901;
+        static constexpr uint32 FireBlossom = 88129;
+        static constexpr uint32 FireBlossomVisual = 88164;
+        static constexpr uint32 FrostBlossom = 88169;
+        static constexpr uint32 FrostBlossomVisual = 88165;
+        static constexpr uint32 TeleportVisual = 88002;
+        static constexpr uint32 Blink = 87925;
+        static constexpr uint32 BlossomTargetting = 88140;
+        static constexpr uint32 ArcaneFire = 88007;
+        static constexpr uint32 ArcaneFireBeam = 88072;
+        static constexpr uint32 ArcaneFrostBeam = 88093;
+        static constexpr uint32 SummonFireBlossom = 91301;
+        static constexpr uint32 SummonFrostBlossom = 91302;
+        static constexpr uint32 TriggerFireWall = 91398;
+        static constexpr uint32 FireWallTriggered = 91397;
+        static constexpr uint32 ArcaneOverloadInitial = 88183;
+        static constexpr uint32 FeignDeath = 70628;
+        static constexpr uint32 ArcaneOverloadSuicide = 88185;
+        static constexpr uint32 ArcaneOverloadBoom = 90520;
+    }
+
+    namespace Events
+    {
+        static constexpr int8 GlubtokCastFistOfFlame = 1;
+        static constexpr int8 GlubtokCastFistOfFrost = 2;
+        static constexpr int8 GlubtokCastBlink = 3;
+        static constexpr int8 GlubtokCastBlossom = 4;
+        static constexpr int8 GlubtokCastArcanePower1 = 5;
+        static constexpr int8 GlubtokCastArcanePower2 = 6;
+        static constexpr int8 GlubtokCastArcanePower3 = 7;
+        static constexpr int8 GlubtokFallGround = 8;
+        static constexpr int8 GlubtokSayFirewall = 9;
+        static constexpr int8 GlubtokSpawnFirewallBunny = 10;
+    }
+
+    namespace GlubtokActions
+    {
+        static constexpr int8 StartFirewall = 1;
+        static constexpr int8 StopFirewall = 2;
+    }
+
+    namespace Glubtok
+    {
+        static constexpr Position Phase2Center = { -193.43f, -437.86f, 54.38f, 4.88f };
+
+        static constexpr uint32 PhaseTransitionHealthPct = 50;
+        static constexpr uint32 DeathHealthPct = 1;
+
+        // Timers in Seconds
+        static constexpr int8 FistOfFlameTimer = 10;
+        static constexpr int8 FistOfFrostTimer = 21;
+        static constexpr int8 BlinkTimer = 20;
+        static constexpr int8 BlossomTimer = 5;
+        static constexpr int8 ArcanePower1Timer = 2;
+        static constexpr int8 ArcanePower2Timer = 3;
+        static constexpr int8 ArcanePower3Timer = 1;
+        static constexpr int8 FallGroundTimer = 5;
+        static constexpr int8 BoomTimer = 1;
+        static constexpr int8 SuicideTimer = 2;
     }
 
     namespace Items

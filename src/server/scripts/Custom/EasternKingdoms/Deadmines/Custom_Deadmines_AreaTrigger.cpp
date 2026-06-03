@@ -24,6 +24,7 @@
 #include "AreaTriggerAI.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "GameObject.h"
 #include "InstanceScript.h"
 #include "Map.h"
 #include "Player.h"
@@ -74,7 +75,8 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (status == QUEST_STATUS_COMPLETE)
             {
-                if (GameObject* chest = player->FindNearestGameObjectWithOptions(50.f, { .GameObjectId = Objects::MysteriousDeadminesChest, .PrivateObjectOwnerGuid = player->GetGUID() }))
+                GameObject* chest = player->FindNearestGameObjectWithOptions(50.f, { .GameObjectId = Objects::MysteriousDeadminesChest, .PrivateObjectOwnerGuid = player->GetGUID() });
+                if (chest)
                     return false;
 
                 if (GameObject* chest = player->SummonGameObject(Objects::MysteriousDeadminesChest, Positions::MysteriousDeadminesChest, QuaternionData(), 0s, GO_SUMMON_TIMED_DESPAWN))

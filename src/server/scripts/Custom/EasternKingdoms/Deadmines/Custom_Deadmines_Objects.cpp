@@ -25,12 +25,14 @@
 #include "GameObjectAI.h"
 #include "InstanceScript.h"
 #include "Item.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "Spell.h"
 #include "WorldSession.h"
 
 #include "Custom_Instance_Deadmines.h"
+#include "GossipDef.h"
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
@@ -52,6 +54,96 @@ namespace Scripts::EasternKingdoms::Deadmines
             return true;
         }
     };
+
+    // 208002 - Goblin Teleporter
+    struct go_goblin_teleporter : public GameObjectAI
+    {
+        go_goblin_teleporter(GameObject* go) : GameObjectAI(go) { }
+
+        bool OnGossipHello(Player* player) override
+        {
+            InstanceScript* instance = me->GetInstanceScript();
+
+            if (!instance)
+                return false;
+
+            // Load the default gossip menu from database
+            player->PlayerTalkClass->ClearMenus();
+            player->PlayerTalkClass->GetGossipMenu().SetMenuId(Texts::GoblinTeleporterMenuID);
+
+            Trinity::IteratorPair menuItemBounds = sObjectMgr->GetGossipMenuItemsMapBounds(Texts::GoblinTeleporterMenuID);
+
+            for (auto const& [menuId, menuItem] : menuItemBounds)
+            {
+                // Check if this menu item should be shown based on boss state
+                // OrderIndex 0 = Wood and Lumber (Helix), 1 = Metal and Scraps (Foe Reaper), 2 = Ship Parts (Ripsnarl)
+                bool showItem = false;
+
+                switch (menuItem.OrderIndex)
+                {
+                    case 0: // Wood and Lumber (Helix)
+                        showItem = (instance->GetBossState(DataTypes::BOSS_HELIX_GEARBREAKER) == EncounterState::DONE);
+                        break;
+                    case 1: // Metal and Scraps (Foe Reaper)
+                        showItem = (instance->GetBossState(DataTypes::BOSS_FOE_REAPER_5000) == EncounterState::DONE);
+                        break;
+                    case 2: // Ship Parts (Ripsnarl)
+                        showItem = (instance->GetBossState(DataTypes::BOSS_ADMIRAL_RIPSNARL) == EncounterState::DONE);
+                        break;
+                    default:
+                        // Keep other menu items (if any)
+                        showItem = true;
+                        break;
+                }
+
+                if (showItem)
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(menuItem, menuItem.MenuID, menuItem.OrderIndex);
+            }
+
+            SendGossipMenuFor(player, Texts::GoblinTeleporterMenuID, me->GetGUID());
+            return true;
+        }
+
+        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+        {
+            CloseGossipMenuFor(player);
+
+            GameObject* teleporter = nullptr;
+            uint32 spawnId = 0;
+
+            switch (gossipListId)
+            {
+                case 0: // Wood and Lumber (Helix)
+                    spawnId = TeleporterSpawnIds::MastRoom;
+                    break;
+                case 1: // Metal and Scraps (Foe Reaper)
+                    spawnId = TeleporterSpawnIds::FoundryRoom;
+                    break;
+                case 2: // Ship Parts (Ripsnarl)
+                    spawnId = TeleporterSpawnIds::IronCladCove;
+                    break;
+                default:
+                    return false;
+            }
+
+            teleporter = player->GetMap()->GetGameObjectBySpawnId(spawnId);
+            if (!teleporter)
+                return false;
+
+            player->TeleportTo(player->GetMapId(), teleporter->GetPositionX(), teleporter->GetPositionY(), teleporter->GetPositionZ() + 1.f, teleporter->GetOrientation());
+
+            // Cast visual spell at random interval (1-5s)
+            uint32 delay = urand(1000, 5000);
+            ObjectGuid pGuid = player->GetGUID();
+            player->m_Events.AddEventAtOffset([player, pGuid]()
+            {
+                if (Player* plr = ObjectAccessor::FindPlayer(pGuid))
+                    plr->CastSpell(plr, Spells::GoblinTeleporter, true);
+            }, Milliseconds(delay));
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_deadmines_objects()
@@ -59,4 +151,5 @@ void AddSC_custom_deadmines_objects()
     using namespace Scripts::EasternKingdoms::Deadmines;
 
     RegisterGameObjectAI(go_defias_cannon);
+    RegisterGameObjectAI(go_goblin_teleporter);
 }
