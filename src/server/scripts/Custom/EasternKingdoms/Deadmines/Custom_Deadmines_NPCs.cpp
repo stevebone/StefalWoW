@@ -34,6 +34,7 @@
 #include "Containers.h"
 #include "DB2Stores.h"
 #include "Creature.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Instance_Deadmines.h"
 
@@ -72,7 +73,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->SetCanFly(false);
             me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
             me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-            //me->RemoveDynamicFlag(UNIT_DYNFLAG_DEAD);
             me->RemoveUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
             me->ClearUnitState(UNIT_STATE_CANNOT_TURN);
 
@@ -119,6 +119,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                 if (achievement)
                 {
                     Map::PlayerList const& players = instance->instance->GetPlayers();
+                    if (players.empty())
+                        return;
+
                     for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
                     {
                         if (Player* player = itr->GetSource())
@@ -190,7 +193,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (id == 1) // POINT_FALL_GROUND
             {
                 me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-                DoCast(Spells::FeignDeath);
 
                 me->m_Events.AddEventAtOffset([this]()
                 {
@@ -201,10 +203,15 @@ namespace Scripts::EasternKingdoms::Deadmines
                 me->m_Events.AddEventAtOffset([this]()
                 {
                     if (me && me->IsInWorld())
-                        me->CastSpell(me, Spells::ArcaneOverloadSuicide, true);
+                    {
+                        // Suicide spell causes bug with dungeon objective/loot (clears tap list)
+                        // Using FeignDeath + player->Kill workaround instead
+                        DoCast(Spells::FeignDeath);
+                        //me->CastSpell(me, Spells::ArcaneOverloadSuicide, true);
+                    }
                 }, std::chrono::seconds(Glubtok::SuicideTimer));
 
-                // Schedule model change separately, not nested, to ensure it executes even after suicide
+                // Schedule model change separately, not nested, to ensure it executes after FeignDeath
                 me->m_Events.AddEventAtOffset([this]()
                 {
                     if (me && me->IsInWorld())
@@ -213,16 +220,21 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             if (CreatureModel const* model = ObjectMgr::ChooseDisplayId(ci))
                                 me->SetDisplayId(model->CreatureDisplayID);
+
+                            Map::PlayerList const& players = instance->instance->GetPlayers();
+                            if (players.empty())
+                                return;
+
+                            for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                            {
+                                if (Player* player = itr->GetSource())
+                                {
+                                    player->Kill(player, me);
+                                }
+                            }
                         }
                     }
                 }, std::chrono::seconds(Glubtok::SuicideTimer) + 500ms);
-
-                // Mark instance as complete after suicide
-                me->m_Events.AddEventAtOffset([this]()
-                {
-                    if (me && me->IsInWorld() && instance)
-                        instance->SetBossState(DataTypes::BOSS_GLUBTOK, DONE);
-                }, std::chrono::seconds(Glubtok::SuicideTimer) + 100ms);
             }
         }
 
@@ -449,8 +461,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Events::GlubtokSpawnFirewallBunny:
                     {
-                        // Spawn firewall bunny at Glubtok's current (air) location to hit players underneath
-                        if (Creature* glubtokBunny = me->SummonCreature(Creatures::FirewallBunny, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0.0f, TEMPSUMMON_MANUAL_DESPAWN))
+                        // Spawn firewall bunny at same Z as platter
+                        if (Creature* glubtokBunny = me->SummonCreature(Creatures::FirewallBunny, me->GetPositionX(), me->GetPositionY(), Glubtok::Phase2Center.m_positionZ + 2.0f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN))
                         {
                             glubtokBunny->CastSpell(glubtokBunny, Spells::TriggerFireWall, true);
                             _summonedUnits.push_back(glubtokBunny);
