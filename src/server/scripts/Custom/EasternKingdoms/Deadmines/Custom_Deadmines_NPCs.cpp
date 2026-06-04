@@ -822,6 +822,183 @@ namespace Scripts::EasternKingdoms::Deadmines
         bool _hasCastMotivation = false;
         bool _isSleeping = false;
     };
+
+    // 48262 - Ogre Bodyguard
+    struct npc_ogre_bodyguard : public ScriptedAI
+    {
+        npc_ogre_bodyguard(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _hasCastFrenzy = false;
+            _conversationLine = 0;
+            _events.Reset();
+
+            // Schedule conversation event
+            _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            ScriptedAI::JustEngagedWith(who);
+            Talk(Texts::OgreBodyguardAggro);
+            _events.RescheduleEvent(Events::OgreBodyguardBonk, 4s, 8s);
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            ScriptedAI::EnterEvadeMode(why);
+            _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (me->HealthBelowPctDamaged(30, damage) && !_hasCastFrenzy)
+            {
+                _hasCastFrenzy = true;
+                DoCastSelf(Spells::Frenzy);
+                Talk(Texts::OgreBodyguardFrenzy);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+            {
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case Events::OgreBodyguardConversation:
+                            HandleConversation();
+                            _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                return;
+            }
+
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::OgreBodyguardBonk:
+                        if (Unit* victim = me->GetVictim())
+                            DoCast(victim, Spells::Bonk);
+                        _events.RescheduleEvent(Events::OgreBodyguardBonk, 14s, 17s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+        void HandleConversation()
+        {
+            // Find the other ogre bodyguard
+            std::list<Creature*> bodyguards;
+            me->GetCreatureListWithEntryInGrid(bodyguards, Creatures::OgreBodyguard, 10.0f);
+
+            for (Creature* other : bodyguards)
+            {
+                if (other && other != me && other->IsAlive())
+                {
+                    // Only the ogre with the lower GUID initiates the conversation
+                    if (me->GetGUID().GetCounter() < other->GetGUID().GetCounter())
+                    {
+                        // Start conversation from line 2
+                        _conversationLine = 2;
+                        other->AI()->SetData(1, 2); // Tell other ogre to start from line 3
+                        ScheduleNextConversationLine();
+                    }
+                    return;
+                }
+            }
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1) // Set conversation line
+            {
+                _conversationLine = value;
+                ScheduleNextConversationLine();
+            }
+        }
+
+        void ScheduleNextConversationLine()
+        {
+            if (_conversationLine < 2 || _conversationLine > 11)
+                return;
+
+            uint32 textId = 0;
+            switch (_conversationLine)
+            {
+                case 2: textId = Texts::OgreBodyguardConversation1; break;
+                case 3: textId = Texts::OgreBodyguardConversation2; break;
+                case 4: textId = Texts::OgreBodyguardConversation3; break;
+                case 5: textId = Texts::OgreBodyguardConversation4; break;
+                case 6: textId = Texts::OgreBodyguardConversation5; break;
+                case 7: textId = Texts::OgreBodyguardConversation6; break;
+                case 8: textId = Texts::OgreBodyguardConversation7; break;
+                case 9: textId = Texts::OgreBodyguardConversation8; break;
+                case 10: textId = Texts::OgreBodyguardConversation9; break;
+                case 11: textId = Texts::OgreBodyguardConversation10; break;
+            }
+
+            if (textId)
+            {
+                Talk(textId);
+                _conversationLine++;
+
+                // Schedule next line with delay
+                me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsInWorld())
+                    {
+                        // If we reached line 11, both ogres say it
+                        if (_conversationLine == 12)
+                        {
+                            // Find the other ogre and tell them to also say line 11
+                            std::list<Creature*> bodyguards;
+                            me->GetCreatureListWithEntryInGrid(bodyguards, Creatures::OgreBodyguard, 30.0f);
+                            for (Creature* other : bodyguards)
+                            {
+                                if (other && other != me && other->IsAlive())
+                                    other->AI()->SetData(1, 11);
+                            }
+                            _conversationLine = 0; // Reset
+                        }
+                        else
+                        {
+                            // Pass the next line to the other ogre
+                            std::list<Creature*> bodyguards;
+                            me->GetCreatureListWithEntryInGrid(bodyguards, Creatures::OgreBodyguard, 30.0f);
+                            for (Creature* other : bodyguards)
+                            {
+                                if (other && other != me && other->IsAlive())
+                                    other->AI()->SetData(1, _conversationLine);
+                            }
+                            _conversationLine = 0; // Reset after passing
+                        }
+                    }
+                }, 3s);
+            }
+        }
+
+    private:
+        EventMap _events;
+        bool _hasCastFrenzy = false;
+        uint8 _conversationLine = 0;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
@@ -832,4 +1009,5 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(npc_glubtok_main_platter);
     RegisterCreatureAI(npc_glubtok_secondary_platter);
     RegisterCreatureAI(npc_ogre_henchman);
+    RegisterCreatureAI(npc_ogre_bodyguard);
 }

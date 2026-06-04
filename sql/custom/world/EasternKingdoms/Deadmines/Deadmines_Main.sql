@@ -14,7 +14,7 @@
 
 -- Creature Difficulties
 -- Stormwind Defender and Shattered Hand Assassin have diff id 0 added for Followship Bots since they can be taken outside the dungeon
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262);
 INSERT INTO `creature_template_difficulty` VALUES
 (46906, 1, 0, 0, 202, 0, 1, 1, 1, 1, 44620, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
 (46906, 2, 0, 0, 1199, 0, 1, 1, 1, 1, 44620, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
@@ -42,6 +42,9 @@ INSERT INTO `creature_template_difficulty` VALUES
 (48230, 1, 0, 0, 202, 0, 7, 1, 1, 15, 41758, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48230, 2, 1, 1, 1199, 0, 7, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48230, 24, 1, 1, 2872, 3, 12, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745), -- Ogre Henchman
+(48262, 1, 0, 0, 202, 	0, 1, 1, 1, 1, 41681, 0, 0, 0, 0, 0, 0, 4819, 4819, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48262, 2, 1, 1, 1199, 	0, 7, 1, 1, 15, 41682, 0, 0, 0, 0, 0, 0, 4819, 4819, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48262, 24, 1, 1, 2872, 3, 15, 1, 1, 35, 41682, 0, 0, 0, 0, 0, 0, 4819, 4819, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Ogre Bodyguard
 (47162, 1, 1, 1, 202, 0, 35, 1, 1, 16, 43989, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
 (47162, 2, 2, 2, 1199, 0, 50, 1, 1, 16, 43995, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
 (47162, 24, 2, 2, 2872, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
@@ -61,6 +64,7 @@ INSERT INTO `smart_scripts` VALUES
 
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
+UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_bodyguard' WHERE `entry` = 48262;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -130,8 +134,23 @@ INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `Verified
 (48266, 1, 91788, 39653); -- Defias Cannon Cannonball
 
 
-DELETE FROM `creature_text` WHERE `CreatureID` IN (47162,48974,48230,48229);
+DELETE FROM `creature_text` WHERE `CreatureID` IN (47162,48974,48230,48229,48262);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+-- Ogre Bodyguard
+(48262, 0, 0, 'Me smash! You die!', 12, 0, 100, 0, 0, 0, 0, 1926, 0, 'Ogre Bodyguard - Aggro'),
+(48262, 0, 1, 'Raaar!!! Me smash $r!', 12, 0, 100, 0, 0, 0, 0, 1927, 0, 'Ogre Bodyguard - Aggro'),
+(48262, 0, 2, 'I''ll crush you!', 12, 0, 100, 0, 0, 0, 0, 1925, 0, 'Ogre Bodyguard - Aggro'),
+(48262, 1, 0, '%s goes into a frenzy!', 16, 0, 100, 0, 0, 0, 0, 0, 0, 'Ogre Bodyguard - combat Frenzy'),
+(48262, 2, 0, 'Me da best bodyguard!', 12, 0, 100, 0, 0, 0, 0, 48523, 0, 'Ogre Bodyguard - Conversation 1'),
+(48262, 3, 0, 'No, me!', 12, 0, 100, 0, 0, 0, 0, 48524, 0, 'Ogre Bodyguard - Conversation 2'),
+(48262, 4, 0, 'Me got a big board for hit things!', 12, 0, 100, 0, 0, 0, 0, 48525, 0, 'Ogre Bodyguard - Conversation 3'),
+(48262, 5, 0, 'Mine gots a nail in it!', 12, 0, 100, 0, 0, 0, 0, 48526, 0, 'Ogre Bodyguard - Conversation 4'),
+(48262, 6, 0, 'Mine gots a bigger nail!', 12, 0, 100, 0, 0, 0, 0, 48527, 0, 'Ogre Bodyguard - Conversation 5'),
+(48262, 7, 0, 'Mine gots a RUSTY nail!', 12, 0, 100, 0, 0, 0, 0, 48528, 0, 'Ogre Bodyguard - Conversation 6'),
+(48262, 8, 0, 'Dats dangerous.', 12, 0, 100, 0, 0, 0, 0, 48529, 0, 'Ogre Bodyguard - Conversation 7'),
+(48262, 9, 0, 'Only for da bad guys.', 12, 0, 100, 0, 0, 0, 0, 48530, 0, 'Ogre Bodyguard - Conversation 8'),
+(48262, 10, 0, 'But I''m da best at watchin'' da door.', 12, 0, 100, 0, 0, 0, 0, 48531, 0, 'Ogre Bodyguard - Conversation 9'),
+(48262, 11, 0, 'No I am!', 12, 0, 100, 0, 0, 0, 0, 48532, 0, 'Ogre Bodyguard - Conversation 10'),
 -- Kobold Digger
 (48229, 0, 0, 'You no take candle!', 12, 0, 100, 0, 0, 0, 0, 1868, 0, 'Kobold Digger - Aggro'),
 -- Ogre Henchman

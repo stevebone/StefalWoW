@@ -82,6 +82,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Trash
         static constexpr uint32 OgreHenchman = 48230;
+        static constexpr uint32 OgreBodyguard = 48262;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -142,21 +143,35 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 GoblinTeleporterMenuID = 12691;
 
         // Glubtok
-        static constexpr uint32 GlubtokDeath = 0;
-        static constexpr uint32 GlubtokArcanePower = 1;
-        static constexpr uint32 GlubtokAggro = 2;
-        static constexpr uint32 GlubtokKill = 3;
-        static constexpr uint32 GlubtokFire = 4;
-        static constexpr uint32 GlubtokHead1 = 5;
-        static constexpr uint32 GlubtokFrost = 6;
-        static constexpr uint32 GlubtokHead2 = 7;
-        static constexpr uint32 GlubtokFirewall = 8;
+        static constexpr int8 GlubtokDeath = 0;
+        static constexpr int8 GlubtokArcanePower = 1;
+        static constexpr int8 GlubtokAggro = 2;
+        static constexpr int8 GlubtokKill = 3;
+        static constexpr int8 GlubtokFire = 4;
+        static constexpr int8 GlubtokHead1 = 5;
+        static constexpr int8 GlubtokFrost = 6;
+        static constexpr int8 GlubtokHead2 = 7;
+        static constexpr int8 GlubtokFirewall = 8;
 
         // Ogre Henchman
-        static constexpr uint32 OgreHenchmanOOC = 0;
-        static constexpr uint32 OgreHenchmanSleep = 1;
-        static constexpr uint32 OgreHenchmanCandle = 2;
-        static constexpr uint32 OgreHenchmanAggro = 3;
+        static constexpr int8 OgreHenchmanOOC = 0;
+        static constexpr int8 OgreHenchmanSleep = 1;
+        static constexpr int8 OgreHenchmanCandle = 2;
+        static constexpr int8 OgreHenchmanAggro = 3;
+
+        // Ogre Bodyguard
+        static constexpr int8 OgreBodyguardAggro = 0;
+        static constexpr int8 OgreBodyguardFrenzy = 1;
+        static constexpr int8 OgreBodyguardConversation1 = 2;
+        static constexpr int8 OgreBodyguardConversation2 = 3;
+        static constexpr int8 OgreBodyguardConversation3 = 4;
+        static constexpr int8 OgreBodyguardConversation4 = 5;
+        static constexpr int8 OgreBodyguardConversation5 = 6;
+        static constexpr int8 OgreBodyguardConversation6 = 7;
+        static constexpr int8 OgreBodyguardConversation7 = 8;
+        static constexpr int8 OgreBodyguardConversation8 = 9;
+        static constexpr int8 OgreBodyguardConversation9 = 10;
+        static constexpr int8 OgreBodyguardConversation10 = 11;
     }
 
     namespace Spells
@@ -194,6 +209,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 OgrishMotivationHeroic = 92747;
         static constexpr uint32 AuraSleep = 78677;
 
+        // Ogre Bodyguard
+        static constexpr uint32 Bonk = 91050;
+        static constexpr uint32 Frenzy = 91053;
+
         // Defias Cannon
         static constexpr uint32 DefiasCannonCannonballFire = 89697;
     }
@@ -218,6 +237,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OgreHenchmanSleepEvent = 14;
         static constexpr int8 OgreHenchmanSleepAura = 15;
         static constexpr int8 OgreHenchmanWakeUp = 16;
+
+        // Ogre Bodyguard
+        static constexpr int8 OgreBodyguardBonk = 17;
+        static constexpr int8 OgreBodyguardConversation = 18;
     }
 
     namespace GlubtokActions
