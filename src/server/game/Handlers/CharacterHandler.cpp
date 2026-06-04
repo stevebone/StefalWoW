@@ -2482,6 +2482,12 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
         return;
     }
 
+    if (MapEntry const* mapEntry = sMapStore.LookupEntry(mapId); mapEntry && mapEntry->GetFlags().HasFlag(MapFlags::NoRaceChangeOnThisMap))
+    {
+        SendCharFactionChange(CHAR_CREATE_RESTRICTED_RACECLASS, factionChangeInfo.get());
+        return;
+    }
+
     TeamId newTeamId = Player::TeamIdForRace(factionChangeInfo->RaceID);
     if (newTeamId == TEAM_NEUTRAL)
     {
