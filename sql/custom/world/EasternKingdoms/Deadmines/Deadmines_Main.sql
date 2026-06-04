@@ -3,7 +3,9 @@
 
 -- NPC: 47162 Glubtok
 -- NPC: 48974 Glubtok Main Platter
--- NPC: 40859 Firewall
+-- NPC: 40859 Firewall (not DM related)
+-- NPC: 48230 Ogre Henchman
+-- NPC: 48266 Defias Cannon
 
 -- GO: 208002 Goblin Teleporter
 
@@ -15,20 +17,49 @@ INSERT INTO `creature_template_difficulty` VALUES
 (48229, 24, 0, 0, 2872, 3, 2, 1, 1, 7, 41765, 0, 0, 0, 48229, 48229, 0, 7684, 7684, 524288, 0, 0, 0, 0, 0, 0, 0, 64978), -- Kobold Digger
 (48230, 1, 0, 0, 202, 0, 7, 1, 1, 15, 41758, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48230, 2, 1, 1, 1199, 0, 7, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
-(48230, 24, 1, 1, 2872, 3, 12, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745), -- Ogre Henchmen
+(48230, 24, 1, 1, 2872, 3, 12, 1, 1, 35, 41759, 0, 0, 0, 48230, 48230, 0, 7084, 7084, 524288, 0, 0, 0, 0, 0, 0, 0, 45745), -- Ogre Henchman
 (47162, 1, 1, 1, 202, 0, 35, 1, 1, 16, 43989, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
 (47162, 2, 2, 2, 1199, 0, 50, 1, 1, 16, 43995, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
 (47162, 24, 2, 2, 2872, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
 
-UPDATE `prod_world`.`creature_template_addon` SET `PvPFlags` = '16' WHERE (`entry` = '48229');
+UPDATE `creature_template_addon` SET `PvPFlags` = 16, `emote` = 648 WHERE `entry` = 48229; -- Kobolds mining anim
 
+-- Spawn Updates
+UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48230);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48230) and `source_type` = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229) and `source_type` = 0;
 INSERT INTO `smart_scripts` VALUES
-(48229, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 9000, 12000, 0, '', 11, 89663, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cast Candle Blast'),
-(48230, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 12000, 14000, 0, '', 11, 91045, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cast Uppercut'),
-(48230, 0, 1, 0, '', 0, 0, 100, 1, 0, 25, 1000, 1000, 0, '', 11, 89652, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cast Ogrish Motivation at 25% HP');
+(48229, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 9000, 12000, 0, '', 11, 89663, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kobold Digger - Cast Candle Blast'),
+(48229, 0, 1, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kobold Digger - On Aggro Say 0');
+
+-- Scripts
+UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
+
+-- Spell Conditions
+-- Delete conditions for OgrishMotivationNormal (89652)
+DELETE FROM conditions WHERE SourceTypeOrReferenceId = 13 AND SourceEntry = 89652;
+
+-- Delete conditions for OgrishMotivationHeroic (92747)
+DELETE FROM conditions WHERE SourceTypeOrReferenceId = 13 AND SourceEntry = 92747;
+
+-- For OgrishMotivationNormal (89652)
+-- Condition 1: Target must be TYPEID_UNIT (creature only, not player)
+INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, COMMENT)
+VALUES (13, 63, 89652, 0, 0, 51, 0, 5, 0, 0, 0, 0, 0, '', 'OgrishMotivationNormal - Target must be TYPEID_UNIT (creature only, not player)');
+
+-- Condition 2: Target must NOT be hostile (exclude HATED and HOSTILE)
+INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, COMMENT)
+VALUES (13, 63, 89652, 0, 0, 34, 0, 0, 3, 0, 1, 0, 0, '', 'OgrishMotivationNormal - Target must NOT be hostile (exclude HATED/HOSTILE)');
+
+-- For OgrishMotivationHeroic (92747)
+-- Condition 1: Target must be TYPEID_UNIT (creature only, not player)
+INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, COMMENT)
+VALUES (13, 63, 92747, 0, 0, 51, 0, 5, 0, 0, 0, 0, 0, '', 'OgrishMotivationHeroic - Target must be TYPEID_UNIT (creature only, not player)');
+
+-- Condition 2: Target must NOT be hostile (exclude HATED and HOSTILE)
+INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, COMMENT)
+VALUES (13, 63, 92747, 0, 0, 34, 0, 0, 3, 0, 1, 0, 0, '', 'OgrishMotivationHeroic - Target must NOT be hostile (exclude HATED/HOSTILE)');
 
 -- Glubtok encounter
 UPDATE `creature_template` SET `ScriptName` = 'boss_glubtok' WHERE `entry` = 47162;
@@ -51,8 +82,9 @@ INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `Custom
 (49041, 0, NULL, 0),
 (49042, 0, NULL, 0);
 
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (48974,48975,48976,49039,49040,49041,49042);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (48974,48975,48976,49039,49040,49041,49042,48266);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+(48266, 46598, 1, 0),
 (48974, 46598, 0, 0),
 (48975, 46598, 0, 0),
 (48976, 46598, 0, 0),
@@ -67,8 +99,31 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (87897, 'spell_glubtok_generic_proc'),
 (87900, 'spell_glubtok_generic_proc');
 
-DELETE FROM `creature_text` WHERE `CreatureID` IN (47162,48974);
+DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266);
+INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES
+(48266, 1, 91788, 39653); -- Defias Cannon Cannonball
+
+
+DELETE FROM `creature_text` WHERE `CreatureID` IN (47162,48974,48230,48229);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
+-- Kobold Digger
+(48229, 0, 0, 'You no take candle!', 12, 0, 100, 0, 0, 0, 0, 1868, 0, 'Kobold Digger - Aggro'),
+-- Ogre Henchman
+(48230, 0, 0, 'You hit rock or me hit you!', 12, 0, 100, 0, 0, 0, 0, 48443, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 1, 'You want me hit rock with you head?', 12, 0, 100, 0, 0, 0, 0, 48444, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 2, 'More smash rock! Rar!', 12, 0, 100, 0, 0, 0, 0, 48445, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 3, 'Slow kobold look tasty!', 12, 0, 100, 0, 0, 0, 0, 48447, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 4, 'Me has whole box of candles!  Maybe give you some if hit rock good!', 12, 0, 100, 0, 0, 0, 0, 48448, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 5, 'You want get punched?  You make rock die now!', 12, 0, 100, 0, 0, 0, 0, 48445, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 6, 'Me rip slow kobold to pieces!', 12, 0, 100, 0, 0, 0, 0, 48450, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 7, 'You too slow!  Want me get Glubtok?', 12, 0, 100, 0, 0, 0, 0, 48451, 0, 'Ogre Henchman - OOC'),
+(48230, 1, 0, 'Dis look warm!  Me getting sleepy...', 12, 0, 100, 0, 0, 0, 0, 48452, 0, 'Ogre Henchman - OOC'),
+(48230, 0, 8, 'Look at all dem boxes.  What in dis box?', 12, 0, 100, 0, 0, 0, 0, 48455, 0, 'Ogre Henchman - OOC'),
+(48230, 2, 0, 'Why stinky candle talk so much?', 12, 0, 100, 0, 0, 0, 0, 48461, 0, 'Ogre Henchman - OOC'),
+(48230, 3, 0, 'Me smash! You die!', 12, 0, 100, 0, 0, 0, 0, 1926, 0, 'Ogre Henchman - Aggro'),
+(48230, 3, 1, 'Raaar!!! Me smash $r!', 12, 0, 100, 0, 0, 0, 0, 1927, 0, 'Ogre Henchman - Aggro'),
+(48230, 3, 2, 'I''ll crush you!', 12, 0, 100, 0, 0, 0, 0, 1925, 0, 'Ogre Henchman - Aggro'),
+-- Glubtok Encounter
 (48974, 0, 0, '|TInterface\Icons\spell_holy_innerfire.blp:20|t Glubtok creates a moving |cFFFF0000|Hspell:91398|h[Fire Wall]|h|r!', 16, 0, 0, 0, 0, 0, 0, 49155, 0, 'Glubtok Firewall'),
 (47162, 0, 0, 'TOO...MUCH...POWER!!!', 14, 0, 100, 15, 0, 21145, 0, 47422, 0, 'VO_DM_GlubtokBoth_Death01'),
 (47162, 1, 0, 'ARCANE POWER!!!', 14, 0, 100, 15, 0, 21146, 0, 47363, 0, 'VO_DM_GlubtokBoth_Spell03'),

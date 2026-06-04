@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "MotionMaster.h"
 #include "MoveSplineInit.h"
@@ -41,24 +42,29 @@
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
+    static void ApplyCrowdControlImmunities(Creature* creature)
+    {
+        creature->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+        creature->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+    }
+
     // 47162 - Glubtok
     struct boss_glubtok : public BossAI
     {
         boss_glubtok(Creature* creature) : BossAI(creature, DataTypes::BOSS_GLUBTOK)
         {
             me->SetCanDualWield(true);
-            me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
-            me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+            ApplyCrowdControlImmunities(me);
         }
 
         void Reset() override
@@ -674,6 +680,148 @@ namespace Scripts::EasternKingdoms::Deadmines
     private:
         std::vector<Creature*> _summonedUnits;
     };
+
+    // 48230 - Ogre Henchman
+    struct npc_ogre_henchman : public ScriptedAI
+    {
+        npc_ogre_henchman(Creature* creature) : ScriptedAI(creature)
+        {
+            ApplyCrowdControlImmunities(me);
+        }
+
+        void Reset() override
+        {
+            me->RemoveAllAuras();
+            _hasCastMotivation = false;
+            _isSleeping = false;
+            _events.Reset();
+
+            // Schedule OOC say event (initial spawn)
+            _events.RescheduleEvent(Events::OgreHenchmanOOCSay, 30s, 45s);
+
+            // Special event for spawn ID 375925 (initial spawn)
+            if (me->GetSpawnId() == CreatureSpawns::OgreHenchmanSleeper)
+                _events.RescheduleEvent(Events::OgreHenchmanSleepEvent, 60s);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            ScriptedAI::JustEngagedWith(who);
+            _events.RescheduleEvent(Events::OgreHenchmanUppercut, std::chrono::seconds(5));
+
+            if (roll_chance(30))
+                Talk(Texts::OgreHenchmanAggro);
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            ScriptedAI::EnterEvadeMode(why);
+            _events.RescheduleEvent(Events::OgreHenchmanOOCSay, 30s, 45s);
+        }
+
+        void JustReachedHome() override
+        {
+            _events.RescheduleEvent(Events::OgreHenchmanOOCSay, 30s, 45s);
+
+            // Special event for spawn ID 375925
+            if (me->GetSpawnId() == CreatureSpawns::OgreHenchmanSleeper)
+                _events.RescheduleEvent(Events::OgreHenchmanSleepEvent, 60s);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (me->HealthBelowPctDamaged(25, damage) && !_hasCastMotivation)
+            {
+                _hasCastMotivation = true;
+                uint32 spellId = (me->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC) ? Spells::OgrishMotivationHeroic : Spells::OgrishMotivationNormal;
+
+                DoCastSelf(spellId);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+            {
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case Events::OgreHenchmanOOCSay:
+                        {
+                            // Don't say OOC if sleeping (spawn ID 375925)
+                            if (_isSleeping)
+                            {
+                                _events.RescheduleEvent(Events::OgreHenchmanOOCSay, 30s, 45s);
+                                break;
+                            }
+
+                            uint32 sayId = (me->GetSpawnId() == CreatureSpawns::OgreHenchmanByCannon) ? Texts::OgreHenchmanCandle : Texts::OgreHenchmanOOC;
+                            uint32 minTime = (me->GetSpawnId() == CreatureSpawns::OgreHenchmanByCannon) ? 45 : 30;
+                            uint32 maxTime = (me->GetSpawnId() == CreatureSpawns::OgreHenchmanByCannon) ? 60 : 45;
+
+                            if (roll_chance(30))
+                                Talk(sayId);
+
+                            _events.RescheduleEvent(Events::OgreHenchmanOOCSay, std::chrono::seconds(minTime), std::chrono::seconds(maxTime));
+                            break;
+                        }
+                        case Events::OgreHenchmanSleepEvent:
+                        {
+                            if (me->GetSpawnId() == CreatureSpawns::OgreHenchmanSleeper)
+                            {
+                                _isSleeping = true;
+                                Talk(Texts::OgreHenchmanSleep);
+                                _events.RescheduleEvent(Events::OgreHenchmanSleepAura, 3s);
+                            }
+                            _events.RescheduleEvent(Events::OgreHenchmanSleepEvent, 90s);
+                            break;
+                        }
+                        case Events::OgreHenchmanSleepAura:
+                        {
+                            DoCastSelf(Spells::AuraSleep);
+                            _events.RescheduleEvent(Events::OgreHenchmanWakeUp, 30s);
+                            break;
+                        }
+                        case Events::OgreHenchmanWakeUp:
+                        {
+                            me->RemoveAurasDueToSpell(Spells::AuraSleep);
+                            _isSleeping = false;
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+                return;
+            }
+
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::OgreHenchmanUppercut:
+                        if (Unit* victim = me->GetVictim())
+                            DoCast(victim, Spells::Uppercut);
+                        _events.RescheduleEvent(Events::OgreHenchmanUppercut, 10s, 14s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        bool _hasCastMotivation = false;
+        bool _isSleeping = false;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
@@ -683,4 +831,5 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(boss_glubtok);
     RegisterCreatureAI(npc_glubtok_main_platter);
     RegisterCreatureAI(npc_glubtok_secondary_platter);
+    RegisterCreatureAI(npc_ogre_henchman);
 }

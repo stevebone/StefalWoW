@@ -78,6 +78,15 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 BeamBunny = 47242;
         static constexpr uint32 FirewallBunny = 101052;
         static constexpr uint32 GlubtokDead = 47290;
+
+        // Trash
+        static constexpr uint32 OgreHenchman = 48230;
+    }
+
+    namespace CreatureSpawns
+    {
+        static constexpr uint32 OgreHenchmanByCannon = 375931;
+        static constexpr uint32 OgreHenchmanSleeper = 375925;
     }
 
     namespace Objects
@@ -124,6 +133,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 GlubtokFrost = 6;
         static constexpr uint32 GlubtokHead2 = 7;
         static constexpr uint32 GlubtokFirewall = 8;
+
+        // Ogre Henchman
+        static constexpr uint32 OgreHenchmanOOC = 0;
+        static constexpr uint32 OgreHenchmanSleep = 1;
+        static constexpr uint32 OgreHenchmanCandle = 2;
+        static constexpr uint32 OgreHenchmanAggro = 3;
     }
 
     namespace Spells
@@ -154,6 +169,15 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 FeignDeath = 70628;
         static constexpr uint32 ArcaneOverloadSuicide = 88185;
         static constexpr uint32 ArcaneOverloadBoom = 90520;
+
+        // Ogre Henchman
+        static constexpr uint32 Uppercut = 91045;
+        static constexpr uint32 OgrishMotivationNormal = 89652;
+        static constexpr uint32 OgrishMotivationHeroic = 92747;
+        static constexpr uint32 AuraSleep = 78677;
+
+        // Defias Cannon
+        static constexpr uint32 DefiasCannonCannonballFire = 89697;
     }
 
     namespace Events
@@ -169,6 +193,13 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 GlubtokSayFirewall = 9;
         static constexpr int8 GlubtokSpawnFirewallBunny = 10;
         static constexpr int8 GlubtokTransformDead = 11;
+
+        // Ogre Henchman
+        static constexpr int8 OgreHenchmanUppercut = 12;
+        static constexpr int8 OgreHenchmanOOCSay = 13;
+        static constexpr int8 OgreHenchmanSleepEvent = 14;
+        static constexpr int8 OgreHenchmanSleepAura = 15;
+        static constexpr int8 OgreHenchmanWakeUp = 16;
     }
 
     namespace GlubtokActions
