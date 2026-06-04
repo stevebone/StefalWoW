@@ -93,13 +93,13 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 
 -- Deadmines Loot Tables
 DELETE FROM `creature_loot_template` WHERE `Entry` IN (47162); -- Glubtok loot normal and heroic
-INSERT INTO `creature_loot_template` VALUES
-('47162', '0', '5444', '37', '0', '1', '0', '1', '1', 'Glubtok Miner Cape'),
-('47162', '0', '2169', '32', '0', '1', '0', '1', '1', 'Glubtok Buzzer Blade'),
-('47162', '0', '5195', '32', '0', '1', '0', '1', '1', 'Glubtok Gold-Flecked Gloves'),
-('47162', '0', '65163', '21', '0', '1', '0', '1', '1', 'Glubtok Heroic Buzzer Blade'),
-('47162', '0', '63468', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Defias Brotherhood Vest'),
-('47162', '0', '63470', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Missing Diplomat Pauldrons'),
-('47162', '0', '63471', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Vest of the curious visitor'),
-('47162', '0', '63467', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Shadow of the past'),
-('47162', '0', '157628', '19', '0', '1', '0', '1', '1', 'Glubtok Heroic Gold-Flecked Gloves');
+INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
+('47162', '0', '5444', '37', '0', '1', '0', '1', '1', 'Glubtok - Miner Cape'),
+('47162', '0', '2169', '32', '0', '1', '0', '1', '1', 'Glubtok - Buzzer Blade'),
+('47162', '0', '5195', '32', '0', '1', '0', '1', '1', 'Glubtok - Gold-Flecked Gloves'),
+('47162', '0', '65163', '21', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Buzzer Blade'),
+('47162', '0', '63468', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Defias Brotherhood Vest'),
+('47162', '0', '63470', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Missing Diplomat Pauldrons'),
+('47162', '0', '63471', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Vest of the curious visitor'),
+('47162', '0', '63467', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Shadow of the past'),
+('47162', '0', '157628', '19', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Gold-Flecked Gloves');

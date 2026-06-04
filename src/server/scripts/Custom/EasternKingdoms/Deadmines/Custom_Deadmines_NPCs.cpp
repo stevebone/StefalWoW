@@ -359,8 +359,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                                 // Schedule firewall bunny spawn after Glubtok is in the air (1.5s takeoff)
                                 events.RescheduleEvent(Events::GlubtokSpawnFirewallBunny, std::chrono::milliseconds(1500));
                             }
-                            else
-                                TC_LOG_ERROR("scripts.fsb", "Glubtok: Failed to summon main platter (entry: {})", Creatures::GlubtokMainPlatter);
                         }
 
                         events.RescheduleEvent(Events::GlubtokCastBlossom, std::chrono::seconds(Glubtok::BlossomTimer));
@@ -641,10 +639,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (actionID == 1) // Summon firewall bunnies
             {
                 if (!me->GetVehicleKit())
-                {
-                    TC_LOG_ERROR("scripts.fsb", "Secondary Platter (entry: {}): No vehicle kit available", me->GetEntry());
                     return;
-                }
 
                 uint8 seatCount = me->GetVehicleKit()->GetAvailableSeatCount();
                 for (uint8 i = 0; i < seatCount; ++i)
