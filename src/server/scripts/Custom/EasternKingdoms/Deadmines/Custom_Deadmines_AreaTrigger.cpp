@@ -66,6 +66,36 @@ namespace Scripts::EasternKingdoms::Deadmines
     // 3746 - Deadmines - Mysterious Chest
     class deadmines_mysterious_chest_at : public AreaTriggerScript
     {
+        class CannonFireEvent : public BasicEvent
+        {
+        public:
+            CannonFireEvent(Creature* cannon, Creature* bunny, uint32 spellId)
+                : _cannon(cannon), _bunny(bunny), _spellId(spellId) { }
+
+            bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+            {
+                if (!_cannon || !_bunny)
+                    return true;
+
+                // Cast spell at bunny's position
+                _cannon->CastSpell(_bunny->GetPosition(), _spellId, true);
+
+                // Schedule displayid change after 2 seconds
+                _bunny->m_Events.AddEventAtOffset([bunny = _bunny]()
+                {
+                    if (bunny)
+                        bunny->SetDisplayId(36147);
+                }, 2s);
+
+                return true;
+            }
+
+        private:
+            Creature* _cannon;
+            Creature* _bunny;
+            uint32 _spellId;
+        };
+
     public:
         deadmines_mysterious_chest_at() : AreaTriggerScript("deadmines_mysterious_chest_at") {}
 
@@ -85,6 +115,25 @@ namespace Scripts::EasternKingdoms::Deadmines
                     chest->DespawnOrUnsummon(5min);
                 }
             }
+
+            // Entrance cannon event
+            if (InstanceScript* instance = player->GetInstanceScript())
+            {
+                if (instance->GetData(Misc::EntranceCannonFired) == 0)
+                {
+                    Creature* cannon = player->FindNearestCreature(Creatures::DefiasCannon, 200.0f);
+                    Creature* bunny = player->FindNearestCreature(Creatures::SchorchMarkBunny, 200.0f);
+
+                    if (cannon && bunny)
+                    {
+                        instance->SetData(Misc::EntranceCannonFired, 1);
+
+                        // Schedule cannon fire event with 5 second delay
+                        player->m_Events.AddEventAtOffset(new CannonFireEvent(cannon, bunny, Spells::DefiasCannonCannonballFire), 5s);
+                    }
+                }
+            }
+
             return true;
         }
     };

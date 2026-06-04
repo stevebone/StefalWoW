@@ -59,6 +59,13 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 // Reset fire wall hit tracking for this player when they enter
                 _playersHitByFirewall.erase(player->GetGUID());
+
+                // Despawn opposing faction NPCs with a small delay to ensure stability
+                player->m_Events.AddEventAtOffset([this, player]()
+                {
+                    if (player && player->IsInWorld())
+                        DespawnOpposingFactionNpcs(player);
+                }, 1s);
             }
 
             void MarkPlayerHitByFirewall(Player* player)
@@ -126,6 +133,54 @@ namespace Scripts::EasternKingdoms::Deadmines
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
                             return 1;
                         return 0;
+                }
+            }
+
+            bool IsAllianceNPC(Creature* creature) const
+            {
+                switch (creature->GetEntry())
+                {
+                    case Creatures::StormwindDefender:
+                    case Creatures::HoratioLaine:
+                    case Creatures::CrimeSceneBot:
+                    case Creatures::StormwindInvestigator:
+                    case Creatures::QuartermasterLewis:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            bool IsHordeNPC(Creature* creature) const
+            {
+                switch (creature->GetEntry())
+                {
+                    case Creatures::MissMayhem:
+                    case Creatures::MayhemPrototype:
+                    case Creatures::Kagtha:
+                    case Creatures::ShatteredHandAssassin:
+                    case Creatures::SlinkySharpshiv:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            void DespawnOpposingFactionNpcs(Player* player)
+            {
+                TeamId teamId = player->GetTeamId();
+
+                for (auto const& pair : instance->GetCreatureBySpawnIdStore())
+                {
+                    Creature* creature = pair.second;
+                    if (!creature || !creature->IsInWorld())
+                        continue;
+
+                    // Despawn opposite faction NPCs
+                    if (teamId == TEAM_ALLIANCE && IsHordeNPC(creature))
+                        creature->DespawnOrUnsummon();
+                    else if (teamId == TEAM_HORDE && IsAllianceNPC(creature))
+                        creature->DespawnOrUnsummon();
                 }
             }
 

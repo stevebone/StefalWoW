@@ -29,6 +29,7 @@
 #include "Map.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "SpellAuras.h"
 
 #include "Custom_Instance_Deadmines.h"
 

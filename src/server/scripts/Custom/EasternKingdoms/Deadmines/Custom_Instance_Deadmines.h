@@ -34,6 +34,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         constexpr char const* DataHeader = "DM";
         static constexpr int8 EncounterCount = 7;
         static constexpr uint32 DeadminesVersion = 1000;
+        static constexpr uint32 EntranceCannonFired = 1001;
     }
 
     namespace Version
@@ -81,6 +82,23 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Trash
         static constexpr uint32 OgreHenchman = 48230;
+
+        // Entrance Event
+        static constexpr uint32 DefiasCannon = 48266;
+        static constexpr uint32 SchorchMarkBunny = 48446;
+
+        // Faction-Specific NPCs
+        static constexpr uint32 StormwindDefender = 50595;
+        static constexpr uint32 HoratioLaine = 46612;
+        static constexpr uint32 CrimeSceneBot = 46613;
+        static constexpr uint32 StormwindInvestigator = 46614;
+        static constexpr uint32 QuartermasterLewis = 491;
+
+        static constexpr uint32 MissMayhem = 46902;
+        static constexpr uint32 MayhemPrototype = 46903;
+        static constexpr uint32 Kagtha = 46889;
+        static constexpr uint32 SlinkySharpshiv = 46906;
+        static constexpr uint32 ShatteredHandAssassin = 46890;
     }
 
     namespace CreatureSpawns
