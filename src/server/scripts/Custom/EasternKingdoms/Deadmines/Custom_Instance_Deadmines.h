@@ -84,6 +84,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 OgreHenchman = 48230;
         static constexpr uint32 OgreBodyguard = 48262;
         static constexpr uint32 MiningPowder = 48284;
+        static constexpr uint32 MiningMonkey1 = 48278;
+        static constexpr uint32 MiningMonkey2 = 48440;
+        static constexpr uint32 MiningMonkey3 = 48441;
+        static constexpr uint32 MiningMonkey4 = 48442;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -124,6 +128,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Teleporters
         static constexpr uint32 GoblinTeleporter = 208002;
+        static constexpr uint32 BallAndChain = 207079;
     }
 
     namespace TeleporterSpawnIds

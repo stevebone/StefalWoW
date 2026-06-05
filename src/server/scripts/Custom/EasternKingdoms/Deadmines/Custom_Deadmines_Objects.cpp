@@ -23,6 +23,7 @@
 #include "ScriptMgr.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "GossipDef.h"
 #include "InstanceScript.h"
 #include "Item.h"
 #include "Map.h"
@@ -33,9 +34,9 @@
 #include "ScriptedGossip.h"
 #include "Spell.h"
 #include "WorldSession.h"
+#include <array>
 
 #include "Custom_Instance_Deadmines.h"
-#include "GossipDef.h"
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
@@ -147,6 +148,65 @@ namespace Scripts::EasternKingdoms::Deadmines
             return true;
         }
     };
+
+    // 207079 - Ball and Chain
+    struct go_ball_and_chain : public GameObjectAI
+    {
+        go_ball_and_chain(GameObject* go) : GameObjectAI(go) { }
+
+        bool OnReportUse(Player* player) override
+        {
+            if (!player)
+                return false;
+
+            // Find nearest Mining Monkey within 5 yards
+            Creature* nearestMonkey = nullptr;
+            float nearestDist = 5.0f;
+
+            std::array<uint32, 4> monkeyEntries = {
+                Creatures::MiningMonkey1,
+                Creatures::MiningMonkey2,
+                Creatures::MiningMonkey3,
+                Creatures::MiningMonkey4
+            };
+
+            for (uint32 entry : monkeyEntries)
+            {
+                std::list<Creature*> monkeys;
+                me->GetCreatureListWithEntryInGrid(monkeys, entry, 5.0f);
+
+                for (Creature* monkey : monkeys)
+                {
+                    float dist = me->GetDistance2d(monkey);
+                    if (dist < nearestDist)
+                    {
+                        nearestDist = dist;
+                        nearestMonkey = monkey;
+                    }
+                }
+            }
+
+            if (!nearestMonkey)
+                return false;
+
+            // Unroot the creature
+            nearestMonkey->SetSessile(false);
+
+            // Remove emote state
+            nearestMonkey->SetEmoteState(Emote::EMOTE_ONESHOT_NONE);
+
+            // Set faction to 35 (friendly to players)
+            nearestMonkey->SetFaction(35);
+
+            // Trigger random movement generator
+            nearestMonkey->GetMotionMaster()->MoveRandom(5.0f);
+
+            // Despawn the object
+            me->DespawnOrUnsummon();
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_deadmines_objects()
@@ -155,4 +215,5 @@ void AddSC_custom_deadmines_objects()
 
     RegisterGameObjectAI(go_defias_cannon);
     RegisterGameObjectAI(go_goblin_teleporter);
+    RegisterGameObjectAI(go_ball_and_chain);
 }

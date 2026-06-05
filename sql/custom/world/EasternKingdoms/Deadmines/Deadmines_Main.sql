@@ -4,22 +4,51 @@
 -- NPC: 47162 Glubtok
 -- NPC: 48974 Glubtok Main Platter
 -- NPC: 48230 Ogre Henchman
+-- NPC: 48262 Ogre Bodyguard
 -- NPC: 48266 Defias Cannon
 -- NPC: 50595 Stormwind Defender
 -- NPC: 46890 Shattered Hand Assassin
 -- NPC: 46889 Kagtha
 -- NPC: 46902 Miss Mayhem
 -- NPC: 48284 Mining Powder
+-- NPC: 48279 Goblin Overseer
+-- NPC: 48338 Mine Bunny
+-- NPC: 48278 Mining Monkey
+-- NPC: 48440 Mining Monkey
+-- NPC: 48441 Mining Monkey
+-- NPC: 48442 Mining Monkey
 
 -- GO: 208002 Goblin Teleporter
+-- GO: 207079 Ball and Chain
 
 -- Creature Template Updates
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove uninterract flag for mining powder so it can be attacked
 
 -- Creature Difficulties
 -- Stormwind Defender and Shattered Hand Assassin have diff id 0 added for Followship Bots since they can be taken outside the dungeon
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284);
+-- Diff 1 - Normal / Diff 2 - Heroic / Diff 24 - Timewalking
+
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
+48440,48441,48442,48278);
 INSERT INTO `creature_template_difficulty` VALUES
+(48278, 0, -1, -1, 202, 0, 1, 1, 1, 1, 41633, 1, 0, 0, 48278, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48278, 2, 0, 0, 1199, 0, 1, 1, 1, 1, 41634, 1, 0, 0, 48278, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48278, 24, 0, 0, 2872, 3, 3, 1, 1, 1.8, 41634, 1, 0, 0, 48278, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
+(48440, 0, -1, -1, 202, 0, 1, 1, 1, 1, 41288, 1, 0, 0, 48440, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48440, 2, 0, 0, 1199, 0, 1, 1, 1, 1.4, 41289, 1, 0, 0, 48440, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48440, 24, 0, 0, 2872, 3, 3, 1, 1, 1.8, 41289, 1, 0, 0, 48440, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
+(48441, 0, -1, -1, 202, 0, 1, 1, 1, 1, 41285, 1, 0, 0, 48441, 0, 0, 2285, 2285, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48441, 2, 0, 0, 1199, 0, 1, 1, 1, 1.4, 41286, 1, 0, 0, 48441, 0, 0, 2285, 2285, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48441, 24, 0, 0, 2872, 3, 3, 1, 1, 1.8, 41286, 1, 0, 0, 48441, 0, 0, 2285, 2285, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
+(48442, 0, -1, -1, 202, 0, 1, 1, 1, 1, 41277, 1, 0, 0, 48442, 0, 0, 2285, 2285, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48442, 2, 0, 0, 1199, 0, 1, 1, 1, 1.4, 41278, 1, 0, 0, 48442, 0, 0, 2285, 2285, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48442, 24, 0, 0, 2872, 3, 3, 1, 1, 1.8, 41278, 1, 0, 0, 48442, 0, 0, 2285, 2285, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Mining Monkey (multi versions)
+(48338, 1, -1, -1, 202, 0, 1, 1, 1, 1, 41507, 0, 0, 0, 48338, 48338, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48338, 2, 0, 0, 1199, 0, 5, 1, 1, 12, 41508, 0, 0, 0, 48338, 48338, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48338, 24, 0, 0, 2872, 3, 8, 1, 1, 35, 41508, 0, 0, 0, 48338, 48338, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Mine Bunny
+(48279, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41627, 0, 0, 0, 48279, 48279, 0, 6975, 6975, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48279, 2, 0, 0, 1199, 0, 7, 1, 1, 15, 41627, 0, 0, 0, 48279, 48279, 0, 6975, 6975, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48279, 24, 0, 0, 2872, 3, 10, 1, 1, 35, 41628, 0, 0, 0, 48279, 48279, 0, 6975, 6975, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Goblin Overseer
 (48284, 1, 	-1, -1, 202, 1, 1, 1, 1, 1, 41616, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, -1),
 (48284, 2, 	0, 0, 1199, 1, 1, 1, 1, 1, 41617, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, -1),
 (48284, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41617, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, -1), -- Mining Powder
@@ -57,17 +86,43 @@ INSERT INTO `creature_template_difficulty` VALUES
 (47162, 24, 2, 2, 2872, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
 
 UPDATE `creature_template_addon` SET `PvPFlags` = 16, `emote` = 648 WHERE `entry` = 48229; -- Kobolds mining emote
+UPDATE `creature_template_addon` SET `emote` = 648 WHERE `entry` IN (48440,48441,48442,48278); -- Mining monkeys emote - allow weapon to be seen
 
 -- Spawn Updates
 UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
 -- Schorch Mark bunny should have its model changed in the script to 36147
 UPDATE `creature` SET `modelid` = 0 WHERE `guid` = 375860; 
+-- Remove duplicate Mining Monkey spawn
+DELETE FROM `creature` WHERE `guid` = 376054;
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229) and `source_type` = 0;
-INSERT INTO `smart_scripts` VALUES
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278) and `source_type` = 0;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, 
+`event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, 
+`action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, 
+`action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, 
+`target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(48278, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 3900, 0, '', 11, 91038, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - IC - Cast Throw'),
+(48278, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Flee'),
+(48278, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Say 0'),
+(48278, 0, 3, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 103, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - On Respawn - Apply ROOT'),
+(48440, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 3900, 0, '', 11, 91038, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - IC - Cast Throw'),
+(48440, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Flee'),
+(48440, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Say 0'),
+(48440, 0, 3, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 103, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - On Respawn - Apply ROOT'),
+(48441, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 3900, 0, '', 11, 91038, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - IC - Cast Throw'),
+(48441, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Flee'),
+(48441, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Say 0'),
+(48441, 0, 3, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 103, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - On Respawn - Apply ROOT'),
+(48442, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 3900, 0, '', 11, 91038, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - IC - Cast Throw'),
+(48442, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Flee'),
+(48442, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Say 0'),
+(48442, 0, 3, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 103, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - On Respawn - Apply ROOT'),
 (48229, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 9000, 12000, 0, '', 11, 89663, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kobold Digger - Cast Candle Blast'),
-(48229, 0, 1, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kobold Digger - On Aggro Say 0');
+(48229, 0, 1, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kobold Digger - On Aggro - Say 0'),
+(48279, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 91034, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Overseer - On Aggro - Cast Threatening Shout'),
+(48279, 0, 1, 0, '', 0, 0, 100, 0, 3000, 4000, 8000, 12000, 0, '', 11, 91036, 0, 0, 0, 0, 0, 0, '', 5, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Overseer - In Combat - Cast Motivate');
+
 
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
@@ -189,8 +244,15 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (47162, 6, 0, 'Fists of frost!', 14, 0, 100, 0, 0, 21156, 0, 47238, 0, 'VO_DM_GlubtokHead2_Spell01'),
 (47162, 7, 0, 'Let''s do it!', 14, 0, 100, 15, 0, 21157, 0, 108750, 0, 'VO_DM_GlubtokHead2_Spell02');
 
+DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `BroadcastTextId`, `comment`) VALUES 
+(48278, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
+(48440, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
+(48441, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
+(48442, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee');
 
-
+-- GO: 207079 Ball and Chain
+UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;
 -- GO: 208002 Goblin Teleporter
 UPDATE `gameobject_template` SET `ScriptName` = 'go_goblin_teleporter' WHERE `entry` = 208002;
 
