@@ -1017,6 +1017,42 @@ namespace Scripts::EasternKingdoms::Deadmines
         { Texts::OgreBodyguardConversation10, 3s, false },
         { Texts::OgreBodyguardConversation10, 3s, true } // Both say line 11
     };
+
+    // 48284 - Mining Powder
+    struct npc_mining_powder : public ScriptedAI
+    {
+        npc_mining_powder(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _hasExploded = false;
+            _attackerGUID.Clear();
+            me->SetReactState(REACT_PASSIVE);
+        }
+
+        void DamageTaken(Unit* attacker, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (_hasExploded)
+                return;
+
+            _hasExploded = true;
+            _attackerGUID = attacker->GetGUID();
+            DoCastSelf(Spells::Explode);
+            me->DespawnOrUnsummon(100ms);
+        }
+
+        ObjectGuid GetGUID(int32 id) const override
+        {
+            if (id == 1)
+                return _attackerGUID;
+            return ObjectGuid::Empty;
+        }
+
+    private:
+        bool _hasExploded = false;
+        ObjectGuid _attackerGUID;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
@@ -1028,4 +1064,5 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(npc_glubtok_secondary_platter);
     RegisterCreatureAI(npc_ogre_henchman);
     RegisterCreatureAI(npc_ogre_bodyguard);
+    RegisterCreatureAI(npc_mining_powder);
 }

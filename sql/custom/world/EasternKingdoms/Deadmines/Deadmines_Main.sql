@@ -9,13 +9,20 @@
 -- NPC: 46890 Shattered Hand Assassin
 -- NPC: 46889 Kagtha
 -- NPC: 46902 Miss Mayhem
+-- NPC: 48284 Mining Powder
 
 -- GO: 208002 Goblin Teleporter
 
+-- Creature Template Updates
+UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove uninterract flag for mining powder so it can be attacked
+
 -- Creature Difficulties
 -- Stormwind Defender and Shattered Hand Assassin have diff id 0 added for Followship Bots since they can be taken outside the dungeon
-DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262);
+DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284);
 INSERT INTO `creature_template_difficulty` VALUES
+(48284, 1, 	-1, -1, 202, 1, 1, 1, 1, 1, 41616, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, -1),
+(48284, 2, 	0, 0, 1199, 1, 1, 1, 1, 1, 41617, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, -1),
+(48284, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41617, 0, 0, 0, 0, 0, 0, 0, 0, 536871168, 0, 0, 0, 0, 0, 0, 0, -1), -- Mining Powder
 (46906, 1, 0, 0, 202, 0, 1, 1, 1, 1, 44620, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
 (46906, 2, 0, 0, 1199, 0, 1, 1, 1, 1, 44620, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
 (46906, 24, 0, 0, 2872, 0, 1, 1, 1, 1, 44620, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Slinky Sharpshiv
@@ -65,6 +72,7 @@ INSERT INTO `smart_scripts` VALUES
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_bodyguard' WHERE `entry` = 48262;
+UPDATE `creature_template` SET `ScriptName` = 'npc_mining_powder' WHERE `entry` = 48284;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -123,8 +131,9 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (49041, 46598, 0, 0),
 (49042, 46598, 0, 0);
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(89769, 'spell_mining_powder_explode'),
 (91397, 'spell_glubtok_firewall_targetting'),
 (87897, 'spell_glubtok_generic_proc'),
 (87900, 'spell_glubtok_generic_proc');

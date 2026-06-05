@@ -27,6 +27,7 @@
 #include "GameObject.h"
 #include "InstanceScript.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
@@ -92,6 +93,35 @@ namespace Scripts::EasternKingdoms::Deadmines
             OnHit += SpellHitFn(spell_glubtok_firewall_targetting::HandleHit);
         }
     };
+
+    // 89769 - Explode (Mining Powder)
+    class spell_mining_powder_explode : public SpellScript
+    {
+        void HandleThreat(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Creature* miningPowder = caster->ToCreature();
+            if (!miningPowder)
+                return;
+
+            // Get the attacker GUID from the mining powder AI using GetGUID
+            ObjectGuid attackerGuid = miningPowder->AI()->GetGUID(1);
+
+            if (Unit* attacker = ObjectAccessor::GetUnit(*caster, attackerGuid))
+            {
+                if (Unit* target = GetHitUnit())
+                    target->GetThreatManager().AddThreat(attacker, GetHitDamage());
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_mining_powder_explode::HandleThreat, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
 }
 
 void AddSC_custom_deadmines_spells()
@@ -100,4 +130,5 @@ void AddSC_custom_deadmines_spells()
 
     RegisterSpellScript(spell_glubtok_generic_proc);
     RegisterSpellScript(spell_glubtok_firewall_targetting);
+    RegisterSpellScript(spell_mining_powder_explode);
 }

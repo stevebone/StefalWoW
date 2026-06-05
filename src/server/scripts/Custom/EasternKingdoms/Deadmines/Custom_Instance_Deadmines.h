@@ -83,6 +83,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Trash
         static constexpr uint32 OgreHenchman = 48230;
         static constexpr uint32 OgreBodyguard = 48262;
+        static constexpr uint32 MiningPowder = 48284;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -212,6 +213,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Ogre Bodyguard
         static constexpr uint32 Bonk = 91050;
         static constexpr uint32 Frenzy = 91053;
+
+        // Mining Powder
+        static constexpr uint32 Explode = 89769;
 
         // Defias Cannon
         static constexpr uint32 DefiasCannonCannonballFire = 89697;
