@@ -26,6 +26,7 @@
 #include "Map.h"
 #include "MotionMaster.h"
 #include "PhasingHandler.h"
+#include "Player.h"
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "TemporarySummon.h"

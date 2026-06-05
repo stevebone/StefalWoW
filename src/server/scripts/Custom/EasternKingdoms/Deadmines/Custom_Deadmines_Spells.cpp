@@ -92,39 +92,12 @@ namespace Scripts::EasternKingdoms::Deadmines
             OnHit += SpellHitFn(spell_glubtok_firewall_targetting::HandleHit);
         }
     };
-
-    // 91050 - Bonk
-    class spell_bonk : public SpellScript
-    {
-        void HandleDamage(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            Unit* target = GetHitUnit();
-
-            if (!caster || !target)
-                return;
-
-            // Calculate weapon damage manually
-            float weaponDamage = caster->CalculateDamage(BASE_ATTACK, true, true);
-            // Apply weapon damage multiplier from spell's base points
-            float multiplier = GetEffectInfo().BasePoints / 100.0f;
-            uint32 damage = weaponDamage * multiplier;
-
-            SetHitDamage(damage);
-        }
-
-        void Register() override
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_bonk::HandleDamage, EFFECT_0, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
-        }
-    };
 }
 
 void AddSC_custom_deadmines_spells()
 {
     using namespace Scripts::EasternKingdoms::Deadmines;
 
-    RegisterSpellScript(spell_bonk);
     RegisterSpellScript(spell_glubtok_generic_proc);
     RegisterSpellScript(spell_glubtok_firewall_targetting);
 }
