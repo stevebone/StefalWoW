@@ -3402,6 +3402,13 @@ void SpellMgr::LoadSpellInfoCorrections()
             spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(5); // 40 yards
         });
 
+    // Bonk - Override to make it castable
+    ApplySpellFix({ 91050 }, [](SpellInfo* spellInfo)
+        {
+            //spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(2); // Melee range
+            spellInfo->Attributes = 0; // Clear first attribute array (contains SPELL_ATTR0_ON_NEXT_SWING_NO_DAMAGE)
+        });
+
     // Some spells have no amplitude set
     {
         ApplySpellFix({

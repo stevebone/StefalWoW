@@ -31,6 +31,7 @@
 #include "ScriptMgr.h"
 #include "SpellScript.h"
 #include "SpellAuras.h"
+#include "SpellHistory.h"
 #include "Spell.h"
 
 #include "Custom_Instance_Deadmines.h"
@@ -95,18 +96,26 @@ namespace Scripts::EasternKingdoms::Deadmines
     // 91050 - Bonk
     class spell_bonk : public SpellScript
     {
-        SpellCastResult CheckCast()
+        void HandleDamage(SpellEffIndex /*effIndex*/)
         {
-            // Override the next-swing auto-attack check for NPCs
-            if (GetCaster()->IsCreature())
-                return SPELL_CAST_OK;
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
 
-            return GetSpell()->CheckCast(true);
+            if (!caster || !target)
+                return;
+
+            // Calculate weapon damage manually
+            float weaponDamage = caster->CalculateDamage(BASE_ATTACK, true, true);
+            // Apply weapon damage multiplier from spell's base points
+            float multiplier = GetEffectInfo().BasePoints / 100.0f;
+            uint32 damage = weaponDamage * multiplier;
+
+            SetHitDamage(damage);
         }
 
         void Register() override
         {
-            OnCheckCast += SpellCheckCastFn(spell_bonk::CheckCast);
+            OnEffectHitTarget += SpellEffectFn(spell_bonk::HandleDamage, EFFECT_0, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
         }
     };
 }
