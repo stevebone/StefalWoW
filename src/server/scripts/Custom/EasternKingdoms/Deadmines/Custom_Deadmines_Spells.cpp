@@ -29,7 +29,9 @@
 #include "Map.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "SpellScript.h"
 #include "SpellAuras.h"
+#include "Spell.h"
 
 #include "Custom_Instance_Deadmines.h"
 
@@ -89,12 +91,31 @@ namespace Scripts::EasternKingdoms::Deadmines
             OnHit += SpellHitFn(spell_glubtok_firewall_targetting::HandleHit);
         }
     };
+
+    // 91050 - Bonk
+    class spell_bonk : public SpellScript
+    {
+        SpellCastResult CheckCast()
+        {
+            // Override the next-swing auto-attack check for NPCs
+            if (GetCaster()->IsCreature())
+                return SPELL_CAST_OK;
+
+            return GetSpell()->CheckCast(true);
+        }
+
+        void Register() override
+        {
+            OnCheckCast += SpellCheckCastFn(spell_bonk::CheckCast);
+        }
+    };
 }
 
 void AddSC_custom_deadmines_spells()
 {
     using namespace Scripts::EasternKingdoms::Deadmines;
 
+    RegisterSpellScript(spell_bonk);
     RegisterSpellScript(spell_glubtok_generic_proc);
     RegisterSpellScript(spell_glubtok_firewall_targetting);
 }

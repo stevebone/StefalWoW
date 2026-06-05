@@ -241,6 +241,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Ogre Bodyguard
         static constexpr int8 OgreBodyguardBonk = 17;
         static constexpr int8 OgreBodyguardConversation = 18;
+        static constexpr int8 OgreBodyguardDialogueLine = 19;
     }
 
     namespace GlubtokActions

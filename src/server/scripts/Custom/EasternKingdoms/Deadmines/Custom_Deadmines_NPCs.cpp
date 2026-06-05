@@ -710,7 +710,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             _events.RescheduleEvent(Events::OgreHenchmanUppercut, std::chrono::seconds(5));
 
             if (roll_chance(30))
-                Talk(Texts::OgreHenchmanAggro);
+                Talk(Texts::OgreHenchmanAggro, who);
         }
 
         void EnterEvadeMode(EvadeReason why) override
@@ -823,33 +823,56 @@ namespace Scripts::EasternKingdoms::Deadmines
         bool _isSleeping = false;
     };
 
+    // Ogre Bodyguard Dialogue Entry
+    struct OgreBodyguardDialogueEntry
+    {
+        int8 talkId;
+        Milliseconds delay;
+        bool isFinal;
+    };
+
     // 48262 - Ogre Bodyguard
     struct npc_ogre_bodyguard : public ScriptedAI
     {
-        npc_ogre_bodyguard(Creature* creature) : ScriptedAI(creature) { }
+        npc_ogre_bodyguard(Creature* creature) : ScriptedAI(creature), _dialogueIndex(0)
+        {
+            _hasCastFrenzy = false;
+            _conversationInProgress = false;
+        }
 
         void Reset() override
         {
             ScriptedAI::Reset();
             _hasCastFrenzy = false;
-            _conversationLine = 0;
+            _dialogueIndex = 0;
+            _conversationInProgress = false;
             _events.Reset();
 
-            // Schedule conversation event
-            _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
+            // Schedule conversation start event (1-5s random)
+            _events.RescheduleEvent(Events::OgreBodyguardConversation, 1s, 5s);
         }
 
         void JustEngagedWith(Unit* who) override
         {
             ScriptedAI::JustEngagedWith(who);
-            Talk(Texts::OgreBodyguardAggro);
+
+            if (roll_chance(50))
+                Talk(Texts::OgreBodyguardAggro, who);
+
             _events.RescheduleEvent(Events::OgreBodyguardBonk, 4s, 8s);
+
+            // Stop conversation on combat
+            _events.CancelEvent(Events::OgreBodyguardConversation);
+            _events.CancelEvent(Events::OgreBodyguardDialogueLine);
+            _conversationInProgress = false;
         }
 
         void EnterEvadeMode(EvadeReason why) override
         {
             ScriptedAI::EnterEvadeMode(why);
-            _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
+            _conversationInProgress = false;
+            _dialogueIndex = 0;
+            _events.RescheduleEvent(Events::OgreBodyguardConversation, 1s, 5s);
         }
 
         void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
@@ -862,36 +885,31 @@ namespace Scripts::EasternKingdoms::Deadmines
             }
         }
 
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1 && value == 1) // Cancel conversation start event
+            {
+                _events.CancelEvent(Events::OgreBodyguardConversation);
+            }
+        }
+
         void UpdateAI(uint32 diff) override
         {
-            if (!UpdateVictim())
-            {
-                _events.Update(diff);
-
-                while (uint32 eventId = _events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                        case Events::OgreBodyguardConversation:
-                            HandleConversation();
-                            _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                return;
-            }
-
             _events.Update(diff);
 
             while (uint32 eventId = _events.ExecuteEvent())
             {
                 switch (eventId)
                 {
+                    case Events::OgreBodyguardConversation:
+                        StartConversation();
+                        break;
+                    case Events::OgreBodyguardDialogueLine:
+                        ProcessDialogueLine();
+                        break;
                     case Events::OgreBodyguardBonk:
                         if (Unit* victim = me->GetVictim())
-                            DoCast(victim, Spells::Bonk);
+                            me->CastSpell(victim, Spells::Bonk);
                         _events.RescheduleEvent(Events::OgreBodyguardBonk, 14s, 17s);
                         break;
                     default:
@@ -899,105 +917,105 @@ namespace Scripts::EasternKingdoms::Deadmines
                 }
             }
 
+            if (!UpdateVictim())
+                return;
+
             me->DoMeleeAttackIfReady();
         }
 
-        void HandleConversation()
+        void StartConversation()
         {
-            // Find the other ogre bodyguard
-            std::list<Creature*> bodyguards;
-            me->GetCreatureListWithEntryInGrid(bodyguards, Creatures::OgreBodyguard, 10.0f);
+            if (_conversationInProgress)
+                return;
 
-            for (Creature* other : bodyguards)
+            if (Creature* other = me->FindNearestCreature(Creatures::OgreBodyguard, 10.f, true))
             {
                 if (other && other != me && other->IsAlive())
                 {
                     // Only the ogre with the lower GUID initiates the conversation
                     if (me->GetGUID().GetCounter() < other->GetGUID().GetCounter())
                     {
-                        // Start conversation from line 2
-                        _conversationLine = 2;
-                        other->AI()->SetData(1, 2); // Tell other ogre to start from line 3
-                        ScheduleNextConversationLine();
+                        _conversationInProgress = true;
+                        other->AI()->SetData(1, 1); // Tell other to cancel their start event
+                        _dialogueIndex = 0;
+                        _events.RescheduleEvent(Events::OgreBodyguardDialogueLine, 1s);
                     }
                     return;
                 }
             }
         }
 
-        void SetData(uint32 id, uint32 value) override
+        void ProcessDialogueLine()
         {
-            if (id == 1) // Set conversation line
+            if (_dialogueIndex >= _dialogueSequence.size())
             {
-                _conversationLine = value;
-                ScheduleNextConversationLine();
-            }
-        }
-
-        void ScheduleNextConversationLine()
-        {
-            if (_conversationLine < 2 || _conversationLine > 11)
+                _conversationInProgress = false;
+                _dialogueIndex = 0;
+                // Schedule next conversation cycle (45-60s)
+                _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
                 return;
-
-            uint32 textId = 0;
-            switch (_conversationLine)
-            {
-                case 2: textId = Texts::OgreBodyguardConversation1; break;
-                case 3: textId = Texts::OgreBodyguardConversation2; break;
-                case 4: textId = Texts::OgreBodyguardConversation3; break;
-                case 5: textId = Texts::OgreBodyguardConversation4; break;
-                case 6: textId = Texts::OgreBodyguardConversation5; break;
-                case 7: textId = Texts::OgreBodyguardConversation6; break;
-                case 8: textId = Texts::OgreBodyguardConversation7; break;
-                case 9: textId = Texts::OgreBodyguardConversation8; break;
-                case 10: textId = Texts::OgreBodyguardConversation9; break;
-                case 11: textId = Texts::OgreBodyguardConversation10; break;
             }
 
-            if (textId)
-            {
-                Talk(textId);
-                _conversationLine++;
+            const OgreBodyguardDialogueEntry& entry = _dialogueSequence[_dialogueIndex];
 
-                // Schedule next line with delay
-                me->m_Events.AddEventAtOffset([this]()
+            Creature* speaker = me;
+            Creature* otherOgre = me->FindNearestCreature(Creatures::OgreBodyguard, 10.f, true);
+
+            // Determine speaker based on dialogue index (alternating)
+            if (speaker && otherOgre)
+            {
+                // Even indices: lower GUID speaks, Odd indices: higher GUID speaks
+                if (_dialogueIndex % 2 == 0)
                 {
-                    if (me && me->IsInWorld())
-                    {
-                        // If we reached line 11, both ogres say it
-                        if (_conversationLine == 12)
-                        {
-                            // Find the other ogre and tell them to also say line 11
-                            std::list<Creature*> bodyguards;
-                            me->GetCreatureListWithEntryInGrid(bodyguards, Creatures::OgreBodyguard, 30.0f);
-                            for (Creature* other : bodyguards)
-                            {
-                                if (other && other != me && other->IsAlive())
-                                    other->AI()->SetData(1, 11);
-                            }
-                            _conversationLine = 0; // Reset
-                        }
-                        else
-                        {
-                            // Pass the next line to the other ogre
-                            std::list<Creature*> bodyguards;
-                            me->GetCreatureListWithEntryInGrid(bodyguards, Creatures::OgreBodyguard, 30.0f);
-                            for (Creature* other : bodyguards)
-                            {
-                                if (other && other != me && other->IsAlive())
-                                    other->AI()->SetData(1, _conversationLine);
-                            }
-                            _conversationLine = 0; // Reset after passing
-                        }
-                    }
-                }, 3s);
+                    if (speaker->GetGUID().GetCounter() > otherOgre->GetGUID().GetCounter())
+                        std::swap(speaker, otherOgre);
+                }
+                else
+                {
+                    if (speaker->GetGUID().GetCounter() < otherOgre->GetGUID().GetCounter())
+                        std::swap(speaker, otherOgre);
+                }
+            }
+
+            if (speaker)
+                speaker->AI()->Talk(entry.talkId);
+
+            ++_dialogueIndex;
+
+            if (entry.isFinal)
+            {
+                _conversationInProgress = false;
+                _dialogueIndex = 0;
+                _events.RescheduleEvent(Events::OgreBodyguardConversation, 45s, 60s);
+            }
+            else
+            {
+                _events.RescheduleEvent(Events::OgreBodyguardDialogueLine, entry.delay);
             }
         }
 
     private:
         EventMap _events;
         bool _hasCastFrenzy = false;
-        uint8 _conversationLine = 0;
+        size_t _dialogueIndex;
+        bool _conversationInProgress;
+
+        static const std::vector<OgreBodyguardDialogueEntry> _dialogueSequence;
+    };
+
+    const std::vector<OgreBodyguardDialogueEntry> npc_ogre_bodyguard::_dialogueSequence =
+    {
+        { Texts::OgreBodyguardConversation1, 3s, false },
+        { Texts::OgreBodyguardConversation2, 5s, false },
+        { Texts::OgreBodyguardConversation3, 4s, false },
+        { Texts::OgreBodyguardConversation4, 3s, false },
+        { Texts::OgreBodyguardConversation5, 5s, false },
+        { Texts::OgreBodyguardConversation6, 4s, false },
+        { Texts::OgreBodyguardConversation7, 3s, false },
+        { Texts::OgreBodyguardConversation8, 5s, false },
+        { Texts::OgreBodyguardConversation9, 4s, false },
+        { Texts::OgreBodyguardConversation10, 3s, false },
+        { Texts::OgreBodyguardConversation10, 3s, true } // Both say line 11
     };
 }
 
