@@ -6,3 +6,6 @@ DELETE FROM `gameobject_loot_template` WHERE `entry` = 1731; -- copper vein has 
 DELETE FROM `gameobject_loot_template` WHERE `entry` = 1732; -- tin vein has a different loot id, keeping that one.
 DELETE FROM `gameobject_loot_template` WHERE `entry` = 1733; -- silver vein has a different loot id, keeping that one.
 DELETE FROM `gameobject_loot_template` WHERE `entry` = 1734; -- gold vein has a different loot id, keeping that one.
+
+-- Remove not allowed 0x00000001 unit_flags3
+UPDATE creature_template SET unit_flags3 = unit_flags3 & ~0x00000001;
