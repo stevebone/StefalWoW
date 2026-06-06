@@ -82,9 +82,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
             me->RemoveUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
             me->ClearUnitState(UNIT_STATE_CANNOT_TURN);
-
-            if (_platter)
-                _platter->AI()->DoAction(GlubtokActions::StopFirewall);
         }
 
         void JustEngagedWith(Unit* who) override
@@ -1018,6 +1015,297 @@ namespace Scripts::EasternKingdoms::Deadmines
         { Texts::OgreBodyguardConversation10, 3s, true } // Both say line 11
     };
 
+    // 49136 - Helix Crew
+    struct npc_helix_crew : public ScriptedAI
+    {
+        npc_helix_crew(Creature* creature) : ScriptedAI(creature), summons(me)
+        {
+            ApplyCrowdControlImmunities(me);
+        }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            summons.DespawnAll();
+            SetCombatMovement(false);
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            _events.RescheduleEvent(Events::HelixCrewStickyBomb, 8s);
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            summons.Summon(summon);
+        }
+
+        void SummonedCreatureDespawn(Creature* summon) override
+        {
+            summons.Despawn(summon);
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            summons.DespawnAll();
+            me->DespawnOrUnsummon();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::HelixCrewStickyBomb:
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
+                        {
+                            Talk(Texts::HelixCrewStickyBomb);
+                            me->SummonCreature(Creatures::StickyBomb, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN);
+                        }
+                        _events.RescheduleEvent(Events::HelixCrewStickyBomb, 18s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        SummonList summons;
+    };
+
+    // 47314 - Sticky Bomb
+    struct npc_sticky_bomb : public ScriptedAI
+    {
+        npc_sticky_bomb(Creature* creature) : ScriptedAI(creature)
+        {
+            ApplyCrowdControlImmunities(me);
+            me->SetReactState(REACT_PASSIVE);
+        }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _events.Reset();
+            _events.RescheduleEvent(Events::StickyBombInitial, 200ms);
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            me->DespawnOrUnsummon();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::StickyBombInitial:
+                        DoCastSelf(Spells::ChestBomb);
+                        _events.RescheduleEvent(Events::StickyBombYellow, 2s);
+                        _events.RescheduleEvent(Events::StickyBombOrange, 4s);
+                        _events.RescheduleEvent(Events::StickyBombRed, 5500ms);
+                        _events.RescheduleEvent(Events::StickyBombArmed, 5800ms);
+                        _events.RescheduleEvent(Events::StickyBombExplode, 17800ms);
+                        break;
+                    case Events::StickyBombYellow:
+                        DoCastSelf(Spells::ArmingVisualYellow);
+                        break;
+                    case Events::StickyBombOrange:
+                        DoCastSelf(Spells::ArmingVisualOrange);
+                        break;
+                    case Events::StickyBombRed:
+                        DoCastSelf(Spells::ArmingVisualRed);
+                        break;
+                    case Events::StickyBombArmed:
+                        DoCastSelf(Spells::ArmedState);
+                        break;
+                    case Events::StickyBombExplode:
+                        DoCastSelf(me->GetMap()->IsHeroic() ? Spells::StickyBombExplodeHeroic : Spells::StickyBombExplode);
+                        me->DespawnOrUnsummon(5s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+    };
+
+    // 47297 - Lumbering Oaf
+    struct npc_lumbering_oaf : public ScriptedAI
+    {
+        npc_lumbering_oaf(Creature* creature) : ScriptedAI(creature)
+        {
+            ApplyCrowdControlImmunities(me);
+            me->setActive(true);
+        }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _events.Reset();
+            _helixGUID.Clear();
+            _ridingOaf = false;
+            _helixFaceRiding = false;
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (action == Actions::OafCharge)
+                _events.RescheduleEvent(Events::OafCharge1, 1500ms);
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            _events.RescheduleEvent(Events::OafCharge0, 15s, 20s);
+            _events.RescheduleEvent(Events::OafThrowHelix, 15s, 20s);
+        }
+
+        void EnterEvadeMode(EvadeReason /*why*/) override
+        {
+            me->DespawnOrUnsummon();
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (me->GetHealth() <= damage)
+                if (Vehicle* vehicle = me->GetVehicleKit())
+                    vehicle->RemoveAllPassengers();
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            if (Creature* helix = me->FindNearestCreature(Creatures::HelixGearBreaker, 20.0f, true))
+                if (CreatureAI* ai = helix->AI())
+                    ai->SetData(0, 0);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type == POINT_MOTION_TYPE)
+            {
+                if (id == 1)
+                    _events.RescheduleEvent(Events::OafCharge2, 1500ms);
+                else if (id == 2)
+                    _events.RescheduleEvent(Events::OafCharge3, 1500ms);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+                return;
+
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::OafCharge0:
+                        if (_helixFaceRiding)
+                        {
+                            _events.RescheduleEvent(Events::OafCharge0, 5s);
+                            break;
+                        }
+                        if (Unit* target = SelectTarget(SelectTargetMethod::MaxThreat, 0, 100.0f, true))
+                        {
+                            _ridingOaf = true;
+                            me->SetReactState(REACT_PASSIVE);
+                            DoCast(target, Spells::OafCharge, true);
+                            Talk(Texts::OafCharge);
+                        }
+                        break;
+                    case Events::OafCharge1:
+                        if (Creature* moveBunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::OafMoveToBunny))
+                            me->GetMotionMaster()->MovePoint(1, moveBunny->GetPosition());
+                        break;
+                    case Events::OafCharge2:
+                        if (Creature* chargeBunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::OafChargePosition))
+                            me->GetMotionMaster()->MoveCharge(chargeBunny->GetPositionX(), chargeBunny->GetPositionY(), chargeBunny->GetPositionZ(), 42.0f, 2);
+                        break;
+                    case Events::OafCharge3:
+                        DoCastAOE(me->GetMap()->IsHeroic() ? Spells::OafSmashHeroic : Spells::OafSmash);
+                        Talk(Texts::OafSmash);
+                        me->SetReactState(REACT_AGGRESSIVE);
+                        if (Vehicle* vehicle = me->GetVehicleKit())
+                        {
+                            if (Unit* passenger = vehicle->GetPassenger(1))
+                            {
+                                passenger->ExitVehicle();
+                                me->Attack(passenger, true);
+                            }
+                        }
+                        me->RemoveAurasDueToSpell(Spells::RideOaf);
+                        _ridingOaf = false;
+                        if (me->GetVictim())
+                            me->GetMotionMaster()->MoveChase(me->GetVictim());
+                        _events.RescheduleEvent(Events::OafCharge0, 30s);
+                        break;
+                    case Events::OafThrowHelix:
+                        if (_ridingOaf)
+                        {
+                            _events.RescheduleEvent(Events::OafThrowHelix, 5s);
+                            break;
+                        }
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
+                        {
+                            if (Vehicle* vehicle = me->GetVehicleKit())
+                            {
+                                if (Unit* helix = vehicle->GetPassenger(0))
+                                {
+                                    target->CastSpell(target, Spells::HelixRide, true);
+
+                                    _helixGUID = helix->GetGUID();
+
+                                    if (Vehicle* playerVehicle = target->GetVehicleKit())
+                                        helix->EnterVehicle(playerVehicle->GetBase(), 0);
+                                    _helixFaceRiding = true;
+                                    _events.RescheduleEvent(Events::OafPickupHelix, 10s);
+                                }
+                            }
+                        }
+                        break;
+                    case Events::OafPickupHelix:
+                        if (Unit* helix = ObjectAccessor::GetUnit(*me, _helixGUID))
+                        {
+                            if (Vehicle* oafVehicle = me->GetVehicleKit())
+                                helix->EnterVehicle(oafVehicle->GetBase(), 0);
+                        }
+                        _helixFaceRiding = false;
+                        _events.RescheduleEvent(Events::OafThrowHelix, 20s, 35s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _helixGUID;
+        bool _ridingOaf = false;
+        bool _helixFaceRiding = false;
+    };
+
     // 48284 - Mining Powder
     struct npc_mining_powder : public ScriptedAI
     {
@@ -1064,5 +1352,8 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(npc_glubtok_secondary_platter);
     RegisterCreatureAI(npc_ogre_henchman);
     RegisterCreatureAI(npc_ogre_bodyguard);
+    RegisterCreatureAI(npc_helix_crew);
+    RegisterCreatureAI(npc_sticky_bomb);
+    RegisterCreatureAI(npc_lumbering_oaf);
     RegisterCreatureAI(npc_mining_powder);
 }

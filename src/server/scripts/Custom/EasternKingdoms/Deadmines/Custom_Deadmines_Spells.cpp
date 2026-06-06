@@ -122,6 +122,31 @@ namespace Scripts::EasternKingdoms::Deadmines
             OnEffectHitTarget += SpellEffectFn(spell_mining_powder_explode::HandleThreat, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
         }
     };
+
+    // 88278 - Force Player to Ride Oaf
+    class spell_helix_force_player_to_ride_oaf : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::RideOaf });
+        }
+
+        void HandleScript(SpellEffIndex /*effIndex*/)
+        {
+            if (!GetCaster() || !GetHitUnit())
+                return;
+
+            GetHitUnit()->CastSpell(GetCaster(), Spells::RideOaf, true);
+            if (Creature* creature = GetCaster()->ToCreature())
+                if (creature->AI())
+                    creature->AI()->DoAction(Actions::OafCharge);
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_helix_force_player_to_ride_oaf::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+    };
 }
 
 void AddSC_custom_deadmines_spells()
@@ -130,5 +155,6 @@ void AddSC_custom_deadmines_spells()
 
     RegisterSpellScript(spell_glubtok_generic_proc);
     RegisterSpellScript(spell_glubtok_firewall_targetting);
+    RegisterSpellScript(spell_helix_force_player_to_ride_oaf);
     RegisterSpellScript(spell_mining_powder_explode);
 }

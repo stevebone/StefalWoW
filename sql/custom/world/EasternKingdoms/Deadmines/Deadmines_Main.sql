@@ -13,10 +13,16 @@
 -- NPC: 48284 Mining Powder
 -- NPC: 48279 Goblin Overseer
 -- NPC: 48338 Mine Bunny
+-- NPC: 48351 Mine Bunny
 -- NPC: 48278 Mining Monkey
 -- NPC: 48440 Mining Monkey
 -- NPC: 48441 Mining Monkey
 -- NPC: 48442 Mining Monkey
+-- NPC: 48445 Oaf Lackey
+-- NPC: 47297 Lumbering Oaf
+-- NPC: 49136 Helix Crew
+-- NPC: 47314 Sticky Bomb
+-- NPC: 47297 Helix Gearbreaker
 
 -- GO: 208002 Goblin Teleporter
 -- GO: 207079 Ball and Chain
@@ -29,8 +35,17 @@ UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove
 -- Diff 1 - Normal / Diff 2 - Heroic / Diff 24 - Timewalking
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
-48440,48441,48442,48278);
+48440,48441,48442,48278,48351,47296,47297,48445);
 INSERT INTO `creature_template_difficulty` VALUES
+(47296, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43704, 104, 128, 0, 47296, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47296, 2, 2, 2, 1199, 0, 5, 1, 1, 57.5, 43705, 104, 128, 0, 47296, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47296, 24, 2, 2, 1199, 3, 10, 1, 1, 125, 43705, 104, 128, 0, 47296, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Helix Gearbreaker
+(47297, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43698, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47297, 2, 2, 2, 1199, 0, 15, 1, 1, 8.5, 43699, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47297, 24, 2, 2, 1199, 3, 40, 1, 1, 35, 43699, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Lumbering Oaf
+(48445, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41267, 0, 0, 0, 48445, 48445, 0, 7141, 7141, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(48445, 2, 0, 0, 1199, 0, 10, 1, 1, 5, 41268, 0, 0, 0, 48445, 48445, 0, 7141, 7141, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48445, 24, 0, 0, 2872, 3, 15, 1, 1, 12, 41268, 0, 0, 0, 48445, 48445, 0, 7141, 7141, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Oaf Lackey
 (48278, 0, -1, -1, 202, 0, 1, 1, 1, 1, 41633, 1, 0, 0, 48278, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48278, 2, 0, 0, 1199, 0, 1, 1, 1, 1, 41634, 1, 0, 0, 48278, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48278, 24, 0, 0, 2872, 3, 3, 1, 1, 1.8, 41634, 1, 0, 0, 48278, 0, 0, 2137, 2137, 524288, 0, 0, 0, 0, 0, 0, 0, -1),
@@ -46,6 +61,9 @@ INSERT INTO `creature_template_difficulty` VALUES
 (48338, 1, -1, -1, 202, 0, 1, 1, 1, 1, 41507, 0, 0, 0, 48338, 48338, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48338, 2, 0, 0, 1199, 0, 5, 1, 1, 12, 41508, 0, 0, 0, 48338, 48338, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48338, 24, 0, 0, 2872, 3, 8, 1, 1, 35, 41508, 0, 0, 0, 48338, 48338, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Mine Bunny
+(48351, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41481, 0, 0, 0, 48351, 48351, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48351, 2, 0, 0, 1199, 0, 5, 1, 1, 12, 41482, 0, 0, 0, 48351, 48351, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48351, 24, 0, 0, 2872, 3, 8, 1, 1, 35, 41482, 0, 0, 0, 48351, 48351, 0, 8244, 8244, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Mine Bunny
 (48279, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41627, 0, 0, 0, 48279, 48279, 0, 6975, 6975, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48279, 2, 0, 0, 1199, 0, 7, 1, 1, 15, 41627, 0, 0, 0, 48279, 48279, 0, 6975, 6975, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48279, 24, 0, 0, 2872, 3, 10, 1, 1, 35, 41628, 0, 0, 0, 48279, 48279, 0, 6975, 6975, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Goblin Overseer
@@ -95,13 +113,15 @@ UPDATE `creature` SET `modelid` = 0 WHERE `guid` = 375860;
 -- Remove duplicate Mining Monkey spawn
 DELETE FROM `creature` WHERE `guid` = 376054;
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278) and `source_type` = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278,48351,48338);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278,48351,48338) and `source_type` = 0;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, 
 `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, 
 `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, 
 `action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, 
 `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(48338, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 23000, 39000, 0, '', 11, 91032, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mine Bunny - IC - Cast Drunken Haze'),
+(48351, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 23000, 39000, 0, '', 11, 91032, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mine Bunny - IC - Cast Drunken Haze'),
 (48278, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 3900, 0, '', 11, 91038, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - IC - Cast Throw'),
 (48278, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Flee'),
 (48278, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - HP PCT 15 - Say 0'),
@@ -123,11 +143,25 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 (48279, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 91034, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Overseer - On Aggro - Cast Threatening Shout'),
 (48279, 0, 1, 0, '', 0, 0, 100, 0, 3000, 4000, 8000, 12000, 0, '', 11, 91036, 0, 0, 0, 0, 0, 0, '', 5, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Overseer - In Combat - Cast Motivate');
 
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 48445;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 48445;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_chance`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `target_type`, `comment`) VALUES 
+(48445, 0, 0, 0, '', 4, 100, 0, 0, 0, 0, 11, 90098, 2, 'Oaf Lackey Cast Axe to the Head on Aggro'),
+(48445, 0, 1, 2, '', 2, 100, 0, 30, 1000, 1000, 11, 8599, 1, 'Oaf Lackey Cast Enrage at 30% HP'),
+(48445, 0, 2, 0, '', 61, 100, 0, 0, 0, 0, 1, 0, 1, 'Oaf Lackey Say Text at 30% HP');
+
 
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_bodyguard' WHERE `entry` = 48262;
 UPDATE `creature_template` SET `ScriptName` = 'npc_mining_powder' WHERE `entry` = 48284;
+UPDATE `creature_template` SET `ScriptName` = 'boss_glubtok' WHERE `entry` = 47162;
+UPDATE `creature_template` SET `ScriptName` = 'npc_glubtok_main_platter' WHERE `entry` = 48974;
+UPDATE `creature_template` SET `ScriptName` = 'npc_glubtok_secondary_platter' WHERE `entry` IN (48975,48976,49039,49040,49041,49042);
+UPDATE `creature_template` SET `ScriptName` = 'npc_helix_crew' WHERE `entry` = 49136; -- only heroic
+UPDATE `creature_template` SET `ScriptName` = 'boss_helix_gearbreaker' WHERE `entry` = 47296;
+UPDATE `creature_template` SET `ScriptName` = 'npc_lumbering_oaf' WHERE `entry` = 47297;
+UPDATE `creature_template` SET `ScriptName` = 'npc_sticky_bomb' WHERE `entry` = 47314;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -155,10 +189,6 @@ INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, Sourc
 VALUES (13, 63, 92747, 0, 0, 34, 0, 0, 3, 0, 1, 0, 0, '', 'OgrishMotivationHeroic - Target must NOT be hostile (exclude HATED/HOSTILE)');
 
 -- Glubtok encounter
-UPDATE `creature_template` SET `ScriptName` = 'boss_glubtok' WHERE `entry` = 47162;
-UPDATE `creature_template` SET `ScriptName` = 'npc_glubtok_main_platter' WHERE `entry` = 48974;
-UPDATE `creature_template` SET `ScriptName` = 'npc_glubtok_secondary_platter' WHERE `entry` IN (48975,48976,49039,49040,49041,49042);
-
 UPDATE `creature_template` SET `VehicleId` = '1367' WHERE (`entry` = '48976');
 UPDATE `creature_template` SET `VehicleId` = '1368' WHERE (`entry` = '49041');
 UPDATE `creature_template` SET `VehicleId` = '1369' WHERE (`entry` = '49042');
@@ -186,8 +216,9 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (49041, 46598, 0, 0),
 (49042, 46598, 0, 0);
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(88278, 'spell_helix_force_player_to_ride_oaf'),
 (89769, 'spell_mining_powder_explode'),
 (91397, 'spell_glubtok_firewall_targetting'),
 (87897, 'spell_glubtok_generic_proc'),
@@ -244,12 +275,19 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (47162, 6, 0, 'Fists of frost!', 14, 0, 100, 0, 0, 21156, 0, 47238, 0, 'VO_DM_GlubtokHead2_Spell01'),
 (47162, 7, 0, 'Let''s do it!', 14, 0, 100, 15, 0, 21157, 0, 108750, 0, 'VO_DM_GlubtokHead2_Spell02');
 
-DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278);
+DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278,48445);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `BroadcastTextId`, `comment`) VALUES 
+(48445, 0, 0, '%s becomes enraged!', 16, 100, 7798, 'Oaf Lackey Enraged'),
 (48278, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48440, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48441, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48442, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee');
+
+DELETE FROM `creature_text` WHERE `CreatureID` IN (47297,49136);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `BroadcastTextId`, `comment`) VALUES 
+(49136, 0, 0, 'Blowin ''em to bits, boss!', 14, 100, 46330, 'Helix Crew Sticky Bombs'),
+(47297, 0, 0, 'No...NO!', 14, 100, 47480, 'Lumbering Oaf charge'),
+(47297, 1, 0, 'OAF SMASH!!', 14, 100, 48117, 'Lumbering Oaf smash');
 
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;

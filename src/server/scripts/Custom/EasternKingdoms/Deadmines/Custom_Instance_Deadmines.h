@@ -89,6 +89,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MiningMonkey3 = 48441;
         static constexpr uint32 MiningMonkey4 = 48442;
 
+        // Helix Gearbreaker
+        static constexpr uint32 HelixCrew = 49136;
+        static constexpr uint32 StickyBomb = 47314;
+        static constexpr uint32 LumberingOaf = 47297;
+        static constexpr uint32 HelixGearBreaker = 47296;
+
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
         static constexpr uint32 SchorchMarkBunny = 48446;
@@ -111,6 +117,9 @@ namespace Scripts::EasternKingdoms::Deadmines
     {
         static constexpr uint32 OgreHenchmanByCannon = 375931;
         static constexpr uint32 OgreHenchmanSleeper = 375925;
+
+        static constexpr uint32 OafMoveToBunny = 375849;
+        static constexpr uint32 OafChargePosition = 375850;
     }
 
     namespace Objects
@@ -178,6 +187,13 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OgreBodyguardConversation8 = 9;
         static constexpr int8 OgreBodyguardConversation9 = 10;
         static constexpr int8 OgreBodyguardConversation10 = 11;
+
+        // Helix Crew
+        static constexpr int8 HelixCrewStickyBomb = 0;
+
+        // Lumbering Oaf
+        static constexpr int8 OafCharge = 0;
+        static constexpr int8 OafSmash = 1;
     }
 
     namespace Spells
@@ -224,6 +240,26 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Defias Cannon
         static constexpr uint32 DefiasCannonCannonballFire = 89697;
+
+        // Helix Gearbreaker
+        static constexpr uint32 RideOaf = 88277;
+        static constexpr uint32 OafSmash = 88300;
+        static constexpr uint32 OafSmashHeroic = 91568;
+        static constexpr uint32 OafCharge = 88288;
+        static constexpr uint32 OafGrabTargeting = 88289;
+        static constexpr uint32 HelixRide = 88337;
+        static constexpr uint32 HelixRideFaceTimerAura = 88351;
+        static constexpr uint32 ThrowBomb = 88264;
+        static constexpr uint32 Oafquard = 90546;
+
+        // Sticky Bomb
+        static constexpr uint32 ChestBomb = 88352;
+        static constexpr uint32 ArmingVisualYellow = 88315;
+        static constexpr uint32 ArmingVisualOrange = 88316;
+        static constexpr uint32 ArmingVisualRed = 88317;
+        static constexpr uint32 ArmedState = 88319;
+        static constexpr uint32 StickyBombExplode = 88974;
+        static constexpr uint32 StickyBombExplodeHeroic = 91566;
     }
 
     namespace Events
@@ -251,12 +287,30 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OgreBodyguardBonk = 17;
         static constexpr int8 OgreBodyguardConversation = 18;
         static constexpr int8 OgreBodyguardDialogueLine = 19;
+
+        // Helix Crew
+        static constexpr int8 HelixCrewStickyBomb = 20;
+
+        // Sticky Bomb
+        static constexpr int8 StickyBombInitial = 21;
+        static constexpr int8 StickyBombYellow = 22;
+        static constexpr int8 StickyBombOrange = 23;
+        static constexpr int8 StickyBombRed = 24;
+        static constexpr int8 StickyBombArmed = 25;
+        static constexpr int8 StickyBombExplode = 26;
+
+        // Lumbering Oaf
+        static constexpr int8 OafCharge0 = 27;
+        static constexpr int8 OafCharge1 = 28;
+        static constexpr int8 OafCharge2 = 29;
+        static constexpr int8 OafCharge3 = 30;
+        static constexpr int8 OafThrowHelix = 31;
+        static constexpr int8 OafPickupHelix = 32;
     }
 
-    namespace GlubtokActions
+    namespace Actions
     {
-        static constexpr int8 StartFirewall = 1;
-        static constexpr int8 StopFirewall = 2;
+        static constexpr int8 OafCharge = 1;
     }
 
     namespace Glubtok
