@@ -249,6 +249,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 OafGrabTargeting = 88289;
         static constexpr uint32 HelixRide = 88337;
         static constexpr uint32 HelixRideFaceTimerAura = 88351;
+        static constexpr uint32 RideVehicle = 88360; // used for Helix face riding player
         static constexpr uint32 ThrowBomb = 88264;
         static constexpr uint32 Oafquard = 90546;
 

@@ -37,9 +37,9 @@ UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
 48440,48441,48442,48278,48351,47296,47297,48445);
 INSERT INTO `creature_template_difficulty` VALUES
-(47296, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43704, 104, 128, 0, 47296, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
-(47296, 2, 2, 2, 1199, 0, 5, 1, 1, 57.5, 43705, 104, 128, 0, 47296, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
-(47296, 24, 2, 2, 1199, 3, 10, 1, 1, 125, 43705, 104, 128, 0, 47296, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Helix Gearbreaker
+(47296, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43704, 104, 128, 0, 4729601, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47296, 2, 2, 2, 1199, 0, 5, 1, 1, 57.5, 43705, 104, 128, 0, 4729602, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47296, 24, 2, 2, 1199, 3, 10, 1, 1, 125, 43705, 104, 128, 0, 4729624, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Helix Gearbreaker
 (47297, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43698, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (47297, 2, 2, 2, 1199, 0, 15, 1, 1, 8.5, 43699, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (47297, 24, 2, 2, 1199, 3, 40, 1, 1, 35, 43699, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Lumbering Oaf
@@ -99,9 +99,9 @@ INSERT INTO `creature_template_difficulty` VALUES
 (48262, 1, 0, 0, 202, 	0, 1, 1, 1, 1, 41681, 0, 0, 0, 0, 0, 0, 4819, 4819, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48262, 2, 1, 1, 1199, 	0, 7, 1, 1, 15, 41682, 0, 0, 0, 0, 0, 0, 4819, 4819, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48262, 24, 1, 1, 2872, 3, 15, 1, 1, 35, 41682, 0, 0, 0, 0, 0, 0, 4819, 4819, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Ogre Bodyguard
-(47162, 1, 1, 1, 202, 0, 35, 1, 1, 16, 43989, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
-(47162, 2, 2, 2, 1199, 0, 50, 1, 1, 16, 43995, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
-(47162, 24, 2, 2, 2872, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 47162, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
+(47162, 1, 1, 1, 202, 0, 35, 1, 1, 16, 43989, 104, 128, 0, 4716201, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
+(47162, 2, 2, 2, 1199, 0, 50, 1, 1, 16, 43995, 104, 128, 0, 4716202, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978),
+(47162, 24, 2, 2, 2872, 3, 52, 1, 1, 125, 43996, 104, 128, 0, 4716224, 0, 0, 13158, 13158, 524288, 0, 0, 0, 0, 0, 0, 0, 64978); -- Glubtok
 
 UPDATE `creature_template_addon` SET `PvPFlags` = 16, `emote` = 648 WHERE `entry` = 48229; -- Kobolds mining emote
 UPDATE `creature_template_addon` SET `emote` = 648 WHERE `entry` IN (48440,48441,48442,48278); -- Mining monkeys emote - allow weapon to be seen
@@ -194,6 +194,11 @@ UPDATE `creature_template` SET `VehicleId` = '1368' WHERE (`entry` = '49041');
 UPDATE `creature_template` SET `VehicleId` = '1369' WHERE (`entry` = '49042');
 
 DELETE FROM `creature` WHERE `id` = 48974 AND `map` = 36;
+
+-- Helix encounter
+DELETE FROM `vehicle_seat_addon` WHERE `SeatEntry` = 8962;
+INSERT INTO `vehicle_seat_addon` (`SeatEntry`, `SeatOrientation`) VALUES
+(8962, 3.14159); -- Helix on players face
 
 DELETE FROM `vehicle_template` WHERE `creatureId` IN (48974,48975,48976,49039,49040,49041,49042);
 INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `CustomFlags`) VALUES
@@ -301,14 +306,36 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 (12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996);
 
 -- Deadmines Loot Tables
-DELETE FROM `creature_loot_template` WHERE `Entry` IN (47162); -- Glubtok loot normal and heroic
-INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
-('47162', '0', '5444', '37', '0', '1', '0', '1', '1', 'Glubtok - Miner Cape'),
-('47162', '0', '2169', '32', '0', '1', '0', '1', '1', 'Glubtok - Buzzer Blade'),
-('47162', '0', '5195', '32', '0', '1', '0', '1', '1', 'Glubtok - Gold-Flecked Gloves'),
-('47162', '0', '65163', '21', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Buzzer Blade'),
-('47162', '0', '63468', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Defias Brotherhood Vest'),
-('47162', '0', '63470', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Missing Diplomat Pauldrons'),
-('47162', '0', '63471', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Vest of the curious visitor'),
-('47162', '0', '63467', '20', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Shadow of the past'),
-('47162', '0', '157628', '19', '0', '2', '0', '1', '1', 'Glubtok - Heroic - Gold-Flecked Gloves');
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (47296);
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (4716201,4716202); -- Glubtok loot normal and heroic
+INSERT INTO `creature_loot_template` VALUES
+('4716201', '0', '5444', '37', '0', '1', '0', '1', '1', 'Glubtok Miner Cape'),
+('4716201', '0', '2169', '32', '0', '1', '0', '1', '1', 'Glubtok Buzzer Blade'),
+('4716201', '0', '5195', '32', '0', '1', '0', '1', '1', 'Glubtok Gold-Flecked Gloves'),
+('4716202', '0', '65163', '21', '0', '1', '0', '1', '1', 'Glubtok Heroic Buzzer Blade'),
+('4716202', '0', '63468', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Defias Brotherhood Vest'),
+('4716202', '0', '63470', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Missing Diplomat Pauldrons'),
+('4716202', '0', '63471', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Vest of the curious visitor'),
+('4716202', '0', '63467', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Shadow of the past'),
+('4716202', '0', '157628', '19', '0', '1', '0', '1', '1', 'Glubtok Heroic Gold-Flecked Gloves');
+
+
+-- Helix loot fixes
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (47296);
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (4729601,4729602); -- Helix loot normal and heroic
+INSERT INTO `creature_loot_template` VALUES
+('4729601', '0', '5199', '25', '0', '1', '0', '1', '1', 'Helix Smelting Pants'),
+('4729601', '0', '5443', '22', '0', '1', '0', '1', '1', 'Helix Gold-Plated Buckler'),
+('4729601', '0', '5191', '20', '0', '1', '0', '1', '1', 'Helix Cruel Barb'),
+('4729601', '0', '5200', '19', '0', '1', '0', '1', '1', 'Helix Impaling Harpoon'),
+('4729601', '0', '151062', '6', '0', '1', '0', '1', '1', 'Helix Armbands of Exiled Architects'),
+('4729601', '0', '132556', '6', '0', '1', '0', '1', '1', 'Helix Smelters Britches'),
+('4729601', '0', '151063', '4', '0', '1', '0', '1', '1', 'Helix Gear-Marked Gauntlets'),
+
+('4729602', '0', '65164', '21', '0', '1', '0', '1', '1', 'Helix Cruel Barb'),
+('4729602', '0', '63474', '20', '0', '1', '0', '1', '1', 'Helix Gear-Marked Gauntlets'),
+('4729602', '0', '63476', '20', '0', '1', '0', '1', '1', 'Helix Gearbreaker Bindings'),
+('4729602', '0', '63475', '20', '0', '1', '0', '1', '1', 'Helix Old Friends Gloves'),
+('4729602', '0', '63473', '19', '0', '1', '0', '1', '1', 'Helix Cloak of Thredd'),
+('4729602', '0', '157752', '1.4', '0', '1', '0', '1', '1', 'Helix Armbands of Exiled Architects');
+

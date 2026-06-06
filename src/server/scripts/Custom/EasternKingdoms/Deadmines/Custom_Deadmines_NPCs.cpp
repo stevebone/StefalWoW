@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CreatureAIImpl.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "MotionMaster.h"
@@ -1170,8 +1171,9 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void JustEngagedWith(Unit* /*who*/) override
         {
-            _events.RescheduleEvent(Events::OafCharge0, 15s, 20s);
-            _events.RescheduleEvent(Events::OafThrowHelix, 15s, 20s);
+            int8 randomEvent = RAND(Events::OafCharge0, Events::OafThrowHelix);
+            
+            _events.RescheduleEvent(randomEvent, 15s, 20s);
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override
@@ -1198,9 +1200,9 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (type == POINT_MOTION_TYPE)
             {
                 if (id == 1)
-                    _events.RescheduleEvent(Events::OafCharge2, 1500ms);
+                    _events.RescheduleEvent(Events::OafCharge2, 1000ms);
                 else if (id == 2)
-                    _events.RescheduleEvent(Events::OafCharge3, 1500ms);
+                    _events.RescheduleEvent(Events::OafCharge3, 1000ms);
             }
         }
 
@@ -1256,7 +1258,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _ridingOaf = false;
                         if (me->GetVictim())
                             me->GetMotionMaster()->MoveChase(me->GetVictim());
-                        _events.RescheduleEvent(Events::OafCharge0, 30s);
+
+                        uint8 randomEvent = RAND(Events::OafThrowHelix, Events::OafCharge0);
+                        _events.RescheduleEvent(randomEvent, 25s, 35s);
                         break;
                     case Events::OafThrowHelix:
                         if (_ridingOaf)
@@ -1270,12 +1274,13 @@ namespace Scripts::EasternKingdoms::Deadmines
                             {
                                 if (Unit* helix = vehicle->GetPassenger(0))
                                 {
-                                    target->CastSpell(target, Spells::HelixRide, true);
-
                                     _helixGUID = helix->GetGUID();
 
-                                    if (Vehicle* playerVehicle = target->GetVehicleKit())
-                                        helix->EnterVehicle(playerVehicle->GetBase(), 0);
+                                    Position targetPos = target->GetPosition();
+                                    me->CastSpell(target, Spells::HelixRide, true);
+                                    helix->ExitVehicle(&targetPos);
+                                    helix->CastSpell(target, Spells::RideVehicle, true);
+
                                     _helixFaceRiding = true;
                                     _events.RescheduleEvent(Events::OafPickupHelix, 10s);
                                 }
@@ -1289,7 +1294,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                                 helix->EnterVehicle(oafVehicle->GetBase(), 0);
                         }
                         _helixFaceRiding = false;
-                        _events.RescheduleEvent(Events::OafThrowHelix, 20s, 35s);
+
+                        uint8 randomEvent = RAND(Events::OafThrowHelix, Events::OafCharge0);
+                        _events.RescheduleEvent(randomEvent, 25s, 35s);
                         break;
                     default:
                         break;
