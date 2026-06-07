@@ -95,6 +95,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 StickyBomb = 47314;
         static constexpr uint32 LumberingOaf = 47297;
         static constexpr uint32 HelixGearBreaker = 47296;
+        static constexpr uint32 MineRat = 51462;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -373,6 +374,18 @@ namespace Scripts::EasternKingdoms::Deadmines
             {-284.71f, -504.13f, 60.42f, 4.72f},
             {-288.65f, -503.74f, 60.38f, 4.64f},
             {-293.88f, -503.90f, 60.07f, 4.77f},
+        };
+
+        static constexpr Position OafRatPos[8] =
+        {
+            {-290.90f, -486.49f, 49.88f},
+            {-288.98f, -483.20f, 49.88f},
+            {-293.78f, -483.81f, 49.15f},
+            {-286.94f, -482.96f, 49.88f},
+            {-288.16f, -484.81f, 49.88f},
+            {-291.99f, -486.26f, 49.88f},
+            {-289.67f, -487.22f, 49.88f},
+            {-290.44f, -484.32f, 49.88f}
         };
     }
 

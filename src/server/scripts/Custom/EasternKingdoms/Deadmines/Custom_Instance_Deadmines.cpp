@@ -210,6 +210,23 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             void Update(uint32 diff) override
             {
+                // Apply HelixRide aura to all players during Helix encounter for Rat Pack achievement
+                // Strange that this aura is needed but it is part of the conditions tree for the criteria
+                if (GetBossState(Creatures::HelixGearbreaker) == IN_PROGRESS)
+                {
+                    if (_helixRideAuraTimer <= diff)
+                    {
+                        instance->DoOnPlayers([](Player* player)
+                        {
+                            if (!player->HasAura(Spells::HelixRide))
+                                player->AddAura(Spells::HelixRide, player);
+                        });
+                        _helixRideAuraTimer = 60000; // 60 seconds
+                    }
+                    else
+                        _helixRideAuraTimer -= diff;
+                }
+
                 // Defias Cannon Event only runs in Classic version
                 if (!IsClassicVersion())
                     return;
@@ -350,6 +367,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
+            uint32 _helixRideAuraTimer = 0;
 
             ObjectGuid _ironCladDoorGUID;
             ObjectGuid _doorLeverGUID;

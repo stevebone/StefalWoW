@@ -1277,12 +1277,29 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             passenger->ExitVehicle();
                             me->Attack(passenger, true);
+
+                            if (!passenger->HasAura(Spells::HelixRide))
+                                passenger->AddAura(Spells::HelixRide, passenger);
                         }
                     }
                     me->RemoveAurasDueToSpell(Spells::RideOaf);
                     _ridingOaf = false;
                     if (me->GetVictim())
                         me->GetMotionMaster()->MoveChase(me->GetVictim());
+
+                    // Spawn rats with random timing (3-5s between each)
+                    // For achievement 5367 Rat Pack
+                    if (me->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
+                    {
+                        for (uint8 i = 0; i < 8; ++i)
+                        {
+                            me->m_Events.AddEventAtOffset([this, i]()
+                                {
+                                    if (me && me->IsAlive())
+                                        me->SummonCreature(Creatures::MineRat, Positions::OafRatPos[i], TEMPSUMMON_CORPSE_DESPAWN);
+                                }, std::chrono::milliseconds(urand(3000, 5000) * (i + 1)));
+                        }
+                    }
 
                     uint8 randomEvent = RAND(Events::OafThrowHelix, Events::OafCharge0);
                     _events.RescheduleEvent(randomEvent, 25s, 35s);
@@ -1314,7 +1331,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                                             if (!target || !target->IsAlive())
                                             {
                                                 _helixFaceRiding = false;
-                                                TC_LOG_DEBUG("scripts.fsb", "Deadmines Oaf: Helix face ride failed - target invalid");
                                                 return;
                                             }
 
@@ -1327,16 +1343,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                                             helix->ExitVehicle(&targetPos);
                                             me->AddAura(Spells::HelixRideFaceTimerAura, helix);
                                             helix->CastSpell(target, Spells::RideVehicle, true);
-
-                                            TC_LOG_DEBUG("scripts.fsb", "Deadmines Oaf: Helix face ride sequence completed");
                                         }
-                                        else
-                                        {
-                                            _helixFaceRiding = false;
-                                            TC_LOG_DEBUG("scripts.fsb", "Deadmines Oaf: Helix face ride failed - units dead");
-                                        }
+                                        else _helixFaceRiding = false;
                                     }, std::chrono::seconds(2));
-
 
                                 _events.RescheduleEvent(Events::OafPickupHelix, 12s);
                             }
@@ -1578,17 +1587,17 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             me->CastSpell(targetVehicle, Spells::ChestBomb, true);
                             Talk(Texts::HelixChestBomb, targetVehicle);
-                        }
 
-                        targetVehicle->m_Events.AddEventAtOffset([targetVehicle]()
-                            {
-                                if (targetVehicle && targetVehicle->IsAlive())
+                            targetVehicle->m_Events.AddEventAtOffset([targetVehicle]()
                                 {
-                                    CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
-                                    args.AddSpellMod(SpellValueMod(SPELLVALUE_BASE_POINT0), 1500); // Override damage to ~1500
-                                    targetVehicle->CastSpell(targetVehicle, Spells::ChestBombDMG, args);
-                                }
-                            }, std::chrono::seconds(10));
+                                    if (targetVehicle && targetVehicle->IsAlive())
+                                    {
+                                        CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
+                                        args.AddSpellMod(SpellValueMod(SPELLVALUE_BASE_POINT0), 1500); // Override damage to ~1500
+                                        targetVehicle->CastSpell(targetVehicle, Spells::ChestBombDMG, args);
+                                    }
+                                }, std::chrono::seconds(10));
+                        }
                     }
                     me->ExitVehicle();
                     _events.RescheduleEvent(Events::HelixFaceRide, 15s, 20s);
