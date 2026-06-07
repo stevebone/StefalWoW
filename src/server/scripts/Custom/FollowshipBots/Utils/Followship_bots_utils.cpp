@@ -155,6 +155,7 @@ namespace FSBUtils
         case FSB_Class::Hunter:             return CLASS_HUNTER;
         case FSB_Class::Warlock:            return CLASS_WARLOCK;
         case FSB_Class::Shaman:             return CLASS_SHAMAN;
+        case FSB_Class::Monk:               return CLASS_MONK;
         case FSB_Class::None:               return CLASS_NONE;
         default:
             break;

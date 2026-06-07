@@ -21,6 +21,9 @@
  */
 
 #include "Log.h"
+#include "ObjectMgr.h"
+#include "DB2Stores.h"
+#include "GameTables.h"
 
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
@@ -89,7 +92,13 @@ namespace FSBStats
         float modifier = FollowshipBotsConfig::configFSBPowerRate;
 
         Powers basePowerType = stats->powerType;
-        uint32 basePower = ((float)stats->basePower + ((float)stats->powerPerLevel * (level - 1) + (level * 3))) * modifier;
+        
+        // Get base mana from core's GetPlayerClassLevelInfo (uses GtBaseMPEntry game table)
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+        uint32 baseMana = 0;
+        sObjectMgr->GetPlayerClassLevelInfo(tcClass, level, baseMana);
+        
+        uint32 basePower = baseMana * modifier;
 
         if (FSBPowers::IsRageUser(bot))
         {
@@ -136,7 +145,28 @@ namespace FSBStats
 
         float modifier = FollowshipBotsConfig::configFSBHealthRate;
 
-        uint32 baseHealth = ((float)stats->baseHealth + ((float)stats->healthPerLevel * (level - 1) + ((float)level * 65))) * modifier;
+        // Get player-level stats using core's PlayerLevelInfo
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Races tcRace = FSBUtils::BotRaceToTC(botRace);
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+
+        PlayerLevelInfo levelInfo;
+        sObjectMgr->GetPlayerLevelInfo(tcRace, tcClass, level, &levelInfo);
+
+        // Use stamina from PlayerLevelInfo to calculate health
+        float stamina = levelInfo.stats[STAT_STAMINA];
+        
+        // Get HP per stamina ratio from game table (varies by level)
+        float hpPerStamina = 10.0f;
+        if (GtHpPerStaEntry const* hpBase = sHpPerStaGameTable.GetRow(level))
+            hpPerStamina = hpBase->Health;
+
+        // Calculate health bonus from stamina (same as Player::GetHealthBonusFromStamina)
+        float healthFromStamina = stamina * hpPerStamina;
+
+        // Add base health from config and apply modifier
+        uint32 baseHealth = ((float)stats->baseHealth + healthFromStamina) * modifier;
+        
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
         float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
@@ -146,7 +176,8 @@ namespace FSBStats
         if(updateHealth)
             bot->SetHealth(uint32(totalHealth));
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler health base: {}, total: {}", bot->GetName(), baseHealth, totalHealth);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler health base: {}, total: {}, stamina: {}, hpPerSta: {}", 
+        //    bot->GetName(), baseHealth, totalHealth, stamina, hpPerStamina);
     }
 
     void ApplyBotPower(Creature* bot, FSB_Class botClass, bool updatePower)
@@ -167,7 +198,13 @@ namespace FSBStats
         float modifier = FollowshipBotsConfig::configFSBPowerRate;
 
         Powers basePowerType = stats->powerType;
-        uint32 basePower = ((float)stats->basePower + ((float)stats->powerPerLevel * (level - 1) + (level * 3))) * modifier;
+        
+        // Get base mana from core's GetPlayerClassLevelInfo (uses GtBaseMPEntry game table)
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+        uint32 baseMana = 0;
+        sObjectMgr->GetPlayerClassLevelInfo(tcClass, level, baseMana);
+        
+        uint32 basePower = baseMana * modifier;
 
         if (FSBPowers::IsRageUser(bot))
         {
@@ -217,20 +254,37 @@ namespace FSBStats
         if (player)
             level = bot->GetLevelForTarget(player);
 
-        float attackPowerPerLevel = stats->attackPowerPerLevel;
-        float baseAP = stats->baseAttackPower;
-        float baseRAP = stats->baseRangedAttackPower;
+        // Get player-level stats using core's PlayerLevelInfo
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Races tcRace = FSBUtils::BotRaceToTC(botRace);
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
 
-        uint32 finalAP = baseAP + (attackPowerPerLevel * level);
-        uint32 finalRAP = baseRAP + (attackPowerPerLevel * level);
+        PlayerLevelInfo levelInfo;
+        sObjectMgr->GetPlayerLevelInfo(tcRace, tcClass, level, &levelInfo);
+
+        // Get class-specific stat multipliers from ChrClassesEntry
+        ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(tcClass);
+        if (!classEntry)
+        {
+            TC_LOG_ERROR("scripts.fsb.stats", "FSB: ApplyBotAttackPower - Failed to get ChrClassesEntry for class {}", tcClass);
+            return;
+        }
+        
+        // Calculate attack power from stats (same as Player::UpdateAttackPowerAndDamage)
+        float strength = levelInfo.stats[STAT_STRENGTH];
+        float agility = levelInfo.stats[STAT_AGILITY];
+        
+        float strengthValue = std::max(strength * classEntry->AttackPowerPerStrength, 0.0f);
+        float agilityValue = std::max(agility * classEntry->AttackPowerPerAgility, 0.0f);
+        
+        uint32 finalAP = uint32(strengthValue + agilityValue);
+        uint32 finalRAP = uint32(agilityValue * classEntry->RangedAttackPowerPerAgility);
 
         bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, finalAP);
         bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, finalRAP);
-        //bot->SetRangedAttackPower(finalRAttackPower);
-        //bot->SetAttackPower(finalAttackPower);
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has baseAP: {}, levelAP: {}, modAP: {}, multiAP: {}, totalAP: {}",
-        //    bot->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has STR: {}, AGI: {}, AP: {}, RAP: {}",
+        //    bot->GetName(), strength, agility, finalAP, finalRAP);
     }
 
     void ApplyDynamicDamageDealt(Creature* bot, Unit* victim, uint32& damage)
