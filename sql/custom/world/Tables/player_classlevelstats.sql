@@ -4,96 +4,29 @@
 */
 TRUNCATE player_classlevelstats;
 
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,1,18,13,292,15,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,2,20,14,312,16,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,3,22,16,332,17,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,4,23,17,352,19,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,5,25,18,372,20,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,6,27,19,392,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,7,29,21,412,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,8,30,22,432,24,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,9,32,22,452,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,10,34,24,472,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,11,36,26,492,28,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,12,40,28,512,30,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,13,43,30,532,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,14,47,33,552,32,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,15,49,34,572,34,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,16,51,36,592,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,17,53,37,612,36,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,18,55,38,632,38,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,19,57,40,652,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,20,59,41,672,40,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,21,61,43,692,42,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,22,64,45,712,44,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,23,67,47,732,46,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,24,70,49,752,48,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,25,74,51,772,50,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,26,77,54,792,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,27,81,56,812,56,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,28,86,60,832,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,29,91,63,852,62,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,30,96,67,872,66,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,31,102,71,892,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,32,108,75,912,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,33,115,80,932,79,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,34,123,85,952,84,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,35,131,91,972,90,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,36,140,97,992,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,37,151,104,1012,103,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,38,162,112,1032,110,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,39,174,120,1052,119,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,40,188,130,1072,128,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,41,203,140,1092,138,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,42,219,152,1112,150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,43,238,164,1132,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,44,258,179,1152,176,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,45,281,194,1172,191,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,46,306,212,1192,209,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,47,334,231,1212,228,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,48,366,253,1232,249,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,49,401,277,1252,273,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,50,440,304,1272,299,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,51,484,334,1292,329,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,52,533,368,1312,363,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,53,588,406,1332,400,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,54,650,449,1352,442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,55,720,497,1372,490,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,56,798,551,1392,543,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,57,887,612,1412,604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,58,988,682,1432,672,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,59,1101,760,1452,749,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,60,1230,849,1472,837,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,61,1297,895,1492,882,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,62,1368,944,1512,931,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,63,1442,996,1532,981,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,64,1521,1050,1552,1035,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,65,1604,1107,1572,1091,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,66,1691,1167,1592,1150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,67,1783,1231,1612,1213,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,68,1880,1298,1632,1279,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,69,1982,1368,1652,1348,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,70,2090,1443,1672,1422,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,71,2590,1787,1692,1762,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,72,3208,2214,1712,2182,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,73,3975,2743,1732,2703,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,74,4925,3399,1752,3349,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,75,6102,4211,1772,4150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,76,7560,5217,1792,5141,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,77,9366,6463,1812,6369,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,78,11604,8007,1832,7891,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,79,14377,9920,1852,9777,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,80,17648,12177,1872,12001,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,81,18426,12714,1892,12530,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,82,19204,13251,1912,13059,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,83,19982,13788,1932,13588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,84,20760,14325,1952,14117,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,85,21538,14862,1972,14646,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,86,22316,15399,1992,15175,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,87,23094,15936,2012,15704,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,88,23872,16473,2032,16233,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,89,24650,17010,2052,16762,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,90,25428,17547,2072,17291,1,0);
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+
+-- =============================================
+-- Warrior (1)
+-- =============================================
+(1,1,17,12,292,14,0),(1,2,18,13,321,15,0),(1,3,21,15,351,16,0),(1,4,22,16,380,18,0),(1,5,24,17,409,19,0),
+(1,6,25,18,438,20,0),(1,7,27,19,468,22,0),(1,8,28,20,497,23,0),(1,9,30,21,526,24,0),(1,10,33,23,555,26,0),
+(1,11,35,24,584,28,0),(1,12,37,26,613,29,0),(1,13,39,27,642,31,0),(1,14,41,29,671,33,0),(1,15,44,30,700,34,0),
+(1,16,46,32,729,36,0),(1,17,48,34,758,38,0),(1,18,51,35,787,40,0),(1,19,53,37,816,42,0),(1,20,56,39,845,44,0),
+(1,21,59,41,874,46,0),(1,22,62,43,903,48,0),(1,23,65,45,932,50,0),(1,24,68,47,961,52,0),(1,25,71,49,990,54,0),
+(1,26,74,51,1019,56,0),(1,27,78,53,1048,59,0),(1,28,81,56,1077,61,0),(1,29,85,58,1106,64,0),(1,30,88,60,1135,66,0),
+(1,31,92,63,1164,69,0),(1,32,96,66,1193,72,0),(1,33,100,68,1222,75,0),(1,34,104,71,1251,78,0),(1,35,108,74,1280,81,0),
+(1,36,113,77,1309,84,0),(1,37,117,80,1338,87,0),(1,38,122,83,1367,91,0),(1,39,127,86,1396,94,0),(1,40,132,90,1425,98,0),
+(1,41,137,93,1454,101,0),(1,42,142,97,1483,105,0),(1,43,148,100,1512,109,0),(1,44,153,104,1541,113,0),(1,45,159,108,1570,117,0),
+(1,46,165,112,1599,121,0),(1,47,171,116,1628,125,0),(1,48,177,120,1657,130,0),(1,49,184,125,1686,134,0),(1,50,190,129,1715,139,0),
+(1,51,197,134,1744,144,0),(1,52,204,139,1773,149,0),(1,53,211,144,1802,154,0),(1,54,219,149,1831,159,0),(1,55,226,154,1860,165,0),
+(1,56,234,160,1889,170,0),(1,57,242,165,1918,176,0),(1,58,251,171,1947,182,0),(1,59,259,177,1976,188,0),(1,60,268,183,2005,194,0),
+(1,61,277,189,2034,201,0),(1,62,286,196,2063,207,0),(1,63,296,202,2092,214,0),(1,64,306,209,2121,221,0),(1,65,316,216,2150,228,0),
+(1,66,326,223,2179,235,0),(1,67,337,231,2208,243,0),(1,68,348,238,2237,251,0),(1,69,359,246,2266,259,0),(1,70,371,254,2295,267,0),
+(1,71,383,262,2324,275,0),(1,72,395,271,2353,284,0),(1,73,408,279,2382,293,0),(1,74,421,288,2411,302,0),(1,75,434,297,2440,311,0),
+(1,76,448,307,2469,321,0),(1,77,462,316,2498,331,0),(1,78,477,326,2527,341,0),(1,79,492,337,2556,352,0),(1,80,507,347,2585,362,0),
+(1,81,192,132,2801,130,0),(1,82,218,150,3017,149,0),(1,83,249,172,3238,169,0),(1,84,284,196,3463,193,0),(1,85,323,223,3687,220,0),
+(1,86,368,254,3907,250,0),(1,87,419,289,4116,285,0),(1,88,478,330,4308,325,0),(1,89,544,375,4473,370,0),(1,90,620,428,4600,422,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,91,26206,18084,2092,17820,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,92,26984,18621,2112,18349,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,93,27762,19158,2132,18878,1,0);
@@ -127,96 +60,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,121,49546,34194,2692,33690,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,122,50324,34731,2712,34219,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (1,123,51102,35268,2732,34748,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,1,18,7,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,2,20,8,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,3,22,9,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,4,23,9,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,5,25,10,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,6,27,10,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,7,29,11,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,8,30,11,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,9,32,12,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,10,34,13,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,11,36,13,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,12,40,15,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,13,43,16,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,14,47,17,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,15,49,18,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,16,51,19,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,17,53,19,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,18,55,20,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,19,57,21,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,20,59,21,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,21,61,22,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,22,64,23,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,23,67,24,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,24,70,25,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,25,74,26,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,26,77,27,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,27,81,29,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,28,86,31,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,29,91,32,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,30,96,34,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,31,102,36,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,32,108,39,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,33,115,41,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,34,123,44,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,35,131,47,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,36,140,50,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,37,151,53,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,38,162,57,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,39,174,62,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,40,188,66,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,41,203,72,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,42,219,77,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,43,238,84,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,44,258,91,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,45,281,99,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,46,306,108,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,47,334,118,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,48,366,129,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,49,401,141,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,50,440,155,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,51,484,170,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,52,533,187,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,53,588,206,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,54,650,228,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,55,720,253,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,56,798,280,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,57,887,311,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,58,988,346,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,59,1101,386,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,60,1230,431,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,61,1297,455,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,62,1368,479,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,63,1442,505,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,64,1521,533,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,65,1604,562,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,66,1691,593,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,67,1783,625,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,68,1880,659,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,69,1982,695,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,70,2090,732,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,71,2590,907,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,72,3208,1123,1712,3208,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,73,3975,1392,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,74,4925,1724,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,75,6102,2136,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,76,7560,2647,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,77,9366,3279,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,78,11604,4062,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,79,14377,5033,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,80,17648,6177,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,81,18426,6449,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,82,19204,6721,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,83,19982,6993,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,84,20760,7265,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,85,21538,7537,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,86,22316,7809,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,87,23094,8081,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,88,23872,8353,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,89,24650,8625,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,90,25428,8897,2072,25428,1,0);
+
+-- =============================================
+-- Paladin (2)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(2,1,17,6,292,20,0),(2,2,18,7,321,22,0),(2,3,21,7,351,24,0),(2,4,22,8,380,26,0),(2,5,24,9,409,28,0),
+(2,6,25,9,438,30,0),(2,7,27,10,468,32,0),(2,8,28,10,497,34,0),(2,9,30,11,526,36,0),(2,10,33,12,555,38,0),
+(2,11,35,12,584,40,0),(2,12,37,13,613,42,0),(2,13,39,14,642,44,0),(2,14,41,15,671,46,0),(2,15,44,15,700,49,0),
+(2,16,46,16,729,51,0),(2,17,48,17,758,53,0),(2,18,51,18,787,56,0),(2,19,53,19,816,59,0),(2,20,56,20,845,62,0),
+(2,21,59,21,874,65,0),(2,22,62,22,903,68,0),(2,23,65,23,932,71,0),(2,24,68,24,961,74,0),(2,25,71,25,990,77,0),
+(2,26,74,26,1019,80,0),(2,27,78,27,1048,84,0),(2,28,81,28,1077,87,0),(2,29,85,29,1106,91,0),(2,30,88,30,1135,94,0),
+(2,31,92,31,1164,98,0),(2,32,96,32,1193,102,0),(2,33,100,33,1222,106,0),(2,34,104,34,1251,110,0),(2,35,108,35,1280,114,0),
+(2,36,113,36,1309,119,0),(2,37,117,37,1338,123,0),(2,38,122,38,1367,128,0),(2,39,127,39,1396,133,0),(2,40,132,40,1425,138,0),
+(2,41,137,42,1454,143,0),(2,42,142,43,1483,148,0),(2,43,148,45,1512,154,0),(2,44,153,46,1541,160,0),(2,45,159,48,1570,166,0),
+(2,46,165,49,1599,172,0),(2,47,171,51,1628,178,0),(2,48,177,53,1657,185,0),(2,49,184,55,1686,191,0),(2,50,190,57,1715,198,0),
+(2,51,197,59,1744,205,0),(2,52,204,61,1773,212,0),(2,53,211,63,1802,219,0),(2,54,219,65,1831,227,0),(2,55,226,67,1860,234,0),
+(2,56,234,69,1889,242,0),(2,57,242,71,1918,250,0),(2,58,251,74,1947,259,0),(2,59,259,76,1976,267,0),(2,60,268,79,2005,276,0),
+(2,61,277,82,2034,285,0),(2,62,286,85,2063,294,0),(2,63,296,87,2092,304,0),(2,64,306,90,2121,314,0),(2,65,316,93,2150,324,0),
+(2,66,326,96,2179,335,0),(2,67,337,99,2208,346,0),(2,68,348,103,2237,357,0),(2,69,359,106,2266,369,0),(2,70,371,110,2295,381,0),
+(2,71,383,113,2324,393,0),(2,72,395,117,2353,406,0),(2,73,408,121,2382,419,0),(2,74,421,125,2411,432,0),(2,75,434,129,2440,446,0),
+(2,76,448,133,2469,460,0),(2,77,462,137,2498,475,0),(2,78,477,142,2527,490,0),(2,79,492,146,2556,505,0),(2,80,507,151,2585,521,0),
+(2,81,192,67,2801,192,0),(2,82,218,76,3017,218,0),(2,83,249,87,3238,249,0),(2,84,284,99,3463,284,0),(2,85,323,113,3687,323,0),
+(2,86,368,129,3907,368,0),(2,87,419,147,4116,419,0),(2,88,478,167,4308,478,0),(2,89,544,191,4473,544,0),(2,90,620,217,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,91,26206,9169,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,92,26984,9441,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,93,27762,9713,2132,27762,1,0);
@@ -250,96 +116,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,121,49546,17329,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,122,50324,17601,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (2,123,51102,17873,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,1,11,18,292,17,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,2,12,20,312,19,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,3,14,22,332,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,4,15,24,352,22,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,5,16,26,372,24,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,6,17,28,392,26,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,7,18,30,412,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,8,19,31,432,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,9,20,32,452,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,10,21,34,472,32,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,11,22,37,492,34,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,12,25,40,512,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,13,27,44,532,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,14,29,47,552,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,15,30,49,572,40,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,16,32,51,592,42,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,17,33,53,612,44,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,18,34,55,632,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,19,35,57,652,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,20,36,59,672,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,21,38,61,692,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,22,39,64,712,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,23,41,67,732,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,24,43,70,752,58,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,25,45,74,772,60,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,26,48,77,792,63,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,27,50,81,812,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,28,53,86,832,71,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,29,56,91,852,75,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,30,59,96,872,79,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,31,63,102,892,84,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,32,66,108,912,89,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,33,71,115,932,95,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,34,75,123,952,101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,35,80,131,972,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,36,86,140,992,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,37,92,151,1012,124,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,38,99,162,1032,133,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,39,107,174,1052,143,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,40,115,188,1072,154,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,41,124,203,1092,167,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,42,134,219,1112,180,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,43,145,238,1132,195,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,44,158,258,1152,212,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,45,172,281,1172,231,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,46,187,306,1192,251,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,47,204,334,1212,274,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,48,223,366,1232,300,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,49,245,401,1252,329,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,50,269,440,1272,361,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,51,295,484,1292,397,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,52,325,533,1312,437,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,53,359,588,1332,482,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,54,397,650,1352,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,55,439,720,1372,590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,56,487,798,1392,655,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,57,542,887,1412,728,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,58,603,988,1432,810,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,59,672,1101,1452,903,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,60,751,1230,1472,1009,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,61,792,1297,1492,1064,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,62,835,1368,1512,1122,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,63,880,1442,1532,1183,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,64,928,1521,1552,1296,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,65,979,1604,1572,1315,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,66,1032,1691,1592,1387,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,67,1088,1783,1612,1462,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,68,1147,1880,1632,1542,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,69,1210,1982,1652,1626,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,70,1276,2090,1672,1714,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,71,1580,2590,1692,2124,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,72,1958,3208,1712,2631,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,73,2425,3975,1732,3260,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,74,3005,4925,1752,4038,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,75,3722,6102,1772,5003,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,76,4612,7560,1792,6199,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,77,5714,9366,1812,7680,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,78,7079,11604,1832,9516,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,79,8771,14377,1852,11790,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,80,10766,17648,1872,14472,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,81,11241,18426,1892,15110,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,82,11716,19204,1912,15748,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,83,12191,19982,1932,16386,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,84,12666,20760,1952,17024,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,85,13141,21538,1972,17662,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,86,13616,22316,1992,18300,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,87,14091,23094,2012,18938,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,88,14566,23872,2032,19576,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,89,15041,24650,2052,20214,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,90,15516,25428,2072,20852,1,0);
+
+-- =============================================
+-- Hunter (3)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(3,1,10,18,292,16,0),(3,2,11,19,321,18,0),(3,3,13,21,351,20,0),(3,4,13,23,380,21,0),(3,5,14,24,409,23,0),
+(3,6,15,26,438,25,0),(3,7,16,27,468,26,0),(3,8,17,28,497,28,0),(3,9,18,30,526,30,0),(3,10,20,33,555,31,0),
+(3,11,21,35,584,33,0),(3,12,22,37,613,35,0),(3,13,24,39,642,37,0),(3,14,25,41,671,39,0),(3,15,27,44,700,41,0),
+(3,16,28,46,729,43,0),(3,17,30,48,758,45,0),(3,18,31,51,787,48,0),(3,19,33,53,816,50,0),(3,20,35,56,845,52,0),
+(3,21,37,59,874,55,0),(3,22,39,62,903,58,0),(3,23,41,65,932,60,0),(3,24,43,68,961,63,0),(3,25,45,71,990,66,0),
+(3,26,47,74,1019,69,0),(3,27,49,78,1048,72,0),(3,28,51,81,1077,75,0),(3,29,54,85,1106,78,0),(3,30,56,88,1135,81,0),
+(3,31,58,92,1164,85,0),(3,32,61,96,1193,88,0),(3,33,63,100,1222,92,0),(3,34,66,104,1251,95,0),(3,35,68,108,1280,99,0),
+(3,36,71,113,1309,103,0),(3,37,74,117,1338,107,0),(3,38,77,122,1367,111,0),(3,39,80,127,1396,115,0),(3,40,83,132,1425,120,0),
+(3,41,86,137,1454,124,0),(3,42,89,142,1483,129,0),(3,43,93,148,1512,134,0),(3,44,96,153,1541,139,0),(3,45,100,159,1570,144,0),
+(3,46,104,165,1599,149,0),(3,47,108,171,1628,155,0),(3,48,112,177,1657,160,0),(3,49,116,184,1686,166,0),(3,50,120,190,1715,172,0),
+(3,51,124,197,1744,178,0),(3,52,129,204,1773,184,0),(3,53,133,211,1802,191,0),(3,54,138,219,1831,197,0),(3,55,143,226,1860,204,0),
+(3,56,148,234,1889,211,0),(3,57,153,242,1918,218,0),(3,58,158,251,1947,225,0),(3,59,164,259,1976,233,0),(3,60,169,268,2005,241,0),
+(3,61,175,277,2034,249,0),(3,62,181,286,2063,257,0),(3,63,187,296,2092,266,0),(3,64,194,306,2121,275,0),(3,65,200,316,2150,284,0),
+(3,66,207,326,2179,293,0),(3,67,214,337,2208,302,0),(3,68,221,348,2237,312,0),(3,69,228,359,2266,322,0),(3,70,236,371,2295,332,0),
+(3,71,244,383,2324,343,0),(3,72,252,395,2353,354,0),(3,73,260,408,2382,365,0),(3,74,269,421,2411,377,0),(3,75,278,434,2440,389,0),
+(3,76,287,448,2469,401,0),(3,77,296,462,2498,414,0),(3,78,306,477,2527,427,0),(3,79,316,492,2556,440,0),(3,80,326,507,2585,454,0),
+(3,81,117,192,2801,157,0),(3,82,133,218,3017,179,0),(3,83,152,249,3238,204,0),(3,84,173,284,3463,233,0),(3,85,197,323,3687,265,0),
+(3,86,224,368,3907,302,0),(3,87,256,419,4116,344,0),(3,88,292,478,4308,392,0),(3,89,332,544,4473,446,0),(3,90,379,620,4600,509,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,91,15991,26206,2092,21490,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,92,16466,26984,2112,22128,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,93,16941,27762,2132,22766,1,0);
@@ -373,96 +172,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,121,30241,49546,2692,40630,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,122,30716,50324,2712,41268,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (3,123,31191,51102,2732,41906,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,1,15,18,292,15,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,2,17,20,312,16,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,3,18,22,332,17,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,4,20,24,352,19,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,5,21,26,372,20,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,6,23,28,392,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,7,24,30,412,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,8,25,31,432,24,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,9,26,32,452,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,10,28,34,472,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,11,30,37,492,28,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,12,33,40,512,30,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,13,36,44,532,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,14,39,47,552,32,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,15,41,49,572,34,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,16,43,51,592,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,17,44,53,612,36,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,18,46,55,632,38,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,19,47,57,652,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,20,49,59,672,40,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,21,51,61,692,42,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,22,53,64,712,44,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,23,56,67,732,46,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,24,58,70,752,48,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,25,61,74,772,50,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,26,64,77,792,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,27,68,81,812,56,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,28,71,86,832,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,29,75,91,852,62,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,30,80,96,872,66,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,31,85,102,892,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,32,90,108,912,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,33,96,115,932,79,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,34,102,123,952,84,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,35,109,131,972,90,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,36,117,140,992,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,37,125,151,1012,103,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,38,134,162,1032,110,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,39,145,174,1052,119,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,40,156,188,1072,128,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,41,168,203,1092,138,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,42,182,219,1112,150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,43,198,238,1132,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,44,215,258,1152,176,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,45,233,281,1172,191,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,46,254,306,1192,209,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,47,278,334,1212,228,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,48,304,366,1232,249,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,49,333,401,1252,273,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,50,365,440,1272,299,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,51,402,484,1292,329,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,52,442,533,1312,363,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,53,488,588,1332,400,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,54,540,650,1352,442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,55,598,720,1372,490,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,56,663,798,1392,543,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,57,737,887,1412,604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,58,820,988,1432,672,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,59,914,1101,1452,749,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,60,1021,1230,1472,837,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,61,1077,1297,1492,882,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,62,1136,1368,1512,931,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,63,1197,1442,1532,981,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,64,1263,1521,1552,1035,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,65,1331,1604,1572,1091,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,66,1404,1691,1592,1150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,67,1480,1783,1612,1213,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,68,1561,1880,1632,1279,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,69,1646,1982,1652,1348,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,70,1735,2090,1672,1422,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,71,2150,2590,1692,1762,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,72,2663,3208,1712,2182,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,73,3299,3975,1732,2703,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,74,4088,4925,1752,3349,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,75,5065,6102,1772,4150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,76,6275,7560,1792,5141,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,77,7774,9366,1812,6369,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,78,9631,11604,1832,7891,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,79,11933,14377,1852,9777,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,80,14648,17648,1872,12001,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,81,15294,18426,1892,12530,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,82,15940,19204,1912,13059,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,83,16586,19982,1932,13588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,84,17232,20760,1952,14117,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,85,17878,21538,1972,14646,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,86,18524,22316,1992,15175,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,87,19170,23094,2012,15704,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,88,19816,23872,2032,16233,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,89,20462,24650,2052,16762,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,90,21108,25428,2072,17291,1,0);
+
+-- =============================================
+-- Rogue (4)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(4,1,14,18,292,14,0),(4,2,15,19,321,15,0),(4,3,17,21,351,16,0),(4,4,18,23,380,18,0),(4,5,20,24,409,19,0),
+(4,6,21,26,438,20,0),(4,7,22,27,468,22,0),(4,8,23,28,497,23,0),(4,9,25,30,526,24,0),(4,10,27,33,555,26,0),
+(4,11,29,35,584,28,0),(4,12,30,37,613,29,0),(4,13,32,39,642,31,0),(4,14,34,41,671,33,0),(4,15,36,44,700,34,0),
+(4,16,38,46,729,36,0),(4,17,40,48,758,38,0),(4,18,42,51,787,40,0),(4,19,44,53,816,42,0),(4,20,46,56,845,44,0),
+(4,21,49,59,874,46,0),(4,22,51,62,903,48,0),(4,23,54,65,932,50,0),(4,24,56,68,961,52,0),(4,25,59,71,990,54,0),
+(4,26,61,74,1019,56,0),(4,27,64,78,1048,59,0),(4,28,67,81,1077,61,0),(4,29,70,85,1106,64,0),(4,30,73,88,1135,66,0),
+(4,31,76,92,1164,69,0),(4,32,79,96,1193,72,0),(4,33,82,100,1222,75,0),(4,34,85,104,1251,78,0),(4,35,89,108,1280,81,0),
+(4,36,93,113,1309,84,0),(4,37,96,117,1338,87,0),(4,38,100,122,1367,91,0),(4,39,104,127,1396,94,0),(4,40,108,132,1425,98,0),
+(4,41,112,137,1454,101,0),(4,42,117,142,1483,105,0),(4,43,121,148,1512,109,0),(4,44,126,153,1541,113,0),(4,45,130,159,1570,117,0),
+(4,46,135,165,1599,121,0),(4,47,140,171,1628,125,0),(4,48,145,177,1657,130,0),(4,49,151,184,1686,134,0),(4,50,156,190,1715,139,0),
+(4,51,162,197,1744,144,0),(4,52,168,204,1773,149,0),(4,53,174,211,1802,154,0),(4,54,180,219,1831,159,0),(4,55,186,226,1860,165,0),
+(4,56,193,234,1889,170,0),(4,57,200,242,1918,176,0),(4,58,207,251,1947,182,0),(4,59,214,259,1976,188,0),(4,60,221,268,2005,194,0),
+(4,61,229,277,2034,201,0),(4,62,237,286,2063,207,0),(4,63,245,296,2092,214,0),(4,64,253,306,2121,221,0),(4,65,262,316,2150,228,0),
+(4,66,271,326,2179,235,0),(4,67,280,337,2208,243,0),(4,68,289,348,2237,251,0),(4,69,299,359,2266,259,0),(4,70,309,371,2295,267,0),
+(4,71,319,383,2324,275,0),(4,72,330,395,2353,284,0),(4,73,341,408,2382,293,0),(4,74,352,421,2411,302,0),(4,75,364,434,2440,311,0),
+(4,76,376,448,2469,321,0),(4,77,388,462,2498,331,0),(4,78,401,477,2527,341,0),(4,79,414,492,2556,352,0),(4,80,427,507,2585,362,0),
+(4,81,159,192,2801,130,0),(4,82,181,218,3017,149,0),(4,83,207,249,3238,169,0),(4,84,236,284,3463,193,0),(4,85,268,323,3687,220,0),
+(4,86,305,368,3907,250,0),(4,87,348,419,4116,285,0),(4,88,397,478,4308,325,0),(4,89,452,544,4473,370,0),(4,90,515,620,4600,422,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,91,21754,26206,2092,17820,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,92,22400,26984,2112,18349,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,93,23046,27762,2132,18878,1,0);
@@ -496,96 +228,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,121,41134,49546,2692,33690,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,122,41780,50324,2712,34219,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (4,123,42426,51102,2732,34748,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,1,11,15,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,2,12,17,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,3,13,19,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,4,14,20,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,5,15,22,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,6,16,23,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,7,17,25,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,8,18,26,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,9,19,27,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,10,20,29,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,11,21,31,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,12,23,33,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,13,26,36,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,14,28,39,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,15,29,41,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,16,30,43,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,17,31,44,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,18,32,46,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,19,33,47,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,20,35,49,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,21,36,51,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,22,38,53,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,23,39,56,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,24,41,58,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,25,43,61,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,26,45,64,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,27,48,68,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,28,50,71,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,29,53,75,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,30,56,80,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,31,59,85,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,32,63,90,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,33,68,96,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,34,73,102,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,35,77,109,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,36,82,117,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,37,88,125,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,38,94,134,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,39,101,145,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,40,109,156,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,41,118,168,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,42,128,182,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,43,138,198,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,44,150,215,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,45,163,233,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,46,178,254,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,47,194,278,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,48,213,304,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,49,233,333,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,50,256,365,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,51,281,402,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,52,309,442,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,53,341,488,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,54,377,540,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,55,418,598,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,56,463,663,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,57,515,737,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,58,573,820,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,59,639,914,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,60,714,1021,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,61,753,1077,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,62,794,1136,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,63,837,1197,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,64,883,1263,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,65,931,1331,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,66,981,1404,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,67,1035,1480,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,68,1091,1561,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,69,1150,1646,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,70,1213,1735,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,71,1503,2150,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,72,1861,2663,1712,3208,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,73,2306,3299,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,74,2857,4088,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,75,3540,5065,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,76,4385,6275,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,77,5433,7774,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,78,6731,9631,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,79,8339,11933,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,80,10236,14648,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,81,10687,15294,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,82,11138,15940,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,83,11589,16586,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,84,12040,17232,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,85,12491,17878,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,86,12942,18524,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,87,13393,19170,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,88,13844,19816,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,89,14295,20462,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,90,14746,21108,2072,25428,1,0);
+
+-- =============================================
+-- Priest (5)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(5,1,10,15,292,20,0),(5,2,11,16,321,22,0),(5,3,12,18,351,24,0),(5,4,13,19,380,26,0),(5,5,14,20,409,28,0),
+(5,6,15,22,438,30,0),(5,7,15,23,468,32,0),(5,8,16,24,497,34,0),(5,9,17,25,526,36,0),(5,10,19,27,555,38,0),
+(5,11,20,29,584,40,0),(5,12,21,30,613,42,0),(5,13,23,32,642,44,0),(5,14,24,34,671,46,0),(5,15,26,36,700,49,0),
+(5,16,27,38,729,51,0),(5,17,29,40,758,53,0),(5,18,30,42,787,56,0),(5,19,32,44,816,59,0),(5,20,34,46,845,62,0),
+(5,21,36,49,874,65,0),(5,22,38,51,903,68,0),(5,23,40,54,932,71,0),(5,24,42,56,961,74,0),(5,25,44,59,990,77,0),
+(5,26,46,61,1019,80,0),(5,27,48,64,1048,84,0),(5,28,50,67,1077,87,0),(5,29,53,70,1106,91,0),(5,30,55,73,1135,94,0),
+(5,31,57,76,1164,98,0),(5,32,60,79,1193,102,0),(5,33,62,82,1222,106,0),(5,34,65,85,1251,110,0),(5,35,67,89,1280,114,0),
+(5,36,70,93,1309,119,0),(5,37,73,96,1338,123,0),(5,38,76,100,1367,128,0),(5,39,79,104,1396,133,0),(5,40,82,108,1425,138,0),
+(5,41,85,112,1454,143,0),(5,42,88,117,1483,148,0),(5,43,92,121,1512,154,0),(5,44,95,126,1541,160,0),(5,45,99,130,1570,166,0),
+(5,46,103,135,1599,172,0),(5,47,107,140,1628,178,0),(5,48,111,145,1657,185,0),(5,49,115,151,1686,191,0),(5,50,119,156,1715,198,0),
+(5,51,123,162,1744,205,0),(5,52,128,168,1773,212,0),(5,53,132,174,1802,219,0),(5,54,137,180,1831,227,0),(5,55,142,186,1860,234,0),
+(5,56,147,193,1889,242,0),(5,57,152,200,1918,250,0),(5,58,157,207,1947,259,0),(5,59,163,214,1976,267,0),(5,60,168,221,2005,276,0),
+(5,61,174,229,2034,285,0),(5,62,180,237,2063,294,0),(5,63,186,245,2092,304,0),(5,64,193,253,2121,314,0),(5,65,200,262,2150,324,0),
+(5,66,207,271,2179,335,0),(5,67,214,280,2208,346,0),(5,68,221,289,2237,357,0),(5,69,228,299,2266,369,0),(5,70,236,309,2295,381,0),
+(5,71,244,319,2324,393,0),(5,72,252,330,2353,406,0),(5,73,260,341,2382,419,0),(5,74,269,352,2411,432,0),(5,75,278,364,2440,446,0),
+(5,76,287,376,2469,460,0),(5,77,296,388,2498,475,0),(5,78,306,401,2527,490,0),(5,79,316,414,2556,505,0),(5,80,326,427,2585,521,0),
+(5,81,67,132,2801,192,0),(5,82,76,150,3017,218,0),(5,83,87,172,3238,249,0),(5,84,99,196,3463,284,0),(5,85,113,223,3687,323,0),
+(5,86,129,254,3907,368,0),(5,87,147,289,4116,419,0),(5,88,167,330,4308,478,0),(5,89,191,375,4473,544,0),(5,90,217,428,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,91,15197,21754,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,92,15648,22400,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,93,16099,23046,2132,27762,1,0);
@@ -619,96 +284,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,121,28727,41134,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,122,29178,41780,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (5,123,29629,42426,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,1,18,16,292,11,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,2,19,17,312,12,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,3,21,18,332,13,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,4,23,20,352,14,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,5,25,21,372,15,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,6,27,23,392,16,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,7,29,25,412,17,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,8,30,26,432,19,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,9,32,27,452,20,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,10,34,29,472,22,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,11,36,31,492,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,12,40,33,512,24,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,13,43,36,532,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,14,47,39,552,26,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,15,49,41,572,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,16,51,43,592,28,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,17,53,44,612,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,18,55,46,632,30,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,19,57,47,652,32,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,20,59,49,672,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,21,61,51,692,34,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,22,64,53,712,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,23,67,56,732,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,24,70,58,752,38,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,25,74,61,772,40,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,26,77,64,792,42,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,27,81,68,812,44,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,28,86,71,832,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,29,91,75,852,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,30,96,80,872,52,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,31,102,85,892,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,32,108,90,912,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,33,115,96,932,63,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,34,123,102,952,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,35,131,109,972,71,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,36,140,117,992,79,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,37,151,125,1012,82,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,38,162,134,1032,88,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,39,174,145,1052,94,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,40,188,156,1072,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,41,203,168,1092,110,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,42,219,182,1112,119,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,43,238,198,1132,129,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,44,258,215,1152,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,45,281,233,1172,152,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,46,306,254,1192,166,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,47,334,278,1212,181,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,48,366,304,1232,198,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,49,401,333,1252,217,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,50,440,365,1272,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,51,484,402,1292,262,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,52,533,442,1312,288,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,53,588,488,1332,318,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,54,650,540,1352,351,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,55,720,598,1372,389,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,56,798,663,1392,432,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,57,887,737,1412,480,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,58,988,820,1432,534,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,59,1101,914,1452,595,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,60,1230,1021,1472,665,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,61,1297,1077,1492,701,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,62,1368,1136,1512,739,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,63,1442,1197,1532,779,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,64,1521,1263,1552,822,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,65,1604,1331,1572,866,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,66,1691,1404,1592,914,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,67,1783,1480,1612,963,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,68,1880,1561,1632,1016,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,69,1982,1646,1652,1071,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,70,2090,1735,1672,1129,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,71,2590,2150,1692,1399,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,72,3208,2663,1712,1733,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,73,3975,3299,1732,2147,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,74,4925,4088,1752,2660,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,75,6102,5065,1772,3296,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,76,7560,6275,1792,4083,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,77,9366,7774,1812,5058,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,78,11604,9631,1832,6267,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,79,14377,11933,1852,7764,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,80,17648,14648,1872,9530,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,81,18426,15294,1892,9950,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,82,19204,15940,1912,10370,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,83,19982,16586,1932,10790,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,84,20760,17232,1952,11210,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,85,21538,17878,1972,11630,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,86,22316,18524,1992,12050,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,87,23094,19170,2012,12470,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,88,23872,19816,2032,12890,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,89,24650,20462,2052,13310,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,90,25428,21108,2072,13730,1,0);
+
+-- =============================================
+-- DK (6)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(6,1,17,12,292,14,0),(6,2,18,13,321,15,0),(6,3,21,15,351,16,0),(6,4,22,16,380,18,0),(6,5,24,17,409,19,0),
+(6,6,25,18,438,20,0),(6,7,27,19,468,22,0),(6,8,28,20,497,23,0),(6,9,30,21,526,24,0),(6,10,33,23,555,26,0),
+(6,11,35,24,584,28,0),(6,12,37,26,613,29,0),(6,13,39,27,642,31,0),(6,14,41,29,671,33,0),(6,15,44,30,700,34,0),
+(6,16,46,32,729,36,0),(6,17,48,34,758,38,0),(6,18,51,35,787,40,0),(6,19,53,37,816,42,0),(6,20,56,39,845,44,0),
+(6,21,59,41,874,46,0),(6,22,62,43,903,48,0),(6,23,65,45,932,50,0),(6,24,68,47,961,52,0),(6,25,71,49,990,54,0),
+(6,26,74,51,1019,56,0),(6,27,78,53,1048,59,0),(6,28,81,56,1077,61,0),(6,29,85,58,1106,64,0),(6,30,88,60,1135,66,0),
+(6,31,92,63,1164,69,0),(6,32,96,66,1193,72,0),(6,33,100,68,1222,75,0),(6,34,104,71,1251,78,0),(6,35,108,74,1280,81,0),
+(6,36,113,77,1309,84,0),(6,37,117,80,1338,87,0),(6,38,122,83,1367,91,0),(6,39,127,86,1396,94,0),(6,40,132,90,1425,98,0),
+(6,41,137,93,1454,101,0),(6,42,142,97,1483,105,0),(6,43,148,100,1512,109,0),(6,44,153,104,1541,113,0),(6,45,159,108,1570,117,0),
+(6,46,165,112,1599,121,0),(6,47,171,116,1628,125,0),(6,48,177,120,1657,130,0),(6,49,184,125,1686,134,0),(6,50,190,129,1715,139,0),
+(6,51,197,134,1744,144,0),(6,52,204,139,1773,149,0),(6,53,211,144,1802,154,0),(6,54,219,149,1831,159,0),(6,55,226,154,1860,165,0),
+(6,56,234,160,1889,170,0),(6,57,242,165,1918,176,0),(6,58,251,171,1947,182,0),(6,59,259,177,1976,188,0),(6,60,268,183,2005,194,0),
+(6,61,277,189,2034,201,0),(6,62,286,196,2063,207,0),(6,63,296,202,2092,214,0),(6,64,306,209,2121,221,0),(6,65,316,216,2150,228,0),
+(6,66,326,223,2179,235,0),(6,67,337,231,2208,243,0),(6,68,348,238,2237,251,0),(6,69,359,246,2266,259,0),(6,70,371,254,2295,267,0),
+(6,71,383,262,2324,275,0),(6,72,395,271,2353,284,0),(6,73,408,279,2382,293,0),(6,74,421,288,2411,302,0),(6,75,434,297,2440,311,0),
+(6,76,448,307,2469,321,0),(6,77,462,316,2498,331,0),(6,78,477,326,2527,341,0),(6,79,492,337,2556,352,0),(6,80,507,347,2585,362,0),
+(6,81,192,159,2801,104,0),(6,82,218,181,3017,118,0),(6,83,249,206,3238,135,0),(6,84,284,235,3463,154,0),(6,85,323,267,3687,175,0),
+(6,86,368,304,3907,199,0),(6,87,419,346,4116,227,0),(6,88,478,395,4308,259,0),(6,89,544,449,4473,295,0),(6,90,620,512,4600,336,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,91,26206,21754,2092,14150,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,92,26984,22400,2112,14570,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,93,27762,23046,2132,14990,1,0);
@@ -742,96 +340,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,121,49546,41134,2692,26750,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,122,50324,41780,2712,27170,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (6,123,51102,42426,2732,27590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,1,8,18,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,2,9,20,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,3,10,22,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,4,11,24,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,5,12,26,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,6,12,28,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,7,13,30,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,8,14,31,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,9,14,32,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,10,15,34,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,11,16,37,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,12,18,40,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,13,19,44,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,14,21,47,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,15,22,49,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,16,23,51,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,17,23,53,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,18,24,55,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,19,25,57,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,20,26,59,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,21,27,61,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,22,28,64,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,23,29,67,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,24,31,70,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,25,32,74,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,26,34,77,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,27,36,81,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,28,37,86,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,29,40,91,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,30,42,96,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,31,44,102,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,32,47,108,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,33,50,115,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,34,53,123,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,35,57,131,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,36,61,140,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,37,66,151,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,38,70,162,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,39,75,174,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,40,81,188,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,41,88,203,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,42,95,219,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,43,103,238,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,44,112,258,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,45,121,281,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,46,132,306,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,47,144,334,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,48,158,366,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,49,173,401,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,50,190,440,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,51,209,484,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,52,230,533,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,53,253,588,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,54,280,650,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,55,310,720,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,56,344,798,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,57,382,887,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,58,425,988,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,59,474,1101,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,60,530,1230,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,61,558,1297,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,62,589,1368,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,63,621,1442,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,64,655,1521,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,65,690,1604,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,66,728,1691,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,67,767,1783,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,68,809,1880,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,69,853,1982,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,70,899,2090,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,71,1114,2590,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,72,1380,3208,1712,3208,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,73,1710,3975,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,74,2118,4925,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,75,2624,6102,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,76,3251,7560,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,77,4028,9366,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,78,4990,11604,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,79,6183,14377,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,80,7589,17648,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,81,7924,18426,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,82,8259,19204,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,83,8594,19982,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,84,8929,20760,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,85,9264,21538,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,86,9599,22316,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,87,9934,23094,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,88,10269,23872,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,89,10604,24650,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,90,10939,25428,2072,25428,1,0);
+
+-- =============================================
+-- Shaman (7)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(7,1,12,17,292,17,0),(7,2,13,18,321,18,0),(7,3,15,21,351,21,0),(7,4,16,22,380,22,0),(7,5,17,24,409,24,0),
+(7,6,18,25,438,25,0),(7,7,19,27,468,27,0),(7,8,20,29,497,29,0),(7,9,22,31,526,31,0),(7,10,23,33,555,33,0),
+(7,11,24,35,584,35,0),(7,12,26,37,613,37,0),(7,13,27,39,642,39,0),(7,14,29,41,671,41,0),(7,15,30,44,700,44,0),
+(7,16,32,46,729,46,0),(7,17,34,48,758,48,0),(7,18,35,51,787,51,0),(7,19,37,53,816,53,0),(7,20,39,56,845,56,0),
+(7,21,41,59,874,59,0),(7,22,43,62,903,62,0),(7,23,45,65,932,65,0),(7,24,47,68,961,68,0),(7,25,49,71,990,71,0),
+(7,26,51,74,1019,74,0),(7,27,53,78,1048,78,0),(7,28,56,81,1077,81,0),(7,29,58,85,1106,85,0),(7,30,60,88,1135,88,0),
+(7,31,63,92,1164,92,0),(7,32,66,96,1193,96,0),(7,33,68,100,1222,100,0),(7,34,71,104,1251,104,0),(7,35,74,108,1280,108,0),
+(7,36,77,113,1309,113,0),(7,37,80,117,1338,117,0),(7,38,83,122,1367,122,0),(7,39,86,127,1396,127,0),(7,40,90,132,1425,132,0),
+(7,41,93,137,1454,137,0),(7,42,97,142,1483,142,0),(7,43,100,148,1512,148,0),(7,44,104,153,1541,153,0),(7,45,108,159,1570,159,0),
+(7,46,112,165,1599,165,0),(7,47,116,171,1628,171,0),(7,48,120,177,1657,177,0),(7,49,125,184,1686,184,0),(7,50,129,190,1715,190,0),
+(7,51,134,197,1744,197,0),(7,52,139,204,1773,204,0),(7,53,144,211,1802,211,0),(7,54,149,219,1831,219,0),(7,55,154,226,1860,226,0),
+(7,56,160,234,1889,234,0),(7,57,165,242,1918,242,0),(7,58,171,251,1947,251,0),(7,59,177,259,1976,259,0),(7,60,183,268,2005,268,0),
+(7,61,189,277,2034,277,0),(7,62,196,286,2063,286,0),(7,63,202,296,2092,296,0),(7,64,209,306,2121,306,0),(7,65,216,316,2150,316,0),
+(7,66,223,326,2179,326,0),(7,67,231,337,2208,337,0),(7,68,238,348,2237,348,0),(7,69,246,359,2266,359,0),(7,70,254,371,2295,371,0),
+(7,71,262,383,2324,383,0),(7,72,271,395,2353,395,0),(7,73,279,408,2382,408,0),(7,74,288,421,2411,421,0),(7,75,297,434,2440,434,0),
+(7,76,307,448,2469,448,0),(7,77,316,462,2498,462,0),(7,78,326,477,2527,477,0),(7,79,337,492,2556,492,0),(7,80,347,507,2585,507,0),
+(7,81,132,192,2801,192,0),(7,82,150,218,3017,218,0),(7,83,172,249,3238,249,0),(7,84,196,284,3463,284,0),(7,85,223,323,3687,323,0),
+(7,86,254,368,3907,368,0),(7,87,289,419,4116,419,0),(7,88,330,478,4308,478,0),(7,89,375,544,4473,544,0),(7,90,428,620,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,91,11274,26206,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,92,11609,26984,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,93,11944,27762,2132,27762,1,0);
@@ -865,96 +396,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,121,21324,49546,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,122,21659,50324,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (7,123,21994,51102,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,1,8,13,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,2,9,14,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,3,10,16,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,4,11,17,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,5,12,18,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,6,12,19,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,7,13,20,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,8,14,21,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,9,14,22,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,10,16,24,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,11,17,25,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,12,18,27,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,13,20,30,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,14,21,32,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,15,22,34,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,16,23,35,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,17,24,36,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,18,25,38,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,19,26,39,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,20,27,40,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,21,28,42,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,22,29,44,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,23,30,46,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,24,31,48,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,25,33,50,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,26,35,53,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,27,36,56,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,28,38,59,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,29,40,62,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,30,43,66,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,31,45,70,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,32,48,74,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,33,51,79,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,34,55,84,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,35,58,90,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,36,62,96,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,37,67,103,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,38,72,110,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,39,77,119,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,40,83,128,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,41,90,138,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,42,97,150,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,43,105,162,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,44,114,176,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,45,124,191,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,46,135,209,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,47,148,228,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,48,161,249,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,49,177,273,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,50,194,299,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,51,213,329,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,52,235,363,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,53,259,400,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,54,287,442,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,55,317,490,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,56,352,543,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,57,391,604,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,58,435,672,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,59,485,749,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,60,542,837,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,61,571,882,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,62,602,931,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,63,635,981,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,64,670,1035,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,65,706,1091,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,66,745,1150,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,67,785,1213,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,68,828,1279,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,69,873,1348,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,70,920,1422,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,71,1140,1761,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,72,1412,2182,1712,3207,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,73,1750,2703,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,74,2167,3349,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,75,2685,4149,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,76,3327,5141,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,77,4122,6369,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,78,5106,7891,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,79,6327,9777,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,80,7766,12001,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,81,8108,12530,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,82,8450,13059,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,83,8792,13588,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,84,9134,14117,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,85,9476,14646,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,86,9818,15175,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,87,10160,15704,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,88,10502,16233,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,89,10844,16762,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,90,11186,17291,2072,25428,1,0);
+
+-- =============================================
+-- Mage (8)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(8,1,10,15,292,20,0),(8,2,11,16,321,22,0),(8,3,12,18,351,24,0),(8,4,13,19,380,26,0),(8,5,14,20,409,28,0),
+(8,6,15,22,438,30,0),(8,7,15,23,468,32,0),(8,8,16,24,497,34,0),(8,9,17,25,526,36,0),(8,10,19,27,555,38,0),
+(8,11,20,29,584,40,0),(8,12,21,30,613,42,0),(8,13,23,32,642,44,0),(8,14,24,34,671,46,0),(8,15,26,36,700,49,0),
+(8,16,27,38,729,51,0),(8,17,29,40,758,53,0),(8,18,30,42,787,56,0),(8,19,32,44,816,59,0),(8,20,34,46,845,62,0),
+(8,21,36,49,874,65,0),(8,22,38,51,903,68,0),(8,23,40,54,932,71,0),(8,24,42,56,961,74,0),(8,25,44,59,990,77,0),
+(8,26,46,61,1019,80,0),(8,27,48,64,1048,84,0),(8,28,50,67,1077,87,0),(8,29,53,70,1106,91,0),(8,30,55,73,1135,94,0),
+(8,31,57,76,1164,98,0),(8,32,60,79,1193,102,0),(8,33,62,82,1222,106,0),(8,34,65,85,1251,110,0),(8,35,67,89,1280,114,0),
+(8,36,70,93,1309,119,0),(8,37,73,96,1338,123,0),(8,38,76,100,1367,128,0),(8,39,79,104,1396,133,0),(8,40,82,108,1425,138,0),
+(8,41,85,112,1454,143,0),(8,42,88,117,1483,148,0),(8,43,92,121,1512,154,0),(8,44,95,126,1541,160,0),(8,45,99,130,1570,166,0),
+(8,46,103,135,1599,172,0),(8,47,107,140,1628,178,0),(8,48,111,145,1657,185,0),(8,49,115,151,1686,191,0),(8,50,119,156,1715,198,0),
+(8,51,123,162,1744,205,0),(8,52,128,168,1773,212,0),(8,53,132,174,1802,219,0),(8,54,137,180,1831,227,0),(8,55,142,186,1860,234,0),
+(8,56,147,193,1889,242,0),(8,57,152,200,1918,250,0),(8,58,157,207,1947,259,0),(8,59,163,214,1976,267,0),(8,60,168,221,2005,276,0),
+(8,61,174,229,2034,285,0),(8,62,180,237,2063,294,0),(8,63,186,245,2092,304,0),(8,64,193,253,2121,314,0),(8,65,200,262,2150,324,0),
+(8,66,207,271,2179,335,0),(8,67,214,280,2208,346,0),(8,68,221,289,2237,357,0),(8,69,228,299,2266,369,0),(8,70,236,309,2295,381,0),
+(8,71,244,319,2324,393,0),(8,72,252,330,2353,406,0),(8,73,260,341,2382,419,0),(8,74,269,352,2411,432,0),(8,75,278,364,2440,446,0),
+(8,76,287,376,2469,460,0),(8,77,296,388,2498,475,0),(8,78,306,401,2527,490,0),(8,79,316,414,2556,505,0),(8,80,326,427,2585,521,0),
+(8,81,67,132,2801,192,0),(8,82,76,150,3017,218,0),(8,83,87,172,3238,249,0),(8,84,99,196,3463,284,0),(8,85,113,223,3687,323,0),
+(8,86,129,254,3907,368,0),(8,87,147,289,4116,419,0),(8,88,167,330,4308,478,0),(8,89,191,375,4473,544,0),(8,90,217,428,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,91,11528,17820,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,92,11870,18349,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,93,12212,18878,2132,27762,1,0);
@@ -988,96 +452,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,121,21788,33690,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,122,22130,34219,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (8,123,22472,34748,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,1,7,14,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,2,8,16,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,3,9,18,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,4,10,19,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,5,10,20,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,6,11,22,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,7,12,23,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,8,12,24,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,9,13,25,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,10,14,27,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,11,14,28,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,12,16,31,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,13,17,34,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,14,18,36,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,15,19,38,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,16,20,40,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,17,21,41,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,18,22,43,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,19,22,44,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,20,23,46,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,21,24,48,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,22,25,50,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,23,26,52,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,24,27,54,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,25,29,57,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,26,30,60,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,27,32,63,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,28,33,66,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,29,35,70,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,30,37,74,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,31,39,79,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,32,42,84,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,33,44,89,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,34,47,95,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,35,50,101,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,36,54,108,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,37,58,116,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,38,62,125,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,39,67,134,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,40,72,145,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,41,78,156,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,42,84,169,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,43,91,183,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,44,99,199,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,45,107,217,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,46,117,236,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,47,128,258,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,48,140,282,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,49,153,309,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,50,168,339,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,51,184,373,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,52,203,410,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,53,224,453,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,54,248,501,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,55,274,554,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,56,304,615,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,57,338,683,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,58,376,761,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,59,419,848,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,60,468,948,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,61,494,999,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,62,520,1054,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,63,549,1111,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,64,579,1171,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,65,610,1235,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,66,643,1302,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,67,678,1373,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,68,715,1448,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,69,754,1527,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,70,795,1610,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,71,985,1995,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,72,1220,2470,1712,3207,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,73,1511,3061,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,74,1872,3792,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,75,2319,4699,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,76,2873,5821,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,77,3560,7212,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,78,4410,8935,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,79,5464,11071,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,80,6707,13589,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,81,7003,14188,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,82,7299,14787,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,83,7595,15386,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,84,7891,15985,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,85,8187,16584,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,86,8483,17183,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,87,8779,17782,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,88,9075,18381,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,89,9371,18980,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,90,9667,19579,2072,25428,1,0);
+
+-- =============================================
+-- Warlock (9)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(9,1,10,15,292,20,0),(9,2,11,16,321,22,0),(9,3,12,18,351,24,0),(9,4,13,19,380,26,0),(9,5,14,20,409,28,0),
+(9,6,15,22,438,30,0),(9,7,15,23,468,32,0),(9,8,16,24,497,34,0),(9,9,17,25,526,36,0),(9,10,19,27,555,38,0),
+(9,11,20,29,584,40,0),(9,12,21,30,613,42,0),(9,13,23,32,642,44,0),(9,14,24,34,671,46,0),(9,15,26,36,700,49,0),
+(9,16,27,38,729,51,0),(9,17,29,40,758,53,0),(9,18,30,42,787,56,0),(9,19,32,44,816,59,0),(9,20,34,46,845,62,0),
+(9,21,36,49,874,65,0),(9,22,38,51,903,68,0),(9,23,40,54,932,71,0),(9,24,42,56,961,74,0),(9,25,44,59,990,77,0),
+(9,26,46,61,1019,80,0),(9,27,48,64,1048,84,0),(9,28,50,67,1077,87,0),(9,29,53,70,1106,91,0),(9,30,55,73,1135,94,0),
+(9,31,57,76,1164,98,0),(9,32,60,79,1193,102,0),(9,33,62,82,1222,106,0),(9,34,65,85,1251,110,0),(9,35,67,89,1280,114,0),
+(9,36,70,93,1309,119,0),(9,37,73,96,1338,123,0),(9,38,76,100,1367,128,0),(9,39,79,104,1396,133,0),(9,40,82,108,1425,138,0),
+(9,41,85,112,1454,143,0),(9,42,88,117,1483,148,0),(9,43,92,121,1512,154,0),(9,44,95,126,1541,160,0),(9,45,99,130,1570,166,0),
+(9,46,103,135,1599,172,0),(9,47,107,140,1628,178,0),(9,48,111,145,1657,185,0),(9,49,115,151,1686,191,0),(9,50,119,156,1715,198,0),
+(9,51,123,162,1744,205,0),(9,52,128,168,1773,212,0),(9,53,132,174,1802,219,0),(9,54,137,180,1831,227,0),(9,55,142,186,1860,234,0),
+(9,56,147,193,1889,242,0),(9,57,152,200,1918,250,0),(9,58,157,207,1947,259,0),(9,59,163,214,1976,267,0),(9,60,168,221,2005,276,0),
+(9,61,174,229,2034,285,0),(9,62,180,237,2063,294,0),(9,63,186,245,2092,304,0),(9,64,193,253,2121,314,0),(9,65,200,262,2150,324,0),
+(9,66,207,271,2179,335,0),(9,67,214,280,2208,346,0),(9,68,221,289,2237,357,0),(9,69,228,299,2266,369,0),(9,70,236,309,2295,381,0),
+(9,71,244,319,2324,393,0),(9,72,252,330,2353,406,0),(9,73,260,341,2382,419,0),(9,74,269,352,2411,432,0),(9,75,278,364,2440,446,0),
+(9,76,287,376,2469,460,0),(9,77,296,388,2498,475,0),(9,78,306,401,2527,490,0),(9,79,316,414,2556,505,0),(9,80,326,427,2585,521,0),
+(9,81,67,147,2801,192,0),(9,82,76,167,3017,218,0),(9,83,87,191,3238,249,0),(9,84,99,217,3463,284,0),(9,85,113,247,3687,323,0),
+(9,86,129,282,3907,368,0),(9,87,147,321,4116,419,0),(9,88,167,366,4308,478,0),(9,89,191,416,4473,544,0),(9,90,217,474,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,91,9963,20178,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,92,10259,20777,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,93,10555,21376,2132,27762,1,0);
@@ -1111,96 +508,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,121,18843,261,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,122,19139,261,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (9,123,19435,261,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,1,8,18,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,2,9,20,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,3,10,22,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,4,11,24,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,5,12,26,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,6,12,28,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,7,13,30,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,8,14,31,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,9,14,32,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,10,15,34,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,11,16,37,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,12,18,40,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,13,19,44,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,14,21,47,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,15,22,49,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,16,23,51,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,17,23,53,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,18,24,55,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,19,25,57,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,20,26,59,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,21,27,61,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,22,28,64,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,23,29,67,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,24,31,70,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,25,32,74,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,26,34,77,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,27,36,81,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,28,37,86,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,29,40,91,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,30,42,96,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,31,44,102,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,32,47,108,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,33,50,115,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,34,53,123,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,35,57,131,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,36,61,140,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,37,66,151,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,38,70,162,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,39,75,174,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,40,81,188,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,41,88,203,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,42,95,219,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,43,103,238,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,44,112,258,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,45,121,281,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,46,132,306,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,47,144,334,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,48,158,366,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,49,173,401,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,50,190,440,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,51,209,484,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,52,230,533,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,53,253,588,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,54,280,650,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,55,310,720,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,56,344,798,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,57,382,887,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,58,425,988,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,59,474,1101,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,60,530,1230,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,61,558,1297,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,62,589,1368,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,63,621,1442,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,64,655,1521,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,65,690,1604,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,66,728,1691,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,67,767,1783,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,68,809,1880,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,69,853,1982,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,70,899,2090,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,71,1114,2590,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,72,1380,3208,1712,3208,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,73,1710,3975,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,74,2118,4925,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,75,2624,6102,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,76,3251,7560,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,77,4028,9366,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,78,4990,11604,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,79,6183,14377,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,80,7589,17648,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,81,7924,18426,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,82,8259,19204,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,83,8594,19982,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,84,8929,20760,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,85,9264,21538,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,86,9599,22316,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,87,9934,23094,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,88,10269,23872,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,89,10604,24650,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,90,10939,25428,2072,25428,1,0);
+
+-- =============================================
+-- Monk (10)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(10,1,12,17,292,17,0),(10,2,13,18,321,18,0),(10,3,15,21,351,21,0),(10,4,16,22,380,22,0),(10,5,17,24,409,24,0),
+(10,6,18,25,438,25,0),(10,7,19,27,468,27,0),(10,8,20,29,497,29,0),(10,9,22,31,526,31,0),(10,10,23,33,555,33,0),
+(10,11,24,35,584,35,0),(10,12,26,37,613,37,0),(10,13,27,39,642,39,0),(10,14,29,41,671,41,0),(10,15,30,44,700,44,0),
+(10,16,32,46,729,46,0),(10,17,34,48,758,48,0),(10,18,35,51,787,51,0),(10,19,37,53,816,53,0),(10,20,39,56,845,56,0),
+(10,21,41,59,874,59,0),(10,22,43,62,903,62,0),(10,23,45,65,932,65,0),(10,24,47,68,961,68,0),(10,25,49,71,990,71,0),
+(10,26,51,74,1019,74,0),(10,27,53,78,1048,78,0),(10,28,56,81,1077,81,0),(10,29,58,85,1106,85,0),(10,30,60,88,1135,88,0),
+(10,31,63,92,1164,92,0),(10,32,66,96,1193,96,0),(10,33,68,100,1222,100,0),(10,34,71,104,1251,104,0),(10,35,74,108,1280,108,0),
+(10,36,77,113,1309,113,0),(10,37,80,117,1338,117,0),(10,38,83,122,1367,122,0),(10,39,86,127,1396,127,0),(10,40,90,132,1425,132,0),
+(10,41,93,137,1454,137,0),(10,42,97,142,1483,142,0),(10,43,100,148,1512,148,0),(10,44,104,153,1541,153,0),(10,45,108,159,1570,159,0),
+(10,46,112,165,1599,165,0),(10,47,116,171,1628,171,0),(10,48,120,177,1657,177,0),(10,49,125,184,1686,184,0),(10,50,129,190,1715,190,0),
+(10,51,134,197,1744,197,0),(10,52,139,204,1773,204,0),(10,53,144,211,1802,211,0),(10,54,149,219,1831,219,0),(10,55,154,226,1860,226,0),
+(10,56,160,234,1889,234,0),(10,57,165,242,1918,242,0),(10,58,171,251,1947,251,0),(10,59,177,259,1976,259,0),(10,60,183,268,2005,268,0),
+(10,61,189,277,2034,277,0),(10,62,196,286,2063,286,0),(10,63,202,296,2092,296,0),(10,64,209,306,2121,306,0),(10,65,216,316,2150,316,0),
+(10,66,223,326,2179,326,0),(10,67,231,337,2208,337,0),(10,68,238,348,2237,348,0),(10,69,246,359,2266,359,0),(10,70,254,371,2295,371,0),
+(10,71,262,383,2324,383,0),(10,72,271,395,2353,395,0),(10,73,279,408,2382,408,0),(10,74,288,421,2411,421,0),(10,75,297,434,2440,434,0),
+(10,76,307,448,2469,448,0),(10,77,316,462,2498,462,0),(10,78,326,477,2527,477,0),(10,79,337,492,2556,492,0),(10,80,347,507,2585,507,0),
+(10,81,132,192,2801,192,0),(10,82,150,218,3017,218,0),(10,83,172,249,3238,249,0),(10,84,196,284,3463,284,0),(10,85,223,323,3687,323,0),
+(10,86,254,368,3907,368,0),(10,87,289,419,4116,419,0),(10,88,330,478,4308,478,0),(10,89,375,544,4473,544,0),(10,90,428,620,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,91,11274,26206,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,92,11609,26984,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,93,11944,27762,2132,27762,1,0);
@@ -1234,96 +564,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,121,21324,15899,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,122,21659,16677,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (10,123,21994,17455,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,1,8,18,292,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,2,9,20,312,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,3,10,22,332,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,4,11,24,352,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,5,12,26,372,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,6,12,28,392,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,7,13,30,412,33,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,8,14,31,432,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,9,14,32,452,37,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,10,15,34,472,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,11,16,37,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,12,18,40,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,13,19,44,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,14,21,47,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,15,22,49,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,16,23,51,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,17,23,53,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,18,24,55,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,19,25,57,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,20,26,59,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,21,27,61,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,22,28,64,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,23,29,67,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,24,31,70,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,25,32,74,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,26,34,77,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,27,36,81,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,28,37,86,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,29,40,91,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,30,42,96,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,31,44,102,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,32,47,108,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,33,50,115,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,34,53,123,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,35,57,131,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,36,61,140,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,37,66,151,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,38,70,162,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,39,75,174,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,40,81,188,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,41,88,203,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,42,95,219,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,43,103,238,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,44,112,258,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,45,121,281,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,46,132,306,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,47,144,334,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,48,158,366,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,49,173,401,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,50,190,440,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,51,209,484,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,52,230,533,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,53,253,588,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,54,280,650,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,55,310,720,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,56,344,798,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,57,382,887,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,58,425,988,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,59,474,1101,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,60,530,1230,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,61,558,1297,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,62,589,1368,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,63,621,1442,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,64,655,1521,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,65,690,1604,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,66,728,1691,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,67,767,1783,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,68,809,1880,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,69,853,1982,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,70,899,2090,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,71,1114,2590,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,72,1380,3208,1712,3208,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,73,1710,3975,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,74,2118,4925,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,75,2624,6102,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,76,3251,7560,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,77,4028,9366,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,78,4990,11604,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,79,6183,14377,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,80,7589,17648,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,81,7924,18426,1892,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,82,8259,19204,1912,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,83,8594,19982,1932,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,84,8929,20760,1952,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,85,9264,21538,1972,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,86,9599,22316,1992,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,87,9934,23094,2012,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,88,10269,23872,2032,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,89,10604,24650,2052,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,90,10939,25428,2072,25428,1,0);
+
+-- =============================================
+-- Druid (11)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(11,1,12,17,292,17,0),(11,2,13,18,321,18,0),(11,3,15,21,351,21,0),(11,4,16,22,380,22,0),(11,5,17,24,409,24,0),
+(11,6,18,25,438,25,0),(11,7,19,27,468,27,0),(11,8,20,29,497,29,0),(11,9,22,31,526,31,0),(11,10,23,33,555,33,0),
+(11,11,24,35,584,35,0),(11,12,26,37,613,37,0),(11,13,27,39,642,39,0),(11,14,29,41,671,41,0),(11,15,30,44,700,44,0),
+(11,16,32,46,729,46,0),(11,17,34,48,758,48,0),(11,18,35,51,787,51,0),(11,19,37,53,816,53,0),(11,20,39,56,845,56,0),
+(11,21,41,59,874,59,0),(11,22,43,62,903,62,0),(11,23,45,65,932,65,0),(11,24,47,68,961,68,0),(11,25,49,71,990,71,0),
+(11,26,51,74,1019,74,0),(11,27,53,78,1048,78,0),(11,28,56,81,1077,81,0),(11,29,58,85,1106,85,0),(11,30,60,88,1135,88,0),
+(11,31,63,92,1164,92,0),(11,32,66,96,1193,96,0),(11,33,68,100,1222,100,0),(11,34,71,104,1251,104,0),(11,35,74,108,1280,108,0),
+(11,36,77,113,1309,113,0),(11,37,80,117,1338,117,0),(11,38,83,122,1367,122,0),(11,39,86,127,1396,127,0),(11,40,90,132,1425,132,0),
+(11,41,93,137,1454,137,0),(11,42,97,142,1483,142,0),(11,43,100,148,1512,148,0),(11,44,104,153,1541,153,0),(11,45,108,159,1570,159,0),
+(11,46,112,165,1599,165,0),(11,47,116,171,1628,171,0),(11,48,120,177,1657,177,0),(11,49,125,184,1686,184,0),(11,50,129,190,1715,190,0),
+(11,51,134,197,1744,197,0),(11,52,139,204,1773,204,0),(11,53,144,211,1802,211,0),(11,54,149,219,1831,219,0),(11,55,154,226,1860,226,0),
+(11,56,160,234,1889,234,0),(11,57,165,242,1918,242,0),(11,58,171,251,1947,251,0),(11,59,177,259,1976,259,0),(11,60,183,268,2005,268,0),
+(11,61,189,277,2034,277,0),(11,62,196,286,2063,286,0),(11,63,202,296,2092,296,0),(11,64,209,306,2121,306,0),(11,65,216,316,2150,316,0),
+(11,66,223,326,2179,326,0),(11,67,231,337,2208,337,0),(11,68,238,348,2237,348,0),(11,69,246,359,2266,359,0),(11,70,254,371,2295,371,0),
+(11,71,262,383,2324,383,0),(11,72,271,395,2353,395,0),(11,73,279,408,2382,408,0),(11,74,288,421,2411,421,0),(11,75,297,434,2440,434,0),
+(11,76,307,448,2469,448,0),(11,77,316,462,2498,462,0),(11,78,326,477,2527,477,0),(11,79,337,492,2556,492,0),(11,80,347,507,2585,507,0),
+(11,81,132,192,2801,192,0),(11,82,150,218,3017,218,0),(11,83,172,249,3238,249,0),(11,84,196,284,3463,284,0),(11,85,223,323,3687,323,0),
+(11,86,254,368,3907,368,0),(11,87,289,419,4116,419,0),(11,88,330,478,4308,478,0),(11,89,375,544,4473,544,0),(11,90,428,620,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,91,11274,26206,2092,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,92,11609,26984,2112,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,93,11944,27762,2132,27762,1,0);
@@ -1357,96 +620,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,121,21324,15899,2692,49546,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,122,21659,16677,2712,50324,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (11,123,21994,17455,2732,51102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,1,15,19,292,15,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,2,16,20,312,16,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,3,18,22,332,17,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,4,19,23,352,19,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,5,21,25,372,20,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,6,22,27,392,21,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,7,24,29,412,23,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,8,25,31,432,24,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,9,26,32,452,25,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,10,28,34,472,27,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,11,30,37,492,28,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,12,33,40,512,30,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,13,36,44,532,31,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,14,39,47,552,32,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,15,41,49,572,34,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,16,43,51,592,35,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,17,44,53,612,36,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,18,46,55,632,38,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,19,47,57,652,39,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,20,49,59,672,40,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,21,51,61,692,42,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,22,53,64,712,44,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,23,56,67,732,46,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,24,58,70,752,48,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,25,61,74,772,50,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,26,64,77,792,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,27,68,81,812,56,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,28,71,86,832,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,29,75,91,852,62,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,30,80,96,872,66,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,31,85,102,892,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,32,90,108,912,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,33,96,115,932,79,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,34,102,123,952,84,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,35,109,131,972,90,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,36,117,140,992,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,37,125,151,1012,103,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,38,134,162,1032,110,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,39,145,174,1052,119,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,40,156,188,1072,128,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,41,168,203,1092,138,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,42,182,219,1112,150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,43,198,238,1132,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,44,215,258,1152,176,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,45,233,281,1172,191,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,46,254,306,1192,209,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,47,278,334,1212,228,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,48,304,366,1232,249,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,49,333,401,1252,273,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,50,365,440,1272,299,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,51,402,484,1292,329,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,52,442,533,1312,363,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,53,488,588,1332,400,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,54,540,650,1352,442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,55,598,720,1372,490,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,56,663,798,1392,543,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,57,737,887,1412,604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,58,820,988,1432,672,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,59,914,1101,1452,749,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,60,1021,1230,1472,837,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,61,1077,1297,1492,882,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,62,1136,1368,1512,931,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,63,1197,1442,1532,981,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,64,1263,1521,1552,1035,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,65,1331,1604,1572,1091,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,66,1404,1691,1592,1150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,67,1480,1783,1612,1213,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,68,1561,1880,1632,1279,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,69,1646,1982,1652,1348,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,70,1735,2090,1672,1422,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,71,2150,2590,1692,1762,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,72,2663,3208,1712,2182,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,73,3299,3975,1732,2703,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,74,4088,4925,1752,3349,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,75,5065,6102,1772,4150,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,76,6275,7560,1792,5141,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,77,7774,9366,1812,6369,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,78,9631,11604,1832,7891,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,79,11933,14377,1852,9777,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,80,14648,17648,1872,12001,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,81,15063,18426,2275,12779,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,82,15478,19204,6278,13557,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,83,15893,19982,10281,14335,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,84,16308,20760,14284,15113,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,85,16723,21538,18287,15891,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,86,17138,22316,22290,16669,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,87,17553,23094,26293,17447,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,88,17968,23872,30296,18225,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,89,18383,24650,34299,19003,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,90,18798,25428,38302,19781,1,0);
+
+-- =============================================
+-- DH (12)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(12,1,17,18,292,0,0),(12,2,18,19,321,0,0),(12,3,21,21,351,0,0),(12,4,22,23,380,0,0),(12,5,24,24,409,0,0),
+(12,6,25,26,438,0,0),(12,7,27,27,468,0,0),(12,8,28,29,497,0,0),(12,9,30,31,526,0,0),(12,10,33,33,555,0,0),
+(12,11,35,35,584,0,0),(12,12,37,37,613,0,0),(12,13,39,39,642,0,0),(12,14,41,41,671,0,0),(12,15,44,44,700,0,0),
+(12,16,46,46,729,0,0),(12,17,48,48,758,0,0),(12,18,51,51,787,0,0),(12,19,53,53,816,0,0),(12,20,56,56,845,0,0),
+(12,21,59,59,874,0,0),(12,22,62,62,903,0,0),(12,23,65,65,932,0,0),(12,24,68,68,961,0,0),(12,25,71,71,990,0,0),
+(12,26,74,74,1019,0,0),(12,27,78,78,1048,0,0),(12,28,81,81,1077,0,0),(12,29,85,85,1106,0,0),(12,30,88,88,1135,0,0),
+(12,31,92,92,1164,0,0),(12,32,96,96,1193,0,0),(12,33,100,100,1222,0,0),(12,34,104,104,1251,0,0),(12,35,108,108,1280,0,0),
+(12,36,113,113,1309,0,0),(12,37,117,117,1338,0,0),(12,38,122,122,1367,0,0),(12,39,127,127,1396,0,0),(12,40,132,132,1425,0,0),
+(12,41,137,137,1454,0,0),(12,42,142,142,1483,0,0),(12,43,148,148,1512,0,0),(12,44,153,153,1541,0,0),(12,45,159,159,1570,0,0),
+(12,46,165,165,1599,0,0),(12,47,171,171,1628,0,0),(12,48,177,177,1657,0,0),(12,49,184,184,1686,0,0),(12,50,190,190,1715,0,0),
+(12,51,197,197,1744,0,0),(12,52,204,204,1773,0,0),(12,53,211,211,1802,0,0),(12,54,219,219,1831,0,0),(12,55,226,226,1860,0,0),
+(12,56,234,234,1889,0,0),(12,57,242,242,1918,0,0),(12,58,251,251,1947,0,0),(12,59,259,259,1976,0,0),(12,60,268,268,2005,0,0),
+(12,61,277,277,2034,0,0),(12,62,286,286,2063,0,0),(12,63,296,296,2092,0,0),(12,64,306,306,2121,0,0),(12,65,316,316,2150,0,0),
+(12,66,326,326,2179,0,0),(12,67,337,337,2208,0,0),(12,68,348,348,2237,0,0),(12,69,359,359,2266,0,0),(12,70,371,371,2295,0,0),
+(12,71,383,383,2324,0,0),(12,72,395,395,2353,0,0),(12,73,408,408,2382,0,0),(12,74,421,421,2411,0,0),(12,75,434,434,2440,0,0),
+(12,76,448,448,2469,0,0),(12,77,462,462,2498,0,0),(12,78,477,477,2527,0,0),(12,79,492,492,2556,0,0),(12,80,507,507,2585,0,0),
+(12,81,192,284,2801,0,0),(12,82,218,323,3017,0,0),(12,83,249,368,3238,0,0),(12,84,284,419,3463,0,0),(12,85,323,478,3687,0,0),
+(12,86,368,544,3907,0,0),(12,87,419,620,4116,0,0),(12,88,478,706,4308,0,0),(12,89,544,803,4473,0,0),(12,90,620,915,4600,0,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,91,19213,26206,42305,20559,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,92,19628,26984,46308,21337,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,93,20043,27762,50311,22115,1,0);
@@ -1480,96 +676,29 @@ INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,121,31663,15899,162395,43899,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,122,32078,16677,166398,44677,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (12,123,32493,17455,170401,45455,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,1,4,5,292,7,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,2,5,6,312,8,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,3,6,7,332,9,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,4,7,8,352,10,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,5,8,9,372,11,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,6,9,10,392,12,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,7,10,11,412,13,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,8,11,12,432,14,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,9,12,13,452,15,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,10,16,24,472,29,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,11,17,25,492,41,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,12,18,27,512,43,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,13,20,30,532,45,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,14,21,32,552,47,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,15,22,34,572,49,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,16,23,35,592,51,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,17,24,36,612,53,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,18,25,38,632,55,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,19,26,39,652,57,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,20,27,40,672,59,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,21,28,42,692,61,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,22,29,44,712,64,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,23,30,46,732,67,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,24,31,48,752,70,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,25,33,50,772,74,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,26,35,53,792,77,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,27,36,56,812,81,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,28,38,59,832,86,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,29,40,62,852,91,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,30,43,66,872,96,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,31,45,70,892,102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,32,48,74,912,108,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,33,51,79,932,115,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,34,55,84,952,123,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,35,58,90,972,131,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,36,62,96,992,140,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,37,67,103,1012,151,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,38,72,110,1032,162,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,39,77,119,1052,174,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,40,83,128,1072,188,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,41,90,138,1092,203,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,42,97,150,1112,219,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,43,105,162,1132,238,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,44,114,176,1152,258,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,45,124,191,1172,281,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,46,135,209,1192,306,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,47,148,228,1212,334,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,48,161,249,1232,366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,49,177,273,1252,401,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,50,194,299,1272,440,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,51,213,329,1292,484,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,52,235,363,1312,533,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,53,259,400,1332,588,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,54,287,442,1352,650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,55,317,490,1372,720,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,56,352,543,1392,798,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,57,391,604,1412,887,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,58,435,672,1432,988,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,59,485,749,1452,1101,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,60,542,837,1472,1230,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,61,571,882,1492,1297,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,62,602,931,1512,1368,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,63,635,981,1532,1442,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,64,670,1035,1552,1521,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,65,706,1091,1572,1604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,66,745,1150,1592,1691,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,67,785,1213,1612,1783,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,68,828,1279,1632,1880,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,69,873,1348,1652,1982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,70,920,1422,1672,2090,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,71,1140,1762,1692,2590,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,72,1412,2182,1712,3208,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,73,1750,2703,1732,3975,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,74,2168,3349,1752,4925,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,75,2685,4150,1772,6102,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,76,3327,5141,1792,7560,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,77,4122,6369,1812,9366,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,78,5106,7891,1832,11604,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,79,6326,9777,1852,14377,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,80,7766,12001,1872,17648,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,81,8101,12779,2275,18426,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,82,8436,13557,6278,19204,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,83,8771,14335,10281,19982,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,84,9106,15113,14284,20760,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,85,9441,15891,18287,21538,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,86,9776,16669,22290,22316,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,87,10111,17447,26293,23094,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,88,10446,18225,30296,23872,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,89,10781,19003,34299,24650,1,0);
-INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,90,11116,19781,38302,25428,1,0);
+
+-- =============================================
+-- Evoker (13)
+-- =============================================
+INSERT INTO `player_classlevelstats` (`class`, `level`, `str`, `agi`, `sta`, `inte`, `spi`) VALUES
+(13,1,12,15,292,20,0),(13,2,13,16,321,22,0),(13,3,15,18,351,24,0),(13,4,16,19,380,26,0),(13,5,17,20,409,28,0),
+(13,6,18,22,438,30,0),(13,7,19,23,468,32,0),(13,8,20,24,497,34,0),(13,9,22,25,526,36,0),(13,10,23,27,555,38,0),
+(13,11,24,29,584,40,0),(13,12,26,30,613,42,0),(13,13,27,32,642,44,0),(13,14,29,34,671,46,0),(13,15,30,36,700,49,0),
+(13,16,32,38,729,51,0),(13,17,34,40,758,53,0),(13,18,35,42,787,56,0),(13,19,37,44,816,59,0),(13,20,39,46,845,62,0),
+(13,21,41,49,874,65,0),(13,22,43,51,903,68,0),(13,23,45,54,932,71,0),(13,24,47,56,961,74,0),(13,25,49,59,990,77,0),
+(13,26,51,61,1019,80,0),(13,27,53,64,1048,84,0),(13,28,56,67,1077,87,0),(13,29,58,70,1106,91,0),(13,30,60,73,1135,94,0),
+(13,31,63,76,1164,98,0),(13,32,66,79,1193,102,0),(13,33,68,82,1222,106,0),(13,34,71,85,1251,110,0),(13,35,74,89,1280,114,0),
+(13,36,77,93,1309,119,0),(13,37,80,96,1338,123,0),(13,38,83,100,1367,128,0),(13,39,86,104,1396,133,0),(13,40,90,108,1425,138,0),
+(13,41,93,112,1454,143,0),(13,42,97,117,1483,148,0),(13,43,100,121,1512,154,0),(13,44,104,126,1541,160,0),(13,45,108,130,1570,166,0),
+(13,46,112,135,1599,172,0),(13,47,116,140,1628,178,0),(13,48,120,145,1657,185,0),(13,49,125,151,1686,191,0),(13,50,129,156,1715,198,0),
+(13,51,134,162,1744,205,0),(13,52,139,168,1773,212,0),(13,53,144,174,1802,219,0),(13,54,149,180,1831,227,0),(13,55,154,186,1860,234,0),
+(13,56,160,193,1889,242,0),(13,57,165,200,1918,250,0),(13,58,171,207,1947,259,0),(13,59,177,214,1976,267,0),(13,60,183,221,2005,276,0),
+(13,61,189,229,2034,285,0),(13,62,196,237,2063,294,0),(13,63,202,245,2092,304,0),(13,64,209,253,2121,314,0),(13,65,216,262,2150,324,0),
+(13,66,223,271,2179,335,0),(13,67,231,280,2208,346,0),(13,68,238,289,2237,357,0),(13,69,246,299,2266,369,0),(13,70,254,309,2295,381,0),
+(13,71,262,319,2324,393,0),(13,72,271,330,2353,406,0),(13,73,279,341,2382,419,0),(13,74,288,352,2411,432,0),(13,75,297,364,2440,446,0),
+(13,76,307,376,2469,460,0),(13,77,316,388,2498,475,0),(13,78,326,401,2527,490,0),(13,79,337,414,2556,505,0),(13,80,347,427,2585,521,0),
+(13,81,132,192,2801,192,0),(13,82,150,218,3017,218,0),(13,83,172,249,3238,249,0),(13,84,196,284,3463,284,0),(13,85,223,323,3687,323,0),
+(13,86,254,368,3907,368,0),(13,87,289,419,4116,419,0),(13,88,330,478,4308,478,0),(13,89,375,544,4473,544,0),(13,90,428,620,4600,620,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,91,11451,20559,42305,26206,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,92,11786,21337,46308,26984,1,0);
 INSERT INTO `player_classlevelstats` (`class`,`level`,`str`,`agi`,`sta`,`inte`,`spi`,`VerifiedBuild`) VALUES (13,93,12121,22115,50311,27762,1,0);
