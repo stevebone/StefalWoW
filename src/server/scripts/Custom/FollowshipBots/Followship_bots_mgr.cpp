@@ -230,6 +230,13 @@ void FSBMgr::SpawnPlayerBots(Player* player)
             : 0;
 
         FSBMgr::Get()->RestoreBotOwnership(player, bot, hireTimeLeft);
+
+        // 5. Schedule stats recalculation if in dungeon (to override difficulty-based stats)
+        if (bot->GetMap()->IsDungeon())
+        {
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DUNGEON_STATS_RECALCULATE, 500ms);
+            TC_LOG_DEBUG("scripts.fsb.manager", "FSB: Scheduled stats recalculation for bot {} in dungeon", bot->GetName());
+        }
     }
 }
 
@@ -404,6 +411,13 @@ void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDuratio
     // 3?? Restore ownership + AI state
     uint32 hireTimeLeft = hireDurationHours * 3600;
     RestoreBotOwnership(player, bot, hireTimeLeft);
+
+    // Schedule stats recalculation if in dungeon (to override difficulty-based stats)
+    if (bot->GetMap()->IsDungeon())
+    {
+        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DUNGEON_STATS_RECALCULATE, 500ms);
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: Scheduled stats recalculation for hired bot {} in dungeon", bot->GetName());
+    }
 
     TC_LOG_DEBUG("scripts.fsb.manager", "FSB: HirePersistentBot Player {} hired bot {} (entry {}) until {}",
         player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);

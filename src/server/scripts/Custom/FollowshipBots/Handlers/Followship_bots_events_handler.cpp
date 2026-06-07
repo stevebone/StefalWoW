@@ -32,6 +32,7 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_stats_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
 #include "Followship_bots_paladin.h"
@@ -294,6 +295,13 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         me->GetMotionMaster()->MovePoint(1, me->GetRandomPoint(me->GetPosition(), 50.0f));
         me->DespawnOrUnsummon(10s);
 
+        break;
+    }
+
+    case FSB_EVENT_DUNGEON_STATS_RECALCULATE:
+    {
+        FSBStats::RecalculateStats(bot, true, true);
+        TC_LOG_DEBUG("scripts.fsb.events", "FSB: Recalculated stats for bot {} in dungeon", bot->GetName());
         break;
     }
 
