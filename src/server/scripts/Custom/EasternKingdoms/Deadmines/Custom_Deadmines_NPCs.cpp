@@ -73,7 +73,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             _Reset();
             _phase = 0;
-            _lastElement = false; // false = Flame, true = Frost
             _dying = false;
             _transitionDone = false;
             me->SetReactState(REACT_AGGRESSIVE);
@@ -300,15 +299,12 @@ namespace Scripts::EasternKingdoms::Deadmines
                     init.Launch();
 
                     // Cast the beam spell after movement starts - capture me by GUID to ensure it works even if AI state changes
-                    ObjectGuid glubtokGUID = me->GetGUID();
-                    dummy->m_Events.AddEventAtOffset([dummy, glubtokGUID, spellID]()
-                    {
-                        if (dummy && dummy->IsInWorld())
+                    ObjectGuid dummyGUID = dummy->GetGUID();
+                    me->m_Events.AddEventAtOffset([this, dummyGUID, spellID]()
                         {
-                            if (Unit* glubtok = ObjectAccessor::GetUnit(*dummy, glubtokGUID))
-                                dummy->CastSpell(glubtok, spellID, true);
-                        }
-                    }, 100ms);
+                            if (Unit* dummy = ObjectAccessor::GetUnit(*me, dummyGUID))
+                                dummy->CastSpell(me, spellID, true);
+                        }, 100ms);
                 }
             }
         }
@@ -484,7 +480,6 @@ namespace Scripts::EasternKingdoms::Deadmines
 
     private:
         uint8 _phase = 0;
-        bool _lastElement = false;
         bool _dying = false;
         bool _transitionDone = false;
         bool _firewallPhase = false;
@@ -1327,9 +1322,12 @@ namespace Scripts::EasternKingdoms::Deadmines
 
                                 helix->ToCreature()->AI()->Talk(Texts::HelixFaceRide);
 
-                                me->m_Events.AddEventAtOffset([this, helix, targetGUID]()
+                                me->m_Events.AddEventAtOffset([this, helixGUID = _helixGUID, targetGUID]()
                                     {
-                                        if (helix && helix->IsAlive() && me && me->IsAlive())
+                                        if (!me || !me->IsAlive())
+                                            return;
+
+                                        if (Unit* helix = ObjectAccessor::GetUnit(*me, helixGUID))
                                         {
                                             Unit* target = ObjectAccessor::GetUnit(*me, targetGUID);
                                             if (target && target->IsAlive())
@@ -1449,6 +1447,8 @@ namespace Scripts::EasternKingdoms::Deadmines
             if(_oafDead)
                 me->DespawnOrUnsummon();
 
+            summons.DespawnAll();
+
             if (InstanceScript* instance = me->GetInstanceScript())
                 instance->SetBossState(DataTypes::BOSS_HELIX_GEARBREAKER, NOT_STARTED);
         }
@@ -1499,12 +1499,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             _JustDied();
             Talk(Texts::HelixDeath);
-            summons.DespawnAll();
-        }
-
-        void JustReachedHome() override
-        {
-            _JustReachedHome();
             summons.DespawnAll();
         }
 
@@ -1581,10 +1575,16 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             me->CastSpell(target, Spells::HelixLeap, true);
 
-                            me->m_Events.AddEventAtOffset([this, target]()
+                            me->m_Events.AddEventAtOffset([this, targetGUID = target->GetGUID()]()
                                 {
-                                    if (me && me->IsAlive() && target && target->IsAlive())
+                                    if (!me || !me->IsAlive())
+                                        return;
+
+                                    if (Unit* target = ObjectAccessor::GetUnit(*me, targetGUID))
                                     {
+                                        if (!target->IsAlive())
+                                            return;
+
                                         if (target->IsPlayer())
                                             me->CastSpell(target, Spells::HelixRide, true);
                                         else target->AddAura(Spells::HelixRide, target);
