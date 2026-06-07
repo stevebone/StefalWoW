@@ -1200,7 +1200,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 helix->EngageWithTarget(who);
             }
             int8 randomEvent = RAND(Events::OafCharge0, Events::OafThrowHelix);
-            
+
             _events.RescheduleEvent(randomEvent, 15s, 20s);
         }
 
@@ -1440,6 +1440,17 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _events.RescheduleEvent(Events::HelixSummonCrew, 1s);
 
             _events.RescheduleEvent(Events::HelixThrowBomb, 5s);
+        }
+
+        void JustReachedHome() override
+        {
+            BossAI::JustReachedHome();
+
+            if(_oafDead)
+                me->DespawnOrUnsummon();
+
+            if (InstanceScript* instance = me->GetInstanceScript())
+                instance->SetBossState(DataTypes::BOSS_HELIX_GEARBREAKER, NOT_STARTED);
         }
 
         void SetData(uint32 id, uint32 value) override

@@ -69,6 +69,14 @@ namespace Scripts::EasternKingdoms::Deadmines
                 }, 1s);
             }
 
+            void OnCreatureCreate(Creature* creature) override
+            {
+                InstanceScript::OnCreatureCreate(creature);
+
+                if (creature->GetEntry() == Creatures::LumberingOaf)
+                    _oafGUID = creature->GetGUID();
+            }
+
             void MarkPlayerHitByFirewall(Player* player)
             {
                 if (player)
@@ -82,7 +90,20 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             bool SetBossState(uint32 id, EncounterState state) override
             {
-                return InstanceScript::SetBossState(id, state);
+                if (!InstanceScript::SetBossState(id, state))
+                    return false;
+
+                // Manually respawn Oaf when Helix encounter resets
+                if (id == DataTypes::BOSS_HELIX_GEARBREAKER && state == NOT_STARTED)
+                {
+                    if (Creature* oaf = instance->GetCreature(_oafGUID))
+                    {
+                        if (!oaf->IsAlive())
+                            oaf->Respawn();
+                    }
+                }
+
+                return true;
             }
 
             bool IsClassicVersion() const
@@ -369,6 +390,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             uint32 _piratesTimer = 0;
             uint32 _helixRideAuraTimer = 0;
 
+            ObjectGuid _oafGUID;
             ObjectGuid _ironCladDoorGUID;
             ObjectGuid _doorLeverGUID;
             ObjectGuid _defiasCannonGUID;
