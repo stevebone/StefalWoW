@@ -35,6 +35,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 EncounterCount = 7;
         static constexpr uint32 DeadminesVersion = 1000;
         static constexpr uint32 EntranceCannonFired = 1001;
+        static constexpr uint32 HelixOafDead = 1002;
     }
 
     namespace Version
@@ -194,6 +195,15 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Lumbering Oaf
         static constexpr int8 OafCharge = 0;
         static constexpr int8 OafSmash = 1;
+
+        // Helix
+        static constexpr int8 HelixDeath = 0;
+        static constexpr int8 HelixKill = 1;
+        static constexpr int8 HelixOafDead = 2;
+        static constexpr int8 HelixBombs = 3;
+        static constexpr int8 HelixFaceRide = 4;
+        static constexpr int8 HelixAggro = 5;
+        static constexpr int8 HelixChestBomb = 6;
     }
 
     namespace Spells
@@ -251,16 +261,19 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 HelixRideFaceTimerAura = 88351;
         static constexpr uint32 RideVehicle = 88360; // used for Helix face riding player
         static constexpr uint32 ThrowBomb = 88264;
-        static constexpr uint32 Oafquard = 90546;
+        static constexpr uint32 OafGuard = 90546;
+        static constexpr uint32 HelixLeap = 86345;
+        static constexpr uint32 ChestBomb = 88352;
+        static constexpr uint32 ChestBombDMG = 88250;
 
         // Sticky Bomb
-        static constexpr uint32 ChestBomb = 88352;
         static constexpr uint32 ArmingVisualYellow = 88315;
         static constexpr uint32 ArmingVisualOrange = 88316;
         static constexpr uint32 ArmingVisualRed = 88317;
         static constexpr uint32 ArmedState = 88319;
-        static constexpr uint32 StickyBombExplode = 88974;
-        static constexpr uint32 StickyBombExplodeHeroic = 91566;
+        static constexpr uint32 StickyBombExplode = 95500; // has normal and heroic effects
+        //static constexpr uint32 StickyBombExplode = 88974;
+        //static constexpr uint32 StickyBombExplodeHeroic = 91566;
     }
 
     namespace Events
@@ -307,6 +320,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OafCharge3 = 30;
         static constexpr int8 OafThrowHelix = 31;
         static constexpr int8 OafPickupHelix = 32;
+
+        // Helix Gearbreaker
+        static constexpr int8 HelixThrowBomb = 33;
+        static constexpr int8 HelixFaceRide = 34;
+        static constexpr int8 HelixExitFaceRide = 35;
+        static constexpr int8 HelixSummonCrew = 36;
     }
 
     namespace Actions
@@ -347,6 +366,14 @@ namespace Scripts::EasternKingdoms::Deadmines
     namespace Positions
     {
         static constexpr Position MysteriousDeadminesChest = { -32.1232f, -374.64f, 59.06f, 3.082f };
+
+        static constexpr Position HelixCrewSpawn[] =
+        {
+            {-281.68f, -504.10f, 60.51f, 4.75f},
+            {-284.71f, -504.13f, 60.42f, 4.72f},
+            {-288.65f, -503.74f, 60.38f, 4.64f},
+            {-293.88f, -503.90f, 60.07f, 4.77f},
+        };
     }
 
     namespace CannonEvent
