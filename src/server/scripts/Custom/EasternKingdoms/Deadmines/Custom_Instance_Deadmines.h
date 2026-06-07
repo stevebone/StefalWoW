@@ -25,6 +25,7 @@
 
 #include "CreatureAIImpl.h"
 #include "InstanceScript.h"
+#include "Position.h"
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
