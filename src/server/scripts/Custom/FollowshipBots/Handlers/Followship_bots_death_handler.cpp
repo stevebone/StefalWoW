@@ -138,6 +138,17 @@ namespace FSBDeath
 
         bot->setDeathState(ALIVE);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+        
+        // Restore health and mana to proper values
+        uint64 maxHealth = bot->GetMaxHealth();
+        uint64 maxMana = bot->GetMaxPower(POWER_MANA);
+        bot->SetHealth(maxHealth * 0.35f);
+        if (maxMana > 1)
+            bot->SetPower(POWER_MANA, maxMana * 0.35f);
+        
+        // Remove any death-related auras
+        bot->RemoveAllAuras();
+        
         FSBMovement::ResumeFollow(bot, fDistance, fAngle);
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
