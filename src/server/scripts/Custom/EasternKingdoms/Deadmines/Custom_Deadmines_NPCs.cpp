@@ -27,6 +27,7 @@
 #include "MoveSplineInit.h"
 #include "ObjectMgr.h"
 #include "PassiveAI.h"
+#include "SpellAuras.h"
 #include "SpellScript.h"
 #include "Player.h"
 #include "Map.h"
@@ -1087,6 +1088,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             me->SetFacingToObject(target);
                             Talk(Texts::HelixCrewStickyBomb);
+                            me->HandleEmoteCommand(Emote::EMOTE_ONESHOT_ATTACK_THROWN);
                             if (Creature* stickyBomb = me->SummonCreature(Creatures::StickyBomb, me->GetPosition()))
                                 stickyBomb->GetMotionMaster()->MoveJump(EVENT_JUMP, target->GetPosition());
                         }
@@ -1296,7 +1298,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                             me->m_Events.AddEventAtOffset([this, i]()
                                 {
                                     if (me && me->IsAlive())
-                                        me->SummonCreature(Creatures::MineRat, Positions::OafRatPos[i], TEMPSUMMON_CORPSE_DESPAWN);
+                                        if (Creature* rat = me->SummonCreature(Creatures::MineRat, Positions::OafRatPos[i], TEMPSUMMON_CORPSE_DESPAWN))
+                                            rat->GetMotionMaster()->MoveRandom(3.f);
                                 }, std::chrono::milliseconds(urand(3000, 5000) * (i + 1)));
                         }
                     }
@@ -1320,29 +1323,34 @@ namespace Scripts::EasternKingdoms::Deadmines
                             {
                                 _helixGUID = helix->GetGUID();
                                 _helixFaceRiding = true;
+                                ObjectGuid targetGUID = target->GetGUID();
 
                                 helix->ToCreature()->AI()->Talk(Texts::HelixFaceRide);
 
-                                me->m_Events.AddEventAtOffset([this, helix, targetGUID = target->GetGUID()]()
+                                me->m_Events.AddEventAtOffset([this, helix, targetGUID]()
                                     {
                                         if (helix && helix->IsAlive() && me && me->IsAlive())
                                         {
                                             Unit* target = ObjectAccessor::GetUnit(*me, targetGUID);
-                                            if (!target || !target->IsAlive())
+                                            if (target && target->IsAlive())
                                             {
-                                                _helixFaceRiding = false;
-                                                return;
+
+                                                Position targetPos = target->GetPosition();
+
+                                                if (target->IsPlayer())
+                                                    me->CastSpell(target, Spells::HelixRide, true);
+                                                else me->AddAura(Spells::HelixRide, target);
+
+                                                helix->ExitVehicle(&targetPos);
+
+                                                helix->m_Events.AddEventAtOffset([helix, targetGUID]()
+                                                    {
+                                                        helix->AddAura(Spells::HelixRideFaceTimerAura, helix);
+
+                                                        if(Unit* target = ObjectAccessor::GetUnit(*helix, targetGUID))
+                                                            helix->CastSpell(target, Spells::RideVehicle, true);
+                                                    }, std::chrono::milliseconds(200));
                                             }
-
-                                            Position targetPos = target->GetPosition();
-
-                                            if (target->IsPlayer())
-                                                me->CastSpell(target, Spells::HelixRide, true);
-                                            else me->AddAura(Spells::HelixRide, target);
-
-                                            helix->ExitVehicle(&targetPos);
-                                            me->AddAura(Spells::HelixRideFaceTimerAura, helix);
-                                            helix->CastSpell(target, Spells::RideVehicle, true);
                                         }
                                         else _helixFaceRiding = false;
                                     }, std::chrono::seconds(2));
