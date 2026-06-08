@@ -245,15 +245,6 @@ WorldPacket const* PetMode::Write()
     return &_worldPacket;
 }
 
-WorldPacket const* PetDismissSound::Write()
-{
-    _worldPacket << PetGUID;
-    _worldPacket << uint32(DisplayID);
-    _worldPacket << ModelPosition;
-
-    return &_worldPacket;
-}
-
 void SetPetFavorite::Read()
 {
     _worldPacket >> Slot;

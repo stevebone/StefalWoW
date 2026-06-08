@@ -323,18 +323,6 @@ namespace WorldPackets
             WorldPacket const* Write() override { return &_worldPacket; }
         };
 
-        class PetDismissSound final : public ServerPacket
-        {
-        public:
-            PetDismissSound() : ServerPacket(SMSG_PET_DISMISS_SOUND) {}
-
-            WorldPacket const* Write() override;
-
-            ObjectGuid PetGUID;
-            uint32 DisplayID = 0;
-            TaggedPosition<Position::XYZ> ModelPosition;
-        };
-
         class SetPetFavorite final : public ClientPacket
         {
         public:
