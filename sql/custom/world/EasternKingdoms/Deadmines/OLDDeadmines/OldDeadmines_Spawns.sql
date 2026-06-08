@@ -220,6 +220,11 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `spawnDifficulties`, `phaseId`, `eq
 INSERT INTO `creature` VALUES
 (@CGUID+1217, '141488', '36', '1581', '1581', '1', '0', '0', '0', '-1', '0', '0', '-13.5981', '-373.31', '62.5201', '4.68213', '300', '0', '0', '100', '0', NULL, NULL, NULL, NULL, 'npc_zidormi_deadmines_old', NULL, '0');
 
+DELETE FROM `creature_addon` WHERE `guid` IN (@CGUID+1070, @CGUID+1082);
+INSERT INTO `creature_addon` (`guid`, `SheathState`, `Emote`) VALUES
+(@CGUID+1070, 1, 0),
+(@CGUID+1082, 1, 0);
+
 DELETE FROM `creature_addon` WHERE `guid` IN (@CGUID+1021, @CGUID+1027, @CGUID+1064, @CGUID+1119, @CGUID+1138, 
 @CGUID+1141, @CGUID+1205, @CGUID+1206, @CGUID+1098, @CGUID+1043, @CGUID+1193, @CGUID+1184, @CGUID+1016, 
 @CGUID+1063, @CGUID+1120, @CGUID+1204, @CGUID+1208,
