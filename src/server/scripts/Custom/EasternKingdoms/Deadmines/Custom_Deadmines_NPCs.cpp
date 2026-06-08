@@ -924,7 +924,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (Creature* other = me->FindNearestCreature(Creatures::OgreBodyguard, 10.f, true))
             {
-                if (other && other != me && other->IsAlive())
+                if (other && other->IsAlive())
                 {
                     // Only the ogre with the lower GUID initiates the conversation
                     if (me->GetGUID().GetCounter() < other->GetGUID().GetCounter())
