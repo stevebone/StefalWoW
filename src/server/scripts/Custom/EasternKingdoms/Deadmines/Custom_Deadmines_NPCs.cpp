@@ -1671,6 +1671,201 @@ namespace Scripts::EasternKingdoms::Deadmines
         bool _hasExploded = false;
         ObjectGuid _attackerGUID;
     };
+
+    // 48421 - Defias Overseer
+    struct npc_defias_overseer : public ScriptedAI
+    {
+        npc_defias_overseer(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _hasFled = false;
+            _dialogueLine = 0;
+            _events.Reset();
+
+            // Delay partner finding to ensure all creatures are spawned
+            _events.RescheduleEvent(Events::OverseerDialogueStart, 5s);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            ScriptedAI::JustEngagedWith(who);
+            _events.CancelEvent(Events::OverseerDialogueStart);
+            _events.CancelEvent(Events::OverseerDialogueLine);
+
+            // Link combat with partner
+            if (Creature* partner = GetPartnerOverseer())
+            {
+                if (partner->IsAlive() && !partner->IsInCombat())
+                    partner->AI()->AttackStart(who);
+            }
+        }
+
+        void JustReachedHome() override
+        {
+            ScriptedAI::JustReachedHome();
+
+            // Check if partner is dead, if so respawn them
+            if (Creature* partner = GetPartnerOverseer(true))
+            {
+                if (!partner->IsAlive())
+                {
+                    partner->Respawn();
+                }
+            }
+
+            // Reschedule dialogue start after respawn
+            _events.RescheduleEvent(Events::OverseerDialogueStart, 5s);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            ScriptedAI::JustDied(killer);
+            _events.CancelEvent(Events::OverseerDialogueStart);
+            _events.CancelEvent(Events::OverseerDialogueLine);
+        }
+
+        void DamageTaken(Unit* attacker, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (HealthBelowPct(15) && !_hasFled)
+            {
+                _hasFled = true;
+                Talk(Texts::OverseerFlee);
+                me->GetMotionMaster()->MoveFleeing(attacker, 10s);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+            {
+                _events.Update(diff);
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case Events::OverseerDialogueStart:
+                            // Find partner using FindNearestCreature
+                            if (Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, true))
+                            {
+                                _partnerGUID = partner->GetGUID();
+
+                                // Only the overseer with the lower GUID starts the dialogue
+                                if (me->GetGUID().GetCounter() < partner->GetGUID().GetCounter())
+                                {
+                                    StartDialogue();
+                                    _events.RescheduleEvent(Events::OverseerDialogueStart, 30s, 45s);
+                                }
+                            }
+                            break;
+                        case Events::OverseerDialogueLine:
+                            SayNextDialogueLine();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                return;
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        Creature* GetPartnerOverseer(bool includeDead = false)
+        {
+            if (_partnerGUID.IsEmpty())
+            {
+                // Fall back to FindNearestCreature if GUID not set
+                if (Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, includeDead))
+                {
+                    if (partner != me)
+                    {
+                        if (partner->IsAlive())
+                            _partnerGUID = partner->GetGUID();
+                        return partner;
+                    }
+                }
+                return nullptr;
+            }
+
+            if (Creature* partner = ObjectAccessor::GetCreature(*me, _partnerGUID))
+            {
+                if (includeDead || partner->IsAlive())
+                    return partner;
+                else
+                    _partnerGUID.Clear();
+            }
+            return nullptr;
+        }
+
+        void StartDialogue()
+        {
+            _dialogueLine = 0;
+            SayNextDialogueLine();
+        }
+
+        void SayNextDialogueLine()
+        {
+            if (_dialogueLine >= 10)
+            {
+                // Dialogue complete, restart after delay
+                _dialogueLine = 0;
+                _events.RescheduleEvent(Events::OverseerDialogueStart, 30s, 45s);
+                return;
+            }
+
+            // Determine which overseer should speak (alternating)
+            // Even lines (0, 2, 4, 6, 8) - this overseer speaks if it's the "first" one
+            // Odd lines (1, 3, 5, 7, 9) - partner speaks
+            Creature* speaker = me;
+            if (_dialogueLine % 2 == 1)
+            {
+                speaker = GetPartnerOverseer();
+                if (!speaker)
+                {
+                    // Partner not available, skip this line
+                    _dialogueLine++;
+                    _events.RescheduleEvent(Events::OverseerDialogueLine, 100ms);
+                    return;
+                }
+            }
+
+            if (speaker)
+            {
+                int8 textId = _dialogueLine;
+                speaker->AI()->Talk(textId);
+
+                // Calculate delay based on text length
+                // Text lengths: short (2-3s), medium (4-5s), long (6-7s)
+                uint32 delay = 3000; // default 3s
+                switch (textId)
+                {
+                    case 0: delay = 2500; break; // "It's broken."
+                    case 1: delay = 2500; break; // "It's not broken!"
+                    case 2: delay = 5000; break; // "Why's it shooting steam..."
+                    case 3: delay = 4000; break; // "That's the...pressure release valve."
+                    case 4: delay = 3500; break; // "In the middle of the pipe?"
+                    case 5: delay = 3500; break; // "Er...backup release valve?"
+                    case 6: delay = 3000; break; // "We should tell the Admiral."
+                    case 7: delay = 2500; break; // "You tell him."
+                    case 8: delay = 3500; break; // "No way! He gives me the creeps!"
+                    case 9: delay = 7000; break; // "I know! The way he looks at you..."
+                    default: delay = 3000; break;
+                }
+
+                _dialogueLine++;
+                _events.RescheduleEvent(Events::OverseerDialogueLine, std::chrono::milliseconds(delay));
+            }
+        }
+
+        int8 _dialogueLine = 0;
+        ObjectGuid _partnerGUID;
+        bool _hasFled = false;
+        EventMap _events;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
@@ -1687,4 +1882,5 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(npc_lumbering_oaf);
     RegisterCreatureAI(boss_helix_gearbreaker);
     RegisterCreatureAI(npc_mining_powder);
+    RegisterCreatureAI(npc_defias_overseer);
 }

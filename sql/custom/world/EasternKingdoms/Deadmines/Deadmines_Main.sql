@@ -23,6 +23,14 @@
 -- NPC: 49136 Helix Crew
 -- NPC: 47314 Sticky Bomb
 -- NPC: 47297 Helix Gearbreaker
+-- NPC: 48957 Fire Blossom
+-- NPC: 48958 Frost Blossom
+-- NPC: 43778 Foe Reaper 5000
+-- NPC: 47403 Defias Reaper
+-- NPC: 48418 Defias Envoker
+-- NPC: 48419 Defias Miner
+-- NPC: 48420 Defias Digger
+-- NPC: 48421 Defias Overseer
 
 -- GO: 208002 Goblin Teleporter
 -- GO: 207079 Ball and Chain
@@ -35,14 +43,41 @@ UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove
 -- Diff 1 - Normal / Diff 2 - Heroic / Diff 24 - Timewalking
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
-48440,48441,48442,48278,48351,47296,47297,48445);
+48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421);
 INSERT INTO `creature_template_difficulty` VALUES
+(48421, 1, 0, 0, 202, 0, 1, 0, 1, 1, 41335, 0, 0, 0, 48421, 0, 0, 7165, 7165, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48421, 2, 0, 0, 1199, 0, 3, 0, 1, 3, 41335, 0, 0, 0, 48421, 0, 0, 7165, 7165, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48421, 24, 0, 0, 2872, 3, 3, 0, 1, 3, 41336, 0, 0, 0, 48421, 0, 0, 7165, 7165, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Overseer
+(48420, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41338, 0, 0, 0, 48420, 48420, 0, 7903, 7903, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48420, 2, 0, 0, 1199, 0, 1, 1, 1, 3, 41338, 0, 0, 0, 48420, 48420, 0, 7903, 7903, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48420, 24, 0, 0, 2872, 3, 1.5, 1, 1, 3, 41339, 0, 0, 0, 48420, 48420, 0, 7903, 7903, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Digger
+(48419, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41346, 0, 0, 0, 48419, 0, 0, 7906, 7906, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48419, 2, 0, 0, 1199, 0, 3, 1, 1, 3, 41346, 0, 0, 0, 48419, 0, 0, 7906, 7906, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48419, 24, 0, 0, 2872, 3, 1.5, 1, 1, 5, 41347, 0, 0, 0, 48419, 0, 0, 7906, 7906, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Miner
+(48418, 1, 0, 0, 202, 0, 1, 0.7264, 1, 1, 41350, 0, 0, 0, 48418, 0, 0, 8541, 8541, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48418, 2, 0, 0, 1199, 0, 4, 0.7264, 1, 4, 41350, 0, 0, 0, 48418, 0, 0, 8541, 8541, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48418, 24, 0, 0, 2872, 3, 3, 3, 1, 3, 41351, 0, 0, 0, 48418, 0, 0, 8541, 8541, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Envoker
+(47403, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47403, 2, 1, 1, 1199, 0, 3, 1, 1, 4, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47403, 24, 1, 1, 2872, 3, 5, 1, 1, 3, 43482, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Reaper
+(43778, 1, 1, 1, 202, 0, 1, 1, 1, 1, 51015, 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(43778, 2, 2, 2, 1199, 0, 3, 1, 1, 5, 51015, 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(43778, 24, 2, 2, 2872, 3, 5, 1, 1, 3, 51016, 32872, 128, 0, 4377824, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Foe Reaper 5000
+(48957, 1, 0, 0, 202, 0, 0.05, 1, 1, 1, 40468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(48957, 2, 0, 0, 1199, 0, 0.05, 1, 1, 1, 40468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(48957, 24, 0, 0, 2872, 0, 0.05, 1, 1, 1, 40468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Fire Blossom
+(48958, 1, 0, 0, 202, 0, 0.05, 1, 1, 1, 40466, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(48958, 2, 0, 0, 1199, 0, 0.05, 1, 1, 1, 40466, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(48958, 24, 0, 0, 2872, 0, 0.05, 1, 1, 1, 40466, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Frost Blossom
+(47314, 1, 0, 0, 202, 0, 0.2, 1, 1, 1, 43659, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(47314, 2, 0, 0, 1199, 0, 0.2, 1, 1, 1, 43659, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47314, 24, 0, 0, 2872, 3, 0.2, 1, 1, 1, 43660, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Sticky Bomb
 (47296, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43704, 104, 128, 0, 4729601, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (47296, 2, 2, 2, 1199, 0, 5, 1, 1, 5, 43704, 104, 128, 0, 4729602, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
-(47296, 24, 2, 2, 1199, 3, 10, 1, 1, 3, 43705, 104, 128, 0, 4729624, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Helix Gearbreaker
+(47296, 24, 2, 2, 2872, 3, 10, 1, 1, 3, 43705, 104, 128, 0, 4729624, 0, 0, 13404, 13404, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Helix Gearbreaker
 (47297, 1, 1, 1, 202, 0, 1, 1, 1, 1, 43698, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (47297, 2, 2, 2, 1199, 0, 5, 1, 1, 5, 43698, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
-(47297, 24, 2, 2, 1199, 3, 7, 1, 1, 3, 43699, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Lumbering Oaf
+(47297, 24, 2, 2, 2872, 3, 7, 1, 1, 3, 43699, 104, 0, 0, 0, 47297, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Lumbering Oaf
 (48445, 1, 0, 0, 202, 0, 1, 1, 1, 1, 41267, 0, 0, 0, 48445, 48445, 0, 7141, 7141, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48445, 2, 0, 0, 1199, 0, 3, 1, 1, 3, 41267, 0, 0, 0, 48445, 48445, 0, 7141, 7141, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48445, 24, 0, 0, 2872, 3, 5, 1, 1, 3, 41268, 0, 0, 0, 48445, 48445, 0, 7141, 7141, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Oaf Lackey
@@ -105,23 +140,57 @@ INSERT INTO `creature_template_difficulty` VALUES
 
 UPDATE `creature_template_addon` SET `PvPFlags` = 16, `emote` = 648 WHERE `entry` = 48229; -- Kobolds mining emote
 UPDATE `creature_template_addon` SET `emote` = 648 WHERE `entry` IN (48440,48441,48442,48278); -- Mining monkeys emote - allow weapon to be seen
+UPDATE `creature_template_addon` SET `auras` = '92001' WHERE `entry` = 48418; -- Defias Envoker Aura
 
 -- Spawn Updates
 UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
+UPDATE `gameobject` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
+
 -- Schorch Mark bunny should have its model changed in the script to 36147
 UPDATE `creature` SET `modelid` = 0 WHERE `guid` = 375860; 
+
 -- Remove duplicate Mining Monkey spawn
 DELETE FROM `creature` WHERE `guid` = 376054;
+
 -- Remove Mine rats spawns as these are spawned during the Helix encounter
 DELETE FROM `creature` WHERE `id` = 51462 AND `map` = 36;
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278,48351,48338);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278,48351,48338) and `source_type` = 0;
+-- Remove Wrong Goblin Craftsman spawns in Mast Room
+DELETE FROM `creature` WHERE `guid` IN (376095,376096,376102,376103);
+
+-- Defias Miner spawns fixes
+UPDATE `creature` SET `modelid` = 0 WHERE `id` = 48419 AND `map` = 36; -- remove old models to allow spawns with new ones
+UPDATE `creature` SET `equipment_id` = 2 WHERE `guid` IN (375906,376023,376240,375827,376022); -- set miners with wood chopping equipment_id
+
+-- Defias Digger spawns fixes
+UPDATE `creature` SET `modelid` = 0 WHERE `id` = 48420 AND `map` = 36; -- remove old models to allow spawns with new ones
+
+-- Spawn Addons
+DELETE FROM `creature_addon` WHERE `guid` IN (375906,376023,376240,375827,376022);
+INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
+-- Defias Miners with wood chop emote
+(375906, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
+(376023, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
+(376240, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
+(375827, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
+(376022, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, '');
+
+
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420) and `source_type` = 0;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, 
 `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, 
 `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, 
 `action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, 
 `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(48420, 0, 0, 0, '', 2, 0, 100, 1, 0, 30, 1000, 1000, 0, '', 11, 90994, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Digger - HP PCT 30 - Cast Tunnel at 30% HP'),
+(48419, 0, 0, 0, '', 2, 0, 100, 1, 0, 30, 1000, 1000, 0, '', 11, 90994, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Miner - HP PCT 30 - Cast Tunnel at 30% HP'),
+(48418, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 5900, 0, '', 11, 91004, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Envoker - IC - Cast Holy Fire'),
+(48418, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Envoker - HP PCT 15 - Flee'),
+(48418, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Envoker - HP PCT 15 - Say 0'),
+(48418, 0, 3, 0, '', 0, 0, 100, 0, 10000, 10000, 23000, 30000, 0, '', 11, 90047, 0, 0, 0, 0, 0, 0, '', 26, 15, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Envoker - IC - Cast Renegade Strength'),
+(48418, 0, 4, 0, '', 1, 0, 100, 0, 10000, 10000, 23000, 30000, 0, '', 11, 90047, 0, 0, 0, 0, 0, 0, '', 9, 48419, 0, 55, 0, '', 0, 0, 0, 0, 'Defias Envoker - OOC - Cast Renegade Strength'),
 (48338, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 23000, 39000, 0, '', 11, 91032, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mine Bunny - IC - Cast Drunken Haze'),
 (48351, 0, 0, 0, '', 0, 0, 100, 0, 5000, 5000, 23000, 39000, 0, '', 11, 91032, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mine Bunny - IC - Cast Drunken Haze'),
 (48278, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 3900, 0, '', 11, 91038, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mining Monkey - IC - Cast Throw'),
@@ -164,6 +233,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_helix_crew' WHERE `entry` = 4
 UPDATE `creature_template` SET `ScriptName` = 'boss_helix_gearbreaker' WHERE `entry` = 47296;
 UPDATE `creature_template` SET `ScriptName` = 'npc_lumbering_oaf' WHERE `entry` = 47297;
 UPDATE `creature_template` SET `ScriptName` = 'npc_sticky_bomb' WHERE `entry` = 47314;
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_overseer' WHERE `entry` = 48421;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -282,26 +352,55 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (47162, 6, 0, 'Fists of frost!', 14, 0, 100, 0, 0, 21156, 0, 47238, 0, 'VO_DM_GlubtokHead2_Spell01'),
 (47162, 7, 0, 'Let''s do it!', 14, 0, 100, 15, 0, 21157, 0, 108750, 0, 'VO_DM_GlubtokHead2_Spell02');
 
-DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278,48445);
+DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278,48445,48418);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `BroadcastTextId`, `comment`) VALUES 
 (48445, 0, 0, '%s becomes enraged!', 16, 100, 7798, 'Oaf Lackey Enraged'),
+(48418, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Defias Envoker Flee'),
 (48278, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48440, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48441, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48442, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee');
 
 DELETE FROM `creature_text` WHERE `CreatureID` IN (47297,49136,47296);
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `BroadcastTextId`, `comment`) VALUES 
-(47296, 0, 0, 'The scales...have...tipped...', 14, 100, 47575, 'Helix Death'),
-(47296, 1, 0, 'Only ten copper? You\'re not even worth killing!', 14, 100, 47574, 'Helix Kill'),
-(47296, 2, 0, 'I didn''t need him! Not when I''ve got YOU oafs!', 14, 100, 47573, 'Helix Oaf Dead'),
-(47296, 3, 0, 'Bombs away!', 14, 100, 47475, 'Helix Bombs Attack'),
-(47296, 4, 0, 'Ready Oafie? Throw!', 14, 100, 47476, 'Helix Face Riding attack'),
-(47296, 5, 0, 'The mistress will pay me handsomely for your heads!', 14, 100, 47474, 'Helix Aggro'),
-(47296, 6, 0, 'Helix attaches a bomb to $n''s chest!', 41, 100, 47544, 'Helix Chest Bomb'),
-(49136, 0, 0, 'Blowin ''em to bits, boss!', 12, 100, 46330, 'Helix Crew Sticky Bombs'),
-(47297, 0, 0, 'No...NO!', 14, 100, 47480, 'Lumbering Oaf charge'),
-(47297, 1, 0, 'OAF SMASH!!', 14, 100, 48117, 'Lumbering Oaf smash');
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextId`, `comment`) VALUES 
+(47296, 0, 0, 'The scales...have...tipped...', 14, 100, 20844, 47575, 'Helix Death'),
+(47296, 1, 0, 'Only ten copper? You\'re not even worth killing!', 14, 100, 20845, 47574, 'Helix Kill'),
+(47296, 2, 0, 'I didn''t need him! Not when I''ve got YOU oafs!', 14, 100, 20846, 47573, 'Helix Oaf Dead'),
+(47296, 3, 0, 'Bombs away!', 14, 100, 20847, 47475, 'Helix Bombs Attack'),
+(47296, 4, 0, 'Ready Oafie? Throw!', 14, 100, 20848, 47476, 'Helix Face Riding attack'),
+(47296, 5, 0, 'The mistress will pay me handsomely for your heads!', 14, 100, 20849, 47474, 'Helix Aggro'),
+(47296, 6, 0, 'Helix attaches a bomb to $n''s chest!', 41, 100, 0, 47544, 'Helix Chest Bomb'),
+(49136, 0, 0, 'Blowin ''em to bits, boss!', 12, 100, 0, 46330, 'Helix Crew Sticky Bombs'),
+(47297, 0, 0, 'No...NO!', 14, 100, 0, 47480, 'Lumbering Oaf charge'),
+(47297, 1, 0, 'OAF SMASH!!', 14, 100, 0, 48117, 'Lumbering Oaf smash');
+
+DELETE FROM `creature_text` WHERE `CreatureID` = 48421; -- Defias Overseer
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Emote`, `BroadcastTextID`, `comment`) VALUES 
+(48421, 0, 0, 'It''s broken.', 12, 100, 25, 48628, 'Defias Overseer 1'),
+(48421, 1, 0, 'It''s not broken!', 12, 100, 274, 48629, 'Defias Overseer 2'),
+(48421, 2, 0, 'Why''s it shooting steam out of the side there, then?', 12, 100, 6, 48630, 'Defias Overseer 3'),
+(48421, 3, 0, 'That''s the...pressure release valve.', 12, 100, 396, 48631, 'Defias Overseer 4'),
+(48421, 4, 0, 'In the middle of the pipe?', 12, 100, 6, 48632, 'Defias Overseer 5'),
+(48421, 5, 0, 'Er...backup release valve?', 12, 100, 6, 48633, 'Defias Overseer 6'),
+(48421, 6, 0, 'We should tell the Admiral.', 12, 100, 396, 48634, 'Defias Overseer 7'),
+(48421, 7, 0, 'You tell him.', 12, 100, 396, 48636, 'Defias Overseer 8'),
+(48421, 8, 0, 'No way!  He gives me the creeps!', 12, 100, 274, 48637, 'Defias Overseer 9'),
+(48421, 9, 0, 'I know!  The way he looks at you with those hungry eyes.  I''m afraid to even turn my back!', 12, 100, 5, 48638, 'Defias Overseer 10'),
+(48421, 10, 0, '%s attempts to run away in fear!', 16, 100, 0, 1150, 'Defias Overseer Flee');
+
+
+DELETE FROM `creature_text` WHERE `CreatureID` = 43778;
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
+(43778, 0, 0, 'Foe Reaper 5000 on-line. All systems nominal.', 14, 100, 22137, 47596, 'Foereaper Aggro'),
+(43778, 1, 0, 'Overheat threshold exceeded. System failure. Wheat clog in port two. Shutting down.', 14, 100, 22138, 47643, 'Foereaper Death'),
+(43778, 2, 0, 'Target destroyed', 14, 100, 22139, 47630, 'Foereaper kill'),
+(43778, 3, 0, 'Target acquired. Harvesting servos engaged.', 14, 100, 22141, 47629, 'Foereaper Spell Harvesting'),
+(43778, 4, 0, 'Acquiring target...', 14, 100, 22140, 47628, 'Foereaper Harvest Targetting'),
+(43778, 5, 0, 'Overdrive engine activated', 14, 100, 22142, 47609, 'Foereaper Spell Overdrive'),
+(43778, 6, 0, '|TInterface\Icons\ability_whirlwind.blp:20|t Foe Reaper 5000 begins to activate |cFFFF0000|Hspell:88481|h[Overdrive]|h|r!', 16, 100, 0, 48812, 'Foereaper Spell Overdrive'),
+(43778, 7, 0, 'Safety restrictions off-line. Catastrophic system failure imminent.', 14, 100, 22143, 47642, 'Foereaper Spell Safety'),
+(43778, 8, 0, '|TInterface\Icons\spell_fire_totemofwrath.blp:20|t Foe Reaper 5000 |cFFFF0000|Hspell:88522|h[Safety Restrictions are Off-line]|h|r!', 14, 100, 0, 50713, 'Foereaper Spell Safety');
+
 
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;
@@ -315,36 +414,46 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 (12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996);
 
 -- Deadmines Loot Tables
-DELETE FROM `creature_loot_template` WHERE `Entry` IN (47296);
-DELETE FROM `creature_loot_template` WHERE `Entry` IN (4716201,4716202); -- Glubtok loot normal and heroic
-INSERT INTO `creature_loot_template` VALUES
-('4716201', '0', '5444', '37', '0', '1', '0', '1', '1', 'Glubtok Miner Cape'),
-('4716201', '0', '2169', '32', '0', '1', '0', '1', '1', 'Glubtok Buzzer Blade'),
-('4716201', '0', '5195', '32', '0', '1', '0', '1', '1', 'Glubtok Gold-Flecked Gloves'),
-('4716202', '0', '65163', '21', '0', '1', '0', '1', '1', 'Glubtok Heroic Buzzer Blade'),
-('4716202', '0', '63468', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Defias Brotherhood Vest'),
-('4716202', '0', '63470', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Missing Diplomat Pauldrons'),
-('4716202', '0', '63471', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Vest of the curious visitor'),
-('4716202', '0', '63467', '20', '0', '1', '0', '1', '1', 'Glubtok Heroic Shadow of the past'),
-('4716202', '0', '157628', '19', '0', '1', '0', '1', '1', 'Glubtok Heroic Gold-Flecked Gloves');
 
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (43778,4377801,4377802,47296,4729601,4729602,47162,4716201,4716202);
+INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, `GroupID`, `MinCount`, `MaxCount`, `Comment`) VALUES
+-- Glubtok loot normal and heroic
+(4716201, 0, 5444, 37, 0, 1, 0, 1, 1, 'Glubtok Miner Cape'),
+(4716201, 0, 2169, 32, 0, 1, 0, 1, 1, 'Glubtok Buzzer Blade'),
+(4716201, 0, 5195, 32, 0, 1, 0, 1, 1, 'Glubtok Gold-Flecked Gloves'),
 
--- Helix loot fixes
-DELETE FROM `creature_loot_template` WHERE `Entry` IN (47296);
-DELETE FROM `creature_loot_template` WHERE `Entry` IN (4729601,4729602); -- Helix loot normal and heroic
-INSERT INTO `creature_loot_template` VALUES
-('4729601', '0', '5199', '25', '0', '1', '0', '1', '1', 'Helix Smelting Pants'),
-('4729601', '0', '5443', '22', '0', '1', '0', '1', '1', 'Helix Gold-Plated Buckler'),
-('4729601', '0', '5191', '20', '0', '1', '0', '1', '1', 'Helix Cruel Barb'),
-('4729601', '0', '5200', '19', '0', '1', '0', '1', '1', 'Helix Impaling Harpoon'),
-('4729601', '0', '151062', '6', '0', '1', '0', '1', '1', 'Helix Armbands of Exiled Architects'),
-('4729601', '0', '132556', '6', '0', '1', '0', '1', '1', 'Helix Smelters Britches'),
-('4729601', '0', '151063', '4', '0', '1', '0', '1', '1', 'Helix Gear-Marked Gauntlets'),
+(4716202, 0, 65163, 21, 0, 1, 0, 1, 1, 'Glubtok Heroic Buzzer Blade'),
+(4716202, 0, 63468, 20, 0, 1, 0, 1, 1, 'Glubtok Heroic Defias Brotherhood Vest'),
+(4716202, 0, 63470, 20, 0, 1, 0, 1, 1, 'Glubtok Heroic Missing Diplomat Pauldrons'),
+(4716202, 0, 63471, 20, 0, 1, 0, 1, 1, 'Glubtok Heroic Vest of the curious visitor'),
+(4716202, 0, 63467, 20, 0, 1, 1, 1, 1, 'Glubtok Heroic Shadow of the past'),
+(4716202, 0, 157628, 19, 0, 1, 0, 1, 1, 'Glubtok Heroic Gold-Flecked Gloves'),
+-- Helix loot normal and heroic
+(4729601, 0, 5199, 25, 0, 1, 0, 1, 1, 'Helix Smelting Pants'),
+(4729601, 0, 5443, 22, 0, 1, 0, 1, 1, 'Helix Gold-Plated Buckler'),
+(4729601, 0, 5191, 20, 0, 1, 0, 1, 1, 'Helix Cruel Barb'),
+(4729601, 0, 5200, 19, 0, 1, 0, 1, 1, 'Helix Impaling Harpoon'),
+(4729601, 0, 151062, 6, 0, 1, 0, 1, 1, 'Helix Armbands of Exiled Architects'),
+(4729601, 0, 132556, 6, 0, 1, 0, 1, 1, 'Helix Smelters Britches'),
+(4729601, 0, 151063, 4, 0, 1, 0, 1, 1, 'Helix Gear-Marked Gauntlets'),
 
-('4729602', '0', '65164', '21', '0', '1', '0', '1', '1', 'Helix Cruel Barb'),
-('4729602', '0', '63474', '20', '0', '1', '0', '1', '1', 'Helix Gear-Marked Gauntlets'),
-('4729602', '0', '63476', '20', '0', '1', '0', '1', '1', 'Helix Gearbreaker Bindings'),
-('4729602', '0', '63475', '20', '0', '1', '0', '1', '1', 'Helix Old Friends Gloves'),
-('4729602', '0', '63473', '19', '0', '1', '0', '1', '1', 'Helix Cloak of Thredd'),
-('4729602', '0', '157752', '1.4', '0', '1', '0', '1', '1', 'Helix Armbands of Exiled Architects');
+(4729602, 0, 65164, 21, 0, 1, 0, 1, 1, 'Helix Cruel Barb'),
+(4729602, 0, 63474, 20, 0, 1, 0, 1, 1, 'Helix Gear-Marked Gauntlets'),
+(4729602, 0, 63476, 20, 0, 1, 0, 1, 1, 'Helix Gearbreaker Bindings'),
+(4729602, 0, 63475, 20, 0, 1, 0, 1, 1, 'Helix Old Friends Gloves'),
+(4729602, 0, 63473, 19, 0, 1, 0, 1, 1, 'Helix Cloak of Thredd'),
+(4729602, 0, 157752, 1.4, 0, 1, 0, 1, 1, 'Helix Armbands of Exiled Architects'),
+-- Foereaper loot normal and heroic
+(4377801, 0, 5201, 31, 0, 1, 0, 1, 1, 'Foereaper Emberstone Staff'),
+(4377801, 0, 1937, 28, 0, 1, 0, 1, 1, 'Foereaper Buzz Saw'),
+(4377801, 0, 5187, 28, 0, 1, 0, 1, 1, 'Foereaper Foe Reaper'),
+(4377801, 0, 151066, 4, 0, 1, 0, 1, 1, 'Foereaper Missing Diplomat Pauldrons'),
+(4377801, 0, 151064, 4, 0, 1, 0, 1, 1, 'Foereaper Vest of the Curious Visitor'),
+(4377801, 0, 151065, 3, 0, 1, 0, 1, 1, 'Foereaper Old Friends Gloves'),
 
+(4377801, 0, 65167, 32, 0, 1, 0, 1, 1, 'Foereaper Emberstone Staff'),
+(4377801, 0, 65166, 31, 0, 1, 0, 1, 1, 'Foereaper Buzz Saw'),
+(4377801, 0, 65165, 31, 0, 1, 0, 1, 1, 'Foereaper Foe Reaper'),
+(4377801, 0, 157755, 1, 0, 1, 0, 1, 1, 'Foereaper Missing Diplomat Pauldrons'),
+(4377801, 0, 157753, 1, 0, 1, 0, 1, 1, 'Foereaper Vest of the Curious Visitor'),
+(4377801, 0, 157754, 1, 0, 1, 0, 1, 1, 'Foereaper Old Friends Gloves');

@@ -114,6 +114,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 Kagtha = 46889;
         static constexpr uint32 SlinkySharpshiv = 46906;
         static constexpr uint32 ShatteredHandAssassin = 46890;
+
+        // Defias Overseer
+        static constexpr uint32 DefiasOverseer = 48421;
     }
 
     namespace CreatureSpawns
@@ -206,6 +209,19 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 HelixFaceRide = 4;
         static constexpr int8 HelixAggro = 5;
         static constexpr int8 HelixChestBomb = 6;
+
+        // Defias Overseer
+        static constexpr int8 OverseerLine1 = 0;
+        static constexpr int8 OverseerLine2 = 1;
+        static constexpr int8 OverseerLine3 = 2;
+        static constexpr int8 OverseerLine4 = 3;
+        static constexpr int8 OverseerLine5 = 4;
+        static constexpr int8 OverseerLine6 = 5;
+        static constexpr int8 OverseerLine7 = 6;
+        static constexpr int8 OverseerLine8 = 7;
+        static constexpr int8 OverseerLine9 = 8;
+        static constexpr int8 OverseerLine10 = 9;
+        static constexpr int8 OverseerFlee = 10;
     }
 
     namespace Spells
@@ -328,6 +344,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 HelixFaceRide = 34;
         static constexpr int8 HelixExitFaceRide = 35;
         static constexpr int8 HelixSummonCrew = 36;
+
+        // Defias Overseer
+        static constexpr int8 OverseerDialogueStart = 37;
+        static constexpr int8 OverseerDialogueLine = 38;
     }
 
     namespace Actions
