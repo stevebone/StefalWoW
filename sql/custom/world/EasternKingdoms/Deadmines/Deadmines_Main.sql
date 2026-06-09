@@ -156,6 +156,7 @@ DELETE FROM `creature` WHERE `guid` = 376054;
 DELETE FROM `creature` WHERE `id` = 51462 AND `map` = 36;
 
 -- Remove Wrong Goblin Craftsman spawns in Mast Room
+-- These are the ones spawned at Goblin Foundry Room and move here
 DELETE FROM `creature` WHERE `guid` IN (376095,376096,376102,376103);
 
 -- Defias Miner spawns fixes
@@ -234,6 +235,7 @@ UPDATE `creature_template` SET `ScriptName` = 'boss_helix_gearbreaker' WHERE `en
 UPDATE `creature_template` SET `ScriptName` = 'npc_lumbering_oaf' WHERE `entry` = 47297;
 UPDATE `creature_template` SET `ScriptName` = 'npc_sticky_bomb' WHERE `entry` = 47314;
 UPDATE `creature_template` SET `ScriptName` = 'npc_defias_overseer' WHERE `entry` = 48421;
+UPDATE `creature_template` SET `ScriptName` = 'npc_goblin_foundry_worker' WHERE `entry` IN (48280,48439);
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -305,6 +307,11 @@ DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266);
 INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES
 (48266, 1, 91788, 39653); -- Defias Cannon Cannonball
 
+DELETE FROM `areatrigger_scripts` WHERE `Entry` IN (6350,6508,6353);
+INSERT INTO `areatrigger_scripts` (`Entry`, `ScriptName`) VALUES
+(6350, 'deadmines_goblin_foundry_spawn_at'),
+(6508, 'deadmines_goblin_foundry_trigger1_at'),
+(6353, 'deadmines_goblin_foundry_trigger2_at');
 
 DELETE FROM `creature_text` WHERE `CreatureID` IN (47162,48974,48230,48229,48262);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `SoundPlayType`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
@@ -398,9 +405,16 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 (43778, 4, 0, 'Acquiring target...', 14, 100, 22140, 47628, 'Foereaper Harvest Targetting'),
 (43778, 5, 0, 'Overdrive engine activated', 14, 100, 22142, 47609, 'Foereaper Spell Overdrive'),
 (43778, 6, 0, '|TInterface\Icons\ability_whirlwind.blp:20|t Foe Reaper 5000 begins to activate |cFFFF0000|Hspell:88481|h[Overdrive]|h|r!', 16, 100, 0, 48812, 'Foereaper Spell Overdrive'),
-(43778, 7, 0, 'Safety restrictions off-line. Catastrophic system failure imminent.', 14, 100, 22143, 47642, 'Foereaper Spell Safety'),
-(43778, 8, 0, '|TInterface\Icons\spell_fire_totemofwrath.blp:20|t Foe Reaper 5000 |cFFFF0000|Hspell:88522|h[Safety Restrictions are Off-line]|h|r!', 14, 100, 0, 50713, 'Foereaper Spell Safety');
+(43778, 7, 0, 'Safety restrictions off-line. Catastrophic system failure imminent.', 16, 100, 22143, 47642, 'Foereaper Spell Safety'),
+(43778, 8, 0, '|TInterface\Icons\spell_fire_totemofwrath.blp:20|t Foe Reaper 5000 |cFFFF0000|Hspell:88522|h[Safety Restrictions are Off-line]|h|r!', 16, 100, 0, 50713, 'Foereaper Spell Safety'),
+(43778, 9, 0, 'A stray jolt from the Foe Reaper has disrupted the foundry controls!', 41, 100, 0, 49315, 'Foereaper Init');
 
+DELETE FROM `creature_text` WHERE `CreatureID` IN (48280,48439);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
+(48280, 0, 0, 'They''re alive...', 12, 100, 0, 48475, 'Goblin Craftsman 1'),
+(48280, 1, 0, 'THEY''RE ALIVE!!!', 14, 100, 0, 48476, 'Goblin Craftsman 2'),
+(48280, 2, 0, 'NOOOOOOO!!!', 14, 100, 0, 48478, 'Goblin Craftsman 3'),
+(48439, 0, 0, 'RUN!', 14, 100, 0, 48477, 'Goblin Engineer 1');
 
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;

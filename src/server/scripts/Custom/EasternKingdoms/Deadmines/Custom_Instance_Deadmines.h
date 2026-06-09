@@ -37,6 +37,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 DeadminesVersion = 1000;
         static constexpr uint32 EntranceCannonFired = 1001;
         static constexpr uint32 HelixOafDead = 1002;
+        static constexpr uint32 GoblinFoundryEventStarted = 1003;
+        static constexpr uint32 GoblinFoundryEventNPC = 1004;
+        static constexpr uint32 GoblinFoundryTrigger1Fired = 1005;
+        static constexpr uint32 GoblinFoundryTrigger2Fired = 1006;
     }
 
     namespace Version
@@ -98,6 +102,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 LumberingOaf = 47297;
         static constexpr uint32 HelixGearBreaker = 47296;
         static constexpr uint32 MineRat = 51462;
+
+        // Goblin Foundry Event
+        static constexpr uint32 GoblinCraftsman = 48280;
+        static constexpr uint32 GoblinEngineer = 48439;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -222,6 +230,18 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OverseerFlee = 10;
     }
 
+    namespace Texts
+    {
+        // Goblin Foundry Event
+        // Goblin Craftsman (48280)
+        static constexpr int8 GoblinCraftsmanAlive = 0;
+        static constexpr int8 GoblinCraftsmanYellAlive = 1;
+        static constexpr int8 GoblinCraftsmanNo = 2;
+
+        // Goblin Engineer (48439)
+        static constexpr int8 GoblinEngineerRun = 0;
+    }
+
     namespace Spells
     {
         static constexpr uint32 GoblinTeleporter = 55695;
@@ -290,6 +310,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 StickyBombExplode = 95500; // has normal and heroic effects
         //static constexpr uint32 StickyBombExplode = 88974;
         //static constexpr uint32 StickyBombExplodeHeroic = 91566;
+
+        // Goblin Foundry Event
+        static constexpr uint32 CosmeticCower = 78087;
     }
 
     namespace Events
@@ -347,6 +370,15 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OverseerInitController = 37;
         static constexpr int8 OverseerDialogueStart = 38;
         static constexpr int8 OverseerDialogueLine = 39;
+
+        // Goblin Foundry Event
+        static constexpr int8 GoblinFoundryEventStarted = 40;
+        static constexpr int8 GoblinFoundryEventNPC = 41; // SetData flag to mark event NPCs
+
+        // Goblin Foundry Worker Events
+        static constexpr int8 GoblinWorkerStartMovement = 1;
+        static constexpr int8 GoblinWorkerRunToFinal = 2;
+        static constexpr int8 GoblinWorkerCraftsmanNo = 3;
     }
 
     namespace Actions
@@ -387,6 +419,18 @@ namespace Scripts::EasternKingdoms::Deadmines
     namespace Positions
     {
         static constexpr Position MysteriousDeadminesChest = { -32.1232f, -374.64f, 59.06f, 3.082f };
+
+        // Goblin Foundry Event
+        static constexpr Position GoblinCraftsman1Spawn = { -227.5972f, -587.4663f, 51.2344f, 2.3098f};
+        static constexpr Position GoblinCraftsman1MoveTo = { -235.5213f, -581.7625f, 51.2185f, 2.5064f };
+        static constexpr Position GoblinCraftsman2Spawn = { -217.2094f, -559.3613f, 51.23f, 3.8655f };
+        static constexpr Position GoblinEngineer1Spawn = { -226.0326f, -567.9048f, 51.2304f, 4.1899f };
+        static constexpr Position GoblinEngineer2Spawn = { -209.1832f, -554.1334f, 51.2297f, 3.2826f };
+        static constexpr Position GoblinMoveTo = { -235.8898f, -577.8178f, 51.2258f, 3.1784f };
+        static constexpr Position GoblinRunTo1 = { -277.722f, -495.944f, 49.6921f, 4.76221f };
+        static constexpr Position GoblinRunTo2 = { -272.104f, -488.595f, 49.2876f, 5.79361f };
+        static constexpr Position GoblinRunTo3 = { -273.826f, -477.703f, 49.2435f, 1.04438f };
+        static constexpr Position GoblinRunTo4 = { -278.252f, -485.319f, 48.8387f, 0.289022f };
 
         static constexpr Position HelixCrewSpawn[] =
         {

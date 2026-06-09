@@ -28,6 +28,7 @@
 #include "InstanceScript.h"
 #include "Map.h"
 #include "Player.h"
+#include <list>
 #include "ScriptMgr.h"
 
 #include "Custom_DeadminesOLD_Defines.h"
@@ -58,6 +59,118 @@ namespace Scripts::EasternKingdoms::Deadmines
                     instance->SetData(MiscOLD::SecondSmiteAlarm, 1);
                     smite->AI()->Talk(TextsOLD::SmiteAlarm2);
                 }
+            }
+            return true;
+        }
+    };
+
+    // 6350 - Deadmines - Goblin Foundry Event Spawn
+    class deadmines_goblin_foundry_spawn_at : public AreaTriggerScript
+    {
+    public:
+        deadmines_goblin_foundry_spawn_at() : AreaTriggerScript("deadmines_goblin_foundry_spawn_at") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (InstanceScript* instance = player->GetInstanceScript())
+            {
+                if (instance->GetData(Misc::GoblinFoundryEventStarted) == 1)
+                    return false;
+
+                instance->SetData(Misc::GoblinFoundryEventStarted, 1);
+
+                // Spawn 4 NPCs at fixed positions
+                if (Creature* craftsman1 = player->SummonCreature(Creatures::GoblinCraftsman, Positions::GoblinCraftsman1Spawn, TEMPSUMMON_MANUAL_DESPAWN, 0s))
+                {
+                    craftsman1->RemoveAllAuras();
+                    craftsman1->CastSpell(craftsman1, Spells::CosmeticCower, true);
+                    craftsman1->AI()->SetData(Misc::GoblinFoundryEventNPC, 1); // Craftsman 1
+                }
+
+                if (Creature* craftsman2 = player->SummonCreature(Creatures::GoblinCraftsman, Positions::GoblinCraftsman2Spawn, TEMPSUMMON_MANUAL_DESPAWN, 0s))
+                {
+                    craftsman2->RemoveAllAuras();
+                    craftsman2->CastSpell(craftsman2, Spells::CosmeticCower, true);
+                    craftsman2->AI()->SetData(Misc::GoblinFoundryEventNPC, 2); // Craftsman 2
+                }
+
+                if (Creature* engineer1 = player->SummonCreature(Creatures::GoblinEngineer, Positions::GoblinEngineer1Spawn, TEMPSUMMON_MANUAL_DESPAWN, 0s))
+                {
+                    engineer1->RemoveAllAuras();
+                    engineer1->CastSpell(engineer1, Spells::CosmeticCower, true);
+                    engineer1->AI()->SetData(Misc::GoblinFoundryEventNPC, 3); // Engineer 1
+                }
+
+                if (Creature* engineer2 = player->SummonCreature(Creatures::GoblinEngineer, Positions::GoblinEngineer2Spawn, TEMPSUMMON_MANUAL_DESPAWN, 0s))
+                {
+                    engineer2->RemoveAllAuras();
+                    engineer2->CastSpell(engineer2, Spells::CosmeticCower, true);
+                    engineer2->AI()->SetData(Misc::GoblinFoundryEventNPC, 4); // Engineer 2
+                }
+            }
+            return true;
+        }
+    };
+
+    // 6508 - Deadmines - Goblin Foundry Event Trigger 1
+    class deadmines_goblin_foundry_trigger1_at : public AreaTriggerScript
+    {
+    public:
+        deadmines_goblin_foundry_trigger1_at() : AreaTriggerScript("deadmines_goblin_foundry_trigger1_at") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (InstanceScript* instance = player->GetInstanceScript())
+            {
+                if (instance->GetData(Misc::GoblinFoundryEventStarted) == 0)
+                    return false;
+
+                if (instance->GetData(Misc::GoblinFoundryTrigger1Fired) == 1)
+                    return false;
+
+                instance->SetData(Misc::GoblinFoundryTrigger1Fired, 1);
+
+                // Find the spawned NPCs and trigger their movement
+                std::list<Creature*> craftsmen;
+                player->GetCreatureListWithEntryInGrid(craftsmen, Creatures::GoblinCraftsman, 150.0f);
+                for (Creature* c : craftsmen)
+                    if (c->AI()->GetData(Misc::GoblinFoundryEventNPC) == 1 || c->AI()->GetData(Misc::GoblinFoundryEventNPC) == 2)
+                        c->AI()->DoAction(1); // Start movement
+
+                std::list<Creature*> engineers;
+                player->GetCreatureListWithEntryInGrid(engineers, Creatures::GoblinEngineer, 250.0f);
+                for (Creature* e : engineers)
+                    if (e->AI()->GetData(Misc::GoblinFoundryEventNPC) == 3)
+                        e->AI()->DoAction(1); // Start movement
+            }
+            return true;
+        }
+    };
+
+    // 6353 - Deadmines - Goblin Foundry Event Trigger 2
+    class deadmines_goblin_foundry_trigger2_at : public AreaTriggerScript
+    {
+    public:
+        deadmines_goblin_foundry_trigger2_at() : AreaTriggerScript("deadmines_goblin_foundry_trigger2_at") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/) override
+        {
+            if (InstanceScript* instance = player->GetInstanceScript())
+            {
+                if (instance->GetData(Misc::GoblinFoundryEventStarted) == 0)
+                    return false;
+
+                if (instance->GetData(Misc::GoblinFoundryTrigger2Fired) == 1)
+                    return false;
+
+                instance->SetData(Misc::GoblinFoundryTrigger2Fired, 1);
+
+                // Find the 4th NPC (GoblinEngineer2) and trigger movement
+                std::list<Creature*> engineers;
+                player->GetCreatureListWithEntryInGrid(engineers, Creatures::GoblinEngineer, 50.0f);
+                for (Creature* e : engineers)
+                    if (e->AI()->GetData(Misc::GoblinFoundryEventNPC) == 4)
+                        e->AI()->DoAction(1); // Start movement for 4th NPC
             }
             return true;
         }
@@ -143,6 +256,9 @@ void AddSC_custom_deadmines_areatrigger()
 {
     using namespace Scripts::EasternKingdoms::Deadmines;
 
+    new deadmines_goblin_foundry_spawn_at();
+    new deadmines_goblin_foundry_trigger1_at();
+    new deadmines_goblin_foundry_trigger2_at();
     new deadmines_mysterious_chest_at();
     new deadmines_door_cannon_event_at();
 }

@@ -39,6 +39,7 @@
 #include "Creature.h"
 #include "TemporarySummon.h"
 #include "G3D/Vector3.h"
+#include <list>
 
 #include "Custom_Instance_Deadmines.h"
 
@@ -1823,6 +1824,156 @@ namespace Scripts::EasternKingdoms::Deadmines
         bool _hasFled = false;
         EventMap _events;
     };
+
+    // 48280, 48439 - Goblin Foundry Event (Engineer & Craftsman)
+    struct npc_goblin_foundry_worker : public ScriptedAI
+    {
+        npc_goblin_foundry_worker(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _events.Reset();
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == Misc::GoblinFoundryEventNPC)
+            {
+                _npcRole = value;
+                _isEventNPC = true;
+            }
+        }
+
+        uint32 GetData(uint32 id) const override
+        {
+            if (id == Misc::GoblinFoundryEventNPC)
+                return _npcRole;
+            return 0;
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (!_isEventNPC)
+                return;
+
+            if (action == 1)
+                StartFirstMovement();
+        }
+
+        void MovementInform(uint32 motionType, uint32 pointId) override
+        {
+            if (motionType != POINT_MOTION_TYPE)
+                return;
+
+            if (!_isEventNPC)
+                return;
+
+            switch (pointId)
+            {
+                case 1: // Reached first movement point (Craftsman 1 only)
+                    if (_npcRole == 1)
+                    {
+                        Talk(Texts::GoblinCraftsmanAlive);
+                        _events.RescheduleEvent(Events::GoblinWorkerRunToFinal, 7s);
+                    }
+                    break;
+                case 2: // Reached GoblinMoveTo
+                    OnReachMoveTo();
+                    break;
+                case 3: // Reached final destination
+                    // NPC stays here until instance reset
+                    break;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!_isEventNPC)
+                return;
+
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::GoblinWorkerStartMovement: // Start first movement after delay
+                    if (_npcRole == 1)
+                        me->GetMotionMaster()->MovePoint(1, Positions::GoblinCraftsman1MoveTo);
+                    else if (_npcRole == 2 || _npcRole == 3 || _npcRole == 4)
+                        me->GetMotionMaster()->MovePoint(2, Positions::GoblinMoveTo);
+                    break;
+                case Events::GoblinWorkerRunToFinal: // Run to final destination
+                    me->GetMotionMaster()->MovePoint(3, GetRunToPosition());
+                    break;
+                case Events::GoblinWorkerCraftsmanNo: // Craftsman 2 SAY GoblinCraftsmanNo
+                    Talk(Texts::GoblinCraftsmanNo);
+                    _events.RescheduleEvent(Events::GoblinWorkerRunToFinal, 3s);
+                    break;
+                }
+            }
+        }
+
+    private:
+        void StartFirstMovement()
+        {
+            switch (_npcRole)
+            {
+            case 1:
+            case 2:
+                _events.RescheduleEvent(Events::GoblinWorkerStartMovement, 1s);
+                break;
+            case 3:
+                _events.RescheduleEvent(Events::GoblinWorkerStartMovement, 2s);
+                break;
+            case 4:
+                _events.RescheduleEvent(Events::GoblinWorkerStartMovement, 6s);
+                break;
+            default:
+                break;
+            }
+        }
+
+        void OnReachMoveTo()
+        {
+            // Role 2: Craftsman 2 - SAY GoblinCraftsmanYellAlive, then SAY GoblinCraftsmanNo 2s later, then run
+            // Role 3: Engineer 1 - SAY GoblinEngineerRun, then immediately run to GoblinRunTo
+            // Role 4: Engineer 2 - Run to GoblinRunTo
+            if (_npcRole == 2)
+            {
+                Talk(Texts::GoblinCraftsmanYellAlive);
+                _events.RescheduleEvent(Events::GoblinWorkerCraftsmanNo, 2s);
+            }
+            else if (_npcRole == 3)
+            {
+                Talk(Texts::GoblinEngineerRun);
+                me->GetMotionMaster()->MovePoint(3, GetRunToPosition());
+            }
+            else if (_npcRole == 4)
+                me->GetMotionMaster()->MovePoint(3, GetRunToPosition());
+        }
+
+        Position GetRunToPosition()
+        {
+            // Assign one of the 4 GoblinRunTo positions
+            static const Position runToPositions[] =
+            {
+                Positions::GoblinRunTo1,
+                Positions::GoblinRunTo2,
+                Positions::GoblinRunTo3,
+                Positions::GoblinRunTo4
+            };
+
+            // Use a simple hash of GUID to determine position
+            uint32 index = me->GetGUID().GetCounter() % 4;
+            return runToPositions[index];
+        }
+
+        bool _isEventNPC = false;
+        uint32 _npcRole = 0;
+        EventMap _events;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
@@ -1840,4 +1991,5 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(boss_helix_gearbreaker);
     RegisterCreatureAI(npc_mining_powder);
     RegisterCreatureAI(npc_defias_overseer);
+    RegisterCreatureAI(npc_goblin_foundry_worker);
 }
