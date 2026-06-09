@@ -1680,26 +1680,24 @@ namespace Scripts::EasternKingdoms::Deadmines
         void Reset() override
         {
             ScriptedAI::Reset();
+            _isController = false;
             _hasFled = false;
             _dialogueLine = 0;
             _events.Reset();
 
-            // Delay partner finding to ensure all creatures are spawned
-            _events.RescheduleEvent(Events::OverseerDialogueStart, 5s);
+            // Delay controller determination to ensure both NPCs are spawned
+            _events.RescheduleEvent(Events::OverseerInitController, 1s);
         }
 
         void JustEngagedWith(Unit* who) override
         {
             ScriptedAI::JustEngagedWith(who);
-            _events.CancelEvent(Events::OverseerDialogueStart);
-            _events.CancelEvent(Events::OverseerDialogueLine);
+            _events.Reset();
 
             // Link combat with partner
-            if (Creature* partner = GetPartnerOverseer())
-            {
+            if (Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, true))
                 if (partner->IsAlive() && !partner->IsInCombat())
                     partner->AI()->AttackStart(who);
-            }
         }
 
         void JustReachedHome() override
@@ -1707,23 +1705,18 @@ namespace Scripts::EasternKingdoms::Deadmines
             ScriptedAI::JustReachedHome();
 
             // Check if partner is dead, if so respawn them
-            if (Creature* partner = GetPartnerOverseer(true))
-            {
+            if (Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, false))
                 if (!partner->IsAlive())
-                {
-                    partner->Respawn();
-                }
-            }
+                    partner->Respawn(true);
 
             // Reschedule dialogue start after respawn
-            _events.RescheduleEvent(Events::OverseerDialogueStart, 5s);
+            _events.RescheduleEvent(Events::OverseerInitController, 10s);
         }
 
         void JustDied(Unit* killer) override
         {
             ScriptedAI::JustDied(killer);
-            _events.CancelEvent(Events::OverseerDialogueStart);
-            _events.CancelEvent(Events::OverseerDialogueLine);
+            _events.Reset();
         }
 
         void DamageTaken(Unit* attacker, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
@@ -1746,22 +1739,22 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                     switch (eventId)
                     {
-                        case Events::OverseerDialogueStart:
-                            // Find partner using FindNearestCreature
+                        case Events::OverseerInitController:
+                            // Determine if this is the controller (lower GUID)
                             if (Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, true))
                             {
-                                _partnerGUID = partner->GetGUID();
-
-                                // Only the overseer with the lower GUID starts the dialogue
-                                if (me->GetGUID().GetCounter() < partner->GetGUID().GetCounter())
-                                {
-                                    StartDialogue();
-                                    _events.RescheduleEvent(Events::OverseerDialogueStart, 30s, 45s);
-                                }
+                                _isController = (me->GetGUID().GetCounter() < partner->GetGUID().GetCounter());
+                                if (_isController)
+                                    _events.RescheduleEvent(Events::OverseerDialogueStart, 4s); // 1s already elapsed
                             }
                             break;
+                        case Events::OverseerDialogueStart:
+                            if (_isController)
+                                StartDialogue();
+                            break;
                         case Events::OverseerDialogueLine:
-                            SayNextDialogueLine();
+                            if (_isController)
+                                SayNextDialogueLine();
                             break;
                         default:
                             break;
@@ -1774,33 +1767,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         }
 
     private:
-        Creature* GetPartnerOverseer(bool includeDead = false)
-        {
-            if (_partnerGUID.IsEmpty())
-            {
-                // Fall back to FindNearestCreature if GUID not set
-                if (Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, includeDead))
-                {
-                    if (partner != me)
-                    {
-                        if (partner->IsAlive())
-                            _partnerGUID = partner->GetGUID();
-                        return partner;
-                    }
-                }
-                return nullptr;
-            }
-
-            if (Creature* partner = ObjectAccessor::GetCreature(*me, _partnerGUID))
-            {
-                if (includeDead || partner->IsAlive())
-                    return partner;
-                else
-                    _partnerGUID.Clear();
-            }
-            return nullptr;
-        }
-
         void StartDialogue()
         {
             _dialogueLine = 0;
@@ -1809,6 +1775,14 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void SayNextDialogueLine()
         {
+            Creature* partner = me->FindNearestCreature(Creatures::DefiasOverseer, 20.0f, true);
+            if (!partner || partner == me)
+            {
+                // Partner not available, restart dialogue after delay
+                _events.RescheduleEvent(Events::OverseerDialogueStart, 30s, 45s);
+                return;
+            }
+
             if (_dialogueLine >= 10)
             {
                 // Dialogue complete, restart after delay
@@ -1818,51 +1792,34 @@ namespace Scripts::EasternKingdoms::Deadmines
             }
 
             // Determine which overseer should speak (alternating)
-            // Even lines (0, 2, 4, 6, 8) - this overseer speaks if it's the "first" one
+            // Even lines (0, 2, 4, 6, 8) - this overseer speaks
             // Odd lines (1, 3, 5, 7, 9) - partner speaks
-            Creature* speaker = me;
-            if (_dialogueLine % 2 == 1)
+            Creature* speaker = (_dialogueLine % 2 == 0) ? me : partner;
+            speaker->AI()->Talk(_dialogueLine);
+
+            // Calculate delay based on text length
+            uint32 delay = 3000; // default 3s
+            switch (_dialogueLine)
             {
-                speaker = GetPartnerOverseer();
-                if (!speaker)
-                {
-                    // Partner not available, skip this line
-                    _dialogueLine++;
-                    _events.RescheduleEvent(Events::OverseerDialogueLine, 100ms);
-                    return;
-                }
+                case 0: delay = 3500; break; // "It's broken."
+                case 1: delay = 3500; break; // "It's not broken!"
+                case 2: delay = 5000; break; // "Why's it shooting steam..."
+                case 3: delay = 5000; break; // "That's the...pressure release valve."
+                case 4: delay = 4500; break; // "In the middle of the pipe?"
+                case 5: delay = 4500; break; // "Er...backup release valve?"
+                case 6: delay = 4000; break; // "We should tell the Admiral."
+                case 7: delay = 3500; break; // "You tell him."
+                case 8: delay = 4500; break; // "No way! He gives me the creeps!"
+                case 9: delay = 7000; break; // "I know! The way he looks at you..."
+                default: delay = 3000; break;
             }
 
-            if (speaker)
-            {
-                int8 textId = _dialogueLine;
-                speaker->AI()->Talk(textId);
-
-                // Calculate delay based on text length
-                // Text lengths: short (2-3s), medium (4-5s), long (6-7s)
-                uint32 delay = 3000; // default 3s
-                switch (textId)
-                {
-                    case 0: delay = 2500; break; // "It's broken."
-                    case 1: delay = 2500; break; // "It's not broken!"
-                    case 2: delay = 5000; break; // "Why's it shooting steam..."
-                    case 3: delay = 4000; break; // "That's the...pressure release valve."
-                    case 4: delay = 3500; break; // "In the middle of the pipe?"
-                    case 5: delay = 3500; break; // "Er...backup release valve?"
-                    case 6: delay = 3000; break; // "We should tell the Admiral."
-                    case 7: delay = 2500; break; // "You tell him."
-                    case 8: delay = 3500; break; // "No way! He gives me the creeps!"
-                    case 9: delay = 7000; break; // "I know! The way he looks at you..."
-                    default: delay = 3000; break;
-                }
-
-                _dialogueLine++;
-                _events.RescheduleEvent(Events::OverseerDialogueLine, std::chrono::milliseconds(delay));
-            }
+            _dialogueLine++;
+            _events.RescheduleEvent(Events::OverseerDialogueLine, std::chrono::milliseconds(delay));
         }
 
+        bool _isController = false;
         int8 _dialogueLine = 0;
-        ObjectGuid _partnerGUID;
         bool _hasFled = false;
         EventMap _events;
     };

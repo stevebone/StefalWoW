@@ -90,6 +90,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MiningMonkey2 = 48440;
         static constexpr uint32 MiningMonkey3 = 48441;
         static constexpr uint32 MiningMonkey4 = 48442;
+        static constexpr uint32 DefiasOverseer = 48421;
 
         // Helix Gearbreaker
         static constexpr uint32 HelixCrew = 49136;
@@ -113,10 +114,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MayhemPrototype = 46903;
         static constexpr uint32 Kagtha = 46889;
         static constexpr uint32 SlinkySharpshiv = 46906;
-        static constexpr uint32 ShatteredHandAssassin = 46890;
-
-        // Defias Overseer
-        static constexpr uint32 DefiasOverseer = 48421;
+        static constexpr uint32 ShatteredHandAssassin = 46890;        
     }
 
     namespace CreatureSpawns
@@ -346,8 +344,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 HelixSummonCrew = 36;
 
         // Defias Overseer
-        static constexpr int8 OverseerDialogueStart = 37;
-        static constexpr int8 OverseerDialogueLine = 38;
+        static constexpr int8 OverseerInitController = 37;
+        static constexpr int8 OverseerDialogueStart = 38;
+        static constexpr int8 OverseerDialogueLine = 39;
     }
 
     namespace Actions
