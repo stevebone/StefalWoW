@@ -4512,6 +4512,24 @@ Followship.Bots.PowerRate = 1
 # Values 0.1-2; Default: 1
 Followship.Bots.DamageRate = 1
 
+# Followship Bots Logging
+# These follow the standard Trinity format
+Appender.FSB=2,2,0,FSB.log,w
+Logger.scripts.fsb=4,Console FSB
+Logger.scripts.fsb.general=4,Console FSB
+Logger.scripts.fsb.events=4,Console FSB
+Logger.scripts.fsb.buffs=4,Console FSB
+Logger.scripts.fsb.death=4,Console FSB
+Logger.scripts.fsb.chatter=4,Console FSB
+Logger.scripts.fsb.spells=4,Console FSB
+Logger.scripts.fsb.ooc=4,Console FSB
+Logger.scripts.fsb.combat=4,Console FSB
+Logger.scripts.fsb.manager=4,Console FSB
+Logger.scripts.fsb.pet=4,Console FSB
+Logger.scripts.fsb.movement=4,Console FSB
+Logger.scripts.fsb.party=4,Console FSB
+Logger.scripts.fsb.dungeon=4,Console FSB
+
 ###################################################################
 #
 # Player Extended Backpack Slots

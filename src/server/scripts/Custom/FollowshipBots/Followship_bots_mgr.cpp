@@ -32,6 +32,7 @@
 
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
@@ -231,7 +232,10 @@ void FSBMgr::SpawnPlayerBots(Player* player)
 
         FSBMgr::Get()->RestoreBotOwnership(player, bot, hireTimeLeft);
 
-        // 5. Schedule stats recalculation if in dungeon (to override difficulty-based stats)
+        // 5. Update dungeon ID
+        FSBDungeon::UpdateBotDungeonId(bot);
+
+        // 6. Schedule stats recalculation if in dungeon (to override difficulty-based stats)
         if (bot->GetMap()->IsDungeon())
         {
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DUNGEON_STATS_RECALCULATE, 500ms);
@@ -411,6 +415,9 @@ void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDuratio
     // 3?? Restore ownership + AI state
     uint32 hireTimeLeft = hireDurationHours * 3600;
     RestoreBotOwnership(player, bot, hireTimeLeft);
+
+    // Update dungeon ID
+    FSBDungeon::UpdateBotDungeonId(bot);
 
     // Schedule stats recalculation if in dungeon (to override difficulty-based stats)
     if (bot->GetMap()->IsDungeon())

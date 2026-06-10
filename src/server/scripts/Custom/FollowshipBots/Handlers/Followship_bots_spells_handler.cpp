@@ -138,7 +138,6 @@ namespace FSBSpells
         }
     }
 
-
     FSBSpellTable const* GetBotSpellTableForClass(FSB_Class botClass)
     {
         auto itr = sBotSpellTables.find(botClass);

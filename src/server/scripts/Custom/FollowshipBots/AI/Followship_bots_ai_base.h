@@ -120,6 +120,7 @@ public:
     uint32 botOwnerNotMovingTimer;
     uint32 botPetSpellsTimer;
     int64 botChatChannelsTimer;
+    uint32 DungeonID = 0;
 
     Position botCorpsePos;
 

@@ -2180,7 +2180,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             // 3) Last resort: return nullptr
             return nullptr;
         }
-
     };
 
     // 47403, 47404 - Defias Reaper & Watcher (Foe Reaper 5000 adds)

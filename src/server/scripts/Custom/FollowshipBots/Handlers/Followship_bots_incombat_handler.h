@@ -23,6 +23,11 @@
 constexpr float BOT_IC_THRESHOLD_POTION_MP = 20.0f;
 constexpr float BOT_IC_THRESHOLD_POTION_HP = 10.0f;
 
+static constexpr float DefaultHealPCT = 50.f;
+static constexpr float DefaultHealPCTHealer = 70.f;
+static constexpr float DungeonHealPCT = 70.f;
+static constexpr float DungeonHealPCTHealer = 90.f;
+
 namespace FSBIC
 {
     bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup);

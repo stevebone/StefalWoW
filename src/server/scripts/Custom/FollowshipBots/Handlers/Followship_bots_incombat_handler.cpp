@@ -28,6 +28,7 @@
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_incombat_handler.h"
@@ -151,6 +152,9 @@ namespace FSBIC
         if (!bot || !bot->IsAlive())
             return false;
 
+        if (FSBDungeon::ShouldPreserveMana(bot))
+            return false;
+
         Unit* target = bot->GetVictim();
         if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
@@ -245,6 +249,9 @@ namespace FSBIC
         if (!FSBSpellsUtils::BotHasHealSpells(bot))
             return false;
 
+        if (FSBDungeon::ShouldDPSInExecutePhase(bot, bot->GetVictim()))
+            return false;
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return false;
@@ -259,8 +266,9 @@ namespace FSBIC
         auto& botGroup = baseAI->botLogicalGroup;
         auto botRole = baseAI->botRole;
 
-        float hpPct = 50.f;
-        if (botRole == FSB_ROLE_HEALER) hpPct = 70.f;
+        float hpPct = FSBDungeon::IsBotInDungeon(bot) ? DungeonHealPCT : DefaultHealPCT;
+        if (botRole == FSB_ROLE_HEALER)
+            hpPct = FSBDungeon::IsBotInDungeon(bot) ? DungeonHealPCTHealer : DefaultHealPCTHealer;
 
         auto healTargets = FSBGroup::BotGetMembersToHeal(botGroup, hpPct);
         if (healTargets.empty())
