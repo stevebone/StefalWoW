@@ -25,26 +25,41 @@
 -- NPC: 47297 Helix Gearbreaker
 -- NPC: 48957 Fire Blossom
 -- NPC: 48958 Frost Blossom
--- NPC: 43778 Foe Reaper 5000
--- NPC: 47403 Defias Reaper
 -- NPC: 48418 Defias Envoker
 -- NPC: 48419 Defias Miner
 -- NPC: 48420 Defias Digger
 -- NPC: 48421 Defias Overseer
+-- NPC: 49208 Prototype Reaper
+-- NPC: 47404 Defias Watcher
+-- NPC: 47403 Defias Reaper
+-- NPC: 43778 Foe Reaper 5000
 
 -- GO: 208002 Goblin Teleporter
 -- GO: 207079 Ball and Chain
 
 -- Creature Template Updates
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove uninterract flag for mining powder so it can be attacked
+UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); -- Update attackable faction for Defias Reaper and Watcher was 1816
 
 -- Creature Difficulties
 -- Stormwind Defender and Shattered Hand Assassin have diff id 0 added for Followship Bots since they can be taken outside the dungeon
 -- Diff 1 - Normal / Diff 2 - Heroic / Diff 24 - Timewalking
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
-48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421);
+48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208);
 INSERT INTO `creature_template_difficulty` VALUES
+(43778, 1, 1, 1, 202, 0, 1, 1, 1, 1, 51015, 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(43778, 2, 2, 2, 1199, 0, 3, 1, 1, 5, 51015, 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(43778, 24, 2, 2, 2872, 3, 5, 1, 1, 3, 51016, 32872, 128, 0, 4377824, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Foe Reaper 5000
+(47403, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47403, 2, 1, 1, 1199, 0, 3, 1, 1, 3, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47403, 24, 1, 1, 2872, 3, 3, 1, 1, 3, 43482, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Reaper
+(47404, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43476, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47404, 2, 1, 1, 1199, 0, 3, 1, 1, 3, 43476, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47404, 24, 1, 1, 2872, 3, 3, 1, 1, 3, 43477, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Watcher
+(49208, 1, 0, 0, 202, 0, 3, 1, 1, 3, 40112, 4096, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(49208, 2, 0, 0, 1199, 0, 5, 1, 1, 5, 40112, 4096, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(49208, 24, 0, 0, 2872, 0, 3, 1, 1, 3, 40112, 4096, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745), -- Prototype Reaper
 (48421, 1, 0, 0, 202, 0, 1, 0, 1, 1, 41335, 0, 0, 0, 48421, 0, 0, 7165, 7165, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
 (48421, 2, 0, 0, 1199, 0, 3, 0, 1, 3, 41335, 0, 0, 0, 48421, 0, 0, 7165, 7165, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48421, 24, 0, 0, 2872, 3, 3, 0, 1, 3, 41336, 0, 0, 0, 48421, 0, 0, 7165, 7165, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Overseer
@@ -57,12 +72,6 @@ INSERT INTO `creature_template_difficulty` VALUES
 (48418, 1, 0, 0, 202, 0, 1, 0.7264, 1, 1, 41350, 0, 0, 0, 48418, 0, 0, 8541, 8541, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
 (48418, 2, 0, 0, 1199, 0, 4, 0.7264, 1, 4, 41350, 0, 0, 0, 48418, 0, 0, 8541, 8541, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48418, 24, 0, 0, 2872, 3, 3, 3, 1, 3, 41351, 0, 0, 0, 48418, 0, 0, 8541, 8541, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Envoker
-(47403, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
-(47403, 2, 1, 1, 1199, 0, 3, 1, 1, 4, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
-(47403, 24, 1, 1, 2872, 3, 5, 1, 1, 3, 43482, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Reaper
-(43778, 1, 1, 1, 202, 0, 1, 1, 1, 1, 51015, 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
-(43778, 2, 2, 2, 1199, 0, 3, 1, 1, 5, 51015, 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
-(43778, 24, 2, 2, 2872, 3, 5, 1, 1, 3, 51016, 32872, 128, 0, 4377824, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Foe Reaper 5000
 (48957, 1, 0, 0, 202, 0, 0.05, 1, 1, 1, 40468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (48957, 2, 0, 0, 1199, 0, 0.05, 1, 1, 1, 40468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (48957, 24, 0, 0, 2872, 0, 0.05, 1, 1, 1, 40468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), -- Fire Blossom
@@ -166,6 +175,9 @@ UPDATE `creature` SET `equipment_id` = 2 WHERE `guid` IN (375906,376023,376240,3
 -- Defias Digger spawns fixes
 UPDATE `creature` SET `modelid` = 0 WHERE `id` = 48420 AND `map` = 36; -- remove old models to allow spawns with new ones
 
+-- Delete Prototype Reaper as it spawns by boss AI
+DELETE FROM `creature` WHERE `id` = 49208 and `map` = 36;
+
 -- Spawn Addons
 DELETE FROM `creature_addon` WHERE `guid` IN (375906,376023,376240,375827,376022);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
@@ -175,8 +187,6 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (376240, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
 (375827, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
 (376022, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, '');
-
-
 
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420) and `source_type` = 0;
@@ -222,7 +232,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 (48445, 0, 1, 2, '', 2, 100, 0, 30, 1000, 1000, 11, 8599, 1, 'Oaf Lackey Cast Enrage at 30% HP'),
 (48445, 0, 2, 0, '', 61, 100, 0, 0, 0, 0, 1, 0, 1, 'Oaf Lackey Say Text at 30% HP');
 
-
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_bodyguard' WHERE `entry` = 48262;
@@ -236,6 +245,8 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_lumbering_oaf' WHERE `entry` 
 UPDATE `creature_template` SET `ScriptName` = 'npc_sticky_bomb' WHERE `entry` = 47314;
 UPDATE `creature_template` SET `ScriptName` = 'npc_defias_overseer' WHERE `entry` = 48421;
 UPDATE `creature_template` SET `ScriptName` = 'npc_goblin_foundry_worker' WHERE `entry` IN (48280,48439);
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_foe_reaper_add' WHERE `entry` IN (47404,47403);
+UPDATE `creature_template` SET `ScriptName` = 'boss_foe_reaper_5000' WHERE `entry` = 43778;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -284,8 +295,11 @@ INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `Custom
 (49041, 0, NULL, 0),
 (49042, 0, NULL, 0);
 
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (48974,48975,48976,49039,49040,49041,49042,48266);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (48974,48975,48976,49039,49040,49041,49042,48266,49208,47403,47404);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+(49208, 46598, 1, 0), -- Prototype Reaper Ride Vehicle Spell
+(47403, 46598, 1, 0), -- Defias Reaper Ride Vehicle Spell
+(47404, 46598, 1, 0), -- Defias Watcher Ride Vehicle Spell
 (48266, 46598, 1, 0),
 (48974, 46598, 0, 0),
 (48975, 46598, 0, 0),
@@ -303,9 +317,18 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (87897, 'spell_glubtok_generic_proc'),
 (87900, 'spell_glubtok_generic_proc');
 
-DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266);
+DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266,49208,47403,47404);
 INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES
-(48266, 1, 91788, 39653); -- Defias Cannon Cannonball
+(48266, 0, 91788, 39653), -- Defias Cannon Cannonball
+(49208, 0, 91734, 30653), -- Prototype Reaper Reaper Strike
+(49208, 1, 91735, 30653), -- Prototype Reaper Charge
+(49208, 2, 91736, 30653), -- Prototype Reaper Pressurized Strike
+(47403, 0, 91723, 30653), -- Defias Reaper Reaper Strike
+(47403, 1, 91726, 30653), -- Defias Reaper Charge
+(47403, 2, 91727, 30653), -- Defias Reaper Pressurized Strike
+(47404, 0, 91723, 30653), -- Defias Watcher Reaper Strike
+(47404, 1, 91726, 30653), -- Defias Watcher Charge
+(47404, 2, 91727, 30653); -- Defias Watcher Pressurized Strike
 
 DELETE FROM `areatrigger_scripts` WHERE `Entry` IN (6350,6508,6353);
 INSERT INTO `areatrigger_scripts` (`Entry`, `ScriptName`) VALUES
@@ -395,7 +418,6 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 (48421, 9, 0, 'I know!  The way he looks at you with those hungry eyes.  I''m afraid to even turn my back!', 12, 100, 5, 48638, 'Defias Overseer 10'),
 (48421, 10, 0, '%s attempts to run away in fear!', 16, 100, 0, 1150, 'Defias Overseer Flee');
 
-
 DELETE FROM `creature_text` WHERE `CreatureID` = 43778;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
 (43778, 0, 0, 'Foe Reaper 5000 on-line. All systems nominal.', 14, 100, 22137, 47596, 'Foereaper Aggro'),
@@ -405,9 +427,10 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 (43778, 4, 0, 'Acquiring target...', 14, 100, 22140, 47628, 'Foereaper Harvest Targetting'),
 (43778, 5, 0, 'Overdrive engine activated', 14, 100, 22142, 47609, 'Foereaper Spell Overdrive'),
 (43778, 6, 0, '|TInterface\Icons\ability_whirlwind.blp:20|t Foe Reaper 5000 begins to activate |cFFFF0000|Hspell:88481|h[Overdrive]|h|r!', 16, 100, 0, 48812, 'Foereaper Spell Overdrive'),
-(43778, 7, 0, 'Safety restrictions off-line. Catastrophic system failure imminent.', 16, 100, 22143, 47642, 'Foereaper Spell Safety'),
+(43778, 7, 0, 'Safety restrictions off-line. Catastrophic system failure imminent.', 14, 100, 22143, 47642, 'Foereaper Spell Safety'),
 (43778, 8, 0, '|TInterface\Icons\spell_fire_totemofwrath.blp:20|t Foe Reaper 5000 |cFFFF0000|Hspell:88522|h[Safety Restrictions are Off-line]|h|r!', 16, 100, 0, 50713, 'Foereaper Spell Safety'),
-(43778, 9, 0, 'A stray jolt from the Foe Reaper has disrupted the foundry controls!', 41, 100, 0, 49315, 'Foereaper Init');
+(43778, 9, 0, 'A stray jolt from the Foe Reaper has disrupted the foundry controls!', 41, 100, 0, 49315, 'Foereaper Init'),
+(43778, 10, 0, 'The molten slag begins to bubble furiously!', 41, 100, 0, 49316, 'Foereaper Molten Slags');
 
 DELETE FROM `creature_text` WHERE `CreatureID` IN (48280,48439);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 

@@ -47,7 +47,8 @@ namespace Scripts::EasternKingdoms::Deadmines
             custom_instance_deadmines_InstanceMapScript(InstanceMap* map) : InstanceScript(map),
                 _version(*this, "DeadminesVersion", Version::NotSet),
                 _cannonState(*this, "CannonState", CannonEvent::STATE_CANNON_NOT_USED),
-                _secondSmiteAlarm(*this, "SecondSmiteAlarm", 0)
+                _secondSmiteAlarm(*this, "SecondSmiteAlarm", 0),
+                _reaperCounter(*this, "ReaperCounter", 0)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -75,6 +76,12 @@ namespace Scripts::EasternKingdoms::Deadmines
 
                 if (creature->GetEntry() == Creatures::LumberingOaf)
                     _oafGUID = creature->GetGUID();
+
+                if (creature->GetEntry() == Creatures::FoeReaper5000)
+                {
+                    _foeReaperGUID = creature->GetGUID();
+                    TC_LOG_INFO("scripts", "Foe Reaper created, GUID: {}", _foeReaperGUID.ToString());
+                }
             }
 
             void MarkPlayerHitByFirewall(Player* player)
@@ -132,6 +139,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case MiscOLD::SecondSmiteAlarm:
                         _secondSmiteAlarm = data;
                         break;
+                    case Misc::FoeReaperAddCounter:
+                        _reaperCounter = data;
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -150,6 +160,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _cannonState;
                     case MiscOLD::SecondSmiteAlarm:
                         return _secondSmiteAlarm;
+                    case Misc::FoeReaperAddCounter:
+                        return _reaperCounter;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -376,6 +388,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                 case MiscOLD::DATA_SMITE_CHEST:
                     return _mrSmiteChestGUID;
+                case DataTypes::BOSS_FOE_REAPER_5000:
+                    return _foeReaperGUID;
                 }
 
                 return ObjectGuid::Empty;
@@ -385,6 +399,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<uint8> _version;
             PersistentInstanceScriptValue<uint8> _cannonState;
             PersistentInstanceScriptValue<uint8> _secondSmiteAlarm;
+            PersistentInstanceScriptValue<uint8> _reaperCounter;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
@@ -398,6 +413,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             ObjectGuid _defiasPirate1GUID;
             ObjectGuid _defiasPirate2GUID;
+            ObjectGuid _foeReaperGUID;
 
             GuidSet _playersHitByFirewall;
         };

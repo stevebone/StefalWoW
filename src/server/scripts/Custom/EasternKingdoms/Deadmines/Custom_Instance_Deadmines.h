@@ -41,6 +41,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 GoblinFoundryEventNPC = 1004;
         static constexpr uint32 GoblinFoundryTrigger1Fired = 1005;
         static constexpr uint32 GoblinFoundryTrigger2Fired = 1006;
+        static constexpr uint32 FoeReaperAddCounter = 1007;
     }
 
     namespace Version
@@ -106,6 +107,11 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Goblin Foundry Event
         static constexpr uint32 GoblinCraftsman = 48280;
         static constexpr uint32 GoblinEngineer = 48439;
+
+        // Foe Reaper 5000
+        static constexpr uint32 DefiasReaper = 47403;
+        static constexpr uint32 DefiasWatcher = 47404;
+        static constexpr uint32 PrototypeReaper = 49208;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -228,6 +234,19 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 OverseerLine9 = 8;
         static constexpr int8 OverseerLine10 = 9;
         static constexpr int8 OverseerFlee = 10;
+
+        // Foe Reaper 5000
+        static constexpr int8 FoeReaperInit = 9;
+        static constexpr int8 FoeReaperAggro = 0;
+        static constexpr int8 FoeReaperKill = 2;
+        static constexpr int8 FoeReaperDeath = 1;
+        static constexpr int8 FoeReaperMoltenSlag = 10;
+        static constexpr int8 FoeReaperOverdrive = 5;
+        static constexpr int8 FoeReaperOverdriveWarning = 6;
+        static constexpr int8 FoeReaperHarvest = 4;
+        static constexpr int8 FoeReaperHarvestSweep = 3;
+        static constexpr int8 FoeReaperSafetyOff = 7;
+        static constexpr int8 FoeReaperSafetyOffWarning = 8;
     }
 
     namespace Texts
@@ -313,6 +332,23 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Goblin Foundry Event
         static constexpr uint32 CosmeticCower = 78087;
+
+        // Foe Reaper 5000
+        static constexpr uint32 Offline = 88348;
+        static constexpr uint32 RedEyes = 24263;
+        static constexpr uint32 FoeEnergize = 89200; // cast self when immune to dmg
+        static constexpr uint32 FoeMoltenSlag = 91839;
+        static constexpr uint32 Energize = 89132; // from other reapers to Foe
+
+        static constexpr uint32 Cleave = 90980;
+        static constexpr uint32 Energized = 90978;
+        static constexpr uint32 OnFire = 91737;
+        static constexpr uint32 Watch = 90099;
+        static constexpr uint32 ReaperStrike = 91723;
+        static constexpr uint32 Overdrive = 88481;
+        static constexpr uint32 Harvest = 88497;
+        static constexpr uint32 HarvestSweep = 88521;
+        static constexpr uint32 SafetyOffline = 88522;
     }
 
     namespace Events
@@ -379,6 +415,25 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 GoblinWorkerStartMovement = 1;
         static constexpr int8 GoblinWorkerRunToFinal = 2;
         static constexpr int8 GoblinWorkerCraftsmanNo = 3;
+
+        // Foe Reaper 5000 Add Events
+        static constexpr int8 FoeReaperAddCleave = 1;
+        static constexpr int8 FoeReaperAddWatch = 2;
+        static constexpr int8 FoeReaperAddDeath = 3;
+
+        // Foe Reaper 5000 Boss Events
+        static constexpr int8 FoeReaperInit = 4;
+        static constexpr int8 FoeReaperAggro = 5;
+        static constexpr int8 FoeReaperReaperStrike = 6;
+        static constexpr int8 FoeReaperMoltenSlag = 7;
+        static constexpr int8 FoeReaperMoltenSlagWarning = 8;
+        static constexpr int8 FoeReaperOverdrive = 9;
+        static constexpr int8 FoeReaperOverdriveWarning = 10;
+        static constexpr int8 FoeReaperOverdriveSwitchTarget = 11;
+        static constexpr int8 FoeReaperHarvest = 12;
+        static constexpr int8 FoeReaperHarvestSweep = 13;
+        static constexpr int8 FoeReaperSafetyOfflineWarning = 14;
+        static constexpr int8 FoeReaperSafetyOffline = 15;
     }
 
     namespace Actions
@@ -432,6 +487,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr Position GoblinRunTo3 = { -273.826f, -477.703f, 49.2435f, 1.04438f };
         static constexpr Position GoblinRunTo4 = { -278.252f, -485.319f, 48.8387f, 0.289022f };
 
+        // Helix Encounter
         static constexpr Position HelixCrewSpawn[] =
         {
             {-281.68f, -504.10f, 60.51f, 4.75f},
@@ -451,6 +507,10 @@ namespace Scripts::EasternKingdoms::Deadmines
             {-289.67f, -487.22f, 49.88f},
             {-290.44f, -484.32f, 49.88f}
         };
+
+        // Foe Reaper Encounter
+        static constexpr Position PrototypeSpawn = { -200.499f, -553.946f, 51.2295f, 4.32651f };
+        static constexpr Position MoltenSlag = { -213.21f, -576.85f, 20.97f };
     }
 
     namespace CannonEvent

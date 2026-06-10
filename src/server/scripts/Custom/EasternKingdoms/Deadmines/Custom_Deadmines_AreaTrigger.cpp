@@ -28,8 +28,9 @@
 #include "InstanceScript.h"
 #include "Map.h"
 #include "Player.h"
-#include <list>
 #include "ScriptMgr.h"
+#include "TemporarySummon.h"
+#include <list>
 
 #include "Custom_DeadminesOLD_Defines.h"
 #include "Custom_Instance_Deadmines.h"

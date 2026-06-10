@@ -1974,6 +1974,309 @@ namespace Scripts::EasternKingdoms::Deadmines
         uint32 _npcRole = 0;
         EventMap _events;
     };
+
+    // 43778 - Foe Reaper 5000
+    struct boss_foe_reaper_5000 : public BossAI
+    {
+        boss_foe_reaper_5000(Creature* creature) : BossAI(creature, DataTypes::BOSS_FOE_REAPER_5000), _summons(creature)
+        {
+
+        }
+
+        void Reset() override
+        {
+            BossAI::Reset();
+            _summons.DespawnAll();
+            _safetyOfflineCast = false;
+            _harvestActive = false;
+
+            me->AddAura(Spells::Offline, me);
+            me->RemoveAurasDueToSpell(Spells::RedEyes);
+            me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_STUNNED));
+
+            if (IsHeroic())
+                me->SummonCreature(Creatures::PrototypeReaper, Positions::PrototypeSpawn, TEMPSUMMON_MANUAL_DESPAWN);
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            _summons.Summon(summon);
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (action == 1)
+            {
+                _events.ScheduleEvent(Events::FoeReaperInit, 500ms);
+                _events.ScheduleEvent(Events::FoeReaperAggro, 2s);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::FoeReaperInit:
+                        me->CastSpell(me, Spells::FoeEnergize, true);
+                        me->RemoveAura(Spells::Offline);
+                        me->AddAura(Spells::RedEyes, me);
+                        me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_STUNNED));
+                        Talk(Texts::FoeReaperInit);
+                        break;
+                    case Events::FoeReaperAggro:
+                        Talk(Texts::FoeReaperAggro);
+                        _events.ScheduleEvent(Events::FoeReaperReaperStrike, 8s);
+                        _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 8s);
+                        _events.ScheduleEvent(Events::FoeReaperOverdriveWarning, 4s);
+                        _events.ScheduleEvent(Events::FoeReaperHarvest, 23s);
+                        break;
+                    case Events::FoeReaperReaperStrike:
+                        if (Unit* victim = me->GetVictim())
+                            me->CastSpell(victim, Spells::ReaperStrike, false);
+                        _events.RescheduleEvent(Events::FoeReaperReaperStrike, randtime(9s, 12s));
+                        break;
+                    case Events::FoeReaperMoltenSlagWarning:
+                        Talk(Texts::FoeReaperMoltenSlag);
+                        _events.ScheduleEvent(Events::FoeReaperMoltenSlag, 5s);
+                        break;
+                    case Events::FoeReaperMoltenSlag:
+                        if (IsHeroic())
+                            me->CastSpell(Positions::MoltenSlag, Spells::FoeMoltenSlag, false);
+                        _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 15s);
+                        break;
+                    case Events::FoeReaperOverdriveWarning:
+                        Talk(Texts::FoeReaperOverdriveWarning);
+                        _events.ScheduleEvent(Events::FoeReaperOverdrive, 5s);
+                        break;
+                    case Events::FoeReaperOverdrive:
+                        me->CastSpell(me, Spells::Overdrive, true);
+                        Talk(Texts::FoeReaperOverdrive);
+                        _events.ScheduleEvent(Events::FoeReaperOverdriveWarning, 40s);
+                        _events.ScheduleEvent(Events::FoeReaperOverdriveSwitchTarget, 1500ms);
+                        break;
+                    case Events::FoeReaperOverdriveSwitchTarget:
+                        if (me->HasAura(Spells::Overdrive))
+                        {
+                            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 150.0f, true))
+                                me->Attack(target, true);
+                            _events.ScheduleEvent(Events::FoeReaperOverdriveSwitchTarget, 1500ms);
+                        }
+                        break;
+                    case Events::FoeReaperHarvest:
+                        Talk(Texts::FoeReaperHarvest);
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 0.0f, true))
+                        {
+                            _harvestActive = true;
+                            me->GetMotionMaster()->MovePoint(0, target->GetPosition());
+                        }
+                        _events.ScheduleEvent(Events::FoeReaperHarvestSweep, 5s);
+                        break;
+                    case Events::FoeReaperHarvestSweep:
+                        me->CastSpell(me, Spells::HarvestSweep, false);
+                        Talk(Texts::FoeReaperHarvestSweep);
+                        _harvestActive = false;
+                        _events.ScheduleEvent(Events::FoeReaperHarvest, 40s);
+                        break;
+                    case Events::FoeReaperSafetyOfflineWarning:
+                        Talk(Texts::FoeReaperSafetyOffWarning);
+                        _events.ScheduleEvent(Events::FoeReaperSafetyOffline, 3s);
+                        break;
+                    case Events::FoeReaperSafetyOffline:
+                        me->CastSpell(me, Spells::SafetyOffline, true);
+                        Talk(Texts::FoeReaperSafetyOff);
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            // Add melee here if needed
+        }
+
+        void OnAuraApplied(AuraApplication const* aurApp) override
+        {
+            if (aurApp->GetBase()->GetId() == Spells::Overdrive)
+                me->SetSpeedRate(MOVE_RUN, 2.0f);
+        }
+
+        void OnAuraRemoved(AuraApplication const* aurApp) override
+        {
+            if (aurApp->GetBase()->GetId() == Spells::Overdrive)
+                me->SetSpeedRate(MOVE_RUN, 1.0f);
+        }
+
+        void MovementInform(uint32 motionType, uint32 pointId) override
+        {
+            if (motionType == POINT_MOTION_TYPE && pointId == 0)
+                me->StopMoving();
+        }
+
+        void KilledUnit(Unit* victim) override
+        {
+            if (victim->IsPlayer())
+                Talk(Texts::FoeReaperKill);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            BossAI::JustDied(killer);
+            Talk(Texts::FoeReaperDeath);
+            _summons.DespawnAll();
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (!_safetyOfflineCast && me->HealthBelowPctDamaged(25, damage))
+            {
+                _safetyOfflineCast = true;
+                _events.ScheduleEvent(Events::FoeReaperSafetyOfflineWarning, 1s);
+            }
+        }
+
+    private:
+        bool _safetyOfflineCast = false;
+        bool _harvestActive = false;
+        EventMap _events;
+        SummonList _summons;
+    };
+
+    // 47403, 47404 - Defias Reaper & Watcher (Foe Reaper 5000 adds)
+    struct npc_defias_foe_reaper_add : public ScriptedAI
+    {
+        npc_defias_foe_reaper_add(Creature* creature) : ScriptedAI(creature)
+        {
+            me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+        }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _events.Reset();
+            _energizeCast = false;
+            _onFireCast = false;
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                uint8 currentCount = instance->GetData(Misc::FoeReaperAddCounter);
+                currentCount++;
+                instance->SetData(Misc::FoeReaperAddCounter, currentCount);
+
+                TC_LOG_INFO("scripts", "Foe Reaper Add died. Current count: {}", currentCount);
+
+                if (currentCount == 4)
+                {
+                    ObjectGuid bossGUID = instance->GetGuidData(DataTypes::BOSS_FOE_REAPER_5000);
+                    TC_LOG_INFO("scripts", "Retrieved boss GUID: {}", bossGUID.ToString());
+
+                    if (Creature* boss = ObjectAccessor::GetCreature(*me, bossGUID))
+                    {
+                        TC_LOG_INFO("scripts", "Foe Reaper Add died, triggering boss. Boss entry: {}", boss->GetEntry());
+                        boss->AI()->DoAction(1);
+                    }
+                    else
+                        TC_LOG_INFO("scripts", "Failed to find boss creature with GUID: {}", bossGUID.ToString());
+                }
+            }
+        }
+
+        void EnterEvadeMode(EvadeReason /*why*/) override
+        {
+            if (_onFireCast)
+                return;
+            ScriptedAI::EnterEvadeMode();
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (!_energizeCast && me->HealthBelowPctDamaged(60, damage))
+            {
+                _energizeCast = true;
+                me->CastSpell(me, Spells::Energized, true);
+            }
+
+            if (!_onFireCast && me->HealthBelowPctDamaged(10, damage))
+            {
+                me->SetRegenerateHealth(false);
+                damage = 0;
+                _onFireCast = true;
+                me->CombatStop(true);
+                me->ClearInCombat();
+                me->RemoveAllAuras();
+                me->CastSpell(me, Spells::OnFire, true);
+                me->SetFaction(35);
+                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+
+                if (Creature* foeReaper = me->FindNearestCreature(Creatures::FoeReaper5000, 100.0f))
+                    me->CastSpell(foeReaper, Spells::Energize);
+
+                _events.ScheduleEvent(Events::FoeReaperAddDeath, 30s);
+            }
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            _events.RescheduleEvent(Events::FoeReaperAddCleave, randtime(7s, 9s));
+            _events.RescheduleEvent(Events::FoeReaperAddWatch, 4s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::FoeReaperAddCleave:
+                {
+                    if (!UpdateVictim())
+                        return;
+
+                    if (Unit* victim = me->GetVictim())
+                        if (me->IsWithinDist(victim, 5.0f))
+                            me->CastSpell(victim, Spells::Cleave, false);
+                    _events.RescheduleEvent(Events::FoeReaperAddCleave, randtime(7s, 9s));
+                    break;
+                }
+                case Events::FoeReaperAddWatch:
+                {
+                    if (!UpdateVictim())
+                        return;
+
+                    if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 0.0f, false))
+                        me->CastSpell(target, Spells::Watch, false);
+                    _events.RescheduleEvent(Events::FoeReaperAddWatch, randtime(12s, 14s));
+                    break;
+                }
+                case Events::FoeReaperAddDeath:
+                    me->KillSelf();
+                    break;
+                }
+            }
+
+            if (UpdateVictim())
+                me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        bool _energizeCast = false;
+        bool _onFireCast = false;
+        EventMap _events;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
@@ -1992,4 +2295,6 @@ void AddSC_custom_deadmines_npcs()
     RegisterCreatureAI(npc_mining_powder);
     RegisterCreatureAI(npc_defias_overseer);
     RegisterCreatureAI(npc_goblin_foundry_worker);
+    RegisterCreatureAI(boss_foe_reaper_5000);
+    RegisterCreatureAI(npc_defias_foe_reaper_add);
 }
