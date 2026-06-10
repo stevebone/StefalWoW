@@ -112,6 +112,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 DefiasReaper = 47403;
         static constexpr uint32 DefiasWatcher = 47404;
         static constexpr uint32 PrototypeReaper = 49208;
+        static constexpr uint32 GeneralPurposeBunny = 47242;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -344,9 +345,11 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 Energized = 90978;
         static constexpr uint32 OnFire = 91737;
         static constexpr uint32 Watch = 90099;
-        static constexpr uint32 ReaperStrike = 91723;
+        static constexpr uint32 ReaperStrike = 88490; //91723 this is for the prototype reaper
         static constexpr uint32 Overdrive = 88481;
-        static constexpr uint32 Harvest = 88497;
+        static constexpr uint32 Harvest = 88495;
+        static constexpr uint32 HarvestAura = 88497;
+        static constexpr uint32 HarvestTargetVisual = 71371;
         static constexpr uint32 HarvestSweep = 88521;
         static constexpr uint32 SafetyOffline = 88522;
     }
@@ -510,7 +513,14 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Foe Reaper Encounter
         static constexpr Position PrototypeSpawn = { -200.499f, -553.946f, 51.2295f, 4.32651f };
-        static constexpr Position MoltenSlag = { -213.21f, -576.85f, 20.97f };
+
+        static constexpr Position MoltenSlagSpawn[4] =
+        {
+            { -205.582f, -572.034f, 20.97f, 1.59f},
+            { -199.143f, -579.843f, 20.97f, 6.16f},
+            { -206.385f, -585.898f, 20.97f, 5.17f},
+            { -212.704f, -579.072f, 20.97f, 3.09f}
+        };
     }
 
     namespace CannonEvent

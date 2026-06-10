@@ -1980,7 +1980,7 @@ namespace Scripts::EasternKingdoms::Deadmines
     {
         boss_foe_reaper_5000(Creature* creature) : BossAI(creature, DataTypes::BOSS_FOE_REAPER_5000), _summons(creature)
         {
-
+            ApplyCrowdControlImmunities(creature);
         }
 
         void Reset() override
@@ -2008,8 +2008,14 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (action == 1)
             {
                 _events.ScheduleEvent(Events::FoeReaperInit, 500ms);
-                _events.ScheduleEvent(Events::FoeReaperAggro, 2s);
+                _events.ScheduleEvent(Events::FoeReaperAggro, 4s);
             }
+        }
+
+        void OnSpellCast(SpellInfo const* spellInfo) override
+        {
+            if(spellInfo && spellInfo->Id == Spells::Harvest)
+                me->GetMotionMaster()->MovePoint(0, _harvestPos);
         }
 
         void UpdateAI(uint32 diff) override
@@ -2032,15 +2038,18 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Events::FoeReaperAggro:
                         Talk(Texts::FoeReaperAggro);
+                        if (Unit* victim = SelectTarget(SelectTargetMethod::Random, 0, 150.f, false))
+                            me->Attack(victim, true);
                         _events.ScheduleEvent(Events::FoeReaperReaperStrike, 8s);
-                        _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 8s);
+                        if(IsHeroic())
+                            _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 8s);
                         _events.ScheduleEvent(Events::FoeReaperOverdriveWarning, 4s);
                         _events.ScheduleEvent(Events::FoeReaperHarvest, 23s);
                         break;
                     case Events::FoeReaperReaperStrike:
                         if (Unit* victim = me->GetVictim())
-                            me->CastSpell(victim, Spells::ReaperStrike, false);
-                        _events.RescheduleEvent(Events::FoeReaperReaperStrike, randtime(9s, 12s));
+                            me->CastSpell(victim, Spells::ReaperStrike);
+                        _events.RescheduleEvent(Events::FoeReaperReaperStrike, 5s, 7s);
                         break;
                     case Events::FoeReaperMoltenSlagWarning:
                         Talk(Texts::FoeReaperMoltenSlag);
@@ -2048,7 +2057,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Events::FoeReaperMoltenSlag:
                         if (IsHeroic())
-                            me->CastSpell(Positions::MoltenSlag, Spells::FoeMoltenSlag, false);
+                        {
+                            uint32 randomIndex = urand(0, 3);
+                            me->CastSpell(Positions::MoltenSlagSpawn[randomIndex], Spells::FoeMoltenSlag);
+                        }
                         _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 15s);
                         break;
                     case Events::FoeReaperOverdriveWarning:
@@ -2058,7 +2070,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Events::FoeReaperOverdrive:
                         me->CastSpell(me, Spells::Overdrive, true);
                         Talk(Texts::FoeReaperOverdrive);
-                        _events.ScheduleEvent(Events::FoeReaperOverdriveWarning, 40s);
+                        _events.ScheduleEvent(Events::FoeReaperOverdriveWarning, 25s);
                         _events.ScheduleEvent(Events::FoeReaperOverdriveSwitchTarget, 1500ms);
                         break;
                     case Events::FoeReaperOverdriveSwitchTarget:
@@ -2071,22 +2083,16 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Events::FoeReaperHarvest:
                         Talk(Texts::FoeReaperHarvest);
-                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 0.0f, false))
+                        if(Unit* target  = GetHarvestTarget())
                         {
                             _harvestActive = true;
-                            me->GetMotionMaster()->MovePoint(0, target->GetPosition());
+                            _harvestPos = target->GetPosition();
+                            me->CastSpell(_harvestPos, Spells::Harvest);
                         }
-                        _events.ScheduleEvent(Events::FoeReaperHarvestSweep, 5s);
-                        break;
-                    case Events::FoeReaperHarvestSweep:
-                        me->CastSpell(me, Spells::HarvestSweep, false);
-                        Talk(Texts::FoeReaperHarvestSweep);
-                        _harvestActive = false;
-                        _events.ScheduleEvent(Events::FoeReaperHarvest, 40s);
                         break;
                     case Events::FoeReaperSafetyOfflineWarning:
                         Talk(Texts::FoeReaperSafetyOffWarning);
-                        _events.ScheduleEvent(Events::FoeReaperSafetyOffline, 3s);
+                        _events.ScheduleEvent(Events::FoeReaperSafetyOffline, 5s);
                         break;
                     case Events::FoeReaperSafetyOffline:
                         me->CastSpell(me, Spells::SafetyOffline, true);
@@ -2115,19 +2121,29 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void MovementInform(uint32 motionType, uint32 pointId) override
         {
-            if (motionType == POINT_MOTION_TYPE && pointId == 0)
+            if (motionType == POINT_MOTION_TYPE && pointId == 0 && _harvestActive)
+            {
                 me->StopMoving();
+                me->RemoveAurasDueToSpell(Spells::Harvest);
+                me->CastSpell(me, Spells::HarvestSweep, false);
+                Talk(Texts::FoeReaperHarvestSweep);
+                _harvestActive = false;
+                _events.ScheduleEvent(Events::FoeReaperHarvest, 30s);
+            }
         }
 
         void KilledUnit(Unit* victim) override
         {
-            if (victim->IsPlayer())
-                Talk(Texts::FoeReaperKill);
+            if (victim->ToUnit() && victim->GetEntry() == Creatures::GeneralPurposeBunny)
+                return;
+
+            Talk(Texts::FoeReaperKill, victim);
         }
 
         void JustDied(Unit* killer) override
         {
             BossAI::JustDied(killer);
+            _events.Reset();
             Talk(Texts::FoeReaperDeath);
             _summons.DespawnAll();
         }
@@ -2137,7 +2153,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (!_safetyOfflineCast && me->HealthBelowPctDamaged(25, damage))
             {
                 _safetyOfflineCast = true;
-                _events.ScheduleEvent(Events::FoeReaperSafetyOfflineWarning, 1s);
+                _events.ScheduleEvent(Events::FoeReaperSafetyOfflineWarning, 0s);
             }
         }
 
@@ -2146,6 +2162,25 @@ namespace Scripts::EasternKingdoms::Deadmines
         bool _harvestActive = false;
         EventMap _events;
         SummonList _summons;
+        Position _harvestPos;
+
+        Unit* GetHarvestTarget()
+        {
+            // 1) Try to select a target at least 10 yards away
+            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, -10.0f, false))
+            {
+                if (me->GetDistance(target) >= 10.0f)
+                    return target;
+            }
+
+            // 2) Fallback: find a specific NPC in the room
+            if (Creature* fallback = me->FindNearestCreature(45979, 100.0f))
+                return fallback;
+
+            // 3) Last resort: return nullptr
+            return nullptr;
+        }
+
     };
 
     // 47403, 47404 - Defias Reaper & Watcher (Foe Reaper 5000 adds)
@@ -2153,6 +2188,7 @@ namespace Scripts::EasternKingdoms::Deadmines
     {
         npc_defias_foe_reaper_add(Creature* creature) : ScriptedAI(creature)
         {
+            creature->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, true);
             me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
         }
 
@@ -2164,7 +2200,14 @@ namespace Scripts::EasternKingdoms::Deadmines
             _onFireCast = false;
         }
 
-        void JustDied(Unit* /*killer*/) override
+        void EnterEvadeMode(EvadeReason /*why*/) override
+        {
+            if (_onFireCast)
+                return;
+            ScriptedAI::EnterEvadeMode();
+        }
+
+        void IncrementFoeReaperAddCounter()
         {
             if (InstanceScript* instance = me->GetInstanceScript())
             {
@@ -2182,13 +2225,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             }
         }
 
-        void EnterEvadeMode(EvadeReason /*why*/) override
-        {
-            if (_onFireCast)
-                return;
-            ScriptedAI::EnterEvadeMode();
-        }
-
         void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
             if (!_energizeCast && me->HealthBelowPctDamaged(60, damage))
@@ -2197,11 +2233,13 @@ namespace Scripts::EasternKingdoms::Deadmines
                 me->CastSpell(me, Spells::Energized, true);
             }
 
-            if (!_onFireCast && me->HealthBelowPctDamaged(10, damage))
+            if (!_onFireCast && me->HealthBelowPctDamaged(15, damage))
             {
                 me->SetRegenerateHealth(false);
                 damage = 0;
+                me->SetHealth(me->GetMaxHealth() * 0.15);
                 _onFireCast = true;
+                IncrementFoeReaperAddCounter();
                 me->CombatStop(true);
                 me->ClearInCombat();
                 me->RemoveAllAuras();

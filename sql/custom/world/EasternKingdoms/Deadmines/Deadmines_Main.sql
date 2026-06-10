@@ -33,6 +33,8 @@
 -- NPC: 47404 Defias Watcher
 -- NPC: 47403 Defias Reaper
 -- NPC: 43778 Foe Reaper 5000
+-- NPC: 47242 General Purpose bunny (for Foe Reaper energize spell).
+-- NPC: 47468 Deadmines Foe Reaper Targetting Bunny
 
 -- GO: 208002 Goblin Teleporter
 -- GO: 207079 Ball and Chain
@@ -48,11 +50,11 @@ UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); --
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
 48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208);
 INSERT INTO `creature_template_difficulty` VALUES
-(43778, 1, 1, 1, 202, 0, 1, 1, 1, 1, 51015, 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
-(43778, 2, 2, 2, 1199, 0, 3, 1, 1, 5, 51015, 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(43778, 1, 1, 1, 202, 0, 5, 1, 1, 1, 51015, 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
+(43778, 2, 2, 2, 1199, 0, 10, 1, 1, 5, 51015, 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (43778, 24, 2, 2, 2872, 3, 5, 1, 1, 3, 51016, 32872, 128, 0, 4377824, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Foe Reaper 5000
-(47403, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
-(47403, 2, 1, 1, 1199, 0, 3, 1, 1, 3, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47403, 1, 0, 0, 202, 0, 5, 1, 1, 1, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47403, 2, 1, 1, 1199, 0, 10, 1, 1, 3, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
 (47403, 24, 1, 1, 2872, 3, 3, 1, 1, 3, 43482, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Reaper
 (47404, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43476, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
 (47404, 2, 1, 1, 1199, 0, 3, 1, 1, 3, 43476, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
@@ -272,6 +274,13 @@ VALUES (13, 63, 92747, 0, 0, 51, 0, 5, 0, 0, 0, 0, 0, '', 'OgrishMotivationHeroi
 -- Condition 2: Target must NOT be hostile (exclude HATED and HOSTILE)
 INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, COMMENT)
 VALUES (13, 63, 92747, 0, 0, 34, 0, 0, 3, 0, 1, 0, 0, '', 'OgrishMotivationHeroic - Target must NOT be hostile (exclude HATED/HOSTILE)');
+
+-- Foe Reaper Energize spell target bunnies
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` IN (89200);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `Comment`) VALUES 
+(13, 1, 89200, 51, 5, 47242, 'Foe Reaper Energize target bunny'),
+(13, 2, 89200, 51, 5, 47242, 'Foe Reaper Energize target bunny'),
+(13, 3, 89200, 51, 5, 47242, 'Foe Reaper Energize target bunny');
 
 -- Glubtok encounter
 UPDATE `creature_template` SET `VehicleId` = '1367' WHERE (`entry` = '48976');

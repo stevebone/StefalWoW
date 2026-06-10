@@ -78,10 +78,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     _oafGUID = creature->GetGUID();
 
                 if (creature->GetEntry() == Creatures::FoeReaper5000)
-                {
                     _foeReaperGUID = creature->GetGUID();
-                    TC_LOG_INFO("scripts", "Foe Reaper created, GUID: {}", _foeReaperGUID.ToString());
-                }
             }
 
             void MarkPlayerHitByFirewall(Player* player)
@@ -102,13 +99,9 @@ namespace Scripts::EasternKingdoms::Deadmines
 
                 // Manually respawn Oaf when Helix encounter resets
                 if (id == DataTypes::BOSS_HELIX_GEARBREAKER && state == NOT_STARTED)
-                {
                     if (Creature* oaf = instance->GetCreature(_oafGUID))
-                    {
                         if (!oaf->IsAlive())
                             oaf->Respawn();
-                    }
-                }
 
                 return true;
             }
