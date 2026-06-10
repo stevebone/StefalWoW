@@ -440,7 +440,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     }
                     case Events::GlubtokCastBlink:
                     {
-                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false))
                         {
                             DoCast(target, Spells::Blink);
                             me->SetReactState(REACT_PASSIVE);
@@ -1311,7 +1311,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _events.RescheduleEvent(Events::OafThrowHelix, 5s);
                         break;
                     }
-                    if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 30.0f, true))
+                    if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 30.0f, false))
                     {
                         if (Vehicle* vehicle = me->GetVehicleKit())
                         {
@@ -2064,14 +2064,14 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Events::FoeReaperOverdriveSwitchTarget:
                         if (me->HasAura(Spells::Overdrive))
                         {
-                            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 150.0f, true))
+                            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 150.0f, false))
                                 me->Attack(target, true);
                             _events.ScheduleEvent(Events::FoeReaperOverdriveSwitchTarget, 1500ms);
                         }
                         break;
                     case Events::FoeReaperHarvest:
                         Talk(Texts::FoeReaperHarvest);
-                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 0.0f, true))
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 0.0f, false))
                         {
                             _harvestActive = true;
                             me->GetMotionMaster()->MovePoint(0, target->GetPosition());
@@ -2172,20 +2172,12 @@ namespace Scripts::EasternKingdoms::Deadmines
                 currentCount++;
                 instance->SetData(Misc::FoeReaperAddCounter, currentCount);
 
-                TC_LOG_INFO("scripts", "Foe Reaper Add died. Current count: {}", currentCount);
-
                 if (currentCount == 4)
                 {
                     ObjectGuid bossGUID = instance->GetGuidData(DataTypes::BOSS_FOE_REAPER_5000);
-                    TC_LOG_INFO("scripts", "Retrieved boss GUID: {}", bossGUID.ToString());
 
                     if (Creature* boss = ObjectAccessor::GetCreature(*me, bossGUID))
-                    {
-                        TC_LOG_INFO("scripts", "Foe Reaper Add died, triggering boss. Boss entry: {}", boss->GetEntry());
                         boss->AI()->DoAction(1);
-                    }
-                    else
-                        TC_LOG_INFO("scripts", "Failed to find boss creature with GUID: {}", bossGUID.ToString());
                 }
             }
         }
