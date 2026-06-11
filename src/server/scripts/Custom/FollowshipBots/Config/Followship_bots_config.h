@@ -45,6 +45,8 @@ struct FollowshipBotsConfig
     static float configFSBPowerRate;
     static float configFSBArmorRate;
     static float configFSBDamageRate;
+    static float configFSBHealthRegenRate;
+    static float configFSBPowerRegenRate;
 
     static void Load();
 };

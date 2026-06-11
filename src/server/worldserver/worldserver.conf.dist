@@ -4512,6 +4512,16 @@ Followship.Bots.PowerRate = 1
 # Values 0.1-2; Default: 1
 Followship.Bots.DamageRate = 1
 
+# Bot Health Regen Rate
+# Increase or decrease the bots health regeneration rate
+# Values 0.1-2; Default: 1
+Followship.Bots.HealthRegenRate = 1
+
+# Bot Power Regen Rate
+# Increase or decrease the bots power (mana) regeneration rate
+# Values 0.1-2; Default: 1
+Followship.Bots.PowerRegenRate = 1
+
 # Followship Bots Logging
 # These follow the standard Trinity format
 Appender.FSB=2,2,0,FSB.log,w

@@ -22,6 +22,7 @@
 
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_config.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_stats_handler.h"
@@ -71,6 +72,9 @@ namespace FSBRegen
                 amount += int32(maxHp * regenMods.pctHealthPerTick);
             }
 
+            // Apply regen rate multiplier
+            amount = int32(amount * FollowshipBotsConfig::configFSBHealthRegenRate);
+
             if (amount > 0)
                 bot->ModifyHealth(amount);
 
@@ -105,6 +109,9 @@ namespace FSBRegen
                 uint32 maxPower = bot->GetMaxPower(POWER_MANA);
                 amount += int32(maxPower * regenMods.pctManaPerTick);
             }
+
+            // Apply regen rate multiplier
+            amount = int32(amount * FollowshipBotsConfig::configFSBPowerRegenRate);
 
             if (amount > 0)
                 bot->ModifyPower(POWER_MANA, amount);

@@ -45,6 +45,8 @@ float FollowshipBotsConfig::configFSBHealthRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRate = 1.f;
 float FollowshipBotsConfig::configFSBDamageRate = 1.f;
 float FollowshipBotsConfig::configFSBArmorRate = 0.4f;
+float FollowshipBotsConfig::configFSBHealthRegenRate = 1.f;
+float FollowshipBotsConfig::configFSBPowerRegenRate = 1.f;
 
 void FollowshipBotsConfig::Load()
 {
@@ -98,4 +100,10 @@ void FollowshipBotsConfig::Load()
 
     configFSBDamageRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.DamageRate", 1.f);
+
+    configFSBHealthRegenRate =
+        sConfigMgr->GetFloatDefault("Followship.Bots.HealthRegenRate", 1.f);
+
+    configFSBPowerRegenRate =
+        sConfigMgr->GetFloatDefault("Followship.Bots.PowerRegenRate", 1.f);
 }
