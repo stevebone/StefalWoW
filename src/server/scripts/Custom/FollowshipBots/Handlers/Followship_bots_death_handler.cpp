@@ -34,11 +34,15 @@
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_death_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_teleport_handler.h"
+#include "Followship_bots_utils.h"
+
+using namespace FSBUtils;
 
 namespace FSBDeath
 {
@@ -128,6 +132,18 @@ namespace FSBDeath
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         bot->RemoveAllAuras();
         hasSS = false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (baseAI)
+        {
+            // Resume follow movement
+            FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+
+            // Set flag for healer classes to check dead units after arriving at player
+            if (BotIsHealerClass(bot))
+                baseAI->botNeedsDeadUnitCheck = true;
+        }
+
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived from Soulstone.", bot->GetName());
     }
 
@@ -157,8 +173,16 @@ namespace FSBDeath
         
         // Remove any death-related auras
         bot->RemoveAllAuras();
-        
+
         FSBMovement::ResumeFollow(bot, fDistance, fAngle);
+
+        // Set flag for resurrect-capable classes to check dead units after arriving at player
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (baseAI && BotIsHealerClass(bot))
+        {
+            baseAI->botNeedsDeadUnitCheck = true;
+        }
+
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botRevived, FSB_ReplyType::Say, FSB_ChatterSource::Bot);

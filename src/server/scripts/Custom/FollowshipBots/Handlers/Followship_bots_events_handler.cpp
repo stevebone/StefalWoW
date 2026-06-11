@@ -29,6 +29,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_death_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
@@ -302,6 +303,11 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     {
         FSBStats::RecalculateStats(bot, true, true);
         TC_LOG_DEBUG("scripts.fsb.events", "FSB: Recalculated stats for bot {} in dungeon", bot->GetName());
+        break;
+    }
+    case FSB_EVENT_DUNGEON_CHECK_DEAD_UNITS:
+    {
+        FSBDungeon::CheckAndQueueDeadUnits(bot, 50.0f);
         break;
     }
 

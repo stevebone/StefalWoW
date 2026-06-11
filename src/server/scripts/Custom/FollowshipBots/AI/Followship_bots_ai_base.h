@@ -111,6 +111,7 @@ public:
     bool botAnnouncedLowMana;
     bool botAnnouncedLowHealth;
     bool botAnnouncedVeryLowHealth;
+    bool botNeedsDeadUnitCheck;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;

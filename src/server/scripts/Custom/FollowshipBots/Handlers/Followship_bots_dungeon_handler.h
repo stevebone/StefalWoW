@@ -43,4 +43,5 @@ namespace FSBDungeon
     bool ShouldDPSInExecutePhase(Creature* bot, Unit* target);
     bool IsBotCaster(Creature* bot);
     bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance);
+    void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
 }

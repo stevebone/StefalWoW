@@ -35,6 +35,8 @@
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_chat_handler.h"
+#include "Followship_bots_death_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -471,6 +473,19 @@ namespace FSBOOC
         if (baseAI->botMoveState == FSB_MOVE_STATE_FOLLOWING && FSBMovement::GetMovementType(bot) != FOLLOW_MOTION_TYPE)
             FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
+        Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        // Check for dead units after arriving at player (for resurrect-capable classes in dungeons)
+        if (baseAI->botNeedsDeadUnitCheck && player)
+        {
+            float distance = bot->GetDistance(player);
+            if (distance < 10.0f) // Close enough to player
+            {
+                FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DUNGEON_CHECK_DEAD_UNITS, 3s, 5s);
+                baseAI->botNeedsDeadUnitCheck = false;
+            }
+        }
+
         // Clear resurrect queue if target is alive
         auto& resurrectQueue = baseAI->botResurrectQueue;
         while (!resurrectQueue.empty())
@@ -487,8 +502,6 @@ namespace FSBOOC
                 break; // Stop at first invalid target
             }
         }
-
-        Player* player = FSBMgr::Get()->GetBotOwner(bot);
         auto& botSitsByFire = baseAI->botSitsByFire;
         auto& botRandomEvent = baseAI->botDoingRandomEvent;
         auto fDistance = baseAI->botFollowDistance;

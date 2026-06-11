@@ -23,6 +23,7 @@
 #include "Log.h"
 #include "Creature.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 
 #include "Followship_bots_defines.h"
 #include "Followship_bots_dungeon_handler.h"
@@ -30,6 +31,10 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_death_handler.h"
+
+using namespace FSBUtils;
+using namespace FSBGroup;
 
 namespace FSBDungeon
 {
@@ -164,5 +169,54 @@ namespace FSBDungeon
 
         float distance = bot->GetDistance(target);
         return distance < minDistance;
+    }
+
+    void CheckAndQueueDeadUnits(Creature* bot, float searchRange)
+    {
+        if (!bot || !bot->IsAlive())
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        // Check if bot is a resurrect-capable class (healer class)
+        if (!BotIsHealerClass(bot))
+            return;
+
+        auto& resurrectQueue = baseAI->botResurrectQueue;
+
+        // Build logical bot group (owner, bot, and other bots owned by same player)
+        std::vector<Unit*> botGroup;
+        BuildLogicalBotGroup(bot, botGroup);
+
+        for (Unit* unit : botGroup)
+        {
+            if (!unit || unit->IsAlive())
+                continue;
+
+            if (bot->GetDistance(unit) > searchRange)
+                continue;
+
+            // Check if already in queue
+            bool alreadyInQueue = false;
+            std::queue<ObjectGuid> tempQueue = resurrectQueue;
+            while (!tempQueue.empty())
+            {
+                if (tempQueue.front() == unit->GetGUID())
+                {
+                    alreadyInQueue = true;
+                    break;
+                }
+                tempQueue.pop();
+            }
+
+            if (alreadyInQueue)
+                continue;
+
+            // Add to resurrect queue
+            FSBDeath::AddToHealerResurrectQueue(unit, bot);
+            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: CheckAndQueueDeadUnits Bot {} added dead unit {} to resurrect queue", bot->GetName(), unit->GetName());
+        }
     }
 }
