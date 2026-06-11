@@ -1993,10 +1993,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             _harvestActive = false;
             instance->SetData(Misc::FoeReaperAddCounter, 0); // Reset counter for starting encounter
 
-            me->AddAura(Spells::Offline, me);
-            me->RemoveAurasDueToSpell(Spells::RedEyes);
-            me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_STUNNED));
-
             if (IsHeroic())
                 me->SummonCreature(Creatures::PrototypeReaper, Positions::PrototypeSpawn, TEMPSUMMON_MANUAL_DESPAWN);
 
@@ -2009,6 +2005,13 @@ namespace Scripts::EasternKingdoms::Deadmines
         void JustSummoned(Creature* summon) override
         {
             _summons.Summon(summon);
+        }
+
+        void JustReachedHome() override
+        {
+            me->AddAura(Spells::Offline, me);
+            me->RemoveAurasDueToSpell(Spells::RedEyes);
+            me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_STUNNED));
         }
 
         void DoAction(int32 action) override
