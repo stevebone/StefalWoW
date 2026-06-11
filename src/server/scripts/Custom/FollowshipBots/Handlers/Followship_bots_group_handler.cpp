@@ -225,10 +225,6 @@ namespace FSBGroup
             }
         }
 
-        // Optional: sort by urgency (lowest HP first)
-        std::sort(candidates.begin(), candidates.end(),
-            [](Unit* a, Unit* b) { return a->GetHealthPct() < b->GetHealthPct(); });
-
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
         return candidates;
     }
@@ -238,21 +234,22 @@ namespace FSBGroup
         if (!unit)
             return 0.f;
 
+        float hpUrgency = 100.f - unit->GetHealthPct();
+
         // Get role (works for any bot)
         FSB_Roles role = FSBMgr::Get()->GetRole(unit->ToCreature());
 
-        // Assign priority values (higher = more urgent)
+        // Assign base priority values (higher = more urgent)
+        float rolePriority = 50.f;
         if (role == FSB_ROLE_HEALER)           // healer
-            return 80.f;
-        if (role == FSB_ROLE_TANK)             // tank
-            return 100.f;
+            rolePriority = 80.f;
+        else if (role == FSB_ROLE_TANK)        // tank
+            rolePriority = 100.f;
+        else if (unit->IsPlayer())             // player
+            rolePriority = 90.f;
 
-        // If player, slightly lower than tank
-        if (unit->IsPlayer())
-            return 90.f;
-
-        // Default: based on missing health percentage
-        return 50.f + (100.f - unit->GetHealthPct()); // 50..150 based on HP
+        // Combine role priority with HP urgency
+        return rolePriority + hpUrgency;
     }
     void SortEmergencyTargets(std::vector<Unit*>& targets)
     {

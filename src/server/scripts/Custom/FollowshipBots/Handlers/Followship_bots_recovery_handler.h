@@ -30,6 +30,11 @@
 constexpr float BOT_RECOVERY_HP_PCT = 50.f;
 constexpr float BOT_RECOVERY_MP_PCT = 50.f;
 
+constexpr float DefaultHpRecoveryThreshold = 70.f;
+constexpr float DefaultManaRecoveryThreshold = 75.f;
+constexpr float DungeonHpRecoveryThreshold = 90.f;
+constexpr float DungeonManaRecoveryThreshold = 95.f;
+
 
 
 

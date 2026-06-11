@@ -28,6 +28,7 @@
 #include "Followship_bots_druid.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_recovery_handler.h"
@@ -41,14 +42,18 @@ namespace FSBRecovery
 
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: RecoveryHandler TryRecover intent check for: {}", bot->GetName());
 
-        bool lowHP = bot->GetHealthPct() < BOT_RECOVERY_HP_PCT;
+        bool inDungeon = FSBDungeon::IsBotInDungeon(bot);
+        float hpThreshold = inDungeon ? DungeonHpRecoveryThreshold : DefaultHpRecoveryThreshold;
+        float manaThreshold = inDungeon ? DungeonManaRecoveryThreshold : DefaultManaRecoveryThreshold;
+
+        bool lowHP = bot->GetHealthPct() < hpThreshold;
 
         // Determine if this bot uses mana at all
         bool usesMana = bot->GetMaxPower(POWER_MANA) > 0;
 
         bool lowMana = false;
         if (usesMana)
-            lowMana = bot->GetPowerPct(POWER_MANA) < BOT_RECOVERY_MP_PCT;
+            lowMana = bot->GetPowerPct(POWER_MANA) < manaThreshold;
 
         if (lowHP && lowMana)
             return BotRecoveryIntent::RecoverHealthAndMana;

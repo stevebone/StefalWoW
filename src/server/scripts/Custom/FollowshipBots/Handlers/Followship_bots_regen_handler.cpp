@@ -44,9 +44,23 @@ namespace FSBRegen
         // ---------- HEALTH ----------
         if (doHealth && bot->GetHealthPct() < 100)
         {
-            int32 baseHpRegen = inCombat
-                ? classStats->baseHpRegenIC
-                : classStats->baseHpRegenOOC;
+            int32 baseHpRegen;
+
+            if (!inCombat)
+            {
+                // Use player-like formula for OOC regen based on level
+                uint8 level = bot->GetLevel();
+                uint32 maxHp = bot->GetMaxHealth();
+
+                if (level < 15)
+                    baseHpRegen = int32(0.20f * maxHp / level);
+                else
+                    baseHpRegen = int32(0.015f * maxHp);
+            }
+            else
+            {
+                baseHpRegen = classStats->baseHpRegenIC;
+            }
 
             int32 amount = baseHpRegen + regenMods.flatHealthPerTick;
 
@@ -66,9 +80,23 @@ namespace FSBRegen
         // ---------- POWER ----------
         if (doMana && bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) < 100)
         {
-            int32 basePowerRegen = inCombat
-                ? classStats->basePowerRegenIC
-                : classStats->basePowerRegenOOC;
+            int32 basePowerRegen;
+
+            if (!inCombat)
+            {
+                // Use player-like formula for OOC mana regen based on level
+                uint8 level = bot->GetLevel();
+                uint32 maxPower = bot->GetMaxPower(POWER_MANA);
+
+                if (level < 15)
+                    basePowerRegen = int32(0.15f * maxPower / level);
+                else
+                    basePowerRegen = int32(0.01f * maxPower);
+            }
+            else
+            {
+                basePowerRegen = classStats->basePowerRegenIC;
+            }
 
             int32 amount = basePowerRegen + regenMods.flatManaPerTick;
 
