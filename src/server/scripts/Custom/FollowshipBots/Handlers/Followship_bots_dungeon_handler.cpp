@@ -29,6 +29,7 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_mgr.h"
 
 namespace FSBDungeon
 {
@@ -127,5 +128,41 @@ namespace FSBDungeon
 
         float bossHpPct = target->GetHealthPct();
         return bossHpPct < 15.0f;
+    }
+
+    bool IsBotCaster(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        FSB_Roles role = FSBMgr::Get()->GetRole(bot);
+
+        return role == FSB_ROLE_RANGED_ARCANE ||
+               role == FSB_ROLE_RANGED_FIRE ||
+               role == FSB_ROLE_RANGED_FROST ||
+               role == FSB_ROLE_RANGED_DAMAGE ||
+               role == FSB_ROLE_RANGED_DESTRUCTION ||
+               role == FSB_ROLE_RANGED_AFFLICTION ||
+               role == FSB_ROLE_RANGED_DEMONOLOGY ||
+               role == FSB_ROLE_ASSIST ||
+               role == FSB_ROLE_HEALER;
+    }
+
+    bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance)
+    {
+        if (!bot || !target)
+            return false;
+
+        if (!IsBotCaster(bot))
+            return false;
+
+        if (!IsBotInDungeon(bot))
+            return false;
+
+        if (!IsTargetBoss(bot, target))
+            return false;
+
+        float distance = bot->GetDistance(target);
+        return distance < minDistance;
     }
 }

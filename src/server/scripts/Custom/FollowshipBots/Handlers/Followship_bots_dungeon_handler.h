@@ -41,4 +41,6 @@ namespace FSBDungeon
     bool ShouldPreserveMana(Creature* bot);
     bool IsTargetBoss(Creature* bot, Unit* target);
     bool ShouldDPSInExecutePhase(Creature* bot, Unit* target);
+    bool IsBotCaster(Creature* bot);
+    bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance);
 }

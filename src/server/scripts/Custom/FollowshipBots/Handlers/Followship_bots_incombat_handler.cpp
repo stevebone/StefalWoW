@@ -159,6 +159,12 @@ namespace FSBIC
         if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
 
+        if (FSBDungeon::ShouldMaintainBossDistance(bot, target, DungeonBossMinDistance))
+        {
+            FSBMovement::EnsureUnitDistance(bot, target, DungeonBossMinDistance);
+            return false;
+        }
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return false;

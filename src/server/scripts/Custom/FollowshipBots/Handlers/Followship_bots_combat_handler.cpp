@@ -27,6 +27,7 @@
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 
 namespace FSBCombat
 {
@@ -236,6 +237,9 @@ namespace FSBCombat
             return false;
 
         if (!bot->IsInCombat())
+            return false;
+
+        if (FSBDungeon::IsBotInDungeon(bot))
             return false;
 
         Unit* target = bot->GetVictim();

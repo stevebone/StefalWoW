@@ -287,4 +287,36 @@ namespace FSBMovement
 
         return true;
     }
+
+    bool EnsureUnitDistance(Creature* bot, Unit* target, float minDistance)
+    {
+        if (!bot || !target || !target->IsAlive())
+            return false;
+
+        float dist = bot->GetDistance(target);
+
+        // Already at minimum distance or further
+        if (dist >= minDistance)
+            return false;
+
+        MotionMaster* mm = bot->GetMotionMaster();
+        if (!mm)
+            return false;
+
+        // Avoid restarting the same chase every tick
+        if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+            return true;
+
+        mm->Clear();
+        bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
+
+        // Move to minimum distance with random angle
+        float angle = frand(-2.f, 2.f);
+        float tolerance = float(M_PI * 2);
+        mm->MoveChase(target, ChaseRange(0.f, minDistance), ChaseAngle(angle, tolerance));
+
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureUnitDistance Bot {} moving to {:.1f} yards from {}", bot->GetName(), minDistance, target->GetName());
+
+        return true;
+    }
 }
