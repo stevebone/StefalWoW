@@ -50,14 +50,14 @@ UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); --
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
 48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208);
 INSERT INTO `creature_template_difficulty` VALUES
-(43778, 1, 1, 1, 202, 0, 5, 1, 1, 1, 51015, 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
-(43778, 2, 2, 2, 1199, 0, 10, 1, 1, 5, 51015, 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(43778, 1, 1, 1, 202, 0, 5, 1, 1, 1, 48941 , 32872, 128, 0, 4377801, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45338), -- 51015
+(43778, 2, 2, 2, 1199, 0, 10, 1, 1, 2, 48941 , 32872, 128, 0, 4377802, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (43778, 24, 2, 2, 2872, 3, 5, 1, 1, 3, 51016, 32872, 128, 0, 4377824, 0, 0, 20008, 20008, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Foe Reaper 5000
-(47403, 1, 0, 0, 202, 0, 5, 1, 1, 1, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
-(47403, 2, 1, 1, 1199, 0, 10, 1, 1, 3, 43481, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47403, 1, 0, 0, 202, 0, 2, 1, 1, 1, 48804, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338), -- 43481
+(47403, 2, 1, 1, 1199, 0, 3, 1, 1, 2, 48804, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
 (47403, 24, 1, 1, 2872, 3, 3, 1, 1, 3, 43482, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Reaper
-(47404, 1, 0, 0, 202, 0, 1, 1, 1, 1, 43476, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
-(47404, 2, 1, 1, 1199, 0, 3, 1, 1, 3, 43476, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47404, 1, 0, 0, 202, 0, 5, 1, 1, 1, 48803, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45338),
+(47404, 2, 1, 1, 1199, 0, 7, 1, 1, 2, 48803, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745), -- 43476
 (47404, 24, 1, 1, 2872, 3, 3, 1, 1, 3, 43477, 32768, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Watcher
 (49208, 1, 0, 0, 202, 0, 3, 1, 1, 3, 40112, 4096, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (49208, 2, 0, 0, 1199, 0, 5, 1, 1, 5, 40112, 4096, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
@@ -152,6 +152,7 @@ INSERT INTO `creature_template_difficulty` VALUES
 UPDATE `creature_template_addon` SET `PvPFlags` = 16, `emote` = 648 WHERE `entry` = 48229; -- Kobolds mining emote
 UPDATE `creature_template_addon` SET `emote` = 648 WHERE `entry` IN (48440,48441,48442,48278); -- Mining monkeys emote - allow weapon to be seen
 UPDATE `creature_template_addon` SET `auras` = '92001' WHERE `entry` = 48418; -- Defias Envoker Aura
+UPDATE `creature_template_addon` SET `auras` = '87239 88348' WHERE `entry` = 43778; -- Foe Reaper 5000 auras
 
 -- Spawn Updates
 UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
@@ -179,6 +180,10 @@ UPDATE `creature` SET `modelid` = 0 WHERE `id` = 48420 AND `map` = 36; -- remove
 
 -- Delete Prototype Reaper as it spawns by boss AI
 DELETE FROM `creature` WHERE `id` = 49208 and `map` = 36;
+
+-- Delete Defias Watcher and Reaper as they are spawned by boss AI
+-- This is needed for boss reset since encounter always starts after the 4 harvesters are dead
+DELETE FROM `creature` WHERE `id` IN (47403, 47404) and `map` = 36;
 
 -- Spawn Addons
 DELETE FROM `creature_addon` WHERE `guid` IN (375906,376023,376240,375827,376022);
@@ -233,6 +238,24 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 (48445, 0, 0, 0, '', 4, 100, 0, 0, 0, 0, 11, 90098, 2, 'Oaf Lackey Cast Axe to the Head on Aggro'),
 (48445, 0, 1, 2, '', 2, 100, 0, 30, 1000, 1000, 11, 8599, 1, 'Oaf Lackey Cast Enrage at 30% HP'),
 (48445, 0, 2, 0, '', 61, 100, 0, 0, 0, 0, 1, 0, 1, 'Oaf Lackey Say Text at 30% HP');
+
+ -- Deadmines Foe Reaper Targeting Bunny smart ai
+SET @ENTRY := 47468;
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
+(@ENTRY, 0, 0, 0, 11, 0, 100, 0, 0, 36, 0, 0, 0, 11, 71371, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Cast spell  71371 on Self', '');
+
+ -- Molten Slag smart ai
+SET @ENTRY := 49229;
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
+(@ENTRY, 0, 0, 1, 11, 0, 100, 0, 0, 36, 0, 0, 0, 11, 91815, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Cast spell  91815 on Self', ''),
+(@ENTRY, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 25, 100, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Attack Closest enemy creature in 50 yards', ''),
+(@ENTRY, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 86, 91830, 0, 1, 0, 0, 0, 0, 25, 100, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Cast spell  91830 at Closest enemy creature in 100 yards', '');
+
+
 
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;

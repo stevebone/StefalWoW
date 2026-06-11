@@ -1986,9 +1986,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         void Reset() override
         {
             BossAI::Reset();
+
+            _events.Reset();
             _summons.DespawnAll();
             _safetyOfflineCast = false;
             _harvestActive = false;
+            instance->SetData(Misc::FoeReaperAddCounter, 0); // Reset counter for starting encounter
 
             me->AddAura(Spells::Offline, me);
             me->RemoveAurasDueToSpell(Spells::RedEyes);
@@ -1996,6 +1999,11 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (IsHeroic())
                 me->SummonCreature(Creatures::PrototypeReaper, Positions::PrototypeSpawn, TEMPSUMMON_MANUAL_DESPAWN);
+
+            me->SummonCreature(Creatures::DefiasWatcher, Positions::FoeReaper5000AddSpawns[0], TEMPSUMMON_MANUAL_DESPAWN);
+            me->SummonCreature(Creatures::DefiasReaper,  Positions::FoeReaper5000AddSpawns[1], TEMPSUMMON_MANUAL_DESPAWN);
+            me->SummonCreature(Creatures::DefiasWatcher, Positions::FoeReaper5000AddSpawns[2], TEMPSUMMON_MANUAL_DESPAWN);
+            me->SummonCreature(Creatures::DefiasReaper,  Positions::FoeReaper5000AddSpawns[3], TEMPSUMMON_MANUAL_DESPAWN);
         }
 
         void JustSummoned(Creature* summon) override
@@ -2103,6 +2111,13 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (!UpdateVictim())
                 return;
+
+            // Fix needed if we have bots that are reviving at dungeon entrance and boss still in combat
+            // This will force the boss to reset
+            if (Unit* victim = me->GetVictim())
+                if (victim && victim->IsBot())
+                    if (me->GetDistance2d(victim) > 200.f)
+                        me->GetThreatManager().ResetThreat(victim);
 
             // Add melee here if needed
         }

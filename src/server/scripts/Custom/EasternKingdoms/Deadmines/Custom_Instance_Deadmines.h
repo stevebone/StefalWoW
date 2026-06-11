@@ -514,12 +514,20 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Foe Reaper Encounter
         static constexpr Position PrototypeSpawn = { -200.499f, -553.946f, 51.2295f, 4.32651f };
 
+        static constexpr Position FoeReaper5000AddSpawns[4] =
+        {
+            { -228.675f, -565.753f, 19.3898f, 5.98648f },
+            { -182.743f, -565.969f, 19.3898f, 3.35103f },
+            { -205.535f, -552.747f, 19.3898f, 4.53786f },
+            { -229.724f, -590.372f, 19.3898f, 0.715585f }
+        };
+
         static constexpr Position MoltenSlagSpawn[4] =
         {
-            { -205.582f, -572.034f, 20.97f, 1.59f},
-            { -199.143f, -579.843f, 20.97f, 6.16f},
-            { -206.385f, -585.898f, 20.97f, 5.17f},
-            { -212.704f, -579.072f, 20.97f, 3.09f}
+            { -205.582f, -572.034f, 20.97f, 1.59f },
+            { -199.143f, -579.843f, 20.97f, 6.16f },
+            { -206.385f, -585.898f, 20.97f, 5.17f },
+            { -212.704f, -579.072f, 20.97f, 3.09f }
         };
     }
 
