@@ -60,7 +60,7 @@ public:
 
     struct npc_followship_botsAI : public FSB_BaseAI
     {
-        npc_followship_botsAI(Creature* creature) : FSB_BaseAI(creature)
+        npc_followship_botsAI(Creature* creature) : FSB_BaseAI(creature), _summons(creature)
         {
             // Runs once when creature is spawned
             static bool tablesInitialized = false;
@@ -348,8 +348,12 @@ public:
             TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustEngagedWith() triggered for bot: {}", me->GetName());
         }
 
-        void JustEnteredCombat(Unit* /*who*/) override
+        void JustEnteredCombat(Unit* who) override
         {
+            for (ObjectGuid const& guid : _summons)
+                if (Creature* summon = ObjectAccessor::GetCreature(*me, guid))
+                    if (summon->IsAlive())
+                        summon->EngageWithTarget(who);
         }
 
         void JustExitedCombat() override
@@ -444,7 +448,8 @@ public:
                 botHasDemon = true;
                 TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustSummoned Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
             }
-                
+
+            _summons.Summon(summon);
         }
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
@@ -454,6 +459,9 @@ public:
                 botHasDemon = false;
                 TC_LOG_DEBUG("scripts.fsb.general", "FSB: SummonedCreatureDies Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
             }
+
+            if(summon)
+                _summons.Despawn(summon);
         }
 
         void JustDied(Unit* killer) override // Runs once when creature dies
@@ -711,6 +719,7 @@ public:
         private:
             EventMap events;
             ObjectGuid _playerGuid;
+            SummonList _summons;
 
 
             uint32 hireTimeLeft = 0;
