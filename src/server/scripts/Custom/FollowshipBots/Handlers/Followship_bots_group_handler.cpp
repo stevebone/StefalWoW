@@ -178,7 +178,7 @@ namespace FSBGroup
 
         for (Unit* member : baseAI->botLogicalGroup)
         {
-            if (!member || !member->IsInWorld())
+            if (!member || !member->IsInWorld() || member->IsDuringRemoveFromWorld())
                 continue;
 
             // Scan all auras on the member
