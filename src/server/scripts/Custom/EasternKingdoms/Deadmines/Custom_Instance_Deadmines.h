@@ -112,6 +112,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 DefiasReaper = 47403;
         static constexpr uint32 DefiasWatcher = 47404;
         static constexpr uint32 PrototypeReaper = 49208;
+        static constexpr uint32 MoltenSlag = 49229;
         static constexpr uint32 GeneralPurposeBunny = 47242;
 
         // Entrance Event

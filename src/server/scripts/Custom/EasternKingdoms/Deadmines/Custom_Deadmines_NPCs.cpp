@@ -1981,6 +1981,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         boss_foe_reaper_5000(Creature* creature) : BossAI(creature, DataTypes::BOSS_FOE_REAPER_5000), _summons(creature)
         {
             ApplyCrowdControlImmunities(creature);
+            me->AddAura(Spells::Offline, me);
+            me->SetUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_STUNNED));
         }
 
         void Reset() override
@@ -2070,7 +2072,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                         if (IsHeroic())
                         {
                             uint32 randomIndex = urand(0, 3);
-                            me->CastSpell(Positions::MoltenSlagSpawn[randomIndex], Spells::FoeMoltenSlag);
+                            me->SummonCreature(Creatures::MoltenSlag, Positions::MoltenSlagSpawn[randomIndex], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30s);
                         }
                         _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 15s);
                         break;
