@@ -293,7 +293,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_HIRED_LEAVE:
     {
-        me->GetMotionMaster()->MovePoint(1, me->GetRandomPoint(me->GetPosition(), 50.0f));
+        me->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_HIRED_LEAVE, me->GetRandomPoint(me->GetPosition(), 50.0f));
         me->DespawnOrUnsummon(10s);
 
         break;

@@ -27,6 +27,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
 
@@ -259,7 +260,7 @@ namespace FSBDruid
             {
                 //float x, y, z;
                 //bot->GetRandomPoint(bot->GetPosition(), 10.0f, x, y, z);
-                bot->GetMotionMaster()->MovePoint(3, bot->GetPositionX() + frand(-10.f, 10.f), bot->GetPositionY(), bot->GetPositionZ());
+                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_DRUID_ROOTS_ESCAPE, bot->GetPositionX() + frand(-10.f, 10.f), bot->GetPositionY(), bot->GetPositionZ());
             }
             break;
         }

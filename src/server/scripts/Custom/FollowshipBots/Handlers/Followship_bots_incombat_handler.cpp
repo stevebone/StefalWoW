@@ -49,6 +49,14 @@ namespace FSBIC
         if (bot->HasUnitState(UNIT_STATE_CASTING))
             return false;
 
+        // Check and maintain distance from boss in dungeons (for casters)
+        Unit* target = bot->GetVictim();
+        if (target && target->IsAlive() && FSBDungeon::ShouldMaintainBossDistance(bot, target, DungeonBossMinDistance))
+        {
+            FSBMovement::EnsureUnitDistance(bot, target, DungeonBossMinDistance);
+            return false;
+        }
+
         //1. IC Potions
         // These can be cast instant with no GCD
         if (BotICPotions(bot, botManaPotionUsed, botHealthPotionUsed))
@@ -158,12 +166,6 @@ namespace FSBIC
         Unit* target = bot->GetVictim();
         if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
-
-        if (FSBDungeon::ShouldMaintainBossDistance(bot, target, DungeonBossMinDistance))
-        {
-            FSBMovement::EnsureUnitDistance(bot, target, DungeonBossMinDistance);
-            return false;
-        }
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)

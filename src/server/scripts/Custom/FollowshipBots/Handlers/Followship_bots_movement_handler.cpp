@@ -303,19 +303,18 @@ namespace FSBMovement
         if (!mm)
             return false;
 
-        // Avoid restarting the same chase every tick
-        if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
-            return true;
+        // Calculate position away from target
+        float angle = bot->GetAbsoluteAngle(target);
+        float moveAngle = angle + float(M_PI); // Move in opposite direction
+        float moveDistance = minDistance - dist + 2.0f; // Move slightly past minDistance to ensure distance
+
+        Position pos = target->GetNearPosition(moveDistance, moveAngle);
 
         mm->Clear();
         bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
+        mm->MovePoint(MOVEMENT_POINT_BOSS_DISTANCE, pos);
 
-        // Move to minimum distance with random angle
-        float angle = frand(-2.f, 2.f);
-        float tolerance = float(M_PI * 2);
-        mm->MoveChase(target, ChaseRange(0.f, minDistance), ChaseAngle(angle, tolerance));
-
-        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureUnitDistance Bot {} moving to {:.1f} yards from {}", bot->GetName(), minDistance, target->GetName());
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureUnitDistance Bot {} moving away from {} to maintain {:.1f} yards distance", bot->GetName(), target->GetName(), minDistance);
 
         return true;
     }
