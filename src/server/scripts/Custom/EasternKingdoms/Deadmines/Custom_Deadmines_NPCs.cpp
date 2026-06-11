@@ -2117,13 +2117,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (!UpdateVictim())
                 return;
 
-            // Fix needed if we have bots that are reviving at dungeon entrance and boss still in combat
-            // This will force the boss to reset
-            if (Unit* victim = me->GetVictim())
-                if (victim && victim->IsBot())
-                    if (me->GetDistance2d(victim) > 200.f)
-                        me->GetThreatManager().ResetThreat(victim);
-
             // Add melee here if needed
         }
 

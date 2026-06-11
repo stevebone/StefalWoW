@@ -152,13 +152,6 @@ namespace FSBDeath
         if (!bot || bot->IsAlive())
             return;
 
-        for (ThreatReference const* threatRef : bot->GetThreatManager().GetUnsortedThreatList())
-        {
-            if (Unit* threateningUnit = threatRef->GetVictim())
-            {
-                threateningUnit->GetThreatManager().ResetThreat(bot);
-            }
-        }
         bot->GetThreatManager().ResetAllThreat();
 
         bot->setDeathState(ALIVE);
