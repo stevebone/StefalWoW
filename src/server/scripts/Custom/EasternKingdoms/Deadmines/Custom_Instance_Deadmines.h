@@ -353,6 +353,11 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 HarvestTargetVisual = 71371;
         static constexpr uint32 HarvestSweep = 88521;
         static constexpr uint32 SafetyOffline = 88522;
+
+        // Prototype Reaper
+        static constexpr uint32 PrototypeReaperCharge = 91726;
+        static constexpr uint32 PrototypeReaperReaperStrike = 91723;
+        static constexpr uint32 PrototypeReaperPressurizedStrike = 91727;
     }
 
     namespace Events

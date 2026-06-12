@@ -27,6 +27,7 @@ namespace FSBMovement
     // Movement point IDs
     static constexpr uint32 MOVEMENT_POINT_BOSS_DISTANCE = 0;
     static constexpr uint32 MOVEMENT_POINT_HIRED_LEAVE = 1;
+    static constexpr uint32 MOVEMENT_POINT_DEADMINES_VEHICLE = 2;
     static constexpr uint32 MOVEMENT_POINT_DRUID_ROOTS_ESCAPE = 3;
 
     FSB_MovementStates GetBotMoveState(Creature* bot);

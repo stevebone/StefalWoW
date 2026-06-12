@@ -67,6 +67,8 @@ public:
         botAnnouncedLowMana(false),
         botAnnouncedLowHealth(false),
         botAnnouncedVeryLowHealth(false),
+        botInVehicle(false),
+        botNeedsDeadUnitCheck(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
@@ -111,6 +113,7 @@ public:
     bool botAnnouncedLowMana;
     bool botAnnouncedLowHealth;
     bool botAnnouncedVeryLowHealth;
+    bool botInVehicle;
     bool botNeedsDeadUnitCheck;
 
     uint32 botGlobalCooldown;
@@ -124,6 +127,8 @@ public:
     uint32 DungeonID = 0;
 
     Position botCorpsePos;
+
+    ObjectGuid botVehicleCombatTarget;
 
     std::queue<ObjectGuid> botResurrectQueue;
 

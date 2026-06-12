@@ -465,6 +465,9 @@ namespace FSBOOC
         baseAI->botAnnouncedLowHealth = false;
         baseAI->botAnnouncedVeryLowHealth = false;
 
+        if (baseAI->botInVehicle && !bot->GetVehicle())
+            baseAI->botInVehicle = false;
+
         baseAI->botManaPotionUsed = false;
         baseAI->botHealthPotionUsed = false;
         baseAI->botCastedCombatBuffs = false;

@@ -23,13 +23,17 @@
 #include "DB2Stores.h"
 #include "GameObject.h"
 #include "Log.h"
+#include "ObjectAccessor.h"
+#include "Player.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_dungeon_handler.h"
+
+#include "Custom_Instance_Deadmines.h"
 
 #include "Followship_bots_death_handler.h"
-#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
@@ -135,6 +139,76 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     case FSB_EVENT_HIRED_RESURRECT_TARGET:
         FSBDeath::ProcessResurrectQueue(bot);
         break;
+
+    case FSBEvents::EVENT_DM_ENTER_PROTOTYPE_REAPER:
+    {
+        Creature* prototypeReaper = bot->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::PrototypeReaper, FSBDungeon::Deadmines::PROTOTYPE_REAPER_RANGE);
+        if (prototypeReaper && prototypeReaper->GetVehicleKit())
+        {
+            if (!prototypeReaper->GetVehicleKit()->GetPassenger(0))
+            {
+                bot->EnterVehicle(prototypeReaper, 0);
+                ai->botInVehicle = true;
+                prototypeReaper->SetFaction(bot->GetFaction());
+
+                Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+                if (owner)
+                {
+                    prototypeReaper->GetMotionMaster()->Clear();
+                    prototypeReaper->GetMotionMaster()->MoveFollow(owner, 5.0f, PET_FOLLOW_ANGLE);
+                    ai->botMoveState = FSB_MOVE_STATE_FOLLOWING;
+                }
+
+                ai->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
+            }
+        }
+        break;
+    }
+
+    case FSBEvents::EVENT_DM_REAPER_STRIKE:
+    {
+        if (bot->GetVehicle())
+        {
+            Unit* vehicle = bot->GetVehicleBase();
+            if (!vehicle)
+                break;
+
+            if (Creature* vehicleCreature = vehicle->ToCreature())
+            {
+                Unit* target = ObjectAccessor::GetUnit(*bot, ai->botVehicleCombatTarget);
+                if (target && target->IsAlive())
+                    vehicleCreature->CastSpell(target, Scripts::EasternKingdoms::Deadmines::Spells::PrototypeReaperReaperStrike, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            }
+        }
+        break;
+    }
+
+    case FSBEvents::EVENT_DM_PRESSURIZED_STRIKE:
+    {
+        if (bot->GetVehicle())
+        {
+            Unit* vehicle = bot->GetVehicleBase();
+            if (vehicle)
+            {
+                if (Creature* vehicleCreature = vehicle->ToCreature())
+                {
+                    Unit* target = ObjectAccessor::GetUnit(*bot, ai->botVehicleCombatTarget);
+                    if (target && target->IsAlive())
+                        vehicleCreature->CastSpell(target, Scripts::EasternKingdoms::Deadmines::Spells::PrototypeReaperPressurizedStrike, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+                }
+            }
+        }
+
+        // End of the cast cycle: continue the combat loop
+        ai->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
+        break;
+    }
+
+    case FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK:
+    {
+        FSBDungeon::Deadmines::HandleVehicleCombatCheck(bot);
+        break;
+    }
 
     case FSB_EVENT_HIRED_RESUME_FOLLOW:
     {
@@ -308,6 +382,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     case FSB_EVENT_DUNGEON_CHECK_DEAD_UNITS:
     {
         FSBDungeon::CheckAndQueueDeadUnits(bot, 50.0f);
+        break;
+    }
+
+    case FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER:
+    {
+        FSBDungeon::Deadmines::CheckPrototypeReaperEntry(bot);
         break;
     }
 

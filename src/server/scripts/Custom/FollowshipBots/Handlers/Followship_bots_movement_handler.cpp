@@ -306,7 +306,9 @@ namespace FSBMovement
         // Calculate position away from target
         float angle = bot->GetAbsoluteAngle(target);
         float moveAngle = angle + float(M_PI); // Move in opposite direction
-        float moveDistance = minDistance - dist + 2.0f; // Move slightly past minDistance to ensure distance
+        // GetDistance() is combat-reach-adjusted but GetNearPosition() measures from the target's center,
+        // so the destination must include both units' combat reach or the check keeps triggering (reposition loop)
+        float moveDistance = minDistance + bot->GetCombatReach() + target->GetCombatReach() + 2.0f;
 
         Position pos = target->GetNearPosition(moveDistance, moveAngle);
 

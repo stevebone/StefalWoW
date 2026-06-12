@@ -43,10 +43,17 @@ enum FSB_BOT_EVENTS
     FSB_EVENT_RANDOM_ACTION_FINISH,
     FSB_EVENT_DUNGEON_STATS_RECALCULATE,
     FSB_EVENT_DUNGEON_CHECK_DEAD_UNITS,
+    FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER,
 };
 
 namespace FSBEvents
 {
+    // Dungeon Events
+    static constexpr int8 EVENT_DM_ENTER_PROTOTYPE_REAPER = 100;
+    static constexpr int8 EVENT_DM_REAPER_STRIKE = 101;
+    static constexpr int8 EVENT_DM_PRESSURIZED_STRIKE = 102;
+    static constexpr int8 EVENT_DM_VEHICLE_COMBAT_CHECK = 103;
+
     // Wrapper for scheduling a bot event directly from Creature*
     void ScheduleBotEvent(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime = std::chrono::milliseconds(0));
     void ScheduleBotEventWithChatter(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime, FSB_ReplyType replyType, std::string chatterReply, Unit* target);

@@ -37,6 +37,7 @@
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_death_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_group_handler.h"
@@ -555,7 +556,7 @@ public:
         {
             FSBCombat::EvaluateAttackNeeded(me);
             FSBCombat::SetOwnerTapToVictim(me);
-            
+
             events.Update(diff);
             botEvents.Update(diff);
 
@@ -586,7 +587,7 @@ public:
 
                             // ? lock regen for next 2 seconds
                             _nextRegenMs = now + 2000;
-                            
+
                         }
                     }
 
@@ -601,6 +602,10 @@ public:
                     }
 
                     FSBParty::PeriodicPartyNeededCheck(me);
+
+                    // Schedule Deadmines Prototype Reaper check if in heroic Deadmines
+                    if (FSBDungeon::IsBotInDungeon(me) && me->GetMapId() == FSBDungeon::Maps::Deadmines && me->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER, 1s);
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
@@ -680,7 +685,11 @@ public:
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
                     if (me->IsAlive() && me->IsInCombat())
-                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
+                    {
+                        // Vehicle combat is handled by the self-scheduling EVENT_DM_VEHICLE_COMBAT_CHECK loop
+                        if (!botInVehicle)
+                            FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
+                    }
 
                     if (botClass == FSB_Class::Hunter && FSBPet::BotHasPet(me))
                         FSBPet::DoAttackSpell(me);

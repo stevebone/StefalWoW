@@ -20,21 +20,21 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Maps
-{
-    static constexpr uint32 Deadmines = 36;
-}
-
-namespace Creatures
-{
-    namespace Deadmines
-    {
-        static constexpr uint32 BossIds[] = { 47162, 47296, 43778, 47626, 47739, 43908 };
-    }
-}
-
 namespace FSBDungeon
 {
+    namespace Maps
+    {
+        static constexpr uint32 Deadmines = 36;
+    }
+
+    namespace Creatures
+    {
+        namespace Deadmines
+        {
+            static constexpr uint32 BossIds[] = { 47162, 47296, 43778, 47626, 47739, 43908 };
+        }
+    }
+
     uint32 GetBotDungeonId(Creature* bot);
     void UpdateBotDungeonId(Creature* bot);
     bool IsBotInDungeon(Creature* bot);
@@ -44,4 +44,13 @@ namespace FSBDungeon
     bool IsBotCaster(Creature* bot);
     bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance);
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
+
+    namespace Deadmines
+    {
+        static constexpr float PROTOTYPE_REAPER_RANGE = 30.0f;
+        static constexpr float BOSS_DISTANCE = 20.0f;
+
+        void CheckPrototypeReaperEntry(Creature* bot);
+        void HandleVehicleCombatCheck(Creature* bot);
+    }
 }
