@@ -441,6 +441,22 @@ namespace FSBSpells
         return false;
     }
 
+    SpellCastResult BotCastSpellWithResult(Creature* bot, uint32 spellId, Unit* target)
+    {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())
+            return SPELL_FAILED_ERROR;
+
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return SPELL_FAILED_BAD_TARGETS;
+
+        if (!spellId)
+            return SPELL_FAILED_NOT_KNOWN;
+
+        bot->SetFacingToObject(target, true);
+
+        return bot->CastSpell(target, spellId);
+    }
+
     bool BotCastSpellOnDeadTarget(Creature* bot, uint32 spellId, Unit* target)
     {
         if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld() || !bot->IsAlive())

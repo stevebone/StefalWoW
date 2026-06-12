@@ -32,6 +32,7 @@
 #include "Followship_bots_outofcombat_handler.h"
 #include "Followship_bots_pet_handler.h"
 #include "Followship_bots_stats_handler.h"
+#include "Followship_bots_utils_spells.h"
 
 using namespace Trinity::ChatCommands;
 
@@ -294,11 +295,6 @@ public:
         }
 
         Creature* bot = target->ToCreature();
-        //if (!bot || !bot->IsBot())
-        //{
-        //    handler->SendSysMessage("Target is not a Followship bot.");
-        //    return false;
-        //}
 
         // --- Fetch bot metadata ---
         handler->PSendSysMessage("=== Followship Bot Cast Spell On Target ===");
@@ -317,13 +313,17 @@ public:
             return false;
         }
 
-        if (FSBSpells::BotCastSpell(bot, spellId, spellTarget))
+        SpellCastResult result = FSBSpells::BotCastSpellWithResult(bot, spellId, spellTarget);
+        if (result == SPELL_CAST_OK)
         {
             handler->PSendSysMessage("Cast Success");
+            TC_LOG_DEBUG("scripts.fsb.command", "FSB Command: Bot {} cast spell {} on target {} successfully", bot->GetName(), spellId, spellTarget->GetName());
         }
         else
         {
-            handler->PSendSysMessage("Cast Failed");
+            std::string resultString = FSBSpellsUtils::GetSpellCastResultString(result);
+            handler->PSendSysMessage("Cast Failed: %u (%s)", result, resultString.c_str());
+            TC_LOG_DEBUG("scripts.fsb.command", "FSB Command: Bot {} failed to cast spell {} on target {} with result {} ({})", bot->GetName(), spellId, spellTarget->GetName(), result, resultString);
             handler->SetSentErrorMessage(true);
             return false;
         }
