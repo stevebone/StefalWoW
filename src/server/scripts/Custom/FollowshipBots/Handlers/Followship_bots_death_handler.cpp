@@ -197,6 +197,18 @@ namespace FSBDeath
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botRevived, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
         }
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at corpse location after graveyard run.", bot->GetName());
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        // set auras and shapeshift after revival based on role
+        // we may need to check the other classes as well
+        // TO-DO Refactor the remaining classes that have aura/forms change directly in the gossip handler
+        if(baseAI->botClass == FSB_Class::Druid)
+            FSBDruid::BotSetRoleAuras(bot, baseAI->botRole);
+        else if(baseAI->botClass == FSB_Class::Paladin)
+            FSBPaladin::BotSetRoleAuras(bot, baseAI->botRole);
     }
 
     void AddToHealerResurrectQueue(Unit* deadUnit, Creature* healer)
