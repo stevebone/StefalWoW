@@ -188,6 +188,9 @@ public:
     // Set the role of a bot (does nothing if not a bot or AI not present)
     void SetRole(Creature* bot, FSB_Roles role);
 
+    // Check if bot is a melee role
+    static bool BotIsMeleeRole(Creature* bot);
+
     // Sync bot phasing with owner
     void SyncBotPhasingWithOwner(Player* player);
 

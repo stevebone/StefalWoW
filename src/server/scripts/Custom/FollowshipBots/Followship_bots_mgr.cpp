@@ -745,6 +745,15 @@ FSB_Roles FSBMgr::GetRole(Creature* bot)
     return FSB_Roles::FSB_ROLE_NONE;
 }
 
+bool FSBMgr::BotIsMeleeRole(Creature* bot)
+{
+    if (!bot)
+        return false;
+
+    FSB_Roles role = Get()->GetRole(bot);
+    return role == FSB_ROLE_MELEE_DAMAGE || role == FSB_ROLE_MELEE_DAMAGE_2 || role == FSB_ROLE_MELEE_DAMAGE_3;
+}
+
 void FSBMgr::SetRole(Creature* bot, FSB_Roles role)
 {
     if (!bot || !bot->IsBot())
