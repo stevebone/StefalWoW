@@ -51,10 +51,14 @@ namespace FSBIC
 
         // Check and maintain distance from boss in dungeons (for casters)
         Unit* target = bot->GetVictim();
-        if (target && target->IsAlive() && FSBDungeon::ShouldMaintainBossDistance(bot, target, DungeonBossMinDistance))
+        if (target && target->IsAlive())
         {
-            FSBMovement::EnsureUnitDistance(bot, target, DungeonBossMinDistance);
-            return false;
+            float bossMinDistance = FSBDungeon::GetDungeonBossMinDistance(target->GetEntry());
+            if (FSBDungeon::ShouldMaintainBossDistance(bot, target, bossMinDistance))
+            {
+                FSBMovement::EnsureUnitDistance(bot, target, bossMinDistance);
+                return false;
+            }
         }
 
         //1. IC Potions

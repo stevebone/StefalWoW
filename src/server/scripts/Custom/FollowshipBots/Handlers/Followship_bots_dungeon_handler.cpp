@@ -175,8 +175,26 @@ namespace FSBDungeon
         if (!IsTargetBoss(bot, target))
             return false;
 
-        float distance = bot->GetDistance(target);
+        // Raw center-to-center distance (same semantics as .npc near), NOT combat-reach-adjusted -
+        // GetDistance() subtracts both units' combat reach which makes large bosses trigger this from way too far
+        float distance = bot->GetExactDist(target);
         return distance < minDistance;
+    }
+
+    float GetDungeonBossMinDistance(uint32 bossEntry)
+    {
+        if (!bossEntry)
+            return DungeonBossMinDistance;
+
+        switch (bossEntry)
+        {
+        case Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000:
+            return Deadmines::FoeReaper5000MinDistance;
+        default:
+            break;
+        }
+
+        return DungeonBossMinDistance;
     }
 
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange)
@@ -262,6 +280,12 @@ namespace FSBDungeon
                    entry == Scripts::EasternKingdoms::Deadmines::Creatures::MoltenSlag;
         }
 
+        static void MoveToSlagsPosition(Creature* vehicleCreature)
+        {
+            vehicleCreature->GetMotionMaster()->Clear();
+            vehicleCreature->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_DEADMINES_VEHICLE, PrototypeReaperSlagsPosition);
+        }
+
         static void EngageVehicleTarget(Creature* bot, FSB_BaseAI* baseAI, Creature* vehicleCreature, Unit* target)
         {
             TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - engaging {} (entry {}), casting Charge and scheduling strikes", bot->GetName(), target->GetName(), target->GetEntry());
@@ -304,24 +328,33 @@ namespace FSBDungeon
 
             Unit* target = FSBCombat::GetNextAttackTarget(bot);
 
-            // Boss fight: keep distance from Foe Reaper 5000 at all times, cast only on Molten Slags
+            // Boss fight: park at the designated slags position, scan for Molten Slags from there
             if (target && target->GetEntry() == Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000)
             {
-                Unit* boss = target;
-                if (vehicleCreature->GetDistance(boss) < BOSS_DISTANCE)
+                // Not at the slags position yet: move there first, scan only once arrived
+                if (vehicleCreature->GetExactDist2d(&PrototypeReaperSlagsPosition) > 5.0f)
                 {
-                    float angle = vehicleCreature->GetAbsoluteAngle(boss);
-                    float moveAngle = angle + float(M_PI);
-                    // GetDistance() is combat-reach-adjusted but GetNearPosition() measures from the boss's center,
-                    // so the destination must include both units' combat reach or the check keeps triggering (reposition loop)
-                    float moveDistance = BOSS_DISTANCE + vehicleCreature->GetCombatReach() + boss->GetCombatReach() + 2.0f;
-                    Position pos = boss->GetNearPosition(moveDistance, moveAngle);
-                    vehicleCreature->GetMotionMaster()->Clear();
-                    vehicleCreature->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_DEADMINES_VEHICLE, pos);
+                    TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - boss phase, moving to slags position", bot->GetName());
+                    MoveToSlagsPosition(vehicleCreature);
+                    baseAI->botVehicleCombatTarget.Clear();
+                    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
+                    baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
+                    return;
                 }
 
-                target = vehicleCreature->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::MoltenSlag, 100.0f);
-                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - boss detected, slag target: {}", bot->GetName(), target ? target->GetName() : "none");
+                Unit* slag = vehicleCreature->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::MoltenSlag, 100.0f);
+
+                if (slag && slag->IsAlive())
+                {
+                    EngageVehicleTarget(bot, baseAI, vehicleCreature, slag);
+                    return; // cycle continues via EVENT_DM_PRESSURIZED_STRIKE
+                }
+
+                // No slags up yet: hold the position, never fall back to following the owner into the boss
+                baseAI->botVehicleCombatTarget.Clear();
+                baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
+                baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
+                return;
             }
 
             if (target && target->IsAlive() && IsAllowedVehicleCastTarget(target->GetEntry()))
@@ -332,6 +365,20 @@ namespace FSBDungeon
 
             // No valid target: return to following the owner and keep the idle loop running
             baseAI->botVehicleCombatTarget.Clear();
+
+            // Safety: never follow the owner into a nearby Foe Reaper (e.g. owner is meleeing the boss)
+            if (Creature* nearbyBoss = vehicleCreature->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000, BOSS_DISTANCE))
+            {
+                if (nearbyBoss->IsAlive() && nearbyBoss->IsInCombat())
+                {
+                    TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - no target but boss nearby, moving to slags position instead of following", bot->GetName());
+                    if (vehicleCreature->GetExactDist2d(&PrototypeReaperSlagsPosition) > 5.0f)
+                        MoveToSlagsPosition(vehicleCreature);
+                    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
+                    baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
+                    return;
+                }
+            }
 
             Player* owner = FSBMgr::Get()->GetBotOwner(bot);
             if (owner && owner->IsInWorld() && baseAI->botMoveState != FSB_MOVE_STATE_FOLLOWING && vehicleCreature->GetDistance(owner) > 10.0f)

@@ -293,7 +293,8 @@ namespace FSBMovement
         if (!bot || !target || !target->IsAlive())
             return false;
 
-        float dist = bot->GetDistance(target);
+        // Raw center-to-center distance (same semantics as .npc near and GetNearPosition), NOT combat-reach-adjusted
+        float dist = bot->GetExactDist(target);
 
         // Already at minimum distance or further
         if (dist >= minDistance)
@@ -303,20 +304,17 @@ namespace FSBMovement
         if (!mm)
             return false;
 
-        // Calculate position away from target
-        float angle = bot->GetAbsoluteAngle(target);
-        float moveAngle = angle + float(M_PI); // Move in opposite direction
-        // GetDistance() is combat-reach-adjusted but GetNearPosition() measures from the target's center,
-        // so the destination must include both units' combat reach or the check keeps triggering (reposition loop)
-        float moveDistance = minDistance + bot->GetCombatReach() + target->GetCombatReach() + 2.0f;
-
-        Position pos = target->GetNearPosition(moveDistance, moveAngle);
+        // Avoid restarting the same chase every tick
+        if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+            return true;
 
         mm->Clear();
         bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
-        mm->MovePoint(MOVEMENT_POINT_BOSS_DISTANCE, pos);
+        // Use ChaseRange so the generator backs away when too close and idles when at range.
+        // Max range is set large so the generator never tries to close in.
+        mm->MoveChase(target, ChaseRange(minDistance, 100.0f));
 
-        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureUnitDistance Bot {} moving away from {} to maintain {:.1f} yards distance", bot->GetName(), target->GetName(), minDistance);
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureUnitDistance Bot {} chasing {} to maintain {:.1f} yards distance", bot->GetName(), target->GetName(), minDistance);
 
         return true;
     }

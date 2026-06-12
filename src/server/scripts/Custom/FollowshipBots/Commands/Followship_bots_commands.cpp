@@ -22,6 +22,7 @@
 
 #include "Chat.h"
 #include "ChatCommand.h"
+#include "Log.h"
 #include "Pet.h"
 #include "SpellAuras.h"
 #include "WorldSession.h"

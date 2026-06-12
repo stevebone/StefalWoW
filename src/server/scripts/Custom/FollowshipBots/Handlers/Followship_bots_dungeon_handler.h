@@ -22,6 +22,9 @@
 
 namespace FSBDungeon
 {
+    // Default minimum distance casters keep from dungeon bosses (raw center-to-center)
+    static constexpr float DungeonBossMinDistance = 30.f;
+
     namespace Maps
     {
         static constexpr uint32 Deadmines = 36;
@@ -43,12 +46,18 @@ namespace FSBDungeon
     bool ShouldDPSInExecutePhase(Creature* bot, Unit* target);
     bool IsBotCaster(Creature* bot);
     bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance);
+    float GetDungeonBossMinDistance(uint32 bossEntry);
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
 
     namespace Deadmines
     {
-        static constexpr float PROTOTYPE_REAPER_RANGE = 30.0f;
-        static constexpr float BOSS_DISTANCE = 20.0f;
+        static constexpr float PROTOTYPE_REAPER_RANGE = 30.0f; // bot scan range
+        static constexpr float BOSS_DISTANCE = 100.0f; // prototype reaper range scan
+
+        static constexpr Position PrototypeReaperSlagsPosition = { -190.8952f, -573.4275f, 20.9768f, 3.7041f };
+
+        // Per-boss caster minimum distance overrides (see GetDungeonBossMinDistance)
+        static constexpr float FoeReaper5000MinDistance = 25.0f;
 
         void CheckPrototypeReaperEntry(Creature* bot);
         void HandleVehicleCombatCheck(Creature* bot);

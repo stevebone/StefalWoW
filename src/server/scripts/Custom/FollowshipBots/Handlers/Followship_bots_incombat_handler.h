@@ -27,7 +27,6 @@ static constexpr float DefaultHealPCT = 50.f;
 static constexpr float DefaultHealPCTHealer = 70.f;
 static constexpr float DungeonHealPCT = 70.f;
 static constexpr float DungeonHealPCTHealer = 90.f;
-static constexpr float DungeonBossMinDistance = 20.f;
 
 namespace FSBIC
 {
