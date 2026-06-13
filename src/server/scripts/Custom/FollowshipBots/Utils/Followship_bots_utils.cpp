@@ -209,6 +209,24 @@ namespace FSBUtils
         return false;
     }
 
+    bool BotIsCasterRole(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        FSB_Roles role = FSBMgr::Get()->GetRole(bot);
+
+        return role == FSB_ROLE_RANGED_ARCANE ||
+            role == FSB_ROLE_RANGED_FIRE ||
+            role == FSB_ROLE_RANGED_FROST ||
+            role == FSB_ROLE_RANGED_DAMAGE ||
+            role == FSB_ROLE_RANGED_DESTRUCTION ||
+            role == FSB_ROLE_RANGED_AFFLICTION ||
+            role == FSB_ROLE_RANGED_DEMONOLOGY ||
+            role == FSB_ROLE_ASSIST ||
+            role == FSB_ROLE_HEALER;
+    }
+
     Unit* FindCreatureByName(WorldObject* bot, std::string name, float range)
     {
         if (!bot)

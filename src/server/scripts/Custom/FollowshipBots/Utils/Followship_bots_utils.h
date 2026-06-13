@@ -64,6 +64,7 @@ namespace FSBUtils
     bool TryChargeHire(Player* player, uint32 duration);
 
     bool BotIsHealerClass(Creature* bot);
+    bool BotIsCasterRole(Creature* bot);
 
     Unit* FindCreatureByName(WorldObject* bot, std::string name, float range = 50.0f);
     std::vector<Creature*> FindNearbyBots(Creature* center, float radius = 300.f);
