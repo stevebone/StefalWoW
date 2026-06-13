@@ -22,7 +22,9 @@
 
 #include "Log.h"
 #include "Creature.h"
+#include "InstanceScript.h"
 #include "Map.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "Unit.h"
@@ -46,6 +48,67 @@ using namespace FSBGroup;
 
 namespace FSBDungeon
 {
+    // This is the entry point from Periodic Maintence in UpdateAI
+    void CheckDungeonHandlingNeeded(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        if (!FSBDungeon::IsBotInDungeon(bot))
+            return;
+
+        // Deadmines
+        // Schedule Deadmines Prototype Reaper check if in heroic Deadmines
+        if (bot->GetMapId() == Maps::Deadmines && bot->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
+        {
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER, 1s);
+            return;
+        }
+    }
+
+    // This is the entry point from ICActions (Main actions during combat state)
+    bool CheckDungeonInCombatHandlingNeeded(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        if (!FSBDungeon::IsBotInDungeon(bot))
+            return false;
+
+        // Check and maintain distance from boss/units in dungeons (for casters)
+        Unit* target = bot->GetVictim();
+        if (target && target->IsAlive())
+        {
+            if (FSBUtils::BotIsCasterRole(bot))
+            {
+                uint32 targetEntry = target->GetEntry();
+                if (targetEntry)
+                {
+                    float targetMinDistance = FSBDungeon::GetDungeonBossMinDistance(targetEntry);
+
+                    bool needsDistance = FSBDungeon::ShouldMaintainBossDistance(bot, target, targetMinDistance);
+
+                    if (needsDistance)
+                    {
+                        bot->GetMotionMaster()->Clear();
+                        bot->GetMotionMaster()->MoveChase(target, ChaseRange(targetMinDistance, FSBCombatUtils::GetBotChaseDistance(bot)));
+                        return false;
+                    }
+                }
+            }
+
+            // Dungeon Specific
+            // Foe Reaper 5000 Harvest mechanic: tank and melee must back away during Harvest
+            if (bot->GetMapId() == Maps::Deadmines && bot->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
+                if (target && FSBDungeon::HandleFoeReaperAOEEvasion(bot, target))
+                    return true;
+
+            return false;
+        }
+
+        return false;
+    }
+
     uint32 GetBotDungeonId(Creature* bot)
     {
         if (!bot)
@@ -143,39 +206,14 @@ namespace FSBDungeon
         return bossHpPct < 15.0f;
     }
 
-    bool IsBotCaster(Creature* bot)
-    {
-        if (!bot)
-            return false;
-
-        FSB_Roles role = FSBMgr::Get()->GetRole(bot);
-
-        return role == FSB_ROLE_RANGED_ARCANE ||
-               role == FSB_ROLE_RANGED_FIRE ||
-               role == FSB_ROLE_RANGED_FROST ||
-               role == FSB_ROLE_RANGED_DAMAGE ||
-               role == FSB_ROLE_RANGED_DESTRUCTION ||
-               role == FSB_ROLE_RANGED_AFFLICTION ||
-               role == FSB_ROLE_RANGED_DEMONOLOGY ||
-               role == FSB_ROLE_ASSIST ||
-               role == FSB_ROLE_HEALER;
-    }
-
     bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance)
     {
         if (!bot || !target)
             return false;
 
-        if (!IsBotCaster(bot))
-            return false;
-
-        if (!IsBotInDungeon(bot))
-            return false;
-
         if (!IsTargetBoss(bot, target))
             return false;
 
-        // Raw center-to-center distance (same semantics as .npc near), NOT combat-reach-adjusted -
         // GetDistance() subtracts both units' combat reach which makes large bosses trigger this from way too far
         float distance = bot->GetExactDist(target);
         return distance < minDistance;
@@ -195,6 +233,54 @@ namespace FSBDungeon
         }
 
         return DungeonBossMinDistance;
+    }
+
+    bool IsFoeReaperAOEActive(Unit* boss)
+    {
+        if (!boss)
+            return false;
+        if (InstanceScript* instance = boss->GetInstanceScript())
+            return instance->GetData(Scripts::EasternKingdoms::Deadmines::Misc::FoeReaper5000AOEWarning);
+        return false;
+    }
+
+    bool HandleFoeReaperAOEEvasion(Creature* bot, Unit* target)
+    {
+        if (!bot || !target)
+            return false;
+
+        // Do not interfere with vehicle combat
+        if (bot->GetVehicle())
+            return false;
+
+        if (target->GetEntry() != Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI || (baseAI->botRole != FSB_ROLE_TANK && !FSBMgr::BotIsMeleeRole(bot)))
+            return false;
+
+        if (IsFoeReaperAOEActive(target))
+        {
+            if (!baseAI->botDungeonBossEvasion)
+            {
+                baseAI->botDungeonBossEvasion = true;
+                bot->GetMotionMaster()->Clear();
+                bot->GetMotionMaster()->MoveChase(target, ChaseRange(Deadmines::FoeReaper5000MinAOEDistance, 20.f));
+                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleFoeReaperAOEEvasion Bot {} - Harvest/Overdrive active, backing away to {} yd", bot->GetName(), Deadmines::FoeReaper5000MinAOEDistance);
+            }
+            return true;
+        }
+
+        if (baseAI->botDungeonBossEvasion && !IsFoeReaperAOEActive(target))
+        {
+            baseAI->botDungeonBossEvasion = false;
+            bot->GetMotionMaster()->Clear();
+            FSBMovement::EnsureInRange(bot, target);
+            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleFoeReaperAOEEvasion Bot {} - Harvest/Overdrive ended, re-engaging melee", bot->GetName());
+        }
+
+        return false;
     }
 
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange)

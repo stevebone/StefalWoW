@@ -21,6 +21,7 @@
  */
 
 #include "Log.h"
+#include "MotionMaster.h"
 
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
@@ -49,17 +50,12 @@ namespace FSBIC
         if (bot->HasUnitState(UNIT_STATE_CASTING))
             return false;
 
-        // Check and maintain distance from boss in dungeons (for casters)
-        Unit* target = bot->GetVictim();
-        if (target && target->IsAlive())
-        {
-            float bossMinDistance = FSBDungeon::GetDungeonBossMinDistance(target->GetEntry());
-            if (FSBDungeon::ShouldMaintainBossDistance(bot, target, bossMinDistance))
-            {
-                FSBMovement::EnsureUnitDistance(bot, target, bossMinDistance);
-                return false;
-            }
-        }
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        if (FSBDungeon::CheckDungeonInCombatHandlingNeeded(bot))
+            return true;
 
         //1. IC Potions
         // These can be cast instant with no GCD

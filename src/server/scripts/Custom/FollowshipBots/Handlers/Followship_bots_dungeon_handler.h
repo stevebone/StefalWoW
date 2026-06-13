@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Custom_Instance_Deadmines.h"
+
 namespace FSBDungeon
 {
     // Default minimum distance casters keep from dungeon bosses (raw center-to-center)
@@ -38,16 +40,19 @@ namespace FSBDungeon
         }
     }
 
+    void CheckDungeonHandlingNeeded(Creature* bot);
+    bool CheckDungeonInCombatHandlingNeeded(Creature* bot);
     uint32 GetBotDungeonId(Creature* bot);
     void UpdateBotDungeonId(Creature* bot);
     bool IsBotInDungeon(Creature* bot);
     bool ShouldPreserveMana(Creature* bot);
     bool IsTargetBoss(Creature* bot, Unit* target);
     bool ShouldDPSInExecutePhase(Creature* bot, Unit* target);
-    bool IsBotCaster(Creature* bot);
     bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance);
     float GetDungeonBossMinDistance(uint32 bossEntry);
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
+    bool IsFoeReaperAOEActive(Unit* boss);
+    bool HandleFoeReaperAOEEvasion(Creature* bot, Unit* target);
 
     namespace Deadmines
     {
@@ -58,6 +63,8 @@ namespace FSBDungeon
 
         // Per-boss caster minimum distance overrides (see GetDungeonBossMinDistance)
         static constexpr float FoeReaper5000MinDistance = 25.0f;
+        // Per-boss melee minimum distance for AOE avoidance
+        static constexpr float FoeReaper5000MinAOEDistance = 17.f;
 
         void CheckPrototypeReaperEntry(Creature* bot);
         void HandleVehicleCombatCheck(Creature* bot);

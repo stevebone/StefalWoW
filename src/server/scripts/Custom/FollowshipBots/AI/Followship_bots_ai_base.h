@@ -69,6 +69,7 @@ public:
         botAnnouncedVeryLowHealth(false),
         botInVehicle(false),
         botNeedsDeadUnitCheck(false),
+        botDungeonBossEvasion(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
@@ -115,6 +116,7 @@ public:
     bool botAnnouncedVeryLowHealth;
     bool botInVehicle;
     bool botNeedsDeadUnitCheck;
+    bool botDungeonBossEvasion;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;

@@ -25,13 +25,12 @@
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
+#include "Vehicle.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_dungeon_handler.h"
-
-#include "Custom_Instance_Deadmines.h"
 
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"

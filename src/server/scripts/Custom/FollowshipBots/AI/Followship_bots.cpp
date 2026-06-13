@@ -554,7 +554,8 @@ public:
 
         void UpdateAI(uint32 diff) override
         {
-            FSBCombat::EvaluateAttackNeeded(me);
+            if(!botDungeonBossEvasion)
+                FSBCombat::EvaluateAttackNeeded(me);
             FSBCombat::SetOwnerTapToVictim(me);
 
             events.Update(diff);
@@ -603,9 +604,7 @@ public:
 
                     FSBParty::PeriodicPartyNeededCheck(me);
 
-                    // Schedule Deadmines Prototype Reaper check if in heroic Deadmines
-                    if (FSBDungeon::IsBotInDungeon(me) && me->GetMapId() == FSBDungeon::Maps::Deadmines && me->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
-                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER, 1s);
+                    FSBDungeon::CheckDungeonHandlingNeeded(me);
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
