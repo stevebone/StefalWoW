@@ -174,7 +174,10 @@ bool ChaseMovementGenerator::Update(Unit* owner, uint32 diff)
 
             // make a new path if we have to...
             if (!_path || moveToward != _movingTowards)
+            {
+                _movingTowards = moveToward;
                 _path = std::make_unique<PathGenerator>(owner);
+            }
 
             float x, y, z;
             bool shortenPath;
