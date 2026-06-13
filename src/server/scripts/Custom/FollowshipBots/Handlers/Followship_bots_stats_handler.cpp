@@ -373,14 +373,59 @@ namespace FSBStats
         if (player)
             level = bot->GetLevelForTarget(player);
 
+        // Get player-level stats from core (same pattern as ApplyBotHealth/AttackPower)
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Races tcRace = FSBUtils::BotRaceToTC(botRace);
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+
+        PlayerLevelInfo levelInfo;
+        sObjectMgr->GetPlayerLevelInfo(tcRace, tcClass, level, &levelInfo);
+
+        float agility = levelInfo.stats[STAT_AGILITY];
+
         float modifier = FollowshipBotsConfig::configFSBArmorRate;
 
-        float baseArmor = (float)(stats->armorPerLevel * level / 3) * modifier;
+        // 1. Base armor: agility * 2 (player model) + armorPerLevel (compensates for no items)
+        float baseArmor = (agility * 2.0f + (float)(stats->armorPerLevel * level)) * modifier;
         bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, baseArmor);
-        float totalArmor = bot->GetTotalAuraModValue(UNIT_MOD_ARMOR);
 
-        bot->SetArmor(baseArmor, totalArmor - baseArmor);
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}", bot->GetName(), baseArmor, totalArmor);
+        // 2. Apply BASE_PCT
+        UnitMods unitMod = UNIT_MOD_ARMOR;
+        float value = baseArmor * bot->GetPctModifierValue(unitMod, BASE_PCT);
+
+        // 3. SPELL_AURA_MOD_ARMOR_PCT_FROM_STAT (e.g., Guardian Druid armor from primary stat)
+        ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(tcClass);
+        Stats primaryStat = STAT_STRENGTH;
+        if (classEntry)
+        {
+            if (classEntry->PrimaryStatPriority >= 4)
+                primaryStat = STAT_STRENGTH;
+            else if (classEntry->PrimaryStatPriority >= 2)
+                primaryStat = STAT_AGILITY;
+            else
+                primaryStat = STAT_INTELLECT;
+        }
+
+        bot->GetTotalAuraModifier(SPELL_AURA_MOD_ARMOR_PCT_FROM_STAT, [&value, &levelInfo, primaryStat](AuraEffect const* aurEff) {
+            int32 miscValue = aurEff->GetMiscValue();
+            Stats stat = (miscValue != -2) ? Stats(miscValue) : primaryStat;
+            value += CalculatePct(float(levelInfo.stats[stat]), aurEff->GetAmount());
+            return true;
+        });
+
+        float baseValue = value;
+
+        // 4. TOTAL_VALUE (bonus armor from auras)
+        value += bot->GetFlatModifierValue(unitMod, TOTAL_VALUE);
+
+        // 5. TOTAL_PCT
+        value *= bot->GetPctModifierValue(unitMod, TOTAL_PCT);
+
+        // 6. SPELL_AURA_MOD_BONUS_ARMOR_PCT
+        value *= bot->GetTotalAuraMultiplier(SPELL_AURA_MOD_BONUS_ARMOR_PCT);
+
+        bot->SetArmor(int32(value), int32(value - baseValue));
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}, agility: {}", bot->GetName(), baseValue, value, agility);
     }
 
     void UpdateBotLevelToPlayer(Creature* bot)
