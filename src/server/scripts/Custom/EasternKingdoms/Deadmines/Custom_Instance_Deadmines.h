@@ -42,6 +42,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 GoblinFoundryTrigger1Fired = 1005;
         static constexpr uint32 GoblinFoundryTrigger2Fired = 1006;
         static constexpr uint32 FoeReaperAddCounter = 1007;
+        static constexpr uint32 FoeReaper5000AOEWarning = 1008;
     }
 
     namespace Version
@@ -114,6 +115,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 PrototypeReaper = 49208;
         static constexpr uint32 MoltenSlag = 49229;
         static constexpr uint32 GeneralPurposeBunny = 47242;
+        static constexpr uint32 HarvestTargetVisual = 47468;
 
         // Entrance Event
         static constexpr uint32 DefiasCannon = 48266;
@@ -348,8 +350,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 Watch = 90099;
         static constexpr uint32 ReaperStrike = 88490; //91723 this is for the prototype reaper
         static constexpr uint32 Overdrive = 88481;
-        static constexpr uint32 Harvest = 88495;
-        static constexpr uint32 HarvestAura = 88497;
+        static constexpr uint32 Harvest = 88497; // 88495
+        static constexpr uint32 HarvestAura = 88501; // 88497;
         static constexpr uint32 HarvestTargetVisual = 71371;
         static constexpr uint32 HarvestSweep = 88521;
         static constexpr uint32 SafetyOffline = 88522;

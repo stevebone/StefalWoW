@@ -48,7 +48,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _version(*this, "DeadminesVersion", Version::NotSet),
                 _cannonState(*this, "CannonState", CannonEvent::STATE_CANNON_NOT_USED),
                 _secondSmiteAlarm(*this, "SecondSmiteAlarm", 0),
-                _reaperCounter(*this, "ReaperCounter", 0)
+                _reaperCounter(*this, "ReaperCounter", 0),
+                _foeReaper5000AOEWarning(*this, "FoeReaperAOEWarning", false)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -135,6 +136,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Misc::FoeReaperAddCounter:
                         _reaperCounter = data;
                         break;
+                    case Misc::FoeReaper5000AOEWarning:
+                        _foeReaper5000AOEWarning = data;
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -155,6 +159,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _secondSmiteAlarm;
                     case Misc::FoeReaperAddCounter:
                         return _reaperCounter;
+                    case Misc::FoeReaper5000AOEWarning:
+                        return _foeReaper5000AOEWarning;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -393,6 +399,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<uint8> _cannonState;
             PersistentInstanceScriptValue<uint8> _secondSmiteAlarm;
             PersistentInstanceScriptValue<uint8> _reaperCounter;
+            PersistentInstanceScriptValue<bool> _foeReaper5000AOEWarning;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;

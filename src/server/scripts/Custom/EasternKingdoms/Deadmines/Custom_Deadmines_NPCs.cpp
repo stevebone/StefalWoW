@@ -2052,7 +2052,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Events::FoeReaperAggro:
                         Talk(Texts::FoeReaperAggro);
                         if (Unit* victim = SelectTarget(SelectTargetMethod::Random, 0, 150.f, false))
-                            me->Attack(victim, true);
+                            me->Attack(victim, false);
                         _events.ScheduleEvent(Events::FoeReaperReaperStrike, 8s);
                         if(IsHeroic())
                             _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 8s);
@@ -2077,9 +2077,14 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _events.ScheduleEvent(Events::FoeReaperMoltenSlagWarning, 15s);
                         break;
                     case Events::FoeReaperOverdriveWarning:
+                    {
+                        // Re-using harvest warning for overdrive phase
+                        if (instance)
+                            instance->SetData(Misc::FoeReaper5000AOEWarning, true);
                         Talk(Texts::FoeReaperOverdriveWarning);
                         _events.ScheduleEvent(Events::FoeReaperOverdrive, 5s);
                         break;
+                    }
                     case Events::FoeReaperOverdrive:
                         me->CastSpell(me, Spells::Overdrive, true);
                         Talk(Texts::FoeReaperOverdrive);
@@ -2100,7 +2105,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             _harvestActive = true;
                             _harvestPos = target->GetPosition();
+                            me->SummonCreature(Creatures::HarvestTargetVisual, _harvestPos, TEMPSUMMON_TIMED_DESPAWN, 5s);
                             me->CastSpell(_harvestPos, Spells::Harvest);
+                            if (instance)
+                                instance->SetData(Misc::FoeReaper5000AOEWarning, true);
                         }
                         break;
                     case Events::FoeReaperSafetyOfflineWarning:
@@ -2129,7 +2137,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         void OnAuraRemoved(AuraApplication const* aurApp) override
         {
             if (aurApp->GetBase()->GetId() == Spells::Overdrive)
+            {
+                // Re-using the same warning for Overdrive
+                if (instance)
+                    instance->SetData(Misc::FoeReaper5000AOEWarning, false);
                 me->SetSpeedRate(MOVE_RUN, 1.0f);
+            }
         }
 
         void MovementInform(uint32 motionType, uint32 pointId) override
@@ -2141,6 +2154,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 me->CastSpell(me, Spells::HarvestSweep, false);
                 Talk(Texts::FoeReaperHarvestSweep);
                 _harvestActive = false;
+                if (instance)
+                    instance->SetData(Misc::FoeReaper5000AOEWarning, false);
                 _events.ScheduleEvent(Events::FoeReaperHarvest, 30s);
             }
         }
