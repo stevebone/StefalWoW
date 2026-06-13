@@ -37,7 +37,6 @@ namespace FSBMovement
 
     bool EnsureInRange(Creature* bot, Unit* target);
     bool EnsureInRange(Creature* bot, Unit* target, float range);
-    bool EnsureUnitDistance(Creature* bot, Unit* target, float minDistance);
 
     MovementGeneratorType GetMovementType(Unit* me);
 

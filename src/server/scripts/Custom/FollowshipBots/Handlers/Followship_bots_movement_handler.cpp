@@ -287,35 +287,4 @@ namespace FSBMovement
 
         return true;
     }
-
-    bool EnsureUnitDistance(Creature* bot, Unit* target, float minDistance)
-    {
-        if (!bot || !target || !target->IsAlive())
-            return false;
-
-        // Raw center-to-center distance (same semantics as .npc near and GetNearPosition), NOT combat-reach-adjusted
-        float dist = bot->GetExactDist(target);
-
-        // Already at minimum distance or further
-        if (dist >= minDistance)
-            return false;
-
-        MotionMaster* mm = bot->GetMotionMaster();
-        if (!mm)
-            return false;
-
-        // Avoid restarting the same chase every tick
-        if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
-            return true;
-
-        mm->Clear();
-        bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
-        // Use ChaseRange so the generator backs away when too close and idles when at range.
-        // Max range is set large so the generator never tries to close in.
-        mm->MoveChase(target, ChaseRange(minDistance, 100.0f));
-
-        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureUnitDistance Bot {} chasing {} to maintain {:.1f} yards distance", bot->GetName(), target->GetName(), minDistance);
-
-        return true;
-    }
 }
