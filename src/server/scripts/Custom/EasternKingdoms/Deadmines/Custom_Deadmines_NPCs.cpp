@@ -2334,12 +2334,137 @@ namespace Scripts::EasternKingdoms::Deadmines
         bool _onFireCast = false;
         EventMap _events;
     };
+
+    // 48266 - Defis Cannon
+    struct npc_defias_cannon : public ScriptedAI
+    {
+        npc_defias_cannon(Creature* creature) : ScriptedAI(creature)
+        {
+        }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == 1 && value == 1) // Fire Cannon
+            {
+                if (InstanceScript* instance = me->GetInstanceScript())
+                {
+                    if (instance->GetData(Misc::DeadminesVersion) == Version::Classic)
+                        return;
+
+                    if (instance->GetData(CannonEvent::DATA_EVENT) != CannonEvent::STATE_DONE)
+                        return;
+
+                    DoFire();
+                }
+            }
+        }
+
+        static uint32 GetImpactBunnyForCannon(uint32 cannonSpawn)
+        {
+            for (auto const& pair : CannonsFiringEvent::CannonImpactMap)
+                if (pair.cannonSpawnId == cannonSpawn)
+                    return pair.impactSpawnId;
+
+            return 0; // not found
+        }
+
+        void DoFire()
+        {
+            uint32 impactBunnySpawn = GetImpactBunnyForCannon(me->GetSpawnId());
+            if (!impactBunnySpawn)
+                return;
+
+            if (Creature* bunny = me->GetMap()->GetCreatureBySpawnId(impactBunnySpawn))
+                me->CastSpell(bunny->GetPosition(), Spells::DefiasCannonCannonballFire);
+        }
+    };
+
+    // 48522 - Defias Pirate
+    struct npc_defias_pirate : public ScriptedAI
+    {
+        npc_defias_pirate(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            ScriptedAI::Reset();
+            _events.Reset();
+            _cannonGUID.Clear();
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                if (instance->GetData(Misc::DeadminesVersion) == Version::Classic)
+                    return;
+
+                if (instance->GetData(CannonEvent::DATA_EVENT) != CannonEvent::STATE_DONE)
+                    return;
+
+                _events.ScheduleEvent(Events::DefiasPirateCannonCheck, 3s, 7s);
+            }
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            _events.CancelEvent(Events::DefiasPirateCannonCheck);
+            _events.CancelEvent(Events::DefiasPirateCannonFire);
+
+            if (who)
+                me->CastSpell(who, Spells::LeapCleave, false);
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            ScriptedAI::EnterEvadeMode(why);
+            _events.ScheduleEvent(Events::DefiasPirateCannonCheck, 3s, 7s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::DefiasPirateCannonCheck:
+                        if (Creature* cannon = me->FindNearestCreature(Creatures::DefiasCannon, 5.0f, true))
+                        {
+                            _cannonGUID = cannon->GetGUID();
+                            me->HandleEmoteCommand(Emote::EMOTE_ONESHOT_USE_STANDING);
+                            _events.ScheduleEvent(Events::DefiasPirateCannonFire, 2s);
+                        }
+                        _events.ScheduleEvent(Events::DefiasPirateCannonCheck, 5s, 9s);
+                        break;
+                    case Events::DefiasPirateCannonFire:
+                        if (Creature* cannon = ObjectAccessor::GetCreature(*me, _cannonGUID))
+                            if (cannon->IsAlive())
+                                cannon->AI()->SetData(1, 1);
+                        break;
+                }
+            }
+
+            if (UpdateVictim())
+                me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        ObjectGuid _cannonGUID;
+        EventMap _events;
+    };
 }
 
 void AddSC_custom_deadmines_npcs()
 {
     using namespace Scripts::EasternKingdoms::Deadmines;
 
+    RegisterCreatureAI(npc_defias_cannon);
+    RegisterCreatureAI(npc_defias_pirate);
     RegisterCreatureAI(boss_glubtok);
     RegisterCreatureAI(npc_glubtok_main_platter);
     RegisterCreatureAI(npc_glubtok_secondary_platter);

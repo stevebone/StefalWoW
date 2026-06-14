@@ -97,6 +97,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MiningMonkey3 = 48441;
         static constexpr uint32 MiningMonkey4 = 48442;
         static constexpr uint32 DefiasOverseer = 48421;
+        static constexpr uint32 DefiasPirate = 48522;
 
         // Helix Gearbreaker
         static constexpr uint32 HelixCrew = 49136;
@@ -136,7 +137,8 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Cannon Tunnel
         static constexpr uint32 DefiasEnforcer = 48502;
-        static constexpr uint32 DefiasBloodWizzard = 48505;
+        static constexpr uint32 DefiasBloodWizzard = 48417;
+        static constexpr uint32 DefiasShadowguard = 48505;
         static constexpr uint32 GeneralPurposeBunnyJMF = 45979;
     }
 
@@ -147,6 +149,23 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         static constexpr uint32 OafMoveToBunny = 375849;
         static constexpr uint32 OafChargePosition = 375850;
+
+        // Cannons at Ship
+        static constexpr uint32 ImpactBunny1 = 376039;
+        static constexpr uint32 ImpactBunny2 = 375946;
+        static constexpr uint32 ImpactBunny3 = 375953;
+        static constexpr uint32 ImpactBunny4 = 375886;
+        static constexpr uint32 ImpactBunny5 = 375887;
+        static constexpr uint32 ImpactBunny6 = 376045;
+        static constexpr uint32 ImpactBunny7 = 375954;
+
+        static constexpr uint32 CannonFiring1 = 375888;
+        static constexpr uint32 CannonFiring2 = 376001;
+        static constexpr uint32 CannonFiring3 = 376087;
+        static constexpr uint32 CannonFiring4 = 376067;
+        static constexpr uint32 CannonFiring5 = 376090;
+        static constexpr uint32 CannonFiring6 = 376044;
+        static constexpr uint32 CannonFiring7 = 376041;
     }
 
     namespace Objects
@@ -315,6 +334,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Defias Cannon
         static constexpr uint32 DefiasCannonCannonballFire = 89697;
 
+        // Defias Pirate
+        static constexpr uint32 LeapCleave = 90905;
+
         // Helix Gearbreaker
         static constexpr uint32 RideOaf = 88277;
         static constexpr uint32 OafSmash = 88300;
@@ -450,6 +472,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 FoeReaperHarvestSweep = 13;
         static constexpr int8 FoeReaperSafetyOfflineWarning = 14;
         static constexpr int8 FoeReaperSafetyOffline = 15;
+
+        // Defias Pirate Events
+        static constexpr int8 DefiasPirateCannonCheck = 1;
+        static constexpr int8 DefiasPirateCannonFire = 2;
     }
 
     namespace Actions
@@ -542,6 +568,12 @@ namespace Scripts::EasternKingdoms::Deadmines
             { -206.385f, -585.898f, 20.97f, 5.17f },
             { -212.704f, -579.072f, 20.97f, 3.09f }
         };
+
+        // Cannon Event (modern version)
+        static constexpr Position DefiasBloodWizzard1 = { -97.467f, -675.726f, 7.50242f, 1.78024f };
+        static constexpr Position DefiasBloodWizzard2 = { -100.878f, -676.349f, 7.49962f, 1.78024f };
+        static constexpr Position DefiasShadowguard = { -98.4774f, -672.389f, 7.50265f, 1.23918 };
+        static constexpr Position DefiasEnforcer = { -101.089f, -673.014f, 7.50165f, 1.79769f };
     }
 
     namespace CannonEvent
@@ -556,6 +588,27 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         static constexpr uint32 BLAST_TIMER = 3000;
         static constexpr uint32 PIRATES_TIMER = 1000;
+    }
+
+    namespace CannonsFiringEvent
+    {
+        struct CannonImpactPair
+        {
+            uint32 cannonSpawnId;
+            uint32 impactSpawnId;
+        };
+
+        static constexpr CannonImpactPair CannonImpactMap[] =
+        {
+            { CreatureSpawns::CannonFiring1, CreatureSpawns::ImpactBunny1 },
+            { CreatureSpawns::CannonFiring2, CreatureSpawns::ImpactBunny2 },
+            { CreatureSpawns::CannonFiring3, CreatureSpawns::ImpactBunny3 },
+            { CreatureSpawns::CannonFiring4, CreatureSpawns::ImpactBunny4 },
+            { CreatureSpawns::CannonFiring5, CreatureSpawns::ImpactBunny5 },
+            { CreatureSpawns::CannonFiring6, CreatureSpawns::ImpactBunny6 },
+            { CreatureSpawns::CannonFiring7, CreatureSpawns::ImpactBunny7 },
+        };
+
     }
 
     static constexpr ObjectData modernCreatureData[] =

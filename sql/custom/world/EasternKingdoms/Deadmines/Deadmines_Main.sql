@@ -39,6 +39,20 @@
 -- NPC: 48502 Defias Enforcer
 -- NPC: 48417 Defias Blood Wizzard
 -- NPC: 48505 Defias Shadowguard
+-- NPC: 48447 Monstrous Parrot
+-- NPC: 48450 Sunwing Squawker
+-- NPC: 48522 Defias Pirate
+-- NPC: 48521 Defias Squallshaper
+-- NPC: 48447 Monstrous Parrot
+-- NPC: 48450 Sunwing Squawker
+-- NPC: 48451 Ol'Beaky
+-- NPC: 48449 Brilliant Macaw
+-- NPC: 48448 Albino Eyegouger
+-- NPC: 47714 Vapor
+-- NPC: 49388 Swirling Vapor
+-- NPC: 49390 Condensed Vapor
+
+-- Admiral Ripsnarl: 47626
 
 -- GO: 208002 Goblin Teleporter
 -- GO: 207079 Ball and Chain
@@ -52,8 +66,30 @@ UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); --
 -- Diff 1 - Normal / Diff 2 - Heroic / Diff 24 - Timewalking
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
-48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208,49229,48502,48417,48505);
+48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208,49229,48502,48417,48505,
+48447,48450,48522,48521,48448,48449,48451);
 INSERT INTO `creature_template_difficulty` VALUES
+(48448, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 41255, 1, 0, 0, 48448, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48448, 2, 0, 0, 1199, 0, 2, 1, 1, 0.2, 41255, 1, 0, 0, 48448, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48448, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41256, 1, 0, 0, 48448, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0), -- Albino Eyegouger
+(48449, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 41247, 1, 0, 0, 48449, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48449, 2, 0, 0, 1199, 0, 2, 1, 1, 0.2, 41247, 1, 0, 0, 48449, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48449, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41248, 1, 0, 0, 48449, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0), -- Brilliant Macaw
+(48451, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 41236, 1, 0, 0, 48451, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48451, 2, 0, 0, 1199, 0, 2, 1, 1, 0.2, 41236, 1, 0, 0, 48451, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48451, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41237, 1, 0, 0, 48451, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, -1), -- Ol' Beaky
+(48447, 1, 0, 0, 202, 0, 1, 1, 1, 0.2, 41258, 1, 0, 0, 48447, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48447, 2, 0, 0, 1199, 0, 2, 1, 1, 0.5, 41258, 1, 0, 0, 48447, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48447, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41259, 1, 0, 0, 48447, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, -1), -- Monstrous Parrot
+(48450, 1, 0, 0, 202, 0, 1, 1, 1, 0.2, 41244, 1, 0, 0, 48450, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0),
+(48450, 2, 0, 0, 1199, 0, 2, 1, 1, 0.5, 41244, 1, 0, 0, 48450, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48450, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41245, 1, 0, 0, 48450, 0, 0, 0, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, -1), -- Sunwing Squawker
+(48521, 1, 0, 0, 202, 0, 1, 0.7264, 1, 0.2, 41081, 0, 0, 0, 48521, 0, 0, 5920, 5920, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48521, 2, 0, 0, 1199, 0, 2, 0.7264, 1, 0.5, 41081, 0, 0, 0, 48521, 0, 0, 5920, 5920, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48521, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41082, 0, 0, 0, 48521, 0, 0, 5920, 5920, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Squallshaper
+(48522, 1, 0, 0, 202, 0, 1, 1, 1, 0.2, 41078, 0, 0, 0, 48522, 0, 0, 6028, 6028, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(48522, 2, 0, 0, 1199, 0, 2, 1, 1, 0.5, 41078, 0, 0, 0, 48522, 0, 0, 6028, 6028, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48522, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41079, 0, 0, 0, 48522, 0, 0, 6028, 6028, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Pirate
 (48417, 1, 0, 0, 202, 0, 1, 0.7264, 1, 1, 41355, 0, 0, 0, 48417, 48417, 0, 8562, 8562, 524288, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48417, 2, 0, 0, 1199, 0, 2, 0.7264, 1, 0.8, 41355, 0, 0, 0, 48417, 48417, 0, 8562, 8562, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48417, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41356, 0, 0, 0, 48417, 48417, 0, 8562, 8562, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Enforcer
@@ -199,6 +235,10 @@ DELETE FROM `creature` WHERE `id` = 49208 and `map` = 36;
 -- This is needed for boss reset since encounter always starts after the 4 harvesters are dead
 DELETE FROM `creature` WHERE `id` IN (47403, 47404) and `map` = 36;
 
+-- Delete Mobs at Cannon Door
+-- These are now spawned via the instance script when cannon fires
+DELETE FROM `creature` WHERE `guid` IN (376104,376105,376106,376107) and `map` = 36;
+
 -- Spawn Addons
 DELETE FROM `creature_addon` WHERE `guid` IN (375906,376023,376240,375827,376022);
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES 
@@ -209,13 +249,37 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (375827, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, ''),
 (376022, 0, 0, 0, 0, 0, 0, 1, 0, 234, 0, 0, 0, 0, '');
 
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420);
-DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420) and `source_type` = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420,48505,
+48502,48417,48447,48448,48449,48450,48451);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48229,48279,48440,48441,48442,48278,48351,48338,48418,48419,48420,48505,
+48502,48417,48447,48448,48449,48450,48451) and `source_type` = 0;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, 
 `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, 
 `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, 
 `action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, 
 `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(48447, 0, 0, 0, '', 0, 0, 100, 0, 4000, 4900, 9000, 12000, 0, '', 11, 90913, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Monstrous Parrot - Cast Eye Gouge'),
+(48447, 0, 1, 0, '', 0, 0, 100, 0, 7000, 9000, 16000, 19000, 0, '', 11, 90920, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Monstrous Parrot - Cast Eye Peck'),
+(48448, 0, 0, 0, '', 0, 0, 100, 0, 4000, 4900, 9000, 12000, 0, '', 11, 90913, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Albino Eyegouger - Cast Eye Gouge'),
+(48448, 0, 1, 0, '', 0, 0, 100, 0, 7000, 9000, 16000, 19000, 0, '', 11, 90920, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Albino Eyegouger - Cast Eye Peck'),
+(48449, 0, 0, 0, '', 0, 0, 100, 0, 4000, 4900, 9000, 12000, 0, '', 11, 90913, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Brilliant Macaw - Cast Eye Gouge'),
+(48449, 0, 1, 0, '', 0, 0, 100, 0, 7000, 9000, 16000, 19000, 0, '', 11, 90920, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Brilliant Macaw - Cast Eye Peck'),
+(48450, 0, 0, 0, '', 0, 0, 100, 0, 4000, 4900, 9000, 12000, 0, '', 11, 90913, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sunwing Squawker - Cast Eye Gouge'),
+(48450, 0, 1, 0, '', 0, 0, 100, 0, 7000, 9000, 16000, 19000, 0, '', 11, 90920, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sunwing Squawker - Cast Eye Peck'),
+(48451, 0, 0, 0, '', 0, 0, 100, 0, 4000, 4900, 9000, 12000, 0, '', 11, 90913, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ol Beaky - Cast Eye Gouge'),
+(48451, 0, 1, 0, '', 0, 0, 100, 0, 7000, 9000, 16000, 19000, 0, '', 11, 90920, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ol Beaky - Cast Eye Peck'),
+(48417, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 3400, 4700, 0, '', 11, 90938, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Bloodbolt'),
+(48417, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Flee at 15% HP'),
+(48417, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Say Text at 15% HP'),
+(48417, 0, 3, 0, '', 0, 0, 100, 0, 5000, 5000, 35000, 35000, 0, '', 11, 90932, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Ragezone'),
+(48417, 0, 4, 0, '', 0, 0, 100, 0, 1000, 2000, 12000, 14000, 0, '', 11, 90946, 0, 0, 0, 0, 0, 0, '', 26, 20, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Bloodwash on Friendlies'),
+(48502, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 90928, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Enforcer - Cast Charge on Aggro'),
+(48502, 0, 1, 0, '', 0, 0, 100, 0, 5000, 5000, 17000, 19000, 0, '', 11, 90929, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Enforcer - Cast Recklessness'),
+(48502, 0, 2, 0, '', 2, 0, 100, 0, 0, 40, 8000, 11000, 0, '', 11, 90925, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Enforcer - Cast Bloodbath at 40% HP'),
+(48505, 0, 0, 0, '', 2, 0, 100, 0, 0, 50, 15000, 18000, 0, '', 11, 90958, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Shadowguard - Cast Evasion at 50% HP'),
+(48505, 0, 1, 0, '', 0, 0, 100, 0, 8000, 8000, 14000, 15000, 0, '', 11, 90956, 0, 0, 0, 0, 0, 0, '', 5, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Shadowguard - Cast Shadowstep'),
+(48505, 0, 2, 0, '', 0, 0, 100, 0, 2000, 3000, 9000, 11000, 0, '', 11, 90951, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Shadowguard - Cast Sinister Strike'),
+(48505, 0, 3, 0, '', 0, 0, 100, 0, 12000, 14000, 24000, 28000, 0, '', 11, 90960, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Shadowguard - Cast Whirling Blades'),
 (48420, 0, 0, 0, '', 2, 0, 100, 1, 0, 30, 1000, 1000, 0, '', 11, 90994, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Digger - HP PCT 30 - Cast Tunnel at 30% HP'),
 (48419, 0, 0, 0, '', 2, 0, 100, 1, 0, 30, 1000, 1000, 0, '', 11, 90994, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Miner - HP PCT 30 - Cast Tunnel at 30% HP'),
 (48418, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 2300, 5900, 0, '', 11, 91004, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Envoker - IC - Cast Holy Fire'),
@@ -246,6 +310,15 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 (48279, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 91034, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Overseer - On Aggro - Cast Threatening Shout'),
 (48279, 0, 1, 0, '', 0, 0, 100, 0, 3000, 4000, 8000, 12000, 0, '', 11, 91036, 0, 0, 0, 0, 0, 0, '', 5, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Overseer - In Combat - Cast Motivate');
 
+-- Defias Squallshaper SAI
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48521);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48521);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_chance`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `target_type`, `comment`) VALUES 
+(48521, 0, 0, 0, '', 0, 100, 0, 0, 3400, 4700, 11, 90398, 64, 2, 'Defias Squallshaper - Cast Seaswell'),
+(48521, 0, 1, 0, '2,24', 14, 100, 200000, 40, 20000, 30000, 11, 90914, 0, 7, 'Defias Squallshaper - Cast Riptide'),
+(48521, 0, 2, 3, '', 2, 100, 0, 15, 1000, 1000, 25, 0, 0, 1, 'Defias Squallshaper - Flee 15% HP'),
+(48521, 0, 3, 0, '', 61, 100, 0, 15, 0, 0, 1, 0, 0, 1, 'Defias Squallshaper - Say Text at 15% HP');
+
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 48445;
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 48445;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_chance`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `target_type`, `comment`) VALUES 
@@ -269,9 +342,9 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (@ENTRY, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 25, 100, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Attack Closest enemy creature in 50 yards', ''),
 (@ENTRY, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 86, 91830, 0, 1, 0, 0, 0, 0, 25, 100, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Cast spell  91830 at Closest enemy creature in 100 yards', '');
 
-
-
 -- Scripts
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_cannon' WHERE `entry` = 48266;
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_pirate' WHERE `entry` = 48522;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_henchman' WHERE `entry` = 48230;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ogre_bodyguard' WHERE `entry` = 48262;
 UPDATE `creature_template` SET `ScriptName` = 'npc_mining_powder' WHERE `entry` = 48284;
@@ -428,9 +501,11 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (47162, 6, 0, 'Fists of frost!', 14, 0, 100, 0, 0, 21156, 0, 47238, 0, 'VO_DM_GlubtokHead2_Spell01'),
 (47162, 7, 0, 'Let''s do it!', 14, 0, 100, 15, 0, 21157, 0, 108750, 0, 'VO_DM_GlubtokHead2_Spell02');
 
-DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278,48445,48418);
+DELETE FROM `creature_text` WHERE `CreatureID` IN (48440,48441,48442,48278,48445,48418,48417,48521);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `BroadcastTextId`, `comment`) VALUES 
 (48445, 0, 0, '%s becomes enraged!', 16, 100, 7798, 'Oaf Lackey Enraged'),
+(48521, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Defias Squallshaper Flee'),
+(48417, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Defias Blood Wizzard Flee'),
 (48418, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Defias Envoker Flee'),
 (48278, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
 (48440, 0, 0, '%s attempts to run away in fear!', 16, 100, 1150, 'Mining Monkey Flee'),
@@ -489,6 +564,17 @@ DELETE FROM `creature_text` WHERE `CreatureID` IN (45979);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
 (45979, 0, 0, 'The cannon was rigged with an explosive trap!', 41, 100, 0, 48790, 'Bunny for Defias Cannon');
 
+DELETE FROM `creature_text` WHERE `CreatureID` = 47626;
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
+(47626, 0, 0, 'You will... NOT find her... until it is too late...', 14, 100, 19875, 48010, 'Admiral Ripsnarl Death'),
+(47626, 1, 0, 'Your blood only increases my hunger!', 14, 100, 19876, 48009, 'Admiral Ripsnarl kill'),
+(47626, 2, 0, 'Do you feel that chill running up your spine? The fog is rolling in...', 14, 100, 19876, 170904, 'Admiral Ripsnarl Fog 1'),
+(47626, 2, 1, 'Ha ha ha ha ha!  Rah ha ha ha ha ha!', 14, 100, 19878, 48008, 'Admiral Ripsnarl Fog 2'),
+(47626, 3, 0, 'I can smell your fear...', 14, 100, 19879, 48006, 'Admiral Ripsnarl Go for the throat 1'),
+(47626, 3, 1, 'I will rip your heart from your chest!', 14, 100, 19880, 48007, 'Admiral Ripsnarl Go for the throat 2'),
+(47626, 4, 0, 'Aaaaauuuuuggghhhhh!', 14, 100, 19881, 84199, 'Admiral Ripsnarl Special Phase'),
+(47626, 5, 0, 'Ah, fresh meat!', 14, 100, 19882, 48179, 'Admiral Ripsnarl Aggro'),
+(47626, 6, 0, 'Multiple vapors appear from the fog!  Kill Admiral Ripsnarl before you are overwhelmed!', 41, 100, 0, 50851, 'Admiral Ripsnarl - Announce Vapor');
 
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;
@@ -501,6 +587,23 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 (12691, -3248897, 1, 'Press the button labeled \'Metal and Scraps.\'', 50717, 25937),
 (12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996);
 
+SET @CGUID := 900000;
+-- Rare parrots spawns
+DELETE FROM `creature` WHERE `map` = 36 AND `guid` IN (@CGUID+1218,@CGUID+1219);
+INSERT INTO `creature` VALUES
+(@CGUID+1218, 48448, 36, 1581, 1582, '1,2,24', 0, 0, 0, -1, 0, 0, -46.8184, -691.455, 3.82295, 4.42742, 3600, 3, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0),
+(@CGUID+1219, 48449, 36, 1581, 1582, '1,2,24', 0, 0, 0, -1, 0, 0, -39.5969, -695.628, 3.97999, 6.19238, 3600, 3, 0, 100, 1, NULL, NULL, NULL, NULL, '', NULL, 0);
+
+SET @POOLID := 900000;
+DELETE FROM `pool_template` WHERE `entry` = @POOLID+6;
+INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
+(@POOLID+6, 1, 'Deadmines - Rare Birds');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId` = @POOLID+6;
+INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES
+(0, @CGUID+1218, @POOLID+6, 0, 'Deadmines - Rare bird'),
+(0, @CGUID+1219, @POOLID+6, 0, 'Deadmines - Rare bird');
+
 -- Gameobjects
 SET @OGUID := 900000;
 DELETE FROM `gameobject` WHERE `guid` = @OGUID+106;
@@ -510,7 +613,8 @@ INSERT INTO `gameobject` (guid, id, map, spawndifficulties, phaseUseFlags, phase
 
 -- Deadmines Loot Tables
 
-DELETE FROM `creature_loot_template` WHERE `Entry` IN (43778,4377801,4377802,47296,4729601,4729602,47162,4716201,4716202);
+DELETE FROM `creature_loot_template` WHERE `Entry` IN (43778,4377801,4377802,47296,4729601,4729602,47162,4716201,4716202,47739,4773901,4773902,
+47626,4762601,4762602);
 INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, `GroupID`, `MinCount`, `MaxCount`, `Comment`) VALUES
 -- Glubtok loot normal and heroic
 (4716201, 0, 5444, 37, 0, 1, 0, 1, 1, 'Glubtok Miner Cape'),
@@ -551,4 +655,29 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `Qu
 (4377801, 0, 65165, 31, 0, 1, 0, 1, 1, 'Foereaper Foe Reaper'),
 (4377801, 0, 157755, 1, 0, 1, 0, 1, 1, 'Foereaper Missing Diplomat Pauldrons'),
 (4377801, 0, 157753, 1, 0, 1, 0, 1, 1, 'Foereaper Vest of the Curious Visitor'),
-(4377801, 0, 157754, 1, 0, 1, 0, 1, 1, 'Foereaper Old Friends Gloves');
+(4377801, 0, 157754, 1, 0, 1, 0, 1, 1, 'Foereaper Old Friends Gloves'),
+-- Admiral Ripsnarl loot normal and Heroic
+(4762601, 0, 1156, 39, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Lavishly Jeweled Ring'),
+(4762601, 0, 872, 31, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Rockslicer'),
+(4762601, 0, 5196, 29, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Smite Reaver'),
+(4762601, 0, 71638, 1, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Ornate Weapon'),
+
+(4762602, 0, 65170, 34, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Smite Reaver'),
+(4762602, 0, 65168, 33, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Rockslicer'),
+(4762602, 0, 65169, 32, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Lavishly Jeweled Ring'),
+(4762602, 0, 44731, 3, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Bouquet of Ebon Roses'),
+(4762602, 0, 22206, 2, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Bouquet of Red Roses'),
+(4762602, 0, 21524, 14, 0, 1, 0, 1, 1, 'Admiral Ripsnarl Red Winter Hat'),
+-- Captain Cookie loot normal and heroic
+(4773901, 0, 5193, 28, 0, 1, 0, 1, 1, 'Captain Cookie Cape of the Brotherhood'),
+(4773901, 0, 5198, 21, 0, 1, 0, 1, 1, 'Captain Cookie Cookies Stirring Rod'),
+(4773901, 0, 5202, 18, 0, 1, 0, 1, 1, 'Captain Cookie Corsair Overshirt'),
+(4773901, 0, 5197, 17, 0, 1, 0, 1, 1, 'Captain Cookie Cookies Tenderizer'),
+(4773901, 0, 5192, 16, 0, 1, 0, 1, 1, 'Captain Cookie Thiefs Blade'),
+(4773901, 0, 248332, 1, 0, 1, 0, 1, 1, 'Captain Cookie Stormwind Footlocker'),
+
+(4773902, 0, 65171, 21, 0, 1, 0, 1, 1, 'Captain Cookie Cookies Tenderizer'),
+(4773902, 0, 65174, 21, 0, 1, 0, 1, 1, 'Captain Cookie Corsair Overshirt'),
+(4773902, 0, 65173, 21, 0, 1, 0, 1, 1, 'Captain Cookie Thiefs Blade'),
+(4773902, 0, 65177, 21, 0, 1, 0, 1, 1, 'Captain Cookie Cape of the Brotherhood'),
+(4773902, 0, 65172, 21, 0, 1, 0, 1, 1, 'Captain Cookie Cookies Stirring Rod');

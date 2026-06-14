@@ -361,40 +361,20 @@ namespace Scripts::EasternKingdoms::Deadmines
                 if (GameObject* pIronCladDoor = instance->GetGameObject(_ironCladDoorGUID))
                 {
                     if (Creature* DefiasEnforcer1 = pIronCladDoor->SummonCreature(Creatures::DefiasEnforcer,
-                        pIronCladDoor->GetPositionX() - 2,
-                        pIronCladDoor->GetPositionY() - 7,
-                        pIronCladDoor->GetPositionZ(),
-                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
-                    {
+                        Positions::DefiasEnforcer, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
                         _defiasEnforcer1GUID = DefiasEnforcer1->GetGUID();
-                    }
 
-                    if (Creature* DefiasEnforcer2 = pIronCladDoor->SummonCreature(Creatures::DefiasEnforcer,
-                        pIronCladDoor->GetPositionX() + 3,
-                        pIronCladDoor->GetPositionY() - 6,
-                        pIronCladDoor->GetPositionZ(),
-                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
-                    {
+                    if (Creature* DefiasEnforcer2 = pIronCladDoor->SummonCreature(Creatures::DefiasShadowguard,
+                        Positions::DefiasShadowguard, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
                         _defiasEnforcer2GUID = DefiasEnforcer2->GetGUID();
-                    }
 
                     if (Creature* DefiasBloodWizzard1 = pIronCladDoor->SummonCreature(Creatures::DefiasBloodWizzard,
-                        pIronCladDoor->GetPositionX() - 4,
-                        pIronCladDoor->GetPositionY() - 9,
-                        pIronCladDoor->GetPositionZ(),
-                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
-                    {
+                        Positions::DefiasBloodWizzard1, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
                         _defiasWizzard1GUID = DefiasBloodWizzard1->GetGUID();
-                    }
 
                     if (Creature* DefiasBloodWizzard2 = pIronCladDoor->SummonCreature(Creatures::DefiasBloodWizzard,
-                        pIronCladDoor->GetPositionX() + 5,
-                        pIronCladDoor->GetPositionY() - 8,
-                        pIronCladDoor->GetPositionZ(),
-                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
-                    {
+                        Positions::DefiasBloodWizzard2, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
                         _defiasWizzard2GUID = DefiasBloodWizzard2->GetGUID();
-                    }
                 }
             }
 
