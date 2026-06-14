@@ -485,6 +485,11 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 (48280, 2, 0, 'NOOOOOOO!!!', 14, 100, 0, 48478, 'Goblin Craftsman 3'),
 (48439, 0, 0, 'RUN!', 14, 100, 0, 48477, 'Goblin Engineer 1');
 
+DELETE FROM `creature_text` WHERE `CreatureID` IN (45979);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
+(45979, 0, 0, 'The cannon was rigged with an explosive trap!', 41, 100, 0, 48790, 'Bunny for Defias Cannon');
+
+
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;
 -- GO: 208002 Goblin Teleporter

@@ -132,7 +132,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 MayhemPrototype = 46903;
         static constexpr uint32 Kagtha = 46889;
         static constexpr uint32 SlinkySharpshiv = 46906;
-        static constexpr uint32 ShatteredHandAssassin = 46890;        
+        static constexpr uint32 ShatteredHandAssassin = 46890;
+
+        // Cannon Tunnel
+        static constexpr uint32 DefiasEnforcer = 48502;
+        static constexpr uint32 DefiasBloodWizzard = 48505;
+        static constexpr uint32 GeneralPurposeBunnyJMF = 45979;
     }
 
     namespace CreatureSpawns

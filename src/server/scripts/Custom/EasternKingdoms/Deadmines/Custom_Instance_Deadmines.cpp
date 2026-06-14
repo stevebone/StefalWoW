@@ -259,10 +259,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _helixRideAuraTimer -= diff;
                 }
 
-                // Defias Cannon Event only runs in Classic version
-                if (!IsClassicVersion())
-                    return;
-
                 if (_cannonState == CannonEvent::STATE_DONE)
                     return;
 
@@ -274,32 +270,55 @@ namespace Scripts::EasternKingdoms::Deadmines
                 switch (_cannonState)
                 {
                 case CannonEvent::STATE_CANNON_GUNPOWDER_USED:
+                {
+                    if (!IsClassicVersion())
+                    {
+                        GameObject* Cannon = instance->GetGameObject(_defiasCannonGUID);
+                        if (Cannon)
+                        {
+                            Creature* cannonBunny = Cannon->FindNearestCreature(Creatures::GeneralPurposeBunnyJMF, 5.f);
+                            if (cannonBunny)
+                                cannonBunny->AI()->Talk(0);
+                        }
+                    }
                     _cannonBlastTimer = CannonEvent::BLAST_TIMER;
                     _cannonState = CannonEvent::STATE_CANNON_BLAST_INITIATED;
                     break;
+                }
                 case CannonEvent::STATE_CANNON_BLAST_INITIATED:
+                {
                     if (_cannonBlastTimer <= diff)
                     {
-                        SummonCreatures();
+                        if (IsClassicVersion())
+                            SummonCreatures();
+                        else SummonCreaturesModern();
+
                         ShootCannon();
                         BlastOutDoor();
                         LeverStuck();
-                        instance->LoadGrid(-22.8f, -797.24f); // Loads Mr. Smite's grid.
-                        if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite)) // goes off when door blows up
+
+                        if (IsClassicVersion())
                         {
-                            // Use m_Events to add a delay for Smite
-                            // Otherwise the sound does not play completely since it overlaps with the explosion/door sounds
-                            smite->m_Events.AddEventAtOffset([smite]()
-                                {
-                                    if (smite && smite->IsAlive())
-                                        smite->AI()->Talk(TextsOLD::SmiteAlarm1);
-                                }, std::chrono::seconds(3));
+                            instance->LoadGrid(-22.8f, -797.24f); // Loads Mr. Smite's grid.
+                            if (Creature* smite = instance->GetCreatureBySpawnId(SpawnsOLD::MrSmite)) // goes off when door blows up
+                            {
+                                // Use m_Events to add a delay for Smite
+                                // Otherwise the sound does not play completely since it overlaps with the explosion/door sounds
+                                smite->m_Events.AddEventAtOffset([smite]()
+                                    {
+                                        if (smite && smite->IsAlive())
+                                            smite->AI()->Talk(TextsOLD::SmiteAlarm1);
+                                    }, std::chrono::seconds(3));
+                            }
                         }
+
                         _piratesTimer = CannonEvent::PIRATES_TIMER;
                         _cannonState = CannonEvent::STATE_PIRATES_ATTACK;
+
                     }
                     else _cannonBlastTimer -= diff;
                     break;
+                }
                 case CannonEvent::STATE_PIRATES_ATTACK:
                     if (_piratesTimer <= diff)
                     {
@@ -337,7 +356,67 @@ namespace Scripts::EasternKingdoms::Deadmines
                 }
             }
 
+            void SummonCreaturesModern()
+            {
+                if (GameObject* pIronCladDoor = instance->GetGameObject(_ironCladDoorGUID))
+                {
+                    if (Creature* DefiasEnforcer1 = pIronCladDoor->SummonCreature(Creatures::DefiasEnforcer,
+                        pIronCladDoor->GetPositionX() - 2,
+                        pIronCladDoor->GetPositionY() - 7,
+                        pIronCladDoor->GetPositionZ(),
+                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
+                    {
+                        _defiasEnforcer1GUID = DefiasEnforcer1->GetGUID();
+                    }
+
+                    if (Creature* DefiasEnforcer2 = pIronCladDoor->SummonCreature(Creatures::DefiasEnforcer,
+                        pIronCladDoor->GetPositionX() + 3,
+                        pIronCladDoor->GetPositionY() - 6,
+                        pIronCladDoor->GetPositionZ(),
+                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
+                    {
+                        _defiasEnforcer2GUID = DefiasEnforcer2->GetGUID();
+                    }
+
+                    if (Creature* DefiasBloodWizzard1 = pIronCladDoor->SummonCreature(Creatures::DefiasBloodWizzard,
+                        pIronCladDoor->GetPositionX() - 4,
+                        pIronCladDoor->GetPositionY() - 9,
+                        pIronCladDoor->GetPositionZ(),
+                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
+                    {
+                        _defiasWizzard1GUID = DefiasBloodWizzard1->GetGUID();
+                    }
+
+                    if (Creature* DefiasBloodWizzard2 = pIronCladDoor->SummonCreature(Creatures::DefiasBloodWizzard,
+                        pIronCladDoor->GetPositionX() + 5,
+                        pIronCladDoor->GetPositionY() - 8,
+                        pIronCladDoor->GetPositionZ(),
+                        0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 3s))
+                    {
+                        _defiasWizzard2GUID = DefiasBloodWizzard2->GetGUID();
+                    }
+                }
+            }
+
             void MoveCreaturesInside()
+            {
+                if (!_defiasEnforcer1GUID || !_defiasEnforcer2GUID || !_defiasWizzard1GUID || !_defiasWizzard2GUID)
+                    return;
+
+                Creature* pDefiasEnforcer1 = instance->GetCreature(_defiasEnforcer1GUID);
+                Creature* pDefiasEnforcer2 = instance->GetCreature(_defiasEnforcer2GUID);
+                Creature* pDefiasWizzard1 = instance->GetCreature(_defiasWizzard1GUID);
+                Creature* pDefiasWizzard2 = instance->GetCreature(_defiasWizzard2GUID);
+                if (!pDefiasEnforcer1 || !pDefiasEnforcer2 || !pDefiasWizzard1 || !pDefiasWizzard2)
+                    return;
+
+                MoveCreatureInside(pDefiasEnforcer1);
+                MoveCreatureInside(pDefiasEnforcer2);
+                MoveCreatureInside(pDefiasWizzard1);
+                MoveCreatureInside(pDefiasWizzard2);
+            }
+
+            void MoveCreaturesInsideModern()
             {
                 if (!_defiasPirate1GUID || !_defiasPirate2GUID)
                     return;
@@ -413,6 +492,12 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             ObjectGuid _defiasPirate1GUID;
             ObjectGuid _defiasPirate2GUID;
+
+            ObjectGuid _defiasEnforcer1GUID;
+            ObjectGuid _defiasEnforcer2GUID;
+            ObjectGuid _defiasWizzard1GUID;
+            ObjectGuid _defiasWizzard2GUID;
+
             ObjectGuid _foeReaperGUID;
 
             GuidSet _playersHitByFirewall;
