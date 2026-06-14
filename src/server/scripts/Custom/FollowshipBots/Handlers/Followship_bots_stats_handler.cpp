@@ -24,6 +24,7 @@
 #include "ObjectMgr.h"
 #include "DB2Stores.h"
 #include "GameTables.h"
+#include "SpellAuraEffects.h"
 
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
