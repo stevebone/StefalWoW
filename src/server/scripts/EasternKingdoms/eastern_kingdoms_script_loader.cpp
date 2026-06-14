@@ -65,7 +65,6 @@ void AddSC_boss_chromaggus();
 void AddSC_boss_nefarian();
 void AddSC_instance_blackwing_lair();
 void AddSC_instance_deadmines();             //Deadmines
-void AddSC_boss_foereaper5000();
 void AddSC_boss_admiral_ripsnarl();
 void AddSC_boss_captain_cookie();
 void AddSC_gilneas_chapter_1();              //Gilneas
@@ -269,7 +268,6 @@ void AddEasternKingdomsScripts()
     AddSC_boss_nefarian();
     AddSC_instance_blackwing_lair();
     AddSC_instance_deadmines();             //Deadmines
-    AddSC_boss_foereaper5000();
     AddSC_boss_admiral_ripsnarl();
     AddSC_boss_captain_cookie();
     AddSC_gilneas_chapter_1();              //Gilneas
