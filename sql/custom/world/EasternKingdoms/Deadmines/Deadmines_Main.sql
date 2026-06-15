@@ -319,7 +319,7 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (48521);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (48521);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_chance`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `target_type`, `comment`) VALUES 
-(48521, 0, 0, 0, '', 0, 100, 0, 0, 3400, 4700, 11, 90398, 64, 2, 'Defias Squallshaper - Cast Seaswell'),
+(48521, 0, 0, 0, '', 0, 100, 0, 0, 3400, 4700, 11, 101687, 64, 2, 'Defias Squallshaper - Cast Seaswell'), -- replacing 90398
 (48521, 0, 1, 0, '2,24', 14, 100, 200000, 40, 20000, 30000, 11, 90914, 0, 7, 'Defias Squallshaper - Cast Riptide'),
 (48521, 0, 2, 3, '', 2, 100, 0, 15, 1000, 1000, 25, 0, 0, 1, 'Defias Squallshaper - Flee 15% HP'),
 (48521, 0, 3, 0, '', 61, 100, 0, 15, 0, 0, 1, 0, 0, 1, 'Defias Squallshaper - Say Text at 15% HP');
