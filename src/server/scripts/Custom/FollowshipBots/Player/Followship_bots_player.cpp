@@ -63,14 +63,8 @@ public:
         if (!player)
             return;
 
-        // Build the player's logical group (player + bots)
-        std::vector<ObjectGuid> group;
-        group.push_back(player->GetGUID());
         Unit* healer = nullptr;
-
         auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
-        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} has {} bots in persistent data", player->GetName(), botsPtr ? botsPtr->size() : 0);
-
         if (botsPtr)
         {
             for (auto const& botData : *botsPtr)
@@ -80,19 +74,15 @@ public:
 
                 if (Unit* botUnit = ObjectAccessor::GetUnit(*player, botData.runtimeGuid))
                 {
-                    if (botUnit->IsInWorld() && !botUnit->IsDuringRemoveFromWorld())
+                    if (botUnit->IsInWorld() && !botUnit->IsDuringRemoveFromWorld() && botUnit->IsAlive() &&
+                        FSBUtils::BotIsHealerClass(botUnit->ToCreature()))
                     {
-                        if (FSBUtils::BotIsHealerClass(botUnit->ToCreature()))
-                            healer = botUnit;
-
-                        group.push_back(botUnit->GetGUID());
-                        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Added bot {} to player {} group", botUnit->GetName(), player->GetName());
+                        healer = botUnit;
+                        break;
                     }
                 }
             }
         }
-
-        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Player {} group size: {}", player->GetName(), group.size());
 
         if (healer)
         {
