@@ -46,6 +46,8 @@
 using namespace FSBUtils;
 using namespace FSBGroup;
 
+namespace DM = Scripts::EasternKingdoms::Deadmines;
+
 namespace FSBDungeon
 {
     // This is the entry point from Periodic Maintence in UpdateAI
@@ -226,7 +228,7 @@ namespace FSBDungeon
 
         switch (bossEntry)
         {
-        case Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000:
+        case DM::Creatures::FoeReaper5000:
             return Deadmines::FoeReaper5000MinDistance;
         default:
             break;
@@ -240,7 +242,7 @@ namespace FSBDungeon
         if (!boss)
             return false;
         if (InstanceScript* instance = boss->GetInstanceScript())
-            return instance->GetData(Scripts::EasternKingdoms::Deadmines::Misc::FoeReaper5000AOEWarning);
+            return instance->GetData(DM::Misc::FoeReaper5000AOEWarning);
         return false;
     }
 
@@ -253,7 +255,7 @@ namespace FSBDungeon
         if (bot->GetVehicle())
             return false;
 
-        if (target->GetEntry() != Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000)
+        if (target->GetEntry() != DM::Creatures::FoeReaper5000)
             return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -281,6 +283,46 @@ namespace FSBDungeon
         }
 
         return false;
+    }
+
+    Unit* GetDungeonTargetOverride(Creature* bot, Unit* target)
+    {
+        if (!bot || !target)
+            return nullptr;
+
+        if (!IsBotInDungeon(bot))
+            return nullptr;
+
+        uint32 mapId = GetBotDungeonId(bot);
+        switch (mapId)
+        {
+            case Maps::Deadmines:
+            {
+                // Only intercept when the proposed target is Admiral Ripsnarl
+                if (target->GetEntry() != DM::Creatures::AdmiralRipsnarl)
+                    return nullptr;
+
+                InstanceScript* instance = bot->GetInstanceScript();
+                if (!instance)
+                    return nullptr;
+
+                // Fog phase active -> redirect to vapors
+                if (instance->GetData(DM::Misc::RipsnarlFogActive) != 0)
+                {
+                    if (Creature* vapor = target->FindNearestCreature(
+                            DM::Creatures::Vapor, 100.0f))
+                    {
+                        if (vapor->IsAlive() && bot->IsValidAttackTarget(vapor))
+                            return vapor;
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        return nullptr;
     }
 
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange)
@@ -349,7 +391,7 @@ namespace FSBDungeon
             if (!FSBMgr::BotIsMeleeRole(bot))
                 return;
 
-            Creature* prototypeReaper = bot->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::PrototypeReaper, PROTOTYPE_REAPER_RANGE);
+            Creature* prototypeReaper = bot->FindNearestCreature(DM::Creatures::PrototypeReaper, PROTOTYPE_REAPER_RANGE);
             if (!prototypeReaper)
                 return;
 
@@ -361,9 +403,9 @@ namespace FSBDungeon
 
         static bool IsAllowedVehicleCastTarget(uint32 entry)
         {
-            return entry == Scripts::EasternKingdoms::Deadmines::Creatures::DefiasWatcher ||
-                   entry == Scripts::EasternKingdoms::Deadmines::Creatures::DefiasReaper ||
-                   entry == Scripts::EasternKingdoms::Deadmines::Creatures::MoltenSlag;
+            return entry == DM::Creatures::DefiasWatcher ||
+                   entry == DM::Creatures::DefiasReaper ||
+                   entry == DM::Creatures::MoltenSlag;
         }
 
         static void MoveToSlagsPosition(Creature* vehicleCreature)
@@ -380,7 +422,7 @@ namespace FSBDungeon
             baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
             baseAI->botVehicleCombatTarget = target->GetGUID();
 
-            vehicleCreature->CastSpell(target, Scripts::EasternKingdoms::Deadmines::Spells::PrototypeReaperCharge, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            vehicleCreature->CastSpell(target, DM::Spells::PrototypeReaperCharge, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
             baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_REAPER_STRIKE, 2s);
             baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_PRESSURIZED_STRIKE, 4s);
         }
@@ -405,7 +447,7 @@ namespace FSBDungeon
 
             Unit* vehicle = bot->GetVehicleBase();
             Creature* vehicleCreature = vehicle ? vehicle->ToCreature() : nullptr;
-            if (!vehicleCreature || vehicleCreature->GetEntry() != Scripts::EasternKingdoms::Deadmines::Creatures::PrototypeReaper)
+            if (!vehicleCreature || vehicleCreature->GetEntry() != DM::Creatures::PrototypeReaper)
             {
                 TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - vehicle is not the Prototype Reaper, stopping", bot->GetName());
                 baseAI->botVehicleCombatTarget.Clear();
@@ -415,7 +457,7 @@ namespace FSBDungeon
             Unit* target = FSBCombat::GetNextAttackTarget(bot);
 
             // Boss fight: park at the designated slags position, scan for Molten Slags from there
-            if (target && target->GetEntry() == Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000)
+            if (target && target->GetEntry() == DM::Creatures::FoeReaper5000)
             {
                 // Not at the slags position yet: move there first, scan only once arrived
                 if (vehicleCreature->GetExactDist2d(&PrototypeReaperSlagsPosition) > 5.0f)
@@ -428,7 +470,7 @@ namespace FSBDungeon
                     return;
                 }
 
-                Unit* slag = vehicleCreature->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::MoltenSlag, 100.0f);
+                Unit* slag = vehicleCreature->FindNearestCreature(DM::Creatures::MoltenSlag, 100.0f);
 
                 if (slag && slag->IsAlive())
                 {
@@ -453,7 +495,7 @@ namespace FSBDungeon
             baseAI->botVehicleCombatTarget.Clear();
 
             // Safety: never follow the owner into a nearby Foe Reaper (e.g. owner is meleeing the boss)
-            if (Creature* nearbyBoss = vehicleCreature->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::FoeReaper5000, BOSS_DISTANCE))
+            if (Creature* nearbyBoss = vehicleCreature->FindNearestCreature(DM::Creatures::FoeReaper5000, BOSS_DISTANCE))
             {
                 if (nearbyBoss->IsAlive() && nearbyBoss->IsInCombat())
                 {

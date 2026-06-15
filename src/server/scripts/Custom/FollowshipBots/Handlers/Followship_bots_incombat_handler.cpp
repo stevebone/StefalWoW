@@ -291,6 +291,9 @@ namespace FSBIC
         if(!healTargets.empty())
             target = healTargets.front();
 
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
+
         FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(bot, heals, target);
 
         if (healSpell && target)

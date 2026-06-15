@@ -53,6 +53,7 @@ namespace FSBDungeon
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
     bool IsFoeReaperAOEActive(Unit* boss);
     bool HandleFoeReaperAOEEvasion(Creature* bot, Unit* target);
+    Unit* GetDungeonTargetOverride(Creature* bot, Unit* target);
 
     namespace Deadmines
     {

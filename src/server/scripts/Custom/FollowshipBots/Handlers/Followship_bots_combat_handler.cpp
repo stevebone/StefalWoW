@@ -47,7 +47,7 @@ namespace FSBCombat
             {
                 bot->AttackStop();
                 return;
-            }            
+            }
 
             // Bot must still consider this its real victim
             Unit* ensured = bot->EnsureVictim();
@@ -151,6 +151,12 @@ namespace FSBCombat
         if (target->HasBreakableByDamageCrowdControlAura())
             return false;
 
+        if (target->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC) ||
+            target->HasUnitFlag(UNIT_FLAG_UNINTERACTIBLE) ||
+            target->HasUnitFlag(UNIT_FLAG_PACIFIED) ||
+            target->HasUnitFlag(UNIT_FLAG_NON_ATTACKABLE))
+            return false;
+
         // Stay - can attack if target is within range or commanded to
         if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
         {
@@ -165,6 +171,11 @@ namespace FSBCombat
     {
         if (!bot || !bot->IsAlive())
             return nullptr;
+
+        // 0. Dungeon-specific target override
+        if (Unit* currentVictim = bot->GetVictim())
+            if (Unit* overrideTarget = FSBDungeon::GetDungeonTargetOverride(bot, currentVictim))
+                return overrideTarget;
 
         // 1. Check own victim
         Unit* victim = bot->GetVictim();
