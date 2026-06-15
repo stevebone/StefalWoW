@@ -271,6 +271,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                 case CannonEvent::STATE_CANNON_GUNPOWDER_USED:
                 {
+                    _cannonBlastTimer = CannonEvent::BLAST_TIMER;
+                    _cannonState = CannonEvent::STATE_CANNON_BLAST_INITIATED;
                     if (!IsClassicVersion())
                     {
                         GameObject* Cannon = instance->GetGameObject(_defiasCannonGUID);
@@ -278,11 +280,15 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             Creature* cannonBunny = Cannon->FindNearestCreature(Creatures::GeneralPurposeBunnyJMF, 5.f);
                             if (cannonBunny)
-                                cannonBunny->AI()->Talk(0);
+                            {
+                                cannonBunny->m_Events.AddEventAtOffset([cannonBunny]()
+                                    {
+                                        if (cannonBunny)
+                                            cannonBunny->AI()->Talk(0); // Cannon gunpowder used
+                                    }, std::chrono::seconds(2));
+                            }
                         }
                     }
-                    _cannonBlastTimer = CannonEvent::BLAST_TIMER;
-                    _cannonState = CannonEvent::STATE_CANNON_BLAST_INITIATED;
                     break;
                 }
                 case CannonEvent::STATE_CANNON_BLAST_INITIATED:

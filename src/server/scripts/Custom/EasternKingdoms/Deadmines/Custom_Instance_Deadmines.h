@@ -159,7 +159,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 ImpactBunny6 = 376045;
         static constexpr uint32 ImpactBunny7 = 375954;
 
-        static constexpr uint32 CannonFiring1 = 375888;
+        static constexpr uint32 CannonFiring1 = 376088;
         static constexpr uint32 CannonFiring2 = 376001;
         static constexpr uint32 CannonFiring3 = 376087;
         static constexpr uint32 CannonFiring4 = 376067;
@@ -572,7 +572,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Cannon Event (modern version)
         static constexpr Position DefiasBloodWizzard1 = { -97.467f, -675.726f, 7.50242f, 1.78024f };
         static constexpr Position DefiasBloodWizzard2 = { -100.878f, -676.349f, 7.49962f, 1.78024f };
-        static constexpr Position DefiasShadowguard = { -98.4774f, -672.389f, 7.50265f, 1.23918 };
+        static constexpr Position DefiasShadowguard = { -98.4774f, -672.389f, 7.50265f, 1.23918f };
         static constexpr Position DefiasEnforcer = { -101.089f, -673.014f, 7.50165f, 1.79769f };
     }
 

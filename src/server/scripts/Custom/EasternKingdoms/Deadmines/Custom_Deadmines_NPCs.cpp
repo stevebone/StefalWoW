@@ -2394,16 +2394,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             ScriptedAI::Reset();
             _events.Reset();
             _cannonGUID.Clear();
-            if (InstanceScript* instance = me->GetInstanceScript())
-            {
-                if (instance->GetData(Misc::DeadminesVersion) == Version::Classic)
-                    return;
-
-                if (instance->GetData(CannonEvent::DATA_EVENT) != CannonEvent::STATE_DONE)
-                    return;
-
-                _events.ScheduleEvent(Events::DefiasPirateCannonCheck, 3s, 7s);
-            }
+            _events.ScheduleEvent(Events::DefiasPirateCannonCheck, 3s, 7s);
         }
 
         void JustEngagedWith(Unit* who) override
@@ -2433,14 +2424,21 @@ namespace Scripts::EasternKingdoms::Deadmines
                 switch (eventId)
                 {
                     case Events::DefiasPirateCannonCheck:
-                        if (Creature* cannon = me->FindNearestCreature(Creatures::DefiasCannon, 5.0f, true))
+                    {
+                        InstanceScript* instance = me->GetInstanceScript();
+                        if (instance && instance->GetData(Misc::DeadminesVersion) != Version::Classic &&
+                            instance->GetData(CannonEvent::DATA_EVENT) == CannonEvent::STATE_DONE)
                         {
-                            _cannonGUID = cannon->GetGUID();
-                            me->HandleEmoteCommand(Emote::EMOTE_ONESHOT_USE_STANDING);
-                            _events.ScheduleEvent(Events::DefiasPirateCannonFire, 2s);
+                            if (Creature* cannon = me->FindNearestCreature(Creatures::DefiasCannon, 5.0f, true))
+                            {
+                                _cannonGUID = cannon->GetGUID();
+                                me->HandleEmoteCommand(Emote::EMOTE_ONESHOT_USE_STANDING);
+                                _events.ScheduleEvent(Events::DefiasPirateCannonFire, 2s);
+                            }
                         }
                         _events.ScheduleEvent(Events::DefiasPirateCannonCheck, 5s, 9s);
                         break;
+                    }
                     case Events::DefiasPirateCannonFire:
                         if (Creature* cannon = ObjectAccessor::GetCreature(*me, _cannonGUID))
                             if (cannon->IsAlive())
