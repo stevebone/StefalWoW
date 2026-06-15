@@ -25,12 +25,84 @@
 #include "ScriptedCreature.h"
 #include "InstanceScript.h"
 #include "GridNotifiers.h"
+#include "SpellInfo.h"
 #include <list>
 
 #include "Custom_Instance_Deadmines.h"
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
+    // 47714 - Ripsnarl Vapor
+    struct npc_admiral_ripsnarl_vapor : public ScriptedAI
+    {
+        npc_admiral_ripsnarl_vapor(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+        }
+
+        void IsSummonedBy(WorldObject* /*owner*/) override
+        {
+            if (IsHeroic())
+                DoCast(me, Spells::Condensation, true);
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::CondenseStage1)
+                _events.RescheduleEvent(Events::VaporSwirling, std::chrono::seconds(Ripsnarl::VaporStage1Delay));
+            else if (spellInfo->Id == Spells::CondenseStage2)
+            {
+                _events.CancelEvent(Events::VaporSwirling);
+                _events.RescheduleEvent(Events::VaporCondensing, std::chrono::seconds(Ripsnarl::VaporStage2Delay));
+            }
+            else if (spellInfo->Id == Spells::CondenseStage3)
+            {
+                _events.CancelEvent(Events::VaporCondensing);
+                _events.RescheduleEvent(Events::VaporFreezing, std::chrono::seconds(Ripsnarl::VaporStage3Delay));
+                _events.RescheduleEvent(Events::VaporCoalesce, std::chrono::seconds(Ripsnarl::VaporCoalesceDelay));
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            if (!UpdateVictim())
+                return;
+
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            if (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::VaporSwirling:
+                        DoCastVictim(Spells::SwirlingVapor);
+                        break;
+                    case Events::VaporCondensing:
+                        DoCastVictim(Spells::CondensingVapor);
+                        break;
+                    case Events::VaporFreezing:
+                        DoCastVictim(Spells::FreezingVapor);
+                        break;
+                    case Events::VaporCoalesce:
+                        DoCastSelf(Spells::Coalesce);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+    };
+
     // 47626 - Admiral Ripsnarl
     struct boss_admiral_ripsnarl : public BossAI
     {
@@ -68,6 +140,8 @@ namespace Scripts::EasternKingdoms::Deadmines
             DoZoneInCombat();
 
             DoCast(me, Spells::ThirstForBlood);
+            if (instance)
+                instance->DoRemoveAurasDueToSpellOnPlayers(Spells::RipsnarlAchievement);
             _events.ScheduleEvent(Events::RipsnarlSwipe, std::chrono::seconds(Ripsnarl::SwipeTimer));
 
             if (IsHeroic())
@@ -120,7 +194,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void KilledUnit(Unit* victim) override
         {
-            if (victim && victim->IsPlayer())
+            if (victim)
                 Talk(Texts::RipsnarlKill);
         }
 
@@ -132,9 +206,27 @@ namespace Scripts::EasternKingdoms::Deadmines
             _summons.DespawnAll();
             SetFog(false);
             if (instance)
+            {
                 instance->SetData(Misc::RipsnarlFogActive, 0);
+                instance->DoRemoveAurasDueToSpellOnPlayers(Spells::RipsnarlAchievement);
+            }
 
             me->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn, TEMPSUMMON_MANUAL_DESPAWN);
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (action == Actions::RipsnarlCoalesce)
+                DoCastSelf(Spells::RipsnarlAchievement);
+        }
+
+        void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override
+        {
+            if (summon->GetEntry() == Creatures::Vapor)
+            {
+                // Centralized vapor death handling.
+                // SummonList cleanup is automatic; add any vapor-specific logic here.
+            }
         }
 
         void UpdateAI(uint32 diff) override
@@ -156,7 +248,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _events.ScheduleEvent(Events::RipsnarlSwipe, std::chrono::seconds(Ripsnarl::SwipeTimer));
                         break;
                     case Events::RipsnarlGoForThroat:
-                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false))
                         {
                             Talk(Texts::RipsnarlGoForThroat);
                             me->CastSpell(target, Spells::GoForTheThroat);
@@ -167,7 +259,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Events::RipsnarlSummonVapor:
                         if (_inFog)
                         {
-                            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
+                            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false))
                                 me->CastSpell(target, Spells::SummonVapor);
                             _events.ScheduleEvent(Events::RipsnarlSummonVapor, std::chrono::seconds(Ripsnarl::SummonVaporTimer));
                         }
@@ -231,7 +323,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->SetReactState(REACT_AGGRESSIVE);
 
             // Go For the Throat on reveal: leap at a random enemy
-            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
+            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false))
             {
                 Talk(Texts::RipsnarlGoForThroat);
                 AttackStart(target);
@@ -274,4 +366,5 @@ void AddSC_custom_deadmines_admiral_ripsnarl()
     using namespace Scripts::EasternKingdoms::Deadmines;
 
     RegisterCreatureAI(boss_admiral_ripsnarl);
+    RegisterCreatureAI(npc_admiral_ripsnarl_vapor);
 }

@@ -66,8 +66,11 @@ UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); --
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
 48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208,49229,48502,48417,48505,
-48447,48450,48522,48521,48448,48449,48451,47626);
+48447,48450,48522,48521,48448,48449,48451,47626,47714);
 INSERT INTO `creature_template_difficulty` VALUES
+(47714, 1, 0, 0, 202, 0, 0.75, 1, 1, 0.5, 42863, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(47714, 2, 0, 0, 1199, 0, 0.75, 1, 1, 0.2, 42863, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 457450),
+(47714, 24, 0, 0, 2872, 3, 0.75, 1, 1, 1, 42864, 0, 0, 0, 0, 0, 0, 0, 0, 524288, 0, 0, 0, 0, 0, 0, 0, 0), -- Vapor
 (47626, 1, 0, 0, 202, 0, 1, 1, 1, 0.2, 43037, 104, 128, 0, 4762601, 0, 0, 13029, 13029, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
 (47626, 2, 2, 2, 1199, 0, 2, 1, 1, 0.4, 43037, 104, 128, 0, 4762602, 0, 0, 13029, 13029, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (47626, 24, 2, 2, 2872, 3, 1, 1, 1, 1, 43038, 104, 128, 0, 4762624, 0, 0, 13029, 13029, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Admiral Ripsnarl
@@ -362,6 +365,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_goblin_foundry_worker' WHERE 
 UPDATE `creature_template` SET `ScriptName` = 'npc_defias_foe_reaper_add' WHERE `entry` IN (47404,47403);
 UPDATE `creature_template` SET `ScriptName` = 'boss_foe_reaper_5000' WHERE `entry` = 43778;
 UPDATE `creature_template` SET `ScriptName` = 'boss_admiral_ripsnarl' WHERE `entry` = 47626;
+UPDATE `creature_template` SET `ScriptName` = 'npc_admiral_ripsnarl_vapor' WHERE `entry` = 47714;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -431,13 +435,14 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (49041, 46598, 0, 0),
 (49042, 46598, 0, 0);
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278,92042);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (88278, 'spell_helix_force_player_to_ride_oaf'),
 (89769, 'spell_mining_powder_explode'),
 (91397, 'spell_glubtok_firewall_targetting'),
 (87897, 'spell_glubtok_generic_proc'),
-(87900, 'spell_glubtok_generic_proc');
+(87900, 'spell_glubtok_generic_proc'),
+(92042, 'spell_admiral_ripsnarl_coalesce');
 
 DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266,49208,47403,47404);
 INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES

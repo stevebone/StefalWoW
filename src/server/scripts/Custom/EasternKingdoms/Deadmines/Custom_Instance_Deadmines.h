@@ -427,6 +427,17 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 RipsnarlFogVisualSmall = 88768; // applied on GeneralPurposeBunny (47242)
         static constexpr uint32 RipsnarlFogVisualLarge = 88755; // applied on GeneralPurposeBunnyJMF (45979)
         static constexpr uint32 SummonVapor = 88831;
+        // Admiral Ripsnarl Vapor
+        static constexpr uint32 Condensation = 92013;
+        static constexpr uint32 CondenseStage1 = 92014;
+        static constexpr uint32 CondenseStage2 = 92018;
+        static constexpr uint32 CondenseStage3 = 92031;
+        static constexpr uint32 SwirlingVapor = 92007;
+        static constexpr uint32 CondensingVapor = 92008;
+        static constexpr uint32 FreezingVapor = 92011;
+        static constexpr uint32 Coalesce = 92042;
+        static constexpr uint32 RipsnarlAchievement = 95647;
+        static constexpr uint32 RipsnarlCancelAchievement = 95648;
     }
 
     namespace Events
@@ -522,11 +533,17 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 RipsnarlGoForThroat = 2;
         static constexpr int8 RipsnarlSummonVapor = 3;
         static constexpr int8 RipsnarlReveal = 4;
+        // Admiral Ripsnarl Vapor Events
+        static constexpr int8 VaporSwirling = 5;
+        static constexpr int8 VaporCondensing = 6;
+        static constexpr int8 VaporFreezing = 7;
+        static constexpr int8 VaporCoalesce = 8;
     }
 
     namespace Actions
     {
         static constexpr int8 OafCharge = 1;
+        static constexpr int8 RipsnarlCoalesce = 2;
     }
 
     namespace Glubtok
@@ -645,6 +662,11 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 GoForThroatTimer = 15;
         static constexpr int8 RevealTimer = 20;
         static constexpr int8 SummonVaporTimer = 5;
+        // Vapor stage delays (seconds)
+        static constexpr int8 VaporStage1Delay = 5;
+        static constexpr int8 VaporStage2Delay = 6;
+        static constexpr int8 VaporStage3Delay = 5;
+        static constexpr int8 VaporCoalesceDelay = 8;
     }
 
     namespace CannonEvent

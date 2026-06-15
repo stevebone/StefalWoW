@@ -147,6 +147,25 @@ namespace Scripts::EasternKingdoms::Deadmines
             OnEffectHitTarget += SpellEffectFn(spell_helix_force_player_to_ride_oaf::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
         }
     };
+
+    // 92042 - Coalesce (Ripsnarl Vapor)
+    class spell_admiral_ripsnarl_coalesce : public SpellScript
+    {
+        void HandleAfterCast()
+        {
+            if (!GetCaster())
+                return;
+
+            if (Creature* boss = GetCaster()->FindNearestCreature(Creatures::AdmiralRipsnarl, 100.0f))
+                if (boss->AI())
+                    boss->AI()->DoAction(Actions::RipsnarlCoalesce);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_admiral_ripsnarl_coalesce::HandleAfterCast);
+        }
+    };
 }
 
 void AddSC_custom_deadmines_spells()
@@ -157,4 +176,5 @@ void AddSC_custom_deadmines_spells()
     RegisterSpellScript(spell_glubtok_firewall_targetting);
     RegisterSpellScript(spell_helix_force_player_to_ride_oaf);
     RegisterSpellScript(spell_mining_powder_explode);
+    RegisterSpellScript(spell_admiral_ripsnarl_coalesce);
 }
