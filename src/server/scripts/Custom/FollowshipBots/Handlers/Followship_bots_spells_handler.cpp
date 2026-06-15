@@ -198,7 +198,7 @@ namespace FSBSpells
 
     FSBSpellRuntime* SelectBestHealSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& heals, Unit* target)
     {
-        if (!target)
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return nullptr;
 
         float hpPct = target->GetHealthPct();
