@@ -461,7 +461,7 @@ public:
 
 void AddSC_boss_admiral_ripsnarl()
 {
-    new boss_admiral_ripsnarl();
-    new npc_admiral_ripsnarl_vapor();
+    //new boss_admiral_ripsnarl();
+    //new npc_admiral_ripsnarl_vapor();
     new spell_admiral_ripsnarl_coalesce();
 }
