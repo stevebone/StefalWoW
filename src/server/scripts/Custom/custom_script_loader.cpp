@@ -71,6 +71,10 @@ void AddSC_custom_deadmines_npcs();
 void AddSC_custom_deadmines_objects();
 void AddSC_custom_deadmines_spells();
 void AddSC_custom_deadmines_old_npcs();
+void AddSC_custom_deadmines_admiral_ripsnarl();
+void AddSC_custom_deadmines_foe_reaper_5000();
+void AddSC_custom_deadmines_glubtok();
+void AddSC_custom_deadmines_helix_gearbreaker();
 
 // Magister's Terrace 12.0.1 (Map 2811)
 void AddSC_instance_magisters_terrace_12();
@@ -145,6 +149,10 @@ void AddCustomScripts()
     AddSC_custom_deadmines_objects();
     AddSC_custom_deadmines_spells();
     AddSC_custom_deadmines_old_npcs();
+    AddSC_custom_deadmines_admiral_ripsnarl();
+    AddSC_custom_deadmines_foe_reaper_5000();
+    AddSC_custom_deadmines_glubtok();
+    AddSC_custom_deadmines_helix_gearbreaker();
 
     // Magister's Terrace 12.0.1 (Map 2811)
     AddSC_instance_magisters_terrace_12();

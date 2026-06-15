@@ -361,6 +361,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_defias_overseer' WHERE `entry
 UPDATE `creature_template` SET `ScriptName` = 'npc_goblin_foundry_worker' WHERE `entry` IN (48280,48439);
 UPDATE `creature_template` SET `ScriptName` = 'npc_defias_foe_reaper_add' WHERE `entry` IN (47404,47403);
 UPDATE `creature_template` SET `ScriptName` = 'boss_foe_reaper_5000' WHERE `entry` = 43778;
+UPDATE `creature_template` SET `ScriptName` = 'boss_admiral_ripsnarl' WHERE `entry` = 47626;
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -572,11 +573,11 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 (47626, 1, 0, 'Your blood only increases my hunger!', 14, 100, 19876, 48009, 'Admiral Ripsnarl kill'),
 (47626, 2, 0, 'Do you feel that chill running up your spine? The fog is rolling in...', 14, 100, 19876, 170904, 'Admiral Ripsnarl Fog 1'),
 (47626, 2, 1, 'Ha ha ha ha ha!  Rah ha ha ha ha ha!', 14, 100, 19878, 48008, 'Admiral Ripsnarl Fog 2'),
+(47626, 2, 2, 'Aaaaauuuuuggghhhhh!', 14, 100, 19881, 84199, 'Admiral Ripsnarl Fog 3'), -- Text ID might be wrong but sound exists and matches Ripsnarl
 (47626, 3, 0, 'I can smell your fear...', 14, 100, 19879, 48006, 'Admiral Ripsnarl Go for the throat 1'),
 (47626, 3, 1, 'I will rip your heart from your chest!', 14, 100, 19880, 48007, 'Admiral Ripsnarl Go for the throat 2'),
-(47626, 4, 0, 'Aaaaauuuuuggghhhhh!', 14, 100, 19881, 84199, 'Admiral Ripsnarl Special Phase'),
-(47626, 5, 0, 'Ah, fresh meat!', 14, 100, 19882, 48179, 'Admiral Ripsnarl Aggro'),
-(47626, 6, 0, 'Multiple vapors appear from the fog!  Kill Admiral Ripsnarl before you are overwhelmed!', 41, 100, 0, 50851, 'Admiral Ripsnarl - Announce Vapor');
+(47626, 4, 0, 'Ah, fresh meat!', 14, 100, 19882, 48179, 'Admiral Ripsnarl Aggro'),
+(47626, 5, 0, 'Multiple vapors appear from the fog!  Kill Admiral Ripsnarl before you are overwhelmed!', 41, 100, 0, 50851, 'Admiral Ripsnarl - Announce Vapor');
 
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;

@@ -49,7 +49,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _cannonState(*this, "CannonState", CannonEvent::STATE_CANNON_NOT_USED),
                 _secondSmiteAlarm(*this, "SecondSmiteAlarm", 0),
                 _reaperCounter(*this, "ReaperCounter", 0),
-                _foeReaper5000AOEWarning(*this, "FoeReaperAOEWarning", false)
+                _foeReaper5000AOEWarning(*this, "FoeReaperAOEWarning", false),
+                _ripsnarlFogActive(*this, "RipsnarlFogActive", false)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -139,6 +140,12 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Misc::FoeReaper5000AOEWarning:
                         _foeReaper5000AOEWarning = data;
                         break;
+                    case Misc::RipsnarlFogActive:
+                        _ripsnarlFogActive = data != 0;
+                        // Remove the fog screen aura immediately once the fog phase ends
+                        if (!_ripsnarlFogActive)
+                            DoRemoveAurasDueToSpellOnPlayers(Spells::RipsnarlsFogAura);
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -161,6 +168,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _reaperCounter;
                     case Misc::FoeReaper5000AOEWarning:
                         return _foeReaper5000AOEWarning;
+                    case Misc::RipsnarlFogActive:
+                        return _ripsnarlFogActive;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -244,7 +253,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 // Apply HelixRide aura to all players during Helix encounter for Rat Pack achievement
                 // Strange that this aura is needed but it is part of the conditions tree for the criteria
-                if (GetBossState(Creatures::HelixGearbreaker) == IN_PROGRESS)
+                if (GetBossState(DataTypes::BOSS_HELIX_GEARBREAKER) == IN_PROGRESS)
                 {
                     if (_helixRideAuraTimer <= diff)
                     {
@@ -257,6 +266,23 @@ namespace Scripts::EasternKingdoms::Deadmines
                     }
                     else
                         _helixRideAuraTimer -= diff;
+                }
+
+                // Apply the fog screen aura to all players while Ripsnarl is engaged and in his fog phase.
+                // Polling here keeps late joiners / resurrected players covered; removal is handled in SetData.
+                if (GetBossState(DataTypes::BOSS_ADMIRAL_RIPSNARL) == IN_PROGRESS && _ripsnarlFogActive)
+                {
+                    if (_ripsnarlFogAuraTimer <= diff)
+                    {
+                        instance->DoOnPlayers([](Player* player)
+                        {
+                            if (!player->HasAura(Spells::RipsnarlsFogAura))
+                                player->AddAura(Spells::RipsnarlsFogAura, player);
+                        });
+                        _ripsnarlFogAuraTimer = 1000; // 1 second
+                    }
+                    else
+                        _ripsnarlFogAuraTimer -= diff;
                 }
 
                 if (_cannonState == CannonEvent::STATE_DONE)
@@ -465,10 +491,12 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<uint8> _secondSmiteAlarm;
             PersistentInstanceScriptValue<uint8> _reaperCounter;
             PersistentInstanceScriptValue<bool> _foeReaper5000AOEWarning;
+            PersistentInstanceScriptValue<bool> _ripsnarlFogActive;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
             uint32 _helixRideAuraTimer = 0;
+            uint32 _ripsnarlFogAuraTimer = 0;
 
             ObjectGuid _oafGUID;
             ObjectGuid _ironCladDoorGUID;

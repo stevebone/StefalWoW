@@ -24,11 +24,30 @@
 #define CUSTOM_INSTANCE_DEADMINES_H
 
 #include "CreatureAIImpl.h"
+#include "Creature.h"
 #include "InstanceScript.h"
 #include "Position.h"
+#include "SpellAuraDefines.h"
 
 namespace Scripts::EasternKingdoms::Deadmines
 {
+    // Shared crowd-control immunity profile applied to Deadmines bosses.
+    inline void ApplyCrowdControlImmunities(Creature* creature)
+    {
+        creature->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+        creature->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+        creature->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+    }
+
     namespace Misc
     {
         constexpr char const* DMScriptName = "custom_instance_deadmines";
@@ -43,6 +62,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 GoblinFoundryTrigger2Fired = 1006;
         static constexpr uint32 FoeReaperAddCounter = 1007;
         static constexpr uint32 FoeReaper5000AOEWarning = 1008;
+        static constexpr uint32 RipsnarlFogActive = 1009;
     }
 
     namespace Version
@@ -140,6 +160,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 DefiasBloodWizzard = 48417;
         static constexpr uint32 DefiasShadowguard = 48505;
         static constexpr uint32 GeneralPurposeBunnyJMF = 45979;
+
+        // Admiral Ripsnarl
+        static constexpr uint32 Vapor = 47714;
     }
 
     namespace CreatureSpawns
@@ -275,10 +298,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 FoeReaperHarvestSweep = 3;
         static constexpr int8 FoeReaperSafetyOff = 7;
         static constexpr int8 FoeReaperSafetyOffWarning = 8;
-    }
 
-    namespace Texts
-    {
         // Goblin Foundry Event
         // Goblin Craftsman (48280)
         static constexpr int8 GoblinCraftsmanAlive = 0;
@@ -287,6 +307,14 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Goblin Engineer (48439)
         static constexpr int8 GoblinEngineerRun = 0;
+
+        // Admiral Ripsnarl (47626) - maps to creature_text GroupIDs
+        static constexpr int8 RipsnarlDeath = 0;
+        static constexpr int8 RipsnarlKill = 1;
+        static constexpr int8 RipsnarlFog = 2;
+        static constexpr int8 RipsnarlGoForThroat = 3;
+        static constexpr int8 RipsnarlAggro = 4;
+        static constexpr int8 RipsnarlAnnounceVapor = 5;
     }
 
     namespace Spells
@@ -387,6 +415,18 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 PrototypeReaperCharge = 91726;
         static constexpr uint32 PrototypeReaperReaperStrike = 91723;
         static constexpr uint32 PrototypeReaperPressurizedStrike = 91727;
+
+        // Admiral Ripsnarl
+        static constexpr uint32 ThirstForBlood = 88736;
+        static constexpr uint32 ThirstForBloodAura = 88737;
+        static constexpr uint32 Swipe = 88839;
+        static constexpr uint32 SwipeHeroic = 91859; // not used since the original spell has effects for diff
+        static constexpr uint32 GoForTheThroat = 88836;
+        static constexpr uint32 GoForTheThroatHeroic = 91863; // not used since the original spell has effects for diff
+        static constexpr uint32 RipsnarlsFogAura = 89247;
+        static constexpr uint32 RipsnarlFogVisualSmall = 88768; // applied on GeneralPurposeBunny (47242)
+        static constexpr uint32 RipsnarlFogVisualLarge = 88755; // applied on GeneralPurposeBunnyJMF (45979)
+        static constexpr uint32 SummonVapor = 88831;
     }
 
     namespace Events
@@ -476,6 +516,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Defias Pirate Events
         static constexpr int8 DefiasPirateCannonCheck = 1;
         static constexpr int8 DefiasPirateCannonFire = 2;
+
+        // Admiral Ripsnarl Events
+        static constexpr int8 RipsnarlSwipe = 1;
+        static constexpr int8 RipsnarlGoForThroat = 2;
+        static constexpr int8 RipsnarlSummonVapor = 3;
+        static constexpr int8 RipsnarlReveal = 4;
     }
 
     namespace Actions
@@ -574,6 +620,31 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr Position DefiasBloodWizzard2 = { -100.878f, -676.349f, 7.49962f, 1.78024f };
         static constexpr Position DefiasShadowguard = { -98.4774f, -672.389f, 7.50265f, 1.23918f };
         static constexpr Position DefiasEnforcer = { -101.089f, -673.014f, 7.50165f, 1.79769f };
+
+        // Admiral Ripsnarl
+        static constexpr Position RipsnarlCaptainCookieSpawn = { -88.1319f, -819.33f, 39.2345f, 0.0f };
+        static constexpr Position RipsnarlVaporFinalSpawn[3] =
+        {
+            { -70.59f, -820.57f, 40.56f, 6.28f },
+            { -55.73f, -815.84f, 41.97f, 3.85f },
+            { -55.73f, -825.54f, 41.99f, 2.60f },
+        };
+    }
+
+    namespace Ripsnarl
+    {
+        static constexpr uint32 FogPhasePct75 = 75;
+        static constexpr uint32 FogPhasePct50 = 50;
+        static constexpr uint32 FogPhasePct25 = 25;
+        static constexpr uint32 HeroicVaporPhasePct = 10;
+
+        static constexpr float FogBunnyRange = 75.0f;
+
+        // Timers in seconds
+        static constexpr int8 SwipeTimer = 10;
+        static constexpr int8 GoForThroatTimer = 15;
+        static constexpr int8 RevealTimer = 20;
+        static constexpr int8 SummonVaporTimer = 5;
     }
 
     namespace CannonEvent
