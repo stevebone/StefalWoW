@@ -107,7 +107,7 @@ enum FSB_PRIEST_MISC_SPELLS
 namespace FSBPriest
 {
     bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown);
-    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup);
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole);
 
     bool BotHasPainSuppression(Creature* bot);
 }

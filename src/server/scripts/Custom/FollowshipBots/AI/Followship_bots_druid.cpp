@@ -115,7 +115,7 @@ namespace FSBDruid
 
         uint32 now = getMSTime();
 
-        if (player->GetHealthPct() <= 50)
+        if (player->GetHealthPct() <= 50 && !player->HasAura(SPELL_DRUID_LIFEBLOOM))
         {
             bot->CastSpell(player, SPELL_DRUID_LIFEBLOOM, false);
             globalCooldown = now + 1500;
@@ -125,7 +125,7 @@ namespace FSBDruid
             return true;
 
         }
-        else if (player->GetHealthPct() <= 90)
+        else if (player->GetHealthPct() <= 90 && !player->HasAura(SPELL_DRUID_REGROWTH))
         {
             bot->CastSpell(player, SPELL_DRUID_REGROWTH, false);
             globalCooldown = now + 1500;
@@ -380,7 +380,7 @@ namespace FSBDruid
 
     }
 
-    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup)
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole)
     {
         if (botCastedCombatBuffs)
             return false;
@@ -392,7 +392,7 @@ namespace FSBDruid
             return false;
 
         Unit* target = nullptr;
-        Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+        Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
 
         switch (botRole)
         {

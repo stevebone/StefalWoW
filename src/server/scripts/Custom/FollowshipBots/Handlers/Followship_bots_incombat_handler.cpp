@@ -39,7 +39,7 @@
 
 namespace FSBIC
 {
-    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup)
+    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -64,7 +64,7 @@ namespace FSBIC
 
         //2. IC (initial)Buffs
         // These are cast when combat starts
-        if (BotICInitialBuffs(bot, globalCooldown, botCastedCombatBuffs, botGroup))
+        if (BotICInitialBuffs(bot, globalCooldown, botCastedCombatBuffs))
             return true;
 
         //3. IC Go melee when OOM
@@ -271,29 +271,29 @@ namespace FSBIC
             return false;
 
         auto& runtimeSpells = baseAI->botRuntimeSpells;
-        auto& botGroup = baseAI->botLogicalGroup;
         auto botRole = baseAI->botRole;
 
         float hpPct = FSBDungeon::IsBotInDungeon(bot) ? DungeonHealPCT : DefaultHealPCT;
         if (botRole == FSB_ROLE_HEALER)
             hpPct = FSBDungeon::IsBotInDungeon(bot) ? DungeonHealPCTHealer : DefaultHealPCTHealer;
 
-        auto healTargets = FSBGroup::BotGetMembersToHeal(botGroup, hpPct);
+        auto healTargets = FSBGroup::BotGetMembersToHeal(bot, hpPct);
         if (healTargets.empty())
             return false;
 
-        if (botRole == FSB_ROLE_HEALER) FSBGroup::SortEmergencyTargets(healTargets);
+        auto resolvedTargets = FSBGroup::ResolveGroup(bot, healTargets);
+        if (resolvedTargets.empty())
+            return false;
 
-        auto heals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, false);
+        auto sortedHealTargets = resolvedTargets;
+        if (botRole == FSB_ROLE_HEALER)
+            FSBGroup::SortEmergencyTargets(sortedHealTargets);
 
-        Unit* target = nullptr;      
-
-        if(!healTargets.empty())
-            target = healTargets.front();
-
+        Unit* target = sortedHealTargets.front();
         if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
             return false;
 
+        auto heals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, false);
         FSBSpellRuntime* healSpell = FSBSpells::SelectBestHealSpell(bot, heals, target);
 
         if (healSpell && target)
@@ -306,7 +306,7 @@ namespace FSBIC
 
             if (healSpell->def->isLocationSpell)
             {
-                Position pos = FSBSpells::GetHealingAoEPosition(bot, botGroup);
+                Position pos = FSBSpells::GetHealingAoEPosition(bot);
                 castSuccess = FSBSpells::BotCastSpellatLocation(bot, healSpell->def->spellId, pos);
             }
             else
@@ -449,7 +449,7 @@ namespace FSBIC
         return false;
     }
 
-    bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup)
+    bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs)
     {
         if (!bot)
             return false;
@@ -462,17 +462,18 @@ namespace FSBIC
         if (!bot->IsInCombat())
             return false;
 
-        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-        FSB_Roles botRole = FSBMgr::Get()->GetRole(bot);
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
 
-        switch (botClass)
+        switch (baseAI->botClass)
         {
         case FSB_Class::Priest:
-            if(FSBPriest::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, botRole, botGroup))
+            if(FSBPriest::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, baseAI->botRole))
                 return true;
             break;
         case FSB_Class::Druid:
-            if (FSBDruid::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, botRole, botGroup))
+            if (FSBDruid::BotInitialCombatSpells(bot, globalCooldown, botCastedCombatBuffs, baseAI->botRole))
                 return true;
             break;
         case FSB_Class::Shaman:

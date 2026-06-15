@@ -554,8 +554,19 @@ namespace FSBSpells
         return bot->GetPosition();
     }
 
-    Position GetHealingAoEPosition(Creature* bot, const std::vector<Unit*>& group)
+    Position GetHealingAoEPosition(Creature* bot)
     {
+        if (!bot || !bot->IsAlive())
+            return Position{};
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return Position{};
+
+        auto group = FSBGroup::ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return Position{};
+
         float sumX = 0.f, sumY = 0.f, sumZ = 0.f;
         uint32 count = 0;
         for (Unit* member : group)

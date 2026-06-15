@@ -59,7 +59,6 @@ namespace FSBOOC
         auto& globalCooldown = baseAI->botGlobalCooldown;
         auto& buffTimer = baseAI->botBuffsTimer;
         auto& selfBuffTimer = baseAI->botSelfBuffsTimer;
-        auto& botGroup = baseAI->botLogicalGroup;
 
         if (FSBCombatUtils::IsCombatActive(bot))
             return false;
@@ -85,7 +84,7 @@ namespace FSBOOC
 
         //2. Buff Group (bots and player)
         // If we buff someone this turn return and end tick
-        if (now >= buffTimer && BotOOCBuffGroup(bot, botGroup, buffTimer, globalCooldown))
+        if (now >= buffTimer && BotOOCBuffGroup(bot, buffTimer, globalCooldown))
             return true;
 
         //3. Buff Self - buffs only for the bot
@@ -103,7 +102,7 @@ namespace FSBOOC
             return true;
 
         //6. Warlock SoulStone
-        if (BotOOCBuffSoulstone(bot, globalCooldown, botGroup))
+        if (BotOOCBuffSoulstone(bot, globalCooldown))
             return true;
 
         //7. Paladin Beacon
@@ -567,7 +566,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*> botGroup)
+    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -579,6 +578,9 @@ namespace FSBOOC
             return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
         auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
 
         if (isDoingRandomEvent)
@@ -589,7 +591,7 @@ namespace FSBOOC
         if (cls != FSB_Class::Warlock)
             return false;
 
-        if (FSBWarlock::BotOOCBuffSoulstone(bot, globalCooldown, botGroup))
+        if (FSBWarlock::BotOOCBuffSoulstone(bot, globalCooldown))
             return true;
 
         return false;
@@ -782,7 +784,7 @@ namespace FSBOOC
         return false;
     }
 
-    bool BotOOCBuffGroup(Creature* bot, const std::vector<Unit*>& botGroup, uint32& buffTimer, uint32& globalCooldown)
+    bool BotOOCBuffGroup(Creature* bot, uint32& buffTimer, uint32& globalCooldown)
     {
         if (!bot)
             return false;
@@ -791,12 +793,16 @@ namespace FSBOOC
             return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
         auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
 
         if (isDoingRandomEvent)
             return false;
 
-        if (botGroup.empty())
+        auto group = FSBGroup::ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
             return false;
 
         if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT) || bot->HasAura(SPELL_DRUID_TRAVEL))
@@ -844,13 +850,13 @@ namespace FSBOOC
             return false;
         }
 
-        GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
+        GetBotBuffTargets(bot, buffSpellId, 30.0f, buffTargets);
         if (buffSpellId2 && buffTargets.empty())
         {
             buffSpellId = buffSpellId2;
             if (baseAI->botRole == FSB_ROLE_HEALER)
             {
-                Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+                Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
 
                 if (tank && !tank->HasAura(buffSpellId))
                     buffTargets.push_back(tank);
@@ -862,7 +868,7 @@ namespace FSBOOC
                 }
             }
                 
-            else GetBotBuffTargets(bot, buffSpellId, botGroup, 30.0f, buffTargets);
+            else GetBotBuffTargets(bot, buffSpellId, 30.0f, buffTargets);
         }
 
         if (!buffTargets.empty())
@@ -909,15 +915,20 @@ namespace FSBOOC
         return false;
     }
 
-    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, const std::vector<Unit*>& botGroup, float maxRange, std::vector<Unit*>& outTargets)
+    void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, float maxRange, std::vector<Unit*>& outTargets)
     {
         if (!bot)
             return;
 
-        if (botGroup.empty())
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
             return;
 
-        for (Unit* member : botGroup)
+        auto group = FSBGroup::ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return;
+
+        for (Unit* member : group)
         {
             if (!member)
                 continue;
@@ -1027,7 +1038,7 @@ namespace FSBOOC
         {
             do
             {
-                randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+                randomUnit = ObjectAccessor::GetUnit(*bot, Trinity::Containers::SelectRandomContainerElement(botGroup));
             } while (randomUnit == bot);
         }
         else if (player)
@@ -1086,7 +1097,7 @@ namespace FSBOOC
             {
                 do
                 {
-                    randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+                    randomUnit = ObjectAccessor::GetUnit(*bot, Trinity::Containers::SelectRandomContainerElement(botGroup));
                 } while (randomUnit == bot);
             }
             else if (player)
@@ -1144,7 +1155,7 @@ namespace FSBOOC
         {
             do
             {
-                randomUnit = Trinity::Containers::SelectRandomContainerElement(botGroup);
+                randomUnit = ObjectAccessor::GetUnit(*bot, Trinity::Containers::SelectRandomContainerElement(botGroup));
             } while (randomUnit == bot);
         }
         else if (player)

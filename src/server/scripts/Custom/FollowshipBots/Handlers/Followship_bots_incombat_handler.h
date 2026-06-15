@@ -30,9 +30,9 @@ static constexpr float DungeonHealPCTHealer = 90.f;
 
 namespace FSBIC
 {
-    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup);
+    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs);
     bool BotICPotions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed);
-    bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs, const std::vector<Unit*>& botGroup);
+    bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs);
     bool BotICMeleeMode(Creature* bot);
     bool BotICTryDispel(Creature* bot);
     bool BotICTryOffensiveDispel(Creature* bot);

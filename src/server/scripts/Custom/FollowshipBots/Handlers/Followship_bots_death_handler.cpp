@@ -86,7 +86,7 @@ namespace FSBDeath
         }
 
         // handle death with healer present
-        Unit* healer = FSBGroup::BotGetFirstGroupHealer(botGroup);
+        Unit* healer = FSBGroup::BotGetFirstGroupHealer(bot);
         if (healer)
         {
             TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied, found healer: {}", bot->GetName(), healer->GetName());

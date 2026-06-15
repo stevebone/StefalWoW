@@ -230,11 +230,10 @@ namespace FSBPaladin
             return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        auto& botGroup = baseAI->botLogicalGroup;
         auto& globalCooldown = baseAI->botGlobalCooldown;
         uint32 spellId = SPELL_PALADIN_BEACON_OF_LIGHT;
 
-        Unit* target = FSBGroup::BotGetFirstGroupTank(botGroup);
+        Unit* target = FSBGroup::BotGetFirstGroupTank(bot);
         bool recastNeeded = false;
 
         if (target && target->HasAura(spellId))

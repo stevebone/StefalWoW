@@ -687,7 +687,7 @@ public:
                     {
                         // Vehicle combat is handled by the self-scheduling EVENT_DM_VEHICLE_COMBAT_CHECK loop
                         if (!botInVehicle)
-                            FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
+                            FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs);
                     }
 
                     if (botClass == FSB_Class::Hunter && FSBPet::BotHasPet(me))

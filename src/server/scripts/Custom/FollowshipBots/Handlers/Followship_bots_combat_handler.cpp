@@ -228,7 +228,7 @@ namespace FSBCombat
         // 4. Group assist logic
         if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
         {
-            Unit* assistTarget = FSBGroup::BotGetFirstMemberToAssist(bot, baseAI->botLogicalGroup);
+            Unit* assistTarget = FSBGroup::BotGetFirstMemberToAssist(bot);
             if (assistTarget && assistTarget->IsAlive())
             {
                 if (!assistTarget || !assistTarget->IsInWorld() || assistTarget->IsDuringRemoveFromWorld() || !assistTarget->IsAlive())

@@ -341,10 +341,11 @@ namespace FSBDungeon
         auto& resurrectQueue = baseAI->botResurrectQueue;
 
         // Build logical bot group (owner, bot, and other bots owned by same player)
-        std::vector<Unit*> botGroup;
-        BuildLogicalBotGroup(bot, botGroup);
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup, false);
+        if (group.empty())
+            return;
 
-        for (Unit* unit : botGroup)
+        for (Unit* unit : group)
         {
             if (!unit || unit->IsAlive())
                 continue;

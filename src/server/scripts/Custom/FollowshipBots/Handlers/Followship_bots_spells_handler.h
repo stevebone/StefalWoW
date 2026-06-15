@@ -83,5 +83,5 @@ namespace FSBSpells
     bool BotCastSpellatLocationWithCooldown(Creature* bot, uint32 spellId, const Position& pos, uint32 cooldown);
 
     Position GetOffensiveAoEPosition(Creature* bot);
-    Position GetHealingAoEPosition(Creature* bot, const std::vector<Unit*>& group);
+    Position GetHealingAoEPosition(Creature* bot);
 }

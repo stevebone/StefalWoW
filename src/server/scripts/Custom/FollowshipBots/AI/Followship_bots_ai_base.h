@@ -140,7 +140,7 @@ public:
 
     Creature* GetBot() { return me; };
 
-    std::vector<Unit*> botLogicalGroup;
+    std::vector<ObjectGuid> botLogicalGroup;
     std::vector<FSBSpellRuntime> botRuntimeSpells; // runtime for spells cooldowns
     std::vector<Creature*> partyBots;
 
@@ -169,5 +169,4 @@ protected:
     EventMap botEvents;
     void HandleBotEvent(FSB_BaseAI* ai, uint32 eventId);
     void HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType replyType, std::string chatterString, Unit* target);
-
 };

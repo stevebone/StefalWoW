@@ -99,7 +99,7 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
 
 namespace FSBPriest
 {
-    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup)
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole)
     {
         if (botCastedCombatBuffs)
             return false;
@@ -111,7 +111,7 @@ namespace FSBPriest
             return false;
 
         Unit* target = nullptr;
-        Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+        Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
 
         switch (botRole)
         {

@@ -105,7 +105,7 @@ namespace FSBWarlock
         }
     }
 
-    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown, const std::vector<Unit*>& botGroup)
+    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -113,7 +113,7 @@ namespace FSBWarlock
         if (bot->GetSpellHistory()->HasCooldown(SPELL_WARLOCK_SOULSTONE))
             return false;
 
-        Unit* target = FSBGroup::BotGetFirstGroupHealer(botGroup);
+        Unit* target = FSBGroup::BotGetFirstGroupHealer(bot);
         bool recastNeeded = false;
 
         if (target && target->HasAura(SPELL_WARLOCK_SOULSTONE))

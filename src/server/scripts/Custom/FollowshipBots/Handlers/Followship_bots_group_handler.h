@@ -26,14 +26,15 @@ namespace FSBGroup
     // - owner (player)
     // - the calling bot (me)
     // - other bots owned by the same player
-    void BuildLogicalBotGroup(Creature* bot, std::vector<Unit*>& outGroup);
+    void BuildLogicalBotGroup(Creature* bot, std::vector<ObjectGuid>& outGroup);
+    std::vector<Unit*> ResolveGroup(WorldObject* context, const std::vector<ObjectGuid>& guids, bool requireAlive = true);
 
-    Unit* BotGetFirstMemberToAssist(Creature* bot, const std::vector<Unit*>& botGroup);
-    Unit* BotGetFirstGroupHealer(const std::vector<Unit*>& botGroup);
-    Unit* BotGetFirstGroupTank(const std::vector<Unit*>& botGroup);
-    Unit* BotGetFirstDeadMember(const std::vector<Unit*>& botGroup);
+    Unit* BotGetFirstMemberToAssist(Creature* bot);
+    Unit* BotGetFirstGroupHealer(Creature* bot);
+    Unit* BotGetFirstGroupTank(Creature* bot);
+    Unit* BotGetFirstDeadMember(Creature* bot);
     Unit* BotGetDispelMember(Creature* bot, const DispelAbility& ability);
-    std::vector<Unit*> BotGetMembersToHeal(const std::vector<Unit*>& group, float lowHpThreshold);
+    std::vector<ObjectGuid> BotGetMembersToHeal(Creature* bot, float lowHpThreshold);
     float CalculateEmergencyPriority(Unit* unit);
     void SortEmergencyTargets(std::vector<Unit*>& targets);
 

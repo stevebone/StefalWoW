@@ -149,7 +149,7 @@ namespace FSBDruid
 {
     bool BotOOCHealOwner(Creature* bot, Player* player, uint32& globalCooldown);
     bool BotOOCBuffSelf(Creature* bot, uint32& globalCooldown, uint32& selfBuffTimer, uint32& outSpellId);
-    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup);
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole);
     bool BotOnAuraApplied(Creature* bot, AuraApplication const* aurApp, bool applied, FSBBotStats& botStats);
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
     void BotSetRoleAuras(Creature* bot, FSB_Roles role);
