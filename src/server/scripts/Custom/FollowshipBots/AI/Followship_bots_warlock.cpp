@@ -296,4 +296,25 @@ namespace FSBWarlock
             break;
         }
     }
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    {
+        if (!bot)
+            return;
+
+        switch (role)
+        {
+        case FSB_ROLE_RANGED_DEMONOLOGY:
+            if (!bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
+                bot->CastSpell(bot, SPELL_WARLOCK_DEMON_ARMOR, false);
+            break;
+        case FSB_ROLE_RANGED_AFFLICTION:
+        case FSB_ROLE_RANGED_DESTRUCTION:
+            if (bot->HasAura(SPELL_WARLOCK_DEMON_ARMOR))
+                bot->RemoveAurasDueToSpell(SPELL_WARLOCK_DEMON_ARMOR);
+            break;
+        default:
+            break;
+        }
+    }
 }

@@ -517,6 +517,8 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     botRole = GetRandomRoleForClass(botClass);
     TC_LOG_INFO("scripts.fsb.manager", "FSB: SetInitialBotState Assigned random role {} to bot {}", botRole, bot->GetName());
 
+    ApplyRoleAuras(bot, botRole);
+
     if (botClass == FSB_Class::Monk)
     {
         if(botRole == FSB_Roles::FSB_ROLE_HEALER)
@@ -761,6 +763,24 @@ void FSBMgr::SetRole(Creature* bot, FSB_Roles role)
 
     if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
         ai->botRole = role;
+}
+
+void FSBMgr::ApplyRoleAuras(Creature* bot, FSB_Roles role)
+{
+    if (!bot)
+        return;
+
+    FSB_Class botClass = GetBotClassForEntry(bot->GetEntry());
+
+    switch (botClass)
+    {
+    case FSB_Class::Druid:   FSBDruid::BotSetRoleAuras(bot, role);   break;
+    case FSB_Class::Paladin: FSBPaladin::BotSetRoleAuras(bot, role); break;
+    case FSB_Class::Warrior: FSBWarrior::BotSetRoleAuras(bot, role); break;
+    case FSB_Class::Priest:  FSBPriest::BotSetRoleAuras(bot, role);  break;
+    case FSB_Class::Warlock: FSBWarlock::BotSetRoleAuras(bot, role); break;
+    default: break;
+    }
 }
 
 void FSBMgr::SyncBotPhasingWithOwner(Player* player)

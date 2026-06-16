@@ -110,4 +110,6 @@ namespace FSBPriest
     bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole);
 
     bool BotHasPainSuppression(Creature* bot);
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role);
 }

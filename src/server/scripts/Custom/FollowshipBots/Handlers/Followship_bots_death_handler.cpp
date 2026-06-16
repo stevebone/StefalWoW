@@ -139,6 +139,9 @@ namespace FSBDeath
             // Resume follow movement
             FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
+            // Re-apply role specific auras/forms/stances after revival
+            FSBMgr::Get()->ApplyRoleAuras(bot, baseAI->botRole);
+
             // Set flag for healer classes to check dead units after arriving at player
             if (BotIsHealerClass(bot))
                 baseAI->botNeedsDeadUnitCheck = true;
@@ -169,12 +172,14 @@ namespace FSBDeath
 
         FSBMovement::ResumeFollow(bot, fDistance, fAngle);
 
-        // Set flag for resurrect-capable classes to check dead units after arriving at player
+        // Re-apply role specific auras/forms/stances after revival
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (baseAI)
+            FSBMgr::Get()->ApplyRoleAuras(bot, baseAI->botRole);
+
+        // Set flag for resurrect-capable classes to check dead units after arriving at player
         if (baseAI && BotIsHealerClass(bot))
-        {
             baseAI->botNeedsDeadUnitCheck = true;
-        }
 
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
         {
@@ -202,13 +207,8 @@ namespace FSBDeath
         if (!baseAI)
             return;
 
-        // set auras and shapeshift after revival based on role
-        // we may need to check the other classes as well
-        // TO-DO Refactor the remaining classes that have aura/forms change directly in the gossip handler
-        if(baseAI->botClass == FSB_Class::Druid)
-            FSBDruid::BotSetRoleAuras(bot, baseAI->botRole);
-        else if(baseAI->botClass == FSB_Class::Paladin)
-            FSBPaladin::BotSetRoleAuras(bot, baseAI->botRole);
+        // Re-apply role specific auras/forms/stances after revival
+        FSBMgr::Get()->ApplyRoleAuras(bot, baseAI->botRole);
     }
 
     void AddToHealerResurrectQueue(Unit* deadUnit, Creature* healer)
@@ -413,5 +413,8 @@ namespace FSBDeath
 
         bot->SetHealth(maxHealth * healthPct);
         if (maxMana > 1) bot->SetPower(POWER_MANA, maxMana * manaPct);
+
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            FSBMgr::Get()->ApplyRoleAuras(bot, baseAI->botRole);
     }
 }

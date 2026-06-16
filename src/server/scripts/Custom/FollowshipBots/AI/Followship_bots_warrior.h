@@ -89,4 +89,6 @@ namespace FSBWarrior
     bool BotHasShieldWall(Creature* bot);
 
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role);
 }

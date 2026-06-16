@@ -156,4 +156,27 @@ namespace FSBWarrior
             break;
         }
     }
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    {
+        if (!bot)
+            return;
+
+        switch (role)
+        {
+        case FSB_ROLE_TANK:
+            if (!bot->HasAura(SPELL_WARRIOR_DEFENSIVE_STANCE))
+                bot->CastSpell(bot, SPELL_WARRIOR_DEFENSIVE_STANCE);
+            break;
+        case FSB_ROLE_MELEE_DAMAGE:
+            if (!bot->HasAura(SPELL_WARRIOR_BATTLE_STANCE) && !bot->HasAura(SPELL_WARRIOR_BERSERKER_STANCE))
+            {
+                uint32 spellId = urand(0, 1) ? SPELL_WARRIOR_BATTLE_STANCE : SPELL_WARRIOR_BERSERKER_STANCE;
+                bot->CastSpell(bot, spellId);
+            }
+            break;
+        default:
+            break;
+        }
+    }
 }

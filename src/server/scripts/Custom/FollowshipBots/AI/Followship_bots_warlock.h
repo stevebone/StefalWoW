@@ -116,4 +116,6 @@ namespace FSBWarlock
     void HandleOnSpellCast(Creature* bot, uint32 spellId);
 
     void AdjustSummonHealth(Creature* bot, Creature* summon);
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role);
 }

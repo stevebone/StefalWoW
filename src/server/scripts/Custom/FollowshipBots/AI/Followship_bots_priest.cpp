@@ -211,4 +211,25 @@ namespace FSBPriest
         return false;
 
     }
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    {
+        if (!bot)
+            return;
+
+        switch (role)
+        {
+        case FSB_ROLE_RANGED_DAMAGE:
+            if (!bot->HasAura(SPELL_PRIEST_SHADOWFORM))
+                bot->CastSpell(bot, SPELL_PRIEST_SHADOWFORM);
+            break;
+        case FSB_ROLE_HEALER:
+        case FSB_ROLE_ASSIST:
+            if (bot->HasAura(SPELL_PRIEST_SHADOWFORM))
+                bot->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
+            break;
+        default:
+            break;
+        }
+    }
 }
