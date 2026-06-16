@@ -421,7 +421,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 }
                 case Events::GlubtokCastBlink:
                 {
-                    if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false))
+                    if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 30.0f, false))
                     {
                         DoCast(target, Spells::Blink);
                         me->SetReactState(REACT_PASSIVE);
@@ -434,7 +434,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                             me->GetThreatManager().ClearAllThreat();
                         }
                     }
-                    events.RescheduleEvent(Events::GlubtokCastFistOfFlame, std::chrono::seconds(1));
+                    events.RescheduleEvent(Events::GlubtokCastFistOfFlame, 1s);
                     break;
                 }
                 case Events::GlubtokFallGround:

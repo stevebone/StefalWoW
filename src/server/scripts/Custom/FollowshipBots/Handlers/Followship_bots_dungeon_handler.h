@@ -25,7 +25,7 @@
 namespace FSBDungeon
 {
     // Default minimum distance casters keep from dungeon bosses (raw center-to-center)
-    static constexpr float DungeonBossMinDistance = 30.f;
+    static constexpr float DungeonBossMinDistance = 10.f;
 
     namespace Maps
     {

@@ -298,22 +298,38 @@ namespace FSBDungeon
         {
             case Maps::Deadmines:
             {
-                // Only intercept when the proposed target is Admiral Ripsnarl
-                if (target->GetEntry() != DM::Creatures::AdmiralRipsnarl)
-                    return nullptr;
-
-                InstanceScript* instance = bot->GetInstanceScript();
-                if (!instance)
-                    return nullptr;
-
-                // Fog phase active -> redirect to vapors
-                if (instance->GetData(DM::Misc::RipsnarlFogActive) != 0)
+                // Override for Glubtok blossom adds
+                if (target->GetEntry() == DM::Creatures::Glubtok)
                 {
-                    if (Creature* vapor = target->FindNearestCreature(
-                            DM::Creatures::Vapor, 100.0f))
+                    Unit* blossom = nullptr;
+                    if (Creature* frostBlossom = target->FindNearestCreature(DM::Creatures::FrostBlossom, 30.0f))
                     {
-                        if (vapor->IsAlive() && bot->IsValidAttackTarget(vapor))
-                            return vapor;
+                        if (frostBlossom->IsAlive() && bot->IsValidAttackTarget(frostBlossom))
+                            blossom = frostBlossom;
+                    }
+                    else if (Creature* fireBlossom = target->FindNearestCreature(DM::Creatures::FireBlossom, 30.0f))
+                        if (fireBlossom->IsAlive() && bot->IsValidAttackTarget(fireBlossom))
+                            blossom = fireBlossom;
+
+                    return blossom;
+                }
+                // Override for Admiral Ripsnarl adds
+                if (target->GetEntry() == DM::Creatures::AdmiralRipsnarl)
+                {
+
+                    InstanceScript* instance = bot->GetInstanceScript();
+                    if (!instance)
+                        return nullptr;
+
+                    // Fog phase active -> redirect to vapors
+                    if (instance->GetData(DM::Misc::RipsnarlFogActive) != 0)
+                    {
+                        if (Creature* vapor = target->FindNearestCreature(
+                            DM::Creatures::Vapor, 100.0f))
+                        {
+                            if (vapor->IsAlive() && bot->IsValidAttackTarget(vapor))
+                                return vapor;
+                        }
                     }
                 }
                 break;
