@@ -63,6 +63,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 FoeReaperAddCounter = 1007;
         static constexpr uint32 FoeReaper5000AOEWarning = 1008;
         static constexpr uint32 RipsnarlFogActive = 1009;
+        static constexpr uint32 RipsnarlVaporAchievement = 1010;
     }
 
     namespace Version
@@ -220,6 +221,7 @@ namespace Scripts::EasternKingdoms::Deadmines
     namespace Achievements
     {
         static constexpr uint32 ReadyForRaidingDeadmines = 5366;
+        static constexpr uint32 ItsFrostDamage = 5369;
     }
 
     namespace Texts

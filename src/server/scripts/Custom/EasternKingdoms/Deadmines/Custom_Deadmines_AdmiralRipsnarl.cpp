@@ -35,11 +35,20 @@ namespace Scripts::EasternKingdoms::Deadmines
     // 47714 - Ripsnarl Vapor
     struct npc_admiral_ripsnarl_vapor : public ScriptedAI
     {
-        npc_admiral_ripsnarl_vapor(Creature* creature) : ScriptedAI(creature) { }
+        enum class VaporStage : uint8
+        {
+            Initial,
+            Swirling,
+            Condensing,
+            Freezing
+        };
+
+        npc_admiral_ripsnarl_vapor(Creature* creature) : ScriptedAI(creature), _stage(VaporStage::Initial) { }
 
         void Reset() override
         {
             _events.Reset();
+            _stage = VaporStage::Initial;
         }
 
         void IsSummonedBy(WorldObject* /*owner*/) override
@@ -51,17 +60,58 @@ namespace Scripts::EasternKingdoms::Deadmines
         void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
         {
             if (spellInfo->Id == Spells::CondenseStage1)
+            {
+                _stage = VaporStage::Swirling;
                 _events.RescheduleEvent(Events::VaporSwirling, std::chrono::seconds(Ripsnarl::VaporStage1Delay));
+            }
             else if (spellInfo->Id == Spells::CondenseStage2)
             {
+                _stage = VaporStage::Condensing;
                 _events.CancelEvent(Events::VaporSwirling);
                 _events.RescheduleEvent(Events::VaporCondensing, std::chrono::seconds(Ripsnarl::VaporStage2Delay));
             }
             else if (spellInfo->Id == Spells::CondenseStage3)
             {
+                _stage = VaporStage::Freezing;
+                _events.CancelEvent(Events::VaporSwirling);
                 _events.CancelEvent(Events::VaporCondensing);
+
+                // Freezing Vapor does not properly remove previous auras
+                // Transformation spell does not change properly if these 2 auras are not removed
+                me->RemoveAura(92020);
+                me->RemoveAura(92016);
+
                 _events.RescheduleEvent(Events::VaporFreezing, std::chrono::seconds(Ripsnarl::VaporStage3Delay));
                 _events.RescheduleEvent(Events::VaporCoalesce, std::chrono::seconds(Ripsnarl::VaporCoalesceDelay));
+            }
+        }
+
+        void OnSpellCast(SpellInfo const* spell) override
+        {
+            if (spell->Id != Spells::Coalesce)
+                return;
+
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                uint32 coalesceCount = instance->GetData(Misc::RipsnarlVaporAchievement);
+                if (coalesceCount < 3)
+                {
+                    ++coalesceCount;
+                    instance->SetData(Misc::RipsnarlVaporAchievement, coalesceCount);
+
+                    if (coalesceCount == 3)  // award exactly once, on the 3rd Coalesce
+                    {
+                        AchievementEntry const* achievement = sAchievementStore.LookupEntry(Achievements::ItsFrostDamage);
+                        if (achievement)
+                        {
+                            instance->instance->DoOnPlayers([achievement](Player* player)
+                                {
+                                    if (!player->HasAchieved(achievement->ID))
+                                        player->CompletedAchievement(achievement);
+                                });
+                        }
+                    }
+                }
             }
         }
 
@@ -89,7 +139,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         DoCastVictim(Spells::FreezingVapor);
                         break;
                     case Events::VaporCoalesce:
-                        DoCastSelf(Spells::Coalesce);
+                        if (_stage == VaporStage::Freezing)
+                            DoCastSelf(Spells::Coalesce);
                         break;
                     default:
                         break;
@@ -101,6 +152,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
     private:
         EventMap _events;
+        VaporStage _stage;
     };
 
     // 47626 - Admiral Ripsnarl
@@ -212,12 +264,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             }
 
             me->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn, TEMPSUMMON_MANUAL_DESPAWN);
-        }
-
-        void DoAction(int32 action) override
-        {
-            if (action == Actions::RipsnarlCoalesce)
-                DoCastSelf(Spells::RipsnarlAchievement);
         }
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override

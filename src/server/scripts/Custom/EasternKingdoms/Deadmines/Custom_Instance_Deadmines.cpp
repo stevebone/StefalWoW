@@ -50,7 +50,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _secondSmiteAlarm(*this, "SecondSmiteAlarm", 0),
                 _reaperCounter(*this, "ReaperCounter", 0),
                 _foeReaper5000AOEWarning(*this, "FoeReaperAOEWarning", false),
-                _ripsnarlFogActive(*this, "RipsnarlFogActive", false)
+                _ripsnarlFogActive(*this, "RipsnarlFogActive", false),
+                _vaporCoalesceCount(*this, "RipsnarlVaporCoalesceCount", 0)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -141,11 +142,13 @@ namespace Scripts::EasternKingdoms::Deadmines
                         _foeReaper5000AOEWarning = data;
                         break;
                     case Misc::RipsnarlFogActive:
-                        _ripsnarlFogActive = data != 0;
+                        _ripsnarlFogActive = data;
                         // Remove the fog screen aura immediately once the fog phase ends
                         if (!_ripsnarlFogActive)
                             DoRemoveAurasDueToSpellOnPlayers(Spells::RipsnarlsFogAura);
                         break;
+                    case Misc::RipsnarlVaporAchievement:
+                        _vaporCoalesceCount = data;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -170,6 +173,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _foeReaper5000AOEWarning;
                     case Misc::RipsnarlFogActive:
                         return _ripsnarlFogActive;
+                    case Misc::RipsnarlVaporAchievement:
+                        return _vaporCoalesceCount;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -492,6 +497,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<uint8> _reaperCounter;
             PersistentInstanceScriptValue<bool> _foeReaper5000AOEWarning;
             PersistentInstanceScriptValue<bool> _ripsnarlFogActive;
+            PersistentInstanceScriptValue<int8> _vaporCoalesceCount;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
