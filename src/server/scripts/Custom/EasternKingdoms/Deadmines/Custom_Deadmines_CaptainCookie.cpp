@@ -23,6 +23,7 @@
 #include "AchievementMgr.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "DB2Stores.h"
 #include "InstanceScript.h"
 #include "MotionMaster.h"
 #include "Player.h"
