@@ -226,17 +226,14 @@ namespace FSBCombat
         }
 
         // 4. Group assist logic
-        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        Unit* assistTarget = FSBGroup::BotGetFirstMemberToAssist(bot);
+        if (assistTarget && assistTarget->IsAlive())
         {
-            Unit* assistTarget = FSBGroup::BotGetFirstMemberToAssist(bot);
-            if (assistTarget && assistTarget->IsAlive())
-            {
-                if (!assistTarget || !assistTarget->IsInWorld() || assistTarget->IsDuringRemoveFromWorld() || !assistTarget->IsAlive())
-                    return nullptr;
+            if (!assistTarget || !assistTarget->IsInWorld() || assistTarget->IsDuringRemoveFromWorld() || !assistTarget->IsAlive())
+                return nullptr;
 
-                TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their member attacker/victim {}", bot->GetName(), assistTarget->GetName());
-                return assistTarget;
-            }
+            TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their member attacker/victim {}", bot->GetName(), assistTarget->GetName());
+            return assistTarget;
         }
 
         return nullptr;
