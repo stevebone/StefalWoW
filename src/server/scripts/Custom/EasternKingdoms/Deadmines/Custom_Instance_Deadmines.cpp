@@ -149,6 +149,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Misc::RipsnarlVaporAchievement:
                         _vaporCoalesceCount = data;
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
