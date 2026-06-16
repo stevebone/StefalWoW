@@ -205,6 +205,24 @@ namespace Scripts::EasternKingdoms::Deadmines
             _helixGUID.Clear();
             _ridingOaf = false;
             _helixFaceRiding = false;
+
+            if (Vehicle* vehicle = me->GetVehicleKit())
+                if (vehicle->GetPassenger(0) == nullptr)
+                    if (Creature* helix = me->FindNearestCreature(Creatures::HelixGearBreaker, 30.0f, true))
+                        helix->EnterVehicle(me, 0);
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            if (Creature* helix = me->FindNearestCreature(Creatures::HelixGearBreaker, 50.0f, true))
+            {
+                if (helix->GetVehicle() && helix->GetVehicle()->GetBase() != me)
+                {
+                    helix->ExitVehicle();
+                    helix->EnterVehicle(me, 0);
+                }
+            }
+            ScriptedAI::EnterEvadeMode(why);
         }
 
         void DoAction(int32 action) override
@@ -448,9 +466,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             _events.Reset();
             summons.DespawnAll();
-            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-            me->SetReactState(REACT_PASSIVE);
-            _oafDead = false;
+            me->SetHomePosition(me->GetPosition());
+            if (!_oafDead)
+            {
+                me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                me->SetReactState(REACT_PASSIVE);
+            }
         }
 
         void JustEngagedWith(Unit* who) override
@@ -468,9 +489,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         void JustReachedHome() override
         {
             BossAI::JustReachedHome();
-
-            if(_oafDead)
-                me->DespawnOrUnsummon();
 
             summons.DespawnAll();
 
