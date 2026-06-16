@@ -21,6 +21,7 @@
  */
 
 #include "CreatureAIImpl.h"
+#include "DB2Stores.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "InstanceScript.h"
