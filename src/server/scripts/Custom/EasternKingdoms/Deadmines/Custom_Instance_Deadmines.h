@@ -64,6 +64,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 FoeReaper5000AOEWarning = 1008;
         static constexpr uint32 RipsnarlFogActive = 1009;
         static constexpr uint32 RipsnarlVaporAchievement = 1010;
+        static constexpr uint32 CookieDietFailed = 1011;
     }
 
     namespace Version
@@ -164,6 +165,22 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Admiral Ripsnarl
         static constexpr uint32 Vapor = 47714;
+
+        // Captain Cookie
+        static constexpr uint32 Cauldron = 47754;
+        static constexpr uint32 GoodFoodCorn = 48006;
+        static constexpr uint32 GoodFoodMelon = 48294;
+        static constexpr uint32 GoodFoodSteak = 48296;
+        static constexpr uint32 GoodFoodMysteryMeat = 48297;
+        static constexpr uint32 GoodFoodLoaf = 48300;
+        static constexpr uint32 GoodFoodBun = 48301;
+        static constexpr uint32 RottenCorn = 48276;
+        static constexpr uint32 RottenMelon = 48293;
+        static constexpr uint32 RottenSteak = 48295;
+        static constexpr uint32 RottenMysteryMeat = 48298;
+        static constexpr uint32 RottenLoaf = 48299;
+        static constexpr uint32 RottenBun = 48302;
+        static constexpr uint32 VanessaNote = 49564;
     }
 
     namespace CreatureSpawns
@@ -222,6 +239,7 @@ namespace Scripts::EasternKingdoms::Deadmines
     {
         static constexpr uint32 ReadyForRaidingDeadmines = 5366;
         static constexpr uint32 ItsFrostDamage = 5369;
+        static constexpr uint32 ImOnADiet = 5370;
     }
 
     namespace Texts
@@ -440,6 +458,45 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 Coalesce = 92042;
         static constexpr uint32 RipsnarlAchievement = 95647;
         static constexpr uint32 RipsnarlCancelAchievement = 95648;
+
+        // Captain Cookie
+        static constexpr uint32 WhoIsThat = 89339;
+        static constexpr uint32 Satiated = 89267;
+        static constexpr uint32 Nauseated = 89732;
+        static constexpr uint32 RottenAura = 89734;
+        static constexpr uint32 CauldronSummon = 89250;
+        static constexpr uint32 CauldronVisual = 89251;
+        static constexpr uint32 CauldronFire = 89252;
+        static constexpr uint32 CookieAchievCredit = 95650;
+        static constexpr uint32 CookieAchievRemove = 95651;
+
+        // Throw food targeting spells
+        static constexpr uint32 ThrowFoodCorn = 89268;
+        static constexpr uint32 ThrowFoodRottenCorn = 89740;
+        static constexpr uint32 ThrowFoodMelon = 90561;
+        static constexpr uint32 ThrowFoodRottenMelon = 90582;
+        static constexpr uint32 ThrowFoodSteak = 90562;
+        static constexpr uint32 ThrowFoodRottenSteak = 90583;
+        static constexpr uint32 ThrowFoodMysteryMeat = 90563;
+        static constexpr uint32 ThrowFoodRottenMysteryMeat = 90584;
+        static constexpr uint32 ThrowFoodLoaf = 90564;
+        static constexpr uint32 ThrowFoodRottenLoaf = 90585;
+        static constexpr uint32 ThrowFoodBun = 90565;
+        static constexpr uint32 ThrowFoodRottenBun = 90586;
+
+        // Direct throw food spells used by the boss
+        static constexpr uint32 ThrowFood01 = 90557;
+        static constexpr uint32 ThrowFood02 = 90560;
+        static constexpr uint32 ThrowFood03 = 90603;
+        static constexpr uint32 ThrowFood04 = 89739;
+        static constexpr uint32 ThrowFood05 = 90605;
+        static constexpr uint32 ThrowFood06 = 90556;
+        static constexpr uint32 ThrowFood07 = 90680;
+        static constexpr uint32 ThrowFood08 = 90559;
+        static constexpr uint32 ThrowFood09 = 90602;
+        static constexpr uint32 ThrowFood10 = 89263;
+        static constexpr uint32 ThrowFood11 = 90604;
+        static constexpr uint32 ThrowFood12 = 90555;
     }
 
     namespace Events
@@ -540,6 +597,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 VaporCondensing = 6;
         static constexpr int8 VaporFreezing = 7;
         static constexpr int8 VaporCoalesce = 8;
+
+        // Captain Cookie Events
+        static constexpr int8 CookieMoveToCauldron = 50;
+        static constexpr int8 CookieSummonCauldron = 51;
+        static constexpr int8 CookieJumpToCauldron = 52;
+        static constexpr int8 CookieThrowFood = 53;
     }
 
     namespace Actions
@@ -648,6 +711,11 @@ namespace Scripts::EasternKingdoms::Deadmines
             { -55.73f, -815.84f, 41.97f, 3.85f },
             { -55.73f, -825.54f, 41.99f, 2.60f },
         };
+
+        // Captain Cookie
+        static constexpr Position CookieDeckCenter = { -64.07f, -820.27f, 41.17f, 0.04f };
+        static constexpr Position CookieCauldronJumpTarget = { -64.2552f, -820.245f, 41.17154f, 0.0f };
+        static constexpr Position VanessaNoteSpawn = { -74.3611f, -820.014f, 40.3714f, 0.0f };
     }
 
     namespace Ripsnarl

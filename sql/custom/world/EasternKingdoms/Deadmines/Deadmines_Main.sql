@@ -52,6 +52,7 @@
 -- NPC: 49388 Swirling Vapor
 -- NPC: 49390 Condensed Vapor
 -- NPC: 47626 Admiral Ripsnarl
+-- NPC: 47739 Captain Cookie
 
 -- GO: 208002 Goblin Teleporter
 -- GO: 207079 Ball and Chain
@@ -66,8 +67,11 @@ UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); --
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
 48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208,49229,48502,48417,48505,
-48447,48450,48522,48521,48448,48449,48451,47626,47714,48266);
+48447,48450,48522,48521,48448,48449,48451,47626,47714,48266,47739);
 INSERT INTO `creature_template_difficulty` VALUES
+(47739, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 42807, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(47739, 2, 2, 2, 1199, 0, 2, 1, 1, 0.2, 42807, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47739, 24, 2, 2, 2872, 3, 1, 1, 1, 1, 42808, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Captain Cookie
 (48266, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 41669, 32, 0, 0, 0, 0, 0, 0, 0, 0x00000100, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48266, 2, 0, 0, 1199, 0, 1, 1, 1, 0.2, 41669, 32, 0, 0, 0, 0, 0, 0, 0, 0x00000100, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48266, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41670, 32, 0, 0, 0, 0, 0, 0, 0, 0x00000100, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Cannon
@@ -369,6 +373,10 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_defias_foe_reaper_add' WHERE 
 UPDATE `creature_template` SET `ScriptName` = 'boss_foe_reaper_5000' WHERE `entry` = 43778;
 UPDATE `creature_template` SET `ScriptName` = 'boss_admiral_ripsnarl' WHERE `entry` = 47626;
 UPDATE `creature_template` SET `ScriptName` = 'npc_admiral_ripsnarl_vapor' WHERE `entry` = 47714;
+UPDATE `creature_template` SET `ScriptName` = 'boss_captain_cookie' WHERE `entry` = 47739;
+UPDATE `creature_template` SET `ScriptName` = 'npc_captain_cookie_cauldron' WHERE `entry` = 47754;
+UPDATE `creature_template` SET `ScriptName` = 'npc_captain_cookie_good_food' WHERE `entry` IN (48006,48294,48296,48297,48300,48301);
+UPDATE `creature_template` SET `ScriptName` = 'npc_captain_cookie_bad_food' WHERE `entry` IN (48276,48293,48295,48298,48299,48302);
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -438,14 +446,15 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (49041, 46598, 0, 0),
 (49042, 46598, 0, 0);
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278,92042);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278,92042,89732,89267);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (88278, 'spell_helix_force_player_to_ride_oaf'),
 (89769, 'spell_mining_powder_explode'),
 (91397, 'spell_glubtok_firewall_targetting'),
 (87897, 'spell_glubtok_generic_proc'),
 (87900, 'spell_glubtok_generic_proc'),
-(92042, 'spell_admiral_ripsnarl_coalesce');
+(89732, 'spell_captain_cookie_nauseated'),
+(89267, 'spell_captain_cookie_setiated');
 
 DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266,49208,47403,47404);
 INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES

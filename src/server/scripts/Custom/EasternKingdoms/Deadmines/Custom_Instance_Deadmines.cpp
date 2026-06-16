@@ -51,7 +51,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _reaperCounter(*this, "ReaperCounter", 0),
                 _foeReaper5000AOEWarning(*this, "FoeReaperAOEWarning", false),
                 _ripsnarlFogActive(*this, "RipsnarlFogActive", false),
-                _vaporCoalesceCount(*this, "RipsnarlVaporCoalesceCount", 0)
+                _vaporCoalesceCount(*this, "RipsnarlVaporCoalesceCount", 0),
+                _cookieDietFailed(*this, "CookieDietFailed", false)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -150,6 +151,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Misc::RipsnarlVaporAchievement:
                         _vaporCoalesceCount = data;
                         break;
+                    case Misc::CookieDietFailed:
+                        _cookieDietFailed = data;
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -176,6 +180,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _ripsnarlFogActive;
                     case Misc::RipsnarlVaporAchievement:
                         return _vaporCoalesceCount;
+                    case Misc::CookieDietFailed:
+                        return _cookieDietFailed;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -499,6 +505,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<bool> _foeReaper5000AOEWarning;
             PersistentInstanceScriptValue<bool> _ripsnarlFogActive;
             PersistentInstanceScriptValue<int8> _vaporCoalesceCount;
+            PersistentInstanceScriptValue<bool> _cookieDietFailed;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
