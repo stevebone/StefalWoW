@@ -723,6 +723,11 @@ SpellEffectValue SpellEffectInfo::CalcBaseValue(WorldObject const* caster, Unit 
     }
     else
     {
+        // Legacy spells with high BasePoints were designed as raw damage values,
+        // not percentages against ExpectedStat. Skip ExpectedStat scaling for them.
+        if (BasePoints > 100.0f)
+            return BasePoints;
+
         float value = BasePoints;
         ExpectedStatType stat = GetScalingExpectedStat();
         if (stat != ExpectedStatType::None)
