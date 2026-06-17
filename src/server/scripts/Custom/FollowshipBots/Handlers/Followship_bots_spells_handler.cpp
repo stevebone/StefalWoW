@@ -497,10 +497,10 @@ namespace FSBSpells
 
         if (result == SPELL_CAST_OK)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} casted spell {} at location {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString());
+            TC_LOG_DEBUG("scripts.fsb.spells", "FSB Bot {} casted spell {} at location {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString());
             return true;
         }
-        else TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} Unable to cast spell {} at location {} with result {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString(), result);
+        else TC_LOG_DEBUG("scripts.fsb.spells", "FSB Bot {} Unable to cast spell {} at location {} with result {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), pos.ToString(), result);
 
         return false;
     }
