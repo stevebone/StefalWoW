@@ -339,6 +339,9 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 RipsnarlGoForThroat = 3;
         static constexpr int8 RipsnarlAggro = 4;
         static constexpr int8 RipsnarlAnnounceVapor = 5;
+
+        // Cookie
+        static constexpr int8 CookieHeroicNote = 0;
     }
 
     namespace Spells
@@ -604,11 +607,12 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 VaporCoalesce = 8;
 
         // Captain Cookie Events
-        static constexpr int8 CookieMoveToCauldron = 50;
-        static constexpr int8 CookieSummonCauldron = 51;
-        static constexpr int8 CookieJumpToCauldron = 52;
-        static constexpr int8 CookieThrowFood = 53;
-        static constexpr int8 CookieEnableMurloc = 54;
+        static constexpr int8 CookieMoveToCauldron = 1;
+        static constexpr int8 CookieSummonCauldron = 2;
+        static constexpr int8 CookieJumpToCauldron = 3;
+        static constexpr int8 CookieEnterCauldron = 4;
+        static constexpr int8 CookieThrowFood = 5;
+        static constexpr int8 CookieEnableMurloc = 6;
     }
 
     namespace Actions

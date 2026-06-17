@@ -60,22 +60,26 @@ namespace Scripts::EasternKingdoms::Deadmines
         boss_captain_cookie(Creature* creature) : BossAI(creature, DataTypes::BOSS_CAPTAIN_COOKIE)
         {
             ApplyCrowdControlImmunities(me);
-            me->setActive(true);
         }
 
         void Reset() override
         {
             BossAI::Reset();
+
             if (InstanceScript* instance = me->GetInstanceScript())
                 instance->SetData(Misc::CookieDietFailed, 0);
             if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
                 cauldron->DespawnOrUnsummon();
+
+            _events.Reset();
             _cauldronGuid.Clear();
             _murlocEnabled = false;
             _encounterStarted = false;
+
             me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
             me->SetReactState(REACT_PASSIVE);
+
             DoCastSelf(Spells::WhoIsThat, true);
         }
 
@@ -93,8 +97,9 @@ namespace Scripts::EasternKingdoms::Deadmines
             if (me->GetDistance(who) > 7.0f)
                 return;
 
-            _encounterStarted = true;
             CreatureAI::MoveInLineOfSight(who);
+
+            _encounterStarted = true;
 
             JustEngagedWith(who);
         }
@@ -102,6 +107,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         void JustEngagedWith(Unit* who) override
         {
             BossAI::JustEngagedWith(who);
+
             me->RemoveAurasDueToSpell(Spells::WhoIsThat);
             me->AttackStop();
             me->SetReactState(REACT_PASSIVE);
@@ -118,8 +124,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                 me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
 
-                if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
-                    me->EnterVehicle(cauldron, 0);
+                _events.RescheduleEvent(Events::CookieEnterCauldron, 500ms);
                 _events.RescheduleEvent(Events::CookieThrowFood, 3s);
             }
         }
@@ -140,7 +145,16 @@ namespace Scripts::EasternKingdoms::Deadmines
             BossAI::JustDied(killer);
 
             if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
-                cauldron->DespawnOrUnsummon();
+            {
+                Position pos = { cauldron->GetPositionX(),
+                 cauldron->GetPositionY(),
+                 cauldron->GetPositionZ(),
+                 cauldron->GetOrientation() };
+
+                me->ExitVehicle(&pos);
+
+                cauldron->DespawnOrUnsummon(2s);
+            }
 
             if (InstanceScript* instance = me->GetInstanceScript())
                 if (!instance->GetData(Misc::CookieDietFailed))
@@ -152,18 +166,20 @@ namespace Scripts::EasternKingdoms::Deadmines
                         });
 
             if (IsHeroic())
+            {
                 me->SummonCreature(Creatures::VanessaNote, Positions::VanessaNoteSpawn, TEMPSUMMON_MANUAL_DESPAWN);
+                Talk(Texts::CookieHeroicNote);
+            }
         }
 
         void EnterEvadeMode(EvadeReason why) override
         {
-            _encounterStarted = false;
-            if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
-                cauldron->DespawnOrUnsummon();
             BossAI::EnterEvadeMode(why);
-            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-            me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-            me->SetReactState(REACT_PASSIVE);
+
+            _encounterStarted = false;
+
+            if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
+                cauldron->DespawnOrUnsummon(2s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -192,6 +208,13 @@ namespace Scripts::EasternKingdoms::Deadmines
                         me->GetMotionMaster()->MovePoint(POINT_MOVE, cookieJumpBunny->GetPosition());
                     break;
                 }
+                case Events::CookieEnterCauldron:
+                {
+                    if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
+                        me->EnterVehicle(cauldron, 0);
+
+                    break;
+                }
                 case Events::CookieEnableMurloc:
                 {
                     _murlocEnabled = true;
@@ -199,7 +222,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 }
                 case Events::CookieThrowFood:
                 {
-                    auto target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false);
+                    auto target = SelectTarget(SelectTargetMethod::Random, 0, 50.0f, false);
 
                     if (target && target->IsAlive())
                     {
