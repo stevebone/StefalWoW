@@ -62,9 +62,49 @@ namespace FSBDungeon
         // Deadmines
         // Schedule Deadmines Prototype Reaper check if in heroic Deadmines
         if (bot->GetMapId() == Maps::Deadmines && bot->GetMap()->GetDifficultyID() == DIFFICULTY_HEROIC)
-        {
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER, 1s);
-            return;
+
+        // Captain Cookie food interaction cycle
+        if (bot->GetMapId() == Maps::Deadmines)
+        {
+            if (InstanceScript* instance = bot->GetInstanceScript())
+            {
+                if (instance->GetBossState(DM::DataTypes::BOSS_CAPTAIN_COOKIE) == IN_PROGRESS)
+                {
+                    if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+                    {
+                        if (baseAI->botCookieClicksRemaining == 0 && !baseAI->botCookieCycleInitiated)
+                        {
+                            // Not yet cycling; schedule the first cycle
+                            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: CheckDungeonHandlingNeeded Bot {} - scheduling Captain Cookie food cycle (boss IN_PROGRESS)", bot->GetName());
+                            baseAI->botCookieCycleInitiated = true;
+                            baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_COOKIE_FOOD_CYCLE, 1s);
+                        }
+                        else if (!bot->IsInCombat() && baseAI->botCookieClicksRemaining > 0)
+                        {
+                            // Bot dropped combat but still has pending clicks; continue processing OOC
+                            FSBDungeon::Deadmines::ProcessCaptainCookieFoodClick(bot);
+                        }
+                    }
+                }
+                else
+                {
+                    // Boss not in progress (e.g. DONE or NOT_STARTED); clear any stuck cookie state
+                    if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+                    {
+                        if (baseAI->botCookieClicksRemaining > 0 || baseAI->botCookieFoodCycleActive || baseAI->botCookieCycleInitiated)
+                        {
+                            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: CheckDungeonHandlingNeeded Bot {} - clearing cookie state (boss not IN_PROGRESS)", bot->GetName());
+                            baseAI->botCookieClicksRemaining = 0;
+                            baseAI->botCookieFoodTarget = ObjectGuid::Empty;
+                            baseAI->botCookieFoodCycleActive = false;
+                            baseAI->botCookieCycleInitiated = false;
+                        }
+
+                        FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+                    }
+                }
+            }
         }
     }
 
@@ -76,6 +116,77 @@ namespace FSBDungeon
 
         if (!FSBDungeon::IsBotInDungeon(bot))
             return false;
+
+        // Captain Cookie food interaction cycle
+        if (bot->GetMapId() == Maps::Deadmines)
+        {
+            if (InstanceScript* instance = bot->GetInstanceScript())
+            {
+                if (instance->GetBossState(DM::DataTypes::BOSS_CAPTAIN_COOKIE) == IN_PROGRESS)
+                {
+                    if (FSBDungeon::Deadmines::ProcessCaptainCookieFoodClick(bot))
+                        return true;
+                }
+                else
+                {
+                    // Boss not in progress; clear any stuck cookie state so bots resume normal behavior
+                    if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+                    {
+                        if (baseAI->botCookieClicksRemaining > 0 || baseAI->botCookieFoodCycleActive || baseAI->botCookieCycleInitiated)
+                        {
+                            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: CheckDungeonInCombatHandlingNeeded Bot {} - clearing cookie state (boss not IN_PROGRESS)", bot->GetName());
+                            baseAI->botCookieClicksRemaining = 0;
+                            baseAI->botCookieFoodTarget = ObjectGuid::Empty;
+                            baseAI->botCookieFoodCycleActive = false;
+                            baseAI->botCookieCycleInitiated = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Non-tank bad food avoidance during Captain Cookie
+        if (bot->GetMapId() == Maps::Deadmines)
+        {
+            if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            {
+                if (baseAI->botRole != FSB_ROLE_TANK)
+                {
+                    if (InstanceScript* instance = bot->GetInstanceScript())
+                    {
+                        if (instance->GetBossState(DM::DataTypes::BOSS_CAPTAIN_COOKIE) == IN_PROGRESS)
+                        {
+                            // Check all 6 rotten food entries
+                            static constexpr uint32 badFoodEntries[] =
+                            {
+                                DM::Creatures::RottenCorn,
+                                DM::Creatures::RottenMelon,
+                                DM::Creatures::RottenSteak,
+                                DM::Creatures::RottenMysteryMeat,
+                                DM::Creatures::RottenLoaf,
+                                DM::Creatures::RottenBun
+                            };
+
+                            for (uint32 entry : badFoodEntries)
+                            {
+                                if (Creature* badFood = bot->FindNearestCreature(entry, Deadmines::COOKIE_BAD_FOOD_AVOID_DISTANCE))
+                                {
+                                    if (badFood->IsAlive())
+                                    {
+                                        // Back away from bad food
+                                        float angle = bot->GetAbsoluteAngle(badFood);
+                                        Position pos = bot->GetNearPosition(Deadmines::COOKIE_BAD_FOOD_AVOID_DISTANCE + 2.0f, angle + static_cast<float>(M_PI));
+                                        bot->GetMotionMaster()->Clear();
+                                        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_COOKIE_FOOD, pos);
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Check and maintain distance from boss/units in dungeons (for casters)
         Unit* target = bot->GetVictim();
@@ -534,6 +645,194 @@ namespace FSBDungeon
             }
 
             baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
+        }
+
+        Creature* FindNearestCookieFood(Creature* bot, bool searchBadFood)
+        {
+            if (!bot)
+                return nullptr;
+
+            if (searchBadFood)
+            {
+                static constexpr uint32 badFoodEntries[] =
+                {
+                    DM::Creatures::RottenCorn,
+                    DM::Creatures::RottenMelon,
+                    DM::Creatures::RottenSteak,
+                    DM::Creatures::RottenMysteryMeat,
+                    DM::Creatures::RottenLoaf,
+                    DM::Creatures::RottenBun
+                };
+
+                Creature* nearest = nullptr;
+                float nearestDist = COOKIE_FOOD_SEARCH_RADIUS;
+                for (uint32 entry : badFoodEntries)
+                {
+                    if (Creature* food = bot->FindNearestCreature(entry, COOKIE_FOOD_SEARCH_RADIUS))
+                    {
+                        if (food->IsAlive())
+                        {
+                            float dist = bot->GetDistance(food);
+                            if (dist < nearestDist)
+                            {
+                                nearestDist = dist;
+                                nearest = food;
+                            }
+                        }
+                    }
+                }
+                return nearest;
+            }
+            else
+            {
+                static constexpr uint32 goodFoodEntries[] =
+                {
+                    DM::Creatures::GoodFoodCorn,
+                    DM::Creatures::GoodFoodMelon,
+                    DM::Creatures::GoodFoodSteak,
+                    DM::Creatures::GoodFoodMysteryMeat,
+                    DM::Creatures::GoodFoodLoaf,
+                    DM::Creatures::GoodFoodBun
+                };
+
+                Creature* nearest = nullptr;
+                float nearestDist = COOKIE_FOOD_SEARCH_RADIUS;
+                for (uint32 entry : goodFoodEntries)
+                {
+                    if (Creature* food = bot->FindNearestCreature(entry, COOKIE_FOOD_SEARCH_RADIUS))
+                    {
+                        if (food->IsAlive())
+                        {
+                            float dist = bot->GetDistance(food);
+                            if (dist < nearestDist)
+                            {
+                                nearestDist = dist;
+                                nearest = food;
+                            }
+                        }
+                    }
+                }
+                return nearest;
+            }
+        }
+
+        void HandleCaptainCookieFoodCycle(Creature* bot)
+        {
+            if (!bot || !bot->IsAlive())
+                return;
+
+            if (bot->GetMapId() != Maps::Deadmines)
+                return;
+
+            InstanceScript* instance = bot->GetInstanceScript();
+            if (!instance || instance->GetBossState(DM::DataTypes::BOSS_CAPTAIN_COOKIE) != IN_PROGRESS)
+                return;
+
+            FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI)
+                return;
+
+            // Ignore stale events from a previous encounter
+            if (!baseAI->botCookieCycleInitiated)
+                return;
+
+            // Reset if already active (shouldn't happen, but safety)
+            if (baseAI->botCookieClicksRemaining != 0)
+            {
+                baseAI->botCookieClicksRemaining = 0;
+                baseAI->botCookieFoodTarget = ObjectGuid::Empty;
+            }
+
+            baseAI->botCookieFoodCycleActive = true;
+
+            // Tank: disengage boss and prepare for 4 clicks (bad, good, bad, good)
+            if (baseAI->botRole == FSB_ROLE_TANK)
+            {
+                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleCaptainCookieFoodCycle Bot {} - tank starting cycle (4 clicks)", bot->GetName());
+                bot->AttackStop();
+                bot->GetMotionMaster()->Clear();
+                baseAI->botCookieClicksRemaining = 4;
+            }
+            // Non-tank: keep attacking boss, prepare for 2 good food clicks
+            else
+            {
+                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleCaptainCookieFoodCycle Bot {} - non-tank starting cycle (2 good clicks)", bot->GetName());
+                baseAI->botCookieClicksRemaining = 2;
+            }
+
+            // Schedule next cycle in 20s
+            baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_COOKIE_FOOD_CYCLE, 30s);
+        }
+
+        bool ProcessCaptainCookieFoodClick(Creature* bot)
+        {
+            if (!bot)
+                return false;
+
+            FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            if (!baseAI || baseAI->botCookieClicksRemaining == 0)
+                return false;
+
+            // If we don't have a committed target (empty GUID or invalid), pick one now
+            Creature* food = nullptr;
+            if (!baseAI->botCookieFoodTarget.IsEmpty())
+                food = ObjectAccessor::GetCreature(*bot, baseAI->botCookieFoodTarget);
+
+            if (!food || !food->IsAlive())
+            {
+                // Determine what to search for based on role and remaining clicks
+                bool needBadFood = false;
+                if (baseAI->botRole == FSB_ROLE_TANK)
+                    needBadFood = (baseAI->botCookieClicksRemaining % 2 == 0); // 4,2 -> bad; 3,1 -> good
+
+                food = FindNearestCookieFood(bot, needBadFood);
+                if (!food)
+                {
+                    TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: ProcessCaptainCookieFoodClick Bot {} - no {}food found, aborting cycle", bot->GetName(), needBadFood ? "rotten " : "good ");
+                    // No food available; abort cycle and re-engage boss
+                    baseAI->botCookieClicksRemaining = 0;
+                    baseAI->botCookieFoodTarget = ObjectGuid::Empty;
+                    baseAI->botCookieFoodCycleActive = false;
+                    if (Unit* boss = bot->FindNearestCreature(DM::Creatures::CaptainCookie, 100.0f))
+                        if (boss->IsAlive())
+                            FSBCombat::BotDoAttack(bot, boss);
+                    return false;
+                }
+                baseAI->botCookieFoodTarget = food->GetGUID();
+                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: ProcessCaptainCookieFoodClick Bot {} - found {}food {} (entry {}), moving to click", bot->GetName(), needBadFood ? "rotten " : "good ", food->GetName(), food->GetEntry());
+            }
+
+            // Wait until within spellclick range
+            if (bot->GetDistance(food) > COOKIE_FOOD_SPELLCLICK_RANGE)
+            {
+                if (!bot->isMoving())
+                    bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_COOKIE_FOOD, food->GetPosition());
+                return true;
+            }
+
+            // Perform the spellclick
+            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: ProcessCaptainCookieFoodClick Bot {} - spellclicking {} (entry {}), clicks remaining {}", bot->GetName(), food->GetName(), food->GetEntry(), baseAI->botCookieClicksRemaining - 1);
+            food->HandleSpellClick(bot);
+
+            // Clear committed target so next tick picks the next food
+            baseAI->botCookieFoodTarget = ObjectGuid::Empty;
+
+            // Decrement remaining clicks
+            --baseAI->botCookieClicksRemaining;
+
+            // If cycle finished, re-engage boss
+            if (baseAI->botCookieClicksRemaining == 0)
+            {
+                baseAI->botCookieFoodCycleActive = false;
+                if (Unit* boss = bot->FindNearestCreature(DM::Creatures::CaptainCookie, 100.0f))
+                    if (boss->IsAlive())
+                    {
+                        TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: ProcessCaptainCookieFoodClick Bot {} - cycle complete, re-engaging boss", bot->GetName());
+                        FSBCombat::BotDoAttack(bot, boss);
+                    }
+            }
+
+            return true;
         }
     }
 }

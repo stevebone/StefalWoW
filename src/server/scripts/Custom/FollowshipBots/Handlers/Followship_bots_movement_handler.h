@@ -29,6 +29,7 @@ namespace FSBMovement
     static constexpr uint32 MOVEMENT_POINT_HIRED_LEAVE = 1;
     static constexpr uint32 MOVEMENT_POINT_DEADMINES_VEHICLE = 2;
     static constexpr uint32 MOVEMENT_POINT_DRUID_ROOTS_ESCAPE = 3;
+    static constexpr uint32 MOVEMENT_POINT_COOKIE_FOOD = 4;
 
     FSB_MovementStates GetBotMoveState(Creature* bot);
 

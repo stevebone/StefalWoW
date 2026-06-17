@@ -53,6 +53,7 @@ namespace FSBEvents
     static constexpr int8 EVENT_DM_REAPER_STRIKE = 101;
     static constexpr int8 EVENT_DM_PRESSURIZED_STRIKE = 102;
     static constexpr int8 EVENT_DM_VEHICLE_COMBAT_CHECK = 103;
+    static constexpr int8 EVENT_DM_COOKIE_FOOD_CYCLE = 104;
 
     // Wrapper for scheduling a bot event directly from Creature*
     void ScheduleBotEvent(Creature* bot, uint32 eventId, std::chrono::milliseconds minTime, std::chrono::milliseconds maxTime = std::chrono::milliseconds(0));

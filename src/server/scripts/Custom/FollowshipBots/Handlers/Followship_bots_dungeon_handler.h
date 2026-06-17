@@ -67,7 +67,15 @@ namespace FSBDungeon
         // Per-boss melee minimum distance for AOE avoidance
         static constexpr float FoeReaper5000MinAOEDistance = 17.f;
 
+        // Captain Cookie food interaction
+        static constexpr float COOKIE_FOOD_SEARCH_RADIUS = 30.0f;
+        static constexpr float COOKIE_FOOD_SPELLCLICK_RANGE = 5.0f;
+        static constexpr float COOKIE_BAD_FOOD_AVOID_DISTANCE = 10.0f;
+
         void CheckPrototypeReaperEntry(Creature* bot);
         void HandleVehicleCombatCheck(Creature* bot);
+        void HandleCaptainCookieFoodCycle(Creature* bot);
+        bool ProcessCaptainCookieFoodClick(Creature* bot);
+        Creature* FindNearestCookieFood(Creature* bot, bool searchBadFood);
     }
 }

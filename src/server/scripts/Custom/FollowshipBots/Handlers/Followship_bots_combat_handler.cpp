@@ -39,6 +39,10 @@ namespace FSBCombat
         if (bot->HasAura(SPELL_SPECIAL_GHOST))
             return;
 
+        if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            if (baseAI->botCookieFoodCycleActive)
+                return;
+
         Unit* victim = bot->GetVictim();
         // Prevent bot from disengaging from current target
         if (victim)

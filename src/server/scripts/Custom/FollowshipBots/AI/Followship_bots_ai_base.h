@@ -117,6 +117,8 @@ public:
     bool botInVehicle;
     bool botNeedsDeadUnitCheck;
     bool botDungeonBossEvasion;
+    bool botCookieFoodCycleActive = false;
+    bool botCookieCycleInitiated = false;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;
@@ -131,6 +133,9 @@ public:
     Position botCorpsePos;
 
     ObjectGuid botVehicleCombatTarget;
+
+    uint8 botCookieClicksRemaining = 0;     // 0 = idle, 4 = tank cycle active, 2 = non-tank cycle active
+    ObjectGuid botCookieFoodTarget;         // GUID of the food NPC the bot is currently moving to
 
     std::queue<ObjectGuid> botResurrectQueue;
 

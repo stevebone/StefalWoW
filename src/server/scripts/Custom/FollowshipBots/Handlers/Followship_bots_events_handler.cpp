@@ -390,6 +390,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
     }
 
+    case FSBEvents::EVENT_DM_COOKIE_FOOD_CYCLE:
+    {
+        FSBDungeon::Deadmines::HandleCaptainCookieFoodCycle(bot);
+        break;
+    }
+
     default:
         break;
     }
