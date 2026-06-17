@@ -76,6 +76,17 @@ namespace FSBCombat
                 }
             }
 
+            // Dungeon target override: switch to adds when boss enters special phase
+            if (Unit* overrideTarget = FSBDungeon::GetDungeonTargetOverride(bot, victim))
+            {
+                if (overrideTarget != victim)
+                {
+                    bot->AttackStop();
+                    BotDoAttack(bot, overrideTarget);
+                    return;
+                }
+            }
+
             return;
         }
 
