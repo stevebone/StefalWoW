@@ -692,6 +692,10 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 (47626, 4, 0, 'Ah, fresh meat!', 14, 100, 19882, 48179, 'Admiral Ripsnarl Aggro'),
 (47626, 5, 0, 'Multiple vapors appear from the fog!  Kill Admiral Ripsnarl before you are overwhelmed!', 41, 100, 0, 50851, 'Admiral Ripsnarl - Announce Vapor');
 
+DELETE FROM `creature_text` WHERE `CreatureID` IN (47739);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
+(47739, 0, 0, 'A note falls to the floor!', 41, 100, 0, 49658, 'Captain Cookie Note drop in Heroic');
+
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;
 -- GO: 208002 Goblin Teleporter
