@@ -29,6 +29,7 @@
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "Containers.h"
 #include "SpellAuras.h"
 #include "SpellScript.h"
 
@@ -44,7 +45,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         Spells::ThrowFood04,
         Spells::ThrowFood05,
         Spells::ThrowFood06,
-        Spells::ThrowFood07,
+        //Spells::ThrowFood07, This is the food spell with murloc handled separately now with its own roll chance
         Spells::ThrowFood08,
         Spells::ThrowFood09,
         Spells::ThrowFood10,
@@ -67,7 +68,11 @@ namespace Scripts::EasternKingdoms::Deadmines
             BossAI::Reset();
             if (InstanceScript* instance = me->GetInstanceScript())
                 instance->SetData(Misc::CookieDietFailed, 0);
-            me->SetVisible(false);
+            if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
+                cauldron->DespawnOrUnsummon();
+            _cauldronGuid.Clear();
+            _murlocEnabled = false;
+            _encounterStarted = false;
             me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
             me->SetReactState(REACT_PASSIVE);
@@ -76,19 +81,22 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void MoveInLineOfSight(Unit* who) override
         {
+            if (_encounterStarted)
+                return;
+
             if (!who->IsPlayer())
                 return;
 
             if (instance->GetBossState(DataTypes::BOSS_ADMIRAL_RIPSNARL) != DONE)
                 return;
 
-            if (me->GetDistance(who) > 5.0f)
+            if (me->GetDistance(who) > 7.0f)
                 return;
 
-            me->SetVisible(true);
-            me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-            me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+            _encounterStarted = true;
             CreatureAI::MoveInLineOfSight(who);
+
+            JustEngagedWith(who);
         }
 
         void JustEngagedWith(Unit* who) override
@@ -97,21 +105,43 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->RemoveAurasDueToSpell(Spells::WhoIsThat);
             me->AttackStop();
             me->SetReactState(REACT_PASSIVE);
-            me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-            me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
             DoCastSelf(Spells::CookieAchievCredit, true);
-            _events.RescheduleEvent(Events::CookieMoveToCauldron, 1s);
+            _events.RescheduleEvent(Events::CookieSummonCauldron, 1s);
+            _events.RescheduleEvent(Events::CookieEnableMurloc, 160s);
             DoZoneInCombat();
         }
 
         void MovementInform(uint32 type, uint32 id) override
         {
             if (type == POINT_MOTION_TYPE && id == POINT_MOVE)
-                _events.RescheduleEvent(Events::CookieSummonCauldron, 2s);
+            {
+                me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+
+                if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
+                    me->EnterVehicle(cauldron, 0);
+                _events.RescheduleEvent(Events::CookieThrowFood, 3s);
+            }
         }
 
-        void JustDied(Unit* /*killer*/) override
+        void JustSummoned(Creature* summon) override
         {
+            if (summon->GetEntry() == Creatures::Cauldron)
+            {
+                _cauldronGuid = summon->GetGUID();
+                summon->SetReactState(REACT_PASSIVE);
+                summon->CastSpell(summon, Spells::CauldronVisual, true);
+                summon->CastSpell(summon, Spells::CauldronFire, true);
+            }
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            BossAI::JustDied(killer);
+
+            if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
+                cauldron->DespawnOrUnsummon();
+
             if (InstanceScript* instance = me->GetInstanceScript())
                 if (!instance->GetData(Misc::CookieDietFailed))
                     if (AchievementEntry const* achievement = sAchievementStore.LookupEntry(Achievements::ImOnADiet))
@@ -127,8 +157,10 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void EnterEvadeMode(EvadeReason why) override
         {
+            _encounterStarted = false;
+            if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
+                cauldron->DespawnOrUnsummon();
             BossAI::EnterEvadeMode(why);
-            me->SetVisible(false);
             me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
             me->SetReactState(REACT_PASSIVE);
@@ -145,26 +177,40 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 switch (eventId)
                 {
-                    case Events::CookieMoveToCauldron:
-                        me->GetMotionMaster()->MovePoint(POINT_MOVE, Positions::CookieDeckCenter);
-                        break;
-                    case Events::CookieSummonCauldron:
-                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
-                            DoCast(target, Spells::CauldronSummon, true);
-                        _events.RescheduleEvent(Events::CookieJumpToCauldron, 2s);
-                        break;
-                    case Events::CookieJumpToCauldron:
-                        if (Creature* cauldron = me->FindNearestCreature(Creatures::Cauldron, 20.0f))
-                            me->GetMotionMaster()->MoveJump(0, cauldron->GetPosition(), 5.0f, 10.0f);
+                case Events::CookieSummonCauldron:
+                {
+                    if (Creature* cauldronBunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CuldronSpawnBunny))
+                    {
+                        me->SummonCreature(Creatures::Cauldron, cauldronBunny->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
+                        _events.RescheduleEvent(Events::CookieMoveToCauldron, 2s);
+                    }
+                    break;
+                }
+                case Events::CookieMoveToCauldron:
+                {
+                    if (Creature* cookieJumpBunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CookieJumpCuldronBunny))
+                        me->GetMotionMaster()->MovePoint(POINT_MOVE, cookieJumpBunny->GetPosition());
+                    break;
+                }
+                case Events::CookieEnableMurloc:
+                {
+                    _murlocEnabled = true;
+                    break;
+                }
+                case Events::CookieThrowFood:
+                {
+                    auto target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, false);
+
+                    if (target && target->IsAlive())
+                    {
+                        if (_murlocEnabled && urand(1, 100) <= 5)
+                            me->CastSpell(target, Spells::ThrowFoodWithMurloc, CastSpellExtraArgs{ TRIGGERED_IGNORE_CASTER_MOUNTED_OR_ON_VEHICLE });
                         else
-                            me->GetMotionMaster()->MoveJump(0, Positions::CookieCauldronJumpTarget, 5.0f, 10.0f);
-                        _events.RescheduleEvent(Events::CookieThrowFood, 3s);
-                        break;
-                    case Events::CookieThrowFood:
-                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 100.0f, true))
-                            DoCast(target, ThrowFoodSpells[urand(0, 11)]);
-                        _events.RescheduleEvent(Events::CookieThrowFood, 3s);
-                        break;
+                            me->CastSpell(target, ThrowFoodSpells[urand(0, 11)], CastSpellExtraArgs{ TRIGGERED_IGNORE_CASTER_MOUNTED_OR_ON_VEHICLE });
+                    }
+                    _events.RescheduleEvent(Events::CookieThrowFood, 3s);
+                    break;
+                }
                 }
             }
 
@@ -173,67 +219,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         }
 
         private:
+            ObjectGuid _cauldronGuid;
             EventMap _events;
-    };
-
-    struct npc_captain_cookie_cauldron : public ScriptedAI
-    {
-        npc_captain_cookie_cauldron(Creature* creature) : ScriptedAI(creature) { }
-
-        void Reset() override
-        {
-            me->SetReactState(REACT_PASSIVE);
-            me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
-            DoCastSelf(Spells::CauldronVisual, true);
-            DoCastSelf(Spells::CauldronFire, true);
-        }
-    };
-
-    struct npc_captain_cookie_good_food : public ScriptedAI
-    {
-        npc_captain_cookie_good_food(Creature* creature) : ScriptedAI(creature) { }
-
-        void Reset() override
-        {
-            me->SetReactState(REACT_PASSIVE);
-        }
-
-        bool OnGossipHello(Player* player) override
-        {
-            InstanceScript* instance = me->GetInstanceScript();
-            if (!instance)
-                return true;
-            if (instance->GetBossState(DataTypes::BOSS_CAPTAIN_COOKIE) != IN_PROGRESS)
-                return true;
-
-            player->CastSpell(player, Spells::Satiated, true);
-            me->DespawnOrUnsummon();
-            return true;
-        }
-    };
-
-    struct npc_captain_cookie_bad_food : public ScriptedAI
-    {
-        npc_captain_cookie_bad_food(Creature* creature) : ScriptedAI(creature) { }
-
-        void Reset() override
-        {
-            me->SetReactState(REACT_PASSIVE);
-            DoCastSelf(Spells::RottenAura, true);
-        }
-
-        bool OnGossipHello(Player* player) override
-        {
-            InstanceScript* instance = me->GetInstanceScript();
-            if (!instance)
-                return true;
-            if (instance->GetBossState(DataTypes::BOSS_CAPTAIN_COOKIE) != IN_PROGRESS)
-                return true;
-
-            player->CastSpell(player, Spells::Nauseated, true);
-            me->DespawnOrUnsummon();
-            return true;
-        }
+            bool _murlocEnabled = false;
+            bool _encounterStarted = false;
     };
 
     class spell_captain_cookie_satiated : public SpellScript
@@ -283,9 +272,6 @@ void AddSC_custom_deadmines_captain_cookie()
     using namespace Scripts::EasternKingdoms::Deadmines;
 
     RegisterCreatureAI(boss_captain_cookie);
-    RegisterCreatureAI(npc_captain_cookie_cauldron);
-    RegisterCreatureAI(npc_captain_cookie_good_food);
-    RegisterCreatureAI(npc_captain_cookie_bad_food);
     RegisterSpellScript(spell_captain_cookie_satiated);
     RegisterSpellScript(spell_captain_cookie_nauseated);
 }

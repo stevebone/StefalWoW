@@ -60,6 +60,12 @@
 -- Creature Template Updates
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 48284; -- remove uninterract flag for mining powder so it can be attacked
 UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); -- Update attackable faction for Defias Reaper and Watcher was 1816
+UPDATE `creature_template` SET `VehicleId` = 1283 WHERE `entry` = 47754; -- Cookies Cauldron is a vehicle
+-- Update flags for Cookie adds
+UPDATE `creature_template` SET `unit_flags` = 512, `unit_flags2` = 67110912, `npcflag` = 0x01000000 WHERE `entry` IN (48301,48300,48297,48296,48006,
+48294,48295,48276,48299,48293,48298,48302);
+-- Update flags for Cookie Cauldron and Baby Murloc
+UPDATE `creature_template` SET `unit_flags` = 512, `unit_flags2` = 67110912 WHERE `entry` IN (47754,48672);
 
 -- Creature Difficulties
 -- Stormwind Defender and Shattered Hand Assassin have diff id 0 added for Followship Bots since they can be taken outside the dungeon
@@ -67,8 +73,54 @@ UPDATE `creature_template` SET `faction` = 17 WHERE `entry` IN (47403,47404); --
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,50595,46890,46903,46902,46889,46906,48262,48284,48279,48338,
 48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208,49229,48502,48417,48505,
-48447,48450,48522,48521,48448,48449,48451,47626,47714,48266,47739);
+48447,48450,48522,48521,48448,48449,48451,47626,47714,48266,47739,
+-- Cookie Adds
+48672,47754,48301,48300,48297,48296,48006,48294,48295,48276,48299,48293,48298,48302);
 INSERT INTO `creature_template_difficulty` VALUES
+-- Cookie Adds
+(47754, 1, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(47754, 2, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47754, 24, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48006, 1, 0, 0, 338, 0, 1, 1, 1, 1, 42235, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48006, 2, 0, 0, 338, 0, 1, 1, 1, 1, 42235, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48006, 24, 0, 0, 338, 0, 1, 1, 1, 1, 42235, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48276, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48276, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48276, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48293, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41594, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48293, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41594, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48293, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41594, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48294, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41592, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48294, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41592, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48294, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41592, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48295, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41590, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48295, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41590, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48295, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41590, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48296, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41588, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48296, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41588, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48296, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41588, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48297, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41586, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48297, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41586, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48297, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41586, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48298, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41584, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48298, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41584, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48298, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41584, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48299, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41582, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48299, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41582, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48299, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41582, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48300, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41580, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48300, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41580, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48300, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41580, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48301, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41578, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48301, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41578, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48301, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41578, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48302, 1, 0, 0, 338, 0, 1, 1, 1, 1, 41576, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 0),
+(48302, 2, 0, 0, 338, 0, 1, 1, 1, 1, 41576, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48302, 24, 0, 0, 338, 0, 1, 1, 1, 1, 41576, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x00040000, 0, 0, 0, 0, 0, 45745),
+(48672, 1, 0, 0, 338, 0, 1, 1, 1, 1, 40837, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(48672, 2, 0, 0, 338, 0, 1, 1, 1, 1, 40837, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+(48672, 24, 0, 0, 338, 0, 1, 1, 1, 1, 40837, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
+
 (47739, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 42807, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
 (47739, 2, 2, 2, 1199, 0, 2, 1, 1, 0.2, 42807, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
 (47739, 24, 2, 2, 2872, 3, 1, 1, 1, 1, 42808, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Captain Cookie
@@ -215,6 +267,7 @@ UPDATE `creature_template_addon` SET `PvPFlags` = 16, `emote` = 648 WHERE `entry
 UPDATE `creature_template_addon` SET `emote` = 648 WHERE `entry` IN (48440,48441,48442,48278); -- Mining monkeys emote - allow weapon to be seen
 UPDATE `creature_template_addon` SET `auras` = '92001' WHERE `entry` = 48418; -- Defias Envoker Aura
 UPDATE `creature_template_addon` SET `auras` = '87239 88348' WHERE `entry` = 43778; -- Foe Reaper 5000 auras
+UPDATE `creature_template_addon` SET `auras` = '89734' WHERE `entry` IN (48276, 48293, 48295, 48298, 48299, 48302); -- Rotten Food aura
 
 -- Spawn Updates
 UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
@@ -354,6 +407,33 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (@ENTRY, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 25, 100, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Attack Closest enemy creature in 50 yards', ''),
 (@ENTRY, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 86, 91830, 0, 1, 0, 0, 0, 0, 25, 100, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Cast spell  91830 at Closest enemy creature in 100 yards', '');
 
+ -- Baby Murloc smart ai
+SET @ENTRY := 48672;
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
+(@ENTRY, 0, 0, 0, 11, 0, 100, 0, 0, 36, 0, 0, 0, 17, 10, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On respawn on map 36 - Self: Set emote state to 10', '');
+
+ -- Good/Bad Food SAI (Cookie encounter)
+UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` IN (48301,48300,48297,48296,48006,
+48294,48295,48276,48299,48293,48298,48302);
+DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` IN (48301,48300,48297,48296,48006,
+48294,48295,48276,48299,48293,48298,48302);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`, `Difficulties`) VALUES
+(48006, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48276, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48293, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48294, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48295, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48296, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48297, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48298, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48299, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48300, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48301, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', ''),
+(48302, 0, 0, 0, 73, 0, 100, 0, 0, 0, 0, 0, 0, 41, 1000, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spellclick - Self: Despawn in 1 s', '');
+
+
 -- Scripts
 UPDATE `creature_template` SET `ScriptName` = 'npc_defias_cannon' WHERE `entry` = 48266;
 UPDATE `creature_template` SET `ScriptName` = 'npc_defias_pirate' WHERE `entry` = 48522;
@@ -374,9 +454,6 @@ UPDATE `creature_template` SET `ScriptName` = 'boss_foe_reaper_5000' WHERE `entr
 UPDATE `creature_template` SET `ScriptName` = 'boss_admiral_ripsnarl' WHERE `entry` = 47626;
 UPDATE `creature_template` SET `ScriptName` = 'npc_admiral_ripsnarl_vapor' WHERE `entry` = 47714;
 UPDATE `creature_template` SET `ScriptName` = 'boss_captain_cookie' WHERE `entry` = 47739;
-UPDATE `creature_template` SET `ScriptName` = 'npc_captain_cookie_cauldron' WHERE `entry` = 47754;
-UPDATE `creature_template` SET `ScriptName` = 'npc_captain_cookie_good_food' WHERE `entry` IN (48006,48294,48296,48297,48300,48301);
-UPDATE `creature_template` SET `ScriptName` = 'npc_captain_cookie_bad_food' WHERE `entry` IN (48276,48293,48295,48298,48299,48302);
 
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
@@ -432,8 +509,27 @@ INSERT INTO `vehicle_template` (`creatureId`, `despawnDelayMs`, `Pitch`, `Custom
 (49041, 0, NULL, 0),
 (49042, 0, NULL, 0);
 
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (48974,48975,48976,49039,49040,49041,49042,48266,49208,47403,47404);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (48974,48975,48976,49039,49040,49041,49042,48266,49208,47403,47404,
+-- Cookie Bad Food
+48276, 48293, 48295, 48298, 48299, 48302,
+-- Cookie Good Food
+48006, 48294, 48296, 48297, 48300, 48301);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+-- Cookie Bad Food
+(48276, 89732, 3, 0),
+(48293, 89732, 3, 0),
+(48295, 89732, 3, 0),
+(48298, 89732, 3, 0),
+(48299, 89732, 3, 0),
+(48302, 89732, 3, 0),
+-- Cookie Good Food
+(48300, 89267, 3, 0),
+(48301, 89267, 3, 0),
+(48296, 89267, 3, 0),
+(48297, 89267, 3, 0),
+(48294, 89267, 3, 0),
+(48006, 89267, 3, 0),
+
 (49208, 46598, 1, 0), -- Prototype Reaper Ride Vehicle Spell
 (47403, 46598, 1, 0), -- Defias Reaper Ride Vehicle Spell
 (47404, 46598, 1, 0), -- Defias Watcher Ride Vehicle Spell

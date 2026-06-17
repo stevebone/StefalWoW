@@ -207,6 +207,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 CannonFiring5 = 376090;
         static constexpr uint32 CannonFiring6 = 376044;
         static constexpr uint32 CannonFiring7 = 376041;
+
+        // Cookie Encounter
+        static constexpr uint32 CuldronSpawnBunny = 375838;
+        static constexpr uint32 CookieJumpCuldronBunny = 376143;
     }
 
     namespace Objects
@@ -483,6 +487,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 ThrowFoodRottenLoaf = 90585;
         static constexpr uint32 ThrowFoodBun = 90565;
         static constexpr uint32 ThrowFoodRottenBun = 90586;
+        static constexpr uint32 ThrowFoodWithMurloc = 90680;
 
         // Direct throw food spells used by the boss
         static constexpr uint32 ThrowFood01 = 90557;
@@ -603,6 +608,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 CookieSummonCauldron = 51;
         static constexpr int8 CookieJumpToCauldron = 52;
         static constexpr int8 CookieThrowFood = 53;
+        static constexpr int8 CookieEnableMurloc = 54;
     }
 
     namespace Actions
@@ -713,8 +719,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         };
 
         // Captain Cookie
-        static constexpr Position CookieDeckCenter = { -64.07f, -820.27f, 41.17f, 0.04f };
-        static constexpr Position CookieCauldronJumpTarget = { -64.2552f, -820.245f, 41.17154f, 0.0f };
         static constexpr Position VanessaNoteSpawn = { -74.3611f, -820.014f, 40.3714f, 0.0f };
     }
 
