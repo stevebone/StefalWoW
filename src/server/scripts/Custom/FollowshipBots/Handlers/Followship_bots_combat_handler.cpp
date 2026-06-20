@@ -91,6 +91,7 @@ namespace FSBCombat
                 }
             }
 
+            FSBMovement::EnsureInRange(bot, victim);
             return;
         }
 

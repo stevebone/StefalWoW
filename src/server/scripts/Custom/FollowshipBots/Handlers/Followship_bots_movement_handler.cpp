@@ -228,20 +228,20 @@ namespace FSBMovement
         if (!bot || !target || !target->IsAlive())
             return false;
 
-        float dist = bot->GetDistance(target);
-        float requiredRange = FSBCombatUtils::GetBotChaseDistance(bot);
-
-        // Already in range
-        if (dist <= requiredRange)
-            return false;
+        // STAY mode bots should only attack if already in range — do not chase
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
+                return false;
 
         MotionMaster* mm = bot->GetMotionMaster();
         if (!mm)
             return false;
 
-        // Avoid restarting the same chase every tick
+        // If already chasing, nothing to do
         if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
             return true;
+
+        float requiredRange = FSBCombatUtils::GetBotChaseDistance(bot);
 
         mm->Clear();
         bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE);
@@ -249,9 +249,9 @@ namespace FSBMovement
         // Bots with ranged attacks should not care about the chase angle at all.
         float angle = requiredRange == 2.f ? float(M_PI) : frand(-2.f, 2.f);
         float tolerance = requiredRange == 0.f ? float(M_PI_4) : float(M_PI * 2);
-        mm->MoveChase(target, ChaseRange(0.f, requiredRange), ChaseAngle(angle, tolerance));       
+        mm->MoveChase(target, ChaseRange(0.f, requiredRange), ChaseAngle(angle, tolerance));
 
-        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureInRange Bot {} chasing {} to {:.1f} yards", bot->GetName(), target->GetName(), requiredRange);
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureInRange Bot {} chase resumed for {} @ {:.1f} yd", bot->GetName(), target->GetName(), requiredRange);
 
         return true;
     }
@@ -261,17 +261,16 @@ namespace FSBMovement
         if (!bot || !target || !target->IsAlive())
             return false;
 
-        float dist = bot->GetDistance(target);
-
-        // Already in range
-        if (dist <= range)
-            return false;
+        // STAY mode bots should only attack if already in range — do not chase
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
+                return false;
 
         MotionMaster* mm = bot->GetMotionMaster();
         if (!mm)
             return false;
 
-        // Avoid restarting the same chase every tick
+        // If already chasing, nothing to do
         if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
             return true;
 
@@ -283,7 +282,7 @@ namespace FSBMovement
         float tolerance = range == 0.f ? float(M_PI_4) : float(M_PI * 2);
         mm->MoveChase(target, ChaseRange(0.f, range), ChaseAngle(angle, tolerance));
 
-        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureInRange for spell Bot {} chasing {} to {:.1f} yards", bot->GetName(), target->GetName(), range);
+        TC_LOG_DEBUG("scripts.fsb.movement", "FSB: EnsureInRange for spell Bot {} chase resumed for {} @ {:.1f} yd", bot->GetName(), target->GetName(), range);
 
         return true;
     }
