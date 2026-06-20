@@ -37,6 +37,7 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_stats_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
@@ -212,9 +213,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_HIRED_RESUME_FOLLOW:
     {
+        if (FSBRecovery::BotHasRecoveryActive(bot))
+            break;
+
         auto followDistance = ai->botFollowDistance;
         auto followAngle = ai->botFollowAngle;
-        if(ai->botHired)
+        if (ai->botHired)
             FSBMovement::ResumeFollow(bot, followDistance, followAngle);
         break;
     }

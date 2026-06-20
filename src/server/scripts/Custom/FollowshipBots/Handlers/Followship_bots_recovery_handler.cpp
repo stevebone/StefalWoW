@@ -24,6 +24,7 @@
 #include "Log.h"
 
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
 
 #include "Followship_bots_druid.h"
 
@@ -83,7 +84,7 @@ namespace FSBRecovery
             recoveryActions.emplace_back(BotRecoverAction::Eat);
             recoveryActions.emplace_back(BotRecoverAction::Recuperate);
 
-            if (botClass == FSB_Class::Priest || botClass == FSB_Class::Paladin || botClass == FSB_Class::Druid)
+            if (FSBUtils::BotIsHealerClass(bot))
                 recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
             if (botClass == FSB_Class::Mage)
                 recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
@@ -408,7 +409,10 @@ namespace FSBRecovery
         if (!bot || !bot->IsAlive())
             return false;
 
-        return bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL) || bot->HasAura(SPELL_MAGE_CONJURED_MANA_PUDDING) || bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER);
+        return bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL)
+            || bot->HasAura(SPELL_MAGE_CONJURED_MANA_PUDDING)
+            || bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER)
+            || bot->HasAura(SPELL_RECUPERATE);
     }
 
     void BotCancelRecoveryAtFull(Creature* bot)
@@ -423,9 +427,8 @@ namespace FSBRecovery
         if (!BotHasRecoveryActive(bot))
             return;
 
-        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) >= 99.0f;
-        bool fullHealth = bot->GetHealthPct() >= 99.0f;
-        bool full = fullMana && fullHealth;
+        bool fullMana = bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) >= 100.0f;
+        bool fullHealth = bot->GetHealthPct() >= 100.0f;
 
         if (fullMana)
             bot->RemoveAurasDueToSpell(SPELL_DRINK_CONJURED_CRYSTAL_WATER);
@@ -433,7 +436,8 @@ namespace FSBRecovery
         if (fullHealth)
             bot->RemoveAurasDueToSpell(SPELL_FOOD_SCALED_WITH_LVL);
 
-        if(full)
+        // Mage pudding restores both; only cancel when both resources are full
+        if (fullMana && fullHealth)
             bot->RemoveAurasDueToSpell(SPELL_MAGE_CONJURED_MANA_PUDDING);
 
         if (!BotHasRecoveryActive(bot))
