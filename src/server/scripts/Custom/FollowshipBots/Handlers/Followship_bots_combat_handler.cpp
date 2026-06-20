@@ -40,7 +40,7 @@ namespace FSBCombat
             return;
 
         if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
-            if (baseAI->botCookieFoodCycleActive)
+            if (baseAI->botDungeonData && baseAI->botDungeonData->mechanicFlagA)
                 return;
 
         Unit* victim = bot->GetVictim();

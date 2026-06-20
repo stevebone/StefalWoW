@@ -22,6 +22,54 @@
 
 #include "Custom_Instance_Deadmines.h"
 
+struct FSB_DungeonData
+{
+    // Counters (reused per encounter)
+    int8  mechanicCounterA = 0;
+    int8  mechanicCounterB = 0;
+    int8  mechanicCounterC = 0;
+
+    // Target / object tracking
+    ObjectGuid mechanicTargetGuid;
+    ObjectGuid mechanicSecondaryGuid;
+
+    // State flags (reused per encounter)
+    bool mechanicFlagA = false;
+    bool mechanicFlagB = false;
+    bool mechanicFlagC = false;
+    bool mechanicFlagD = false;
+
+    // Timer (ms) for short-duration encounter mechanics
+    uint32 mechanicTimer = 0;
+
+    // Active encounter ID — cleared when a new encounter registers
+    uint32 activeEncounterId = 0;
+
+    void Reset()
+    {
+        mechanicCounterA = 0;
+        mechanicCounterB = 0;
+        mechanicCounterC = 0;
+        mechanicTargetGuid.Clear();
+        mechanicSecondaryGuid.Clear();
+        mechanicFlagA = false;
+        mechanicFlagB = false;
+        mechanicFlagC = false;
+        mechanicFlagD = false;
+        mechanicTimer = 0;
+        activeEncounterId = 0;
+    }
+
+    void SetActiveEncounter(uint32 encounterId)
+    {
+        if (activeEncounterId != encounterId)
+        {
+            Reset();
+            activeEncounterId = encounterId;
+        }
+    }
+};
+
 namespace FSBDungeon
 {
     // Default minimum distance casters keep from dungeon bosses (raw center-to-center)
@@ -51,8 +99,6 @@ namespace FSBDungeon
     bool ShouldMaintainBossDistance(Creature* bot, Unit* target, float minDistance);
     float GetDungeonBossMinDistance(uint32 bossEntry);
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
-    bool IsFoeReaperAOEActive(Unit* boss);
-    bool HandleFoeReaperAOEEvasion(Creature* bot, Unit* target);
     Unit* GetDungeonTargetOverride(Creature* bot, Unit* target);
 
     namespace Deadmines
@@ -67,15 +113,7 @@ namespace FSBDungeon
         // Per-boss melee minimum distance for AOE avoidance
         static constexpr float FoeReaper5000MinAOEDistance = 17.f;
 
-        // Captain Cookie food interaction
-        static constexpr float COOKIE_FOOD_SEARCH_RADIUS = 30.0f;
-        static constexpr float COOKIE_FOOD_SPELLCLICK_RANGE = 5.0f;
-        static constexpr float COOKIE_BAD_FOOD_AVOID_DISTANCE = 10.0f;
-
         void CheckPrototypeReaperEntry(Creature* bot);
         void HandleVehicleCombatCheck(Creature* bot);
-        void HandleCaptainCookieFoodCycle(Creature* bot);
-        bool ProcessCaptainCookieFoodClick(Creature* bot);
-        Creature* FindNearestCookieFood(Creature* bot, bool searchBadFood);
     }
 }

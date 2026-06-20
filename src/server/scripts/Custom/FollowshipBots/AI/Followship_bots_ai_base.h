@@ -34,6 +34,7 @@
 #include "Followship_bots_spells_handler.h"
 
 struct FSB_ClassStats;
+struct FSB_DungeonData;
 
 class FSB_BaseAI : public ScriptedAI
 {
@@ -67,9 +68,7 @@ public:
         botAnnouncedLowMana(false),
         botAnnouncedLowHealth(false),
         botAnnouncedVeryLowHealth(false),
-        botInVehicle(false),
         botNeedsDeadUnitCheck(false),
-        botDungeonBossEvasion(false),
 
         botGlobalCooldown(0),
         botBuffsTimer(0),
@@ -86,6 +85,10 @@ public:
     {
     }
 
+    virtual ~FSB_BaseAI();
+
+    FSB_DungeonData* GetDungeonData();
+
     FSB_Roles botRole; 
     FSB_Class botClass;
     FSB_Race botRace;
@@ -94,6 +97,7 @@ public:
     FSB_ChatterType botChatterType;
     FSBRegenMods botRegenMods;
     FSB_ClassStats const* botClassStats = nullptr;
+    FSB_DungeonData* botDungeonData = nullptr;
     FSBBotStats botStats;
 
     float botFollowDistance;
@@ -114,11 +118,7 @@ public:
     bool botAnnouncedLowMana;
     bool botAnnouncedLowHealth;
     bool botAnnouncedVeryLowHealth;
-    bool botInVehicle;
     bool botNeedsDeadUnitCheck;
-    bool botDungeonBossEvasion;
-    bool botCookieFoodCycleActive = false;
-    bool botCookieCycleInitiated = false;
 
     uint32 botGlobalCooldown;
     uint32 botBuffsTimer;
@@ -131,11 +131,6 @@ public:
     uint32 DungeonID = 0;
 
     Position botCorpsePos;
-
-    ObjectGuid botVehicleCombatTarget;
-
-    uint8 botCookieClicksRemaining = 0;     // 0 = idle, 4 = tank cycle active, 2 = non-tank cycle active
-    ObjectGuid botCookieFoodTarget;         // GUID of the food NPC the bot is currently moving to
 
     std::queue<ObjectGuid> botResurrectQueue;
 

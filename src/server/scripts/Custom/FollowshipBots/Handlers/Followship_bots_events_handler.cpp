@@ -31,6 +31,7 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_dungeon_handler.h"
+#include "Dungeons/Followship_bots_dungeon_deadmines.h"
 
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -147,7 +148,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             if (!prototypeReaper->GetVehicleKit()->GetPassenger(0))
             {
                 bot->EnterVehicle(prototypeReaper, 0);
-                ai->botInVehicle = true;
+                ai->GetDungeonData()->mechanicFlagD = true;
                 prototypeReaper->SetFaction(bot->GetFaction());
 
                 Player* owner = FSBMgr::Get()->GetBotOwner(bot);
@@ -174,7 +175,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
             if (Creature* vehicleCreature = vehicle->ToCreature())
             {
-                Unit* target = ObjectAccessor::GetUnit(*bot, ai->botVehicleCombatTarget);
+                Unit* target = ObjectAccessor::GetUnit(*bot, ai->GetDungeonData()->mechanicSecondaryGuid);
                 if (target && target->IsAlive())
                     vehicleCreature->CastSpell(target, Scripts::EasternKingdoms::Deadmines::Spells::PrototypeReaperReaperStrike, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
             }
@@ -191,7 +192,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             {
                 if (Creature* vehicleCreature = vehicle->ToCreature())
                 {
-                    Unit* target = ObjectAccessor::GetUnit(*bot, ai->botVehicleCombatTarget);
+                    Unit* target = ObjectAccessor::GetUnit(*bot, ai->GetDungeonData()->mechanicSecondaryGuid);
                     if (target && target->IsAlive())
                         vehicleCreature->CastSpell(target, Scripts::EasternKingdoms::Deadmines::Spells::PrototypeReaperPressurizedStrike, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
                 }
@@ -392,7 +393,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSBEvents::EVENT_DM_COOKIE_FOOD_CYCLE:
     {
-        FSBDungeon::Deadmines::HandleCaptainCookieFoodCycle(bot);
+        FSBDeadmines::Encounters::HandleCaptainCookieFoodCycle(bot);
         break;
     }
 

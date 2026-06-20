@@ -554,7 +554,7 @@ public:
 
         void UpdateAI(uint32 diff) override
         {
-            if(!botDungeonBossEvasion)
+            if (!botDungeonData || !botDungeonData->mechanicFlagC)
                 FSBCombat::EvaluateAttackNeeded(me);
             FSBCombat::SetOwnerTapToVictim(me);
 
@@ -686,7 +686,7 @@ public:
                     if (me->IsAlive() && me->IsInCombat())
                     {
                         // Vehicle combat is handled by the self-scheduling EVENT_DM_VEHICLE_COMBAT_CHECK loop
-                        if (!botInVehicle)
+                        if (!botDungeonData || !botDungeonData->mechanicFlagD)
                             FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs);
                     }
 
