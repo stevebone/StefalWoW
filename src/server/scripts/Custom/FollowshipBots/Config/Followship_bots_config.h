@@ -48,5 +48,14 @@ struct FollowshipBotsConfig
     static float configFSBHealthRegenRate;
     static float configFSBPowerRegenRate;
 
+    static bool configFSBLlamaAIEnabled;
+    static std::string configFSBLlamaAIHost;
+    static int32 configFSBLlamaAIPort;
+    static std::string configFSBLlamaAIEndpoint;
+    static std::string configFSBLlamaAIModel;
+    static std::string configFSBLlamaAIApiKey;
+    static int32 configFSBLlamaAITimeoutMs;
+    static int32 configFSBLlamaAIMaxTokens;
+
     static void Load();
 };

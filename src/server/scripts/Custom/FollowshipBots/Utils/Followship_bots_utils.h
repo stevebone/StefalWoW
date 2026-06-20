@@ -46,6 +46,9 @@ namespace FSBUtils
 {
     const char* BotClassToString(FSB_Class cls);
     const char* BotRaceToString(FSB_Race race);
+    const char* BotRoleToString(FSB_Roles role);
+    const char* ChatterTypeToString(FSB_ChatterType type);
+    const char* GenderToString(Gender gender);
     const char* PowerTypeToString(Powers power);
 
     Classes FSBToTCClass(FSB_Class botClass);

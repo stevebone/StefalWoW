@@ -4522,6 +4522,55 @@ Followship.Bots.HealthRegenRate = 1
 # Values 0.1-2; Default: 1
 Followship.Bots.PowerRegenRate = 1
 
+# LlamaAI LLM Chatter Integration
+#
+# Enable LLM-generated chatter via a local llama.cpp server
+# When disabled, bots fall back to hardcoded chatter strings
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.LlamaAI.Enabled = 0
+
+# LlamaAI Server Host
+#
+# Hostname or IP of the llama.cpp server
+# Default: 127.0.0.1
+Followship.Bots.LlamaAI.Host = "127.0.0.1"
+
+# LlamaAI Server Port
+#
+# TCP port the llama.cpp server listens on
+# Default: 8080
+Followship.Bots.LlamaAI.Port = 8080
+
+# LlamaAI API Endpoint
+#
+# Path to the chat completions endpoint
+# Default: v1/chat/completions
+Followship.Bots.LlamaAI.Endpoint = "v1/chat/completions"
+
+# LlamaAI Model Name
+#
+# Model filename sent in the request body
+# Default: Qwen3-4B-Q4_K_M.gguf
+Followship.Bots.LlamaAI.Model = "Qwen3-4B-Q4_K_M.gguf"
+
+# LlamaAI API Key
+#
+# Optional Bearer token for API access. Leave empty for open localhost.
+# Default: "" (empty)
+Followship.Bots.LlamaAI.ApiKey = ""
+
+# LlamaAI Request Timeout
+#
+# Maximum time in milliseconds to wait for an LLM response
+# Default: 5000
+Followship.Bots.LlamaAI.TimeoutMs = 5000
+
+# LlamaAI Max Tokens
+#
+# Maximum number of tokens the LLM is allowed to generate
+# Default: 50
+Followship.Bots.LlamaAI.MaxTokens = 50
+
 # Followship Bots Logging
 # These follow the standard Trinity format
 Appender.FSB=2,2,0,FSB.log,w

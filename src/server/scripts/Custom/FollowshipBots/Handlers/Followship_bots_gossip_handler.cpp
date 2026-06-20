@@ -27,6 +27,9 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "LlamaAI/Followship_bots_llamaAI.h"
+#include "LlamaAI/Followship_bots_prompts.h"
+
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_gossip_handler.h"
@@ -236,10 +239,9 @@ namespace FSBGossip
         if (!bot || !player)
             return;
 
-        // TO-DO for multiple classes we need separate switch/table here
-        bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, LANG_UNIVERSAL);
-
         player->PlayerTalkClass->SendCloseGossip();
+
+        FSBLlamaPrompts::DispatchBotInfoRequest(bot);
     }
     void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon)
     {
@@ -385,7 +387,7 @@ namespace FSBGossip
         }
 
         bot->SetReactState(REACT_AGGRESSIVE);
-        FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
+        FSBLlamaPrompts::DispatchBotRoleAcknowledge(bot);
     }
     bool HandleGossipItemHirePermanent(Creature* bot, Player* player)
     {

@@ -48,6 +48,15 @@ float FollowshipBotsConfig::configFSBArmorRate = 0.4f;
 float FollowshipBotsConfig::configFSBHealthRegenRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRegenRate = 1.f;
 
+bool  FollowshipBotsConfig::configFSBLlamaAIEnabled = false;
+std::string FollowshipBotsConfig::configFSBLlamaAIHost = "127.0.0.1";
+int32 FollowshipBotsConfig::configFSBLlamaAIPort = 8080;
+std::string FollowshipBotsConfig::configFSBLlamaAIEndpoint = "v1/chat/completions";
+std::string FollowshipBotsConfig::configFSBLlamaAIModel = "Qwen3-4B-Q4_K_M.gguf";
+std::string FollowshipBotsConfig::configFSBLlamaAIApiKey = "";
+int32 FollowshipBotsConfig::configFSBLlamaAITimeoutMs = 5000;
+int32 FollowshipBotsConfig::configFSBLlamaAIMaxTokens = 50;
+
 void FollowshipBotsConfig::Load()
 {
     configFSBEnabled =
@@ -106,4 +115,28 @@ void FollowshipBotsConfig::Load()
 
     configFSBPowerRegenRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.PowerRegenRate", 1.f);
+
+    configFSBLlamaAIEnabled =
+        sConfigMgr->GetBoolDefault("Followship.Bots.LlamaAI.Enabled", false);
+
+    configFSBLlamaAIHost =
+        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.Host", "127.0.0.1");
+
+    configFSBLlamaAIPort =
+        sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.Port", 8080);
+
+    configFSBLlamaAIEndpoint =
+        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.Endpoint", "v1/chat/completions");
+
+    configFSBLlamaAIModel =
+        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.Model", "Qwen3-4B-Q4_K_M.gguf");
+
+    configFSBLlamaAIApiKey =
+        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.ApiKey", "");
+
+    configFSBLlamaAITimeoutMs =
+        sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.TimeoutMs", 5000);
+
+    configFSBLlamaAIMaxTokens =
+        sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.MaxTokens", 50);
 }

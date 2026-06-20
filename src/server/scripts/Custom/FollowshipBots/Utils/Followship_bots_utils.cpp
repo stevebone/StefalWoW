@@ -73,6 +73,49 @@ namespace FSBUtils
         }
     }
 
+    const char* BotRoleToString(FSB_Roles role)
+    {
+        switch (role)
+        {
+        case FSB_ROLE_NONE:               return "none";
+        case FSB_ROLE_MELEE_DAMAGE:     return "melee damage dealer";
+        case FSB_ROLE_MELEE_DAMAGE_2:   return "melee damage dealer";
+        case FSB_ROLE_MELEE_DAMAGE_3:   return "melee damage dealer";
+        case FSB_ROLE_RANGED_DAMAGE:    return "ranged damage dealer";
+        case FSB_ROLE_HEALER:           return "healer";
+        case FSB_ROLE_ASSIST:           return "support";
+        case FSB_ROLE_TANK:             return "tank";
+        case FSB_ROLE_RANGED_FROST:     return "frost mage";
+        case FSB_ROLE_RANGED_ARCANE:    return "arcane mage";
+        case FSB_ROLE_RANGED_FIRE:      return "fire mage";
+        case FSB_ROLE_RANGED_AFFLICTION: return "affliction warlock";
+        case FSB_ROLE_RANGED_DEMONOLOGY: return "demonology warlock";
+        case FSB_ROLE_RANGED_DESTRUCTION: return "destruction warlock";
+        default:                          return "unknown role";
+        }
+    }
+
+    const char* ChatterTypeToString(FSB_ChatterType type)
+    {
+        switch (type)
+        {
+            case FSB_ChatterType::Neutral:  return "neutral and balanced";
+            case FSB_ChatterType::Positive: return "optimistic and friendly";
+            case FSB_ChatterType::Negative: return "cynical and sarcastic";
+            default:                        return "mysterious";
+        }
+    }
+
+    const char* GenderToString(Gender gender)
+    {
+        switch (gender)
+        {
+            case GENDER_MALE:   return "male";
+            case GENDER_FEMALE: return "female";
+            default:            return "unknown gender";
+        }
+    }
+
     Races BotRaceToTC(FSB_Race race)
     {
         switch (race)

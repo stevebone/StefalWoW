@@ -723,6 +723,7 @@ public:
                 HandleBotEvent(this, eventId);
             }
 
+            PollPendingLlamaResponse();
         }
         
         private:

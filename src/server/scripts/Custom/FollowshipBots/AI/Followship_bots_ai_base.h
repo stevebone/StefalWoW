@@ -22,7 +22,12 @@
 
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <functional>
+#include <mutex>
 #include <queue>
+#include <thread>
 #include "CreatureAI.h"
 #include "EventMap.h"
 #include "ScriptedCreature.h"
@@ -164,6 +169,45 @@ public:
     };
 
     std::unordered_map<uint32, FSBEventPayload> eventPayloads;
+
+    struct LlamaRequestState
+    {
+        std::atomic<bool> ready{ false };
+        std::string result;
+        std::mutex mutex;
+    };
+
+    std::unique_ptr<LlamaRequestState> pendingLlamaState;
+    std::function<void()> llamaFallbackAction;
+
+    void PollPendingLlamaResponse()
+    {
+        if (!pendingLlamaState)
+            return;
+
+        if (pendingLlamaState->ready.load())
+        {
+            std::string response;
+            {
+                std::lock_guard<std::mutex> lock(pendingLlamaState->mutex);
+                response = std::move(pendingLlamaState->result);
+            }
+
+            if (!response.empty())
+            {
+                TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: bot {} speaking LLM response", me->GetName());
+                me->Say(response, LANG_UNIVERSAL);
+            }
+            else if (llamaFallbackAction)
+            {
+                TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: bot {} falling back to hardcoded text", me->GetName());
+                llamaFallbackAction();
+            }
+
+            pendingLlamaState.reset();
+            llamaFallbackAction = nullptr;
+        }
+    }
 
 protected:
     EventMap botEvents;
