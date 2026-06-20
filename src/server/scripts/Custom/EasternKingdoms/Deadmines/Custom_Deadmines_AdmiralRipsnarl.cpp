@@ -23,6 +23,7 @@
 #include "CreatureAIImpl.h"
 #include "DB2Stores.h"
 #include "EventMap.h"
+#include "Map.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "InstanceScript.h"
