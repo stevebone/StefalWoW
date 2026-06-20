@@ -411,7 +411,7 @@ namespace FSBGossip
 
             FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
-            FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botHiredPermanent, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            FSBLlamaPrompts::DispatchBotHired(bot, 0);
         }
         else
             player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
@@ -449,8 +449,7 @@ namespace FSBGossip
         FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
         // 6. Chatter
-        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHire,
-            FSB_ReplyType::Say, FSB_ChatterSource::None, 0, durationHours);
+        FSBLlamaPrompts::DispatchBotHired(bot, durationHours);
 
         // 7. Close gossip
         player->PlayerTalkClass->SendCloseGossip();

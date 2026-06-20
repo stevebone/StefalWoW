@@ -32,6 +32,9 @@
 
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_chatter_handler.h"
+
+#include "LlamaAI/Followship_bots_prompts.h"
+
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
@@ -449,9 +452,7 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     bot->StopMoving();
     bot->GetMotionMaster()->Clear();
     if (player)
-    {
-        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
-    }
+        FSBLlamaPrompts::DispatchBotDismissed(bot);
 
     RemovePersistentBot(playerGuidLow, botEntry);
 

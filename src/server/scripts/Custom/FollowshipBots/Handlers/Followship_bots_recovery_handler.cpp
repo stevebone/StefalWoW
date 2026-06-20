@@ -29,6 +29,7 @@
 #include "Followship_bots_druid.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "LlamaAI/Followship_bots_prompts.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -343,12 +344,7 @@ namespace FSBRecovery
         if (check)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            {
-                Player* player = FSBMgr::Get()->GetBotOwner(bot);
-                if (player)
-                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botOOCRecoveryHired, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
-                else FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botOOCRecovery, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
-            }
+                FSBLlamaPrompts::DispatchBotRecovery(bot, spellId);
 
             uint32 now = getMSTime();
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(globalCooldown - now));

@@ -129,6 +129,38 @@ namespace FSBLlamaPrompts
         }).detach();
     }
 
+    static std::string BuildStandardSystemPrompt(Creature* bot)
+    {
+        uint32 entry = bot->GetEntry();
+        std::string const& botName = bot->GetName();
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(entry);
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(entry);
+        FSB_ChatterType chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(entry);
+        Gender botGender = FSBMgr::Get()->GetBotGenderForEntry(entry);
+
+        uint32 zoneId = bot->GetZoneId();
+        AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(zoneId);
+        std::string zoneName = areaEntry ? areaEntry->AreaName[LOCALE_enUS] : "Azeroth";
+
+        return Trinity::StringFormat(
+            "You are a character in World of Warcraft named {}.\n"
+            "You are a {} {} {} currently in {}.\n"
+            "Your personality is {}.\n\n"
+            "Rules:\n"
+            "- Reply in first person, staying fully in the game world.\n"
+            "- NEVER refer to yourself as an NPC, bot, AI, or game character.\n"
+            "- Keep your reply to 1 sentence only.\n"
+            "- Do not copy the example below word-for-word. Invent your own creative variation.\n"
+            "- The current zone ({}) may naturally appear in your reply.",
+            botName,
+            FSBUtils::GenderToString(botGender),
+            FSBUtils::BotRaceToString(botRace),
+            FSBUtils::BotClassToString(botClass),
+            zoneName,
+            FSBUtils::ChatterTypeToString(chatterType),
+            zoneName);
+    }
+
     void DispatchBotRoleAcknowledge(Creature* bot)
     {
         if (!bot)
@@ -148,42 +180,14 @@ namespace FSBLlamaPrompts
             return;
         }
 
-        uint32 entry = bot->GetEntry();
-        std::string const& botName = bot->GetName();
-        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(entry);
-        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(entry);
-        FSB_ChatterType chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(entry);
-        Gender botGender = FSBMgr::Get()->GetBotGenderForEntry(entry);
         FSB_Roles botRole = FSBMgr::Get()->GetRole(bot);
-
-        uint32 zoneId = bot->GetZoneId();
-        AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(zoneId);
-        std::string zoneName = areaEntry ? areaEntry->AreaName[LOCALE_enUS] : "Azeroth";
 
         Player* owner = FSBMgr::Get()->GetBotOwner(bot);
         std::string ownerName = owner ? owner->GetName() : "commander";
 
-        /* using FSBUtils::ChatterTypeToString / GenderToString */
-
         std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ChatterType::None, 0, 0);
 
-        std::string systemPrompt = Trinity::StringFormat(
-            "You are a character in World of Warcraft named {}.\n"
-            "You are a {} {} {} currently in {}.\n"
-            "Your personality is {}.\n\n"
-            "Rules:\n"
-            "- Reply in first person, staying fully in the game world.\n"
-            "- NEVER refer to yourself as an NPC, bot, AI, or game character.\n"
-            "- Keep your reply to 1 sentence only.\n"
-            "- Do not copy the example below word-for-word. Invent your own creative variation.\n"
-            "- The current zone ({}) may naturally appear in your reply.",
-            botName,
-            FSBUtils::GenderToString(botGender),
-            FSBUtils::BotRaceToString(botRace),
-            FSBUtils::BotClassToString(botClass),
-            zoneName,
-            FSBUtils::ChatterTypeToString(chatterType),
-            zoneName);
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
 
         std::string userMessage = Trinity::StringFormat(
             "{} just assigned you the {} role. Acknowledge the command with a brief, creative response relevant to your personality. "
@@ -197,7 +201,278 @@ namespace FSBLlamaPrompts
         };
         ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
         auto* state = ai->pendingLlamaState.get();
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched role acknowledge for bot {}", botName);
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched role acknowledge for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    static FSB_ChatterCategory GetAcknowledgeCategory(FSB_AcknowledgeContext context)
+    {
+        switch (context)
+        {
+            case FSB_AcknowledgeContext::StayCommand:    return FSB_ChatterCategory::botStay;
+            case FSB_AcknowledgeContext::FollowCommand:  return FSB_ChatterCategory::botFollow;
+            default:                                      return FSB_ChatterCategory::botAcknowledge;
+        }
+    }
+
+    static char const* GetAcknowledgeDescription(FSB_AcknowledgeContext context)
+    {
+        switch (context)
+        {
+            case FSB_AcknowledgeContext::FollowDistanceClose:  return "follow at close distance";
+            case FSB_AcknowledgeContext::FollowDistanceNormal: return "follow at normal distance";
+            case FSB_AcknowledgeContext::FollowDistanceWide:   return "follow at wide distance";
+            case FSB_AcknowledgeContext::FollowAngleFront:     return "follow from the front";
+            case FSB_AcknowledgeContext::FollowAngleBehind:    return "follow from behind";
+            case FSB_AcknowledgeContext::FollowAngleRight:   return "follow from the right";
+            case FSB_AcknowledgeContext::FollowAngleLeft:    return "follow from the left";
+            case FSB_AcknowledgeContext::StayCommand:        return "stay here and hold position";
+            case FSB_AcknowledgeContext::FollowCommand:      return "follow again";
+            default:                                         return "obey the command";
+        }
+    }
+
+    void DispatchBotAcknowledge(Creature* bot, FSB_AcknowledgeContext context)
+    {
+        if (!bot)
+            return;
+
+        FSB_ChatterCategory category = GetAcknowledgeCategory(context);
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            return;
+        }
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        std::string ownerName = owner ? owner->GetName() : "commander";
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string userMessage = Trinity::StringFormat(
+            "{} just told you to {}. Acknowledge the command with a brief, creative response relevant to your personality. "
+            "Example style (do not copy): \"{}\"",
+            ownerName,
+            GetAcknowledgeDescription(context),
+            seedLine.empty() ? "On it, commander." : seedLine);
+
+        ai->llamaFallbackAction = [bot, category]() {
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched acknowledge for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotDismissed(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
+            return;
+        }
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        std::string ownerName = owner ? owner->GetName() : "commander";
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string userMessage = Trinity::StringFormat(
+            "{} is dismissing you from service. Respond with a brief, creative farewell relevant to your personality. "
+            "Example style (do not copy): \"{}\"",
+            ownerName,
+            seedLine.empty() ? "Time's up. I'm off - good luck out there." : seedLine);
+
+        ai->llamaFallbackAction = [bot]() {
+            FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched dismissal for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotHired(Creature* bot, uint32 durationHours)
+    {
+        if (!bot)
+            return;
+
+        bool isPermanent = (durationHours == 0);
+        FSB_ChatterCategory category = isPermanent ? FSB_ChatterCategory::botHiredPermanent : FSB_ChatterCategory::botHire;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            if (isPermanent)
+                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            else
+            {
+                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, durationHours);
+                if (!chatter.empty())
+                    bot->Say(chatter, LANG_UNIVERSAL);
+            }
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            if (isPermanent)
+                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            else
+            {
+                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, durationHours);
+                if (!chatter.empty())
+                    bot->Say(chatter, LANG_UNIVERSAL);
+            }
+            return;
+        }
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        std::string ownerName = owner ? owner->GetName() : "commander";
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, isPermanent ? 0 : durationHours);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string userMessage;
+        if (isPermanent)
+        {
+            userMessage = Trinity::StringFormat(
+                "{} just hired you as a permanent companion. Greet them with a brief, creative response relevant to your personality. "
+                "Example style (do not copy): \"{}\"",
+                ownerName,
+                seedLine.empty() ? "Looks like we're in this together now." : seedLine);
+        }
+        else
+        {
+            std::string durationStr = durationHours == 1 ? "1 hour" : std::to_string(durationHours) + " hours";
+            userMessage = Trinity::StringFormat(
+                "{} just hired you for {}. Greet them with a brief, creative response relevant to your personality. "
+                "Example style (do not copy): \"{}\"",
+                ownerName,
+                durationStr,
+                seedLine.empty() ? "Alright, let's band together." : seedLine);
+        }
+
+        ai->llamaFallbackAction = [bot, category, durationHours]() {
+            if (category == FSB_ChatterCategory::botHiredPermanent)
+                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            else
+            {
+                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, durationHours);
+                if (!chatter.empty())
+                    bot->Say(chatter, LANG_UNIVERSAL);
+            }
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched hire for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotRecovery(Creature* bot, uint32 spellId)
+    {
+        if (!bot)
+            return;
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        FSB_ChatterCategory category = owner ? FSB_ChatterCategory::botOOCRecoveryHired : FSB_ChatterCategory::botOOCRecovery;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            return;
+        }
+
+        std::string ownerName = owner ? owner->GetName() : "commander";
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, spellId, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string spellName = spellId ? FSBSpellsUtils::GetSpellName(spellId) : "a moment of rest";
+
+        std::string userMessage;
+        if (owner)
+        {
+            userMessage = Trinity::StringFormat(
+                "You are recovering after a tough battle, low on strength or energy, and use {} to catch your breath. "
+                "Address {} with a brief, creative comment about it relevant to your personality. "
+                "Example style (do not copy): \"{}\"",
+                spellName,
+                ownerName,
+                seedLine.empty() ? "Hey, I really need a break..." : seedLine);
+        }
+        else
+        {
+            userMessage = Trinity::StringFormat(
+                "You are recovering after a tough battle, low on strength or energy, and use {} to catch your breath. "
+                "Make a brief, creative comment about it relevant to your personality. "
+                "Example style (do not copy): \"{}\"",
+                spellName,
+                seedLine.empty() ? "Okay, deep breaths. I can do this." : seedLine);
+        }
+
+        ai->llamaFallbackAction = [bot, category, spellId]() {
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched recovery for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
             std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
