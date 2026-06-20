@@ -729,7 +729,7 @@ SET @OGUID := 900000;
 DELETE FROM `gameobject` WHERE `guid` = @OGUID+106;
 INSERT INTO `gameobject` (guid, id, map, spawndifficulties, phaseUseFlags, phaseid, position_x, position_y, position_z, orientation, rotation2, rotation3, spawntimesecs, state) VALUES
 -- Defias Gunpowder
-(@OGUID+106, 17155, 	36, 1, 0, 0, -106.409, -617.284, 13.8495, -0.767945, -0.374607, 0.927184, 180, 1);
+(@OGUID+106, 17155, 36, '1,2,24', 0, 0, -106.409, -617.284, 13.8495, -0.767945, -0.374607, 0.927184, 180, 1);
 
 -- Deadmines Loot Tables
 
