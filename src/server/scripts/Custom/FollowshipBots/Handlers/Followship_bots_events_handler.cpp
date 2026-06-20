@@ -142,7 +142,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSBEvents::EVENT_DM_ENTER_PROTOTYPE_REAPER:
     {
-        Creature* prototypeReaper = bot->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::PrototypeReaper, FSBDungeon::Deadmines::PROTOTYPE_REAPER_RANGE);
+        Creature* prototypeReaper = bot->FindNearestCreature(Scripts::EasternKingdoms::Deadmines::Creatures::PrototypeReaper, FSBDeadmines::PROTOTYPE_REAPER_RANGE);
         if (prototypeReaper && prototypeReaper->GetVehicleKit())
         {
             if (!prototypeReaper->GetVehicleKit()->GetPassenger(0))
@@ -206,7 +206,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK:
     {
-        FSBDungeon::Deadmines::HandleVehicleCombatCheck(bot);
+        FSBDeadmines::HandleVehicleCombatCheck(bot);
         break;
     }
 
@@ -387,7 +387,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_DEADMINES_CHECK_PROTOTYPE_REAPER:
     {
-        FSBDungeon::Deadmines::CheckPrototypeReaperEntry(bot);
+        FSBDeadmines::CheckPrototypeReaperEntry(bot);
         break;
     }
 

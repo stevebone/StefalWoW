@@ -22,11 +22,31 @@
 
 #pragma once
 
+#include "Custom_Instance_Deadmines.h"
+
 class Creature;
 class Unit;
 
+namespace DM = Scripts::EasternKingdoms::Deadmines;
+
 namespace FSBDeadmines
 {
+    // Boss IDs for target checking
+    static constexpr uint32 BossIds[] =
+    {
+        DM::Creatures::Glubtok,
+        DM::Creatures::HelixGearbreaker,
+        DM::Creatures::FoeReaper5000,
+        DM::Creatures::AdmiralRipsnarl,
+        DM::Creatures::CaptainCookie,
+        DM::Creatures::VanessaVanCleef
+    };
+
+    static constexpr float PROTOTYPE_REAPER_RANGE = 30.0f;
+    static constexpr float BOSS_DISTANCE = 100.0f;
+
+    static constexpr Position PrototypeReaperSlagsPosition = { -190.8952f, -573.4275f, 20.9768f, 3.7041f };
+
     // Main entry point called from CheckDungeonInCombatHandlingNeeded.
     // Returns true if a deadmines-specific mechanic consumed this tick
     // (the caller should skip further generic handling for this bot).
@@ -36,8 +56,17 @@ namespace FSBDeadmines
     // Handles scheduling and out-of-combat mechanics.
     void HandleOutOfCombat(Creature* bot);
 
+    // Prototype Reaper checks
+    void CheckPrototypeReaperEntry(Creature* bot);
+    void HandleVehicleCombatCheck(Creature* bot);
+
     namespace Encounters
     {
+        // Per-boss caster minimum distance overrides (see GetDungeonBossMinDistance)
+        static constexpr float FoeReaper5000MinDistance = 25.0f;
+        // Per-boss melee minimum distance for AOE avoidance
+        static constexpr float FoeReaper5000MinAOEDistance = 17.f;
+
         // Foe Reaper 5000: tank and melee AOE evasion during Harvest / Overdrive
         bool HandleFoeReaper5000(Creature* bot, Unit* target);
 

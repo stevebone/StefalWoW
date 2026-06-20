@@ -80,14 +80,6 @@ namespace FSBDungeon
         static constexpr uint32 Deadmines = 36;
     }
 
-    namespace Creatures
-    {
-        namespace Deadmines
-        {
-            static constexpr uint32 BossIds[] = { 47162, 47296, 43778, 47626, 47739, 43908 };
-        }
-    }
-
     void CheckDungeonHandlingNeeded(Creature* bot);
     bool CheckDungeonInCombatHandlingNeeded(Creature* bot);
     uint32 GetBotDungeonId(Creature* bot);
@@ -100,20 +92,4 @@ namespace FSBDungeon
     float GetDungeonBossMinDistance(uint32 bossEntry);
     void CheckAndQueueDeadUnits(Creature* bot, float searchRange);
     Unit* GetDungeonTargetOverride(Creature* bot, Unit* target);
-
-    namespace Deadmines
-    {
-        static constexpr float PROTOTYPE_REAPER_RANGE = 30.0f; // bot scan range
-        static constexpr float BOSS_DISTANCE = 100.0f; // prototype reaper range scan
-
-        static constexpr Position PrototypeReaperSlagsPosition = { -190.8952f, -573.4275f, 20.9768f, 3.7041f };
-
-        // Per-boss caster minimum distance overrides (see GetDungeonBossMinDistance)
-        static constexpr float FoeReaper5000MinDistance = 25.0f;
-        // Per-boss melee minimum distance for AOE avoidance
-        static constexpr float FoeReaper5000MinAOEDistance = 17.f;
-
-        void CheckPrototypeReaperEntry(Creature* bot);
-        void HandleVehicleCombatCheck(Creature* bot);
-    }
 }

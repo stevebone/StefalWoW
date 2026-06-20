@@ -206,7 +206,7 @@ namespace FSBDungeon
 
         if (dungeonId == Maps::Deadmines)
         {
-            for (uint32 bossId : Creatures::Deadmines::BossIds)
+            for (uint32 bossId : FSBDeadmines::BossIds)
                 if (targetEntry == bossId)
                     return true;
         }
@@ -256,7 +256,7 @@ namespace FSBDungeon
         switch (bossEntry)
         {
         case DM::Creatures::FoeReaper5000:
-            return Deadmines::FoeReaper5000MinDistance;
+            return FSBDeadmines::Encounters::FoeReaper5000MinDistance;
         default:
             break;
         }
@@ -369,150 +369,5 @@ namespace FSBDungeon
             TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: CheckAndQueueDeadUnits Bot {} added dead unit {} to resurrect queue", bot->GetName(), unit->GetName());
         }
     }
-
-    namespace Deadmines
-    {
-        void CheckPrototypeReaperEntry(Creature* bot)
-        {
-            if (!bot || !bot->IsAlive())
-                return;
-
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return;
-
-            if (baseAI->GetDungeonData()->mechanicFlagD)
-                return;
-
-            if (!FSBMgr::BotIsMeleeRole(bot))
-                return;
-
-            Creature* prototypeReaper = bot->FindNearestCreature(DM::Creatures::PrototypeReaper, PROTOTYPE_REAPER_RANGE);
-            if (!prototypeReaper)
-                return;
-
-            if (prototypeReaper->GetVehicleKit() && prototypeReaper->GetVehicleKit()->GetPassenger(0))
-                return;
-
-            baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_ENTER_PROTOTYPE_REAPER, 1s, 5s);
-        }
-
-        static bool IsAllowedVehicleCastTarget(uint32 entry)
-        {
-            return entry == DM::Creatures::DefiasWatcher ||
-                   entry == DM::Creatures::DefiasReaper ||
-                   entry == DM::Creatures::MoltenSlag;
-        }
-
-        static void MoveToSlagsPosition(Creature* vehicleCreature)
-        {
-            vehicleCreature->GetMotionMaster()->Clear();
-            vehicleCreature->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_DEADMINES_VEHICLE, PrototypeReaperSlagsPosition);
-        }
-
-        static void EngageVehicleTarget(Creature* bot, FSB_BaseAI* baseAI, Creature* vehicleCreature, Unit* target)
-        {
-            TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - engaging {} (entry {}), casting Charge and scheduling strikes", bot->GetName(), target->GetName(), target->GetEntry());
-
-            vehicleCreature->GetMotionMaster()->Clear();
-            baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
-            baseAI->GetDungeonData()->mechanicSecondaryGuid = target->GetGUID();
-
-            vehicleCreature->CastSpell(target, DM::Spells::PrototypeReaperCharge, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
-            baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_REAPER_STRIKE, 2s);
-            baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_PRESSURIZED_STRIKE, 4s);
-        }
-
-        void HandleVehicleCombatCheck(Creature* bot)
-        {
-            if (!bot || !bot->IsAlive())
-                return;
-
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return;
-
-            // Loop exit conditions: leave the loop entirely (no reschedule)
-            if (!IsBotInDungeon(bot) || bot->GetMapId() != Maps::Deadmines || bot->GetMap()->GetDifficultyID() != DIFFICULTY_HEROIC ||
-                !baseAI->GetDungeonData()->mechanicFlagD || !bot->GetVehicle())
-            {
-                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - loop conditions no longer met, stopping", bot->GetName());
-                baseAI->GetDungeonData()->mechanicSecondaryGuid.Clear();
-                return;
-            }
-
-            Unit* vehicle = bot->GetVehicleBase();
-            Creature* vehicleCreature = vehicle ? vehicle->ToCreature() : nullptr;
-            if (!vehicleCreature || vehicleCreature->GetEntry() != DM::Creatures::PrototypeReaper)
-            {
-                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - vehicle is not the Prototype Reaper, stopping", bot->GetName());
-                baseAI->GetDungeonData()->mechanicSecondaryGuid.Clear();
-                return;
-            }
-
-            Unit* target = FSBCombat::GetNextAttackTarget(bot);
-
-            // Boss fight: park at the designated slags position, scan for Molten Slags from there
-            if (target && target->GetEntry() == DM::Creatures::FoeReaper5000)
-            {
-                // Not at the slags position yet: move there first, scan only once arrived
-                if (vehicleCreature->GetExactDist2d(&PrototypeReaperSlagsPosition) > 5.0f)
-                {
-                    TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - boss phase, moving to slags position", bot->GetName());
-                    MoveToSlagsPosition(vehicleCreature);
-                    baseAI->GetDungeonData()->mechanicSecondaryGuid.Clear();
-                    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
-                    baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
-                    return;
-                }
-
-                Unit* slag = vehicleCreature->FindNearestCreature(DM::Creatures::MoltenSlag, 100.0f);
-
-                if (slag && slag->IsAlive())
-                {
-                    EngageVehicleTarget(bot, baseAI, vehicleCreature, slag);
-                    return; // cycle continues via EVENT_DM_PRESSURIZED_STRIKE
-                }
-
-                // No slags up yet: hold the position, never fall back to following the owner into the boss
-                baseAI->GetDungeonData()->mechanicSecondaryGuid.Clear();
-                baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
-                baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
-                return;
-            }
-
-            if (target && target->IsAlive() && IsAllowedVehicleCastTarget(target->GetEntry()))
-            {
-                EngageVehicleTarget(bot, baseAI, vehicleCreature, target);
-                return; // cycle continues via EVENT_DM_PRESSURIZED_STRIKE
-            }
-
-            // No valid target: return to following the owner and keep the idle loop running
-            baseAI->GetDungeonData()->mechanicSecondaryGuid.Clear();
-
-            // Safety: never follow the owner into a nearby Foe Reaper (e.g. owner is meleeing the boss)
-            if (Creature* nearbyBoss = vehicleCreature->FindNearestCreature(DM::Creatures::FoeReaper5000, BOSS_DISTANCE))
-            {
-                if (nearbyBoss->IsAlive() && nearbyBoss->IsInCombat())
-                {
-                    TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - no target but boss nearby, moving to slags position instead of following", bot->GetName());
-                    if (vehicleCreature->GetExactDist2d(&PrototypeReaperSlagsPosition) > 5.0f)
-                        MoveToSlagsPosition(vehicleCreature);
-                    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
-                    baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
-                    return;
-                }
-            }
-
-            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-            if (owner && owner->IsInWorld() && baseAI->botMoveState != FSB_MOVE_STATE_FOLLOWING && vehicleCreature->GetDistance(owner) > 10.0f)
-            {
-                TC_LOG_DEBUG("scripts.fsb.dungeon", "FSB: HandleVehicleCombatCheck Bot {} - no valid target, returning to follow owner", bot->GetName());
-                vehicleCreature->GetMotionMaster()->MoveFollow(owner, 5.0f, PET_FOLLOW_ANGLE);
-                baseAI->botMoveState = FSB_MOVE_STATE_FOLLOWING;
-            }
-
-            baseAI->ScheduleBotEvent(FSBEvents::EVENT_DM_VEHICLE_COMBAT_CHECK, 1s);
-        }
-    }
 }
+
