@@ -17,6 +17,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Handlers/Followship_bots_chatter_handler.h"
+#include "ObjectAccessor.h"
 
 #include "DB2Stores.h"
 #include "Log.h"
@@ -473,6 +474,94 @@ namespace FSBLlamaPrompts
         ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
         auto* state = ai->pendingLlamaState.get();
         TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched recovery for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotBuff(Creature* bot, ObjectGuid targetGuid, uint32 spellId)
+    {
+        if (!bot)
+            return;
+
+        bool isSelfBuff = targetGuid == bot->GetGUID();
+        FSB_ChatterCategory category = isSelfBuff ? FSB_ChatterCategory::botBuffSelf : FSB_ChatterCategory::botBuffTarget;
+        FSB_ChatterType chatterType = FSB_ChatterType::None;
+        if (!isSelfBuff)
+            chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            if (isSelfBuff)
+                FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            else
+            {
+                Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+                FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            }
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            if (isSelfBuff)
+                FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            else
+            {
+                Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+                FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            }
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, chatterType, spellId, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string spellName = spellId ? FSBSpellsUtils::GetSpellName(spellId) : "a spell";
+
+        std::string userMessage;
+        if (isSelfBuff)
+        {
+            userMessage = Trinity::StringFormat(
+                "You just cast a beneficial {} on yourself. Make a brief, creative comment about it relevant to your personality. "
+                "Example style (do not copy): \"{}\"",
+                spellName,
+                seedLine.empty() ? "Am gonna be needing this!" : seedLine);
+        }
+        else
+        {
+            Unit* targetUnit = ObjectAccessor::GetUnit(*bot, targetGuid);
+            std::string targetName = targetUnit ? targetUnit->GetName() : "your ally";
+            userMessage = Trinity::StringFormat(
+                "You just cast a beneficial {} on {}. Make a brief, creative comment about it relevant to your personality. "
+                "Example style (do not copy): \"{}\"",
+                spellName,
+                targetName,
+                seedLine.empty() ? "Hey, no need to thank me!" : seedLine);
+        }
+
+        if (isSelfBuff)
+        {
+            ai->llamaFallbackAction = [bot, category, spellId]() {
+                FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            };
+        }
+        else
+        {
+            ai->llamaFallbackAction = [bot, targetGuid, category, spellId]() {
+                Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+                FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            };
+        }
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched buff for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
             std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);

@@ -35,4 +35,5 @@ namespace FSBLlamaPrompts
     void DispatchBotDismissed(Creature* bot);
     void DispatchBotHired(Creature* bot, uint32 durationHours);
     void DispatchBotRecovery(Creature* bot, uint32 spellId);
+    void DispatchBotBuff(Creature* bot, ObjectGuid targetGuid, uint32 spellId);
 }

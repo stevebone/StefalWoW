@@ -34,6 +34,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "LlamaAI/Followship_bots_prompts.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
@@ -773,9 +774,7 @@ namespace FSBOOC
             if (buffSpellId)
             {
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                {
-                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botBuffSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, buffSpellId);
-                }
+                    FSBLlamaPrompts::DispatchBotBuff(bot, bot->GetGUID(), buffSpellId);
             }
 
             return true;
@@ -896,16 +895,7 @@ namespace FSBOOC
                 globalCooldown = now + 1500;
 
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                {
-                    if (target == bot)
-                    {
-                        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botBuffSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, buffSpellId);
-                    }
-                    else
-                    {
-                        FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botBuffTarget, FSB_ReplyType::Say, FSB_ChatterSource::Bot, buffSpellId);
-                    }
-                }
+                    FSBLlamaPrompts::DispatchBotBuff(bot, target->GetGUID(), buffSpellId);
             }
 
             return true;
