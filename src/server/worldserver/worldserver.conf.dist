@@ -4576,6 +4576,7 @@ Followship.Bots.LlamaAI.MaxTokens = 50
 Appender.FSB=2,2,0,FSB.log,w
 Logger.scripts.fsb=4,Console FSB
 Logger.scripts.fsb.general=4,Console FSB
+Logger.scripts.fsb.llama=4,Console FSB
 Logger.scripts.fsb.events=4,Console FSB
 Logger.scripts.fsb.buffs=4,Console FSB
 Logger.scripts.fsb.death=4,Console FSB

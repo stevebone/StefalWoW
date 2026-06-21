@@ -632,4 +632,119 @@ namespace FSBLlamaPrompts
             state->ready = true;
         }).detach();
     }
+
+    void DispatchBotHeal(Creature* bot, ObjectGuid targetGuid, uint32 spellId)
+    {
+        if (!bot)
+            return;
+
+        bool isSelfHeal = targetGuid == bot->GetGUID();
+        FSB_ChatterCategory category = isSelfHeal ? FSB_ChatterCategory::botHealSelf : FSB_ChatterCategory::botHealTarget;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            if (isSelfHeal)
+                FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            else
+            {
+                Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+                FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            }
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            if (isSelfHeal)
+                FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            else
+            {
+                Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+                FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            }
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, spellId, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string spellName = spellId ? FSBSpellsUtils::GetSpellName(spellId) : "healing magic";
+        bool inCombat = bot->IsInCombat();
+
+        std::string userMessage;
+        if (isSelfHeal)
+        {
+            if (inCombat)
+            {
+                userMessage = Trinity::StringFormat(
+                    "You are in the middle of combat and your health is dangerously low. "
+                    "You use {} on yourself to stay alive. "
+                    "Make a brief, urgent but personality-relevant comment about it. "
+                    "Example style (do not copy): \"{}\"",
+                    spellName,
+                    seedLine.empty() ? "Not done yet." : seedLine);
+            }
+            else
+            {
+                userMessage = Trinity::StringFormat(
+                    "You take a moment to heal yourself with {} while things are calm. "
+                    "Make a brief, casual but personality-relevant comment about it. "
+                    "Example style (do not copy): \"{}\"",
+                    spellName,
+                    seedLine.empty() ? "All patched up and good to go." : seedLine);
+            }
+        }
+        else
+        {
+            Unit* targetUnit = ObjectAccessor::GetUnit(*bot, targetGuid);
+            std::string targetName = targetUnit ? targetUnit->GetName() : "your ally";
+            if (inCombat)
+            {
+                userMessage = Trinity::StringFormat(
+                    "You are in the middle of combat and {} is wounded. "
+                    "You quickly cast {} on them to keep them standing. "
+                    "Make a brief, urgent but personality-relevant comment about it. "
+                    "Example style (do not copy): \"{}\"",
+                    targetName,
+                    spellName,
+                    seedLine.empty() ? "Hold still, I'm trying to fix whatever that was." : seedLine);
+            }
+            else
+            {
+                userMessage = Trinity::StringFormat(
+                    "You take a moment to heal {} with {} while things are calm. "
+                    "Make a brief, casual but personality-relevant comment about it. "
+                    "Example style (do not copy): \"{}\"",
+                    targetName,
+                    spellName,
+                    seedLine.empty() ? "Ah, just what you needed!" : seedLine);
+            }
+        }
+
+        if (isSelfHeal)
+        {
+            ai->llamaFallbackAction = [bot, category, spellId]() {
+                FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            };
+        }
+        else
+        {
+            ai->llamaFallbackAction = [bot, targetGuid, category, spellId]() {
+                Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+                FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            };
+        }
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched heal for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
 }

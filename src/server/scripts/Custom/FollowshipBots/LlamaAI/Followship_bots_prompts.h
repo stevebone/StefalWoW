@@ -37,4 +37,5 @@ namespace FSBLlamaPrompts
     void DispatchBotRecovery(Creature* bot, uint32 spellId);
     void DispatchBotBuff(Creature* bot, ObjectGuid targetGuid, uint32 spellId);
     void DispatchBotPotion(Creature* bot, uint32 spellId, bool isManaPotion);
+    void DispatchBotHeal(Creature* bot, ObjectGuid targetGuid, uint32 spellId);
 }

@@ -710,9 +710,7 @@ namespace FSBOOC
         if (check && player)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            {
-                FSBChatter::DemandBotChatter(bot, player, FSB_ChatterCategory::botHealTarget, FSB_ReplyType::Say, FSB_ChatterSource::Bot, 0);
-            }
+                FSBLlamaPrompts::DispatchBotHeal(bot, player->GetGUID(), 0);
 
             return true;
         }

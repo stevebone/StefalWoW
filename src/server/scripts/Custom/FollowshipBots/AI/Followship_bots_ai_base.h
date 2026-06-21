@@ -30,6 +30,7 @@
 #include <thread>
 #include "CreatureAI.h"
 #include "EventMap.h"
+#include "Log.h"
 #include "ScriptedCreature.h"
 #include "Unit.h"
 

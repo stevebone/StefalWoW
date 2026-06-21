@@ -242,7 +242,10 @@ namespace FSBIC
                     target = nullptr;
 
                 if (target && target == bot)
-                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, dmgSpell->def->spellId);
+                {
+                    if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                        FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), dmgSpell->def->spellId);
+                }
                 else if (target && target != bot) FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botCombatSpell, FSB_ReplyType::Say, FSB_ChatterSource::Bot, dmgSpell->def->spellId);
                 return true;
             }
@@ -319,11 +322,12 @@ namespace FSBIC
             {
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
                 baseAI->botGlobalCooldown = now + 1500;
-                if (target == bot)
-                    FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
-                else
+                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
-                    FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botHealTarget, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
+                    if (target == bot)
+                        FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), healSpell->def->spellId);
+                    else
+                        FSBLlamaPrompts::DispatchBotHeal(bot, target->GetGUID(), healSpell->def->spellId);
                 }
                 return true;
             }
@@ -364,7 +368,8 @@ namespace FSBIC
             {
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
                 baseAI->botGlobalCooldown = now + 1500;
-                FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botHealSelf, FSB_ReplyType::Say, FSB_ChatterSource::None, healSpell->def->spellId);
+                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                    FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), healSpell->def->spellId);
                 return true;
             }
         }
@@ -490,6 +495,9 @@ namespace FSBIC
 
     bool BotICPotions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed)
     {
+        if (!FollowshipBotsConfig::configFSBUseICPotions)
+            return false;
+
         if (!bot || !bot->IsAlive())
             return false;
 
@@ -497,9 +505,6 @@ namespace FSBIC
             return false;
 
         if (bot->HasUnitState(UNIT_STATE_CASTING))
-            return false;
-
-        if (!FollowshipBotsConfig::configFSBUseICPotions)
             return false;
 
         // 1. Generic mana potions for bots with mana
