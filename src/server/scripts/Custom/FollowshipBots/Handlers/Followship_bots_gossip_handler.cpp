@@ -28,7 +28,7 @@
 #include "Followship_bots_utils.h"
 
 #include "LlamaAI/Followship_bots_llamaAI.h"
-#include "LlamaAI/Followship_bots_prompts.h"
+#include "LlamaAI/Followship_bots_chatter_prompts.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"

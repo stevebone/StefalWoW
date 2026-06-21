@@ -176,6 +176,7 @@ public:
         std::atomic<bool> ready{ false };
         std::string result;
         std::mutex mutex;
+        FSB_ReplyType replyType = FSB_ReplyType::Say;
     };
 
     std::unique_ptr<LlamaRequestState> pendingLlamaState;
@@ -197,7 +198,10 @@ public:
             if (!response.empty())
             {
                 TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: bot {} speaking LLM response", me->GetName());
-                me->Say(response, LANG_UNIVERSAL);
+                if (pendingLlamaState->replyType == FSB_ReplyType::Yell)
+                    me->Yell(response, LANG_UNIVERSAL);
+                else
+                    me->Say(response, LANG_UNIVERSAL);
             }
             else if (llamaFallbackAction)
             {

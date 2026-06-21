@@ -33,11 +33,12 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_auras_handler.h"
+#include "Config/Followship_bots_config.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 
-#include "LlamaAI/Followship_bots_prompts.h"
+#include "LlamaAI/Followship_bots_chatter_prompts.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -397,10 +398,11 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-            Player* player = FSBMgr::Get()->GetBotOwner(me);
-            if(player)
-                FSBChatter::DemandBotChatter(me, victim, FSB_ChatterCategory::targetKilledHired);
-            else FSBChatter::DemandBotChatter(me, victim, FSB_ChatterCategory::targetKilled);            
+            if (!victim)
+                return;
+
+            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                FSBLlamaPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell

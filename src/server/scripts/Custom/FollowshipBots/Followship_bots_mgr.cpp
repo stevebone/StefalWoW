@@ -33,7 +33,7 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_chatter_handler.h"
 
-#include "LlamaAI/Followship_bots_prompts.h"
+#include "LlamaAI/Followship_bots_chatter_prompts.h"
 
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_movement_handler.h"

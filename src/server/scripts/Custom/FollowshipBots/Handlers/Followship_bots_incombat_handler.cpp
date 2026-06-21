@@ -28,7 +28,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_chatter_handler.h"
-#include "LlamaAI/Followship_bots_prompts.h"
+#include "LlamaAI/Followship_bots_chatter_prompts.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -246,7 +246,9 @@ namespace FSBIC
                     if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                         FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), dmgSpell->def->spellId);
                 }
-                else if (target && target != bot) FSBChatter::DemandBotChatter(bot, target, FSB_ChatterCategory::botCombatSpell, FSB_ReplyType::Say, FSB_ChatterSource::Bot, dmgSpell->def->spellId);
+                else if (target && target != bot)
+                    if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                        FSBLlamaPrompts::DispatchBotCombatSpell(bot, target->GetGUID(), dmgSpell->def->spellId);
                 return true;
             }
         }

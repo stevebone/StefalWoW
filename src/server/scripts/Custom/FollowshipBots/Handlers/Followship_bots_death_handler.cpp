@@ -33,6 +33,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "LlamaAI/Followship_bots_chatter_prompts.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -68,14 +69,7 @@ namespace FSBDeath
 
         // handle chatter after death
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-        {
-            Player* player = FSBMgr::Get()->GetBotOwner(bot);
-            if (player)
-            {
-                FSBChatter::DemandBotChatter(bot, killer, FSB_ChatterCategory::botDeathHired, FSB_ReplyType::Yell, FSB_ChatterSource::None);
-            }
-            else FSBChatter::DemandBotChatter(bot, killer, FSB_ChatterCategory::botDeath, FSB_ReplyType::Yell, FSB_ChatterSource::None);
-        }
+            FSBLlamaPrompts::DispatchBotDeath(bot, killer->GetGUID());
         
         // handle death with soulstone or Self Resurrect (Shaman)
         if (hasSS)

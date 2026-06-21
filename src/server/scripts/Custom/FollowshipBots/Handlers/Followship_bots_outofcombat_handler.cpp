@@ -34,7 +34,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_chatter_handler.h"
-#include "LlamaAI/Followship_bots_prompts.h"
+#include "LlamaAI/Followship_bots_chatter_prompts.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"

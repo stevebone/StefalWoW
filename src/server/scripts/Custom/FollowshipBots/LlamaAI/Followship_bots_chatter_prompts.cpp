@@ -7,7 +7,7 @@
  * option) any later version.
  */
 
-#include "Followship_bots_prompts.h"
+#include "Followship_bots_chatter_prompts.h"
 #include "Followship_bots_llamaAI.h"
 
 #include "AI/Followship_bots_ai_base.h"
@@ -740,6 +740,199 @@ namespace FSBLlamaPrompts
         ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
         auto* state = ai->pendingLlamaState.get();
         TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched heal for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotCombatSpell(Creature* bot, ObjectGuid targetGuid, uint32 spellId)
+    {
+        if (!bot)
+            return;
+
+        FSB_ChatterCategory category = FSB_ChatterCategory::botCombatSpell;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+            FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+            FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, spellId, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string spellName = spellId ? FSBSpellsUtils::GetSpellName(spellId) : "a spell";
+        Unit* targetUnit = ObjectAccessor::GetUnit(*bot, targetGuid);
+        std::string targetName = targetUnit ? targetUnit->GetName() : "your foe";
+
+        std::string userMessage = Trinity::StringFormat(
+            "You are in the middle of combat and cast offensively {} on {}. "
+            "Make a brief, urgent but personality-relevant comment about it. "
+            "Example style (do not copy): \"{}\"",
+            spellName,
+            targetName,
+            seedLine.empty() ? "Take this!" : seedLine);
+
+        ai->llamaFallbackAction = [bot, targetGuid, category, spellId]() {
+            Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
+            FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched combat spell for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotTargetKilled(Creature* bot, ObjectGuid victimGuid)
+    {
+        if (!bot)
+            return;
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        bool isHired = (owner != nullptr);
+        FSB_ChatterCategory category = isHired ? FSB_ChatterCategory::targetKilledHired : FSB_ChatterCategory::targetKilled;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            Unit* victim = ObjectAccessor::GetUnit(*bot, victimGuid);
+            FSBChatter::DemandBotChatter(bot, victim, category);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            Unit* victim = ObjectAccessor::GetUnit(*bot, victimGuid);
+            FSBChatter::DemandBotChatter(bot, victim, category);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        Unit* victimUnit = ObjectAccessor::GetUnit(*bot, victimGuid);
+        std::string victimName = victimUnit ? victimUnit->GetName() : "your foe";
+
+        std::string userMessage;
+        if (isHired)
+        {
+            std::string ownerName = owner->GetName();
+            userMessage = Trinity::StringFormat(
+                "You just landed the final blow on {}. You are fighting alongside your companion {}. "
+                "Make a brief, personality-relevant comment about the kill. "
+                "Example style (do not copy): \"{}\"",
+                victimName,
+                ownerName,
+                seedLine.empty() ? "That's one less problem to worry about." : seedLine);
+        }
+        else
+        {
+            userMessage = Trinity::StringFormat(
+                "You just landed the final blow on {}. "
+                "Make a brief, personality-relevant comment about the kill. "
+                "Example style (do not copy): \"{}\"",
+                victimName,
+                seedLine.empty() ? "Rest in pieces." : seedLine);
+        }
+
+        ai->llamaFallbackAction = [bot, victimGuid, category]() {
+            Unit* victim = ObjectAccessor::GetUnit(*bot, victimGuid);
+            FSBChatter::DemandBotChatter(bot, victim, category);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched target killed for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotDeath(Creature* bot, ObjectGuid killerGuid)
+    {
+        if (!bot)
+            return;
+
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        bool isHired = (owner != nullptr);
+        FSB_ChatterCategory category = isHired ? FSB_ChatterCategory::botDeathHired : FSB_ChatterCategory::botDeath;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
+            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
+            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        Unit* killerUnit = ObjectAccessor::GetUnit(*bot, killerGuid);
+        std::string killerName = killerUnit ? killerUnit->GetName() : "your foe";
+
+        std::string userMessage;
+        if (isHired)
+        {
+            std::string ownerName = owner->GetName();
+            userMessage = Trinity::StringFormat(
+                "You just died at the hands of {}. {} was relying on you. "
+                "Make a brief, personality-relevant dying comment. "
+                "Example style (do not copy): \"{}\"",
+                killerName,
+                ownerName,
+                seedLine.empty() ? "Well, this seems suboptimal." : seedLine);
+        }
+        else
+        {
+            userMessage = Trinity::StringFormat(
+                "You just died at the hands of {}. "
+                "Make a brief, personality-relevant dying comment. "
+                "Example style (do not copy): \"{}\"",
+                killerName,
+                seedLine.empty() ? "Ah yes, the sweet embrace of death." : seedLine);
+        }
+
+        ai->llamaFallbackAction = [bot, killerGuid, category]() {
+            Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
+            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        ai->pendingLlamaState->replyType = FSB_ReplyType::Yell;
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched death for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
             std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
