@@ -569,4 +569,67 @@ namespace FSBLlamaPrompts
             state->ready = true;
         }).detach();
     }
+
+    void DispatchBotPotion(Creature* bot, uint32 spellId, bool isManaPotion)
+    {
+        if (!bot)
+            return;
+
+        FSB_ChatterCategory category = isManaPotion ? FSB_ChatterCategory::botCombatMana : FSB_ChatterCategory::botCombatHealth;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, spellId, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string spellName = spellId ? FSBSpellsUtils::GetSpellName(spellId) : "a potion";
+
+        std::string userMessage;
+        if (isManaPotion)
+        {
+            userMessage = Trinity::StringFormat(
+                "You are in the middle of combat and your mana is dangerously low. "
+                "You quickly drink {} to restore your magical energy. "
+                "Make a brief, desperate but personality-relevant comment about it. "
+                "Example style (do not copy): \"{}\"",
+                spellName,
+                seedLine.empty() ? "Ugh, my brain's running on empty!" : seedLine);
+        }
+        else
+        {
+            userMessage = Trinity::StringFormat(
+                "You are in the middle of combat and your health is critically low. "
+                "You quickly drink {} to stay alive. "
+                "Make a brief, desperate but personality-relevant comment about it. "
+                "Example style (do not copy): \"{}\"",
+                spellName,
+                seedLine.empty() ? "This is my last chance..." : seedLine);
+        }
+
+        ai->llamaFallbackAction = [bot, category, spellId]() {
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched potion for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
 }

@@ -28,6 +28,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "LlamaAI/Followship_bots_prompts.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -518,9 +519,7 @@ namespace FSBIC
                     std::string spellName = FSBSpellsUtils::GetSpellName(ManaPotionSpellId);
 
                     if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                    {
-                        FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botCombatMana, FSB_ReplyType::Say, FSB_ChatterSource::None, ManaPotionSpellId);
-                    }
+                        FSBLlamaPrompts::DispatchBotPotion(bot, ManaPotionSpellId, true);
 
                     TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICPotions: Bot {} used potion spell: {}", bot->GetName(), spellName);
                     return true;
@@ -550,9 +549,7 @@ namespace FSBIC
             std::string spellName = FSBSpellsUtils::GetSpellName(HealthPotionSpellId);
 
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            {
-                FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botCombatHealth, FSB_ReplyType::Say, FSB_ChatterSource::None, HealthPotionSpellId);
-            }
+                FSBLlamaPrompts::DispatchBotPotion(bot, HealthPotionSpellId, false);
 
             TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICPotions: Bot {} used potion spell: {}", bot->GetName(), spellName);
             return true;
