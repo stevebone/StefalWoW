@@ -31,6 +31,7 @@ enum FSB_ChatterCategory
     botStay,
     botMemberDied,
     botRevived,
+    botRevivedSelf,
     botDeathHired,
     botDeath,
     botHiredPermanent,

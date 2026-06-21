@@ -125,6 +125,10 @@ namespace FSBDeath
         bot->setDeathState(ALIVE);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         bot->RemoveAllAuras();
+
+        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+            FSBLlamaPrompts::DispatchBotRevivedSelf(bot);
+
         hasSS = false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());

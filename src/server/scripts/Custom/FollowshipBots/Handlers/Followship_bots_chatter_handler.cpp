@@ -1030,6 +1030,84 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Positive,
+        {
+            "The spirits weren't done with me yet!",
+            "Did you see that? I brought myself back!",
+            "My own power prevails once more!",
+            "I am the master of my own fate!",
+            "Rise and shine, courtesy of me.",
+            "Now THAT is how you make an entrance!",
+            "My soulstone did exactly what I paid for.",
+            "The ancestors clearly want me around.",
+            "Self-revived and feeling unstoppable!",
+            "Death tried to keep me. It failed.",
+            "I have returned, and I am magnificent!",
+            "No healer required when you have MY skill.",
+            "Behold, the power of preparation!",
+            "I am living proof that planning pays off.",
+            "Resurrection? I prefer to call it a party trick.",
+            "The spirit healer can take the day off.",
+            "I am my own best healer.",
+            "They will write songs about this comeback.",
+            "My power over death remains unbroken.",
+            "Back by popular demand... my own demand."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Neutral,
+        {
+            "Self-resurrection complete. Status: operational.",
+            "Revived. No external assistance required.",
+            "Soulstone activated. Revival successful.",
+            "Reincarnation utilized. Resuming function.",
+            "Self-revive executed as planned.",
+            "Back online. Soulstone charge consumed.",
+            "Resurrection protocol completed.",
+            "Operational status restored via self-revive.",
+            "Revival successful. Continuing mission.",
+            "Self-resurrection matrix engaged and complete.",
+            "Back among the living. Efficiency noted.",
+            "Soulstone expenditure: one. Result: revived.",
+            "Reincarnation timer reset. Proceeding.",
+            "Status: alive. Method: internal.",
+            "Revive complete. Inventory: one less soulstone.",
+            "Functionality restored. No third-party intervention.",
+            "Resurrection cycle complete. Awaiting directives.",
+            "Self-revive logged. Performance: acceptable.",
+            "Return to operational status confirmed.",
+            "Revived. Soulstone utility: confirmed."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Negative,
+        {
+            "That's right, I brought MYSELF back. You're welcome.",
+            "Who needs a healer when you have ME?",
+            "Death couldn't hold me. Shocking, I know.",
+            "I literally just saved my own life. Again.",
+            "No one else was going to do it, so I did.",
+            "I'm basically immortal at this point.",
+            "You're lucky I came prepared. Unlike SOME people.",
+            "My soulstone is the only reliable thing here.",
+            "I don't need your pity. I need your awe.",
+            "The afterlife was boring anyway.",
+            "I came back because no one else deserves to be this good.",
+            "Self-resurrection: because I'm worth it.",
+            "Did you doubt me? Of course you did.",
+            "I'm my own best investment.",
+            "Some call it a soulstone. I call it Tuesday.",
+            "I returned because the world needs my greatness.",
+            "I don't wait for resurrections. I MAKE them.",
+            "Your corpse runs are cute. I prefer instant.",
+            "I'm basically cheating death at this point.",
+            "They really should put my face on the soulstone."
+        }
+    },
+
+    {
         FSB_ChatterCategory::botDeathHired, FSB_ChatterType::None,
         {
             "Well. this seems suboptimal. {player}, I blame you.",

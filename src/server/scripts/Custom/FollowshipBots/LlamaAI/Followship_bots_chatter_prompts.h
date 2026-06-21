@@ -43,4 +43,5 @@ namespace FSBLlamaPrompts
     void DispatchBotDeath(Creature* bot, ObjectGuid killerGuid);
     void DispatchBotRevived(Creature* bot);
     void DispatchBotRevivedTarget(Creature* healer, ObjectGuid targetGuid);
+    void DispatchBotRevivedSelf(Creature* bot);
 }

@@ -1037,4 +1037,49 @@ namespace FSBLlamaPrompts
             state->ready = true;
         }).detach();
     }
+
+    void DispatchBotRevivedSelf(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        FSB_ChatterCategory category = FSB_ChatterCategory::botRevivedSelf;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string userMessage = Trinity::StringFormat(
+            "You just used your own power to resurrect yourself from death. "
+            "Make a brief, proud personality-relevant comment about your self-revival. "
+            "Example style (do not copy): \"{}\"",
+            seedLine.empty() ? "I don't wait for resurrections. I MAKE them." : seedLine);
+
+        ai->llamaFallbackAction = [bot, category]() {
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched revived self for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
 }
