@@ -940,4 +940,101 @@ namespace FSBLlamaPrompts
             state->ready = true;
         }).detach();
     }
+
+    void DispatchBotRevived(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        FSB_ChatterCategory category = FSB_ChatterCategory::botRevived;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(bot);
+
+        std::string userMessage = Trinity::StringFormat(
+            "You were just resurrected and are back on your feet. "
+            "Make a brief, personality-relevant comment about being revived. "
+            "Example style (do not copy): \"{}\"",
+            seedLine.empty() ? "Back among the living." : seedLine);
+
+        ai->llamaFallbackAction = [bot, category]() {
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched revived for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotRevivedTarget(Creature* healer, ObjectGuid targetGuid)
+    {
+        if (!healer)
+            return;
+
+        FSB_ChatterCategory category = FSB_ChatterCategory::botRevivedTarget;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
+            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            return;
+        }
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(healer->AI());
+        if (!ai)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for healer {}, falling back to hardcoded chatter.", healer->GetName());
+            Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
+            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            return;
+        }
+
+        std::string seedLine = FSBChatter::GetRandomReply(healer, nullptr, category, FSB_ChatterType::None, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(healer);
+
+        Unit* targetUnit = ObjectAccessor::GetUnit(*healer, targetGuid);
+        std::string targetName = targetUnit ? targetUnit->GetName() : "your ally";
+
+        std::string userMessage = Trinity::StringFormat(
+            "You just resurrected {} back to life. "
+            "Make a brief, personality-relevant comment about the revival. "
+            "Example style (do not copy): \"{}\"",
+            targetName,
+            seedLine.empty() ? "Rise again, friend." : seedLine);
+
+        ai->llamaFallbackAction = [healer, targetGuid, category]() {
+            Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
+            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+        };
+        ai->pendingLlamaState = std::make_unique<FSB_BaseAI::LlamaRequestState>();
+        auto* state = ai->pendingLlamaState.get();
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched revived target for healer {}", healer->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
 }

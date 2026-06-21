@@ -41,4 +41,6 @@ namespace FSBLlamaPrompts
     void DispatchBotCombatSpell(Creature* bot, ObjectGuid targetGuid, uint32 spellId);
     void DispatchBotTargetKilled(Creature* bot, ObjectGuid victimGuid);
     void DispatchBotDeath(Creature* bot, ObjectGuid killerGuid);
+    void DispatchBotRevived(Creature* bot);
+    void DispatchBotRevivedTarget(Creature* healer, ObjectGuid targetGuid);
 }
