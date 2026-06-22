@@ -1709,6 +1709,21 @@ namespace FSBChatter
         return "";
     }
 
+    std::string GetDummyEmoteString(FSB_ChatterCategory category, FSB_ChatterType type)
+    {
+        if (category == FSB_ChatterCategory::emote_joke && type == FSB_ChatterType::Positive)
+            return "emote:laugh";
+        if ((category == FSB_ChatterCategory::emote_flirt || category == FSB_ChatterCategory::emote_kiss) && type == FSB_ChatterType::Negative)
+            return "emote:rudeno";
+        if (category == FSB_ChatterCategory::emote_oom && type == FSB_ChatterType::None)
+            return "emote:oom";
+        if (category == FSB_ChatterCategory::emote_heal && type == FSB_ChatterType::None)
+            return "emote:heal";
+        if (category == FSB_ChatterCategory::emote_help && type == FSB_ChatterType::None)
+            return "emote:help";
+        return "";
+    }
+
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource)
     {
         if (!bot)
@@ -1743,38 +1758,33 @@ namespace FSBChatter
 
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);
 
-        // we use a dummy timed event to make the target bot do a delayed emote
-        // at the same time they are also replying to the initial bot
-        // example: target laughing at the bot joke
-        if (category == FSB_ChatterCategory::emote_joke && type == FSB_ChatterType::Positive)
-        {
-            replyString = "emote:laugh";
-            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
-        }
+        std::string dummyEmote = GetDummyEmoteString(category, type);
+        if (!dummyEmote.empty())
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, dummyEmote, target);
+    }
 
-        else if ((category == FSB_ChatterCategory::emote_flirt || category == FSB_ChatterCategory::emote_kiss) && type == FSB_ChatterType::Negative)
-        {
-            replyString = "emote:rudeno";
-            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
-        }
+    void DemandTargetReply(Creature* bot, Creature* target, FSB_ChatterCategory category, FSB_ReplyType replyType)
+    {
+        if (!bot)
+            return;
 
-        else if (category == FSB_ChatterCategory::emote_oom && type == FSB_ChatterType::None)
-        {
-            replyString = "emote:oom";
-            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
-        }
+        if (!bot->IsAlive())
+            return;
 
-        else if (category == FSB_ChatterCategory::emote_heal && type == FSB_ChatterType::None)
-        {
-            replyString = "emote:heal";
-            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
-        }
+        if (!target || !target->IsAlive())
+            return;
 
-        else if (category == FSB_ChatterCategory::emote_help && type == FSB_ChatterType::None)
-        {
-            replyString = "emote:help";
-            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, replyString, target);
-        }
+        FSB_ChatterType type = FSBMgr::Get()->GetBotChatterTypeForEntry(target->GetEntry());
+
+        std::string replyString = GetRandomReply(bot, target, category, type, 0);
+
+        TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter DemandTargetReply: Bot {} Target {} String {} selected for category {} and chatterType {}", bot->GetName(), target->GetName(), replyString, category, type);
+
+        FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_CHATTER_REPLY, 3s, 5s, replyType, replyString, target);
+
+        std::string dummyEmote = GetDummyEmoteString(category, type);
+        if (!dummyEmote.empty())
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, replyType, dummyEmote, target);
     }
 
     void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource, uint32 spellId, uint16 duration)

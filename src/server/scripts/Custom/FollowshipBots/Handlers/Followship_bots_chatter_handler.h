@@ -83,7 +83,9 @@ namespace FSBChatter
 {
     std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId = 0, uint8 duration = 0);
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource);
+    void DemandTargetReply(Creature* bot, Creature* target, FSB_ChatterCategory category, FSB_ReplyType replyType);
     void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType = FSB_ReplyType::Say, FSB_ChatterSource chatterSource = FSB_ChatterSource::None, uint32 spellId = 0, uint16 duration = 0);
 
+    std::string GetDummyEmoteString(FSB_ChatterCategory category, FSB_ChatterType type);
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
 }

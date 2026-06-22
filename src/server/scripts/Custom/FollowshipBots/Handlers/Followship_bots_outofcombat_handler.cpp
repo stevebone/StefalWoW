@@ -48,6 +48,8 @@
 
 namespace FSBOOC
 {
+    bool ExecuteBotEmote(Creature* bot, FSB_ChatterCategory category, TextEmotes textEmote, Emote visualEmote, Unit* target = nullptr);
+
     bool BotOOCActions(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
@@ -312,29 +314,9 @@ namespace FSBOOC
         case FSB_AFK_ACTION_WHISTLE:
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: whistle", bot->GetName());
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-            auto botRace = baseAI->botRace;
-            auto botGenger = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_BORED, FSBUtils::BotRaceToTC(botRace), botGenger, 0);
-            uint32 soundId = 0;
-            if (soundInfo)
-            {
-                soundId = soundInfo->SoundID;
-            }
-
-            // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None, 0);
-            if (!emote.empty())
-                bot->TextEmote(emote);
-
-            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            if (soundId)
-                bot->PlayDistanceSound(soundId);
-            else TC_LOG_WARN("scripts.ai.fsb", "FSB AFK Action Whistle: no sound found for race {}", botRace);
-
-            return true;
+            if (ExecuteBotEmote(bot, FSB_ChatterCategory::emote_whistle, TEXT_EMOTE_BORED, EMOTE_ONESHOT_TALK))
+                return true;
+            return false;
         }
 
         case FSB_AFK_ACTION_FLIRT:
@@ -936,35 +918,45 @@ namespace FSBOOC
         }
     }
 
+    bool ExecuteBotEmote(Creature* bot, FSB_ChatterCategory category, TextEmotes textEmote, Emote visualEmote, Unit* target)
+    {
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        auto botRace = baseAI->botRace;
+        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(textEmote, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+        uint32 soundId = soundInfo ? soundInfo->SoundID : 0;
+
+        std::string emote = FSBChatter::GetRandomReply(bot, target, category, FSB_ChatterType::None, 0);
+        if (!emote.empty())
+        {
+            if (target)
+                bot->TextEmote(emote, target);
+            else
+                bot->TextEmote(emote);
+        }
+
+        bot->HandleEmoteCommand(visualEmote);
+        if (soundId)
+            bot->PlayDistanceSound(soundId);
+        else
+            TC_LOG_WARN("scripts.fsb.ooc", "FSB: no sound found for race {}", botRace);
+
+        return true;
+    }
+
     bool BotOOCActionSigh(Creature* bot)
     {
         if (!bot || !bot->IsAlive())
             return false;
 
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return false;
-        auto botRace = baseAI->botRace;
-        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_SIGH, FSBUtils::BotRaceToTC(botRace), botGender, 0);
-        uint32 soundId = 0;
-        if (soundInfo)
-        {
-            soundId = soundInfo->SoundID;
-        }
-
         TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionSigh started for Bot {}", bot->GetName());
+        if (ExecuteBotEmote(bot, FSB_ChatterCategory::emote_sigh, TEXT_EMOTE_SIGH, EMOTE_ONESHOT_NONE))
+            return true;
 
-        // 1. Emote text
-        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sigh, FSB_ChatterType::None, 0);
-        if (!emote.empty())
-            bot->TextEmote(emote);
-
-        if (soundId)
-            bot->PlayDistanceSound(soundId);
-        else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionSigh: no sound found for race {}", botRace);
-
-        return true;
+        return false;
     }
 
     bool BotOOCActionSleep(Creature* bot)
@@ -972,32 +964,14 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return false;
-        auto botRace = baseAI->botRace;
-        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_YAWN, FSBUtils::BotRaceToTC(botRace), botGender, 0);
-        uint32 soundId = 0;
-        if (soundInfo)
+        TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionSleep started for Bot {}", bot->GetName());
+        if (ExecuteBotEmote(bot, FSB_ChatterCategory::emote_sleep, TEXT_EMOTE_YAWN, EMOTE_ONESHOT_NONE))
         {
-            soundId = soundInfo->SoundID;
+            bot->SetStandState(UNIT_STAND_STATE_SLEEP);
+            return true;
         }
 
-        TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionSleep started for Bot {}", bot->GetName());
-
-        // 1. Emote text
-        std::string emote = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None, 0);
-        if (!emote.empty())
-            bot->TextEmote(emote);
-
-        if (soundId)
-            bot->PlayDistanceSound(soundId);
-        else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionSleep: no sound found for race {}", botRace);
-
-        bot->SetStandState(UNIT_STAND_STATE_SLEEP);
-
-        return true;
+        return false;
     }
 
     bool BotOOCActionJoke(Creature* bot)
@@ -1009,14 +983,6 @@ namespace FSBOOC
         if (!baseAI)
             return false;
         auto& botGroup = baseAI->botLogicalGroup;
-        auto botRace = baseAI->botRace;
-        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_JOKE, FSBUtils::BotRaceToTC(botRace), botGender, 0);
-        uint32 soundId = 0;
-        if (soundInfo)
-        {
-            soundId = soundInfo->SoundID;
-        }
 
         Unit* randomUnit = nullptr;
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
@@ -1037,18 +1003,13 @@ namespace FSBOOC
         if (randomUnit)
         {
             TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionJoke started for Bot {}", bot->GetName());
-            // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ChatterType::None, 0);
-            if (!emote.empty())
-                bot->TextEmote(emote);
 
-            bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            if (soundId)
-                bot->PlayDistanceSound(soundId);
-            else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionJoke: no sound found for race {}", botRace);
+            bot->SetFacingToObject(randomUnit, true);
+            ExecuteBotEmote(bot, FSB_ChatterCategory::emote_joke, TEXT_EMOTE_JOKE, EMOTE_ONESHOT_TALK, randomUnit);
 
             if (!randomUnit->IsPlayer())
-                FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_joke, FSB_ReplyType::Say, FSB_ChatterSource::Target);
+                if (Creature* targetCreature = randomUnit->ToCreature())
+                    FSBChatter::DemandTargetReply(bot, targetCreature, FSB_ChatterCategory::emote_joke, FSB_ReplyType::Say);
 
             return true;
         }
@@ -1061,59 +1022,41 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+        auto& botGroup = baseAI->botLogicalGroup;
+
+        Unit* randomUnit = nullptr;
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        if (player)
+        if (botGroup.size() >= 3)
         {
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-            if (!baseAI)
-                return false;
-            auto& botGroup = baseAI->botLogicalGroup;
-            auto botRace = baseAI->botRace;
-            auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-            auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_KISS, FSBUtils::BotRaceToTC(botRace), botGender, 0);
-            uint32 soundId = 0;
-            if (soundInfo)
+            do
             {
-                soundId = soundInfo->SoundID;
-            }
-
-            Unit* randomUnit = nullptr;
-
-            if (botGroup.size() >= 3)
-            {
-                do
-                {
-                    randomUnit = ObjectAccessor::GetUnit(*bot, Trinity::Containers::SelectRandomContainerElement(botGroup));
-                } while (randomUnit == bot);
-            }
-            else if (player)
-            {
-                randomUnit = player;
-            }
-            else return false;
-
-            if (randomUnit)
-            {
-                TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionKiss started for Bot {}", bot->GetName());
-
-                bot->SetFacingToObject(randomUnit, true);
-
-                // 1. Emote text
-                std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ChatterType::None, 0);
-                if (!emote.empty())
-                    bot->TextEmote(emote, randomUnit);
-
-                bot->HandleEmoteCommand(EMOTE_ONESHOT_KISS);
-                if (soundId)
-                    bot->PlayDistanceSound(soundId);
-                else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionKiss: no sound found for race {}", botRace);
-
-                if (!randomUnit->IsPlayer())
-                    FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_kiss, FSB_ReplyType::Say, FSB_ChatterSource::Target);
-                return true;
-            }
+                randomUnit = ObjectAccessor::GetUnit(*bot, Trinity::Containers::SelectRandomContainerElement(botGroup));
+            } while (randomUnit == bot);
         }
+        else if (player)
+        {
+            randomUnit = player;
+        }
+        else return false;
+
+        if (randomUnit)
+        {
+            TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionKiss started for Bot {}", bot->GetName());
+
+            bot->SetFacingToObject(randomUnit, true);
+            ExecuteBotEmote(bot, FSB_ChatterCategory::emote_kiss, TEXT_EMOTE_KISS, EMOTE_ONESHOT_KISS, randomUnit);
+
+            if (!randomUnit->IsPlayer())
+                if (Creature* targetCreature = randomUnit->ToCreature())
+                    FSBChatter::DemandTargetReply(bot, targetCreature, FSB_ChatterCategory::emote_kiss, FSB_ReplyType::Say);
+
+            return true;
+        }
+
         return false;
     }
 
@@ -1126,14 +1069,6 @@ namespace FSBOOC
         if (!baseAI)
             return false;
         auto& botGroup = baseAI->botLogicalGroup;
-        auto botRace = baseAI->botRace;
-        auto botGenger = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
-        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(TEXT_EMOTE_FLIRT, FSBUtils::BotRaceToTC(botRace), botGenger, 0);
-        uint32 soundId = 0;
-        if (soundInfo)
-        {
-            soundId = soundInfo->SoundID;
-        }
 
         Unit* randomUnit = nullptr;
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
@@ -1156,19 +1091,11 @@ namespace FSBOOC
             TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionFlirt started for Bot {}", bot->GetName());
 
             bot->SetFacingToObject(randomUnit, true);
-
-            // 1. Emote text
-            std::string emote = FSBChatter::GetRandomReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ChatterType::None, 0);
-            if (!emote.empty())
-                bot->TextEmote(emote);
-
-            bot->HandleEmoteCommand(EMOTE_ONESHOT_SHY);
-            if (soundId)
-                bot->PlayDistanceSound(soundId);
-            else TC_LOG_WARN("scripts.fsb.ooc", "FSB: BotOOCActionFlirt: no sound found for race {}", botRace);
+            ExecuteBotEmote(bot, FSB_ChatterCategory::emote_flirt, TEXT_EMOTE_FLIRT, EMOTE_ONESHOT_SHY, randomUnit);
 
             if (!randomUnit->IsPlayer())
-                FSBChatter::DemandTimedReply(bot, randomUnit, FSB_ChatterCategory::emote_flirt, FSB_ReplyType::Say, FSB_ChatterSource::Target);
+                if (Creature* targetCreature = randomUnit->ToCreature())
+                    FSBChatter::DemandTargetReply(bot, targetCreature, FSB_ChatterCategory::emote_flirt, FSB_ReplyType::Say);
 
             return true;
         }
