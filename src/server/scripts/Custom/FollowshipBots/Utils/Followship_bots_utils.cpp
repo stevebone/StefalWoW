@@ -51,10 +51,12 @@ namespace FSBUtils
         case FSB_Class::Rogue:   return "Rogue";
         case FSB_Class::Druid:   return "Druid";
         case FSB_Class::Paladin: return "Paladin";
-        case FSB_Class::Hunter:  return "Hunter";
-        case FSB_Class::Warlock: return "Warlock";
-        case FSB_Class::Shaman:  return "Shaman";
-        default:                 return "Unknown";
+        case FSB_Class::Hunter:      return "Hunter";
+        case FSB_Class::Warlock:     return "Warlock";
+        case FSB_Class::Shaman:      return "Shaman";
+        case FSB_Class::Monk:        return "Monk";
+        case FSB_Class::DeathKnight: return "Death Knight";
+        default:                     return "Unknown";
         }
     }
 
@@ -65,10 +67,11 @@ namespace FSBUtils
         case FSB_Race::Human:    return "Human";
         case FSB_Race::Dwarf:    return "Dwarf";
         case FSB_Race::Draenei:  return "Draenei";
-        case FSB_Race::NightElf: return "NightElf";
+        case FSB_Race::NightElf: return "Night Elf";
         case FSB_Race::Gnome:    return "Gnome";
         case FSB_Race::Worgen:   return "Worgen";
         case FSB_Race::Pandaren: return "Pandaren";
+        case FSB_Race::VoidElf:  return "Void Elf";
         default:                 return "Unknown";
         }
     }
@@ -321,9 +324,9 @@ namespace FSBUtils
         // Filter only your bot entries
         result.erase(
             std::remove_if(result.begin(), result.end(),
-                [](Creature* c)
+                [center](Creature* c)
                 {
-                    return !c->IsAlive() || dynamic_cast<FSB_BaseAI*>(c->AI()) == nullptr;
+                    return c == center || !c->IsAlive() || dynamic_cast<FSB_BaseAI*>(c->AI()) == nullptr;
                 }),
             result.end()
         );

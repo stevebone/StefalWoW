@@ -35,6 +35,7 @@
 
 #include "Followship_bots_chatter_handler.h"
 #include "LlamaAI/Followship_bots_chatter_prompts.h"
+#include "LlamaAI/Followship_bots_llamaAI.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
@@ -1212,8 +1213,13 @@ namespace FSBOOC
         int8 action = urand(1, 3);
 
         // 4. Start conversation
-        if(action == 1)
-            FSBChat::StartBotConversation(bot);
+        if (action == 1)
+        {
+            if (FSBLlamaAI::IsEnabled())
+                FSBChat::StartBotLlamaConversation(bot);
+            else
+                FSBChat::StartBotConversation(bot);
+        }
 
         // 5. Start Random Chat
         if (action == 2)

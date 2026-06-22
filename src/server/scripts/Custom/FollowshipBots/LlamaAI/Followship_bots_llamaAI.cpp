@@ -218,7 +218,11 @@ namespace FSBLlamaAI
     std::string GetBotResponse(std::string const& systemPrompt, std::string const& userMessage)
     {
         std::string requestBody = BuildChatRequestJson(systemPrompt, userMessage);
+        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === REQUEST BODY ===\n{}", requestBody);
+
         std::string responseJson = SendChatRequest(requestBody);
+        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === RESPONSE BODY ===\n{}", responseJson);
+
         return ExtractResponseContent(responseJson);
     }
 }

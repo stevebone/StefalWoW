@@ -19,3 +19,264 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include "Followship_bots_conversation_prompts.h"
+#include "Followship_bots_llamaAI.h"
+
+#include "AI/Followship_bots_ai_base.h"
+#include "Followship_bots_mgr.h"
+#include "Utils/Followship_bots_utils.h"
+
+#include "Handlers/Followship_bots_chat_handler.h"
+
+#include "Containers.h"
+#include "DB2Stores.h"
+#include "GameTime.h"
+#include "Log.h"
+#include "Random.h"
+#include "StringFormat.h"
+
+#include <random>
+#include <thread>
+#include <unordered_map>
+
+namespace FSBConvPrompts
+{
+    // -------------------------------------------------------------------------
+    // Topic catalog (formatTemplate + dataSource)
+    // -------------------------------------------------------------------------
+    ConversationTopic PickRandomTopic()
+    {
+        static const ConversationTopic topics[] =
+        {
+            // Joke
+            { ConversationTopicCategory::Joke,       ConversationTopicSubCategory::ZoneJoke,          "Make a funny observation about {}",                       TopicDataSource::ZoneFeature },
+            { ConversationTopicCategory::Joke,       ConversationTopicSubCategory::NPCJoke,           "Crack a lighthearted joke about {}",                    TopicDataSource::ZoneNPC },
+            { ConversationTopicCategory::Joke,       ConversationTopicSubCategory::BossJoke,          "Tell a funny take on a famous boss encounter with {}",  TopicDataSource::GlobalBoss },
+            { ConversationTopicCategory::Joke,       ConversationTopicSubCategory::ProfessionJoke,    "Joke about the {} profession and its quirks",             TopicDataSource::GlobalProfession },
+            { ConversationTopicCategory::Joke,       ConversationTopicSubCategory::ClassJoke,       "Make a playful joke about {} players",                    TopicDataSource::GlobalClass },
+            // Complaint
+            { ConversationTopicCategory::Complaint,    ConversationTopicSubCategory::ZoneComplaint,    "Complain about {}",                                       TopicDataSource::ZoneIssue },
+            { ConversationTopicCategory::Complaint,    ConversationTopicSubCategory::NPCComplaint,     "Grumble about {}",                                        TopicDataSource::ZoneNPC },
+            { ConversationTopicCategory::Complaint,    ConversationTopicSubCategory::ClassComplaint,   "Complain about {}",                                       TopicDataSource::GlobalClass },
+            // ZoneEvent
+            { ConversationTopicCategory::ZoneEvent,  ConversationTopicSubCategory::ZoneEvent,        "Talk about {} that supposedly happened around here",    TopicDataSource::ZoneEventSubject },
+            { ConversationTopicCategory::ZoneEvent,  ConversationTopicSubCategory::NPCEvent,         "Gossip about {} and something they did recently",         TopicDataSource::ZoneNPC },
+            // RandomTake / Political
+            { ConversationTopicCategory::RandomTake, ConversationTopicSubCategory::FactionOpinion,   "Share a bold or controversial opinion about {}",          TopicDataSource::GlobalFaction },
+            { ConversationTopicCategory::RandomTake, ConversationTopicSubCategory::RaceOpinion,        "Give a hot take about {}",                                TopicDataSource::GlobalRace },
+            { ConversationTopicCategory::RandomTake, ConversationTopicSubCategory::ClassOpinion,      "Share a strong opinion about {}",                         TopicDataSource::GlobalClass },
+            // Question
+            { ConversationTopicCategory::Question,   ConversationTopicSubCategory::ThematicQuestion, "Ask the group a curious or playful question about {}",  TopicDataSource::GlobalTheme },
+            // Story
+            { ConversationTopicCategory::Story,      ConversationTopicSubCategory::AdventureStory,   "Tell a short, exaggerated story about an adventure involving {}", TopicDataSource::ZoneFeature },
+            { ConversationTopicCategory::Story,      ConversationTopicSubCategory::BossEncounterStory, "Share a dramatic tale about facing {}",                   TopicDataSource::GlobalBoss },
+        };
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, int(std::size(topics)) - 1);
+        return topics[dist(gen)];
+    }
+
+    std::string ResolveDataItem(Creature* bot, TopicDataSource source)
+    {
+        uint32 zoneId = bot->GetZoneId();
+
+        switch (source)
+        {
+            case TopicDataSource::ZoneFeature:
+            {
+                auto it = ZoneFeatures.find(zoneId);
+                if (it != ZoneFeatures.end() && !it->second.empty())
+                    return Trinity::Containers::SelectRandomContainerElement(it->second);
+                AreaTableEntry const* area = sAreaTableStore.LookupEntry(zoneId);
+                return area ? area->AreaName[LOCALE_enUS] : "this place";
+            }
+            case TopicDataSource::ZoneNPC:
+            {
+                auto it = ZoneNPCs.find(zoneId);
+                if (it != ZoneNPCs.end() && !it->second.empty())
+                    return Trinity::Containers::SelectRandomContainerElement(it->second);
+                return "someone around here";
+            }
+            case TopicDataSource::ZoneIssue:
+            {
+                auto it = ZoneIssues.find(zoneId);
+                if (it != ZoneIssues.end() && !it->second.empty())
+                    return Trinity::Containers::SelectRandomContainerElement(it->second);
+                return "things around here";
+            }
+            case TopicDataSource::ZoneEventSubject:
+            {
+                auto it = ZoneEventSubjects.find(zoneId);
+                if (it != ZoneEventSubjects.end() && !it->second.empty())
+                    return Trinity::Containers::SelectRandomContainerElement(it->second);
+                return "something that happened";
+            }
+            case TopicDataSource::GlobalBoss:
+                return Trinity::Containers::SelectRandomContainerElement(BossNames);
+            case TopicDataSource::GlobalProfession:
+                return Trinity::Containers::SelectRandomContainerElement(Professions);
+            case TopicDataSource::GlobalFaction:
+                return Trinity::Containers::SelectRandomContainerElement(Factions);
+            case TopicDataSource::GlobalRace:
+                return FSBUtils::BotRaceToString(static_cast<FSB_Race>(urand(1, 8)));
+            case TopicDataSource::GlobalClass:
+                return FSBUtils::BotClassToString(static_cast<FSB_Class>(urand(1, 11)));
+            case TopicDataSource::GlobalTheme:
+                return Trinity::Containers::SelectRandomContainerElement(Themes);
+            default:
+                return "something interesting";
+        }
+    }
+
+    std::string BuildTopicDescription(Creature* bot, ConversationTopic const& topic)
+    {
+        std::string item = ResolveDataItem(bot, topic.dataSource);
+        return fmt::format(fmt::runtime(topic.formatTemplate), item);
+    }
+
+    static std::string GetCategoryNoun(ConversationTopicCategory cat)
+    {
+        switch (cat)
+        {
+            case ConversationTopicCategory::Joke:
+                return "joke";
+            case ConversationTopicCategory::Complaint:
+                return "complaint";
+            case ConversationTopicCategory::ZoneEvent:
+                return "commentary";
+            case ConversationTopicCategory::RandomTake:
+            case ConversationTopicCategory::Political:
+                return "opinion";
+            case ConversationTopicCategory::Question:
+                return "question";
+            case ConversationTopicCategory::Story:
+                return "story";
+            default:
+                return "remark";
+        }
+    }
+
+    std::string BuildConversationSystemPrompt(Creature* bot)
+    {
+        uint32 entry = bot->GetEntry();
+        std::string const& botName = bot->GetName();
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(entry);
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(entry);
+        FSB_ChatterType chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(entry);
+        Gender botGender = FSBMgr::Get()->GetBotGenderForEntry(entry);
+
+        uint32 zoneId = bot->GetZoneId();
+        AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(zoneId);
+        std::string zoneName = areaEntry ? areaEntry->AreaName[LOCALE_enUS] : "Azeroth";
+
+        return Trinity::StringFormat(
+            "You are a character in World of Warcraft named {}.\n"
+            "You are a {} {} {} currently in {}.\n"
+            "Your personality is {} - this must shape your tone, word choice, and attitude in every reply.\n\n"
+            "Rules:\n"
+            "- Reply in first person, staying fully in the game world.\n"
+            "- NEVER refer to yourself as an NPC, bot, AI, or game character.\n"
+            "- Keep your reply to 1 sentence only, max 20 words.\n"
+            "- Do not copy example lines word-for-word. Invent your own variation.\n"
+            "- The current zone ({}) may or may not naturally appear in your reply.",
+            botName,
+            FSBUtils::GenderToString(botGender),
+            FSBUtils::BotRaceToString(botRace),
+            FSBUtils::BotClassToString(botClass),
+            zoneName,
+            FSBUtils::ChatterTypeToString(chatterType),
+            zoneName);
+    }
+
+    void DispatchConversationTurn(Creature* speaker, FSBChat::ActiveConversation& conv)
+    {
+        if (!speaker)
+            return;
+
+        if (conv.convLlamaState)
+            return;
+
+        std::string systemPrompt = BuildConversationSystemPrompt(speaker);
+
+        std::string historyText;
+        for (auto const& [name, line] : conv.history)
+        {
+            if (!historyText.empty())
+                historyText += "\n";
+            historyText += name + ": " + line;
+        }
+
+        std::string topicDesc = conv.topicDescription;
+        std::string categoryNoun = GetCategoryNoun(conv.topic.category);
+
+        std::string userMessage;
+        if (!historyText.empty())
+        {
+            auto const& lastEntry = conv.history.back();
+            std::string lastSpeaker = lastEntry.first;
+            std::string lastLine = lastEntry.second;
+
+            userMessage = Trinity::StringFormat(
+                "Topic: {}\n"
+                "So far in this conversation:\n{}\n\n"
+                "{} just said: \"{}\"\n\n"
+                "Your turn. Reply directly to what {} said.\n"
+                "CRITICAL: Do NOT agree, repeat, echo, or reuse ALL their words or phrases from the conversation above.\n"
+                "Do NOT copy their style, their jokes, or their vocabulary. Use your OWN personality.\n"
+                "Continue their story OR ask an unexpected follow-up question OR shift the topic in a new direction but keep the discussion flowing naturally.\n"
+                "CRITICAL: If your reply starts similarly or sounds similar to the previous person, then you failed.\n"
+                "Let your personality show. One sentence, max 20 words.",
+                topicDesc,
+                historyText,
+                lastSpeaker,
+                lastLine,
+                lastSpeaker);
+        }
+        else
+        {
+            userMessage = Trinity::StringFormat(
+                "Topic: {}\n"
+                "You are starting this conversation. Open with a {} line that reflects your personality and grabs attention.\n"
+                "Keep it to 1 sentence, max 20 words.",
+                topicDesc,
+                categoryNoun);
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === SYSTEM PROMPT for {} ===\n{}", speaker->GetName(), systemPrompt);
+        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === USER MESSAGE for {} ===\n{}", speaker->GetName(), userMessage);
+
+        conv.convLlamaState = std::make_shared<ConversationLlamaState>();
+        auto state = conv.convLlamaState;
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched conversation turn for bot {}", speaker->GetName());
+
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    std::string GetFallbackConversationLine(FSBChat::ActiveConversation const& conv)
+    {
+        if (conv.history.empty())
+            return "So, what do you all think?";
+
+        static const char* fallbacks[] =
+        {
+            "Haha, exactly!",
+            "I couldn't agree more.",
+            "Wait, what?",
+            "Tell me about it.",
+            "You don't say.",
+            "No kidding!",
+            "That's one way to look at it.",
+            "Sounds about right."
+        };
+
+        return fallbacks[urand(0, int(std::size(fallbacks)) - 1)];
+    }
+}

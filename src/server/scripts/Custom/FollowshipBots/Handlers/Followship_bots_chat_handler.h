@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "LlamaAI/Followship_bots_conversation_prompts.h"
+
 class Creature;
 
 namespace FSBChat
@@ -50,9 +52,18 @@ namespace FSBChat
     {
         ConversationTemplate* tmpl = nullptr;
         std::vector<Creature*> participants;
-        std::map<ConversationRole, size_t> roleMap;   // NEW
+        std::map<ConversationRole, size_t> roleMap;
         size_t currentLine = 0;
         uint32 nextSpeakTime = 0;
+
+        // LlamaAI fields
+        bool isLlamaGenerated = false;
+        FSBConvPrompts::ConversationTopic topic;
+        std::string topicDescription;
+        std::vector<std::pair<std::string, std::string>> history; // {speakerName, line}
+        size_t maxLines = 0;
+        size_t currentSpeakerIndex = 0;
+        std::shared_ptr<FSBConvPrompts::ConversationLlamaState> convLlamaState;
     };
 
     enum class ChatChannelType
@@ -85,6 +96,7 @@ namespace FSBChat
     size_t CountUniqueRoles(const ConversationTemplate& tmpl);
 
     void StartBotConversation(Creature* starter);
+    void StartBotLlamaConversation(Creature* starter);
     void UpdateBotConversations();
     bool IsBotInConversation(Creature* bot);
 

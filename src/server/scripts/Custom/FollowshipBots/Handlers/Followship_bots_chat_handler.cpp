@@ -22,6 +22,7 @@
 
 #include "WorldSession.h"   // must come first for stupid clang
 #include "ScriptMgr.h"
+#include <mutex>
 #include "Chat.h"
 #include "ChatPackets.h"
 #include "Channel.h"
@@ -37,6 +38,8 @@
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_chat_handler.h"
+
+#include "LlamaAI/Followship_bots_llamaAI.h"
 
 namespace FSBChat
 {
@@ -219,6 +222,51 @@ namespace FSBChat
         activeConversations.push_back(conv);
     }
 
+    void StartBotLlamaConversation(Creature* starter)
+    {
+        if (!starter || !starter->IsAlive())
+            return;
+
+        if (!FSBLlamaAI::IsEnabled())
+            return;
+
+        auto topic = FSBConvPrompts::PickRandomTopic();
+        size_t needed = urand(2, 5);
+        size_t maxLines = urand(3, 10);
+
+        auto bots = FSBUtils::FindNearbyBots(starter);
+        std::vector<Creature*> participants;
+        participants.push_back(starter);
+
+        Trinity::Containers::RandomShuffle(bots);
+
+        for (size_t i = 0; i < bots.size() && participants.size() < needed; ++i)
+        {
+            Creature* candidate = bots[i];
+            if (!IsValidBot(candidate))
+                continue;
+            if (IsBotInConversation(candidate))
+                continue;
+
+            participants.push_back(candidate);
+        }
+
+        if (participants.size() < needed)
+            return;
+
+        ActiveConversation conv;
+        conv.isLlamaGenerated = true;
+        conv.topic = topic;
+        conv.topicDescription = FSBConvPrompts::BuildTopicDescription(starter, topic);
+        conv.participants = participants;
+        conv.maxLines = maxLines;
+        conv.currentLine = 0;
+        conv.currentSpeakerIndex = 0;
+        conv.nextSpeakTime = GameTime::GetGameTime() + urand(1, 5);
+
+        activeConversations.push_back(conv);
+    }
+
     void UpdateBotConversations()
     {
         uint32 now = GameTime::GetGameTime();
@@ -226,6 +274,76 @@ namespace FSBChat
         for (auto it = activeConversations.begin(); it != activeConversations.end(); )
         {
             ActiveConversation& conv = *it;
+
+            if (conv.isLlamaGenerated)
+            {
+                if (conv.convLlamaState && conv.convLlamaState->ready.load())
+                {
+                    std::string response;
+                    {
+                        std::lock_guard<std::mutex> lock(conv.convLlamaState->mutex);
+                        response = std::move(conv.convLlamaState->result);
+                    }
+
+                    size_t speakerIndex = conv.currentSpeakerIndex;
+                    if (speakerIndex < conv.participants.size())
+                    {
+                        Creature* speaker = conv.participants[speakerIndex];
+                        if (!IsValidBot(speaker))
+                        {
+                            it = activeConversations.erase(it);
+                            continue;
+                        }
+
+                        if (!response.empty())
+                        {
+                            TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: bot {} spoke LLM response: {}", speaker->GetName(), response);
+                            BotSendGeneralChat(speaker, response);
+                            conv.history.emplace_back(speaker->GetName(), response);
+                        }
+                        else
+                        {
+                            std::string fallback = FSBConvPrompts::GetFallbackConversationLine(conv);
+                            TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: bot {} spoke FALLBACK: {}", speaker->GetName(), fallback);
+                            BotSendGeneralChat(speaker, fallback);
+                            conv.history.emplace_back(speaker->GetName(), fallback);
+                        }
+                    }
+
+                    conv.convLlamaState.reset();
+                    conv.currentLine++;
+                    conv.currentSpeakerIndex = (conv.currentSpeakerIndex + 1) % conv.participants.size();
+
+                    if (conv.currentLine >= conv.maxLines)
+                    {
+                        it = activeConversations.erase(it);
+                        continue;
+                    }
+
+                    conv.nextSpeakTime = now + urand(2, 5);
+                }
+                else if (now >= conv.nextSpeakTime && !conv.convLlamaState)
+                {
+                    size_t speakerIndex = conv.currentSpeakerIndex;
+                    if (speakerIndex >= conv.participants.size())
+                    {
+                        it = activeConversations.erase(it);
+                        continue;
+                    }
+
+                    Creature* speaker = conv.participants[speakerIndex];
+                    if (!IsValidBot(speaker))
+                    {
+                        it = activeConversations.erase(it);
+                        continue;
+                    }
+
+                    FSBConvPrompts::DispatchConversationTurn(speaker, conv);
+                }
+
+                ++it;
+                continue;
+            }
 
             if (now >= conv.nextSpeakTime)
             {
