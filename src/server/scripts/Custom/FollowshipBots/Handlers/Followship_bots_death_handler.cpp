@@ -220,11 +220,7 @@ namespace FSBDeath
 
         // Chatter announcement (once when added to queue)
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-        {
-            std::string chatter = FSBChatter::GetRandomReply(healer, deadUnit, FSB_ChatterCategory::botMemberDied, FSBMgr::Get()->GetBotChatterTypeForEntry(healer->GetEntry()), 0);
-            healer->Yell(chatter, LANG_UNIVERSAL);
-            FSBChatter::DemandTimedReply(healer, deadUnit, FSB_ChatterCategory::botMemberDied, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
-        }
+            FSBLlamaPrompts::DispatchBotMemberDied(healer, deadUnit->GetGUID());
 
         // Schedule resurrect event
         FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);

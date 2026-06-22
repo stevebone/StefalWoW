@@ -147,7 +147,20 @@ namespace FSBIC
 
         if (check)
         {
-            FSBChatter::DemandTimedReply(bot, nullptr, emoteReply, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            switch (emoteReply)
+            {
+                case FSB_ChatterCategory::emote_oom:
+                    FSBLlamaPrompts::DispatchBotDistress(bot, FSBLlamaPrompts::FSB_DistressContext::OutOfMana);
+                    break;
+                case FSB_ChatterCategory::emote_help:
+                    FSBLlamaPrompts::DispatchBotDistress(bot, FSBLlamaPrompts::FSB_DistressContext::LowHealth);
+                    break;
+                case FSB_ChatterCategory::emote_heal:
+                    FSBLlamaPrompts::DispatchBotDistress(bot, FSBLlamaPrompts::FSB_DistressContext::CriticalHealth);
+                    break;
+                default:
+                    break;
+            }
 
             return true;
         }

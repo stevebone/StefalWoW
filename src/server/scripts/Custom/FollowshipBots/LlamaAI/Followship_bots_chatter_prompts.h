@@ -44,4 +44,17 @@ namespace FSBLlamaPrompts
     void DispatchBotRevived(Creature* bot);
     void DispatchBotRevivedTarget(Creature* healer, ObjectGuid targetGuid);
     void DispatchBotRevivedSelf(Creature* bot);
+
+    enum class FSB_DistressContext
+    {
+        OutOfMana,
+        LowHealth,
+        CriticalHealth
+    };
+
+    void DispatchBotDistress(Creature* bot, FSB_DistressContext context);
+    void DispatchBotWhisperAFK(Creature* bot);
+    void DispatchBotTalk(Creature* bot);
+    void DispatchBotMemberDied(Creature* bot, ObjectGuid deadUnitGuid);
+    void DispatchBotCooking(Creature* bot);
 }

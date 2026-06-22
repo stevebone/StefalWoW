@@ -381,8 +381,7 @@ namespace FSBOOC
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: talk", bot->GetName());
             bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_talk, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
-            
+            FSBLlamaPrompts::DispatchBotTalk(bot);
             return true;
         }
 
@@ -392,7 +391,7 @@ namespace FSBOOC
             {
                 TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: whisper", bot->GetName());
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-                FSBChatter::DemandTimedReply(bot, player, FSB_ChatterCategory::whisper_afk, FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
+                FSBLlamaPrompts::DispatchBotWhisperAFK(bot);
                 return true;
             }
             return false;
@@ -1202,7 +1201,7 @@ namespace FSBOOC
             if (FSBSpells::BotCastSpell(bot, spellId, bot))
             {
                 TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionCook started for bot {} with event {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
-                FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_cooking, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
+                FSBLlamaPrompts::DispatchBotCooking(bot);
                 return true;
             }
         }
