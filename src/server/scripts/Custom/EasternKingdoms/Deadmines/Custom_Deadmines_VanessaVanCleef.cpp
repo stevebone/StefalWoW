@@ -782,7 +782,7 @@ namespace Scripts::EasternKingdoms::Deadmines
     // 49671 - Vanessa VanCleef (nightmare)
     struct npc_vanessa_nightmare : public ScriptedAI
     {
-        npc_vanessa_nightmare(Creature* creature) : ScriptedAI(creature) { }
+        npc_vanessa_nightmare(Creature* creature) : ScriptedAI(creature), _summons(me) { }
 
         void Reset() override
         {
@@ -791,8 +791,26 @@ namespace Scripts::EasternKingdoms::Deadmines
             _bossKilled = 0;
             _worgenKilled = 0;
             _jamesKilled = false;
+            _finalTriggered = false;
+            _summons.DespawnAll();
             me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             me->SetReactState(REACT_PASSIVE);
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            _summons.Summon(summon);
+        }
+
+        void SummonedCreatureDespawn(Creature* summon) override
+        {
+            _summons.Despawn(summon);
+        }
+
+        void SummonAllFires()
+        {
+            for (uint8 i = 0; i < 43; ++i)
+                me->SummonCreature(Creatures::FireBunny, Positions::FieryBlaze[i], TEMPSUMMON_MANUAL_DESPAWN);
         }
 
         void SetData(uint32 id, uint32 value) override
@@ -837,7 +855,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Events::VanessaVanCleef::NightmareSay2:
                         if (_phase == 0)
+                        {
                             Talk(Texts::VanessaVanCleef::VanessaNightmareGlubtok2);
+                            SummonAllFires();
+                        }
                         else if (_phase == 1)
                             Talk(Texts::VanessaVanCleef::VanessaHelix2);
                         else if (_phase == 2)
@@ -848,7 +869,15 @@ namespace Scripts::EasternKingdoms::Deadmines
                         break;
                     case Events::VanessaVanCleef::NightmareSummon:
                         if (_phase == 0)
-                            me->SummonCreature(Creatures::NightmareGlubtok, Positions::GlubtokNightmare1, TEMPSUMMON_MANUAL_DESPAWN);
+                        {
+                            Creature* glubtok = me->FindNearestCreature(Creatures::NightmareGlubtok, 200.0f, true);
+                            if (!glubtok)
+                                glubtok = me->SummonCreature(Creatures::NightmareGlubtok, Positions::GlubtokNightmare1, TEMPSUMMON_MANUAL_DESPAWN);
+                            if (glubtok)
+                                glubtok->AI()->DoAction(Actions::GlubtokCharge);
+                            Talk(Texts::VanessaVanCleef::VanessaNightmare1Warning);
+                            _events.ScheduleEvent(Events::VanessaVanCleef::NightmareFade, 2s);
+                        }
                         else if (_phase == 1)
                         {
                             me->SummonCreature(Creatures::NightmareHelix, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
@@ -872,10 +901,24 @@ namespace Scripts::EasternKingdoms::Deadmines
                             me->DespawnOrUnsummon(3s);
                         }
                         break;
+                    case Events::VanessaVanCleef::NightmareFade:
+                        Talk(Texts::VanessaVanCleef::VanessaNightmareGetBackToTheShip);
+                        me->SetVisible(false);
+                        me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                        break;
                     case Events::VanessaVanCleef::NightmareShift:
+                        Talk(Texts::VanessaVanCleef::VanessaNightmareShift);
+                        _summons.DespawnAll();
+                        me->SetVisible(true);
+                        me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                         _phase = _bossKilled;
-                        if (_phase < 4)
+                        if (_phase == 1)
+                            _events.ScheduleEvent(Events::VanessaVanCleef::NightmareHelixStart, 5s);
+                        else if (_phase < 4)
                             _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSay1, 1s);
+                        break;
+                    case Events::VanessaVanCleef::NightmareHelixStart:
+                        // TODO: implement Helix nightmare phase
                         break;
                     default:
                         break;
@@ -892,6 +935,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
     private:
         EventMap _events;
+        SummonList _summons;
         uint8 _phase = 0;
         uint8 _bossKilled = 0;
         uint8 _worgenKilled = 0;
@@ -907,12 +951,34 @@ namespace Scripts::EasternKingdoms::Deadmines
         void Reset() override
         {
             _events.Reset();
+            me->SetReactState(REACT_PASSIVE);
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (action == Actions::GlubtokCharge)
+                _events.ScheduleEvent(Events::VanessaVanCleef::GlubtokCharge, 5s);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE || id != EVENT_CHARGE)
+                return;
+
+            me->SetEmoteState(EMOTE_ONESHOT_NONE);
+            me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
+            me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+            me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE_2);
+            me->SetImmuneToPC(false);
+            me->SetImmuneToNPC(false);
+            me->SetReactState(REACT_AGGRESSIVE);
+            _events.ScheduleEvent(Events::VanessaVanCleef::IcicleAOE, 11s, 15s);
         }
 
         void JustEngagedWith(Unit* /*who*/) override
         {
-            _events.ScheduleEvent(Events::VanessaVanCleef::IcicleAOE, 5s);
-            _events.ScheduleEvent(Events::VanessaVanCleef::SpiritStrike, 8s);
+            _events.ScheduleEvent(Events::VanessaVanCleef::IcicleAOE, 6s, 8s);
+            _events.ScheduleEvent(Events::VanessaVanCleef::SpiritStrike, 6s);
         }
 
         void JustDied(Unit* /*killer*/) override
@@ -924,9 +990,6 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void UpdateAI(uint32 diff) override
         {
-            if (!UpdateVictim())
-                return;
-
             _events.Update(diff);
 
             if (me->HasUnitState(UNIT_STATE_CASTING))
@@ -936,18 +999,26 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 switch (eventId)
                 {
+                    case Events::VanessaVanCleef::GlubtokCharge:
+                        me->GetMotionMaster()->MoveCharge(Positions::GlubtokNightmareCharge.GetPositionX(), Positions::GlubtokNightmareCharge.GetPositionY(), Positions::GlubtokNightmareCharge.GetPositionZ(), 10.0f);
+                        break;
                     case Events::VanessaVanCleef::IcicleAOE:
-                        DoCastVictim(Spells::VanessaVanCleef::Icicle);
+                        if (Unit* target = me->SelectNearestTarget(200.0f))
+                            DoCast(target, Spells::VanessaVanCleef::Icicle);
                         _events.ScheduleEvent(Events::VanessaVanCleef::IcicleAOE, 8s);
                         break;
                     case Events::VanessaVanCleef::SpiritStrike:
-                        DoCastVictim(Spells::VanessaVanCleef::SpiritStrike);
+                        if (Unit* target = me->SelectNearestTarget(200.0f))
+                            DoCast(target, Spells::VanessaVanCleef::SpiritStrike);
                         _events.ScheduleEvent(Events::VanessaVanCleef::SpiritStrike, 10s);
                         break;
                     default:
                         break;
                 }
             }
+
+            if (!UpdateVictim())
+                return;
 
             me->DoMeleeAttackIfReady();
         }

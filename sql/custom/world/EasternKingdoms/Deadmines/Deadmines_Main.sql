@@ -77,10 +77,11 @@ DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,5
 -- Cookie Adds
 48672,47754,48301,48300,48297,48296,48006,48294,48295,48276,48299,48293,48298,48302,
 -- Vanessa adds
-49454);
+49454,51594);
 INSERT INTO `creature_template_difficulty` VALUES
 -- Vanessa Adds (only heroic)
 (49454, 2, 0, 0, 338, 0, 1, 1, 1, 1, 39704, 1024, 0, 0, 0, 0, 0, 0, 0, 0x20000000, 0, 0, 0, 0, 0, 0, 0, 0), -- Trap bunny
+(51594, 2, 0, 0, 338, 0, 1, 1, 1, 1, 36170, 1024, 0, 0, 0, 0, 0, 0, 0, (0x00000100 | 0x00000200), 0, 0, 0, 0, 0, 0, 0, 45745), -- Glubtok Fire Bunny
 -- Cookie Adds
 (47754, 1, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (47754, 2, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
@@ -272,6 +273,12 @@ UPDATE `creature_template_addon` SET `emote` = 648 WHERE `entry` IN (48440,48441
 UPDATE `creature_template_addon` SET `auras` = '92001' WHERE `entry` = 48418; -- Defias Envoker Aura
 UPDATE `creature_template_addon` SET `auras` = '87239 88348' WHERE `entry` = 43778; -- Foe Reaper 5000 auras
 UPDATE `creature_template_addon` SET `auras` = '89734' WHERE `entry` IN (48276, 48293, 48295, 48298, 48299, 48302); -- Rotten Food aura
+
+-- Add missing template addons
+DELETE FROM `creature_template_addon` WHERE `entry` IN (51594);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`,
+`PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(51594, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '93484');
 
 -- Spawn Updates
 UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
@@ -739,6 +746,9 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
  (49671, 0, 0, 'The Nightmare Elixir takes hold!', 41, 100, 0, 0, 49705, 'Vanessa VanCleef - Nightmare Warning'),
  (49671, 1, 0, 'Poor Glubtok.  When his powers manifested, his own ogre mound was the first to burn.', 12, 100, 1, 24602, 49715, 'Vanessa VanCleef - Nightmare 1'),
  (49671, 2, 0, 'Deep within his soul, the one thing he feared most of all was...himself.', 12, 100, 1, 24603, 49716, 'Vanessa VanCleef - Nightmare 1'),
+ (49671, 3, 0, 'You have entered Glubtok''s Nightmare!', 41, 100, 0, 0, 49706, 'Vanessa VanCleef - Glubtok Nightmare Warning'),
+ (49671, 4, 0, 'Get back to the ship!', 41, 100, 0, 0, 50703, 'Vanessa VanCleef - Nightmare Get Back To The Ship Warning'),
+ (49671, 5, 0, 'The nightmare shifts!', 41, 100, 0, 0, 49707, 'Vanessa VanCleef - Nightmare Shift'),
  
  -- Vanessa Boss
 (49541, 0, 0, 'I will not share my father''s fate!  Your tale ends here!', 14, 100, 0, 128141, 170621, 'Vanessa VanCleef - Aggro'), -- also text id 49748 with sound 24599
@@ -768,9 +778,10 @@ UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry
 -- GO: 208002 Goblin Teleporter
 UPDATE `gameobject_template` SET `ScriptName` = 'go_goblin_teleporter' WHERE `entry` = 208002;
 
-DELETE FROM `creature_template_gossip` WHERE `CreatureID` IN (49564);
+DELETE FROM `creature_template_gossip` WHERE `CreatureID` IN (49564,49457);
 INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
-(49564, 12504, 47936); -- A note from Vanessa
+(49564, 12504, 47936), -- A note from Vanessa
+(49457, 21, 0); -- Steam Valve needs a dummy menuid for the ongossiphello trigger to work.
 
 DELETE FROM `gossip_menu` WHERE `MenuID` IN (12504);
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES 
@@ -782,7 +793,7 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 (12691, -3248896, 0, 'Press the button labeled \'Wood and Lumber.\'', 50716, 25996),
 (12691, -3248897, 1, 'Press the button labeled \'Metal and Scraps.\'', 50717, 25937),
 (12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996),
-(12504, 0, 0, 'Continue reading... <Note: This will alert Vanessa to your presence!>', '49641', 0); -- A note from Vanessa
+(12504, 0, 0, 'Continue reading... <Note: This will alert Vanessa to your presence!>', 49641, 0); -- A note from Vanessa
 
 
 SET @CGUID := 900000;

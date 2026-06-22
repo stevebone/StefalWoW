@@ -408,22 +408,13 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 VanessaNightmareWarning = 0;
             static constexpr int8 VanessaNightmareGlubtok1 = 1;
             static constexpr int8 VanessaNightmareGlubtok2 = 2;
+            static constexpr int8 VanessaNightmare1Warning = 3;
+            static constexpr int8 VanessaNightmareGetBackToTheShip = 4;
+            static constexpr int8 VanessaNightmareShift = 5;
 
 
 
 
-
-            static constexpr int8 VanessaDetonate = 33;
-            static constexpr int8 TextInfo = 4;
-            static constexpr int8 TextInfo1 = 5;
-            static constexpr int8 TextInfo2 = 6;
-            static constexpr int8 TextInfo3 = 7;
-            static constexpr int8 TextInfo4 = 8;
-            static constexpr int8 TextInfo5 = 9;
-            
-            static constexpr int8 IntruderSay = 15;
-            static constexpr int8 VanessaGlub1 = 16;
-            static constexpr int8 VanessaGlub2 = 17;
             static constexpr int8 VanessaHelix1 = 18;
             static constexpr int8 VanessaHelix2 = 19;
             static constexpr int8 VanessaMechanical1 = 20;
@@ -431,19 +422,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 VanessaRipsnarl1 = 22;
             static constexpr int8 VanessaRipsnarl2 = 23;
             static constexpr int8 VanessaNightmare1 = 24;
-            static constexpr int8 VanessaNightmare2 = 25;
-            static constexpr int8 VanessaNightmare3 = 26;
-            static constexpr int8 VanessaNightmare4 = 27;
-            static constexpr int8 VanessaNightmare5 = 28;
-            static constexpr int8 VanessaNightmare6 = 29;
-            static constexpr int8 VanessaNightmare7 = 30;
-            static constexpr int8 VanessaNightmare8 = 31;
-            static constexpr int8 VanessaNightmare9 = 32;
-            static constexpr int8 VanessaNightmare10 = 33;
-            static constexpr int8 VanessaNightmare11 = 34;
-            static constexpr int8 VanessaNightmare12 = 35;
-            static constexpr int8 VanessaNightmare13 = 36;
-            static constexpr int8 VanessaNightmare14 = 37;
+            static constexpr int8 VanessaDetonate = 33;
         }
     }
 
@@ -808,6 +787,10 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 IntroBlackout2 = 39;
             static constexpr int8 TrapPullPlayers = 40;
             static constexpr int8 TrapDescent = 41;
+            static constexpr int8 NightmareGlubtokEntrance = 42;
+            static constexpr int8 NightmareFade = 43;
+            static constexpr int8 NightmareHelixStart = 44;
+            static constexpr int8 GlubtokCharge = 45;
         }
     }
 
@@ -815,6 +798,7 @@ namespace Scripts::EasternKingdoms::Deadmines
     {
         static constexpr int8 OafCharge = 1;
         static constexpr int8 RipsnarlCoalesce = 2;
+        static constexpr int8 GlubtokCharge = 3;
 
         namespace VanessaVanCleef
         {
@@ -941,6 +925,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr Position MagmaPullPlayerExit = { -223.217f, -566.0531f, 51.2296f, 2.3254f };
         static constexpr Position VanessaNightmare1 = { -230.717f, -563.0139f, 51.31293f, 1.047198f };
         static constexpr Position GlubtokNightmare1 = { -229.3403f, -560.3629f, 51.31293f, 5.742133f };
+        static constexpr Position GlubtokNightmareCharge = { -174.85f, -579.76f, 19.31f };
 
         static constexpr Position ElectricSpark[7] =
         {
