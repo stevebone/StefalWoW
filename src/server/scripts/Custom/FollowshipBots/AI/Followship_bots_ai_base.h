@@ -179,8 +179,9 @@ public:
         FSB_ReplyType replyType = FSB_ReplyType::Say;
     };
 
-    std::unique_ptr<LlamaRequestState> pendingLlamaState;
+    std::shared_ptr<LlamaRequestState> pendingLlamaState;
     std::function<void()> llamaFallbackAction;
+    std::function<void(std::string const&)> llamaDeliverAction;
 
     void PollPendingLlamaResponse()
     {
@@ -198,7 +199,9 @@ public:
             if (!response.empty())
             {
                 TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: bot {} speaking LLM response", me->GetName());
-                if (pendingLlamaState->replyType == FSB_ReplyType::Yell)
+                if (llamaDeliverAction)
+                    llamaDeliverAction(response);
+                else if (pendingLlamaState->replyType == FSB_ReplyType::Yell)
                     me->Yell(response, LANG_UNIVERSAL);
                 else
                     me->Say(response, LANG_UNIVERSAL);
@@ -211,6 +214,7 @@ public:
 
             pendingLlamaState.reset();
             llamaFallbackAction = nullptr;
+            llamaDeliverAction = nullptr;
         }
     }
 
