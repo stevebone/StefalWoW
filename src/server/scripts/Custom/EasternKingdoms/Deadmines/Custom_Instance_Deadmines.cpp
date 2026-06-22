@@ -52,7 +52,11 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _foeReaper5000AOEWarning(*this, "FoeReaperAOEWarning", false),
                 _ripsnarlFogActive(*this, "RipsnarlFogActive", false),
                 _vaporCoalesceCount(*this, "RipsnarlVaporCoalesceCount", 0),
-                _cookieDietFailed(*this, "CookieDietFailed", false)
+                _cookieDietFailed(*this, "CookieDietFailed", false),
+                _vanessaNightmareState(*this, "VanessaNightmareState", 0),
+                _nightmareHelixState(*this, "NightmareHelixState", 0),
+                _nightmareMechanicalState(*this, "NightmareMechanicalState", 0),
+                _steamValveCount(*this, "SteamValveCount", 0)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -107,6 +111,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                         if (!oaf->IsAlive())
                             oaf->Respawn();
 
+                if (id == DataTypes::BOSS_VANESSA_VANCLEEF && state == NOT_STARTED)
+                    _steamValveCount = 0;
+
                 return true;
             }
 
@@ -154,6 +161,18 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Misc::CookieDietFailed:
                         _cookieDietFailed = data;
                         break;
+                    case Misc::VanessaNightmareState:
+                        _vanessaNightmareState = data;
+                        break;
+                    case Misc::NightmareHelixState:
+                        _nightmareHelixState = data;
+                        break;
+                    case Misc::NightmareMechanicalState:
+                        _nightmareMechanicalState = data;
+                        break;
+                    case Misc::SteamValveCount:
+                        _steamValveCount = data;
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -182,6 +201,14 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _vaporCoalesceCount;
                     case Misc::CookieDietFailed:
                         return _cookieDietFailed;
+                    case Misc::VanessaNightmareState:
+                        return _vanessaNightmareState;
+                    case Misc::NightmareHelixState:
+                        return _nightmareHelixState;
+                    case Misc::NightmareMechanicalState:
+                        return _nightmareMechanicalState;
+                    case Misc::SteamValveCount:
+                        return _steamValveCount;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -506,6 +533,10 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<bool> _ripsnarlFogActive;
             PersistentInstanceScriptValue<int8> _vaporCoalesceCount;
             PersistentInstanceScriptValue<bool> _cookieDietFailed;
+            PersistentInstanceScriptValue<uint8> _vanessaNightmareState;
+            PersistentInstanceScriptValue<uint8> _nightmareHelixState;
+            PersistentInstanceScriptValue<uint8> _nightmareMechanicalState;
+            PersistentInstanceScriptValue<uint8> _steamValveCount;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;

@@ -65,6 +65,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 RipsnarlFogActive = 1009;
         static constexpr uint32 RipsnarlVaporAchievement = 1010;
         static constexpr uint32 CookieDietFailed = 1011;
+        static constexpr uint32 VanessaNightmareState = 1012;
+        static constexpr uint32 NightmareHelixState = 1013;
+        static constexpr uint32 NightmareMechanicalState = 1014;
+        static constexpr uint32 SteamValveCount = 1015;
     }
 
     namespace Version
@@ -181,6 +185,36 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 RottenLoaf = 48299;
         static constexpr uint32 RottenBun = 48302;
         static constexpr uint32 VanessaNote = 49564;
+
+        // Vanessa VanCleef Encounter
+        static constexpr uint32 VanessaIntro = 49429;
+        static constexpr uint32 TrapBunny = 49454;
+        static constexpr uint32 SteamValve = 49457;
+        static constexpr uint32 Spark = 49520;
+        static constexpr uint32 SparkPassenger = 49521;
+        static constexpr uint32 Rope = 49550;
+        static constexpr uint32 RopeAnchor = 49552;
+        static constexpr uint32 EnragedWorgen = 49532;
+        static constexpr uint32 EmmeHarrington = 49534;
+        static constexpr uint32 ErikHarrington = 49535;
+        static constexpr uint32 CalissaHarrington = 49536;
+        static constexpr uint32 JamesHarrington = 49539;
+        static constexpr uint32 NightmareGlubtok = 49670;
+        static constexpr uint32 NightmareHelix = 49674;
+        static constexpr uint32 NightmareFoeReaper = 49681;
+        static constexpr uint32 VanessaNightmare = 49671;
+        static constexpr uint32 CollapsingIcicle = 49481;
+        static constexpr uint32 NightmareSpider = 49493;
+        static constexpr uint32 MainSpider = 49494;
+        static constexpr uint32 ChatteringHorror = 49495;
+        static constexpr uint32 FireBunny = 51594;
+        static constexpr uint32 DefiasEnforcerVanessa = 49502;
+        static constexpr uint32 DefiasShadowguardVanessa = 49505;
+        static constexpr uint32 DefiasBloodWizardVanessa = 49854;
+        static constexpr uint32 DefiasEnvoker = 48418;
+        static constexpr uint32 OafLackey = 48445;
+        static constexpr uint32 GoblinOverseer = 48279;
+        static constexpr uint32 VanessaAnchorBunnyJMF = 51624;
     }
 
     namespace CreatureSpawns
@@ -211,6 +245,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         // Cookie Encounter
         static constexpr uint32 CuldronSpawnBunny = 375838;
         static constexpr uint32 CookieJumpCuldronBunny = 376143;
+
+        // Vanessa Encounter
     }
 
     namespace Objects
@@ -341,7 +377,74 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 RipsnarlAnnounceVapor = 5;
 
         // Cookie
-        static constexpr int8 CookieHeroicNote = 0;
+        static constexpr int8 CookieSpawnWarning = 0;
+        static constexpr int8 CookieHeroicNote = 1;
+
+        namespace VanessaVanCleef
+        {
+            // A note from Vanessa
+            static constexpr int8 ANoteFromVanessaNotif = 0;
+
+            // Vanessa Intro
+            static constexpr int8 VanessaIntroWarning = 0;
+            static constexpr int8 VanessaSay1 = 1;
+            static constexpr int8 VanessaSay2 = 2;
+            static constexpr int8 VanessaSay3 = 3;
+            static constexpr int8 VanessaSay4 = 4;
+            static constexpr int8 VanessaSay5 = 5;
+
+            // Boss
+            static constexpr int8 Aggro = 0;
+            static constexpr int8 Summons = 1;
+            static constexpr int8 Bomb50pct = 2;
+            static constexpr int8 Bomb25pct = 3;
+            static constexpr int8 KilledUnit = 4;
+
+            // Trap Bunny
+            static constexpr int8 VanessaTrapBunnyWarning = 0;
+            static constexpr int8 VanessaTrapBunnyValves = 1;
+
+            // Vanessa Nightmare
+            static constexpr int8 VanessaNightmareWarning = 0;
+            static constexpr int8 VanessaNightmareGlubtok1 = 1;
+            static constexpr int8 VanessaNightmareGlubtok2 = 2;
+
+
+
+
+
+            static constexpr int8 VanessaDetonate = 33;
+            static constexpr int8 TextInfo = 4;
+            static constexpr int8 TextInfo1 = 5;
+            static constexpr int8 TextInfo2 = 6;
+            static constexpr int8 TextInfo3 = 7;
+            static constexpr int8 TextInfo4 = 8;
+            static constexpr int8 TextInfo5 = 9;
+            
+            static constexpr int8 IntruderSay = 15;
+            static constexpr int8 VanessaGlub1 = 16;
+            static constexpr int8 VanessaGlub2 = 17;
+            static constexpr int8 VanessaHelix1 = 18;
+            static constexpr int8 VanessaHelix2 = 19;
+            static constexpr int8 VanessaMechanical1 = 20;
+            static constexpr int8 VanessaMechanical2 = 21;
+            static constexpr int8 VanessaRipsnarl1 = 22;
+            static constexpr int8 VanessaRipsnarl2 = 23;
+            static constexpr int8 VanessaNightmare1 = 24;
+            static constexpr int8 VanessaNightmare2 = 25;
+            static constexpr int8 VanessaNightmare3 = 26;
+            static constexpr int8 VanessaNightmare4 = 27;
+            static constexpr int8 VanessaNightmare5 = 28;
+            static constexpr int8 VanessaNightmare6 = 29;
+            static constexpr int8 VanessaNightmare7 = 30;
+            static constexpr int8 VanessaNightmare8 = 31;
+            static constexpr int8 VanessaNightmare9 = 32;
+            static constexpr int8 VanessaNightmare10 = 33;
+            static constexpr int8 VanessaNightmare11 = 34;
+            static constexpr int8 VanessaNightmare12 = 35;
+            static constexpr int8 VanessaNightmare13 = 36;
+            static constexpr int8 VanessaNightmare14 = 37;
+        }
     }
 
     namespace Spells
@@ -505,6 +608,51 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 ThrowFood10 = 89263;
         static constexpr uint32 ThrowFood11 = 90604;
         static constexpr uint32 ThrowFood12 = 90555;
+
+        namespace VanessaVanCleef
+        {
+            static constexpr uint32 Backslash = 92619;
+            static constexpr uint32 Deflection = 92614;
+            static constexpr uint32 DeadlyBlades = 92622;
+            static constexpr uint32 Vengeance = 95542;
+            static constexpr uint32 PowderExplosion = 96283;
+            static constexpr uint32 FieryBlaze = 93484;
+            static constexpr uint32 FieryBlazeDamage = 93485;
+            static constexpr uint32 ClickMe = 95527;
+            static constexpr uint32 Evasion = 90958;
+            static constexpr uint32 Shadowstep = 90956;
+            static constexpr uint32 SinisterStrike = 90951;
+            static constexpr uint32 WhirlingBlades = 90960;
+            static constexpr uint32 Charge = 90928;
+            static constexpr uint32 Recklessness = 90929;
+            static constexpr uint32 Bloodbath = 90925;
+            static constexpr uint32 BloodBolt = 90938;
+            static constexpr uint32 BloodWash = 90946;
+            static constexpr uint32 Ragezone = 90932;
+            static constexpr uint32 HolyFire = 91004;
+            static constexpr uint32 RenegadeRunning = 90047;
+            static constexpr uint32 Shield = 92001;
+            static constexpr uint32 Motivate = 91036;
+            static constexpr uint32 Threatening = 91034;
+            static constexpr uint32 Uppercut = 91045;
+            static constexpr uint32 AxeHead = 90098;
+            static constexpr uint32 Enrage = 8599;
+            static constexpr uint32 NightmareElixir = 92113;
+            static constexpr uint32 NightmareElixirEffect = 92563;
+            static constexpr uint32 Blackout = 92120;
+            static constexpr uint32 NoxiousConcoction = 92100;
+            static constexpr uint32 Sitting = 89279;
+            static constexpr uint32 GenericRideVehicle = 46598;
+            static constexpr uint32 RopeBeam = 43785;
+            static constexpr uint32 AynashasRoot = 18373;
+            static constexpr uint32 Icicle = 92189;
+            static constexpr uint32 IcicleVisual = 92201;
+            static constexpr uint32 IcicleDamage = 62453;
+            static constexpr uint32 SpiritStrike = 59304;
+            static constexpr uint32 Sprint = 92604;
+            static constexpr uint32 GreenMarker = 88455;
+            static constexpr uint32 SteamAura = 92399;
+        }
     }
 
     namespace Events
@@ -613,12 +761,65 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr int8 CookieEnterCauldron = 4;
         static constexpr int8 CookieThrowFood = 5;
         static constexpr int8 CookieEnableMurloc = 6;
+
+        namespace VanessaVanCleef
+        {
+            static constexpr int8 Backslash = 1;
+            static constexpr int8 Vengeance = 2;
+            static constexpr int8 Deflection = 3;
+            static constexpr int8 DeadlyBlades = 4;
+            static constexpr int8 PowderExplosion = 5;
+            static constexpr int8 FieryBlaze = 6;
+            static constexpr int8 Shadowguard = 7;
+            static constexpr int8 SummonRope = 8;
+            static constexpr int8 RopeReady = 9;
+            static constexpr int8 Disappear = 10;
+            static constexpr int8 FireBoom = 11;
+            static constexpr int8 ClearShip = 12;
+            static constexpr int8 SummonAdd1 = 13;
+            static constexpr int8 SummonAdd2 = 14;
+            static constexpr int8 SummonAdd3 = 15;
+            static constexpr int8 FinalTimer = 16;
+            static constexpr int8 IcicleAOE = 17;
+            static constexpr int8 SpiritStrike = 18;
+            static constexpr int8 Spiders = 19;
+
+            // Intro
+            static constexpr int8 IntroJump = 1;
+            static constexpr int8 IntroMove = 2;
+            static constexpr int8 IntroSay1 = 3;
+            static constexpr int8 IntroSay2 = 4;
+            static constexpr int8 IntroSay3 = 5;
+            static constexpr int8 IntroConcoction = 6;
+            static constexpr int8 IntroElixir = 7;
+            static constexpr int8 IntroBlackout = 8;
+
+            // Nightmare controller
+            static constexpr int8 NightmareSay1 = 29;
+            static constexpr int8 NightmareSay2 = 30;
+            static constexpr int8 NightmareSummon = 31;
+            static constexpr int8 NightmareShift = 32;
+            static constexpr int8 NoteTalk = 33;
+            static constexpr int8 NoteSummon = 34;
+            static constexpr int8 IntroLaugh = 35;
+            static constexpr int8 IntroSay4 = 36;
+            static constexpr int8 IntroSummonTrap = 37;
+            static constexpr int8 IntroBlackout1 = 38;
+            static constexpr int8 IntroBlackout2 = 39;
+            static constexpr int8 TrapPullPlayers = 40;
+            static constexpr int8 TrapDescent = 41;
+        }
     }
 
     namespace Actions
     {
         static constexpr int8 OafCharge = 1;
         static constexpr int8 RipsnarlCoalesce = 2;
+
+        namespace VanessaVanCleef
+        {
+            static constexpr int8 EjectAll = 1;
+        }
     }
 
     namespace Glubtok
@@ -724,6 +925,117 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Captain Cookie
         static constexpr Position VanessaNoteSpawn = { -74.3611f, -820.014f, 40.3714f, 0.0f };
+
+        // Vanessa VanCleef
+        static constexpr Position Shadowspawn[3] =
+        {
+            { -74.61f, -822.91f, 40.22f, 6.24f },
+            { -74.98f, -816.88f, 40.18f, 6.24f },
+            { -76.12f, -819.95f, 40.08f, 6.24f },
+        };
+
+        static constexpr Position VanessaSpawn = { -75.58507f, -819.9636f, 47.06727f, 6.178465f };
+        static constexpr Position VanessaMoveTo = { -65.41f, -838.43f, 41.10f };
+        static constexpr Position MagmaPullPlayers = { -205.7569f, -579.0972f, 42.98623f, 2.3f };
+        static constexpr Position MagmaRopeCeiling = { -205.772781f, -579.3796f, 51.0859f };
+        static constexpr Position MagmaPullPlayerExit = { -223.217f, -566.0531f, 51.2296f, 2.3254f };
+        static constexpr Position VanessaNightmare1 = { -230.717f, -563.0139f, 51.31293f, 1.047198f };
+        static constexpr Position GlubtokNightmare1 = { -229.3403f, -560.3629f, 51.31293f, 5.742133f };
+
+        static constexpr Position ElectricSpark[7] =
+        {
+            { -101.4959f, -648.5552f, 8.121676f, 0.04567058f },
+            { -120.96f, -638.3806f, 13.38522f, 6.237791f },
+            { -135.365f, -623.0541f, 15.48179f, 6.237976f },
+            { -120.1277f, -617.6179f, 15.28394f, 0.04498905f },
+            { -136.7082f, -604.6687f, 16.56965f, 6.2384f },
+            { -130.45f, -586.5038f, 19.61726f, 6.238641f },
+            { -142.9731f, -574.9221f, 20.18317f, 6.238891f },
+        };
+
+        static constexpr Position FieryBlaze[43] =
+        {
+            { -178.2031f, -594.9965f, 40.6501f, 4.415683f },
+            { -220.625f, -577.9618f, 21.06016f, 2.513274f },
+            { -205.3056f, -563.6285f, 21.06016f, 5.25344f },
+            { -214.8958f, -546.7136f, 19.3898f, 4.712389f },
+            { -207.8004f, -570.6441f, 21.06016f, 1.762783f },
+            { -221.4653f, -549.9358f, 19.3898f, 3.211406f },
+            { -229.9635f, -559.2552f, 19.3898f, 0.0f },
+            { -216.8438f, -568.9011f, 21.06016f, 3.909538f },
+            { -235.9045f, -563.3906f, 19.3898f, 0.0f },
+            { -226.6736f, -580.8316f, 20.43056f, 2.775074f },
+            { -227.5226f, -595.1979f, 20.42358f, 4.206244f },
+            { -215.0399f, -576.3941f, 21.06016f, 3.735005f },
+            { -210.592f, -583.4739f, 21.06016f, 0.0f },
+            { -216.5399f, -602.6528f, 24.88029f, 2.687807f },
+            { -220.4879f, -596.382f, 21.95116f, 0.0f },
+            { -190.4774f, -552.2778f, 51.31293f, 5.305801f },
+            { -195.6267f, -550.4393f, 51.31293f, 3.752458f },
+            { -209.7257f, -557.1042f, 51.31293f, 3.525565f },
+            { -187.9531f, -567.0469f, 51.31293f, 5.305801f },
+            { -192.2031f, -595.9636f, 36.37407f, 2.80998f },
+            { -183.4236f, -577.2674f, 46.87183f, 3.944444f },
+            { -184.6528f, -572.3663f, 49.27317f, 3.159046f },
+            { -187.3333f, -550.8143f, 19.3898f, 3.385939f },
+            { -185.2083f, -562.4844f, 19.3898f, 0.9599311f },
+            { -228.592f, -553.1684f, 19.3898f, 5.550147f },
+            { -210.7431f, -603.2813f, 27.17259f, 4.904375f },
+            { -194.1302f, -548.3055f, 19.3898f, 4.153883f },
+            { -181.2379f, -555.3177f, 19.3898f, 0.3141593f },
+            { -191.2205f, -581.4965f, 21.06015f, 2.007129f },
+            { -198.4653f, -580.757f, 21.06015f, 0.8901179f },
+            { -196.5504f, -587.7031f, 21.06015f, 1.27409f },
+            { -241.5938f, -578.6858f, 19.3898f, 2.775074f },
+            { -226.1615f, -573.8021f, 20.40991f, 5.218534f },
+            { -186.9792f, -556.8472f, 19.3898f, 4.153883f },
+            { -201.224f, -570.6788f, 21.06016f, 3.577925f },
+            { -196.8767f, -574.9688f, 21.06016f, 4.29351f },
+            { -225.6962f, -601.3871f, 21.82762f, 4.555309f },
+            { -215.7205f, -608.4722f, 25.87703f, 2.530727f },
+            { -197.1007f, -609.7257f, 32.38494f, 0.0f },
+            { -221.8629f, -607.2205f, 23.7542f, 4.939282f },
+            { -201.9757f, -611.8663f, 30.62297f, 2.897247f },
+        };
+
+        static constexpr Position FamilySpawn[4] =
+        {
+            { -98.63194f, -721.6268f, 8.547067f, 1.53589f },
+            { 5.239583f, -763.0868f, 9.800426f, 2.007129f },
+            { -83.86406f, -775.2837f, 28.37906f, 1.710423f },
+            { -83.16319f, -774.9636f, 26.90351f, 1.710423f },
+        };
+
+        static constexpr Position EnragedWorgen1[3] =
+        {
+            { -97.79166f, -717.8542f, 8.668088f, 4.520403f },
+            { -94.40278f, -719.7274f, 8.598646f, 3.560472f },
+            { -101.9167f, -718.7552f, 8.726379f, 5.51524f },
+        };
+
+        static constexpr Position EnragedWorgen2[3] =
+        {
+            { 3.137153f, -760.0313f, 9.725998f, 5.393067f },
+            { 8.798013f, -762.2252f, 9.625132f, 3.379143f },
+            { 4.232807f, -766.6125f, 9.804724f, 1.292649f },
+        };
+
+        static constexpr Position NightmareSpidersSpawn[4] =
+        {
+            { -185.03f, -579.83f, -20.63f, 3.19f },
+            { -186.59f, -573.01f, -20.95f, 5.61f },
+            { -176.38f, -565.76f, -19.30f, 5.03f },
+            { -181.68f, -566.33f, -51.11f, 5.15f },
+        };
+
+        static constexpr Position RopeSpawn[5] =
+        {
+            { -64.01f, -839.84f, 41.22f, 0.0f },
+            { -66.82f, -839.92f, 40.97f, 0.0f },
+            { -69.75f, -839.87f, 40.71f, 0.0f },
+            { -72.32f, -839.71f, 40.48f, 0.0f },
+            { -75.76f, -839.33f, 40.18f, 0.0f },
+        };
     }
 
     namespace Ripsnarl

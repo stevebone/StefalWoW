@@ -76,6 +76,7 @@ void AddSC_custom_deadmines_foe_reaper_5000();
 void AddSC_custom_deadmines_glubtok();
 void AddSC_custom_deadmines_helix_gearbreaker();
 void AddSC_custom_deadmines_captain_cookie();
+void AddSC_custom_deadmines_vanessa_vancleef();
 
 // Magister's Terrace 12.0.1 (Map 2811)
 void AddSC_instance_magisters_terrace_12();
@@ -155,6 +156,7 @@ void AddCustomScripts()
     AddSC_custom_deadmines_glubtok();
     AddSC_custom_deadmines_helix_gearbreaker();
     AddSC_custom_deadmines_captain_cookie();
+    AddSC_custom_deadmines_vanessa_vancleef();
 
     // Magister's Terrace 12.0.1 (Map 2811)
     AddSC_instance_magisters_terrace_12();
