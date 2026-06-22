@@ -172,12 +172,12 @@ void MovementInfo::OutDebug()
     TC_LOG_DEBUG("misc", "flags2 {} ({})", Movement::MovementFlags_ToString(MovementFlags2(flags2)), flags2);
     TC_LOG_DEBUG("misc", "flags3 {} ({})", Movement::MovementFlags_ToString(MovementFlags3(flags3)), flags3);
     TC_LOG_DEBUG("misc", "time {} current time {}", time, getMSTime());
-    TC_LOG_DEBUG("misc", "position: `{}`", pos.ToString());
+    TC_LOG_DEBUG("misc", "position: `{}`", pos);
     if (!transport.guid.IsEmpty())
     {
         TC_LOG_DEBUG("misc", "TRANSPORT:");
         TC_LOG_DEBUG("misc", "{}", transport.guid.ToString());
-        TC_LOG_DEBUG("misc", "position: `{}`", transport.pos.ToString());
+        TC_LOG_DEBUG("misc", "position: `{}`", transport.pos);
         TC_LOG_DEBUG("misc", "seat: {}", transport.seat);
         TC_LOG_DEBUG("misc", "time: {}", transport.time);
         if (transport.prevTime)
@@ -202,7 +202,7 @@ void MovementInfo::OutDebug()
     if (inertia)
     {
         TC_LOG_DEBUG("misc", "inertia->id: {}", inertia->id);
-        TC_LOG_DEBUG("misc", "inertia->force: {}", inertia->force.ToString());
+        TC_LOG_DEBUG("misc", "inertia->force: {}", inertia->force);
         TC_LOG_DEBUG("misc", "inertia->lifetime: {}", inertia->lifetime);
     }
 
@@ -865,7 +865,7 @@ bool WorldObject::CanSeeOrDetect(WorldObject const* obj, CanSeeOrDetectExtraArgs
     if (obj->IsAlwaysVisibleFor(this) || CanAlwaysSee(obj))
         return true;
 
-    if (!args.IncludeAnyPrivateObject && !obj->CheckPrivateObjectOwnerVisibility(this))
+    if (!args.IncludeAnyPrivateObject && (!obj->CheckPrivateObjectOwnerVisibility(this) || !CheckPrivateObjectOwnerVisibility(obj)))
         return false;
 
     if (SmoothPhasing const* smoothPhasing = obj->GetSmoothPhasing())
@@ -998,6 +998,13 @@ bool WorldObject::CanDetectInvisibilityOf(WorldObject const* obj) const
     // Check for not detected types
     if (mask != obj->m_invisibility.GetFlags())
         return false;
+
+    // It isn't possible in invisibility to detect something that can't detect the invisible object
+    // (it's at least true for spell: 66)
+    // It seems like that only Units are affected by this check (couldn't see arena doors with preparation invisibility)
+    if (obj->IsUnit() && (!IsUnit() || !ToUnit()->HasAuraType(SPELL_AURA_DETECT_VISIBLE_WHILE_INVISIBLE)))
+        if ((m_invisibility.GetFlags() & obj->m_invisibilityDetect.GetFlags()) != m_invisibility.GetFlags())
+            return false;
 
     for (uint32 i = 0; i < TOTAL_INVISIBILITY_TYPES; ++i)
     {

@@ -2211,7 +2211,7 @@ void ObjectMgr::LoadCreatures()
                     VMAP::LoadResult result = vmgr->existsMap(sWorld->GetDataPath() + "vmaps", data.mapId, gx, gy);
                     if (result != VMAP::LoadResult::Success)
                         TC_LOG_ERROR("sql.sql", "Table `creature` has creature (GUID: {} Entry: {} MapID: {}) spawned on a possible invalid position ({})",
-                            guid, data.id, data.mapId, data.spawnPoint.ToString());
+                            guid, data.id, data.mapId, data.spawnPoint);
                 }
             }
         }
@@ -2349,7 +2349,7 @@ void ObjectMgr::LoadCreatures()
                 *data.unit_flags2 &= UNIT_FLAG2_ALLOWED;
             }
 
-            if (*data.unit_flags2 & UNIT_FLAG2_FEIGN_DEATH && (!data.unit_flags.has_value() || !(*data.unit_flags & (UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC))))
+            if (*data.unit_flags2 & UNIT_FLAG2_FEIGN_DEATH && (!data.unit_flags.has_value() || !(*data.unit_flags & (UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC))) && !(cInfo->unit_flags & (UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC)))
             {
                 TC_LOG_ERROR("sql.sql", "Table `creature` has creature (GUID: {} Entry: {}) has UNIT_FLAG2_FEIGN_DEATH set without IMMUNE_TO_PC | IMMUNE_TO_NPC, removing incorrect flag.", guid, data.id);
                 *data.unit_flags2 &= ~UNIT_FLAG2_FEIGN_DEATH;
@@ -2364,7 +2364,7 @@ void ObjectMgr::LoadCreatures()
                 *data.unit_flags3 &= UNIT_FLAG3_ALLOWED;
             }
 
-            if (*data.unit_flags3 & UNIT_FLAG3_FAKE_DEAD && (!data.unit_flags.has_value() || !(*data.unit_flags & (UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC))))
+            if (*data.unit_flags3 & UNIT_FLAG3_FAKE_DEAD && (!data.unit_flags.has_value() || !(*data.unit_flags & (UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC))) && !(cInfo->unit_flags & (UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC)))
             {
                 TC_LOG_ERROR("sql.sql", "Table `creature` has creature (GUID: {} Entry: {}) has UNIT_FLAG3_FAKE_DEAD set without IMMUNE_TO_PC | IMMUNE_TO_NPC, removing incorrect flag.", guid, data.id);
                 *data.unit_flags3 &= ~UNIT_FLAG3_FAKE_DEAD;
@@ -2567,7 +2567,7 @@ void ObjectMgr::LoadGameObjects()
                     VMAP::LoadResult result = vmgr->existsMap(sWorld->GetDataPath() + "vmaps", data.mapId, gx, gy);
                     if (result != VMAP::LoadResult::Success)
                         TC_LOG_ERROR("sql.sql", "Table `gameobject` has gameobject (GUID: {} Entry: {} MapID: {}) spawned on a possible invalid position ({})",
-                            guid, data.id, data.mapId, data.spawnPoint.ToString());
+                            guid, data.id, data.mapId, data.spawnPoint);
                 }
             }
         }
@@ -4099,7 +4099,7 @@ void ObjectMgr::LoadPlayerInfo()
 
                 if (!raceMask.IsEmpty() && (raceMask & RACEMASK_ALL_PLAYABLE).IsEmpty())
                 {
-                    TC_LOG_ERROR("sql.sql", "Wrong race mask {} in `playercreateinfo_spell_custom` table, ignoring.", raceMask.RawValue);
+                    TC_LOG_ERROR("sql.sql", "Wrong race mask {} in `playercreateinfo_spell_custom` table, ignoring.", raceMask.RawValue[0]);
                     continue;
                 }
 
@@ -4160,7 +4160,7 @@ void ObjectMgr::LoadPlayerInfo()
 
                 if (!raceMask.IsEmpty() && (raceMask & RACEMASK_ALL_PLAYABLE).IsEmpty())
                 {
-                    TC_LOG_ERROR("sql.sql", "Wrong race mask {} in `playercreateinfo_cast_spell` table, ignoring.", raceMask.RawValue);
+                    TC_LOG_ERROR("sql.sql", "Wrong race mask {} in `playercreateinfo_cast_spell` table, ignoring.", raceMask.RawValue[0]);
                     continue;
                 }
 
@@ -4829,13 +4829,13 @@ void ObjectMgr::LoadQuests()
             }
         }
         // AllowableRaces, can be -1/RACEMASK_ALL_PLAYABLE to allow any race
-        if (qinfo->_allowableRaces != RACEMASK_ALL_v<std::array<int32, 2>>)
+        if (qinfo->_allowableRaces != RACEMASK_ALL_v<int32, 2>)
         {
-            if (!qinfo->_allowableRaces.IsEmpty() && (qinfo->_allowableRaces & RACEMASK_ALL_PLAYABLE_v<std::array<int32, 2>>).IsEmpty())
+            if (!qinfo->_allowableRaces.IsEmpty() && (qinfo->_allowableRaces & RACEMASK_ALL_PLAYABLE_v<int32, 2>).IsEmpty())
             {
                 TC_LOG_ERROR("sql.sql", "Quest {} does not contain any playable races in `AllowableRaces` (0x{:X}{:08X}), value set to -1 (all races).",
                     qinfo->GetQuestId(), qinfo->_allowableRaces.RawValue[1], qinfo->_allowableRaces.RawValue[0]);
-                qinfo->_allowableRaces = RACEMASK_ALL_v<std::array<int32, 2>>;
+                qinfo->_allowableRaces = RACEMASK_ALL_v<int32, 2>;
             }
         }
         // RequiredSkillId, can be 0
@@ -7030,7 +7030,7 @@ void ObjectMgr::LoadWorldSafeLocs()
             WorldLocation loc(fields[1].GetUInt32(), fields[2].GetFloat(), fields[3].GetFloat(), fields[4].GetFloat(), DegToRad(fields[5].GetFloat()));
             if (!MapManager::IsValidMapCoord(loc))
             {
-                TC_LOG_ERROR("sql.sql", "World location (ID: {}) has a invalid position MapID: {} {}, skipped", id, loc.GetMapId(), loc.ToString());
+                TC_LOG_ERROR("sql.sql", "World location (ID: {}) has a invalid position {}, skipped", id, loc);
                 continue;
             }
 
@@ -9040,26 +9040,6 @@ uint32 ObjectMgr::GetEventScriptId(uint32 eventId) const
     return 0;
 }
 
-// this allows calculating base reputations to offline players, just by race and class
-int32 ObjectMgr::GetBaseReputationOf(FactionEntry const* factionEntry, uint8 race, uint8 playerClass) const
-{
-    if (!factionEntry)
-        return 0;
-
-    uint32 classMask = 1 << (playerClass - 1);
-
-    for (uint8 i = 0; i < 4; ++i)
-    {
-        if ((!factionEntry->ReputationClassMask[i] ||
-            factionEntry->ReputationClassMask[i] & classMask) &&
-            (factionEntry->ReputationRaceMask[i].IsEmpty() ||
-            factionEntry->ReputationRaceMask[i].HasRace(race)))
-            return factionEntry->ReputationBase[i];
-    }
-
-    return 0;
-}
-
 SkillRangeType GetSkillRangeType(SkillRaceClassInfoEntry const* rcEntry)
 {
     SkillLineEntry const* skill = sSkillLineStore.LookupEntry(rcEntry->SkillID);
@@ -9275,7 +9255,7 @@ void ObjectMgr::LoadMailLevelRewards()
 
         if ((raceMask & RACEMASK_ALL_PLAYABLE).IsEmpty())
         {
-            TC_LOG_ERROR("sql.sql", "Table `mail_level_reward` has raceMask ({}) for level {} that not include any player races, ignoring.", raceMask.RawValue, level);
+            TC_LOG_ERROR("sql.sql", "Table `mail_level_reward` has raceMask ({}) for level {} that not include any player races, ignoring.", raceMask.RawValue[0], level);
             continue;
         }
 
@@ -10055,16 +10035,12 @@ CreatureBaseStats const* ObjectMgr::GetCreatureBaseStats(uint8 level, uint8 unit
     if (it != _creatureBaseStatsStore.end())
         return &(it->second);
 
-    struct DefaultCreatureBaseStats : public CreatureBaseStats
+    static constexpr CreatureBaseStats defStats
     {
-        DefaultCreatureBaseStats()
-        {
-            BaseMana = 0;
-            AttackPower = 0;
-            RangedAttackPower = 0;
-        }
+        .BaseMana = 0,
+        .AttackPower = 0,
+        .RangedAttackPower = 0
     };
-    static const DefaultCreatureBaseStats defStats;
     return &defStats;
 }
 

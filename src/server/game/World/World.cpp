@@ -899,6 +899,10 @@ void World::LoadConfigSettings(bool reload)
     { {
         { .Name = "CharacterCreating.Disabled.RaceMask"sv, .DefaultValue = 0, .Index = CONFIG_CHARACTER_CREATING_DISABLED_RACEMASK },
         { .Name = "StartPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartDeathKnightPlayerMoney"sv, .DefaultValue = 2000, .Index = CONFIG_START_DEATH_KNIGHT_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartDemonHunterPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_DEMON_HUNTER_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartEvokerPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_EVOKER_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartAlliedRacePlayerMoney"sv, .DefaultValue = 10000, .Index = CONFIG_START_ALLIED_RACE_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
     } };
 
     static constexpr ConfigOptionLoadDefinitionArray<float, FLOAT_CONFIG_VALUE_COUNT> floats =
@@ -2599,37 +2603,6 @@ void World::SendGlobalText(char const* text, WorldSession* self)
     }
 
     free(buf);
-}
-
-/// Send a packet to all players (or players selected team) in the zone (except self if mentioned)
-bool World::SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self, Optional<Team> team)
-{
-    bool foundPlayerToSend = false;
-    SessionMap::const_iterator itr;
-
-    for (itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-    {
-        if (itr->second &&
-            itr->second->GetPlayer() &&
-            itr->second->GetPlayer()->IsInWorld() &&
-            itr->second->GetPlayer()->GetZoneId() == zone &&
-            itr->second != self &&
-            (!team || itr->second->GetPlayer()->GetTeam() == team))
-        {
-            itr->second->SendPacket(packet);
-            foundPlayerToSend = true;
-        }
-    }
-
-    return foundPlayerToSend;
-}
-
-/// Send a System Message to all players in the zone (except self if mentioned)
-void World::SendZoneText(uint32 zone, char const* text, WorldSession* self, Optional<Team> team)
-{
-    WorldPackets::Chat::Chat packet;
-    packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, text);
-    SendZoneMessage(zone, packet.Write(), self, team);
 }
 
 /// Kick (and save) all players

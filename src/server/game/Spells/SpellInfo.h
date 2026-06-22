@@ -212,7 +212,7 @@ class TC_GAME_API SpellEffectInfo
     SpellInfo const* _spellInfo;
 public:
     SpellEffIndex EffectIndex;
-    SpellEffectName Effect;
+    SpellEffects Effect;
     AuraType  ApplyAuraName;
     uint32    ApplyAuraPeriod;
     float     BasePoints;
@@ -254,7 +254,7 @@ public:
     ~SpellEffectInfo();
 
     bool IsEffect() const;
-    bool IsEffect(SpellEffectName effectName) const;
+    bool IsEffect(SpellEffects effectName) const;
     bool IsAura() const;
     bool IsAura(AuraType aura) const;
     bool IsTargetingArea() const;
@@ -447,7 +447,7 @@ class TC_GAME_API SpellInfo
         SpellInfo& operator=(SpellInfo&&) noexcept = delete;
 
         uint32 GetCategory() const;
-        bool HasEffect(SpellEffectName effect) const;
+        bool HasEffect(SpellEffects effect) const;
         bool HasAura(AuraType aura) const;
         bool HasAreaAuraEffect() const;
         bool HasOnlyDamageEffects() const;
@@ -501,6 +501,7 @@ class TC_GAME_API SpellInfo
         bool IsMultiSlotAura() const;
         bool IsStackableOnOneSlotWithDifferentCasters() const;
         bool IsCooldownStartedOnEvent() const;
+        bool IsCooldownStartedOnEventAfterCombat() const;
         bool IsDeathPersistent() const;
         bool IsRequiringDeadTarget() const;
         bool IsAllowingDeadTarget() const;

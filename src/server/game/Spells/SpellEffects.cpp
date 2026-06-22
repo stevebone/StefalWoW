@@ -446,6 +446,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //352 SPELL_EFFECT_LEARN_HOUSE_ROOM_COMPONENT_TEXTURE
     &Spell::EffectCreateAreaTrigger,                        //353 SPELL_EFFECT_CREATE_AREATRIGGER_2
     &Spell::EffectNULL,                                     //354 SPELL_EFFECT_SET_NEIGHBORHOOD_INITIATIVE
+    &Spell::EffectNULL,                                     //355 SPELL_EFFECT_LEARN_HOUSE_TYPE
 };
 
 void Spell::EffectNULL()
@@ -481,7 +482,7 @@ void Spell::EffectResurrectNew()
 
     uint32 health = GetEffectValueAsInt();
     uint32 mana = effectInfo->MiscValue;
-    ExecuteLogEffectResurrect(SpellEffectName(effectInfo->Effect), player);
+    ExecuteLogEffectResurrect(effectInfo->Effect, player);
     player->SetResurrectRequestData(m_caster, health, mana, 0);
     SendResurrectRequest(player);
 }
@@ -1105,7 +1106,7 @@ void Spell::EffectTeleportUnitsWithVisualLoadingScreen()
 
     if (effectInfo->MiscValueB)
         if (Player* playerTarget = unitTarget->ToPlayer())
-            playerTarget->SendDirectMessage(WorldPackets::Spells::SpellVisualLoadScreen(effectInfo->MiscValueB, effectInfo->MiscValue).Write());
+            playerTarget->SendDirectMessage(WorldPackets::Spells::SpellVisualLoadScreen(effectInfo->MiscValueB, Milliseconds(effectInfo->MiscValue)).Write());
 
     TeleportToOptions options = GetTeleportOptions(m_caster, unitTarget, m_destTargets[effectInfo->EffectIndex]);
     unitTarget->m_Events.AddEventAtOffset(new DelayedSpellTeleportEvent(unitTarget, targetDest, options, m_spellInfo->Id),
@@ -1177,7 +1178,7 @@ void Spell::EffectPowerDrain()
 
         unitCaster->EnergizeBySpell(unitCaster, m_spellInfo, gain, powerType);
     }
-    ExecuteLogEffectTakeTargetPower(SpellEffectName(effectInfo->Effect), unitTarget, powerType, damage, gainMultiplier);
+    ExecuteLogEffectTakeTargetPower(effectInfo->Effect, unitTarget, powerType, damage, gainMultiplier);
 }
 
 void Spell::EffectSendEvent()
@@ -1237,7 +1238,7 @@ void Spell::EffectPowerBurn()
     float dmgMultiplier = effectInfo->CalcValueMultiplier(GetUnitCasterForEffectHandlers(), this);
 
     // add log data before multiplication (need power amount, not damage)
-    ExecuteLogEffectTakeTargetPower(SpellEffectName(effectInfo->Effect), unitTarget, powerType, damage, 0.0f);
+    ExecuteLogEffectTakeTargetPower(effectInfo->Effect, unitTarget, powerType, damage, 0.0f);
 
     damage = int32(damage * dmgMultiplier);
 
@@ -1467,7 +1468,7 @@ void Spell::EffectCreateItem()
         return;
 
     DoCreateItem(effectInfo->ItemType, m_spellInfo->HasAttribute(SPELL_ATTR0_IS_TRADESKILL) ? ItemContext::Trade_Skill : ItemContext::NONE);
-    ExecuteLogEffectCreateItem(SpellEffectName(effectInfo->Effect), effectInfo->ItemType);
+    ExecuteLogEffectCreateItem(effectInfo->Effect, effectInfo->ItemType);
 }
 
 void Spell::EffectCreateItem2()
@@ -1485,7 +1486,7 @@ void Spell::EffectCreateItem2()
     // Pick a random item from spell_loot_template
     if (m_spellInfo->IsLootCrafting())
     {
-        player->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, context, false, true);
+        player->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, context, false, false, true);
         if (!m_CastItem)
             player->UpdateCraftSkill(m_spellInfo);
     }
@@ -1730,7 +1731,7 @@ void Spell::EffectOpenLock()
             }
         }
     }
-    ExecuteLogEffectOpenLock(SpellEffectName(effectInfo->Effect), gameObjTarget ? (Object*)gameObjTarget : (Object*)itemTarget);
+    ExecuteLogEffectOpenLock(effectInfo->Effect, gameObjTarget ? (Object*)gameObjTarget : (Object*)itemTarget);
 }
 
 void Spell::EffectSummonChangeItem()
@@ -1967,7 +1968,7 @@ void Spell::EffectSummonType()
                     if (!unitCaster)
                         return;
 
-                    summon = unitCaster->GetMap()->SummonCreature(entry, *destTarget, properties, duration, unitCaster, m_spellInfo->Id);
+                    summon = unitCaster->GetMap()->SummonCreature(entry, *destTarget, properties, duration, unitCaster, m_spellInfo->Id, 0, privateObjectOwner);
                     break;
                 }
                 case SummonTitle::Lightwell:
@@ -2030,7 +2031,7 @@ void Spell::EffectSummonType()
                         else if (properties->Control == SUMMON_CATEGORY_WILD && caster->IsPlayer()) // there might be more conditions involved
                             summon->SetDemonCreatorGUID(caster->GetGUID());
 
-                        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), summon);
+                        ExecuteLogEffectSummonObject(effectInfo->Effect, summon);
                     }
                     return;
                 }
@@ -2056,7 +2057,7 @@ void Spell::EffectSummonType()
 
             // Summoning spells (usually triggered by npc_spellclick) that spawn a vehicle and that cause the clicker
             // to cast a ride vehicle spell on the summoned unit.
-            summon = unitCaster->GetMap()->SummonCreature(entry, *destTarget, properties, duration, unitCaster, m_spellInfo->Id);
+            summon = unitCaster->GetMap()->SummonCreature(entry, *destTarget, properties, duration, unitCaster, m_spellInfo->Id, 0, privateObjectOwner);
             if (!summon || !summon->IsVehicle())
                 return;
 
@@ -2085,7 +2086,7 @@ void Spell::EffectSummonType()
     if (summon)
     {
         summon->SetCreatorGUID(caster->GetGUID());
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), summon);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, summon);
     }
 }
 
@@ -2334,7 +2335,7 @@ void Spell::EffectUntrainTalents()
     if (!unitTarget || m_caster->GetTypeId() == TYPEID_PLAYER)
         return;
 
-    unitTarget->ToPlayer()->SendRespecWipeConfirm(m_caster->GetGUID(), sWorld->getBoolConfig(CONFIG_NO_RESET_TALENT_COST) ? 0 : unitTarget->ToPlayer()->GetNextResetTalentsCost(), SPEC_RESET_TALENTS);
+    unitTarget->ToPlayer()->SendRespecWipeConfirm(m_caster->GetGUID(), unitTarget->ToPlayer()->GetNextResetTalentsCost(), SPEC_RESET_TALENTS);
 }
 
 void Spell::EffectTeleUnitsFaceCaster()
@@ -2745,7 +2746,7 @@ void Spell::EffectSummonPet()
             pet->SetName(new_name);
     }
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), pet);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, pet);
 }
 
 void Spell::EffectLearnPetSpell()
@@ -3017,7 +3018,7 @@ void Spell::EffectInterruptCast()
                 unitTarget->GetSpellHistory()->LockSpellSchool(curSpellInfo->GetSchoolMask(), Milliseconds(duration));
                 std::ranges::find(m_UniqueTargetInfo, unitTarget->GetGUID(), &TargetInfo::TargetGUID)->ProcHitMask |= PROC_HIT_INTERRUPT;
                 SendSpellInterruptLog(unitTarget, curSpellInfo->Id);
-                unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
+                unitTarget->InterruptSpell(CurrentSpellTypes(i), false, false, SPELL_FAILED_INTERRUPTED_COMBAT, SPELL_FAILED_DONT_REPORT, m_caster->GetGUID());
             }
         }
     }
@@ -3055,7 +3056,7 @@ void Spell::EffectSummonObjectWild()
     go->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
     go->SetSpellId(m_spellInfo->Id);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     // Wild object not have owner and check clickable by players
     map->AddToMap(go);
@@ -3067,7 +3068,7 @@ void Spell::EffectSummonObjectWild()
         linkedTrap->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
         linkedTrap->SetSpellId(m_spellInfo->Id);
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), linkedTrap);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, linkedTrap);
     }
 }
 
@@ -3305,7 +3306,7 @@ void Spell::EffectDuel()
     go->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
     go->SetSpellId(m_spellInfo->Id);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     caster->AddGameObject(go);
     map->AddToMap(go);
@@ -3526,15 +3527,27 @@ void Spell::EffectInebriate()
         return;
 
     Player* player = unitTarget->ToPlayer();
+    uint8 currentDrunk = player->GetDrunkValue();
+    int32 drunkMod = GetEffectValueAsInt();
 
-    uint8 currentDrunkValue = player->GetDrunkValue();
-    uint8 drunkValue = std::clamp<int32>(GetEffectValueAsInt() + currentDrunkValue, 0, 100);
-    if (currentDrunkValue == 100 && currentDrunkValue == drunkValue)
-        if (roll_chance(25.0f))
-            player->CastSpell(player, 67468, CastSpellExtraArgs()
-                .SetTriggeringSpell(this));    // Drunken Vomit
+    if (drunkMod == 0)
+        return;
 
-    player->SetDrunkValue(drunkValue, m_CastItem ? m_CastItem->GetEntry() : 0);
+    // drunkMod may contain values that are guaranteed to cause uint8 overflow/underflow (examples: 29690, 46874)
+    // In addition, we would not want currentDrunk to become more than 100.
+    // So before adding the values, let's check that everything is fine.
+    if (drunkMod > static_cast<int32>(100 - currentDrunk))
+        currentDrunk = 100;
+    else if (drunkMod < static_cast<int32>(0 - currentDrunk))
+        currentDrunk = 0;
+    else
+        currentDrunk += drunkMod; // Due to previous checks we can be sure that currentDrunk will not go beyond [0-100] range.
+
+    player->SetDrunkValue(currentDrunk, m_CastItem ? m_CastItem->GetEntry() : 0);
+
+    if (currentDrunk == 100 && drunkMod > 0 && roll_chance(25))
+        player->CastSpell(player, 67468, CastSpellExtraArgs()
+            .SetTriggeringSpell(this));    // Drunken Vomit
 }
 
 void Spell::EffectFeedPet()
@@ -3557,7 +3570,7 @@ void Spell::EffectFeedPet()
     if (!pet->IsAlive())
         return;
 
-    ExecuteLogEffectDestroyItem(SpellEffectName(effectInfo->Effect), foodItem->GetEntry());
+    ExecuteLogEffectDestroyItem(effectInfo->Effect, foodItem->GetEntry());
 
     int32 pct;
     int32 levelDiff = int32(pet->GetLevel()) - int32(foodItem->GetTemplate()->GetBaseItemLevel());
@@ -3590,7 +3603,7 @@ void Spell::EffectDismissPet()
 
     Pet* pet = unitTarget->ToPet();
 
-    ExecuteLogEffectUnsummonObject(SpellEffectName(effectInfo->Effect), pet);
+    ExecuteLogEffectUnsummonObject(effectInfo->Effect, pet);
     pet->Remove(PET_SAVE_NOT_IN_SLOT);
 }
 
@@ -3645,7 +3658,7 @@ void Spell::EffectSummonObject()
     go->SetSpellId(m_spellInfo->Id);
     unitCaster->AddGameObject(go);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     map->AddToMap(go);
 
@@ -3676,7 +3689,7 @@ void Spell::EffectResurrect()
     uint32 health = player->CountPctFromMaxHealth(effectValue);
     uint32 mana   = CalculatePct(player->GetMaxPower(POWER_MANA), effectValue);
 
-    ExecuteLogEffectResurrect(SpellEffectName(effectInfo->Effect), player);
+    ExecuteLogEffectResurrect(effectInfo->Effect, player);
 
     player->SetResurrectRequestData(m_caster, health, mana, 0);
     SendResurrectRequest(player);
@@ -3694,7 +3707,7 @@ void Spell::EffectAddExtraAttacks()
 
     unitTarget->AddExtraAttacks(extraAttacks);
 
-    ExecuteLogEffectExtraAttacks(SpellEffectName(effectInfo->Effect), unitTarget, extraAttacks);
+    ExecuteLogEffectExtraAttacks(effectInfo->Effect, unitTarget, extraAttacks);
 }
 
 void Spell::EffectParry()
@@ -4044,8 +4057,8 @@ void Spell::EffectKnockBack()
             if (creatureTarget->isWorldBoss() || creatureTarget->IsDungeonBoss())
                 return;
 
-    // Spells with SPELL_EFFECT_KNOCK_BACK (like Thunderstorm) can't knockback target if target has ROOT/STUN
-    if (unitTarget->HasUnitState(UNIT_STATE_ROOT | UNIT_STATE_STUNNED))
+    // Spells with SPELL_EFFECT_KNOCK_BACK (like Thunderstorm) can't knockback target if target has ROOT
+    if (unitTarget->HasUnitState(UNIT_STATE_ROOT))
         return;
 
     float ratio = 0.1f;
@@ -4392,7 +4405,7 @@ void Spell::EffectDurabilityDamage()
     if (slot < 0)
     {
         unitTarget->ToPlayer()->DurabilityPointsLossAll(GetEffectValueAsInt(), (slot < -1));
-        ExecuteLogEffectDurabilityDamage(SpellEffectName(effectInfo->Effect), unitTarget, -1, -1);
+        ExecuteLogEffectDurabilityDamage(effectInfo->Effect, unitTarget, -1, -1);
         return;
     }
 
@@ -4403,7 +4416,7 @@ void Spell::EffectDurabilityDamage()
     if (Item* item = unitTarget->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
     {
         unitTarget->ToPlayer()->DurabilityPointsLoss(item, GetEffectValueAsInt());
-        ExecuteLogEffectDurabilityDamage(SpellEffectName(effectInfo->Effect), unitTarget, item->GetEntry(), slot);
+        ExecuteLogEffectDurabilityDamage(effectInfo->Effect, unitTarget, item->GetEntry(), slot);
     }
 }
 
@@ -4560,7 +4573,7 @@ void Spell::EffectTransmitted()
     //go->SetLevel(unitCaster->getLevel());
     go->SetSpellId(m_spellInfo->Id);
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     TC_LOG_DEBUG("spells", "AddObject at SpellEfects.cpp EffectTransmitted");
     //unitCaster->AddGameObject(go);
@@ -4577,7 +4590,7 @@ void Spell::EffectTransmitted()
         linkedTrap->SetSpellId(m_spellInfo->Id);
         linkedTrap->SetOwnerGUID(unitCaster->GetGUID());
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), linkedTrap);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, linkedTrap);
     }
 }
 
@@ -5060,7 +5073,7 @@ void Spell::SummonGuardian(SpellEffectInfo const* effect, uint32 entry, SummonPr
                 summon->SetDisplayId(1126); // modelid1
         }
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effect->Effect), summon);
+        ExecuteLogEffectSummonObject(SpellEffects(effect->Effect), summon);
     }
 }
 
@@ -5357,7 +5370,7 @@ void Spell::EffectSummonPersonalGameObject()
     go->SetSpellId(m_spellInfo->Id);
     go->SetPrivateObjectOwner(m_caster->GetGUID());
 
-    ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), go);
+    ExecuteLogEffectSummonObject(effectInfo->Effect, go);
 
     map->AddToMap(go);
 
@@ -5368,7 +5381,7 @@ void Spell::EffectSummonPersonalGameObject()
         linkedTrap->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
         linkedTrap->SetSpellId(m_spellInfo->Id);
 
-        ExecuteLogEffectSummonObject(SpellEffectName(effectInfo->Effect), linkedTrap);
+        ExecuteLogEffectSummonObject(effectInfo->Effect, linkedTrap);
     }
 }
 
@@ -5399,7 +5412,7 @@ void Spell::EffectResurrectWithAura()
     if (resurrectAura && target->HasAura(resurrectAura))
         return;
 
-    ExecuteLogEffectResurrect(SpellEffectName(effectInfo->Effect), target);
+    ExecuteLogEffectResurrect(effectInfo->Effect, target);
     target->SetResurrectRequestData(m_caster, health, mana, resurrectAura);
     SendResurrectRequest(target);
 }
@@ -5544,7 +5557,7 @@ void Spell::EffectCreateHeirloomItem()
     bonusList.push_back(collectionMgr->GetHeirloomBonus(m_misc.Raw.Data[0]));
 
     DoCreateItem(m_misc.Raw.Data[0], ItemContext::NONE, &bonusList);
-    ExecuteLogEffectCreateItem(SpellEffectName(effectInfo->Effect), m_misc.Raw.Data[0]);
+    ExecuteLogEffectCreateItem(effectInfo->Effect, m_misc.Raw.Data[0]);
 }
 
 void Spell::EffectActivateGarrisonBuilding()

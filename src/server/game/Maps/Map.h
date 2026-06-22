@@ -66,6 +66,7 @@ class Unit;
 class Weather;
 class WorldObject;
 class WorldPacket;
+class WorldSession;
 struct DungeonEncounterEntry;
 struct MapDifficultyEntry;
 struct MapEntry;
@@ -93,15 +94,16 @@ enum TransferAbortReason : uint32
     TRANSFER_ABORT_MAX_PLAYERS                   = 2,   // Transfer Aborted: instance is full
     TRANSFER_ABORT_NOT_FOUND                     = 3,   // Transfer Aborted: instance not found
     TRANSFER_ABORT_TOO_MANY_INSTANCES            = 4,   // You have entered too many instances recently.
+    TRANSFER_ABORT_LOGGING_OUT                   = 5,
     TRANSFER_ABORT_ZONE_IN_COMBAT                = 6,   // Unable to zone in while an encounter is in progress.
     TRANSFER_ABORT_INSUF_EXPAN_LVL               = 7,   // You must have <TBC, WotLK> expansion installed to access this area.
     TRANSFER_ABORT_DIFFICULTY                    = 8,   // <Normal, Heroic, Epic> difficulty mode is not available for %s.
     TRANSFER_ABORT_UNIQUE_MESSAGE                = 9,   // Until you've escaped TLK's grasp, you cannot leave this place!
     TRANSFER_ABORT_TOO_MANY_REALM_INSTANCES      = 10,  // Additional instances cannot be launched, please try again later.
     TRANSFER_ABORT_NEED_GROUP                    = 11,  // Transfer Aborted: you must be in a raid group to enter this instance
-    TRANSFER_ABORT_NOT_FOUND_2                   = 12,  // Transfer Aborted: instance not found
-    TRANSFER_ABORT_NOT_FOUND_3                   = 13,  // Transfer Aborted: instance not found
-    TRANSFER_ABORT_NOT_FOUND_4                   = 14,  // Transfer Aborted: instance not found
+    TRANSFER_ABORT_NEED_SERVER                   = 12,  // Transfer Aborted: instance not found
+    TRANSFER_ABORT_TIMEOUT                       = 13,  // Transfer Aborted: instance not found
+    TRANSFER_ABORT_BUSY                          = 14,  // Transfer Aborted: instance not found
     TRANSFER_ABORT_REALM_ONLY                    = 15,  // All players in the party must be from the same realm to enter %s.
     TRANSFER_ABORT_MAP_NOT_ALLOWED               = 16,  // Map cannot be entered at this time.
     TRANSFER_ABORT_LOCKED_TO_DIFFERENT_INSTANCE  = 18,  // You are already locked to %s
@@ -362,6 +364,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         uint32 GetId() const;
         bool Instanceable() const;
+        bool IsWorldMap() const;
         bool IsDungeon() const;
         bool IsNonRaidDungeon() const;
         bool IsRaid() const;
@@ -398,6 +401,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void RemoveWorldObject(WorldObject* obj);
 
         void SendToPlayers(WorldPacket const* data) const;
+        bool SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession const* self = nullptr, Optional<Team> team = { }) const;
 
         typedef MapRefManager PlayerList;
         PlayerList const& GetPlayers() const { return m_mapRefManager; }
@@ -545,6 +549,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void SendZoneDynamicInfo(uint32 zoneId, Player* player) const;
         void SendZoneWeather(uint32 zoneId, Player* player) const;
         void SendZoneWeather(ZoneDynamicInfo const& zoneDynamicInfo, Player* player) const;
+        void SendZoneText(uint32 zoneId, const char* text, WorldSession const* self = nullptr, Optional<Team> team = { }) const;
 
         void SetZoneMusic(uint32 zoneId, uint32 musicId);
         Weather* GetOrGenerateZoneDefaultWeather(uint32 zoneId);
@@ -633,9 +638,6 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
             ASSERT(x < MAX_NUMBER_OF_GRIDS && y < MAX_NUMBER_OF_GRIDS, "x = %u, y = %u", x, y);
             return i_grids[x][y];
         }
-
-        bool isGridObjectDataLoaded(uint32 x, uint32 y) const { return getNGrid(x, y)->isGridObjectDataLoaded(); }
-        void setGridObjectDataLoaded(bool pLoaded, uint32 x, uint32 y) { getNGrid(x, y)->setGridObjectDataLoaded(pLoaded); }
 
         void setNGrid(NGridType* grid, uint32 x, uint32 y);
         void ScriptsProcess();
@@ -957,10 +959,11 @@ inline void Map::Visit(Cell const& cell, TypeContainerVisitor<T, CONTAINER>& vis
     const uint32 cell_x = cell.CellX();
     const uint32 cell_y = cell.CellY();
 
-    if (!cell.NoCreate() || IsGridLoaded(GridCoord(x, y)))
-    {
+    if (!cell.NoCreate())
         EnsureGridLoaded(cell);
-        getNGrid(x, y)->VisitGrid(cell_x, cell_y, visitor);
-    }
+
+    NGridType* grid = getNGrid(x, y);
+    if (grid && grid->isGridObjectDataLoaded())
+        grid->VisitGrid(cell_x, cell_y, visitor);
 }
 #endif

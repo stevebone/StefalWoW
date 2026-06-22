@@ -492,16 +492,16 @@ class TC_GAME_API Spell
         void SelectExplicitTargets();
 
         void SelectSpellTargets();
-        void SelectEffectImplicitTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex, uint32& processedEffectMask);
-        void SelectImplicitChannelTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType);
+        void SelectEffectImplicitTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex, uint32 effectMask);
+        void SelectImplicitChannelTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, uint32 effMask);
         void SelectImplicitNearbyTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex, uint32 effMask);
         void SelectImplicitConeTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex, uint32 effMask);
         void SelectImplicitAreaTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex, uint32 effMask);
         void SelectImplicitCasterDestTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex);
         void SelectImplicitTargetDestTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex);
         void SelectImplicitDestDestTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex);
-        void SelectImplicitCasterObjectTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType);
-        void SelectImplicitTargetObjectTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType);
+        void SelectImplicitCasterObjectTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, uint32 effMask);
+        void SelectImplicitTargetObjectTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, uint32 effMask);
         void SelectImplicitChainTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, WorldObject* target, uint32 effMask);
         void SelectImplicitTrajTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType);
         void SelectImplicitLineTargets(SpellEffectInfo const& spellEffectInfo, SpellImplicitTargetInfo const& targetType, SpellTargetIndex targetIndex, uint32 effMask);
@@ -521,7 +521,7 @@ class TC_GAME_API Spell
         GameObject* SearchSpellFocus();
 
         SpellCastResult prepare(SpellCastTargets const& targets, AuraEffect const* triggeredByAura = nullptr);
-        void cancel();
+        void cancel(SpellCastResult result = SPELL_FAILED_INTERRUPTED, Optional<SpellCastResult> resultOther = {}, ObjectGuid const& failedBy = ObjectGuid::Empty);
         void update(uint32 difftime);
         void cast(bool skipCheck = false);
         void finish(SpellCastResult result = SPELL_CAST_OK);
@@ -576,17 +576,17 @@ class TC_GAME_API Spell
         void CheckSrc();
         void CheckDst();
 
-        static void SendCastResult(Player* caster, SpellInfo const* spellInfo, SpellCastVisual spellVisual, ObjectGuid cast_count, SpellCastResult result, SpellCustomErrors customError = SPELL_CUSTOM_ERROR_NONE, int32* param1 = nullptr, int32* param2 = nullptr);
-        void SendCastResult(SpellCastResult result, int32* param1 = nullptr, int32* param2 = nullptr) const;
+        static void SendCastResult(Player const* caster, SpellInfo const* spellInfo, SpellCastVisual spellVisual, ObjectGuid cast_count, SpellCastResult result, SpellCustomErrors customError = SPELL_CUSTOM_ERROR_NONE, int32* param1 = nullptr, int32* param2 = nullptr);
+        void SendCastResult(SpellCastResult result, int32* param1 = nullptr, int32* param2 = nullptr, ObjectGuid const& failedBy = ObjectGuid::Empty) const;
         void SendPetCastResult(SpellCastResult result, int32* param1 = nullptr, int32* param2 = nullptr) const;
         void SendMountResult(MountResult result);
         void SendSpellStart();
         void SendSpellGo();
         void SendSpellCooldown();
         void SendSpellExecuteLog();
-        SpellLogEffect& GetExecuteLogEffect(SpellEffectName effect);
+        SpellLogEffect& GetExecuteLogEffect(SpellEffects effect);
         template<typename T>
-        std::vector<T>& GetExecuteLogEffectTargets(SpellEffectName effect, Optional<std::vector<T>> SpellLogEffect::* member)
+        std::vector<T>& GetExecuteLogEffectTargets(SpellEffects effect, Optional<std::vector<T>> SpellLogEffect::* member)
         {
             Optional<std::vector<T>>& opt = GetExecuteLogEffect(effect).*member;
             if (!opt)
@@ -594,18 +594,18 @@ class TC_GAME_API Spell
 
             return *opt;
         }
-        void ExecuteLogEffectTakeTargetPower(SpellEffectName effect, Unit* target, Powers powerType, uint32 points, float amplitude);
-        void ExecuteLogEffectExtraAttacks(SpellEffectName effect, Unit* victim, uint32 numAttacks);
-        void ExecuteLogEffectDurabilityDamage(SpellEffectName effect, Unit* victim, int32 itemId, int32 amount);
-        void ExecuteLogEffectOpenLock(SpellEffectName effect, Object* obj);
-        void ExecuteLogEffectCreateItem(SpellEffectName effect, uint32 entry);
-        void ExecuteLogEffectDestroyItem(SpellEffectName effect, uint32 entry);
-        void ExecuteLogEffectSummonObject(SpellEffectName effect, WorldObject* obj);
-        void ExecuteLogEffectUnsummonObject(SpellEffectName effect, WorldObject* obj);
-        void ExecuteLogEffectResurrect(SpellEffectName effect, Unit* target);
+        void ExecuteLogEffectTakeTargetPower(SpellEffects effect, Unit* target, Powers powerType, uint32 points, float amplitude);
+        void ExecuteLogEffectExtraAttacks(SpellEffects effect, Unit* victim, uint32 numAttacks);
+        void ExecuteLogEffectDurabilityDamage(SpellEffects effect, Unit* victim, int32 itemId, int32 amount);
+        void ExecuteLogEffectOpenLock(SpellEffects effect, Object* obj);
+        void ExecuteLogEffectCreateItem(SpellEffects effect, uint32 entry);
+        void ExecuteLogEffectDestroyItem(SpellEffects effect, uint32 entry);
+        void ExecuteLogEffectSummonObject(SpellEffects effect, WorldObject* obj);
+        void ExecuteLogEffectUnsummonObject(SpellEffects effect, WorldObject* obj);
+        void ExecuteLogEffectResurrect(SpellEffects effect, Unit* target);
         void SendSpellInterruptLog(Unit* victim, uint32 spellId);
-        void SendInterrupted(uint8 result);
-        void SendChannelUpdate(uint32 time, Optional<SpellCastResult> result = {});
+        void SendInterrupted(SpellCastResult result, Optional<SpellCastResult> resultOther = {}, ObjectGuid const& failedBy = ObjectGuid::Empty);
+        void SendChannelUpdate(uint32 time, Optional<SpellCastResult> result = {}, ObjectGuid const& failedBy = ObjectGuid::Empty);
         void SendChannelStart(uint32 duration);
         void SendResurrectRequest(Player* target);
 
@@ -828,6 +828,7 @@ class TC_GAME_API Spell
         DynObjAura* _dynObjAura;
 
         // -------------------------------------------
+        ObjectGuid m_focusObjectGUID;
         GameObject* focusObject;
 
         // Damage and healing in effects need just calculate

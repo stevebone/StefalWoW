@@ -237,9 +237,10 @@ struct SpellEffectInfo::ImmunityInfo
     uint32 DispelImmuneMask = 0;
     uint32 DamageSchoolMask = 0;
     uint8 OtherImmuneMask = 0;
+    bool RemoveEffectsWithMechanic = false;
 
     Trinity::Containers::FlatSet<AuraType> AuraTypeImmune;
-    Trinity::Containers::FlatSet<SpellEffectName> SpellEffectImmune;
+    Trinity::Containers::FlatSet<SpellEffects> SpellEffectImmune;
 };
 
 std::array<SpellImplicitTargetInfo::StaticData, TOTAL_SPELL_TARGETS> SpellImplicitTargetInfo::_data =
@@ -415,7 +416,7 @@ SpellEffectInfo::SpellEffectInfo(SpellInfo const* spellInfo, SpellEffectEntry co
 
     _spellInfo = spellInfo;
     EffectIndex = SpellEffIndex(_effect.EffectIndex);
-    Effect = SpellEffectName(_effect.Effect);
+    Effect = SpellEffects(_effect.Effect);
     ApplyAuraName = AuraType(_effect.EffectAura);
     ApplyAuraPeriod = _effect.EffectAuraPeriod;
     BasePoints = _effect.EffectBasePoints;
@@ -456,7 +457,7 @@ bool SpellEffectInfo::IsEffect() const
     return Effect != 0;
 }
 
-bool SpellEffectInfo::IsEffect(SpellEffectName effectName) const
+bool SpellEffectInfo::IsEffect(SpellEffects effectName) const
 {
     return Effect == effectName;
 }
@@ -1313,6 +1314,7 @@ std::array<SpellEffectInfo::StaticData, TOTAL_SPELL_EFFECTS> SpellEffectInfo::_d
     {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 352 SPELL_EFFECT_LEARN_HOUSE_ROOM_COMPONENT_TEXTURE
     {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_DEST}, // 353 SPELL_EFFECT_CREATE_AREATRIGGER_2
     {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 354 SPELL_EFFECT_SET_NEIGHBORHOOD_INITIATIVE
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 355 SPELL_EFFECT_LEARN_HOUSE_TYPE
 } };
 
 SpellInfo::SpellInfo(SpellNameEntry const* spellName, ::Difficulty difficulty, SpellInfoLoadHelper const& data)
@@ -1547,7 +1549,7 @@ uint32 SpellInfo::GetCategory() const
     return CategoryId;
 }
 
-bool SpellInfo::HasEffect(SpellEffectName effect) const
+bool SpellInfo::HasEffect(SpellEffects effect) const
 {
     for (SpellEffectInfo const& eff : GetEffects())
         if (eff.IsEffect(effect))
@@ -1773,22 +1775,21 @@ bool SpellInfo::IsStackableWithRanks() const
         return false;
 
     // All stance spells. if any better way, change it.
-    for (SpellEffectInfo const& effect : GetEffects())
+    switch (SpellFamilyName)
     {
-        switch (SpellFamilyName)
-        {
-            case SPELLFAMILY_PALADIN:
-                // Paladin aura Spell
-                if (effect.Effect == SPELL_EFFECT_APPLY_AREA_AURA_RAID)
-                    return false;
-                break;
-            case SPELLFAMILY_DRUID:
-                // Druid form Spell
-                if (effect.Effect == SPELL_EFFECT_APPLY_AURA &&
-                    effect.ApplyAuraName == SPELL_AURA_MOD_SHAPESHIFT)
-                    return false;
-                break;
-        }
+        case SPELLFAMILY_PALADIN:
+            // Paladin aura Spell
+            if (HasEffect(SPELL_EFFECT_APPLY_AREA_AURA_RAID))
+                return false;
+            // Seal of Righteousness
+            if (SpellFamilyFlags[1] & 0x20000000)
+                return false;
+            break;
+        case SPELLFAMILY_DRUID:
+            // Druid form Spell
+            if (HasAura(SPELL_AURA_MOD_SHAPESHIFT))
+                return false;
+            break;
     }
 
     return true;
@@ -1815,6 +1816,11 @@ bool SpellInfo::IsCooldownStartedOnEvent() const
     if (HasAttribute(SPELL_ATTR0_COOLDOWN_ON_EVENT))
         return true;
 
+    return IsCooldownStartedOnEventAfterCombat();
+}
+
+bool SpellInfo::IsCooldownStartedOnEventAfterCombat() const
+{
     SpellCategoryEntry const* category = sSpellCategoryStore.LookupEntry(CategoryId);
     return category && category->GetFlags().HasFlag(SpellCategoryFlags::CooldownEventOnLeaveCombat);
 }
@@ -3481,6 +3487,7 @@ void SpellInfo::_LoadImmunityInfo()
         uint32 dispelImmunityMask = 0;
         uint32 damageImmunityMask = 0;
         uint8 otherImmunityMask = 0;
+        bool removeEffectsWithMechanic = false;
 
         int32 miscVal = effect.MiscValue;
 
@@ -3496,7 +3503,7 @@ void SpellInfo::_LoadImmunityInfo()
                     dispelImmunityMask |= creatureImmunities->DispelType.to_ulong();
                     mechanicImmunityMask |= creatureImmunities->Mechanic.to_ullong();
                     otherImmunityMask |= creatureImmunities->Other.AsUnderlyingType();
-                    for (SpellEffectName effectType : creatureImmunities->Effect)
+                    for (SpellEffects effectType : creatureImmunities->Effect)
                         immuneInfo.SpellEffectImmune.insert(effectType);
                     for (AuraType aura : creatureImmunities->Aura)
                         immuneInfo.AuraTypeImmune.insert(aura);
@@ -3511,6 +3518,7 @@ void SpellInfo::_LoadImmunityInfo()
                     case 59752: // Every Man for Himself
                         mechanicImmunityMask |= IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK;
                         immuneInfo.AuraTypeImmune.insert(SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED);
+                        removeEffectsWithMechanic = true;
                         break;
                     case 34471: // The Beast Within
                     case 19574: // Bestial Wrath
@@ -3522,6 +3530,7 @@ void SpellInfo::_LoadImmunityInfo()
                     case 195710: // Honorable Medallion
                     case 208683: // Gladiator's Medallion
                         mechanicImmunityMask |= IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK;
+                        removeEffectsWithMechanic = true;
                         break;
                     case 54508: // Demonic Empowerment
                         mechanicImmunityMask |= (1 << MECHANIC_SNARE) | (1 << MECHANIC_ROOT) | (1 << MECHANIC_STUN);
@@ -3533,11 +3542,16 @@ void SpellInfo::_LoadImmunityInfo()
                         mechanicImmunityMask |= UI64LIT(1) << miscVal;
                         break;
                 }
+
+                // Special 100 ms duration spells - PvP trinket, Every Man for Himself and some other
+                if (GetMaxDuration() == 100)
+                    removeEffectsWithMechanic = true;
+
                 break;
             }
             case SPELL_AURA_EFFECT_IMMUNITY:
             {
-                immuneInfo.SpellEffectImmune.insert(static_cast<SpellEffectName>(miscVal));
+                immuneInfo.SpellEffectImmune.insert(static_cast<SpellEffects>(miscVal));
                 break;
             }
             case SPELL_AURA_STATE_IMMUNITY:
@@ -3575,6 +3589,7 @@ void SpellInfo::_LoadImmunityInfo()
         immuneInfo.DispelImmuneMask = dispelImmunityMask;
         immuneInfo.DamageSchoolMask = damageImmunityMask;
         immuneInfo.OtherImmuneMask = otherImmunityMask;
+        immuneInfo.RemoveEffectsWithMechanic = removeEffectsWithMechanic;
 
         immuneInfo.AuraTypeImmune.shrink_to_fit();
         immuneInfo.SpellEffectImmune.shrink_to_fit();
@@ -3725,8 +3740,8 @@ void SpellInfo::ApplyAllSpellImmunitiesTo(Unit* target, SpellEffectInfo const& s
         if (HasAttribute(SPELL_ATTR1_IMMUNITY_PURGES_EFFECT))
         {
             if (apply)
-                target->RemoveAurasWithMechanic(mechanicImmunity, AURA_REMOVE_BY_DEFAULT, Id);
-            else
+                target->RemoveAurasWithMechanic(mechanicImmunity, AURA_REMOVE_BY_DEFAULT, Id, immuneInfo->RemoveEffectsWithMechanic);
+            else if (!immuneInfo->RemoveEffectsWithMechanic)
             {
                 std::vector<Aura*> aurasToUpdateTargets;
                 target->RemoveAppliedAuras([mechanicImmunity, &aurasToUpdateTargets](AuraApplication const* aurApp)
@@ -3783,7 +3798,7 @@ void SpellInfo::ApplyAllSpellImmunitiesTo(Unit* target, SpellEffectInfo const& s
             });
     }
 
-    for (SpellEffectName effectType : immuneInfo->SpellEffectImmune)
+    for (SpellEffects effectType : immuneInfo->SpellEffectImmune)
         target->ApplySpellImmune(Id, IMMUNITY_EFFECT, effectType, apply);
 
     if (uint8 otherImmuneMask = immuneInfo->OtherImmuneMask)
@@ -4372,7 +4387,7 @@ float SpellInfo::CalcProcPPM(Unit* caster, int32 itemLevel) const
             }
             case SPELL_PPM_MOD_RACE:
             {
-                if (caster->GetRaceMask() & mod->Param)
+                if (Trinity::RaceMask<int32>{ mod->Param }.HasRace(caster->GetRace()))
                     ppm *= 1.0f + mod->Coeff;
                 break;
             }
