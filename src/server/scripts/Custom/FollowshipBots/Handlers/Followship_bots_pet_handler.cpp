@@ -63,6 +63,8 @@ namespace FSBPet
         FSBSpells::BotCastSpell(bot, SPELL_HUNTER_SUMMON_HYENA, bot);
 
         Creature* pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*bot, bot->GetPetGUID());
+        if (!pet)
+            return false;
 
         // place pet before player
         pet->Relocate(bot->GetPositionX() + 2, bot->GetPositionY(), bot->GetPositionZ(), float(M_PI) - bot->GetOrientation());
