@@ -30,7 +30,10 @@ struct FollowshipBotsConfig
     static bool configFSBUseCustomRegen;
     static bool configFSBUseOOCActions;
     static bool configFSBUseICPotions;
+    static bool configFSBUseAFKActions;
     static bool configFSBUseChatChannels;
+    static uint32 configFSBAFKInterval;
+    static uint32 configFSBAFKChance;
 
     static int64 configFSBPricePerLevel;
     static int64 configFSBPermanentPricePerLevel;

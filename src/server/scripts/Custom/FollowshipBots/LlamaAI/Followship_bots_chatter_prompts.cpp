@@ -1,10 +1,23 @@
 /*
  * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "Followship_bots_chatter_prompts.h"
@@ -1354,6 +1367,94 @@ namespace FSBLlamaPrompts
         ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
         auto state = ai->pendingLlamaState;
         TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched emote_cooking for bot {}", bot->GetName());
+        std::thread([systemPrompt, userMessage, state]() {
+            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = std::move(result);
+            state->ready = true;
+        }).detach();
+    }
+
+    void DispatchBotSocialReply(Creature* targetBot, ObjectGuid initiatorGuid, FSB_ChatterCategory category)
+    {
+        if (!targetBot)
+            return;
+
+        if (!FSBLlamaAI::IsEnabled())
+        {
+            Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
+            if (initiator)
+                if (Creature* initiatorCreature = initiator->ToCreature())
+                    FSBChatter::DemandTargetReply(initiatorCreature, targetBot, category, FSB_ReplyType::Say);
+            return;
+        }
+
+        auto* targetAI = dynamic_cast<FSB_BaseAI*>(targetBot->AI());
+        if (!targetAI)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for target bot {}, falling back to hardcoded chatter.", targetBot->GetName());
+            Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
+            if (initiator)
+                if (Creature* initiatorCreature = initiator->ToCreature())
+                    FSBChatter::DemandTargetReply(initiatorCreature, targetBot, category, FSB_ReplyType::Say);
+            return;
+        }
+
+        if (targetAI->pendingLlamaState)
+        {
+            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: target bot {} already has pending request, falling back to hardcoded chatter.", targetBot->GetName());
+            Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
+            if (initiator)
+                if (Creature* initiatorCreature = initiator->ToCreature())
+                    FSBChatter::DemandTargetReply(initiatorCreature, targetBot, category, FSB_ReplyType::Say);
+            return;
+        }
+
+        Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
+        Creature* initiatorCreature = initiator ? initiator->ToCreature() : nullptr;
+        std::string initiatorName = initiator ? initiator->GetName() : "someone";
+
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(targetBot->GetEntry());
+        std::string seedLine = FSBChatter::GetRandomReply(initiatorCreature, targetBot, category, personalityType, 0, 0);
+
+        std::string systemPrompt = BuildStandardSystemPrompt(targetBot);
+
+        std::string interactionDesc;
+        switch (category)
+        {
+            case FSB_ChatterCategory::emote_joke:  interactionDesc = "told you a joke"; break;
+            case FSB_ChatterCategory::emote_kiss:  interactionDesc = "blew you a kiss"; break;
+            case FSB_ChatterCategory::emote_flirt: interactionDesc = "flirted with you"; break;
+            default:                               interactionDesc = "interacted with you"; break;
+        }
+
+        std::string userMessage = Trinity::StringFormat(
+            "{} just {}. Respond briefly and in character. "
+            "Example style (do not copy): \"{}\"",
+            initiatorName,
+            interactionDesc,
+            seedLine.empty() ? "..." : seedLine);
+
+        std::string dummyEmoteString = FSBChatter::GetDummyEmoteString(category, personalityType);
+
+        targetAI->llamaFallbackAction = [targetBot, initiatorGuid, category]() {
+            Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
+            if (!initiator)
+                return;
+            Creature* initiatorCreature = initiator->ToCreature();
+            if (!initiatorCreature)
+                return;
+            FSBChatter::DemandTargetReply(initiatorCreature, targetBot, category, FSB_ReplyType::Say);
+        };
+
+        targetAI->llamaDeliverAction = [targetBot, dummyEmoteString](std::string const& response) {
+            targetBot->Say(response, LANG_UNIVERSAL);
+            FSBChatter::PlayDummyEmote(targetBot, dummyEmoteString);
+        };
+
+        targetAI->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
+        auto state = targetAI->pendingLlamaState;
+        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched {} for target bot {} (initiator {})", category, targetBot->GetName(), initiatorName);
         std::thread([systemPrompt, userMessage, state]() {
             std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);

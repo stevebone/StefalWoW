@@ -22,8 +22,12 @@
 
 #include "Log.h"
 
+#include "DB2Stores.h"
+
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
+
+#include "AI/Followship_bots_ai_base.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -1722,6 +1726,45 @@ namespace FSBChatter
         if (category == FSB_ChatterCategory::emote_help && type == FSB_ChatterType::None)
             return "emote:help";
         return "";
+    }
+
+    void PlayDummyEmote(Creature* bot, const std::string& dummyEmoteString)
+    {
+        if (!bot || dummyEmoteString.empty())
+            return;
+
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+            return;
+
+        auto botRace = ai->botRace;
+        auto botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+
+        TextEmotes tEmote = TEXT_EMOTE_AGREE;
+        Emote emote = EMOTE_ONESHOT_NONE;
+
+        if (dummyEmoteString == "emote:laugh")
+        {
+            tEmote = TEXT_EMOTE_LAUGH;
+            emote = EMOTE_ONESHOT_LAUGH;
+        }
+        else if (dummyEmoteString == "emote:rudeno")
+        {
+            tEmote = RAND(TEXT_EMOTE_NO, TEXT_EMOTE_RASP);
+            emote = (tEmote == TEXT_EMOTE_NO) ? EMOTE_ONESHOT_NO : EMOTE_ONESHOT_RUDE;
+        }
+        else if (dummyEmoteString == "emote:oom")
+            tEmote = TEXT_EMOTE_OOM;
+        else if (dummyEmoteString == "emote:heal")
+            tEmote = TEXT_EMOTE_HEALME;
+        else if (dummyEmoteString == "emote:help")
+            tEmote = TEXT_EMOTE_HELPME;
+
+        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(tEmote, FSBUtils::BotRaceToTC(botRace), botGender, 0);
+        if (soundInfo)
+            bot->PlayDistanceSound(soundInfo->SoundID);
+
+        bot->HandleEmoteCommand(emote);
     }
 
     void DemandTimedReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType, FSB_ChatterSource chatterSource)

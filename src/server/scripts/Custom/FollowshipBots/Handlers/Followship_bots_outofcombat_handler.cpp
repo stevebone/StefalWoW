@@ -124,6 +124,9 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
+        if (!FollowshipBotsConfig::configFSBUseAFKActions)
+            return false;
+
         //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent", bot->GetName());
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -146,7 +149,8 @@ namespace FSBOOC
         if (check)
         {
             //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: check true, applied cooldown", bot->GetName());
-            botRandomEventCooldown = now + RANDOM_EVENT_INTERVAL; 
+            uint32 interval = std::max(FollowshipBotsConfig::configFSBAFKInterval, MIN_AFK_INTERVAL_MS);
+            botRandomEventCooldown = now + interval;
             return true;
         }
 
@@ -155,7 +159,8 @@ namespace FSBOOC
 
     bool BotOOCActionPlayerAFK(Creature* bot, bool force)
     {
-        if (urand(1, 100) > RANDOM_AFK_EVENT_CHANCE)
+        uint32 afkChance = FollowshipBotsConfig::configFSBAFKChance;
+        if (urand(1, 100) > afkChance)
             return true; // if roll fails we return true so that cooldown is applied to reduce action spam
 
         if (!bot || !bot->IsAlive())
@@ -179,8 +184,9 @@ namespace FSBOOC
 
         uint32 now = getMSTime();
         uint32 ownerNotMovingTime = now - botOwnerNotMoving;
-        
-        bool playerAfk = player->isAFK() || ownerNotMovingTime > RANDOM_EVENT_INTERVAL;
+        uint32 afkInterval = std::max(FollowshipBotsConfig::configFSBAFKInterval, MIN_AFK_INTERVAL_MS);
+
+        bool playerAfk = player->isAFK() || ownerNotMovingTime > afkInterval;
         //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: owner not moving for: {}", bot->GetName(), ownerNotMovingTime);
         if (force)
             playerAfk = true;
@@ -191,11 +197,11 @@ namespace FSBOOC
                 bot->RemoveAurasDueToSpell(SPELL_ROGUE_STEALTH);
 
             //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} detected owner AFK", bot->GetName());
-            isDoingRandomEvent = true;
             uint8 randomAction = urand(0, FSB_AFK_MAX_ACTIONS - 1);
 
             if (BotOOCAFKAction(bot, randomAction))
             {
+                isDoingRandomEvent = true;
                 FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
                 return true;
             }
@@ -498,7 +504,8 @@ namespace FSBOOC
             baseAI->botOwnerNotMovingTimer = now;
 
         // check if we have a fire to go and sit around
-        if (!botSitsByFire && player && (player->isAFK() || (now - botOwnerNotMoving) > RANDOM_EVENT_INTERVAL))
+        uint32 afkInterval = std::max(FollowshipBotsConfig::configFSBAFKInterval, MIN_AFK_INTERVAL_MS);
+        if (!botSitsByFire && player && (player->isAFK() || (now - botOwnerNotMoving) > afkInterval))
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RANDOM_ACTION_MOVE_FIRE, 1s, 3s);
 
         // check if we need to make the bot stand again (after random sit event) and player is no longer afk
@@ -1009,7 +1016,7 @@ namespace FSBOOC
 
             if (!randomUnit->IsPlayer())
                 if (Creature* targetCreature = randomUnit->ToCreature())
-                    FSBChatter::DemandTargetReply(bot, targetCreature, FSB_ChatterCategory::emote_joke, FSB_ReplyType::Say);
+                    FSBLlamaPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_joke);
 
             return true;
         }
@@ -1052,7 +1059,7 @@ namespace FSBOOC
 
             if (!randomUnit->IsPlayer())
                 if (Creature* targetCreature = randomUnit->ToCreature())
-                    FSBChatter::DemandTargetReply(bot, targetCreature, FSB_ChatterCategory::emote_kiss, FSB_ReplyType::Say);
+                    FSBLlamaPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_kiss);
 
             return true;
         }
@@ -1095,7 +1102,7 @@ namespace FSBOOC
 
             if (!randomUnit->IsPlayer())
                 if (Creature* targetCreature = randomUnit->ToCreature())
-                    FSBChatter::DemandTargetReply(bot, targetCreature, FSB_ChatterCategory::emote_flirt, FSB_ReplyType::Say);
+                    FSBLlamaPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_flirt);
 
             return true;
         }

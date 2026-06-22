@@ -33,6 +33,7 @@
 #include "Followship_bots_dungeon_handler.h"
 #include "Dungeons/Followship_bots_dungeon_deadmines.h"
 
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -458,40 +459,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
         if (target->IsPlayer())
             break;
 
-        auto targetAI = dynamic_cast<FSB_BaseAI*>(target->ToCreature()->AI());
-        auto targetRace = targetAI->botRace;
-        auto targetGender = FSBMgr::Get()->GetBotGenderForEntry(target->GetEntry());
-
-        TextEmotes tEmote = TEXT_EMOTE_AGREE;
-        Emote emote = EMOTE_ONESHOT_NONE;
-
-        if (chatterReply == "emote:laugh")
-        {
-            tEmote = TEXT_EMOTE_LAUGH;
-            emote = EMOTE_ONESHOT_LAUGH;
-        }
-        else if (chatterReply == "emote:rudeno")
-        {
-            tEmote = RAND(TEXT_EMOTE_NO, TEXT_EMOTE_RASP);
-            emote = (tEmote == TEXT_EMOTE_NO) ? EMOTE_ONESHOT_NO : EMOTE_ONESHOT_RUDE;
-        }
-        else if (chatterReply == "emote:oom")
-            tEmote = TEXT_EMOTE_OOM;
-        else if (chatterReply == "emote:heal")
-            tEmote = TEXT_EMOTE_HEALME;
-        else if (chatterReply == "emote:help")
-            tEmote = TEXT_EMOTE_HELPME;
-
-        auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(tEmote, FSBUtils::BotRaceToTC(targetRace), targetGender, 0);
-        uint32 soundId = 0;
-        if (soundInfo)
-        {
-            soundId = soundInfo->SoundID;
-        }
-        target->HandleEmoteCommand(emote);
-        if (soundId)
-            target->PlayDistanceSound(soundId);
-        else TC_LOG_WARN("scripts.fsb.events", "FSB: Events AFK Action {}: no sound found for race {}", chatterReply, targetRace);
+        FSBChatter::PlayDummyEmote(target->ToCreature(), chatterReply);
 
         break;
     }

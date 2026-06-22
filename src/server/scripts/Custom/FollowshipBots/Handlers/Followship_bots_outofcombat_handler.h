@@ -20,9 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-constexpr uint32 RANDOM_EVENT_INTERVAL = 120000;
-constexpr uint32 SPAWN_COMPANION_CHANCE = 30;
-constexpr uint32 RANDOM_AFK_EVENT_CHANCE = 10;
+static constexpr int8 SPAWN_COMPANION_CHANCE = 30;
+static constexpr uint32 MIN_AFK_INTERVAL_MS = 30000;
 
 
 enum FSB_AFK_ACTIONS

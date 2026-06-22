@@ -4452,6 +4452,27 @@ Followship.Bots.UseCustomRegen = 1
 # Example values: 1 to enabled, 0 to disable. Default: 0
 Followship.Bots.UseOOCActions = 1
 
+# Use AFK Actions
+#
+# Allows bots to perform random AFK actions (emotes, talk, dance, etc.) when the player is AFK or idle
+# Only works when UseOOCActions is enabled
+# Example values: 1 to enable, 0 to disable. Default: 1
+Followship.Bots.UseAFKActions = 1
+
+# AFK Action Interval
+#
+# Time in milliseconds between AFK action eligibility checks
+# Minimum value is 30000 (30 seconds). Values below this are clamped.
+# Default: 30000
+Followship.Bots.AFKIntervalMs = 30000
+
+# AFK Action Chance
+#
+# Percentage chance (0-100) that an AFK action will trigger when the interval elapses
+# Higher values mean more frequent actions
+# Default: 40
+Followship.Bots.AFKChance = 40
+
 # Use Chat Channels
 #
 # Allows the bots to chat in channels like General, Trade, LocalDefense, LFG

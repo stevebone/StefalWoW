@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 enum FSB_ChatterCategory
 {
     chatter_none,
@@ -87,5 +89,6 @@ namespace FSBChatter
     void DemandBotChatter(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ReplyType replyType = FSB_ReplyType::Say, FSB_ChatterSource chatterSource = FSB_ChatterSource::None, uint32 spellId = 0, uint16 duration = 0);
 
     std::string GetDummyEmoteString(FSB_ChatterCategory category, FSB_ChatterType type);
+    void PlayDummyEmote(Creature* bot, const std::string& dummyEmoteString);
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
 }

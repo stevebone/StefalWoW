@@ -34,8 +34,12 @@ int32 FollowshipBotsConfig::configFSBHireDuration3 = 3;
 
 bool  FollowshipBotsConfig::configFSBUseOOCActions = true;
 bool  FollowshipBotsConfig::configFSBUseICPotions = true;
+bool  FollowshipBotsConfig::configFSBUseAFKActions = true;
 bool  FollowshipBotsConfig::configFSBUseCustomRegen = true;
 bool  FollowshipBotsConfig::configFSBUseChatChannels = true;
+
+uint32 FollowshipBotsConfig::configFSBAFKInterval = 30000;
+uint32 FollowshipBotsConfig::configFSBAFKChance = 40;
 
 uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 uint32 FollowshipBotsConfig::configFSBChatChannelsRate = 10;
@@ -85,6 +89,15 @@ void FollowshipBotsConfig::Load()
 
     configFSBUseOOCActions =
         sConfigMgr->GetBoolDefault("Followship.Bots.UseOOCActions", true);
+
+    configFSBUseAFKActions =
+        sConfigMgr->GetBoolDefault("Followship.Bots.UseAFKActions", true);
+
+    configFSBAFKInterval =
+        sConfigMgr->GetIntDefault("Followship.Bots.AFKIntervalMs", 30000);
+
+    configFSBAFKChance =
+        sConfigMgr->GetIntDefault("Followship.Bots.AFKChance", 40);
 
     configFSBUseICPotions =
         sConfigMgr->GetBoolDefault("Followship.Bots.UseICPotions", true);
