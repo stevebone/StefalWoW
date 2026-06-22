@@ -269,15 +269,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn, TEMPSUMMON_MANUAL_DESPAWN);
         }
 
-        void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override
-        {
-            if (summon->GetEntry() == Creatures::Vapor)
-            {
-                // Centralized vapor death handling.
-                // SummonList cleanup is automatic; add any vapor-specific logic here.
-            }
-        }
-
         void UpdateAI(uint32 diff) override
         {
             // Update events before the UpdateVictim() check so timed events (e.g. the fog reveal)

@@ -82,6 +82,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->SetReactState(REACT_PASSIVE);
 
             DoCastSelf(Spells::WhoIsThat, true);
+            Talk(Texts::CookieSpawnWarning);
         }
 
         void MoveInLineOfSight(Unit* who) override

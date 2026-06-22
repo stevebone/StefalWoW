@@ -235,7 +235,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (Unit* helix = me->GetVehicleKit()->GetPassenger(0))
             {
-                helix->EngageWithTarget(who);
+                if (CreatureAI* ai = helix->ToCreature()->AI())
+                    ai->JustEngagedWith(who);
             }
             int8 randomEvent = RAND(Events::OafCharge0, Events::OafThrowHelix);
 
@@ -467,6 +468,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             _events.Reset();
             summons.DespawnAll();
             me->SetHomePosition(me->GetPosition());
+            _encounterStarted = false;
             if (!_oafDead)
             {
                 me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
@@ -478,12 +480,19 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             BossAI::JustEngagedWith(who);
 
-            Talk(Texts::HelixAggro);
+            if (!_encounterStarted)
+            {
+                Talk(Texts::HelixAggro);
+                _encounterStarted = true;
+            }
 
-            if (me->GetMap()->IsHeroic())
-                _events.RescheduleEvent(Events::HelixSummonCrew, 1s);
+            if (_oafDead)
+            {
+                if (me->GetMap()->IsHeroic())
+                    _events.RescheduleEvent(Events::HelixSummonCrew, 1s);
 
-            _events.RescheduleEvent(Events::HelixThrowBomb, 5s);
+                _events.RescheduleEvent(Events::HelixThrowBomb, 5s);
+            }
         }
 
         void JustReachedHome() override
@@ -491,6 +500,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             BossAI::JustReachedHome();
 
             summons.DespawnAll();
+            _encounterStarted = false;
 
             if (InstanceScript* instance = me->GetInstanceScript())
                 instance->SetBossState(DataTypes::BOSS_HELIX_GEARBREAKER, NOT_STARTED);
@@ -677,6 +687,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         EventMap _events;
         SummonList summons;
         bool _oafDead = false;
+        bool _encounterStarted = false;
     };
 }
 

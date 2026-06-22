@@ -75,8 +75,12 @@ DELETE FROM `creature_template_difficulty` WHERE `entry` IN (47162,48229,48230,5
 48440,48441,48442,48278,48351,47296,47297,48445,47314,48957,48958,43778,47403,48418,48419,48420,48421,47404,49208,49229,48502,48417,48505,
 48447,48450,48522,48521,48448,48449,48451,47626,47714,48266,47739,
 -- Cookie Adds
-48672,47754,48301,48300,48297,48296,48006,48294,48295,48276,48299,48293,48298,48302);
+48672,47754,48301,48300,48297,48296,48006,48294,48295,48276,48299,48293,48298,48302,
+-- Vanessa adds
+49454);
 INSERT INTO `creature_template_difficulty` VALUES
+-- Vanessa Adds (only heroic)
+(49454, 2, 0, 0, 338, 0, 1, 1, 1, 1, 39704, 1024, 0, 0, 0, 0, 0, 0, 0, 0x20000000, 0, 0, 0, 0, 0, 0, 0, 0), -- Trap bunny
 -- Cookie Adds
 (47754, 1, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (47754, 2, 0, 0, 338, 0, 1, 1, 1, 1, 42776, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
@@ -455,6 +459,29 @@ UPDATE `creature_template` SET `ScriptName` = 'boss_admiral_ripsnarl' WHERE `ent
 UPDATE `creature_template` SET `ScriptName` = 'npc_admiral_ripsnarl_vapor' WHERE `entry` = 47714;
 UPDATE `creature_template` SET `ScriptName` = 'boss_captain_cookie' WHERE `entry` = 47739;
 
+-- Vanessa VanCleef Encounter
+UPDATE `creature_template` SET `ScriptName` = 'npc_rope_ship' WHERE `entry` = 49552; -- Rope Anchor
+UPDATE `creature_template` SET `ScriptName` = 'npc_icycle_dm' WHERE `entry` = 49481; -- Collapsing Icicle
+UPDATE `creature_template` SET `ScriptName` = 'npc_note' WHERE `entry` = 49564; -- A Note From Vanessa
+UPDATE `creature_template` SET `ScriptName` = 'npc_magma_pull' WHERE `entry` = 49454; -- Vanessa's Trap Bunny
+UPDATE `creature_template` SET `ScriptName` = 'npc_rope_away' WHERE `entry` = 49550; -- Rope
+UPDATE `creature_template` SET `ScriptName` = 'npc_lightning_orbs' WHERE `entry` = 49520; -- Lightning Platter
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_shadowguard' WHERE `entry` = 49505; -- Defias Shadowguard
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_enforcer' WHERE `entry` = 49502; -- Defias Enforcer
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_envoker' WHERE `entry` = 48418; -- Defias Envoker
+UPDATE `creature_template` SET `ScriptName` = 'npc_defias_bloodwizard' WHERE `entry` = 49854; -- Defias Blood Wizard
+UPDATE `creature_template` SET `ScriptName` = 'npc_oaf_lackey' WHERE `entry` = 48445; -- Oaf Lackey
+UPDATE `creature_template` SET `ScriptName` = 'npc_goblin_overseer' WHERE `entry` = 48279; -- Goblin Overseer
+UPDATE `creature_template` SET `ScriptName` = 'npc_enraged_worgen_dm' WHERE `entry` = 49532; -- Enraged Worgen
+UPDATE `creature_template` SET `ScriptName` = 'npc_james_dm' WHERE `entry` = 49539; -- James Harrington
+UPDATE `creature_template` SET `ScriptName` = 'npc_vanessa_intro' WHERE `entry` = 49429; -- Vanessa VanCleef (intro spawn)
+UPDATE `creature_template` SET `ScriptName` = 'npc_vanessa_nightmare' WHERE `entry` = 49671; -- Vanessa VanCleef (nightmare)
+UPDATE `creature_template` SET `ScriptName` = 'npc_glubtok_dm' WHERE `entry` = 49670; -- Nightmare Glubtok
+UPDATE `creature_template` SET `ScriptName` = 'npc_helix_dm' WHERE `entry` = 49674; -- Nightmare Helix
+UPDATE `creature_template` SET `ScriptName` = 'npc_mechanical_dm' WHERE `entry` = 49681; -- Nightmare Foe Reaper 5000
+UPDATE `creature_template` SET `ScriptName` = 'boss_vanessa_vancleef' WHERE `entry` = 49541; -- Vanessa VanCleef
+UPDATE `creature_template` SET `ScriptName` = 'npc_steam_valve' WHERE `entry` = 49457; -- Steam Valve
+
 -- Spell Conditions
 -- Delete conditions for OgrishMotivationNormal (89652)
 DELETE FROM conditions WHERE SourceTypeOrReferenceId = 13 AND SourceEntry = 89652;
@@ -694,18 +721,69 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
 
 DELETE FROM `creature_text` WHERE `CreatureID` IN (47739);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Sound`, `BroadcastTextID`, `comment`) VALUES 
-(47739, 0, 0, 'A note falls to the floor!', 41, 100, 0, 49658, 'Captain Cookie Note drop in Heroic');
+(47739, 0, 0, 'A shadowy figure appears in the ship''s cabin!', 41, 100, 0, 48276, 'Captain Cookie - Spawn Notification'),
+(47739, 1, 0, 'A note falls to the floor!', 41, 100, 0, 49658, 'Captain Cookie Note drop in Heroic');
+
+-- Vanessa Encounter
+DELETE FROM `creature_text` WHERE `CreatureID` IN (49429, 49541, 49536, 49539, 49454,49671);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Probability`, `Emote`, `Sound`, `BroadcastTextID`, `comment`) VALUES
+-- Vanessa Intro
+(49429, 0, 0, 'You hear a noise from above the cabin door!', 41, 100, 0, 0, 49476, 'Vanessa VanCleef - Spawn Warning'),
+(49429, 1, 0, 'I''ve been waiting a long time for this, you know.', 12, 100, 1, 24613, 49477, 'Vanessa VanCleef - Intro 1'),
+(49429, 2, 0, 'Biding my time, building my forces, studying the minds of my enemies.', 12, 100, 1, 24614, 49478, 'Vanessa VanCleef - Intro 2'),
+(49429, 3, 0, 'I was never very good at hand-to-hand combat, you know.  Not like my father.', 12, 100, 1, 24615, 49479, 'Vanessa VanCleef - Intro 3'),
+(49429, 4, 0, 'But I always excelled at poisons.', 12, 100, 1, 24616, 49480, 'Vanessa VanCleef - Intro 4'),
+(49429, 5, 0, 'Especially venoms that affect the mind.', 12, 100, 1, 24617, 49481, 'Vanessa VanCleef - Intro 5'),
+ 
+ -- Vanessa Nightmare
+ (49671, 0, 0, 'The Nightmare Elixir takes hold!', 41, 100, 0, 0, 49705, 'Vanessa VanCleef - Nightmare Warning'),
+ (49671, 1, 0, 'Poor Glubtok.  When his powers manifested, his own ogre mound was the first to burn.', 12, 100, 1, 24602, 49715, 'Vanessa VanCleef - Nightmare 1'),
+ (49671, 2, 0, 'Deep within his soul, the one thing he feared most of all was...himself.', 12, 100, 1, 24603, 49716, 'Vanessa VanCleef - Nightmare 1'),
+ 
+ -- Vanessa Boss
+(49541, 0, 0, 'I will not share my father''s fate!  Your tale ends here!', 14, 100, 0, 128141, 170621, 'Vanessa VanCleef - Aggro'), -- also text id 49748 with sound 24599
+(49541, 1, 0, 'Did you really think I would come to this fight alone?', 14, 100, 0, 24620, 49750, 'Vanessa VanCleef - Summon Adds'),
+(49541, 2, 0, 'Fools!  This entire ship is rigged with explosives!  Enjoy your fiery deaths!', 14, 100, 0, 24621, 49751, 'Vanessa VanCleef - Bomb at 50 pct'),
+(49541, 3, 0, 'You didn''t honestly think I would only plant ONE set of explosives, did you?', 14, 100, 0, 24622, 50706, 'Vanessa VanCleef - Bomb at 25 pct'),
+(49541, 4, 0, 'The first of many.', 14, 100, 274, 24618, 49749, 'Vanessa VanCleef - Killed target'),
+
+-- (49541, 0, 0, 'ENOUGH!  I will not give you the pleasure!', 14, 100, 274, 24610, 49753, 'Vanessa VanCleef - Defeated 1'),
+-- (49541, 0, 0, 'If I''m going to die, I''m taking you all with me!', 14, 100, 15, 128140, 170622, 'Vanessa VanCleef - Defeated 2'),
+-- (49541, 0, 0, 'MY FATE IS MY OWN!', 14, 100, 397, 24612, 49754, 'Vanessa VanCleef - Defeated 3'),
+
+-- Warnings
+-- (49541, 0, 0, 'Vanessa has detonated charges on the ship!  Get to the ropes at the side of the boat!', 41, 100, 0, 0, 49755, 'Vanessa VanCleef - Warning 1'),
+-- (49541, 0, 0, 'Vanessa is detonating more charges!  Get to the ropes at the side of the boat!', 41, 100, 0, 0, 49756, 'Vanessa VanCleef - Warning 2'),
+-- (49541, 0, 0, 'Vanessa pulls out a final barrel of mining powder and ignites it! RUN!', 41, 100, 0, 0, 49757, 'Vanessa VanCleef - Warning 3'), 
+(49454, 0, 0, 'Vanessa injects you with the Nightmare Elixir!', 41, 100, 0, 0, 49483, 'Vanessa Trap Bunny - Warning 1'),
+(49454, 1, 0, 'Activate the steam valves to free yourself!', 41, 100, 0, 0, 49680, 'Vanessa Trap Bunny - Warning 2'),
+
+-- Harringtons
+(49539, 0, 0, 'Calissa...I am so sorry...', 12, 100, 0, 0, 49761, 'James Harrington - To Calissa Harrington'),
+(49536, 0, 0, 'James...please...I love you...', 12, 100, 0, 0, 49762, 'Calissa Harrington - James Harrington'),
+(49536, 1, 0, 'Calissa is dying!', 16, 100, 0, 0, 49763, 'Calissa Harrington - James Harrington');
 
 -- GO: 207079 Ball and Chain
 UPDATE `gameobject_template` SET `ScriptName` = 'go_ball_and_chain' WHERE `entry` = 207079;
 -- GO: 208002 Goblin Teleporter
 UPDATE `gameobject_template` SET `ScriptName` = 'go_goblin_teleporter' WHERE `entry` = 208002;
 
-DELETE FROM `gossip_menu_option` WHERE `MenuID` = 12691;
+DELETE FROM `creature_template_gossip` WHERE `CreatureID` IN (49564);
+INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
+(49564, 12504, 47936); -- A note from Vanessa
+
+DELETE FROM `gossip_menu` WHERE `MenuID` IN (12504);
+INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES 
+(12504, 1, 0);
+
+
+DELETE FROM `gossip_menu_option` WHERE `MenuID` IN (12691,12504);
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionText`, `OptionBroadcastTextID`, `VerifiedBuild`) VALUES
 (12691, -3248896, 0, 'Press the button labeled \'Wood and Lumber.\'', 50716, 25996),
 (12691, -3248897, 1, 'Press the button labeled \'Metal and Scraps.\'', 50717, 25937),
-(12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996);
+(12691, -3248898, 2, 'Press the button labeled \'Ship Parts.\'', 50718, 25996),
+(12504, 0, 0, 'Continue reading... <Note: This will alert Vanessa to your presence!>', '49641', 0); -- A note from Vanessa
+
 
 SET @CGUID := 900000;
 -- Rare parrots spawns
