@@ -46,7 +46,6 @@ CREATE TABLE `warband_scene_anim_chr_spec` (
 DROP TABLE IF EXISTS `warband_scene_placement_filter_req`;
 CREATE TABLE `warband_scene_placement_filter_req` (
   `ID` int unsigned NOT NULL DEFAULT '0',
-  `Field_11_1_0_58221_000` bigint NOT NULL DEFAULT '0',
   `Field_11_1_0_58221_002` smallint unsigned NOT NULL DEFAULT '0',
   `Field_11_1_0_58221_005` tinyint NOT NULL DEFAULT '0',
   `Field_11_1_0_58221_003_0` int NOT NULL DEFAULT '0',

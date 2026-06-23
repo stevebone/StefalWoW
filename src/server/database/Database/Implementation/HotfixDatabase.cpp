@@ -2264,7 +2264,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_WARBAND_SCENE_ANIM_CHR_SPEC, "SELECT MAX(ID) + 1 FROM warband_scene_anim_chr_spec", CONNECTION_SYNCH);
 
     // WarbandScenePlacementFilterReq.db2
-    PrepareStatement(HOTFIX_SEL_WARBAND_SCENE_PLACEMENT_FILTER_REQ, "SELECT ID, Field_11_1_0_58221_000, Field_11_1_0_58221_002, "
+    PrepareStatement(HOTFIX_SEL_WARBAND_SCENE_PLACEMENT_FILTER_REQ, "SELECT ID, Field_11_1_0_58221_002, "
         "Field_11_1_0_58221_005, Field_11_1_0_58221_003_0, Field_11_1_0_58221_003_1"
         " FROM warband_scene_placement_filter_req WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_WARBAND_SCENE_PLACEMENT_FILTER_REQ, "SELECT MAX(ID) + 1 FROM warband_scene_placement_filter_req", CONNECTION_SYNCH);
