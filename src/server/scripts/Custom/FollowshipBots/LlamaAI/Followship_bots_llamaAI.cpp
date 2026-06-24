@@ -55,6 +55,10 @@ namespace FSBLlamaAI
 
         doc.AddMember("stream", false, allocator);
         doc.AddMember("max_tokens", FollowshipBotsConfig::configFSBLlamaAIMaxTokens, allocator);
+        doc.AddMember("temperature", FollowshipBotsConfig::configFSBLlamaAITemperature, allocator);
+        doc.AddMember("top_p", FollowshipBotsConfig::configFSBLlamaAITopP, allocator);
+        doc.AddMember("frequency_penalty", FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty, allocator);
+        doc.AddMember("presence_penalty", FollowshipBotsConfig::configFSBLlamaAIPresencePenalty, allocator);
 
         rapidjson::Value messages(rapidjson::kArrayType);
 

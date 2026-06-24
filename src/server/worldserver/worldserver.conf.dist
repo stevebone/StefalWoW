@@ -4592,6 +4592,32 @@ Followship.Bots.LlamaAI.TimeoutMs = 5000
 # Default: 50
 Followship.Bots.LlamaAI.MaxTokens = 50
 
+# LlamaAI Temperature
+#
+# Sampling temperature. Higher = more random/creative, lower = more deterministic.
+# Default: 0.9
+Followship.Bots.LlamaAI.Temperature = 0.9
+
+# LlamaAI Top P
+#
+# Nucleus sampling cutoff. Limits token selection to the top probability mass.
+# Default: 0.95
+Followship.Bots.LlamaAI.TopP = 0.95
+
+# LlamaAI Frequency Penalty
+#
+# Penalizes tokens that already appeared, reducing repeated words/phrasings.
+# Higher values strongly discourage reusing the same vocabulary. Range 0.0 - 2.0
+# Default: 0.8
+Followship.Bots.LlamaAI.FrequencyPenalty = 0.8
+
+# LlamaAI Presence Penalty
+#
+# Penalizes tokens that have appeared at all, encouraging new topics/angles.
+# Range 0.0 - 2.0
+# Default: 0.6
+Followship.Bots.LlamaAI.PresencePenalty = 0.6
+
 # Followship Bots Logging
 # These follow the standard Trinity format
 Appender.FSB=2,2,0,FSB.log,w

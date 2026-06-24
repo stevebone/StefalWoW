@@ -60,6 +60,10 @@ std::string FollowshipBotsConfig::configFSBLlamaAIModel = "Qwen3-4B-Q4_K_M.gguf"
 std::string FollowshipBotsConfig::configFSBLlamaAIApiKey = "";
 int32 FollowshipBotsConfig::configFSBLlamaAITimeoutMs = 5000;
 int32 FollowshipBotsConfig::configFSBLlamaAIMaxTokens = 50;
+float FollowshipBotsConfig::configFSBLlamaAITemperature = 0.9f;
+float FollowshipBotsConfig::configFSBLlamaAITopP = 0.95f;
+float FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty = 0.8f;
+float FollowshipBotsConfig::configFSBLlamaAIPresencePenalty = 0.6f;
 
 void FollowshipBotsConfig::Load()
 {
@@ -152,4 +156,16 @@ void FollowshipBotsConfig::Load()
 
     configFSBLlamaAIMaxTokens =
         sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.MaxTokens", 50);
+
+    configFSBLlamaAITemperature =
+        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.Temperature", 0.9f);
+
+    configFSBLlamaAITopP =
+        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.TopP", 0.95f);
+
+    configFSBLlamaAIFrequencyPenalty =
+        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.FrequencyPenalty", 0.8f);
+
+    configFSBLlamaAIPresencePenalty =
+        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.PresencePenalty", 0.6f);
 }

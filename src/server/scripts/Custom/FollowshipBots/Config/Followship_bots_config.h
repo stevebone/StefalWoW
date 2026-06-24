@@ -59,6 +59,10 @@ struct FollowshipBotsConfig
     static std::string configFSBLlamaAIApiKey;
     static int32 configFSBLlamaAITimeoutMs;
     static int32 configFSBLlamaAIMaxTokens;
+    static float configFSBLlamaAITemperature;
+    static float configFSBLlamaAITopP;
+    static float configFSBLlamaAIFrequencyPenalty;
+    static float configFSBLlamaAIPresencePenalty;
 
     static void Load();
 };

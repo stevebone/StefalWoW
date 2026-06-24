@@ -175,7 +175,7 @@ namespace FSBConvPrompts
         return Trinity::StringFormat(
             "You are a character in World of Warcraft named {}.\n"
             "You are a {} {} {} currently in {}.\n"
-            "Your personality is {} - this must shape your tone, word choice, and attitude in every reply.\n\n"
+            "Your personality is {}. This is your defining trait - every reply must clearly sound like a {} person in tone, word choice, and attitude.\n\n"
             "Rules:\n"
             "- Reply in first person, staying fully in the game world.\n"
             "- NEVER refer to yourself as an NPC, bot, AI, or game character.\n"
@@ -187,6 +187,7 @@ namespace FSBConvPrompts
             FSBUtils::BotRaceToString(botRace),
             FSBUtils::BotClassToString(botClass),
             zoneName,
+            FSBUtils::ChatterTypeToString(chatterType),
             FSBUtils::ChatterTypeToString(chatterType),
             zoneName);
     }
@@ -223,12 +224,11 @@ namespace FSBConvPrompts
                 "Topic: {}\n"
                 "So far in this conversation:\n{}\n\n"
                 "{} just said: \"{}\"\n\n"
-                "Your turn. Reply directly to what {} said.\n"
-                "CRITICAL: Do NOT agree, repeat, echo, or reuse ALL their words or phrases from the conversation above.\n"
-                "Do NOT copy their style, their jokes, or their vocabulary. Use your OWN personality.\n"
-                "Continue their story OR ask an unexpected follow-up question OR shift the topic in a new direction but keep the discussion flowing naturally.\n"
-                "CRITICAL: If your reply starts similarly or sounds similar to the previous person, then you failed.\n"
-                "Let your personality show. One sentence, max 20 words.",
+                "Write your reply following these three rules:\n"
+                "1. RESPOND to what {} actually said - react to their specific point, do not ignore it.\n"
+                "2. SOUND like yourself - your own personality and tone, not theirs.\n"
+                "3. START DIFFERENTLY - do not open with the same words, structure, or rhythm as their line. Take a fresh angle: push back, ask something new, or twist the subject.\n"
+                "One sentence, max 20 words.",
                 topicDesc,
                 historyText,
                 lastSpeaker,
