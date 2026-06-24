@@ -749,6 +749,13 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
  (49671, 3, 0, 'You have entered Glubtok''s Nightmare!', 41, 100, 0, 0, 49706, 'Vanessa VanCleef - Glubtok Nightmare Warning'),
  (49671, 4, 0, 'Get back to the ship!', 41, 100, 0, 0, 50703, 'Vanessa VanCleef - Nightmare Get Back To The Ship Warning'),
  (49671, 5, 0, 'The nightmare shifts!', 41, 100, 0, 0, 49707, 'Vanessa VanCleef - Nightmare Shift'),
+ (49671, 6, 0, 'You have entered Helix''s Nightmare!', 41, 100, 0, 0, 49708, 'Vanessa VanCleef - Helix Nightmare Warning'),
+ (49671, 7, 0, 'Most rogues prefer to cloak themselves in the shadows, but not Helix.', 12, 100, 1, 24604, 49723, 'Vanessa VanCleef - Nightmare 2'),
+ (49671, 8, 0, 'You never know what skitters in the darkness.', 12, 100, 1, 24605, 49723, 'Vanessa VanCleef - Nightmare 2'),
+ (49671, 9, 0, 'You have entered the mechanical nightmare!', 41, 100, 0, 0, 49709, 'Vanessa VanCleef - mechanical Nightmare Warning'),
+ (49671, 10, 0, 'Can you imagine the life of a machine?', 12, 100, 1, 24606, 49725, 'Vanessa VanCleef - Nightmare 3'),
+ (49671, 11, 0, 'A simple spark can mean the difference between life...and death.', 12, 100, 1, 24607, 49726, 'Vanessa VanCleef - Nightmare 3'),
+ (49671, 12, 0, 'You have entered Ripsnarl''s nightmare!', 41, 100, 0, 0, 49710, 'Vanessa VanCleef - Ripsnarl Nightmare Warning'),
  
  -- Vanessa Boss
 (49541, 0, 0, 'I will not share my father''s fate!  Your tale ends here!', 14, 100, 0, 128141, 170621, 'Vanessa VanCleef - Aggro'), -- also text id 49748 with sound 24599

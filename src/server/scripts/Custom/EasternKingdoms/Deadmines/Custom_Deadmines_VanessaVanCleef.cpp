@@ -813,6 +813,13 @@ namespace Scripts::EasternKingdoms::Deadmines
                 me->SummonCreature(Creatures::FireBunny, Positions::FieryBlaze[i], TEMPSUMMON_MANUAL_DESPAWN);
         }
 
+        void SummonAllSpiders()
+        {
+            me->SummonCreature(Creatures::MainSpider, Positions::NightmareSpidersSpawn[3], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10s);
+            for (uint8 i = 0; i < 3; ++i)
+                me->SummonCreature(Creatures::NightmareSpider, Positions::NightmareSpidersSpawn[i], TEMPSUMMON_MANUAL_DESPAWN);
+        }
+
         void SetData(uint32 id, uint32 value) override
         {
             if (id == 4)
@@ -880,9 +887,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         }
                         else if (_phase == 1)
                         {
-                            me->SummonCreature(Creatures::NightmareHelix, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
-                            for (uint8 i = 0; i < 4; ++i)
-                                me->SummonCreature(Creatures::NightmareSpider, Positions::NightmareSpidersSpawn[i], TEMPSUMMON_MANUAL_DESPAWN);
+                            SummonAllSpiders();
+                            _events.ScheduleEvent(Events::VanessaVanCleef::NightmareFade, 2s);
                         }
                         else if (_phase == 2)
                             me->SummonCreature(Creatures::NightmareFoeReaper, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
@@ -902,9 +908,19 @@ namespace Scripts::EasternKingdoms::Deadmines
                         }
                         break;
                     case Events::VanessaVanCleef::NightmareFade:
-                        Talk(Texts::VanessaVanCleef::VanessaNightmareGetBackToTheShip);
-                        me->SetVisible(false);
-                        me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                        if (_phase == 0)
+                        {
+                            Talk(Texts::VanessaVanCleef::VanessaNightmareGetBackToTheShip);
+                            me->SetVisible(false);
+                            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                            me->NearTeleportTo(Positions::VanessaNightmare2);
+                        }
+                        else if (_phase == 1)
+                        {
+                            Talk(Texts::VanessaVanCleef::VanessaNightmare2Warning);
+                            me->SetVisible(false);
+                            me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                        }
                         break;
                     case Events::VanessaVanCleef::NightmareShift:
                         Talk(Texts::VanessaVanCleef::VanessaNightmareShift);
@@ -913,12 +929,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                         me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                         _phase = _bossKilled;
                         if (_phase == 1)
-                            _events.ScheduleEvent(Events::VanessaVanCleef::NightmareHelixStart, 5s);
-                        else if (_phase < 4)
+                            me->SummonCreature(Creatures::NightmareHelix, Positions::HelixNightmareSpawn, TEMPSUMMON_MANUAL_DESPAWN);
+                        if (_phase < 4)
                             _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSay1, 1s);
-                        break;
-                    case Events::VanessaVanCleef::NightmareHelixStart:
-                        // TODO: implement Helix nightmare phase
                         break;
                     default:
                         break;
@@ -1039,7 +1052,6 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void JustEngagedWith(Unit* /*who*/) override
         {
-            _events.ScheduleEvent(Events::VanessaVanCleef::Spiders, 5s);
             _events.ScheduleEvent(Events::VanessaVanCleef::SpiritStrike, 8s);
         }
 
@@ -1064,12 +1076,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 switch (eventId)
                 {
-                    case Events::VanessaVanCleef::Spiders:
-                        me->SummonCreature(Creatures::NightmareSpider, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
-                        me->SummonCreature(Creatures::MainSpider, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
-                        me->SummonCreature(Creatures::ChatteringHorror, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
-                        _events.ScheduleEvent(Events::VanessaVanCleef::Spiders, 12s);
-                        break;
                     case Events::VanessaVanCleef::SpiritStrike:
                         DoCastVictim(Spells::VanessaVanCleef::SpiritStrike);
                         _events.ScheduleEvent(Events::VanessaVanCleef::SpiritStrike, 10s);
