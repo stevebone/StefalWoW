@@ -106,4 +106,6 @@ namespace FSBChat
 
     // used for chat initiated on combat
     void StartBotRandomChat(Creature* bot, ChatChannelType channel, Unit* attacker);
+
+    std::string BuildItemLink(uint32 itemId);
 }

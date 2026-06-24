@@ -40,6 +40,7 @@
 #include "Followship_bots_chat_handler.h"
 
 #include "LlamaAI/Followship_bots_llamaAI.h"
+#include "LlamaAI/Followship_bots_channel_prompts.h"
 
 namespace FSBChat
 {
@@ -403,7 +404,7 @@ namespace FSBChat
         return roles.size();
     }
 
-    inline const char* GetColorCode(uint32 quality)
+    const char* GetColorCode(uint32 quality)
     {
         switch (quality)
         {
@@ -418,7 +419,7 @@ namespace FSBChat
         }
     }
 
-    inline std::string BuildItemLink(uint32 itemId)
+    std::string BuildItemLink(uint32 itemId)
     {
         if (!itemId)
             return "";
@@ -523,12 +524,36 @@ namespace FSBChat
         if (!bot)
             return;
 
+        std::string msg;
+
+        // Trade channel: try dynamic AI-generated message first
+        if (channel == ChatChannelType::Trade)
+        {
+            msg = FSBChannelPrompts::GenerateTradeMessage(bot);
+            if (!msg.empty())
+            {
+                BotSendTradeChat(bot, msg);
+                return;
+            }
+        }
+
+        // LFG channel: try dynamic AI-generated message first
+        if (channel == ChatChannelType::LFG)
+        {
+            msg = FSBChannelPrompts::GenerateLFGMessage(bot);
+            if (!msg.empty())
+            {
+                BotSendLFGChat(bot, msg);
+                return;
+            }
+        }
+
         RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
         if (!line)
             return;
 
         // Replace tags before sending
-        std::string msg = line->text;
+        msg = line->text;
 
         if (line->spellId)
             ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
@@ -560,11 +585,35 @@ namespace FSBChat
         if (!bot)
             return;
 
+        std::string msg;
+
+        // Trade channel: try dynamic AI-generated message first
+        if (channel == ChatChannelType::Trade)
+        {
+            msg = FSBChannelPrompts::GenerateTradeMessage(bot);
+            if (!msg.empty())
+            {
+                BotSendTradeChat(bot, msg);
+                return;
+            }
+        }
+
+        // LFG channel: try dynamic AI-generated message first
+        if (channel == ChatChannelType::LFG)
+        {
+            msg = FSBChannelPrompts::GenerateLFGMessage(bot);
+            if (!msg.empty())
+            {
+                BotSendLFGChat(bot, msg);
+                return;
+            }
+        }
+
         RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
         if (!line)
             return;
 
-        std::string msg = line->text;
+        msg = line->text;
 
         if (line->spellId)
             ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
