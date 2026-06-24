@@ -205,6 +205,9 @@ namespace FSBChannelPrompts
         if (!FSBLlamaAI::IsEnabled())
             return "";
 
+        if (!bot)
+            return "";
+
         uint32 itemId = GetRandomTradeItem();
         if (!itemId)
             return "";
@@ -237,28 +240,47 @@ namespace FSBChannelPrompts
         bool isFree = urand(0, 99) < 10;
         std::string intent = isFree ? "giving away for free" : "selling";
 
+        // Bot location
+        std::string areaName = "around here";
+        if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(bot->GetAreaId()))
+            if (area->ZoneName && area->ZoneName[0])
+                areaName = area->ZoneName;
+
+        // Pick 2 random examples from the correct intent pool
+        std::vector<std::string> const& pool = isFree ? TradeFreeExamples : TradeSellingExamples;
+        std::string example1 = Trinity::Containers::SelectRandomContainerElement(pool);
+        std::string example2 = Trinity::Containers::SelectRandomContainerElement(pool);
+        while (example2 == example1 && pool.size() > 1)
+            example2 = Trinity::Containers::SelectRandomContainerElement(pool);
+
         // Build prompts
         std::string systemPrompt =
             "You are a World of Warcraft player typing a short message in the Trade chat channel. "
             "Write exactly ONE short sentence (5 to 12 words). Be natural and varied. "
-            "Use the exact placeholder [ITEM] where the item should appear in your sentence. "
+            "Use the exact placeholder [ITEM] where the item should appear. "
+            "You may mention your current location for flavor. "
             "Do NOT add quotation marks. Do NOT explain yourself. "
-            "Tone examples (for reference only, do not copy verbatim): WTS, WTT, Selling, For sale, "
-            "Anyone need, Clearing out, Giving away, Freebie.";
+            "Examples (for reference only, do not copy verbatim): " +
+            example1 + ", " + example2 + ".";
 
         std::string userPrompt = "Item name: " + itemName + "\n";
         if (!quantityStr.empty())
             userPrompt += "Quantity: " + quantityStr + "\n";
-        userPrompt += "Intent: " + intent;
+        userPrompt += "Intent: " + intent + "\n";
+        userPrompt += "Your location: " + areaName;
 
         std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
         if (aiResponse.empty())
             return "";
 
-        // Replace placeholder with actual item link
+        // Replace placeholders
         size_t pos = aiResponse.find("[ITEM]");
         if (pos != std::string::npos)
             aiResponse.replace(pos, 6, itemLink);
+
+        pos = aiResponse.find("[LOCATION]");
+        if (pos != std::string::npos)
+            aiResponse.replace(pos, 10, areaName);
 
         TC_LOG_DEBUG("scripts.fsb.chatter", "FSB TradeMessage (AI): {}", aiResponse);
         return aiResponse;
@@ -287,14 +309,29 @@ namespace FSBChannelPrompts
 
         std::string typeStr = dungeon->isRaid ? "Raid" : "Dungeon";
 
+        // Pick 2 random examples from the appropriate pool
+        std::vector<std::string> const& pool = dungeon->isRaid ? LFGRaidExamples : LFGDungeonExamples;
+        std::string example1 = Trinity::Containers::SelectRandomContainerElement(pool);
+        std::string example2 = Trinity::Containers::SelectRandomContainerElement(pool);
+        while (example2 == example1 && pool.size() > 1)
+            example2 = Trinity::Containers::SelectRandomContainerElement(pool);
+
+        // Replace [CLASS] in examples with actual class
+        size_t classPos = example1.find("[CLASS]");
+        if (classPos != std::string::npos)
+            example1.replace(classPos, 7, classStr);
+        classPos = example2.find("[CLASS]");
+        if (classPos != std::string::npos)
+            example2.replace(classPos, 7, classStr);
+
         // Build prompts
         std::string systemPrompt =
             "You are a World of Warcraft player typing a short message in the Looking For Group chat channel. "
             "Write exactly ONE short sentence (5 to 12 words). Be natural and varied. "
             "Use the exact placeholder [DUNGEON] where the dungeon/raid name should appear. "
             "Do NOT add quotation marks. Do NOT explain yourself. "
-            "Tone examples (for reference only, do not copy verbatim): LFM, LFG, LFR, "
-            "Need group for, Forming group for, Anyone up for, Running, Looking for more for.";
+            "Examples (for reference only, do not copy verbatim): " +
+            example1 + ", " + example2 + ".";
 
         std::string userPrompt =
             "Dungeon: " + dungeon->name + "\n"
