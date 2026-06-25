@@ -26,9 +26,11 @@
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "Unit.h"
+#include "Channel.h"
 
 #include "Followship_bots_db.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_chat_handler.h"
 #include "Followship_bots.h"
 #include "Followship_bots_priest.h"
 #include "Followship_bots_party_handler.h"
@@ -56,6 +58,17 @@ public:
     {
         TC_LOG_DEBUG("scripts.fsb.player", "FSB: OnPhaseChange called for player {}", player->GetName());
         FSBMgr::Get()->SyncBotPhasingWithOwner(player);
+    }
+
+    void OnChat(Player* player, uint32 /*type*/, uint32 /*lang*/, std::string& msg, Channel* channel) override
+    {
+        if (!player || !channel)
+            return;
+
+        if (channel->GetChannelId() != 1)
+            return;
+
+        FSBChatMgr::Get()->HandlePlayerGeneralChat(player, channel, msg);
     }
 
     void OnPlayerDeath(Player* player) override

@@ -23,6 +23,7 @@
 #include "ObjectGuid.h"
 #include <ctime>
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
 
 class Player;
@@ -223,6 +224,11 @@ class TC_GAME_API Channel
 
         //FSB
         void SendBotMessage(Creature* sender, std::string const& msg);
+        void JoinBot(Creature* bot);
+        void LeaveBot(Creature* bot);
+        void BotSay(Creature* bot, std::string const& msg);
+        bool IsBotOn(ObjectGuid const& guid) const { return _botsStore.find(guid) != _botsStore.end(); }
+        std::unordered_map<ObjectGuid, Creature*> const& GetBots() const { return _botsStore; }
 
     private:
         template <class Builder>
@@ -251,6 +257,7 @@ class TC_GAME_API Channel
 
         typedef std::map<ObjectGuid, PlayerInfo> PlayerContainer;
         typedef GuidUnorderedSet BannedContainer;
+        typedef std::unordered_map<ObjectGuid, Creature*> BotContainer;
 
         bool _isDirty; // whether the channel needs to be saved to DB
         time_t _nextActivityUpdateTime;
@@ -268,6 +275,7 @@ class TC_GAME_API Channel
         std::string _channelPassword;
         PlayerContainer _playersStore;
         BannedContainer _bannedStore;
+        BotContainer _botsStore;
 
         AreaTableEntry const* _zoneEntry;
 };

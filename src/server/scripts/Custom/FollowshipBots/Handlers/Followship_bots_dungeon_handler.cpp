@@ -49,11 +49,6 @@ using namespace FSBGroup;
 
 namespace DM = Scripts::EasternKingdoms::Deadmines;
 
-FSB_BaseAI::~FSB_BaseAI()
-{
-    delete botDungeonData;
-}
-
 FSB_DungeonData* FSB_BaseAI::GetDungeonData()
 {
     if (!botDungeonData)

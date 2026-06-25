@@ -24,6 +24,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <deque>
 #include <functional>
 #include <mutex>
 #include <queue>
@@ -35,9 +36,12 @@
 #include "Unit.h"
 
 #include "Followship_bots_defines.h"
+#include "Followship_bots_config.h"
 
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
+
+#include "LlamaAI/Followship_bots_chat_memory.h"
 
 struct FSB_ClassStats;
 struct FSB_DungeonData;
@@ -135,6 +139,7 @@ public:
     uint32 botPetSpellsTimer;
     int64 botChatChannelsTimer;
     uint32 DungeonID = 0;
+    uint32 _lastChannelZoneId = 0;
 
     Position botCorpsePos;
 
@@ -182,6 +187,11 @@ public:
     std::shared_ptr<LlamaRequestState> pendingLlamaState;
     std::function<void()> llamaFallbackAction;
     std::function<void(std::string const&)> llamaDeliverAction;
+
+    std::deque<BotChatMemoryEntry> botChatMemory;
+
+    void AddChatMemory(uint32 channelId, std::string const& sender, std::string const& msg, bool isPlayer);
+    std::deque<BotChatMemoryEntry> const& GetChatMemory() const;
 
     void PollPendingLlamaResponse()
     {

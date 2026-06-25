@@ -34,6 +34,8 @@
 #include "World.h"
 #include "WorldSession.h"
 
+BotWhisperCallback g_BotWhisperCallback = nullptr;
+
 Player* ChatHandler::GetPlayer() const { return m_session ? m_session->GetPlayer() : nullptr; }
 
 char* ChatHandler::LineFromMessage(char*& pos)

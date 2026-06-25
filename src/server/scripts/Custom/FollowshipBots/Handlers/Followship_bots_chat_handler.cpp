@@ -39,8 +39,371 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_chat_handler.h"
 
+#include "AI/Followship_bots_ai_base.h"
+#include "Followship_bots_config.h"
+
 #include "LlamaAI/Followship_bots_llamaAI.h"
 #include "LlamaAI/Followship_bots_channel_prompts.h"
+
+#include "ObjectAccessor.h"
+
+// ------------------------------------------------------------------
+// FSBChatMgr singleton
+// ------------------------------------------------------------------
+
+FSBChatMgr* FSBChatMgr::Get()
+{
+    static FSBChatMgr instance;
+    return &instance;
+}
+
+void FSBChatMgr::RegisterActiveBot(Creature* bot)
+{
+    if (!bot)
+        return;
+    _activeBots[bot->GetGUID().GetCounter()] = bot;
+}
+
+void FSBChatMgr::UnregisterActiveBot(Creature* bot)
+{
+    if (!bot)
+        return;
+    _activeBots.erase(bot->GetGUID().GetCounter());
+}
+
+std::vector<Creature*> FSBChatMgr::GetActiveBots()
+{
+    std::vector<Creature*> result;
+    result.reserve(_activeBots.size());
+
+    for (auto it = _activeBots.begin(); it != _activeBots.end();)
+    {
+        Creature* bot = it->second;
+        if (!bot || !bot->IsInWorld())
+        {
+            it = _activeBots.erase(it);
+            continue;
+        }
+        result.push_back(bot);
+        ++it;
+    }
+
+    return result;
+}
+
+std::string FSBChatMgr::SanitizeBotName(std::string const& name)
+{
+    std::string result;
+    result.reserve(name.length());
+    for (char c : name)
+    {
+        if (c == ' ' || c == '-' || c == '\'')
+            continue;
+        result += c;
+    }
+    return result;
+}
+
+Creature* FSBChatMgr::FindActiveBotByName(std::string const& name) const
+{
+    // Exact match first
+    for (auto const& pair : _activeBots)
+    {
+        Creature* bot = pair.second;
+        if (bot && bot->IsInWorld() && bot->GetName() == name)
+            return bot;
+    }
+
+    // Fall back to sanitized name match (case-insensitive)
+    std::string searchSanitized = SanitizeBotName(name);
+    if (searchSanitized.empty())
+        return nullptr;
+
+    std::wstring searchWide;
+    if (!Utf8toWStr(searchSanitized, searchWide))
+        return nullptr;
+    wstrToLower(searchWide);
+
+    for (auto const& pair : _activeBots)
+    {
+        Creature* bot = pair.second;
+        if (!bot || !bot->IsInWorld())
+            continue;
+
+        std::string botSanitized = SanitizeBotName(bot->GetName());
+        std::wstring botWide;
+        if (!Utf8toWStr(botSanitized, botWide))
+            continue;
+        wstrToLower(botWide);
+
+        if (botWide == searchWide)
+            return bot;
+    }
+    return nullptr;
+}
+
+Creature* FSBChatMgr::FindActiveBotByGuid(ObjectGuid guid) const
+{
+    auto it = _activeBots.find(guid.GetCounter());
+    if (it != _activeBots.end())
+    {
+        Creature* bot = it->second;
+        if (bot && bot->IsInWorld())
+            return bot;
+    }
+    return nullptr;
+}
+
+void FSBChatMgr::JoinBotChannels(Creature* bot)
+{
+    if (!bot || !bot->IsBot())
+        return;
+
+    FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+    if (!ai || ai->botHired)
+        return;
+
+    Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+    ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
+    if (!mgr)
+        return;
+
+    uint32 zoneId = bot->GetZoneId();
+    AreaTableEntry const* zone = sAreaTableStore.LookupEntry(zoneId);
+    if (!zone)
+        return;
+
+    bool anyJoined = false;
+    if (Channel* general = mgr->GetChannel(1, "", nullptr, false, zone))
+    {
+        general->JoinBot(bot);
+        anyJoined = true;
+    }
+
+    if (Channel* trade = mgr->GetChannel(2, "", nullptr, false, zone))
+    {
+        trade->JoinBot(bot);
+        anyJoined = true;
+    }
+
+    if (Channel* localDef = mgr->GetChannel(22, "", nullptr, false, zone))
+    {
+        localDef->JoinBot(bot);
+        anyJoined = true;
+    }
+
+    if (Channel* lfg = mgr->GetChannel(26, "", nullptr, false, zone))
+    {
+        lfg->JoinBot(bot);
+        anyJoined = true;
+    }
+
+    if (anyJoined)
+        ai->_lastChannelZoneId = zoneId;
+}
+
+void FSBChatMgr::LeaveBotChannels(Creature* bot)
+{
+    if (!bot || !bot->IsBot())
+        return;
+
+    Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+    ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
+    if (!mgr)
+        return;
+
+    uint32 zoneId = bot->GetZoneId();
+    AreaTableEntry const* zone = sAreaTableStore.LookupEntry(zoneId);
+    if (!zone)
+        return;
+
+    if (Channel* general = mgr->GetChannel(1, "", nullptr, false, zone))
+        general->LeaveBot(bot);
+
+    if (Channel* trade = mgr->GetChannel(2, "", nullptr, false, zone))
+        trade->LeaveBot(bot);
+
+    if (Channel* localDef = mgr->GetChannel(22, "", nullptr, false, zone))
+        localDef->LeaveBot(bot);
+
+    if (Channel* lfg = mgr->GetChannel(26, "", nullptr, false, zone))
+        lfg->LeaveBot(bot);
+}
+
+void FSBChatMgr::UpdateBotChannels(Creature* bot)
+{
+    if (!bot || !bot->IsBot())
+        return;
+
+    FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+    if (!ai || ai->botHired)
+        return;
+
+    uint32 currentZone = bot->GetZoneId();
+    if (ai->_lastChannelZoneId == currentZone)
+        return;
+
+    LeaveBotChannels(bot);
+    JoinBotChannels(bot);
+}
+
+void FSBChatMgr::HandlePlayerGeneralChat(Player* player, Channel* channel, std::string const& msg)
+{
+    if (!FollowshipBotsConfig::configFSBGeneralReplyEnabled)
+        return;
+
+    if (!player || !channel || msg.empty())
+        return;
+
+    if (channel->GetChannelId() != 1)
+        return;
+
+    // First pass: add message to all bot memories
+    for (auto const& botEntry : channel->GetBots())
+    {
+        Creature* bot = botEntry.second;
+        if (!bot)
+            continue;
+
+        FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+            continue;
+
+        ai->AddChatMemory(1, player->GetName(), msg, true);
+    }
+
+    // Second pass: each eligible bot rolls independently
+    uint32 now = getMSTime();
+    uint32 cooldownMs = FollowshipBotsConfig::configFSBGeneralReplyCooldownMs;
+    uint32 chance = FollowshipBotsConfig::configFSBGeneralReplyChance;
+    if (chance > 100)
+        chance = 100;
+
+    for (auto const& botEntry : channel->GetBots())
+    {
+        Creature* bot = botEntry.second;
+        if (!bot || !bot->IsInWorld() || !bot->IsAlive())
+            continue;
+
+        if (FSBMgr::Get()->IsBotOwned(bot))
+            continue;
+
+        // Check cooldown
+        ObjectGuid::LowType botGuidLow = bot->GetGUID().GetCounter();
+        auto cdIt = _botReplyCooldowns.find(botGuidLow);
+        if (cdIt != _botReplyCooldowns.end())
+            if (now < cdIt->second + cooldownMs)
+                continue;
+
+        // Roll for reply
+        uint32 roll = urand(0, 99);
+        if (roll >= chance)
+            continue;
+
+        FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+            continue;
+
+        std::string reply = FSBChannelPrompts::GenerateReplyToPlayer(bot, player, msg, ai->GetChatMemory());
+        if (!reply.empty())
+        {
+            PendingBotReply pending;
+            pending.botGuid = bot->GetGUID();
+            pending.channelId = channel->GetChannelId();
+            pending.zoneId = bot->GetZoneId();
+            pending.reply = std::move(reply);
+            pending.sendTime = now + urand(3000, 5000);
+            _pendingReplies.push_back(std::move(pending));
+        }
+
+        _botReplyCooldowns[bot->GetGUID().GetCounter()] = now;
+    }
+}
+
+void FSBChatMgr::HandleBotWhisper(Player* player, Creature* bot, std::string const& msg)
+{
+    if (!player || !bot || msg.empty())
+        return;
+
+    // Send whisper inform so sender sees "To BotName: msg"
+    WorldPackets::Chat::Chat informPacket;
+    informPacket.Initialize(CHAT_MSG_WHISPER_INFORM, LANG_UNIVERSAL, bot, bot, msg);
+    player->SendDirectMessage(informPacket.Write());
+
+    // Add to bot memory
+    if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        ai->AddChatMemory(0, player->GetName(), msg, true);
+
+    // Generate whisper reply
+    if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+    {
+        std::string reply = FSBChannelPrompts::GenerateReplyToPlayer(bot, player, msg, ai->GetChatMemory());
+        if (!reply.empty())
+        {
+            PendingBotReply pending;
+            pending.botGuid = bot->GetGUID();
+            pending.targetPlayerGuid = player->GetGUID();
+            pending.reply = std::move(reply);
+            pending.sendTime = getMSTime() + urand(2000, 4000);
+            _pendingReplies.push_back(std::move(pending));
+        }
+    }
+}
+
+void FSBChatMgr::Update(uint32 /*diff*/)
+{
+    uint32 now = getMSTime();
+
+    for (auto it = _pendingReplies.begin(); it != _pendingReplies.end();)
+    {
+        if (now < it->sendTime)
+        {
+            ++it;
+            continue;
+        }
+
+        Creature* bot = nullptr;
+        auto botIt = _activeBots.find(it->botGuid.GetCounter());
+        if (botIt != _activeBots.end())
+            bot = botIt->second;
+
+        if (bot && bot->IsInWorld())
+        {
+            if (it->channelId)
+            {
+                Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+                ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
+                AreaTableEntry const* zone = sAreaTableStore.LookupEntry(it->zoneId);
+                if (Channel* channel = mgr ? mgr->GetSystemChannel(it->channelId, zone) : nullptr)
+                {
+                    if (channel->IsBotOn(bot->GetGUID()))
+                    {
+                        channel->BotSay(bot, it->reply);
+
+                        // Add reply to ALL bots in the channel so everyone "hears" it
+                        for (auto const& botEntry : channel->GetBots())
+                        {
+                            if (Creature* listener = botEntry.second)
+                                if (FSB_BaseAI* listenerAI = dynamic_cast<FSB_BaseAI*>(listener->AI()))
+                                    listenerAI->AddChatMemory(1, bot->GetName(), it->reply, false);
+                        }
+                    }
+                }
+            }
+            else if (!it->targetPlayerGuid.IsEmpty())
+            {
+                if (Player* player = ObjectAccessor::FindPlayer(it->targetPlayerGuid))
+                {
+                    WorldPackets::Chat::Chat packet;
+                    packet.Initialize(CHAT_MSG_WHISPER, LANG_UNIVERSAL, bot, bot, it->reply);
+                    player->SendDirectMessage(packet.Write());
+                }
+            }
+        }
+
+        it = _pendingReplies.erase(it);
+    }
+}
 
 namespace FSBChat
 {
@@ -419,7 +782,7 @@ namespace FSBChat
         }
     }
 
-    std::string BuildItemLink(uint32 itemId)
+    std::string BuildItemLink(uint32 itemId, uint32 level /*= 0*/)
     {
         if (!itemId)
             return "";
@@ -435,7 +798,7 @@ namespace FSBChat
 
         std::ostringstream ss;
         ss << qualityTag
-            << "|Hitem:" << itemId << ":0:0:0:0:0:0:0:0|h["
+            << "|Hitem:" << itemId << ":0:0:0:0:0:0:0:" << level << ":0:0:0:0:0|h["
             << name << "]|h|r";
 
         return ss.str();
@@ -570,10 +933,10 @@ namespace FSBChat
             ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
 
         if (line->itemId)
-            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId));
+            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId, bot->GetLevel()));
 
         ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
-        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
+        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems), bot->GetLevel()));
 
         Unit* target = bot->GetVictim();
         if (target && target->IsAlive())
@@ -641,10 +1004,10 @@ namespace FSBChat
             ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
 
         if (line->itemId)
-            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId));
+            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId, bot->GetLevel()));
 
         ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
-        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems)));
+        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems), bot->GetLevel()));
 
         // Prefer attacker if provided
         if (attacker && attacker->IsAlive())

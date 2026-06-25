@@ -20,10 +20,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Chat.h"
 #include "Log.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
+#include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "SpellInfo.h"
@@ -140,6 +142,8 @@ public:
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
             TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
+            FSBChatMgr::Get()->RegisterActiveBot(me);
+            FSBChatMgr::Get()->JoinBotChannels(me);
         }
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
@@ -473,6 +477,8 @@ public:
         void JustDied(Unit* killer) override // Runs once when creature dies
         {
             botCorpsePos = me->GetPosition();
+            FSBChatMgr::Get()->UnregisterActiveBot(me);
+            FSBChatMgr::Get()->LeaveBotChannels(me);
             FSBDeath::HandlerJustDied(me, killer);
         }
 
@@ -609,6 +615,8 @@ public:
                     FSBParty::PeriodicPartyNeededCheck(me);
 
                     FSBDungeon::CheckDungeonHandlingNeeded(me);
+
+                    FSBChatMgr::Get()->UpdateBotChannels(me);
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 

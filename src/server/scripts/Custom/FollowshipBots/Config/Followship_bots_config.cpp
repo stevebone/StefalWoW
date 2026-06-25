@@ -45,6 +45,11 @@ uint32 FollowshipBotsConfig::configFSBChatterRate = 10;
 uint32 FollowshipBotsConfig::configFSBChatChannelsRate = 10;
 int64 FollowshipBotsConfig::configFSBChatChannelsInterval = 10000;
 
+bool FollowshipBotsConfig::configFSBGeneralReplyEnabled = true;
+uint32 FollowshipBotsConfig::configFSBGeneralReplyChance = 10;
+uint32 FollowshipBotsConfig::configFSBGeneralReplyCooldownMs = 30000;
+uint32 FollowshipBotsConfig::configFSBBotChatMemorySize = 10;
+
 float FollowshipBotsConfig::configFSBHealthRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRate = 1.f;
 float FollowshipBotsConfig::configFSBDamageRate = 1.f;
@@ -114,6 +119,18 @@ void FollowshipBotsConfig::Load()
 
     configFSBChatChannelsRate =
         sConfigMgr->GetIntDefault("Followship.Bots.ChatChannelsRate", 10);
+
+    configFSBGeneralReplyEnabled =
+        sConfigMgr->GetBoolDefault("Followship.Bots.GeneralReplyEnabled", true);
+
+    configFSBGeneralReplyChance =
+        sConfigMgr->GetIntDefault("Followship.Bots.GeneralReplyChance", 10);
+
+    configFSBGeneralReplyCooldownMs =
+        sConfigMgr->GetIntDefault("Followship.Bots.GeneralReplyCooldownMs", 30000);
+
+    configFSBBotChatMemorySize =
+        sConfigMgr->GetIntDefault("Followship.Bots.ChatMemorySize", 10);
 
     configFSBArmorRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.ArmorRate", 0.4f);

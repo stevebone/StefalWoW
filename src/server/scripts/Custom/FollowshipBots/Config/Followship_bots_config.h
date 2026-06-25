@@ -44,6 +44,11 @@ struct FollowshipBotsConfig
     static uint32 configFSBChatChannelsRate;
     static int64 configFSBChatChannelsInterval;
 
+    static bool configFSBGeneralReplyEnabled;
+    static uint32 configFSBGeneralReplyChance;
+    static uint32 configFSBGeneralReplyCooldownMs;
+    static uint32 configFSBBotChatMemorySize;
+
     static float configFSBHealthRate;
     static float configFSBPowerRate;
     static float configFSBArmorRate;

@@ -22,10 +22,14 @@
 
 #pragma once
 
+#include <deque>
 #include <string>
 #include <vector>
 
 class Creature;
+class Player;
+
+#include "LlamaAI/Followship_bots_chat_memory.h"
 
 namespace FSBChannelPrompts
 {
@@ -43,6 +47,20 @@ namespace FSBChannelPrompts
         "[ITEM] available, first come first serve",
         "WTT [ITEM] for something cool",
         "Clearing out [ITEM]"
+    };
+
+    inline const std::vector<std::string> TradeBuyingExamples =
+    {
+        "WTB [ITEM] PST",
+        "Wanna buy [ITEM]",
+        "Need [ITEM] ASAP",
+        "Anyone have [ITEM]?",
+        "Anyone selling [ITEM]?",
+        "Buying [ITEM] hit me up",
+        "Looking for [ITEM]",
+        "LF [ITEM] will pay well",
+        "Need [ITEM] send price",
+        "WTB [ITEM] in [LOCATION]"
     };
 
     inline const std::vector<std::string> TradeFreeExamples =
@@ -190,4 +208,5 @@ namespace FSBChannelPrompts
     std::string GenerateTradeMessage(Creature* bot);
     std::string GenerateLFGMessage(Creature* bot);
     std::string GenerateGeneralMessage(Creature* bot);
+    std::string GenerateReplyToPlayer(Creature* bot, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory);
 }

@@ -178,4 +178,7 @@ class TC_GAME_API AddonChannelCommandHandler : public ChatHandler
         bool humanReadable = false;
 };
 
+typedef void(*BotWhisperCallback)(Player* sender, std::string const& targetName, std::string const& msg);
+TC_GAME_API extern BotWhisperCallback g_BotWhisperCallback;
+
 #endif

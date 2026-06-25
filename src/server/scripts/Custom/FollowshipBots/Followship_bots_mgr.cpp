@@ -25,13 +25,15 @@
 #include "Map.h"
 #include "PhasingHandler.h"
 #include "TemporarySummon.h"
+#include "DB2Stores.h"
+#include <random>
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
+#include "Config/Followship_bots_config.h"
 
 #include "Followship_bots_events_handler.h"
-#include "Followship_bots_chatter_handler.h"
 
 #include "LlamaAI/Followship_bots_chatter_prompts.h"
 

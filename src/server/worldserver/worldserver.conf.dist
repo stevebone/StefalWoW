@@ -4503,6 +4503,33 @@ Followship.Bots.ChatChannelsInterval = 10000
 # Values 1-100; Default: 10
 Followship.Bots.ChatChannelsRate = 100
 
+# General Reply Enabled
+#
+# Allows bots to reply to player messages in General chat channels
+# When disabled, bots will not respond to general chat
+# Example values: 1 to enable, 0 to disable. Default: 1
+Followship.Bots.GeneralReplyEnabled = 1
+
+# General Reply Chance
+#
+# Percentage chance (0-100) that a bot will reply to a player message
+# Higher values mean more frequent replies
+# Values 0-100; Default: 10
+Followship.Bots.GeneralReplyChance = 10
+
+# General Reply Cooldown
+#
+# Minimum time in milliseconds between bot replies to prevent spam
+# Default: 30000
+Followship.Bots.GeneralReplyCooldownMs = 30000
+
+# Bot Chat Memory Size
+#
+# Number of recent chat messages a bot remembers for context-aware replies
+# Higher values mean bots remember more conversation history
+# Values 1-50; Default: 10
+Followship.Bots.ChatMemorySize = 10
+
 # Use In Combat Mana & Health Potions
 #
 # Allows the bots to use 1 mana potion and or 1 health potion per combat session

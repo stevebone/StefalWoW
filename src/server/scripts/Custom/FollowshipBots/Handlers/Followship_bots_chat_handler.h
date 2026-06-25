@@ -22,9 +22,56 @@
 
 #pragma once
 
+#include <map>
+#include <unordered_map>
+#include <vector>
+#include "ObjectGuid.h"
 #include "LlamaAI/Followship_bots_conversation_prompts.h"
 
+class Channel;
 class Creature;
+class Player;
+
+struct PendingBotReply
+{
+    ObjectGuid botGuid;
+    uint32 channelId = 0;
+    uint32 zoneId = 0;
+    ObjectGuid targetPlayerGuid;
+    std::string reply;
+    uint32 sendTime = 0;
+};
+
+class FSBChatMgr
+{
+public:
+    static FSBChatMgr* Get();
+
+    // Active bot registry for /who and whisper routing
+    void RegisterActiveBot(Creature* bot);
+    void UnregisterActiveBot(Creature* bot);
+    std::vector<Creature*> GetActiveBots();
+    Creature* FindActiveBotByName(std::string const& name) const;
+    Creature* FindActiveBotByGuid(ObjectGuid guid) const;
+    static std::string SanitizeBotName(std::string const& name);
+
+    // Bot channel membership
+    void JoinBotChannels(Creature* bot);
+    void LeaveBotChannels(Creature* bot);
+    void UpdateBotChannels(Creature* bot);
+
+    // Player chat reply handler
+    void HandlePlayerGeneralChat(Player* player, Channel* channel, std::string const& msg);
+    void HandleBotWhisper(Player* player, Creature* bot, std::string const& msg);
+
+    // Global update (called from WorldScript::OnUpdate)
+    void Update(uint32 diff);
+
+private:
+    std::unordered_map<ObjectGuid::LowType, Creature*> _activeBots;
+    std::unordered_map<ObjectGuid::LowType, uint32> _botReplyCooldowns;
+    std::vector<PendingBotReply> _pendingReplies;
+};
 
 namespace FSBChat
 {
@@ -107,5 +154,5 @@ namespace FSBChat
     // used for chat initiated on combat
     void StartBotRandomChat(Creature* bot, ChatChannelType channel, Unit* attacker);
 
-    std::string BuildItemLink(uint32 itemId);
+    std::string BuildItemLink(uint32 itemId, uint32 level = 0);
 }

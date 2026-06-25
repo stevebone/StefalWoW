@@ -213,7 +213,22 @@ void WorldSession::HandleWhoOpcode(WorldPackets::Who::WhoRequestPkt& whoRequest)
         }
 
         WorldPackets::Who::WhoEntry whoEntry;
-        if (!whoEntry.PlayerData.Initialize(target.GetGuid(), nullptr))
+        bool initOk = false;
+        if (target.GetGuid().IsCreature())
+        {
+            whoEntry.PlayerData.Name = target.GetPlayerName();
+            whoEntry.PlayerData.Race = target.GetRace();
+            whoEntry.PlayerData.Sex = target.GetGender();
+            whoEntry.PlayerData.ClassID = target.GetClass();
+            whoEntry.PlayerData.Level = target.GetLevel();
+            whoEntry.PlayerData.VirtualRealmAddress = GetVirtualRealmAddress();
+            whoEntry.PlayerData.GuidActual = target.GetGuid();
+            initOk = true;
+        }
+        else
+            initOk = whoEntry.PlayerData.Initialize(target.GetGuid(), nullptr);
+
+        if (!initOk)
             continue;
 
         if (!target.GetGuildGuid().IsEmpty())

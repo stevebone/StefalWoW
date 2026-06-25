@@ -90,9 +90,9 @@ namespace FSBChannelPrompts
     // ------------------------------------------------------------------
     struct LFGDungeonEntry
     {
-        uint32 id;
+        uint32 id = 0;
         std::string name;
-        bool isRaid;
+        bool isRaid = false;
     };
 
     struct LFGCache
@@ -212,7 +212,7 @@ namespace FSBChannelPrompts
         if (!itemId)
             return "";
 
-        std::string itemLink = FSBChat::BuildItemLink(itemId);
+        std::string itemLink = FSBChat::BuildItemLink(itemId, bot->GetLevel());
         if (itemLink.empty())
             return "";
 
@@ -236,9 +236,26 @@ namespace FSBChannelPrompts
             quantityStr = std::to_string(quantity);
         }
 
-        // 10% chance for "free" intent
-        bool isFree = urand(0, 99) < 10;
-        std::string intent = isFree ? "giving away for free" : "selling";
+        // Intent: 45% selling, 45% buying, 10% free
+        uint32 intentRoll = urand(0, 99);
+        std::string intent;
+        std::vector<std::string> const* pool = nullptr;
+
+        if (intentRoll < 45)
+        {
+            intent = "selling";
+            pool = &TradeSellingExamples;
+        }
+        else if (intentRoll < 90)
+        {
+            intent = "buying";
+            pool = &TradeBuyingExamples;
+        }
+        else
+        {
+            intent = "giving away for free";
+            pool = &TradeFreeExamples;
+        }
 
         // Bot location
         std::string areaName = "around here";
@@ -248,18 +265,18 @@ namespace FSBChannelPrompts
                     areaName = name;
 
         // Pick 2 random examples from the correct intent pool
-        std::vector<std::string> const& pool = isFree ? TradeFreeExamples : TradeSellingExamples;
-        std::string example1 = Trinity::Containers::SelectRandomContainerElement(pool);
-        std::string example2 = Trinity::Containers::SelectRandomContainerElement(pool);
-        while (example2 == example1 && pool.size() > 1)
-            example2 = Trinity::Containers::SelectRandomContainerElement(pool);
+        std::string example1 = Trinity::Containers::SelectRandomContainerElement(*pool);
+        std::string example2 = Trinity::Containers::SelectRandomContainerElement(*pool);
+        while (example2 == example1 && pool->size() > 1)
+            example2 = Trinity::Containers::SelectRandomContainerElement(*pool);
 
         // Build prompts
         std::string systemPrompt =
             "You are a World of Warcraft player typing a short message in the Trade chat channel. "
             "Write exactly ONE short sentence (5 to 12 words). Be natural and varied. "
-            "Use the exact placeholder [ITEM] where the item should appear. "
-            "You may mention your current location for flavor. "
+            "You MUST use the exact placeholder [ITEM] where the item should appear. "
+            "Do NOT write the raw item name; use [ITEM] instead. "
+            "You may mention your current location using [LOCATION] for flavor. "
             "Do NOT add quotation marks. Do NOT explain yourself. "
             "Examples (for reference only, do not copy verbatim): " +
             example1 + ", " + example2 + ".";
@@ -274,14 +291,35 @@ namespace FSBChannelPrompts
         if (aiResponse.empty())
             return "";
 
-        // Replace placeholders
-        size_t pos = aiResponse.find("[ITEM]");
-        if (pos != std::string::npos)
-            aiResponse.replace(pos, 6, itemLink);
+        // Step 1: Replace [ITEM] placeholder if present
+        size_t itemPos = aiResponse.find("[ITEM]");
+        if (itemPos == std::string::npos)
+            itemPos = aiResponse.find("[item]");
+        if (itemPos != std::string::npos)
+        {
+            aiResponse.replace(itemPos, 6, itemLink);
+        }
+        else
+        {
+            // Step 2: AI wrote the raw item name instead of placeholder
+            // Replace the exact item name (case-insensitive) with the clickable link
+            std::string lowerResponse = aiResponse;
+            std::string lowerName = itemName;
+            for (char& c : lowerResponse) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            for (char& c : lowerName)     c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
-        pos = aiResponse.find("[LOCATION]");
-        if (pos != std::string::npos)
-            aiResponse.replace(pos, 10, areaName);
+            size_t namePos = lowerResponse.find(lowerName);
+            if (namePos != std::string::npos)
+                aiResponse.replace(namePos, itemName.length(), itemLink);
+            else
+                return ""; // Neither placeholder nor raw name found; discard response
+        }
+
+        size_t locPos = aiResponse.find("[LOCATION]");
+        if (locPos == std::string::npos)
+            locPos = aiResponse.find("[location]");
+        if (locPos != std::string::npos)
+            aiResponse.replace(locPos, 10, areaName);
 
         TC_LOG_DEBUG("scripts.fsb.chatter", "FSB TradeMessage (AI): {}", aiResponse);
         return aiResponse;
@@ -547,5 +585,69 @@ namespace FSBChannelPrompts
 
         TC_LOG_DEBUG("scripts.fsb.chatter", "FSB GeneralMessage (AI): {}", aiResponse);
         return aiResponse;
+    }
+
+    std::string GenerateReplyToPlayer(Creature* bot, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory)
+    {
+        if (!bot || playerMsg.empty())
+            return "";
+
+        uint32 entry = bot->GetEntry();
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(entry);
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(entry);
+        FSB_ChatterType botPersonality = FSBMgr::Get()->GetBotChatterTypeForEntry(entry);
+
+        std::string botRaceStr = FSBUtils::BotRaceToString(botRace);
+        std::string botClassStr = FSBUtils::BotClassToString(botClass);
+        std::string botPersonalityStr = FSBUtils::ChatterTypeToString(botPersonality);
+
+        uint32 zoneId = bot->GetZoneId();
+        AreaTableEntry const* area = sAreaTableStore.LookupEntry(zoneId);
+        std::string areaName = area ? area->AreaName[LOCALE_enUS] : "Unknown";
+
+        std::string systemPrompt =
+            "You are a World of Warcraft player chatting casually in the General channel.\n"
+            "You are a " + botRaceStr + " " + botClassStr + " with a personality " + botPersonalityStr + " currently residing in " + areaName + ".\n"
+            "Write exactly ONE short reply (5 to 10 words) to the latest player message relevant to YOUR personality.\n";
+
+        if (player)
+        {
+            std::string playerRaceStr = "Unknown";
+            if (ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(player->GetRace()))
+                playerRaceStr = raceEntry->Name[LOCALE_enUS];
+
+            std::string playerClassStr = "Unknown";
+            if (ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(player->GetClass()))
+                playerClassStr = classEntry->Name[LOCALE_enUS];
+
+            uint32 level = player->GetLevel();
+            std::string levelBracket;
+            if (level <= 30)
+                levelBracket = "low level";
+            else if (level <= 60)
+                levelBracket = "mid level";
+            else
+                levelBracket = "high level";
+
+            systemPrompt +=
+                "The player you are responding to is " + std::string(player->GetName()) + ", a " + playerRaceStr + " " + playerClassStr +
+                " of level " + std::to_string(level) + " (" + levelBracket + ").\n";
+        }
+
+        systemPrompt +=
+            "Rules: Be natural, in character and in-universe, use conversation history context if available, no quotation marks allowed, keep your reply brief.";
+
+        std::string userPrompt = "Given the Conversation History below, decide how to reply to the player:\n";
+        for (auto const& entry : memory)
+            userPrompt += entry.senderName + ": " + entry.message + "\n";
+
+        if (FollowshipBotsConfig::configFSBLlamaAIEnabled)
+        {
+            std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
+            if (!aiResponse.empty())
+                return aiResponse;
+        }
+
+        return GenerateGeneralMessage(bot);
     }
 }

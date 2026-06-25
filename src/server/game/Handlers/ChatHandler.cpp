@@ -310,6 +310,13 @@ ChatMessageResult WorldSession::HandleChatMessage(ChatMsg type, Language lang, s
             }
             if (!receiver || (lang != LANG_ADDON && !receiver->isAcceptWhispers() && receiver->GetSession()->HasPermission(rbac::RBAC_PERM_CAN_FILTER_WHISPERS) && !receiver->IsInWhisperWhiteList(sender->GetGUID())))
             {
+                // Check if target is a bot
+                if (g_BotWhisperCallback)
+                {
+                    g_BotWhisperCallback(sender, target, msg);
+                    break;
+                }
+
                 SendChatPlayerNotfoundNotice(target);
                 return ChatMessageResult::NoWhisperTarget;
             }
