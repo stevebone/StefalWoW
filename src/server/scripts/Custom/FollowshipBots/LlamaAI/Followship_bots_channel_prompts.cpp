@@ -243,8 +243,9 @@ namespace FSBChannelPrompts
         // Bot location
         std::string areaName = "around here";
         if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(bot->GetAreaId()))
-            if (area->ZoneName && area->ZoneName[0])
-                areaName = area->ZoneName;
+            if (char const* name = area->AreaName[LOCALE_enUS])
+                if (name[0])
+                    areaName = name;
 
         // Pick 2 random examples from the correct intent pool
         std::vector<std::string> const& pool = isFree ? TradeFreeExamples : TradeSellingExamples;
@@ -349,6 +350,202 @@ namespace FSBChannelPrompts
             aiResponse.replace(pos, 9, dungeon->name);
 
         TC_LOG_DEBUG("scripts.fsb.chatter", "FSB LFGMessage (AI): {}", aiResponse);
+        return aiResponse;
+    }
+
+    // ------------------------------------------------------------------
+    //  General chat topic system
+    // ------------------------------------------------------------------
+    enum class GeneralTopic
+    {
+        ZoneCommentary,   // 20%
+        LoreMemes,        // 15%
+        ClassBanter,      // 15%
+        NPCCommentary,    // 10%
+        AchievementBrag,  // 10%
+        PvPBattleground,  // 10%
+        WorldObservation, // 10%
+        SocialGuild       // 10%
+    };
+
+    GeneralTopic PickRandomTopic()
+    {
+        uint32 roll = urand(0, 99);
+        if (roll < 20)  return GeneralTopic::ZoneCommentary;
+        if (roll < 35)  return GeneralTopic::LoreMemes;
+        if (roll < 50)  return GeneralTopic::ClassBanter;
+        if (roll < 60)  return GeneralTopic::NPCCommentary;
+        if (roll < 70)  return GeneralTopic::AchievementBrag;
+        if (roll < 80)  return GeneralTopic::PvPBattleground;
+        if (roll < 90)  return GeneralTopic::WorldObservation;
+        return GeneralTopic::SocialGuild;
+    }
+
+    std::string GetRandomAchievementName()
+    {
+        // Lazy-init cache of valid achievement titles
+        static std::vector<std::string> s_achievementNames;
+        static std::once_flag s_achieveFlag;
+        std::call_once(s_achieveFlag, []()
+        {
+            for (uint32 i = 0; i < sAchievementStore.GetNumRows(); ++i)
+            {
+                if (AchievementEntry const* ach = sAchievementStore.LookupEntry(i))
+                {
+                    char const* title = ach->Title[LOCALE_enUS];
+                    if (title && title[0] && title[1] && title[2] && title[3])
+                        s_achievementNames.emplace_back(title);
+                }
+            }
+        });
+
+        if (s_achievementNames.empty())
+            return "a rare achievement";
+
+        return s_achievementNames[urand(0, static_cast<uint32>(s_achievementNames.size()) - 1)];
+    }
+
+    std::string GetRandomFamousNPC()
+    {
+        static const std::vector<std::string> FamousNPCs =
+        {
+            "Thrall", "Jaina Proudmoore", "Sylvanas Windrunner",
+            "Illidan Stormrage", "Varian Wrynn", "Anduin Wrynn",
+            "Tyrande Whisperwind", "Genn Greymane", "Bolvar Fordragon",
+            "Khadgar", "Medivh", "Arthas Menethil",
+            "Malfurion Stormrage", "Garrosh Hellscream", "Vol'jin"
+        };
+        return FamousNPCs[urand(0, static_cast<uint32>(FamousNPCs.size()) - 1)];
+    }
+
+    std::string GenerateGeneralMessage(Creature* bot)
+    {
+        if (!FSBLlamaAI::IsEnabled())
+            return "";
+
+        if (!bot)
+            return "";
+
+        GeneralTopic topic = PickRandomTopic();
+
+        // Bot context
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        std::string classStr = FSBUtils::BotClassToString(botClass);
+
+        std::string areaName = "around here";
+        if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(bot->GetAreaId()))
+            if (char const* name = area->AreaName[LOCALE_enUS])
+                if (name[0])
+                    areaName = name;
+
+        // Placeholder tracking
+        std::string placeholder;
+        std::string replacement;
+        std::string poolDesc;
+        std::vector<std::string> const* pool = nullptr;
+
+        switch (topic)
+        {
+        case GeneralTopic::ZoneCommentary:
+            pool = &GeneralZoneExamples;
+            poolDesc = "comment about your current location";
+            placeholder = "{area}";
+            replacement = areaName;
+            break;
+
+        case GeneralTopic::LoreMemes:
+            pool = &GeneralLoreExamples;
+            poolDesc = "reference a famous WoW moment or meme";
+            break;
+
+        case GeneralTopic::ClassBanter:
+            pool = &GeneralClassExamples;
+            poolDesc = "make a light comment about your class";
+            placeholder = "[CLASS]";
+            replacement = classStr;
+            break;
+
+        case GeneralTopic::NPCCommentary:
+            pool = &GeneralNPCExamples;
+            poolDesc = "share an opinion about a famous character";
+            break;
+
+        case GeneralTopic::AchievementBrag:
+            pool = &GeneralAchievementExamples;
+            poolDesc = "mention an achievement";
+            placeholder = "[ACHIEVEMENT]";
+            replacement = GetRandomAchievementName();
+            break;
+
+        case GeneralTopic::PvPBattleground:
+            pool = &GeneralPvPExamples;
+            poolDesc = "reminisce about old PvP battles";
+            break;
+
+        case GeneralTopic::WorldObservation:
+            pool = &GeneralWorldExamples;
+            poolDesc = "comment on the surroundings or weather";
+            placeholder = "{area}";
+            replacement = areaName;
+            break;
+
+        case GeneralTopic::SocialGuild:
+            pool = &GeneralSocialExamples;
+            poolDesc = "make casual social chat";
+            break;
+        }
+
+        if (!pool || pool->empty())
+            return "";
+
+        // Pick 2 random examples from the pool
+        std::string example1 = Trinity::Containers::SelectRandomContainerElement(*pool);
+        std::string example2 = Trinity::Containers::SelectRandomContainerElement(*pool);
+        while (example2 == example1 && pool->size() > 1)
+            example2 = Trinity::Containers::SelectRandomContainerElement(*pool);
+
+        // Pre-fill placeholders in examples for the prompt (so AI sees real data)
+        if (!placeholder.empty())
+        {
+            size_t pos = example1.find(placeholder);
+            if (pos != std::string::npos)
+                example1.replace(pos, placeholder.length(), replacement);
+            pos = example2.find(placeholder);
+            if (pos != std::string::npos)
+                example2.replace(pos, placeholder.length(), replacement);
+        }
+
+        // Build prompts
+        std::string systemPrompt =
+            "You are a World of Warcraft player chatting casually in the General channel. "
+            "Write exactly ONE short sentence (5 to 12 words). Be natural and conversational. "
+            "Do NOT add quotation marks. Do NOT explain yourself. "
+            "Examples (for reference only, do not copy verbatim): " +
+            example1 + ", " + example2 + ".";
+
+        std::string userPrompt = "Topic: " + poolDesc + "\n";
+        if (!classStr.empty())
+            userPrompt += "Your class: " + classStr + "\n";
+        if (topic == GeneralTopic::ZoneCommentary || topic == GeneralTopic::WorldObservation)
+            userPrompt += "Location: " + areaName;
+        else if (topic == GeneralTopic::NPCCommentary)
+            userPrompt += "Character: " + GetRandomFamousNPC();
+        else if (topic == GeneralTopic::AchievementBrag)
+            userPrompt += "Achievement: " + replacement;
+
+        std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
+        if (aiResponse.empty())
+            return "";
+
+        // Post-replace any remaining placeholders
+        if (!placeholder.empty())
+        {
+            size_t pos = aiResponse.find(placeholder);
+            if (pos != std::string::npos)
+                aiResponse.replace(pos, placeholder.length(), replacement);
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.chatter", "FSB GeneralMessage (AI): {}", aiResponse);
         return aiResponse;
     }
 }

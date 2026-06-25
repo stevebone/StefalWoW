@@ -87,6 +87,107 @@ namespace FSBChannelPrompts
         "Join the [DUNGEON] raid"
     };
 
+    // General chat example pools
+    inline const std::vector<std::string> GeneralZoneExamples =
+    {
+        "{area} sure is lively today",
+        "I love the atmosphere in {area}",
+        "{area} never gets old",
+        "Wish {area} had a better inn",
+        "Can't wait to leave {area}",
+        "The guards in {area} are on edge lately",
+        "{area} looks different at night",
+        "Anyone else love the music in {area}?"
+    };
+
+    inline const std::vector<std::string> GeneralLoreExamples =
+    {
+        "Remember the Corrupted Blood incident?",
+        "At least I have chicken...",
+        "50 DKP minus! Classic wipe",
+        "Did someone say Thunderfury?",
+        "Leeroy Jenkins would charge this mob",
+        "Illegal Danish was peak WoW cinema",
+        "The AQ gate opening lag was unreal",
+        "Bubblehearth was the ultimate escape",
+        "The South Park episode was spot on",
+        "Thunderfury, Blessed Blade of the Windseeker",
+        "Many whelps, handle it!",
+        "Arcanite Reaper... HOOOOO!"
+    };
+
+    inline const std::vector<std::string> GeneralClassExamples =
+    {
+        "Being a [CLASS] is tough sometimes",
+        "[CLASS] problems: running out of mana",
+        "Every [CLASS] needs a healer friend",
+        "I rolled [CLASS] because it looked cool",
+        "[CLASS] main since vanilla",
+        "Being [CLASS] is underrated",
+        "[CLASS] life chose me",
+        "Anyone else [CLASS] here?"
+    };
+
+    inline const std::vector<std::string> GeneralNPCExamples =
+    {
+        "Thrall really let the Horde down in BfA",
+        "Jaina has been through so much",
+        "Sylvanas did nothing wrong... or did she?",
+        "Illidan was right all along",
+        "Varian's sacrifice still hits hard",
+        "Anduin needs to grow a spine",
+        "Tyrande went full vengeance mode",
+        "Genn Greymane needs to chill",
+        "Bolvar as the Lich King was wild",
+        "Khadgar's beard has its own fan club"
+    };
+
+    inline const std::vector<std::string> GeneralPvPExamples =
+    {
+        "Alterac Valley lasted 8 hours minimum",
+        "Southshore vs Tarren Mill was true world PvP",
+        "High Warlord grind was brutal",
+        "Grand Marshal title meant no sleep",
+        "Warsong Gulch flag running was an art",
+        "Nothing beats a good world PvP brawl",
+        "Arathi Basin was my favorite battleground",
+        "Eye of the Storm was chaos incarnate"
+    };
+
+    inline const std::vector<std::string> GeneralSocialExamples =
+    {
+        "Anyone else miss old Azeroth?",
+        "What's your favorite expansion?",
+        "Leveling an alt is surprisingly fun",
+        "The economy is weird right now",
+        "Guild recruitment is impossible these days",
+        "Anyone want to group up for quests?",
+        "Vanilla was better, fight me",
+        "The new patch changed everything"
+    };
+
+    inline const std::vector<std::string> GeneralWorldExamples =
+    {
+        "It's getting dark, better watch the roads",
+        "This rain never stops in {area}",
+        "Beautiful morning in {area}",
+        "The stars look amazing tonight",
+        "Fog is rolling in through {area}",
+        "Perfect weather for grinding in {area}",
+        "Getting chilly as the sun sets"
+    };
+
+    inline const std::vector<std::string> GeneralAchievementExamples =
+    {
+        "Finally got [ACHIEVEMENT], took forever",
+        "Anyone else working toward [ACHIEVEMENT]?",
+        "[ACHIEVEMENT] was harder than it looks",
+        "Proud owner of [ACHIEVEMENT]",
+        "[ACHIEVEMENT] complete, what's next?",
+        "Grinding for [ACHIEVEMENT] all week"
+    };
+
     std::string GenerateTradeMessage(Creature* bot);
     std::string GenerateLFGMessage(Creature* bot);
+    std::string GenerateGeneralMessage(Creature* bot);
 }

@@ -548,6 +548,17 @@ namespace FSBChat
             }
         }
 
+        // General channel: try dynamic AI-generated message first
+        if (channel == ChatChannelType::General)
+        {
+            msg = FSBChannelPrompts::GenerateGeneralMessage(bot);
+            if (!msg.empty())
+            {
+                BotSendGeneralChat(bot, msg);
+                return;
+            }
+        }
+
         RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
         if (!line)
             return;
@@ -605,6 +616,17 @@ namespace FSBChat
             if (!msg.empty())
             {
                 BotSendLFGChat(bot, msg);
+                return;
+            }
+        }
+
+        // General channel: try dynamic AI-generated message first
+        if (channel == ChatChannelType::General)
+        {
+            msg = FSBChannelPrompts::GenerateGeneralMessage(bot);
+            if (!msg.empty())
+            {
+                BotSendGeneralChat(bot, msg);
                 return;
             }
         }
