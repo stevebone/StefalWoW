@@ -65,5 +65,6 @@ namespace FSBMail
 
         // Send instantly
         draft.SendMailTo(trans, player, sender, MAIL_CHECK_MASK_NONE, delaySeconds);
+        CharacterDatabase.CommitTransaction(trans);
     }
 }
