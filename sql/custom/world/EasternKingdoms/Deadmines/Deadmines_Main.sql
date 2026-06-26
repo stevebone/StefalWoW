@@ -126,9 +126,9 @@ INSERT INTO `creature_template_difficulty` VALUES
 (48672, 2, 0, 0, 338, 0, 1, 1, 1, 1, 40837, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48672, 24, 0, 0, 338, 0, 1, 1, 1, 1, 40837, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45745),
 
-(47739, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 42807, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
-(47739, 2, 2, 2, 1199, 0, 2, 1, 1, 0.2, 42807, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
-(47739, 24, 2, 2, 2872, 3, 1, 1, 1, 1, 42808, 0, 128, 0, 0, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Captain Cookie
+(47739, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 42807, 0, 128, 0, 4773901, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 0),
+(47739, 2, 2, 2, 1199, 0, 2, 1, 1, 0.2, 42807, 0, 128, 0, 4773902, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, 45745),
+(47739, 24, 2, 2, 2872, 3, 1, 1, 1, 1, 42808, 0, 128, 0, 4773924, 0, 0, 12490, 12490, 524288, 0, 0, 0, 0, 0, 0, 0, -1), -- Captain Cookie
 (48266, 1, 0, 0, 202, 0, 1, 1, 1, 0.5, 41669, 32, 0, 0, 0, 0, 0, 0, 0, 0x00000100, 0, 0, 0, 0, 0, 0, 0, 45338),
 (48266, 2, 0, 0, 1199, 0, 1, 1, 1, 0.2, 41669, 32, 0, 0, 0, 0, 0, 0, 0, 0x00000100, 0, 0, 0, 0, 0, 0, 0, 45745),
 (48266, 24, 0, 0, 2872, 3, 1, 1, 1, 1, 41670, 32, 0, 0, 0, 0, 0, 0, 0, 0x00000100, 0, 0, 0, 0, 0, 0, 0, -1), -- Defias Cannon
@@ -751,7 +751,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
  (49671, 5, 0, 'The nightmare shifts!', 41, 100, 0, 0, 49707, 'Vanessa VanCleef - Nightmare Shift'),
  (49671, 6, 0, 'You have entered Helix''s Nightmare!', 41, 100, 0, 0, 49708, 'Vanessa VanCleef - Helix Nightmare Warning'),
  (49671, 7, 0, 'Most rogues prefer to cloak themselves in the shadows, but not Helix.', 12, 100, 1, 24604, 49723, 'Vanessa VanCleef - Nightmare 2'),
- (49671, 8, 0, 'You never know what skitters in the darkness.', 12, 100, 1, 24605, 49723, 'Vanessa VanCleef - Nightmare 2'),
+ (49671, 8, 0, 'You never know what skitters in the darkness.', 12, 100, 1, 24605, 49724, 'Vanessa VanCleef - Nightmare 2'),
  (49671, 9, 0, 'You have entered the mechanical nightmare!', 41, 100, 0, 0, 49709, 'Vanessa VanCleef - mechanical Nightmare Warning'),
  (49671, 10, 0, 'Can you imagine the life of a machine?', 12, 100, 1, 24606, 49725, 'Vanessa VanCleef - Nightmare 3'),
  (49671, 11, 0, 'A simple spark can mean the difference between life...and death.', 12, 100, 1, 24607, 49726, 'Vanessa VanCleef - Nightmare 3'),

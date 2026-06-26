@@ -336,8 +336,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                         if (_platter)
                         {
                             _platter->setActive(true);
-                            Talk(Texts::GlubtokFirewall);
-
                             _firewallPhase = true;
 
                             // Schedule firewall bunny spawn after Glubtok is in the air (1.5s takeoff)

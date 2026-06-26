@@ -56,7 +56,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _vanessaNightmareState(*this, "VanessaNightmareState", 0),
                 _nightmareHelixState(*this, "NightmareHelixState", 0),
                 _nightmareMechanicalState(*this, "NightmareMechanicalState", 0),
-                _steamValveCount(*this, "SteamValveCount", 0)
+                _steamValveCount(*this, "SteamValveCount", 0),
+                _activeNightmare(*this, "ActiveNightmare", 0)
             {
                 SetHeaders(Misc::DataHeader);
                 SetBossNumber(Misc::EncounterCount);
@@ -173,6 +174,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Misc::SteamValveCount:
                         _steamValveCount = data;
                         break;
+                    case Misc::ActiveNightmare:
+                        _activeNightmare = data;
+                        break;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (data == 1)
@@ -209,6 +213,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                         return _nightmareMechanicalState;
                     case Misc::SteamValveCount:
                         return _steamValveCount;
+                    case Misc::ActiveNightmare:
+                        return _activeNightmare;
                     default:
                         // Check if this is a player GUID (used for firewall hit tracking)
                         if (_playersHitByFirewall.contains(ObjectGuid::Create<HighGuid::Player>(type)))
@@ -279,6 +285,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                     break;
                 case Objects::DoorLever:
                     _doorLeverGUID = go->GetGUID();
+                    break;
+                case Objects::FoundryDoor:
+                    _foundryDoorGUID = go->GetGUID();
                     break;
                 case ObjectsOLD::MrSmiteChest:
                     _mrSmiteChestGUID = go->GetGUID();
@@ -519,6 +528,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                     return _mrSmiteChestGUID;
                 case DataTypes::BOSS_FOE_REAPER_5000:
                     return _foeReaperGUID;
+                case Objects::FoundryDoor:
+                    return _foundryDoorGUID;
                 }
 
                 return ObjectGuid::Empty;
@@ -537,6 +548,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             PersistentInstanceScriptValue<uint8> _nightmareHelixState;
             PersistentInstanceScriptValue<uint8> _nightmareMechanicalState;
             PersistentInstanceScriptValue<uint8> _steamValveCount;
+            PersistentInstanceScriptValue<int8> _activeNightmare;
 
             uint32 _cannonBlastTimer = 0;
             uint32 _piratesTimer = 0;
@@ -544,6 +556,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             uint32 _ripsnarlFogAuraTimer = 0;
 
             ObjectGuid _oafGUID;
+            ObjectGuid _foundryDoorGUID;
             ObjectGuid _ironCladDoorGUID;
             ObjectGuid _doorLeverGUID;
             ObjectGuid _defiasCannonGUID;
