@@ -25,6 +25,7 @@
 #include "Followship_bots_llamaAI.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
+#include "AI/Followship_bots_ai_base.h"
 
 #include "DB2Stores.h"
 #include "ItemTemplate.h"
@@ -33,12 +34,23 @@
 #include "Creature.h"
 #include "Containers.h"
 
+#include <algorithm>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
 namespace FSBChannelPrompts
 {
+    static bool IsGoldRequest(std::string const& msg)
+    {
+        std::string lower = msg;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        static const std::vector<std::string> keywords = { "gold", "coin", "copper", "money", "spare", "lend", "borrow", "broke", "poor", "send", "mail" };
+        for (auto const& kw : keywords)
+            if (lower.find(kw) != std::string::npos)
+                return true;
+        return false;
+    }
     // ------------------------------------------------------------------
     //  Trade item cache
     // ------------------------------------------------------------------
@@ -456,22 +468,22 @@ namespace FSBChannelPrompts
         return FamousNPCs[urand(0, static_cast<uint32>(FamousNPCs.size()) - 1)];
     }
 
-    std::string GenerateGeneralMessage(Creature* bot)
+    std::string GenerateGeneralMessage(BotChatContext const& ctx)
     {
         if (!FSBLlamaAI::IsEnabled())
             return "";
 
-        if (!bot)
+        if (!ctx.entry)
             return "";
 
         GeneralTopic topic = PickRandomTopic();
 
         // Bot context
-        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(ctx.entry);
         std::string classStr = FSBUtils::BotClassToString(botClass);
 
         std::string areaName = "around here";
-        if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(bot->GetAreaId()))
+        if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(ctx.areaId))
             if (char const* name = area->AreaName[LOCALE_enUS])
                 if (name[0])
                     areaName = name;
@@ -587,28 +599,24 @@ namespace FSBChannelPrompts
         return aiResponse;
     }
 
-    std::string GenerateReplyToPlayer(Creature* bot, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory)
+    BotChatResponse GenerateReplyToPlayer(BotChatContext const& ctx, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory)
     {
-        if (!bot || playerMsg.empty())
-            return "";
+        BotChatResponse result;
+        if (!ctx.entry || playerMsg.empty())
+            return result;
 
-        uint32 entry = bot->GetEntry();
-        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(entry);
-        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(entry);
-        FSB_ChatterType botPersonality = FSBMgr::Get()->GetBotChatterTypeForEntry(entry);
+        std::string botRaceStr = FSBUtils::BotRaceToString(ctx.botRace);
+        std::string botClassStr = FSBUtils::BotClassToString(ctx.botClass);
+        std::string botPersonalityStr = FSBUtils::ChatterTypeToString(ctx.personality);
 
-        std::string botRaceStr = FSBUtils::BotRaceToString(botRace);
-        std::string botClassStr = FSBUtils::BotClassToString(botClass);
-        std::string botPersonalityStr = FSBUtils::ChatterTypeToString(botPersonality);
-
-        uint32 zoneId = bot->GetZoneId();
-        AreaTableEntry const* area = sAreaTableStore.LookupEntry(zoneId);
+        AreaTableEntry const* area = sAreaTableStore.LookupEntry(ctx.zoneId);
         std::string areaName = area ? area->AreaName[LOCALE_enUS] : "Unknown";
 
         std::string systemPrompt =
             "You are a World of Warcraft player chatting casually in the General channel.\n"
             "You are a " + botRaceStr + " " + botClassStr + " with a personality " + botPersonalityStr + " currently residing in " + areaName + ".\n"
-            "Write exactly ONE short reply (5 to 10 words) to the latest player message relevant to YOUR personality.\n";
+            "Write exactly ONE short reply (5 to 15 words) to the latest player message relevant to YOUR personality.\n"
+            "DO NOT ASSUME the latest player message is addressed directly to you unless they included your name or directed to you.\n";
 
         if (player)
         {
@@ -634,8 +642,38 @@ namespace FSBChannelPrompts
                 " of level " + std::to_string(level) + " (" + levelBracket + ").\n";
         }
 
+        bool allowGold = false;
+        uint32 goldCount = ctx.goldGivenCount;
+        {
+            uint32 chance = (goldCount >= 5) ? 0 : std::max(0, 10 - static_cast<int32>(goldCount) * 2);
+            uint32 now = getMSTime();
+            bool onCooldown = goldCount > 0 && (now < ctx.lastGoldGiveTime + 3600000);
+            allowGold = !onCooldown && chance > 0 && urand(0, 99) < chance;
+        }
+
+        if (IsGoldRequest(playerMsg))
+        {
+            if (!allowGold)
+            {
+                systemPrompt +=
+                    "You are NOT giving any gold, coins, or money right now. If the player asks for gold, decline in your own words. "
+                    "Let your personality show through. Be firm but creative in how you refuse. Never mention being an AI, bot, or NPC.\n";
+            }
+            else
+            {
+                systemPrompt +=
+                    "The player might be asking for gold. You are stingy and reluctant. Only consider giving a small amount if they ask politely and with genuine humility. "
+                    "If they are rude, shouting (all caps), demanding, threatening, or begging without manners, refuse firmly in character. "
+                    "Let your personality shape how you accept or decline. Never mention being an AI, bot, or NPC.\n";
+            }
+        }
+
         systemPrompt +=
-            "Rules: Be natural, in character and in-universe, use conversation history context if available, no quotation marks allowed, keep your reply brief.";
+            "\nRules: Be natural, in character and in-universe, use conversation history context if available, no quotation marks allowed, keep your reply brief.\n\n"
+            "You MUST respond ONLY in valid JSON with exactly these fields:\n"
+            "- \"reply\": a short in-character reply (5 to 15 words) that matches YOUR personality, natural and conversational, NO quotation marks inside.\n"
+            "- \"action\": a string, exactly one of: \"none\" or \"give_gold\". Use \"none\" for normal conversation. Use \"give_gold\" ONLY if the player asks for gold AND you decide to help them.\n"
+            "- \"amount\": a number (copper amount). Must be 0 when action is \"none\". When action is \"give_gold\", use a sensible amount based on your level and the player's level (higher-level bots give more). Amount must be between 1 and 50000.\n";
 
         std::string userPrompt = "Given the Conversation History below, decide how to reply to the player:\n";
         for (auto const& entry : memory)
@@ -643,11 +681,31 @@ namespace FSBChannelPrompts
 
         if (FollowshipBotsConfig::configFSBLlamaAIEnabled)
         {
-            std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
+            std::string aiResponse = FSBLlamaAI::GetStructuredBotResponse(systemPrompt, userPrompt);
             if (!aiResponse.empty())
-                return aiResponse;
+            {
+                std::string reply;
+                std::string action;
+                uint32 amount = 0;
+                if (FSBLlamaAI::ParseStructuredResponse(aiResponse, reply, action, amount))
+                {
+                    if (action == "give_gold" && !allowGold)
+                    {
+                        action = "none";
+                        amount = 0;
+                    }
+
+                    result.reply = std::move(reply);
+                    result.action = std::move(action);
+                    result.amount = amount;
+                    return result;
+                }
+            }
         }
 
-        return GenerateGeneralMessage(bot);
+        result.reply = GenerateGeneralMessage(ctx);
+        result.action = "none";
+        result.amount = 0;
+        return result;
     }
 }

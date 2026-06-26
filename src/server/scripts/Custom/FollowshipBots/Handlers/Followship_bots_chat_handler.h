@@ -23,24 +23,17 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 #include "ObjectGuid.h"
+#include "LlamaAI/Followship_bots_channel_prompts.h"
 #include "LlamaAI/Followship_bots_conversation_prompts.h"
 
 class Channel;
 class Creature;
 class Player;
-
-struct PendingBotReply
-{
-    ObjectGuid botGuid;
-    uint32 channelId = 0;
-    uint32 zoneId = 0;
-    ObjectGuid targetPlayerGuid;
-    std::string reply;
-    uint32 sendTime = 0;
-};
 
 class FSBChatMgr
 {
@@ -68,9 +61,9 @@ public:
     void Update(uint32 diff);
 
 private:
-    std::unordered_map<ObjectGuid::LowType, Creature*> _activeBots;
-    std::unordered_map<ObjectGuid::LowType, uint32> _botReplyCooldowns;
-    std::vector<PendingBotReply> _pendingReplies;
+    std::unordered_map<ObjectGuid, Creature*> _activeBots;
+    mutable std::mutex _activeBotsMutex;
+    std::unordered_map<ObjectGuid, uint32> _botReplyCooldowns;
 };
 
 namespace FSBChat

@@ -229,4 +229,101 @@ namespace FSBLlamaAI
 
         return ExtractResponseContent(responseJson);
     }
+
+    std::string GetStructuredBotResponse(std::string const& systemPrompt, std::string const& userMessage)
+    {
+        rapidjson::Document doc;
+        doc.SetObject();
+        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+        rapidjson::Value modelValue;
+        modelValue.SetString(FollowshipBotsConfig::configFSBLlamaAIModel.c_str(),
+                             static_cast<rapidjson::SizeType>(FollowshipBotsConfig::configFSBLlamaAIModel.length()), allocator);
+        doc.AddMember("model", modelValue, allocator);
+
+        doc.AddMember("stream", false, allocator);
+        doc.AddMember("max_tokens", FollowshipBotsConfig::configFSBLlamaAIMaxTokens, allocator);
+        doc.AddMember("temperature", FollowshipBotsConfig::configFSBLlamaAITemperature, allocator);
+        doc.AddMember("top_p", FollowshipBotsConfig::configFSBLlamaAITopP, allocator);
+        doc.AddMember("frequency_penalty", FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty, allocator);
+        doc.AddMember("presence_penalty", FollowshipBotsConfig::configFSBLlamaAIPresencePenalty, allocator);
+
+        // Add response_format for JSON mode
+        rapidjson::Value responseFormat(rapidjson::kObjectType);
+        rapidjson::Value typeValue;
+        typeValue.SetString("json_object", allocator);
+        responseFormat.AddMember("type", typeValue, allocator);
+        doc.AddMember("response_format", responseFormat, allocator);
+
+        rapidjson::Value messages(rapidjson::kArrayType);
+
+        rapidjson::Value systemMsg(rapidjson::kObjectType);
+        rapidjson::Value systemRole;
+        systemRole.SetString("system", allocator);
+        rapidjson::Value systemContent;
+        systemContent.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
+        systemMsg.AddMember("role", systemRole, allocator);
+        systemMsg.AddMember("content", systemContent, allocator);
+        messages.PushBack(systemMsg, allocator);
+
+        rapidjson::Value userMsg(rapidjson::kObjectType);
+        rapidjson::Value userRole;
+        userRole.SetString("user", allocator);
+        rapidjson::Value userContent;
+        userContent.SetString(userMessage.c_str(), static_cast<rapidjson::SizeType>(userMessage.length()), allocator);
+        userMsg.AddMember("role", userRole, allocator);
+        userMsg.AddMember("content", userContent, allocator);
+        messages.PushBack(userMsg, allocator);
+
+        doc.AddMember("messages", messages, allocator);
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        doc.Accept(writer);
+
+        std::string requestBody(buffer.GetString(), buffer.GetSize());
+        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === STRUCTURED REQUEST BODY ===\n{}", requestBody);
+
+        std::string responseJson = SendChatRequest(requestBody);
+        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === STRUCTURED RESPONSE BODY ===\n{}", responseJson);
+
+        return ExtractResponseContent(responseJson);
+    }
+
+    bool ParseStructuredResponse(std::string const& jsonStr, std::string& reply, std::string& action, uint32& amount)
+    {
+        reply.clear();
+        action = "none";
+        amount = 0;
+
+        if (jsonStr.empty())
+            return false;
+
+        rapidjson::Document doc;
+        doc.Parse(jsonStr.c_str(), jsonStr.length());
+
+        if (doc.HasParseError() || !doc.IsObject())
+        {
+            TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: structured JSON parse error: {}", jsonStr);
+            return false;
+        }
+
+        if (!doc.HasMember("reply") || !doc["reply"].IsString())
+        {
+            TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: missing/invalid 'reply' field: {}", jsonStr);
+            return false;
+        }
+
+        reply = doc["reply"].GetString();
+
+        if (doc.HasMember("action") && doc["action"].IsString())
+            action = doc["action"].GetString();
+
+        if (doc.HasMember("amount") && doc["amount"].IsUint())
+            amount = doc["amount"].GetUint();
+        else if (doc.HasMember("amount") && doc["amount"].IsInt() && doc["amount"].GetInt() >= 0)
+            amount = static_cast<uint32>(doc["amount"].GetInt());
+
+        return true;
+    }
 }

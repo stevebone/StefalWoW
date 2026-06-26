@@ -29,10 +29,25 @@
 class Creature;
 class Player;
 
+#include "Followship_bots_defines.h"
 #include "LlamaAI/Followship_bots_chat_memory.h"
 
 namespace FSBChannelPrompts
 {
+    struct BotChatContext
+    {
+        uint32 entry = 0;
+        uint8 level = 0;
+        uint32 zoneId = 0;
+        uint32 areaId = 0;
+        FSB_Class botClass = FSB_Class::None;
+        FSB_Race botRace = FSB_Race::None;
+        FSB_ChatterType personality = FSB_ChatterType::None;
+        FSB_Roles role = FSB_Roles::FSB_ROLE_NONE;
+        uint32 goldGivenCount = 0;
+        uint32 lastGoldGiveTime = 0;
+        std::string botName;
+    };
     inline const std::vector<std::string> TradeSellingExamples =
     {
         "WTS [ITEM] PST",
@@ -205,8 +220,15 @@ namespace FSBChannelPrompts
         "Grinding for [ACHIEVEMENT] all week"
     };
 
+    struct BotChatResponse
+    {
+        std::string reply;
+        std::string action = "none";
+        uint32 amount = 0;
+    };
+
     std::string GenerateTradeMessage(Creature* bot);
     std::string GenerateLFGMessage(Creature* bot);
-    std::string GenerateGeneralMessage(Creature* bot);
-    std::string GenerateReplyToPlayer(Creature* bot, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory);
+    std::string GenerateGeneralMessage(BotChatContext const& ctx);
+    BotChatResponse GenerateReplyToPlayer(BotChatContext const& ctx, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory);
 }

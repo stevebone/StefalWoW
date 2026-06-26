@@ -23,6 +23,7 @@
 
 FSB_BaseAI::~FSB_BaseAI()
 {
+    FSBChatMgr::Get()->LeaveBotChannels(me);
     FSBChatMgr::Get()->UnregisterActiveBot(me);
     delete botDungeonData;
 }
@@ -45,7 +46,12 @@ void FSB_BaseAI::AddChatMemory(uint32 channelId, std::string const& sender, std:
         botChatMemory.pop_front();
 }
 
-std::deque<BotChatMemoryEntry> const& FSB_BaseAI::GetChatMemory() const
+std::deque<BotChatMemoryEntry> FSB_BaseAI::GetChatMemory() const
 {
     return botChatMemory;
+}
+
+void FSB_BaseAI::ClearChatMemory()
+{
+    botChatMemory.clear();
 }

@@ -188,10 +188,19 @@ public:
     std::function<void()> llamaFallbackAction;
     std::function<void(std::string const&)> llamaDeliverAction;
 
+    struct BotChatData
+    {
+        uint32 goldGivenCount = 0;
+        uint32 lastGoldGiveTime = 0;
+    };
+
+    BotChatData botChatData;
+
     std::deque<BotChatMemoryEntry> botChatMemory;
 
     void AddChatMemory(uint32 channelId, std::string const& sender, std::string const& msg, bool isPlayer);
-    std::deque<BotChatMemoryEntry> const& GetChatMemory() const;
+    std::deque<BotChatMemoryEntry> GetChatMemory() const;
+    void ClearChatMemory();
 
     void PollPendingLlamaResponse()
     {

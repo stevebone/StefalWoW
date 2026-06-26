@@ -27,9 +27,15 @@
 
 struct BotChatMemoryEntry
 {
-    uint32 channelId = 0;
+    uint32      channelId = 0;
     std::string senderName;
     std::string message;
-    bool isPlayer = false;
-    uint32 timestamp = 0;
+    uint32      timestamp = 0;
+    bool        isPlayer = false;
+
+    //~BotChatMemoryEntry() = default;
+    //BotChatMemoryEntry(BotChatMemoryEntry const&) = default;
+    //BotChatMemoryEntry& operator=(BotChatMemoryEntry const&) = default;
+    //BotChatMemoryEntry(BotChatMemoryEntry&&) = default;
+    //BotChatMemoryEntry& operator=(BotChatMemoryEntry&&) = default;
 };
