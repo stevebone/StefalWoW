@@ -266,7 +266,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 instance->DoRemoveAurasDueToSpellOnPlayers(Spells::RipsnarlAchievement);
             }
 
-            me->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn, TEMPSUMMON_MANUAL_DESPAWN);
+            me->GetMap()->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn);
         }
 
         void UpdateAI(uint32 diff) override

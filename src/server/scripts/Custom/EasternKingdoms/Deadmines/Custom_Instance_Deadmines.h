@@ -200,6 +200,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 ErikHarrington = 49535;
         static constexpr uint32 CalissaHarrington = 49536;
         static constexpr uint32 JamesHarrington = 49539;
+        static constexpr uint32 JamesHarringtonHuman = 49682;
         static constexpr uint32 NightmareGlubtok = 49670;
         static constexpr uint32 NightmareHelix = 49674;
         static constexpr uint32 NightmareFoeReaper = 49681;
@@ -248,6 +249,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr uint32 CookieJumpCuldronBunny = 376143;
 
         // Vanessa Encounter
+        static constexpr uint32 HelixNightmareMainSpiderBunny = 375846;
     }
 
     namespace Objects
@@ -417,9 +419,18 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 VanessaNightmare3Warning = 9;
             static constexpr int8 VanessaNightmareMechanical1 = 10;
             static constexpr int8 VanessaNightmareMechanical2 = 11;
-            static constexpr int8 VanessaNightmare4Warning = 12;
-            static constexpr int8 VanessaNightmareRipsnarl1 = 13;
-            static constexpr int8 VanessaNightmareRipsnarl2 = 14;
+            static constexpr int8 VanessaNightmareRipsnarl1 = 12;
+            static constexpr int8 VanessaNightmareRipsnarl2 = 13;
+            static constexpr int8 VanessaNightmare4Warning = 14;
+            static constexpr int8 VanessaNightmareSaveEmme = 15;
+            static constexpr int8 VanessaNightmareSaveErik = 16;
+            static constexpr int8 VanessaNightmareSaveCalissa = 17;
+            static constexpr int8 VanessaNightmareElixirOff = 18;
+
+            // Harringtons
+            static constexpr int8 JamesHarrington0 = 0;
+            static constexpr int8 CalissaHarrington0 = 0;
+            static constexpr int8 CalissaHarrington1 = 1;
             
             
             
@@ -934,9 +945,10 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr Position GlubtokNightmareCharge = { -174.85f, -579.76f, 19.31f };
         static constexpr Position VanessaNightmare2 = { -174.9222f, -575.641f, 19.3136f, 4.7574f };
         static constexpr Position HelixNightmareSpawn = { -174.85f, -579.76f, 19.31f, 3.14f };
-        static constexpr Position VanessaNightmare3 = { -150.96f, -579.99f, 19.31f };
+        static constexpr Position VanessaNightmare3 = { -158.648f, -580.9235f, 19.3112f, 0.f };
         static constexpr Position MechanicalNightmareSpawn = { -152.0788f, -581.003f, 19.3151f, 0.1639f };
         static constexpr Position VanessaNightmare4 = { -96.46f, -660.42f, 7.41f, 3.4061f };
+        static constexpr Position VanessaNightmare5 = { -103.72f, -724.06f, 8.47f };
         static constexpr Position FoeReaperNightmareSpawn = { -101.4549f, -663.6493f, 7.505813f, 1.85f };
         static constexpr Position VanessaBossSpawn = { -79.44965f, -819.8351f, 39.89838f, 0.01745329f };
 
@@ -1001,7 +1013,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             { -98.63194f, -721.6268f, 8.547067f, 1.53589f },
             { 5.239583f, -763.0868f, 9.800426f, 2.007129f },
             { -83.86406f, -775.2837f, 28.37906f, 1.710423f },
-            { -83.16319f, -774.9636f, 26.90351f, 1.710423f },
+            { -83.16319f, -774.9636f, 26.90351f, 1.710423f }, // Worgen James
         };
 
         static constexpr Position EnragedWorgen1[3] =
@@ -1020,10 +1032,10 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         static constexpr Position NightmareSpidersSpawn[4] =
         {
-            { -185.03f, -579.83f, -20.63f, 3.19f },
-            { -186.59f, -573.01f, -20.95f, 5.61f },
-            { -198.246f, -571.009f, -21.06f, 5.03f },
-            { -181.68f, -566.33f, -51.11f, 5.15f },
+            { -198.2469f, -571.0089f, -21.0601f, 3.19f },
+            { -200.0299f, -565.434f, -21.0601f, 5.61f },
+            { -203.f, -589.4429f, -21.0601f, 5.03f },
+            { -206.1629f, -568.8489f, -24.6352f, 5.15f },
         };
 
         static constexpr Position RopeSpawn[5] =

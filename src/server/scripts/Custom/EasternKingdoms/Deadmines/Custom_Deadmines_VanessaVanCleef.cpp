@@ -269,11 +269,26 @@ namespace Scripts::EasternKingdoms::Deadmines
     // 49520 - Lightning Platter
     struct npc_lightning_orbs : public ScriptedAI
     {
-        npc_lightning_orbs(Creature* creature) : ScriptedAI(creature)
+        npc_lightning_orbs(Creature* creature) : ScriptedAI(creature), _summons(me)
         {
             me->SetUninteractible(true);
             me->SetDisableGravity(true);
             me->SetSessile(true);
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            _summons.Summon(summon);
+        }
+
+        void SummonedCreatureDespawn(Creature* summon) override
+        {
+            _summons.Despawn(summon);
+        }
+
+        void OnDespawn() override
+        {
+            _summons.DespawnAll();
         }
 
         void Reset() override
@@ -284,7 +299,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                 for (uint8 i = 0; i < 8; i++)
                     if (vehicle->HasEmptySeat(i))
                         if (Creature* pas = me->SummonCreature(Creatures::SparkPassenger, me->GetPosition()))
+                        {
+                            me->SetSessile(true);
                             pas->EnterVehicle(me, i);
+                        }
         }
 
         void UpdateAI(uint32 diff) override
@@ -308,6 +326,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
     private:
         EventMap _events;
+        SummonList _summons;
     };
 
     // 49505 - Defias Shadowguard
@@ -671,12 +690,39 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void Reset() override
         {
+            Unit* Calissa = me->GetVehicleKit()->GetPassenger(0);
+            if (!Calissa)
+            {
+                Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f);
+                if (Calissa)
+                {
+                    Calissa->EnterVehicle(me, 0);
+                    Calissa->Attack(me, true);
+                }
+            }
         }
 
         void JustDied(Unit* /*killer*/) override
         {
             if (Creature* vanessa = me->FindNearestCreature(Creatures::VanessaNightmare, 200.0f))
                 vanessa->AI()->SetData(2, 2);
+
+            Talk(Texts::VanessaVanCleef::JamesHarrington0);
+
+            if (Creature* Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f))
+            {
+                Calissa->m_Events.AddEventAtOffset([Calissa]()
+                    {
+                        if (Calissa)
+                            Calissa->AI()->Talk(Texts::VanessaVanCleef::CalissaHarrington0);
+                    }, std::chrono::seconds(4));
+
+                Calissa->m_Events.AddEventAtOffset([Calissa]()
+                    {
+                        if (Calissa)
+                            Calissa->AI()->Talk(Texts::VanessaVanCleef::CalissaHarrington1);
+                    }, std::chrono::seconds(8));
+            }
         }
     };
 
@@ -826,9 +872,13 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void SummonAllSpiders()
         {
-            me->SummonCreature(Creatures::MainSpider, Positions::NightmareSpidersSpawn[3], TEMPSUMMON_MANUAL_DESPAWN);
+            if(Creature* bunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::HelixNightmareMainSpiderBunny))
+                me->SummonCreature(Creatures::MainSpider, bunny->GetPosition(), TEMPSUMMON_CORPSE_DESPAWN);
+
+            uint32 spiderEntry = RAND(Creatures::NightmareSpider, Creatures::ChatteringHorror);
+
             for (uint8 i = 0; i < 3; ++i)
-                me->SummonCreature(Creatures::NightmareSpider, Positions::NightmareSpidersSpawn[i], TEMPSUMMON_MANUAL_DESPAWN);
+                me->SummonCreature(spiderEntry, Positions::NightmareSpidersSpawn[i], TEMPSUMMON_CORPSE_DESPAWN);
         }
 
         void SummonAllSparks()
@@ -893,17 +943,21 @@ namespace Scripts::EasternKingdoms::Deadmines
                     break;
                 case 3:
                     SummonAllSparks();
-                    me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN);
                     if (Creature* mech = me->SummonCreature(Creatures::NightmareFoeReaper, Positions::FoeReaperNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN))
                         mech->AI()->DoAction(Actions::MechanicalEngage);
                     break;
                 case 4:
+                {
                     for (uint8 i = 0; i < 3; ++i)
                         me->SummonCreature(Creatures::EnragedWorgen, Positions::EnragedWorgen1[i], TEMPSUMMON_MANUAL_DESPAWN);
                     for (uint8 i = 0; i < 3; ++i)
                         me->SummonCreature(Creatures::EnragedWorgen, Positions::EnragedWorgen2[i], TEMPSUMMON_MANUAL_DESPAWN);
-                    me->SummonCreature(Creatures::JamesHarrington, Positions::FamilySpawn[0], TEMPSUMMON_MANUAL_DESPAWN);
+                    
+                    me->SummonCreature(Creatures::EmmeHarrington, Positions::FamilySpawn[0], TEMPSUMMON_MANUAL_DESPAWN);
+                    me->SummonCreature(Creatures::ErikHarrington, Positions::FamilySpawn[1], TEMPSUMMON_MANUAL_DESPAWN);
+                    me->SummonCreature(Creatures::CalissaHarrington, Positions::FamilySpawn[3], TEMPSUMMON_MANUAL_DESPAWN);
                     break;
+                }
                 case 5:
                     Talk(Texts::VanessaVanCleef::VanessaNightmare1);
                     me->SummonCreature(Creatures::VanessaVanCleef, Positions::VanessaBossSpawn, TEMPSUMMON_MANUAL_DESPAWN);
@@ -925,6 +979,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 case 2:
                     Talk(Texts::VanessaVanCleef::VanessaNightmare2Warning);
                     me->SetVisible(false);
+                    me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN);
                     me->NearTeleportTo(Positions::VanessaNightmare3);
                     break;
                 case 3:
@@ -934,7 +989,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                     break;
                 case 4:
                     Talk(Texts::VanessaVanCleef::VanessaNightmare4Warning);
+                    if (GameObject* IronDoor = me->FindNearestGameObject(Objects::IronCladDoor, 30.f))
+                        IronDoor->SetGoState(GO_STATE_ACTIVE);
                     me->SetVisible(false);
+                    me->NearTeleportTo(Positions::VanessaNightmare5);
                     break;
             }
         }
@@ -953,7 +1011,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _worgenKilled++;
 
             if (id == 2 && value == 2)
+            {
+                Talk(Texts::VanessaVanCleef::VanessaNightmareElixirOff);
                 _jamesKilled = true;
+            }
 
             if (id == 3 && value == 3)
             {
@@ -992,10 +1053,12 @@ namespace Scripts::EasternKingdoms::Deadmines
                         me->SetVisible(true);
                         SetActiveNightmare(_bossKilled + 1);
                         if (GetActiveNightmare() == 2)
-                        {
                             if (Creature* helix = me->SummonCreature(Creatures::NightmareHelix, Positions::HelixNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN))
                                 helix->AI()->DoAction(Actions::HelixEngage);
-                        }
+                        if (GetActiveNightmare() == 3)
+                            me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn);
+                        if (GetActiveNightmare() == 4)
+                            me->SummonCreature(Creatures::JamesHarringtonHuman, Positions::FoeReaperNightmareSpawn);
                         if (GetActiveNightmare() < 5)
                             _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSay1, 1s);
                         break;
@@ -1009,7 +1072,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _finalTriggered = true;
                 SetActiveNightmare(5);
                 me->SetVisible(true);
-                _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSay1, 1s);
             }
         }
 
@@ -1044,6 +1106,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 {
                     instance->SetData(Misc::ActiveNightmare, 1);
                     instance->HandleGameObject(instance->GetGuidData(Objects::FoundryDoor), false);
+                    if (GameObject* ironCladDoor = me->GetMap()->GetGameObject(instance->GetGuidData(Objects::IronCladDoor)))
+                        ironCladDoor->Respawn();
                 }
                 _events.ScheduleEvent(Events::VanessaVanCleef::GlubtokCharge, 5s);
             }

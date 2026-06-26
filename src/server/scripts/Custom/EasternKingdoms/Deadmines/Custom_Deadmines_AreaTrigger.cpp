@@ -47,6 +47,42 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (InstanceScript* instance = player->GetInstanceScript())
             {
+                if (instance->GetData(Misc::ActiveNightmare) == 4) // Ripsnarl Nightmare
+                {
+                    if (Creature* vanessaNightmare = player->FindNearestCreature(Creatures::VanessaNightmare, 100.f))
+                    {
+                        vanessaNightmare->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveEmme, player);
+                        player->CastSpell(player, Spells::VanessaVanCleef::Sprint);
+
+                        vanessaNightmare->m_Events.AddEventAtOffset([vanessaNightmare, player]()
+                            {
+                                if (vanessaNightmare && player)
+                                {
+                                    vanessaNightmare->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveErik, player);
+                                    player->CastSpell(player, Spells::VanessaVanCleef::Sprint);
+                                }
+                            }, std::chrono::seconds(30));
+
+                        vanessaNightmare->m_Events.AddEventAtOffset([vanessaNightmare, player]()
+                            {
+                                if (vanessaNightmare && player)
+                                {
+                                    vanessaNightmare->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveCalissa, player);
+                                    player->CastSpell(player, Spells::VanessaVanCleef::Sprint);
+                                }
+                            }, std::chrono::seconds(60));
+
+                        if (Creature* cannon = player->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CannonFiring1))
+                        {
+                            cannon->SummonCreature(Creatures::JamesHarrington, cannon->GetPosition());
+                            cannon->DespawnOrUnsummon(1s);
+                        }
+                        else player->SummonCreature(Creatures::JamesHarrington, cannon->GetPosition());
+
+                        return true;
+                    }
+                }
+
                 if (instance->GetData(Misc::DeadminesVersion) != Version::Classic)
                     return false;
 
