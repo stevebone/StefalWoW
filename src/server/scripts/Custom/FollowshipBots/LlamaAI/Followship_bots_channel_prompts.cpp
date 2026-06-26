@@ -599,7 +599,11 @@ namespace FSBChannelPrompts
         return aiResponse;
     }
 
-    BotChatResponse GenerateReplyToPlayer(BotChatContext const& ctx, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory)
+    BotChatResponse GenerateReplyToPlayer(
+        BotChatContext const& ctx,
+        PlayerSnapshot const& player,        // ? was Player*
+        std::string const& playerMsg,
+        std::deque<BotChatMemoryEntry> const& memory)
     {
         BotChatResponse result;
         if (!ctx.entry || playerMsg.empty())
@@ -614,57 +618,52 @@ namespace FSBChannelPrompts
 
         std::string systemPrompt =
             "You are a World of Warcraft player chatting casually in the General channel.\n"
-            "You are a " + botRaceStr + " " + botClassStr + " with a personality " + botPersonalityStr + " currently residing in " + areaName + ".\n"
+            "You are a " + botRaceStr + " " + botClassStr + " with a personality " +
+            botPersonalityStr + " currently residing in " + areaName + ".\n"
             "Write exactly ONE short reply (5 to 15 words) to the latest player message relevant to YOUR personality.\n"
             "DO NOT ASSUME the latest player message is addressed directly to you unless they included your name or directed to you.\n";
 
-        if (player)
+        // Use snapshot values instead of Player* 
+        if (!player.name.empty())
         {
             std::string playerRaceStr = "Unknown";
-            if (ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(player->GetRace()))
+            if (ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(player.race))
                 playerRaceStr = raceEntry->Name[LOCALE_enUS];
 
             std::string playerClassStr = "Unknown";
-            if (ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(player->GetClass()))
+            if (ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(player.playerClass))
                 playerClassStr = classEntry->Name[LOCALE_enUS];
 
-            uint32 level = player->GetLevel();
-            std::string levelBracket;
-            if (level <= 30)
-                levelBracket = "low level";
-            else if (level <= 60)
-                levelBracket = "mid level";
-            else
-                levelBracket = "high level";
+            std::string levelBracket =
+                player.level <= 30 ? "low level" :
+                player.level <= 60 ? "mid level" : "high level";
 
             systemPrompt +=
-                "The player you are responding to is " + std::string(player->GetName()) + ", a " + playerRaceStr + " " + playerClassStr +
-                " of level " + std::to_string(level) + " (" + levelBracket + ").\n";
+                "The player you are responding to is " + player.name + ", a " +
+                playerRaceStr + " " + playerClassStr + " of level " +
+                std::to_string(player.level) + " (" + levelBracket + ").\n";
         }
 
-        bool allowGold = false;
-        uint32 goldCount = ctx.goldGivenCount;
-        {
-            uint32 chance = (goldCount >= 5) ? 0 : std::max(0, 10 - static_cast<int32>(goldCount) * 2);
-            uint32 now = getMSTime();
-            bool onCooldown = goldCount > 0 && (now < ctx.lastGoldGiveTime + 3600000);
-            allowGold = !onCooldown && chance > 0 && urand(0, 99) < chance;
-        }
+        bool allowGold = ctx.allowGold;
 
         if (IsGoldRequest(playerMsg))
         {
             if (!allowGold)
             {
                 systemPrompt +=
-                    "You are NOT giving any gold, coins, or money right now. If the player asks for gold, decline in your own words. "
-                    "Let your personality show through. Be firm but creative in how you refuse. Never mention being an AI, bot, or NPC.\n";
+                    "You do NOT have gold to spare right now. Decline the request with your own message, firmly "
+                    "but in character - be creative, make it feel natural. "
+                    "Never mention being an AI, bot, or NPC.\n";
             }
             else
             {
                 systemPrompt +=
-                    "The player might be asking for gold. You are stingy and reluctant. Only consider giving a small amount if they ask politely and with genuine humility. "
-                    "If they are rude, shouting (all caps), demanding, threatening, or begging without manners, refuse firmly in character. "
-                    "Let your personality shape how you accept or decline. Never mention being an AI, bot, or NPC.\n";
+                    "The player is asking for gold. You are feeling generous today and "
+                    "you CAN choose to help them with a small amount. "
+                    "If their tone is polite or their situation sounds genuine, use "
+                    "action \"give_gold\" and pick a modest copper amount. "
+                    "If they are rude, demanding, or shouting (all caps), decline in character. "
+                    "Never mention being an AI, bot, or NPC.\n";
             }
         }
 

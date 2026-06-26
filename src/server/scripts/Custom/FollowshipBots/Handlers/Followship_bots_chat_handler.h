@@ -40,6 +40,27 @@ class FSBChatMgr
 public:
     static FSBChatMgr* Get();
 
+    struct PendingBotReply
+    {
+        std::atomic<bool> ready{ false };
+        std::mutex        mutex;
+
+        // Written by async thread
+        FSBChannelPrompts::BotChatResponse response;
+
+        // Written before dispatch, read on main thread to act on result
+        // Never store raw pointers - re-acquire objects by GUID on main thread
+        ObjectGuid  botGuid;
+        uint32      channelId = 0;
+        Team        botTeam = ALLIANCE;
+        ObjectGuid  playerGuid;
+        std::string playerName;
+        uint32      deliverAfter = 0;
+    };
+
+    std::vector<std::shared_ptr<PendingBotReply>> _pendingReplies;
+    std::mutex                                    _pendingRepliesMutex;
+
     // Active bot registry for /who and whisper routing
     void RegisterActiveBot(Creature* bot);
     void UnregisterActiveBot(Creature* bot);

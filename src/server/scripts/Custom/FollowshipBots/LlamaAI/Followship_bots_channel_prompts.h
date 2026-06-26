@@ -47,6 +47,7 @@ namespace FSBChannelPrompts
         uint32 goldGivenCount = 0;
         uint32 lastGoldGiveTime = 0;
         std::string botName;
+        bool allowGold = false;
     };
     inline const std::vector<std::string> TradeSellingExamples =
     {
@@ -227,8 +228,17 @@ namespace FSBChannelPrompts
         uint32 amount = 0;
     };
 
+    struct PlayerSnapshot
+    {
+        std::string name;
+        uint8       race = 0;
+        uint8       playerClass = 0;
+        uint32      level = 0;
+    };
+
     std::string GenerateTradeMessage(Creature* bot);
     std::string GenerateLFGMessage(Creature* bot);
     std::string GenerateGeneralMessage(BotChatContext const& ctx);
-    BotChatResponse GenerateReplyToPlayer(BotChatContext const& ctx, Player* player, std::string const& playerMsg, std::deque<BotChatMemoryEntry> const& memory);
+    BotChatResponse GenerateReplyToPlayer(BotChatContext const& ctx, PlayerSnapshot const& player, std::string const& playerMsg,
+        std::deque<BotChatMemoryEntry> const& memory);
 }
