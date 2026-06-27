@@ -30,6 +30,7 @@
 #include "Creature.h"
 #include "Player.h"
 #include "Errors.h"
+#include "Common.h"
 
 #include <rapidjson/document.h>
 

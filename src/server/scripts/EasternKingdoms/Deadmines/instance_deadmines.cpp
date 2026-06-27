@@ -15,14 +15,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Creature.h"
 #include "ScriptMgr.h"
 #include "deadmines.h"
-#include "GameObject.h"
 #include "InstanceScript.h"
-#include "Map.h"
-#include "MotionMaster.h"
-#include "TemporarySummon.h"
 
 static constexpr ObjectData creatureData[] =
 {
@@ -52,23 +47,6 @@ static constexpr DungeonEncounterData encounters[] =
     { BOSS_VANESSA_VANCLEEF,    {{ 1081 }}  }
 };
 
-enum Sounds
-{
-    SOUND_CANNONFIRE = 1400,
-    SOUND_DESTROYDOOR = 3079,
-    SOUND_MR_SMITE_ALARM1 = 5775,
-    SOUND_MR_SMITE_ALARM2 = 5777
-};
-
-//#define SAY_MR_SMITE_ALARM1 "You there, check out that noise!"
-//#define SAY_MR_SMITE_ALARM2 "We're under attack! A vast, ye swabs! Repel the invaders!"
-
-enum Misc
-{
-    DATA_CANNON_BLAST_TIMER = 3000,
-    DATA_PIRATES_DELAY_TIMER = 1000
-};
-
 class instance_deadmines : public InstanceMapScript
 {
 public:
@@ -84,8 +62,6 @@ public:
             LoadDoorData(doorData);
             LoadDungeonEncounterData(encounters);
         }
-
-        
     };
 
     InstanceScript* GetInstanceScript(InstanceMap* map) const override

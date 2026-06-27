@@ -23,6 +23,7 @@
 #pragma once
 
 #include <string>
+#include "Common.h"
 
 class Creature;
 class Player;
