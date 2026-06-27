@@ -20,9 +20,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Followship_bots_channel_prompts.h"
+#include "GenAI_channel_prompts.h"
 #include "Followship_bots_chat_handler.h"
-#include "Followship_bots_llamaAI.h"
+#include "GenAI_client.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 #include "AI/Followship_bots_ai_base.h"
@@ -210,11 +210,11 @@ namespace FSBChannelPrompts
     }
 
     // ------------------------------------------------------------------
-    //  Trade message via LlamaAI
+    //  Trade message via GenAI
     // ------------------------------------------------------------------
     std::string GenerateTradeMessage(Creature* bot)
     {
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
             return "";
 
         if (!bot)
@@ -299,7 +299,7 @@ namespace FSBChannelPrompts
         userPrompt += "Intent: " + intent + "\n";
         userPrompt += "Your location: " + areaName;
 
-        std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
+        std::string aiResponse = FSBGenAI::GetBotResponse(systemPrompt, userPrompt);
         if (aiResponse.empty())
             return "";
 
@@ -338,11 +338,11 @@ namespace FSBChannelPrompts
     }
 
     // ------------------------------------------------------------------
-    //  LFG message via LlamaAI
+    //  LFG message via GenAI
     // ------------------------------------------------------------------
     std::string GenerateLFGMessage(Creature* bot)
     {
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
             return "";
 
         if (!bot)
@@ -390,7 +390,7 @@ namespace FSBChannelPrompts
             "Your class: " + classStr + "\n"
             "Your role: " + roleStr;
 
-        std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
+        std::string aiResponse = FSBGenAI::GetBotResponse(systemPrompt, userPrompt);
         if (aiResponse.empty())
             return "";
 
@@ -470,7 +470,7 @@ namespace FSBChannelPrompts
 
     std::string GenerateGeneralMessage(BotChatContext const& ctx)
     {
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
             return "";
 
         if (!ctx.entry)
@@ -583,7 +583,7 @@ namespace FSBChannelPrompts
         else if (topic == GeneralTopic::AchievementBrag)
             userPrompt += "Achievement: " + replacement;
 
-        std::string aiResponse = FSBLlamaAI::GetBotResponse(systemPrompt, userPrompt);
+        std::string aiResponse = FSBGenAI::GetBotResponse(systemPrompt, userPrompt);
         if (aiResponse.empty())
             return "";
 
@@ -678,15 +678,15 @@ namespace FSBChannelPrompts
         for (auto const& entry : memory)
             userPrompt += entry.senderName + ": " + entry.message + "\n";
 
-        if (FollowshipBotsConfig::configFSBLlamaAIEnabled)
+        if (FollowshipBotsConfig::configFSBGenAIEnabled)
         {
-            std::string aiResponse = FSBLlamaAI::GetStructuredBotResponse(systemPrompt, userPrompt);
+            std::string aiResponse = FSBGenAI::GetStructuredBotResponse(systemPrompt, userPrompt);
             if (!aiResponse.empty())
             {
                 std::string reply;
                 std::string action;
                 uint32 amount = 0;
-                if (FSBLlamaAI::ParseStructuredResponse(aiResponse, reply, action, amount))
+                if (FSBGenAI::ParseStructuredResponse(aiResponse, reply, action, amount))
                 {
                     if (action == "give_gold" && !allowGold)
                     {

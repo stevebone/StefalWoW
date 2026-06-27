@@ -27,8 +27,8 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "LlamaAI/Followship_bots_llamaAI.h"
-#include "LlamaAI/Followship_bots_chatter_prompts.h"
+#include "GenAI/GenAI_client.h"
+#include "GenAI/GenAI_chatter_prompts.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -241,7 +241,7 @@ namespace FSBGossip
 
         player->PlayerTalkClass->SendCloseGossip();
 
-        FSBLlamaPrompts::DispatchBotInfoRequest(bot);
+        FSBGenAIPrompts::DispatchBotInfoRequest(bot);
     }
     void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon)
     {
@@ -387,7 +387,7 @@ namespace FSBGossip
         }
 
         bot->SetReactState(REACT_AGGRESSIVE);
-        FSBLlamaPrompts::DispatchBotRoleAcknowledge(bot);
+        FSBGenAIPrompts::DispatchBotRoleAcknowledge(bot);
     }
     bool HandleGossipItemHirePermanent(Creature* bot, Player* player)
     {
@@ -411,7 +411,7 @@ namespace FSBGossip
 
             FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
-            FSBLlamaPrompts::DispatchBotHired(bot, 0);
+            FSBGenAIPrompts::DispatchBotHired(bot, 0);
         }
         else
             player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
@@ -449,7 +449,7 @@ namespace FSBGossip
         FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
 
         // 6. Chatter
-        FSBLlamaPrompts::DispatchBotHired(bot, durationHours);
+        FSBGenAIPrompts::DispatchBotHired(bot, durationHours);
 
         // 7. Close gossip
         player->PlayerTalkClass->SendCloseGossip();

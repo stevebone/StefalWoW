@@ -23,19 +23,15 @@
 #pragma once
 
 #include <string>
-
 #include "Common.h"
 
-namespace FSBLlamaAI
+namespace FSBGenAI
 {
     bool IsEnabled();
-
-    std::string BuildChatRequestJson(std::string const& systemPrompt, std::string const& userMessage);
     std::string SendChatRequest(std::string const& requestBody);
-    std::string ExtractResponseContent(std::string const& responseJson);
 
     std::string GetBotResponse(std::string const& systemPrompt, std::string const& userMessage);
-
     std::string GetStructuredBotResponse(std::string const& systemPrompt, std::string const& userMessage);
+    std::string GetStructuredBotResponse(std::string const& systemPrompt, std::string const& userMessage, int32 maxTokens);
     bool ParseStructuredResponse(std::string const& jsonStr, std::string& reply, std::string& action, uint32& amount);
 }

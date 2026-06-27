@@ -20,8 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Followship_bots_conversation_prompts.h"
-#include "Followship_bots_llamaAI.h"
+#include "GenAI_conversation_prompts.h"
+#include "GenAI_client.h"
 
 #include "AI/Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
@@ -197,7 +197,7 @@ namespace FSBConvPrompts
         if (!speaker)
             return;
 
-        if (conv.convLlamaState)
+        if (conv.convGenAIState)
             return;
 
         std::string systemPrompt = BuildConversationSystemPrompt(speaker);
@@ -245,15 +245,15 @@ namespace FSBConvPrompts
                 categoryNoun);
         }
 
-        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === SYSTEM PROMPT for {} ===\n{}", speaker->GetName(), systemPrompt);
-        TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: === USER MESSAGE for {} ===\n{}", speaker->GetName(), userMessage);
+        TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: === SYSTEM PROMPT for {} ===\n{}", speaker->GetName(), systemPrompt);
+        TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: === USER MESSAGE for {} ===\n{}", speaker->GetName(), userMessage);
 
-        conv.convLlamaState = std::make_shared<ConversationLlamaState>();
-        auto state = conv.convLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched conversation turn for bot {}", speaker->GetName());
+        conv.convGenAIState = std::make_shared<ConversationGenAIState>();
+        auto state = conv.convGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched conversation turn for bot {}", speaker->GetName());
 
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;

@@ -34,8 +34,8 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_chatter_handler.h"
-#include "LlamaAI/Followship_bots_chatter_prompts.h"
-#include "LlamaAI/Followship_bots_llamaAI.h"
+#include "GenAI/GenAI_chatter_prompts.h"
+#include "GenAI/GenAI_client.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
@@ -370,7 +370,7 @@ namespace FSBOOC
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: talk", bot->GetName());
             bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-            FSBLlamaPrompts::DispatchBotTalk(bot);
+            FSBGenAIPrompts::DispatchBotTalk(bot);
             return true;
         }
 
@@ -380,7 +380,7 @@ namespace FSBOOC
             {
                 TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: whisper", bot->GetName());
                 bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-                FSBLlamaPrompts::DispatchBotWhisperAFK(bot);
+                FSBGenAIPrompts::DispatchBotWhisperAFK(bot);
                 return true;
             }
             return false;
@@ -699,7 +699,7 @@ namespace FSBOOC
         if (check && player)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                FSBLlamaPrompts::DispatchBotHeal(bot, player->GetGUID(), 0);
+                FSBGenAIPrompts::DispatchBotHeal(bot, player->GetGUID(), 0);
 
             return true;
         }
@@ -761,7 +761,7 @@ namespace FSBOOC
             if (buffSpellId)
             {
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                    FSBLlamaPrompts::DispatchBotBuff(bot, bot->GetGUID(), buffSpellId);
+                    FSBGenAIPrompts::DispatchBotBuff(bot, bot->GetGUID(), buffSpellId);
             }
 
             return true;
@@ -882,7 +882,7 @@ namespace FSBOOC
                 globalCooldown = now + 1500;
 
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                    FSBLlamaPrompts::DispatchBotBuff(bot, target->GetGUID(), buffSpellId);
+                    FSBGenAIPrompts::DispatchBotBuff(bot, target->GetGUID(), buffSpellId);
             }
 
             return true;
@@ -1017,7 +1017,7 @@ namespace FSBOOC
 
             if (!randomUnit->IsPlayer())
                 if (Creature* targetCreature = randomUnit->ToCreature())
-                    FSBLlamaPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_joke);
+                    FSBGenAIPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_joke);
 
             return true;
         }
@@ -1060,7 +1060,7 @@ namespace FSBOOC
 
             if (!randomUnit->IsPlayer())
                 if (Creature* targetCreature = randomUnit->ToCreature())
-                    FSBLlamaPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_kiss);
+                    FSBGenAIPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_kiss);
 
             return true;
         }
@@ -1103,7 +1103,7 @@ namespace FSBOOC
 
             if (!randomUnit->IsPlayer())
                 if (Creature* targetCreature = randomUnit->ToCreature())
-                    FSBLlamaPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_flirt);
+                    FSBGenAIPrompts::DispatchBotSocialReply(targetCreature, bot->GetGUID(), FSB_ChatterCategory::emote_flirt);
 
             return true;
         }
@@ -1136,7 +1136,7 @@ namespace FSBOOC
             if (FSBSpells::BotCastSpell(bot, spellId, bot))
             {
                 TC_LOG_INFO("scripts.fsb.ooc", "FSB: BotOOCActionCook started for bot {} with event {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId));
-                FSBLlamaPrompts::DispatchBotCooking(bot);
+                FSBGenAIPrompts::DispatchBotCooking(bot);
                 return true;
             }
         }
@@ -1215,8 +1215,8 @@ namespace FSBOOC
         // 4. Start conversation
         if (action == 1)
         {
-            if (FSBLlamaAI::IsEnabled())
-                FSBChat::StartBotLlamaConversation(bot);
+            if (FSBGenAI::IsEnabled())
+                FSBChat::StartBotGenAIConversation(bot);
             else
                 FSBChat::StartBotConversation(bot);
         }

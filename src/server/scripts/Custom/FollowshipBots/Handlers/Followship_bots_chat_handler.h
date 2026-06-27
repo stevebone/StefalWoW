@@ -33,8 +33,8 @@
 #include "SharedDefines.h"
 #include "Unit.h"
 
-#include "LlamaAI/Followship_bots_channel_prompts.h"
-#include "LlamaAI/Followship_bots_conversation_prompts.h"
+#include "GenAI/GenAI_channel_prompts.h"
+#include "GenAI/GenAI_conversation_prompts.h"
 
 class Channel;
 class Creature;
@@ -123,14 +123,14 @@ namespace FSBChat
         size_t currentLine = 0;
         uint32 nextSpeakTime = 0;
 
-        // LlamaAI fields
-        bool isLlamaGenerated = false;
+        // GenAI fields
+        bool isGenAIGenerated = false;
         FSBConvPrompts::ConversationTopic topic;
         std::string topicDescription;
         std::vector<std::pair<std::string, std::string>> history; // {speakerName, line}
         size_t maxLines = 0;
         size_t currentSpeakerIndex = 0;
-        std::shared_ptr<FSBConvPrompts::ConversationLlamaState> convLlamaState;
+        std::shared_ptr<FSBConvPrompts::ConversationGenAIState> convGenAIState;
     };
 
     enum class ChatChannelType
@@ -163,7 +163,7 @@ namespace FSBChat
     size_t CountUniqueRoles(const ConversationTemplate& tmpl);
 
     void StartBotConversation(Creature* starter);
-    void StartBotLlamaConversation(Creature* starter);
+    void StartBotGenAIConversation(Creature* starter);
     void UpdateBotConversations();
     bool IsBotInConversation(Creature* bot);
 

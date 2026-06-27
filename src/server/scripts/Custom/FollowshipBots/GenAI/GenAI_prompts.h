@@ -22,21 +22,33 @@
 
 #pragma once
 
-#include <string>
-#include "Common.h"
+#include "Creature.h"
+#include "Followship_bots_defines.h"
 
-class Creature;
-class Player;
+class FSB_BaseAI;
 
-namespace FSBMailPrompts
+namespace FSBGenAIPrompts
 {
-    struct MailContent
+    enum class FSB_AcknowledgeContext
     {
-        std::string subject;
-        std::string body;
+        FollowDistanceClose,
+        FollowDistanceNormal,
+        FollowDistanceWide,
+        FollowAngleFront,
+        FollowAngleBehind,
+        FollowAngleRight,
+        FollowAngleLeft,
+        StayCommand,
+        FollowCommand
     };
 
-    MailContent GenerateGoldMailContent(Creature* bot, Player* player, uint32 amount,
-        std::string const& playerRequest,
-        std::string const& botReply);
+    void DispatchBotInfoRequest(Creature* bot);
+    void DispatchBotRoleAcknowledge(Creature* bot);
+    void DispatchBotAcknowledge(Creature* bot, FSB_AcknowledgeContext context);
+    void DispatchBotDismissed(Creature* bot);
+    void DispatchBotHired(Creature* bot, uint32 durationHours);
+    void DispatchBotRecovery(Creature* bot, uint32 spellId);
+    void DispatchBotBuff(Creature* bot, ObjectGuid targetGuid, uint32 spellId);
+    void DispatchBotPotion(Creature* bot, uint32 spellId, bool isManaPotion);
+    void DispatchBotHeal(Creature* bot, ObjectGuid targetGuid, uint32 spellId);
 }

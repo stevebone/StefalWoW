@@ -40,7 +40,7 @@
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
 
-#include "LlamaAI/Followship_bots_chat_memory.h"
+#include "GenAI/GenAI_chat_memory.h"
 
 struct FSB_ClassStats;
 struct FSB_DungeonData;
@@ -175,7 +175,7 @@ public:
 
     std::unordered_map<uint32, FSBEventPayload> eventPayloads;
 
-    struct LlamaRequestState
+    struct GenAIRequestState
     {
         std::atomic<bool> ready{ false };
         std::string result;
@@ -183,9 +183,9 @@ public:
         FSB_ReplyType replyType = FSB_ReplyType::Say;
     };
 
-    std::shared_ptr<LlamaRequestState> pendingLlamaState;
-    std::function<void()> llamaFallbackAction;
-    std::function<void(std::string const&)> llamaDeliverAction;
+    std::shared_ptr<GenAIRequestState> pendingGenAIState;
+    std::function<void()> genAIFallbackAction;
+    std::function<void(std::string const&)> genAIDeliverAction;
 
     struct BotChatData
     {
@@ -201,38 +201,38 @@ public:
     std::deque<BotChatMemoryEntry> GetChatMemory() const;
     void ClearChatMemory();
 
-    void PollPendingLlamaResponse()
+    void PollPendingGenAIResponse()
     {
-        if (!pendingLlamaState)
+        if (!pendingGenAIState)
             return;
 
-        if (pendingLlamaState->ready.load())
+        if (pendingGenAIState->ready.load())
         {
             std::string response;
             {
-                std::lock_guard<std::mutex> lock(pendingLlamaState->mutex);
-                response = std::move(pendingLlamaState->result);
+                std::lock_guard<std::mutex> lock(pendingGenAIState->mutex);
+                response = std::move(pendingGenAIState->result);
             }
 
             if (!response.empty())
             {
-                TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: bot {} speaking LLM response", me->GetName());
-                if (llamaDeliverAction)
-                    llamaDeliverAction(response);
-                else if (pendingLlamaState->replyType == FSB_ReplyType::Yell)
+                TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: bot {} speaking LLM response", me->GetName());
+                if (genAIDeliverAction)
+                    genAIDeliverAction(response);
+                else if (pendingGenAIState->replyType == FSB_ReplyType::Yell)
                     me->Yell(response, LANG_UNIVERSAL);
                 else
                     me->Say(response, LANG_UNIVERSAL);
             }
-            else if (llamaFallbackAction)
+            else if (genAIFallbackAction)
             {
-                TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: bot {} falling back to hardcoded text", me->GetName());
-                llamaFallbackAction();
+                TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: bot {} falling back to hardcoded text", me->GetName());
+                genAIFallbackAction();
             }
 
-            pendingLlamaState.reset();
-            llamaFallbackAction = nullptr;
-            llamaDeliverAction = nullptr;
+            pendingGenAIState.reset();
+            genAIFallbackAction = nullptr;
+            genAIDeliverAction = nullptr;
         }
     }
 

@@ -40,7 +40,7 @@
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 
-#include "LlamaAI/Followship_bots_chatter_prompts.h"
+#include "GenAI/GenAI_chatter_prompts.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -217,7 +217,7 @@ public:
             {
                 botFollowDistance = FOLLOW_DISTANCE_CLOSE;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowDistanceClose);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowDistanceClose);
                 break;
             }
 
@@ -226,7 +226,7 @@ public:
             {
                 botFollowDistance = FOLLOW_DISTANCE_NORMAL;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowDistanceNormal);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowDistanceNormal);
                 break;
             }
 
@@ -235,7 +235,7 @@ public:
             {
                 botFollowDistance = FOLLOW_DISTANCE_WIDE;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowDistanceWide);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowDistanceWide);
                 break;
             }
 
@@ -244,7 +244,7 @@ public:
             {
                 botFollowAngle = FOLLOW_ANGLE_FRONT;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowAngleFront);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowAngleFront);
                 break;
             }
 
@@ -253,7 +253,7 @@ public:
             {
                 botFollowAngle = FOLLOW_ANGLE_BEHIND;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowAngleBehind);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowAngleBehind);
                 break;
             }
 
@@ -262,7 +262,7 @@ public:
             {
                 botFollowAngle = FSBUtils::GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowAngleRight);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowAngleRight);
                 break;
             }
 
@@ -270,7 +270,7 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 20:
             {
                 FSBMovement::StopFollow(me);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::StayCommand);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::StayCommand);
                 break;
             }
 
@@ -278,7 +278,7 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 21:
             {
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowCommand);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowCommand);
                 break;
             }
 
@@ -287,7 +287,7 @@ public:
             {
                 botFollowAngle = FSBUtils::GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
                 FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                FSBLlamaPrompts::DispatchBotAcknowledge(me, FSBLlamaPrompts::FSB_AcknowledgeContext::FollowAngleLeft);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::FollowAngleLeft);
                 break;
             }
 
@@ -406,7 +406,7 @@ public:
                 return;
 
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                FSBLlamaPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
+                FSBGenAIPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
@@ -735,7 +735,7 @@ public:
                 HandleBotEvent(this, eventId);
             }
 
-            PollPendingLlamaResponse();
+            PollPendingGenAIResponse();
         }
         
         private:

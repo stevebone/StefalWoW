@@ -33,7 +33,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_chatter_handler.h"
-#include "LlamaAI/Followship_bots_chatter_prompts.h"
+#include "GenAI/GenAI_chatter_prompts.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -69,7 +69,7 @@ namespace FSBDeath
 
         // handle chatter after death
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            FSBLlamaPrompts::DispatchBotDeath(bot, killer->GetGUID());
+            FSBGenAIPrompts::DispatchBotDeath(bot, killer->GetGUID());
         
         // handle death with soulstone or Self Resurrect (Shaman)
         if (hasSS)
@@ -127,7 +127,7 @@ namespace FSBDeath
         bot->RemoveAllAuras();
 
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            FSBLlamaPrompts::DispatchBotRevivedSelf(bot);
+            FSBGenAIPrompts::DispatchBotRevivedSelf(bot);
 
         hasSS = false;
 
@@ -180,7 +180,7 @@ namespace FSBDeath
             baseAI->botNeedsDeadUnitCheck = true;
 
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            FSBLlamaPrompts::DispatchBotRevived(bot);
+            FSBGenAIPrompts::DispatchBotRevived(bot);
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at dungeon entrance.", bot->GetName());
     }
 
@@ -194,7 +194,7 @@ namespace FSBDeath
         bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            FSBLlamaPrompts::DispatchBotRevived(bot);
+            FSBGenAIPrompts::DispatchBotRevived(bot);
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Revived at corpse location after graveyard run.", bot->GetName());
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -220,7 +220,7 @@ namespace FSBDeath
 
         // Chatter announcement (once when added to queue)
         if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-            FSBLlamaPrompts::DispatchBotMemberDied(healer, deadUnit->GetGUID());
+            FSBGenAIPrompts::DispatchBotMemberDied(healer, deadUnit->GetGUID());
 
         // Schedule resurrect event
         FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESURRECT_TARGET, 3s, 5s);
@@ -343,7 +343,7 @@ namespace FSBDeath
             TC_LOG_DEBUG("scripts.fsb.death", "FSB: ProcessResurrectQueue Healer {} resurrected {}", healer->GetName(), target->GetName());
 
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                FSBLlamaPrompts::DispatchBotRevivedTarget(healer, target->GetGUID());
+                FSBGenAIPrompts::DispatchBotRevivedTarget(healer, target->GetGUID());
 
             FSBEvents::ScheduleBotEvent(healer, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(castTimeMs + 1000));
 

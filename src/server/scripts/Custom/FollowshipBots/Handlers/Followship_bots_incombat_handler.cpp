@@ -28,7 +28,7 @@
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_chatter_handler.h"
-#include "LlamaAI/Followship_bots_chatter_prompts.h"
+#include "GenAI/GenAI_chatter_prompts.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
@@ -150,13 +150,13 @@ namespace FSBIC
             switch (emoteReply)
             {
                 case FSB_ChatterCategory::emote_oom:
-                    FSBLlamaPrompts::DispatchBotDistress(bot, FSBLlamaPrompts::FSB_DistressContext::OutOfMana);
+                    FSBGenAIPrompts::DispatchBotDistress(bot, FSBGenAIPrompts::FSB_DistressContext::OutOfMana);
                     break;
                 case FSB_ChatterCategory::emote_help:
-                    FSBLlamaPrompts::DispatchBotDistress(bot, FSBLlamaPrompts::FSB_DistressContext::LowHealth);
+                    FSBGenAIPrompts::DispatchBotDistress(bot, FSBGenAIPrompts::FSB_DistressContext::LowHealth);
                     break;
                 case FSB_ChatterCategory::emote_heal:
-                    FSBLlamaPrompts::DispatchBotDistress(bot, FSBLlamaPrompts::FSB_DistressContext::CriticalHealth);
+                    FSBGenAIPrompts::DispatchBotDistress(bot, FSBGenAIPrompts::FSB_DistressContext::CriticalHealth);
                     break;
                 default:
                     break;
@@ -257,11 +257,11 @@ namespace FSBIC
                 if (target && target == bot)
                 {
                     if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                        FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), dmgSpell->def->spellId);
+                        FSBGenAIPrompts::DispatchBotHeal(bot, bot->GetGUID(), dmgSpell->def->spellId);
                 }
                 else if (target && target != bot)
                     if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                        FSBLlamaPrompts::DispatchBotCombatSpell(bot, target->GetGUID(), dmgSpell->def->spellId);
+                        FSBGenAIPrompts::DispatchBotCombatSpell(bot, target->GetGUID(), dmgSpell->def->spellId);
                 return true;
             }
         }
@@ -340,9 +340,9 @@ namespace FSBIC
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 {
                     if (target == bot)
-                        FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), healSpell->def->spellId);
+                        FSBGenAIPrompts::DispatchBotHeal(bot, bot->GetGUID(), healSpell->def->spellId);
                     else
-                        FSBLlamaPrompts::DispatchBotHeal(bot, target->GetGUID(), healSpell->def->spellId);
+                        FSBGenAIPrompts::DispatchBotHeal(bot, target->GetGUID(), healSpell->def->spellId);
                 }
                 return true;
             }
@@ -384,7 +384,7 @@ namespace FSBIC
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
                 baseAI->botGlobalCooldown = now + 1500;
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                    FSBLlamaPrompts::DispatchBotHeal(bot, bot->GetGUID(), healSpell->def->spellId);
+                    FSBGenAIPrompts::DispatchBotHeal(bot, bot->GetGUID(), healSpell->def->spellId);
                 return true;
             }
         }
@@ -539,7 +539,7 @@ namespace FSBIC
                     std::string spellName = FSBSpellsUtils::GetSpellName(ManaPotionSpellId);
 
                     if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                        FSBLlamaPrompts::DispatchBotPotion(bot, ManaPotionSpellId, true);
+                        FSBGenAIPrompts::DispatchBotPotion(bot, ManaPotionSpellId, true);
 
                     TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICPotions: Bot {} used potion spell: {}", bot->GetName(), spellName);
                     return true;
@@ -569,7 +569,7 @@ namespace FSBIC
             std::string spellName = FSBSpellsUtils::GetSpellName(HealthPotionSpellId);
 
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                FSBLlamaPrompts::DispatchBotPotion(bot, HealthPotionSpellId, false);
+                FSBGenAIPrompts::DispatchBotPotion(bot, HealthPotionSpellId, false);
 
             TC_LOG_DEBUG("scripts.fsb.combat", "FSB: BotICPotions: Bot {} used potion spell: {}", bot->GetName(), spellName);
             return true;

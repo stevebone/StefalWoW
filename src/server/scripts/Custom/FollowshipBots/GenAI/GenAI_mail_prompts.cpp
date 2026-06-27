@@ -20,17 +20,17 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Followship_bots_mail_prompts.h"
-#include "Followship_bots_llamaAI.h"
+#include "GenAI_mail_prompts.h"
+#include "GenAI_client.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
+#include "Config/Followship_bots_config.h"
 
 #include "DB2Stores.h"
 #include "Log.h"
 #include "Creature.h"
 #include "Player.h"
 #include "Errors.h"
-#include "Common.h"
 
 #include <rapidjson/document.h>
 
@@ -44,7 +44,7 @@ namespace FSBMailPrompts
         result.subject = "Some spare coin";
         result.body = botReply;
 
-        if (!bot || !player || !FSBLlamaAI::IsEnabled())
+        if (!bot || !player || !FSBGenAI::IsEnabled())
             return result;
 
         uint32 entry = bot->GetEntry();
@@ -100,29 +100,48 @@ namespace FSBMailPrompts
             "Write a subject and body that naturally follow from this conversation. "
             "The body should acknowledge their actual reason for asking, not invent a different one.";
 
-        std::string aiResponse = FSBLlamaAI::GetStructuredBotResponse(systemPrompt, userPrompt);
+        std::string aiResponse = FSBGenAI::GetStructuredBotResponse(systemPrompt, userPrompt, FollowshipBotsConfig::configFSBGenAIMailMaxTokens);
         if (aiResponse.empty())
             return result;
+
+        // Strip markdown code block wrapper if present
+        {
+            auto pos = aiResponse.find("```json");
+            if (pos != std::string::npos)
+            {
+                auto start = aiResponse.find_first_of("{\[", pos);
+                auto end = aiResponse.rfind("```");
+                if (start != std::string::npos && end != std::string::npos && end > start)
+                    aiResponse = aiResponse.substr(start, end - start);
+            }
+            else
+            {
+                auto start = aiResponse.find_first_of("{\[");
+                if (start != std::string::npos && start > 0)
+                    aiResponse = aiResponse.substr(start);
+            }
+        }
 
         rapidjson::Document doc;
         doc.Parse(aiResponse.c_str(), aiResponse.length());
 
         if (doc.HasParseError() || !doc.IsObject())
         {
-            TC_LOG_ERROR("scripts.fsb.llama", "FSB MailPrompts: JSON parse error: {}", aiResponse);
+            TC_LOG_ERROR("scripts.fsb.genai", "FSB MailPrompts: JSON parse error: {}", aiResponse);
             return result;
         }
 
         if (doc.HasMember("subject") && doc["subject"].IsString())
             result.subject = doc["subject"].GetString();
         else
-            TC_LOG_WARN("scripts.fsb.llama", "FSB MailPrompts: missing/invalid 'subject' field");
+            TC_LOG_WARN("scripts.fsb.genai", "FSB MailPrompts: missing/invalid 'subject' field");
 
         if (doc.HasMember("body") && doc["body"].IsString())
             result.body = doc["body"].GetString();
         else
-            TC_LOG_WARN("scripts.fsb.llama", "FSB MailPrompts: missing/invalid 'body' field");
+            TC_LOG_WARN("scripts.fsb.genai", "FSB MailPrompts: missing/invalid 'body' field");
 
+        TC_LOG_INFO("scripts.fsb.genai", "FSB MailPrompts: generated mail subject='{}' body='{}'", result.subject, result.body);
         return result;
     }
 }

@@ -43,13 +43,13 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_mail_handler.h"
-#include "LlamaAI/Followship_bots_mail_prompts.h"
+#include "GenAI/GenAI_mail_prompts.h"
 
 #include "AI/Followship_bots_ai_base.h"
 #include "Followship_bots_config.h"
 
-#include "LlamaAI/Followship_bots_llamaAI.h"
-#include "LlamaAI/Followship_bots_channel_prompts.h"
+#include "GenAI/GenAI_client.h"
+#include "GenAI/GenAI_channel_prompts.h"
 
 // ------------------------------------------------------------------
 // Helper: gold allowance (main-thread only - uses urand)
@@ -772,12 +772,12 @@ namespace FSBChat
         activeConversations.push_back(conv);
     }
 
-    void StartBotLlamaConversation(Creature* starter)
+    void StartBotGenAIConversation(Creature* starter)
     {
         if (!starter || !starter->IsAlive())
             return;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
             return;
 
         auto topic = FSBConvPrompts::PickRandomTopic();
@@ -805,7 +805,7 @@ namespace FSBChat
             return;
 
         ActiveConversation conv;
-        conv.isLlamaGenerated = true;
+        conv.isGenAIGenerated = true;
         conv.topic = topic;
         conv.topicDescription = FSBConvPrompts::BuildTopicDescription(starter, topic);
         conv.participants = participants;
@@ -825,14 +825,14 @@ namespace FSBChat
         {
             ActiveConversation& conv = *it;
 
-            if (conv.isLlamaGenerated)
+            if (conv.isGenAIGenerated)
             {
-                if (conv.convLlamaState && conv.convLlamaState->ready.load())
+                if (conv.convGenAIState && conv.convGenAIState->ready.load())
                 {
                     std::string response;
                     {
-                        std::lock_guard<std::mutex> lock(conv.convLlamaState->mutex);
-                        response = std::move(conv.convLlamaState->result);
+                        std::lock_guard<std::mutex> lock(conv.convGenAIState->mutex);
+                        response = std::move(conv.convGenAIState->result);
                     }
 
                     size_t speakerIndex = conv.currentSpeakerIndex;
@@ -847,20 +847,20 @@ namespace FSBChat
 
                         if (!response.empty())
                         {
-                            TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: bot {} spoke LLM response: {}", speaker->GetName(), response);
+                            TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: bot {} spoke LLM response: {}", speaker->GetName(), response);
                             BotSendGeneralChat(speaker, response);
                             conv.history.emplace_back(speaker->GetName(), response);
                         }
                         else
                         {
                             std::string fallback = FSBConvPrompts::GetFallbackConversationLine(conv);
-                            TC_LOG_DEBUG("scripts.fsb.llama", "FSB LlamaAI: bot {} spoke FALLBACK: {}", speaker->GetName(), fallback);
+                            TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: bot {} spoke FALLBACK: {}", speaker->GetName(), fallback);
                             BotSendGeneralChat(speaker, fallback);
                             conv.history.emplace_back(speaker->GetName(), fallback);
                         }
                     }
 
-                    conv.convLlamaState.reset();
+                    conv.convGenAIState.reset();
                     conv.currentLine++;
                     conv.currentSpeakerIndex = (conv.currentSpeakerIndex + 1) % conv.participants.size();
 
@@ -872,7 +872,7 @@ namespace FSBChat
 
                     conv.nextSpeakTime = now + urand(2, 5);
                 }
-                else if (now >= conv.nextSpeakTime && !conv.convLlamaState)
+                else if (now >= conv.nextSpeakTime && !conv.convGenAIState)
                 {
                     size_t speakerIndex = conv.currentSpeakerIndex;
                     if (speakerIndex >= conv.participants.size())

@@ -23,6 +23,7 @@
 #include "Config.h"
 
 #include "Followship_bots_config.h"
+#include "GenAI/GenAI_provider.h"
 
 
 bool  FollowshipBotsConfig::configFSBEnabled = false;
@@ -61,24 +62,25 @@ float FollowshipBotsConfig::configFSBArmorRate = 0.4f;
 float FollowshipBotsConfig::configFSBHealthRegenRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRegenRate = 1.f;
 
-bool  FollowshipBotsConfig::configFSBLlamaAIEnabled = false;
-std::string FollowshipBotsConfig::configFSBLlamaAIHost = "127.0.0.1";
-int32 FollowshipBotsConfig::configFSBLlamaAIPort = 8080;
-std::string FollowshipBotsConfig::configFSBLlamaAIEndpoint = "v1/chat/completions";
-std::string FollowshipBotsConfig::configFSBLlamaAIModel = "Qwen3-4B-Q4_K_M.gguf";
-std::string FollowshipBotsConfig::configFSBLlamaAIApiKey = "";
-std::string FollowshipBotsConfig::configFSBLlamaAIApiKeyHeader = "Authorization";
-std::string FollowshipBotsConfig::configFSBLlamaAIApiKeyPrefix = "Bearer ";
-bool  FollowshipBotsConfig::configFSBLlamaAIUseSSL = false;
-std::string FollowshipBotsConfig::configFSBLlamaAIRequestHeader = "";
-int32 FollowshipBotsConfig::configFSBLlamaAITimeoutMs = 5000;
-int32 FollowshipBotsConfig::configFSBLlamaAIMaxTokens = 50;
-float FollowshipBotsConfig::configFSBLlamaAITemperature = 0.9f;
-float FollowshipBotsConfig::configFSBLlamaAITopP = 0.95f;
-bool  FollowshipBotsConfig::configFSBLlamaAISendPenalties = true;
-bool  FollowshipBotsConfig::configFSBLlamaAIUseSystemParameter = false;
-float FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty = 0.8f;
-float FollowshipBotsConfig::configFSBLlamaAIPresencePenalty = 0.6f;
+bool  FollowshipBotsConfig::configFSBGenAIEnabled = false;
+uint8 FollowshipBotsConfig::configFSBGenAIProvider = 0;
+bool  FollowshipBotsConfig::configFSBGenAIOverridePreset = false;
+std::string FollowshipBotsConfig::configFSBGenAIHost = "127.0.0.1";
+int32 FollowshipBotsConfig::configFSBGenAIPort = 8080;
+std::string FollowshipBotsConfig::configFSBGenAIEndpoint = "v1/chat/completions";
+std::string FollowshipBotsConfig::configFSBGenAIModel = "Qwen3-4B-Q4_K_M.gguf";
+std::string FollowshipBotsConfig::configFSBGenAIApiKey = "";
+std::string FollowshipBotsConfig::configFSBGenAIApiKeyHeader = "Authorization";
+std::string FollowshipBotsConfig::configFSBGenAIApiKeyPrefix = "Bearer ";
+bool  FollowshipBotsConfig::configFSBGenAIUseSSL = false;
+std::string FollowshipBotsConfig::configFSBGenAIRequestHeader = "";
+int32 FollowshipBotsConfig::configFSBGenAITimeoutMs = 5000;
+int32 FollowshipBotsConfig::configFSBGenAIMaxTokens = 50;
+int32 FollowshipBotsConfig::configFSBGenAIMailMaxTokens = 150;
+float FollowshipBotsConfig::configFSBGenAITemperature = 0.9f;
+float FollowshipBotsConfig::configFSBGenAITopP = 0.95f;
+float FollowshipBotsConfig::configFSBGenAIFrequencyPenalty = 0.8f;
+float FollowshipBotsConfig::configFSBGenAIPresencePenalty = 0.6f;
 
 void FollowshipBotsConfig::Load()
 {
@@ -169,57 +171,75 @@ void FollowshipBotsConfig::Load()
     configFSBPowerRegenRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.PowerRegenRate", 1.f);
 
-    configFSBLlamaAIEnabled =
-        sConfigMgr->GetBoolDefault("Followship.Bots.LlamaAI.Enabled", false);
+    configFSBGenAIEnabled =
+        sConfigMgr->GetBoolDefault("Followship.Bots.GenAI.Enabled", false);
 
-    configFSBLlamaAIHost =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.Host", "127.0.0.1");
+    configFSBGenAIProvider = static_cast<uint8>(
+        sConfigMgr->GetIntDefault("Followship.Bots.GenAI.Provider", 0));
 
-    configFSBLlamaAIPort =
-        sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.Port", 8080);
+    configFSBGenAIOverridePreset =
+        sConfigMgr->GetBoolDefault("Followship.Bots.GenAI.OverridePreset", false);
 
-    configFSBLlamaAIEndpoint =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.Endpoint", "v1/chat/completions");
+    auto const& preset = FSBGenAI::GetPreset(static_cast<FSBGenAI::GenAIProvider>(configFSBGenAIProvider));
 
-    configFSBLlamaAIModel =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.Model", "Qwen3-4B-Q4_K_M.gguf");
+    if (!configFSBGenAIOverridePreset && configFSBGenAIProvider != 0)
+    {
+        configFSBGenAIHost = preset.host;
+        configFSBGenAIEndpoint = preset.endpoint;
+        configFSBGenAIPort = preset.port;
+        configFSBGenAIUseSSL = preset.useSSL;
+        configFSBGenAIApiKeyHeader = preset.apiKeyHeader;
+        configFSBGenAIApiKeyPrefix = preset.apiKeyPrefix;
+        configFSBGenAIRequestHeader = preset.versionHeader;
+    }
+    else
+    {
+        configFSBGenAIHost =
+            sConfigMgr->GetStringDefault("Followship.Bots.GenAI.Host", "127.0.0.1");
 
-    configFSBLlamaAIApiKey =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.ApiKey", "");
+        configFSBGenAIPort =
+            sConfigMgr->GetIntDefault("Followship.Bots.GenAI.Port", 8080);
 
-    configFSBLlamaAIApiKeyHeader =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.ApiKeyHeader", "Authorization");
+        configFSBGenAIEndpoint =
+            sConfigMgr->GetStringDefault("Followship.Bots.GenAI.Endpoint", "v1/chat/completions");
 
-    configFSBLlamaAIApiKeyPrefix =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.ApiKeyPrefix", "Bearer ");
+        configFSBGenAIUseSSL =
+            sConfigMgr->GetBoolDefault("Followship.Bots.GenAI.UseSSL", false);
 
-    configFSBLlamaAIUseSSL =
-        sConfigMgr->GetBoolDefault("Followship.Bots.LlamaAI.UseSSL", false);
+        configFSBGenAIApiKeyHeader =
+            sConfigMgr->GetStringDefault("Followship.Bots.GenAI.ApiKeyHeader", "Authorization");
 
-    configFSBLlamaAIRequestHeader =
-        sConfigMgr->GetStringDefault("Followship.Bots.LlamaAI.RequestHeader", "");
+        configFSBGenAIApiKeyPrefix =
+            sConfigMgr->GetStringDefault("Followship.Bots.GenAI.ApiKeyPrefix", "Bearer ");
 
-    configFSBLlamaAITimeoutMs =
-        sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.TimeoutMs", 5000);
+        configFSBGenAIRequestHeader =
+            sConfigMgr->GetStringDefault("Followship.Bots.GenAI.RequestHeader", "");
+    }
 
-    configFSBLlamaAIMaxTokens =
-        sConfigMgr->GetIntDefault("Followship.Bots.LlamaAI.MaxTokens", 50);
+    configFSBGenAIModel =
+        sConfigMgr->GetStringDefault("Followship.Bots.GenAI.Model", "Qwen3-4B-Q4_K_M.gguf");
 
-    configFSBLlamaAITemperature =
-        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.Temperature", 0.9f);
+    configFSBGenAIApiKey =
+        sConfigMgr->GetStringDefault("Followship.Bots.GenAI.ApiKey", "");
 
-    configFSBLlamaAITopP =
-        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.TopP", 0.95f);
+    configFSBGenAITimeoutMs =
+        sConfigMgr->GetIntDefault("Followship.Bots.GenAI.TimeoutMs", 5000);
 
-    configFSBLlamaAISendPenalties =
-        sConfigMgr->GetBoolDefault("Followship.Bots.LlamaAI.SendPenalties", true);
+    configFSBGenAIMaxTokens =
+        sConfigMgr->GetIntDefault("Followship.Bots.GenAI.MaxTokens", 50);
 
-    configFSBLlamaAIUseSystemParameter =
-        sConfigMgr->GetBoolDefault("Followship.Bots.LlamaAI.UseSystemParameter", false);
+    configFSBGenAIMailMaxTokens =
+        sConfigMgr->GetIntDefault("Followship.Bots.GenAI.MailMaxTokens", 150);
 
-    configFSBLlamaAIFrequencyPenalty =
-        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.FrequencyPenalty", 0.8f);
+    configFSBGenAITemperature =
+        sConfigMgr->GetFloatDefault("Followship.Bots.GenAI.Temperature", 0.9f);
 
-    configFSBLlamaAIPresencePenalty =
-        sConfigMgr->GetFloatDefault("Followship.Bots.LlamaAI.PresencePenalty", 0.6f);
+    configFSBGenAITopP =
+        sConfigMgr->GetFloatDefault("Followship.Bots.GenAI.TopP", 0.95f);
+
+    configFSBGenAIFrequencyPenalty =
+        sConfigMgr->GetFloatDefault("Followship.Bots.GenAI.FrequencyPenalty", 0.8f);
+
+    configFSBGenAIPresencePenalty =
+        sConfigMgr->GetFloatDefault("Followship.Bots.GenAI.PresencePenalty", 0.6f);
 }

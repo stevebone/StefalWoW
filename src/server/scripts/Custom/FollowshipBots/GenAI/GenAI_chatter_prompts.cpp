@@ -20,8 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Followship_bots_chatter_prompts.h"
-#include "Followship_bots_llamaAI.h"
+#include "GenAI_chatter_prompts.h"
+#include "GenAI_client.h"
 
 #include "AI/Followship_bots_ai_base.h"
 #include "AI/Followship_bots_priest.h"
@@ -41,7 +41,7 @@
 #include <random>
 #include <thread>
 
-namespace FSBLlamaPrompts
+namespace FSBGenAIPrompts
 {
     static std::string PickIntroSet(std::string const& botName, std::string const& zoneName)
     {
@@ -80,7 +80,7 @@ namespace FSBLlamaPrompts
         if (!bot)
             return;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, LANG_UNIVERSAL);
             return;
@@ -89,7 +89,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded string.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded string.", bot->GetName());
             bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, LANG_UNIVERSAL);
             return;
         }
@@ -129,14 +129,14 @@ namespace FSBLlamaPrompts
             chosenIntro,
             zoneName);
 
-        ai->llamaFallbackAction = [bot]() {
+        ai->genAIFallbackAction = [bot]() {
             bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, LANG_UNIVERSAL);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched async request for bot {}", botName);
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched async request for bot {}", botName);
         std::thread([systemPrompt, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt,
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt,
                 "Tell me something about yourself!");
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
@@ -181,7 +181,7 @@ namespace FSBLlamaPrompts
         if (!bot)
             return;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
             return;
@@ -190,7 +190,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
             return;
         }
@@ -211,14 +211,14 @@ namespace FSBLlamaPrompts
             FSBUtils::BotRoleToString(botRole),
             seedLine.empty() ? "On it, commander." : seedLine);
 
-        ai->llamaFallbackAction = [bot]() {
+        ai->genAIFallbackAction = [bot]() {
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::botAcknowledge, FSB_ReplyType::Say, FSB_ChatterSource::None);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched role acknowledge for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched role acknowledge for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -259,7 +259,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = GetAcknowledgeCategory(context);
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
             return;
@@ -268,7 +268,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
             return;
         }
@@ -287,14 +287,14 @@ namespace FSBLlamaPrompts
             GetAcknowledgeDescription(context),
             seedLine.empty() ? "On it, commander." : seedLine);
 
-        ai->llamaFallbackAction = [bot, category]() {
+        ai->genAIFallbackAction = [bot, category]() {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched acknowledge for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched acknowledge for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -306,7 +306,7 @@ namespace FSBLlamaPrompts
         if (!bot)
             return;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
             return;
@@ -315,7 +315,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
             return;
         }
@@ -333,14 +333,14 @@ namespace FSBLlamaPrompts
             ownerName,
             seedLine.empty() ? "Time's up. I'm off - good luck out there." : seedLine);
 
-        ai->llamaFallbackAction = [bot]() {
+        ai->genAIFallbackAction = [bot]() {
             FSBChatter::DemandBotChatter(bot, nullptr, FSB_ChatterCategory::botDismissed);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched dismissal for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched dismissal for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -355,7 +355,7 @@ namespace FSBLlamaPrompts
         bool isPermanent = (durationHours == 0);
         FSB_ChatterCategory category = isPermanent ? FSB_ChatterCategory::botHiredPermanent : FSB_ChatterCategory::botHire;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             if (isPermanent)
                 FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
@@ -371,7 +371,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             if (isPermanent)
                 FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
             else
@@ -410,7 +410,7 @@ namespace FSBLlamaPrompts
                 seedLine.empty() ? "Alright, let's band together." : seedLine);
         }
 
-        ai->llamaFallbackAction = [bot, category, durationHours]() {
+        ai->genAIFallbackAction = [bot, category, durationHours]() {
             if (category == FSB_ChatterCategory::botHiredPermanent)
                 FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
             else
@@ -420,11 +420,11 @@ namespace FSBLlamaPrompts
                     bot->Say(chatter, LANG_UNIVERSAL);
             }
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched hire for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched hire for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -439,7 +439,7 @@ namespace FSBLlamaPrompts
         Player* owner = FSBMgr::Get()->GetBotOwner(bot);
         FSB_ChatterCategory category = owner ? FSB_ChatterCategory::botOOCRecoveryHired : FSB_ChatterCategory::botOOCRecovery;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             return;
@@ -448,7 +448,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             return;
         }
@@ -482,14 +482,14 @@ namespace FSBLlamaPrompts
                 seedLine.empty() ? "Okay, deep breaths. I can do this." : seedLine);
         }
 
-        ai->llamaFallbackAction = [bot, category, spellId]() {
+        ai->genAIFallbackAction = [bot, category, spellId]() {
             FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched recovery for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched recovery for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -507,7 +507,7 @@ namespace FSBLlamaPrompts
         if (!isSelfBuff)
             chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             if (isSelfBuff)
                 FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
@@ -522,7 +522,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             if (isSelfBuff)
                 FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             else
@@ -562,22 +562,22 @@ namespace FSBLlamaPrompts
 
         if (isSelfBuff)
         {
-            ai->llamaFallbackAction = [bot, category, spellId]() {
+            ai->genAIFallbackAction = [bot, category, spellId]() {
                 FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             };
         }
         else
         {
-            ai->llamaFallbackAction = [bot, targetGuid, category, spellId]() {
+            ai->genAIFallbackAction = [bot, targetGuid, category, spellId]() {
                 Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
                 FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
             };
         }
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched buff for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched buff for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -591,7 +591,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = isManaPotion ? FSB_ChatterCategory::botCombatMana : FSB_ChatterCategory::botCombatHealth;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             return;
@@ -600,7 +600,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             return;
         }
@@ -633,14 +633,14 @@ namespace FSBLlamaPrompts
                 seedLine.empty() ? "This is my last chance..." : seedLine);
         }
 
-        ai->llamaFallbackAction = [bot, category, spellId]() {
+        ai->genAIFallbackAction = [bot, category, spellId]() {
             FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched potion for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched potion for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -655,7 +655,7 @@ namespace FSBLlamaPrompts
         bool isSelfHeal = targetGuid == bot->GetGUID();
         FSB_ChatterCategory category = isSelfHeal ? FSB_ChatterCategory::botHealSelf : FSB_ChatterCategory::botHealTarget;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             if (isSelfHeal)
                 FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
@@ -670,7 +670,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             if (isSelfHeal)
                 FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             else
@@ -740,22 +740,22 @@ namespace FSBLlamaPrompts
 
         if (isSelfHeal)
         {
-            ai->llamaFallbackAction = [bot, category, spellId]() {
+            ai->genAIFallbackAction = [bot, category, spellId]() {
                 FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
             };
         }
         else
         {
-            ai->llamaFallbackAction = [bot, targetGuid, category, spellId]() {
+            ai->genAIFallbackAction = [bot, targetGuid, category, spellId]() {
                 Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
                 FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
             };
         }
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched heal for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched heal for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -769,7 +769,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botCombatSpell;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
             FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
@@ -779,7 +779,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
             FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
             return;
@@ -801,15 +801,15 @@ namespace FSBLlamaPrompts
             targetName,
             seedLine.empty() ? "Take this!" : seedLine);
 
-        ai->llamaFallbackAction = [bot, targetGuid, category, spellId]() {
+        ai->genAIFallbackAction = [bot, targetGuid, category, spellId]() {
             Unit* target = ObjectAccessor::GetUnit(*bot, targetGuid);
             FSBChatter::DemandBotChatter(bot, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched combat spell for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched combat spell for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -825,7 +825,7 @@ namespace FSBLlamaPrompts
         bool isHired = (owner != nullptr);
         FSB_ChatterCategory category = isHired ? FSB_ChatterCategory::targetKilledHired : FSB_ChatterCategory::targetKilled;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             Unit* victim = ObjectAccessor::GetUnit(*bot, victimGuid);
             FSBChatter::DemandBotChatter(bot, victim, category);
@@ -835,7 +835,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             Unit* victim = ObjectAccessor::GetUnit(*bot, victimGuid);
             FSBChatter::DemandBotChatter(bot, victim, category);
             return;
@@ -870,15 +870,15 @@ namespace FSBLlamaPrompts
                 seedLine.empty() ? "Rest in pieces." : seedLine);
         }
 
-        ai->llamaFallbackAction = [bot, victimGuid, category]() {
+        ai->genAIFallbackAction = [bot, victimGuid, category]() {
             Unit* victim = ObjectAccessor::GetUnit(*bot, victimGuid);
             FSBChatter::DemandBotChatter(bot, victim, category);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched target killed for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched target killed for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -894,7 +894,7 @@ namespace FSBLlamaPrompts
         bool isHired = (owner != nullptr);
         FSB_ChatterCategory category = isHired ? FSB_ChatterCategory::botDeathHired : FSB_ChatterCategory::botDeath;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
             FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
@@ -904,7 +904,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
             FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
             return;
@@ -939,16 +939,16 @@ namespace FSBLlamaPrompts
                 seedLine.empty() ? "Ah yes, the sweet embrace of death." : seedLine);
         }
 
-        ai->llamaFallbackAction = [bot, killerGuid, category]() {
+        ai->genAIFallbackAction = [bot, killerGuid, category]() {
             Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
             FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        ai->pendingLlamaState->replyType = FSB_ReplyType::Yell;
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched death for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        ai->pendingGenAIState->replyType = FSB_ReplyType::Yell;
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched death for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -962,7 +962,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botRevived;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
@@ -971,7 +971,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
         }
@@ -986,14 +986,14 @@ namespace FSBLlamaPrompts
             "Example style (do not copy): \"{}\"",
             seedLine.empty() ? "Back among the living." : seedLine);
 
-        ai->llamaFallbackAction = [bot, category]() {
+        ai->genAIFallbackAction = [bot, category]() {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched revived for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched revived for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1007,7 +1007,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botRevivedTarget;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
             FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
@@ -1017,7 +1017,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(healer->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for healer {}, falling back to hardcoded chatter.", healer->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for healer {}, falling back to hardcoded chatter.", healer->GetName());
             Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
             FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
             return;
@@ -1037,15 +1037,15 @@ namespace FSBLlamaPrompts
             targetName,
             seedLine.empty() ? "Rise again, friend." : seedLine);
 
-        ai->llamaFallbackAction = [healer, targetGuid, category]() {
+        ai->genAIFallbackAction = [healer, targetGuid, category]() {
             Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
             FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched revived target for healer {}", healer->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched revived target for healer {}", healer->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1059,7 +1059,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botRevivedSelf;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
@@ -1068,7 +1068,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
         }
@@ -1083,14 +1083,14 @@ namespace FSBLlamaPrompts
             "Example style (do not copy): \"{}\"",
             seedLine.empty() ? "I don't wait for resurrections. I MAKE them." : seedLine);
 
-        ai->llamaFallbackAction = [bot, category]() {
+        ai->genAIFallbackAction = [bot, category]() {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched revived self for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched revived self for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1150,7 +1150,7 @@ namespace FSBLlamaPrompts
         // This preserves the emote animation and race/gender-specific sound
         FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_HIRED_TIMED_DUMMY_EMOTE, 3s, 5s, FSB_ReplyType::Say, emoteString, nullptr);
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
             return;
@@ -1159,7 +1159,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
             return;
         }
@@ -1173,14 +1173,14 @@ namespace FSBLlamaPrompts
             description,
             seedLine.empty() ? "I'm out of mana and need help!" : seedLine);
 
-        ai->llamaFallbackAction = [bot, category]() {
+        ai->genAIFallbackAction = [bot, category]() {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched distress for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched distress for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1194,7 +1194,7 @@ namespace FSBLlamaPrompts
 
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             if (player)
                 FSBChatter::DemandTimedReply(bot, player, FSB_ChatterCategory::whisper_afk, FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
@@ -1204,7 +1204,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             if (player)
                 FSBChatter::DemandTimedReply(bot, player, FSB_ChatterCategory::whisper_afk, FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
             return;
@@ -1221,19 +1221,19 @@ namespace FSBLlamaPrompts
             playerName,
             seedLine.empty() ? "Still here, waiting on you..." : seedLine);
 
-        ai->llamaFallbackAction = [bot]() {
+        ai->genAIFallbackAction = [bot]() {
             if (Player* owner = FSBMgr::Get()->GetBotOwner(bot))
                 FSBChatter::DemandTimedReply(bot, owner, FSB_ChatterCategory::whisper_afk, FSB_ReplyType::Whisper, FSB_ChatterSource::Bot);
         };
-        ai->llamaDeliverAction = [bot](std::string const& response) {
+        ai->genAIDeliverAction = [bot](std::string const& response) {
             if (Player* owner = FSBMgr::Get()->GetBotOwner(bot))
                 bot->Whisper(response, LANG_UNIVERSAL, owner);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched whisper_afk for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched whisper_afk for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1245,7 +1245,7 @@ namespace FSBLlamaPrompts
         if (!bot)
             return;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_talk, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
@@ -1254,7 +1254,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_talk, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
         }
@@ -1268,14 +1268,14 @@ namespace FSBLlamaPrompts
             "Example style (do not copy): \"{}\"",
             seedLine.empty() ? "So. how long are we gonna be here?" : seedLine);
 
-        ai->llamaFallbackAction = [bot]() {
+        ai->genAIFallbackAction = [bot]() {
             FSBChatter::DemandTimedReply(bot, nullptr, FSB_ChatterCategory::emote_talk, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched emote_talk for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched emote_talk for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1289,7 +1289,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botMemberDied;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
             return;
@@ -1298,7 +1298,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
             return;
         }
@@ -1316,15 +1316,15 @@ namespace FSBLlamaPrompts
             deadName,
             seedLine.empty() ? "No! Not them!" : seedLine);
 
-        ai->llamaFallbackAction = [bot, category]() {
+        ai->genAIFallbackAction = [bot, category]() {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        ai->pendingLlamaState->replyType = FSB_ReplyType::Yell;
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched member died for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        ai->pendingGenAIState->replyType = FSB_ReplyType::Yell;
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched member died for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1338,7 +1338,7 @@ namespace FSBLlamaPrompts
 
         FSB_ChatterCategory category = FSB_ChatterCategory::emote_cooking;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
@@ -1347,7 +1347,7 @@ namespace FSBLlamaPrompts
         auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
         }
@@ -1361,14 +1361,14 @@ namespace FSBLlamaPrompts
             "Example style (do not copy): \"{}\"",
             seedLine.empty() ? "Fire's ready! Who's hungry?" : seedLine);
 
-        ai->llamaFallbackAction = [bot, category]() {
+        ai->genAIFallbackAction = [bot, category]() {
             FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
         };
-        ai->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = ai->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched emote_cooking for bot {}", bot->GetName());
+        ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = ai->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched emote_cooking for bot {}", bot->GetName());
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;
@@ -1380,7 +1380,7 @@ namespace FSBLlamaPrompts
         if (!targetBot)
             return;
 
-        if (!FSBLlamaAI::IsEnabled())
+        if (!FSBGenAI::IsEnabled())
         {
             Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
             if (initiator)
@@ -1392,7 +1392,7 @@ namespace FSBLlamaPrompts
         auto* targetAI = dynamic_cast<FSB_BaseAI*>(targetBot->AI());
         if (!targetAI)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: could not get AI for target bot {}, falling back to hardcoded chatter.", targetBot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for target bot {}, falling back to hardcoded chatter.", targetBot->GetName());
             Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
             if (initiator)
                 if (Creature* initiatorCreature = initiator->ToCreature())
@@ -1400,9 +1400,9 @@ namespace FSBLlamaPrompts
             return;
         }
 
-        if (targetAI->pendingLlamaState)
+        if (targetAI->pendingGenAIState)
         {
-            TC_LOG_WARN("scripts.fsb.llama", "FSB LlamaAI: target bot {} already has pending request, falling back to hardcoded chatter.", targetBot->GetName());
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: target bot {} already has pending request, falling back to hardcoded chatter.", targetBot->GetName());
             Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
             if (initiator)
                 if (Creature* initiatorCreature = initiator->ToCreature())
@@ -1437,7 +1437,7 @@ namespace FSBLlamaPrompts
 
         std::string dummyEmoteString = FSBChatter::GetDummyEmoteString(category, personalityType);
 
-        targetAI->llamaFallbackAction = [targetBot, initiatorGuid, category]() {
+        targetAI->genAIFallbackAction = [targetBot, initiatorGuid, category]() {
             Unit* initiator = ObjectAccessor::GetUnit(*targetBot, initiatorGuid);
             if (!initiator)
                 return;
@@ -1447,16 +1447,16 @@ namespace FSBLlamaPrompts
             FSBChatter::DemandTargetReply(initiatorCreature, targetBot, category, FSB_ReplyType::Say);
         };
 
-        targetAI->llamaDeliverAction = [targetBot, dummyEmoteString](std::string const& response) {
+        targetAI->genAIDeliverAction = [targetBot, dummyEmoteString](std::string const& response) {
             targetBot->Say(response, LANG_UNIVERSAL);
             FSBChatter::PlayDummyEmote(targetBot, dummyEmoteString);
         };
 
-        targetAI->pendingLlamaState = std::make_shared<FSB_BaseAI::LlamaRequestState>();
-        auto state = targetAI->pendingLlamaState;
-        TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: dispatched {} for target bot {} (initiator {})", category, targetBot->GetName(), initiatorName);
+        targetAI->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
+        auto state = targetAI->pendingGenAIState;
+        TC_LOG_INFO("scripts.fsb.genai", "FSB GenAI: dispatched {} for target bot {} (initiator {})", category, targetBot->GetName(), initiatorName);
         std::thread([systemPrompt, userMessage, state]() {
-            std::string result = FSBLlamaAI::GetBotResponse(systemPrompt, userMessage);
+            std::string result = FSBGenAI::GetBotResponse(systemPrompt, userMessage);
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = std::move(result);
             state->ready = true;

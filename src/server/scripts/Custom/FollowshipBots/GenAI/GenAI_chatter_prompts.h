@@ -28,7 +28,7 @@
 
 class FSB_BaseAI;
 
-namespace FSBLlamaPrompts
+namespace FSBGenAIPrompts
 {
     enum class FSB_AcknowledgeContext
     {

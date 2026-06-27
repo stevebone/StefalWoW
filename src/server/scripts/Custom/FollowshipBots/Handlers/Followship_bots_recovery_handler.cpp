@@ -29,7 +29,7 @@
 #include "Followship_bots_druid.h"
 
 #include "Followship_bots_chatter_handler.h"
-#include "LlamaAI/Followship_bots_chatter_prompts.h"
+#include "GenAI/GenAI_chatter_prompts.h"
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -344,7 +344,7 @@ namespace FSBRecovery
         if (check)
         {
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-                FSBLlamaPrompts::DispatchBotRecovery(bot, spellId);
+                FSBGenAIPrompts::DispatchBotRecovery(bot, spellId);
 
             uint32 now = getMSTime();
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, std::chrono::milliseconds(globalCooldown - now));

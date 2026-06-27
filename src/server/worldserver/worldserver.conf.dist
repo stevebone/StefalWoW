@@ -4597,137 +4597,149 @@ Followship.Bots.HealthRegenRate = 1
 # Values 0.1-2; Default: 1
 Followship.Bots.PowerRegenRate = 1
 
-# LlamaAI LLM Chatter Integration
+# GenAI Integration
 #
-# Enable LLM-generated chatter via a local llama.cpp server
+# Enable LLM-generated chatter via a GenAI server
 # When disabled, bots fall back to hardcoded chatter strings
 # Example values: 1 to enable, 0 to disable. Default: 0
-Followship.Bots.LlamaAI.Enabled = 0
+Followship.Bots.GenAI.Enabled = 0
 
-# LlamaAI Server Host
+# GenAI Provider
+#
+# Selects the preset configuration for the GenAI API.
+# Presets automatically configure host, endpoint, headers, and supported features.
+# 0 = Custom      (manual configuration, uses the Host/Port/Endpoint settings below)
+# 1 = OpenAI      (api.openai.com, OpenAI format, SSL, system parameter disabled)
+# 2 = Anthropic   (api.anthropic.com, Anthropic format, SSL, system parameter enabled)
+# 3 = LlamaServer (localhost, OpenAI format, no SSL, system parameter disabled)
+# 4 = LMStudio    (localhost, OpenAI format, no SSL, system parameter disabled)
+# Default: 0
+Followship.Bots.GenAI.Provider = 0
+
+# GenAI Override Preset
+#
+# When enabled, the custom Host, Port, Endpoint, and API Key settings below
+# override the values from the selected provider preset above.
+# When disabled, the preset values are used and the custom settings are ignored.
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.GenAI.OverridePreset = 0
+
+# GenAI Server Host
 #
 # Hostname or IP of the llama.cpp server
 # Default: 127.0.0.1
-Followship.Bots.LlamaAI.Host = "127.0.0.1"
+Followship.Bots.GenAI.Host = "127.0.0.1"
 
-# LlamaAI Server Port
+# GenAI Server Port
 #
 # TCP port the llama.cpp server listens on.
 # Use -1 to omit the explicit port and rely on the protocol default
 # (443 for HTTPS, 80 for HTTP). Useful for cloud domains.
 # Default: 8080
-Followship.Bots.LlamaAI.Port = 8080
+Followship.Bots.GenAI.Port = 8080
 
-# LlamaAI API Endpoint
+# GenAI API Endpoint
 #
 # Path to the chat completions endpoint
 # Default: v1/chat/completions
-Followship.Bots.LlamaAI.Endpoint = "v1/chat/completions"
+Followship.Bots.GenAI.Endpoint = "v1/chat/completions"
 
-# LlamaAI Model Name
+# GenAI Model Name
 #
 # Model filename sent in the request body
 # Default: Qwen3-4B-Q4_K_M.gguf
-Followship.Bots.LlamaAI.Model = "Qwen3-4B-Q4_K_M.gguf"
+Followship.Bots.GenAI.Model = "Qwen3-4B-Q4_K_M.gguf"
 
-# LlamaAI API Key
+# GenAI API Key
 #
 # Optional API key for remote LLM access. Leave empty for open localhost.
 # Default: "" (empty)
-Followship.Bots.LlamaAI.ApiKey = ""
+Followship.Bots.GenAI.ApiKey = ""
 
-# LlamaAI API Key HTTP Header Name
+# GenAI API Key HTTP Header Name
 #
 # Name of the HTTP header used to send the API key.
 # Use "Authorization" for OpenAI-compatible APIs (sends as "Bearer <key>").
 # Use "x-api-key" for Anthropic and other APIs that expect a raw key.
 # Default: Authorization
-Followship.Bots.LlamaAI.ApiKeyHeader = "Authorization"
+Followship.Bots.GenAI.ApiKeyHeader = "Authorization"
 
-# LlamaAI API Key Prefix
+# GenAI API Key Prefix
 #
 # String prepended to the API key value in the header above.
 # Set to "Bearer " when using Authorization header (OpenAI style).
 # Set to "" (empty) when using x-api-key or other raw-key headers.
 # Default: "Bearer "
-Followship.Bots.LlamaAI.ApiKeyPrefix = "Bearer "
+Followship.Bots.GenAI.ApiKeyPrefix = "Bearer "
 
-# LlamaAI Use SSL (HTTPS)
+# GenAI Use SSL (HTTPS)
 #
 # When enabled, connects via TLS instead of plain HTTP.
 # Required for cloud APIs (e.g. Anthropic, OpenAI).
 # Example values: 1 to enable, 0 to disable. Default: 0
-Followship.Bots.LlamaAI.UseSSL = 0
+Followship.Bots.GenAI.UseSSL = 0
 
-# LlamaAI Custom Request Header
+# GenAI Custom Request Header
 #
 # Optional extra HTTP header sent with every LLM request.
 # Format: "HeaderName: value"
 # Example: anthropic-version: 2023-06-01
 # Leave empty to send no extra header. Default: "" (empty)
-Followship.Bots.LlamaAI.RequestHeader = ""
+Followship.Bots.GenAI.RequestHeader = ""
 
-# LlamaAI Request Timeout
+# GenAI Request Timeout
 #
 # Maximum time in milliseconds to wait for an LLM response
 # Default: 5000
-Followship.Bots.LlamaAI.TimeoutMs = 5000
+Followship.Bots.GenAI.TimeoutMs = 5000
 
-# LlamaAI Max Tokens
+# GenAI Max Tokens
 #
 # Maximum number of tokens the LLM is allowed to generate
 # Default: 50
-Followship.Bots.LlamaAI.MaxTokens = 50
+Followship.Bots.GenAI.MaxTokens = 50
 
-# LlamaAI Temperature
+# GenAI Mail Max Tokens
+#
+# Maximum number of tokens for mail content generation (subject + body JSON).
+# Needs more tokens than regular chat because mail includes both subject and body.
+# Default: 150
+Followship.Bots.GenAI.MailMaxTokens = 150
+
+# GenAI Temperature
 #
 # Sampling temperature. Higher = more random/creative, lower = more deterministic.
 # Use -1 to omit the field and let the API use its own default.
 # Default: 0.9
-Followship.Bots.LlamaAI.Temperature = 0.9
+Followship.Bots.GenAI.Temperature = 0.9
 
-# LlamaAI Top P
+# GenAI Top P
 #
 # Nucleus sampling cutoff. Limits token selection to the top probability mass.
 # Use -1 to omit the field and let the API use its own default.
 # Default: 0.95
-Followship.Bots.LlamaAI.TopP = 0.95
+Followship.Bots.GenAI.TopP = 0.95
 
-# LlamaAI Send Penalties
-#
-# Whether to include frequency_penalty and presence_penalty in the request.
-# Some APIs (e.g. Anthropic) do not support these OpenAI-specific fields.
-# Example values: 1 to send, 0 to omit. Default: 1
-Followship.Bots.LlamaAI.SendPenalties = 1
-
-# LlamaAI Use System Parameter
-#
-# When enabled, sends the system prompt as a top-level "system" field
-# instead of as the first message with role "system".
-# Required for Anthropic Messages API. OpenAI/llama.cpp use role-based format.
-# Example values: 1 to enable, 0 to disable. Default: 0
-Followship.Bots.LlamaAI.UseSystemParameter = 0
-
-# LlamaAI Frequency Penalty
+# GenAI Frequency Penalty
 #
 # Penalizes tokens that already appeared, reducing repeated words/phrasings.
 # Higher values strongly discourage reusing the same vocabulary. Range 0.0 - 2.0
 # Default: 0.8
-Followship.Bots.LlamaAI.FrequencyPenalty = 0.8
+Followship.Bots.GenAI.FrequencyPenalty = 0.8
 
-# LlamaAI Presence Penalty
+# GenAI Presence Penalty
 #
 # Penalizes tokens that have appeared at all, encouraging new topics/angles.
 # Range 0.0 - 2.0
 # Default: 0.6
-Followship.Bots.LlamaAI.PresencePenalty = 0.6
+Followship.Bots.GenAI.PresencePenalty = 0.6
 
 # Followship Bots Logging
 # These follow the standard Trinity format
 Appender.FSB=2,2,0,FSB.log,w
 Logger.scripts.fsb=4,Console FSB
 Logger.scripts.fsb.general=4,Console FSB
-Logger.scripts.fsb.llama=4,Console FSB
+Logger.scripts.fsb.genai=4,Console FSB
 Logger.scripts.fsb.events=4,Console FSB
 Logger.scripts.fsb.buffs=4,Console FSB
 Logger.scripts.fsb.death=4,Console FSB

@@ -91,7 +91,7 @@ namespace FSBConvPrompts
         TopicDataSource               dataSource;
     };
 
-    struct ConversationLlamaState
+    struct ConversationGenAIState
     {
         std::atomic<bool> ready{ false };
         std::string result;
