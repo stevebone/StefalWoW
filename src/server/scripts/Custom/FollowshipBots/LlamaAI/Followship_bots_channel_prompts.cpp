@@ -672,7 +672,7 @@ namespace FSBChannelPrompts
             "You MUST respond ONLY in valid JSON with exactly these fields:\n"
             "- \"reply\": a short in-character reply (5 to 15 words) that matches YOUR personality, natural and conversational, NO quotation marks inside.\n"
             "- \"action\": a string, exactly one of: \"none\" or \"give_gold\". Use \"none\" for normal conversation. Use \"give_gold\" ONLY if the player asks for gold AND you decide to help them.\n"
-            "- \"amount\": a number (copper amount). Must be 0 when action is \"none\". When action is \"give_gold\", use a sensible amount based on your level and the player's level (higher-level bots give more). Amount must be between 1 and 50000.\n";
+            "- \"amount\": a number (copper amount). Must be 0 when action is \"none\". When action is \"give_gold\", use a sensible amount based on your level and the player's level (higher-level bots give more). Amount must be between 1 and " + std::to_string(FollowshipBotsConfig::configFSBMaxGoldAmount) + ".\n";
 
         std::string userPrompt = "Given the Conversation History below, decide how to reply to the player:\n";
         for (auto const& entry : memory)

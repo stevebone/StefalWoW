@@ -49,6 +49,10 @@ struct FollowshipBotsConfig
     static uint32 configFSBGeneralReplyCooldownMs;
     static uint32 configFSBBotChatMemorySize;
 
+    static bool configFSBAllowGold;
+    static uint32 configFSBMaxGoldAmount;
+    static uint32 configFSBGoldMailDelay;
+
     static float configFSBHealthRate;
     static float configFSBPowerRate;
     static float configFSBArmorRate;

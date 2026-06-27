@@ -50,6 +50,10 @@ uint32 FollowshipBotsConfig::configFSBGeneralReplyChance = 10;
 uint32 FollowshipBotsConfig::configFSBGeneralReplyCooldownMs = 30000;
 uint32 FollowshipBotsConfig::configFSBBotChatMemorySize = 10;
 
+bool FollowshipBotsConfig::configFSBAllowGold = true;
+uint32 FollowshipBotsConfig::configFSBMaxGoldAmount = 50000;
+uint32 FollowshipBotsConfig::configFSBGoldMailDelay = 300;
+
 float FollowshipBotsConfig::configFSBHealthRate = 1.f;
 float FollowshipBotsConfig::configFSBPowerRate = 1.f;
 float FollowshipBotsConfig::configFSBDamageRate = 1.f;
@@ -131,6 +135,15 @@ void FollowshipBotsConfig::Load()
 
     configFSBBotChatMemorySize =
         sConfigMgr->GetIntDefault("Followship.Bots.ChatMemorySize", 10);
+
+    configFSBAllowGold =
+        sConfigMgr->GetBoolDefault("Followship.Bots.AllowGold", true);
+
+    configFSBMaxGoldAmount =
+        sConfigMgr->GetIntDefault("Followship.Bots.MaxGoldAmount", 50000);
+
+    configFSBGoldMailDelay =
+        sConfigMgr->GetIntDefault("Followship.Bots.GoldMailDelay", 300);
 
     configFSBArmorRate =
         sConfigMgr->GetFloatDefault("Followship.Bots.ArmorRate", 0.4f);

@@ -57,6 +57,9 @@
 
 static bool ShouldAllowGold(FSB_BaseAI const* ai)
 {
+    if (!FollowshipBotsConfig::configFSBAllowGold)
+        return false;
+
     uint32 goldCount = ai->botChatData.goldGivenCount;
     uint32 goldNow = getMSTime();
     uint32 chance = (goldCount >= 5) ? 0u : static_cast<uint32>(std::max(0, 10 - static_cast<int32>(goldCount) * 2));
@@ -346,6 +349,7 @@ void FSBChatMgr::HandlePlayerGeneralChat(Player* player, Channel* channel, std::
         state->botTeam = FSBUtils::GetTeamFromFSBRace(bot);
         state->playerGuid = playerGuid;
         state->playerName = playerSnap.name;
+        state->playerRequest = msg;
 
         // Zero raw pointers captured - everything is by value
         std::thread([state,
@@ -388,6 +392,7 @@ void FSBChatMgr::HandleBotWhisper(Player* player, Creature* bot, std::string con
     // Send whisper inform so sender sees "To BotName: msg"
     WorldPackets::Chat::Chat informPacket;
     informPacket.Initialize(CHAT_MSG_WHISPER_INFORM, LANG_UNIVERSAL, bot, bot, msg);
+    informPacket.SenderName = FSBChatMgr::SanitizeBotName(bot->GetName());
     player->SendDirectMessage(informPacket.Write());
 
     FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -527,14 +532,15 @@ void FSBChatMgr::Update(uint32 /*diff*/)
 
             WorldPackets::Chat::Chat packet;
             packet.Initialize(CHAT_MSG_WHISPER, LANG_UNIVERSAL, bot, bot, resp.reply);
+            packet.SenderName = FSBChatMgr::SanitizeBotName(bot->GetName());
             player->SendDirectMessage(packet.Write());
 
             if (resp.action == "give_gold" && resp.amount > 0)
             {
-                uint32 amount = std::min(resp.amount, 50000u);
+                uint32 amount = std::min(resp.amount, FollowshipBotsConfig::configFSBMaxGoldAmount);
                 FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(
                     bot, player, amount, state->playerRequest, resp.reply);
-                FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, 300);
+                FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, FollowshipBotsConfig::configFSBGoldMailDelay);
                 TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to {} via mail",
                     bot->GetName(), amount, state->playerName);
                 ai->botChatData.goldGivenCount++;
@@ -570,10 +576,10 @@ void FSBChatMgr::Update(uint32 /*diff*/)
                 Player* player = ObjectAccessor::FindPlayer(state->playerGuid);
                 if (player)
                 {
-                    uint32 amount = std::min(resp.amount, 50000u);
+                    uint32 amount = std::min(resp.amount, FollowshipBotsConfig::configFSBMaxGoldAmount);
                     FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(
                         bot, player, amount, state->playerRequest, resp.reply);
-                    FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, 300);
+                    FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, FollowshipBotsConfig::configFSBGoldMailDelay);
                     TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to {} via mail",
                         bot->GetName(), amount, state->playerName);
                     ai->botChatData.goldGivenCount++;

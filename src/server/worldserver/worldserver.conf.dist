@@ -4530,6 +4530,26 @@ Followship.Bots.GeneralReplyCooldownMs = 30000
 # Values 1-50; Default: 10
 Followship.Bots.ChatMemorySize = 10
 
+# Allow Gold Giving
+#
+# Enables or disables bots giving gold to players via mail when asked in chat
+# When disabled, bots will always decline gold requests
+# Example values: 1 to enable, 0 to disable. Default: 1
+Followship.Bots.AllowGold = 1
+
+# Max Gold Amount
+#
+# Maximum copper amount a bot can send to a player via mail
+# This caps both the LLM-generated amount and the final delivery
+# Default: 50000 (5 gold)
+Followship.Bots.MaxGoldAmount = 50000
+
+# Gold Mail Delay
+#
+# Delay in seconds before the gold mail is delivered to the player
+# Default: 300 (5 minutes)
+Followship.Bots.GoldMailDelay = 300
+
 # Use In Combat Mana & Health Potions
 #
 # Allows the bots to use 1 mana potion and or 1 health potion per combat session
