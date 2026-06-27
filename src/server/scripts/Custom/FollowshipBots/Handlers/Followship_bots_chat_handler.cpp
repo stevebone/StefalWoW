@@ -24,6 +24,7 @@
 #include "ScriptMgr.h"
 #include <algorithm>
 #include <mutex>
+#include <thread>
 #include "Chat.h"
 #include "ChatPackets.h"
 #include "Channel.h"
@@ -49,6 +50,19 @@
 #include "LlamaAI/Followship_bots_channel_prompts.h"
 
 #include "ObjectAccessor.h"
+
+// ------------------------------------------------------------------
+// Helper: gold allowance (main-thread only - uses urand)
+// ------------------------------------------------------------------
+
+static bool ShouldAllowGold(FSB_BaseAI const* ai)
+{
+    uint32 goldCount = ai->botChatData.goldGivenCount;
+    uint32 goldNow = getMSTime();
+    uint32 chance = (goldCount >= 5) ? 0u : static_cast<uint32>(std::max(0, 10 - static_cast<int32>(goldCount) * 2));
+    bool onCooldown = goldCount > 0 && (goldNow < ai->botChatData.lastGoldGiveTime + 3600000u);
+    return !onCooldown && chance > 0 && urand(0, 99) < chance;
+}
 
 // ------------------------------------------------------------------
 // FSBChatMgr singleton
@@ -318,13 +332,8 @@ void FSBChatMgr::HandlePlayerGeneralChat(Player* player, Channel* channel, std::
         ctx.botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
         ctx.personality = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
         ctx.role = FSBMgr::Get()->GetRole(bot);
-        // Calculate allowGold on the main thread - urand is not thread-safe
-        uint32 goldCount = ai->botChatData.goldGivenCount;
-        uint32 goldNow = getMSTime();
-        uint32 chance = (goldCount >= 5) ? 0u : static_cast<uint32>(std::max(0, 10 - static_cast<int32>(goldCount) * 2));
-        bool onCooldown = goldCount > 0 && (goldNow < ai->botChatData.lastGoldGiveTime + 3600000u);
-        ctx.allowGold = !onCooldown && chance > 0 && urand(0, 99) < chance;
-        ctx.goldGivenCount = goldCount;
+        ctx.allowGold = ShouldAllowGold(ai);
+        ctx.goldGivenCount = ai->botChatData.goldGivenCount;
         ctx.lastGoldGiveTime = ai->botChatData.lastGoldGiveTime;
         ctx.botName = bot->GetName();
 
@@ -345,23 +354,29 @@ void FSBChatMgr::HandlePlayerGeneralChat(Player* player, Channel* channel, std::
             memoryCopy = std::move(memoryCopy),
             playerSnap = playerSnap]() mutable
             {
-                FSBChannelPrompts::BotChatResponse resp =
-                    FSBChannelPrompts::GenerateReplyToPlayer(ctx, playerSnap, msgCopy, memoryCopy);
-
+                try
                 {
-                    std::lock_guard<std::mutex> lock(state->mutex);
-                    state->response = std::move(resp);
+                    FSBChannelPrompts::BotChatResponse resp =
+                        FSBChannelPrompts::GenerateReplyToPlayer(ctx, playerSnap, msgCopy, memoryCopy);
+
+                    {
+                        std::lock_guard<std::mutex> lock(state->mutex);
+                        state->response = std::move(resp);
+                    }
+                }
+                catch (...)
+                {
+                    // Silently drop LLM failures - empty reply is skipped in Update
                 }
                 state->ready.store(true, std::memory_order_release);
-
             }).detach();
 
-            {
-                std::lock_guard<std::mutex> lock(_pendingRepliesMutex);
-                _pendingReplies.push_back(state);
-            }
+        {
+            std::lock_guard<std::mutex> lock(_pendingRepliesMutex);
+            _pendingReplies.push_back(state);
+        }
 
-            _botReplyCooldowns[bot->GetGUID()] = now;
+        _botReplyCooldowns[bot->GetGUID()] = now;
     }
 }
 
@@ -398,37 +413,49 @@ void FSBChatMgr::HandleBotWhisper(Player* player, Creature* bot, std::string con
     ctx.botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
     ctx.personality = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
     ctx.role = FSBMgr::Get()->GetRole(bot);
-    // Calculate allowGold on the main thread - urand is not thread-safe
-    uint32 goldCount = ai->botChatData.goldGivenCount;
-    uint32 goldNow = getMSTime();
-    uint32 chance = (goldCount >= 5) ? 0u : static_cast<uint32>(std::max(0, 10 - static_cast<int32>(goldCount) * 2));
-    bool onCooldown = goldCount > 0 && (goldNow < ai->botChatData.lastGoldGiveTime + 3600000u);
-    ctx.allowGold = !onCooldown && chance > 0 && urand(0, 99) < chance;
-    ctx.goldGivenCount = goldCount;
+    ctx.allowGold = ShouldAllowGold(ai);
+    ctx.goldGivenCount = ai->botChatData.goldGivenCount;
     ctx.lastGoldGiveTime = ai->botChatData.lastGoldGiveTime;
     ctx.botName = bot->GetName();
 
-    // Whisper replies are synchronous - player and bot are both valid here
-    FSBChannelPrompts::BotChatResponse resp =
-        FSBChannelPrompts::GenerateReplyToPlayer(ctx, playerSnap, msg, ai->GetChatMemory());
+    // Snapshot memory - the deque on the AI may change while the thread runs
+    std::deque<BotChatMemoryEntry> memoryCopy = ai->GetChatMemory();
 
-    if (resp.reply.empty())
-        return;
+    auto state = std::make_shared<PendingBotReply>();
+    state->botGuid = bot->GetGUID();
+    state->channelId = 0; // 0 signals a whisper reply
+    state->botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+    state->playerGuid = player->GetGUID();
+    state->playerName = playerSnap.name;
+    state->playerRequest = msg;
 
-    WorldPackets::Chat::Chat packet;
-    packet.Initialize(CHAT_MSG_WHISPER, LANG_UNIVERSAL, bot, bot, resp.reply);
-    player->SendDirectMessage(packet.Write());
+    // Zero raw pointers captured - everything is by value
+    std::thread([state,
+        ctx = std::move(ctx),
+        msgCopy = msg,
+        memoryCopy = std::move(memoryCopy),
+        playerSnap = playerSnap]() mutable
+        {
+            try
+            {
+                FSBChannelPrompts::BotChatResponse resp =
+                    FSBChannelPrompts::GenerateReplyToPlayer(ctx, playerSnap, msgCopy, memoryCopy);
 
-    if (resp.action == "give_gold" && resp.amount > 0)
+                {
+                    std::lock_guard<std::mutex> lock(state->mutex);
+                    state->response = std::move(resp);
+                }
+            }
+            catch (...)
+            {
+                // Silently drop LLM failures - empty reply is skipped in Update
+            }
+            state->ready.store(true, std::memory_order_release);
+        }).detach();
+
     {
-        uint32 amount = std::min(resp.amount, 50000u);
-        FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(bot, player, amount, resp.reply);
-        FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, 300);
-        TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to player {} via mail",
-            bot->GetName(), amount, player->GetName());
-        ai->botChatData.goldGivenCount++;
-        ai->botChatData.lastGoldGiveTime = getMSTime();
-        ai->ClearChatMemory();
+        std::lock_guard<std::mutex> lock(_pendingRepliesMutex);
+        _pendingReplies.push_back(state);
     }
 }
 
@@ -468,6 +495,9 @@ void FSBChatMgr::Update(uint32 /*diff*/)
         }
     }
 
+    // Snapshot active bots once for the broadcast loop
+    std::vector<Creature*> activeBots = GetActiveBots();
+
     // Process outside the lock - all TC object access happens here on the main thread
     for (auto& state : readyReplies)
     {
@@ -488,39 +518,68 @@ void FSBChatMgr::Update(uint32 /*diff*/)
         if (!ai)
             continue;
 
-        ChannelMgr* mgr = ChannelMgr::ForTeam(state->botTeam);
-        if (!mgr)
-            continue;
-
-        uint32 zoneId = bot->GetZoneId();
-        AreaTableEntry const* zone = sAreaTableStore.LookupEntry(zoneId);
-        if (!zone)
-            continue;
-
-        Channel* channel = mgr->GetChannel(state->channelId, "", nullptr, false, zone);
-        if (!channel || !channel->IsBotOn(bot->GetGUID()))
-            continue;
-
-        channel->BotSay(bot, resp.reply);
-
-        for (Creature* listener : GetActiveBots())
-            if (listener != bot && channel->IsBotOn(listener->GetGUID()))
-                if (FSB_BaseAI* listenerAI = dynamic_cast<FSB_BaseAI*>(listener->AI()))
-                    listenerAI->AddChatMemory(state->channelId, bot->GetName(), resp.reply, false);
-
-        if (resp.action == "give_gold" && resp.amount > 0)
+        if (state->channelId == 0)
         {
+            // Whisper reply
             Player* player = ObjectAccessor::FindPlayer(state->playerGuid);
-            if (player)
+            if (!player)
+                continue;
+
+            WorldPackets::Chat::Chat packet;
+            packet.Initialize(CHAT_MSG_WHISPER, LANG_UNIVERSAL, bot, bot, resp.reply);
+            player->SendDirectMessage(packet.Write());
+
+            if (resp.action == "give_gold" && resp.amount > 0)
             {
                 uint32 amount = std::min(resp.amount, 50000u);
-                FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(bot, player, amount, resp.reply);
+                FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(
+                    bot, player, amount, state->playerRequest, resp.reply);
                 FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, 300);
                 TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to {} via mail",
                     bot->GetName(), amount, state->playerName);
                 ai->botChatData.goldGivenCount++;
                 ai->botChatData.lastGoldGiveTime = getMSTime();
                 ai->ClearChatMemory();
+            }
+        }
+        else
+        {
+            // Channel reply
+            ChannelMgr* mgr = ChannelMgr::ForTeam(state->botTeam);
+            if (!mgr)
+                continue;
+
+            uint32 zoneId = bot->GetZoneId();
+            AreaTableEntry const* zone = sAreaTableStore.LookupEntry(zoneId);
+            if (!zone)
+                continue;
+
+            Channel* channel = mgr->GetChannel(state->channelId, "", nullptr, false, zone);
+            if (!channel || !channel->IsBotOn(bot->GetGUID()))
+                continue;
+
+            channel->BotSay(bot, resp.reply);
+
+            for (Creature* listener : activeBots)
+                if (listener != bot && channel->IsBotOn(listener->GetGUID()))
+                    if (FSB_BaseAI* listenerAI = dynamic_cast<FSB_BaseAI*>(listener->AI()))
+                        listenerAI->AddChatMemory(state->channelId, bot->GetName(), resp.reply, false);
+
+            if (resp.action == "give_gold" && resp.amount > 0)
+            {
+                Player* player = ObjectAccessor::FindPlayer(state->playerGuid);
+                if (player)
+                {
+                    uint32 amount = std::min(resp.amount, 50000u);
+                    FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(
+                        bot, player, amount, state->playerRequest, resp.reply);
+                    FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, 300);
+                    TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to {} via mail",
+                        bot->GetName(), amount, state->playerName);
+                    ai->botChatData.goldGivenCount++;
+                    ai->botChatData.lastGoldGiveTime = getMSTime();
+                    ai->ClearChatMemory();
+                }
             }
         }
     }

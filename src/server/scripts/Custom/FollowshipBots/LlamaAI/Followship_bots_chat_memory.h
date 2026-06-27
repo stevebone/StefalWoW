@@ -32,10 +32,4 @@ struct BotChatMemoryEntry
     std::string message;
     uint32      timestamp = 0;
     bool        isPlayer = false;
-
-    //~BotChatMemoryEntry() = default;
-    //BotChatMemoryEntry(BotChatMemoryEntry const&) = default;
-    //BotChatMemoryEntry& operator=(BotChatMemoryEntry const&) = default;
-    //BotChatMemoryEntry(BotChatMemoryEntry&&) = default;
-    //BotChatMemoryEntry& operator=(BotChatMemoryEntry&&) = default;
 };

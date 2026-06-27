@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -55,11 +56,9 @@ public:
         Team        botTeam = ALLIANCE;
         ObjectGuid  playerGuid;
         std::string playerName;
+        std::string playerRequest;
         uint32      deliverAfter = 0;
     };
-
-    std::vector<std::shared_ptr<PendingBotReply>> _pendingReplies;
-    std::mutex                                    _pendingRepliesMutex;
 
     // Active bot registry for /who and whisper routing
     void RegisterActiveBot(Creature* bot);
@@ -85,6 +84,9 @@ private:
     std::unordered_map<ObjectGuid, Creature*> _activeBots;
     mutable std::mutex _activeBotsMutex;
     std::unordered_map<ObjectGuid, uint32> _botReplyCooldowns;
+
+    std::vector<std::shared_ptr<PendingBotReply>> _pendingReplies;
+    std::mutex                                    _pendingRepliesMutex;
 };
 
 namespace FSBChat

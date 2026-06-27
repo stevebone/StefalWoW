@@ -35,5 +35,7 @@ namespace FSBMailPrompts
         std::string body;
     };
 
-    MailContent GenerateGoldMailContent(Creature* bot, Player* player, uint32 amount, std::string const& botReply);
+    MailContent GenerateGoldMailContent(Creature* bot, Player* player, uint32 amount,
+        std::string const& playerRequest,
+        std::string const& botReply);
 }

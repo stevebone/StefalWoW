@@ -601,7 +601,7 @@ namespace FSBChannelPrompts
 
     BotChatResponse GenerateReplyToPlayer(
         BotChatContext const& ctx,
-        PlayerSnapshot const& player,        // ? was Player*
+        PlayerSnapshot const& player,
         std::string const& playerMsg,
         std::deque<BotChatMemoryEntry> const& memory)
     {

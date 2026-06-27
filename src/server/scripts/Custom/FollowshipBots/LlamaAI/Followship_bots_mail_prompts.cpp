@@ -35,7 +35,9 @@
 
 namespace FSBMailPrompts
 {
-    MailContent GenerateGoldMailContent(Creature* bot, Player* player, uint32 amount, std::string const& botReply)
+    MailContent GenerateGoldMailContent(Creature* bot, Player* player, uint32 amount,
+        std::string const& playerRequest,
+        std::string const& botReply)
     {
         MailContent result;
         result.subject = "Some spare coin";
@@ -78,17 +80,24 @@ namespace FSBMailPrompts
             "You are a World of Warcraft player named " + std::string(bot->GetName()) +
             ", a " + botRaceStr + " " + botClassStr +
             " with a " + botPersonalityStr + " personality, currently in " + areaName +
-            ". You have decided to send some spare coin to a fellow adventurer.\n\n"
+            ". You have just decided to send some spare coin/gold to a fellow adventurer via in-game mail.\n\n"
             "The recipient is " + std::string(player->GetName()) +
             ", a " + playerRaceStr + " " + playerClassStr +
             " of level " + std::to_string(level) + " (" + levelBracket + ").\n\n"
-            "Write a short mail subject and body in character. Be friendly but brief.\n"
             "You MUST respond ONLY in valid JSON with exactly these fields:\n"
             "- \"subject\": a short mail subject (3 to 6 words), NO quotation marks inside.\n"
-            "- \"body\": a friendly in-character mail body (1 to 2 sentences), NO quotation marks inside.\n\n"
-            "Keep it natural and in-universe. Do not refer to yourself as a bot, NPC, or AI.";
+            "- \"body\": a personality relevant in-character mail body (1 to 3 sentences), NO quotation marks inside.\n\n"
+            "The body MUST make sense given why the gold is being sent. Reference the player's reason naturally. "
+            "Keep it brief, in-universe, and in character. Do not refer to yourself as a bot, NPC, or AI.";
 
-        std::string userPrompt = "Generate a mail subject and body for sending " + std::to_string(amount) + " copper to " + std::string(player->GetName()) + ".";
+        // Give the AI the actual conversation so it understands context
+        std::string userPrompt =
+            "The player said in chat: " + playerRequest + "\n"
+            "Your chat reply was: " + botReply + "\n"
+            "You are now sending " + std::to_string(amount) + " copper to " +
+            std::string(player->GetName()) + " via mail.\n"
+            "Write a subject and body that naturally follow from this conversation. "
+            "The body should acknowledge their actual reason for asking, not invent a different one.";
 
         std::string aiResponse = FSBLlamaAI::GetStructuredBotResponse(systemPrompt, userPrompt);
         if (aiResponse.empty())

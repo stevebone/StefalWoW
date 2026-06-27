@@ -28,7 +28,6 @@
 #include <functional>
 #include <mutex>
 #include <queue>
-#include <thread>
 #include "CreatureAI.h"
 #include "EventMap.h"
 #include "Log.h"
