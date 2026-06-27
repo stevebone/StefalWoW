@@ -66,10 +66,16 @@ struct FollowshipBotsConfig
     static std::string configFSBLlamaAIEndpoint;
     static std::string configFSBLlamaAIModel;
     static std::string configFSBLlamaAIApiKey;
+    static std::string configFSBLlamaAIApiKeyHeader;
+    static std::string configFSBLlamaAIApiKeyPrefix;
+    static bool configFSBLlamaAIUseSSL;
+    static std::string configFSBLlamaAIRequestHeader;
     static int32 configFSBLlamaAITimeoutMs;
     static int32 configFSBLlamaAIMaxTokens;
     static float configFSBLlamaAITemperature;
     static float configFSBLlamaAITopP;
+    static bool configFSBLlamaAISendPenalties;
+    static bool configFSBLlamaAIUseSystemParameter;
     static float configFSBLlamaAIFrequencyPenalty;
     static float configFSBLlamaAIPresencePenalty;
 

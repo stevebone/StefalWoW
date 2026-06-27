@@ -4612,7 +4612,9 @@ Followship.Bots.LlamaAI.Host = "127.0.0.1"
 
 # LlamaAI Server Port
 #
-# TCP port the llama.cpp server listens on
+# TCP port the llama.cpp server listens on.
+# Use -1 to omit the explicit port and rely on the protocol default
+# (443 for HTTPS, 80 for HTTP). Useful for cloud domains.
 # Default: 8080
 Followship.Bots.LlamaAI.Port = 8080
 
@@ -4630,9 +4632,40 @@ Followship.Bots.LlamaAI.Model = "Qwen3-4B-Q4_K_M.gguf"
 
 # LlamaAI API Key
 #
-# Optional Bearer token for API access. Leave empty for open localhost.
+# Optional API key for remote LLM access. Leave empty for open localhost.
 # Default: "" (empty)
 Followship.Bots.LlamaAI.ApiKey = ""
+
+# LlamaAI API Key HTTP Header Name
+#
+# Name of the HTTP header used to send the API key.
+# Use "Authorization" for OpenAI-compatible APIs (sends as "Bearer <key>").
+# Use "x-api-key" for Anthropic and other APIs that expect a raw key.
+# Default: Authorization
+Followship.Bots.LlamaAI.ApiKeyHeader = "Authorization"
+
+# LlamaAI API Key Prefix
+#
+# String prepended to the API key value in the header above.
+# Set to "Bearer " when using Authorization header (OpenAI style).
+# Set to "" (empty) when using x-api-key or other raw-key headers.
+# Default: "Bearer "
+Followship.Bots.LlamaAI.ApiKeyPrefix = "Bearer "
+
+# LlamaAI Use SSL (HTTPS)
+#
+# When enabled, connects via TLS instead of plain HTTP.
+# Required for cloud APIs (e.g. Anthropic, OpenAI).
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.LlamaAI.UseSSL = 0
+
+# LlamaAI Custom Request Header
+#
+# Optional extra HTTP header sent with every LLM request.
+# Format: "HeaderName: value"
+# Example: anthropic-version: 2023-06-01
+# Leave empty to send no extra header. Default: "" (empty)
+Followship.Bots.LlamaAI.RequestHeader = ""
 
 # LlamaAI Request Timeout
 #
@@ -4649,14 +4682,31 @@ Followship.Bots.LlamaAI.MaxTokens = 50
 # LlamaAI Temperature
 #
 # Sampling temperature. Higher = more random/creative, lower = more deterministic.
+# Use -1 to omit the field and let the API use its own default.
 # Default: 0.9
 Followship.Bots.LlamaAI.Temperature = 0.9
 
 # LlamaAI Top P
 #
 # Nucleus sampling cutoff. Limits token selection to the top probability mass.
+# Use -1 to omit the field and let the API use its own default.
 # Default: 0.95
 Followship.Bots.LlamaAI.TopP = 0.95
+
+# LlamaAI Send Penalties
+#
+# Whether to include frequency_penalty and presence_penalty in the request.
+# Some APIs (e.g. Anthropic) do not support these OpenAI-specific fields.
+# Example values: 1 to send, 0 to omit. Default: 1
+Followship.Bots.LlamaAI.SendPenalties = 1
+
+# LlamaAI Use System Parameter
+#
+# When enabled, sends the system prompt as a top-level "system" field
+# instead of as the first message with role "system".
+# Required for Anthropic Messages API. OpenAI/llama.cpp use role-based format.
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.LlamaAI.UseSystemParameter = 0
 
 # LlamaAI Frequency Penalty
 #

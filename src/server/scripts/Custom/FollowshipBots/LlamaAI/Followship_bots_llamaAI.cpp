@@ -26,7 +26,10 @@
 #include "Log.h"
 
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/beast/core.hpp>
+
+#include <openssl/ssl.h>
 #include <boost/beast/http.hpp>
 
 #include "Errors.h" // rapidjson depends on WPAssert
@@ -56,21 +59,36 @@ namespace FSBLlamaAI
 
         doc.AddMember("stream", false, allocator);
         doc.AddMember("max_tokens", FollowshipBotsConfig::configFSBLlamaAIMaxTokens, allocator);
-        doc.AddMember("temperature", FollowshipBotsConfig::configFSBLlamaAITemperature, allocator);
-        doc.AddMember("top_p", FollowshipBotsConfig::configFSBLlamaAITopP, allocator);
-        doc.AddMember("frequency_penalty", FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty, allocator);
-        doc.AddMember("presence_penalty", FollowshipBotsConfig::configFSBLlamaAIPresencePenalty, allocator);
+        if (FollowshipBotsConfig::configFSBLlamaAITemperature != -1.0f)
+            doc.AddMember("temperature", FollowshipBotsConfig::configFSBLlamaAITemperature, allocator);
+        if (FollowshipBotsConfig::configFSBLlamaAITopP != -1.0f)
+            doc.AddMember("top_p", FollowshipBotsConfig::configFSBLlamaAITopP, allocator);
+        if (FollowshipBotsConfig::configFSBLlamaAISendPenalties)
+        {
+            doc.AddMember("frequency_penalty", FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty, allocator);
+            doc.AddMember("presence_penalty", FollowshipBotsConfig::configFSBLlamaAIPresencePenalty, allocator);
+        }
+
+        if (FollowshipBotsConfig::configFSBLlamaAIUseSystemParameter)
+        {
+            rapidjson::Value systemValue;
+            systemValue.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
+            doc.AddMember("system", systemValue, allocator);
+        }
 
         rapidjson::Value messages(rapidjson::kArrayType);
 
-        rapidjson::Value systemMsg(rapidjson::kObjectType);
-        rapidjson::Value systemRole;
-        systemRole.SetString("system", allocator);
-        rapidjson::Value systemContent;
-        systemContent.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
-        systemMsg.AddMember("role", systemRole, allocator);
-        systemMsg.AddMember("content", systemContent, allocator);
-        messages.PushBack(systemMsg, allocator);
+        if (!FollowshipBotsConfig::configFSBLlamaAIUseSystemParameter)
+        {
+            rapidjson::Value systemMsg(rapidjson::kObjectType);
+            rapidjson::Value systemRole;
+            systemRole.SetString("system", allocator);
+            rapidjson::Value systemContent;
+            systemContent.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
+            systemMsg.AddMember("role", systemRole, allocator);
+            systemMsg.AddMember("content", systemContent, allocator);
+            messages.PushBack(systemMsg, allocator);
+        }
 
         rapidjson::Value userMsg(rapidjson::kObjectType);
         rapidjson::Value userRole;
@@ -90,23 +108,26 @@ namespace FSBLlamaAI
         return std::string(buffer.GetString(), buffer.GetSize());
     }
 
-    std::string SendChatRequest(std::string const& requestBody)
+    namespace
     {
-        try
+        void CancelSocket(boost::asio::ip::tcp::socket& s) { s.cancel(); }
+        void CancelSocket(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& s) { s.next_layer().cancel(); }
+
+        void ShutdownSocket(boost::asio::ip::tcp::socket& s, boost::beast::error_code& ec)
         {
-            TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: sending request...");
-            std::string const& host = FollowshipBotsConfig::configFSBLlamaAIHost;
-            int32 port = FollowshipBotsConfig::configFSBLlamaAIPort;
-            std::string target = "/" + FollowshipBotsConfig::configFSBLlamaAIEndpoint;
-            int32 timeoutMs = FollowshipBotsConfig::configFSBLlamaAITimeoutMs;
+            s.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+        }
+        void ShutdownSocket(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& s, boost::beast::error_code& ec)
+        {
+            s.shutdown(ec);
+        }
 
-            boost::asio::io_context ioContext;
-            boost::asio::ip::tcp::resolver resolver(ioContext);
-            auto const results = resolver.resolve(host, std::to_string(port));
-
-            boost::asio::ip::tcp::socket socket(ioContext);
-            boost::asio::connect(socket, results);
-
+        template<typename Stream>
+        std::string DoHttpExchange(Stream& stream, boost::asio::io_context& ioContext,
+            std::string const& requestBody, std::string const& host,
+            std::string const& target, std::string const& apiKey,
+            std::string const& customHeader, int32 timeoutMs)
+        {
             boost::beast::http::request<boost::beast::http::string_body> req;
             req.method(boost::beast::http::verb::post);
             req.target(target);
@@ -115,14 +136,36 @@ namespace FSBLlamaAI
             req.set(boost::beast::http::field::content_type, "application/json");
             req.set(boost::beast::http::field::accept, "application/json");
 
-            std::string const& apiKey = FollowshipBotsConfig::configFSBLlamaAIApiKey;
             if (!apiKey.empty())
-                req.set(boost::beast::http::field::authorization, "Bearer " + apiKey);
+            {
+                std::string const& apiKeyHeader = FollowshipBotsConfig::configFSBLlamaAIApiKeyHeader;
+                std::string const& apiKeyPrefix = FollowshipBotsConfig::configFSBLlamaAIApiKeyPrefix;
+                std::string headerValue = apiKeyPrefix + apiKey;
+                if (apiKeyHeader == "Authorization")
+                    req.set(boost::beast::http::field::authorization, headerValue);
+                else
+                    req.set(apiKeyHeader, headerValue);
+            }
+
+            if (!customHeader.empty())
+            {
+                auto pos = customHeader.find(':');
+                if (pos != std::string::npos)
+                {
+                    std::string name = customHeader.substr(0, pos);
+                    std::string value = customHeader.substr(pos + 1);
+                    auto valStart = value.find_first_not_of(" \t");
+                    if (valStart != std::string::npos)
+                        value = value.substr(valStart);
+                    if (!name.empty())
+                        req.set(name, value);
+                }
+            }
 
             req.body() = requestBody;
             req.prepare_payload();
 
-            boost::beast::http::write(socket, req);
+            boost::beast::http::write(stream, req);
 
             boost::beast::flat_buffer buffer;
             boost::beast::http::response<boost::beast::http::string_body> res;
@@ -133,15 +176,15 @@ namespace FSBLlamaAI
             bool timedOut = false;
             boost::system::error_code readEc;
 
-            timer.async_wait([&socket, &timedOut](boost::system::error_code ec) {
+            timer.async_wait([&stream, &timedOut](boost::system::error_code ec) {
                 if (!ec) // timer expired, not cancelled
                 {
                     timedOut = true;
-                    socket.cancel();
+                    CancelSocket(stream);
                 }
             });
 
-            boost::beast::http::async_read(socket, buffer, res,
+            boost::beast::http::async_read(stream, buffer, res,
                 [&timer, &readEc](boost::system::error_code ec, std::size_t) {
                     readEc = ec;
                     timer.cancel();
@@ -153,7 +196,7 @@ namespace FSBLlamaAI
             {
                 TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: request timed out after {}ms", timeoutMs);
                 boost::beast::error_code closeEc;
-                socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, closeEc);
+                ShutdownSocket(stream, closeEc);
                 return {};
             }
 
@@ -161,7 +204,7 @@ namespace FSBLlamaAI
             {
                 TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: HTTP read error: {}", readEc.message());
                 boost::beast::error_code closeEc;
-                socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, closeEc);
+                ShutdownSocket(stream, closeEc);
                 return {};
             }
 
@@ -170,14 +213,72 @@ namespace FSBLlamaAI
                 TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: HTTP status {} - body: {}",
                     static_cast<int>(res.result()), res.body());
                 boost::beast::error_code closeEc;
-                socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, closeEc);
+                ShutdownSocket(stream, closeEc);
                 return {};
             }
 
             boost::beast::error_code closeEc;
-            socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, closeEc);
+            ShutdownSocket(stream, closeEc);
 
             return res.body();
+        }
+    }
+
+    std::string SendChatRequest(std::string const& requestBody)
+    {
+        try
+        {
+            TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: sending request...");
+            std::string const& host = FollowshipBotsConfig::configFSBLlamaAIHost;
+            int32 port = FollowshipBotsConfig::configFSBLlamaAIPort;
+            std::string target = "/" + FollowshipBotsConfig::configFSBLlamaAIEndpoint;
+            int32 timeoutMs = FollowshipBotsConfig::configFSBLlamaAITimeoutMs;
+            bool useSSL = FollowshipBotsConfig::configFSBLlamaAIUseSSL;
+
+            std::string service = (port == -1)
+                ? (useSSL ? "https" : "http")
+                : std::to_string(port);
+
+            std::string hostHeader = host;
+            if (port != -1)
+                hostHeader += ":" + std::to_string(port);
+
+            std::string const& apiKey = FollowshipBotsConfig::configFSBLlamaAIApiKey;
+            std::string const& customHeader = FollowshipBotsConfig::configFSBLlamaAIRequestHeader;
+
+            TC_LOG_INFO("scripts.fsb.llama", "FSB LlamaAI: connecting to {}://{} (service={})",
+                useSSL ? "https" : "http", host, service);
+
+            boost::asio::io_context ioContext;
+            boost::asio::ip::tcp::resolver resolver(ioContext);
+            auto const results = resolver.resolve(host, service);
+
+            if (useSSL)
+            {
+                boost::asio::ssl::context sslCtx(boost::asio::ssl::context::tlsv12_client);
+                sslCtx.set_verify_mode(boost::asio::ssl::verify_none);
+
+                boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslCtx);
+                boost::asio::connect(stream.next_layer(), results);
+
+                if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+                {
+                    boost::system::error_code ec{static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()};
+                    TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: SSL_set_tlsext_host_name failed: {}", ec.message());
+                    return {};
+                }
+
+                stream.handshake(boost::asio::ssl::stream_base::client);
+
+                return DoHttpExchange(stream, ioContext, requestBody, hostHeader, target, apiKey, customHeader, timeoutMs);
+            }
+            else
+            {
+                boost::asio::ip::tcp::socket socket(ioContext);
+                boost::asio::connect(socket, results);
+
+                return DoHttpExchange(socket, ioContext, requestBody, hostHeader, target, apiKey, customHeader, timeoutMs);
+            }
         }
         catch (std::exception const& e)
         {
@@ -197,27 +298,28 @@ namespace FSBLlamaAI
             return {};
         }
 
-        if (!doc.HasMember("choices") || !doc["choices"].IsArray() || doc["choices"].Empty())
+        // Try OpenAI format first
+        if (doc.HasMember("choices") && doc["choices"].IsArray() && !doc["choices"].Empty())
         {
-            TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: missing/empty choices: {}", responseJson);
-            return {};
+            rapidjson::Value const& choice = doc["choices"][0];
+            if (choice.IsObject() && choice.HasMember("message") && choice["message"].IsObject())
+            {
+                rapidjson::Value const& message = choice["message"];
+                if (message.HasMember("content") && message["content"].IsString())
+                    return message["content"].GetString();
+            }
         }
 
-        rapidjson::Value const& choice = doc["choices"][0];
-        if (!choice.IsObject() || !choice.HasMember("message") || !choice["message"].IsObject())
+        // Try Anthropic format
+        if (doc.HasMember("content") && doc["content"].IsArray() && !doc["content"].Empty())
         {
-            TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: invalid choice structure: {}", responseJson);
-            return {};
+            rapidjson::Value const& content = doc["content"][0];
+            if (content.IsObject() && content.HasMember("text") && content["text"].IsString())
+                return content["text"].GetString();
         }
 
-        rapidjson::Value const& message = choice["message"];
-        if (!message.HasMember("content") || !message["content"].IsString())
-        {
-            TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: missing/invalid content: {}", responseJson);
-            return {};
-        }
-
-        return message["content"].GetString();
+        TC_LOG_ERROR("scripts.fsb.llama", "FSB LlamaAI: unrecognized response format: {}", responseJson);
+        return {};
     }
 
     std::string GetBotResponse(std::string const& systemPrompt, std::string const& userMessage)
@@ -244,28 +346,46 @@ namespace FSBLlamaAI
 
         doc.AddMember("stream", false, allocator);
         doc.AddMember("max_tokens", FollowshipBotsConfig::configFSBLlamaAIMaxTokens, allocator);
-        doc.AddMember("temperature", FollowshipBotsConfig::configFSBLlamaAITemperature, allocator);
-        doc.AddMember("top_p", FollowshipBotsConfig::configFSBLlamaAITopP, allocator);
-        doc.AddMember("frequency_penalty", FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty, allocator);
-        doc.AddMember("presence_penalty", FollowshipBotsConfig::configFSBLlamaAIPresencePenalty, allocator);
+        if (FollowshipBotsConfig::configFSBLlamaAITemperature != -1.0f)
+            doc.AddMember("temperature", FollowshipBotsConfig::configFSBLlamaAITemperature, allocator);
+        if (FollowshipBotsConfig::configFSBLlamaAITopP != -1.0f)
+            doc.AddMember("top_p", FollowshipBotsConfig::configFSBLlamaAITopP, allocator);
+        if (FollowshipBotsConfig::configFSBLlamaAISendPenalties)
+        {
+            doc.AddMember("frequency_penalty", FollowshipBotsConfig::configFSBLlamaAIFrequencyPenalty, allocator);
+            doc.AddMember("presence_penalty", FollowshipBotsConfig::configFSBLlamaAIPresencePenalty, allocator);
+        }
 
-        // Add response_format for JSON mode
-        rapidjson::Value responseFormat(rapidjson::kObjectType);
-        rapidjson::Value typeValue;
-        typeValue.SetString("json_object", allocator);
-        responseFormat.AddMember("type", typeValue, allocator);
-        doc.AddMember("response_format", responseFormat, allocator);
+        if (!FollowshipBotsConfig::configFSBLlamaAIUseSystemParameter)
+        {
+            // Add response_format for JSON mode (OpenAI only)
+            rapidjson::Value responseFormat(rapidjson::kObjectType);
+            rapidjson::Value typeValue;
+            typeValue.SetString("json_object", allocator);
+            responseFormat.AddMember("type", typeValue, allocator);
+            doc.AddMember("response_format", responseFormat, allocator);
+        }
+
+        if (FollowshipBotsConfig::configFSBLlamaAIUseSystemParameter)
+        {
+            rapidjson::Value systemValue;
+            systemValue.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
+            doc.AddMember("system", systemValue, allocator);
+        }
 
         rapidjson::Value messages(rapidjson::kArrayType);
 
-        rapidjson::Value systemMsg(rapidjson::kObjectType);
-        rapidjson::Value systemRole;
-        systemRole.SetString("system", allocator);
-        rapidjson::Value systemContent;
-        systemContent.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
-        systemMsg.AddMember("role", systemRole, allocator);
-        systemMsg.AddMember("content", systemContent, allocator);
-        messages.PushBack(systemMsg, allocator);
+        if (!FollowshipBotsConfig::configFSBLlamaAIUseSystemParameter)
+        {
+            rapidjson::Value systemMsg(rapidjson::kObjectType);
+            rapidjson::Value systemRole;
+            systemRole.SetString("system", allocator);
+            rapidjson::Value systemContent;
+            systemContent.SetString(systemPrompt.c_str(), static_cast<rapidjson::SizeType>(systemPrompt.length()), allocator);
+            systemMsg.AddMember("role", systemRole, allocator);
+            systemMsg.AddMember("content", systemContent, allocator);
+            messages.PushBack(systemMsg, allocator);
+        }
 
         rapidjson::Value userMsg(rapidjson::kObjectType);
         rapidjson::Value userRole;
