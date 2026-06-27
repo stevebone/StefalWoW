@@ -31,6 +31,7 @@
 
 #include "ObjectGuid.h"
 #include "SharedDefines.h"
+#include "Unit.h"
 
 #include "LlamaAI/Followship_bots_channel_prompts.h"
 #include "LlamaAI/Followship_bots_conversation_prompts.h"
