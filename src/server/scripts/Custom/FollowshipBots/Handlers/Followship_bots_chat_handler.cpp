@@ -35,8 +35,10 @@
 #include "Log.h"
 #include "World.h"
 #include "Creature.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Language.h"
+#include "SharedDefines.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_chat_handler.h"
@@ -48,8 +50,6 @@
 
 #include "LlamaAI/Followship_bots_llamaAI.h"
 #include "LlamaAI/Followship_bots_channel_prompts.h"
-
-#include "ObjectAccessor.h"
 
 // ------------------------------------------------------------------
 // Helper: gold allowance (main-thread only - uses urand)
