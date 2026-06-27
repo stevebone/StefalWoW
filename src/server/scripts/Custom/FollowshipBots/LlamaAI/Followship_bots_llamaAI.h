@@ -24,6 +24,8 @@
 
 #include <string>
 
+#include "Common.h"
+
 namespace FSBLlamaAI
 {
     bool IsEnabled();
