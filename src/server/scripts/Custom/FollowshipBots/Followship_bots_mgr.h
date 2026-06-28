@@ -114,6 +114,11 @@ public:
     // Sync bot phasing with owner
     void SyncBotPhasingWithOwner(Player* player);
 
+    // Bot template management
+    bool HasBotTemplate(uint32 entry);
+    void AddBotTemplate(FSBEntryRaceClassMap const& data);
+    void RemoveBotTemplate(uint32 entry);
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
     std::unordered_map<uint32 /*entry*/, FSBEntryRaceClassMap> _botTemplates;

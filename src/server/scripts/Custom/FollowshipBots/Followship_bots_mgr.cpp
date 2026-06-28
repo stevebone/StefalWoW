@@ -21,6 +21,7 @@
  */
 
 #include "CharmInfo.h"
+#include "DatabaseEnv.h"
 #include "Log.h"
 #include "Map.h"
 #include "PhasingHandler.h"
@@ -767,6 +768,21 @@ uint32 FSBMgr::GetBotCompanionSpellForEntry(uint32 entry)
         return it->second.companionSpell;
 
     return 0;
+}
+
+bool FSBMgr::HasBotTemplate(uint32 entry)
+{
+    return _botTemplates.find(entry) != _botTemplates.end();
+}
+
+void FSBMgr::AddBotTemplate(FSBEntryRaceClassMap const& data)
+{
+    _botTemplates[data.entry] = data;
+}
+
+void FSBMgr::RemoveBotTemplate(uint32 entry)
+{
+    _botTemplates.erase(entry);
 }
 
 FSB_Roles FSBMgr::GetRole(Creature* bot)

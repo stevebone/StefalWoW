@@ -40,6 +40,12 @@ void FollowshipDatabaseConnection::DoPrepareStatements()
 
     PrepareStatement(FSB_SEL_BOT_TEMPLATES_ALL,
         "SELECT entry, bot_class, bot_race, companion_spell, chatter_type, gender, pet_source FROM bot_templates", CONNECTION_SYNCH);
+
+    PrepareStatement(FSB_INS_BOT_TEMPLATE,
+        "INSERT INTO bot_templates (entry, bot_class, bot_race, companion_spell, chatter_type, gender, pet_source) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+
+    PrepareStatement(FSB_DEL_BOT_TEMPLATE,
+        "DELETE FROM bot_templates WHERE entry = ?", CONNECTION_ASYNC);
 }
 
 FollowshipDatabaseConnection::FollowshipDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags)

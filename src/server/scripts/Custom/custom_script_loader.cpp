@@ -56,6 +56,7 @@ void AddSC_custom_westfall_quests();
 void AddSC_followship_bots();                // FSB main Script
 void AddSC_followship_bots_player();                // FSB Player Scripts
 void AddSC_followship_bots_commandscript();
+void AddSC_followship_bots_command_template();
 void AddSC_followship_bots_world();                // FSB World Script
 
 // ==================== Delves Scripts ======================= //
@@ -137,6 +138,7 @@ void AddCustomScripts()
     AddSC_followship_bots();
     AddSC_followship_bots_player();
     AddSC_followship_bots_commandscript();
+    AddSC_followship_bots_command_template();
     AddSC_followship_bots_world();
 
     // Creature Codex
