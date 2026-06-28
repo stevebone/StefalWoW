@@ -413,7 +413,7 @@ namespace FSBOOC
         auto& botHasCompanion = baseAI->botHasCompanion;
         
 
-        uint32 companionSpell = FSBSpellsUtils::GetBotCompanionSpellForEntry(bot->GetEntry());
+        uint32 companionSpell = FSBMgr::Get()->GetBotCompanionSpellForEntry(bot->GetEntry());
         if (companionSpell == 0)
             return false;        
 

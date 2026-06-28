@@ -769,6 +769,7 @@ public:
 void AddSC_followship_bots()
 {
     FollowshipBotsConfig::Load();
+    FSBMgr::Get()->LoadBotTemplates();
     FSBMgr::Get()->LoadAllPersistentBots();
     FSBSpells::InitBotSpellTables();
 

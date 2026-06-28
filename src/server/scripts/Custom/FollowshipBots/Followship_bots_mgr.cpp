@@ -31,6 +31,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
+#include "FollowshipDatabase.h"
 #include "Config/Followship_bots_config.h"
 
 #include "Followship_bots_events_handler.h"
@@ -63,6 +64,38 @@ void FSBMgr::LoadAllPersistentBots()
     }
 
     TC_LOG_INFO("scripts.fsb.manager", "FSB: LoadAllPersistentBots {} persistent bots loaded for {} players", allBots.size(), _playerBotsPersistent.size());
+}
+
+void FSBMgr::LoadBotTemplates()
+{
+    _botTemplates.clear();
+
+    FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_TEMPLATES_ALL);
+    PreparedQueryResult result = FollowshipDatabase.Query(stmt);
+
+    if (!result)
+    {
+        TC_LOG_ERROR("scripts.fsb.manager", "FSB: LoadBotTemplates failed - no data found in bot_templates table");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        FSBEntryRaceClassMap data;
+        data.entry = fields[0].GetUInt32();
+        data.botClass = static_cast<FSB_Class>(fields[1].GetUInt8());
+        data.botRace = static_cast<FSB_Race>(fields[2].GetUInt8());
+        data.companionSpell = fields[3].GetUInt32();
+        data.chatterType = static_cast<FSB_ChatterType>(fields[4].GetUInt8());
+        data.gender = static_cast<Gender>(fields[5].GetUInt8());
+        data.petSource = fields[6].GetUInt32();
+
+        _botTemplates[data.entry] = data;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("scripts.fsb.manager", "FSB: LoadBotTemplates {} bot templates loaded from database", _botTemplates.size());
 }
 
 bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry)
@@ -568,14 +601,12 @@ void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Rac
 
 bool FSBMgr::GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace)
 {
-    for (auto const& map : BotEntryClassTable)
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
     {
-        if (map.entry == entry)
-        {
-            outClass = map.botClass;
-            outRace = map.botRace;
-            return true;
-        }
+        outClass = it->second.botClass;
+        outRace = it->second.botRace;
+        return true;
     }
 
     outClass = FSB_Class::None;
@@ -585,11 +616,9 @@ bool FSBMgr::GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_R
 
 FSB_Class FSBMgr::GetBotClassForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.botClass;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.botClass;
 
     return FSB_Class::None;
 }
@@ -613,11 +642,9 @@ void FSBMgr::SetBotClass(Creature* creature, FSB_Class& outClass)
 
 FSB_Race FSBMgr::GetBotRaceForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.botRace;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.botRace;
 
     return FSB_Race::None;
 }
@@ -708,33 +735,36 @@ FSB_Roles FSBMgr::GetRandomRoleForClass(FSB_Class botClass)
 
 FSB_ChatterType FSBMgr::GetBotChatterTypeForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.chatterType;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.chatterType;
 
     return FSB_ChatterType::None;
 }
 
 Gender FSBMgr::GetBotGenderForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.gender;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.gender;
 
     return GENDER_NONE;
 }
 
 uint32 FSBMgr::GetBotPetSourceForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.petSource;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.petSource;
+
+    return 0;
+}
+
+uint32 FSBMgr::GetBotCompanionSpellForEntry(uint32 entry)
+{
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.companionSpell;
 
     return 0;
 }
