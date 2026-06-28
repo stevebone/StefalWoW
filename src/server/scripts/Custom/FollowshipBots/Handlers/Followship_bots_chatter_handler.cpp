@@ -43,6 +43,21 @@ std::vector<FSBEmoteTextEntry> FSBChatter::FSBEmoteTextTable =
             "{bot} winks and blows a kiss at {target}.",
         }
     },
+    {
+        FSB_ChatterEmotes::emote_flirt,
+        {
+            "{bot} gives {target} a playful wink.",
+            "{bot} flashes {target} a charming smile.",
+            "{bot} tilts their head and gives {target} a flirty grin.",
+            "{bot} shoots {target} a mischievous look.",
+            "{bot} gives {target} a slow, teasing wink.",
+            "{bot} smirks softly in {target}'s direction.",
+            "{bot} gives {target} a warm, inviting smile.",
+            "{bot} glances at {target} with a hint of playful interest.",
+            "{bot} offers {target} a coy, knowing smile.",
+            "{bot} gives {target} a subtle but unmistakably flirty look."
+        }
+    },
 };
 
 std::vector<FSBChatterReplyEntry> FSBReplyTable =
@@ -60,253 +75,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "{bot} looks around, clearly bored, and whistles.",
             "{bot} gives a casual whistle into the air.",
             "{bot} whistles while waiting for something to happen."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::None,
-        {
-            "{bot} gives {target} a playful wink.",
-            "{bot} flashes {target} a charming smile.",
-            "{bot} tilts their head and gives {target} a flirty grin.",
-            "{bot} shoots {target} a mischievous look.",
-            "{bot} gives {target} a slow, teasing wink.",
-            "{bot} smirks softly in {target}'s direction.",
-            "{bot} gives {target} a warm, inviting smile.",
-            "{bot} glances at {target} with a hint of playful interest.",
-            "{bot} offers {target} a coy, knowing smile.",
-            "{bot} gives {target} a subtle but unmistakably flirty look."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Neutral,
-        {
-            "Oh. was that supposed to be flirting?",
-            "Interesting approach, {bot}. Not sure what to make of it.",
-            "Huh. that was a thing you just did, {bot}.",
-            "Is that how you usually flirt?",
-            "Well, that happened.",
-            "I'll. pretend I understood that.",
-            "Not sure what you're going for, {bot} but okay.",
-            "You're full of surprises today.",
-            "I'm not sure how to respond to that.",
-            "Was that meant for me?",
-            "I'll just take that as a compliment. I think.",
-            "You're being. oddly expressive.",
-            "Is this a new habit of yours?",
-            "I guess that was a flirt? Maybe?",
-            "I'll let that one slide without comment.",
-            "You're doing something {bot}. Not sure what, but something.",
-            "I'll just nod and move on.",
-            "That was. subtle? Maybe?",
-            "I'm not sure if that was flirting or a glitch.",
-            "Well, that's one way to get attention."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Positive,
-        {
-            "Oh? Someone's feeling bold today.",
-            "Well now. aren't you charming.",
-            "You're going to make me blush at this rate.",
-            "Careful, {bot}. I might flirt back.",
-            "Oh! That was actually kind of cute.",
-            "You're full of sweet surprises.",
-            "If you keep that up, I might get the wrong idea.",
-            "You're quite the charmer, aren't you {bot}?",
-            "Oh wow. that was smooth.",
-            "You're making this adventure a lot more fun.",
-            "Flirting now? I don't mind.",
-            "You're adorable when you try like that.",
-            "Oh! I wasn't expecting that, but I liked it.",
-            "You're dangerously good at this {bot}.",
-            "If that was flirting. it worked.",
-            "You're going to spoil me with attention.",
-            "You're surprisingly sweet today.",
-            "Oh, keep going. I'm enjoying this.",
-            "You're making me smile, {bot}.",
-            "You're a natural at this, you know."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Negative,
-        {
-            "Oh no. don't start with that.",
-            "Please don't flirt with me. Seriously {bot}.",
-            "Was that flirting? Ew.",
-            "Nope. Absolutely not.",
-            "Save the flirting for someone who wants it.",
-            "You're trying way too hard.",
-            "Stop. Just stop {bot}.",
-            "That was painful to witness.",
-            "If that was flirting, you need help.",
-            "I'm not interested, {bot}.",
-            "Please don't make this weird.",
-            "You're making things awkward again.",
-            "I'd rather fight a dragon than deal with this.",
-            "You call that flirting?",
-            "Try that again and I'm walking away.",
-            "You're not charming. You're just annoying.",
-            "I'm immune to whatever that was.",
-            "No thanks. Really.",
-            "You're embarrassing yourself.",
-            "Let's pretend that didn't happen."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Cynical,
-        {
-            "Flirting? In this economy?",
-            "I'm sure that line works on everyone. Except me.",
-            "Your confidence is almost as misplaced as your charm.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Bitter,
-        {
-            "Don't waste your breath.",
-            "I've heard better lines from demons.",
-            "Your flattery is as hollow as your skull.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Cold,
-        {
-            "Irrelevant.",
-            "Your intentions do not concern me.",
-            "This interaction has no value.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Guarded,
-        {
-            "What do you want from me?",
-            "I've been fooled by sweet words before.",
-            "Why are you being nice?",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Serious,
-        {
-            "We are not here for this.",
-            "Maintain professionalism.",
-            "Focus, {target}.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Dry,
-        {
-            "Bold strategy. Let's see if it pays off.",
-            "Is this your default mode?",
-            "Noted. Moving on.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Curious,
-        {
-            "Is this a social experiment or genuine interest?",
-            "What exactly are you hoping to achieve?",
-            "Tell me more about your intent.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Warm,
-        {
-            "You're quite the charmer, aren't you?",
-            "That made me smile more than I'd admit.",
-            "You have a way with words.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Enthusiastic,
-        {
-            "OH MY GOD YES! FLIRT WITH ME MORE!",
-            "I AM LIVING FOR THIS ENERGY!",
-            "YOU'RE INCREDIBLE! KEEP GOING!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Cheerful,
-        {
-            "Haha, you're hilarious! I love it!",
-            "You just made my day with that!",
-            "You're a ray of sunshine, you know that?",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Devoted,
-        {
-            "You have my full attention. Always.",
-            "I would follow your words anywhere.",
-            "Your voice is the only one I need to hear.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Morbid,
-        {
-            "Flirt with me while my heart still beats.",
-            "I'd still love you with maggots in my eyes.",
-            "Your warmth is fleeting. Enjoy it.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Narcissist,
-        {
-            "Naturally you'd flirt with me. I'm irresistible.",
-            "Go on. Tell me more about how amazing I am.",
-            "You're doing great. Keep worshipping.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Sadist,
-        {
-            "Do you like being teased? Because I do.",
-            "Your desperation is... delicious.",
-            "I'd flirt back, but watching you squirm is better.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Hyperthymic,
-        {
-            "YES! FLIRT WITH ME! FLIRT WITH EVERYONE! WOO!",
-            "I LOVE THIS! MORE! GIVE ME MORE!",
-            "BEST. FLIRT. EVER! YOU'RE A LEGEND!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Autotelic,
-        {
-            "I appreciate your sincerity.",
-            "Connection should be genuine, and this feels real.",
-            "I flirt because I want to, not because I have to.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Autistic,
-        {
-            "Is this called 'flirting'? I read about it in books.",
-            "My heart rate increased 12 BPM. Interesting.",
-            "I don't understand the rules but I like this feeling.",
         }
     },
 
@@ -2857,21 +2625,22 @@ namespace FSBChatter
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        // --- DB-driven path (trial: emote_kiss only) ---
-        if (category == FSB_ChatterCategory::emote_kiss)
+        // --- DB-driven path (emote_kiss, emote_flirt) ---
+        if (category == FSB_ChatterCategory::emote_kiss ||
+            category == FSB_ChatterCategory::emote_flirt)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);
             if (it == BotChatterLinesMap.end() || it->second.empty())
             {
-                TC_LOG_ERROR("scripts.fsb.chatter", "FSB: No DB chatter lines found for emote_kiss key {}", key);
+                TC_LOG_ERROR("scripts.fsb.chatter", "FSB: No DB chatter lines found for category {} key {}", static_cast<uint8>(category), key);
                 return "";
             }
 
             std::vector<FSBChatterDBLine const*> candidates = FilterChatterCandidates(bot, it->second);
             if (candidates.empty())
             {
-                TC_LOG_ERROR("scripts.fsb.chatter", "FSB: emote_kiss lines exist for key {} but none match bot zone/race/class filters", key);
+                TC_LOG_ERROR("scripts.fsb.chatter", "FSB: DB lines exist for category {} key {} but none match bot zone/race/class filters", static_cast<uint8>(category), key);
                 return "";
             }
 

@@ -940,6 +940,8 @@ namespace FSBOOC
         std::string emote;
         if (category == FSB_ChatterCategory::emote_kiss)
             emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_kiss);
+        else if (category == FSB_ChatterCategory::emote_flirt)
+            emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_flirt);
         else
             emote = FSBChatter::GetRandomReply(bot, target, category, FSB_ChatterType::None, 0);
 
