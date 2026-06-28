@@ -197,4 +197,36 @@ namespace FSBUtilsDB
 
         return true;
     }
+
+    bool LoadBotChatterLines(std::unordered_map<uint32, std::vector<FSBChatterDBLine>>& outMap)
+    {
+        outMap.clear();
+
+        FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_CHATTER_ALL);
+        PreparedQueryResult result = FollowshipDatabase.Query(stmt);
+
+        if (!result)
+            return true; // no lines is valid (will fall back to static table later)
+
+        uint32 count = 0;
+        do
+        {
+            Field* fields = result->Fetch();
+            FSBChatterDBLine line;
+            line.id          = fields[0].GetUInt32();
+            line.zoneId      = fields[1].GetInt32();
+            line.fsbRaceId   = fields[2].GetUInt8();
+            line.fsbClassId  = fields[3].GetUInt8();
+            uint16 category  = fields[4].GetUInt16();
+            uint8 chatterType = fields[5].GetUInt8();
+            line.lineText    = fields[6].GetString();
+
+            uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
+            outMap[key].push_back(std::move(line));
+            ++count;
+        } while (result->NextRow());
+
+        TC_LOG_INFO("scripts.fsb.chatter", "FSB: Loaded {} bot chatter lines into {} category/type entries", count, outMap.size());
+        return true;
+    }
 }

@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Define.h"
 #include "ObjectGuid.h"
 
@@ -172,4 +174,13 @@ struct PlayerBotData
     ObjectGuid runtimeGuid = ObjectGuid::Empty;
 
     PlayerBotData() = default;
+};
+
+struct FSBChatterDBLine
+{
+    uint32 id = 0;
+    int32 zoneId = 0;
+    uint8 fsbRaceId = 0;
+    uint8 fsbClassId = 0;
+    std::string lineText;
 };

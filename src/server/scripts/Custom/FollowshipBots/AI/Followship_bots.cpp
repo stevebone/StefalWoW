@@ -40,6 +40,8 @@
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_combat_handler.h"
 
+#include "Followship_bots_db.h"
+
 #include "GenAI/GenAI_chatter_prompts.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_dungeon_handler.h"
@@ -771,6 +773,7 @@ void AddSC_followship_bots()
     FollowshipBotsConfig::Load();
     FSBMgr::Get()->LoadBotTemplates();
     FSBMgr::Get()->LoadAllPersistentBots();
+    FSBUtilsDB::LoadBotChatterLines(FSBChatter::BotChatterLinesMap);
     FSBSpells::InitBotSpellTables();
 
     new npc_followship_bots();

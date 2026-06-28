@@ -46,6 +46,9 @@ void FollowshipDatabaseConnection::DoPrepareStatements()
 
     PrepareStatement(FSB_DEL_BOT_TEMPLATE,
         "DELETE FROM bot_templates WHERE entry = ?", CONNECTION_ASYNC);
+
+    PrepareStatement(FSB_SEL_BOT_CHATTER_ALL,
+        "SELECT id, zoneId, fsbRaceId, fsbClassId, category, chatter_type, line_text FROM bot_chatter_lines", CONNECTION_SYNCH);
 }
 
 FollowshipDatabaseConnection::FollowshipDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags)

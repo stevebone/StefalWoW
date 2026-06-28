@@ -32,263 +32,21 @@
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"
 
-std::vector<FSBChatterReplyEntry> FSBReplyTable =
+std::unordered_map<uint32, std::vector<FSBChatterDBLine>> FSBChatter::BotChatterLinesMap;
+std::vector<FSBEmoteTextEntry> FSBChatter::FSBEmoteTextTable =
 {
     {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Neutral,
-        {
-            "Oh. thank you, I guess?",
-            "What was that for?",
-            "You're full of surprises today.",
-            "Well. that was unexpected.",
-            "A kiss? Really now?",
-            "Uh. okay then.",
-            "Was that meant for me?",
-            "Not sure what that was about.",
-            "Huh. interesting choice.",
-            "Well, that happened.",
-            "Is this a new thing you're doing?",
-            "I'll pretend that made sense.",
-            "Unexpected, but alright.",
-            "You do you, I guess.",
-            "Not sure how to respond to that.",
-            "Was that intentional?",
-            "I'm. just going to ignore that.",
-            "If that was a signal, I missed it.",
-            "I suppose that's one way to greet someone.",
-            "You're full of surprises, aren't you?",
-            "I'll take that as. something.",
-            "Is this normal for you?",
-            "I'm not sure what you expect from me now.",
-            "Well, that's one way to pass the time.",
-            "I'll just act like that was totally normal."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Positive,
-        {
-            "Oh. thank you, That is so sweet...",
-            "For me? Ah thank you!",
-            "You're full of surprises today.",
-            "Well. that makes my day.",
-            "A kiss? Ah sure, why not...",
-            "Aww, that's adorable!",
-            "Well aren't you sweet!",
-            "Oh! That made me smile.",
-            "You're too kind, really.",
-            "That brightened my day, thank you.",
-            "You always know how to make things nicer.",
-            "Oh! I wasn't expecting that, but I liked it.",
-            "You're such a charmer, {bot}.",
-            "That was lovely. thank you.",
-            "You're making me blush over here.",
-            "How cute! Do it again.",
-            "You're surprisingly affectionate today.",
-            "That was sweet - keep it up.",
-            "You know how to make someone feel appreciated.",
-            "That was actually really nice.",
-            "You're full of warmth today.",
-            "A kiss? I won't say no to that.",
-            "You're making this adventure much more pleasant.",
-            "That was unexpectedly lovely.",
-            "You're such a softie sometimes."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Negative,
-        {
-            "Oh. no thanks...",
-            "Can you please, just... not do that?",
-            "You're at it again?",
-            "Not this shit again...",
-            "Just stop it!",
-            "Ugh. really?",
-            "Do you mind? Actually, yes, you do.",
-            "Why are you like this?",
-            "Stop that. Seriously.",
-            "If you do that again, I'm walking.",
-            "I did NOT ask for that.",
-            "Gross. Just. gross.",
-            "Are you trying to annoy me?",
-            "That was unnecessary.",
-            "Please keep your lips to yourself.",
-            "Nope. Absolutely not.",
-            "You think that was cute? It wasn't.",
-            "I swear, you're doing this on purpose.",
-            "Can you not?",
-            "That better not become a habit.",
-            "I'm not in the mood for your nonsense.",
-            "Try that again and see what happens.",
-            "You're testing my patience.",
-            "That was the opposite of charming.",
-            "I regret standing this close to you."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::None,
+        FSB_ChatterEmotes::emote_kiss,
         {
             "{bot} blows a kiss to {target}.",
             "{bot} sends a warm kiss toward {target}.",
             "{bot} winks and blows a kiss at {target}.",
         }
     },
+};
 
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Cynical,
-        {
-            "A kiss? How quaint. And utterly meaningless.",
-            "I suppose you think that fixes everything.",
-            "Save it for someone who still believes in fairy tales.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Bitter,
-        {
-            "Don't patronize me with affection.",
-            "I don't want your pity kiss.",
-            "Keep your lips to yourself.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Cold,
-        {
-            "...",
-            "Unnecessary.",
-            "That was inefficient.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Guarded,
-        {
-            "What are you trying to prove?",
-            "I don't trust gestures like that.",
-            "What's the angle here?",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Serious,
-        {
-            "We have objectives to complete.",
-            "Focus on the mission.",
-            "Sentimentality is a liability.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Dry,
-        {
-            "Well, that happened.",
-            "Noted.",
-            "I'll add that to my list of unexpected events.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Curious,
-        {
-            "What prompted that? Was it instinct or intent?",
-            "Fascinating. What's the social protocol for returning that?",
-            "Do you kiss everyone, or am I special?",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Warm,
-        {
-            "That was lovely, thank you.",
-            "You always know how to brighten my day.",
-            "A little kindness goes a long way.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Enthusiastic,
-        {
-            "Oh! Oh wow! That was AMAZING!",
-            "YES! Best. Kiss. EVER!",
-            "I am officially the happiest bot in Azeroth!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Cheerful,
-        {
-            "Aww, that's sweet! Made my whole day!",
-            "You're just the best, you know that?",
-            "Mwah! Right back at ya!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Devoted,
-        {
-            "Your affection means everything to me.",
-            "I live for moments like this with you.",
-            "My heart is yours, always.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Morbid,
-        {
-            "Your lips are warm... for now.",
-            "Kiss me while you still have lips.",
-            "One day I'll kiss your corpse goodbye.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Narcissist,
-        {
-            "Of course you'd want to kiss perfection.",
-            "Mmm, you taste like admiration.",
-            "I'm sure that made your entire life.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Sadist,
-        {
-            "I wonder if you'd kiss me if I bit you.",
-            "Your lips tremble. I like that.",
-            "Too bad I don't feel anything.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Hyperthymic,
-        {
-            "WOOOO! KISS CAM! WE'RE ON THE KISS CAM!",
-            "EVERYONE LOOK! WE JUST KISSED! THIS IS THE BEST!",
-            "I'M NEVER WASHING THESE LIPS AGAIN!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Autotelic,
-        {
-            "That was a genuine moment. I appreciate it.",
-            "I kiss because it feels right, not because I must.",
-            "Connection for its own sake is beautiful.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Autistic,
-        {
-            "Your lips registered at 36.8 degrees Celsius. Nice.",
-            "The pressure was exactly 4.2 newtons. Perfect.",
-            "I felt that in my entire nervous system. Wow.",
-        }
-    },
-
+std::vector<FSBChatterReplyEntry> FSBReplyTable =
+{
     {
         FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None,
         {
@@ -3045,10 +2803,100 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
 
 namespace FSBChatter
 {
+    static std::vector<FSBChatterDBLine const*> FilterChatterCandidates(Creature* bot, std::vector<FSBChatterDBLine> const& lines)
+    {
+        std::vector<FSBChatterDBLine const*> candidates;
+        if (!bot)
+            return candidates;
+
+        uint32 botZoneId = bot->GetZoneId();
+        uint8 botRaceId  = static_cast<uint8>(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
+        uint8 botClassId = static_cast<uint8>(FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()));
+
+        for (auto const& line : lines)
+        {
+            if ((line.zoneId == 0 || line.zoneId == static_cast<int32>(botZoneId)) &&
+                (line.fsbRaceId == 0 || line.fsbRaceId == botRaceId) &&
+                (line.fsbClassId == 0 || line.fsbClassId == botClassId))
+            {
+                candidates.push_back(&line);
+            }
+        }
+        return candidates;
+    }
+
+    std::string GetRandomEmoteText(Creature* bot, Unit* target, FSB_ChatterEmotes emote)
+    {
+        for (auto const& entry : FSBEmoteTextTable)
+        {
+            if (entry.emote == emote)
+            {
+                if (entry.lines.empty())
+                {
+                    TC_LOG_ERROR("scripts.fsb.chatter", "FSB: GetRandomEmoteText: No lines found for emote {}", static_cast<uint8>(emote));
+                    return "";
+                }
+
+                std::string line = entry.lines[urand(0, entry.lines.size() - 1)];
+
+                if (bot)
+                    ReplaceAll(line, "{bot}", bot->GetName());
+                if (target)
+                    ReplaceAll(line, "{target}", target->GetName());
+
+                TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: GetRandomEmoteText: String [{}] selected for emote {}", line, static_cast<uint8>(emote));
+                return line;
+            }
+        }
+
+        TC_LOG_ERROR("scripts.fsb.chatter", "FSB: GetRandomEmoteText: Emote {} not found in FSBEmoteTextTable", static_cast<uint8>(emote));
+        return "";
+    }
+
     std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId, uint8 duration)
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
+        // --- DB-driven path (trial: emote_kiss only) ---
+        if (category == FSB_ChatterCategory::emote_kiss)
+        {
+            uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
+            auto it = BotChatterLinesMap.find(key);
+            if (it == BotChatterLinesMap.end() || it->second.empty())
+            {
+                TC_LOG_ERROR("scripts.fsb.chatter", "FSB: No DB chatter lines found for emote_kiss key {}", key);
+                return "";
+            }
+
+            std::vector<FSBChatterDBLine const*> candidates = FilterChatterCandidates(bot, it->second);
+            if (candidates.empty())
+            {
+                TC_LOG_ERROR("scripts.fsb.chatter", "FSB: emote_kiss lines exist for key {} but none match bot zone/race/class filters", key);
+                return "";
+            }
+
+            FSBChatterDBLine const* chosen = candidates[urand(0, candidates.size() - 1)];
+            std::string line = chosen->lineText;
+
+            // Token replacement
+            if (bot)
+                ReplaceAll(line, "{bot}", bot->GetName());
+            if (target)
+                ReplaceAll(line, "{target}", target->GetName());
+            if (player)
+                ReplaceAll(line, "{player}", player->GetName());
+            if (spellId)
+                ReplaceAll(line, "{spell}", FSBSpellsUtils::GetSpellName(spellId));
+            if (duration == 1)
+                ReplaceAll(line, "{duration}", "1 hour");
+            if (duration > 1)
+                ReplaceAll(line, "{duration}", std::to_string(duration) + " hours");
+
+            TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: Chatter GetRandomReply (DB): String [{}] selected for emote_kiss key {}", line, key);
+            return line;
+        }
+
+        // --- Legacy static-table path (all other categories) ---
         for (auto const& entry : FSBReplyTable)
         {
             if (entry.category == category && entry.chatterType == chatterType)

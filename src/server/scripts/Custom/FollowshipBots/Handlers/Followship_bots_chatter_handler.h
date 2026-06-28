@@ -22,6 +22,12 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "Followship_bots_defines.h"
+
 enum FSB_ChatterCategory
 {
     chatter_none,
@@ -74,6 +80,20 @@ struct FSBChatterReplyEntry
     std::vector<std::string> lines;
 };
 
+enum class FSB_ChatterEmotes : uint8
+{
+    emote_kiss,
+    emote_whistle,
+    emote_flirt,
+    // ... future emotes
+};
+
+struct FSBEmoteTextEntry
+{
+    FSB_ChatterEmotes emote;
+    std::vector<std::string> lines;
+};
+
 enum FSB_ChatterSource
 {
     None,
@@ -91,4 +111,10 @@ namespace FSBChatter
     std::string GetDummyEmoteString(FSB_ChatterCategory category, FSB_ChatterType type);
     void PlayDummyEmote(Creature* bot, const std::string& dummyEmoteString);
     void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
+
+    std::string GetRandomEmoteText(Creature* bot, Unit* target, FSB_ChatterEmotes emote);
+
+    extern std::unordered_map<uint32, std::vector<FSBChatterDBLine>> BotChatterLinesMap;
+    extern std::vector<FSBEmoteTextEntry> FSBEmoteTextTable;
+    // key = (category << 8) | chatter_type
 }

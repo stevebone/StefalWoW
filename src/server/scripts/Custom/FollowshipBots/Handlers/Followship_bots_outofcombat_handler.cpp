@@ -937,7 +937,12 @@ namespace FSBOOC
         auto soundInfo = sDB2Manager.GetTextSoundEmoteFor(textEmote, FSBUtils::BotRaceToTC(botRace), botGender, 0);
         uint32 soundId = soundInfo ? soundInfo->SoundID : 0;
 
-        std::string emote = FSBChatter::GetRandomReply(bot, target, category, FSB_ChatterType::None, 0);
+        std::string emote;
+        if (category == FSB_ChatterCategory::emote_kiss)
+            emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_kiss);
+        else
+            emote = FSBChatter::GetRandomReply(bot, target, category, FSB_ChatterType::None, 0);
+
         if (!emote.empty())
         {
             if (target)
