@@ -4765,15 +4765,6 @@ Logger.scripts.fsb.dungeon=4,Console FSB
 
 ###################################################################
 #
-# Player Extended Backpack Slots
-# Adds extra slots for the secured account option
-# This requires a way to set the appropriate flag
-# Blizzlike value is 4
-#
-# Default Value = 0 (feature disabled)
-# Max Value = 12
-Player.Extended.BackPackSlots = 0
-
 #    Season.MythicPlusDisplaySeasonID
 #        Description: Current Mythic+ display season ID from DisplaySeason.db2.
 #        Default:     34 - (Midnight Season 1)
