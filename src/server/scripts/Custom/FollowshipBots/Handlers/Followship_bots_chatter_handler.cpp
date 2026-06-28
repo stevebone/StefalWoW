@@ -58,6 +58,18 @@ std::vector<FSBEmoteTextEntry> FSBChatter::FSBEmoteTextTable =
             "{bot} gives {target} a subtle but unmistakably flirty look."
         }
     },
+    {
+        FSB_ChatterEmotes::emote_joke,
+        {
+            "{bot} tells a joke.",
+            "{bot} tells a funny quote.",
+            "{bot} whispers a small joke.",
+            "{bot} makes a funny face and jokes.",
+            "{bot} tells a joke to themselves.",
+            "{bot} tells a funny story.",
+            "{bot} recollects a funny event."
+        }
+    },
 };
 
 std::vector<FSBChatterReplyEntry> FSBReplyTable =
@@ -75,250 +87,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "{bot} looks around, clearly bored, and whistles.",
             "{bot} gives a casual whistle into the air.",
             "{bot} whistles while waiting for something to happen."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::None,
-        {
-            "{bot} tells a joke.",
-            "{bot} tells a funny quote.",
-            "{bot} whispers a small joke.",
-            "{bot} makes a funny face and jokes.",
-            "{bot} tells a joke to themselves.",
-            "{bot} tells a funny story.",
-            "{bot} recollects a funny event."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Neutral,
-        {
-            "Huh. I think I get it.",
-            "Was that the whole joke {bot}?",
-            "Interesting sense of humor you've got there.",
-            "I'll pretend that was funny {bot}.",
-            "Not bad. {bot} not great. just there.",
-            "I'm not sure how to react to that.",
-            "That was. something.",
-            "I think I've heard that one before.",
-            "I'll give you points for trying.",
-            "I guess that counts as a joke.",
-            "I'm processing. still processing.",
-            "That one flew right past me.",
-            "I'm not sure if I should laugh or sigh.",
-            "I'll allow it.",
-            "That joke existed. That's all I can say.",
-            "I'll give you a polite nod for that one.",
-            "I'm neutral on this. Very neutral.",
-            "I'll file that under 'attempted humor'.",
-            "I didn't hate it. Didn't love it either.",
-            "Well. {bot} that was a joke, technically."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Positive,
-        {
-            "Haha! Okay, that one was actually good {bot}.",
-            "You got me {bot} - that was funny!",
-            "Oh wow, I wasn't expecting that!",
-            "You're funnier than you look, {bot}.",
-            "That one made me smile.",
-            "Keep them coming, I like your humor.",
-            "Haha! Nice one!",
-            "You're on a roll today!",
-            "I needed that laugh {bot}, thanks.",
-            "You've got a real talent for this.",
-            "That joke was surprisingly good!",
-            "I'll be laughing about that one later.",
-            "You always know how to lighten the mood.",
-            "That was adorable and funny.",
-            "You're actually hilarious sometimes.",
-            "I love your sense of humor.",
-            "That one hit just right.",
-            "You're making this adventure way more fun.",
-            "Okay {bot}, that was genuinely great.",
-            "You should tell more jokes like that."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Negative,
-        {
-            "That joke hurt me on a spiritual level.",
-            "Please never say that again {bot}.",
-            "I think my soul just died a little.",
-            "Was that supposed to be funny?",
-            "I've heard murlocs make better jokes.",
-            "{bot} That joke was a crime.",
-            "I'm reporting you to the humor authorities.",
-            "I'd laugh, but I respect myself too much.",
-            "That was so bad it looped back to worse.",
-            "You should be banned from telling jokes.",
-            "I want the last ten seconds of my life back.",
-            "If that was humor, I fear for your future.",
-            "I've seen kobolds with better material.",
-            "That joke physically pained me.",
-            "Congratulations, you made silence awkward.",
-            "I'm embarrassed for both of us {bot}.",
-            "That joke belongs in a dungeon. A deep one.",
-            "Please stop {bot}. For both our sakes.",
-            "I'd laugh, but I don't want to encourage you.",
-            "That was the worst thing I've heard all day."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Cynical,
-        {
-            "I've heard funnier eulogies.",
-            "Your comedy career died before it started.",
-            "That joke had the lifespan of a mayfly.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Bitter,
-        {
-            "Even my pain isn't laughing at that.",
-            "You think that's funny? Try living my life.",
-            "I'd cry, but I'm out of tears.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Cold,
-        {
-            "Humor is inefficient.",
-            "That registered as noise.",
-            "No reaction. Next.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Guarded,
-        {
-            "Are you trying to lower my guard with humor?",
-            "I don't trust people who joke during combat.",
-            "What's the punchline? Because I see a trap.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Serious,
-        {
-            "This is not the time for jokes.",
-            "Focus on the task at hand.",
-            "Humor is a distraction we cannot afford.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Dry,
-        {
-            "I see what you did there. I choose not to acknowledge it.",
-            "That was almost humor. Almost.",
-            "Humor: present. Laughter: absent.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Curious,
-        {
-            "Where did you hear that? Is there a source?",
-            "Explain the mechanics of the humor, please.",
-            "Is that a reference to something? I want to understand.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Warm,
-        {
-            "That was cute. You have a sweet sense of humor.",
-            "Aww, you tried! That's what matters.",
-            "That made my heart smile a little.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Enthusiastic,
-        {
-            "HAHAHA! OH! DO ANOTHER ONE!",
-            "I LOVE IT! MORE! MORE!",
-            "BEST JOKE IN AZEROTH! NO CAP!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Cheerful,
-        {
-            "Heehee! You're so funny!",
-            "That tickled me! Good one!",
-            "You always know how to make me giggle!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Devoted,
-        {
-            "I'd laugh at anything you say, {bot}.",
-            "Your humor is perfect because it's yours.",
-            "Even your bad jokes are music to my ears.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Morbid,
-        {
-            "That joke was so bad it killed my last hope.",
-            "I'd laugh but rigor mortis set in.",
-            "Even the dead wouldn't find that funny.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Narcissist,
-        {
-            "I'd tell a better joke, but I don't waste my talent.",
-            "My humor is too sophisticated for this group.",
-            "You should be taking notes from MY wit.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Sadist,
-        {
-            "I only laugh when others suffer.",
-            "Your failure at comedy is funnier than the joke.",
-            "Watching you bomb is the real entertainment.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Hyperthymic,
-        {
-            "I'M DYING! NOT LITERALLY! HAHA!",
-            "SOMEONE CALL A HEALER! I'M LAUGHING TOO HARD!",
-            "COMEDY GOLD! PURE GOLD!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Autotelic,
-        {
-            "I laugh because the moment calls for it.",
-            "Humor for humor's sake. I appreciate that.",
-            "A joke shared is a moment of genuine connection.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Autistic,
-        {
-            "I recognize the pattern. Setup, misdirection, punchline. Clever.",
-            "I don't laugh, but I computed the humor. It checks out.",
-            "The logical inconsistency was the funny part. I get it now.",
         }
     },
 
@@ -2625,9 +2393,10 @@ namespace FSBChatter
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        // --- DB-driven path (emote_kiss, emote_flirt) ---
+        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke) ---
         if (category == FSB_ChatterCategory::emote_kiss ||
-            category == FSB_ChatterCategory::emote_flirt)
+            category == FSB_ChatterCategory::emote_flirt ||
+            category == FSB_ChatterCategory::emote_joke)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);

@@ -85,6 +85,7 @@ enum class FSB_ChatterEmotes : uint8
     emote_kiss,
     emote_whistle,
     emote_flirt,
+    emote_joke,
     // ... future emotes
 };
 
