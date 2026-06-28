@@ -37,6 +37,9 @@ void FollowshipDatabaseConnection::DoPrepareStatements()
 
     PrepareStatement(FSB_DEL_BOT_OWNER_BY_ENTRY_PLAYER,
         "DELETE FROM bot_owners WHERE bot_entry = ? AND player_guid = ?", CONNECTION_ASYNC);
+
+    PrepareStatement(FSB_SEL_BOT_TEMPLATES_ALL,
+        "SELECT entry, bot_class, bot_race, companion_spell, chatter_type, gender, pet_source FROM bot_templates", CONNECTION_SYNCH);
 }
 
 FollowshipDatabaseConnection::FollowshipDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags)
