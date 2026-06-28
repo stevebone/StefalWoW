@@ -109,14 +109,14 @@ namespace FSBMailPrompts
             auto pos = aiResponse.find("```json");
             if (pos != std::string::npos)
             {
-                auto start = aiResponse.find_first_of("{\[", pos);
+                auto start = aiResponse.find("{", pos);
                 auto end = aiResponse.rfind("```");
                 if (start != std::string::npos && end != std::string::npos && end > start)
                     aiResponse = aiResponse.substr(start, end - start);
             }
             else
             {
-                auto start = aiResponse.find_first_of("{\[");
+                auto start = aiResponse.find("{");
                 if (start != std::string::npos && start > 0)
                     aiResponse = aiResponse.substr(start);
             }
