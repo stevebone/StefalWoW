@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Common.h"
 #include "GenAI_provider.h"
 
 namespace FSBGenAI

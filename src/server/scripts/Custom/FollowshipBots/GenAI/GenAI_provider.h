@@ -24,6 +24,7 @@
 
 #include <string_view>
 #include <cstdint>
+#include "Common.h"
 
 namespace FSBGenAI
 {
