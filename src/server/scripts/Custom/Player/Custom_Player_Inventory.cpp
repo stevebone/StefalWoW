@@ -32,9 +32,7 @@ public:
     void OnLogin(Player* player, bool firstLogin) override
     {
         if (player && firstLogin)
-        {
-            player->SetPlayerLocalFlag(PLAYER_LOCAL_FLAG_ACCOUNT_SECURED);
-        }
+            player->SetAccountSecured(true);
     }
 };
 
