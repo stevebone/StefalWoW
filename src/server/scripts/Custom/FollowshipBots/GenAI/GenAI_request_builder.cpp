@@ -22,6 +22,7 @@
 
 #include "GenAI_request_builder.h"
 #include "GenAI_provider.h"
+#include "Errors.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
