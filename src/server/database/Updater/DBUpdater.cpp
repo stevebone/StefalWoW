@@ -150,6 +150,32 @@ bool DBUpdater<CharacterDatabaseConnection>::IsEnabled(uint32 const updateMask)
     return (updateMask & DatabaseLoader::DATABASE_CHARACTER) ? true : false;
 }
 
+// Followship Database
+template<>
+std::string DBUpdater<FollowshipDatabaseConnection>::GetConfigEntry()
+{
+    return "Updates.Followship";
+}
+
+template<>
+std::string DBUpdater<FollowshipDatabaseConnection>::GetTableName()
+{
+    return "Followship";
+}
+
+template<>
+std::string DBUpdater<FollowshipDatabaseConnection>::GetBaseFile()
+{
+    return BuiltInConfig::GetSourceDirectory() +
+        "/sql/base/followship_database.sql";
+}
+
+template<>
+bool DBUpdater<FollowshipDatabaseConnection>::IsEnabled(uint32 const updateMask)
+{
+    return (updateMask & DatabaseLoader::DATABASE_FOLLOWSHIP) ? true : false;
+}
+
 // Hotfix Database
 template<>
 std::string DBUpdater<HotfixDatabaseConnection>::GetConfigEntry()
@@ -450,4 +476,5 @@ void DBUpdater<T>::ApplyFile(DatabaseWorkerPool<T>& pool, std::string const& hos
 template class TC_DATABASE_API DBUpdater<LoginDatabaseConnection>;
 template class TC_DATABASE_API DBUpdater<WorldDatabaseConnection>;
 template class TC_DATABASE_API DBUpdater<CharacterDatabaseConnection>;
+template class TC_DATABASE_API DBUpdater<FollowshipDatabaseConnection>;
 template class TC_DATABASE_API DBUpdater<HotfixDatabaseConnection>;

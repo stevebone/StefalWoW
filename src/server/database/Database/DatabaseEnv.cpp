@@ -19,5 +19,6 @@
 
 DatabaseWorkerPool<WorldDatabaseConnection> WorldDatabase;
 DatabaseWorkerPool<CharacterDatabaseConnection> CharacterDatabase;
+DatabaseWorkerPool<FollowshipDatabaseConnection> FollowshipDatabase;
 DatabaseWorkerPool<LoginDatabaseConnection> LoginDatabase;
 DatabaseWorkerPool<HotfixDatabaseConnection> HotfixDatabase;

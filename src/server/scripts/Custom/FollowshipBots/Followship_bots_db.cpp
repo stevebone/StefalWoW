@@ -20,7 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CharacterDatabase.h"
+#include "FollowshipDatabase.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
 
@@ -30,9 +30,8 @@ namespace FSBUtilsDB
 {
     bool LoadAllPersistentBotsFromDB(std::vector<PlayerBotData>& outBots)
     {
-        QueryResult result = CharacterDatabase.Query(
-            "SELECT bot_id, bot_guid, bot_entry, player_guid, hire_expiry_time "
-            "FROM followship_bot_owners");
+        FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_OWNERS_ALL);
+        PreparedQueryResult result = FollowshipDatabase.Query(stmt);
 
         if (!result)
             return false;
@@ -43,7 +42,7 @@ namespace FSBUtilsDB
 
             PlayerBotData data;
             data.botId = fields[0].GetUInt32();
-            data.spawnId = fields[1].GetUInt64(); // rename!
+            data.spawnId = fields[1].GetUInt64();
             data.entry = fields[2].GetUInt32();
             data.owner = fields[3].GetUInt32();
             data.hireExpiry = fields[4].GetUInt64();
@@ -59,11 +58,9 @@ namespace FSBUtilsDB
     {
         outBots.clear();
 
-        QueryResult result = CharacterDatabase.PQuery(
-            "SELECT bot_id, bot_guid, bot_entry, hire_expiry_time "
-            "FROM followship_bot_owners "
-            "WHERE player_guid = {}",
-            playerGuidLow);
+        FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_OWNERS_BY_PLAYER);
+        stmt->setUInt64(0, playerGuidLow);
+        PreparedQueryResult result = FollowshipDatabase.Query(stmt);
 
         if (!result)
             return true; // no bots is valid
@@ -74,7 +71,7 @@ namespace FSBUtilsDB
 
             PlayerBotData data;
             data.botId = fields[0].GetUInt32();
-            data.spawnId = fields[1].GetUInt64(); // rename!
+            data.spawnId = fields[1].GetUInt64();
             data.entry = fields[2].GetUInt32();
             data.hireExpiry = fields[3].GetUInt64();
             data.runtimeGuid = ObjectGuid::Empty;
@@ -89,8 +86,8 @@ namespace FSBUtilsDB
     {
         botOwners.clear();
 
-        QueryResult result = CharacterDatabase.Query(
-            "SELECT bot_guid, player_guid, hire_expiry_time FROM followship_bot_owners");
+        FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_OWNERS_ALL);
+        PreparedQueryResult result = FollowshipDatabase.Query(stmt);
 
         if (!result)
             return true; // no bots is valid
@@ -99,23 +96,23 @@ namespace FSBUtilsDB
         {
             Field* fields = result->Fetch();
 
-            ObjectGuid::LowType spawnId = fields[0].GetUInt64(); // bot_guid
-            ObjectGuid::LowType ownerGuid = fields[1].GetUInt32(); // player_guid
-            uint64 hireExpiry = fields[2].GetUInt64();
+            ObjectGuid::LowType spawnId = fields[1].GetUInt64(); // bot_guid
+            ObjectGuid::LowType ownerGuid = fields[3].GetUInt32(); // player_guid
+            uint64 hireExpiry = fields[4].GetUInt64();
 
             // Skip expired bots
             if (hireExpiry > 0 && hireExpiry <= static_cast<uint64>(time(nullptr)))
             {
                 // Clean up DB entry
-                CharacterDatabase.PExecute(
-                    "DELETE FROM followship_bot_owners WHERE bot_guid = {}", spawnId);
+                FollowshipDatabasePreparedStatement* delStmt = FollowshipDatabase.GetPreparedStatement(FSB_DEL_BOT_OWNER_BY_GUID);
+                delStmt->setUInt64(0, spawnId);
+                FollowshipDatabase.Execute(delStmt);
 
                 TC_LOG_DEBUG("scripts.fsb.manager",
                     "FSB: LoadBotOwners from DB Removing expired bot {} (owner {})", spawnId, ownerGuid);
 
                 continue;
             }
-
 
             botOwners[spawnId] = ownerGuid;
 
@@ -140,24 +137,23 @@ namespace FSBUtilsDB
 
         uint32 entry = bot->GetEntry();
 
-        CharacterDatabase.PExecute(
-            "INSERT INTO followship_bot_owners (bot_guid, bot_entry, player_guid, hire_expiry_time) "
-            "VALUES ({}, {}, {}, {})",
-            spawnId,
-            entry,
-            playerGuidLow,
-            hireExpiry);
+        FollowshipDatabasePreparedStatement* insStmt = FollowshipDatabase.GetPreparedStatement(FSB_INS_BOT_OWNER);
+        insStmt->setUInt64(0, spawnId);
+        insStmt->setUInt32(1, entry);
+        insStmt->setUInt32(2, playerGuidLow);
+        insStmt->setUInt64(3, hireExpiry);
+        FollowshipDatabase.Execute(insStmt);
 
         TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SaveBotToDB Bot: {} was saved to DB for player: {} with expiry time: {}", bot->GetName(), player->GetName(), hireExpiry);
 
-        // 2?? Retry select until we get the bot_id
+        // Retry select until we get the bot_id
         uint32 botId = 0;
         for (int attempts = 0; attempts < 5; ++attempts)
         {
-            QueryResult result = CharacterDatabase.PQuery(
-                "SELECT bot_id FROM followship_bot_owners "
-                "WHERE bot_guid = {} AND player_guid = {}",
-                spawnId, playerGuidLow);
+            FollowshipDatabasePreparedStatement* selStmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_OWNER_ID);
+            selStmt->setUInt64(0, spawnId);
+            selStmt->setUInt32(1, playerGuidLow);
+            PreparedQueryResult result = FollowshipDatabase.Query(selStmt);
 
             if (result)
             {
@@ -192,7 +188,10 @@ namespace FSBUtilsDB
         if (!bot_entry || !player_guid)
             return false;
 
-        CharacterDatabase.PExecute("DELETE FROM followship_bot_owners WHERE bot_entry = {} AND player_guid = {} ", bot_entry, player_guid);
+        FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_DEL_BOT_OWNER_BY_ENTRY_PLAYER);
+        stmt->setUInt32(0, bot_entry);
+        stmt->setUInt32(1, player_guid);
+        FollowshipDatabase.Execute(stmt);
 
         TC_LOG_DEBUG("scripts.fsb.manager", "FSB: DeleteBotByEntry Deleted Bot with bot_entry: {}", bot_entry);
 

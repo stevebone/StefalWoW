@@ -28,6 +28,7 @@ class ResultSet;
 using QueryResult = std::shared_ptr<ResultSet>;
 
 class CharacterDatabaseConnection;
+class FollowshipDatabaseConnection;
 class HotfixDatabaseConnection;
 class LoginDatabaseConnection;
 class WorldDatabaseConnection;
@@ -38,6 +39,7 @@ template<typename T>
 class PreparedStatement;
 
 using CharacterDatabasePreparedStatement = PreparedStatement<CharacterDatabaseConnection>;
+using FollowshipDatabasePreparedStatement = PreparedStatement<FollowshipDatabaseConnection>;
 using HotfixDatabasePreparedStatement = PreparedStatement<HotfixDatabaseConnection>;
 using LoginDatabasePreparedStatement = PreparedStatement<LoginDatabaseConnection>;
 using WorldDatabasePreparedStatement = PreparedStatement<WorldDatabaseConnection>;
@@ -62,6 +64,7 @@ template<typename T>
 using SQLTransaction = std::shared_ptr<Transaction<T>>;
 
 using CharacterDatabaseTransaction = SQLTransaction<CharacterDatabaseConnection>;
+using FollowshipDatabaseTransaction = SQLTransaction<FollowshipDatabaseConnection>;
 using HotfixDatabaseTransaction = SQLTransaction<HotfixDatabaseConnection>;
 using LoginDatabaseTransaction = SQLTransaction<LoginDatabaseConnection>;
 using WorldDatabaseTransaction = SQLTransaction<WorldDatabaseConnection>;
@@ -72,6 +75,7 @@ template<typename T>
 class SQLQueryHolder;
 
 using CharacterDatabaseQueryHolder = SQLQueryHolder<CharacterDatabaseConnection>;
+using FollowshipDatabaseQueryHolder = SQLQueryHolder<FollowshipDatabaseConnection>;
 using HotfixDatabaseQueryHolder = SQLQueryHolder<HotfixDatabaseConnection>;
 using LoginDatabaseQueryHolder = SQLQueryHolder<LoginDatabaseConnection>;
 using WorldDatabaseQueryHolder = SQLQueryHolder<WorldDatabaseConnection>;

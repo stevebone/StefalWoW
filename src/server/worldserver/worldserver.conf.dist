@@ -92,6 +92,7 @@ LogsDir = ""
 #    WorldDatabaseInfo
 #    CharacterDatabaseInfo
 #    HotfixDatabaseInfo
+#    FollowshipDatabaseInfo
 #        Description: Database connection settings for the world server.
 #        Example:     "hostname;port;username;password;database;ssl"
 #                     ".;some_number;username;password;database" - (Use named pipes on Windows
@@ -103,6 +104,7 @@ LogsDir = ""
 #                     "127.0.0.1;3306;trinity;trinity;world"      - (WorldDatabaseInfo)
 #                     "127.0.0.1;3306;trinity;trinity;characters" - (CharacterDatabaseInfo)
 #                     "127.0.0.1;3306;trinity;trinity;hotfixes"   - (HotfixDatabaseInfo)
+#                     "127.0.0.1;3306;trinity;trinity;followship"  - (FollowshipDatabaseInfo)
 #
 #    Don't change hostname unless you are hosting MySQL on a different machine, if you need help
 #    with configuration allowing to connect from different machine than the one running server
@@ -116,12 +118,14 @@ LoginDatabaseInfo     = "127.0.0.1;3306;trinity;trinity;auth"
 WorldDatabaseInfo     = "127.0.0.1;3306;trinity;trinity;world"
 CharacterDatabaseInfo = "127.0.0.1;3306;trinity;trinity;characters"
 HotfixDatabaseInfo    = "127.0.0.1;3306;trinity;trinity;hotfixes"
+FollowshipDatabaseInfo = "127.0.0.1;3306;trinity;trinity;followship"
 
 #
 #    LoginDatabase.WorkerThreads
 #    WorldDatabase.WorkerThreads
 #    CharacterDatabase.WorkerThreads
 #    HotfixDatabase.WorkerThreads
+#    FollowshipDatabase.WorkerThreads
 #        Description: The amount of worker threads spawned to handle asynchronous (delayed) MySQL
 #                     statements. Each worker thread is mirrored with its own connection to the
 #                     MySQL server and their own thread on the MySQL server.
@@ -129,27 +133,32 @@ HotfixDatabaseInfo    = "127.0.0.1;3306;trinity;trinity;hotfixes"
 #                     1 - (WorldDatabase.WorkerThreads)
 #                     1 - (CharacterDatabase.WorkerThreads)
 #                     1 - (HotfixDatabase.WorkerThreads)
+#                     1 - (FollowshipDatabase.WorkerThreads)
 
 LoginDatabase.WorkerThreads     = 1
 WorldDatabase.WorkerThreads     = 1
 CharacterDatabase.WorkerThreads = 1
 HotfixDatabase.WorkerThreads    = 1
+FollowshipDatabase.WorkerThreads = 1
 
 #
 #    LoginDatabase.SynchThreads
 #    WorldDatabase.SynchThreads
 #    CharacterDatabase.SynchThreads
 #    HotfixDatabase.SynchThreads
+#    FollowshipDatabase.SynchThreads
 #        Description: The amount of MySQL connections spawned to handle.
 #        Default:     1 - (LoginDatabase.SynchThreads)
 #                     1 - (WorldDatabase.SynchThreads)
 #                     2 - (CharacterDatabase.SynchThreads)
 #                     1 - (HotfixDatabase.SynchThreads)
+#                     1 - (FollowshipDatabase.SynchThreads)
 
 LoginDatabase.SynchThreads     = 1
 WorldDatabase.SynchThreads     = 1
 CharacterDatabase.SynchThreads = 2
 HotfixDatabase.SynchThreads    = 1
+FollowshipDatabase.SynchThreads = 1
 
 #
 #    MaxPingTime
@@ -1493,16 +1502,17 @@ TOTPMasterSecret =
 #        Description: A mask that describes which databases shall be updated.
 #
 #        Following flags are available
-#           DATABASE_LOGIN     = 1, // Auth database
-#           DATABASE_CHARACTER = 2, // Character database
-#           DATABASE_WORLD     = 4, // World database
-#           DATABASE_HOTFIX    = 8, // Hotfixes database
+#           DATABASE_LOGIN      = 1,  // Auth database
+#           DATABASE_CHARACTER  = 2,  // Character database
+#           DATABASE_WORLD      = 4,  // World database
+#           DATABASE_HOTFIX     = 8,  // Hotfixes database
+#           DATABASE_FOLLOWSHIP = 16, // Followship database
 #
-#        Default:     15 - (All enabled)
+#        Default:     31 - (All enabled)
 #                     4  - (Enable world only)
 #                     0  - (All Disabled)
 
-Updates.EnableDatabases = 15
+Updates.EnableDatabases = 31
 
 #
 #    Updates.AutoSetup
