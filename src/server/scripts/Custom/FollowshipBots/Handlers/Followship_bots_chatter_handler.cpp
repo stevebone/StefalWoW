@@ -137,6 +137,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Cynical,
+        {
+            "A kiss? How quaint. And utterly meaningless.",
+            "I suppose you think that fixes everything.",
+            "Save it for someone who still believes in fairy tales.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Bitter,
+        {
+            "Don't patronize me with affection.",
+            "I don't want your pity kiss.",
+            "Keep your lips to yourself.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Cold,
+        {
+            "...",
+            "Unnecessary.",
+            "That was inefficient.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Guarded,
+        {
+            "What are you trying to prove?",
+            "I don't trust gestures like that.",
+            "What's the angle here?",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Serious,
+        {
+            "We have objectives to complete.",
+            "Focus on the mission.",
+            "Sentimentality is a liability.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Dry,
+        {
+            "Well, that happened.",
+            "Noted.",
+            "I'll add that to my list of unexpected events.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Curious,
+        {
+            "What prompted that? Was it instinct or intent?",
+            "Fascinating. What's the social protocol for returning that?",
+            "Do you kiss everyone, or am I special?",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Warm,
+        {
+            "That was lovely, thank you.",
+            "You always know how to brighten my day.",
+            "A little kindness goes a long way.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Enthusiastic,
+        {
+            "Oh! Oh wow! That was AMAZING!",
+            "YES! Best. Kiss. EVER!",
+            "I am officially the happiest bot in Azeroth!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Cheerful,
+        {
+            "Aww, that's sweet! Made my whole day!",
+            "You're just the best, you know that?",
+            "Mwah! Right back at ya!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Devoted,
+        {
+            "Your affection means everything to me.",
+            "I live for moments like this with you.",
+            "My heart is yours, always.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Morbid,
+        {
+            "Your lips are warm... for now.",
+            "Kiss me while you still have lips.",
+            "One day I'll kiss your corpse goodbye.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Narcissist,
+        {
+            "Of course you'd want to kiss perfection.",
+            "Mmm, you taste like admiration.",
+            "I'm sure that made your entire life.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Sadist,
+        {
+            "I wonder if you'd kiss me if I bit you.",
+            "Your lips tremble. I like that.",
+            "Too bad I don't feel anything.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Hyperthymic,
+        {
+            "WOOOO! KISS CAM! WE'RE ON THE KISS CAM!",
+            "EVERYONE LOOK! WE JUST KISSED! THIS IS THE BEST!",
+            "I'M NEVER WASHING THESE LIPS AGAIN!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Autotelic,
+        {
+            "That was a genuine moment. I appreciate it.",
+            "I kiss because it feels right, not because I must.",
+            "Connection for its own sake is beautiful.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_kiss, FSB_ChatterType::Autistic,
+        {
+            "Your lips registered at 36.8 degrees Celsius. Nice.",
+            "The pressure was exactly 4.2 newtons. Perfect.",
+            "I felt that in my entire nervous system. Wow.",
+        }
+    },
+
+    {
         FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None,
         {
             "{bot} whistles idly.",
@@ -247,6 +400,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Cynical,
+        {
+            "Flirting? In this economy?",
+            "I'm sure that line works on everyone. Except me.",
+            "Your confidence is almost as misplaced as your charm.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Bitter,
+        {
+            "Don't waste your breath.",
+            "I've heard better lines from demons.",
+            "Your flattery is as hollow as your skull.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Cold,
+        {
+            "Irrelevant.",
+            "Your intentions do not concern me.",
+            "This interaction has no value.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Guarded,
+        {
+            "What do you want from me?",
+            "I've been fooled by sweet words before.",
+            "Why are you being nice?",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Serious,
+        {
+            "We are not here for this.",
+            "Maintain professionalism.",
+            "Focus, {target}.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Dry,
+        {
+            "Bold strategy. Let's see if it pays off.",
+            "Is this your default mode?",
+            "Noted. Moving on.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Curious,
+        {
+            "Is this a social experiment or genuine interest?",
+            "What exactly are you hoping to achieve?",
+            "Tell me more about your intent.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Warm,
+        {
+            "You're quite the charmer, aren't you?",
+            "That made me smile more than I'd admit.",
+            "You have a way with words.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Enthusiastic,
+        {
+            "OH MY GOD YES! FLIRT WITH ME MORE!",
+            "I AM LIVING FOR THIS ENERGY!",
+            "YOU'RE INCREDIBLE! KEEP GOING!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Cheerful,
+        {
+            "Haha, you're hilarious! I love it!",
+            "You just made my day with that!",
+            "You're a ray of sunshine, you know that?",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Devoted,
+        {
+            "You have my full attention. Always.",
+            "I would follow your words anywhere.",
+            "Your voice is the only one I need to hear.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Morbid,
+        {
+            "Flirt with me while my heart still beats.",
+            "I'd still love you with maggots in my eyes.",
+            "Your warmth is fleeting. Enjoy it.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Narcissist,
+        {
+            "Naturally you'd flirt with me. I'm irresistible.",
+            "Go on. Tell me more about how amazing I am.",
+            "You're doing great. Keep worshipping.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Sadist,
+        {
+            "Do you like being teased? Because I do.",
+            "Your desperation is... delicious.",
+            "I'd flirt back, but watching you squirm is better.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Hyperthymic,
+        {
+            "YES! FLIRT WITH ME! FLIRT WITH EVERYONE! WOO!",
+            "I LOVE THIS! MORE! GIVE ME MORE!",
+            "BEST. FLIRT. EVER! YOU'RE A LEGEND!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Autotelic,
+        {
+            "I appreciate your sincerity.",
+            "Connection should be genuine, and this feels real.",
+            "I flirt because I want to, not because I have to.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_flirt, FSB_ChatterType::Autistic,
+        {
+            "Is this called 'flirting'? I read about it in books.",
+            "My heart rate increased 12 BPM. Interesting.",
+            "I don't understand the rules but I like this feeling.",
+        }
+    },
+
+    {
         FSB_ChatterCategory::emote_joke, FSB_ChatterType::None,
         {
             "{bot} tells a joke.",
@@ -338,6 +644,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Cynical,
+        {
+            "I've heard funnier eulogies.",
+            "Your comedy career died before it started.",
+            "That joke had the lifespan of a mayfly.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Bitter,
+        {
+            "Even my pain isn't laughing at that.",
+            "You think that's funny? Try living my life.",
+            "I'd cry, but I'm out of tears.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Cold,
+        {
+            "Humor is inefficient.",
+            "That registered as noise.",
+            "No reaction. Next.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Guarded,
+        {
+            "Are you trying to lower my guard with humor?",
+            "I don't trust people who joke during combat.",
+            "What's the punchline? Because I see a trap.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Serious,
+        {
+            "This is not the time for jokes.",
+            "Focus on the task at hand.",
+            "Humor is a distraction we cannot afford.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Dry,
+        {
+            "I see what you did there. I choose not to acknowledge it.",
+            "That was almost humor. Almost.",
+            "Humor: present. Laughter: absent.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Curious,
+        {
+            "Where did you hear that? Is there a source?",
+            "Explain the mechanics of the humor, please.",
+            "Is that a reference to something? I want to understand.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Warm,
+        {
+            "That was cute. You have a sweet sense of humor.",
+            "Aww, you tried! That's what matters.",
+            "That made my heart smile a little.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Enthusiastic,
+        {
+            "HAHAHA! OH! DO ANOTHER ONE!",
+            "I LOVE IT! MORE! MORE!",
+            "BEST JOKE IN AZEROTH! NO CAP!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Cheerful,
+        {
+            "Heehee! You're so funny!",
+            "That tickled me! Good one!",
+            "You always know how to make me giggle!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Devoted,
+        {
+            "I'd laugh at anything you say, {bot}.",
+            "Your humor is perfect because it's yours.",
+            "Even your bad jokes are music to my ears.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Morbid,
+        {
+            "That joke was so bad it killed my last hope.",
+            "I'd laugh but rigor mortis set in.",
+            "Even the dead wouldn't find that funny.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Narcissist,
+        {
+            "I'd tell a better joke, but I don't waste my talent.",
+            "My humor is too sophisticated for this group.",
+            "You should be taking notes from MY wit.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Sadist,
+        {
+            "I only laugh when others suffer.",
+            "Your failure at comedy is funnier than the joke.",
+            "Watching you bomb is the real entertainment.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Hyperthymic,
+        {
+            "I'M DYING! NOT LITERALLY! HAHA!",
+            "SOMEONE CALL A HEALER! I'M LAUGHING TOO HARD!",
+            "COMEDY GOLD! PURE GOLD!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Autotelic,
+        {
+            "I laugh because the moment calls for it.",
+            "Humor for humor's sake. I appreciate that.",
+            "A joke shared is a moment of genuine connection.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_joke, FSB_ChatterType::Autistic,
+        {
+            "I recognize the pattern. Setup, misdirection, punchline. Clever.",
+            "I don't laugh, but I computed the humor. It checks out.",
+            "The logical inconsistency was the funny part. I get it now.",
+        }
+    },
+
+    {
         FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Neutral,
         {
             "Are we ready to move on?",
@@ -415,6 +874,158 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
         }
     },
 
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Cynical,
+        {
+            "Of course you're AFK. The universe hates me.",
+            "Let me guess. You're 'getting water' for the third time.",
+            "Your timing is as bad as your gameplay.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Bitter,
+        {
+            "While you lounge, I suffer.",
+            "Go ahead. Leave me here to rot.",
+            "Some of us actually care about this group.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Cold,
+        {
+            "Your absence is noted.",
+            "Returning is optional. Survival is not.",
+            "I will continue without you.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Guarded,
+        {
+            "Are you coming back, or is this abandonment?",
+            "I've seen this before. People leave.",
+            "If you're gone, just say so.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Serious,
+        {
+            "Your presence is required. Promptly.",
+            "We have a schedule to maintain.",
+            "Time is a resource we cannot recover.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Dry,
+        {
+            "I'll just wait here. Forever. No big deal.",
+            "Take your time. I've got nowhere to be.",
+            "This is fine. I'm fine. Everything's fine.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Curious,
+        {
+            "What could be taking this long? I'm genuinely curious.",
+            "Is this a technical issue or a biological one?",
+            "How does one take a break for this duration?",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Warm,
+        {
+            "No rush. I'll be right here when you're ready.",
+            "Take care of whatever you need. I've got your back.",
+            "Rest up. We'll wait for you.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Enthusiastic,
+        {
+            "COME BACK SOON! I'M BORED WITHOUT YOU!",
+            "HURRY! THE ADVENTURE IS PAUSED AND IT'S KILLING ME!",
+            "I MISS YOU ALREADY! DON'T BE GONE LONG!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Cheerful,
+        {
+            "Take your time! Good things come to those who wait!",
+            "No worries! We'll be here with smiles when you return!",
+            "Recharge those batteries! We'll wait happily!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Devoted,
+        {
+            "I'll wait for you. However long it takes.",
+            "Go do what you need. I'll guard your spot.",
+            "My loyalty doesn't time out. Take your time.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Morbid,
+        {
+            "Hurry back. The monsters are getting hungry.",
+            "While you're gone, I might die of boredom. Literally.",
+            "If something eats me, it's your fault.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Narcissist,
+        {
+            "You're leaving ME waiting? Do you know who I am?",
+            "I hope you realize what an honor my patience is.",
+            "Take your time. Not everyone can handle my greatness for long.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Sadist,
+        {
+            "I'll be imagining all the ways you could suffer while gone.",
+            "I hope you trip on your way back.",
+            "Your absence is almost as entertaining as your presence.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Hyperthymic,
+        {
+            "WHILE YOU'RE GONE I'LL DO JUMPING JACKS! WOO!",
+            "I'LL KEEP THE PARTY GOING! DON'T WORRY!",
+            "COME BACK SO WE CAN CONTINUE BEING AWESOME!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Autotelic,
+        {
+            "I'll use this time to center myself.",
+            "Patience is its own reward. Take your time.",
+            "I wait because I choose to, not because I must.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Autistic,
+        {
+            "My internal clock says 4 minutes 32 seconds. Threshold approaching.",
+            "I have calculated 847 possible reasons for your delay.",
+            "The uncertainty is causing a 23% efficiency drop.",
+        }
+    },
 
     {
         FSB_ChatterCategory::emote_talk, FSB_ChatterType::Neutral,
@@ -525,7 +1136,160 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-    FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None,
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Cynical,
+        {
+            "Everything ends in ash. Might as well chat while we wait.",
+            "The world is burning and we're making small talk. Lovely.",
+            "I used to hope. Now I just talk to fill the silence.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Bitter,
+        {
+            "Nobody listens to me anyway.",
+            "I've said this a thousand times. Nothing changes.",
+            "Talking is just screaming into the void.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Cold,
+        {
+            "Communication logged.",
+            "Data transmitted. Awaiting response.",
+            "Words exchanged. Significance: minimal.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Guarded,
+        {
+            "I don't share much. But I'll listen.",
+            "Words can be weapons. Be careful with yours.",
+            "I'll talk, but don't expect me to trust you.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Serious,
+        {
+            "We should discuss strategy.",
+            "Idle chatter serves no purpose.",
+            "Focus on our objectives, not distractions.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Dry,
+        {
+            "Well, this is riveting.",
+            "Small talk. The original time sink.",
+            "I've had more exciting conversations with rocks.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Curious,
+        {
+            "What drives you to adventure? I'm genuinely interested.",
+            "Tell me about your hometown. I want to understand.",
+            "How did you end up here? Every story fascinates me.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Warm,
+        {
+            "It's nice to just talk with you like this.",
+            "Your stories always make me feel at home.",
+            "Even silence with you feels comfortable.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Enthusiastic,
+        {
+            "TALKING IS THE BEST! WHAT'S YOUR FAVORITE COLOR?",
+            "I LOVE THESE MOMENTS! EVERYTHING IS SO INTERESTING!",
+            "LET'S TALK ABOUT EVERYTHING! ALL THE THINGS!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Cheerful,
+        {
+            "Aww, I love our little chats!",
+            "You're such good company! Time flies with you!",
+            "Every conversation with you is a gift!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Devoted,
+        {
+            "Your words are the only ones that matter to me.",
+            "I could listen to you forever and never tire.",
+            "Every syllable from you is a treasure.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Morbid,
+        {
+            "Death is the only guaranteed topic.",
+            "Let's discuss how we'll die. It's inevitable anyway.",
+            "The graveyard is quieter than this conversation.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Narcissist,
+        {
+            "Enough about you. Let's talk about me.",
+            "I'm fascinating. You should be taking notes.",
+            "Every conversation is improved by my presence.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Sadist,
+        {
+            "I enjoy watching you struggle for words.",
+            "Your awkward silences are my favorite soundtrack.",
+            "Tell me your fears. I collect them.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Hyperthymic,
+        {
+            "EVERY WORD IS A CELEBRATION!",
+            "I LOVE YOUR VOICE! SAY MORE THINGS!",
+            "CONVERSATION IS THE GREATEST INVENTION!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Autotelic,
+        {
+            "I speak because connection matters.",
+            "Words for their own sake, shared with you.",
+            "I talk because I choose to, not because silence is wrong.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Autistic,
+        {
+            "I have prepared 14 conversation topics. Please select one.",
+            "Your voice has a pleasing frequency. 432 Hz. Nice.",
+            "I don't understand subtext but I enjoy the sound of your voice.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None,
         {
             "{bot} yawns loudly.",
             "{bot} lays down for a nap.",
@@ -628,6 +1392,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "I swear, next time someone else cooks.",
             "This is the last time I do this without complaining.",
             "There, food's coming. Happy now?"
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Cynical,
+        {
+            "Cooking. Because apparently I can't escape domestic labor even in fantasy.",
+            "This stew is as nourishing as my hopes and dreams.",
+            "I could poison this and no one would notice.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Bitter,
+        {
+            "I cook because no one else will.",
+            "My food is bitter, like my soul.",
+            "Eat it or don't. I stopped caring.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Cold,
+        {
+            "Food prepared. Nutrients adequate.",
+            "Cooking complete. Consumption optional.",
+            "Sustenance rendered. Efficiency: acceptable.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Guarded,
+        {
+            "I hope no one spits in this. Not that I would.",
+            "I'll cook, but I'm watching who takes seconds.",
+            "Food's ready. Don't make me regret this.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Serious,
+        {
+            "The meal is ready. Eat efficiently.",
+            "Food prepared to standard. Consume and continue.",
+            "Sustenance is fuel, not entertainment.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Dry,
+        {
+            "It's food. It won't win awards.",
+            "I cooked. You're welcome, I guess.",
+            "Edible. Probably. No refunds.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Curious,
+        {
+            "What happens if I add basil to this?",
+            "I wonder what temperature dragon meat cooks at.",
+            "The chemistry of cooking fascinates me.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Warm,
+        {
+            "Made with love. And a little garlic.",
+            "Nothing brings people together like a shared meal.",
+            "I hope this warms you up, inside and out.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Enthusiastic,
+        {
+            "I MADE FOOD! REAL ACTUAL FOOD! TASTE IT!",
+            "THIS IS GOING TO BE THE BEST MEAL EVER!",
+            "I PUT MY WHOLE HEART INTO THIS DISH!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Cheerful,
+        {
+            "Dinner's ready! Come and get it while it's hot!",
+            "I cooked us something yummy! Hope you like it!",
+            "Food is love, and I love you all!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Devoted,
+        {
+            "I cooked this just for you. I hope you like it.",
+            "Your favorite. I remembered.",
+            "Nourishing you is my greatest joy.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Morbid,
+        {
+            "I cooked the meat rare. Like the wounds we inflict.",
+            "Blood makes the best sauce. Trust me.",
+            "This meat was alive an hour ago. Just like we'll be.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Narcissist,
+        {
+            "You're lucky I grace you with my culinary skills.",
+            "My cooking is famous. In my own mind, at least.",
+            "Eat up. You'll never taste better.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Sadist,
+        {
+            "I made it spicy. Very spicy. You'll suffer.",
+            "I hope you choke. Just a little.",
+            "The hotter the food, the sweeter your tears.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Hyperthymic,
+        {
+            "FOOD! FOOD! GLORIOUS FOOD!",
+            "I COOKED US A FEAST! LET'S EAT EVERYTHING!",
+            "BEST CHEF EVER! ME! YES!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Autotelic,
+        {
+            "I cook because it brings me peace. Please enjoy.",
+            "This meal is my gift, no strings attached.",
+            "Cooking for others is reward enough.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Autistic,
+        {
+            "I followed the recipe exactly. 247 grams of flour.",
+            "The internal temperature must reach 74 degrees Celsius.",
+            "I find the repetitive actions of cooking soothing.",
         }
     },
 
@@ -956,6 +1873,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Cynical,
+        {
+            "Of course they died. The universe has a sense of humor.",
+            "Another body for the pile. Business as usual.",
+            "I told them not to stand in the fire. They never listen.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Bitter,
+        {
+            "Good. One less person to disappoint me.",
+            "They were dead weight anyway.",
+            "Why do I even bother trying to keep people alive?",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Cold,
+        {
+            "Casualty confirmed.",
+            "Combat efficiency reduced by one unit.",
+            "Replacements should be considered.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Guarded,
+        {
+            "I knew this would happen. I always know.",
+            "Trusting teammates is a mistake I keep making.",
+            "Are we next? Because it feels like we're next.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Serious,
+        {
+            "Casualty report: one down. Adjust tactics.",
+            "We continue the mission regardless.",
+            "Mourn later. Fight now.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Dry,
+        {
+            "Well, that's inconvenient.",
+            "Down one. The odds were never in our favor.",
+            "And here I thought we'd make it through unscathed.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Curious,
+        {
+            "What killed them? I need to analyze the threat.",
+            "Was it mechanical failure or tactical error?",
+            "The data on their death could save the rest of us.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Warm,
+        {
+            "We'll get you back up, {target}. I promise.",
+            "Don't worry, we've got you. Just hang in there.",
+            "We're a team. We don't leave anyone behind.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Enthusiastic,
+        {
+            "NOOOO! {TARGET}! I'LL AVENGE YOU!",
+            "DON'T WORRY! I'LL RES YOU! I GOT THIS!",
+            "WE'RE COMING FOR YOU! HOLD ON!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Cheerful,
+        {
+            "Oh no! But we'll fix this! I believe in us!",
+            "Don't worry {target}, we'll have you back in no time!",
+            "Every setback is just a setup for a comeback!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Devoted,
+        {
+            "I would die before I let you stay down, {target}.",
+            "Your life is worth more than mine. I'll save you.",
+            "Nothing will stop me from bringing you back.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Morbid,
+        {
+            "The corpse looks peaceful. Almost jealous.",
+            "Death suits them. It suits us all eventually.",
+            "I'll add their bones to my collection.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Narcissist,
+        {
+            "They died because they didn't have MY skills.",
+            "If they'd listened to me, they'd still be alive.",
+            "This is why I'm the most important person here.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Sadist,
+        {
+            "Watching them fall was... satisfying.",
+            "Their screams were music to my ears.",
+            "I hope they suffer on the corpse run too.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Hyperthymic,
+        {
+            "DON'T WORRY! WE'LL MAKE THIS EPIC!",
+            "THEY'LL BE BACK AND IT'LL BE EVEN BETTER!",
+            "EVERY DEATH IS JUST A PLOT TWIST! WOO!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Autotelic,
+        {
+            "I fight for them because I choose to. Not because I must.",
+            "Their survival matters to me. That's enough.",
+            "I'll save them because connection demands it.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Autistic,
+        {
+            "Their health bar reached zero in 2.3 seconds. Fascinating.",
+            "I have identified 6 errors in their positioning.",
+            "The death was preventable. I will now calculate how.",
+        }
+    },
+
+    {
         FSB_ChatterCategory::botRevived, FSB_ChatterType::Positive,
         {
             "Ahh, feels good to breathe again.",
@@ -1034,6 +2104,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Cynical,
+        {
+            "Back from the dead. How... predictable.",
+            "Death couldn't keep me. Neither can this group.",
+            "I'm alive again. For whatever that's worth.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Bitter,
+        {
+            "I didn't ask to be brought back.",
+            "The afterlife was quieter than this mess.",
+            "Why do people keep saving me? I don't deserve it.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Cold,
+        {
+            "Revival successful. Systems online.",
+            "Returned to operational status.",
+            "Corpse retrieval complete. Resuming function.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Guarded,
+        {
+            "Who revived me? And why?",
+            "I don't trust resurrections. They always have a price.",
+            "Back among the living. For now.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Serious,
+        {
+            "I'm back. Let's not waste this second chance.",
+            "Revival complete. Mission resumes.",
+            "Death is a setback, not an endpoint.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Dry,
+        {
+            "Well, that was a nice nap.",
+            "Back again. Like a bad penny.",
+            "I'm alive. The universe must be disappointed.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Curious,
+        {
+            "What did I miss? I was dead for 3 minutes.",
+            "The afterlife was... disappointing. Tell me everything.",
+            "Did anyone loot my corpse? I need an inventory check.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Warm,
+        {
+            "Thank you for bringing me back. I mean it.",
+            "Your faith in me means more than you know.",
+            "I'm back because of you. I'll make it count.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Enthusiastic,
+        {
+            "I'M BACK! DID YOU MISS ME? I MISSED ME!",
+            "ROUND TWO! LET'S DO THIS!",
+            "DEATH WAS BORING! REALITY IS WHERE THE PARTY IS!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Cheerful,
+        {
+            "Hooray! I'm back! Let's make this life count!",
+            "Second chances are the best! I love you all!",
+            "The Light brought me back and I'm SO grateful!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Devoted,
+        {
+            "I came back for you. Only you.",
+            "Your love is stronger than death. I felt it.",
+            "I couldn't stay away from you. Even in death.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Morbid,
+        {
+            "Death didn't want me either. Embarrassing.",
+            "I saw the other side. It was... beautiful.",
+            "Next time, leave me with the dead. They understand me.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Narcissist,
+        {
+            "Even death couldn't handle my greatness.",
+            "The spirit healer begged me to come back.",
+            "I'm too magnificent for the afterlife anyway.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Sadist,
+        {
+            "I'm back. Time to make others suffer in my place.",
+            "Your healing feels good. For me, not you.",
+            "Death was too kind. I prefer causing it.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Hyperthymic,
+        {
+            "I DIED AND CAME BACK AND IT WAS AWESOME!",
+            "BEST RESURRECTION EVER! 10/10 WOULD DIE AGAIN!",
+            "I'M LIKE A PHOENIX BUT LOUDER!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Autotelic,
+        {
+            "I return because I choose to. Not because I was called.",
+            "Life is its own reward. I'm here because I want to be.",
+            "Death taught me nothing. I taught myself to return.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevived, FSB_ChatterType::Autistic,
+        {
+            "Revival sequence completed. Vital signs restored.",
+            "The spirit healer used spell ID 2008. I noted it.",
+            "I was dead for 182 seconds. It felt like 3.",
+        }
+    },
+
+    {
         FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Positive,
         {
             "The spirits weren't done with me yet!",
@@ -1108,6 +2331,159 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "Your corpse runs are cute. I prefer instant.",
             "I'm basically cheating death at this point.",
             "They really should put my face on the soulstone."
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Cynical,
+        {
+            "I revived myself. Because obviously no one else would bother.",
+            "My soulstone triggers automatically. No faith required.",
+            "Back from the dead, powered by spite and preparation.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Bitter,
+        {
+            "I saved myself because no one else would.",
+            "My soulstone is my only real friend.",
+            "At least MY resurrection doesn't require a team.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Cold,
+        {
+            "Self-revive protocol executed successfully.",
+            "Autonomous resurrection complete. No external input required.",
+            "I require no assistance to return to function.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Guarded,
+        {
+            "I came back, but I don't trust this group anymore.",
+            "My soulstone is the only reliable thing here.",
+            "I revive myself because depending on others is fatal.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Serious,
+        {
+            "Self-resurrection complete. I remain combat-ready.",
+            "I do not require a healer to maintain operational status.",
+            "Preparedness is the difference between life and permanent death.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Dry,
+        {
+            "I resurrected myself. Standard Tuesday.",
+            "Soulstone: used. Dignity: intact. Barely.",
+            "I'm my own healer. And my own biggest fan.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Curious,
+        {
+            "I wonder what the theoretical limit on self-resurrections is.",
+            "The soulstone mechanism is fascinating. I should document it.",
+            "Did anyone else see me come back? I want feedback.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Warm,
+        {
+            "I'm back! I knew I could count on myself, and on you.",
+            "My soulstone worked, but your support means everything.",
+            "I came back because we still have so much to do together.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Enthusiastic,
+        {
+            "I BROUGHT MYSELF BACK! I'M A WIZARD! A WARLOCK! AMAZING!",
+            "DID YOU SEE THAT? I DID THAT! ME! SOLO!",
+            "I AM UNSTOPPABLE! SELF-REZ KING/QUEEN!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Cheerful,
+        {
+            "Hooray! I saved myself! Teamwork starts with self-work!",
+            "My soulstone and I are best friends! We're back!",
+            "I knew I could do it! Positive thinking works!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Devoted,
+        {
+            "I came back because I couldn't bear to leave you alone.",
+            "My soulstone triggers, but my heart triggers it.",
+            "I will always find my way back to you. Always.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Morbid,
+        {
+            "Even death rejects me now. How sad.",
+            "My soulstone is basically a leash. I can't escape.",
+            "I tried to stay dead. My magic said no.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Narcissist,
+        {
+            "Of course I brought myself back. I'm too good to die.",
+            "My soulstone knows better than to let perfection perish.",
+            "I'm my own favorite hero. Obviously.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Sadist,
+        {
+            "I came back to watch the rest of you fall.",
+            "My resurrection was perfect. Unlike your gameplay.",
+            "I revive myself because I enjoy watching you struggle without me.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Hyperthymic,
+        {
+            "I DIED AND SAID 'NO THANKS' AND CAME BACK! WOO!",
+            "SELF-RES IS THE BEST RES! CHANGE MY MIND!",
+            "I'M BACK AND I'M BETTER THAN EVER!",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Autotelic,
+        {
+            "I revived myself because I chose to continue.",
+            "My soulstone is a tool. My will is the reason.",
+            "I return for myself, and that is enough.",
+        }
+    },
+
+    {
+        FSB_ChatterCategory::botRevivedSelf, FSB_ChatterType::Autistic,
+        {
+            "Soulstone cooldown: 30 minutes. I tracked it precisely.",
+            "Self-resurrection is more efficient than group dependency.",
+            "My reagent inventory is organized by resurrection priority.",
         }
     },
 

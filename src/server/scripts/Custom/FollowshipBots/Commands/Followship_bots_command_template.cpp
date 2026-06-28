@@ -22,6 +22,7 @@
 
 #include "Chat.h"
 #include "ChatCommand.h"
+#include "DatabaseEnv.h"
 #include "Log.h"
 #include "WorldSession.h"
 
@@ -106,7 +107,7 @@ public:
             return false;
         }
 
-        FSB_ChatterType chatterType = static_cast<FSB_ChatterType>(urand(1, 3));
+        FSB_ChatterType chatterType = static_cast<FSB_ChatterType>(urand(1, 20));
 
         FSBEntryRaceClassMap data;
         data.entry = entry;

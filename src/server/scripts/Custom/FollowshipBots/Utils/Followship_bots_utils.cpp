@@ -102,10 +102,28 @@ namespace FSBUtils
     {
         switch (type)
         {
-            case FSB_ChatterType::Neutral:  return "neutral and balanced";
-            case FSB_ChatterType::Positive: return "optimistic and friendly";
-            case FSB_ChatterType::Negative: return "cynical and sarcastic";
-            default:                        return "mysterious";
+            case FSB_ChatterType::None:         return "no personality";
+            case FSB_ChatterType::Neutral:      return "neutral and balanced";
+            case FSB_ChatterType::Positive:     return "optimistic and friendly";
+            case FSB_ChatterType::Negative:     return "cynical and sarcastic";
+            case FSB_ChatterType::Cynical:      return "pessimistic, sarcastic, and world-weary";
+            case FSB_ChatterType::Bitter:       return "resentful, grumpy, and hostile";
+            case FSB_ChatterType::Cold:         return "detached, aloof, and emotionless";
+            case FSB_ChatterType::Guarded:      return "distrustful, cautious, and defensive";
+            case FSB_ChatterType::Serious:      return "stern, no-nonsense, and focused";
+            case FSB_ChatterType::Dry:          return "deadpan, understated humor";
+            case FSB_ChatterType::Curious:      return "inquisitive, asks questions, and open";
+            case FSB_ChatterType::Warm:         return "friendly, approachable, and kind";
+            case FSB_ChatterType::Enthusiastic:  return "excited, energetic, and optimistic";
+            case FSB_ChatterType::Cheerful:     return "always upbeat, tries to lift spirits";
+            case FSB_ChatterType::Devoted:      return "loyal, deeply caring, and protective";
+            case FSB_ChatterType::Morbid:       return "survivalist, thrill-seeking, loves gore";
+            case FSB_ChatterType::Narcissist:   return "self-centered, in love with themselves, oblivious";
+            case FSB_ChatterType::Sadist:       return "cruel, humiliating, enjoys suffering";
+            case FSB_ChatterType::Hyperthymic:   return "overly optimistic, high energy, highly extroverted";
+            case FSB_ChatterType::Autotelic:    return "internally motivated, selfless, and autonomous";
+            case FSB_ChatterType::Autistic:     return "over-analyzes, intense empathy, extreme emotional responses";
+            default:                            return "mysterious";
         }
     }
 

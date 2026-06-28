@@ -31,6 +31,23 @@ enum class FSB_ChatterType : uint8
     Neutral,
     Positive,
     Negative,
+    Cynical,
+    Bitter,
+    Cold,
+    Guarded,
+    Serious,
+    Dry,
+    Curious,
+    Warm,
+    Enthusiastic,
+    Cheerful,
+    Devoted,
+    Morbid,
+    Narcissist,
+    Sadist,
+    Hyperthymic,
+    Autotelic,
+    Autistic,
 };
 
 enum class FSB_ReplyType : uint8
