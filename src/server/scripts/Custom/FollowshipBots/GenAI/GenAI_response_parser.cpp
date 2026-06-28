@@ -23,6 +23,7 @@
 #include "GenAI_response_parser.h"
 #include "GenAI_provider.h"
 #include "Log.h"
+#include "Errors.h"
 
 #include <rapidjson/document.h>
 
