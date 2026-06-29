@@ -347,7 +347,7 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Diffic
 (48417, 0, 0, 0, '', 0, 0, 100, 0, 0, 0, 3400, 4700, 0, '', 11, 90938, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Bloodbolt'),
 (48417, 0, 1, 2, '', 2, 0, 100, 1, 0, 15, 1000, 1000, 0, '', 25, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Flee at 15% HP'),
 (48417, 0, 2, 0, '', 61, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Say Text at 15% HP'),
-(48417, 0, 3, 0, '', 0, 0, 100, 0, 5000, 5000, 35000, 35000, 0, '', 11, 90932, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Ragezone'),
+(48417, 0, 3, 0, '', 0, 0, 100, 0, 5000, 5000, 35000, 35000, 0, '', 11, 90932, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Ragezone'),
 (48417, 0, 4, 0, '', 0, 0, 100, 0, 1000, 2000, 12000, 14000, 0, '', 11, 90946, 0, 0, 0, 0, 0, 0, '', 26, 20, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Blood Wizzard - Cast Bloodwash on Friendlies'),
 (48502, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 90928, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Enforcer - Cast Charge on Aggro'),
 (48502, 0, 1, 0, '', 0, 0, 100, 0, 5000, 5000, 17000, 19000, 0, '', 11, 90929, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Defias Enforcer - Cast Recklessness'),
@@ -525,6 +525,9 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 UPDATE `creature_template` SET `VehicleId` = '1367' WHERE (`entry` = '48976');
 UPDATE `creature_template` SET `VehicleId` = '1368' WHERE (`entry` = '49041');
 UPDATE `creature_template` SET `VehicleId` = '1369' WHERE (`entry` = '49042');
+
+-- Ripsnarl Nightmare
+UPDATE `creature_template` SET `VehicleId` = 1403 WHERE `entry` = 49539;
 
 DELETE FROM `creature` WHERE `id` = 48974 AND `map` = 36;
 
@@ -755,7 +758,13 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Pro
  (49671, 9, 0, 'You have entered the mechanical nightmare!', 41, 100, 0, 0, 49709, 'Vanessa VanCleef - mechanical Nightmare Warning'),
  (49671, 10, 0, 'Can you imagine the life of a machine?', 12, 100, 1, 24606, 49725, 'Vanessa VanCleef - Nightmare 3'),
  (49671, 11, 0, 'A simple spark can mean the difference between life...and death.', 12, 100, 1, 24607, 49726, 'Vanessa VanCleef - Nightmare 3'),
- (49671, 12, 0, 'You have entered Ripsnarl''s nightmare!', 41, 100, 0, 0, 49710, 'Vanessa VanCleef - Ripsnarl Nightmare Warning'),
+ (49671, 12, 0, 'Ripsnarl wasn''t always a bloodthirsty savage.  Once, he even had a family.', 12, 100, 1, 24608, 49742, 'Vanessa VanCleef - Nightmare 4'),
+ (49671, 13, 0, 'He was called James Harrington.  A tragedy in three parts.', 12, 100, 1, 24609, 49745, 'Vanessa VanCleef - Nightmare 4'),
+ (49671, 14, 0, 'You have entered Ripsnarl''s nightmare!', 41, 100, 0, 0, 49710, 'Vanessa VanCleef - Ripsnarl Nightmare Warning'),
+ (49671, 15, 0, 'Save Emme Harrington!', 41, 100, 0, 0, 49711, 'Vanessa VanCleef - Ripsnarl Nightmare Harrington 1'),
+ (49671, 16, 0, 'Save Erik Harrington!', 41, 100, 0, 0, 49712, 'Vanessa VanCleef - Ripsnarl Nightmare Harrington 2'),
+ (49671, 17, 0, 'Save Calissa Harrington!', 41, 100, 0, 0, 49713, 'Vanessa VanCleef - Ripsnarl Nightmare Harrington 3'),
+ (49671, 18, 0, 'The Nightmare Elixir wears off!', 41, 100, 0, 0, 49714, 'Vanessa VanCleef - Nightmare Elixir Off'),
  
  -- Vanessa Boss
 (49541, 0, 0, 'I will not share my father''s fate!  Your tale ends here!', 14, 100, 0, 128141, 170621, 'Vanessa VanCleef - Aggro'), -- also text id 49748 with sound 24599

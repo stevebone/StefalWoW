@@ -644,6 +644,15 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr uint32 Sprint = 92604;
             static constexpr uint32 GreenMarker = 88455;
             static constexpr uint32 SteamAura = 92399;
+            static constexpr uint32 NightmareElixirEffectRemove = 92583;
+            static constexpr uint32 NightmareElixirGlubtok = 92565;
+            static constexpr uint32 NightmareElixirGlubtokRemove = 92584;
+            static constexpr uint32 NightmareElixirHelix = 92566;
+            static constexpr uint32 NightmareElixirHelixRemove = 92585;
+            static constexpr uint32 NightmareElixirMechanical = 92567;
+            static constexpr uint32 NightmareElixirMechanicalRemove = 92586;
+            static constexpr uint32 NightmareElixirRipsnarl = 92568;
+            static constexpr uint32 NightmareElixirRipsnarlRemove = 92587;
         }
     }
 
@@ -806,6 +815,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 GlubtokCharge = 45;
             static constexpr int8 SummonSpiders = 46;
             static constexpr int8 MechanicalEngage = 47;
+            static constexpr int8 NightmareElixirReapply = 48;
         }
     }
 
@@ -949,6 +959,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         static constexpr Position MechanicalNightmareSpawn = { -152.0788f, -581.003f, 19.3151f, 0.1639f };
         static constexpr Position VanessaNightmare4 = { -96.46f, -660.42f, 7.41f, 3.4061f };
         static constexpr Position VanessaNightmare5 = { -103.72f, -724.06f, 8.47f };
+        static constexpr Position VanessaNightmare6 = { 2.56f, -776.13f, 9.52f };
+        static constexpr Position VanessaNightmare7 = { -83.16319f, -774.9636f, 26.90351f };
         static constexpr Position FoeReaperNightmareSpawn = { -101.4549f, -663.6493f, 7.505813f, 1.85f };
         static constexpr Position VanessaBossSpawn = { -79.44965f, -819.8351f, 39.89838f, 0.01745329f };
 

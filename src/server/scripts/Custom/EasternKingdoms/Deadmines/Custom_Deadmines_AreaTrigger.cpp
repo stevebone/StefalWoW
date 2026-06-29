@@ -49,27 +49,35 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 if (instance->GetData(Misc::ActiveNightmare) == 4) // Ripsnarl Nightmare
                 {
-                    if (Creature* vanessaNightmare = player->FindNearestCreature(Creatures::VanessaNightmare, 100.f))
+                    if (Creature* vanessaNightmare = player->FindNearestCreature(Creatures::VanessaNightmare, 200.f))
                     {
                         vanessaNightmare->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveEmme, player);
                         player->CastSpell(player, Spells::VanessaVanCleef::Sprint);
+                        vanessaNightmare->NearTeleportTo(Positions::VanessaNightmare6);
 
-                        vanessaNightmare->m_Events.AddEventAtOffset([vanessaNightmare, player]()
+                        Map* map = player->GetMap();
+                        ObjectGuid vanessaGuid = vanessaNightmare->GetGUID();
+                        ObjectGuid playerGuid = player->GetGUID();
+
+                        vanessaNightmare->m_Events.AddEventAtOffset([map, vanessaGuid, playerGuid]()
                             {
-                                if (vanessaNightmare && player)
-                                {
-                                    vanessaNightmare->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveErik, player);
-                                    player->CastSpell(player, Spells::VanessaVanCleef::Sprint);
-                                }
+                                if (Creature* vanessa = map->GetCreature(vanessaGuid))
+                                    if (Player* p = map->GetPlayer(playerGuid))
+                                    {
+                                        vanessa->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveErik, p);
+                                        p->CastSpell(p, Spells::VanessaVanCleef::Sprint);
+                                        vanessa->NearTeleportTo(Positions::VanessaNightmare7);
+                                    }
                             }, std::chrono::seconds(30));
 
-                        vanessaNightmare->m_Events.AddEventAtOffset([vanessaNightmare, player]()
+                        vanessaNightmare->m_Events.AddEventAtOffset([map, vanessaGuid, playerGuid]()
                             {
-                                if (vanessaNightmare && player)
-                                {
-                                    vanessaNightmare->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveCalissa, player);
-                                    player->CastSpell(player, Spells::VanessaVanCleef::Sprint);
-                                }
+                                if (Creature* vanessa = map->GetCreature(vanessaGuid))
+                                    if (Player* p = map->GetPlayer(playerGuid))
+                                    {
+                                        vanessa->AI()->Talk(Texts::VanessaVanCleef::VanessaNightmareSaveCalissa, p);
+                                        p->CastSpell(p, Spells::VanessaVanCleef::Sprint);
+                                    }
                             }, std::chrono::seconds(60));
 
                         if (Creature* cannon = player->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CannonFiring1))
@@ -77,7 +85,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                             cannon->SummonCreature(Creatures::JamesHarrington, cannon->GetPosition());
                             cannon->DespawnOrUnsummon(1s);
                         }
-                        else player->SummonCreature(Creatures::JamesHarrington, cannon->GetPosition());
+                        else
+                            player->SummonCreature(Creatures::JamesHarrington, Positions::FamilySpawn[3], TEMPSUMMON_MANUAL_DESPAWN);
 
                         return true;
                     }

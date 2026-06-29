@@ -202,7 +202,9 @@ namespace Scripts::EasternKingdoms::Deadmines
                             ropeAnchor->SetDisableGravity(true);
 
                         me->SummonCreature(Creatures::VanessaNightmare, Positions::VanessaNightmare1, TEMPSUMMON_MANUAL_DESPAWN);
-                        me->SummonCreature(Creatures::NightmareGlubtok, Positions::GlubtokNightmare1, TEMPSUMMON_CORPSE_DESPAWN);
+
+                        if(Creature* glubtok = me->SummonCreature(Creatures::NightmareGlubtok, Positions::GlubtokNightmare1, TEMPSUMMON_CORPSE_DESPAWN))
+                            glubtok->SetReactState(REACT_PASSIVE);
 
                         _step = 0;
                         _events.ScheduleEvent(Events::VanessaVanCleef::TrapDescent, 1s);
@@ -672,10 +674,6 @@ namespace Scripts::EasternKingdoms::Deadmines
     {
         npc_enraged_worgen_dm(Creature* creature) : ScriptedAI(creature) { }
 
-        void Reset() override
-        {
-        }
-
         void JustDied(Unit* /*killer*/) override
         {
             if (Creature* vanessa = me->FindNearestCreature(Creatures::VanessaNightmare, 200.0f))
@@ -690,20 +688,34 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void Reset() override
         {
-            Unit* Calissa = me->GetVehicleKit()->GetPassenger(0);
-            if (!Calissa)
+            me->m_Events.AddEventAtOffset([this]()
             {
-                Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f);
-                if (Calissa)
+                if (Vehicle* vehicle = me->GetVehicleKit())
+                    if (vehicle->GetPassenger(0))
+                        return;
+
+                if (Creature* Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f))
                 {
+                    Calissa->SetRegenerateHealth(false);
                     Calissa->EnterVehicle(me, 0);
                     Calissa->Attack(me, true);
                 }
+            }, 500ms);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                instance->DoRemoveAurasDueToSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirRipsnarl);
             }
         }
 
         void JustDied(Unit* /*killer*/) override
         {
+            if (InstanceScript* instance = me->GetInstanceScript())
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirRipsnarlRemove);
             if (Creature* vanessa = me->FindNearestCreature(Creatures::VanessaNightmare, 200.0f))
                 vanessa->AI()->SetData(2, 2);
 
@@ -711,6 +723,8 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (Creature* Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f))
             {
+                Calissa->SetEmoteState(EMOTE_STATE_DEAD);
+
                 Calissa->m_Events.AddEventAtOffset([Calissa]()
                     {
                         if (Calissa)
@@ -721,7 +735,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     {
                         if (Calissa)
                             Calissa->AI()->Talk(Texts::VanessaVanCleef::CalissaHarrington1);
-                    }, std::chrono::seconds(8));
+                    }, std::chrono::seconds(10));
             }
         }
     };
@@ -959,10 +973,17 @@ namespace Scripts::EasternKingdoms::Deadmines
                     break;
                 }
                 case 5:
+                {
+                    if (InstanceScript* instance = me->GetInstanceScript())
+                    {
+                        instance->DoRemoveAurasDueToSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixir);
+                        instance->DoRemoveAurasDueToSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
+                    }
                     Talk(Texts::VanessaVanCleef::VanessaNightmare1);
                     me->SummonCreature(Creatures::VanessaVanCleef, Positions::VanessaBossSpawn, TEMPSUMMON_MANUAL_DESPAWN);
                     me->DespawnOrUnsummon(3s);
                     break;
+                }
             }
         }
 
@@ -1020,6 +1041,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 _bossKilled++;
                 _events.ScheduleEvent(Events::VanessaVanCleef::NightmareShift, 0s);
+                _events.ScheduleEvent(Events::VanessaVanCleef::NightmareElixirReapply, 3s);
             }
         }
 
@@ -1047,6 +1069,10 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Events::VanessaVanCleef::NightmareFade:
                         HandleNightmareFade();
                         break;
+                    case Events::VanessaVanCleef::NightmareElixirReapply:
+                        if (InstanceScript* instance = me->GetInstanceScript())
+                            instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
+                        break;
                     case Events::VanessaVanCleef::NightmareShift:
                         Talk(Texts::VanessaVanCleef::VanessaNightmareShift);
                         _summons.DespawnAll();
@@ -1072,6 +1098,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                 _finalTriggered = true;
                 SetActiveNightmare(5);
                 me->SetVisible(true);
+                _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSummon, 2s);
             }
         }
 
@@ -1092,10 +1119,6 @@ namespace Scripts::EasternKingdoms::Deadmines
         void Reset() override
         {
             _events.Reset();
-            if (InstanceScript* instance = me->GetInstanceScript())
-                if (instance->GetData(Misc::ActiveNightmare) > 0)
-                    return;
-            me->SetReactState(REACT_PASSIVE);
         }
 
         void DoAction(int32 action) override
@@ -1107,7 +1130,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                     instance->SetData(Misc::ActiveNightmare, 1);
                     instance->HandleGameObject(instance->GetGuidData(Objects::FoundryDoor), false);
                     if (GameObject* ironCladDoor = me->GetMap()->GetGameObject(instance->GetGuidData(Objects::IronCladDoor)))
-                        ironCladDoor->Respawn();
+                        ironCladDoor->ResetDoorOrButton();
                 }
                 _events.ScheduleEvent(Events::VanessaVanCleef::GlubtokCharge, 5s);
             }
@@ -1130,13 +1153,19 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void JustEngagedWith(Unit* /*who*/) override
         {
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                instance->DoRemoveAurasDueToSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirGlubtok);
+            }
             _events.ScheduleEvent(Events::VanessaVanCleef::IcicleAOE, 6s, 8s);
             _events.ScheduleEvent(Events::VanessaVanCleef::SpiritStrike, 6s);
         }
 
         void JustDied(Unit* /*killer*/) override
         {
-            DoCastSelf(Spells::VanessaVanCleef::NightmareElixirEffect);
+            if (InstanceScript* instance = me->GetInstanceScript())
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirGlubtokRemove);
             if (Creature* vanessa = me->FindNearestCreature(Creatures::VanessaNightmare, 200.0f))
                 vanessa->AI()->SetData(3, 3);
         }
@@ -1153,7 +1182,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 switch (eventId)
                 {
                     case Events::VanessaVanCleef::GlubtokCharge:
-                        me->GetMotionMaster()->MoveCharge(Positions::GlubtokNightmareCharge.GetPositionX(), Positions::GlubtokNightmareCharge.GetPositionY(), Positions::GlubtokNightmareCharge.GetPositionZ(), 10.0f);
+                        //me->GetMotionMaster()->MoveCharge(Positions::GlubtokNightmareCharge.GetPositionX(), Positions::GlubtokNightmareCharge.GetPositionY(), Positions::GlubtokNightmareCharge.GetPositionZ(), 10.0f);
+                        me->NearTeleportTo(Positions::GlubtokNightmareCharge);
                         break;
                     case Events::VanessaVanCleef::IcicleAOE:
                         if (Unit* target = me->SelectNearestTarget(200.0f))
@@ -1204,7 +1234,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 if (InstanceScript* instance = me->GetInstanceScript())
                     instance->SetData(Misc::ActiveNightmare, 2);
-                _events.ScheduleEvent(Events::VanessaVanCleef::HelixEngage, 5s);
+                _events.ScheduleEvent(Events::VanessaVanCleef::HelixEngage, 7s);
             }
         }
 
@@ -1212,8 +1242,11 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             switch (summon->GetEntry())
             {
-                case Creatures::NightmareSpider:
+                
                 case Creatures::MainSpider:
+                    summon->SetObjectScale(0.3f);
+                    break;
+                case Creatures::NightmareSpider:
                 case Creatures::ChatteringHorror:
                     if (Unit* victim = me->GetVictim())
                         summon->AI()->AttackStart(victim);
@@ -1222,11 +1255,22 @@ namespace Scripts::EasternKingdoms::Deadmines
             _summons.Summon(summon);
         }
 
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                instance->DoRemoveAurasDueToSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirHelix);
+            }
+        }
+
         void JustDied(Unit* /*killer*/) override
         {
-            DoCastSelf(Spells::VanessaVanCleef::NightmareElixirEffect);
             if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirHelixRemove);
                 instance->HandleGameObject(instance->GetGuidData(Objects::FoundryDoor), true);
+            }
             if (Creature* vanessa = me->FindNearestCreature(Creatures::VanessaNightmare, 200.0f))
                 vanessa->AI()->SetData(3, 3);
             _summons.DespawnAll();
@@ -1318,9 +1362,19 @@ namespace Scripts::EasternKingdoms::Deadmines
             }
         }
 
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            if (InstanceScript* instance = me->GetInstanceScript())
+            {
+                instance->DoRemoveAurasDueToSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirMechanical);
+            }
+        }
+
         void JustDied(Unit* /*killer*/) override
         {
-            DoCastSelf(Spells::VanessaVanCleef::NightmareElixirEffect);
+            if (InstanceScript* instance = me->GetInstanceScript())
+                instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirMechanicalRemove);
             if (Creature* vanessa = me->FindNearestCreature(Creatures::VanessaNightmare, 200.0f))
                 vanessa->AI()->SetData(3, 3);
         }
@@ -1559,7 +1613,7 @@ namespace Scripts::EasternKingdoms::Deadmines
                         {
                             p->ExitVehicle(/*&Positions::MagmaPullPlayerExit*/);
                             p->GetMotionMaster()->Clear();
-                            p->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::MagmaPullPlayerExit, 10.f, {}, 5.f);
+                            p->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::MagmaPullPlayerExit, 15.f, {}, 5.f);
                             p->m_Events.AddEventAtOffset([p]()
                             {
                                 if (p && p->IsInWorld())

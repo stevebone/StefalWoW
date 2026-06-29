@@ -260,13 +260,18 @@ namespace Scripts::EasternKingdoms::Deadmines
             Talk(Texts::RipsnarlDeath);
             _summons.DespawnAll();
             SetFog(false);
+
+            _inFog = false;
+            me->SetVisible(true);
+            me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_UNINTERACTIBLE | UNIT_FLAG_PACIFIED));
+
             if (instance)
             {
                 instance->SetData(Misc::RipsnarlFogActive, 0);
                 instance->DoRemoveAurasDueToSpellOnPlayers(Spells::RipsnarlAchievement);
             }
 
-            me->GetMap()->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn);
+            me->SummonCreature(Creatures::CaptainCookie, Positions::RipsnarlCaptainCookieSpawn, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 120s);
         }
 
         void UpdateAI(uint32 diff) override

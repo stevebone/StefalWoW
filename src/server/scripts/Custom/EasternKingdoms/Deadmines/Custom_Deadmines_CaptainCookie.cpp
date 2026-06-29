@@ -119,6 +119,12 @@ namespace Scripts::EasternKingdoms::Deadmines
             DoZoneInCombat();
         }
 
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (me->GetVehicle() && me->GetHealth() <= damage)
+                me->ExitVehicle();
+        }
+
         void MovementInform(uint32 type, uint32 id) override
         {
             if (type == POINT_MOTION_TYPE && id == POINT_MOVE)
@@ -133,6 +139,8 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void JustSummoned(Creature* summon) override
         {
+            BossAI::JustSummoned(summon);
+
             if (summon->GetEntry() == Creatures::Cauldron)
             {
                 _cauldronGuid = summon->GetGUID();
@@ -147,16 +155,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             BossAI::JustDied(killer);
 
             if (Creature* cauldron = me->GetMap()->GetCreature(_cauldronGuid))
-            {
-                Position pos = { cauldron->GetPositionX(),
-                 cauldron->GetPositionY(),
-                 cauldron->GetPositionZ(),
-                 cauldron->GetOrientation() };
-
-                me->ExitVehicle(&pos);
-
                 cauldron->DespawnOrUnsummon(2s);
-            }
 
             if (InstanceScript* instance = me->GetInstanceScript())
                 if (!instance->GetData(Misc::CookieDietFailed))
