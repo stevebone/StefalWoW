@@ -323,7 +323,8 @@ namespace FSBGenAIPrompts
         Player* owner = FSBMgr::Get()->GetBotOwner(bot);
         std::string ownerName = owner ? owner->GetName() : "commander";
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, FSB_ChatterType::None, 0, 0);
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::botDismissed, personalityType, 0, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 

@@ -222,7 +222,20 @@ namespace FSBUtilsDB
             line.lineText    = fields[6].GetString();
 
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
-            outMap[key].push_back(std::move(line));
+
+            // targetKilled (category 1): populate targetKilledHired (category 2) with all lines,
+            // and targetKilled with only lines that do not reference {player}
+            if (category == 1)
+            {
+                uint32 hiredKey = (static_cast<uint32>(2) << 8) | static_cast<uint32>(chatterType);
+                outMap[hiredKey].push_back(line); // copy: hired bots get every line
+                if (line.lineText.find("{player}") == std::string::npos)
+                    outMap[key].push_back(std::move(line)); // unhired bots skip player-tagged lines
+            }
+            else
+            {
+                outMap[key].push_back(std::move(line));
+            }
             ++count;
         } while (result->NextRow());
 

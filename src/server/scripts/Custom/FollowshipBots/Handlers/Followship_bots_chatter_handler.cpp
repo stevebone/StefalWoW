@@ -195,110 +195,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        FSB_ChatterCategory::targetKilled, FSB_ChatterType::None,
-        {
-            "Rest in pieces, {target}.",
-            "{target}? Yeah. that didn't end well for you.",
-            "I warned you, {target}. Well. internally.",
-            "And that's why I read my spellbook.",
-            "One less {target}.",
-            "And that's how you solve a {target} problem.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::targetKilledHired, FSB_ChatterType::None,
-        {
-            "Another one down. You're welcome, {player}.",
-            "Rest in pieces, {target}.",
-            "{target}? Yeah. that didn't end well for them.",
-            "See, {player}? Perfectly under control.",
-            "I warned you, {target}. Well. internally.",
-            "That went about as expected. For me.",
-            "{player}, please tell me you saw that.",
-            "And that's why I read my spellbook.",
-            "One less {target}. Try to keep up, {player}.",
-            "I call that a successful application of violence.",
-            "That's one less problem, {player}. Efficient, right?",
-            "{target} really should've picked a different fight.",
-            "Did you see that, {player}? Textbook execution.",
-            "{target} has officially exited the conversation.",
-            "Clean hit. You're welcome, {player}.",
-            "And that's how you solve a {target} problem.",
-            "I handled it, {player}. You can relax now.",
-            "{target} didn't stand a chance. Not with me here.",
-            "One more down. Our teamwork is terrifyingly effective.",
-            "I hope you were watching, {player}. That was impressive.",
-            "Another flawless performance. I'm on a roll today.",
-            "That {target} folded faster than I expected.",
-            "You see that, {player}? That's what competence looks like.",
-            "I almost feel bad for {target}. Almost.",
-            "That was satisfying. What's next, {player}?",
-            "Another clean takedown. I should start keeping score.",
-            "If only {target} knew who they were dealing with.",
-            "Handled. Smoothly. Professionally. Stylishly.",
-            "That's how we do it, {player}. On to the next.",
-            "One less {target} to worry about. Easy."
-            "That's one less problem, {player}. Efficient, right?",
-            "{target} really should've picked a different fight.",
-            "Did you see that, {player}? Textbook execution.",
-            "{target} has officially exited the conversation.",
-            "Clean hit. You're welcome, {player}.",
-            "And that's how you solve a {target} problem.",
-            "I handled it, {player}. You can relax now.",
-            "{target} didn't stand a chance. Not with me here.",
-            "One more down. Our teamwork is terrifyingly effective.",
-            "I hope you were watching, {player}. That was impressive.",
-            "Another flawless performance. I'm on a roll today.",
-            "That {target} folded faster than I expected.",
-            "You see that, {player}? That's what competence looks like.",
-            "I almost feel bad for {target}. Almost.",
-            "That was satisfying. What's next, {player}?",
-            "Another clean takedown. I should start keeping score.",
-            "If only {target} knew who they were dealing with.",
-            "Handled. Smoothly. Professionally. Stylishly.",
-            "That's how we do it, {player}. On to the next.",
-            "One less {target} to worry about. Easy.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botDismissed, FSB_ChatterType::None,
-        {
-            "Time's up. Coin's spent. I'm off - good luck out there.",
-            "That's it, {player}. Contract fulfilled. Try not to die without me.",
-            "Well, that was a few hours of my life I'll never get back. Farewell.",
-            "My watch is over. If you need me again, bring more coin.",
-            "Alright, {player}, that's my cue. Duty done, boots moving.",
-            "The gold's gone and so am I. Fair deal.",
-            "Contract's finished. I suggest you find another friend. quickly.",
-            "That's enough adventuring for one pay period. I'm out.",
-            "No hard feelings, {player}. Business is business.",
-            "Well, this is where I leave you. Try not to pull anything too big next time.",
-            "Our deal's done, {player}. Try not to get into trouble five minutes after I leave.",
-            "Contract complete. I'll be around. assuming your coin purse recovers.",
-            "That's my shift over. You're on your own from here, {player}.",
-            "Alright, that's all you paid for. Don't spend it all in one dungeon.",
-            "Duty fulfilled. I'll consider returning if the pay improves.",
-            "My time's up. You've been. tolerable, {player}.",
-            "That concludes our arrangement. Walk safe out there.",
-            "I'm heading out. If you need me again, you know the price.",
-            "Our business is concluded. Try not to summon me for nonsense next time.",
-            "That's the end of the contract. I'll see myself out.",
-            "Well, {player}, it's been real. And by real, I mean adequately compensated.",
-            "My services are officially rendered. Good luck surviving the next hour.",
-            "We're square. Don't get yourself killed before I'm hired again.",
-            "That's all from me. If danger shows up, pretend I'm still here.",
-            "Contract expired. I'm off to find a softer job. or better pay.",
-            "Alright, {player}, I'm clocking out. Try not to miss me too much.",
-            "Our deal's wrapped up. I'll be around if your wallet gets heavier.",
-            "That's my last task done. You're free to panic now, {player}.",
-            "Time's up. I'm leaving before you find more trouble.",
-            "We're done here. Don't worry, {player}-I'll remember the good parts."
-        }
-    },
-
-    {
         FSB_ChatterCategory::botAcknowledge, FSB_ChatterType::None,
         {
             "On it, {player}. Consider it handled.",
@@ -1667,13 +1563,16 @@ namespace FSBChatter
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking, whisper_afk) ---
+        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking, whisper_afk, targetKilled, targetKilledHired, botDismissed) ---
         if (category == FSB_ChatterCategory::emote_kiss ||
             category == FSB_ChatterCategory::emote_flirt ||
             category == FSB_ChatterCategory::emote_joke ||
             category == FSB_ChatterCategory::emote_talk ||
             category == FSB_ChatterCategory::emote_cooking ||
-            category == FSB_ChatterCategory::whisper_afk)
+            category == FSB_ChatterCategory::whisper_afk ||
+            category == FSB_ChatterCategory::targetKilled ||
+            category == FSB_ChatterCategory::targetKilledHired ||
+            category == FSB_ChatterCategory::botDismissed)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);
