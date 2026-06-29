@@ -195,70 +195,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        FSB_ChatterCategory::botAcknowledge, FSB_ChatterType::None,
-        {
-            "On it, {player}. Consider it handled.",
-            "Alright, moving now.",
-            "Got your command loud and clear, {player}.",
-            "Understood. Executing.",
-            "As you wish. Let's get it done.",
-            "Acknowledged. I'll take care of it.",
-            "Right away, {player}.",
-            "Okay, shifting focus.",
-            "Command received. Acting on it.",
-            "Sure thing. I'm on the move.",
-            "Got it. Don't worry, I know what to do.",
-            "Alright, {player}, doing it now.",
-            "Copy that. Adjusting course.",
-            "Understood. I'll handle the details.",
-            "Yep, I'm already on it.",
-            "Very well. Proceeding as instructed.",
-            "Okay, {player}. Let's make it look easy.",
-            "Message received. Executing your plan.",
-            "Alright, I'll take point on this.",
-            "Done. Or it will be in a moment."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botFollow, FSB_ChatterType::None,
-        {
-            "Alright, I'm back with you.",
-            "Following you again. Let's move.",
-            "There you are. Lead the way, {player}.",
-            "I was starting to enjoy standing still. but alright.",
-            "Back on your heels. Try not to run too fast.",
-            "Following, {player}. Let's see where this goes.",
-            "Right behind you. More or less.",
-            "Okay, I'm coming. No need to shout.",
-            "Time to move again. I'm with you.",
-            "Let's go, {player}. I'm ready.",
-            "Ah, adventure calls again. I'm following.",
-            "Standing still was nice. Back to walking it is.",
-            "Alright, {player}. I'll keep up. probably."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botStay, FSB_ChatterType::None,
-        {
-            "Alright, I'll hold this spot. Don't take too long.",
-            "Staying put. If something bites me, I'm blaming you.",
-            "Very well, {player}. I'll stand guard right here.",
-            "You want me here? Fine. I wasn't going anywhere anyway.",
-            "Holding position. Try not to forget about me.",
-            "Right here, {player}. I'll keep watch.",
-            "I'll stay. But if a dragon shows up, that's on you.",
-            "Standing still. which is harder than it sounds.",
-            "This spot? Really? Alright. I'll make it work.",
-            "As you wish, {player}. I'll be right here when you return.",
-            "Standing guard. This better be important.",
-            "I'll stay. Just don't expect me to enjoy it.",
-            "Holding position. Someone's got to be the responsible one."
-        }
-    },
-
-    {
         FSB_ChatterCategory::botMemberDied, FSB_ChatterType::Positive,
         {
             "Hang in there, {target}! We'll get you back up.",
@@ -1563,7 +1499,7 @@ namespace FSBChatter
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking, whisper_afk, targetKilled, targetKilledHired, botDismissed) ---
+        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking, whisper_afk, targetKilled, targetKilledHired, botDismissed, botAcknowledge, botFollow, botStay) ---
         if (category == FSB_ChatterCategory::emote_kiss ||
             category == FSB_ChatterCategory::emote_flirt ||
             category == FSB_ChatterCategory::emote_joke ||
@@ -1572,7 +1508,10 @@ namespace FSBChatter
             category == FSB_ChatterCategory::whisper_afk ||
             category == FSB_ChatterCategory::targetKilled ||
             category == FSB_ChatterCategory::targetKilledHired ||
-            category == FSB_ChatterCategory::botDismissed)
+            category == FSB_ChatterCategory::botDismissed ||
+            category == FSB_ChatterCategory::botAcknowledge ||
+            category == FSB_ChatterCategory::botFollow ||
+            category == FSB_ChatterCategory::botStay)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);
