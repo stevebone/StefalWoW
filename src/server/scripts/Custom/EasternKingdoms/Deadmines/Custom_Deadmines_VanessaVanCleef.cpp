@@ -703,7 +703,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             }, 500ms);
         }
 
-        void JustEngagedWith(Unit* who) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             if (InstanceScript* instance = me->GetInstanceScript())
             {
