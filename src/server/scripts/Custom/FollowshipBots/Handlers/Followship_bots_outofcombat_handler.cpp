@@ -944,6 +944,12 @@ namespace FSBOOC
             emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_flirt);
         else if (category == FSB_ChatterCategory::emote_joke)
             emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_joke);
+        else if (category == FSB_ChatterCategory::emote_whistle)
+            emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_whistle);
+        else if (category == FSB_ChatterCategory::emote_sigh)
+            emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_sigh);
+        else if (category == FSB_ChatterCategory::emote_sleep)
+            emote = FSBChatter::GetRandomEmoteText(bot, target, FSB_ChatterEmotes::emote_sleep);
         else
             emote = FSBChatter::GetRandomReply(bot, target, category, FSB_ChatterType::None, 0);
 

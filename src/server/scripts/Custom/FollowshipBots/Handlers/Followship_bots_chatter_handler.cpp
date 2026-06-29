@@ -70,12 +70,8 @@ std::vector<FSBEmoteTextEntry> FSBChatter::FSBEmoteTextTable =
             "{bot} recollects a funny event."
         }
     },
-};
-
-std::vector<FSBChatterReplyEntry> FSBReplyTable =
-{
     {
-        FSB_ChatterCategory::emote_whistle, FSB_ChatterType::None,
+        FSB_ChatterEmotes::emote_whistle,
         {
             "{bot} whistles idly.",
             "{bot} lets out a long, bored whistle.",
@@ -89,7 +85,37 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
             "{bot} whistles while waiting for something to happen."
         }
     },
+    {
+        FSB_ChatterEmotes::emote_sigh,
+        {
+            "{bot} lets out a long, weary sigh.",
+            "{bot} sighs softly, looking a bit drained.",
+            "{bot} exhales heavily, clearly tired of it all.",
+            "{bot} sighs and stares off into the distance.",
+            "{bot} releases a deep, frustrated sigh.",
+            "{bot} sighs as if carrying the weight of the world.",
+            "{bot} takes a slow breath and sighs quietly.",
+            "{bot} sighs, sounding resigned.",
+            "{bot} gives a tired sigh and shakes their head.",
+            "{bot} sighs, clearly not impressed."
+        }
+    },
+    {
+        FSB_ChatterEmotes::emote_sleep,
+        {
+            "{bot} yawns loudly.",
+            "{bot} lays down for a nap.",
+            "{bot} feels sleepy.",
+            "{bot} goes for a power nap.",
+            "{bot} uses the ground as a bed.",
+            "{bot} lays down to rest.",
+            "{bot} takes a quick rest."
+        }
+    },
+};
 
+std::vector<FSBChatterReplyEntry> FSBReplyTable =
+{
     {
         FSB_ChatterCategory::whisper_afk, FSB_ChatterType::Neutral,
         {
@@ -321,526 +347,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
         }
     },
 
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Neutral,
-        {
-            "So. how long are we gonna be here?",
-            "I'd really rather be somewhere else right now.",
-            "You ever wonder why we do all this?",
-            "Feels like we've been standing here forever.",
-            "I remember my family. haven't seen them in ages.",
-            "Is it just me, or is it way too quiet?",
-            "I could really go for a drink right now.",
-            "Any day now.",
-            "I once got lost for three days in Elwynn Forest.",
-            "I swear my boots are getting smaller.",
-            "I miss my bed. and my pillow. and not being here.",
-            "So. what now?",
-            "I had a weird dream last night. Don't ask.",
-            "I could be napping right now.",
-            "I once knew someone who talked even more than I do.",
-            "Anyone else feeling watched? No? Just me?",
-            "I hope this doesn't take all day. again.",
-            "I should've stayed home today.",
-            "You ever think about just. walking away?",
-            "I'm not saying I'm bored, but. I'm bored.",
-            "I miss real food. Not travel rations.",
-            "I once had a pet. It ran away. Smart pet.",
-            "If this goes on much longer, I'm charging overtime.",
-            "I wonder what my friends are doing right now. probably something fun.",
-            "I should've brought a book.",
-            "You ever get the feeling you forgot something important?",
-            "I used to be an adventurer. then I met you lot.",
-            "If I stand still any longer, I'll turn into a statue.",
-            "I heard a joke once. Forgot the punchline. Still funny though.",
-            "Alright. any moment now. right?"
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Negative,
-        {
-            "Some days. it's hard to keep going.",
-            "I don't even know why I'm still doing this.",
-            "Feels like everything's getting heavier lately.",
-            "I miss the days when things felt simple.",
-            "Sometimes I wonder if anyone would notice if I disappeared.",
-            "I'm tired. not physically, just tired.",
-            "Feels like I'm walking through fog all the time.",
-            "I wish things had turned out differently.",
-            "I keep thinking about all the mistakes I've made.",
-            "It's strange how lonely you can feel even in a group.",
-            "I don't remember the last time I felt truly happy.",
-            "Some memories hurt more than any wound.",
-            "I pretend I'm fine, but I'm really not.",
-            "I miss people I'll never see again.",
-            "I feel like I'm fading a little more every day.",
-            "Sometimes I wonder what the point of all this is.",
-            "I wish I could go back. just once.",
-            "Everything feels so distant lately.",
-            "I don't know if I'm strong enough for this.",
-            "I keep hoping things will get better. but they don't.",
-            "I feel like I'm stuck in place while the world moves on.",
-            "I miss the person I used to be.",
-            "Some days I just want to stop and never move again.",
-            "I'm surrounded by people, yet I feel alone.",
-            "I wish someone would ask if I'm okay.",
-            "I'm not sure I belong anywhere anymore.",
-            "I keep trying, but it never feels like enough.",
-            "I don't know how much longer I can pretend.",
-            "Everything feels so. empty.",
-            "I just want one moment of peace."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Positive,
-        {
-            "What a great day for an adventure!",
-            "I can't wait to see what's around the next corner.",
-            "Feels like something exciting is about to happen.",
-            "I've got a good feeling about today.",
-            "Let's make some memories out here.",
-            "I love being out in the world like this.",
-            "Every step forward feels like a story waiting to happen.",
-            "I'm ready for anything - bring it on!",
-            "You know, I think we make a pretty good team.",
-            "I hope we find something amazing today.",
-            "I feel alive out here!",
-            "There's so much to see. let's not waste a moment.",
-            "I swear, the world feels brighter today.",
-            "I'm excited to see where this journey takes us.",
-            "I could do this all day.",
-            "Let's keep moving - adventure doesn't wait!",
-            "I love the smell of the wilds in the morning.",
-            "Something tells me today's going to be special.",
-            "I'm ready to take on the world!",
-            "Feels good to be out here with you.",
-            "I hope we run into something fun soon.",
-            "I'm feeling unstoppable right now.",
-            "Let's go find some trouble - the good kind.",
-            "I can't help but smile today.",
-            "I feel like we're on the edge of something big.",
-            "This is exactly where I want to be.",
-            "I'm in the mood to explore everything.",
-            "Let's make today legendary.",
-            "I'm ready for the next challenge - whatever it is.",
-            "Adventure, danger, treasure. I'm here for all of it!"
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Cynical,
-        {
-            "Everything ends in ash. Might as well chat while we wait.",
-            "The world is burning and we're making small talk. Lovely.",
-            "I used to hope. Now I just talk to fill the silence.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Bitter,
-        {
-            "Nobody listens to me anyway.",
-            "I've said this a thousand times. Nothing changes.",
-            "Talking is just screaming into the void.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Cold,
-        {
-            "Communication logged.",
-            "Data transmitted. Awaiting response.",
-            "Words exchanged. Significance: minimal.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Guarded,
-        {
-            "I don't share much. But I'll listen.",
-            "Words can be weapons. Be careful with yours.",
-            "I'll talk, but don't expect me to trust you.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Serious,
-        {
-            "We should discuss strategy.",
-            "Idle chatter serves no purpose.",
-            "Focus on our objectives, not distractions.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Dry,
-        {
-            "Well, this is riveting.",
-            "Small talk. The original time sink.",
-            "I've had more exciting conversations with rocks.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Curious,
-        {
-            "What drives you to adventure? I'm genuinely interested.",
-            "Tell me about your hometown. I want to understand.",
-            "How did you end up here? Every story fascinates me.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Warm,
-        {
-            "It's nice to just talk with you like this.",
-            "Your stories always make me feel at home.",
-            "Even silence with you feels comfortable.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Enthusiastic,
-        {
-            "TALKING IS THE BEST! WHAT'S YOUR FAVORITE COLOR?",
-            "I LOVE THESE MOMENTS! EVERYTHING IS SO INTERESTING!",
-            "LET'S TALK ABOUT EVERYTHING! ALL THE THINGS!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Cheerful,
-        {
-            "Aww, I love our little chats!",
-            "You're such good company! Time flies with you!",
-            "Every conversation with you is a gift!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Devoted,
-        {
-            "Your words are the only ones that matter to me.",
-            "I could listen to you forever and never tire.",
-            "Every syllable from you is a treasure.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Morbid,
-        {
-            "Death is the only guaranteed topic.",
-            "Let's discuss how we'll die. It's inevitable anyway.",
-            "The graveyard is quieter than this conversation.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Narcissist,
-        {
-            "Enough about you. Let's talk about me.",
-            "I'm fascinating. You should be taking notes.",
-            "Every conversation is improved by my presence.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Sadist,
-        {
-            "I enjoy watching you struggle for words.",
-            "Your awkward silences are my favorite soundtrack.",
-            "Tell me your fears. I collect them.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Hyperthymic,
-        {
-            "EVERY WORD IS A CELEBRATION!",
-            "I LOVE YOUR VOICE! SAY MORE THINGS!",
-            "CONVERSATION IS THE GREATEST INVENTION!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Autotelic,
-        {
-            "I speak because connection matters.",
-            "Words for their own sake, shared with you.",
-            "I talk because I choose to, not because silence is wrong.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_talk, FSB_ChatterType::Autistic,
-        {
-            "I have prepared 14 conversation topics. Please select one.",
-            "Your voice has a pleasing frequency. 432 Hz. Nice.",
-            "I don't understand subtext but I enjoy the sound of your voice.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_sleep, FSB_ChatterType::None,
-        {
-            "{bot} yawns loudly.",
-            "{bot} lays down for a nap.",
-            "{bot} feels sleepy.",
-            "{bot} goes for a power nap.",
-            "{bot} uses the ground as a bed.",
-            "{bot} lays down to rest.",
-            "{bot} takes a quick rest."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_sigh, FSB_ChatterType::None,
-        {
-            "{bot} lets out a long, weary sigh.",
-            "{bot} sighs softly, looking a bit drained.",
-            "{bot} exhales heavily, clearly tired of it all.",
-            "{bot} sighs and stares off into the distance.",
-            "{bot} releases a deep, frustrated sigh.",
-            "{bot} sighs as if carrying the weight of the world.",
-            "{bot} takes a slow breath and sighs quietly.",
-            "{bot} sighs, sounding resigned.",
-            "{bot} gives a tired sigh and shakes their head.",
-            "{bot} sighs, clearly not impressed."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Neutral,
-        {
-            "Alright. fire's going. Do what you want with it.",
-            "Cooking time, I guess.",
-            "There. Fire's ready.",
-            "Okay, that should do it.",
-            "Campfire's up. Don't burn yourselves.",
-            "Food or warmth, take your pick.",
-            "Well, that's one way to pass the time.",
-            "Fire's lit. Do whatever you need.",
-            "There we go. simple enough.",
-            "Alright, heat's ready.",
-            "If anyone needs the fire, it's there.",
-            "That should be warm enough.",
-            "Okay. cooking setup complete.",
-            "Fire's going. Smells. fine, I guess.",
-            "There. Now we wait.",
-            "Alright, who's actually hungry?",
-            "Fire's up. Don't expect miracles.",
-            "Well, it's something.",
-            "Heat's ready if you need it.",
-            "Okay. that's done."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Positive,
-        {
-            "Fire's ready! Who's hungry?",
-            "Perfect! Let's cook something delicious!",
-            "There we go - warm fire, warm hearts!",
-            "Alright, everyone gather around!",
-            "This is going to smell amazing in a moment.",
-            "Nothing like a good fire to lift the mood!",
-            "Cooking time! I hope you're ready!",
-            "Let's make something tasty together!",
-            "Fire's up - let's turn this into a feast!",
-            "Ahh, perfect! This is my favorite part of adventuring.",
-            "Come on, get closer! It's warm!",
-            "I love moments like this.",
-            "Who wants first pick when it's done?",
-            "This is going to be great, I can feel it.",
-            "Let's make this meal legendary!",
-            "I hope you're hungry - I know I am!",
-            "Nothing beats fresh food by a fire.",
-            "This is the good life right here.",
-            "Warm fire, good company - perfect.",
-            "Let's cook up something amazing!"
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Negative,
-        {
-            "There. Fire's lit. Try not to ruin it.",
-            "Fine. I'll cook. Again.",
-            "If this burns, it's not my fault.",
-            "Great. now I smell like smoke.",
-            "Don't expect gourmet food from this.",
-            "Ugh. why am I always the one doing this?",
-            "If someone complains, I swear.",
-            "This better be worth the effort.",
-            "I'm not your personal chef, you know.",
-            "Fine. Eat whatever comes out of this.",
-            "If anyone asks, I was forced to do this.",
-            "I hope you like 'slightly burnt' flavor.",
-            "Don't crowd me. I'm already annoyed.",
-            "If this catches fire, that's on you.",
-            "I'm only doing this once.",
-            "Great. now we wait. My favorite.",
-            "If someone else wants to take over, be my guest.",
-            "I swear, next time someone else cooks.",
-            "This is the last time I do this without complaining.",
-            "There, food's coming. Happy now?"
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Cynical,
-        {
-            "Cooking. Because apparently I can't escape domestic labor even in fantasy.",
-            "This stew is as nourishing as my hopes and dreams.",
-            "I could poison this and no one would notice.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Bitter,
-        {
-            "I cook because no one else will.",
-            "My food is bitter, like my soul.",
-            "Eat it or don't. I stopped caring.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Cold,
-        {
-            "Food prepared. Nutrients adequate.",
-            "Cooking complete. Consumption optional.",
-            "Sustenance rendered. Efficiency: acceptable.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Guarded,
-        {
-            "I hope no one spits in this. Not that I would.",
-            "I'll cook, but I'm watching who takes seconds.",
-            "Food's ready. Don't make me regret this.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Serious,
-        {
-            "The meal is ready. Eat efficiently.",
-            "Food prepared to standard. Consume and continue.",
-            "Sustenance is fuel, not entertainment.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Dry,
-        {
-            "It's food. It won't win awards.",
-            "I cooked. You're welcome, I guess.",
-            "Edible. Probably. No refunds.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Curious,
-        {
-            "What happens if I add basil to this?",
-            "I wonder what temperature dragon meat cooks at.",
-            "The chemistry of cooking fascinates me.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Warm,
-        {
-            "Made with love. And a little garlic.",
-            "Nothing brings people together like a shared meal.",
-            "I hope this warms you up, inside and out.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Enthusiastic,
-        {
-            "I MADE FOOD! REAL ACTUAL FOOD! TASTE IT!",
-            "THIS IS GOING TO BE THE BEST MEAL EVER!",
-            "I PUT MY WHOLE HEART INTO THIS DISH!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Cheerful,
-        {
-            "Dinner's ready! Come and get it while it's hot!",
-            "I cooked us something yummy! Hope you like it!",
-            "Food is love, and I love you all!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Devoted,
-        {
-            "I cooked this just for you. I hope you like it.",
-            "Your favorite. I remembered.",
-            "Nourishing you is my greatest joy.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Morbid,
-        {
-            "I cooked the meat rare. Like the wounds we inflict.",
-            "Blood makes the best sauce. Trust me.",
-            "This meat was alive an hour ago. Just like we'll be.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Narcissist,
-        {
-            "You're lucky I grace you with my culinary skills.",
-            "My cooking is famous. In my own mind, at least.",
-            "Eat up. You'll never taste better.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Sadist,
-        {
-            "I made it spicy. Very spicy. You'll suffer.",
-            "I hope you choke. Just a little.",
-            "The hotter the food, the sweeter your tears.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Hyperthymic,
-        {
-            "FOOD! FOOD! GLORIOUS FOOD!",
-            "I COOKED US A FEAST! LET'S EAT EVERYTHING!",
-            "BEST CHEF EVER! ME! YES!",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Autotelic,
-        {
-            "I cook because it brings me peace. Please enjoy.",
-            "This meal is my gift, no strings attached.",
-            "Cooking for others is reward enough.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::emote_cooking, FSB_ChatterType::Autistic,
-        {
-            "I followed the recipe exactly. 247 grams of flour.",
-            "The internal temperature must reach 74 degrees Celsius.",
-            "I find the repetitive actions of cooking soothing.",
-        }
-    },
 
     {
         FSB_ChatterCategory::emote_oom, FSB_ChatterType::None,
@@ -2393,10 +1899,12 @@ namespace FSBChatter
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke) ---
+        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking) ---
         if (category == FSB_ChatterCategory::emote_kiss ||
             category == FSB_ChatterCategory::emote_flirt ||
-            category == FSB_ChatterCategory::emote_joke)
+            category == FSB_ChatterCategory::emote_joke ||
+            category == FSB_ChatterCategory::emote_talk ||
+            category == FSB_ChatterCategory::emote_cooking)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);
