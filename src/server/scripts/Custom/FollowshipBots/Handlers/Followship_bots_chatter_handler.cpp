@@ -195,78 +195,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        FSB_ChatterCategory::botDeathHired, FSB_ChatterType::None,
-        {
-            "Well. this seems suboptimal. {player}, I blame you.",
-            "I was promised healing. This feels like betrayal, {player}.",
-            "Tell my spellbook I loved it. And {player}, you're still paying for repairs.",
-            "Next time, maybe don't pull half the place, {player}.",
-            "Good news, {player}: I found the floor. With my face.",
-            "I'm not saying this is your fault, {player}. but it's definitely your fault.",
-            "Remember me as I was: alive, and judging your decisions, {player}.",
-            "Ah yes. the sweet embrace of death. Thanks, {player}.",
-            "Well played, {target}. You got me. {player}, take notes.",
-            "I hope that was worth it, {player}.",
-            "This is fine. Everything is fine. I am absolutely-dead.",
-            "If anyone asks, {player}, this was your idea.",
-            "I regret everything. mostly trusting you, {player}.",
-            "Congratulations, {target}. You win this round.",
-            "I'll be at the graveyard if you need me, {player}.",
-            "I died doing what I loved: panicking while {player} made bad choices.",
-            "Oh look, {target} killed me. Again. Lovely.",
-            "Well, {player}, at least YOU survived. That's what matters, right?",
-            "Tell my loot I loved it. And that I'll miss it.",
-            "I hope you're happy, {player}. I'm not.",
-            "Note to self: never trust {player} with my health bar.",
-            "I'm dead. Again. Shocking, I know.",
-            "If you need me, {player}, I'll be haunting the graveyard.",
-            "Hey {target}, next time try killing {player} instead.",
-            "I didn't stand a chance. not with {player} leading.",
-            "Well, {target} hit harder than expected. Or maybe I expected too much from you, {player}.",
-            "I fall so you may. continue making questionable decisions, {player}.",
-            "Death comes for us all. But mostly for me, apparently.",
-            "I hope you have a plan, {player}, because I'm fresh out.",
-            "Goodbye, cruel world. And goodbye, {player}. I trusted you."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botDeath, FSB_ChatterType::None,
-        {
-            "Ah yes. the sweet embrace of the spirit healer.",
-            "Well, {target}, you got me. Enjoy the victory.",
-            "Tell the spirit healer I said hi. Again.",
-            "I guess this is my life now. Or. unlife.",
-            "I hope you're proud of yourself, {target}.",
-            "Great. Another scenic walk from the graveyard.",
-            "I didn't want to live anyway. Too much responsibility.",
-            "Spirit healer, warm up the glow. I'm on my way.",
-            "I swear the graveyard gets farther every time.",
-            "Well, that escalated quickly.",
-            "Good fight, {target}. I mean. for you.",
-            "I'm starting to think the spirit healer knows me by name.",
-            "Ah yes, death. My oldest friend.",
-            "I'll be back. Probably annoyed.",
-            "At least the spirit healer doesn't judge me.",
-            "I fall, {target}, but I fall fabulously.",
-            "Another day, another corpse run.",
-            "I hope the spirit healer offers loyalty points.",
-            "Well, that was embarrassing.",
-            "I regret nothing. Except everything.",
-            "If anyone asks, {target}, this never happened.",
-            "I'm not dead. I'm just. temporarily defeated.",
-            "I'll rise again. Like a very irritated phoenix.",
-            "Note to self: avoid {target}.",
-            "I'm beginning to think I'm bad at this 'living' thing.",
-            "Ah well. Time to go touch my corpse again.",
-            "I hope my body is somewhere convenient this time.",
-            "Death count: too many. Patience: zero.",
-            "I'll be back, {target}. And next time, I'm bringing snacks.",
-            "Spirit healer, prepare the resurrection glow. I'm coming home."
-        }
-    },
-
-    {
         FSB_ChatterCategory::botHiredPermanent, FSB_ChatterType::None,
         {
             "Looks like we're in this together now, {player}.",
@@ -806,7 +734,7 @@ namespace FSBChatter
     {
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
 
-        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking, whisper_afk, targetKilled, targetKilledHired, botDismissed, botAcknowledge, botFollow, botStay, botMemberDied, botRevived, botRevivedSelf) ---
+        // --- DB-driven path (emote_kiss, emote_flirt, emote_joke, emote_talk, emote_cooking, whisper_afk, targetKilled, targetKilledHired, botDismissed, botAcknowledge, botFollow, botStay, botMemberDied, botRevived, botRevivedSelf, botDeathHired, botDeath) ---
         if (category == FSB_ChatterCategory::emote_kiss ||
             category == FSB_ChatterCategory::emote_flirt ||
             category == FSB_ChatterCategory::emote_joke ||
@@ -821,7 +749,9 @@ namespace FSBChatter
             category == FSB_ChatterCategory::botStay ||
             category == FSB_ChatterCategory::botMemberDied ||
             category == FSB_ChatterCategory::botRevived ||
-            category == FSB_ChatterCategory::botRevivedSelf)
+            category == FSB_ChatterCategory::botRevivedSelf ||
+            category == FSB_ChatterCategory::botDeathHired ||
+            category == FSB_ChatterCategory::botDeath)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);

@@ -900,7 +900,7 @@ namespace FSBGenAIPrompts
         if (!FSBGenAI::IsEnabled())
         {
             Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
-            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
             return;
         }
 
@@ -909,11 +909,12 @@ namespace FSBGenAIPrompts
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
-            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
             return;
         }
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 
@@ -944,7 +945,7 @@ namespace FSBGenAIPrompts
 
         ai->genAIFallbackAction = [bot, killerGuid, category]() {
             Unit* killer = ObjectAccessor::GetUnit(*bot, killerGuid);
-            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::None);
+            FSBChatter::DemandBotChatter(bot, killer, category, FSB_ReplyType::Yell, FSB_ChatterSource::Bot);
         };
         ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
         ai->pendingGenAIState->replyType = FSB_ReplyType::Yell;
