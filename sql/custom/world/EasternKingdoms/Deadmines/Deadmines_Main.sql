@@ -275,10 +275,11 @@ UPDATE `creature_template_addon` SET `auras` = '87239 88348' WHERE `entry` = 437
 UPDATE `creature_template_addon` SET `auras` = '89734' WHERE `entry` IN (48276, 48293, 48295, 48298, 48299, 48302); -- Rotten Food aura
 
 -- Add missing template addons
-DELETE FROM `creature_template_addon` WHERE `entry` IN (51594);
+DELETE FROM `creature_template_addon` WHERE `entry` IN (51594,47754);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`,
 `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
-(51594, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '93484');
+(51594, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '93484'),
+(47754, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '89251 89252'); -- Cookies Cauldron
 
 -- Spawn Updates
 UPDATE `creature` SET `ZoneId` = 1581, `AreaId` = 1581, `spawnDifficulties` = '1,2,24' WHERE `map` = 36 AND `PhaseId` IN (0, 169);
@@ -579,7 +580,7 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (49041, 46598, 0, 0),
 (49042, 46598, 0, 0);
 
-DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278,92042,89732,89267);
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (91397,87897,87900,89769,88278,92042,89732,89267,89250);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (88278, 'spell_helix_force_player_to_ride_oaf'),
 (89769, 'spell_mining_powder_explode'),
@@ -587,7 +588,8 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (87897, 'spell_glubtok_generic_proc'),
 (87900, 'spell_glubtok_generic_proc'),
 (89732, 'spell_captain_cookie_nauseated'),
-(89267, 'spell_captain_cookie_setiated');
+(89267, 'spell_captain_cookie_setiated'),
+(89250, 'spell_captain_cookie_summon_cauldron');
 
 DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266,49208,47403,47404);
 INSERT INTO `creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES

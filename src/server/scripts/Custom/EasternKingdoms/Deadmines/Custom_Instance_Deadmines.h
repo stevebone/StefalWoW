@@ -401,6 +401,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 Bomb50pct = 2;
             static constexpr int8 Bomb25pct = 3;
             static constexpr int8 KilledUnit = 4;
+            static constexpr int8 FinalAct = 5;
 
             // Trap Bunny
             static constexpr int8 VanessaTrapBunnyWarning = 0;
@@ -757,11 +758,10 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         // Captain Cookie Events
         static constexpr int8 CookieMoveToCauldron = 1;
-        static constexpr int8 CookieSummonCauldron = 2;
-        static constexpr int8 CookieJumpToCauldron = 3;
-        static constexpr int8 CookieEnterCauldron = 4;
-        static constexpr int8 CookieThrowFood = 5;
-        static constexpr int8 CookieEnableMurloc = 6;
+        static constexpr int8 CookieJumpToCauldron = 2;
+        static constexpr int8 CookieEnterCauldron = 3;
+        static constexpr int8 CookieThrowFood = 4;
+        static constexpr int8 CookieEnableMurloc = 5;
 
         namespace VanessaVanCleef
         {
@@ -784,6 +784,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 IcicleAOE = 17;
             static constexpr int8 SpiritStrike = 18;
             static constexpr int8 Spiders = 19;
+            static constexpr int8 BossIntroMove = 20;
 
             // Intro
             static constexpr int8 IntroJump = 1;
@@ -935,6 +936,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         };
 
         // Captain Cookie
+        static constexpr Position CookieCauldronSpawn = { -64.2552f, -820.2449f, 41.2374f };
         static constexpr Position VanessaNoteSpawn = { -74.3611f, -820.014f, 40.3714f, 0.0f };
 
         // Vanessa VanCleef

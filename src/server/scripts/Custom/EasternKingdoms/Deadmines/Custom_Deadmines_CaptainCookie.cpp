@@ -114,7 +114,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             me->AttackStop();
             me->SetReactState(REACT_PASSIVE);
             DoCastSelf(Spells::CookieAchievCredit, true);
-            _events.RescheduleEvent(Events::CookieSummonCauldron, 1s);
+            _events.RescheduleEvent(Events::CookieMoveToCauldron, 1s);
             _events.RescheduleEvent(Events::CookieEnableMurloc, 160s);
             DoZoneInCombat();
         }
@@ -129,6 +129,7 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (type == POINT_MOTION_TYPE && id == POINT_MOVE)
             {
+                DoCastSelf(Spells::CauldronSummon, true);
                 me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                 me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
 
@@ -145,8 +146,8 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 _cauldronGuid = summon->GetGUID();
                 summon->SetReactState(REACT_PASSIVE);
-                summon->CastSpell(summon, Spells::CauldronVisual, true);
-                summon->CastSpell(summon, Spells::CauldronFire, true);
+                //summon->CastSpell(summon, Spells::CauldronVisual, true);
+                //summon->CastSpell(summon, Spells::CauldronFire, true);
             }
         }
 
@@ -194,15 +195,6 @@ namespace Scripts::EasternKingdoms::Deadmines
             {
                 switch (eventId)
                 {
-                case Events::CookieSummonCauldron:
-                {
-                    if (Creature* cauldronBunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CuldronSpawnBunny))
-                    {
-                        me->SummonCreature(Creatures::Cauldron, cauldronBunny->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN);
-                        _events.RescheduleEvent(Events::CookieMoveToCauldron, 2s);
-                    }
-                    break;
-                }
                 case Events::CookieMoveToCauldron:
                 {
                     if (Creature* cookieJumpBunny = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CookieJumpCuldronBunny))
