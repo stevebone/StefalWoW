@@ -1697,8 +1697,8 @@ namespace Scripts::EasternKingdoms::Deadmines
         {
             if (Creature* bunny = me->SummonCreature(Creatures::GeneralPurposeBunnyJMF, -52.31f, -820.18f, 51.91f, 3.32963f, TEMPSUMMON_MANUAL_DESPAWN))
             {
-                bunny->AddUnitFlag(UNIT_FLAG_STUNNED);
-                bunny->AddUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                bunny->SetUnitFlag(UNIT_FLAG_STUNNED);
+                bunny->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
                 bunny->SetReactState(REACT_AGGRESSIVE);
                 bunny->SetFaction(18);
                 bunny->Attack(me, true);
