@@ -28,6 +28,7 @@
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
+#include "Managers/Followship_bots_npc_chat_manager.h"
 
 class followship_bots_world_script : public WorldScript
 {
@@ -37,6 +38,7 @@ public:
     void OnUpdate(uint32 diff) override
     {
         FSBChatMgr::Get()->Update(diff);
+        FSBNpcChatMgr::Get()->Update(diff);
     }
 };
 

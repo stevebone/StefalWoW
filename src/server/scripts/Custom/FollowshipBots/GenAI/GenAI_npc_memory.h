@@ -15,30 +15,33 @@
  * This code is provided for personal and educational use within the
  * Stefal WoW Project. It is not intended for commercial distribution,
  * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Followship_bots_ai_base.h"
-#include "Followship_bots_chat_handler.h"
-#include "Handlers/Followship_bots_dungeon_handler.h"
+#pragma once
 
-FSB_BaseAI::~FSB_BaseAI()
-{
-    FSBChatMgr::Get()->LeaveBotChannels(me);
-    FSBChatMgr::Get()->UnregisterActiveBot(me);
-    delete botDungeonData;
-}
+#include <deque>
+#include <shared_mutex>
+#include <unordered_map>
 
-void FSB_BaseAI::AddChatMemory(uint32 channelId, std::string const& sender, std::string const& msg, bool isPlayer)
-{
-    GenAINpcMemoryMgr::Get()->AddEntry(me->GetGUID(), channelId, sender, msg, isPlayer);
-}
+#include "Common.h"
+#include "ObjectGuid.h"
 
-std::deque<BotChatMemoryEntry> FSB_BaseAI::GetChatMemory() const
-{
-    return GenAINpcMemoryMgr::Get()->GetMemory(me->GetGUID());
-}
+#include "GenAI/GenAI_chat_memory.h"
 
-void FSB_BaseAI::ClearChatMemory()
+class GenAINpcMemoryMgr
 {
-    GenAINpcMemoryMgr::Get()->ClearMemory(me->GetGUID());
-}
+public:
+    static GenAINpcMemoryMgr* Get();
+
+    void AddEntry(ObjectGuid npcGuid, uint32 channelId, std::string const& sender, std::string const& msg, bool isPlayer);
+    std::deque<BotChatMemoryEntry> GetMemory(ObjectGuid npcGuid) const;
+    void ClearMemory(ObjectGuid npcGuid);
+    void RemoveIfUnused(ObjectGuid npcGuid);
+
+private:
+    std::unordered_map<ObjectGuid, std::deque<BotChatMemoryEntry>> _memories;
+    mutable std::shared_mutex _mutex;
+};

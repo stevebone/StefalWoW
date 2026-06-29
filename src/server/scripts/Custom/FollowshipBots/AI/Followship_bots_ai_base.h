@@ -41,6 +41,7 @@
 #include "Followship_bots_spells_handler.h"
 
 #include "GenAI/GenAI_chat_memory.h"
+#include "GenAI/GenAI_npc_memory.h"
 
 struct FSB_ClassStats;
 struct FSB_DungeonData;
@@ -194,8 +195,6 @@ public:
     };
 
     BotChatData botChatData;
-
-    std::deque<BotChatMemoryEntry> botChatMemory;
 
     void AddChatMemory(uint32 channelId, std::string const& sender, std::string const& msg, bool isPlayer);
     std::deque<BotChatMemoryEntry> GetChatMemory() const;
