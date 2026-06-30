@@ -68,6 +68,9 @@ public:
         if (channel->GetChannelId() != 1)
             return;
 
+        if (!msg.empty() && msg[0] == '.')
+            return;
+
         FSBChatMgr::Get()->HandlePlayerGeneralChat(player, channel, msg);
     }
 
