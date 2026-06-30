@@ -195,58 +195,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
     },
 
     {
-        FSB_ChatterCategory::botHiredPermanent, FSB_ChatterType::None,
-        {
-            "Looks like we're in this together now, {player}.",
-            "Alright. I'm yours until the end - wherever that may be.",
-            "No contracts, no timers. I'll stay with you.",
-            "Seems I've chosen a side. Let's make it a good one, {player}.",
-            "You've got yourself a companion, not just hired help.",
-            "I'm in. Wherever you go, I follow.",
-            "Well then. looks like I'm part of your story now.",
-            "No turning back now. I've got your back, {player}.",
-            "Guess this makes us partners.",
-            "From now on, I fight by your side.",
-            "Permanent, huh? Bold choice. Let's see how this goes.",
-            "I suppose this is what loyalty feels like.",
-            "No clock ticking anymore. I'm with you."
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botRevivedTarget, FSB_ChatterType::None,
-        {
-            "Hey, {target}, Don't you die on me again, ok?",
-            "Ah, you're good as new, {target}!",
-            "Aren't you glad you brought me along?",
-            "Hope I don't have to revive you again, {target}!",
-            "One resurrect for you and another for... oh nevermind!",
-            "This resurrect is for free, next one...",
-            "Hope you appreciate the revival, {target}!",
-            "Rise, {target}! The spirits aren't done with you yet.",
-            "Back from the brink, {target}. Try not to visit again so soon.",
-            "The Light has plans for you, {target}. Don't waste them.",
-            "On your feet, {target}. Death was getting bored of you.",
-            "I dragged your soul back myself, {target}. You're welcome.",
-            "Wake up, {target}. The afterlife said 'no refunds'.",
-            "You owe me one, {target}. Preferably something shiny.",
-            "Arise, {target}! Your corpse was lowering team morale.",
-            "Death rejected your application, {target}. Try again later.",
-            "The ancestors said you still have chores to do, {target}.",
-            "Get up, {target}. The battle isn't going to lose itself.",
-            "I stitched your soul back in place, {target}. Don't pull the seams.",
-            "You're alive again, {target}. Try to stay that way this time.",
-            "The spirits whispered your name, {target}. I told them 'not today'.",
-            "Up you go, {target}. Gravity won't keep you forever.",
-            "I bring you back, {target}. What you do with that is. questionable.",
-            "Your story continues, {target}. Try not to make it a short one.",
-            "The Light shines upon you, {target}. Mostly because I forced it to.",
-            "Welcome back, {target}. Your corpse was starting to smell.",
-            "There you are, {target}. Don't scare me like that again."
-        }
-    },
-
-    {
         FSB_ChatterCategory::botHealTarget, FSB_ChatterType::None,
         {
             "Hey, {target}, Don't you feel stronger already!",
@@ -657,25 +605,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
         }
     },
 
-    {
-        FSB_ChatterCategory::botHire, FSB_ChatterType::None,
-        {
-            "Hey {player}, I am all yours for the next {duration}.",
-            "Alright {player}, let's band together for {duration}.",
-            "Ok, I'll come along, {player}, since you paid me for {duration}.",
-            "Only {duration}? Sure thing, {player}.",
-            "Well {player}, my calendar is empty for {duration}. Let's make poor life choices.",
-            "I suppose {duration} with you won't kill me, {player}. Probably.",
-            "You pay, I follow, {player}. {duration} it is.",
-            "For {duration}, {player}, I am your loyal companion. After that, we renegotiate.",
-            "Ah yes, {duration} of danger, glory, and questionable decisions, {player}.",
-            "Very well {player}, I shall tolerate you for {duration}.",
-            "{duration}? Fine. But if we die, it's your fault, {player}.",
-            "I was bored anyway, {player}. {duration} sounds perfect.",
-            "Gold talks, {player}. And it says '{duration} of adventure.'",
-            "Let's do this, {player}. {duration} in, we pretend we planned it."
-        }
-    },
 };
 
 namespace FSBChatter
@@ -751,7 +680,10 @@ namespace FSBChatter
             category == FSB_ChatterCategory::botRevived ||
             category == FSB_ChatterCategory::botRevivedSelf ||
             category == FSB_ChatterCategory::botDeathHired ||
-            category == FSB_ChatterCategory::botDeath)
+            category == FSB_ChatterCategory::botDeath ||
+            category == FSB_ChatterCategory::botHiredPermanent ||
+            category == FSB_ChatterCategory::botHire ||
+            category == FSB_ChatterCategory::botRevivedTarget)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);

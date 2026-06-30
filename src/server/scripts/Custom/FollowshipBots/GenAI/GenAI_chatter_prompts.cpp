@@ -357,14 +357,15 @@ namespace FSBGenAIPrompts
 
         bool isPermanent = (durationHours == 0);
         FSB_ChatterCategory category = isPermanent ? FSB_ChatterCategory::botHiredPermanent : FSB_ChatterCategory::botHire;
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
         if (!FSBGenAI::IsEnabled())
         {
             if (isPermanent)
-                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             else
             {
-                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, durationHours);
+                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, durationHours);
                 if (!chatter.empty())
                     bot->Say(chatter, LANG_UNIVERSAL);
             }
@@ -376,10 +377,10 @@ namespace FSBGenAIPrompts
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
             if (isPermanent)
-                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             else
             {
-                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, durationHours);
+                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, durationHours);
                 if (!chatter.empty())
                     bot->Say(chatter, LANG_UNIVERSAL);
             }
@@ -389,7 +390,7 @@ namespace FSBGenAIPrompts
         Player* owner = FSBMgr::Get()->GetBotOwner(bot);
         std::string ownerName = owner ? owner->GetName() : "commander";
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, isPermanent ? 0 : durationHours);
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, isPermanent ? 0 : durationHours);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 
@@ -414,11 +415,12 @@ namespace FSBGenAIPrompts
         }
 
         ai->genAIFallbackAction = [bot, category, durationHours]() {
+            FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
             if (category == FSB_ChatterCategory::botHiredPermanent)
-                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+                FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             else
             {
-                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, durationHours);
+                std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, durationHours);
                 if (!chatter.empty())
                     bot->Say(chatter, LANG_UNIVERSAL);
             }
@@ -1011,11 +1013,12 @@ namespace FSBGenAIPrompts
             return;
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botRevivedTarget;
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(healer->GetEntry());
 
         if (!FSBGenAI::IsEnabled())
         {
             Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
-            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, 0);
             return;
         }
 
@@ -1024,11 +1027,11 @@ namespace FSBGenAIPrompts
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for healer {}, falling back to hardcoded chatter.", healer->GetName());
             Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
-            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, 0);
             return;
         }
 
-        std::string seedLine = FSBChatter::GetRandomReply(healer, nullptr, category, FSB_ChatterType::None, 0, 0);
+        std::string seedLine = FSBChatter::GetRandomReply(healer, nullptr, category, personalityType, 0, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(healer);
 
@@ -1044,7 +1047,7 @@ namespace FSBGenAIPrompts
 
         ai->genAIFallbackAction = [healer, targetGuid, category]() {
             Unit* target = ObjectAccessor::GetUnit(*healer, targetGuid);
-            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::None, 0);
+            FSBChatter::DemandBotChatter(healer, target, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, 0);
         };
         ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
         auto state = ai->pendingGenAIState;
