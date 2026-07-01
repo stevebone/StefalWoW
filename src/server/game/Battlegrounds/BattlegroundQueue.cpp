@@ -685,6 +685,9 @@ bool BattlegroundQueue::CheckNormalMatch(BattlegroundBracketId bracket_id, uint3
     //allow 1v0 if debug bg
     if (sBattlegroundMgr->isTesting() && (m_SelectionPools[TEAM_ALLIANCE].GetPlayerCount() || m_SelectionPools[TEAM_HORDE].GetPlayerCount()))
         return true;
+    //allow 1v0 if FSB override is enabled
+    if (sBattlegroundMgr->IsFSBOverrideEnabled() && (m_SelectionPools[TEAM_ALLIANCE].GetPlayerCount() >= minPlayers || m_SelectionPools[TEAM_HORDE].GetPlayerCount() >= minPlayers))
+        return true;
     //return true if there are enough players in selection pools - enable to work .debug bg command correctly
     return m_SelectionPools[TEAM_ALLIANCE].GetPlayerCount() >= minPlayers && m_SelectionPools[TEAM_HORDE].GetPlayerCount() >= minPlayers;
 }
@@ -723,7 +726,7 @@ bool BattlegroundQueue::CheckSkirmishForSameFaction(BattlegroundBracketId bracke
         if (!(*itr_team2)->IsInvitedToBGInstanceGUID && !m_SelectionPools[otherTeam].AddGroup(*itr_team2, minPlayersPerTeam))
             break;
     }
-    if (m_SelectionPools[otherTeam].GetPlayerCount() != minPlayersPerTeam)
+    if (m_SelectionPools[otherTeam].GetPlayerCount() != minPlayersPerTeam && !sBattlegroundMgr->IsFSBOverrideEnabled())
         return false;
 
     //here we have correct 2 selections and we need to change one teams team and move selection pool teams to other team's queue
@@ -817,9 +820,9 @@ void BattlegroundQueue::BattlegroundQueueUpdate(uint32 /*diff*/, BattlegroundBra
     if (bg_template->IsArena())
     {
         MaxPlayersPerTeam = m_queueId.TeamSize;
-        MinPlayersPerTeam = sBattlegroundMgr->isArenaTesting() ? 1 : m_queueId.TeamSize;
+        MinPlayersPerTeam = (sBattlegroundMgr->isArenaTesting() || sBattlegroundMgr->IsFSBOverrideEnabled()) ? 1 : m_queueId.TeamSize;
     }
-    else if (sBattlegroundMgr->isTesting())
+    else if (sBattlegroundMgr->isTesting() || sBattlegroundMgr->IsFSBOverrideEnabled())
         MinPlayersPerTeam = 1;
 
     m_SelectionPools[TEAM_ALLIANCE].Init();
