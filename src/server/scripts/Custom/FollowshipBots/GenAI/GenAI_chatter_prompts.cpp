@@ -775,6 +775,7 @@ namespace FSBGenAIPrompts
             return;
 
         FSB_ChatterCategory category = FSB_ChatterCategory::botCombatSpell;
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
         if (!FSBGenAI::IsEnabled())
         {
@@ -792,7 +793,7 @@ namespace FSBGenAIPrompts
             return;
         }
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, spellId, 0);
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, spellId, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 

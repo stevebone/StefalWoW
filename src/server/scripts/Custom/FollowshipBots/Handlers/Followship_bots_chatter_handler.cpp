@@ -227,135 +227,6 @@ std::vector<FSBChatterReplyEntry> FSBReplyTable =
         }
     },
 
-    {
-        FSB_ChatterCategory::botCombatSpell, FSB_ChatterType::Neutral,
-        {
-            "Hey, {target}, do you like my {spell}",
-            "Take that, you {target}!",
-            "Feel the power of my {spell}!",
-            "You're gonna feel this one, {target}!",
-            "One {spell} for you and another for you {target}.",
-            "I've got more {spell} from where this came from!",
-            "Hope you like my {spell}, you {target}!",
-            "Hey {target}, how about a taste of my {spell}?",
-            "Take this {spell}, {target}! Freshly cast.",
-            "Feel the sting of my {spell}, {target}!",
-            "Incoming {spell}! Try to dodge this one, {target}.",
-            "One {spell} for you, {target}, and plenty more where that came from.",
-            "Hope you enjoy my {spell}, {target}!",
-            "Let's see how you handle this {spell}, {target}.",
-            "Brace yourself, {target}. My {spell} isn't gentle.",
-            "Here comes a friendly little {spell}. just kidding, {target}.",
-            "You're gonna feel this {spell}, {target}!",
-            "My {spell} says hello, {target}.",
-            "Don't take it personally, {target}. It's just a {spell}.",
-            "Try not to explode from this {spell}, {target}.",
-            "I cast {spell}! You deal with it, {target}.",
-            "Hope you like surprises, {target}. This one's called {spell}.",
-            "Catch this {spell}, {target}! No refunds.",
-            "You look like you need a {spell} to the face, {target}.",
-            "Here, {target}-a complimentary {spell}.",
-            "My {spell} is coming for you, {target}. Good luck.",
-            "Let's brighten your day with a {spell}, {target}.",
-            "Let's see how you handle this.",
-            "Hope you're ready, {target}!",
-            "Casting {spell}! Try not to blink.",
-            "You look like you need a little magical encouragement.",
-            "Incoming! Don't say I didn't warn you.",
-            "Alright {target}, here comes something spicy.",
-            "A little {spell} should brighten your day.",
-            "Hold still, this works better if you don't move.",
-            "Let's test your reflexes, {target}.",
-            "Time for a bit of fireworks.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botCombatSpell, FSB_ChatterType::Negative,
-        {
-            "Hey, {target}, do you like my {spell}",
-            "Take that, you {target}!",
-            "Feel the power of my {spell}!",
-            "You're gonna feel this one, {target}!",
-            "One {spell} for you and another for you {target}.",
-            "I've got more {spell} from where this came from!",
-            "Hope you like my {spell}, you {target}!",
-            "Scream for me, {target}! My {spell} is hungry!",
-            "You can't escape this {spell}, {target}. Not today.",
-            "Fall before my {spell}, {target}! Fall HARD.",
-            "I will break you, {target}, one {spell} at a time!",
-            "Feel the wrath of my {spell}, {target}! FEEL IT!",
-            "Run if you want, {target}. My {spell} will find you.",
-            "Your suffering fuels my {spell}, {target}!",
-            "Kneel, {target}! My {spell} demands it!",
-            "I hope you like pain, {target}, because my {spell} brings plenty.",
-            "You look fragile, {target}. Let my {spell} finish the job.",
-            "My {spell} will carve your defeat into the battlefield, {target}.",
-            "Beg all you want, {target}. My {spell} doesn't listen.",
-            "I'll crush you with this {spell}, {target}!",
-            "Your end begins with this {spell}, {target}.",
-            "Try to survive this {spell}, {target}. I dare you.",
-            "My {spell} will be the last thing you remember, {target}.",
-            "You're nothing before my {spell}, {target}!",
-            "Fall, {target}! My {spell} commands it!",
-            "I will enjoy watching this {spell} hit you, {target}.",
-            "Your defeat is inevitable, {target}. My {spell} makes sure of it.",
-            "You're already doomed, {target}. This just speeds it up.",
-            "My {spell} is going to ruin your whole day.",
-            "Try surviving this, I dare you.",
-            "You picked the wrong fight, {target}.",
-            "I hope you like pain, because here comes plenty.",
-            "This {spell} is the beginning of your end.",
-            "I'm not holding back anymore.",
-            "Fall already, {target}. You're wasting my time.",
-            "Let's see how loud you scream when this hits.",
-            "You won't forget this {spell}. assuming you survive.",
-        }
-    },
-
-    {
-        FSB_ChatterCategory::botCombatSpell, FSB_ChatterType::Positive,
-        {
-            "I truly wish this wasn't necessary.",
-            "May this {spell} guide you toward better choices, {target}.",
-            "Let's resolve this quickly and calmly.",
-            "I hope this doesn't hurt too much.",
-            "Balance must be restored. even if it requires a {spell}.",
-            "Please forgive me, {target}.",
-            "I strike only to end the conflict.",
-            "May harmony return after this.",
-            "I'll try to make this gentle. but {spell} has its own ideas.",
-            "Let's finish this without further harm.",
-            "Hey, {target}, do you like my {spell}",
-            "Take that, you {target}!",
-            "Feel the power of my {spell}!",
-            "You're gonna feel this one, {target}!",
-            "One {spell} for you and another for you {target}.",
-            "I've got more {spell} from where this came from!",
-            "Hope you like my {spell}, you {target}!",
-            "Forgive me, {target}. but this {spell} must be done.",
-            "I take no joy in this, {target}. May this {spell} be swift.",
-            "Peace be with you, {target}. Even as my {spell} lands.",
-            "I wish there were another way, {target}. Please accept this {spell}.",
-            "May harmony guide us both, {target}. Even through this {spell}.",
-            "I hope this {spell} teaches balance, not pain, {target}.",
-            "Breathe deeply, {target}. The {spell} will pass.",
-            "Let this {spell} be a gentle reminder, {target}.",
-            "I strike only to restore balance, {target}.",
-            "May this {spell} bring clarity, {target}, not suffering.",
-            "I mean no harm, {target}. But my {spell} disagrees.",
-            "Let us learn from this moment, {target}. Starting with this {spell}.",
-            "I hope you find peace after this {spell}, {target}.",
-            "Please don't take this personally, {target}. It's just a {spell}.",
-            "May your spirit remain calm, {target}, even as my {spell} lands.",
-            "Violence is not my wish, {target}. But {spell} insists.",
-            "I cast this {spell} with a heavy heart, {target}.",
-            "May this {spell} guide you toward wisdom, {target}.",
-            "I apologize in advance, {target}. My {spell} is unavoidable.",
-            "Let this {spell} be the last strike between us, {target}."
-        }
-    },
-
 };
 
 namespace FSBChatter
@@ -440,7 +311,8 @@ namespace FSBChatter
             category == FSB_ChatterCategory::botBuffSelf ||
             category == FSB_ChatterCategory::botBuffTarget ||
             category == FSB_ChatterCategory::botOOCRecovery ||
-            category == FSB_ChatterCategory::botOOCRecoveryHired)
+            category == FSB_ChatterCategory::botOOCRecoveryHired ||
+            category == FSB_ChatterCategory::botCombatSpell)
         {
             uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
             auto it = BotChatterLinesMap.find(key);
