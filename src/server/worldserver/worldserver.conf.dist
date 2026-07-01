@@ -4426,6 +4426,14 @@ Load.Locales = 1
 # Default: 0
 Followship.Bots.Enabled = 1
 
+# Override Battleground Requirements
+#
+# Allows battlegrounds and arena skirmishes to start with fewer than the normal
+# minimum players. When enabled, a single queued player is enough to start a match
+# even if the opposing team is empty. The test script can then fill empty teams.
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.OverrideBattlegroundRequirements = 0
+
 # Base Cost Per Level
 #
 # The price of the bot is calculated with a base price times player level and times duration of contract.
@@ -4743,6 +4751,13 @@ Followship.Bots.GenAI.FrequencyPenalty = 0.8
 # Range 0.0 - 2.0
 # Default: 0.6
 Followship.Bots.GenAI.PresencePenalty = 0.6
+
+# GenAI Auto Start Quest From Chat
+#
+# When enabled, if an NPC's quest state transitions to 3 (accepted) via LLM chat,
+# the quest is automatically added to the player's quest log.
+# Example values: 1 to enable, 0 to disable. Default: 0
+Followship.Bots.GenAI.AutoStartQuestFromChat = 0
 
 # Followship Bots Logging
 # These follow the standard Trinity format

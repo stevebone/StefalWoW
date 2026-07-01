@@ -45,6 +45,8 @@ public:
         std::mutex mutex;
 
         std::string reply;
+        uint8 questState = 0;
+        uint32 questId = 0;
 
         ObjectGuid npcGuid;
         ObjectGuid playerGuid;

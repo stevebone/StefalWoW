@@ -40,6 +40,8 @@ namespace FSBNpcPrompts
         uint32 zoneId = 0;
         uint32 areaId = 0;
         bool hasQuest = false;
+        uint8 questState = 0;
+        uint32 questId = 0;
         std::string questTitle;
         std::string questDescription;
         std::string inGameTime;
@@ -51,6 +53,7 @@ namespace FSBNpcPrompts
         std::string reply;
         std::string action = "none";
         uint32 amount = 0;
+        uint8 questState = 0;
     };
 
     struct PlayerSnapshot

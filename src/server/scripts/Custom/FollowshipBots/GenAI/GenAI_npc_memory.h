@@ -41,7 +41,11 @@ public:
     void ClearMemory(ObjectGuid npcGuid);
     void RemoveIfUnused(ObjectGuid npcGuid);
 
+    uint8 GetQuestState(ObjectGuid npcGuid) const;
+    void SetQuestState(ObjectGuid npcGuid, uint8 state);
+
 private:
     std::unordered_map<ObjectGuid, std::deque<BotChatMemoryEntry>> _memories;
+    std::unordered_map<ObjectGuid, uint8> _questStates;
     mutable std::shared_mutex _mutex;
 };

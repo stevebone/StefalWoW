@@ -279,9 +279,10 @@ namespace FSBGenAI
         return parser->ExtractContent(responseJson);
     }
 
-    bool ParseStructuredResponse(std::string const& jsonStr, std::string& reply, std::string& action, uint32& amount)
+    bool ParseStructuredResponse(std::string const& jsonStr, std::string& reply, std::string& action, uint32& amount,
+        uint8* questState)
     {
         IGenAIResponseParser const* parser = GetResponseParser(static_cast<GenAIProvider>(FollowshipBotsConfig::configFSBGenAIProvider));
-        return parser->ExtractStructured(jsonStr, reply, action, amount);
+        return parser->ExtractStructured(jsonStr, reply, action, amount, questState);
     }
 }

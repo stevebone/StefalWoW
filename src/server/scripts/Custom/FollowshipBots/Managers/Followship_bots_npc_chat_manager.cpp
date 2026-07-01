@@ -23,12 +23,16 @@
 #include "Followship_bots_npc_chat_manager.h"
 
 #include "Creature.h"
+#include "Log.h"
 #include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Player.h"
+#include "QuestDef.h"
 #include "Random.h"
 #include "SharedDefines.h"
 #include "Timer.h"
 
+#include "Config/Followship_bots_config.h"
 #include "GenAI/GenAI_npc_memory.h"
 
 FSBNpcChatMgr* FSBNpcChatMgr::Get()
@@ -45,6 +49,7 @@ void FSBNpcChatMgr::AddPendingReply(ObjectGuid npcGuid, ObjectGuid playerGuid, s
     state->npcGuid = npcGuid;
     state->playerGuid = playerGuid;
     state->playerName = playerName;
+    state->questId = ctx.questId;
 
     std::thread([state, ctx, playerSnap, playerMsg, memory]() mutable
     {
@@ -56,6 +61,7 @@ void FSBNpcChatMgr::AddPendingReply(ObjectGuid npcGuid, ObjectGuid playerGuid, s
             {
                 std::lock_guard<std::mutex> lock(state->mutex);
                 state->reply = std::move(resp.reply);
+                state->questState = resp.questState;
             }
         }
         catch (...)
@@ -105,9 +111,11 @@ void FSBNpcChatMgr::Update(uint32 /*diff*/)
     for (auto& state : readyReplies)
     {
         std::string reply;
+        uint8 questState = 0;
         {
             std::lock_guard<std::mutex> lock(state->mutex);
             reply = std::move(state->reply);
+            questState = state->questState;
         }
 
         if (reply.empty())
@@ -125,6 +133,31 @@ void FSBNpcChatMgr::Update(uint32 /*diff*/)
         npc->Say(reply, LANG_UNIVERSAL, player);
 
         GenAINpcMemoryMgr::Get()->AddEntry(state->npcGuid, CHAT_MSG_SAY, npc->GetName(), reply, false);
+        GenAINpcMemoryMgr::Get()->SetQuestState(state->npcGuid, questState);
+
+        if (questState == 3 && state->questId != 0)
+        {
+            if (!FollowshipBotsConfig::configFSBGenAIAutoStartQuest)
+            {
+                TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: quest state 3 reached for quest {} but AutoStartQuestFromChat is disabled", state->questId);
+            }
+            else
+            {
+                Quest const* quest = sObjectMgr->GetQuestTemplate(state->questId);
+                if (!quest)
+                    TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: quest template {} not found", state->questId);
+                else if (!player->CanTakeQuest(quest, false))
+                    TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: player cannot take quest {}", state->questId);
+                else if (!player->CanAddQuest(quest, false))
+                    TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: player cannot add quest {} (quest log full?)", state->questId);
+                else
+                {
+                    player->AddQuestAndCheckCompletion(quest, npc);
+                    GenAINpcMemoryMgr::Get()->SetQuestState(state->npcGuid, 0);
+                    TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: quest {} auto-started for player {}", state->questId, player->GetName());
+                }
+            }
+        }
     }
 }
 

@@ -38,35 +38,10 @@
 
 #include "Utils/Followship_bots_utils.h"
 
-#include <algorithm>
-#include <vector>
+#include "GenAI/GenAI_npc_memory.h"
 
 namespace FSBNpcPrompts
 {
-    static bool PlayerIsOfferingHelp(std::string const& msg)
-    {
-        std::string lower = msg;
-        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-
-        static const std::vector<std::string> helpKeywords =
-        {
-            "help", "assist", "need a hand", "need hand", "give you a hand",
-            "what's wrong", "whats wrong", "what is wrong",
-            "what do you need", "what you need", "anything i can do",
-            "anything i can help", "can i help", "work for me",
-            "got work", "any work", "you seem troubled", "you look troubled",
-            "what's the matter", "whats the matter", "are you okay",
-            "you okay", "trouble", "quest", "task", "job for me",
-            "do for you", "fetch", "bring", "collect", "gather"
-        };
-
-        for (auto const& kw : helpKeywords)
-            if (lower.find(kw) != std::string::npos)
-                return true;
-
-        return false;
-    }
-
     BotChatResponse GenerateNpcReply(NpcChatContext const& ctx, PlayerSnapshot const& player, std::string const& playerMsg,
         std::deque<BotChatMemoryEntry> const& memory)
     {
@@ -116,25 +91,36 @@ namespace FSBNpcPrompts
                 std::to_string(player.level) + ".\n";
         }
 
-        bool playerOfferingHelp = ctx.hasQuest && PlayerIsOfferingHelp(playerMsg);
+        systemPrompt += "\nConversation History:\n";
+        for (auto const& entry : memory)
+            systemPrompt += entry.senderName + ": " + entry.message + "\n";
 
-        if (ctx.hasQuest && playerOfferingHelp)
+        if (ctx.hasQuest && ctx.questState > 0)
         {
             systemPrompt +=
-                "\nPRIVATE QUEST CONTEXT (you know this, the player has offered to help):\n"
+                "\nPRIVATE QUEST CONTEXT:\n"
                 "- quest_title: \"" + ctx.questTitle + "\"\n"
                 "- quest_description: \"" + ctx.questDescription + "\"\n"
-                "\nThe player has offered to help or asked what you need. Briefly and naturally describe the task in 2-3 sentences using the quest context above.\n";
+                "- current_quest_state: " + std::to_string(ctx.questState) + "\n"
+                "\nSTATE INSTRUCTIONS:\n"
+                "- State 1 (quest available): You have a task but have NOT told the player yet. Do NOT mention it unless the player explicitly offers help, asks what you need, or asks if something is wrong. If they do, describe the task naturally in 2-3 sentences and set questState to 2.\n"
+                "- State 2 (quest offered): You have already told the player about your task. Answer their follow-up questions about it naturally. If the player agrees or accepts, set questState to 3.\n"
+                "- State 3 (quest accepted): The player has agreed to help. Thank them briefly. Do not repeat the task details.\n"
+                "\nYou MUST respond ONLY in valid JSON with exactly these fields:\n"
+                "- \"questState\": the new state (1, 2, or 3) based on the player's latest message.\n"
+                "- \"reply\": a short in-character reply, natural and conversational, NO quotation marks inside.\n"
+                "Do not repeat or closely paraphrase any reply from the conversation history.\n";
+        }
+        else
+        {
+            systemPrompt +=
+                "\nYou MUST respond ONLY in valid JSON with exactly these fields:\n"
+                "- \"questState\": always 0.\n"
+                "- \"reply\": a short in-character reply, natural and conversational, NO quotation marks inside.\n"
+                "Do not repeat or closely paraphrase any reply from the conversation history.\n";
         }
 
-        systemPrompt +=
-            "\nYou MUST respond ONLY in valid JSON with exactly these fields, IN THIS ORDER:\n"
-            "- \"wants_help\": " + std::string(playerOfferingHelp ? "true" : "false") + " (pre-determined by the system).\n"
-            "- \"reply\": a short in-character reply (10 to 15 words), natural and conversational, NO quotation marks inside.\n";
-
-        std::string userPrompt = "Given the Conversation History below, reply to the latest player message:\n";
-        for (auto const& entry : memory)
-            userPrompt += entry.senderName + ": " + entry.message + "\n";
+        std::string userPrompt = playerMsg;
 
         if (FollowshipBotsConfig::configFSBGenAIEnabled)
         {
@@ -144,11 +130,13 @@ namespace FSBNpcPrompts
                 std::string reply;
                 std::string action;
                 uint32 amount = 0;
-                if (FSBGenAI::ParseStructuredResponse(aiResponse, reply, action, amount))
+                uint8 questState = 0;
+                if (FSBGenAI::ParseStructuredResponse(aiResponse, reply, action, amount, &questState))
                 {
                     result.reply = std::move(reply);
                     result.action = std::move(action);
                     result.amount = amount;
+                    result.questState = questState;
                     return result;
                 }
             }
@@ -157,6 +145,7 @@ namespace FSBNpcPrompts
         result.reply = "Greetings, traveler.";
         result.action = "none";
         result.amount = 0;
+        result.questState = ctx.questState;
         return result;
     }
 
@@ -207,8 +196,12 @@ namespace FSBNpcPrompts
                     continue;
 
                 ctx.hasQuest = true;
+                ctx.questId = questId;
                 ctx.questTitle = quest->GetLogTitle();
                 ctx.questDescription = quest->GetQuestDescription();
+                ctx.questState = GenAINpcMemoryMgr::Get()->GetQuestState(npc->GetGUID());
+                if (ctx.questState == 0)
+                    ctx.questState = 1;
                 break;
             }
         }

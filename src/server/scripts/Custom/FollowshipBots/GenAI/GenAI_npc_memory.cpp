@@ -77,3 +77,18 @@ void GenAINpcMemoryMgr::RemoveIfUnused(ObjectGuid npcGuid)
     if (it != _memories.end() && it->second.empty())
         _memories.erase(it);
 }
+
+uint8 GenAINpcMemoryMgr::GetQuestState(ObjectGuid npcGuid) const
+{
+    std::shared_lock<std::shared_mutex> lock(_mutex);
+    auto it = _questStates.find(npcGuid);
+    if (it != _questStates.end())
+        return it->second;
+    return 0;
+}
+
+void GenAINpcMemoryMgr::SetQuestState(ObjectGuid npcGuid, uint8 state)
+{
+    std::unique_lock<std::shared_mutex> lock(_mutex);
+    _questStates[npcGuid] = state;
+}
