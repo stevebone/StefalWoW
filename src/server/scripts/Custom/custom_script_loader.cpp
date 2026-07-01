@@ -25,6 +25,7 @@ void AddSC_custom_player_mails();
 void AddSC_custom_demonhunter_spell_fixes();
 void AddSC_custom_evoker_spell_fixes();
 void AddSC_custom_hunter_spell_fixes();
+
 void AddSC_custom_shaman_totem_npcs();
 void AddSC_custom_warlock_spell_fixes();
 void AddSC_custom_warlock_demon_npcs();
@@ -58,6 +59,7 @@ void AddSC_followship_bots_player();                // FSB Player Scripts
 void AddSC_followship_bots_commandscript();
 void AddSC_followship_bots_command_template();
 void AddSC_followship_bots_world();                // FSB World Script
+void AddSC_followship_npcs_player();               // FSB NPC Chat Player Script
 
 // ==================== Delves Scripts ======================= //
 void AddSC_delve_system();
@@ -109,6 +111,7 @@ void AddCustomScripts()
     AddSC_custom_demonhunter_spell_fixes();
     AddSC_custom_evoker_spell_fixes();
     AddSC_custom_hunter_spell_fixes();
+
     AddSC_custom_shaman_totem_npcs();
     AddSC_custom_warlock_spell_fixes();
     AddSC_custom_warlock_demon_npcs();
@@ -140,6 +143,7 @@ void AddCustomScripts()
     AddSC_followship_bots_commandscript();
     AddSC_followship_bots_command_template();
     AddSC_followship_bots_world();
+    AddSC_followship_npcs_player();
 
     // Creature Codex
     //AddSC_creature_codex_sniffer();
