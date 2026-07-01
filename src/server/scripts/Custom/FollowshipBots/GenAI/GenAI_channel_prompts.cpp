@@ -33,6 +33,7 @@
 #include "Log.h"
 #include "Creature.h"
 #include "Containers.h"
+#include "Weather.h"
 
 #include <algorithm>
 #include <mutex>
@@ -408,27 +409,63 @@ namespace FSBChannelPrompts
     // ------------------------------------------------------------------
     enum class GeneralTopic
     {
-        ZoneCommentary,   // 20%
+        ZoneCommentary,   // 15%
         LoreMemes,        // 15%
         ClassBanter,      // 15%
         NPCCommentary,    // 10%
         AchievementBrag,  // 10%
         PvPBattleground,  // 10%
-        WorldObservation, // 10%
+        WorldObservation, // 5%
+        TimeOfDay,        // 5%
+        Weather,          // 5%
         SocialGuild       // 10%
     };
 
     GeneralTopic PickRandomTopic()
     {
         uint32 roll = urand(0, 99);
-        if (roll < 20)  return GeneralTopic::ZoneCommentary;
-        if (roll < 35)  return GeneralTopic::LoreMemes;
-        if (roll < 50)  return GeneralTopic::ClassBanter;
-        if (roll < 60)  return GeneralTopic::NPCCommentary;
-        if (roll < 70)  return GeneralTopic::AchievementBrag;
-        if (roll < 80)  return GeneralTopic::PvPBattleground;
-        if (roll < 90)  return GeneralTopic::WorldObservation;
+        if (roll < 15)  return GeneralTopic::ZoneCommentary;
+        if (roll < 30)  return GeneralTopic::LoreMemes;
+        if (roll < 45)  return GeneralTopic::ClassBanter;
+        if (roll < 55)  return GeneralTopic::NPCCommentary;
+        if (roll < 65)  return GeneralTopic::AchievementBrag;
+        if (roll < 75)  return GeneralTopic::PvPBattleground;
+        if (roll < 80)  return GeneralTopic::WorldObservation;
+        if (roll < 85)  return GeneralTopic::TimeOfDay;
+        if (roll < 90)  return GeneralTopic::Weather;
         return GeneralTopic::SocialGuild;
+    }
+
+    static std::vector<std::string> const* GetTimeOfDayPool(int8 hour)
+    {
+        if (hour >= 5 && hour <= 7)   return &GeneralDawnExamples;
+        if (hour >= 8 && hour <= 11)  return &GeneralMorningExamples;
+        if (hour >= 12 && hour <= 16) return &GeneralAfternoonExamples;
+        if (hour >= 17 && hour <= 19) return &GeneralEveningExamples;
+        return &GeneralNightExamples;
+    }
+
+    static std::vector<std::string> const* GetWeatherPool(uint32 weatherStateRaw)
+    {
+        switch (static_cast<WeatherState>(weatherStateRaw))
+        {
+            case WEATHER_STATE_FINE:              return &GeneralWeatherFineExamples;
+            case WEATHER_STATE_FOG:               return &GeneralWeatherFogExamples;
+            case WEATHER_STATE_DRIZZLE:           return &GeneralWeatherDrizzleExamples;
+            case WEATHER_STATE_LIGHT_RAIN:        return &GeneralWeatherLightRainExamples;
+            case WEATHER_STATE_MEDIUM_RAIN:       return &GeneralWeatherMediumRainExamples;
+            case WEATHER_STATE_HEAVY_RAIN:        return &GeneralWeatherHeavyRainExamples;
+            case WEATHER_STATE_LIGHT_SNOW:        return &GeneralWeatherLightSnowExamples;
+            case WEATHER_STATE_MEDIUM_SNOW:       return &GeneralWeatherMediumSnowExamples;
+            case WEATHER_STATE_HEAVY_SNOW:        return &GeneralWeatherHeavySnowExamples;
+            case WEATHER_STATE_LIGHT_SANDSTORM:   return &GeneralWeatherLightSandstormExamples;
+            case WEATHER_STATE_MEDIUM_SANDSTORM:  return &GeneralWeatherMediumSandstormExamples;
+            case WEATHER_STATE_HEAVY_SANDSTORM:   return &GeneralWeatherHeavySandstormExamples;
+            case WEATHER_STATE_THUNDERS:          return &GeneralWeatherThunderExamples;
+            case WEATHER_STATE_BLACKRAIN:         return &GeneralWeatherBlackRainExamples;
+            case WEATHER_STATE_BLACKSNOW:         return &GeneralWeatherBlackSnowExamples;
+            default:                              return &GeneralWeatherFineExamples;
+        }
     }
 
     std::string GetRandomAchievementName()
@@ -543,6 +580,20 @@ namespace FSBChannelPrompts
             pool = &GeneralSocialExamples;
             poolDesc = "make casual social chat";
             break;
+
+        case GeneralTopic::TimeOfDay:
+            pool = GetTimeOfDayPool(ctx.inGameHour);
+            if (!pool || pool->empty())
+                pool = &GeneralWorldExamples;
+            poolDesc = "comment about the current time of day";
+            break;
+
+        case GeneralTopic::Weather:
+            pool = GetWeatherPool(ctx.weatherStateRaw);
+            if (!pool || pool->empty())
+                pool = &GeneralWorldExamples;
+            poolDesc = "comment about the current weather";
+            break;
         }
 
         if (!pool || pool->empty())
@@ -573,6 +624,11 @@ namespace FSBChannelPrompts
             "Examples (for reference only, do not copy verbatim): " +
             example1 + ", " + example2 + ".";
 
+        if (!ctx.inGameTime.empty())
+            systemPrompt += " The current in-game time is " + ctx.inGameTime + ".";
+        if (!ctx.weather.empty())
+            systemPrompt += " The weather is currently " + ctx.weather + ".";
+
         std::string userPrompt = "Topic: " + poolDesc + "\n";
         if (!classStr.empty())
             userPrompt += "Your class: " + classStr + "\n";
@@ -582,6 +638,10 @@ namespace FSBChannelPrompts
             userPrompt += "Character: " + GetRandomFamousNPC();
         else if (topic == GeneralTopic::AchievementBrag)
             userPrompt += "Achievement: " + replacement;
+        else if (topic == GeneralTopic::TimeOfDay && !ctx.inGameTime.empty())
+            userPrompt += "Current in-game time: " + ctx.inGameTime;
+        else if (topic == GeneralTopic::Weather && !ctx.weather.empty())
+            userPrompt += "Current weather: " + ctx.weather;
 
         std::string aiResponse = FSBGenAI::GetBotResponse(systemPrompt, userPrompt);
         if (aiResponse.empty())
@@ -622,6 +682,11 @@ namespace FSBChannelPrompts
             botPersonalityStr + " currently residing in " + areaName + ".\n"
             "Write exactly ONE short reply (5 to 15 words) to the latest player message relevant to YOUR personality.\n"
             "DO NOT ASSUME the latest player message is addressed directly to you unless they included your name or directed to you.\n";
+
+        if (!ctx.inGameTime.empty())
+            systemPrompt += "The current in-game time is " + ctx.inGameTime + ".\n";
+        if (!ctx.weather.empty())
+            systemPrompt += "The weather is currently " + ctx.weather + ".\n";
 
         // Use snapshot values instead of Player* 
         if (!player.name.empty())

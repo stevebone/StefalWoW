@@ -36,8 +36,14 @@ namespace FSBNpcPrompts
     {
         uint32 entry = 0;
         std::string npcName;
+        std::string subName;
         uint32 zoneId = 0;
         uint32 areaId = 0;
+        bool hasQuest = false;
+        std::string questTitle;
+        std::string questDescription;
+        std::string inGameTime;
+        std::string weather;
     };
 
     struct BotChatResponse
@@ -58,6 +64,6 @@ namespace FSBNpcPrompts
     BotChatResponse GenerateNpcReply(NpcChatContext const& ctx, PlayerSnapshot const& player, std::string const& playerMsg,
         std::deque<BotChatMemoryEntry> const& memory);
 
-    NpcChatContext BuildNpcContext(Creature* npc);
+    NpcChatContext BuildNpcContext(Creature* npc, Player* player);
     PlayerSnapshot BuildPlayerSnapshot(Player* player);
 }

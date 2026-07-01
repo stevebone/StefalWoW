@@ -26,6 +26,7 @@
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "Random.h"
+#include "SharedDefines.h"
 #include "Timer.h"
 
 #include "GenAI/GenAI_npc_memory.h"
@@ -120,6 +121,7 @@ void FSBNpcChatMgr::Update(uint32 /*diff*/)
         if (!npc || !npc->IsInWorld() || !npc->IsAlive())
             continue;
 
+        npc->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
         npc->Say(reply, LANG_UNIVERSAL, player);
 
         GenAINpcMemoryMgr::Get()->AddEntry(state->npcGuid, CHAT_MSG_SAY, npc->GetName(), reply, false);

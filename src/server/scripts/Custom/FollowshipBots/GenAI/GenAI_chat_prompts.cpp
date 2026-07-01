@@ -25,13 +25,48 @@
 #include "Creature.h"
 #include "GenAI_client.h"
 #include "Config/Followship_bots_config.h"
+#include "GameTime.h"
+#include "Map.h"
+#include "ObjectMgr.h"
 #include "Player.h"
+#include "QuestDef.h"
+#include "Weather.h"
+#include "WowTime.h"
 
 #include "DB2Stores.h"
 #include "Log.h"
 
+#include "Utils/Followship_bots_utils.h"
+
+#include <algorithm>
+#include <vector>
+
 namespace FSBNpcPrompts
 {
+    static bool PlayerIsOfferingHelp(std::string const& msg)
+    {
+        std::string lower = msg;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+        static const std::vector<std::string> helpKeywords =
+        {
+            "help", "assist", "need a hand", "need hand", "give you a hand",
+            "what's wrong", "whats wrong", "what is wrong",
+            "what do you need", "what you need", "anything i can do",
+            "anything i can help", "can i help", "work for me",
+            "got work", "any work", "you seem troubled", "you look troubled",
+            "what's the matter", "whats the matter", "are you okay",
+            "you okay", "trouble", "quest", "task", "job for me",
+            "do for you", "fetch", "bring", "collect", "gather"
+        };
+
+        for (auto const& kw : helpKeywords)
+            if (lower.find(kw) != std::string::npos)
+                return true;
+
+        return false;
+    }
+
     BotChatResponse GenerateNpcReply(NpcChatContext const& ctx, PlayerSnapshot const& player, std::string const& playerMsg,
         std::deque<BotChatMemoryEntry> const& memory)
     {
@@ -46,16 +81,24 @@ namespace FSBNpcPrompts
         std::string areaName = area ? area->AreaName[LOCALE_enUS] : zoneName;
 
         std::string systemPrompt =
-            "You are a World of Warcraft NPC named " + ctx.npcName + ".\n"
-            "You currently reside in " + areaName + ", " + zoneName + ".\n"
+            "You are a World of Warcraft NPC named " + ctx.npcName + ".\n";
+
+        if (!ctx.subName.empty())
+            systemPrompt += "You are also known as: " + ctx.subName + ".\n";
+
+        systemPrompt +=
+            "You currently reside in " + areaName + ", " + zoneName + ".\n";
+
+        if (!ctx.inGameTime.empty())
+            systemPrompt += "The current in-game time is " + ctx.inGameTime + ".\n";
+
+        if (!ctx.weather.empty())
+            systemPrompt += "The weather here is currently " + ctx.weather + ".\n";
+
+        systemPrompt +=
             "A player is speaking to you directly. You are a normal inhabitant of this world.\n"
-            "Respond naturally and in character. Keep your reply brief (5 to 15 words).\n"
             "Never mention being an AI, bot, or NPC.\n"
-            "Do not use quotation marks inside your reply.\n\n"
-            "You MUST respond ONLY in valid JSON with exactly these fields:\n"
-            "- \"reply\": a short in-character reply (5 to 15 words), natural and conversational.\n"
-            "- \"action\": always \"none\".\n"
-            "- \"amount\": always 0.\n";
+            "Do not use quotation marks inside your reply.\n";
 
         if (!player.name.empty())
         {
@@ -73,11 +116,25 @@ namespace FSBNpcPrompts
                 std::to_string(player.level) + ".\n";
         }
 
+        bool playerOfferingHelp = ctx.hasQuest && PlayerIsOfferingHelp(playerMsg);
+
+        if (ctx.hasQuest && playerOfferingHelp)
+        {
+            systemPrompt +=
+                "\nPRIVATE QUEST CONTEXT (you know this, the player has offered to help):\n"
+                "- quest_title: \"" + ctx.questTitle + "\"\n"
+                "- quest_description: \"" + ctx.questDescription + "\"\n"
+                "\nThe player has offered to help or asked what you need. Briefly and naturally describe the task in 2-3 sentences using the quest context above.\n";
+        }
+
+        systemPrompt +=
+            "\nYou MUST respond ONLY in valid JSON with exactly these fields, IN THIS ORDER:\n"
+            "- \"wants_help\": " + std::string(playerOfferingHelp ? "true" : "false") + " (pre-determined by the system).\n"
+            "- \"reply\": a short in-character reply (10 to 15 words), natural and conversational, NO quotation marks inside.\n";
+
         std::string userPrompt = "Given the Conversation History below, reply to the latest player message:\n";
         for (auto const& entry : memory)
             userPrompt += entry.senderName + ": " + entry.message + "\n";
-
-        userPrompt += player.name + ": " + playerMsg + "\n";
 
         if (FollowshipBotsConfig::configFSBGenAIEnabled)
         {
@@ -103,7 +160,7 @@ namespace FSBNpcPrompts
         return result;
     }
 
-    NpcChatContext BuildNpcContext(Creature* npc)
+    NpcChatContext BuildNpcContext(Creature* npc, Player* player)
     {
         NpcChatContext ctx;
         if (!npc)
@@ -113,6 +170,49 @@ namespace FSBNpcPrompts
         ctx.npcName = npc->GetName();
         ctx.zoneId = npc->GetZoneId();
         ctx.areaId = npc->GetAreaId();
+
+        if (CreatureTemplate const* tmpl = npc->GetCreatureTemplate())
+            ctx.subName = tmpl->SubName;
+
+        if (WowTime const* wowTime = GameTime::GetWowTime())
+        {
+            int8 hour = wowTime->GetHour();
+            int8 minute = wowTime->GetMinute();
+            if (hour >= 0 && minute >= 0)
+            {
+                char buf[16];
+                snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+                ctx.inGameTime = buf;
+            }
+        }
+
+        if (Map* map = npc->GetMap())
+        {
+            WeatherState ws = map->GetZoneWeather(npc->GetZoneId());
+            ctx.weather = FSBUtils::WeatherStateToText(ws);
+        }
+
+        if (player)
+        {
+            for (uint32 questId : sObjectMgr->GetCreatureQuestRelations(npc->GetEntry()))
+            {
+                Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+                if (!quest)
+                    continue;
+
+                if (player->GetQuestStatus(questId) != QUEST_STATUS_NONE)
+                    continue;
+
+                if (!player->CanTakeQuest(quest, false))
+                    continue;
+
+                ctx.hasQuest = true;
+                ctx.questTitle = quest->GetLogTitle();
+                ctx.questDescription = quest->GetQuestDescription();
+                break;
+            }
+        }
+
         return ctx;
     }
 

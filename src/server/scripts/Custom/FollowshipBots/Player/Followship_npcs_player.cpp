@@ -65,14 +65,14 @@ public:
             }
         }
 
-        if (!npc || npc->IsCritter())
+        if (!npc || npc->GetCreatureType() != CREATURE_TYPE_HUMANOID)
             return;
 
         GenAINpcMemoryMgr::Get()->AddEntry(npc->GetGUID(), CHAT_MSG_SAY, player->GetName(), msg, true);
 
         std::deque<BotChatMemoryEntry> memoryCopy = GenAINpcMemoryMgr::Get()->GetMemory(npc->GetGUID());
 
-        FSBNpcPrompts::NpcChatContext ctx = FSBNpcPrompts::BuildNpcContext(npc);
+        FSBNpcPrompts::NpcChatContext ctx = FSBNpcPrompts::BuildNpcContext(npc, player);
         FSBNpcPrompts::PlayerSnapshot playerSnap = FSBNpcPrompts::BuildPlayerSnapshot(player);
 
         FSBNpcChatMgr::Get()->AddPendingReply(

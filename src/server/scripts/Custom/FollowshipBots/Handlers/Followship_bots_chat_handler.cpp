@@ -35,10 +35,13 @@
 #include "Log.h"
 #include "World.h"
 #include "Creature.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Language.h"
 #include "SharedDefines.h"
+#include "Weather.h"
+#include "WowTime.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_chat_handler.h"
@@ -340,6 +343,26 @@ void FSBChatMgr::HandlePlayerGeneralChat(Player* player, Channel* channel, std::
         ctx.lastGoldGiveTime = ai->botChatData.lastGoldGiveTime;
         ctx.botName = bot->GetName();
 
+        if (WowTime const* wowTime = GameTime::GetWowTime())
+        {
+            int8 hour = wowTime->GetHour();
+            int8 minute = wowTime->GetMinute();
+            if (hour >= 0 && minute >= 0)
+            {
+                char buf[16];
+                snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+                ctx.inGameTime = buf;
+                ctx.inGameHour = hour;
+            }
+        }
+
+        if (Map* map = bot->GetMap())
+        {
+            WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
+            ctx.weather = FSBUtils::WeatherStateToText(ws);
+            ctx.weatherStateRaw = static_cast<uint32>(ws);
+        }
+
         // Snapshot memory - the deque on the AI may change while the thread runs
         std::deque<BotChatMemoryEntry> memoryCopy = ai->GetChatMemory();
 
@@ -422,6 +445,26 @@ void FSBChatMgr::HandleBotWhisper(Player* player, Creature* bot, std::string con
     ctx.goldGivenCount = ai->botChatData.goldGivenCount;
     ctx.lastGoldGiveTime = ai->botChatData.lastGoldGiveTime;
     ctx.botName = bot->GetName();
+
+    if (WowTime const* wowTime = GameTime::GetWowTime())
+    {
+        int8 hour = wowTime->GetHour();
+        int8 minute = wowTime->GetMinute();
+        if (hour >= 0 && minute >= 0)
+        {
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+            ctx.inGameTime = buf;
+            ctx.inGameHour = hour;
+        }
+    }
+
+    if (Map* map = bot->GetMap())
+    {
+        WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
+        ctx.weather = FSBUtils::WeatherStateToText(ws);
+        ctx.weatherStateRaw = static_cast<uint32>(ws);
+    }
 
     // Snapshot memory - the deque on the AI may change while the thread runs
     std::deque<BotChatMemoryEntry> memoryCopy = ai->GetChatMemory();
@@ -1103,6 +1146,28 @@ namespace FSBChat
             FSBChannelPrompts::BotChatContext ctx;
             ctx.entry = bot->GetEntry();
             ctx.areaId = bot->GetAreaId();
+            ctx.zoneId = bot->GetZoneId();
+
+            if (WowTime const* wowTime = GameTime::GetWowTime())
+            {
+                int8 hour = wowTime->GetHour();
+                int8 minute = wowTime->GetMinute();
+                if (hour >= 0 && minute >= 0)
+                {
+                    char buf[16];
+                    snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+                    ctx.inGameTime = buf;
+                    ctx.inGameHour = hour;
+                }
+            }
+
+            if (Map* map = bot->GetMap())
+            {
+                WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
+                ctx.weather = FSBUtils::WeatherStateToText(ws);
+                ctx.weatherStateRaw = static_cast<uint32>(ws);
+            }
+
             msg = FSBChannelPrompts::GenerateGeneralMessage(ctx);
             if (!msg.empty())
             {
@@ -1178,6 +1243,28 @@ namespace FSBChat
             FSBChannelPrompts::BotChatContext ctx;
             ctx.entry = bot->GetEntry();
             ctx.areaId = bot->GetAreaId();
+            ctx.zoneId = bot->GetZoneId();
+
+            if (WowTime const* wowTime = GameTime::GetWowTime())
+            {
+                int8 hour = wowTime->GetHour();
+                int8 minute = wowTime->GetMinute();
+                if (hour >= 0 && minute >= 0)
+                {
+                    char buf[16];
+                    snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+                    ctx.inGameTime = buf;
+                    ctx.inGameHour = hour;
+                }
+            }
+
+            if (Map* map = bot->GetMap())
+            {
+                WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
+                ctx.weather = FSBUtils::WeatherStateToText(ws);
+                ctx.weatherStateRaw = static_cast<uint32>(ws);
+            }
+
             msg = FSBChannelPrompts::GenerateGeneralMessage(ctx);
             if (!msg.empty())
             {

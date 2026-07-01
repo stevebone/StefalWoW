@@ -41,6 +41,8 @@
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_utils_stats.h"
 
+#include "Weather.h"
+
 
 namespace FSBUtils
 {
@@ -73,4 +75,6 @@ namespace FSBUtils
     std::vector<Creature*> FindNearbyBots(Creature* center, float radius = 300.f);
 
     bool IsBotInTradeCity(Creature* bot);
+
+    std::string WeatherStateToText(WeatherState state);
 }
