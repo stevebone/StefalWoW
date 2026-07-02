@@ -596,10 +596,11 @@ namespace FSBGenAIPrompts
             return;
 
         FSB_ChatterCategory category = isManaPotion ? FSB_ChatterCategory::botCombatMana : FSB_ChatterCategory::botCombatHealth;
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
         if (!FSBGenAI::IsEnabled())
         {
-            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
             return;
         }
 
@@ -607,11 +608,11 @@ namespace FSBGenAIPrompts
         if (!ai)
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
-            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
             return;
         }
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, spellId, 0);
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, spellId, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 
@@ -640,7 +641,7 @@ namespace FSBGenAIPrompts
         }
 
         ai->genAIFallbackAction = [bot, category, spellId]() {
-            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None, spellId);
+            FSBChatter::DemandBotChatter(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot, spellId);
         };
         ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
         auto state = ai->pendingGenAIState;
@@ -1155,6 +1156,7 @@ namespace FSBGenAIPrompts
             return;
 
         FSB_ChatterCategory category = GetDistressCategory(context);
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
         char const* emoteString = GetDistressEmoteString(context);
         char const* description = GetDistressDescription(context);
 
@@ -1164,7 +1166,7 @@ namespace FSBGenAIPrompts
 
         if (!FSBGenAI::IsEnabled())
         {
-            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
         }
 
@@ -1172,11 +1174,11 @@ namespace FSBGenAIPrompts
         if (!ai)
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
-            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
             return;
         }
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, FSB_ChatterType::None, 0, 0);
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 
@@ -1186,7 +1188,7 @@ namespace FSBGenAIPrompts
             seedLine.empty() ? "I'm out of mana and need help!" : seedLine);
 
         ai->genAIFallbackAction = [bot, category]() {
-            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::None);
+            FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
         };
         ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
         auto state = ai->pendingGenAIState;
