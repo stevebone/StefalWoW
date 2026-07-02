@@ -5714,8 +5714,8 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 20, 19, 'Spell matrix integrated into {target}. Compatibility: acceptable.', 'botBuffTarget, Autistic'),
 (0, 0, 0, 20, 19, 'Combat readiness of {target} elevated. No errors detected.', 'botBuffTarget, Autistic'),
 (0, 0, 0, 20, 19, 'Buff sequence complete for {target}. Performance optimization: achieved.', 'botBuffTarget, Autistic'),
-(0, 0, 0, 20, 19, 'Energy output of {target} increased. Resource consumption: within parameters.', 'botBuffTarget, Autistic'),
---- Bot chatter lines: botOOCRecovery (category = 21)
+(0, 0, 0, 20, 19, 'Energy output of {target} increased. Resource consumption: within parameters.', 'botBuffTarget, Autistic');
+-- Bot chatter lines: botOOCRecovery (category = 21)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 21, 1, 'Okay. deep breaths. I can do this.', 'botOOCRecovery, Neutral'),
@@ -5935,9 +5935,9 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 21, 19, 'Healing acceleration requested. Current rate: suboptimal.', 'botOOCRecovery, Autistic'),
 (0, 0, 0, 21, 19, 'Recovery speed has decreased. Previous baseline: higher.', 'botOOCRecovery, Autistic'),
 (0, 0, 0, 21, 19, 'Mana flow detected. Restoring energy reserves. Progress: 12%.', 'botOOCRecovery, Autistic'),
-(0, 0, 0, 21, 19, 'Resting now. Resuming activity will occur at functionally appropriate time.', 'botOOCRecovery, Autistic'),
+(0, 0, 0, 21, 19, 'Resting now. Resuming activity will occur at functionally appropriate time.', 'botOOCRecovery, Autistic');
 
---- Bot chatter lines: botOOCRecoveryHired (category = 22)
+-- Bot chatter lines: botOOCRecoveryHired (category = 22)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 22, 1, 'Hey, {player}, I really need a break...', 'botOOCRecoveryHired, Neutral'),
@@ -6164,9 +6164,9 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 22, 19, 'I need my {spell}, break now, {player}. Tolerance for delay: low.', 'botOOCRecoveryHired, Autistic'),
 (0, 0, 0, 22, 19, 'Just catching my breath, {player}. Breath rate: stabilizing.', 'botOOCRecoveryHired, Autistic'),
 (0, 0, 0, 22, 19, 'Whew, I needed that, {player}. Energy reserves: replenishing.', 'botOOCRecoveryHired, Autistic'),
-(0, 0, 0, 22, 19, 'Give me a moment, {player}. Even heroes get tired. Rest is statistically wise.', 'botOOCRecoveryHired, Autistic'),
+(0, 0, 0, 22, 19, 'Give me a moment, {player}. Even heroes get tired. Rest is statistically wise.', 'botOOCRecoveryHired, Autistic');
 
---- Bot chatter lines: botCombatSpell (category = 18)
+-- Bot chatter lines: botCombatSpell (category = 18)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 18, 1, 'Hey, {target}, do you like my {spell}', 'botCombatSpell, Neutral'),
@@ -6457,9 +6457,9 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 18, 19, 'Hope you like my {spell}, {target}. Preference is non-critical.', 'botCombatSpell, Autistic'),
 (0, 0, 0, 18, 19, 'Scream for me, {target}. My {spell} does not require vocalization, but data is welcome.', 'botCombatSpell, Autistic'),
 (0, 0, 0, 18, 19, 'You can''t escape this {spell}, {target}. Evasion probability: low.', 'botCombatSpell, Autistic'),
-(0, 0, 0, 18, 19, 'Fall before my {spell}, {target}. Outcome is deterministic.', 'botCombatSpell, Autistic'),
+(0, 0, 0, 18, 19, 'Fall before my {spell}, {target}. Outcome is deterministic.', 'botCombatSpell, Autistic');
 
---- Bot chatter lines: botCombatMana (category = 16)
+-- Bot chatter lines: botCombatMana (category = 16)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 16, 1, 'Ugh. my brain''s running on empty!', 'botCombatMana, Neutral'),
@@ -6668,9 +6668,9 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 16, 19, 'Mana low. desperation high. Protocol: ingest {spell}.', 'botCombatMana, Autistic'),
 (0, 0, 0, 16, 19, 'This {spell} better work. or I''m toast. Toast status: undesirable.', 'botCombatMana, Autistic'),
 (0, 0, 0, 16, 19, 'Friend have a {spell}? No. Self-sufficiency protocol engaged.', 'botCombatMana, Autistic'),
-(0, 0, 0, 16, 19, 'My mana is depleted. {spell} will restore operational capacity.', 'botCombatMana, Autistic'),
+(0, 0, 0, 16, 19, 'My mana is depleted. {spell} will restore operational capacity.', 'botCombatMana, Autistic');
 
---- Bot chatter lines: botCombatHealth (category = 17)
+-- Bot chatter lines: botCombatHealth (category = 17)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 17, 1, 'This {spell} is my last... wish I had more!', 'botCombatHealth, Neutral'),
@@ -6882,9 +6882,9 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 17, 19, 'Someone toss me a {spell} potion, stat. Request acknowledged.', 'botCombatHealth, Autistic'),
 (0, 0, 0, 17, 19, 'I can almost feel my strength fading. Energy output: declining.', 'botCombatHealth, Autistic'),
 (0, 0, 0, 17, 19, 'Nothing a sip of magic can''t fix. Hypothesis: {spell} restores health.', 'botCombatHealth, Autistic'),
-(0, 0, 0, 17, 19, 'Health low. Protocol: ingest {spell}.', 'botCombatHealth, Autistic'),
+(0, 0, 0, 17, 19, 'Health low. Protocol: ingest {spell}.', 'botCombatHealth, Autistic');
 
---- Bot chatter lines: emote_oom (category = 24)
+-- Bot chatter lines: emote_oom (category = 24)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 24, 1, 'I''m out of mana!', 'emote_oom, Neutral'),
@@ -7106,7 +7106,7 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 24, 19, 'I can''t cast, I''m out. Failure probability: high.', 'emote_oom, Autistic'),
 (0, 0, 0, 24, 19, 'Mana''s gone - watch my back. Toast status: undesirable.', 'emote_oom, Autistic');
 
---- Bot chatter lines: emote_help (category = 25)
+-- Bot chatter lines: emote_help (category = 25)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 25, 1, 'I need help over here!', 'emote_help, Neutral'),
@@ -7328,7 +7328,7 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 25, 19, 'I can''t keep this up alone. Support protocol: requested.', 'emote_help, Autistic'),
 (0, 0, 0, 25, 19, 'Anyone? A little help. Request still pending.', 'emote_help, Autistic');
 
---- Bot chatter lines: emote_heal (category = 26)
+-- Bot chatter lines: emote_heal (category = 26)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
 -- FSB_ChatterType::Neutral (1)
 (0, 0, 0, 26, 1, 'I need healing!', 'emote_heal, Neutral'),
