@@ -28,6 +28,8 @@
 #include "SpellAuras.h"
 #include "Timer.h"
 
+#include "Custom/FollowshipBots/Handlers/Battleground/Followship_bots_warsong_gulch.h"
+
 struct battleground_warsong_gulch : BattlegroundScript
 {
     static constexpr Seconds FLAG_ASSAULT_TIMER = 30s;
@@ -213,6 +215,12 @@ struct battleground_warsong_gulch : BattlegroundScript
         TriggerGameEvent(EVENT_START_BATTLE);
     }
 
+    void OnBuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData) const override
+    {
+        BattlegroundScript::OnBuildPvPLogDataPacket(pvpLogData);
+        FSBBattleground::WarsongGulch::OnBuildPvPLogDataPacket(battlegroundMap, pvpLogData);
+    }
+
     void OnEnd(Team winner) override
     {
         BattlegroundScript::OnEnd(winner);
@@ -225,6 +233,8 @@ struct battleground_warsong_gulch : BattlegroundScript
         // Complete map_end rewards (even if no team wins)
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), ALLIANCE);
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), HORDE);
+
+        FSBBattleground::WarsongGulch::ClearSpawnedBotGuids(battlegroundMap);
     }
 
     template <std::invocable<Player*> Action>

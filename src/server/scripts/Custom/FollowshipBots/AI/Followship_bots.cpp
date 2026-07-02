@@ -59,6 +59,7 @@
 #include "Followship_bots_stats_handler.h"
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_teleport_handler.h"
+#include "Followship_bots_battleground_handler.h"
 
 
 
@@ -409,6 +410,10 @@ public:
 
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 FSBGenAIPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
+
+            if (me->GetMap()->IsBattleground())
+                if (victim && victim->GetTypeId() == TYPEID_PLAYER)
+                    FSBBattleground::HandleBotKilledPlayer(me, victim->GetGUID());
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
@@ -482,6 +487,10 @@ public:
             FSBChatMgr::Get()->UnregisterActiveBot(me);
             FSBChatMgr::Get()->LeaveBotChannels(me);
             FSBDeath::HandlerJustDied(me, killer);
+
+            if (me->GetMap()->IsBattleground())
+                if (killer && killer->GetTypeId() == TYPEID_PLAYER)
+                    FSBBattleground::HandlePlayerKilledBot(killer->GetGUID(), me);
         }
 
         void MovementInform(uint32 type, uint32 id) override

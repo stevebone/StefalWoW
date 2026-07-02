@@ -20,11 +20,17 @@
 
 #include "Define.h"
 #include "ObjectGuid.h"
+#include "SharedDefines.h"
 #include <vector>
 #include <string>
 
 class Creature;
 class Player;
+
+namespace WorldPackets::Battleground
+{
+    struct PVPMatchStatistics;
+}
 
 namespace ScriptHelpers
 {
@@ -73,6 +79,10 @@ namespace ScriptHelpers
     // Wrapper function to send a ShowDelvesCompanionConfigurationUI packet to a player
     // This constructs the packet internally in the core to avoid linking issues with dynamic loading
     TC_GAME_API void SendShowDelvesCompanionConfigurationUI(Player* player, uint32 companionConfigValue);
+
+    // Wrapper function to add a creature entry to a PvP match statistics packet
+    // This constructs the player statistics entry internally in the core to avoid needing BattlegroundPackets.h in scripts
+    TC_GAME_API void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team);
 }
 
 #endif // SC_SCRIPTHELPERS_H

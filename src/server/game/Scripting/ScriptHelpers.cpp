@@ -16,6 +16,7 @@
  */
 
 #include "ScriptHelpers.h"
+#include "BattlegroundPackets.h"
 #include "Creature.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -336,5 +337,19 @@ namespace ScriptHelpers
         WorldPackets::Delve::ShowDelvesCompanionConfigurationUI configUI;
         configUI.CompanionConfigValue = companionConfigValue;
         player->GetSession()->SendPacket(configUI.Write());
+    }
+
+    void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team)
+    {
+        WorldPackets::Battleground::PVPMatchStatistics::PVPMatchPlayerStatistics playerData;
+        playerData.PlayerGUID = guid;
+        playerData.Faction = (team == ALLIANCE) ? PVP_TEAM_ALLIANCE : PVP_TEAM_HORDE;
+        playerData.IsInWorld = true;
+        playerData.CreatureID = creatureId;
+        playerData.Sex = int8(gender);
+        playerData.Race = int8(race);
+        playerData.Class = int8(classId);
+
+        pvpLogData.Statistics.push_back(playerData);
     }
 }

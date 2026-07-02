@@ -22,6 +22,8 @@
 
 #include "GenAI_npc_memory.h"
 
+#include <mutex>
+
 #include "Config/Followship_bots_config.h"
 #include "Timer.h"
 

@@ -1288,6 +1288,9 @@ void Battleground::BuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchSta
 
     pvpLogData.PlayerCount[PVP_TEAM_HORDE] = int8(GetPlayersCountByTeam(HORDE));
     pvpLogData.PlayerCount[PVP_TEAM_ALLIANCE] = int8(GetPlayersCountByTeam(ALLIANCE));
+
+    if (BattlegroundScript* script = GetBgMap()->GetBattlegroundScript())
+        script->OnBuildPvPLogDataPacket(pvpLogData);
 }
 
 BattlegroundScore const* Battleground::GetBattlegroundScore(Player* player) const

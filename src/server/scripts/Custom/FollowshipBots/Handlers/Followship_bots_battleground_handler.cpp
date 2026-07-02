@@ -24,7 +24,12 @@
 #include "Battleground/Followship_bots_warsong_gulch.h"
 
 #include "Battleground.h"
+#include "BattlegroundScore.h"
 #include "Log.h"
+#include "Map.h"
+#include "ObjectAccessor.h"
+#include "Player.h"
+#include "Unit.h"
 
 namespace FSBBattleground
 {
@@ -48,5 +53,46 @@ namespace FSBBattleground
                 TC_LOG_DEBUG("scripts.fsb.battleground", "FSBBattleground::SpawnBots not implemented for bg type {}", battleground->GetTypeID());
                 break;
         }
+    }
+
+    void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim)
+    {
+        if (!killerGuid || !botVictim)
+            return;
+
+        BattlegroundMap* bgMap = botVictim->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        Player* killer = ObjectAccessor::GetPlayer(bgMap, killerGuid);
+        if (!killer)
+            return;
+
+        bg->UpdatePlayerScore(killer, SCORE_KILLING_BLOWS, 1);
+        bg->UpdatePlayerScore(killer, SCORE_HONORABLE_KILLS, 1);
+    }
+
+    void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid)
+    {
+        if (!botKiller || !victimGuid)
+            return;
+
+        BattlegroundMap* bgMap = botKiller->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        Player* victim = ObjectAccessor::GetPlayer(bgMap, victimGuid);
+        if (!victim)
+            return;
+
+        bg->UpdatePlayerScore(victim, SCORE_DEATHS, 1);
     }
 }

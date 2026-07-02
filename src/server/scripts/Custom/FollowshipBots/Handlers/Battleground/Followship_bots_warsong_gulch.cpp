@@ -23,21 +23,27 @@
 #include "Followship_bots_warsong_gulch.h"
 
 #include "Battleground.h"
+#include "BattlegroundScript.h"
+#include "BattlegroundPackets.h"
 #include "Creature.h"
 #include "DBCEnums.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
 #include "Log.h"
 #include "Map.h"
 #include "ObjectMgr.h"
 #include "Random.h"
+#include "ScriptHelpers.h"
 
 #include <algorithm>
 #include <random>
+#include <unordered_map>
 #include <vector>
 
 namespace
 {
     constexpr uint32 FSB_WSG_MAX_BOTS_PER_TEAM = 10;
+    std::unordered_map<BattlegroundMap*, std::vector<ObjectGuid>> SpawnedBotGuids;
 
     Team GetTeamFromFSBRace(FSB_Race race)
     {
@@ -110,6 +116,8 @@ namespace FSBBattleground::WarsongGulch
     {
         TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: SpawnBots entered");
 
+        SpawnedBotGuids[battleground->GetBgMap()].clear();
+
         uint32 const alliancePlayers = battleground->GetPlayersCountByTeam(ALLIANCE);
         uint32 const hordePlayers = battleground->GetPlayersCountByTeam(HORDE);
         uint32 const allianceExistingBots = CountExistingBots(battleground, ALLIANCE);
@@ -181,7 +189,7 @@ namespace FSBBattleground::WarsongGulch
                 pos.m_positionX += frand(-3.0f, 3.0f);
                 pos.m_positionY += frand(-3.0f, 3.0f);
 
-                Creature* bot = battleground->GetBgMap()->SummonCreature(entry, pos, nullptr, 1h);
+                Creature* bot = battleground->GetBgMap()->SummonCreature(entry, pos);
                 if (!bot)
                 {
                     TC_LOG_ERROR("scripts.fsb.battleground", "FSB WSG Handler: Failed to summon bot entry {}", entry);
@@ -189,6 +197,7 @@ namespace FSBBattleground::WarsongGulch
                 }
 
                 bot->SetPvP(true);
+                SpawnedBotGuids[battleground->GetBgMap()].push_back(bot->GetGUID());
 
                 TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: Spawned bot {} for team {}", bot->GetEntry(), team);
             }
@@ -198,5 +207,52 @@ namespace FSBBattleground::WarsongGulch
 
         spawnTeam(ALLIANCE, allianceNeeded, allianceEntries);
         spawnTeam(HORDE, hordeNeeded, hordeEntries);
+    }
+
+    std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap)
+    {
+        static std::vector<ObjectGuid> const empty;
+        auto it = SpawnedBotGuids.find(battlegroundMap);
+        return it != SpawnedBotGuids.end() ? it->second : empty;
+    }
+
+    void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData)
+    {
+        if (!battlegroundMap)
+            return;
+
+        auto it = SpawnedBotGuids.find(battlegroundMap);
+        if (it == SpawnedBotGuids.end())
+            return;
+
+        int8 botCountAlliance = 0;
+        int8 botCountHorde = 0;
+
+        for (ObjectGuid botGuid : it->second)
+        {
+            Creature* bot = battlegroundMap->GetCreature(botGuid);
+            if (!bot)
+                continue;
+
+            FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+            FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+            Gender botGender = FSBMgr::Get()->GetBotGenderForEntry(bot->GetEntry());
+            Team team = GetTeamFromFSBRace(botRace);
+
+            if (team == ALLIANCE)
+                ++botCountAlliance;
+            else
+                ++botCountHorde;
+
+            ScriptHelpers::AddCreatureToPvPLogData(pvpLogData, botGuid, uint8(FSBUtils::BotRaceToTC(botRace)), uint8(FSBUtils::FSBToTCClass(botClass)), botGender, bot->GetEntry(), team);
+        }
+
+        pvpLogData.PlayerCount[PVP_TEAM_ALLIANCE] += botCountAlliance;
+        pvpLogData.PlayerCount[PVP_TEAM_HORDE] += botCountHorde;
+    }
+
+    void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap)
+    {
+        SpawnedBotGuids.erase(battlegroundMap);
     }
 }

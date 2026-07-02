@@ -22,8 +22,11 @@
 
 #pragma once
 
+#include "ObjectGuid.h"
+
 class Battleground;
 class BattlegroundMap;
+class Unit;
 
 namespace FSBBattleground
 {
@@ -33,4 +36,7 @@ namespace FSBBattleground
     void OnBattlegroundStart(Battleground* battleground, BattlegroundMap* battlegroundMap);
     void OnBattlegroundEnd(Battleground* battleground, BattlegroundMap* battlegroundMap);
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap);
+
+    void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim);
+    void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);
 }
