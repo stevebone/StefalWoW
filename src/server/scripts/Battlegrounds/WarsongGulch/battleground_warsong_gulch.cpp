@@ -19,7 +19,6 @@
 #include "BattlegroundScript.h"
 #include "Battleground.h"
 #include "BattlegroundMgr.h"
-#include "../../Custom/FSB/Handlers/Followship_bots_battleground_handler.h"
 #include "GameObject.h"
 #include "GameTime.h"
 #include "Map.h"
@@ -198,7 +197,6 @@ struct battleground_warsong_gulch : BattlegroundScript
     void OnStart() override
     {
         BattlegroundScript::OnStart();
-        FSB::HandleBattlegroundStart(battleground, battlegroundMap);
         for (ObjectGuid door : _doors)
         {
             if (GameObject* gameObject = battlegroundMap->GetGameObject(door))

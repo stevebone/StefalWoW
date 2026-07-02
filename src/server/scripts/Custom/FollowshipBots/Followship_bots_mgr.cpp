@@ -43,6 +43,7 @@
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
+#include "Utils/Followship_bots_utils.h"
 
 FSBMgr* FSBMgr::Get()
 {
@@ -316,6 +317,8 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     FSBMgr::Get()->RegisterBotSpawn(bot, player);
     PhasingHandler::InheritPhaseShift(bot, player);
 
+    bot->SetFaction(player->GetFaction());
+
     // Do not remove the below since they are needed for the Hire flow
     bot->SetStandState(UNIT_STAND_STATE_STAND);
     FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, 1s, 3s);
@@ -436,6 +439,20 @@ bool FSBMgr::IsBotOwned(Creature* bot)
     return false;
 }
 
+bool FSBMgr::IsBotTemplateHired(uint32 entry) const
+{
+    for (auto const& [ownerGuid, bots] : _playerBotsPersistent)
+    {
+        for (auto const& data : bots)
+        {
+            if (data.entry == entry)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 
 // ==================== MANAGEMENT METHODS ==================================================== //
 void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDurationHours)
@@ -545,7 +562,8 @@ void FSBMgr::SetInitialBotState(Creature* bot)
 
     bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
     bot->SetReactState(REACT_DEFENSIVE);
-    bot->SetFaction(FSB_FACTION_HUMAN);
+    FSB_Race initRace = GetBotRaceForEntry(bot->GetEntry());
+    bot->SetFaction(FSBUtils::GetFactionForFSBRace(initRace));
     //creature->SetFaction(12); // it is actually template
 
     SetBotClassAndRace(bot, botClass, botRace);

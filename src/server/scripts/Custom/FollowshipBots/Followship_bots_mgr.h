@@ -119,6 +119,9 @@ public:
     void AddBotTemplate(FSBEntryRaceClassMap const& data);
     void RemoveBotTemplate(uint32 entry);
 
+    std::unordered_map<uint32, FSBEntryRaceClassMap> const& GetBotTemplates() const { return _botTemplates; }
+    bool IsBotTemplateHired(uint32 entry) const;
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
     std::unordered_map<uint32 /*entry*/, FSBEntryRaceClassMap> _botTemplates;

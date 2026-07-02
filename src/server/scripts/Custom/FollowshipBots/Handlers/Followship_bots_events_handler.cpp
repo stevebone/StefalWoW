@@ -23,6 +23,7 @@
 #include "DB2Stores.h"
 #include "GameObject.h"
 #include "Log.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "Vehicle.h"
@@ -226,6 +227,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_HIRED_DESPAWN_TEMP_BOT:
     {
+        if (bot->GetMap()->IsBattleground())
+        {
+            botEvents.ScheduleEvent(FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
+            break;
+        }
+
         if (bot->GetSpawnId() == 0 && !FSBMgr::Get()->GetBotOwner(bot))
             bot->DespawnOrUnsummon(0s);
         else botEvents.ScheduleEvent(FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);

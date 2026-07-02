@@ -23,9 +23,8 @@
 #pragma once
 
 class Battleground;
-class BattlegroundMap;
 
-namespace FSB
+namespace FSBBattleground::WarsongGulch
 {
-    void HandleBattlegroundStart(Battleground* battleground, BattlegroundMap* battlegroundMap);
+    void SpawnBots(Battleground* battleground);
 }

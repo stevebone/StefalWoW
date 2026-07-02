@@ -60,7 +60,7 @@ void AddSC_followship_bots_commandscript();
 void AddSC_followship_bots_command_template();
 void AddSC_followship_bots_world();                // FSB World Script
 void AddSC_followship_npcs_player();               // FSB NPC Chat Player Script
-void AddSC_followship_bots_battleground_handler(); // FSB Battleground Handler
+void AddSC_followship_bots_battleground_player(); // FSB Battleground Player Script
 
 // ==================== Delves Scripts ======================= //
 void AddSC_delve_system();
@@ -145,7 +145,7 @@ void AddCustomScripts()
     AddSC_followship_bots_command_template();
     AddSC_followship_bots_world();
     AddSC_followship_npcs_player();
-    AddSC_followship_bots_battleground_handler();
+    AddSC_followship_bots_battleground_player();
 
     // Creature Codex
     //AddSC_creature_codex_sniffer();
