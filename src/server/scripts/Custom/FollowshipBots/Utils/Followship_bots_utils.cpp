@@ -25,6 +25,7 @@
 
 #include "Containers.h"
 #include "CreatureAI.h"
+#include "DB2Stores.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "Log.h"
@@ -72,6 +73,20 @@ namespace FSBUtils
         case FSB_Race::Worgen:   return "Worgen";
         case FSB_Race::Pandaren: return "Pandaren";
         case FSB_Race::VoidElf:  return "Void Elf";
+        case FSB_Race::Orc:        return "Orc";
+        case FSB_Race::Undead:     return "Undead";
+        case FSB_Race::Tauren:     return "Tauren";
+        case FSB_Race::Troll:      return "Troll";
+        case FSB_Race::BloodElf:   return "Blood Elf";
+        case FSB_Race::Goblin:     return "Goblin";
+        case FSB_Race::PandarenHorde: return "Pandaren (Horde)";
+        case FSB_Race::HighmountainTauren:  return "Highmountain Tauren";
+        case FSB_Race::Nightborne:          return "Nightborne";
+        case FSB_Race::LightforgedDraenei:  return "Lightforged Draenei";
+        case FSB_Race::EarthenAlliance:     return "Earthen (Alliance)";
+        case FSB_Race::EarthenHorde:        return "Earthen (Horde)";
+        case FSB_Race::HaranirAlliance:     return "Haranir (Alliance)";
+        case FSB_Race::HaranirHorde:        return "Haranir (Horde)";
         default:                 return "Unknown";
         }
     }
@@ -148,6 +163,21 @@ namespace FSBUtils
         case FSB_Race::Gnome:    return RACE_GNOME;
         case FSB_Race::Worgen:   return RACE_WORGEN;
         case FSB_Race::Pandaren: return RACE_PANDAREN_ALLIANCE;
+        case FSB_Race::VoidElf:  return RACE_VOID_ELF;
+        case FSB_Race::Orc:        return RACE_ORC;
+        case FSB_Race::Undead:     return RACE_UNDEAD_PLAYER;
+        case FSB_Race::Tauren:     return RACE_TAUREN;
+        case FSB_Race::Troll:      return RACE_TROLL;
+        case FSB_Race::BloodElf:   return RACE_BLOODELF;
+        case FSB_Race::Goblin:     return RACE_GOBLIN;
+        case FSB_Race::PandarenHorde: return RACE_PANDAREN_HORDE;
+        case FSB_Race::HighmountainTauren:  return RACE_HIGHMOUNTAIN_TAUREN;
+        case FSB_Race::Nightborne:          return RACE_NIGHTBORNE;
+        case FSB_Race::LightforgedDraenei:  return RACE_LIGHTFORGED_DRAENEI;
+        case FSB_Race::EarthenAlliance:     return RACE_EARTHEN_DWARF_ALLIANCE;
+        case FSB_Race::EarthenHorde:        return RACE_EARTHEN_DWARF_HORDE;
+        case FSB_Race::HaranirAlliance:     return RACE_HARANIR_ALLIANCE;
+        case FSB_Race::HaranirHorde:        return RACE_HARANIR_HORDE;
         default:
             TC_LOG_WARN("scripts.ai.fsb", "FSB Utils BotRaceToTC has no mapping for race {}", race);
             return RACE_NONE;
@@ -175,12 +205,24 @@ namespace FSBUtils
         case FSB_Race::Worgen:
         case FSB_Race::VoidElf:
         case FSB_Race::Pandaren:
+        case FSB_Race::HighmountainTauren:
+        case FSB_Race::Nightborne:
+        case FSB_Race::LightforgedDraenei:
+        case FSB_Race::EarthenAlliance:
+        case FSB_Race::HaranirAlliance:
             return Team::ALLIANCE;
 
-            // Pandaren can be neutral or faction-chosen later
-        //case FSB_Race::Pandaren:
-        //    TC_LOG_WARN("server", "GetTeamFromFSBRace: Pandaren bot has no faction assigned, defaulting to NEUTRAL.");
-        //    return Team::PANDARIA_NEUTRAL;
+            // Horde races
+        case FSB_Race::Orc:
+        case FSB_Race::Undead:
+        case FSB_Race::Tauren:
+        case FSB_Race::Troll:
+        case FSB_Race::BloodElf:
+        case FSB_Race::Goblin:
+        case FSB_Race::PandarenHorde:
+        case FSB_Race::EarthenHorde:
+        case FSB_Race::HaranirHorde:
+            return Team::HORDE;
 
             // No race / unknown
         case FSB_Race::None:
@@ -189,6 +231,21 @@ namespace FSBUtils
                 uint8(race), bot->GetName());
             return Team::PANDARIA_NEUTRAL;
         }
+    }
+
+    uint32 GetFactionForFSBRace(FSB_Race race)
+    {
+        Races tcRace = BotRaceToTC(race);
+        if (tcRace == RACE_NONE)
+        {
+            TC_LOG_WARN("scripts.fsb.general", "GetFactionForFSBRace: Unknown FSB race {}. Defaulting to Human faction.", uint8(race));
+            tcRace = RACE_HUMAN;
+        }
+
+        if (ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(tcRace))
+            return rEntry->FactionID;
+
+        return 0;
     }
 
     const char* PowerTypeToString(Powers power)

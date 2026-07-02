@@ -32,11 +32,6 @@ enum FSB_Data
     FSB_DATA_HIRE_TIME_LEFT = 2,
 };
 
-enum FSB_Factions
-{
-    FSB_FACTION_HUMAN = 1
-};
-
 enum FSB_GenericEvents
 {
     

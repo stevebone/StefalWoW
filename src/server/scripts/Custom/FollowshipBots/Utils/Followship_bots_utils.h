@@ -58,6 +58,8 @@ namespace FSBUtils
 
     Team GetTeamFromFSBRace(Creature* bot);
 
+    uint32 GetFactionForFSBRace(FSB_Race race);
+
     constexpr float SIDE_OFFSET_MAX = float(M_PI) / 6.0f; // +-30 degrees from pure left/right
 
     // Returns a random angle slightly to the left of the player

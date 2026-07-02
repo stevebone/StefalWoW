@@ -128,7 +128,7 @@ namespace FSBConvPrompts
             case TopicDataSource::GlobalFaction:
                 return Trinity::Containers::SelectRandomContainerElement(Factions);
             case TopicDataSource::GlobalRace:
-                return FSBUtils::BotRaceToString(static_cast<FSB_Race>(urand(1, 8)));
+                return FSBUtils::BotRaceToString(static_cast<FSB_Race>(urand(1, static_cast<int32>(FSB_Race::HaranirHorde))));
             case TopicDataSource::GlobalClass:
                 return FSBUtils::BotClassToString(static_cast<FSB_Class>(urand(1, 11)));
             case TopicDataSource::GlobalTheme:
