@@ -30,7 +30,7 @@ class Creature;
 class Player;
 
 #include "Followship_bots_defines.h"
-#include "GenAI/GenAI_chat_memory.h"
+#include "GenAI_chat_memory.h"
 
 namespace FSBChannelPrompts
 {

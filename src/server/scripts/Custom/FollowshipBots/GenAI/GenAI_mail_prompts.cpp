@@ -24,7 +24,7 @@
 #include "GenAI_client.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-#include "Config/Followship_bots_config.h"
+#include "Followship_bots_config.h"
 
 #include "DB2Stores.h"
 #include "Log.h"

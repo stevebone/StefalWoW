@@ -28,7 +28,7 @@
 #include "SpellAuras.h"
 #include "Timer.h"
 
-#include "Custom/FollowshipBots/Handlers/Battleground/Followship_bots_warsong_gulch.h"
+#include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
 
 struct battleground_warsong_gulch : BattlegroundScript
 {
@@ -218,7 +218,7 @@ struct battleground_warsong_gulch : BattlegroundScript
     void OnBuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData) const override
     {
         BattlegroundScript::OnBuildPvPLogDataPacket(pvpLogData);
-        FSBBattleground::WarsongGulch::OnBuildPvPLogDataPacket(battlegroundMap, pvpLogData);
+        FSBBattleground::OnBuildPvPLogDataPacket(battlegroundMap, pvpLogData);
     }
 
     void OnEnd(Team winner) override
@@ -234,7 +234,7 @@ struct battleground_warsong_gulch : BattlegroundScript
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), ALLIANCE);
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), HORDE);
 
-        FSBBattleground::WarsongGulch::ClearSpawnedBotGuids(battlegroundMap);
+        FSBBattleground::ClearSpawnedBotGuids(battlegroundMap);
     }
 
     template <std::invocable<Player*> Action>

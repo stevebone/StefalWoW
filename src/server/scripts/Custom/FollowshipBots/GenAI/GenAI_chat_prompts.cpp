@@ -24,7 +24,7 @@
 
 #include "Creature.h"
 #include "GenAI_client.h"
-#include "Config/Followship_bots_config.h"
+#include "Followship_bots_config.h"
 #include "GameTime.h"
 #include "Map.h"
 #include "ObjectMgr.h"
@@ -36,9 +36,9 @@
 #include "DB2Stores.h"
 #include "Log.h"
 
-#include "Utils/Followship_bots_utils.h"
+#include "Followship_bots_utils.h"
 
-#include "GenAI/GenAI_npc_memory.h"
+#include "GenAI_npc_memory.h"
 
 namespace FSBNpcPrompts
 {

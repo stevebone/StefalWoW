@@ -33,8 +33,8 @@
 #include "SharedDefines.h"
 #include "Unit.h"
 
-#include "GenAI/GenAI_channel_prompts.h"
-#include "GenAI/GenAI_conversation_prompts.h"
+#include "GenAI_channel_prompts.h"
+#include "GenAI_conversation_prompts.h"
 
 class Channel;
 class Creature;

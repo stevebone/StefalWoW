@@ -184,52 +184,39 @@ namespace FSBUtils
         }
     }
 
-    Team GetTeamFromFSBRace(Creature* bot)
+    Team GetTeamFromFSBRace(FSB_Race race)
     {
-        if (!bot)
-        {
-            TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: bot pointer was null!");
-            return Team::PANDARIA_NEUTRAL;
-        }
-
-        FSB_Race race = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
-
         switch (race)
         {
-            // Alliance races
-        case FSB_Race::Human:
-        case FSB_Race::Dwarf:
-        case FSB_Race::NightElf:
-        case FSB_Race::Gnome:
-        case FSB_Race::Draenei:
-        case FSB_Race::Worgen:
-        case FSB_Race::VoidElf:
-        case FSB_Race::Pandaren:
-        case FSB_Race::HighmountainTauren:
-        case FSB_Race::Nightborne:
-        case FSB_Race::LightforgedDraenei:
-        case FSB_Race::EarthenAlliance:
-        case FSB_Race::HaranirAlliance:
-            return Team::ALLIANCE;
+            case FSB_Race::Human:
+            case FSB_Race::Dwarf:
+            case FSB_Race::NightElf:
+            case FSB_Race::Gnome:
+            case FSB_Race::Draenei:
+            case FSB_Race::Worgen:
+            case FSB_Race::Pandaren:
+            case FSB_Race::VoidElf:
+            case FSB_Race::HighmountainTauren:
+            case FSB_Race::Nightborne:
+            case FSB_Race::LightforgedDraenei:
+            case FSB_Race::EarthenAlliance:
+            case FSB_Race::HaranirAlliance:
+                return Team::ALLIANCE;
 
-            // Horde races
-        case FSB_Race::Orc:
-        case FSB_Race::Undead:
-        case FSB_Race::Tauren:
-        case FSB_Race::Troll:
-        case FSB_Race::BloodElf:
-        case FSB_Race::Goblin:
-        case FSB_Race::PandarenHorde:
-        case FSB_Race::EarthenHorde:
-        case FSB_Race::HaranirHorde:
-            return Team::HORDE;
+            case FSB_Race::Orc:
+            case FSB_Race::Undead:
+            case FSB_Race::Tauren:
+            case FSB_Race::Troll:
+            case FSB_Race::BloodElf:
+            case FSB_Race::Goblin:
+            case FSB_Race::PandarenHorde:
+            case FSB_Race::EarthenHorde:
+            case FSB_Race::HaranirHorde:
+                return Team::HORDE;
 
-            // No race / unknown
-        case FSB_Race::None:
-        default:
-            TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: Unknown or unsupported FSB race {} for bot {}. Defaulting to NEUTRAL.",
-                uint8(race), bot->GetName());
-            return Team::PANDARIA_NEUTRAL;
+            default:
+                TC_LOG_WARN("scripts.fsb.general", "GetTeamFromFSBRace: Unknown or unsupported FSB race {}. Defaulting to NEUTRAL.", uint8(race));
+                return Team::PANDARIA_NEUTRAL;
         }
     }
 

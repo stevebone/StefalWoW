@@ -24,7 +24,7 @@
 #include "GenAI_provider.h"
 #include "GenAI_request_builder.h"
 #include "GenAI_response_parser.h"
-#include "Config/Followship_bots_config.h"
+#include "Followship_bots_config.h"
 
 #include "Log.h"
 

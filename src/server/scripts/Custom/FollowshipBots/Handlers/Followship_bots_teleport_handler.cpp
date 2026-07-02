@@ -80,7 +80,7 @@ namespace FSBTeleport
             }
             else
             {
-                Team team = FSBUtils::GetTeamFromFSBRace(bot);
+                Team team = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
                 WorldSafeLocsEntry const* graveyard = sObjectMgr->GetClosestGraveyard(*bot, team, bot);
 
                 if (graveyard)

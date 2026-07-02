@@ -32,7 +32,7 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_dungeon_handler.h"
-#include "Dungeons/Followship_bots_dungeon_deadmines.h"
+#include "Followship_bots_dungeon_deadmines.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_death_handler.h"

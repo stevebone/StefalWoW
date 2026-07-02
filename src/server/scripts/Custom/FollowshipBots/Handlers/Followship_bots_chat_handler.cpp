@@ -46,13 +46,13 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_mail_handler.h"
-#include "GenAI/GenAI_mail_prompts.h"
+#include "GenAI_mail_prompts.h"
 
-#include "AI/Followship_bots_ai_base.h"
+#include "Followship_bots_ai_base.h"
 #include "Followship_bots_config.h"
 
-#include "GenAI/GenAI_client.h"
-#include "GenAI/GenAI_channel_prompts.h"
+#include "GenAI_client.h"
+#include "GenAI_channel_prompts.h"
 
 // ------------------------------------------------------------------
 // Helper: gold allowance (main-thread only - uses urand)
@@ -191,7 +191,7 @@ void FSBChatMgr::JoinBotChannels(Creature* bot)
     if (!ai || ai->botHired)
         return;
 
-    Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+    Team botTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
     ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
     if (!mgr)
         return;
@@ -235,7 +235,7 @@ void FSBChatMgr::LeaveBotChannels(Creature* bot)
     if (!bot || !bot->IsBot())
         return;
 
-    Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+    Team botTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
     ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
     if (!mgr)
         return;
@@ -369,7 +369,7 @@ void FSBChatMgr::HandlePlayerGeneralChat(Player* player, Channel* channel, std::
         auto state = std::make_shared<PendingBotReply>();
         state->botGuid = bot->GetGUID();
         state->channelId = channel->GetChannelId();
-        state->botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+        state->botTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
         state->playerGuid = playerGuid;
         state->playerName = playerSnap.name;
         state->playerRequest = msg;
@@ -472,7 +472,7 @@ void FSBChatMgr::HandleBotWhisper(Player* player, Creature* bot, std::string con
     auto state = std::make_shared<PendingBotReply>();
     state->botGuid = bot->GetGUID();
     state->channelId = 0; // 0 signals a whisper reply
-    state->botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+    state->botTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
     state->playerGuid = player->GetGUID();
     state->playerName = playerSnap.name;
     state->playerRequest = msg;
@@ -649,7 +649,7 @@ namespace FSBChat
         if (!bot)
             return nullptr;
 
-        Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+        Team botTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
 
         ChannelMgr* mgr = ChannelMgr::ForTeam(botTeam);
         if (!mgr)
@@ -1087,7 +1087,7 @@ namespace FSBChat
             return nullptr;
 
         uint32 zoneId = bot->GetZoneId();
-        Team team = FSBUtils::GetTeamFromFSBRace(bot);
+        Team team = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
 
         std::vector<RandomChatTemplate*> matches;
 

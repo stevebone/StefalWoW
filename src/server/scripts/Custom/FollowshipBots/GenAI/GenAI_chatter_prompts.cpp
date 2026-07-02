@@ -23,14 +23,14 @@
 #include "GenAI_chatter_prompts.h"
 #include "GenAI_client.h"
 
-#include "AI/Followship_bots_ai_base.h"
-#include "AI/Followship_bots_priest.h"
-#include "Config/Followship_bots_config.h"
+#include "Followship_bots_ai_base.h"
+#include "Followship_bots_priest.h"
+#include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "Handlers/Followship_bots_chatter_handler.h"
-#include "Handlers/Followship_bots_events_handler.h"
+#include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_events_handler.h"
 #include "ObjectAccessor.h"
 
 #include "DB2Stores.h"

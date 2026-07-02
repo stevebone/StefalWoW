@@ -27,7 +27,7 @@
 #include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 
-#include "AI/Followship_bots_ai_base.h"
+#include "Followship_bots_ai_base.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"

@@ -19,7 +19,7 @@
 
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_chat_handler.h"
-#include "Handlers/Followship_bots_dungeon_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 
 FSB_BaseAI::~FSB_BaseAI()
 {

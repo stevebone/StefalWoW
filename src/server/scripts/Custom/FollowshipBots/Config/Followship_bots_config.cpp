@@ -24,7 +24,7 @@
 
 #include "BattlegroundMgr.h"
 #include "Followship_bots_config.h"
-#include "GenAI/GenAI_provider.h"
+#include "GenAI_provider.h"
 
 
 bool  FollowshipBotsConfig::configFSBEnabled = false;

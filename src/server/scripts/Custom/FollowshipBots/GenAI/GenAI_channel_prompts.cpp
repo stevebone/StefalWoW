@@ -25,7 +25,7 @@
 #include "GenAI_client.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-#include "AI/Followship_bots_ai_base.h"
+#include "Followship_bots_ai_base.h"
 
 #include "DB2Stores.h"
 #include "ItemTemplate.h"
@@ -134,7 +134,7 @@ namespace FSBChannelPrompts
 
     static void InitLFGCache(Creature* bot)
     {
-        Team botTeam = FSBUtils::GetTeamFromFSBRace(bot);
+        Team botTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
 
         for (::LFGDungeonsEntry const* entry : sLFGDungeonsStore)
         {

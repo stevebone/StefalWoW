@@ -56,7 +56,7 @@ namespace FSBUtils
     Classes FSBToTCClass(FSB_Class botClass);
     Races BotRaceToTC(FSB_Race race);
 
-    Team GetTeamFromFSBRace(Creature* bot);
+    Team GetTeamFromFSBRace(FSB_Race race);
 
     uint32 GetFactionForFSBRace(FSB_Race race);
 

@@ -22,21 +22,9 @@
 
 #pragma once
 
-#include "ObjectGuid.h"
-#include <vector>
-
 class Battleground;
-class BattlegroundMap;
-
-namespace WorldPackets::Battleground
-{
-    struct PVPMatchStatistics;
-}
 
 namespace FSBBattleground::WarsongGulch
 {
     void SpawnBots(Battleground* battleground);
-    void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
-    std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap);
-    void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap);
 }

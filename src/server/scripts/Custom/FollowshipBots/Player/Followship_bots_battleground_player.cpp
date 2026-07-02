@@ -20,7 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../Handlers/Followship_bots_battleground_handler.h"
+#include "Followship_bots_battleground_handler.h"
 
 #include "Battleground.h"
 #include "BattlegroundMgr.h"

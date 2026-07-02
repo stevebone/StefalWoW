@@ -40,8 +40,8 @@
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
 
-#include "GenAI/GenAI_chat_memory.h"
-#include "GenAI/GenAI_npc_memory.h"
+#include "GenAI_chat_memory.h"
+#include "GenAI_npc_memory.h"
 
 struct FSB_ClassStats;
 struct FSB_DungeonData;

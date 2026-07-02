@@ -27,8 +27,8 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "GenAI/GenAI_client.h"
-#include "GenAI/GenAI_chatter_prompts.h"
+#include "GenAI_client.h"
+#include "GenAI_chatter_prompts.h"
 
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"

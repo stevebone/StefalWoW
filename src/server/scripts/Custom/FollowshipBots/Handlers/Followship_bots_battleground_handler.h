@@ -22,11 +22,19 @@
 
 #pragma once
 
+#include "Define.h"
 #include "ObjectGuid.h"
+#include "SharedDefines.h"
+#include <vector>
 
 class Battleground;
 class BattlegroundMap;
 class Unit;
+
+namespace WorldPackets::Battleground
+{
+    struct PVPMatchStatistics;
+}
 
 namespace FSBBattleground
 {
@@ -39,4 +47,12 @@ namespace FSBBattleground
 
     void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim);
     void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);
+
+    void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
+    std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap);
+    void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap);
+
+    void AddBotSpawnGuid(BattlegroundMap* battlegroundMap, ObjectGuid guid);
+    uint32 CountExistingBots(Battleground* battleground, Team team);
+    std::vector<uint32> SelectRandomEntries(std::vector<uint32>& entries, uint32 count);
 }

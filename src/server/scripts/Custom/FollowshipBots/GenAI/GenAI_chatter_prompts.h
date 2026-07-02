@@ -24,7 +24,7 @@
 
 #include "Creature.h"
 #include "Followship_bots_defines.h"
-#include "Handlers/Followship_bots_chatter_handler.h"
+#include "Followship_bots_chatter_handler.h"
 
 class FSB_BaseAI;
 

@@ -24,7 +24,7 @@
 
 #include <mutex>
 
-#include "Config/Followship_bots_config.h"
+#include "Followship_bots_config.h"
 #include "Timer.h"
 
 GenAINpcMemoryMgr* GenAINpcMemoryMgr::Get()

@@ -32,8 +32,8 @@
 #include "SharedDefines.h"
 #include "Timer.h"
 
-#include "Config/Followship_bots_config.h"
-#include "GenAI/GenAI_npc_memory.h"
+#include "Followship_bots_config.h"
+#include "GenAI_npc_memory.h"
 
 FSBNpcChatMgr* FSBNpcChatMgr::Get()
 {

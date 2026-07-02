@@ -28,7 +28,7 @@
 class Creature;
 class Player;
 
-#include "GenAI/GenAI_chat_memory.h"
+#include "GenAI_chat_memory.h"
 
 namespace FSBNpcPrompts
 {

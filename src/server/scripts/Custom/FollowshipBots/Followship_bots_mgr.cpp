@@ -33,17 +33,17 @@
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
 #include "FollowshipDatabase.h"
-#include "Config/Followship_bots_config.h"
+#include "Followship_bots_config.h"
 
 #include "Followship_bots_events_handler.h"
 
-#include "GenAI/GenAI_chatter_prompts.h"
+#include "GenAI_chatter_prompts.h"
 
 #include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
-#include "Utils/Followship_bots_utils.h"
+#include "Followship_bots_utils.h"
 
 FSBMgr* FSBMgr::Get()
 {

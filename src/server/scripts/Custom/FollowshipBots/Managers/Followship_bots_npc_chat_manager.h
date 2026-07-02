@@ -31,8 +31,8 @@
 
 #include "ObjectGuid.h"
 
-#include "GenAI/GenAI_chat_prompts.h"
-#include "GenAI/GenAI_chat_memory.h"
+#include "GenAI_chat_prompts.h"
+#include "GenAI_chat_memory.h"
 
 class FSBNpcChatMgr
 {

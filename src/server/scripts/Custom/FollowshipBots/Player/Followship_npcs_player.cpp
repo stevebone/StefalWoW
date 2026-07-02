@@ -26,10 +26,10 @@
 #include "Object.h"
 #include "SharedDefines.h"
 
-#include "GenAI/GenAI_npc_memory.h"
-#include "GenAI/GenAI_chat_prompts.h"
-#include "Managers/Followship_bots_npc_chat_manager.h"
-#include "Config/Followship_bots_config.h"
+#include "GenAI_npc_memory.h"
+#include "GenAI_chat_prompts.h"
+#include "Followship_bots_npc_chat_manager.h"
+#include "Followship_bots_config.h"
 
 class followship_npcs_player : public PlayerScript
 {

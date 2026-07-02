@@ -23,11 +23,11 @@
 #include "GenAI_conversation_prompts.h"
 #include "GenAI_client.h"
 
-#include "AI/Followship_bots_ai_base.h"
+#include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
-#include "Utils/Followship_bots_utils.h"
+#include "Followship_bots_utils.h"
 
-#include "Handlers/Followship_bots_chat_handler.h"
+#include "Followship_bots_chat_handler.h"
 
 #include "Containers.h"
 #include "DB2Stores.h"
