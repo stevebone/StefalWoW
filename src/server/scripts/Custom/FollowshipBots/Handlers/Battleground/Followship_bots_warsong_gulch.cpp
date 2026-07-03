@@ -30,28 +30,53 @@
 #include "Followship_bots_utils.h"
 #include "Log.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
+#include "Player.h"
 #include "Random.h"
 
 #include <vector>
 
 namespace FSBBattleground::WarsongGulch
 {
-    constexpr uint32 FSB_WSG_MAX_BOTS_PER_TEAM = 10;
+    constexpr uint32 FSB_WSG_MAX_TEAM_SIZE = 10;
 
-    void SpawnBots(Battleground* battleground)
+    void SpawnBots(Battleground* battleground, Player* triggeringPlayer)
     {
         TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: SpawnBots entered");
 
         FSBBattleground::ClearSpawnedBotGuids(battleground->GetBgMap());
 
-        uint32 const alliancePlayers = battleground->GetPlayersCountByTeam(ALLIANCE);
-        uint32 const hordePlayers = battleground->GetPlayersCountByTeam(HORDE);
+        // Count real players from GetPlayers() instead of GetPlayersCountByTeam(),
+        // because the triggering player may not yet be registered in the BG's team count.
+        uint32 alliancePlayers = 0;
+        uint32 hordePlayers = 0;
+        bool triggeringInRoster = false;
+        for (auto const& [guid, bgPlayer] : battleground->GetPlayers())
+        {
+            if (triggeringPlayer && guid == triggeringPlayer->GetGUID())
+                triggeringInRoster = true;
+
+            if (bgPlayer.Team == ALLIANCE)
+                ++alliancePlayers;
+            else if (bgPlayer.Team == HORDE)
+                ++hordePlayers;
+        }
+
+        // If the triggering player is not yet in the BG roster, account for them.
+        if (triggeringPlayer && !triggeringInRoster)
+        {
+            if (triggeringPlayer->GetTeam() == ALLIANCE)
+                ++alliancePlayers;
+            else if (triggeringPlayer->GetTeam() == HORDE)
+                ++hordePlayers;
+        }
+
         uint32 const allianceExistingBots = FSBBattleground::CountExistingBots(battleground, ALLIANCE);
         uint32 const hordeExistingBots = FSBBattleground::CountExistingBots(battleground, HORDE);
 
-        int32 const allianceNeeded = std::max(0, int32(FSB_WSG_MAX_BOTS_PER_TEAM) - int32(alliancePlayers) - int32(allianceExistingBots));
-        int32 const hordeNeeded = std::max(0, int32(FSB_WSG_MAX_BOTS_PER_TEAM) - int32(hordePlayers) - int32(hordeExistingBots));
+        int32 const allianceNeeded = std::max(0, int32(FSB_WSG_MAX_TEAM_SIZE) - int32(alliancePlayers) - int32(allianceExistingBots));
+        int32 const hordeNeeded = std::max(0, int32(FSB_WSG_MAX_TEAM_SIZE) - int32(hordePlayers) - int32(hordeExistingBots));
 
         TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: players A={} H={}; existing bots A={} H={}; needed A={} H={}",
             alliancePlayers, hordePlayers, allianceExistingBots, hordeExistingBots, allianceNeeded, hordeNeeded);

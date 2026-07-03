@@ -194,6 +194,13 @@ struct battleground_warsong_gulch : BattlegroundScript
                 }
             }
         }
+
+        _raidUpdateTimer += diff;
+        if (_raidUpdateTimer >= 2000)
+        {
+            _raidUpdateTimer = 0;
+            FSBBattleground::PeriodicRaidUpdate(battlegroundMap);
+        }
     }
 
     void OnStart() override
@@ -213,6 +220,8 @@ struct battleground_warsong_gulch : BattlegroundScript
 
         // players joining later are not eligibles
         TriggerGameEvent(EVENT_START_BATTLE);
+
+        FSBBattleground::PeriodicRaidUpdate(battlegroundMap);
     }
 
     void OnBuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData) const override
@@ -235,6 +244,13 @@ struct battleground_warsong_gulch : BattlegroundScript
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), HORDE);
 
         FSBBattleground::ClearSpawnedBotGuids(battlegroundMap);
+    }
+
+    void OnPlayerJoined(Player* player, bool inBattleground) override
+    {
+        BattlegroundScript::OnPlayerJoined(player, inBattleground);
+
+        FSBBattleground::SendRaidUpdateToPlayer(player);
     }
 
     template <std::invocable<Player*> Action>
@@ -607,6 +623,8 @@ private:
     TimeTracker _flagAssaultTimer;
     uint8 _assaultStackCount;
     std::array<ObjectGuid, PVP_TEAMS_COUNT> _capturePointAreaTriggers;
+
+    uint32 _raidUpdateTimer = 0;
 
     uint32 _honorWinKills;
     uint32 _honorEndKills;

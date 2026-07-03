@@ -389,13 +389,25 @@ public:
             damage = FSBStats::CalculateScaledBotDamage(me, victim, damage);
             damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
             FSBPowers::GenerateRageFromDamageDone(me, damage);
+
+            if (me->GetMap()->IsBattleground())
+                FSBBattleground::RecordBotDamageDone(me, damage);
         }
 
         // Runs every time creature takes damage
-        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
             damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
             FSBPowers::GenerateRageFromDamageTaken(me, damage);
+
+            if (me->GetMap()->IsBattleground() && attacker && attacker->GetTypeId() == TYPEID_PLAYER)
+                FSBBattleground::HandlePlayerDamagedBot(attacker, me, damage);
+        }
+
+        void HealDone(Unit* /*done_to*/, uint32& addhealth) override
+        {
+            if (me->GetMap()->IsBattleground())
+                FSBBattleground::RecordBotHealingDone(me, addhealth);
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades
@@ -412,8 +424,12 @@ public:
                 FSBGenAIPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
 
             if (me->GetMap()->IsBattleground())
+            {
                 if (victim && victim->GetTypeId() == TYPEID_PLAYER)
                     FSBBattleground::HandleBotKilledPlayer(me, victim->GetGUID());
+
+                FSBBattleground::RecordBotKillingBlow(me);
+            }
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
@@ -489,8 +505,12 @@ public:
             FSBDeath::HandlerJustDied(me, killer);
 
             if (me->GetMap()->IsBattleground())
+            {
                 if (killer && killer->GetTypeId() == TYPEID_PLAYER)
                     FSBBattleground::HandlePlayerKilledBot(killer->GetGUID(), me);
+
+                FSBBattleground::RecordBotDeath(me);
+            }
         }
 
         void MovementInform(uint32 type, uint32 id) override
@@ -596,7 +616,8 @@ public:
                 {
                     // bot events
                     FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_CHECK_HIRED_TIME, 10s);
-                    FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
+                    if(!botHired)
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_DESPAWN_TEMP_BOT, 1s);
 
                     uint32 now = getMSTime();
 
@@ -625,8 +646,6 @@ public:
 
                     FSBParty::PeriodicPartyNeededCheck(me);
 
-                    FSBDungeon::CheckDungeonHandlingNeeded(me);
-
                     FSBChatMgr::Get()->UpdateBotChannels(me);
 
                     events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -650,6 +669,9 @@ public:
 
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
+
+                        FSBDungeon::CheckDungeonHandlingNeeded(me);
 
                         if (now >= _5secondsCheckMs)
                         {

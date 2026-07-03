@@ -69,6 +69,11 @@ namespace ScriptHelpers
     // Takes a list of bot creatures and their class/race/role information to include in the party
     TC_GAME_API void SendFakePartyUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces, std::vector<uint8> const& botRoles);
 
+    // Wrapper function to send a fake battleground raid update packet to a player with bots
+    // This constructs the packet internally in the core to avoid linking issues with dynamic loading
+    // Distributes members across subgroups with a max of 5 per subgroup (core BG raid layout)
+    TC_GAME_API void SendFakeBGRaidUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces, std::vector<uint8> const& botRoles);
+
     // Wrapper function to send a GossipMessage packet to a player
     // This constructs the packet internally in the core to avoid linking issues with dynamic loading
     // Takes simplified data structures instead of the full GossipMessage to avoid needing NPCPackets.h in scripts
@@ -82,7 +87,7 @@ namespace ScriptHelpers
 
     // Wrapper function to add a creature entry to a PvP match statistics packet
     // This constructs the player statistics entry internally in the core to avoid needing BattlegroundPackets.h in scripts
-    TC_GAME_API void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team);
+    TC_GAME_API void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team, uint32 killingBlows = 0, uint32 honorableKills = 0, uint32 deaths = 0, uint32 damageDone = 0, uint32 healingDone = 0);
 }
 
 #endif // SC_SCRIPTHELPERS_H

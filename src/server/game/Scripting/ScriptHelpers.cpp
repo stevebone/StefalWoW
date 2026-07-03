@@ -27,6 +27,8 @@
 #include "WorldSession.h"
 #include "GossipDef.h"
 
+#include <algorithm>
+
 namespace ScriptHelpers
 {
     void SendClearFakeParty(Player* player)
@@ -86,7 +88,20 @@ namespace ScriptHelpers
         stats.PositionX = positionX;
         stats.PositionY = positionY;
         stats.PositionZ = positionZ;
+
+        // Keep the bot member state consistent with the roster PartyUpdate:
+        // PartyType[0] mirrors the group type, PartyType[1] the group category
+        // (e.g. GROUP_CATEGORY_INSTANCE for a BG raid group). For players in a BG
+        // without a real group (solo) we still report the instance category so the
+        // client matches the fake BG raid roster.
+        Group* group = player->GetGroup();
         stats.PartyType[0] = GROUP_TYPE_NORMAL;
+        if (group)
+            stats.PartyType[1] = group->GetGroupCategory();
+        else if (player->InBattleground())
+            stats.PartyType[1] = GROUP_CATEGORY_INSTANCE;
+        else
+            stats.PartyType[1] = GROUP_CATEGORY_HOME;
 
         // Populate auras
         for (uint32 spellId : auraSpellIds)
@@ -150,7 +165,7 @@ namespace ScriptHelpers
 
                 partyUpdate.MyIndex = myIndex;
 
-                if (partyUpdate.PlayerList.size() > 1)
+                if (realGroup->GetMembersCount() > 1)
                 {
                     partyUpdate.LootSettings.emplace();
                     partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
@@ -237,7 +252,7 @@ namespace ScriptHelpers
                 info.RolesAssigned = safeBotRoles[i];
             }
 
-            if (partyUpdate.PlayerList.size() > 1)
+            if (realGroup->GetMembersCount() > 1)
             {
                 partyUpdate.LootSettings.emplace();
                 partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
@@ -292,6 +307,139 @@ namespace ScriptHelpers
         }
     }
 
+    void SendFakeBGRaidUpdate(Player* player, std::vector<Creature*> const& bots, std::vector<uint8> const& botClasses, std::vector<uint8> const& botRaces, std::vector<uint8> const& botRoles)
+    {
+        if (!player || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
+            return;
+
+        Group* realGroup = player->GetGroup();
+
+        // Filter bots and match with class/race/role info
+        std::vector<Creature*> safeBots;
+        std::vector<uint8> safeBotClasses;
+        std::vector<uint8> safeBotRaces;
+        std::vector<uint8> safeBotRoles;
+        for (size_t i = 0; i < bots.size() && i < botClasses.size() && i < botRaces.size() && i < botRoles.size(); ++i)
+        {
+            if (bots[i] && bots[i]->IsInWorld())
+            {
+                safeBots.push_back(bots[i]);
+                safeBotClasses.push_back(botClasses[i]);
+                safeBotRaces.push_back(botRaces[i]);
+                safeBotRoles.push_back(botRoles[i]);
+            }
+        }
+
+        WorldPackets::Party::PartyUpdate partyUpdate;
+
+        // Mimic a BG raid group: raid flag + instance category so the client
+        // renders the multi-subgroup raid frame.
+        partyUpdate.PartyFlags = GROUP_MASK_BGRAID;
+        partyUpdate.PartyIndex = GROUP_CATEGORY_INSTANCE;
+        partyUpdate.PartyType = GROUP_TYPE_NORMAL;
+        partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+        partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_INSTANCE);
+
+        // Track per-subgroup occupancy so bots fill sequentially into the
+        // lowest subgroup that still has room (< MAX_GROUP_SIZE members).
+        uint8 subGroupCounts[MAX_RAID_SUBGROUPS] = {};
+
+        if (realGroup)
+        {
+            partyUpdate.PartyGUID = realGroup->GetGUID();
+            partyUpdate.LeaderGUID = realGroup->GetLeaderGUID();
+
+            int32 myIndex = -1;
+            uint8 index = 0;
+
+            for (auto const& memberSlot : realGroup->GetMemberSlots())
+            {
+                if (memberSlot.guid == player->GetGUID())
+                    myIndex = index;
+
+                if (memberSlot.group < MAX_RAID_SUBGROUPS)
+                    ++subGroupCounts[memberSlot.group];
+
+                Player* member = ObjectAccessor::FindConnectedPlayer(memberSlot.guid);
+
+                WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
+                info.GUID = memberSlot.guid;
+                info.Name = memberSlot.name;
+                info.Class = memberSlot._class;
+                info.FactionGroup = Player::GetFactionGroupForRace(memberSlot.race);
+                info.Connected = member && member->GetSession() && !member->GetSession()->PlayerLogout();
+                info.Subgroup = memberSlot.group;
+                info.Flags = memberSlot.flags;
+                info.RolesAssigned = memberSlot.roles;
+                ++index;
+            }
+
+            partyUpdate.MyIndex = myIndex;
+        }
+        else
+        {
+            // No real group: create a fake BG raid with the player as leader.
+            partyUpdate.PartyGUID = player->GetGUID();
+            partyUpdate.LeaderGUID = player->GetGUID();
+            partyUpdate.MyIndex = 0;
+
+            WorldPackets::Party::PartyPlayerInfo& playerInfo = partyUpdate.PlayerList.emplace_back();
+            playerInfo.GUID = player->GetGUID();
+            playerInfo.Name = player->GetName();
+            playerInfo.Class = player->GetClass();
+            playerInfo.FactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+            playerInfo.Connected = true;
+            playerInfo.Subgroup = 0;
+            playerInfo.Flags = 0;
+            playerInfo.RolesAssigned = 0;
+
+            // Player occupies slot 0 in subgroup 0.
+            subGroupCounts[0] = 1;
+        }
+
+        // Add bots into the lowest subgroup that still has room (< 5 members).
+        for (size_t i = 0; i < safeBots.size(); ++i)
+        {
+            uint8 targetSub = 0;
+            for (uint8 s = 0; s < MAX_RAID_SUBGROUPS; ++s)
+            {
+                if (subGroupCounts[s] < MAX_GROUP_SIZE)
+                {
+                    targetSub = s;
+                    break;
+                }
+                targetSub = MAX_RAID_SUBGROUPS - 1;
+            }
+
+            ++subGroupCounts[targetSub];
+
+            WorldPackets::Party::PartyPlayerInfo& info = partyUpdate.PlayerList.emplace_back();
+            info.GUID = safeBots[i]->GetGUID();
+            info.Name = safeBots[i]->GetName();
+            info.Class = safeBotClasses[i];
+            info.FactionGroup = Player::GetFactionGroupForRace(safeBotRaces[i]);
+            info.Connected = true;
+            info.Subgroup = targetSub;
+            info.Flags = 0;
+            info.RolesAssigned = safeBotRoles[i];
+        }
+
+        if (realGroup && realGroup->GetMembersCount() > 1)
+        {
+            partyUpdate.LootSettings.emplace();
+            partyUpdate.LootSettings->Method = realGroup->GetLootMethod();
+            partyUpdate.LootSettings->Threshold = realGroup->GetLootThreshold();
+            partyUpdate.LootSettings->LootMaster = ObjectGuid::Empty;
+
+            partyUpdate.DifficultySettings.emplace();
+            partyUpdate.DifficultySettings->DungeonDifficultyID = realGroup->GetDungeonDifficultyID();
+            partyUpdate.DifficultySettings->RaidDifficultyID = realGroup->GetRaidDifficultyID();
+            partyUpdate.DifficultySettings->LegacyRaidDifficultyID = realGroup->GetLegacyRaidDifficultyID();
+        }
+
+        player->SendDirectMessage(partyUpdate.Write());
+    }
+
     void SendGossipMessage(Player* player, ObjectGuid gossipGUID, uint32 gossipID, uint32 lfgDungeonsID, 
                            uint32 broadcastTextID, std::vector<GossipOptionData> const& options,
                            std::vector<std::vector<TreasureItemData>> const& treasureItems)
@@ -339,7 +487,7 @@ namespace ScriptHelpers
         player->GetSession()->SendPacket(configUI.Write());
     }
 
-    void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team)
+    void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team, uint32 killingBlows, uint32 honorableKills, uint32 deaths, uint32 damageDone, uint32 healingDone)
     {
         WorldPackets::Battleground::PVPMatchStatistics::PVPMatchPlayerStatistics playerData;
         playerData.PlayerGUID = guid;
@@ -349,6 +497,15 @@ namespace ScriptHelpers
         playerData.Sex = int8(gender);
         playerData.Race = int8(race);
         playerData.Class = int8(classId);
+        playerData.Kills = killingBlows;
+        playerData.DamageDone = damageDone;
+        playerData.HealingDone = healingDone;
+        if (honorableKills || deaths)
+        {
+            playerData.Honor.emplace();
+            playerData.Honor->HonorKills = honorableKills;
+            playerData.Honor->Deaths = deaths;
+        }
 
         pvpLogData.Statistics.push_back(playerData);
     }

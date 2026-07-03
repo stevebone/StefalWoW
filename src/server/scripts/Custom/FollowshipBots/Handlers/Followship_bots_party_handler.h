@@ -43,6 +43,10 @@ namespace FSBParty
     // If not in a group, creates a standalone fake party with just the player + bots
     void SendFakePartyUpdate(Player* player, Creature* bot = nullptr);
 
+    // Sends a fake SMSG_PARTY_UPDATE for a battleground raid roster.
+    // No 5-member cap is applied; all bots are sent for the client's raid frame.
+    void SendBattlegroundRaidUpdate(Player* player, std::vector<Creature*> const& bots);
+
     // Sends SMSG_PARTY_MEMBER_FULL_STATE for a single bot creature to the owner
     // This updates health, mana, position etc. on the party frame
     void SendBotMemberState(Player* player, Creature* bot);

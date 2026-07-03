@@ -29,6 +29,8 @@
 
 class Battleground;
 class BattlegroundMap;
+class Creature;
+class Player;
 class Unit;
 
 namespace WorldPackets::Battleground
@@ -41,12 +43,30 @@ namespace FSBBattleground
     // Data index used with BattlegroundScript::GetData / SetData
     constexpr uint32 BotsSpawnedDataId = 0;
 
-    void OnBattlegroundStart(Battleground* battleground, BattlegroundMap* battlegroundMap);
-    void OnBattlegroundEnd(Battleground* battleground, BattlegroundMap* battlegroundMap);
-    void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap);
+    struct BotScoreData
+    {
+        uint32 KillingBlows = 0;
+        uint32 HonorableKills = 0;
+        uint32 Deaths = 0;
+        uint32 DamageDone = 0;
+        uint32 HealingDone = 0;
+    };
+
+    void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
+
+    bool IsInBG(Creature const* bot);
+    bool IsInProgress(Creature const* bot);
+    bool IsFinished(Creature const* bot);
 
     void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim);
     void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);
+    void HandlePlayerDamagedBot(Unit* attacker, Unit* botVictim, uint32 damage);
+
+    void RecordBotKillingBlow(Unit* bot);
+    void RecordBotDeath(Unit* bot);
+    void RecordBotDamageDone(Unit* bot, uint32 damage);
+    void RecordBotHealingDone(Unit* bot, uint32 heal);
+    BotScoreData const* GetBotScore(ObjectGuid botGuid);
 
     void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
     std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap);
@@ -55,4 +75,8 @@ namespace FSBBattleground
     void AddBotSpawnGuid(BattlegroundMap* battlegroundMap, ObjectGuid guid);
     uint32 CountExistingBots(Battleground* battleground, Team team);
     std::vector<uint32> SelectRandomEntries(std::vector<uint32>& entries, uint32 count);
+
+    std::vector<Creature*> CollectBotsOnTeam(BattlegroundMap* battlegroundMap, Team team);
+    void SendRaidUpdateToPlayer(Player* player);
+    void PeriodicRaidUpdate(BattlegroundMap* battlegroundMap);
 }

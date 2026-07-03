@@ -35,6 +35,8 @@
 
 #include "Followship_bots_mgr.h"
 
+#include <algorithm>
+
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_pet_handler.h"
@@ -169,6 +171,66 @@ namespace FSBParty
             player->GetName(), safeBots.size());
     }
 
+    void SendBattlegroundRaidUpdate(Player* player, std::vector<Creature*> const& bots)
+    {
+        if (!player || !player->GetSession())
+            return;
+
+        if (!player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleported())
+            return;
+
+        if (player->GetSession()->PlayerLoading())
+            return;
+
+        if (bots.empty())
+            return;
+
+        std::vector<Creature*> safeBots;
+        std::vector<uint8> botClasses;
+        std::vector<uint8> botRaces;
+        std::vector<uint8> botRoles;
+        for (Creature* bot : bots)
+        {
+            if (bot && bot->IsInWorld())
+            {
+                safeBots.push_back(bot);
+                FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+                FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+                botClasses.push_back(FSBUtils::FSBToTCClass(botClass));
+                botRaces.push_back(FSBUtils::BotRaceToTC(botRace));
+                botRoles.push_back(GetLfgRoleForBot(bot));
+            }
+        }
+
+        if (safeBots.empty())
+            return;
+
+        // Sort bots so hired bots (those with a non-null owner) come before non-hired bots.
+        // This preserves the priority: real players, then hired bots, then remaining spawn bots.
+        std::stable_sort(safeBots.begin(), safeBots.end(), [](Creature* a, Creature* b)
+        {
+            bool aHired = FSBMgr::Get()->GetBotOwner(a) != nullptr;
+            bool bHired = FSBMgr::Get()->GetBotOwner(b) != nullptr;
+            return aHired && !bHired;
+        });
+
+        // Rebuild class/race/role vectors to match the sorted order.
+        for (size_t i = 0; i < safeBots.size(); ++i)
+        {
+            FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(safeBots[i]->GetEntry());
+            FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(safeBots[i]->GetEntry());
+            botClasses[i] = FSBUtils::FSBToTCClass(botClass);
+            botRaces[i] = FSBUtils::BotRaceToTC(botRace);
+            botRoles[i] = GetLfgRoleForBot(safeBots[i]);
+        }
+
+        ScriptHelpers::SendFakeBGRaidUpdate(player, safeBots, botClasses, botRaces, botRoles);
+
+        TC_LOG_DEBUG("scripts.fsb.party",
+            "FSB: SendBattlegroundRaidUpdate sent to player {} with {} bots",
+            player->GetName(), safeBots.size());
+    }
+
     void SendBotMemberState(Player* player, Creature* bot)
     {
         if (!player || !player->GetSession() || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
@@ -223,6 +285,11 @@ namespace FSBParty
         {
             if (!owner || !owner->GetSession() || owner->IsBeingTeleportedNear() || owner->IsBeingTeleported() || owner->IsBeingTeleportedFar() || !owner->IsInWorld())
                 return;
+
+            // In battlegrounds the raid-frame update handles all bots centrally; skip the capped party update here.
+            if (owner->GetMap()->IsBattleground())
+                return;
+
             // Build a single activeBots list for this owner
             std::vector<Creature*> activeBots = CollectActiveBots(owner);
 
@@ -249,6 +316,10 @@ namespace FSBParty
     void OnMemberAdd(Group* group, ObjectGuid guid)
     {
         if (!group || !guid)
+            return;
+
+        // In battlegrounds the raid-frame update handles bots centrally.
+        if (group->isBGGroup())
             return;
 
         // When a player joins a group, re-send the party update with bots included
@@ -295,6 +366,10 @@ namespace FSBParty
     void OnMemberRemove(Group* group, ObjectGuid guid)
     {
         if (!group || !guid)
+            return;
+
+        // In battlegrounds the raid-frame update handles bots centrally.
+        if (group->isBGGroup())
             return;
 
         // When a player leaves a group, clear their fake party if they had bots

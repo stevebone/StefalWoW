@@ -73,7 +73,7 @@ public:
 
         TC_LOG_INFO("scripts.fsb.battleground", "FSB BG Player: Spawning bots for BG type {}", battleground->GetTypeID());
         script->SetData(FSBBattleground::BotsSpawnedDataId, 1);
-        FSBBattleground::SpawnBots(battleground, battlegroundMap);
+        FSBBattleground::SpawnBots(battleground, battlegroundMap, player);
     }
 };
 
