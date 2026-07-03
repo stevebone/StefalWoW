@@ -315,28 +315,28 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 27:
             {
                 me->CastSpell(me, SPELL_MAGE_PORTAL_STORMWIND);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                me->Say("Okay one portal coming up!", botLanguage);
                 break;
             }
 
             case GOSSIP_ACTION_INFO_DEF + 28:
             {
                 player->CastSpell(me, 121849);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                me->Say("Okay one portal coming up!", botLanguage);
                 break;
             }
 
             case GOSSIP_ACTION_INFO_DEF + 29:
             {
                 player->CastSpell(player, 121851);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                me->Say("Okay one portal coming up!", botLanguage);
                 break;
             }
 
             case GOSSIP_ACTION_INFO_DEF + 30:
             {
                 player->CastSpell(player, 121850);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
+                me->Say("Okay one portal coming up!", botLanguage);
                 break;
             }
 
@@ -344,6 +344,24 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 31:
                 FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_4, botHasDemon);
                 break;
+
+            // Language Menu
+            case GOSSIP_ACTION_INFO_DEF + 32:
+                return FSBGossip::HandleGossipMenuLanguage(me, player);
+
+            // Language: Racial
+            case GOSSIP_ACTION_INFO_DEF + 33:
+            {
+                botLanguage = FSBUtils::GetLanguageForFSBRace(botRace);
+                break;
+            }
+
+            // Language: Team
+            case GOSSIP_ACTION_INFO_DEF + 34:
+            {
+                botLanguage = FSBUtils::GetTeamLanguageForFSBRace(botRace);
+                break;
+            }
 
             default:
                 break;

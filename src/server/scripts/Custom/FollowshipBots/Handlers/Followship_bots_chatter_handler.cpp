@@ -262,11 +262,14 @@ namespace FSBChatter
         if (chatter.empty())
             return;
 
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        Language botLanguage = ai ? ai->botLanguage : LANG_UNIVERSAL;
+
         if (replyType == FSB_ReplyType::Say)
-            bot->Say(chatter, LANG_UNIVERSAL);
+            bot->Say(chatter, botLanguage);
 
         if (replyType == FSB_ReplyType::Yell)
-            bot->Yell(chatter, LANG_UNIVERSAL);
+            bot->Yell(chatter, botLanguage);
 
         if (replyType == FSB_ReplyType::Whisper)
         {

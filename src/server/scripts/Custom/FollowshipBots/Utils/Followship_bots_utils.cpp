@@ -235,6 +235,44 @@ namespace FSBUtils
         return 0;
     }
 
+    Language GetLanguageForFSBRace(FSB_Race race)
+    {
+        switch (race)
+        {
+        case FSB_Race::Human:               return LANG_COMMON;
+        case FSB_Race::Dwarf:               return LANG_DWARVISH;
+        case FSB_Race::NightElf:            return LANG_DARNASSIAN;
+        case FSB_Race::Gnome:               return LANG_GNOMISH;
+        case FSB_Race::Draenei:             return LANG_DRAENEI;
+        case FSB_Race::Worgen:              return LANG_WORGEN;
+        case FSB_Race::Pandaren:            return LANG_PANDAREN_NEUTRAL;
+        case FSB_Race::VoidElf:             return LANG_THALASSIAN;
+        case FSB_Race::Orc:                 return LANG_ORCISH;
+        case FSB_Race::Undead:              return LANG_GUTTERSPEAK;
+        case FSB_Race::Tauren:              return LANG_TAURAHE;
+        case FSB_Race::Troll:               return LANG_TROLL;
+        case FSB_Race::BloodElf:            return LANG_THALASSIAN;
+        case FSB_Race::Goblin:              return LANG_GOBLIN;
+        case FSB_Race::PandarenHorde:       return LANG_PANDAREN_HORDE;
+        case FSB_Race::HighmountainTauren:  return LANG_TAURAHE;
+        case FSB_Race::Nightborne:          return LANG_SHALASSIAN;
+        case FSB_Race::LightforgedDraenei:  return LANG_DRAENEI;
+        case FSB_Race::EarthenAlliance:     return LANG_EARTHEN;
+        case FSB_Race::EarthenHorde:        return LANG_EARTHEN;
+        case FSB_Race::HaranirAlliance:     return LANG_HARANI;
+        case FSB_Race::HaranirHorde:        return LANG_HARANI;
+        default:                            return LANG_UNIVERSAL;
+        }
+    }
+
+    Language GetTeamLanguageForFSBRace(FSB_Race race)
+    {
+        Team team = GetTeamFromFSBRace(race);
+        if (team == ALLIANCE) return LANG_COMMON;
+        if (team == HORDE)    return LANG_ORCISH;
+        return LANG_UNIVERSAL;
+    }
+
     const char* PowerTypeToString(Powers power)
     {
         switch (power)

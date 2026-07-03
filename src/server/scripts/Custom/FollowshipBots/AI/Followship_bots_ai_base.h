@@ -56,6 +56,7 @@ public:
         botGender(GENDER_NONE),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
         botChatterType(FSB_ChatterType::None),
+        botLanguage(LANG_UNIVERSAL),
         botRegenMods(),
         botClassStats(),
         botStats(),
@@ -98,13 +99,13 @@ public:
     virtual ~FSB_BaseAI();
 
     FSB_DungeonData* GetDungeonData();
-
     FSB_Roles botRole; 
     FSB_Class botClass;
     FSB_Race botRace;
     Gender botGender;
     FSB_MovementStates botMoveState;
     FSB_ChatterType botChatterType;
+    Language botLanguage = LANG_UNIVERSAL;
     FSBRegenMods botRegenMods;
     FSB_ClassStats const* botClassStats = nullptr;
     FSB_DungeonData* botDungeonData = nullptr;
@@ -219,9 +220,9 @@ public:
                 if (genAIDeliverAction)
                     genAIDeliverAction(response);
                 else if (pendingGenAIState->replyType == FSB_ReplyType::Yell)
-                    me->Yell(response, LANG_UNIVERSAL);
+                    me->Yell(response, botLanguage);
                 else
-                    me->Say(response, LANG_UNIVERSAL);
+                    me->Say(response, botLanguage);
             }
             else if (genAIFallbackAction)
             {

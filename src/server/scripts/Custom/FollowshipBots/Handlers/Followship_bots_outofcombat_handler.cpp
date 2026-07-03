@@ -361,7 +361,8 @@ namespace FSBOOC
         case FSB_AFK_ACTION_REST:
         {
             TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} randomEvent: rest", bot->GetName());
-            bot->Say("Am gonna rest for a while...", LANG_UNIVERSAL);
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            bot->Say("Am gonna rest for a while...", baseAI ? baseAI->botLanguage : LANG_UNIVERSAL);
             bot->SetStandState(UNIT_STAND_STATE_SIT);
             return true;
         }

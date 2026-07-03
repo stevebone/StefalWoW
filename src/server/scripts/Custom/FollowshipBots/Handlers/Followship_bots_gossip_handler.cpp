@@ -52,7 +52,8 @@ namespace FSBGossip
 
         if (FSBMgr::Get()->CheckPlayerHasBotWithEntry(player, bot->GetEntry()) && !hired)
         {
-            bot->Say(FSB_SAY_DUPLICATE_FOLLOWER, LANG_UNIVERSAL);
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+            bot->Say(FSB_SAY_DUPLICATE_FOLLOWER, baseAI ? baseAI->botLanguage : LANG_UNIVERSAL);
             ClearGossipMenuFor(player);
             CloseGossipMenuFor(player);
             return true;
@@ -148,6 +149,7 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_STAY_HERE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 20);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
+            AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_LANGUAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 32);
             AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
         }
         else if (FSBMovement::GetMovementType(bot) == IDLE_MOTION_TYPE)
@@ -155,6 +157,7 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 21);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_DIST, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
             AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_FOLLOW_ANGLE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
+            AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_MENU_LANGUAGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 32);
             AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
         }
 
@@ -233,6 +236,15 @@ namespace FSBGossip
         }
 
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
+
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
+        return true;
+    }
+    bool HandleGossipMenuLanguage(Creature* bot, Player* player)
+    {
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_LANG_RACIAL, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 33);
+        AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_LANG_TEAM, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 34);
+        AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
         SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;

@@ -33,8 +33,12 @@ constexpr auto FSB_GOSSIP_MENU_INSTRUCTIONS = "Instructions";
 constexpr auto FSB_GOSSIP_MENU_FOLLOW_DIST = "Follow Distance";
 constexpr auto FSB_GOSSIP_MENU_FOLLOW_ANGLE = "Follow Angle";
 constexpr auto FSB_GOSSIP_MENU_ROLES = "Roles";
+constexpr auto FSB_GOSSIP_MENU_LANGUAGE = "Language";
 
 constexpr auto FSB_GOSSIP_MENU_PORTAL = "I need a portal";
+
+constexpr auto FSB_GOSSIP_ITEM_LANG_RACIAL = "Speak in your racial tongue";
+constexpr auto FSB_GOSSIP_ITEM_LANG_TEAM = "Speak in the common team language";
 
 // Non menu items
 constexpr auto FSB_GOSSIP_ITEM_PHIRE = "I need you for a longer time...";
@@ -100,6 +104,7 @@ namespace FSBGossip
     bool HandleGossipMenuInstructions(Creature* bot, Player* player);
     bool HandleGossipMenuPortals(Creature* bot, Player* player);
     bool HandleGossipMenuRoles(Creature* bot, Player* player);
+    bool HandleGossipMenuLanguage(Creature* bot, Player* player);
 
     void HandleGossipItemInfo(Creature* bot, Player* player);
     void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon);

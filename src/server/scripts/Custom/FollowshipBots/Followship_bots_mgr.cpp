@@ -539,12 +539,13 @@ void FSBMgr::SetInitialBotState(Creature* bot)
         baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
         baseAI->botFollowDistance = frand(2.f, 8.f);
         baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
-    }   
+    }
 
     auto& botClass = baseAI->botClass;
     auto& botRace = baseAI->botRace;
     auto& botStats = baseAI->botStats;
     auto& botRole = baseAI->botRole;
+    SetBotClassAndRace(bot, botClass, botRace);
     baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
     baseAI->botHasDemon = false;
 
@@ -568,14 +569,10 @@ void FSBMgr::SetInitialBotState(Creature* bot)
         bot->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
     else bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 
-
-
     bot->SetReactState(REACT_DEFENSIVE);
-    FSB_Race initRace = GetBotRaceForEntry(bot->GetEntry());
-    bot->SetFaction(FSBUtils::GetFactionForFSBRace(initRace));
-    //creature->SetFaction(12); // it is actually template
 
-    SetBotClassAndRace(bot, botClass, botRace);
+    bot->SetFaction(FSBUtils::GetFactionForFSBRace(botRace));
+    baseAI->botLanguage = FSBUtils::GetLanguageForFSBRace(botRace);
     FSBStats::ApplyBotBaseClassStats(bot, botClass);
     botStats = FSBBotStats();
     botRole = GetRandomRoleForClass(botClass);
@@ -594,7 +591,6 @@ void FSBMgr::SetInitialBotState(Creature* bot)
         if (botRole == FSB_Roles::FSB_ROLE_MELEE_DAMAGE)
             FSBPowers::SetBotToChi(bot);
     }
-
 }
 
 void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)

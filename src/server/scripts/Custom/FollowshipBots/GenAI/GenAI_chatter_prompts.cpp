@@ -80,13 +80,14 @@ namespace FSBGenAIPrompts
         if (!bot)
             return;
 
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+
         if (!FSBGenAI::IsEnabled())
         {
-            bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, LANG_UNIVERSAL);
+            bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, ai ? ai->botLanguage : LANG_UNIVERSAL);
             return;
         }
 
-        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded string.", bot->GetName());
@@ -129,8 +130,10 @@ namespace FSBGenAIPrompts
             chosenIntro,
             zoneName);
 
-        ai->genAIFallbackAction = [bot]() {
-            bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, LANG_UNIVERSAL);
+        auto botLanguage = ai->botLanguage;
+
+        ai->genAIFallbackAction = [bot, botLanguage]() {
+            bot->Say(FSB_GOSSIP_ITEM_PRIEST_INFO, botLanguage);
         };
         ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
         auto state = ai->pendingGenAIState;
@@ -359,6 +362,8 @@ namespace FSBGenAIPrompts
         FSB_ChatterCategory category = isPermanent ? FSB_ChatterCategory::botHiredPermanent : FSB_ChatterCategory::botHire;
         FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
+        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+
         if (!FSBGenAI::IsEnabled())
         {
             if (isPermanent)
@@ -367,12 +372,11 @@ namespace FSBGenAIPrompts
             {
                 std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, durationHours);
                 if (!chatter.empty())
-                    bot->Say(chatter, LANG_UNIVERSAL);
+                    bot->Say(chatter, ai ? ai->botLanguage : LANG_UNIVERSAL);
             }
             return;
         }
 
-        auto* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!ai)
         {
             TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: could not get AI for bot {}, falling back to hardcoded chatter.", bot->GetName());
@@ -414,7 +418,9 @@ namespace FSBGenAIPrompts
                 seedLine.empty() ? "Alright, let's band together." : seedLine);
         }
 
-        ai->genAIFallbackAction = [bot, category, durationHours]() {
+        auto botLanguage = ai->botLanguage;
+
+        ai->genAIFallbackAction = [bot, botLanguage, category, durationHours]() {
             FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
             if (category == FSB_ChatterCategory::botHiredPermanent)
                 FSBChatter::DemandTimedReply(bot, nullptr, category, FSB_ReplyType::Say, FSB_ChatterSource::Bot);
@@ -422,7 +428,7 @@ namespace FSBGenAIPrompts
             {
                 std::string chatter = FSBChatter::GetRandomReply(bot, nullptr, category, personalityType, 0, durationHours);
                 if (!chatter.empty())
-                    bot->Say(chatter, LANG_UNIVERSAL);
+                    bot->Say(chatter, botLanguage);
             }
         };
         ai->pendingGenAIState = std::make_shared<FSB_BaseAI::GenAIRequestState>();
@@ -1462,8 +1468,8 @@ namespace FSBGenAIPrompts
             FSBChatter::DemandTargetReply(initiatorCreature, targetBot, category, FSB_ReplyType::Say);
         };
 
-        targetAI->genAIDeliverAction = [targetBot, dummyEmoteString](std::string const& response) {
-            targetBot->Say(response, LANG_UNIVERSAL);
+        targetAI->genAIDeliverAction = [targetBot, targetAI, dummyEmoteString](std::string const& response) {
+            targetBot->Say(response, targetAI->botLanguage);
             FSBChatter::PlayDummyEmote(targetBot, dummyEmoteString);
         };
 

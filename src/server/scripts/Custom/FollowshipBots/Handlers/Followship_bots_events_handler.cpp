@@ -152,7 +152,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_HIRED_MOUNT_AURA:
         bot->CastSpell(bot, SPELL_PALADIN_CRUSADER_AURA, false);
-        bot->Say("This should help us go faster", LANG_UNIVERSAL);
+        bot->Say("This should help us go faster", ai->botLanguage);
         break;
 
     case FSB_EVENT_HIRED_RESURRECT_TARGET:
@@ -455,15 +455,33 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
         switch (replyType)
         {
         case FSB_ReplyType::Say:
-            if(target && target->IsAlive())
-                target->Say(chatterReply, LANG_UNIVERSAL);
-            else bot->Say(chatterReply, LANG_UNIVERSAL);
+        {
+            if (target && target->IsAlive())
+            {
+                Language targetLanguage = LANG_UNIVERSAL;
+                if (target->GetTypeId() == TYPEID_UNIT)
+                    if (auto targetAI = dynamic_cast<FSB_BaseAI*>(target->ToCreature()->AI()))
+                        targetLanguage = targetAI->botLanguage;
+                target->Say(chatterReply, targetLanguage);
+            }
+            else
+                bot->Say(chatterReply, ai->botLanguage);
             break;
+        }
         case FSB_ReplyType::Yell:
-            if(target && target->IsAlive())
-                target->Yell(chatterReply, LANG_UNIVERSAL);
-            else bot->Yell(chatterReply, LANG_UNIVERSAL);
+        {
+            if (target && target->IsAlive())
+            {
+                Language targetLanguage = LANG_UNIVERSAL;
+                if (target->GetTypeId() == TYPEID_UNIT)
+                    if (auto targetAI = dynamic_cast<FSB_BaseAI*>(target->ToCreature()->AI()))
+                        targetLanguage = targetAI->botLanguage;
+                target->Yell(chatterReply, targetLanguage);
+            }
+            else
+                bot->Yell(chatterReply, ai->botLanguage);
             break;
+        }
         case FSB_ReplyType::Whisper:
         {
             Player* player = FSBMgr::Get()->GetBotOwner(bot);
