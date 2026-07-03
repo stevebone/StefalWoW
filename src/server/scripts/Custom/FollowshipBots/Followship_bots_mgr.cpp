@@ -29,17 +29,18 @@
 #include "DB2Stores.h"
 #include <random>
 
+#include "GenAI_chatter_prompts.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
 #include "FollowshipDatabase.h"
 #include "Followship_bots_config.h"
 
+#include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_events_handler.h"
-
-#include "GenAI_chatter_prompts.h"
-
 #include "Followship_bots_dungeon_handler.h"
+#include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
@@ -560,7 +561,15 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
 
-    bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+    if (!bot->GetGossipMenuId())
+        bot->SetGossipMenuId(FSB_GOSSIP_DEFAULT_MENU);
+
+    if (FSBBattleground::IsInBG(bot) && !baseAI->botHired)
+        bot->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+    else bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+
+
+
     bot->SetReactState(REACT_DEFENSIVE);
     FSB_Race initRace = GetBotRaceForEntry(bot->GetEntry());
     bot->SetFaction(FSBUtils::GetFactionForFSBRace(initRace));

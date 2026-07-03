@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Followship_bots_defines.h"
+
 // Player Notifications
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
 constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
@@ -78,17 +80,7 @@ constexpr auto FSB_GOSSIP_ITEM_INFO = "Tell me more about yourself";
 // NPC SAY
 constexpr auto FSB_SAY_DUPLICATE_FOLLOWER = "I'm sorry but I cannot come with you... one of us is already with you!";
 
-enum FSB_GossipMenus
-{
-    FSB_GOSSIP_DEFAULT_MENU = 900000,
-    FSB_GOSSIP_ROLES_MENU = 900001,
-    FSB_GOSSIP_HIRE_MENU = 900002,
-    FSB_GOSSIP_INSTRUCTIONS_MENU = 900003,
-    FSB_GOSSIP_FOLLOW_DIST_MENU = 900004,
-    FSB_GOSSIP_FOLLOW_ANGLE_MENU = 900005,
-    FSB_GOSSIP_PORTAL_MENU = 900006
-
-};
+static constexpr uint32 FSB_GOSSIP_DEFAULT_MENU = 12504;
 
 enum FSB_GossipRoleItems
 {

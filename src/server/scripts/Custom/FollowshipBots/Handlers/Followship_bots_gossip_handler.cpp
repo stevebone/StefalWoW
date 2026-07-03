@@ -60,7 +60,11 @@ namespace FSBGossip
 
         outPlayerGuid = player->GetGUID();
 
-        InitGossipMenuFor(player, FSB_GOSSIP_DEFAULT_MENU);
+        uint32 menuId = bot->GetGossipMenuId();
+
+        if (menuId > 0)
+            InitGossipMenuFor(player, menuId);
+        else InitGossipMenuFor(player, FSB_GOSSIP_DEFAULT_MENU);
 
         if (hired)
         {
@@ -89,7 +93,7 @@ namespace FSBGossip
                 FSB_GOSSIP_ITEM_INFO, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
         }
 
-        SendGossipMenuFor(player, player->GetGossipTextId(bot), bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
 
@@ -101,7 +105,7 @@ namespace FSBGossip
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_ANGLE_LEFT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 22);
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
-        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_FOLLOW_ANGLE_MENU, bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
     bool HandleGossipMenuFollowDistance(Creature* bot, Player* player)
@@ -111,7 +115,7 @@ namespace FSBGossip
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_FOLLOW_DIST3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 16);
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
-        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_FOLLOW_DIST_MENU, bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
     bool HandleGossipMenuHire(Creature* bot, Player* player)
@@ -134,7 +138,7 @@ namespace FSBGossip
         AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_PHIRE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 13);
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
-        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_HIRE_MENU, bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
     bool HandleGossipMenuInstructions(Creature* bot, Player* player)
@@ -154,7 +158,7 @@ namespace FSBGossip
             AddGossipItemFor(player, GossipOptionNpc::Auctioneer, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
         }
 
-        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_INSTRUCTIONS_MENU, bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
     bool HandleGossipMenuPortals(Creature* bot, Player* player)
@@ -165,7 +169,7 @@ namespace FSBGossip
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_PORTAL_EXODAR, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 30);
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
-        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_PORTAL_MENU, bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
     bool HandleGossipMenuRoles(Creature* bot, Player* player)
@@ -230,7 +234,7 @@ namespace FSBGossip
 
         AddGossipItemFor(player, GossipOptionNpc::None, FSB_GOSSIP_ITEM_BACKMAIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
 
-        player->PlayerTalkClass->SendGossipMenu(FSB_GOSSIP_ROLES_MENU, bot->GetGUID());
+        SendGossipMenuFor(player, FSBGossipUtils::ResolveGossipTextId(player, bot), bot->GetGUID());
         return true;
     }
 
