@@ -252,6 +252,7 @@ namespace FSBGenAIPrompts
             case FSB_AcknowledgeContext::FollowAngleLeft:    return "follow from the left";
             case FSB_AcknowledgeContext::StayCommand:        return "stay here and hold position";
             case FSB_AcknowledgeContext::FollowCommand:      return "follow again";
+            case FSB_AcknowledgeContext::LanguageCommand:    return "switch your language";
             default:                                         return "obey the command";
         }
     }

@@ -40,7 +40,8 @@ namespace FSBGenAIPrompts
         FollowAngleRight,
         FollowAngleLeft,
         StayCommand,
-        FollowCommand
+        FollowCommand,
+        LanguageCommand
     };
 
     void DispatchBotInfoRequest(Creature* bot);

@@ -353,6 +353,7 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 33:
             {
                 botLanguage = FSBUtils::GetLanguageForFSBRace(botRace);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::LanguageCommand);
                 break;
             }
 
@@ -360,6 +361,7 @@ public:
             case GOSSIP_ACTION_INFO_DEF + 34:
             {
                 botLanguage = FSBUtils::GetTeamLanguageForFSBRace(botRace);
+                FSBGenAIPrompts::DispatchBotAcknowledge(me, FSBGenAIPrompts::FSB_AcknowledgeContext::LanguageCommand);
                 break;
             }
 
