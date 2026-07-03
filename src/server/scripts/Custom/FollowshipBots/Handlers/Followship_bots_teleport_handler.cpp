@@ -20,6 +20,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Battleground.h"
+#include "BattlegroundScript.h"
+#include "Creature.h"
 #include "Log.h"
 #include "Map.h"
 #include "ObjectMgr.h"
@@ -30,6 +33,8 @@
 
 #include "Followship_bots_pet_handler.h"
 #include "Followship_bots_teleport_handler.h"
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_warsong_gulch.h"
 
 
 namespace FSBTeleport
@@ -97,6 +102,9 @@ namespace FSBTeleport
             
         case BOT_TOO_FAR:
         {
+            if (FSBBattleground::IsInBG(bot))
+                return false;
+
             if (!player)
                 return false;
 
@@ -132,6 +140,50 @@ namespace FSBTeleport
         default:
             return false;
         }
+    }
+
+    Position GetBattlegroundGraveyardPosition(Creature* bot)
+    {
+        if (!bot || bot->IsAlive())
+            return Position();
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return Position();
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return Position();
+
+        Team team = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
+
+        switch (bg->GetTypeID())
+        {
+            case BATTLEGROUND_WS:
+            case BATTLEGROUND_WG_CTF:
+                return team == Team::ALLIANCE ? FSBBattleground::WarsongGulch::FSB_WSG_GRAVEYARD_ALLIANCE : FSBBattleground::WarsongGulch::FSB_WSG_GRAVEYARD_HORDE;
+            default:
+                break;
+        }
+
+        if (WorldSafeLocsEntry const* graveyard = sObjectMgr->GetClosestGraveyard(*bot, team, bot))
+            return graveyard->Loc;
+
+        return Position();
+    }
+
+    bool BotTeleportToBattlegroundGraveyard(Creature* bot)
+    {
+        if (!bot || bot->IsAlive())
+            return false;
+
+        Position pos = GetBattlegroundGraveyardPosition(bot);
+        if (pos == Position())
+            return false;
+
+        bot->NearTeleportTo(pos);
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB: BotTeleportToBattlegroundGraveyard teleported bot {} to graveyard X {} Y {} Z {}", bot->GetName(), pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ());
+        return true;
     }
 
     void BotPetTeleport(Creature* bot)

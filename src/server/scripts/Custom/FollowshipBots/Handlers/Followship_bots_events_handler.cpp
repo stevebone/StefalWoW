@@ -43,6 +43,7 @@
 #include "Followship_bots_stats_handler.h"
 #include "Followship_bots_teleport_handler.h"
 
+#include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_rogue.h"
 
@@ -117,6 +118,21 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     case FSB_EVENT_GENERIC_GRAVEYARD_RESSURECT:
         FSBDeath::HandleDeathWithGraveyard(me, ai->botCorpsePos);
         break;
+
+    case FSB_EVENT_BATTLEGROUND_TELEPORT_GRAVEYARD:
+    {
+        bot->CastSpell(bot, SPELL_SPECIAL_GHOST);
+        FSBTeleport::BotTeleportToBattlegroundGraveyard(bot);
+        ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_GRAVEYARD_RESSURECT, 30s);
+        break;
+    }
+
+    case FSB_EVENT_BATTLEGROUND_GRAVEYARD_RESSURECT:
+    {
+        FSBDeath::HandleBattlegroundGraveyardResurrect(bot);
+        ScheduleBotEvent(FSB_EVENT_HIRED_RESUME_FOLLOW, 1s);
+        break;
+    }
 
     case FSB_EVENT_GENERIC_CHECK_HIRED_TIME:
     {
@@ -227,15 +243,21 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
     case FSB_EVENT_HIRED_DESPAWN_TEMP_BOT:
     {
-        if (bot->GetMap()->IsBattleground())
-        {
-            botEvents.ScheduleEvent(FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 10s);
-            break;
-        }
-
         if (bot->GetSpawnId() == 0 && !FSBMgr::Get()->GetBotOwner(bot))
             bot->DespawnOrUnsummon(0s);
         else botEvents.ScheduleEvent(FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
+        break;
+    }
+
+    case FSB_EVENT_DESPAWN_TEMP_BOT:
+    {
+        if (FSBBattleground::IsFinished(bot))
+        {
+            if (bot->GetSpawnId() == 0 && !FSBMgr::Get()->GetBotOwner(bot))
+                bot->DespawnOrUnsummon(0s);
+            break;
+        }
+        else botEvents.ScheduleEvent(FSB_EVENT_DESPAWN_TEMP_BOT, 10s);
         break;
     }
 

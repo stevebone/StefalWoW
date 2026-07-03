@@ -22,9 +22,15 @@
 
 #pragma once
 
+#include "Position.h"
+
 class Battleground;
+class Player;
 
 namespace FSBBattleground::WarsongGulch
 {
-    void SpawnBots(Battleground* battleground);
+    constexpr Position FSB_WSG_GRAVEYARD_ALLIANCE(1410.592f, 1562.315f, 328.3285f, 0.0f);
+    constexpr Position FSB_WSG_GRAVEYARD_HORDE(1058.005f, 1373.705f, 328.5538f, 0.0f);
+
+    void SpawnBots(Battleground* battleground, Player* triggeringPlayer = nullptr);
 }
