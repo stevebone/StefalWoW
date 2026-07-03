@@ -151,10 +151,10 @@ namespace WorldPackets
             Timestamp<> StartTime;
         };
 
-        // Wire shape: 2 * int32. AGENT_BRIEF_GARRISON.md decodes this as (SocketIdx, ConduitID)
-        // per Deserialize_JamGarrisonTalentSocketData @ 0x7FF75C1759F0; TC has historically
-        // interpreted the second slot as a Rank. Until sniff data disambiguates, the names
-        // reflect TC's interpretation but the wire bytes match either reading.
+        // Wire shape: 2 * int32. The 68275 reflection descriptors (GARRISON_WIRE_NAMED_68275.md)
+        // resolve this: JamGarrisonTalentConduitPair = {garrTalentID@0, soulbindConduitID@4},
+        // confirming the socket payload carries a soulbind conduit id (not a bare socket index).
+        // TC's SoulbindConduitID naming stands.
         struct GarrisonTalentSocketData
         {
             int32 SoulbindConduitID = 0;
@@ -619,22 +619,22 @@ namespace WorldPackets
         // See SNIFF_AUDIT §10.1.3 + §11 (deepest-pass field-naming).
         //
         // Wire format:
-        //     varint64  DbID         CONFIRMED — follower DbID
-        //     varU32    Health       CONFIRMED — HP at end of auto-combat
-        //     varint64  Unknown1     LOW       — see §11.5 candidate decodes;
-        //                                       most-likely (MaxHealth<<32)|Durability,
-        //                                       alternatives: AwardedItemDbID,
-        //                                       (NewLevel<<32)|XpAwarded, reserved/zero.
-        //                                       TC currently writes 0 (client tolerates).
-        //     varU32    State        CONFIRMED — GarrFollowerMissionCompleteState enum:
-        //                                       0=Alive, 1=KilledByMissionFailure,
-        //                                       2=SavedByPreventDeath, 3=OutOfDurability.
+        //     varint64  DbID              CONFIRMED — follower DbID
+        //     varU32    Health            CONFIRMED — HP at end of auto-combat
+        //     varint64  HealingTimestamp  CONFIRMED — 68275 reflection descriptor
+        //                                            (GARRISON_WIRE_NAMED_68275.md):
+        //                                            JamGarrisonCompleteMissionFollowerInfo =
+        //                                            followerDBID@0, newHealth@8,
+        //                                            healingTimestamp@16, missionCompleteState@24.
+        //     varU32    State             CONFIRMED — GarrFollowerMissionCompleteState enum:
+        //                                            0=Alive, 1=KilledByMissionFailure,
+        //                                            2=SavedByPreventDeath, 3=OutOfDurability.
         struct GarrisonCompleteMissionFollowerInfo
         {
             uint64 DbID = 0;
             uint32 Health = 0;
-            uint64 Unknown1 = 0;        // §11.5 — name pending live capture
-            uint32 State = 0;           // GarrFollowerMissionCompleteState
+            uint64 HealingTimestamp = 0; // UnixTime; mirrors GarrisonFollower.HealingTimestamp
+            uint32 State = 0;            // GarrFollowerMissionCompleteState
         };
 
         // 24-byte per-target record produced by one auto-combat event. IDA-confirmed

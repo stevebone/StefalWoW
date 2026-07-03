@@ -668,7 +668,7 @@ WorldPacket const* GarrisonCompleteMissionResult::Write()
     {
         _worldPacket << uint64(info.DbID);
         _worldPacket << uint32(info.Health);
-        _worldPacket << uint64(info.Unknown1);
+        _worldPacket << uint64(info.HealingTimestamp);
         _worldPacket << uint32(info.State);
     }
 
@@ -722,7 +722,7 @@ WorldPacket const* GarrisonMissionBonusRollResult::Write()
     {
         _worldPacket << uint64(info.DbID);
         _worldPacket << uint32(info.Health);
-        _worldPacket << uint64(info.Unknown1);
+        _worldPacket << uint64(info.HealingTimestamp);
         _worldPacket << uint32(info.State);
     }
 
