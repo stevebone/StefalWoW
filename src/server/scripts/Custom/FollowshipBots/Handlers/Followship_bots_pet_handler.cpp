@@ -58,6 +58,19 @@ namespace FSBPet
             return false;
 
         uint32 petSource = FSBMgr::Get()->GetBotPetSourceForEntry(bot->GetEntry());
+        if (petSource == 0)
+        {
+            TC_LOG_ERROR("scripts.fsb.pet", "FSB: BotSummonPet() bot {} has no petSource configured", bot->GetName());
+            return false;
+        }
+
+        CreatureTemplate const* petTemplate = sObjectMgr->GetCreatureTemplate(petSource);
+        if (!petTemplate)
+        {
+            TC_LOG_ERROR("scripts.fsb.pet", "FSB: BotSummonPet() bot {} has invalid petSource {} (no creature template)", bot->GetName(), petSource);
+            return false;
+        }
+
         Creature* originalPet = bot->FindNearestCreature(petSource, 10.f);
 
         FSBSpells::BotCastSpell(bot, SPELL_HUNTER_SUMMON_HYENA, bot);
@@ -90,12 +103,23 @@ namespace FSBPet
             return false;
 
         uint32 petSource = FSBMgr::Get()->GetBotPetSourceForEntry(owner->GetEntry());
+        if (petSource == 0)
+        {
+            TC_LOG_ERROR("scripts.fsb.pet", "FSB: SetBasePetInformation() bot {} has no petSource configured", owner->GetName());
+            return false;
+        }
+
+        CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petSource);
+        if (!creatureInfo)
+        {
+            TC_LOG_ERROR("scripts.fsb.pet", "FSB: SetBasePetInformation() bot {} has invalid petSource {} (no creature template)", owner->GetName(), petSource);
+            return false;
+        }
 
         // Apply updated template
         pet->UpdateEntry(petSource, nullptr, true); // issue is that we cannot update the name at runtime and we need it from existing creature
 
         //entry needs to belong to the creature we want the model
-        CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petSource); //pet->GetEntry()
         CreatureModel model = *ObjectMgr::ChooseDisplayId(creatureInfo);
         pet->SetDisplayId(model.CreatureDisplayID, true);
 
