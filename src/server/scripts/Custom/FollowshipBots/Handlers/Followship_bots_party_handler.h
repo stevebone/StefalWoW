@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "Creature.h"
+#include "Group.h"
 
 #include "Followship_bots_defines.h"
 
