@@ -79,6 +79,13 @@ namespace FSBDeath
             return;
         }
 
+        // handle death in battleground
+        if (bot->GetMap()->IsBattleground())
+        {
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_TELEPORT_GRAVEYARD, 2s);
+            return;
+        }
+
         // handle death with healer present
         Unit* healer = FSBGroup::BotGetFirstGroupHealer(bot);
         if (healer)
@@ -114,6 +121,18 @@ namespace FSBDeath
         bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_CORPSE, botCorpse, false);
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Started the corpse run from graveyard.", bot->GetName());
 
+    }
+
+    void HandleBattlegroundGraveyardResurrect(Creature* bot)
+    {
+        if (!bot || bot->IsAlive())
+            return;
+
+        Position pos = FSBTeleport::GetBattlegroundGraveyardPosition(bot);
+        if (pos == Position())
+            return;
+
+        HandleDeathWithGraveyard(bot, pos);
     }
 
     void HandleDeathWithSoulstone(Creature* bot, bool& hasSS)
