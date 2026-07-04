@@ -516,9 +516,7 @@ namespace FSBGenAIPrompts
 
         bool isSelfBuff = targetGuid == bot->GetGUID();
         FSB_ChatterCategory category = isSelfBuff ? FSB_ChatterCategory::botBuffSelf : FSB_ChatterCategory::botBuffTarget;
-        FSB_ChatterType chatterType = FSB_ChatterType::None;
-        if (!isSelfBuff)
-            chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+        FSB_ChatterType chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
         if (!FSBGenAI::IsEnabled())
         {
