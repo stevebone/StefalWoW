@@ -33,6 +33,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
+#include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_chatter_handler.h"
 #include "GenAI_chatter_prompts.h"
 #include "GenAI_client.h"
@@ -1170,6 +1171,9 @@ namespace FSBOOC
             return false;
 
         if (baseAI->botHired)
+            return false;
+
+        if (FSBBattleground::IsInBG(bot))
             return false;
 
         FSBChat::UpdateBotConversations();
