@@ -817,6 +817,7 @@ namespace Scripts::EasternKingdoms::Deadmines
             static constexpr int8 SummonSpiders = 46;
             static constexpr int8 MechanicalEngage = 47;
             static constexpr int8 NightmareElixirReapply = 48;
+            static constexpr int8 NightmareSaveEmme = 49;
         }
     }
 

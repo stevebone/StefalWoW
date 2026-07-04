@@ -697,7 +697,7 @@ namespace Scripts::EasternKingdoms::Deadmines
 
                 if (Creature* Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f))
                 {
-                    Calissa->SetRegenerateHealth(false);
+                    //Calissa->SetRegenerateHealth(false);
                     Calissa->EnterVehicle(me, 0);
                     Calissa->Attack(me, true);
                 }
@@ -724,7 +724,17 @@ namespace Scripts::EasternKingdoms::Deadmines
 
             if (Creature* Calissa = me->FindNearestCreature(Creatures::CalissaHarrington, 20.f))
             {
-                Calissa->SetEmoteState(EMOTE_STATE_DEAD);
+                Calissa->m_Events.AddEventAtOffset([Calissa]()
+                    {
+                        if (Calissa)
+                            Calissa->ExitVehicle();
+                    }, std::chrono::milliseconds(500));
+
+                Calissa->m_Events.AddEventAtOffset([Calissa]()
+                    {
+                        if (Calissa)
+                            Calissa->SetEmoteState(EMOTE_STATE_DEAD);
+                    }, std::chrono::milliseconds(1000));
 
                 Calissa->m_Events.AddEventAtOffset([Calissa]()
                     {
@@ -957,7 +967,6 @@ namespace Scripts::EasternKingdoms::Deadmines
                     SummonAllSpiders();
                     break;
                 case 3:
-                    SummonAllSparks();
                     if (Creature* mech = me->SummonCreature(Creatures::NightmareFoeReaper, Positions::FoeReaperNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN))
                         mech->AI()->DoAction(Actions::MechanicalEngage);
                     break;
@@ -1001,7 +1010,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                 case 2:
                     Talk(Texts::VanessaVanCleef::VanessaNightmare2Warning);
                     me->SetVisible(false);
-                    me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN);
+                    //if(Creature* foe = me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN))
+                    //    foe->SetReactState(REACT_PASSIVE);
                     me->NearTeleportTo(Positions::VanessaNightmare3);
                     break;
                 case 3:
@@ -1030,7 +1040,34 @@ namespace Scripts::EasternKingdoms::Deadmines
             }
 
             if (id == 1 && value == 1)
+            {
                 _worgenKilled++;
+
+                if (GetActiveNightmare() == 4)
+                {
+                    if (_worgenKilled == 3)
+                    {
+                        Talk(Texts::VanessaVanCleef::VanessaNightmareSaveErik);
+                        if (InstanceScript* instance = me->GetInstanceScript())
+                            instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::Sprint);
+                        me->NearTeleportTo(Positions::VanessaNightmare7);
+                    }
+                    else if (_worgenKilled == 6)
+                    {
+                        Talk(Texts::VanessaVanCleef::VanessaNightmareSaveCalissa);
+                        if (InstanceScript* instance = me->GetInstanceScript())
+                            instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::Sprint);
+
+                        if (Creature* cannon = me->GetMap()->GetCreatureBySpawnId(CreatureSpawns::CannonFiring1))
+                        {
+                            cannon->SummonCreature(Creatures::JamesHarrington, cannon->GetPosition());
+                            cannon->DespawnOrUnsummon(1s);
+                        }
+                        else
+                            me->SummonCreature(Creatures::JamesHarrington, Positions::FamilySpawn[3], TEMPSUMMON_MANUAL_DESPAWN);
+                    }
+                }
+            }
 
             if (id == 2 && value == 2)
             {
@@ -1061,6 +1098,8 @@ namespace Scripts::EasternKingdoms::Deadmines
                     case Events::VanessaVanCleef::NightmareSay2:
                         TalkNightmareIntro(2);
                         _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSummon, 2s);
+                        if (GetActiveNightmare() == 4)
+                            _events.ScheduleEvent(Events::VanessaVanCleef::NightmareSaveEmme, 5s);
                         break;
                     case Events::VanessaVanCleef::NightmareSummon:
                         SummonNightmareBoss();
@@ -1074,6 +1113,14 @@ namespace Scripts::EasternKingdoms::Deadmines
                         if (InstanceScript* instance = me->GetInstanceScript())
                             instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::NightmareElixirEffect);
                         break;
+                    case Events::VanessaVanCleef::NightmareSaveEmme:
+                        if (InstanceScript* instance = me->GetInstanceScript())
+                        {
+                            Talk(Texts::VanessaVanCleef::VanessaNightmareSaveEmme);
+                            instance->DoCastSpellOnPlayers(Spells::VanessaVanCleef::Sprint);
+                            me->NearTeleportTo(Positions::VanessaNightmare6);
+                        }
+                        break;
                     case Events::VanessaVanCleef::NightmareShift:
                         Talk(Texts::VanessaVanCleef::VanessaNightmareShift);
                         _summons.DespawnAll();
@@ -1083,7 +1130,11 @@ namespace Scripts::EasternKingdoms::Deadmines
                             if (Creature* helix = me->SummonCreature(Creatures::NightmareHelix, Positions::HelixNightmareSpawn, TEMPSUMMON_CORPSE_DESPAWN))
                                 helix->AI()->DoAction(Actions::HelixEngage);
                         if (GetActiveNightmare() == 3)
-                            me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn);
+                        {
+                            SummonAllSparks();
+                            if (Creature* foe = me->SummonCreature(Creatures::NightmareFoeReaper, Positions::MechanicalNightmareSpawn))
+                                foe->SetReactState(REACT_PASSIVE);
+                        }
                         if (GetActiveNightmare() == 4)
                             me->SummonCreature(Creatures::JamesHarringtonHuman, Positions::FoeReaperNightmareSpawn);
                         if (GetActiveNightmare() < 5)
@@ -1119,7 +1170,10 @@ namespace Scripts::EasternKingdoms::Deadmines
 
         void Reset() override
         {
-            _events.Reset();
+            if (InstanceScript* instance = me->GetInstanceScript())
+                if(instance->GetData(Misc::ActiveNightmare) != 1)
+                    _events.Reset();
+            
         }
 
         void DoAction(int32 action) override
@@ -1346,11 +1400,17 @@ namespace Scripts::EasternKingdoms::Deadmines
         void Reset() override
         {
             _events.Reset();
-            if (InstanceScript* instance = me->GetInstanceScript())
-                if (instance->GetData(Misc::ActiveNightmare) > 0)
-                    return;
-            me->RemoveAura(Spells::Offline);
-            me->SetReactState(REACT_PASSIVE);
+        }
+
+        void JustReachedHome() override
+        {
+            DoAction(Actions::MechanicalEngage);
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            if(why == EvadeReason::NoHostiles)
+                DoAction(Actions::MechanicalEngage);
         }
 
         void DoAction(int32 action) override
