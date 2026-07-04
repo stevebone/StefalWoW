@@ -43,6 +43,7 @@
 #include "GenAI_chat_memory.h"
 #include "GenAI_npc_memory.h"
 
+struct FSB_BattlegroundData;
 struct FSB_ClassStats;
 struct FSB_DungeonData;
 
@@ -99,6 +100,7 @@ public:
     virtual ~FSB_BaseAI();
 
     FSB_DungeonData* GetDungeonData();
+    FSB_BattlegroundData* GetBattlegroundData();
     FSB_Roles botRole; 
     FSB_Class botClass;
     FSB_Race botRace;
@@ -109,6 +111,7 @@ public:
     FSBRegenMods botRegenMods;
     FSB_ClassStats const* botClassStats = nullptr;
     FSB_DungeonData* botDungeonData = nullptr;
+    FSB_BattlegroundData* botBattlegroundData = nullptr;
     FSBBotStats botStats;
 
     float botFollowDistance;

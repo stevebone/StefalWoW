@@ -20,12 +20,21 @@
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_dungeon_handler.h"
+#include "Followship_bots_battleground_handler.h"
 
 FSB_BaseAI::~FSB_BaseAI()
 {
     FSBChatMgr::Get()->LeaveBotChannels(me);
     FSBChatMgr::Get()->UnregisterActiveBot(me);
     delete botDungeonData;
+    delete botBattlegroundData;
+}
+
+FSB_BattlegroundData* FSB_BaseAI::GetBattlegroundData()
+{
+    if (!botBattlegroundData)
+        botBattlegroundData = new FSB_BattlegroundData();
+    return botBattlegroundData;
 }
 
 void FSB_BaseAI::AddChatMemory(uint32 channelId, std::string const& sender, std::string const& msg, bool isPlayer)
