@@ -126,10 +126,12 @@ namespace FSBOOC
         if (!bot || !bot->IsAlive())
             return false;
 
-        if (!FollowshipBotsConfig::configFSBUseAFKActions)
+        // We do not want to do AFK actions in BG
+        if (FSBBattleground::IsInBG(bot))
             return false;
 
-        //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent", bot->GetName());
+        if (!FollowshipBotsConfig::configFSBUseAFKActions)
+            return false;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         auto& botRandomEventCooldown = baseAI->botRandomEventTimer;
@@ -138,15 +140,10 @@ namespace FSBOOC
         if (now < botRandomEventCooldown)
             return false;
 
-        //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent passed cooldown", bot->GetName());
-
         bool check = false;
 
         if (BotOOCActionPlayerAFK(bot, false))
-        {
-            //TC_LOG_INFO("scripts.ai.fsb", "FSB Bot {} Triggered DoRandomEvent action player afk", bot->GetName());
             check = true;
-        }
 
         if (check)
         {
