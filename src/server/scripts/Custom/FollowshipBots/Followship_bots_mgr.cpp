@@ -323,6 +323,10 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     // Do not remove the below since they are needed for the Hire flow
     bot->SetStandState(UNIT_STAND_STATE_STAND);
     FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, 1s, 3s);
+
+    // Hired bots keep their gossip flag in battlegrounds.
+    if (FSBBattleground::IsInBG(bot))
+        bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 }
 
 // ==================== GETTER METHODS ==================================================== //

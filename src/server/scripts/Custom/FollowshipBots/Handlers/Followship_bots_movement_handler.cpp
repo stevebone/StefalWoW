@@ -106,6 +106,9 @@ namespace FSBMovement
         if (!ai)
             return;
 
+        if (ai->botHired)
+            return;
+
         FSB_BattlegroundData* bgData = ai->GetBattlegroundData();
         if (!bgData)
             return;

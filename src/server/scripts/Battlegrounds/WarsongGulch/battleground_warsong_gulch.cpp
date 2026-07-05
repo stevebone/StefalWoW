@@ -290,6 +290,7 @@ struct battleground_warsong_gulch : BattlegroundScript
         {
             TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} capture approved", bot->GetName());
             OnCaptureFlag(trigger, unit);
+            FSBBattleground::WarsongGulch::OnBotCapturedFlag(bot);
         }
     }
 

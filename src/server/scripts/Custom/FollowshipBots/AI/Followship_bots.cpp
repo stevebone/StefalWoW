@@ -773,8 +773,6 @@ public:
 
                     events.ScheduleEvent(FSB_EVENT_COMBAT_MAINTENANCE, 1s);
 
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Combat Maintenance Reached the end"); // TEMP LOG
-
                     break;
                 }
 

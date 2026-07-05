@@ -139,6 +139,9 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     {
         bot->SetReactState(REACT_AGGRESSIVE);
 
+        if (ai->botHired)
+            break;
+
         // bot race/class mount and shapeshift
         // TO-DO we need a dedicated method here to sometimes pick
         // Spirit wolf for shaman
@@ -169,13 +172,33 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
     }
 
-    case FSB_EVENT_BATTLEGROUND_TICK:
+    case FSB_EVENT_WSG_REROLL_STATE:
     {
         if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+        {
             if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
-                FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
+            {
+                if (FSBBattleground::WarsongGulch::BotHasFlagAura(bot))
+                    break;
 
-        ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_TICK, 2s, 3s);
+                uint8 state = urand(1, 3);
+                FSBBattleground::WarsongGulch::SetBotState(bot, bgData, static_cast<FSBBattleground::WarsongGulch::WSGState>(state));
+                FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
+            }
+        }
+        break;
+    }
+
+    case FSB_EVENT_BATTLEGROUND_TICK:
+    {
+        if (!ai->botHired)
+        {
+            if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+                if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+                    FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
+
+            ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_TICK, 2s, 3s);
+        }
         break;
     }
 

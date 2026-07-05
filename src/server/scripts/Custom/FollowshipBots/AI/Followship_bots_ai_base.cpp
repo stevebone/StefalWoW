@@ -32,8 +32,6 @@ FSB_BaseAI::~FSB_BaseAI()
 
 FSB_BattlegroundData* FSB_BaseAI::GetBattlegroundData()
 {
-    if (!botBattlegroundData)
-        botBattlegroundData = new FSB_BattlegroundData();
     return botBattlegroundData;
 }
 

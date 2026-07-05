@@ -43,7 +43,8 @@ namespace FSBBattleground::WarsongGulch
         DefendBase,
         HoldCenter,
         AttackFlag,
-        ReturnFlag
+        ReturnFlag,
+        ProtectCarrier
     };
 
     enum class WSGMovePhase : uint8
@@ -224,4 +225,7 @@ namespace FSBBattleground::WarsongGulch
 
     // Called by FSB_EVENT_WSG_USE_FLAG (1s after reaching the enemy flag position).
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData);
+
+    // Called after a WSG bot successfully captures the flag.
+    void OnBotCapturedFlag(Creature* bot);
 }

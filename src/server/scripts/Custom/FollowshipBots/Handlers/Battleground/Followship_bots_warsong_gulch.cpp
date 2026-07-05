@@ -113,7 +113,9 @@ namespace FSBBattleground::WarsongGulch
     Team GetAttackTargetTeam(Creature* bot, FSB_BattlegroundData* bgData)
     {
         Team botTeam = GetBotTeam(bot);
-        return bgData->wsgState == WSGState::AttackFlag ? GetEnemyTeam(botTeam) : botTeam;
+        if (bgData->wsgState == WSGState::AttackFlag)
+            return GetEnemyTeam(botTeam);
+        return botTeam; // ReturnFlag, DefendBase, ProtectCarrier
     }
 
     void MoveToExitStep(Creature* bot, FSB_BattlegroundData* bgData)
@@ -289,12 +291,38 @@ namespace FSBBattleground::WarsongGulch
         FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_START, delay);
     }
 
+    Creature* FindFriendlyCarrier(Creature* bot)
+    {
+        Team botTeam = GetBotTeam(bot);
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return nullptr;
+
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || creature == bot)
+                continue;
+
+            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry()));
+            if (creatureTeam != botTeam)
+                continue;
+
+            if (BotHasFlagAura(creature))
+                return creature;
+        }
+        return nullptr;
+    }
+
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData)
     {
         if (!bot || !bgData)
             return;
 
         if (!bot->IsAlive())
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (baseAI && baseAI->botHired)
             return;
 
         if (bot->IsInCombat())
@@ -319,14 +347,55 @@ namespace FSBBattleground::WarsongGulch
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
+        // If a friendly bot is carrying the flag, AttackFlag bots either protect it
+        // or fall back to the center depending on distance.
+        if (bgData->wsgState == WSGState::AttackFlag)
+        {
+            if (Creature* carrier = FindFriendlyCarrier(bot))
+            {
+                if (bot->GetDistance(carrier) < 50.0f)
+                    SetBotState(bot, bgData, WSGState::ProtectCarrier);
+                else
+                    SetBotState(bot, bgData, WSGState::HoldCenter);
+                return;
+            }
+        }
+
         switch (bgData->wsgState)
         {
         case WSGState::DefendBase:
         {
-            // Phase stays None; every tick re-shuffles the defensive position.
             Position const& basePos = botTeam == ALLIANCE ? FSB_WSG_BASE_ALLIANCE : FSB_WSG_BASE_HORDE;
-            Position movePos = GetPositionWithOffsetForState(WSGState::DefendBase, basePos);
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, movePos);
+            if (bgData->wsgMovePhase == WSGMovePhase::None && bot->GetDistance(basePos) > 50.0f)
+            {
+                // Far from base (e.g., re-rolling from center): use the path home.
+                bgData->wsgMovePhase = WSGMovePhase::Attacking;
+                bgData->wsgPathStep = 0;
+                MoveToAttackStep(bot, bgData);
+            }
+            else if (bgData->wsgMovePhase == WSGMovePhase::Attacking)
+            {
+                MoveToAttackStep(bot, bgData);
+            }
+            else
+            {
+                // Near the base: shuffle around the flag room.
+                Position movePos = GetPositionWithOffsetForState(WSGState::DefendBase, basePos);
+                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, movePos);
+            }
+            break;
+        }
+        case WSGState::ProtectCarrier:
+        {
+            Creature* carrier = FindFriendlyCarrier(bot);
+            if (!carrier || bot->GetDistance(carrier) > 50.0f)
+            {
+                SetBotState(bot, bgData, WSGState::HoldCenter);
+                break;
+            }
+
+            Position target = GetRandomOffsetPosition(carrier->GetPosition(), 5.0f, 12.0f);
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, target);
             break;
         }
         case WSGState::HoldCenter:
@@ -407,6 +476,12 @@ namespace FSBBattleground::WarsongGulch
         case WSGState::ReturnFlag:
         {
             static char const* const messages[] = { "Got the flag! Heading home!", "Flag secured - clear a path!", "I have their flag, cover my run!" };
+            msg = messages[urand(0, 2)];
+            break;
+        }
+        case WSGState::ProtectCarrier:
+        {
+            static char const* const messages[] = { "I'll protect the flag carrier!", "Covering the runner!", "Stay close to the carrier!" };
             msg = messages[urand(0, 2)];
             break;
         }
@@ -518,8 +593,18 @@ namespace FSBBattleground::WarsongGulch
                 bot->GetMotionMaster()->MoveJump(FSBMovement::MOVEMENT_POINT_WSG_ATTACK_JUMP, path.jump, FSB_WSG_JUMP_SPEED, {}, FSB_WSG_JUMP_MAX_HEIGHT);
             else
             {
-                bgData->wsgMovePhase = WSGMovePhase::MovingToFlag;
-                MoveToFlagPoint(bot, bgData);
+                if (bgData->wsgState == WSGState::DefendBase)
+                {
+                    // Returning home to defend: move to the base position so the tick can shuffle.
+                    bgData->wsgMovePhase = WSGMovePhase::None;
+                    Position const& basePos = GetBotTeam(bot) == ALLIANCE ? FSB_WSG_BASE_ALLIANCE : FSB_WSG_BASE_HORDE;
+                    bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, basePos);
+                }
+                else
+                {
+                    bgData->wsgMovePhase = WSGMovePhase::MovingToFlag;
+                    MoveToFlagPoint(bot, bgData);
+                }
             }
             break;
         }
@@ -538,6 +623,41 @@ namespace FSBBattleground::WarsongGulch
             break;
         default:
             break;
+        }
+    }
+
+    void OnBotCapturedFlag(Creature* bot)
+    {
+        if (!bot || !bot->IsBot())
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (baseAI && baseAI->botHired)
+            return;
+
+        // Re-roll the capturing bot after a short delay.
+        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_REROLL_STATE, 10s);
+
+        // Re-roll all non-hired WSG bots currently holding center.
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || creature == bot)
+                continue;
+
+            auto otherAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
+            if (!otherAI || otherAI->botHired)
+                continue;
+
+            FSB_BattlegroundData* otherBgData = otherAI->GetBattlegroundData();
+            if (!otherBgData || (otherBgData->bgTypeId != BATTLEGROUND_WS && otherBgData->bgTypeId != BATTLEGROUND_WG_CTF))
+                continue;
+
+            if (otherBgData->wsgState == WSGState::HoldCenter)
+                FSBEvents::ScheduleBotEvent(creature, FSB_EVENT_WSG_REROLL_STATE, 10s);
         }
     }
 }

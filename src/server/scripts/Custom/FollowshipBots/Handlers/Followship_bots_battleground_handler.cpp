@@ -130,7 +130,9 @@ namespace FSBBattleground
         if (!bg)
             return;
 
-        FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
+        if (!baseAI->botBattlegroundData)
+            baseAI->botBattlegroundData = new FSB_BattlegroundData();
+        FSB_BattlegroundData* bgData = baseAI->botBattlegroundData;
 
         if (!bgData->initialized)
         {
@@ -470,10 +472,19 @@ namespace FSBBattleground
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return nullptr;
 
-        constexpr float ScanRange = 50.0f;
-
         uint32 bgTypeId = bg->GetTypeID();
         bool isCtf = (bgTypeId == BATTLEGROUND_WS || bgTypeId == BATTLEGROUND_WG_CTF);
+
+        bool isCarrier = false;
+        if (isCtf)
+        {
+            isCarrier = bot->HasAura(WarsongGulch::Spells::WarsongFlag) ||
+                        bot->HasAura(WarsongGulch::Spells::SilverwingFlag) ||
+                        bot->HasAura(WarsongGulch::Spells::AllianceFlag) ||
+                        bot->HasAura(WarsongGulch::Spells::HordeFlag);
+        }
+
+        float scanRange = isCarrier ? 30.0f : 50.0f;
 
         struct Candidate
         {
@@ -490,7 +501,7 @@ namespace FSBBattleground
             if (!target || !target->IsAlive() || !target->IsInWorld() || target->IsDuringRemoveFromWorld())
                 return false;
 
-            if (!bot->IsWithinDistInMap(target, ScanRange))
+            if (!bot->IsWithinDistInMap(target, scanRange))
                 return false;
 
             if (!bot->IsValidAttackTarget(target))
