@@ -11350,7 +11350,10 @@ Item* Player::StoreNewItem(ItemPosCountVec const& pos, uint32 itemId, bool updat
         }
 
         if (addToCollection)
+        {
             GetSession()->GetCollectionMgr()->OnItemAdded(item);
+            TryCollectConduitFromItem(item);
+        }
 
         if (ItemChildEquipmentEntry const* childItemEntry = sDB2Manager.GetItemChildEquipment(itemId))
         {
@@ -20503,6 +20506,21 @@ bool Player::CollectConduit(uint32 conduitId, int32 rankIndex /*= -1*/)
     stmt->setUInt32(2, uint32(rankIndex));
     CharacterDatabase.Execute(stmt);
     return true;
+}
+
+void Player::TryCollectConduitFromItem(Item* item)
+{
+    if (!item)
+        return;
+
+    uint32 conduitId = sDB2Manager.GetConduitForItem(item->GetEntry());
+    if (!conduitId)
+        return;
+
+    // The acquired item's level maps to the conduit rank (a higher-ilvl duplicate upgrades the collection). If no rank
+    // properties row qualifies, CollectConduit falls back to the conduit's lowest defined rank.
+    int32 rank = sDB2Manager.GetConduitRankForItemLevel(item->GetItemLevel(this));
+    CollectConduit(conduitId, rank);
 }
 
 bool Player::SocketConduit(uint32 garrTalentTreeId, uint32 garrTalentId, uint32 conduitId)

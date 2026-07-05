@@ -2895,6 +2895,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         bool HasConduit(uint32 conduitId) const { return m_soulbindConduits.find(conduitId) != m_soulbindConduits.end(); }
         int32 GetConduitRank(uint32 conduitId) const;
         bool CollectConduit(uint32 conduitId, int32 rankIndex = -1);   // grant/upgrade; rankIndex < 0 => lowest defined rank
+        void TryCollectConduitFromItem(Item* item);                    // auto-collect when a conduit item is acquired (SoulbindConduitItem)
         // Socketed conduits for a soulbind tree: GarrTalent node id -> conduitId
         bool SocketConduit(uint32 garrTalentTreeId, uint32 garrTalentId, uint32 conduitId);   // validates ownership + covenant, persists, applies spell
         void RemoveConduitSocket(uint32 garrTalentId);

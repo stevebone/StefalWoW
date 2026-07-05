@@ -8418,6 +8418,39 @@ CREATE TABLE `soulbind_conduit` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `soulbind_conduit_item`
+--
+
+DROP TABLE IF EXISTS `soulbind_conduit_item`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind_conduit_item` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `ItemID` int NOT NULL DEFAULT '0',
+  `ConduitID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `soulbind_conduit_rank_properties`
+--
+
+DROP TABLE IF EXISTS `soulbind_conduit_rank_properties`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind_conduit_rank_properties` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Rank` int NOT NULL DEFAULT '0',
+  `ItemLevel` int NOT NULL DEFAULT '0',
+  `QualityID` tinyint NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `soulbind_conduit_rank`
 --
 

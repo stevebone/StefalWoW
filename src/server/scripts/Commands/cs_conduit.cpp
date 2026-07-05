@@ -33,9 +33,9 @@ EndScriptData */
 
 using namespace Trinity::ChatCommands;
 
-// Interim collection-population trigger. The Blizzlike source is collecting a conduit item in the world; that link
-// (item -> SoulbindConduitID) is not yet recovered, so admins/tests grant conduits with this command. Once a conduit
-// is owned it can be socketed into the active soulbind's tree (CMSG_GARRISON_SOCKET_TALENT) to apply its spell.
+// Admin/test grant for the soulbind conduit collection. In normal play conduits are collected automatically when the
+// conduit item is acquired (SoulbindConduitItem link, Player::TryCollectConduitFromItem); this command lets a GM grant
+// one directly. Once owned, a conduit can be socketed into the active soulbind's tree (CMSG_GARRISON_SOCKET_TALENT).
 class conduit_commandscript : public CommandScript
 {
 public:

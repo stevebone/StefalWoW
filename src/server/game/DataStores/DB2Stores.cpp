@@ -304,7 +304,9 @@ DB2Storage<SkillLineXTraitTreeEntry>            sSkillLineXTraitTreeStore("Skill
 DB2Storage<SkillRaceClassInfoEntry>             sSkillRaceClassInfoStore("SkillRaceClassInfo.db2", &SkillRaceClassInfoLoadInfo::Instance);
 DB2Storage<SoulbindEntry>                       sSoulbindStore("Soulbind.db2", &SoulbindLoadInfo::Instance);
 DB2Storage<SoulbindConduitEntry>                sSoulbindConduitStore("SoulbindConduit.db2", &SoulbindConduitLoadInfo::Instance);
+DB2Storage<SoulbindConduitItemEntry>            sSoulbindConduitItemStore("SoulbindConduitItem.db2", &SoulbindConduitItemLoadInfo::Instance);
 DB2Storage<SoulbindConduitRankEntry>            sSoulbindConduitRankStore("SoulbindConduitRank.db2", &SoulbindConduitRankLoadInfo::Instance);
+DB2Storage<SoulbindConduitRankPropertiesEntry>  sSoulbindConduitRankPropertiesStore("SoulbindConduitRankProperties.db2", &SoulbindConduitRankPropertiesLoadInfo::Instance);
 DB2Storage<SoundKitEntry>                       sSoundKitStore("SoundKit.db2", &SoundKitLoadInfo::Instance);
 DB2Storage<SpecializationSpellsEntry>           sSpecializationSpellsStore("SpecializationSpells.db2", &SpecializationSpellsLoadInfo::Instance);
 DB2Storage<SpecSetMemberEntry>                  sSpecSetMemberStore("SpecSetMember.db2", &SpecSetMemberLoadInfo::Instance);
@@ -535,6 +537,7 @@ namespace
     std::unordered_map<uint32, std::vector<SkillLineAbilityEntry const*>> _skillLineAbilitiesBySkillupSkill;
     SkillRaceClassInfoContainer _skillRaceClassInfoBySkill;
     std::unordered_map<std::pair<int32, int32>, SoulbindConduitRankEntry const*> _soulbindConduitRanks;
+    std::unordered_map<uint32 /*itemId*/, uint32 /*conduitId*/> _conduitsByItem;
     SpecializationSpellsContainer _specializationSpellsBySpec;
     std::unordered_set<std::pair<int32, uint32>> _specsBySpecSet;
     std::unordered_set<uint8> _spellFamilyNames;
@@ -939,7 +942,9 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sSkillRaceClassInfoStore);
     LOAD_DB2(sSoulbindStore);
     LOAD_DB2(sSoulbindConduitStore);
+    LOAD_DB2(sSoulbindConduitItemStore);
     LOAD_DB2(sSoulbindConduitRankStore);
+    LOAD_DB2(sSoulbindConduitRankPropertiesStore);
     LOAD_DB2(sSoundKitStore);
     LOAD_DB2(sSpecializationSpellsStore);
     LOAD_DB2(sSpecSetMemberStore);
@@ -1539,6 +1544,10 @@ void DB2Manager::IndexLoadedStores()
 
     for (SoulbindConduitRankEntry const* soulbindConduitRank : sSoulbindConduitRankStore)
         _soulbindConduitRanks[{ soulbindConduitRank->SoulbindConduitID, soulbindConduitRank->RankIndex }] = soulbindConduitRank;
+
+    for (SoulbindConduitItemEntry const* conduitItem : sSoulbindConduitItemStore)
+        if (conduitItem->ItemID > 0 && conduitItem->ConduitID > 0)
+            _conduitsByItem[uint32(conduitItem->ItemID)] = uint32(conduitItem->ConduitID);
 
     for (SpecializationSpellsEntry const* specSpells : sSpecializationSpellsStore)
         _specializationSpellsBySpec[specSpells->SpecID].push_back(specSpells);
@@ -3021,6 +3030,31 @@ std::vector<SkillRaceClassInfoEntry const*> DB2Manager::GetSkillRaceClassInfo(ui
 SoulbindConduitRankEntry const* DB2Manager::GetSoulbindConduitRank(int32 soulbindConduitId, int32 rank) const
 {
     return Trinity::Containers::MapGetValuePtr(_soulbindConduitRanks, { soulbindConduitId, rank });
+}
+
+uint32 DB2Manager::GetConduitForItem(uint32 itemId) const
+{
+    auto itr = _conduitsByItem.find(itemId);
+    return itr != _conduitsByItem.end() ? itr->second : 0;
+}
+
+int32 DB2Manager::GetConduitRankForItemLevel(uint32 itemLevel) const
+{
+    // SoulbindConduitRankProperties maps a rank to the item level that grants it. Pick the highest rank whose ItemLevel
+    // does not exceed the acquired item's level (a stronger duplicate upgrades the collection). -1 if no row qualifies.
+    int32 bestRank = -1;
+    int32 bestItemLevel = -1;
+    for (SoulbindConduitRankPropertiesEntry const* props : sSoulbindConduitRankPropertiesStore)
+    {
+        if (props->ItemLevel > int32(itemLevel))
+            continue;
+        if (props->ItemLevel > bestItemLevel)
+        {
+            bestItemLevel = props->ItemLevel;
+            bestRank = props->Rank;
+        }
+    }
+    return bestRank;
 }
 
 std::vector<SpecializationSpellsEntry const*> const* DB2Manager::GetSpecializationSpells(uint32 specId) const

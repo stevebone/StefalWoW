@@ -5182,6 +5182,18 @@ struct SoulbindConduitLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 5, &SoulbindConduitMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT };
 };
 
+struct SoulbindConduitItemLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[3] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ItemID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ConduitID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 3, &SoulbindConduitItemMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT_ITEM };
+};
+
 struct SoulbindConduitRankLoadInfo
 {
     static constexpr DB2FieldMeta Fields[5] =
@@ -5194,6 +5206,19 @@ struct SoulbindConduitRankLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 5, &SoulbindConduitRankMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT_RANK };
+};
+
+struct SoulbindConduitRankPropertiesLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[4] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Rank" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ItemLevel" },
+        { .IsSigned = true, .Type = FT_BYTE, .Name = "QualityID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 4, &SoulbindConduitRankPropertiesMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT_RANK_PROPERTIES };
 };
 
 struct SoundKitLoadInfo
