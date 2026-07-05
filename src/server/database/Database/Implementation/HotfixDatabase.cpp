@@ -502,6 +502,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_CORRUPTION_EFFECTS, "SELECT MAX(ID) + 1 FROM corruption_effects", CONNECTION_SYNCH);
 
+    // Covenant.db2
+    PrepareStatement(HOTFIX_SEL_COVENANT, "SELECT ID, Name, Description, BountySetID, SkillLineID, DeathTeleportSpellID, "
+        "Field_9_0_2_36165_006, Field_9_0_2_36165_007, FactionID, CurrencyTypesID, RequiredPlayerConditionID FROM covenant"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_COVENANT, "SELECT MAX(ID) + 1 FROM covenant", CONNECTION_SYNCH);
+
     // CraftingQuality.db2
     PrepareStatement(HOTFIX_SEL_CRAFTING_QUALITY, "SELECT ID, QualityTier, CraftingQualityAtlasSetID FROM crafting_quality"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
@@ -1552,6 +1558,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_SKILL_RACE_CLASS_INFO, "SELECT ID, SkillID, ClassMask, Flags, Availability, MinLevel, SkillTierID, RaceMask1, "
         "RaceMask2 FROM skill_race_class_info WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_SKILL_RACE_CLASS_INFO, "SELECT MAX(ID) + 1 FROM skill_race_class_info", CONNECTION_SYNCH);
+
+    // SoulbindConduitRank.db2
+    // Soulbind.db2
+    PrepareStatement(HOTFIX_SEL_SOULBIND, "SELECT ID, Name, CovenantID, GarrTalentTreeID, CreatureID, GarrFollowerID, "
+        "PlayerConditionID FROM soulbind WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_SOULBIND, "SELECT MAX(ID) + 1 FROM soulbind", CONNECTION_SYNCH);
 
     // SoulbindConduitRank.db2
     PrepareStatement(HOTFIX_SEL_SOULBIND_CONDUIT_RANK, "SELECT ID, RankIndex, SpellID, AuraPointsOverride, SoulbindConduitID"

@@ -87,6 +87,7 @@ TC_GAME_API extern DB2Storage<ConditionalChrModelEntry>             sConditional
 TC_GAME_API extern DB2Storage<ContentTuningEntry>                   sContentTuningStore;
 TC_GAME_API extern DB2Storage<ConversationLineEntry>                sConversationLineStore;
 TC_GAME_API extern DB2Storage<CorruptionEffectsEntry>               sCorruptionEffectsStore;
+TC_GAME_API extern DB2Storage<CovenantEntry>                        sCovenantStore;
 TC_GAME_API extern DB2Storage<CraftingQualityEntry>                 sCraftingQualityStore;
 TC_GAME_API extern DB2Storage<CreatureDisplayInfoEntry>             sCreatureDisplayInfoStore;
 TC_GAME_API extern DB2Storage<CreatureDisplayInfoExtraEntry>        sCreatureDisplayInfoExtraStore;
@@ -233,6 +234,7 @@ TC_GAME_API extern DB2Storage<ServerMessagesEntry>                  sServerMessa
 TC_GAME_API extern DB2Storage<SkillLineAbilityEntry>                sSkillLineAbilityStore;
 TC_GAME_API extern DB2Storage<SkillLineXTraitTreeEntry>             sSkillLineXTraitTreeStore;
 TC_GAME_API extern DB2Storage<SkillRaceClassInfoEntry>              sSkillRaceClassInfoStore;
+TC_GAME_API extern DB2Storage<SoulbindEntry>                        sSoulbindStore;
 TC_GAME_API extern DB2Storage<SoundKitEntry>                        sSoundKitStore;
 TC_GAME_API extern DB2Storage<SpellAuraOptionsEntry>                sSpellAuraOptionsStore;
 TC_GAME_API extern DB2Storage<SpellAuraRestrictionsEntry>           sSpellAuraRestrictionsStore;

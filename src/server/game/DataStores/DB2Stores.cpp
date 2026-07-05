@@ -117,6 +117,7 @@ DB2Storage<ContentTuningXExpectedEntry>         sContentTuningXExpectedStore("Co
 DB2Storage<ContentTuningXLabelEntry>            sContentTuningXLabelStore("ContentTuningXLabel.db2", &ContentTuningXLabelLoadInfo::Instance);
 DB2Storage<ConversationLineEntry>               sConversationLineStore("ConversationLine.db2", &ConversationLineLoadInfo::Instance);
 DB2Storage<CorruptionEffectsEntry>              sCorruptionEffectsStore("CorruptionEffects.db2", &CorruptionEffectsLoadInfo::Instance);
+DB2Storage<CovenantEntry>                       sCovenantStore("Covenant.db2", &CovenantLoadInfo::Instance);
 DB2Storage<CraftingQualityEntry>                sCraftingQualityStore("CraftingQuality.db2", &CraftingQualityLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore("CreatureDisplayInfo.db2", &CreatureDisplayInfoLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", &CreatureDisplayInfoExtraLoadInfo::Instance);
@@ -301,6 +302,7 @@ DB2Storage<SkillLineEntry>                      sSkillLineStore("SkillLine.db2",
 DB2Storage<SkillLineAbilityEntry>               sSkillLineAbilityStore("SkillLineAbility.db2", &SkillLineAbilityLoadInfo::Instance);
 DB2Storage<SkillLineXTraitTreeEntry>            sSkillLineXTraitTreeStore("SkillLineXTraitTree.db2", &SkillLineXTraitTreeLoadInfo::Instance);
 DB2Storage<SkillRaceClassInfoEntry>             sSkillRaceClassInfoStore("SkillRaceClassInfo.db2", &SkillRaceClassInfoLoadInfo::Instance);
+DB2Storage<SoulbindEntry>                       sSoulbindStore("Soulbind.db2", &SoulbindLoadInfo::Instance);
 DB2Storage<SoulbindConduitRankEntry>            sSoulbindConduitRankStore("SoulbindConduitRank.db2", &SoulbindConduitRankLoadInfo::Instance);
 DB2Storage<SoundKitEntry>                       sSoundKitStore("SoundKit.db2", &SoundKitLoadInfo::Instance);
 DB2Storage<SpecializationSpellsEntry>           sSpecializationSpellsStore("SpecializationSpells.db2", &SpecializationSpellsLoadInfo::Instance);
@@ -749,6 +751,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sContentTuningXLabelStore);
     LOAD_DB2(sConversationLineStore);
     LOAD_DB2(sCorruptionEffectsStore);
+    LOAD_DB2(sCovenantStore);
     LOAD_DB2(sCraftingQualityStore);
     LOAD_DB2(sCreatureDisplayInfoStore);
     LOAD_DB2(sCreatureDisplayInfoExtraStore);
@@ -933,6 +936,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sSkillLineAbilityStore);
     LOAD_DB2(sSkillLineXTraitTreeStore);
     LOAD_DB2(sSkillRaceClassInfoStore);
+    LOAD_DB2(sSoulbindStore);
     LOAD_DB2(sSoulbindConduitRankStore);
     LOAD_DB2(sSoundKitStore);
     LOAD_DB2(sSpecializationSpellsStore);

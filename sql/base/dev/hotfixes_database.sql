@@ -2420,6 +2420,30 @@ CREATE TABLE `corruption_effects` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `covenant`
+--
+
+DROP TABLE IF EXISTS `covenant`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `covenant` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `BountySetID` int NOT NULL DEFAULT '0',
+  `SkillLineID` int NOT NULL DEFAULT '0',
+  `DeathTeleportSpellID` int NOT NULL DEFAULT '0',
+  `Field_9_0_2_36165_006` int NOT NULL DEFAULT '0',
+  `Field_9_0_2_36165_007` int NOT NULL DEFAULT '0',
+  `FactionID` int NOT NULL DEFAULT '0',
+  `CurrencyTypesID` int NOT NULL DEFAULT '0',
+  `RequiredPlayerConditionID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `crafting_quality`
 --
 
@@ -8350,6 +8374,26 @@ CREATE TABLE `skill_race_class_info` (
   `Availability` int NOT NULL DEFAULT '0',
   `MinLevel` tinyint NOT NULL DEFAULT '0',
   `SkillTierID` smallint NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `soulbind`
+--
+
+DROP TABLE IF EXISTS `soulbind`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `CovenantID` int NOT NULL DEFAULT '0',
+  `GarrTalentTreeID` int NOT NULL DEFAULT '0',
+  `CreatureID` int NOT NULL DEFAULT '0',
+  `GarrFollowerID` int NOT NULL DEFAULT '0',
+  `PlayerConditionID` int NOT NULL DEFAULT '0',
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

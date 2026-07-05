@@ -1057,6 +1057,21 @@ struct CorruptionEffectsEntry
     int32 Flags;
 };
 
+struct CovenantEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 BountySetID;
+    int32 SkillLineID;
+    int32 DeathTeleportSpellID;
+    int32 Field_9_0_2_36165_006;
+    int32 Field_9_0_2_36165_007;
+    int32 FactionID;
+    int32 CurrencyTypesID;
+    int32 RequiredPlayerConditionID;
+};
+
 struct CraftingQualityEntry
 {
     uint32 ID;
@@ -3735,6 +3750,17 @@ struct SkillRaceClassInfoEntry
     int8 MinLevel;
     int16 SkillTierID;
     Trinity::RaceMask<int32, 2> RaceMask;
+};
+
+struct SoulbindEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    int32 CovenantID;
+    int32 GarrTalentTreeID;
+    int32 CreatureID;
+    int32 GarrFollowerID;
+    int32 PlayerConditionID;
 };
 
 struct SoulbindConduitRankEntry

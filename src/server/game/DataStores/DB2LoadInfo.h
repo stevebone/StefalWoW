@@ -1444,6 +1444,26 @@ struct CorruptionEffectsLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 5, &CorruptionEffectsMeta::Instance, HOTFIX_SEL_CORRUPTION_EFFECTS };
 };
 
+struct CovenantLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[11] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "BountySetID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SkillLineID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "DeathTeleportSpellID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Field_9_0_2_36165_006" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Field_9_0_2_36165_007" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "FactionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CurrencyTypesID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "RequiredPlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 11, &CovenantMeta::Instance, HOTFIX_SEL_COVENANT };
+};
+
 struct CraftingQualityLoadInfo
 {
     static constexpr DB2FieldMeta Fields[3] =
@@ -5130,6 +5150,22 @@ struct SkillRaceClassInfoLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 9, &SkillRaceClassInfoMeta::Instance, HOTFIX_SEL_SKILL_RACE_CLASS_INFO };
+};
+
+struct SoulbindLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[7] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrTalentTreeID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CreatureID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrFollowerID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "PlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 7, &SoulbindMeta::Instance, HOTFIX_SEL_SOULBIND };
 };
 
 struct SoulbindConduitRankLoadInfo
