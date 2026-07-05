@@ -1028,6 +1028,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_COVENANT,
     PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS,
     PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS,
+    PLAYER_LOGIN_QUERY_LOAD_RENOWN_REWARDS,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -2903,6 +2904,11 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void RemoveConduitSpells();     // strip conduit spells (on soulbind switch)
         int32 GetConduitSpell(uint32 conduitId) const;   // owned rank -> SoulbindConduitRank.SpellID (0 if none)
 
+        // Covenant renown rewards. The renown LEVEL itself is a renown-reputation (TC ReputationMgr) and is client-synced
+        // by the standard reputation packets; this grants the per-level RenownRewards (item/spell/title/mount) once each.
+        void UpdateRenownRewards(FactionEntry const* renownFaction);
+        void UpdateAllRenownRewards();   // login catch-up: grant any renown rewards earned before this feature existed
+
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
 
@@ -3152,6 +3158,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadCovenant(PreparedQueryResult result);
         void _LoadSoulbindConduits(PreparedQueryResult result);
         void _LoadSoulbindConduitSockets(PreparedQueryResult result);
+        void _LoadRenownRewards(PreparedQueryResult result);
+        void GrantRenownReward(RenownRewardsEntry const* reward);
         void _LoadQuestStatus(PreparedQueryResult result);
         void _LoadQuestStatusObjectives(PreparedQueryResult result);
         void _LoadQuestStatusObjectiveSpawnTrackings(PreparedQueryResult result);
@@ -3390,6 +3398,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // Covenant / soulbind (server-authoritative; the client already knows its own active soulbind choice).
         uint32 m_activeCovenantId = 0;
         uint32 m_activeSoulbindId = 0;
+        std::unordered_map<uint32 /*covenantId*/, uint32 /*grantedRenownLevel*/> m_renownRewardsGranted;
         std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> m_soulbindConduits;
         // garrTalent node id -> (conduitId, garrTalentTreeID); tree id lets us apply only the active soulbind's sockets
         std::unordered_map<uint32 /*garrTalentId*/, std::pair<uint32 /*conduitId*/, uint32 /*treeId*/>> m_soulbindConduitSockets;

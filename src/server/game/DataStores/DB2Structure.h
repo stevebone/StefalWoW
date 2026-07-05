@@ -1057,6 +1057,30 @@ struct CorruptionEffectsEntry
     int32 Flags;
 };
 
+struct RenownRewardsEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    LocalizedString ToastDescription;
+    int32 CovenantID;
+    int32 Level;
+    int32 Icon;
+    int32 Flags;
+    int32 UiOrder;
+    int32 ItemID;
+    int32 SpellID;
+    int32 MountID;
+    int32 TransmogID;
+    int32 TransmogSetID;
+    int32 CharTitlesID;
+    int32 GarrFollowerID;
+    int32 TransmogIllusionID;
+    int32 Field_12_0_0_63534_016;
+    int32 QuestID;
+    int32 PlayerConditionID;
+};
+
 struct CovenantEntry
 {
     uint32 ID;

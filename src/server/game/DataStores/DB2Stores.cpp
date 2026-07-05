@@ -118,6 +118,7 @@ DB2Storage<ContentTuningXLabelEntry>            sContentTuningXLabelStore("Conte
 DB2Storage<ConversationLineEntry>               sConversationLineStore("ConversationLine.db2", &ConversationLineLoadInfo::Instance);
 DB2Storage<CorruptionEffectsEntry>              sCorruptionEffectsStore("CorruptionEffects.db2", &CorruptionEffectsLoadInfo::Instance);
 DB2Storage<CovenantEntry>                       sCovenantStore("Covenant.db2", &CovenantLoadInfo::Instance);
+DB2Storage<RenownRewardsEntry>                  sRenownRewardsStore("RenownRewards.db2", &RenownRewardsLoadInfo::Instance);
 DB2Storage<CraftingQualityEntry>                sCraftingQualityStore("CraftingQuality.db2", &CraftingQualityLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore("CreatureDisplayInfo.db2", &CreatureDisplayInfoLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", &CreatureDisplayInfoExtraLoadInfo::Instance);
@@ -538,6 +539,7 @@ namespace
     SkillRaceClassInfoContainer _skillRaceClassInfoBySkill;
     std::unordered_map<std::pair<int32, int32>, SoulbindConduitRankEntry const*> _soulbindConduitRanks;
     std::unordered_map<uint32 /*itemId*/, uint32 /*conduitId*/> _conduitsByItem;
+    std::unordered_map<std::pair<int32 /*covenantId*/, int32 /*level*/>, std::vector<RenownRewardsEntry const*>> _renownRewards;
     SpecializationSpellsContainer _specializationSpellsBySpec;
     std::unordered_set<std::pair<int32, uint32>> _specsBySpecSet;
     std::unordered_set<uint8> _spellFamilyNames;
@@ -756,6 +758,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sConversationLineStore);
     LOAD_DB2(sCorruptionEffectsStore);
     LOAD_DB2(sCovenantStore);
+    LOAD_DB2(sRenownRewardsStore);
     LOAD_DB2(sCraftingQualityStore);
     LOAD_DB2(sCreatureDisplayInfoStore);
     LOAD_DB2(sCreatureDisplayInfoExtraStore);
@@ -1548,6 +1551,9 @@ void DB2Manager::IndexLoadedStores()
     for (SoulbindConduitItemEntry const* conduitItem : sSoulbindConduitItemStore)
         if (conduitItem->ItemID > 0 && conduitItem->ConduitID > 0)
             _conduitsByItem[uint32(conduitItem->ItemID)] = uint32(conduitItem->ConduitID);
+
+    for (RenownRewardsEntry const* renownReward : sRenownRewardsStore)
+        _renownRewards[{ renownReward->CovenantID, renownReward->Level }].push_back(renownReward);
 
     for (SpecializationSpellsEntry const* specSpells : sSpecializationSpellsStore)
         _specializationSpellsBySpec[specSpells->SpecID].push_back(specSpells);
@@ -3036,6 +3042,11 @@ uint32 DB2Manager::GetConduitForItem(uint32 itemId) const
 {
     auto itr = _conduitsByItem.find(itemId);
     return itr != _conduitsByItem.end() ? itr->second : 0;
+}
+
+std::vector<RenownRewardsEntry const*> const* DB2Manager::GetRenownRewards(int32 covenantId, int32 level) const
+{
+    return Trinity::Containers::MapGetValuePtr(_renownRewards, { covenantId, level });
 }
 
 int32 DB2Manager::GetConduitRankForItemLevel(uint32 itemLevel) const

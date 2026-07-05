@@ -88,6 +88,7 @@ TC_GAME_API extern DB2Storage<ContentTuningEntry>                   sContentTuni
 TC_GAME_API extern DB2Storage<ConversationLineEntry>                sConversationLineStore;
 TC_GAME_API extern DB2Storage<CorruptionEffectsEntry>               sCorruptionEffectsStore;
 TC_GAME_API extern DB2Storage<CovenantEntry>                        sCovenantStore;
+TC_GAME_API extern DB2Storage<RenownRewardsEntry>                   sRenownRewardsStore;
 TC_GAME_API extern DB2Storage<CraftingQualityEntry>                 sCraftingQualityStore;
 TC_GAME_API extern DB2Storage<CreatureDisplayInfoEntry>             sCreatureDisplayInfoStore;
 TC_GAME_API extern DB2Storage<CreatureDisplayInfoExtraEntry>        sCreatureDisplayInfoExtraStore;
@@ -551,6 +552,7 @@ public:
     SoulbindConduitRankEntry const* GetSoulbindConduitRank(int32 soulbindConduitId, int32 rank) const;
     uint32 GetConduitForItem(uint32 itemId) const;               // SoulbindConduitItem: ItemID -> SoulbindConduitID (0 if none)
     int32 GetConduitRankForItemLevel(uint32 itemLevel) const;    // SoulbindConduitRankProperties: item level -> RankIndex (-1 if none)
+    std::vector<RenownRewardsEntry const*> const* GetRenownRewards(int32 covenantId, int32 level) const;
     std::vector<SpecializationSpellsEntry const*> const* GetSpecializationSpells(uint32 specId) const;
     bool IsSpecSetMember(int32 specSetId, uint32 specId) const;
     static bool IsValidSpellFamiliyName(SpellFamilyNames family);

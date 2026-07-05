@@ -1483,6 +1483,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_RAND_PROP_POINTS, "SELECT MAX(ID) + 1 FROM rand_prop_points", CONNECTION_SYNCH);
 
+    // RenownRewards.db2
+    PrepareStatement(HOTFIX_SEL_RENOWN_REWARDS, "SELECT ID, Name, Description, ToastDescription, CovenantID, Level, Icon, Flags, UiOrder, "
+        "ItemID, SpellID, MountID, TransmogID, TransmogSetID, CharTitlesID, GarrFollowerID, TransmogIllusionID, Field_12_0_0_63534_016, "
+        "QuestID, PlayerConditionID FROM renown_rewards WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_RENOWN_REWARDS, "SELECT MAX(ID) + 1 FROM renown_rewards", CONNECTION_SYNCH);
+
     // RewardPack.db2
     PrepareStatement(HOTFIX_SEL_REWARD_PACK, "SELECT ID, CharTitleID, Money, ArtifactXPDifficulty, ArtifactXPMultiplier, ArtifactXPCategoryID, "
         "TreasurePickerID FROM reward_pack WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);

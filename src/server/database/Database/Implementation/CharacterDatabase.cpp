@@ -851,6 +851,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHARACTER_SOULBIND_CONDUIT_SOCKET, "SELECT garrTalentId, conduitId, garrTalentTreeId FROM character_soulbind_conduit_sockets WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_REP_CHARACTER_SOULBIND_CONDUIT_SOCKET, "REPLACE INTO character_soulbind_conduit_sockets (guid, garrTalentId, conduitId, garrTalentTreeId) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_SOULBIND_CONDUIT_SOCKET, "DELETE FROM character_soulbind_conduit_sockets WHERE guid = ? AND garrTalentId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_COVENANT_RENOWN, "SELECT covenantId, grantedLevel FROM character_covenant_renown WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_REP_CHARACTER_COVENANT_RENOWN, "REPLACE INTO character_covenant_renown (guid, covenantId, grantedLevel) VALUES (?, ?, ?)", CONNECTION_ASYNC);
 }
 
 CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)

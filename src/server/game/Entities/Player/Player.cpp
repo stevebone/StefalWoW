@@ -16697,6 +16697,10 @@ void Player::ReputationChanged(FactionEntry const* factionEntry, int32 change)
     UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_MIN_REPUTATION, factionEntry->ID, change);
     UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_MAX_REPUTATION, factionEntry->ID, change);
     UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_INCREASE_REPUTATION, factionEntry->ID, change);
+
+    // A covenant renown gain may cross one or more renown levels -> grant their RenownRewards.
+    if (change > 0 && GetReputationMgr().IsRenownReputation(factionEntry))
+        UpdateRenownRewards(factionEntry);
 }
 
 void Player::CurrencyChanged(uint32 currencyId, int32 change)
@@ -18665,6 +18669,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     _LoadCovenant(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_COVENANT));
     _LoadSoulbindConduits(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS));
     _LoadSoulbindConduitSockets(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS));
+    _LoadRenownRewards(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_RENOWN_REWARDS));
     ApplyConduitSpells();   // spell/aura systems are ready by here (mirrors _LoadGlyphAuras above)
 
     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY),
@@ -20405,6 +20410,91 @@ void Player::_LoadCovenant(PreparedQueryResult result)
     Field* fields = result->Fetch();
     m_activeCovenantId = fields[0].GetUInt32();
     m_activeSoulbindId = fields[1].GetUInt32();
+}
+
+void Player::_LoadRenownRewards(PreparedQueryResult result)
+{
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        m_renownRewardsGranted[fields[0].GetUInt32()] = fields[1].GetUInt32();
+    } while (result->NextRow());
+}
+
+void Player::GrantRenownReward(RenownRewardsEntry const* reward)
+{
+    if (!reward)
+        return;
+
+    if (reward->SpellID > 0)
+        LearnSpell(uint32(reward->SpellID), false);
+
+    if (reward->CharTitlesID > 0)
+        if (CharTitlesEntry const* title = sCharTitlesStore.LookupEntry(uint32(reward->CharTitlesID)))
+            SetTitle(title);
+
+    if (reward->MountID > 0)
+        if (MountEntry const* mount = sMountStore.LookupEntry(uint32(reward->MountID)))
+            if (mount->SourceSpellID > 0)
+                GetSession()->GetCollectionMgr()->AddMount(uint32(mount->SourceSpellID), MOUNT_STATUS_NONE);
+
+    if (reward->ItemID > 0)
+        AddItem(uint32(reward->ItemID), 1);
+
+    // Cosmetic/collection reward fields RenownRewards also carries but that each need their own collection/garrison
+    // grant path (follow-up): TransmogID, TransmogSetID, TransmogIllusionID, GarrFollowerID, QuestID.
+}
+
+void Player::UpdateRenownRewards(FactionEntry const* renownFaction)
+{
+    // Only act on live renown gains for an in-world player (avoids granting items mid-load); a player who already had
+    // renown before this feature is caught up on the first live renown change (all ungranted levels grant at once).
+    if (!renownFaction || !IsInWorld())
+        return;
+
+    if (!GetReputationMgr().IsRenownReputation(renownFaction))
+        return;
+
+    // Which covenant owns this renown faction?
+    uint32 covenantId = 0;
+    for (CovenantEntry const* covenant : sCovenantStore)
+    {
+        if (covenant->FactionID == int32(renownFaction->ID))
+        {
+            covenantId = covenant->ID;
+            break;
+        }
+    }
+    if (!covenantId)
+        return;
+
+    int32 currentLevel = GetReputationMgr().GetRenownLevel(renownFaction);
+    uint32& granted = m_renownRewardsGranted[covenantId];
+    if (int32(granted) >= currentLevel)
+        return;
+
+    for (int32 level = int32(granted) + 1; level <= currentLevel; ++level)
+        if (std::vector<RenownRewardsEntry const*> const* rewards = sDB2Manager.GetRenownRewards(int32(covenantId), level))
+            for (RenownRewardsEntry const* reward : *rewards)
+                GrantRenownReward(reward);
+
+    granted = uint32(currentLevel);
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT_RENOWN);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, covenantId);
+    stmt->setUInt32(2, granted);
+    CharacterDatabase.Execute(stmt);
+}
+
+void Player::UpdateAllRenownRewards()
+{
+    for (CovenantEntry const* covenant : sCovenantStore)
+        if (FactionEntry const* faction = sFactionStore.LookupEntry(uint32(covenant->FactionID)))
+            UpdateRenownRewards(faction);
 }
 
 void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
