@@ -262,6 +262,22 @@ namespace WorldPackets
             std::vector<GarrisonRemoteSiteInfo> Sites;
         };
 
+        // CMSG_GARRISON_SOCKET_TALENT (client serializer sub_7FF72914B630): { u32 GarrTalentID, u32 count,
+        // count x { int32 SoulbindConduitID, int32 SoulbindConduitRank } }. The leading id and the pair fields are
+        // read from the wire as-is; the pair layout mirrors GarrisonTalentSocketData (this protocol's socket record).
+        // NEEDS-CONFIRM (sniff): whether the leading id is the node or the tree, and pair order. Handler fails closed
+        // (unowned/invalid conduit ids no-op), so a misread cannot corrupt server state.
+        class GarrisonSocketTalent final : public ClientPacket
+        {
+        public:
+            explicit GarrisonSocketTalent(WorldPacket&& packet) : ClientPacket(CMSG_GARRISON_SOCKET_TALENT, std::move(packet)) { }
+
+            void Read() override;
+
+            int32 GarrTalentID = 0;
+            std::vector<GarrisonTalentSocketData> Sockets;
+        };
+
         class GarrisonPurchaseBuilding final : public ClientPacket
         {
         public:

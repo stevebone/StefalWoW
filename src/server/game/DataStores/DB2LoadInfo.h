@@ -5168,6 +5168,20 @@ struct SoulbindLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 7, &SoulbindMeta::Instance, HOTFIX_SEL_SOULBIND };
 };
 
+struct SoulbindConduitLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "ConduitType" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SpecSetID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &SoulbindConduitMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT };
+};
+
 struct SoulbindConduitRankLoadInfo
 {
     static constexpr DB2FieldMeta Fields[5] =

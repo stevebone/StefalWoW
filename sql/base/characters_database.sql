@@ -606,6 +606,37 @@ CREATE TABLE `character_covenant` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `character_soulbind_conduits`
+--
+
+DROP TABLE IF EXISTS `character_soulbind_conduits`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_soulbind_conduits` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `conduitId` int unsigned NOT NULL DEFAULT '0',
+  `rankIndex` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`conduitId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Player soulbind conduit collection (owned conduit -> rank)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_soulbind_conduit_sockets`
+--
+
+DROP TABLE IF EXISTS `character_soulbind_conduit_sockets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_soulbind_conduit_sockets` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `garrTalentId` int unsigned NOT NULL DEFAULT '0',
+  `conduitId` int unsigned NOT NULL DEFAULT '0',
+  `garrTalentTreeId` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`garrTalentId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Conduits socketed into soulbind tree nodes';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `character_bank_tab_settings`
 --
 

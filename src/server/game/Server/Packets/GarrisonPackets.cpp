@@ -358,6 +358,18 @@ WorldPacket const* GarrisonRemoteInfo::Write()
     return &_worldPacket;
 }
 
+void GarrisonSocketTalent::Read()
+{
+    _worldPacket >> GarrTalentID;
+    uint32 count = _worldPacket.read<uint32>();
+    Sockets.resize(count);
+    for (GarrisonTalentSocketData& socket : Sockets)
+    {
+        _worldPacket >> socket.SoulbindConduitID;
+        _worldPacket >> socket.SoulbindConduitRank;
+    }
+}
+
 void GarrisonPurchaseBuilding::Read()
 {
     _worldPacket >> NpcGUID;

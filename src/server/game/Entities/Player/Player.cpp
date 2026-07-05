@@ -18660,6 +18660,9 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     _LoadCharacterBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS));
 
     _LoadCovenant(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_COVENANT));
+    _LoadSoulbindConduits(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS));
+    _LoadSoulbindConduitSockets(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS));
+    ApplyConduitSpells();   // spell/aura systems are ready by here (mirrors _LoadGlyphAuras above)
 
     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ARTIFACTS),
@@ -20406,6 +20409,9 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     if (!soulbind)
         return;
 
+    // Switching soulbinds changes the active tree, so strip the previously-applied conduit spells first.
+    RemoveConduitSpells();
+
     // Activating a soulbind implies membership in its covenant (there is no separate covenant-choice opcode in
     // the client protocol), so keep the active covenant consistent with the chosen soulbind.
     m_activeCovenantId = uint32(soulbind->CovenantID);
@@ -20416,6 +20422,186 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     stmt->setUInt32(1, m_activeCovenantId);
     stmt->setUInt32(2, m_activeSoulbindId);
     CharacterDatabase.Execute(stmt);
+
+    // Re-apply the conduits socketed into the newly-active soulbind's tree.
+    ApplyConduitSpells();
+}
+
+void Player::_LoadSoulbindConduits(PreparedQueryResult result)
+{
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 conduitId = fields[0].GetUInt32();
+        uint32 rankIndex = fields[1].GetUInt32();
+        if (sSoulbindConduitStore.LookupEntry(conduitId))
+            m_soulbindConduits[conduitId] = rankIndex;
+    } while (result->NextRow());
+}
+
+void Player::_LoadSoulbindConduitSockets(PreparedQueryResult result)
+{
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 garrTalentId = fields[0].GetUInt32();
+        uint32 conduitId = fields[1].GetUInt32();
+        uint32 treeId = fields[2].GetUInt32();
+        m_soulbindConduitSockets[garrTalentId] = { conduitId, treeId };
+    } while (result->NextRow());
+
+    // Applied after the active soulbind is known (LoadFromDB order), so ApplyConduitSpells() is called there.
+}
+
+int32 Player::GetConduitRank(uint32 conduitId) const
+{
+    auto itr = m_soulbindConduits.find(conduitId);
+    return itr != m_soulbindConduits.end() ? int32(itr->second) : -1;
+}
+
+bool Player::CollectConduit(uint32 conduitId, int32 rankIndex /*= -1*/)
+{
+    if (!sSoulbindConduitStore.LookupEntry(conduitId))
+        return false;
+
+    // Default to the lowest RankIndex defined for this conduit (data-driven; do not assume 0).
+    if (rankIndex < 0)
+    {
+        bool found = false;
+        int32 lowest = 0;
+        for (SoulbindConduitRankEntry const* rank : sSoulbindConduitRankStore)
+        {
+            if (rank->SoulbindConduitID != conduitId)
+                continue;
+            if (!found || rank->RankIndex < lowest)
+            {
+                lowest = rank->RankIndex;
+                found = true;
+            }
+        }
+        if (!found)
+            return false;   // no rank rows -> cannot resolve a spell, refuse rather than store a bogus rank
+        rankIndex = lowest;
+    }
+
+    // Never downgrade an already-owned conduit.
+    auto itr = m_soulbindConduits.find(conduitId);
+    if (itr != m_soulbindConduits.end() && int32(itr->second) >= rankIndex)
+        return false;
+
+    m_soulbindConduits[conduitId] = uint32(rankIndex);
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_SOULBIND_CONDUIT);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, conduitId);
+    stmt->setUInt32(2, uint32(rankIndex));
+    CharacterDatabase.Execute(stmt);
+    return true;
+}
+
+bool Player::SocketConduit(uint32 garrTalentTreeId, uint32 garrTalentId, uint32 conduitId)
+{
+    SoulbindConduitEntry const* conduit = sSoulbindConduitStore.LookupEntry(conduitId);
+    if (!conduit)
+        return false;
+
+    // Must own the conduit and it must belong to the player's covenant (0 == covenant-agnostic).
+    if (!HasConduit(conduitId))
+        return false;
+    if (conduit->CovenantID != 0 && uint32(conduit->CovenantID) != m_activeCovenantId)
+        return false;
+
+    // If this node is currently applying a conduit for the active tree, strip it before replacing.
+    bool nodeActive = false;
+    if (SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(m_activeSoulbindId))
+        nodeActive = uint32(soulbind->GarrTalentTreeID) == garrTalentTreeId;
+
+    auto existing = m_soulbindConduitSockets.find(garrTalentId);
+    if (existing != m_soulbindConduitSockets.end() && nodeActive)
+        if (int32 spellId = GetConduitSpell(existing->second.first))
+            RemoveAurasDueToSpell(uint32(spellId));
+
+    m_soulbindConduitSockets[garrTalentId] = { conduitId, garrTalentTreeId };
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_SOULBIND_CONDUIT_SOCKET);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, garrTalentId);
+    stmt->setUInt32(2, conduitId);
+    stmt->setUInt32(3, garrTalentTreeId);
+    CharacterDatabase.Execute(stmt);
+
+    if (nodeActive)
+        if (int32 spellId = GetConduitSpell(conduitId))
+            CastSpell(this, uint32(spellId), true);
+    return true;
+}
+
+void Player::RemoveConduitSocket(uint32 garrTalentId)
+{
+    auto itr = m_soulbindConduitSockets.find(garrTalentId);
+    if (itr == m_soulbindConduitSockets.end())
+        return;
+
+    if (SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(m_activeSoulbindId))
+        if (uint32(soulbind->GarrTalentTreeID) == itr->second.second)
+            if (int32 spellId = GetConduitSpell(itr->second.first))
+                RemoveAurasDueToSpell(uint32(spellId));
+
+    m_soulbindConduitSockets.erase(itr);
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_SOULBIND_CONDUIT_SOCKET);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, garrTalentId);
+    CharacterDatabase.Execute(stmt);
+}
+
+int32 Player::GetConduitSpell(uint32 conduitId) const
+{
+    int32 rank = GetConduitRank(conduitId);
+    if (rank < 0)
+        return 0;
+    if (SoulbindConduitRankEntry const* rankEntry = sDB2Manager.GetSoulbindConduitRank(int32(conduitId), rank))
+        return rankEntry->SpellID;
+    return 0;
+}
+
+void Player::ApplyConduitSpells()
+{
+    SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(m_activeSoulbindId);
+    if (!soulbind)
+        return;
+
+    uint32 treeId = uint32(soulbind->GarrTalentTreeID);
+    for (auto const& [garrTalentId, socket] : m_soulbindConduitSockets)
+    {
+        if (socket.second != treeId)
+            continue;
+        if (int32 spellId = GetConduitSpell(socket.first))
+            if (!HasAura(uint32(spellId)))
+                CastSpell(this, uint32(spellId), true);
+    }
+}
+
+void Player::RemoveConduitSpells()
+{
+    SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(m_activeSoulbindId);
+    if (!soulbind)
+        return;
+
+    uint32 treeId = uint32(soulbind->GarrTalentTreeID);
+    for (auto const& [garrTalentId, socket] : m_soulbindConduitSockets)
+    {
+        if (socket.second != treeId)
+            continue;
+        if (int32 spellId = GetConduitSpell(socket.first))
+            RemoveAurasDueToSpell(uint32(spellId));
+    }
 }
 
 /*********************************************************/

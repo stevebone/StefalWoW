@@ -1026,6 +1026,8 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_DATA_FLAGS,
     PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS,
     PLAYER_LOGIN_QUERY_LOAD_COVENANT,
+    PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS,
+    PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -2887,7 +2889,18 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // Covenant / Soulbind
         uint32 GetActiveCovenant() const { return m_activeCovenantId; }
         uint32 GetActiveSoulbind() const { return m_activeSoulbindId; }
-        void ActivateSoulbind(SoulbindEntry const* soulbind);   // validates + persists; applies conduit effects (P2)
+        void ActivateSoulbind(SoulbindEntry const* soulbind);   // validates + persists; reapplies conduit effects
+
+        // Soulbind conduit collection (server-authoritative: conduitId -> owned RankIndex)
+        bool HasConduit(uint32 conduitId) const { return m_soulbindConduits.find(conduitId) != m_soulbindConduits.end(); }
+        int32 GetConduitRank(uint32 conduitId) const;
+        bool CollectConduit(uint32 conduitId, int32 rankIndex = -1);   // grant/upgrade; rankIndex < 0 => lowest defined rank
+        // Socketed conduits for a soulbind tree: GarrTalent node id -> conduitId
+        bool SocketConduit(uint32 garrTalentTreeId, uint32 garrTalentId, uint32 conduitId);   // validates ownership + covenant, persists, applies spell
+        void RemoveConduitSocket(uint32 garrTalentId);
+        void ApplyConduitSpells();      // (re)apply spells for all currently-socketed conduits of the active soulbind
+        void RemoveConduitSpells();     // strip conduit spells (on soulbind switch)
+        int32 GetConduitSpell(uint32 conduitId) const;   // owned rank -> SoulbindConduitRank.SpellID (0 if none)
 
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
@@ -3136,6 +3149,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
             PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult);
         static Item* _LoadMailedItem(ObjectGuid const& playerGuid, Player* player, uint64 mailId, Mail* mail, Field* fields, ItemAdditionalLoadInfo* addionalData);
         void _LoadCovenant(PreparedQueryResult result);
+        void _LoadSoulbindConduits(PreparedQueryResult result);
+        void _LoadSoulbindConduitSockets(PreparedQueryResult result);
         void _LoadQuestStatus(PreparedQueryResult result);
         void _LoadQuestStatusObjectives(PreparedQueryResult result);
         void _LoadQuestStatusObjectiveSpawnTrackings(PreparedQueryResult result);
@@ -3374,6 +3389,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // Covenant / soulbind (server-authoritative; the client already knows its own active soulbind choice).
         uint32 m_activeCovenantId = 0;
         uint32 m_activeSoulbindId = 0;
+        std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> m_soulbindConduits;
+        // garrTalent node id -> (conduitId, garrTalentTreeID); tree id lets us apply only the active soulbind's sockets
+        std::unordered_map<uint32 /*garrTalentId*/, std::pair<uint32 /*conduitId*/, uint32 /*treeId*/>> m_soulbindConduitSockets;
 
         uint32 m_lastFallTime;
         float  m_lastFallZ;
