@@ -64,6 +64,7 @@ struct PvpTalentEntry;
 struct QuestPackageItemEntry;
 struct RewardPackEntry;
 struct SkillRaceClassInfoEntry;
+struct SoulbindEntry;
 struct SpellCastRequest;
 struct TalentEntry;
 struct TrainerSpell;
@@ -1024,6 +1025,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_DATA_ELEMENTS,
     PLAYER_LOGIN_QUERY_LOAD_DATA_FLAGS,
     PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS,
+    PLAYER_LOGIN_QUERY_LOAD_COVENANT,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -2882,6 +2884,11 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void DeleteGarrison();
         Garrison* GetGarrison() const { return _garrison.get(); }
 
+        // Covenant / Soulbind
+        uint32 GetActiveCovenant() const { return m_activeCovenantId; }
+        uint32 GetActiveSoulbind() const { return m_activeSoulbindId; }
+        void ActivateSoulbind(SoulbindEntry const* soulbind);   // validates + persists; applies conduit effects (P2)
+
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
 
@@ -3128,6 +3135,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadMail(PreparedQueryResult mailsResult, PreparedQueryResult mailItemsResult, PreparedQueryResult artifactResult, PreparedQueryResult azeriteItemResult,
             PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult);
         static Item* _LoadMailedItem(ObjectGuid const& playerGuid, Player* player, uint64 mailId, Mail* mail, Field* fields, ItemAdditionalLoadInfo* addionalData);
+        void _LoadCovenant(PreparedQueryResult result);
         void _LoadQuestStatus(PreparedQueryResult result);
         void _LoadQuestStatusObjectives(PreparedQueryResult result);
         void _LoadQuestStatusObjectiveSpawnTrackings(PreparedQueryResult result);
@@ -3362,6 +3370,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         bool IsInstanceLoginGameMasterException() const;
 
         MapReference m_mapRef;
+
+        // Covenant / soulbind (server-authoritative; the client already knows its own active soulbind choice).
+        uint32 m_activeCovenantId = 0;
+        uint32 m_activeSoulbindId = 0;
 
         uint32 m_lastFallTime;
         float  m_lastFallZ;

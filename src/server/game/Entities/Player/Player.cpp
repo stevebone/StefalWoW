@@ -18659,6 +18659,8 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
 
     _LoadCharacterBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS));
 
+    _LoadCovenant(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_COVENANT));
+
     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ARTIFACTS),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE),
@@ -20387,6 +20389,33 @@ void Player::_LoadCharacterBankTabSettings(PreparedQueryResult result)
 
     while (m_activePlayerData->CharacterBankTabSettings.size() < *m_activePlayerData->NumCharacterBankTabs)
         AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::CharacterBankTabSettings));
+}
+
+void Player::_LoadCovenant(PreparedQueryResult result)
+{
+    if (!result)
+        return;
+
+    Field* fields = result->Fetch();
+    m_activeCovenantId = fields[0].GetUInt32();
+    m_activeSoulbindId = fields[1].GetUInt32();
+}
+
+void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
+{
+    if (!soulbind)
+        return;
+
+    // Activating a soulbind implies membership in its covenant (there is no separate covenant-choice opcode in
+    // the client protocol), so keep the active covenant consistent with the chosen soulbind.
+    m_activeCovenantId = uint32(soulbind->CovenantID);
+    m_activeSoulbindId = soulbind->ID;
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, m_activeCovenantId);
+    stmt->setUInt32(2, m_activeSoulbindId);
+    CharacterDatabase.Execute(stmt);
 }
 
 /*********************************************************/

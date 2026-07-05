@@ -326,6 +326,11 @@ namespace WorldPackets
         class SetSheathed;
     }
 
+    namespace Covenant
+    {
+        class ActivateSoulbind;
+    }
+
     namespace Duel
     {
         class CanDuel;
@@ -1827,6 +1832,9 @@ class TC_GAME_API WorldSession
         // Adventure Journal
         void HandleAdventureJournalOpenQuest(WorldPackets::AdventureJournal::AdventureJournalOpenQuest& openQuest);
         void HandleAdventureJournalUpdateSuggestions(WorldPackets::AdventureJournal::AdventureJournalUpdateSuggestions& updateSuggestions);
+
+        // Covenant
+        void HandleActivateSoulbind(WorldPackets::Covenant::ActivateSoulbind& packet);
 
         // Adventure Map
         void HandleCheckIsAdventureMapPoiValid(WorldPackets::AdventureMap::CheckIsAdventureMapPoiValid& CheckIsAdventureMapPoiValid);
