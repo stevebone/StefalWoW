@@ -516,7 +516,7 @@ class NewFlag : public GameObjectTypeBase
 public:
     explicit NewFlag(GameObject& owner) : GameObjectTypeBase(owner), _state(FlagState::InBase), _respawnTime(0), _takenFromBaseTime(0) { }
 
-    void SetState(FlagState newState, Player* player)
+    void SetState(FlagState newState, Unit* unit)
     {
         if (_state == newState)
             return;
@@ -524,8 +524,8 @@ public:
         FlagState oldState = _state;
         _state = newState;
 
-        if (player && newState == FlagState::Taken)
-            _carrierGUID = player->GetGUID();
+        if (unit && newState == FlagState::Taken)
+            _carrierGUID = unit->GetGUID();
         else
             _carrierGUID = ObjectGuid::Empty;
 
@@ -542,7 +542,7 @@ public:
             _respawnTime = 0;
 
         if (ZoneScript* zoneScript = _owner.GetZoneScript())
-            zoneScript->OnFlagStateChange(&_owner, oldState, _state, player);
+            zoneScript->OnFlagStateChange(&_owner, oldState, _state, unit);
     }
 
     void Update([[maybe_unused]] uint32 diff) override
@@ -567,14 +567,14 @@ private:
     time_t _takenFromBaseTime;
 };
 
-SetNewFlagState::SetNewFlagState(FlagState state, Player* player) : _state(state), _player(player)
+SetNewFlagState::SetNewFlagState(FlagState state, Unit* unit) : _state(state), _unit(unit)
 {
 }
 
 void SetNewFlagState::Execute(GameObjectTypeBase& type) const
 {
     if (NewFlag* newFlag = dynamic_cast<NewFlag*>(&type))
-        newFlag->SetState(_state, _player);
+        newFlag->SetState(_state, _unit);
 }
 
 class ControlZone : public GameObjectTypeBase
@@ -3321,12 +3321,9 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             if (!info)
                 return;
 
-            Player* player = user->ToPlayer();
-            if (!player)
-                return;
-
-            if (!player->CanUseBattlegroundObject(this))
-                return;
+            if (Player* player = user->ToPlayer())
+                if (!player->CanUseBattlegroundObject(this))
+                    return;
 
             GameObjectType::NewFlag const* newFlag = dynamic_cast<GameObjectType::NewFlag const*>(m_goTypeImpl.get());
             if (!newFlag)
@@ -3337,15 +3334,14 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
 
             spellId = info->newflag.pickupSpell;
             spellCaster = nullptr;
+            if (!user->ToPlayer())
+                spellArgs.TriggerFlags |= TRIGGERED_FULL_MASK;
             break;
         }
         case GAMEOBJECT_TYPE_NEW_FLAG_DROP:
         {
             GameObjectTemplate const* info = GetGOInfo();
             if (!info)
-                return;
-
-            if (user->GetTypeId() != TYPEID_PLAYER)
                 return;
 
             if (!user->IsAlive())
@@ -3367,7 +3363,7 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
                     if (defenderInteract && owner->GetGOInfo()->newflag.ReturnonDefenderInteract)
                     {
                         Delete();
-                        owner->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::InBase, user->ToPlayer()));
+                        owner->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::InBase, user));
                         return;
                     }
                     else
@@ -3378,7 +3374,7 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
                         if (result == SPELL_CAST_OK)
                         {
                             Delete();
-                            owner->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Taken, user->ToPlayer()));
+                            owner->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Taken, user));
                             return;
                         }
                     }
@@ -3579,7 +3575,7 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
         switch (GetGoType())
         {
             case GAMEOBJECT_TYPE_NEW_FLAG:
-                HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Taken, user->ToPlayer()));
+                HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Taken, user));
                 break;
             case GAMEOBJECT_TYPE_FLAGSTAND:
                 SetFlag(GO_FLAG_IN_USE);

@@ -99,13 +99,13 @@ private:
 class TC_GAME_API SetNewFlagState : public GameObjectTypeBase::CustomCommand
 {
 public:
-    explicit SetNewFlagState(FlagState state, Player* player);
+    explicit SetNewFlagState(FlagState state, Unit* unit);
 
     void Execute(GameObjectTypeBase& type) const override;
 
 private:
     FlagState _state;
-    Player* _player;
+    Unit* _unit;
 };
 
 class TC_GAME_API SetControlZoneValue : public GameObjectTypeBase::CustomCommand
