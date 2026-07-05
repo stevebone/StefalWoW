@@ -20444,8 +20444,19 @@ void Player::GrantRenownReward(RenownRewardsEntry const* reward)
     if (reward->ItemID > 0)
         AddItem(uint32(reward->ItemID), 1);
 
-    // Cosmetic/collection reward fields RenownRewards also carries but that each need their own collection/garrison
-    // grant path (follow-up): TransmogID, TransmogSetID, TransmogIllusionID, GarrFollowerID, QuestID.
+    if (reward->TransmogID > 0)
+        if (ItemModifiedAppearanceEntry const* appearance = sItemModifiedAppearanceStore.LookupEntry(uint32(reward->TransmogID)))
+            GetSession()->GetCollectionMgr()->AddItemAppearance(appearance->ItemID, uint32(appearance->ItemAppearanceModifierID));
+
+    if (reward->TransmogSetID > 0)
+        GetSession()->GetCollectionMgr()->AddTransmogSet(uint32(reward->TransmogSetID));
+
+    if (reward->GarrFollowerID > 0)
+        if (Garrison* garrison = GetGarrison())
+            garrison->AddFollower(uint32(reward->GarrFollowerID));
+
+    // Remaining RenownRewards fields with no clean single-call grant path (follow-up): TransmogIllusionID (no
+    // CollectionMgr add-illusion API) and QuestID (reward-quest grant semantics need confirmation).
 }
 
 void Player::UpdateRenownRewards(FactionEntry const* renownFaction)
