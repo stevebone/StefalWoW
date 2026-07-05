@@ -6589,7 +6589,7 @@ void AuraEffect::HandleBattlegroundPlayerPosition(AuraApplication const* aurApp,
     if (!(mode & AURA_EFFECT_HANDLE_REAL))
         return;
 
-    Player* target = aurApp->GetTarget()->ToPlayer();
+    Unit* target = aurApp->GetTarget();
     if (!target)
         return;
 
@@ -6610,14 +6610,19 @@ void AuraEffect::HandleBattlegroundPlayerPosition(AuraApplication const* aurApp,
                 }
                 else if (gobTemplate->type == GAMEOBJECT_TYPE_FLAGSTAND)
                 {
-                    if (ZoneScript* zonescript = target->FindZoneScript())
-                        zonescript->OnFlagDropped(GetCasterGUID(), target);
+                    if (Player* playerTarget = target->ToPlayer())
+                        if (ZoneScript* zonescript = playerTarget->FindZoneScript())
+                            zonescript->OnFlagDropped(GetCasterGUID(), playerTarget);
                 }
             }
         }
     }
 
-    BattlegroundMap* battlegroundMap = target->GetMap()->ToBattlegroundMap();
+    Player* player = target->ToPlayer();
+    if (!player)
+        return;
+
+    BattlegroundMap* battlegroundMap = player->GetMap()->ToBattlegroundMap();
     if (!battlegroundMap)
         return;
 
@@ -6628,21 +6633,21 @@ void AuraEffect::HandleBattlegroundPlayerPosition(AuraApplication const* aurApp,
     if (apply)
     {
         WorldPackets::Battleground::BattlegroundPlayerPosition playerPosition;
-        playerPosition.Guid = target->GetGUID();
+        playerPosition.Guid = player->GetGUID();
         playerPosition.ArenaSlot = static_cast<int8>(GetMiscValue());
-        playerPosition.Pos = target->GetPosition();
+        playerPosition.Pos = player->GetPosition();
 
         if (GetAuraType() == SPELL_AURA_BATTLEGROUND_PLAYER_POSITION_FACTIONAL)
-            playerPosition.IconID = target->GetEffectiveTeam() == ALLIANCE ? PLAYER_POSITION_ICON_HORDE_FLAG : PLAYER_POSITION_ICON_ALLIANCE_FLAG;
+            playerPosition.IconID = player->GetEffectiveTeam() == ALLIANCE ? PLAYER_POSITION_ICON_HORDE_FLAG : PLAYER_POSITION_ICON_ALLIANCE_FLAG;
         else if (GetAuraType() == SPELL_AURA_BATTLEGROUND_PLAYER_POSITION)
-            playerPosition.IconID = target->GetEffectiveTeam() == ALLIANCE ? PLAYER_POSITION_ICON_ALLIANCE_FLAG : PLAYER_POSITION_ICON_HORDE_FLAG;
+            playerPosition.IconID = player->GetEffectiveTeam() == ALLIANCE ? PLAYER_POSITION_ICON_ALLIANCE_FLAG : PLAYER_POSITION_ICON_HORDE_FLAG;
         else
             TC_LOG_WARN("spell.auras", "Unknown aura effect {} handled by HandleBattlegroundPlayerPosition.", GetAuraType());
 
         bg->AddPlayerPosition(playerPosition);
     }
     else
-        bg->RemovePlayerPosition(target->GetGUID());
+        bg->RemovePlayerPosition(player->GetGUID());
 }
 
 void AuraEffect::HandleStoreTeleportReturnPoint(AuraApplication const* aurApp, uint8 mode, bool apply) const
