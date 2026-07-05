@@ -31,7 +31,7 @@
 #include "Custom/FollowshipBots/Followship_bots_mgr.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_events_handler.h"
-#include "Followship_bots_utils.h"
+#include "Custom/FollowshipBots/Utils/Followship_bots_utils.h"
 
 struct battleground_warsong_gulch : BattlegroundScript
 {
