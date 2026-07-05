@@ -26,11 +26,9 @@
 #include "Creature.h"
 #include "DBCEnums.h"
 #include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_events_handler.h"
-#include "Followship_bots_mgr.h"
-#include "Followship_bots_movement_handler.h"
-#include "Followship_bots_utils.h"
 #include "GameObject.h"
 #include "Log.h"
 #include "Map.h"
@@ -42,183 +40,42 @@
 
 #include <algorithm>
 #include <array>
+#include <string>
 #include <vector>
 
 namespace FSBBattleground::WarsongGulch
 {
-    constexpr uint32 FSB_WSG_MAX_TEAM_SIZE = 10;
+    std::array<std::string, 20> const SpawnChatLines = {{
+        "Hello everyone!",
+        "How is everyone today?",
+        "Ready to kick some [enemyTeam] ass?",
+        "I am gonna rest for a bit while you lot take care of the [enemyTeam].",
+        "For the [ownTeam]!!!!",
+        "Let's get this win for the [ownTeam]!",
+        "Time to show the [enemyTeam] what we're made of.",
+        "Good luck everyone, let's make the [ownTeam] proud.",
+        "I'll do my part, you do yours.",
+        "Another day, another battlefield.",
+        "Let's crush the [enemyTeam] and go home.",
+        "The [enemyTeam] won't know what hit them.",
+        "Stay focused, fight for the [ownTeam].",
+        "I'm here to help secure the victory.",
+        "No mercy for the [enemyTeam] today.",
+        "Let's work together and win this.",
+        "The [ownTeam] will prevail!",
+        "I'm ready when you are.",
+        "Don't let the [enemyTeam] get comfortable.",
+        "Victory belongs to the [ownTeam]!"
+    }};
 
-    namespace
+    std::string FormatChatLine(std::string const& line, Team botTeam)
     {
-        constexpr float FSB_WSG_JUMP_SPEED = 15.0f;
-        constexpr float FSB_WSG_JUMP_MAX_HEIGHT = 8.0f;
-        constexpr float FSB_WSG_CENTER_OFFSET_RADIUS = 8.0f;
-        constexpr float FSB_WSG_FLAG_SEARCH_RANGE = 10.0f;
-
-        struct WSGPath
-        {
-            std::array<Position, 6> points;
-            uint8 count;
-            bool hasJump;
-            Position jump;
-        };
-
-        WSGPath const AllianceExitPath1 =
-        {
-            { Position(1505.3951f, 1492.0402f, 352.3743f), Position(1455.5461f, 1493.4531f, 351.6170f), Position(1422.3452f, 1530.2088f, 340.6996f) },
-            3, true, Position(1400.0762f, 1531.7379f, 322.7053f)
-        };
-
-        WSGPath const AllianceExitPath2 =
-        {
-            { Position(1509.0966f, 1457.5687f, 350.6935f), Position(1441.1824f, 1460.2907f, 341.5768f), Position(1363.4025f, 1461.5205f, 324.7423f) },
-            3, true, Position(1350.3236f, 1461.3178f, 323.6935f)
-        };
-
-        WSGPath const HordeExitPath1 =
-        {
-            { Position(939.0695f, 1459.5577f, 344.7154f), Position(1011.6952f, 1459.5695f, 334.4982f), Position(1117.2037f, 1462.1458f, 316.4730f) },
-            3, true, Position(1131.3631f, 1460.2930f, 314.6424f)
-        };
-
-        WSGPath const HordeExitPath2 =
-        {
-            { Position(947.0158f, 1422.6073f, 345.4355f), Position(995.0747f, 1422.5394f, 345.1290f), Position(1062.1445f, 1400.8360f, 336.7558f) },
-            3, true, Position(1075.2363f, 1396.4595f, 322.2837f)
-        };
-
-        // "X Attack Path" leads toward X's base (used by the enemy of X to attack, or by X to return home).
-        WSGPath const AllianceAttackPath1 =
-        {
-            {
-                Position(1363.4025f, 1461.5205f, 324.7423f),
-                Position(1441.1824f, 1460.2907f, 341.5768f),
-                Position(1509.0966f, 1457.5687f, 350.6935f)
-            },
-            3, false, Position()
-        };
-
-        WSGPath const AllianceAttackPath2 =
-        {
-            { Position(1349.7447f, 1407.4890f, 325.2285f), Position(1372.4014f, 1379.3076f, 330.2068f), Position(1408.5594f, 1408.8072f, 344.3476f),
-              Position(1407.9438f, 1460.0124f, 348.0763f), Position(1467.9635f, 1458.8614f, 362.9517f), Position(1529.7808f, 1460.1724f, 362.7264f) },
-            6, true, Position(1527.6835f, 1471.8970f, 351.9594f)
-        };
-
-        WSGPath const HordeAttackPath1 =
-        {
-            { Position(1117.2037f, 1462.1458f, 316.4730f), Position(1011.6952f, 1459.5695f, 334.4982f), Position(939.0695f, 1459.5577f, 344.7154f) },
-            3, false, Position()
-        };
-
-        WSGPath const HordeAttackPath2 =
-        {
-            { Position(1091.7185f, 1535.4669f, 315.9850f), Position(1066.9182f, 1554.7525f, 321.3725f), Position(1042.7249f, 1530.6914f, 336.6773f),
-              Position(1057.0529f, 1455.6038f, 341.5280f), Position(985.4289f, 1458.1486f, 356.3080f), Position(927.8468f, 1457.0494f, 356.0725f) },
-            6, true, Position(925.6894f, 1445.4456f, 345.5816f)
-        };
-
-        std::array<Position, 4> const CenterPositions =
-        {
-            Position(1209.4315f, 1520.9934f, 309.0975f, 5.0f),
-            Position(1214.3841f, 1480.7662f, 307.9321f, 3.5f),
-            Position(1226.8264f, 1408.7434f, 310.8634f, 3.0f),
-            Position(1240.8289f, 1339.2724f, 312.3503f, 2.32f)
-        };
-
-        Team GetBotTeam(Creature* bot)
-        {
-            return FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
-        }
-
-        Team GetEnemyTeam(Team team)
-        {
-            return team == ALLIANCE ? HORDE : ALLIANCE;
-        }
-
-        WSGPath const& GetExitPath(Team team, WSGExitPathChoice choice)
-        {
-            if (team == ALLIANCE)
-                return choice == WSGExitPathChoice::Path1 ? AllianceExitPath1 : AllianceExitPath2;
-            return choice == WSGExitPathChoice::Path1 ? HordeExitPath1 : HordeExitPath2;
-        }
-
-        // Returns the path leading toward targetTeam's base.
-        WSGPath const& GetAttackPathTowards(Team targetTeam, WSGExitPathChoice choice)
-        {
-            if (targetTeam == ALLIANCE)
-                return choice == WSGExitPathChoice::Path1 ? AllianceAttackPath1 : AllianceAttackPath2;
-            return choice == WSGExitPathChoice::Path1 ? HordeAttackPath1 : HordeAttackPath2;
-        }
-
-        // Exit paths start at the bot's own base, except during ReturnFlag where the bot exits the enemy base.
-        Team GetExitTeam(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            Team botTeam = GetBotTeam(bot);
-            return bgData->wsgState == WSGState::ReturnFlag ? GetEnemyTeam(botTeam) : botTeam;
-        }
-
-        // Attack paths lead toward the enemy base during AttackFlag, or back home during ReturnFlag.
-        Team GetAttackTargetTeam(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            Team botTeam = GetBotTeam(bot);
-            return bgData->wsgState == WSGState::AttackFlag ? GetEnemyTeam(botTeam) : botTeam;
-        }
-
-        Position GetRandomOffsetPosition(Position const& basePos, float minRadius, float maxRadius)
-        {
-            float angle = frand(0.0f, 6.283185307f);
-            float distance = frand(minRadius, maxRadius);
-            Position offset(std::cos(angle) * distance, std::sin(angle) * distance, 0.0f, 0.0f);
-            return basePos.GetPositionWithOffset(offset);
-        }
-
-        void MoveToExitStep(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            WSGPath const& path = GetExitPath(GetExitTeam(bot, bgData), bgData->wsgExitPathChoice);
-            uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_EXIT, path.points[step]);
-        }
-
-        void MoveToAttackStep(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            WSGPath const& path = GetAttackPathTowards(GetAttackTargetTeam(bot, bgData), bgData->wsgAttackPathChoice);
-            uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step]);
-        }
-
-        void MoveToCenter(Creature* bot, FSB_BattlegroundData* bgData, bool withOffset, bool pickNew)
-        {
-            if (pickNew)
-                bgData->wsgCenterIndex = urand(0, CenterPositions.size() - 1);
-
-            Position target = CenterPositions[bgData->wsgCenterIndex];
-            if (withOffset)
-                target = GetRandomOffsetPosition(target, 0.0f, FSB_WSG_CENTER_OFFSET_RADIUS);
-
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_CENTER, target);
-        }
-
-        void MoveToFlagPoint(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            Team botTeam = GetBotTeam(bot);
-            if (bgData->wsgState == WSGState::AttackFlag)
-            {
-                Position const& enemyFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_HORDE : FSB_WSG_FLAG_ALLIANCE;
-                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_OBJECTIVE, enemyFlag);
-            }
-            else // ReturnFlag
-            {
-                Position const& ownFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_ALLIANCE : FSB_WSG_FLAG_HORDE;
-                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG, ownFlag);
-            }
-        }
-
-        bool BotHasFlagAura(Creature* bot)
-        {
-            return bot->HasAura(Spells::WarsongFlag) || bot->HasAura(Spells::SilverwingFlag)
-                || bot->HasAura(Spells::AllianceFlag) || bot->HasAura(Spells::HordeFlag);
-        }
+        std::string result = line;
+        std::string own = botTeam == ALLIANCE ? "Alliance" : "Horde";
+        std::string enemy = botTeam == ALLIANCE ? "Horde" : "Alliance";
+        FSBChatter::ReplaceAll(result, "[ownTeam]", own);
+        FSBChatter::ReplaceAll(result, "[enemyTeam]", enemy);
+        return result;
     }
 
     Position GetPositionWithOffsetForState(WSGState state, Position const& basePos)
@@ -245,6 +102,59 @@ namespace FSBBattleground::WarsongGulch
         float distance = frand(minRadius, maxRadius);
         Position offset(std::cos(angle) * distance, std::sin(angle) * distance, 0.0f, 0.0f);
         return basePos.GetPositionWithOffset(offset);
+    }
+
+    Team GetExitTeam(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        Team botTeam = GetBotTeam(bot);
+        return bgData->wsgState == WSGState::ReturnFlag ? GetEnemyTeam(botTeam) : botTeam;
+    }
+
+    Team GetAttackTargetTeam(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        Team botTeam = GetBotTeam(bot);
+        return bgData->wsgState == WSGState::AttackFlag ? GetEnemyTeam(botTeam) : botTeam;
+    }
+
+    void MoveToExitStep(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        WSGPath const& path = GetExitPath(GetExitTeam(bot, bgData), bgData->wsgExitPathChoice);
+        uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_EXIT, path.points[step]);
+    }
+
+    void MoveToAttackStep(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        WSGPath const& path = GetAttackPathTowards(GetAttackTargetTeam(bot, bgData), bgData->wsgAttackPathChoice);
+        uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step]);
+    }
+
+    void MoveToCenter(Creature* bot, FSB_BattlegroundData* bgData, bool withOffset, bool pickNew)
+    {
+        if (pickNew)
+            bgData->wsgCenterIndex = urand(0, CenterPositions.size() - 1);
+
+        Position target = CenterPositions[bgData->wsgCenterIndex];
+        if (withOffset)
+            target = GetRandomOffsetPosition(target, 0.0f, FSB_WSG_CENTER_OFFSET_RADIUS);
+
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_CENTER, target);
+    }
+
+    void MoveToFlagPoint(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        Team botTeam = GetBotTeam(bot);
+        if (bgData->wsgState == WSGState::AttackFlag)
+        {
+            Position const& enemyFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_HORDE : FSB_WSG_FLAG_ALLIANCE;
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_OBJECTIVE, enemyFlag);
+        }
+        else // ReturnFlag
+        {
+            Position const& ownFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_ALLIANCE : FSB_WSG_FLAG_HORDE;
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG, ownFlag);
+        }
     }
 
     void SpawnBots(Battleground* battleground, Player* triggeringPlayer)
@@ -357,6 +267,9 @@ namespace FSBBattleground::WarsongGulch
                 bot->SetPvP(true);
                 FSBBattleground::AddBotSpawnGuid(battleground->GetBgMap(), bot->GetGUID());
 
+                std::string spawnMsg = FormatChatLine(SpawnChatLines[urand(0, SpawnChatLines.size() - 1)], team);
+                FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_WSG_SPAWN_CHAT, 3s, 15s, FSB_ReplyType::Raid, spawnMsg, nullptr);
+
                 TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: Spawned bot {} for team {}", bot->GetEntry(), team);
             }
 
@@ -466,6 +379,10 @@ namespace FSBBattleground::WarsongGulch
         bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
         bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
 
+        Team botTeam = GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
         char const* msg = nullptr;
         switch (newState)
         {
@@ -498,7 +415,10 @@ namespace FSBBattleground::WarsongGulch
         }
 
         if (msg)
-            FSBChat::BotSendRaidChat(bot, msg);
+        {
+            std::string formatted = FormatChatLine(msg, botTeam);
+            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_WSG_STATE_CHAT, 2s, 10s, FSB_ReplyType::Raid, formatted, nullptr);
+        }
     }
 
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData)

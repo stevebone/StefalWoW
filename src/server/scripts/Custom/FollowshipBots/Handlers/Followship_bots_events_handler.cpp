@@ -35,6 +35,7 @@
 #include "Followship_bots_dungeon_deadmines.h"
 
 #include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_chat_handler.h"
 #include "Followship_bots_death_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -552,6 +553,13 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
 
         FSBChatter::PlayDummyEmote(target->ToCreature(), chatterReply);
 
+        break;
+    }
+
+    case FSB_EVENT_WSG_STATE_CHAT:
+    case FSB_EVENT_WSG_SPAWN_CHAT:
+    {
+        FSBChat::BotSendRaidChat(bot, chatterReply);
         break;
     }
 

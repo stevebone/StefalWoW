@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "Followship_bots_defines.h"
 
 namespace FSBMovement
